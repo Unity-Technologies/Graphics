@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
@@ -29,6 +30,59 @@ namespace UnityEditor.ShaderGraph.Drawing
                         m_Menu.AddItem(new GUIContent(attrs[0].m_Title), false, OnAddNode, type);
                 }
             }
+
+            m_Menu.AddSeparator("");
+            m_Menu.AddItem(new GUIContent("Convert to Property"), false, OnConvertToProperty);
+            m_Menu.AddItem(new GUIContent("Convert to Inline node"), false, OnConvertToInlineNode);
+        }
+
+        private void OnConvertToInlineNode()
+        {
+            if (m_GraphView == null)
+                return;
+
+            var slected = m_GraphView.selection.OfType<MaterialNodeView>()
+                .Select(x => x.node)
+                .OfType<PropertyNode>();
+
+            foreach (var propNode in slected)
+                propNode.ReplaceWithConcreteNode();
+        }
+
+        private void OnConvertToProperty()
+        {
+            if (m_GraphView == null)
+                return;
+
+            var graph = m_Graph as AbstractMaterialGraph;
+            if (graph == null)
+                return;
+
+            var slected = m_GraphView.selection.OfType<MaterialNodeView>().Select(x => x.node);
+
+            foreach (var node in slected.ToArray())
+            {
+                if (!(node is IPropertyFromNode))
+                    continue;
+
+                var converter = node as IPropertyFromNode;
+                var prop = converter.AsShaderProperty();
+                graph.AddShaderProperty(prop);
+
+                var propNode = new PropertyNode();
+                propNode.drawState = node.drawState;
+                graph.AddNode(propNode);
+                propNode.propertyGuid = prop.guid;
+
+                var oldSlot = node.FindSlot<MaterialSlot>(converter.outputSlotId);
+                var newSlot = propNode.FindSlot<MaterialSlot>(PropertyNode.OutputSlotId);
+
+                var edges = graph.GetEdges(oldSlot.slotReference).ToArray();
+                foreach (var edge in edges)
+                    graph.Connect(newSlot.slotReference, edge.inputSlot);
+
+                graph.RemoveNode(node);
+            }
         }
 
         void OnAddNode(object userData)
@@ -46,12 +100,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Graph.AddNode(node);
         }
 
+        private GraphView m_GraphView;
         protected override void RegisterCallbacksOnTarget()
         {
-            var graphView = target as GraphView;
-            if (graphView == null)
+            m_GraphView = target as GraphView;
+            if (m_GraphView == null)
                 return;
-            m_ContentViewContainer = graphView.contentViewContainer;
+
+            m_ContentViewContainer = m_GraphView.contentViewContainer;
             target.RegisterCallback<MouseUpEvent>(OnMouseUp);
         }
 

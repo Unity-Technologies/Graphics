@@ -21,10 +21,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         ToolbarView m_ToolbarView;
         ToolbarButtonView m_TimeButton;
         ToolbarButtonView m_CopyToClipboardButton;
-
-        ToolbarButtonView m_InlineSelectedProperties;
-        ToolbarButtonView m_ConvertToProperty;
-
+        
         PreviewManager m_PreviewManager;
 
         public Action onUpdateAssetClick { get; set; }
@@ -135,56 +132,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 ));
 
-                m_InlineSelectedProperties = new ToolbarButtonView() { text = "Inline Property Node" };
-                m_InlineSelectedProperties.AddManipulator(new Clickable(() =>
-                    {
-
-                        var slected = graphView.selection.OfType<MaterialNodeView>()
-                            .Select(x => x.node)
-                            .OfType<PropertyNode>();
-
-                        foreach (var propNode in slected)
-                            propNode.ReplaceWithConcreteNode();
-                    }
-                ));
-
-                m_ConvertToProperty = new ToolbarButtonView() { text = "Convert To Property" };
-                m_ConvertToProperty.AddManipulator(new Clickable(() =>
-                    {
-                        if (graph == null)
-                            return;
-
-                        var slected = graphView.selection.OfType<MaterialNodeView>().Select(x => x.node);
-
-                        foreach (var node in slected.ToArray())
-                        {
-                            if (!(node is IPropertyFromNode))
-                                continue;
-
-                            var converter = node as IPropertyFromNode;
-                            var prop = converter.AsShaderProperty();
-                            graph.AddShaderProperty(prop);
-
-                            var propNode = new PropertyNode();
-                            propNode.drawState = node.drawState;
-                            graph.AddNode(propNode);
-                            propNode.propertyGuid = prop.guid;
-
-                            var oldSlot = node.FindSlot<MaterialSlot>(converter.outputSlotId);
-                            var newSlot = propNode.FindSlot<MaterialSlot>(PropertyNode.OutputSlotId);
-
-                            var edges = graph.GetEdges(oldSlot.slotReference).ToArray();
-                            foreach (var edge in edges)
-                                graph.Connect(newSlot.slotReference, edge.inputSlot);
-
-                            graph.RemoveNode(node);
-                        }
-                    }
-                ));
-
                 m_ToolbarView.Add(m_CopyToClipboardButton);
-                m_ToolbarView.Add(m_InlineSelectedProperties);
-                m_ToolbarView.Add(m_ConvertToProperty);
 
                 m_ToolbarView.Add(new ToolbarSeparatorView());
             }
