@@ -6,7 +6,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input/Vector/Vector 1")]
-    public class Vector1Node : AbstractMaterialNode, IGeneratesBodyCode
+    public class Vector1Node : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
     {
         [SerializeField]
         private float m_Value;
@@ -113,5 +113,15 @@ namespace UnityEditor.ShaderGraph
                 m_Float = m_Value
             });
         }
+
+
+        public IShaderProperty AsShaderProperty()
+        {
+            var prop = new FloatShaderProperty();
+            prop.value = value;
+            return prop;
+        }
+
+        public int outputSlotId { get { return OutputSlotId; } }
     }
 }
