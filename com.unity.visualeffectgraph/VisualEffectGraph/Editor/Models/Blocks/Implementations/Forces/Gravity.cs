@@ -6,18 +6,9 @@ using UnityEngine;
 namespace UnityEditor.VFX.Block
 {
     [VFXInfo(category = "Force")]
-    class Force : VFXBlock
+    class Gravity : VFXBlock
     {
-        public enum ForceMode
-        {
-            Absolute,
-            Relative
-        }
-
-        [VFXSetting]
-        public ForceMode Mode = ForceMode.Absolute;
-
-        public override string name { get { return "Force"; } }
+        public override string name { get { return "Gravity"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdate; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
 
@@ -37,28 +28,20 @@ namespace UnityEditor.VFX.Block
             get
             {
                 yield return new VFXAttributeInfo(VFXAttribute.Velocity, VFXAttributeMode.ReadWrite);
-                yield return new VFXAttributeInfo(VFXAttribute.Mass, VFXAttributeMode.Read);
             }
         }
 
         public class InputProperties
         {
-            [Tooltip("Acceleration vector applied to particles (in squared units per second), in Relative mode the flow speed of the medium (eg: wind)")]
-            public Vector3 Force = new Vector3(1.0f, 0.0f, 0.0f);
+            [Tooltip("Gravity Force applied to Particle Velocity")]
+            public Vector3 GravityVector = new Vector3(0.0f, -9.81f, 0.0f);
         }
 
         public override string source
         {
             get
             {
-                string forceVector = "0.0";
-                switch (Mode)
-                {
-                    case ForceMode.Absolute: forceVector = "Force"; break;
-                    case ForceMode.Relative: forceVector = "(Force - velocity)"; break;
-                }
-
-                return "velocity += max(-velocity,(" + forceVector + " / mass) * deltaTime);";
+                return "velocity += GravityVector * deltaTime;";
             }
         }
     }
