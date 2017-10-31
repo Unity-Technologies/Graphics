@@ -210,9 +210,12 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #endif
     surfaceData.perceptualSmoothness *= ADD_IDX(lerp(0.1,0.6,_Smoothness));
 #ifdef _DETAIL_MAP_IDX
-    surfaceData.perceptualSmoothness *= 2.0 * saturate(detailSmoothness * ADD_IDX(_DetailSmoothnessScale));
+    // Use overlay blend mode for detail abledo: (base < 0.5 ? (2.0 * base * blend) : (1.0 - 2.0 * (1.0 - base) * (1.0 - blend)))
+    float smoothnessOverlay = (detailSmoothness < 0.5) ?
+                                surfaceData.perceptualSmoothness * PositivePow(2.0 * detailSmoothness, ADD_IDX(_DetailSmoothnessScale)) :
+                                1.0 - (1.0 - surfaceData.perceptualSmoothness) * PositivePow(2.0 * (1.0 - detailSmoothness), ADD_IDX(_DetailSmoothnessScale));
+    surfaceData.perceptualSmoothness = saturate(smoothnessOverlay);
 #endif
-
     // MaskMap is RGBA: Metallic, Ambient Occlusion (Optional), emissive Mask (Optional), Smoothness
 #ifdef _MASKMAP_IDX
     surfaceData.ambientOcclusion = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).g;
@@ -239,9 +242,9 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
 #endif
 
-    surfaceData.anisotropy = 1.0;
+    surfaceData.anisotropy = 0.8;
 
-    surfaceData.specular = 0.04;
+    surfaceData.specular = 1;
 
     surfaceData.subsurfaceProfile = _SubsurfaceProfile;
     surfaceData.subsurfaceRadius  = _SubsurfaceRadius;

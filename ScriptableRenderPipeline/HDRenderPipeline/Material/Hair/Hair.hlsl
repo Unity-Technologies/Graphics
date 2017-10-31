@@ -26,8 +26,8 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     bsdfData.normalWS = surfaceData.normalWS;
 
     //NOTE: On Hair UI side, we use slider for roughness. So not necesarry to invert.
-    bsdfData.perceptualRoughness = lerp(0.4,1.5,surfaceData.perceptualSmoothness);//PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
-    bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
+    bsdfData.perceptualRoughness = surfaceData.ambientOcclusion;//PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
+    bsdfData.roughness = PerceptualRoughnessToRoughness(lerp(0.4,1.5,surfaceData.perceptualSmoothness));
 
     bsdfData.fresnel0 = 0.04;
 
@@ -116,6 +116,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     float invLenLV = rsqrt(abs(2 + 2 * LdotV));    // invLenLV = rcp(length(L + V))
     float NdotH    = saturate((NdotL + NdotV) * invLenLV);
     float LdotH    = saturate(invLenLV + invLenLV * LdotV);
+    float invVdotL = saturate(dot(V,-L));
 
     //float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
 
@@ -132,16 +133,15 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     // For anisotropy we must not saturate these values
 
 
-    float3 transL=L+bsdfData.normalWS*0.3;
-	  // TODO: Do comparison between this correct version and the one from isotropic and see if there is any visual difference
+    // TODO: Do comparison between this correct version and the one from isotropic and see if there is any visual difference
 
     float3 hairSpec1 =	0.5*_PrimarySpecular*KajiyaKaySpecular(H, V, bsdfData.normalWS, B1, _PrimarySpecularShift, 0.5*bsdfData.roughness)*lerp(1,_SpecularTint,0.3);
 	float3 hairSpec2 =	_SecondarySpecular*KajiyaKaySpecular(H, V, bsdfData.normalWS, B2, _SecondarySpecularShift, bsdfData.roughness)*lerp(bsdfData.diffuseColor,_SpecularTint,0.5);	
-    specularLighting = 0.15*bsdfData.specularOcclusion*(hairSpec1 + hairSpec2);
+    specularLighting = 0.15*bsdfData.perceptualRoughness*(hairSpec1 + hairSpec2);
 	specularLighting *= (bsdfData.isFrontFace ? 1.0 : 0.0); //Disable backfacing specular for now. Look into having a flipped normal entirely.
-	float scatterFresnel = 3*dot(V,-transL)*dot(V,-transL)*dot(V,-transL)*dot(V,-transL)*dot(V,-transL)*dot(V,-transL)*dot(V,-transL)*dot(V,-transL)*dot(V,-transL)*(1.0 - NdotV)*(1.0 - NdotL)+ 0.5*(1-NdotV)*(1-NdotV)*(1-NdotV)*(1-NdotV)*(1-NdotV)*(1-NdotV)*(1-NdotV)*(1-NdotV)*(1-NdotV);
-	float transAmount = _Scatter*scatterFresnel;
-	float3 transColor = 2*saturate(transAmount * float3(1, 0.6, 0.26)*bsdfData.specularOcclusion*bsdfData.specularOcclusion);
+	float scatterFresnel = 30*pow(invVdotL,9)*(1.0 - NdotV)*(1.0 - NdotL)+ 5*pow((1-NdotV),9);
+    float scatterAmount = _Scatter*scatterFresnel;
+	float3 transColor = 2*saturate(scatterAmount * float3(1, 0.6, 0.26)*bsdfData.specularOcclusion*bsdfData.specularOcclusion);
     float  diffuseTerm = Lambert();
     diffuseLighting = bsdfData.diffuseColor * diffuseTerm+transColor;
 }
