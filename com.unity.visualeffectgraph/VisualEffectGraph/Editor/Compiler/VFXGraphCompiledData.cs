@@ -435,6 +435,14 @@ namespace UnityEditor.VFX
                     contextToCompiledData.Add(context, new VFXContextCompiledData());
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generate mappings", 4 / nbSteps);
+                foreach (var context in models.OfType<VFXContext>())
+                {
+                    uint contextId = (uint)context.GetParent().GetIndex(context);
+                    var cpuMapper = m_ExpressionGraph.BuildCPUMapper(context);
+                    var contextData = contextToCompiledData[context];
+                    contextData.cpuMapper = cpuMapper;
+                    contextToCompiledData[context] = contextData;
+                }
 
                 var exposedParameterDescs = new List<VFXExposedDesc>();
                 FillExposedDescs(exposedParameterDescs, m_ExpressionGraph, models);
