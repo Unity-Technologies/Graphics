@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
         Degrees
     };
     [Title("UV/Rotate")]
-    public class UVRotatorNode : CodeFunctionNode
+    public class RotateNode : CodeFunctionNode
     {
 
         [SerializeField]
@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public UVRotatorNode()
+        public RotateNode()
         {
             name = "Rotate";
         }
@@ -42,12 +42,12 @@ namespace UnityEditor.ShaderGraph
         protected override MethodInfo GetFunctionToConvert()
         {
             if(m_constant == Unit.Radians)
-                return GetType().GetMethod("Unity_UVRotator_Radians", BindingFlags.Static | BindingFlags.NonPublic);
+                return GetType().GetMethod("Unity_Rotate_Radians", BindingFlags.Static | BindingFlags.NonPublic);
             else
-                return GetType().GetMethod("Unity_UVRotator_Degrees", BindingFlags.Static | BindingFlags.NonPublic);
+                return GetType().GetMethod("Unity_Rotate_Degrees", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_UVRotator_Radians(
+        static string Unity_Rotate_Radians(
             [Slot(0, Binding.MeshUV0)] Vector2 UV,
             [Slot(1, Binding.None, 0.5f, 0.5f, 0.5f, 0.5f)] Vector2 Center,
             [Slot(2, Binding.None)] Vector1 Rotation,
@@ -64,7 +64,6 @@ namespace UnityEditor.ShaderGraph
     {precision} s = sin(Rotation);
     {precision} c = cos(Rotation);
 
-
     //center rotation matrix
     {precision}2x2 rMatrix = float2x2(c, -s, s, c);
     rMatrix *= 0.5;
@@ -79,7 +78,7 @@ namespace UnityEditor.ShaderGraph
 }";
         }
 
-        static string Unity_UVRotator_Degrees(
+        static string Unity_Rotate_Degrees(
             [Slot(0, Binding.MeshUV0)] Vector2 UV,
             [Slot(1, Binding.None, 0.5f, 0.5f, 0.5f, 0.5f)] Vector2 Center,
             [Slot(2, Binding.None)] Vector1 Rotation,
@@ -90,12 +89,10 @@ namespace UnityEditor.ShaderGraph
             return @"
 {
     //rotation matrix
-
     Rotation = Rotation * (3.1415926f/180.0f);
     UV -= Center;
     {precision} s = sin(Rotation);
     {precision} c = cos(Rotation);
-
 
     //center rotation matrix
     {precision}2x2 rMatrix = float2x2(c, -s, s, c);

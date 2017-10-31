@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
+    /*
     [Title("UV/Spherize 3D")]
     public class SphericalIndentationNode : CodeFunctionNode 
     {
@@ -49,4 +50,5 @@ namespace UnityEditor.ShaderGraph
 }";
         }
     }
+    */
 }

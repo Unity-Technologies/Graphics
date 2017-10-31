@@ -5,22 +5,22 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("UV/Twirl")]
-    public class TwistNode : CodeFunctionNode
+    public class TwirlNode : CodeFunctionNode
     {
-        public TwistNode()
+        public TwirlNode()
         {
             name = "Twirl";
         }
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_Twist", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_Twirl", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_Twist(
+        static string Unity_Twirl(
             [Slot(0, Binding.MeshUV0)] Vector2 UV,
             [Slot(1, Binding.None, 0.5f, 0.5f, 0.5f, 0.5f)] Vector2 Center,
-            [Slot(2, Binding.None, 1f, 1f, 1f, 1f)] Vector1 Strength,
+            [Slot(2, Binding.None, 0f, 0f, 0f, 0f)] Vector1 Strength,
             [Slot(3, Binding.None)] Vector2 Offset,
             [Slot(4, Binding.None)] out Vector2 Out)
         {
@@ -29,8 +29,6 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-
-
     float2 delta = UV - Center;
     {precision} angle = Strength * length(delta);
     {precision} x = cos(angle) * delta.x - sin(angle) * delta.y;
