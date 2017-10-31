@@ -490,6 +490,18 @@ float LinearEyeDepth(float2 positionSS, float depthRaw, float4 invProjParam)
     return -viewSpaceZ;
 }
 
+// The view-space Z position 'z' is assumed to lie between near and far planes.
+float EncodeLogarithmicDepth(float z, float4 encodingParams)
+{
+    return saturate(log2(z * encodingParams.z) * encodingParams.w);
+}
+
+// The encoded depth 'd' is assumed to lie in the [0, 1] range.
+float DecodeLogarithmicDepth(float d, float4 encodingParams)
+{
+    return encodingParams.x * exp2(d * encodingParams.y);
+}
+
 struct PositionInputs
 {
     // Normalize screen position (offset by 0.5)
