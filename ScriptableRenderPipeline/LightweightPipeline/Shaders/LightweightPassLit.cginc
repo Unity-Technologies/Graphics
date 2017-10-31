@@ -19,6 +19,7 @@ half _Metallic;
 sampler2D _MetallicGlossMap;
 half4 _SpecColor;
 sampler2D _SpecGlossMap;
+half _BumpScale;
 sampler2D _BumpMap;
 half _OcclusionStrength;
 sampler2D _OcclusionMap;
@@ -74,7 +75,7 @@ inline half Alpha(half albedoAlpha)
 half3 Normal(float2 uv)
 {
 #if _NORMALMAP
-    return UnpackNormal(tex2D(_BumpMap, uv));
+    return UnpackNormalScale(tex2D(_BumpMap, uv), _BumpScale);
 #else
     return half3(0.0h, 0.0h, 1.0h);
 #endif

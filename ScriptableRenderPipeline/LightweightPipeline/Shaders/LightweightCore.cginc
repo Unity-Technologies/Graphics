@@ -28,6 +28,32 @@ half3 SafeNormalize(half3 inVec)
     return inVec * rsqrt(dp3);
 }
 
+half3 UnpackNormalScale(half4 packednormal, half bumpScale)
+{
+#if defined(UNITY_NO_DXT5nm)
+    half3 normal = packednormal.xyz * 2 - 1;
+#if (SHADER_TARGET >= 30)
+    // SM2.0: instruction count limitation
+    // SM2.0: normal scaler is not supported
+    normal.xy *= bumpScale;
+#endif
+    return normal;
+#else
+    // This do the trick
+    packednormal.x *= packednormal.w;
+
+    half3 normal;
+    normal.xy = (packednormal.xy * 2 - 1);
+#if (SHADER_TARGET >= 30)
+    // SM2.0: instruction count limitation
+    // SM2.0: normal scaler is not supported
+    normal.xy *= bumpScale;
+#endif
+    normal.z = sqrt(1.0 - saturate(dot(normal.xy, normal.xy)));
+    return normal;
+#endif
+}
+
 half3 EvaluateSHPerVertex(half3 normalWS)
 {
 #if defined(EVALUATE_SH_VERTEX)
