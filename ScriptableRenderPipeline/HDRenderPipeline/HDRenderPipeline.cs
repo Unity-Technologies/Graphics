@@ -526,9 +526,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_LightLoop.AllocResolutionDependentBuffers(camera.pixelWidth, camera.pixelHeight);
             }
 
-            if (resolutionChanged && m_VolumetricLightingEnabled)
-                CreateVolumetricLightingBuffers(camera.pixelWidth, camera.pixelHeight);
-
             // update recorded window resolution
             m_CurrentWidth = camera.pixelWidth;
             m_CurrentHeight = camera.pixelHeight;
@@ -561,8 +558,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalVectorArray(HDShaderIDs._ShapeParams,                sssParameters.shapeParams);
                 cmd.SetGlobalVectorArray(HDShaderIDs._HalfRcpVariancesAndWeights, sssParameters.halfRcpVariancesAndWeights);
                 cmd.SetGlobalVectorArray(HDShaderIDs._TransmissionTints,          sssParameters.transmissionTints);
-
-                SetGlobalVolumeProperties(m_VolumetricLightingEnabled, cmd);
             }
         }
 
@@ -864,9 +859,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                 RenderForward(m_CullResults, camera, renderContext, cmd, ForwardPass.Transparent);
                 RenderForwardError(m_CullResults, camera, renderContext, cmd, ForwardPass.Transparent);
-
-                // Render volumetric lighting
-                VolumetricLightingPass(hdCamera, cmd);
 
                 PushFullScreenDebugTexture(cmd, m_CameraColorBuffer, camera, renderContext, FullScreenDebugMode.NanTracker);
 
@@ -1186,7 +1178,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var depthTexture = GetDepthTexture();
 
             var options = new LightLoop.LightingPassOptions();
-            options.volumetricLightingEnabled = m_VolumetricLightingEnabled;
 
             if (m_CurrentDebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission)
             {
@@ -1690,9 +1681,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         CoreUtils.SetRenderTarget(cmd, m_HTileRT, ClearFlag.Color, Color.black);
                     }
                 }
-
-                if (m_VolumetricLightingEnabled)
-                    ClearVolumetricLightingBuffers(cmd, camera.isFirstFrame);
 
                 // TEMP: As we are in development and have not all the setup pass we still clear the color in emissive buffer and gbuffer, but this will be removed later.
 
