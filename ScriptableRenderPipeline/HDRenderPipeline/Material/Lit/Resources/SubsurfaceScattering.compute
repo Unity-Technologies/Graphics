@@ -245,9 +245,9 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
     // Arrange threads in the Morton order to optimally match the memory layout of GCN tiles.
     uint  mortonCode  = groupThreadId;
     uint2 localCoord  = DecodeMorton2D(mortonCode);
-    uint2 tileAnchor  = groupId * GROUP_SIZE_1D;
-    uint2 pixelCoord  = tileAnchor + localCoord;
-    int2  cacheAnchor = (int2)tileAnchor - TEXTURE_CACHE_BORDER;
+    uint2 groupCoord  = groupId * GROUP_SIZE_1D;
+    uint2 pixelCoord  = groupCoord + localCoord;
+    int2  cacheAnchor = (int2)groupCoord - TEXTURE_CACHE_BORDER;
     uint2 cacheCoord  = localCoord + TEXTURE_CACHE_BORDER;
     float stencilRef  = STENCILLIGHTINGUSAGE_SPLIT_LIGHTING;
 
@@ -319,7 +319,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
         }
 
         uint2  cacheCoord2  = 2 * (startQuad + quadCoord) + uint2(laneIndex & 1, (laneIndex >> 1) & 1);
-        int2   pixelCoord2  = (int2)(tileAnchor + cacheCoord2) - TEXTURE_CACHE_BORDER;
+        int2   pixelCoord2  = (int2)(groupCoord + cacheCoord2) - TEXTURE_CACHE_BORDER;
         float4 cachedValue2 = 0;
 
         [branch] if (StencilTest(pixelCoord2, stencilRef))

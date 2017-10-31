@@ -1,3 +1,7 @@
+#ifndef USE_LEGACY_UNITY_SHADER_VARIABLES
+#define VOLUMETRIC_LIGHTING_ENABLED
+#endif
+
 //-----------------------------------------------------------------------------
 // SurfaceData and BSDFData
 //-----------------------------------------------------------------------------
@@ -6,10 +10,7 @@
 #include "Lit.cs.hlsl"
 #include "SubsurfaceScatteringSettings.cs.hlsl"
 
-// Enables attenuation of light source contributions by participating media (fog).
-#define VOLUMETRIC_SHADOWING_ENABLED
-
-#ifdef VOLUMETRIC_SHADOWING_ENABLED
+#ifdef VOLUMETRIC_LIGHTING_ENABLED
     // Apparently, not all shaders include "ShaderVariables.hlsl".
     #include "../../ShaderVariables.hlsl"
     #include "../../../Core/ShaderLibrary/VolumeRendering.hlsl"
@@ -784,7 +785,7 @@ struct PreLightData
     float3 transmissionTransmittance;       // transmittance due to absorption
     float transmissionSSMipLevel;           // mip level of the screen space gaussian pyramid for rough refraction
 
-#ifdef VOLUMETRIC_SHADOWING_ENABLED
+#ifdef VOLUMETRIC_LIGHTING_ENABLED
     float    globalFogExtinction;
 #endif
 };
@@ -980,7 +981,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
         preLightData.ltcMagnitudeFresnel = bsdfData.fresnel0 * ltcGGXFresnelMagnitudeDiff + (float3)ltcGGXFresnelMagnitude;
     }
 
-#ifdef VOLUMETRIC_SHADOWING_ENABLED
+#ifdef VOLUMETRIC_LIGHTING_ENABLED
     preLightData.globalFogExtinction = _GlobalFog_Extinction;
 #endif
 
@@ -1397,7 +1398,7 @@ DirectLighting EvaluateBSDF_Punctual(   LightLoopContext lightLoopContext,
         illuminance *= shadow;
     }
 
-#ifdef VOLUMETRIC_SHADOWING_ENABLED
+#ifdef VOLUMETRIC_LIGHTING_ENABLED
     float volumetricShadow = Transmittance(OpticalDepthHomogeneous(preLightData.globalFogExtinction, dist));
 
     // Premultiply.

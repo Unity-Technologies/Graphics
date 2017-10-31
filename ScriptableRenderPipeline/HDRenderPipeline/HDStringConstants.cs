@@ -272,15 +272,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _Source4 = Shader.PropertyToID("_Source4");
         public static readonly int _Result1 = Shader.PropertyToID("_Result1");
 
-        internal static readonly int _GlobalFog_Extinction = Shader.PropertyToID("_GlobalFog_Extinction");
-        internal static readonly int _GlobalFog_Asymmetry  = Shader.PropertyToID("_GlobalFog_Asymmetry");
-        internal static readonly int _GlobalFog_Scattering = Shader.PropertyToID("_GlobalFog_Scattering");
 
-        internal static readonly int _vBufferResolution                    = Shader.PropertyToID("_vBufferResolution");
-        internal static readonly int _vBufferDepthEncodingParams           = Shader.PropertyToID("_vBufferDepthEncodingParams");
-        internal static readonly int _vBufferCoordToViewDirWS              = Shader.PropertyToID("_vBufferCoordToViewDirWS");
-        internal static readonly int _VolumetricLightingBuffer             = Shader.PropertyToID("_VolumetricLightingBuffer");
-        internal static readonly int _VolumetricLightingBufferCurrentFrame = Shader.PropertyToID("_VolumetricLightingBufferCurrentFrame");
-        internal static readonly int _VolumetricLightingBufferAccumulation = Shader.PropertyToID("_VolumetricLightingBufferAccumulation");
+        internal static readonly int _GlobalFog_Extinction       = Shader.PropertyToID("_GlobalFog_Extinction");
+        internal static readonly int _GlobalFog_Scattering       = Shader.PropertyToID("_GlobalFog_Scattering");
+        internal static readonly int _VBufferResolutionAndScale  = Shader.PropertyToID("_VBufferResolutionAndScale");
+        internal static readonly int _VBufferDepthEncodingParams = Shader.PropertyToID("_VBufferDepthEncodingParams");
+        internal static readonly int _VBufferCoordToViewDirWS    = Shader.PropertyToID("_VBufferCoordToViewDirWS");
+        internal static readonly int _VBufferDensity             = Shader.PropertyToID("_VBufferDensity");
+        internal static readonly int _VBufferLighting            = Shader.PropertyToID("_VBufferLighting");
+        internal static readonly int _VBufferLightingPrev        = Shader.PropertyToID("_VBufferLightingPrev");
     }
 }

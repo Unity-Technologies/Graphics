@@ -2169,9 +2169,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, colorBuffers[0]);
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.diffuseLightingUAV,  colorBuffers[1]);
 
-                                HDRenderPipeline.SetGlobalVolumeProperties(options.volumetricLightingEnabled, cmd, deferredComputeShader);
-
-                                // always do deferred lighting in blocks of 16x16 (not same as tiled light size)
+                                if (options.volumetricLightingEnabled)
+                                {
+                                    // TODO: enable keyword VOLUMETRIC_LIGHTING_ENABLED.
+                                    // TODO: do not use globals, call HDRenderPipeline.SetVolumetricLightingData() instead.
+                                    HDRenderPipeline.SetVolumetricLightingDataFromGlobals(cmd, deferredComputeShader, kernel);
+                                }
+                                else
+                                {
+                                    // TODO: disable keyword VOLUMETRIC_LIGHTING_ENABLED.
+                                    // We should not access any volumetric lighting data in our shaders.
+                                }
 
                                 if (enableFeatureVariants)
                                 {

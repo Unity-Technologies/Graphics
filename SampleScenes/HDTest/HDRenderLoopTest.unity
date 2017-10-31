@@ -524,6 +524,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -1322,6 +1323,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -1852,6 +1854,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -3006,6 +3009,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -3595,6 +3599,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -3719,6 +3724,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -4596,6 +4602,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -4901,6 +4908,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 16
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -5123,6 +5131,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -5285,6 +5294,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -6200,6 +6210,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -6365,6 +6376,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 16
   shapeWidth: 2
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -6717,6 +6729,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -6960,6 +6973,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -7292,6 +7306,7 @@ MonoBehaviour:
   spotLightShape: 1
   shapeLength: 4
   shapeWidth: 2
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -7741,6 +7756,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -7985,6 +8001,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -8473,6 +8490,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -8865,7 +8883,7 @@ GameObject:
   m_IsActive: 1
 --- !u!114 &1046252901
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1046252900}
@@ -8883,6 +8901,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -8940,7 +8959,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 40.735, y: -87.087006, z: -23.206001}
 --- !u!114 &1046252904
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1046252900}
@@ -8963,12 +8982,14 @@ MonoBehaviour:
   - 0.2
   - 0.2
   shadowAlgorithm: 0
-  shadowVariant: 0
+  shadowVariant: 3
   shadowPrecision: 0
   shadowData:
-    format: 0
-    data: 
-  shadowDatas: []
+    format: 3
+    data: 0bd7a33b0000803f
+  shadowDatas:
+  - format: 3
+    data: 0bd7a33b0000803f
 --- !u!1001 &1062558345
 Prefab:
   m_ObjectHideFlags: 0
@@ -9071,6 +9092,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -9315,6 +9337,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -9439,6 +9462,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 1
   shapeWidth: 1
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -9885,6 +9909,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -10009,6 +10034,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -10437,6 +10463,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -10671,6 +10698,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -11174,6 +11202,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -11298,6 +11327,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -11888,6 +11918,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -12822,6 +12853,27 @@ Transform:
   m_Father: {fileID: 657202130}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1494324908 stripped
+GameObject:
+  m_PrefabParentObject: {fileID: 100000, guid: a4ce73c115746a34ba12813555ed5d78, type: 3}
+  m_PrefabInternal: {fileID: 1145101430}
+--- !u!114 &1494324909
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1494324908}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f608e240d5376341bcef2478d231457, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  volumeParameters:
+    bounds:
+      m_Center: {x: 0, y: 0, z: 0}
+      m_Extent: {x: Infinity, y: Infinity, z: Infinity}
+    albedo: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    meanFreePath: 19.13
 --- !u!1 &1514376229
 GameObject:
   m_ObjectHideFlags: 0
@@ -13084,6 +13136,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -13208,6 +13261,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -13803,6 +13857,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 4
   shapeWidth: 2
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -14610,6 +14665,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -15601,7 +15657,9 @@ MonoBehaviour:
   m_ShowToolkit: 0
   m_ShowCustomSorter: 0
   breakBeforeColorGrading: 0
-  m_BeforeTransparentBundles: []
+  m_BeforeTransparentBundles:
+  - assemblyQualifiedName: InvertOpaque, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
   m_BeforeStackBundles:
   - assemblyQualifiedName: HalfToneOpaque, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
       PublicKeyToken=null
@@ -15884,6 +15942,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -15964,6 +16023,7 @@ MonoBehaviour:
   spotLightShape: 2
   shapeLength: 4
   shapeWidth: 2
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -16645,6 +16705,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -16771,6 +16832,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -16928,6 +16990,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -17111,6 +17174,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
@@ -17325,6 +17389,7 @@ MonoBehaviour:
   spotLightShape: 0
   shapeLength: 0
   shapeWidth: 0
+  aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
