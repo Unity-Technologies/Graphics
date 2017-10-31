@@ -39,6 +39,7 @@
 #define TEXTURECUBE_ARRAY(textureName) TextureCubeArray textureName
 #define TEXTURE3D(textureName) Texture3D textureName
 #define RW_TEXTURE2D(type, textureName) RW_Texture2D<type> textureName
+#define RW_TEXTURE3D(type, textureName) RW_Texture3D<type> textureName
 
 #define SAMPLER2D(samplerName) SamplerState samplerName
 #define SAMPLERCUBE(samplerName) SamplerState samplerName
@@ -78,6 +79,7 @@
 #define SAMPLE_TEXTURECUBE_ARRAY_LOD(textureName, samplerName, coord3, index, lod) textureName.SampleLevel(samplerName, float4(coord3, index), lod)
 #define SAMPLE_TEXTURECUBE_ARRAY_BIAS(textureName, samplerName, coord3, index, bias) textureName.SampleBias(samplerName, float4(coord3, index), bias)
 #define SAMPLE_TEXTURE3D(textureName, samplerName, coord3) textureName.Sample(samplerName, coord3)
+#define SAMPLE_TEXTURE3D_LOD(textureName, samplerName, coord3, lod) textureName.SampleLevel(samplerName, coord3, lod)
 #define SAMPLE_TEXTURE2D_SHADOW(textureName, samplerName, coord3) textureName.SampleCmpLevelZero(samplerName, (coord3).xy, (coord3).z)
 #define SAMPLE_TEXTURE2D_ARRAY_SHADOW(textureName, samplerName, coord3, index) textureName.SampleCmpLevelZero(samplerName, float3((coord3).xy, index), (coord3).z)
 #define SAMPLE_TEXTURECUBE_SHADOW(textureName, samplerName, coord4) textureName.SampleCmpLevelZero(samplerName, (coord3).xyz, (coord3).w)
