@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
@@ -7,8 +6,8 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input/Vector/Vector 3")]
-    public class Vector3Node : AbstractMaterialNode, IGeneratesBodyCode
-    {
+    public class Vector3Node : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
+    { 
         [SerializeField]
         private Vector3 m_Value;
 
@@ -78,5 +77,14 @@ namespace UnityEditor.ShaderGraph
                 m_Vector4 = m_Value
             });
         }
+
+        public IShaderProperty AsShaderProperty()
+        {
+            var prop = new Vector3ShaderProperty();
+            prop.value = value;
+            return prop;
+        }
+
+        public int outputSlotId { get { return OutputSlotId; } }
     }
 }

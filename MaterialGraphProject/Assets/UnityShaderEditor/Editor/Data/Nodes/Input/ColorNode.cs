@@ -6,7 +6,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input/Color")]
-    public class ColorNode : AbstractMaterialNode, IGeneratesBodyCode
+    public class ColorNode : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
     {
         [SerializeField]
         private Color m_Color;
@@ -80,5 +80,14 @@ namespace UnityEditor.ShaderGraph
                 m_Color = color
             });
         }
+        
+        public IShaderProperty AsShaderProperty()
+        {
+            var prop = new ColorShaderProperty();
+            prop.value = color;
+            return prop;
+        }
+
+        public int outputSlotId { get { return outputSlotId; } }
     }
 }
