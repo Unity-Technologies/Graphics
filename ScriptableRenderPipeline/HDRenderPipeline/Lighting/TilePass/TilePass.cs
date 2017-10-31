@@ -1963,7 +1963,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public struct LightingPassOptions
             {
                 public bool outputSplitLighting;
-                public bool volumetricLightingEnabled;
             }
 
             public void RenderDeferredDirectionalShadow(HDCamera hdCamera, RenderTargetIdentifier deferredShadowRT, RenderTargetIdentifier depthTexture, CommandBuffer cmd)
@@ -2168,8 +2167,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, colorBuffers[0]);
                                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.diffuseLightingUAV,  colorBuffers[1]);
-
-                                HDRenderPipeline.SetGlobalVolumeProperties(options.volumetricLightingEnabled, cmd, deferredComputeShader);
 
                                 // always do deferred lighting in blocks of 16x16 (not same as tiled light size)
 
