@@ -309,7 +309,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // When soft particles are enabled we have to copy depth to another RT so we can read and write to depth
             if (m_Asset.SupportsSoftParticles)
             {
-                RenderTargetIdentifier colorRT = (m_IsOffscreenCamera) ? m_CurrCamera.targetTexture : m_CameraColorRT;
+                RenderTargetIdentifier colorRT = (m_IsOffscreenCamera) ? BuiltinRenderTextureType.CameraTarget : m_CameraColorRT;
                 CopyTexture(cmd, m_CameraDepthRT, m_CameraCopyDepthTexture);
                 SetupRenderTargets(cmd, colorRT, m_CameraCopyDepthRT);
             }
@@ -873,7 +873,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void BeginForwardRendering(ref ScriptableRenderContext context, FrameRenderingConfiguration renderingConfig)
         {
-            RenderTargetIdentifier colorRT = (m_IsOffscreenCamera) ? new RenderTargetIdentifier(m_CurrCamera.targetTexture) : BuiltinRenderTextureType.CameraTarget;
+            RenderTargetIdentifier colorRT = BuiltinRenderTextureType.CameraTarget;
             RenderTargetIdentifier depthRT = BuiltinRenderTextureType.None;
 
             if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Stereo))
