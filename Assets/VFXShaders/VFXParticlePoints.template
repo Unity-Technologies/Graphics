@@ -17,7 +17,10 @@ Shader "Hidden/VFX/ParticlePoints"
 		#define VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)
 		
 		ByteAddressBuffer attributeBuffer;		
-		float nbMax;	
+		float nbMax;
+
+		float4x4 _NonJitteredVP;
+		float4x4 _PreviousVP;		
 		
 		#if USE_SOFT_PARTICLE
 		sampler2D_float _CameraDepthTexture;
@@ -34,7 +37,11 @@ Shader "Hidden/VFX/ParticlePoints"
 			#endif
 			#if USE_SOFT_PARTICLE
 			float4 projPos : TEXCOORD1;		
-			#endif					
+			#endif
+			#if USE_MOTION_VECTORS
+			float4 previousPos : TEXCOORD2;
+			float4 currentPos : TEXCOORD3;
+			#endif
 		};
 		
 		struct ps_output
@@ -80,6 +87,11 @@ Shader "Hidden/VFX/ParticlePoints"
 					#if USE_ALPHA_TEST
 					${VFXLoadParameter:{alphaThreshold}}
 					o.builtInInterpolants.y = alphaThreshold;
+					#endif
+					
+					#if USE_MOTION_VECTORS
+					o.previousPos = mul(_PreviousVP, float4(oldPosition,1.0f));
+					o.currentPos = mul(_NonJitteredVP, float4(position,1.0f));
 					#endif
 				}
 			}
@@ -132,7 +144,7 @@ Shader "Hidden/VFX/ParticlePoints"
 			Tags { "LightMode"="MotionVectors" }
 			
 			ZWrite Off
-			
+
 			CGPROGRAM
 			#pragma target 4.5
 			#pragma vertex vert
@@ -142,7 +154,22 @@ Shader "Hidden/VFX/ParticlePoints"
 			{
 				ps_outputMV o = (ps_outputMV)0;			
 				ModulateColor((float4)1.0f,i); // just for the alpha clipping
-				o.motion = float2(0.1f,0.1f);				
+				
+				#if USE_MOTION_VECTORS
+				float3 p0 = i.previousPos.xyz / i.previousPos.w;
+				float3 p1 = i.currentPos.xyz / i.currentPos.w;
+				
+				p0.xy = (p0.xy + 1.0f) / 2.0f;
+				p1.xy = (p1.xy + 1.0f) / 2.0f;
+
+				#if UNITY_UV_STARTS_AT_TOP
+				p0.y = 1 - p0.y;
+				p1.y = 1 - p1.y;
+				#endif
+				
+				o.motion = (p1 - p0).xy;	
+				#endif	
+				
 				return o;
 			}
 			ENDCG
