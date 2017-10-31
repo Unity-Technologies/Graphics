@@ -6,15 +6,6 @@
 #include "Lit.cs.hlsl"
 #include "SubsurfaceScatteringSettings.cs.hlsl"
 
-// Enables attenuation of light source contributions by participating media (fog).
-#define VOLUMETRIC_SHADOWING_ENABLED
-
-#ifdef VOLUMETRIC_SHADOWING_ENABLED
-    // Apparently, not all shaders include "ShaderVariables.hlsl".
-    #include "../../ShaderVariables.hlsl"
-    #include "../../../Core/ShaderLibrary/VolumeRendering.hlsl"
-#endif
-
 // Define refraction keyword helpers
 #define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
 #if HAS_REFRACTION
@@ -783,10 +774,6 @@ struct PreLightData
     float3 transmissionPositionWS;          // start of the refracted ray after exiting the shape
     float3 transmissionTransmittance;       // transmittance due to absorption
     float transmissionSSMipLevel;           // mip level of the screen space gaussian pyramid for rough refraction
-
-#ifdef VOLUMETRIC_SHADOWING_ENABLED
-    float    globalFogExtinction;
-#endif
 };
 
 // This is a refract - TODO: do we call original refract or this one, original maybe slightly more expensive, to check
@@ -979,10 +966,6 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     {
         preLightData.ltcMagnitudeFresnel = bsdfData.fresnel0 * ltcGGXFresnelMagnitudeDiff + (float3)ltcGGXFresnelMagnitude;
     }
-
-#ifdef VOLUMETRIC_SHADOWING_ENABLED
-    preLightData.globalFogExtinction = _GlobalFog_Extinction;
-#endif
 
 #ifdef REFRACTION_MODEL
     RefractionModelResult refraction = REFRACTION_MODEL(V, posInput, bsdfData);
@@ -1396,14 +1379,6 @@ DirectLighting EvaluateBSDF_Punctual(   LightLoopContext lightLoopContext,
         shadow = lerp(1.0, shadow, lightData.shadowDimmer);
         illuminance *= shadow;
     }
-
-#ifdef VOLUMETRIC_SHADOWING_ENABLED
-    float volumetricShadow = Transmittance(OpticalDepthHomogeneous(preLightData.globalFogExtinction, dist));
-
-    // Premultiply.
-    lightData.diffuseScale  *= volumetricShadow;
-    lightData.specularScale *= volumetricShadow;
-#endif
 
     // Projector lights always have a cookies, so we can perform clipping inside the if().
     [branch] if (lightData.cookieIndex >= 0)
