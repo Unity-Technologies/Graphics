@@ -8,7 +8,7 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Size")]
     class SizeOverLife : VFXBlock
     {
-        [Tooltip("How the new computed size is composed to its previous value")]
+        [Tooltip("How the new computed size is composed with its previous value")]
         [VFXSetting]
         public AttributeCompositionMode composition;
 

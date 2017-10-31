@@ -11,10 +11,10 @@ namespace UnityEditor.VFX.Block
         [Tooltip("Whether the color is applied to RGB, alpha or both")]
         [VFXSetting]
         public ColorApplicationMode mode = ColorApplicationMode.ColorAndAlpha;
-        [Tooltip("How the new computed color is composed to its previous value")]
+        [Tooltip("How the new computed color is composed with its previous value")]
         [VFXSetting]
         public AttributeCompositionMode ColorComposition = AttributeCompositionMode.Scale;
-        [Tooltip("How the new computed alpha is composed to its previous value")]
+        [Tooltip("How the new computed alpha is composed with its previous value")]
         [VFXSetting]
         public AttributeCompositionMode AlphaComposition = AttributeCompositionMode.Scale;
 
