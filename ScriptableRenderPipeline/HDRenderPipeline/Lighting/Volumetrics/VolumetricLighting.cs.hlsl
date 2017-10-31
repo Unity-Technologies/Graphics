@@ -1,5 +1,5 @@
 //
-// This file was automatically generated from Assets/SRP/ScriptableRenderPipeline/HDRenderPipeline/Lighting/Volumetrics/VolumetricLighting.cs.  Please don't edit by hand.
+// This file was automatically generated. Please don't edit by hand.
 //
 
 #ifndef VOLUMETRICLIGHTING_CS_HLSL
@@ -10,10 +10,6 @@ struct VolumeProperties
 {
     float3 scattering;
     float extinction;
-    float asymmetry;
-    float align16_0;
-    float align16_1;
-    float align16_2;
 };
 
 //
@@ -26,22 +22,6 @@ float3 GetScattering(VolumeProperties value)
 float GetExtinction(VolumeProperties value)
 {
 	return value.extinction;
-}
-float GetAsymmetry(VolumeProperties value)
-{
-	return value.asymmetry;
-}
-float GetAlign16_0(VolumeProperties value)
-{
-	return value.align16_0;
-}
-float GetAlign16_1(VolumeProperties value)
-{
-	return value.align16_1;
-}
-float GetAlign16_2(VolumeProperties value)
-{
-	return value.align16_2;
 }
 
 

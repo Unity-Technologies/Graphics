@@ -64,52 +64,50 @@ float HenyeyGreensteinPhaseFunction(float asymmetry, float LdotD)
            HenyeyGreensteinPhasePartVarying(asymmetry, LdotD);
 }
 
+// TODO: share this...
+#define PRESET_ULTRA 0
+
+#if PRESET_ULTRA
+    // E.g. for 1080p: (1920/4)x(1080/4)x(256) = 33,177,600 voxels
+    #define VBUFFER_TILE_SIZE   4
+    #define VBUFFER_SLICE_COUNT 256
+#else
+    // E.g. for 1080p: (1920/8)x(1080/8)x(128) =  4,147,200 voxels
+    #define VBUFFER_TILE_SIZE   8
+    #define VBUFFER_SLICE_COUNT 128
+#endif
+
 float4 GetInScatteredRadianceAndTransmittance(float2 positionSS, float depthVS,
-                                              float globalFogExtinction,
-                                              TEXTURE3D(vBuffer), SAMPLER3D(bilinearSampler),
-                                              float4 vBufferResolution,
-                                              float4 vBufferDepthEncodingParams,
-                                              int numSlices = 64)
+                                              TEXTURE3D(VBufferLighting), SAMPLER3D(sampler_LinearXY_PointZ_Clamp),
+                                              float4 VBufferDepthEncodingParams, float2 VBufferScale)
 {
-    int   n = numSlices;
-    float d = EncodeLogarithmicDepth(depthVS, vBufferDepthEncodingParams);
+    int   n = VBUFFER_SLICE_COUNT;
+    float z = depthVS;
+    float d = EncodeLogarithmicDepth(z, VBufferDepthEncodingParams);
 
     float slice0 = clamp(floor(d * n - 0.5), 0, n - 1); // TODO: somehow avoid the clamp...
     float slice1 = clamp( ceil(d * n - 0.5), 0, n - 1); // TODO: somehow avoid the clamp...
 
-    // We cannot simply perform trilinear interpolation since the distance between slices is Z-encoded.
+    // We cannot use hardware trilinear interpolation since the distance between slices is log-encoded.
+    // TODO: test the visual difference in practice.
     float d0 = slice0 * rcp(n) + (0.5 * rcp(n));
     float d1 = slice1 * rcp(n) + (0.5 * rcp(n));
-    float z0 = DecodeLogarithmicDepth(d0, vBufferDepthEncodingParams);
-    float z1 = DecodeLogarithmicDepth(d1, vBufferDepthEncodingParams);
-    float z  = depthVS;
+    float z0 = DecodeLogarithmicDepth(d0, VBufferDepthEncodingParams);
+    float z1 = DecodeLogarithmicDepth(d1, VBufferDepthEncodingParams);
 
-    // Scale and bias the UVs s.t.
-    // {0} in the screen space corresponds to {0.5/n} and
-    // {1} in the screen space corresponds to {1 - 0.5/n}.
-    // TODO: precompute.
-    float u = positionSS.x * (vBufferResolution.x - 1) / vBufferResolution.x + 0.5 / vBufferResolution.x;
-    float v = positionSS.y * (vBufferResolution.y - 1) / vBufferResolution.y + 0.5 / vBufferResolution.y;
+    // Account for the visible area of the VBuffer.
+    float2 uv = positionSS * VBufferScale;
 
-    // Perform 2 bilinear taps.
-    float4 v0 = SAMPLE_TEXTURE3D_LOD(vBuffer, bilinearSampler, float3(u, v, d0), 0);
-    float4 v1 = SAMPLE_TEXTURE3D_LOD(vBuffer, bilinearSampler, float3(u, v, d1), 0);
+    // Perform 2 bilinear taps. The sampler should clamp the values at the boundaries of the 3D texture.
+    float4 v0 = SAMPLE_TEXTURE3D_LOD(VBufferLighting, sampler_LinearXY_PointZ_Clamp, float3(uv, d0), 0);
+    float4 v1 = SAMPLE_TEXTURE3D_LOD(VBufferLighting, sampler_LinearXY_PointZ_Clamp, float3(uv, d1), 0);
     float4 vt = lerp(v0, v1, saturate((z - z0) / (z1 - z0)));
-
-    [flatten] if (z - z1 > 0)
-    {
-        // Our sample is beyond the far plane of the V-buffer.
-        // Apply additional global fog attenuation.
-        vt.a += OpticalDepthHomogeneous(globalFogExtinction, z - z1);
-
-        // TODO: extra in-scattering from directional and ambient lights.
-    }
 
     return float4(vt.rgb, Transmittance(vt.a));
 }
 
 // Absorption coefficient from Disney: http://blog.selfshadow.com/publications/s2015-shading-course/burley/s2015_pbs_disney_bsdf_notes.pdf
-float TransmittanceColorAtDistanceToAbsorption(float3 transmittanceColor, float atDistance)
+float3 TransmittanceColorAtDistanceToAbsorption(float3 transmittanceColor, float atDistance)
 {
     return -log(transmittanceColor + 0.00001) / max(atDistance, 0.000001);
 }

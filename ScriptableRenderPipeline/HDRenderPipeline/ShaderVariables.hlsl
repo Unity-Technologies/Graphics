@@ -188,14 +188,10 @@ CBUFFER_START(UnityPerFrame)
 
     // Volumetric lighting. Should be a struct in 'UnityPerFrame'.
     // Unfortunately, structures inside constant buffers are not supported by Unity.
-    float4 _vBufferDepthEncodingParams; // { n, log2(f/n), 1/n, 1/log2(f/n) }
-    float4 _vBufferResolution;          // { w, h, sliceCount = 64, log2(vBufferTileSize) }
     float3 _GlobalFog_Scattering;
     float  _GlobalFog_Extinction;
-    float  _GlobalFog_Asymmetry;
-    float  _GlobalFog_Align16_0;
-    float  _GlobalFog_Align16_1;
-    float  _GlobalFog_Align16_2;
+    float4 _VBufferDepthEncodingParams; // { n, log2(f/n), 1/n, 1/log2(f/n) }
+    float4 _VBufferResolutionAndScale;  // { w, h, fracVisW, fracVisH }
 CBUFFER_END
 
 // ----------------------------------------------------------------------------
