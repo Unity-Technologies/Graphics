@@ -110,7 +110,7 @@ half4 MetallicSpecGloss(float2 uv, half albedoAlpha)
 #endif
 
 #else // _METALLICSPECGLOSSMAP
-#if _SPECUALR_SETUP
+#if _SPECULAR_SETUP
     specGloss.rgb = _SpecColor.rgb;
 #else
     specGloss.rgb = _Metallic.rrr;
