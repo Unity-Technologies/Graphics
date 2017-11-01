@@ -72,8 +72,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private Vector4[] m_LightPositions = new Vector4[kMaxVisibleAdditionalLights];
         private Vector4[] m_LightColors = new Vector4[kMaxVisibleAdditionalLights];
-        private Vector4[] m_LightAttenuations = new Vector4[kMaxVisibleAdditionalLights];
+        private Vector4[] m_LightDistanceAttenuations = new Vector4[kMaxVisibleAdditionalLights];
         private Vector4[] m_LightSpotDirections = new Vector4[kMaxVisibleAdditionalLights];
+        private Vector4[] m_LightSpotAttenuations = new Vector4[kMaxVisibleAdditionalLights];
 
         private Camera m_CurrCamera = null;
 
@@ -125,20 +126,21 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             BuildShadowSettings();
 
             PerFrameBuffer._GlossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
-            PerFrameBuffer._AttenuationTexture = Shader.PropertyToID("_AttenuationTexture");
 
             // Lights are culled per-camera. Therefore we need to reset light buffers on each camera render
             PerCameraBuffer._MainLightPosition = Shader.PropertyToID("_MainLightPosition");
             PerCameraBuffer._MainLightColor = Shader.PropertyToID("_MainLightColor");
-            PerCameraBuffer._MainLightAttenuationParams = Shader.PropertyToID("_MainLightAttenuationParams");
+            PerCameraBuffer._MainLightDistanceAttenuation = Shader.PropertyToID("_MainLightDistanceAttenuation");
             PerCameraBuffer._MainLightSpotDir = Shader.PropertyToID("_MainLightSpotDir");
+            PerCameraBuffer._MainLightSpotAttenuation = Shader.PropertyToID("_MainLightSpotAttenuation");
             PerCameraBuffer._MainLightCookie = Shader.PropertyToID("_MainLightCookie");
             PerCameraBuffer._WorldToLight = Shader.PropertyToID("_WorldToLight");
             PerCameraBuffer._AdditionalLightCount = Shader.PropertyToID("_AdditionalLightCount");
             PerCameraBuffer._AdditionalLightPosition = Shader.PropertyToID("_AdditionalLightPosition");
             PerCameraBuffer._AdditionalLightColor = Shader.PropertyToID("_AdditionalLightColor");
-            PerCameraBuffer._AdditionalLightAttenuationParams = Shader.PropertyToID("_AdditionalLightAttenuationParams");
+            PerCameraBuffer._AdditionalLightDistanceAttenuation = Shader.PropertyToID("_AdditionalLightDistanceAttenuation");
             PerCameraBuffer._AdditionalLightSpotDir = Shader.PropertyToID("_AdditionalLightSpotDir");
+            PerCameraBuffer._AdditionalLightSpotAttenuation = Shader.PropertyToID("_AdditionalLightSpotAttenuation");
 
             m_ShadowMapTexture = Shader.PropertyToID("_ShadowMap");
             m_CameraColorTexture = Shader.PropertyToID("_CameraColorTexture");
@@ -537,13 +539,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return (lightIndex < totalVisibleLights && visibleLights[lightIndex].light.shadows != LightShadows.None) ? lightIndex : 0;
         }
 
-        private void InitializeLightConstants(VisibleLight[] lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightSpotDir,
-            out Vector4 lightAttenuationParams)
+        private void InitializeLightConstants(VisibleLight[] lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightDistanceAttenuation, out Vector4 lightSpotDir,
+            out Vector4 lightSpotAttenuation)
         {
             lightPos = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
             lightColor = Color.black;
-            lightAttenuationParams = new Vector4(0.0f, 1.0f, 0.0f, 0.0f);
+            lightDistanceAttenuation = new Vector4(0.0f, 1.0f, 0.0f, 0.0f);
             lightSpotDir = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
+            lightSpotAttenuation = new Vector4(0.0f, 1.0f, 0.0f, 0.0f);
 
             // When no lights are visible, main light will be set to -1.
             // In this case we initialize it to default values and return
@@ -564,10 +567,26 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             lightColor = light.finalColor;
 
-            float rangeSq = light.range * light.range;
-            float quadAtten = 0.0f;
+            // Directional Light attenuation is initialize so distance attenuation always be 1.0
             if (light.lightType != LightType.Directional)
-                quadAtten = (m_Asset.AttenuationTexture != null) ? 1.0f : 25.0f / rangeSq;
+            {
+                // Light attenuation in lightweight matches the unity vanilla one.
+                // attenuation = 1.0 / 1.0 + distanceToLightSqr * quadraticAttenuation
+                // then a smooth factor is applied to linearly fade attenuation to light range
+                // the attenuation smooth factor starts having effect at 80% of light range
+                // smoothFactor = (lightRangeSqr - distanceToLightSqr) / (lightRangeSqr - fadeStartDistanceSqr)
+                // We rewrite smoothFactor to be able to pre compute the constant terms below and apply the smooth factor
+                // with one MAD instruction
+                // smoothFactor =  distanceSqr * (1.0 / (fadeDistanceSqr - lightRangeSqr)) + (-lightRangeSqr / (fadeDistanceSqr - lightRangeSqr)
+                //                 distanceSqr *           oneOverFadeRangeSqr             +              lightRangeSqrOverFadeRangeSqr
+                float lightRangeSqr = light.range * light.range;
+                float fadeStartDistanceSqr = 0.8f * 0.8f * lightRangeSqr;
+                float fadeRangeSqr = (fadeStartDistanceSqr - lightRangeSqr);
+                float oneOverFadeRangeSqr = 1.0f / fadeRangeSqr;
+                float lightRangeSqrOverFadeRangeSqr = -lightRangeSqr / fadeRangeSqr;
+                float quadAtten = 25.0f / lightRangeSqr;
+                lightDistanceAttenuation = new Vector4(quadAtten, oneOverFadeRangeSqr, lightRangeSqrOverFadeRangeSqr, 0.0f);
+            }
 
             if (light.lightType == LightType.Spot)
             {
@@ -589,12 +608,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 float invAngleRange = 1.0f / smoothAngleRange;
                 float add = -cosOuterAngle * invAngleRange;
-                lightAttenuationParams = new Vector4(invAngleRange, add, quadAtten, rangeSq);
-            }
-            else
-            {
-                lightSpotDir = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
-                lightAttenuationParams = new Vector4(0.0f, 1.0f, quadAtten, rangeSq);
+                lightSpotAttenuation = new Vector4(invAngleRange, add, 0.0f);
             }
         }
 
@@ -603,12 +617,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // When glossy reflections are OFF in the shader we set a constant color to use as indirect specular
             SphericalHarmonicsL2 ambientSH = RenderSettings.ambientProbe;
             Vector4 glossyEnvColor = new Vector4(ambientSH[0, 0], ambientSH[1, 0], ambientSH[2, 0]) * RenderSettings.reflectionIntensity;
-
-            CommandBuffer cmd = CommandBufferPool.Get("SetupPerFrameConstants");
-            cmd.SetGlobalVector(PerFrameBuffer._GlossyEnvironmentColor, glossyEnvColor);
-            if (m_Asset.AttenuationTexture != null) cmd.SetGlobalTexture(PerFrameBuffer._AttenuationTexture, m_Asset.AttenuationTexture);
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release (cmd);
+            Shader.SetGlobalVector(PerFrameBuffer._GlossyEnvironmentColor, glossyEnvColor);
         }
 
         private void SetupShaderLightConstants(CommandBuffer cmd, VisibleLight[] lights, ref LightData lightData)
@@ -625,13 +634,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void SetupMainLightConstants(CommandBuffer cmd, VisibleLight[] lights, int lightIndex)
         {
-            Vector4 lightPos, lightColor, lightSpotDir, lightAttenuationParams;
-            InitializeLightConstants(lights, lightIndex, out lightPos, out lightColor, out lightSpotDir, out lightAttenuationParams);
+            Vector4 lightPos, lightColor, lightDistanceAttenuation, lightSpotDir, lightSpotAttenuation;
+            InitializeLightConstants(lights, lightIndex, out lightPos, out lightColor, out lightDistanceAttenuation, out lightSpotDir, out lightSpotAttenuation);
 
             cmd.SetGlobalVector(PerCameraBuffer._MainLightPosition, lightPos);
             cmd.SetGlobalColor(PerCameraBuffer._MainLightColor, lightColor);
+            cmd.SetGlobalVector(PerCameraBuffer._MainLightDistanceAttenuation, lightDistanceAttenuation);
             cmd.SetGlobalVector(PerCameraBuffer._MainLightSpotDir, lightSpotDir);
-            cmd.SetGlobalVector(PerCameraBuffer._MainLightAttenuationParams, lightAttenuationParams);
+            cmd.SetGlobalVector(PerCameraBuffer._MainLightSpotAttenuation, lightSpotAttenuation);
 
             if (lightIndex >= 0 && LightweightUtils.IsSupportedCookieType(lights[lightIndex].lightType) && lights[lightIndex].light.cookie != null)
             {
@@ -666,8 +676,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     perObjectLightIndexMap[GetLightUnsortedIndex(i)] = additionalLightIndex;
                     InitializeLightConstants(lights, i, out m_LightPositions[additionalLightIndex],
                             out m_LightColors[additionalLightIndex],
+                            out m_LightDistanceAttenuations[additionalLightIndex],
                             out m_LightSpotDirections[additionalLightIndex],
-                            out m_LightAttenuations[additionalLightIndex]);
+                            out m_LightSpotAttenuations[additionalLightIndex]);
                     additionalLightIndex++;
                 }
             }
@@ -677,8 +688,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                  lightData.totalAdditionalLightsCount, 0.0f, 0.0f));
             cmd.SetGlobalVectorArray (PerCameraBuffer._AdditionalLightPosition, m_LightPositions);
             cmd.SetGlobalVectorArray (PerCameraBuffer._AdditionalLightColor, m_LightColors);
-            cmd.SetGlobalVectorArray (PerCameraBuffer._AdditionalLightAttenuationParams, m_LightAttenuations);
+            cmd.SetGlobalVectorArray (PerCameraBuffer._AdditionalLightDistanceAttenuation, m_LightDistanceAttenuations);
             cmd.SetGlobalVectorArray (PerCameraBuffer._AdditionalLightSpotDir, m_LightSpotDirections);
+            cmd.SetGlobalVectorArray (PerCameraBuffer._AdditionalLightSpotAttenuation, m_LightSpotAttenuations);
         }
 
         private void SetupShadowShaderConstants(CommandBuffer cmd, ref VisibleLight shadowLight, int cascadeCount)
@@ -947,9 +959,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             int depthSlice = (m_IntermediateTextureArray) ? -1 : 0;
             if (depthRT != BuiltinRenderTextureType.None)
-                cmd.SetRenderTarget(colorRT, depthRT/*, 0, CubemapFace.Unknown, depthSlice*/);
+                cmd.SetRenderTarget(colorRT, depthRT, 0, CubemapFace.Unknown, depthSlice);
             else
-                cmd.SetRenderTarget(colorRT/*, 0, CubemapFace.Unknown, depthSlice*/);
+                cmd.SetRenderTarget(colorRT, 0, CubemapFace.Unknown, depthSlice);
         }
 
         private void RenderPostProcess(CommandBuffer cmd, bool opaqueOnly)
