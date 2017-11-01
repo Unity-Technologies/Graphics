@@ -86,9 +86,6 @@ namespace UnityEditor.ShaderGraph
                     case PropertyType.Matrix4:
                         slotType = SlotValueType.Matrix4;
                         break;
-                    case PropertyType.Gradient:
-                        slotType = SlotValueType.Gradient;
-                        break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }

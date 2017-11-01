@@ -5,7 +5,6 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     public enum SlotValueType
     {
-        Gradient,
         SamplerState,
         Matrix4,
         Matrix3,
@@ -20,7 +19,6 @@ namespace UnityEditor.ShaderGraph
 
     public enum ConcreteSlotValueType
     {
-        Gradient,
         SamplerState,
         Matrix4,
         Matrix3,
