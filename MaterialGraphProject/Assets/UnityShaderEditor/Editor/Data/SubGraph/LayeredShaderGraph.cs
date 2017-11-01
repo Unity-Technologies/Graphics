@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using UnityEditor;
 using UnityEngine;
 using UnityEditor.Graphing;
 
@@ -366,5 +365,10 @@ struct GraphVertexInput
             return finalShader.GetShaderString(0);
         }
 
+        public void LoadedFromDisk()
+        {
+            OnEnable();
+            ValidateGraph();
+        }
     }
 }

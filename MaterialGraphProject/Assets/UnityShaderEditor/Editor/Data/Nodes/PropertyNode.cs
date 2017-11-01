@@ -172,5 +172,66 @@ namespace UnityEditor.ShaderGraph
         {
             UpdateNode();
         }
+
+        public void ReplaceWithConcreteNode()
+        {
+            var matGraph = owner as MaterialGraph;
+            if (matGraph == null)
+                return;
+
+            var property = matGraph.properties.FirstOrDefault(x => x.guid == propertyGuid);
+            if (property != null)
+            {
+                AbstractMaterialNode node = null;
+                int slotId = -1;
+                if (property is FloatShaderProperty)
+                {
+                    var createdNode = new Vector1Node();
+                    createdNode.value = ((FloatShaderProperty) property).value;
+                    slotId = Vector1Node.OutputSlotId;
+                    node = createdNode;
+                }
+                else if (property is Vector2ShaderProperty)
+                {
+                    var createdNode = new Vector2Node();
+                    createdNode.value = ((Vector2ShaderProperty) property).value;
+                    slotId = Vector2Node.OutputSlotId;
+                    node = createdNode;
+                }
+                else if (property is Vector3ShaderProperty)
+                {
+                    var createdNode = new Vector3Node();
+                    createdNode.value = ((Vector3ShaderProperty) property).value;
+                    slotId = Vector3Node.OutputSlotId;
+                    node = createdNode;
+                }
+                else if (property is Vector4ShaderProperty)
+                {
+                    var createdNode = new Vector4Node();
+                    createdNode.value = ((Vector4ShaderProperty) property).value;
+                    slotId = Vector4Node.OutputSlotId;
+                    node = createdNode;
+                }
+                else if (property is ColorShaderProperty)
+                {
+                    var createdNode = new ColorNode();
+                    createdNode.color = ((ColorShaderProperty) property).value;
+                    slotId = ColorNode.OutputSlotId;
+                    node = createdNode;
+                }
+
+                if (node == null)
+                    return;
+
+                var slot = FindOutputSlot<MaterialSlot>(OutputSlotId);
+                node.drawState = drawState;
+                owner.AddNode(node);
+
+                foreach (var edge in owner.GetEdges(slot.slotReference).ToArray())
+                    owner.Connect(node.GetSlotReference(slotId), edge.inputSlot);
+
+                owner.RemoveNode(this);
+            }
+        }
     }
 }

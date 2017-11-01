@@ -6,12 +6,12 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input/Basic/Color")]
-    public class ColorNode : AbstractMaterialNode, IGeneratesBodyCode
+    public class ColorNode : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
     {
         [SerializeField]
         private Color m_Color;
 
-        private const int kOutputSlotId = 0;
+        public const int OutputSlotId = 0;
         private const string kOutputSlotName = "Out";
 
         public ColorNode()
@@ -22,8 +22,8 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new Vector4MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
-            RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
+            AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
+            RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
 
         [ColorControl("")]
@@ -80,5 +80,14 @@ namespace UnityEditor.ShaderGraph
                 m_Color = color
             });
         }
+        
+        public IShaderProperty AsShaderProperty()
+        {
+            var prop = new ColorShaderProperty();
+            prop.value = color;
+            return prop;
+        }
+
+        public int outputSlotId { get { return OutputSlotId; } }
     }
 }
