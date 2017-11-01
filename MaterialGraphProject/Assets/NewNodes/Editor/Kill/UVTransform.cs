@@ -5,11 +5,6 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum RotationUnit
-    {
-        Radians,
-        Degrees
-    };
     [Title("OLD/Transform")]
     public class UVTransform : CodeFunctionNode
     {

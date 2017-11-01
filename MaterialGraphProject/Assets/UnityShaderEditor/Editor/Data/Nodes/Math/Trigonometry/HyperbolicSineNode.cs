@@ -2,20 +2,20 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Trigonometry/Hyperbolic Sin")]
-    class HyperbolicSinNode : CodeFunctionNode
+    [Title("Math/Trigonometry/Hyperbolic Sine")]
+    class HyperbolicSineNode : CodeFunctionNode
     {
-        public HyperbolicSinNode()
+        public HyperbolicSineNode()
         {
-            name = "Hyperbolic Sin";
+            name = "Hyperbolic Sine";
         }
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_HyperbolicSin", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_HyperbolicSine", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_HyperbolicSin(
+        static string Unity_HyperbolicSine(
             [Slot(0, Binding.None)] DynamicDimensionVector In,
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {

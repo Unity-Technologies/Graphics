@@ -21,9 +21,6 @@ namespace UnityEditor.ShaderGraph
             return GetType().GetMethod("Unity_Gradient2D", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        //visitor.AddShaderChunk("Gradient ShaderGraph_DefaultGradient;", true);
-        //visitor.AddShaderChunk("DefaultGradient(ShaderGraph_DefaultGradient);", true);
-
         static string Unity_Gradient2D(
             [Slot(0, Binding.None)] Gradient Gradient,
             [Slot(1, Binding.None)] Vector1 Time,
@@ -69,9 +66,9 @@ namespace UnityEditor.ShaderGraph
             break;
     }
 
-    float colorPos = (Time - Gradient.colors[colorKey1].w) / (Gradient.colors[colorKey2].w - Gradient.colors[colorKey1].w);
+    float colorPos = min(1, max(0, (Time - Gradient.colors[colorKey1].w) / (Gradient.colors[colorKey2].w - Gradient.colors[colorKey1].w)));
     float3 color = lerp(Gradient.colors[colorKey1].rgb, Gradient.colors[colorKey2].rgb, colorPos);
-    float alphaPos = (Time - Gradient.alphas[alphaKey1].y) / (Gradient.alphas[alphaKey2].y - Gradient.alphas[alphaKey1].y);
+    float alphaPos = min(1, max(0, (Time - Gradient.alphas[alphaKey1].y) / (Gradient.alphas[alphaKey2].y - Gradient.alphas[alphaKey1].y)));
     float alpha = lerp(Gradient.alphas[alphaKey1].r, Gradient.alphas[alphaKey2].r, alphaPos);
     Out = float4(color, alpha);
 }

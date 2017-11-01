@@ -3,15 +3,15 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input/Geometry/Tangent")]
-    public class TangentNode : GeometryNode, IMayRequireTangent
+    [Title("Input/Geometry/Tangent Vector")]
+    public class TangentVectorNode : GeometryNode, IMayRequireTangent
     {
         public const int kOutputSlotId = 0;
         public const string kOutputSlotName = "Out";
 
-        public TangentNode()
+        public TangentVectorNode()
         {
-            name = "Tangent";
+            name = "Tangent Vector";
             UpdateNodeAfterDeserialization();
         }
 

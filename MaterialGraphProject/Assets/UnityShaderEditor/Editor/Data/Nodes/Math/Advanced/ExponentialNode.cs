@@ -5,10 +5,10 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum ExponentialType
+    public enum ExponentialBase
     {
-        Exponential,
-        Exponential2
+        BaseE,
+        Base2
     };
 
     [Title("Math/Advanced/Exponential")]
@@ -20,18 +20,18 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private ExponentialType m_ExponentialType = ExponentialType.Exponential;
+        private ExponentialBase m_ExponentialBase = ExponentialBase.BaseE;
 
-        [EnumControl("")]
-        public ExponentialType exponentialType
+        [EnumControl("Base")]
+        public ExponentialBase exponentialBase
         {
-            get { return m_ExponentialType; }
+            get { return m_ExponentialBase; }
             set
             {
-                if (m_ExponentialType == value)
+                if (m_ExponentialBase == value)
                     return;
 
-                m_ExponentialType = value;
+                m_ExponentialBase = value;
                 if (onModified != null)
                 {
                     onModified(this, ModificationScope.Graph);
@@ -39,15 +39,15 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        string GetCurrentType()
-        {
-            return System.Enum.GetName(typeof(ExponentialType), m_ExponentialType);
-        }
-
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod(string.Format("Unity_{0}", GetCurrentType()),
-                BindingFlags.Static | BindingFlags.NonPublic);
+            switch (m_ExponentialBase)
+            {
+                case ExponentialBase.Base2:
+                    return GetType().GetMethod("Unity_Exponential2", BindingFlags.Static | BindingFlags.NonPublic);
+                default:
+                    return GetType().GetMethod("Unity_Exponential", BindingFlags.Static | BindingFlags.NonPublic);
+            }
         }
 
         static string Unity_Exponential(

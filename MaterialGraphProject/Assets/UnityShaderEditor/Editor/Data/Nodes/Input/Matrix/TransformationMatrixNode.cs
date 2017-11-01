@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum CommonMatrixType
+    public enum TransformationMatrixType
     {
         ModelView,
         View,
@@ -18,23 +18,23 @@ namespace UnityEditor.ShaderGraph
         WorldToObject
     };
 
-    [Title("Input/Matrix/Common Matrix")]
-    public class MatrixCommonNode : AbstractMaterialNode
+    [Title("Input/Matrix/Transformation Matrix")]
+    public class TransformationMatrixNode : AbstractMaterialNode
     {
-        static Dictionary<CommonMatrixType, string> m_matrixList = new Dictionary<CommonMatrixType, string>
+        static Dictionary<TransformationMatrixType, string> m_matrixList = new Dictionary<TransformationMatrixType, string>
         {
-            {CommonMatrixType.ModelView, "UNITY_MATRIX_MV"},
-            {CommonMatrixType.View, "UNITY_MATRIX_V"},
-            {CommonMatrixType.Projection, "UNITY_MATRIX_P"},
-            {CommonMatrixType.ViewProjection, "UNITY_MATRIX_VP"},
-            {CommonMatrixType.TransposeModelView, "UNITY_MATRIX_T_MV"},
-            {CommonMatrixType.InverseTransposeModelView, "UNITY_MATRIX_IT_MV"},
-            {CommonMatrixType.ObjectToWorld, "unity_ObjectToWorld"},
-            {CommonMatrixType.WorldToObject, "unity_WorldToObject"},
+            {TransformationMatrixType.ModelView, "UNITY_MATRIX_MV"},
+            {TransformationMatrixType.View, "UNITY_MATRIX_V"},
+            {TransformationMatrixType.Projection, "UNITY_MATRIX_P"},
+            {TransformationMatrixType.ViewProjection, "UNITY_MATRIX_VP"},
+            {TransformationMatrixType.TransposeModelView, "UNITY_MATRIX_T_MV"},
+            {TransformationMatrixType.InverseTransposeModelView, "UNITY_MATRIX_IT_MV"},
+            {TransformationMatrixType.ObjectToWorld, "unity_ObjectToWorld"},
+            {TransformationMatrixType.WorldToObject, "unity_WorldToObject"},
         };
 
         [SerializeField]
-        private CommonMatrixType m_matrix = CommonMatrixType.ModelView;
+        private TransformationMatrixType m_matrix = TransformationMatrixType.ModelView;
 
         private const int kOutputSlotId = 0;
         private const string kOutputSlotName = "Out";
@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderGraph
         public override bool hasPreview { get { return false; } }
 
         [EnumControl("")]
-        public CommonMatrixType matrix
+        public TransformationMatrixType matrix
         {
             get { return m_matrix; }
             set
@@ -58,9 +58,9 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public MatrixCommonNode()
+        public TransformationMatrixNode()
         {
-            name = "CommonMatrix";
+            name = "Transformation Matrix";
             UpdateNodeAfterDeserialization();
         }
 

@@ -2,27 +2,27 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Trigonometry/ArcSin")]
-    public class ArcSinNode : CodeFunctionNode
+    [Title("Math/Trigonometry/Sine")]
+    class SineNode : CodeFunctionNode
     {
-        public ArcSinNode()
+        public SineNode()
         {
-            name = "ArcSin";
+            name = "Sine";
         }
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_ArcSin", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_Sine", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_ArcSin(
+        static string Unity_Sine(
             [Slot(0, Binding.None)] DynamicDimensionVector In,
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
 {
-    Out = asin(In);
+    Out = sin(In);
 }
 ";
         }

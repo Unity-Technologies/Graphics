@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph
             {
                 fullName = "UnityEngine.MaterialGraph.NormalNode"
             };
-            result[normalNode] = SerializationHelper.GetTypeSerializableAsString(typeof(NormalNode));
+            result[normalNode] = SerializationHelper.GetTypeSerializableAsString(typeof(NormalVectorNode));
 
             var worldPosNode = new SerializationHelper.TypeSerializationInfo
             {

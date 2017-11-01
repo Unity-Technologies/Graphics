@@ -5,28 +5,29 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum Unit
+    public enum RotationUnit
     {
         Radians,
         Degrees
     };
+
     [Title("UV/Rotate")]
     public class RotateNode : CodeFunctionNode
     {
 
         [SerializeField]
-        private Unit m_constant = Unit.Radians;
+        private RotationUnit m_Unit = RotationUnit.Radians;
 
-        [EnumControl("")]
-        public Unit constant
+        [EnumControl("Unit")]
+        public RotationUnit unit
         {
-            get { return m_constant; }
+            get { return m_Unit; }
             set
             {
-                if (m_constant == value)
+                if (m_Unit == value)
                     return;
 
-                m_constant = value;
+                m_Unit = value;
                 if (onModified != null)
                 {
                     onModified(this, ModificationScope.Graph);
@@ -41,7 +42,7 @@ namespace UnityEditor.ShaderGraph
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            if(m_constant == Unit.Radians)
+            if(m_Unit == RotationUnit.Radians)
                 return GetType().GetMethod("Unity_Rotate_Radians", BindingFlags.Static | BindingFlags.NonPublic);
             else
                 return GetType().GetMethod("Unity_Rotate_Degrees", BindingFlags.Static | BindingFlags.NonPublic);

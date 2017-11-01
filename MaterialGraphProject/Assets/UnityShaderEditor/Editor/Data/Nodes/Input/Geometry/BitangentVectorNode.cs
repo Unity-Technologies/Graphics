@@ -3,15 +3,15 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input/Geometry/Bitangent")]
-    public class BitangentNode : GeometryNode, IMayRequireBitangent
+    [Title("Input/Geometry/Bitangent Vector")]
+    public class BitangentVectorNode : GeometryNode, IMayRequireBitangent
     {
         public const int kOutputSlotId = 0;
         public const string kOutputSlotName = "Out";
 
-        public BitangentNode()
+        public BitangentVectorNode()
         {
-            name = "Bitangent";
+            name = "Bitangent Vector";
             UpdateNodeAfterDeserialization();
         }
 

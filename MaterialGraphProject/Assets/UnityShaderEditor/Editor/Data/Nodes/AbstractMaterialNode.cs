@@ -385,7 +385,7 @@ namespace UnityEditor.ShaderGraph
             return GetHLSLSafeName(name) + "_" + GuidEncoder.Encode(guid);
         }
 
-        public virtual string GetHLSLSafeName(string input)
+        public static string GetHLSLSafeName(string input)
         {
             char[] arr = input.ToCharArray();
             arr = Array.FindAll<char>(arr, (c => (char.IsLetterOrDigit(c))));
