@@ -125,35 +125,35 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // We importance sample the color channel with the widest scattering distance.
             float s = Mathf.Min(shapeParam.x, shapeParam.y, shapeParam.z);
 
-            // Importance sample the normalized diffusion profile for the computed value of 's'.
+            // Importance sample the normalized diffuse reflectance profile for the computed value of 's'.
             // ------------------------------------------------------------------------------------
-            // R(r, s)   = s * (Exp[-r * s] + Exp[-r * s / 3]) / (8 * Pi * r)
-            // PDF(r, s) = s * (Exp[-r * s] + Exp[-r * s / 3]) / 4
-            // CDF(r, s) = 1 - 1/4 * Exp[-r * s] - 3/4 * Exp[-r * s / 3]
+            // R[r, phi, s]   = s * (Exp[-r * s] + Exp[-r * s / 3]) / (8 * Pi * r)
+            // PDF[r, phi, s] = r * R[r, phi, s]
+            // CDF[r, s]      = 1 - 1/4 * Exp[-r * s] - 3/4 * Exp[-r * s / 3]
             // ------------------------------------------------------------------------------------
 
             // Importance sample the near field kernel.
             for (int i = 0, n = SssConstants.SSS_N_SAMPLES_NEAR_FIELD; i < n; i++)
             {
                 float p = (i + 0.5f) * (1f / n);
-                float r = KernelCdfInverse(p, s);
+                float r = DisneyProfileCdfInverse(p, s);
 
                 // N.b.: computation of normalized weights, and multiplication by the surface albedo
                 // of the actual geometry is performed at runtime (in the shader).
                 filterKernelNearField[i].x = r;
-                filterKernelNearField[i].y = 1f / KernelPdf(r, s);
+                filterKernelNearField[i].y = 1f / DisneyProfilePdf(r, s);
             }
 
             // Importance sample the far field kernel.
             for (int i = 0, n = SssConstants.SSS_N_SAMPLES_FAR_FIELD; i < n; i++)
             {
                 float p = (i + 0.5f) * (1f / n);
-                float r = KernelCdfInverse(p, s);
+                float r = DisneyProfileCdfInverse(p, s);
 
                 // N.b.: computation of normalized weights, and multiplication by the surface albedo
                 // of the actual geometry is performed at runtime (in the shader).
                 filterKernelFarField[i].x = r;
-                filterKernelFarField[i].y = 1f / KernelPdf(r, s);
+                filterKernelFarField[i].y = 1f / DisneyProfilePdf(r, s);
             }
 
             maxRadius = filterKernelFarField[SssConstants.SSS_N_SAMPLES_FAR_FIELD - 1].x;
@@ -253,40 +253,34 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
         // <<< Old SSS Model
 
-        static float KernelVal(float r, float s)
+        static float DisneyProfile(float r, float s)
         {
             return s * (Mathf.Exp(-r * s) + Mathf.Exp(-r * s * (1.0f / 3.0f))) / (8.0f * Mathf.PI * r);
         }
 
-        // Computes the value of the integrand over a disk: (2 * PI * r) * KernelVal().
-        static float KernelValCircle(float r, float s)
+        static float DisneyProfilePdf(float r, float s)
         {
-            return 0.25f * s * (Mathf.Exp(-r * s) + Mathf.Exp(-r * s * (1.0f / 3.0f)));
+            return r * DisneyProfile(r, s);
         }
 
-        static float KernelPdf(float r, float s)
-        {
-            return KernelValCircle(r, s);
-        }
-
-        static float KernelCdf(float r, float s)
+        static float DisneyProfileCdf(float r, float s)
         {
             return 1.0f - 0.25f * Mathf.Exp(-r * s) - 0.75f * Mathf.Exp(-r * s * (1.0f / 3.0f));
         }
 
-        static float KernelCdfDerivative1(float r, float s)
+        static float DisneyProfileCdfDerivative1(float r, float s)
         {
             return 0.25f * s * Mathf.Exp(-r * s) * (1.0f + Mathf.Exp(r * s * (2.0f / 3.0f)));
         }
 
-        static float KernelCdfDerivative2(float r, float s)
+        static float DisneyProfileCdfDerivative2(float r, float s)
         {
             return (-1.0f / 12.0f) * s * s * Mathf.Exp(-r * s) * (3.0f + Mathf.Exp(r * s * (2.0f / 3.0f)));
         }
 
         // The CDF is not analytically invertible, so we use Halley's Method of root finding.
         // { f(r, s, p) = CDF(r, s) - p = 0 } with the initial guess { r = (10^p - 1) / s }.
-        static float KernelCdfInverse(float p, float s)
+        static float DisneyProfileCdfInverse(float p, float s)
         {
             // Supply the initial guess.
             float r = (Mathf.Pow(10f, p) - 1f) / s;
@@ -294,9 +288,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             while (true)
             {
-                float f0 = KernelCdf(r, s) - p;
-                float f1 = KernelCdfDerivative1(r, s);
-                float f2 = KernelCdfDerivative2(r, s);
+                float f0 = DisneyProfileCdf(r, s) - p;
+                float f1 = DisneyProfileCdfDerivative1(r, s);
+                float f2 = DisneyProfileCdfDerivative2(r, s);
                 float dr = f0 / (f1 * (1f - f0 * f2 / (2f * f1 * f1)));
 
                 if (Mathf.Abs(dr) < t)
