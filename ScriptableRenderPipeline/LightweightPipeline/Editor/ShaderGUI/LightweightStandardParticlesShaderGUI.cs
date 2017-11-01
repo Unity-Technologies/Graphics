@@ -418,7 +418,6 @@ namespace UnityEditor
 
         void DoNormalMapArea(Material material)
         {
-            bool hasZWrite = (material.GetInt("_ZWrite") != 0);
             bool useLighting = (material.GetFloat("_LightingEnabled") > 0.0f);
             if (useLighting)
             {

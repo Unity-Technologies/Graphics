@@ -33,8 +33,9 @@
 #define INITIALIZE_MAIN_LIGHT(light) \
     light.pos = _MainLightPosition; \
     light.color = _MainLightColor; \
-    light.atten = _MainLightAttenuationParams; \
-    light.spotDir = _MainLightSpotDir;
+    light.distanceAttenuation = _MainLightDistanceAttenuation; \
+    light.spotDirection = _MainLightSpotDir; \
+    light.spotAttenuation = _MainLightSpotAttenuation
 
 // Indexing might have a performance hit for old mobile hardware
 #define INITIALIZE_LIGHT(light, i) \
@@ -43,8 +44,9 @@
     int lightIndex = indices[index]; \
     light.pos = _AdditionalLightPosition[lightIndex]; \
     light.color = _AdditionalLightColor[lightIndex]; \
-    light.atten = _AdditionalLightAttenuationParams[lightIndex]; \
-    light.spotDir = _AdditionalLightSpotDir[lightIndex]
+    light.distanceAttenuation = _AdditionalLightDistanceAttenuation[lightIndex]; \
+    light.spotDirection = _AdditionalLightSpotDir[lightIndex]; \
+    light.spotAttenuation = _AdditionalLightSpotAttenuation[lightIndex]
 
 CBUFFER_START(_PerObject)
 half4 unity_LightIndicesOffsetAndCount;
@@ -56,20 +58,21 @@ CBUFFER_START(_PerCamera)
 sampler2D _MainLightCookie;
 float4 _MainLightPosition;
 half4 _MainLightColor;
-float4 _MainLightAttenuationParams;
+half4 _MainLightDistanceAttenuation;
 half4 _MainLightSpotDir;
+half4 _MainLightSpotAttenuation;
 float4x4 _WorldToLight;
 
 half4 _AdditionalLightCount;
 float4 _AdditionalLightPosition[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightColor[MAX_VISIBLE_LIGHTS];
-float4 _AdditionalLightAttenuationParams[MAX_VISIBLE_LIGHTS];
+half4 _AdditionalLightDistanceAttenuation[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightSpotDir[MAX_VISIBLE_LIGHTS];
+half4 _AdditionalLightSpotAttenuation[MAX_VISIBLE_LIGHTS];
 CBUFFER_END
 
 CBUFFER_START(_PerFrame)
 half4 _GlossyEnvironmentColor;
-sampler2D _AttenuationTexture;
 CBUFFER_END
 
 // Must match Lightweigth ShaderGraph master node
@@ -89,8 +92,9 @@ struct LightInput
 {
     float4 pos;
     half4 color;
-    float4 atten;
-    half4 spotDir;
+    half4 distanceAttenuation;
+    half4 spotDirection;
+    half4 spotAttenuation;
 };
 
 struct BRDFData
@@ -240,51 +244,50 @@ half CookieAttenuation(float3 worldPos)
     return 1;
 }
 
-half SpotAttenuation(half3 spotDirection, half3 lightDirection, float4 attenuationParams)
+// Matches Unity Vanila attenuation
+half DistanceAttenuation(half3 distanceSqr, half4 distanceAttenuation)
+{
+    // We use a shared distance attenuation for additional directional and puctual lights
+    // for directional lights attenuation will be 1
+    half quadFalloff = distanceAttenuation.x;
+    half denom = distanceSqr * quadFalloff + 1.0;
+    half lightAtten = 1.0 / denom;
+
+    // We need to smoothly fade attenuation to light range. We start fading linearly at 80% of light range
+    // Therefore:
+    // fadeDistance = (0.8 * 0.8 * lightRangeSq)
+    // smoothFactor = (lightRangeSqr - distanceSqr) / (lightRangeSqr - fadeDistance)
+    // We can rewrite that to fit a MAD by doing
+    // distanceSqr * (1.0 / (fadeDistanceSqr - lightRangeSqr)) + (-lightRangeSqr / (fadeDistanceSqr - lightRangeSqr)
+    // distanceSqr *        distanceAttenuation.y            +             distanceAttenuation.z
+    half smoothFactor = saturate(distanceSqr * distanceAttenuation.y + distanceAttenuation.z);
+    return lightAtten * smoothFactor;
+}
+
+half SpotAttenuation(half3 spotDirection, half3 lightDirection, half4 spotAttenuation)
 {
     // Spot Attenuation with a linear falloff can be defined as
     // (SdotL - cosOuterAngle) / (cosInnerAngle - cosOuterAngle)
     // This can be rewritten as
     // invAngleRange = 1.0 / (cosInnerAngle - cosOuterAngle)
     // SdotL * invAngleRange + (-cosOuterAngle * invAngleRange)
+    // SdotL * spotAttenuation.x + spotAttenuation.y
+
     // If we precompute the terms in a MAD instruction
     half SdotL = dot(spotDirection, lightDirection);
-
-    // attenuationParams.x = invAngleRange
-    // attenuationParams.y = (-cosOuterAngle  invAngleRange)
-    return saturate(SdotL * attenuationParams.x + attenuationParams.y);
+    return saturate(SdotL * spotAttenuation.x + spotAttenuation.y);
 }
 
-// In per-vertex falloff there's no smooth falloff to light range. A hard cut will be noticed
-inline half ComputeVertexLightAttenuation(LightInput lightInput, half3 normal, float3 worldPos, out half3 lightDirection)
+// Attenuation smoothly decreases to light range.
+inline half ComputeLightAttenuation(LightInput lightInput, half3 normal, float3 worldPos, out half3 lightDirection)
 {
-    float4 attenuationParams = lightInput.atten;
-    float3 posToLightVec = lightInput.pos - worldPos * lightInput.pos.w;
-    float distanceSqr = max(dot(posToLightVec, posToLightVec), 0.001);
-
-    // normalized light dir
-    lightDirection = half3(posToLightVec * rsqrt(distanceSqr));
-
-    // attenuationParams.z = kQuadFallOff = (25.0) / (lightRange * lightRange)
-    // attenuationParams.w = lightRange * lightRange
-    half lightAtten = half(1.0 / (1.0 + distanceSqr * attenuationParams.z));
-    lightAtten *= SpotAttenuation(lightInput.spotDir.xyz, lightDirection, attenuationParams);
-    return lightAtten;
-}
-
-// In per-pixel falloff attenuation smoothly decreases to light range.
-inline half ComputePixelLightAttenuation(LightInput lightInput, half3 normal, float3 worldPos, out half3 lightDirection)
-{
-    float4 attenuationParams = lightInput.atten;
     float3 posToLightVec = lightInput.pos.xyz - worldPos * lightInput.pos.w;
     float distanceSqr = max(dot(posToLightVec, posToLightVec), 0.001);
 
     // normalized light dir
     lightDirection = half3(posToLightVec * rsqrt(distanceSqr));
-
-    float u = (distanceSqr * attenuationParams.z) / attenuationParams.w;
-    half lightAtten = tex2D(_AttenuationTexture, float2(u, 0.0)).a;
-    lightAtten *= SpotAttenuation(lightInput.spotDir.xyz, lightDirection, attenuationParams);
+    half lightAtten = DistanceAttenuation(distanceSqr, lightInput.distanceAttenuation);
+    lightAtten *= SpotAttenuation(lightInput.spotDirection.xyz, lightDirection, lightInput.spotAttenuation);
     return lightAtten;
 }
 
@@ -295,7 +298,7 @@ inline half ComputeMainLightAttenuation(LightInput lightInput, half3 normalWS, f
     lightDirection = lightInput.pos;
     half attenuation = 1.0;
 #else
-    half attenuation = ComputePixelLightAttenuation(lightInput, normalWS, positionWS, lightDirection);
+    half attenuation = ComputeLightAttenuation(lightInput, normalWS, positionWS, lightDirection);
 #endif
 
     // Cookies and shadows are only computed for main light
@@ -317,7 +320,7 @@ half3 VertexLighting(float positionWS, half3 normalWS)
         INITIALIZE_LIGHT(light, lightIter);
 
         half3 lightDirection;
-        half atten = ComputeVertexLightAttenuation(light, normalWS, positionWS, lightDirection);
+        half atten = ComputeLightAttenuation(light, normalWS, positionWS, lightDirection);
         half lightColor = light.color * atten;
         vertexLightColor += LightingLambert(lightColor, lightDirection, normalWS);
     }
@@ -355,7 +358,7 @@ half4 LightweightFragmentPBR(float3 positionWS, half3 normalWS, half3 viewDirect
     {
         LightInput light;
         INITIALIZE_LIGHT(light, lightIter);
-        half lightAtten = ComputePixelLightAttenuation(light, normalWS, positionWS, lightDirectionWS);
+        half lightAtten = ComputeLightAttenuation(light, normalWS, positionWS, lightDirectionWS);
 
         half NdotL = saturate(dot(normalWS, lightDirectionWS));
         half3 radiance = light.color * (lightAtten * NdotL);
@@ -387,7 +390,7 @@ half4 LightweightFragmentLambert(float3 positionWS, half3 normalWS, half3 viewDi
     {
         LightInput lightData;
         INITIALIZE_LIGHT(lightData, lightIter);
-        lightAtten = ComputePixelLightAttenuation(lightData, normalWS, positionWS, lightDirection);
+        lightAtten = ComputeLightAttenuation(lightData, normalWS, positionWS, lightDirection);
         lightColor = lightData.color * lightAtten;
 
         diffuseColor += LightingLambert(lightColor, lightDirection, normalWS);
@@ -421,7 +424,7 @@ half4 LightweightFragmentBlinnPhong(float3 positionWS, half3 normalWS, half3 vie
     {
         LightInput lightData;
         INITIALIZE_LIGHT(lightData, lightIter);
-        lightAtten = ComputePixelLightAttenuation(lightData, normalWS, positionWS, lightDirection);
+        lightAtten = ComputeLightAttenuation(lightData, normalWS, positionWS, lightDirection);
         lightColor = lightData.color * lightAtten;
 
         diffuseColor += LightingLambert(lightColor, lightDirection, normalWS);
