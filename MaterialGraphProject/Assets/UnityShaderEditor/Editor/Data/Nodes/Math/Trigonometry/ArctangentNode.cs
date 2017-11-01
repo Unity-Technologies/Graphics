@@ -2,20 +2,20 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Trigonometry/ArcTan")]
-    public class ArcTanNode : CodeFunctionNode
+    [Title("Math/Trigonometry/Arctangent")]
+    public class ArctangentNode : CodeFunctionNode
     {
-        public ArcTanNode()
+        public ArctangentNode()
         {
-            name = "ArcTan";
+            name = "Arctangent";
         }
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_ArcTan", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_Arctangent", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_ArcTan(
+        static string Unity_Arctangent(
             [Slot(0, Binding.None)] DynamicDimensionVector In,
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {

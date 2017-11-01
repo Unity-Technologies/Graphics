@@ -3,15 +3,15 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input/Geometry/Normal")]
-    public class NormalNode : GeometryNode, IMayRequireNormal
+    [Title("Input/Geometry/Normal Vector")]
+    public class NormalVectorNode : GeometryNode, IMayRequireNormal
     {
         public const int kOutputSlotId = 0;
         public const string kOutputSlotName = "Out";
 
-        public NormalNode()
+        public NormalVectorNode()
         {
-            name = "Normal";
+            name = "Normal Vector";
             UpdateNodeAfterDeserialization();
         }
 

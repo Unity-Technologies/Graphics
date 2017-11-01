@@ -2,27 +2,27 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Trigonometry/ArcCos")]
-    public class ArcCosNode : CodeFunctionNode
+    [Title("Math/Trigonometry/Hyperbolic Cosine")]
+    class HyperbolicCosineNode : CodeFunctionNode
     {
-        public ArcCosNode()
+        public HyperbolicCosineNode()
         {
-            name = "ArcCos";
+            name = "Hyperbolic Cosine";
         }
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_ArcCos", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_HyperbolicCosine", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_ArcCos(
+        static string Unity_HyperbolicCosine(
             [Slot(0, Binding.None)] DynamicDimensionVector In,
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
 {
-    Out = acos(In);
+    Out = sinh(In);
 }
 ";
         }

@@ -2,20 +2,20 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Trigonometry/ArcTan2")]
-    public class ArcTan2Node : CodeFunctionNode
+    [Title("Math/Vector/Projection")]
+    public class ProjectionNode : CodeFunctionNode
     {
-        public ArcTan2Node()
+        public ProjectionNode()
         {
-            name = "ArcTan2";
+            name = "Projection";
         }
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_ArcTan2", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_Projection", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_ArcTan2(
+        static string Unity_Projection(
             [Slot(0, Binding.None)] DynamicDimensionVector A,
             [Slot(1, Binding.None)] DynamicDimensionVector B,
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
@@ -23,9 +23,8 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    Out = atan2(A, B);
-}
-";
+    Out = B * dot(A, B) / dot(B, B);
+}";
         }
     }
 }

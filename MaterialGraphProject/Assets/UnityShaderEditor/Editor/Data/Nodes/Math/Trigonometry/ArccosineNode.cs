@@ -2,27 +2,27 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Trigonometry/Tan")]
-    public class TanNode : CodeFunctionNode
+    [Title("Math/Trigonometry/Arccosine")]
+    public class ArccosineNode : CodeFunctionNode
     {
-        public TanNode()
+        public ArccosineNode()
         {
-            name = "Tan";
+            name = "Arccosine";
         }
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_Tan", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_Arccosine", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_Tan(
+        static string Unity_Arccosine(
             [Slot(0, Binding.None)] DynamicDimensionVector In,
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
 {
-    Out = tan(In);
+    Out = acos(In);
 }
 ";
         }

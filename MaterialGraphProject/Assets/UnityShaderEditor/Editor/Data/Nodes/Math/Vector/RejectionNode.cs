@@ -2,20 +2,20 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Vector/Reject")]
-    public class RejectNode : CodeFunctionNode
+    [Title("Math/Vector/Rejection")]
+    public class RejectionNode : CodeFunctionNode
     {
-        public RejectNode()
+        public RejectionNode()
         {
-            name = "Reject";
+            name = "Rejection";
         }
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_Reject", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_Rejection", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_Reject(
+        static string Unity_Rejection(
             [Slot(0, Binding.None)] DynamicDimensionVector A,
             [Slot(1, Binding.None)] DynamicDimensionVector B,
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)

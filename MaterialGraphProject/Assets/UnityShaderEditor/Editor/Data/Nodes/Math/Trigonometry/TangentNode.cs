@@ -2,27 +2,27 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Trigonometry/Cos")]
-    public class CosNode : CodeFunctionNode
+    [Title("Math/Trigonometry/Tangent")]
+    public class TangentNode : CodeFunctionNode
     {
-        public CosNode()
+        public TangentNode()
         {
-            name = "Cos";
+            name = "Tangent";
         }
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_Cos", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_Tangent", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_Cos(
+        static string Unity_Tangent(
             [Slot(0, Binding.None)] DynamicDimensionVector In,
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
 {
-    Out = cos(In);
+    Out = tan(In);
 }
 ";
         }

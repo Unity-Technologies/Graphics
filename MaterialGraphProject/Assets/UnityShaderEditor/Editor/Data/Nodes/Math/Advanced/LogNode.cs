@@ -5,11 +5,11 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum LogType
+    public enum LogBase
     {
-        Log,
-        Log2,
-        Log10
+        BaseE,
+        Base2,
+        Base10
     };
 
     [Title("Math/Advanced/Log")]
@@ -21,18 +21,18 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private LogType m_LogType = LogType.Log;
+        private LogBase m_LogBase = LogBase.BaseE;
 
-        [EnumControl("")]
-        public LogType logType
+        [EnumControl("Base")]
+        public LogBase logBase
         {
-            get { return m_LogType; }
+            get { return m_LogBase; }
             set
             {
-                if (m_LogType == value)
+                if (m_LogBase == value)
                     return;
 
-                m_LogType = value;
+                m_LogBase = value;
                 if (onModified != null)
                 {
                     onModified(this, ModificationScope.Graph);
@@ -40,15 +40,17 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        string GetCurrentType()
-        {
-            return System.Enum.GetName(typeof(LogType), m_LogType);
-        }
-
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod(string.Format("Unity_{0}", GetCurrentType()),
-                BindingFlags.Static | BindingFlags.NonPublic);
+            switch (m_LogBase)
+            {
+                case LogBase.Base2:
+                    return GetType().GetMethod("Unity_Log2", BindingFlags.Static | BindingFlags.NonPublic);
+                case LogBase.Base10:
+                    return GetType().GetMethod("Unity_Log10", BindingFlags.Static | BindingFlags.NonPublic);
+                default:
+                    return GetType().GetMethod("Unity_Log", BindingFlags.Static | BindingFlags.NonPublic);
+            }
         }
 
         static string Unity_Log(

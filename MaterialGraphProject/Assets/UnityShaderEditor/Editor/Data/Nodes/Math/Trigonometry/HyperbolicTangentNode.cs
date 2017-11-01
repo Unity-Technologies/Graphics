@@ -2,27 +2,27 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Trigonometry/Sin")]
-    class SinNode : CodeFunctionNode
+    [Title("Math/Trigonometry/Hyperbolic Tangent")]
+    class HyperbolicTangentNode : CodeFunctionNode
     {
-        public SinNode()
+        public HyperbolicTangentNode()
         {
-            name = "Sin";
+            name = "Hyperbolic Tangent";
         }
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_Sin", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_HyperbolicTangent", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_Sin(
+        static string Unity_HyperbolicTangent(
             [Slot(0, Binding.None)] DynamicDimensionVector In,
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
 {
-    Out = sin(In);
+    Out = tanh(In);
 }
 ";
         }

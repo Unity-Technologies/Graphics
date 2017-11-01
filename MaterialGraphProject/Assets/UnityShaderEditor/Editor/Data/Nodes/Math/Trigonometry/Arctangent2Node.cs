@@ -2,20 +2,20 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Vector/Project")]
-    public class ProjectNode : CodeFunctionNode
+    [Title("Math/Trigonometry/Arctangent2")]
+    public class Arctangent2Node : CodeFunctionNode
     {
-        public ProjectNode()
+        public Arctangent2Node()
         {
-            name = "Project";
+            name = "Arctangent2";
         }
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_Project", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_Arctangent2", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_Project(
+        static string Unity_Arctangent2(
             [Slot(0, Binding.None)] DynamicDimensionVector A,
             [Slot(1, Binding.None)] DynamicDimensionVector B,
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
@@ -23,8 +23,9 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    Out = B * dot(A, B) / dot(B, B);
-}";
+    Out = atan2(A, B);
+}
+";
         }
     }
 }

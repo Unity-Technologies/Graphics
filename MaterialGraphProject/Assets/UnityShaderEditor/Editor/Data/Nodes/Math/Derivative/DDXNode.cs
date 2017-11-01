@@ -47,8 +47,15 @@ namespace UnityEditor.ShaderGraph
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod(string.Format("Unity_DDX_{0}", GetCurrentPrecision()),
-                BindingFlags.Static | BindingFlags.NonPublic);
+            switch (m_PartialDerivativePrecision)
+            {
+                case PartialDerivativePrecision.Fine:
+                    return GetType().GetMethod("Unity_DDX_Fine", BindingFlags.Static | BindingFlags.NonPublic);
+                case PartialDerivativePrecision.Coarse:
+                    return GetType().GetMethod("Unity_DDX_Coarse", BindingFlags.Static | BindingFlags.NonPublic);
+                default:
+                    return GetType().GetMethod("Unity_DDX_Default", BindingFlags.Static | BindingFlags.NonPublic);
+            }
         }
 
         static string Unity_DDX_Default(
