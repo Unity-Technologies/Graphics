@@ -307,7 +307,7 @@ inline half ComputeMainLightAttenuation(LightInput lightInput, half3 normalWS, f
     return attenuation;
 }
 
-half3 VertexLighting(float positionWS, half3 normalWS)
+half3 VertexLighting(float3 positionWS, half3 normalWS)
 {
     half3 vertexLightColor = half3(0.0, 0.0, 0.0);
 
@@ -321,7 +321,7 @@ half3 VertexLighting(float positionWS, half3 normalWS)
 
         half3 lightDirection;
         half atten = ComputeLightAttenuation(light, normalWS, positionWS, lightDirection);
-        half lightColor = light.color * atten;
+        half3 lightColor = light.color * atten;
         vertexLightColor += LightingLambert(lightColor, lightDirection, normalWS);
     }
 #endif
