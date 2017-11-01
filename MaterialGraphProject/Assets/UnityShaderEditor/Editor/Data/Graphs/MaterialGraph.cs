@@ -18,10 +18,11 @@ namespace UnityEditor.ShaderGraph
             PreviewMode pmode;
             return GetShader(masterNode as AbstractMaterialNode, mode, name, out configuredTextures, out pmode);
         }
-         
-        public override void OnAfterDeserialize()
+
+        public void LoadedFromDisk()
         {
-            base.OnAfterDeserialize(); 
+            OnEnable();
+            ValidateGraph();
         }
     }
 }

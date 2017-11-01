@@ -1,6 +1,5 @@
 ﻿using UnityEngine.Experimental.UIElements;
 using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector

@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         ToolbarView m_ToolbarView;
         ToolbarButtonView m_TimeButton;
         ToolbarButtonView m_CopyToClipboardButton;
-
+        
         PreviewManager m_PreviewManager;
 
         public Action onUpdateAssetClick { get; set; }

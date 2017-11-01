@@ -75,6 +75,10 @@ namespace UnityEditor.ShaderGraph
 
         public void RemoveShaderProperty(Guid guid)
         {
+            var propertyNodes = GetNodes<PropertyNode>().Where(x => x.propertyGuid == guid).ToArray();
+            foreach (var pNode in propertyNodes)
+                pNode.ReplaceWithConcreteNode();
+
             if (m_Properties.RemoveAll(x => x.guid == guid) > 0)
                 m_RemovedProperties.Add(guid);
         }

@@ -42,8 +42,7 @@ namespace UnityEditor.ShaderGraph
                 foreach (var activeNode in nodes.OfType<AbstractMaterialNode>())
                 {
                     if (activeNode is IGeneratesBodyCode)
-                        (activeNode as IGeneratesBodyCode).GenerateNodeCode(surfaceOutputRemap,
-                            GenerationMode.ForReals);
+                        (activeNode as IGeneratesBodyCode).GenerateNodeCode(surfaceOutputRemap, GenerationMode.ForReals);
                 }
 
                 foreach (var input in GetInputSlots<MaterialSlot>())

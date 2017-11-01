@@ -3,7 +3,6 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using UnityEditor.ShaderGraph;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
