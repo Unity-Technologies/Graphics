@@ -484,7 +484,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             // If vertex lighting is enabled in the pipeline settings, then we shade the remaining visible lights per-vertex
             // up to the maximum amount of per-object lights.
-            int vertexLights = (m_Asset.SupportsVertexLight) ? kMaxPerObjectAdditionalLights - maxPixelLights - 1: 0;
+            int vertexLights = (m_Asset.SupportsVertexLight) ? kMaxPerObjectAdditionalLights + 1 - maxPixelLights : 0;
 
             lightData.mainLightIndex = SortLights(visibleLights);
             lightData.pixelAdditionalLightsCount = maxPixelLights - 1;
