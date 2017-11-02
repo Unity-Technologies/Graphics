@@ -116,7 +116,8 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     float invLenLV = rsqrt(abs(2 + 2 * LdotV));    // invLenLV = rcp(length(L + V))
     float NdotH    = saturate((NdotL + NdotV) * invLenLV);
     float LdotH    = saturate(invLenLV + invLenLV * LdotV);
-    float invVdotL = saturate(dot(V,-L));
+    float3 scatterL = L+bsdfData.normalWS*0.3;
+    float scatterInvVdotL = saturate(dot(V,-scatterL));
 
     //float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
 
@@ -139,7 +140,12 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 	float3 hairSpec2 =	_SecondarySpecular*KajiyaKaySpecular(H, V, bsdfData.normalWS, B2, _SecondarySpecularShift, bsdfData.roughness)*lerp(bsdfData.diffuseColor,_SpecularTint,0.5);	
     specularLighting = 0.15*bsdfData.perceptualRoughness*(hairSpec1 + hairSpec2);
 	specularLighting *= (bsdfData.isFrontFace ? 1.0 : 0.0); //Disable backfacing specular for now. Look into having a flipped normal entirely.
-	float scatterFresnel = 30*pow(invVdotL,9)*(1.0 - NdotV)*(1.0 - NdotL)+ 5*pow((1-NdotV),9);
+	float scatterFresnel;
+	#if defined(_HAIRSPRAYS_ON)
+	  scatterFresnel = 5*scatterInvVdotL*(1.0 - NdotV)*(1.0 - NdotL)+ 2*(1-NdotV)*(1-NdotV);
+	#else
+	  scatterFresnel = 30*pow(scatterInvVdotL,9)*(1.0 - NdotV)*(1.0 - NdotL)+ 5*pow((1-NdotV),9);
+	#endif
     float scatterAmount = _Scatter*scatterFresnel;
 	float3 transColor = 2*saturate(scatterAmount * float3(1, 0.6, 0.26)*bsdfData.specularOcclusion*bsdfData.specularOcclusion);
     float  diffuseTerm = Lambert();

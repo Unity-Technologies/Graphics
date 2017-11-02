@@ -29,7 +29,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 //Hair GUI
                 //--------------------------------------------------
-                m_MaterialEditor.ShaderProperty(hairRoughness, Styles.hairRoughnessText);
+				m_MaterialEditor.ShaderProperty(hairSprays, Styles.hairSpraysText);
+				m_MaterialEditor.ShaderProperty(hairRoughness, Styles.hairRoughnessText);
 
                 m_MaterialEditor.TexturePropertySingleLine(Styles.hairDetailMap, hairDetailMap);
                 m_MaterialEditor.TextureScaleOffsetProperty(hairDetailMap);
@@ -130,8 +131,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             material.SetInt("_CullMode", (int)UnityEngine.Rendering.CullMode.Off); //Double Side Enabled
             SetKeyword(material, "_DOUBLESIDED_ON", true);
-            SetKeyword(material, "_ALPHATEST_ON", material.GetFloat(kHairAlphaCutoffEnable) > 0.0f);
-            SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kHairDetailMap));
+			SetKeyword(material, "_HAIRSPRAYS_ON", material.GetFloat(kHairSprays) > 0.0f);
+			SetKeyword(material, "_ALPHATEST_ON", material.GetFloat(kHairAlphaCutoffEnable) > 0.0f);
+			SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kHairDetailMap));
 
         }
 

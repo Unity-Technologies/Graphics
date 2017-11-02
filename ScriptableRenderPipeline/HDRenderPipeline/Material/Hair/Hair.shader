@@ -14,7 +14,9 @@ Shader "HDRenderPipeline/ExperimentalHair"
         // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
 
         // Reminder. Color here are in linear but the UI (color picker) do the conversion sRGB to linear
-        _DiffuseColor("DiffuseColor", Color) = (1,1,1,1)
+        [ToggleOff]  _HairSprays("Hair Sprays", Float) = 0.0
+
+		_DiffuseColor("DiffuseColor", Color) = (1,1,1,1)
         _DiffuseColorMap("DiffuseColorMap", 2D) = "white" {}
 
         _Smoothness("Smoothness", Range(0.0, 1.0)) = 1.0
@@ -99,6 +101,7 @@ Shader "HDRenderPipeline/ExperimentalHair"
     #pragma shader_feature _ALPHATEST_ON
     #pragma shader_feature _DEPTHOFFSET_ON
     #pragma shader_feature _DOUBLESIDED_ON
+    #pragma shader_feature _HAIRSPRAYS_ON
 
     #pragma shader_feature _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE
