@@ -1040,11 +1040,6 @@ VFXAsset:
       data[1]: 5
       data[2]: 4
       data[3]: -1
-    m_SemanticToExpressionIndex:
-      1023540381: 12
-      2727888160: 14
-      3757863593: 13
-      1463634438: 15
     m_NeedsLocalToWorld: 0
     m_NeedsWorldToLocal: 0
   m_ExposedExpressions: []
@@ -1123,15 +1118,15 @@ VFXAsset:
     - type: 536870912
       buffers: []
       values: []
-      processor: {fileID: 7200000, guid: 8296255084d1b184f94010015611d37d, type: 3}
+      processor: {fileID: 7200000, guid: d262011738893004d86419cb4c0df682, type: 3}
     - type: 805306368
       buffers: []
       values: []
-      processor: {fileID: 7200000, guid: 51a7ff78740c7b442bc64cd6469951b1, type: 3}
+      processor: {fileID: 7200000, guid: 883388de56d46584aad4ddded2f7cf30, type: 3}
     - type: 1073741825
       buffers: []
       values: []
-      processor: {fileID: 4800000, guid: 53abf86e12e65c44daa9c65d4d7ca6b6, type: 3}
+      processor: {fileID: 4800000, guid: b3b1df58fb2df634b849162fd20984dc, type: 3}
   - type: 1
     flags: 0
     capacity: 65536
@@ -1145,11 +1140,11 @@ VFXAsset:
     - type: 536870912
       buffers: []
       values: []
-      processor: {fileID: 7200000, guid: 845f47ef981af394aa90c9df335a5a42, type: 3}
+      processor: {fileID: 7200000, guid: 7ce433045b7e892469fa553f986ea826, type: 3}
     - type: 1073741825
       buffers: []
       values: []
-      processor: {fileID: 4800000, guid: c534459741f529e4181e6e77ee51c3da, type: 3}
+      processor: {fileID: 4800000, guid: 898b54d0979a5694e94fce82dd1c21c5, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 

@@ -133,7 +133,7 @@ namespace UnityEditor.VFX
             return new VFXGPUBufferDesc()
             {
                 type = ComputeBufferType.Raw,
-                sizeInUInt32 = GetBufferSize(capacity),
+                size = GetBufferSize(capacity),
                 capacity = capacity,
                 layout = layout.ToArray()
             };
@@ -285,11 +285,11 @@ namespace UnityEditor.VFX
                 systemFlag |= VFXSystemFlag.kVFXSystemHasKill;
 
                 deadListBufferIndex = outBufferDescs.Count;
-                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, sizeInUInt32 = capacity });
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = capacity });
                 systemBufferMappings.Add(new VFXBufferMapping(deadListBufferIndex, "deadList"));
 
                 deadListCountIndex = outBufferDescs.Count;
-                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Raw, sizeInUInt32 = 1 });
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Raw, size = 1 });
                 systemBufferMappings.Add(new VFXBufferMapping(deadListCountIndex, "deadListCount"));
             }
 
