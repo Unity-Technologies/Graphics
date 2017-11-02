@@ -469,13 +469,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_SortedLightIndexMap.Clear();
 
             lightData.shadowsRendered = false;
-            if (visibleLightsCount <= 1)
-            {
-                lightData.mainLightIndex = GetMainLight(visibleLights);
-                lightData.pixelAdditionalLightsCount = 0;
-                lightData.totalAdditionalLightsCount = 0;
-                return;
-            }
 
             // We always support at least one per-pixel light, which is main light. Shade objects up to a limit of per-object
             // pixel lights defined in the pipeline settings.
@@ -486,8 +479,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // up to the maximum amount of per-object lights.
             int vertexLights = (m_Asset.SupportsVertexLight) ? kMaxPerObjectAdditionalLights + 1 - maxPixelLights : 0;
 
-            lightData.mainLightIndex = SortLights(visibleLights);
-            lightData.pixelAdditionalLightsCount = maxPixelLights - 1;
+            if (visibleLightsCount <= 1)
+                lightData.mainLightIndex = GetMainLight(visibleLights);
+            else
+                lightData.mainLightIndex = SortLights(visibleLights);
+
+            lightData.pixelAdditionalLightsCount = (lightData.mainLightIndex >= 0) ? maxPixelLights - 1 : maxPixelLights;
             lightData.totalAdditionalLightsCount = lightData.pixelAdditionalLightsCount + vertexLights;
         }
 
@@ -514,29 +511,33 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         // How main light is decided:
         // If shadows enabled, main light is always a shadow casting light. Directional has priority over local lights.
         // Otherwise directional lights have priority based on cookie support and intensity
-        // If no directional light in the scene local lights based on cookie support and distance to camera
         private int GetMainLight(VisibleLight[] visibleLights)
         {
             int totalVisibleLights = visibleLights.Length;
             bool shadowsEnabled = m_Asset.AreShadowsEnabled();
 
-            // Particle system lights have the light property as null. We sort lights so all particles lights
-            // come last. Therefore, if first light is particle light then all lights are particle lights.
-            // In this case we have no main light.
-            if (totalVisibleLights == 0 || visibleLights[0].light == null)
+            if (totalVisibleLights == 0)
                 return -1;
 
-            // If shadows are supported and the first visible light has shadows then this is main light
-            if (shadowsEnabled && visibleLights[0].light.shadows != LightShadows.None)
-                return 0;
+            int brighestDirectionalIndex = -1;
+            for (int i = 0; i < totalVisibleLights; ++i)
+            {
+                VisibleLight currLight = visibleLights[i];
 
-            // We don't have any directional shadow casting light, skip until we find the first non directional light
-            int lightIndex = 0;
-            while (lightIndex < totalVisibleLights && visibleLights[lightIndex].lightType == LightType.Directional)
-                lightIndex++;
+                // Particle system lights have the light property as null. We sort lights so all particles lights
+                // come last. Therefore, if first light is particle light then all lights are particle lights.
+                // In this case we either have no main light or already found it.
+                if (currLight.light == null)
+                    break;
 
-            // If first non-directional light has shadows we return it, otherwise we return first light
-            return (lightIndex < totalVisibleLights && visibleLights[lightIndex].light.shadows != LightShadows.None) ? lightIndex : 0;
+                if (shadowsEnabled && currLight.light.shadows != LightShadows.None && LightweightUtils.IsSupportedShadowType(currLight.lightType))
+                    return i;
+
+                if (currLight.lightType == LightType.Directional && brighestDirectionalIndex == -1)
+                    brighestDirectionalIndex = i;
+            }
+
+            return brighestDirectionalIndex;
         }
 
         private void InitializeLightConstants(VisibleLight[] lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightDistanceAttenuation, out Vector4 lightSpotDir,
@@ -982,8 +983,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private int GetLightUnsortedIndex(int index)
         {
-            Debug.Assert(index >= 0 && index < m_SortedLightIndexMap.Count, "Invalid index while accessing light index map. If you only have a single light in scene you should not try to map indices");
-            return m_SortedLightIndexMap[index];
+            return (index < m_SortedLightIndexMap.Count) ? m_SortedLightIndexMap[index] : index;
         }
 
         private void Blit(CommandBuffer cmd, FrameRenderingConfiguration renderingConfig, RenderTargetIdentifier sourceRT, RenderTargetIdentifier destRT, Material material = null)
