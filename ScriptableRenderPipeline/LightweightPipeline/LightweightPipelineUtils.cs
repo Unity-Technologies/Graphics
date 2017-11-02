@@ -16,38 +16,51 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     {
         public Camera CurrCamera { get; set; }
 
-        // Sorts on the following priority:
-        // Directionals have priority over local lights
-        // ShadowLight type
-        // Has Cookie
-        // Intensity if Directional, Distance to camera otherwise
         public int Compare(VisibleLight lhs, VisibleLight rhs)
         {
             Light lhsLight = lhs.light;
             Light rhsLight = rhs.light;
-
-            if (lhs.lightType != rhs.lightType)
-            {
-                if (lhs.lightType == LightType.Directional) return -1;
-                if (rhs.lightType == LightType.Directional) return 1;
-            }
 
             // Particle Lights have the Light reference set to null
             // They are at the end of the priority
             if (lhsLight == null) return 1;
             if (rhsLight == null) return -1;
 
-            // In the following priority: Soft, Hard, None
+            // Prioritize lights marked as important
+            if (lhsLight.renderMode != rhsLight.renderMode)
+            {
+                if (lhsLight.renderMode == LightRenderMode.ForcePixel) return -1;
+                if (rhsLight.renderMode == LightRenderMode.ForcePixel) return 1;
+            }
+
+            // Prioritize Directional Lights
+            if (lhs.lightType != rhs.lightType)
+            {
+                if (lhs.lightType == LightType.Directional) return -1;
+                if (rhs.lightType == LightType.Directional) return 1;
+            }
+
+            // Prioritize Shadows Lights Soft > Hard > None
             if (lhsLight.shadows != rhsLight.shadows)
                 return (int)rhsLight.shadows - (int)lhsLight.shadows;
 
+            // Prioritize lights with cookies
             if (lhsLight.cookie != rhsLight.cookie)
                 return (lhsLight.cookie != null) ? -1 : 1;
 
+            // If directional sort by intensity
             if (lhs.lightType == LightType.Directional)
-                return (int)(lhsLight.intensity*100.0f) - (int)(rhsLight.intensity*100.0f);
-            else
-                return (int)(SquaredDistanceToCamera(lhsLight.transform.position) - SquaredDistanceToCamera(rhsLight.transform.position));
+            {
+                return (int)(rhsLight.intensity * 100.0f) - (int)(lhsLight.intensity * 100.0f);
+            }
+
+            // Punctual lights are sorted per-object by the engine based on distance to object center + luminance
+            // Here we sort globally the light list per camera distance to fit the closest lights in the global light buffer
+            // Check MAX_VISIBLE_LIGHTS in the LightweightLighting.cginc to see the max global buffer list size
+            int lhsDistance = (int) (SquaredDistanceToCamera(lhsLight.transform.position)*100.0f);
+            int rhsDistance = (int) (SquaredDistanceToCamera(rhsLight.transform.position)*100.0f);
+            int result = lhsDistance - rhsDistance;
+            return result;
         }
 
         public float SquaredDistanceToCamera(Vector3 lightPos)
