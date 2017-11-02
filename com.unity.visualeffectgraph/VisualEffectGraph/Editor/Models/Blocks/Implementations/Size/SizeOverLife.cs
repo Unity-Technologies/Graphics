@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace UnityEditor.VFX.BlockLibrary
+namespace UnityEditor.VFX.Block
 {
     [VFXInfo(category = "Size")]
     class SizeOverLife : VFXBlock

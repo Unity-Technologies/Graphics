@@ -37,6 +37,7 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute Side                = new VFXAttribute("side", VFXValue.Constant(Vector3.right));
         public static readonly VFXAttribute Up                  = new VFXAttribute("up", VFXValue.Constant(Vector3.up));
         public static readonly VFXAttribute Alive               = new VFXAttribute("alive", VFXValue.Constant(true));
+        public static readonly VFXAttribute Mass                = new VFXAttribute("mass", VFXValue.Constant(1.0f));
 
         public static readonly VFXAttribute[] AllAttribute = VFXReflectionHelper.CollectStaticReadOnlyExpression<VFXAttribute>(typeof(VFXAttribute));
         public static readonly string[] All = AllAttribute.Select(e => e.name).ToArray();

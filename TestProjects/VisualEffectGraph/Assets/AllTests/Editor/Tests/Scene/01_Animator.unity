@@ -180,7 +180,6 @@ VFXComponent:
       m_Array: []
     m_Bool:
       m_Array: []
-  m_BakedTexture: {fileID: 0}
 --- !u!95 &178267990
 Animator:
   serializedVersion: 3
