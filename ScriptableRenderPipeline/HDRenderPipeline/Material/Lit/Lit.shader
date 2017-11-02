@@ -342,7 +342,7 @@ Shader "HDRenderPipeline/Lit"
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
-            #include "ShaderPass/LitMetaPass.hlsl"
+            #include "ShaderPass/LitSharePass.hlsl"
             #include "LitData.hlsl"
             #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
 
