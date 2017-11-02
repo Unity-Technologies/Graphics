@@ -339,15 +339,16 @@ float GetSurfaceData(FragInputs input, LayerTexCoord layerTexCoord, out SurfaceD
     float3 detailNormalTS = float3(0.0, 0.0, 0.0);
     float detailMask = 0.0;
 #ifdef _DETAIL_MAP_IDX
-    detailMask = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_DetailMask), SAMPLER_DETAILMASK_IDX, ADD_IDX(layerTexCoord.base)).g;
-    float2 detailAlbedoAndSmoothness = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_DetailMap), SAMPLER_DETAILMAP_IDX, ADD_IDX(layerTexCoord.details)).rb;
-    float detailSmoothness = detailAlbedoAndSmoothness.g;
-    surfaceData.specularOcclusion = detailAlbedoAndSmoothness.g;
+    float2 detailAoSmoothness = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_DetailMap), SAMPLER_DETAILMAP_IDX, ADD_IDX(layerTexCoord.details)).rg;
+    float detailSmoothness = detailAoSmoothness.r;
+    surfaceData.ambientOcclusion = detailSmoothness;
+    surfaceData.specularOcclusion = detailAoSmoothness.g;
     // Resample the detail map but this time for the normal map. This call should be optimize by the compiler
     // We split both call due to trilinear mapping
     detailNormalTS = SAMPLE_UVMAPPING_NORMALMAP_AG(ADD_IDX(_DetailMap), SAMPLER_DETAILMAP_IDX, ADD_IDX(layerTexCoord.details), ADD_ZERO_IDX(_DetailNormalScale));
 #else
-	surfaceData.specularOcclusion = 1;
+	surfaceData.ambientOcclusion = 1;
+    surfaceData.specularOcclusion = 1;
 #endif
 
     surfaceData.diffuseColor = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_DiffuseColorMap), ADD_ZERO_IDX(sampler_DiffuseColorMap), ADD_IDX(layerTexCoord.base)).rgb * ADD_IDX(_DiffuseColor).rgb;
@@ -364,15 +365,14 @@ float GetSurfaceData(FragInputs input, LayerTexCoord layerTexCoord, out SurfaceD
 #endif
     surfaceData.perceptualSmoothness *= ADD_IDX(_Smoothness);
 #ifdef _DETAIL_MAP_IDX
-    surfaceData.perceptualSmoothness *= 2.0 * saturate(detailSmoothness * ADD_IDX(_DetailSmoothnessScale));
+    // Use overlay blend mode for detail abledo: (base < 0.5 ? (2.0 * base * blend) : (1.0 - 2.0 * (1.0 - base) * (1.0 - blend)))
+    float smoothnessOverlay = (detailSmoothness < 0.5) ?
+                                surfaceData.perceptualSmoothness * PositivePow(2.0 * detailSmoothness, ADD_IDX(_DetailSmoothnessScale)) :
+                                1.0 - (1.0 - surfaceData.perceptualSmoothness) * PositivePow(2.0 * (1.0 - detailSmoothness), ADD_IDX(_DetailSmoothnessScale));
+    surfaceData.perceptualSmoothness = saturate(smoothnessOverlay);
 #endif
 
     // MaskMap is RGBA: Metallic, Ambient Occlusion (Optional), emissive Mask (Optional), Smoothness
-#ifdef _MASKMAP_IDX
-    surfaceData.ambientOcclusion = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).g;
-#else
-    surfaceData.ambientOcclusion = 1.0;
-#endif
 
     // TODO: think about using BC5
 #ifdef _TANGENTMAP

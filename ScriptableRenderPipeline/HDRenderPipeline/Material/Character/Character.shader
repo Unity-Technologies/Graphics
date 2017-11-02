@@ -19,6 +19,7 @@
 		//Skin
 		
 		//Hair
+		[ToggleOff]  _HairSprays("Hair Sprays", Float) = 0.0
 		_HairSpecularShift("SpecularShift", Range(0, 1)) = 0.5
 		_HairSpecularHighlight("SpecularHighlight", Color) = (1, 1, 1, 1)
 		_HairShadowStrength("ShadowStrength", Range(0, 1)) = 0.5

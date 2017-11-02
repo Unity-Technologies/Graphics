@@ -70,15 +70,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             //TODO: move
             public static GUIContent hairRoughnessText = new GUIContent("Roughness", "");
-            public static GUIContent hairDetailMap = new GUIContent("Detail Map", "");
+			public static GUIContent hairDetailMap = new GUIContent("Detail Map A(R) Scatter(G)", "");
             public static GUIContent hairPrimarySpecText = new GUIContent("Primary Spec", "");
             public static GUIContent hairSecondarySpecText = new GUIContent("Secondary Spec", "");
             public static GUIContent hairPrimarySpecShiftText = new GUIContent("Primary Spec Shift", "");
             public static GUIContent hairSecondarySpecShiftText = new GUIContent("Secondary Spec Shift", "");
             public static GUIContent hairSpecTintText = new GUIContent("Spec Tint", "");
             public static GUIContent hairScatterText = new GUIContent("Scatter", "");
-            public static GUIContent hairAlphaCutoffEnableText = new GUIContent("Alpha Cutoff Enable", "");
-            public static GUIContent hairAlphaCutoffText = new GUIContent("Alpha Cutoff", "");
+			public static GUIContent hairSpraysText = new GUIContent("Hair Sprays", "");
+			public static GUIContent hairAlphaCutoffEnableText = new GUIContent("Alpha Cutoff Enable", "");
+			public static GUIContent hairAlphaCutoffText = new GUIContent("Alpha Cutoff", "");
             public static GUIContent hairAlphaCutoffShadowText = new GUIContent("Alpha Cutoff Shadow", "");
             public static GUIContent hairTransparentDepthWriteEnableText = new GUIContent("Transparent Depth Write", "");
             public static GUIContent hairAlphaCutoffPrepass = new GUIContent("Alpha Cutoff Prepass", "");
@@ -89,7 +90,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         //----------------------------------------------------------
         //Properties
         //----------------------------------------------------------
-        protected MaterialProperty materialID = null;
+		protected MaterialProperty hairSprays = null;
+		protected const string kHairSprays = "_HairSprays";
+
+		protected MaterialProperty materialID = null;
         protected const string kMaterialID = "_CharacterMaterialID";
 
         protected MaterialProperty diffuseColor = null;
@@ -222,8 +226,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             hairSpecTint = FindProperty(kHairSpecTint, props);
             hairScatter = FindProperty(kHairScatter, props);
 
-            hairAlphaCutoffEnable = FindProperty(kHairAlphaCutoffEnable, props);
-            hairAlphaCutoff = FindProperty(kHairAlphaCutoff, props);
+			hairSprays = FindProperty(kHairSprays, props);
+			hairAlphaCutoffEnable = FindProperty(kHairAlphaCutoffEnable, props);
+			hairAlphaCutoff = FindProperty(kHairAlphaCutoff, props);
             hairAlphaCutoffShadow = FindProperty(kHairAlphaCutoffShadow, props);
             hairCutoffPrepass = FindProperty(kHairCutoffPrepass, props);
             hairTransparentDepthWriteEnable = FindProperty(kHairTransparentDepthWriteEnable, props);
