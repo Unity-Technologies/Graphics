@@ -118,37 +118,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void FillSemanticsDescs(List<VFXExpressionSemanticDesc> outExpressionSementics, VFXExpressionGraph graph, HashSet<Object> models, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
-        {
-            foreach (var context in models.OfType<VFXContext>())
-            {
-                uint contextId = (uint)context.GetParent().GetIndex(context);
-                var cpuMapper = graph.BuildCPUMapper(context);
-
-                // Add cpu mapper
-                var contextData = contextToCompiledData[context];
-                contextData.cpuMapper = cpuMapper;
-                contextToCompiledData[context] = contextData;
-
-                foreach (var exp in cpuMapper.expressions)
-                {
-                    VFXExpressionSemanticDesc desc;
-                    var mappedDataList = cpuMapper.GetData(exp);
-                    foreach (var mappedData in mappedDataList)
-                    {
-                        desc.blockID = (uint)mappedData.id;
-                        desc.contextID = contextId;
-                        int expIndex = graph.GetFlattenedIndex(exp);
-                        if (expIndex == -1)
-                            throw new Exception(string.Format("Cannot find mapped expression {0} in flattened graph", mappedData.name));
-                        desc.expressionIndex = (uint)expIndex;
-                        desc.name = mappedData.name;
-                        outExpressionSementics.Add(desc);
-                    }
-                }
-            }
-        }
-
         private static void FillExposedDescs(List<VFXExposedDesc> outExposedParameters, VFXExpressionGraph graph, HashSet<Object> models)
         {
             foreach (var parameter in models.OfType<VFXParameter>())
@@ -466,8 +435,14 @@ namespace UnityEditor.VFX
                     contextToCompiledData.Add(context, new VFXContextCompiledData());
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generate mappings", 4 / nbSteps);
-                var semanticsDescs = new List<VFXExpressionSemanticDesc>();
-                FillSemanticsDescs(semanticsDescs, m_ExpressionGraph, models, contextToCompiledData);
+                foreach (var context in models.OfType<VFXContext>())
+                {
+                    uint contextId = (uint)context.GetParent().GetIndex(context);
+                    var cpuMapper = m_ExpressionGraph.BuildCPUMapper(context);
+                    var contextData = contextToCompiledData[context];
+                    contextData.cpuMapper = cpuMapper;
+                    contextToCompiledData[context] = contextData;
+                }
 
                 var exposedParameterDescs = new List<VFXExposedDesc>();
                 FillExposedDescs(exposedParameterDescs, m_ExpressionGraph, models);
@@ -482,7 +457,6 @@ namespace UnityEditor.VFX
                 var expressionSheet = new VFXExpressionSheet();
                 expressionSheet.expressions = expressionDescs.ToArray();
                 expressionSheet.values = valueDescs.ToArray();
-                expressionSheet.semantics = semanticsDescs.ToArray();
                 expressionSheet.exposed = exposedParameterDescs.ToArray();
 
                 m_Graph.vfxAsset.ClearPropertyData();
