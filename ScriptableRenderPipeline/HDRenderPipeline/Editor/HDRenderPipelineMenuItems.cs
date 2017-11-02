@@ -178,8 +178,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                 else
                                 {
                                     mat.SetInt("_SubsurfaceProfile" + x, ivalue + 1);
-                                } 
-                                mat.SetInt("_SubsurfaceProfile" + x, ivalue + 1);
+                                }
                             }
                             EditorUtility.SetDirty(mat);
                         }
