@@ -54,8 +54,8 @@ namespace UnityEditor.VFX.Block
                 string forceVector = "0.0";
                 switch (Mode)
                 {
-                    case ForceMode.Absolute: forceVector = "Force / mass"; break;
-                    case ForceMode.Relative: forceVector = "max( -velocity, ( (Force - velocity) / mass) * deltaTime)"; break;
+                    case ForceMode.Absolute: forceVector = "(Force / mass) * deltaTime"; break;
+                    case ForceMode.Relative: forceVector = "(Force - velocity) * min(1.0f,deltaTime / mass)"; break;
                 }
 
                 return "velocity += " + forceVector + ";";
