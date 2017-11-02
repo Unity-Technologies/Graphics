@@ -765,6 +765,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
             }
 
+            // The first thing to do is to go through all lights on the CPU side and prepare light for GPU.
+            // This allow us to deal with the flexibility of shadow mask that will do a GBuffer allocation on demand (in case of deferred rendering)
+            m_LightLoop.PrepareLightsForGPU(m_ShadowSettings, m_CullResults, camera);
+
             InitAndClearBuffer(hdCamera, cmd);
 
             RenderDepthPrepass(m_CullResults, camera, renderContext, cmd);
@@ -812,7 +816,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                     }
 
-                    m_LightLoop.PrepareLightsForGPU(m_ShadowSettings, m_CullResults, camera);
                     m_LightLoop.RenderShadows(renderContext, cmd, m_CullResults);
 
                     cmd.GetTemporaryRT(m_DeferredShadowBuffer, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear, 1 , true);
@@ -970,7 +973,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                          bool                    preRefractionQueue = false)
         {
             m_SinglePassName[0] = passName;
-            RenderTransparentRenderList(cull, camera, renderContext, cmd, m_SinglePassName, 
+            RenderTransparentRenderList(cull, camera, renderContext, cmd, m_SinglePassName,
                 rendererConfiguration, stateBlock, overrideMaterial, preRefractionQueue);
         }
 
@@ -1007,8 +1010,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var filterSettings = new FilterRenderersSettings(true)
             {
-                renderQueueRange = preRefractionQueue 
-                    ? k_RenderQueue_PreRefraction 
+                renderQueueRange = preRefractionQueue
+                    ? k_RenderQueue_PreRefraction
                     : k_RenderQueue_Transparent
             };
 
@@ -1353,7 +1356,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
-                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_ForwardErrorPassNames, 0, 
+                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_ForwardErrorPassNames, 0,
                         null, m_ErrorMaterial, pass == ForwardPass.PreRefraction);
                 }
             }
