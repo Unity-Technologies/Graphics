@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
-namespace UnityEngine.Graphing
+namespace UnityEditor.Graphing
 {
     public static class SerializationHelper
     {
@@ -11,28 +13,9 @@ namespace UnityEngine.Graphing
             [SerializeField]
             public string fullName;
 
-            [SerializeField]
-            public string assemblyName;
-
             public bool IsValid()
             {
-                return !string.IsNullOrEmpty(fullName) && !string.IsNullOrEmpty(assemblyName);
-            }
-
-            public string SearchString()
-            {
-                if (!IsValid())
-                    return string.Empty;
-
-                return string.Format("{0}, {1}", fullName, assemblyName);
-            }
-
-            public string SearchStringTestable()
-            {
-                if (!IsValid())
-                    return string.Empty;
-
-                return string.Format("{0}, {1}-testable", fullName, assemblyName);
+                return !string.IsNullOrEmpty(fullName);
             }
         }
 
@@ -58,23 +41,24 @@ namespace UnityEngine.Graphing
         {
             return new TypeSerializationInfo
             {
-                fullName = type.FullName,
-                assemblyName = type.Assembly.GetName().Name
+                fullName = type.FullName
             };
         }
 
-        private static Type GetTypeFromSerializedString(TypeSerializationInfo typeInfo)
+        static Type GetTypeFromSerializedString(TypeSerializationInfo typeInfo)
         {
             if (!typeInfo.IsValid())
                 return null;
 
-            var res =  Type.GetType(typeInfo.SearchString());
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (var assembly in assemblies)
+            {
+                var type = assembly.GetType(typeInfo.fullName);
+                if (type != null)
+                    return type;
+            }
 
-            // if we are using a 'testable' dll.
-            if (res == null)
-                res = Type.GetType(typeInfo.SearchStringTestable());
-
-            return res;
+            return null;
         }
 
         public static JSONSerializedElement Serialize<T>(T item)
@@ -96,7 +80,7 @@ namespace UnityEngine.Graphing
             };
         }
 
-        private static TypeSerializationInfo DoTypeRemap(TypeSerializationInfo info, Dictionary<TypeSerializationInfo, TypeSerializationInfo> remapper)
+        static TypeSerializationInfo DoTypeRemap(TypeSerializationInfo info, Dictionary<TypeSerializationInfo, TypeSerializationInfo> remapper)
         {
             TypeSerializationInfo foundInfo;
             if (remapper.TryGetValue(info, out foundInfo))
@@ -110,13 +94,14 @@ namespace UnityEngine.Graphing
                 throw new ArgumentException(string.Format("Can not deserialize {0}, it is invalid", item));
 
             TypeSerializationInfo info = item.typeInfo;
+            info.fullName = info.fullName.Replace("UnityEngine.MaterialGraph", "UnityEditor.ShaderGraph");
+            info.fullName = info.fullName.Replace("UnityEngine.Graphing", "UnityEditor.Graphing");
             if (remapper != null)
                 info = DoTypeRemap(info, remapper);
-            info.assemblyName = "Assembly-CSharp-Editor";
 
             var type = GetTypeFromSerializedString(info);
             if (type == null)
-                throw new ArgumentException(string.Format("Can not deserialize ({0}, {1}), type is invalid", info.assemblyName, info.fullName));
+                throw new ArgumentException(string.Format("Can not deserialize ({0}), type is invalid", info.fullName));
 
             T instance;
             try

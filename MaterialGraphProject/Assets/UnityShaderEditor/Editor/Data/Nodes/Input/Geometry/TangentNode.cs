@@ -1,0 +1,34 @@
+using UnityEngine;
+using UnityEditor.Graphing;
+
+namespace UnityEditor.ShaderGraph
+{
+    [Title("Input/Geometry/Tangent")]
+    public class TangentNode : GeometryNode, IMayRequireTangent
+    {
+        public const int kOutputSlotId = 0;
+        public const string kOutputSlotName = "Tangent";
+
+        public TangentNode()
+        {
+            name = "Tangent";
+            UpdateNodeAfterDeserialization();
+        }
+
+        public sealed override void UpdateNodeAfterDeserialization()
+        {
+            AddSlot(new Vector3MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, new Vector4(0, 0, 1, 1)));
+            RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
+        }
+
+        public override string GetVariableNameForSlot(int slotId)
+        {
+            return space.ToVariableName(InterpolatorType.Tangent);
+        }
+
+        public NeededCoordinateSpace RequiresTangent()
+        {
+            return space.ToNeededCoordinateSpace();
+        }
+    }
+}

@@ -1,11 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using System;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    [Serializable]
     public abstract class DebugItemState
         : ScriptableObject
     {
@@ -72,6 +70,21 @@ namespace UnityEngine.Experimental.Rendering
 #if UNITY_EDITOR
             UnityEditor.Undo.undoRedoPerformed += OnUndoRedoPerformed;
 #endif
+            DebugMenuManager.instance.SetDebugMenuState(this);
+        }
+
+        public void OnDisable()
+        {
+            DebugMenuManager.instance.SetDebugMenuState(null);
+
+#if UNITY_EDITOR
+            UnityEditor.Undo.undoRedoPerformed -= OnUndoRedoPerformed;
+#endif
+        }
+
+        public void ReInitializeDebugItemStates()
+        {
+            CleanUp();
             // Populate item states
             DebugMenuManager dmm = DebugMenuManager.instance;
             for (int panelIdx = 0; panelIdx < dmm.panelCount; ++panelIdx)
@@ -84,30 +97,37 @@ namespace UnityEngine.Experimental.Rendering
                     if (debugItemState == null)
                     {
                         debugItemState = item.handler.CreateDebugItemState();
-                        debugItemState.hideFlags = HideFlags.DontSave;
-                        debugItemState.Initialize(item);
-                        debugItemState.SetValue(item.GetValue());
-                        AddDebugItemState(debugItemState);
+                        if (debugItemState != null)
+                        {
+                            debugItemState.hideFlags = HideFlags.DontSave;
+                            debugItemState.Initialize(item);
+                            debugItemState.SetValue(item.GetValue());
+                            AddDebugItemState(debugItemState);
+                        }
+                        else
+                        {
+                            Debug.LogWarning(String.Format("DebugItemState for item {0} of type {1} is not provided.\nDid you implement CreateDebugItemState in your custom Handler?", item.name, item.type));
+                        }
                     }
                 }
             }
 
-            DebugMenuManager.instance.SetDebugMenuState(this);
+            UpdateAllDebugItems();
         }
 
-        public void OnDisable()
+        private void CleanUp()
         {
-#if UNITY_EDITOR
-            UnityEditor.Undo.undoRedoPerformed -= OnUndoRedoPerformed;
-#endif
+            foreach (var item in m_ItemStateList)
+            {
+                Object.DestroyImmediate(item);
+            }
+
+            m_ItemStateList.Clear();
         }
 
         public void OnDestroy()
         {
-            foreach(var item in m_ItemStateList)
-            {
-                Object.DestroyImmediate(item);
-            }
+            CleanUp();
         }
 
         void OnUndoRedoPerformed()
@@ -119,7 +139,7 @@ namespace UnityEngine.Experimental.Rendering
 #endif
         }
 
-        public void AddDebugItemState(DebugItemState state)
+        private void AddDebugItemState(DebugItemState state)
         {
             m_ItemStateList.Add(state);
         }
@@ -129,7 +149,7 @@ namespace UnityEngine.Experimental.Rendering
             return m_ItemStateList.Find(x => x.itemName == item.name && x.panelName == item.panelName);
         }
 
-        public void UpdateAllDebugItems()
+        private void UpdateAllDebugItems()
         {
             foreach (var itemState in m_ItemStateList)
             {

@@ -10,19 +10,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent renderingLabel = new GUIContent("Rendering");
             public static GUIContent shadowLabel = new GUIContent("Shadows");
             public static GUIContent defaults = new GUIContent("Defaults");
-            public static GUIContent linearRenderingLabel = new GUIContent("Linear Colorspace", "When enabled Lightweight shader will perform gamma to linear conversion when linear rendering is not supported or disabled");
 
-            public static GUIContent maxPixelLights = new GUIContent("Per-Object Pixel Lights",
-                    "Max amount of dynamic per-object pixel lights.");
+            public static GUIContent renderScaleLabel = new GUIContent("Render Scale", "Allows game to render at a resolution different than native resolution. UI is always rendered at native resolution.");
+
+            public static GUIContent maxAdditionalPixelLightsLabel = new GUIContent("Max Additional Pixel Lights",
+                    "Controls the additional per-pixel lights that run in fragment light loop.");
 
             public static GUIContent enableVertexLightLabel = new GUIContent("Enable Vertex Light",
-                    "Lightweight pipeline support at most 4 per-object lights between pixel and vertex. If value in pixel lights is set to max this settings has no effect.");
+                    "If enabled, shades additional lights exceeding maxAdditionalPixelLights per-vertex up to the maximum of 8 lights.");
 
-            public static GUIContent enableLightmap = new GUIContent("Enable Lightmap",
-                    "Enabled/Disable support for non-directional lightmaps.");
-
-            public static GUIContent enableAmbientProbe = new GUIContent("Enable Light Probes",
-                    "Enables/Disable light probe support.");
+            public static GUIContent enableSoftParticles = new GUIContent("Enable Soft Particles", "By enabled this the pipeline will generate depth texture necessary for SoftParticles");
 
             public static GUIContent shadowType = new GUIContent("Shadow Type",
                     "Single directional shadow supported. SOFT_SHADOWS applies shadow filtering.");
@@ -45,7 +42,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 "Material to use when creating 3D objects");
 
             public static GUIContent defaultParticleMaterial = new GUIContent("Default Particle Material",
-                "Material to use when creating Paticle Systems");
+                "Material to use when creating Particle Systems");
 
             public static GUIContent defaultLineMaterial = new GUIContent("Default Line Material",
                 "Material to use when creating Line Renderers");
@@ -58,16 +55,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent defaultShader = new GUIContent("Default Shader",
                 "Shader to use when creating materials");
 
-            public static GUIContent msaaContent = new GUIContent("Anti Aliasing", "Controls the global anti aliasing quality. When set to disabled, MSAA will not be performed even if the camera allows it.");
+            public static GUIContent msaaContent = new GUIContent("Anti Aliasing (MSAA)", "Controls the global anti aliasing quality. When set to disabled, MSAA will not be performed even if the camera allows it.");
 
             public static GUIContent attenuationTextureLabel = new GUIContent("Attenuation Texture", "Light attenuation falloff texture");
         }
 
-        private SerializedProperty m_LinearRenderingProperty;
-        private SerializedProperty m_MaxPixelLights;
+        private int kMaxSupportedAdditionalPixelLights = 8;
+        private SerializedProperty m_RenderScale;
+        private SerializedProperty m_MaxAdditionalPixelLights;
         private SerializedProperty m_SupportsVertexLightProp;
-        private SerializedProperty m_EnableLightmapsProp;
-        private SerializedProperty m_EnableAmbientProbeProp;
+        private SerializedProperty m_SupportSoftParticlesProp;
         private SerializedProperty m_ShadowTypeProp;
         private SerializedProperty m_ShadowNearPlaneOffsetProp;
         private SerializedProperty m_ShadowDistanceProp;
@@ -86,11 +83,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         void OnEnable()
         {
-            m_LinearRenderingProperty = serializedObject.FindProperty("m_LinearRendering");
-            m_MaxPixelLights = serializedObject.FindProperty("m_MaxPixelLights");
+            m_RenderScale = serializedObject.FindProperty("m_RenderScale");
+            m_MaxAdditionalPixelLights = serializedObject.FindProperty("m_MaxAdditionalPixelLights");
             m_SupportsVertexLightProp = serializedObject.FindProperty("m_SupportsVertexLight");
-            m_EnableLightmapsProp = serializedObject.FindProperty("m_EnableLightmaps");
-            m_EnableAmbientProbeProp = serializedObject.FindProperty("m_EnableAmbientProbe");
+            m_SupportSoftParticlesProp = serializedObject.FindProperty("m_SupportSoftParticles");
             m_ShadowTypeProp = serializedObject.FindProperty("m_ShadowType");
             m_ShadowNearPlaneOffsetProp = serializedObject.FindProperty("m_ShadowNearPlaneOffset");
             m_ShadowDistanceProp = serializedObject.FindProperty("m_ShadowDistance");
@@ -115,14 +111,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(Styles.renderingLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(m_LinearRenderingProperty, Styles.linearRenderingLabel);
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(Styles.maxPixelLights);
-            m_MaxPixelLights.intValue = EditorGUILayout.IntSlider(m_MaxPixelLights.intValue, 0, 4);
+            EditorGUILayout.LabelField(Styles.renderScaleLabel);
+            m_RenderScale.floatValue = EditorGUILayout.Slider(m_RenderScale.floatValue, 0.1f, 1.0f);
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField(Styles.maxAdditionalPixelLightsLabel);
+            m_MaxAdditionalPixelLights.intValue = EditorGUILayout.IntSlider(m_MaxAdditionalPixelLights.intValue, 0, kMaxSupportedAdditionalPixelLights);
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.PropertyField(m_SupportsVertexLightProp, Styles.enableVertexLightLabel);
-            EditorGUILayout.PropertyField(m_EnableLightmapsProp, Styles.enableLightmap);
-            EditorGUILayout.PropertyField(m_EnableAmbientProbeProp, Styles.enableAmbientProbe);
+            EditorGUILayout.PropertyField(m_SupportSoftParticlesProp, Styles.enableSoftParticles);
             EditorGUILayout.PropertyField(m_MSAA, Styles.msaaContent);
             EditorGUILayout.PropertyField(m_AttenuationTexture, Styles.attenuationTextureLabel);
             EditorGUI.indentLevel--;

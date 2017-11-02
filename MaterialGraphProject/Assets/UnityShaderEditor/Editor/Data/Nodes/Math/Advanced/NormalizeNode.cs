@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Math/Advanced/Normalize")]
     class NormalizeNode : CodeFunctionNode

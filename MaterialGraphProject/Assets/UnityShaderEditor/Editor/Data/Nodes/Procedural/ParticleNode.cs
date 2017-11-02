@@ -1,6 +1,7 @@
 using System.Reflection;
+using UnityEngine;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Procedural/Particle")]
     public class ParticleNode : CodeFunctionNode

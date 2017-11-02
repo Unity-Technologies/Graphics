@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.Graphing
+﻿namespace UnityEditor.Graphing
 {
     public interface IGraphObject
     {

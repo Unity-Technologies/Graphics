@@ -1,6 +1,7 @@
 using System.Reflection;
+using UnityEngine;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Normal/Blend Normal")]
     public class BlendNormalNode : CodeFunctionNode

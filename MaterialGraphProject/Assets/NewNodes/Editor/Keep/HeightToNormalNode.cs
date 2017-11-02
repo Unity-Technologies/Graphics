@@ -1,55 +1,88 @@
+using System.Linq;
 using System.Reflection;
+using JetBrains.Annotations;
+using UnityEngine;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Utility/Heightmap To Normalmap")]
-    public class HeightToNormalNode : CodeFunctionNode
+    public class HeightToNormalNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
+        public const int TextureInput = 0;
+        public const int TexCoordInput = 1;
+        public const int TexOffsetInput = 2;
+        public const int StrengthInput = 3;
+        public const int NormalOutput = 4;
+
+        const string TextureInputName = "Texture";
+        const string TexCoordInputName = "UV";
+        const string TexOffsetInputName = "Offset";
+        const string StrengthInputName = "Strength";
+        const string NormalOutputName = "Normal";
+
         public HeightToNormalNode()
         {
             name = "HeightToNormal";
+            UpdateNodeAfterDeserialization();
         }
 
-        protected override MethodInfo GetFunctionToConvert()
+        public sealed override void UpdateNodeAfterDeserialization()
         {
-            return GetType().GetMethod("Unity_HeightToNormal", BindingFlags.Static | BindingFlags.NonPublic);
+            AddSlot(new Texture2DMaterialSlot(TextureInput, TextureInputName, TextureInputName, SlotType.Input));
+            AddSlot(new Vector2MaterialSlot(TexCoordInput, TexCoordInputName, TexCoordInputName, SlotType.Input, Vector2.zero));
+            AddSlot(new Vector1MaterialSlot(TexOffsetInput, TexOffsetInputName, TexOffsetInputName, SlotType.Input, 0.005f));
+            AddSlot(new Vector1MaterialSlot(StrengthInput, StrengthInputName, StrengthInputName, SlotType.Input, 8f));
+            AddSlot(new Vector3MaterialSlot(NormalOutput, NormalOutputName, NormalOutputName, SlotType.Output, Vector3.zero));
         }
 
-        static string Unity_HeightToNormal(
-            [Slot(0, Binding.None)] Texture2D heightmap,
-            [Slot(1, Binding.MeshUV0)] Vector1 texCoord,
-            [Slot(2, Binding.None, 0.005f, 0, 0, 0)] Vector1 texOffset,
-            [Slot(3, Binding.None, 8f, 0, 0, 0)] Vector1 strength,
-            [Slot(4, Binding.None)] out Vector1 normal)
+        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            return
-                @"
-{
-    float2 offsetU = float2(texCoord.x + texOffset, texCoord.y);
-    float2 offsetV = float2(texCoord.x, texCoord.y + texOffset);
+            var textureInput = GetSlotValue(TextureInput, generationMode);
+            var texCoordInput = RequiresMeshUV(UVChannel.uv0)
+                ? string.Format("{0}.xy", UVChannel.uv0.GetUVName())
+                : GetSlotValue(TexCoordInput, generationMode);
+            var texOffsetInput = GetSlotValue(TexOffsetInput, generationMode);
+            var strengthInput = GetSlotValue(StrengthInput, generationMode);
+            var normalOutput = GetVariableNameForSlot(NormalOutput);
 
-    float normalSample = 0;
-    float uSample = 0;
-    float vSample = 0;
+            visitor.AddShaderChunk(string.Format("{0}3 {1};", precision, normalOutput), true);
+            visitor.AddShaderChunk("{", false);
+            visitor.Indent();
+            {
+                visitor.AddShaderChunk(string.Format("{0}2 offsetU = float2({1}.x + {2}, {1}.y);", precision, texCoordInput, texOffsetInput), true);
+                visitor.AddShaderChunk(string.Format("{0}2 offsetV = float2({1}.x, {1}.y + {2});", precision, texCoordInput, texOffsetInput), true);
 
-    #ifdef UNITY_COMPILER_HLSL
-    normalSample = heightmap.Sample(my_linear_repeat_sampler, texCoord).r;
-    uSample = heightmap.Sample(my_linear_repeat_sampler, offsetU).r;
-    vSample = heightmap.Sample(my_linear_repeat_sampler, offsetV).r;
-    #endif
+                visitor.AddShaderChunk(string.Format("{0} normalSample = UNITY_SAMPLE_TEX2D({1}, {2});", precision, textureInput, texCoordInput), true);
+                visitor.AddShaderChunk(string.Format("{0} uSample = UNITY_SAMPLE_TEX2D({1}, offsetU);", precision, textureInput), true);
+                visitor.AddShaderChunk(string.Format("{0} vSample = UNITY_SAMPLE_TEX2D({1}, offsetV);", precision, textureInput), true);
 
-    float uMinusNormal = uSample - normalSample;
-    float vMinusNormal = vSample - normalSample;
+                visitor.AddShaderChunk(string.Format("{0}3 va = float3(1, 0, (uSample - normalSample) * {1});", precision, strengthInput), true);
+                visitor.AddShaderChunk(string.Format("{0}3 vb = float3(0, 1, (vSample - normalSample) * {1});", precision, strengthInput), true);
+                visitor.AddShaderChunk(string.Format("{0} = cross(va, vb);", normalOutput), true);
+            }
+            visitor.Deindent();
+            visitor.AddShaderChunk("}", false);
+        }
 
-    uMinusNormal = uMinusNormal * strength;
-    vMinusNormal = vMinusNormal * strength;
+        public override bool hasPreview
+        {
+            get { return true; }
+        }
 
-    float3 va = float3(1, 0, uMinusNormal);
-    float3 vb = float3(0, 1, vMinusNormal);
+        public bool RequiresMeshUV(UVChannel channel)
+        {
+            if (channel != UVChannel.uv0)
+            {
+                return false;
+            }
 
-    normals = cross(va, vb);
-}
-";
+            var uvSlot = FindInputSlot<MaterialSlot>(TexCoordInput);
+            if (uvSlot == null)
+                return true;
+
+            var edges = owner.GetEdges(uvSlot.slotReference).ToList();
+            return edges.Count == 0;
         }
     }
 }

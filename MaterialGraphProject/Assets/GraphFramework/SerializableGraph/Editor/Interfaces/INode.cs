@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace UnityEngine.Graphing
+namespace UnityEditor.Graphing
 {
     public enum ModificationScope
     {
@@ -17,7 +17,6 @@ namespace UnityEngine.Graphing
     public interface INode
     {
         OnNodeModified onModified { get; set; }
-        OnNodeReplaced onReplaced { get; set; }
         IGraph owner { get; set; }
         Guid guid { get; }
         Guid RewriteGuid();

@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.MaterialGraph;
+using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 
-namespace UnityEditor.MaterialGraph.Drawing
+namespace UnityEditor.ShaderGraph.Drawing
 {
     internal class MaterialGraphPreviewGenerator : IDisposable
     {
@@ -74,8 +74,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             Light1.color = new Color(.4f, .4f, .45f, 0f) * .7f;
 
             m_CheckerboardMaterial = new Material(Shader.Find("Hidden/Checkerboard"));
-            m_CheckerboardMaterial.SetFloat("_X", 32);
-            m_CheckerboardMaterial.SetFloat("_Y", 32);
+            m_CheckerboardMaterial.shader.hideFlags = HideFlags.HideAndDontSave;
+            m_CheckerboardMaterial.hideFlags = HideFlags.HideAndDontSave;
 
             if (s_Meshes[0] == null)
             {
@@ -161,7 +161,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        public void DoRenderPreview(RenderTexture renderTexture, Material mat, PreviewMode mode, bool allowSRP, float time, MaterialPropertyBlock properties = null)
+        public void DoRenderPreview(RenderTexture renderTexture, Material mat, Mesh mesh, PreviewMode mode, bool allowSRP, float time, MaterialPropertyBlock properties = null)
         {
             if (mat == null || mat.shader == null)
                 return;
@@ -181,11 +181,8 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_Camera.orthographic = true;
             }
 
-            var ambientProbe = RenderSettings.ambientProbe;
-            Unsupported.SetOverrideRenderSettings(m_Scene);
-            RenderSettings.ambientProbe = ambientProbe;
-
             m_Camera.targetTexture = renderTexture;
+            var previousRenderTexure = RenderTexture.active;
             RenderTexture.active = renderTexture;
             GL.Clear(true, true, Color.black);
             Graphics.Blit(Texture2D.whiteTexture, renderTexture, m_CheckerboardMaterial);
@@ -198,8 +195,10 @@ namespace UnityEditor.MaterialGraph.Drawing
             Light1.intensity = 1.0f;
             m_Camera.clearFlags = CameraClearFlags.Depth;
 
+            Mesh previewMesh = mesh == null ? s_Meshes[0] : mesh;
+
             Graphics.DrawMesh(
-                mode == PreviewMode.Preview3D ? s_Meshes[0] : quad,
+                mode == PreviewMode.Preview3D ? previewMesh : quad,
                 Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one),
                 mat,
                 1,
@@ -216,7 +215,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             m_Camera.Render();
             Unsupported.useScriptableRenderPipeline = oldAllowPipes;
 
-            Unsupported.RestoreOverrideRenderSettings();
+            RenderTexture.active = previousRenderTexure;
 
             Light0.enabled = false;
             Light1.enabled = false;
@@ -224,25 +223,25 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public void Dispose()
         {
-            if (Light0 == null)
+            if (Light0 != null)
             {
                 UnityEngine.Object.DestroyImmediate(Light0.gameObject);
                 Light0 = null;
             }
 
-            if (Light1 == null)
+            if (Light1 != null)
             {
                 UnityEngine.Object.DestroyImmediate(Light1.gameObject);
                 Light1 = null;
             }
 
-            if (m_Camera == null)
+            if (m_Camera != null)
             {
                 UnityEngine.Object.DestroyImmediate(m_Camera.gameObject);
                 m_Camera = null;
             }
 
-            if (m_CheckerboardMaterial == null)
+            if (m_CheckerboardMaterial != null)
             {
                 UnityEngine.Object.DestroyImmediate(m_CheckerboardMaterial);
                 m_CheckerboardMaterial = null;

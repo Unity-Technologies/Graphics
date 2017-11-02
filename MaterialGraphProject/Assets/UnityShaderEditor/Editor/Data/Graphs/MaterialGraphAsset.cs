@@ -1,10 +1,12 @@
+
+using UnityEngine;
 #if UNITY_EDITOR
 using System.Reflection;
 using UnityEditor;
 #endif
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     public class MaterialGraphAsset
     {

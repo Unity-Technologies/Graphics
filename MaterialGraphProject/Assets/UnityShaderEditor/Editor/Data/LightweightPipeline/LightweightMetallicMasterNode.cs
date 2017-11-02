@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine.Graphing;
+using UnityEngine;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [Title("Master/Lightweight/PBR Metallic")]
@@ -23,8 +24,8 @@ namespace UnityEngine.MaterialGraph
             AddSlot(new Vector3MaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, SlotType.Input, new Vector3(0,0,1), ShaderStage.Fragment));
             AddSlot(new Vector3MaterialSlot(EmissionSlotId, EmissionSlotName, EmissionSlotName, SlotType.Input,  Vector3.zero, ShaderStage.Fragment));
             AddSlot(new Vector1MaterialSlot(MetallicSlotId, MetallicSlotName, MetallicSlotName, SlotType.Input,0, ShaderStage.Fragment));
-            AddSlot(new Vector1MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, 0, ShaderStage.Fragment));
-            AddSlot(new Vector1MaterialSlot(OcclusionSlotId, OcclusionSlotName, OcclusionSlotName, SlotType.Input, 0, ShaderStage.Fragment));
+            AddSlot(new Vector1MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, 0.5f, ShaderStage.Fragment));
+            AddSlot(new Vector1MaterialSlot(OcclusionSlotId, OcclusionSlotName, OcclusionSlotName, SlotType.Input, 1f, ShaderStage.Fragment));
             AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 0, ShaderStage.Fragment));
 
             // clear out slot names that do not match the slots

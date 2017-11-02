@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
+using UnityEngine;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Preview Node")]
     public class PreviewNode : CodeFunctionNode
@@ -15,8 +16,10 @@ namespace UnityEngine.MaterialGraph
 
         public void SetDimensions(float width, float height)
         {
-            m_Width = width;
-            m_Height = height;
+            float newSize = Mathf.Clamp(Mathf.Min(width, height), 150f, 1000f);
+
+            m_Width = newSize;
+            m_Height = newSize;
         }
 
         public float width
@@ -32,6 +35,9 @@ namespace UnityEngine.MaterialGraph
         public PreviewNode()
         {
             name = "Preview";
+
+            m_Width = 208f;
+            m_Height = 208f;
         }
 
         protected override MethodInfo GetFunctionToConvert()

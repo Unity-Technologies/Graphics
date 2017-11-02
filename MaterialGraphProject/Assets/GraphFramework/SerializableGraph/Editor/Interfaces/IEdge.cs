@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEngine.Graphing
+namespace UnityEditor.Graphing
 {
     public interface IEdge : IEquatable<IEdge>
     {

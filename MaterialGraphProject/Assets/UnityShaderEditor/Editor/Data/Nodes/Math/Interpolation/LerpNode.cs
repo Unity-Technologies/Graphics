@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Math/Interpolation/Lerp")]
     public class LerpNode : CodeFunctionNode

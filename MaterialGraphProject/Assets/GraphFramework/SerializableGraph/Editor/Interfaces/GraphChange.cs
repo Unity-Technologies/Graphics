@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEngine.Graphing
+namespace UnityEditor.Graphing
 {
     public abstract class GraphChange {}
 
@@ -42,24 +42,5 @@ namespace UnityEngine.Graphing
         }
 
         public IEdge edge { get; private set; }
-    }
-
-    public static class GraphChangeExtensions
-    {
-        public static void Match(this GraphChange change,
-            Action<NodeAddedGraphChange> nodeAdded = null,
-            Action<NodeRemovedGraphChange> nodeRemoved = null,
-            Action<EdgeAddedGraphChange> edgeAdded = null,
-            Action<EdgeRemovedGraphChange> edgeRemoved = null)
-        {
-            if (change is NodeAddedGraphChange && nodeAdded != null)
-                nodeAdded((NodeAddedGraphChange)change);
-            else if (change is NodeRemovedGraphChange && nodeRemoved != null)
-                nodeRemoved((NodeRemovedGraphChange)change);
-            else if (change is EdgeAddedGraphChange && edgeAdded != null)
-                edgeAdded((EdgeAddedGraphChange)change);
-            else if (change is EdgeRemovedGraphChange && edgeRemoved != null)
-                edgeRemoved((EdgeRemovedGraphChange)change);
-        }
     }
 }

@@ -1,9 +1,10 @@
-using UnityEngine.Graphing;
+using UnityEngine;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
-    [Title("Input/Geometry/World Normal")]
-    public class NormalNode : AbstractMaterialNode, IMayRequireNormal
+    [Title("Input/Geometry/Normal")]
+    public class NormalNode : GeometryNode, IMayRequireNormal
     {
         public const int kOutputSlotId = 0;
         public const string kOutputSlotName = "Normal";
@@ -20,24 +21,14 @@ namespace UnityEngine.MaterialGraph
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
-        public override bool hasPreview
-        {
-            get { return true; }
-        }
-
-        public override PreviewMode previewMode
-        {
-            get { return PreviewMode.Preview3D; }
-        }
-
         public override string GetVariableNameForSlot(int slotId)
         {
-            return ShaderGeneratorNames.ObjectSpaceNormal;
+            return space.ToVariableName(InterpolatorType.Normal);
         }
 
         public NeededCoordinateSpace RequiresNormal()
         {
-            return NeededCoordinateSpace.Object;
+            return space.ToNeededCoordinateSpace();
         }
     }
 }

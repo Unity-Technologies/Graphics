@@ -1,16 +1,17 @@
 using System.Collections.Generic;
-using UnityEditor.MaterialGraph.Drawing.Controls;
-using UnityEngine.Graphing;
+using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEngine;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Input/Color")]
-    public class ColorNode : AbstractMaterialNode, IGeneratesBodyCode
+    public class ColorNode : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
     {
         [SerializeField]
         private Color m_Color;
 
-        private const int kOutputSlotId = 0;
+        public const int OutputSlotId = 0;
         private const string kOutputSlotName = "Color";
 
         public ColorNode()
@@ -21,8 +22,8 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new Vector4MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
-            RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
+            AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
+            RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
 
         [ColorControl("")]
@@ -79,5 +80,14 @@ namespace UnityEngine.MaterialGraph
                 m_Color = color
             });
         }
+        
+        public IShaderProperty AsShaderProperty()
+        {
+            var prop = new ColorShaderProperty();
+            prop.value = color;
+            return prop;
+        }
+
+        public int outputSlotId { get { return OutputSlotId; } }
     }
 }

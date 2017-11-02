@@ -1,13 +1,14 @@
-using UnityEngine.Graphing;
+using UnityEngine;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Input/Geometry/Position")]
-    public class PositionNode : AbstractMaterialNode
+    public class PositionNode : GeometryNode, IMayRequirePosition
     {
-        const string kOutputSlotName = "XYZW";
+        private const int kOutputSlotId = 0;
+        public const string kOutputSlotName = "Position";
 
-        public const int OutputSlotId = 0;
 
         public PositionNode()
         {
@@ -17,18 +18,23 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero, ShaderStage.Vertex));
-            RemoveSlotsNameNotMatching(validSlots);
-        }
-
-        protected int[] validSlots
-        {
-            get { return new[] { OutputSlotId }; }
+            AddSlot(new Vector3MaterialSlot(
+                    kOutputSlotId,
+                    kOutputSlotName,
+                    kOutputSlotName,
+                    SlotType.Output,
+                    Vector3.zero));
+            RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return "v.vertex";
+            return space.ToVariableName(InterpolatorType.Position);
+        }
+
+        public NeededCoordinateSpace RequiresPosition()
+        {
+            return space.ToNeededCoordinateSpace();
         }
     }
 }

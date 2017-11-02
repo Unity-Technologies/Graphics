@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     public class AbstractSubGraph : AbstractMaterialGraph
         , IGeneratesBodyCode
         , IGeneratesFunction
     {
-        public virtual IEnumerable<AbstractMaterialNode> activeNodes { get; }
+        public virtual IEnumerable<AbstractMaterialNode> activeNodes { get { return Enumerable.Empty<AbstractMaterialNode>(); } }
 
         public PreviewMode previewMode
         {

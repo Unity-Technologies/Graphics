@@ -1,6 +1,7 @@
-using UnityEngine.Graphing;
+using UnityEngine;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("UV/MultiLayerParallax")]
     public class MultiLayerParallaxNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireMeshUV, IMayRequireViewDirection
@@ -169,7 +170,7 @@ namespace UnityEngine.MaterialGraph
                 layerCountValue + ", " +
                 texValue + ", " +
                 UVChannel.uv0.GetUVName() + ", " +
-                ShaderGeneratorNames.TangentSpaceViewDirection + ")";
+                CoordinateSpace.View.ToVariableName(InterpolatorType.Tangent) + ")";
         }
 
         public bool RequiresMeshUV(UVChannel channel)

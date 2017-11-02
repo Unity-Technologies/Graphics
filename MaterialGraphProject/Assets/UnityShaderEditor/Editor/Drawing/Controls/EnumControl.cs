@@ -2,9 +2,8 @@
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using UnityEngine.MaterialGraph;
 
-namespace UnityEditor.MaterialGraph.Drawing.Controls
+namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class EnumControlAttribute : Attribute, IControlAttribute

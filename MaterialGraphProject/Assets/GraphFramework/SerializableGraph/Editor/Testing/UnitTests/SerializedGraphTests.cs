@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
 
 namespace UnityEditor.Graphing.UnitTests
 {

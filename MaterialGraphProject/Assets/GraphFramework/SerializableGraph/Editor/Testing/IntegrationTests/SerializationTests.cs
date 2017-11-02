@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
 
 namespace UnityEditor.Graphing.IntegrationTests
 {

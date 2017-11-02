@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine.MaterialGraph;
+using UnityEditor.ShaderGraph;
 
-namespace UnityEngine.Graphing
+namespace UnityEditor.Graphing
 {
     public class SlotConfigurationException : Exception
     {

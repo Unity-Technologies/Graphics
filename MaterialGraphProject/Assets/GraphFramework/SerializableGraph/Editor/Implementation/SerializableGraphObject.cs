@@ -1,7 +1,8 @@
 ﻿using System;
 using UnityEditor;
+using UnityEngine;
 
-namespace UnityEngine.Graphing
+namespace UnityEditor.Graphing
 {
     public class SerializableGraphObject : ScriptableObject, IGraphObject, ISerializationCallbackReceiver
     {
@@ -44,8 +45,20 @@ namespace UnityEngine.Graphing
                 m_DeserializedGraph = deserializedGraph; // graph.ReplaceWith(m_DeserializedGraph);
         }
 
+        void Validate()
+        {
+
+            if (graph != null)
+            {
+                graph.OnEnable();
+                graph.ValidateGraph();
+            }
+        }
+
         void OnEnable()
         {
+            Validate();
+
             Undo.undoRedoPerformed += UndoRedoPerformed;
             UndoRedoPerformed();
         }
