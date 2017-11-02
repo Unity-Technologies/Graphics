@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.UI
 {
@@ -237,6 +237,12 @@ namespace UnityEditor.VFX.UI
             spacer.style.flex = 1;
             toolbar.Add(spacer);
 
+            m_ToggleMotionVectors = new Toggle(OnToggleMotionVectors);
+            m_ToggleMotionVectors.text = "Use Motion Vectors";
+            m_ToggleMotionVectors.on = GetRendererSettings().motionVectorGenerationMode == MotionVectorGenerationMode.Object;
+            toolbar.Add(m_ToggleMotionVectors);
+            m_ToggleMotionVectors.AddToClassList("toolbarItem");
+
             Toggle toggleRenderBounds = new Toggle(OnShowBounds);
             toggleRenderBounds.text = "Show Bounds";
             toggleRenderBounds.on = VFXComponent.renderBounds;
@@ -255,6 +261,43 @@ namespace UnityEditor.VFX.UI
             toolbar.Add(button);
         }
 
+        VFXRendererSettings GetRendererSettings()
+        {
+            var presenter = GetPresenter<VFXViewPresenter>();
+            if (presenter != null)
+            {
+                var asset = presenter.GetVFXAsset();
+                if (asset != null)
+                    return asset.rendererSettings;
+            }
+
+            return new VFXRendererSettings();
+        }
+
+        void SetRendererSettings(VFXRendererSettings settings)
+        {
+            var presenter = GetPresenter<VFXViewPresenter>();
+            if (presenter != null)
+            {
+                var asset = presenter.GetVFXAsset();
+                if (asset != null)
+                {
+                    asset.rendererSettings = settings;
+                    VFXViewPresenter.viewPresenter.GetGraph().SetExpressionGraphDirty();
+                }
+            }
+        }
+
+        void OnToggleMotionVectors()
+        {
+            var settings = GetRendererSettings();
+            if (settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object)
+                settings.motionVectorGenerationMode = MotionVectorGenerationMode.Camera;
+            else
+                settings.motionVectorGenerationMode = MotionVectorGenerationMode.Object;
+            SetRendererSettings(settings);
+        }
+
         void OnShowBounds()
         {
             VFXComponent.renderBounds = !VFXComponent.renderBounds;
@@ -270,6 +313,12 @@ namespace UnityEditor.VFX.UI
             var graph = VFXViewPresenter.viewPresenter.GetGraph();
             graph.SetExpressionGraphDirty();
             graph.RecompileIfNeeded();
+        }
+
+        public override void OnDataChanged()
+        {
+            base.OnDataChanged();
+            m_ToggleMotionVectors.on = GetRendererSettings().motionVectorGenerationMode == MotionVectorGenerationMode.Object;
         }
 
         void AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
@@ -556,5 +605,7 @@ namespace UnityEditor.VFX.UI
             if (!selectionEmpty)
                 SelectionUpdated();
         }
+
+        private Toggle m_ToggleMotionVectors;
     }
 }
