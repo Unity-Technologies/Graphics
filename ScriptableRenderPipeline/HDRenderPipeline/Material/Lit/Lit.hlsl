@@ -6,17 +6,17 @@
 #include "Lit.cs.hlsl"
 #include "SubsurfaceScatteringSettings.cs.hlsl"
 
-// Enables attenuation of light source contributions by participating media (fog).
-#define VOLUMETRIC_SHADOWING_ENABLED
-
-#ifdef VOLUMETRIC_SHADOWING_ENABLED
-    // Apparently, not all shaders include "ShaderVariables.hlsl".
-    #include "../../ShaderVariables.hlsl"
-    #include "../../../Core/ShaderLibrary/VolumeRendering.hlsl"
-#endif
-
 // Define refraction keyword helpers
 #define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
+#if HAS_REFRACTION
+# include "../../../Core/ShaderLibrary/Refraction.hlsl"
+
+# if defined(_REFRACTION_PLANE)
+#  define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelPlane(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
+# elif defined(_REFRACTION_SPHERE)
+#  define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelSphere(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
+# endif
+#endif
 
 // In case we pack data uint16 buffer we need to change the output render target format to uint16
 // TODO: Is there a way to automate these output type based on the format declare in lit.cs ?
@@ -25,7 +25,7 @@
 #define GBufferType1 uint4
 
 // TODO: How to abstract that ? We would like to avoid this PS4 test here
-#ifdef SHADER_API_PS4
+#ifdef SHADER_API_PSSL
 // On PS4 we need to specify manually the format of the output render target, output type is not enough
 #pragma PSSL_target_output_format(target 0 FMT_UINT16_ABGR)
 #pragma PSSL_target_output_format(target 1 FMT_UINT16_ABGR)
@@ -84,7 +84,7 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define LTC_LUT_OFFSET (0.5 * rcp(LTC_LUT_SIZE))
 
 // Subsurface scattering constant
-#define SSS_WRAP_ANGLE (PI/12)              // Used for wrap lighting
+#define SSS_WRAP_ANGLE (PI/12)              // 15 degrees
 #define SSS_WRAP_LIGHT cos(PI/2 - SSS_WRAP_ANGLE)
 
 CBUFFER_START(UnitySSSParameters)
@@ -103,6 +103,33 @@ CBUFFER_END
 
 // General constant
 #define MIN_N_DOT_V    0.0001               // The minimum value of 'NdotV'
+
+//-----------------------------------------------------------------------------
+// Helper for cheap screen space raycasting
+//-----------------------------------------------------------------------------
+
+float3 EstimateRaycast(float3 V, PositionInputs posInputs, float3 positionWS, float3 rayWS)
+{
+    // For all refraction approximation, to calculate the refracted point in world space,
+    //   we approximate the scene as a plane (back plane) with normal -V at the depth hit point.
+    //   (We avoid to raymarch the depth texture to get the refracted point.)
+
+    uint2 depthSize = uint2(_PyramidDepthMipSize.xy);
+
+    // Get the depth of the approximated back plane
+    float pyramidDepth = LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, posInputs.positionSS * (depthSize >> 2), 2).r;
+    float depth = LinearEyeDepth(pyramidDepth, _ZBufferParams);
+
+    // Distance from point to the back plane
+    float depthFromPositionInput = depth - posInputs.depthVS;
+
+    float offset = dot(-V, positionWS - posInputs.positionWS);
+    float depthFromPosition = depthFromPositionInput - offset;
+
+    float hitDistanceFromPosition = depthFromPosition / dot(-V, rayWS);
+
+    return positionWS + rayWS * hitDistanceFromPosition;
+}
 
 //-----------------------------------------------------------------------------
 // Ligth and material classification for the deferred rendering path
@@ -225,35 +252,11 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
     uint transmissionMode = BitFieldExtract(_TransmissionFlags, 2u, 2u * subsurfaceProfile);
 
     bsdfData.enableTransmission = transmissionMode != SSS_TRSM_MODE_NONE && (_EnableSSSAndTransmission > 0);
-    bsdfData.useThinObjectMode  = transmissionMode == SSS_TRSM_MODE_THIN;
-
-    bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, subsurfaceProfile);
-
-#if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT) // In case of GI pass don't modify the diffuseColor
-    bool enableSssAndTransmission = false;
-#elif defined(SHADERPASS) && (SHADERPASS == SHADERPASS_SUBSURFACE_SCATTERING)
-    bool enableSssAndTransmission = true;
-#else
-    bool enableSssAndTransmission = _EnableSSSAndTransmission != 0;
-#endif
-
-    if (enableSssAndTransmission) // If we globally disable SSS effect, don't modify diffuseColor
-    {
-        // We modify the albedo here as this code is used by all lighting (including light maps and GI).
-        if (performPostScatterTexturing)
-        {
-        #if !defined(SHADERPASS) || (SHADERPASS != SHADERPASS_SUBSURFACE_SCATTERING)
-            bsdfData.diffuseColor = float3(1.0, 1.0, 1.0);
-        #endif
-        }
-        else
-        {
-            bsdfData.diffuseColor = sqrt(bsdfData.diffuseColor);
-        }
-    }
 
     if (bsdfData.enableTransmission)
     {
+        bsdfData.useThinObjectMode = transmissionMode == SSS_TRSM_MODE_THIN;
+
         if (_UseDisneySSS)
         {
             bsdfData.transmittance = ComputeTransmittance(_ShapeParams[subsurfaceProfile].rgb,
@@ -269,9 +272,44 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
                                                                  _TransmissionTints[subsurfaceProfile].rgb,
                                                                  bsdfData.thickness, bsdfData.subsurfaceRadius);
         }
-
-        bsdfData.transmittance *= bsdfData.diffuseColor; // Premultiply
     }
+}
+
+// Returns the modified albedo (diffuse color) for materials with subsurface scattering.
+// Ref: Advanced Techniques for Realistic Real-Time Skin Rendering.
+float3 ApplyDiffuseTexturingMode(BSDFData bsdfData)
+{
+    float3 albedo = bsdfData.diffuseColor;
+
+    if (bsdfData.materialId == MATERIALID_LIT_SSS)
+    {
+    #if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_SUBSURFACE_SCATTERING)
+        // If the SSS pass is executed, we know we have SSS enabled.
+        bool enableSssAndTransmission = true;
+    #else
+        bool enableSssAndTransmission = _EnableSSSAndTransmission != 0;
+    #endif
+
+        if (enableSssAndTransmission)
+        {
+            bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, bsdfData.subsurfaceProfile);
+
+            if (performPostScatterTexturing)
+            {
+                // Post-scatter texturing mode: the albedo is only applied during the SSS pass.
+            #if !defined(SHADERPASS) || (SHADERPASS != SHADERPASS_SUBSURFACE_SCATTERING)
+                albedo = float3(1, 1, 1);
+            #endif
+            }
+            else
+            {
+                // Pre- and pos- scatter texturing mode.
+                albedo = sqrt(albedo);
+            }
+        }
+    }
+
+    return albedo;
 }
 
 void FillMaterialIdClearCoatData(float3 coatNormalWS, float coatCoverage, float coatIOR, inout BSDFData bsdfData)
@@ -281,12 +319,15 @@ void FillMaterialIdClearCoatData(float3 coatNormalWS, float coatCoverage, float 
     bsdfData.coatCoverage = coatCoverage;
 }
 
-void FillMaterialIdTransparencyData(float ior, float3 transmittanceColor, float atDistance, float thickness, float transmittanceMask, inout BSDFData bsdfData)
+void FillMaterialIdTransparencyData(float3 baseColor, float metallic, float ior, float3 transmittanceColor, float atDistance, float thickness, float transmittanceMask, inout BSDFData bsdfData)
 {
     // Uses thickness from SSS's property set
     bsdfData.ior = ior;
-    // Absorption coefficient from Disney: http://blog.selfshadow.com/publications/s2015-shading-course/burley/s2015_pbs_disney_bsdf_notes.pdf
-    bsdfData.absorptionCoefficient = -log(transmittanceColor + 0.00001) / max(atDistance, 0.000001);
+
+    // IOR define the fresnel0 value, so update it also for consistency (and even if not physical we still need to take into account any metal mask)
+    bsdfData.fresnel0 = lerp(IORToFresnel0(ior).xxx, baseColor, metallic);
+
+    bsdfData.absorptionCoefficient = TransmittanceColorAtDistanceToAbsorption (transmittanceColor, atDistance);
     bsdfData.transmittanceMask = transmittanceMask;
     bsdfData.thickness = max(thickness, 0.0001);
 }
@@ -386,7 +427,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 #if HAS_REFRACTION
     // Note: Will override thickness of SSS's property set
     FillMaterialIdTransparencyData(
-        surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance, surfaceData.thickness, surfaceData.transmittanceMask,
+        surfaceData.baseColor, surfaceData.metallic, surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance, surfaceData.thickness, surfaceData.transmittanceMask,
         bsdfData);
 #endif
 
@@ -728,12 +769,14 @@ struct PreLightData
     float    ltcClearCoatFresnelTerm;
     float3x3 ltcCoatT;
 
-#ifdef VOLUMETRIC_SHADOWING_ENABLED
-    float    globalFogExtinction;
-#endif
+    // Refraction
+    float3 transmissionRefractV;            // refracted view vector after exiting the shape
+    float3 transmissionPositionWS;          // start of the refracted ray after exiting the shape
+    float3 transmissionTransmittance;       // transmittance due to absorption
+    float transmissionSSMipLevel;           // mip level of the screen space gaussian pyramid for rough refraction
 };
 
-// This is a refract - TODO: do we call original refract or this one, original maybe slightly emore expensive, to check
+// This is a refract - TODO: do we call original refract or this one, original maybe slightly more expensive, to check
 float3 ClearCoatTransform(float3 X, float3 N, float ieta)
 {
     float XdotN = saturate(dot(N, X));
@@ -925,8 +968,18 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
         preLightData.ltcMagnitudeFresnel = bsdfData.fresnel0 * ltcGGXFresnelMagnitudeDiff + (float3)ltcGGXFresnelMagnitude;
     }
 
-#ifdef VOLUMETRIC_SHADOWING_ENABLED
-    preLightData.globalFogExtinction = _GlobalFog_Extinction;
+#ifdef REFRACTION_MODEL
+    RefractionModelResult refraction = REFRACTION_MODEL(V, posInput, bsdfData);
+    preLightData.transmissionRefractV = refraction.rayWS;
+    preLightData.transmissionPositionWS = refraction.positionWS;
+    preLightData.transmissionTransmittance = exp(-bsdfData.absorptionCoefficient * refraction.distance);
+    // Empirical remap to try to match a bit the refractio probe blurring for the fallback
+    preLightData.transmissionSSMipLevel = sqrt(bsdfData.perceptualRoughness) * uint(_GaussianPyramidColorMipSize.z);
+#else
+    preLightData.transmissionRefractV = -V;
+    preLightData.transmissionPositionWS = posInput.positionWS;
+    preLightData.transmissionTransmittance = float3(1.0, 1.0, 1.0);
+    preLightData.transmissionSSMipLevel = 0;
 #endif
 
     return preLightData;
@@ -941,6 +994,8 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 // This function require the 3 structure surfaceData, builtinData, bsdfData because it may require both the engine side data, and data that will not be store inside the gbuffer.
 float3 GetBakedDiffuseLigthing(SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData, PreLightData preLightData)
 {
+    bsdfData.diffuseColor = ApplyDiffuseTexturingMode(bsdfData);
+
     // Premultiply bake diffuse lighting information with DisneyDiffuse pre-integration
     return builtinData.bakeDiffuseLighting * preLightData.diffuseFGD * surfaceData.ambientOcclusion * bsdfData.diffuseColor + builtinData.emissiveColor;
 }
@@ -1096,10 +1151,26 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 #elif LIT_DIFFUSE_GGX_BRDF
     float3 diffuseTerm = DiffuseGGX(bsdfData.diffuseColor, NdotV, NdotL, NdotH, LdotV, bsdfData.roughness);
 #else
-    float  diffuseTerm = DisneyDiffuse(NdotV, NdotL, LdotV, bsdfData.perceptualRoughness);
+    // A note on subsurface scattering.
+    // The correct way to handle SSS is to transmit light inside the surface, perform SSS,
+    // and then transmit it outside towards the viewer.
+    // Transmit(X) = F_Transm_Schlick(F0, F90, NdotX), where F0 = 0, F90 = 1.
+    // Therefore, the diffuse BSDF should be decomposed as follows:
+    // f_d = A / Pi * F_Transm_Schlick(0, 1, NdotL) * F_Transm_Schlick(0, 1, NdotV) + f_d_reflection,
+    // with F_Transm_Schlick(0, 1, NdotV) applied after the SSS pass.
+    // The alternative (artistic) formulation of Disney is to set F90 = 0.5:
+    // f_d = A / Pi * F_Transm_Schlick(0, 0.5, NdotL) * F_Transm_Schlick(0, 0.5, NdotV) + f_retro_reflection.
+    // That way, darkening at grading angles is reduced to 0.5.
+    // In practice, applying F_Transm_Schlick(F0, F90, NdotV) after the SSS pass is expensive,
+    // as it forces us to read the normal buffer at the end of the SSS pass.
+    // Separating f_retro_reflection also has a small cost (mostly due to energy compensation
+    // for multi-bounce GGX), and the visual difference is negligible.
+    // Therefore, we choose not to separate diffuse lighting into reflected and transmitted.
+    float diffuseTerm = DisneyDiffuse(NdotV, NdotL, LdotV, bsdfData.perceptualRoughness);
 #endif
 
-    diffuseLighting = bsdfData.diffuseColor * diffuseTerm;
+    // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
+    diffuseLighting = diffuseTerm;
 }
 
 // Currently, we only model diffuse transmission. Specular transmission is not yet supported.
@@ -1199,11 +1270,19 @@ DirectLighting EvaluateBSDF_Directional(    LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        // We apply wrapped lighting instead of the regular Lambertian diffuse
-        // to compensate for approximations within EvaluateTransmission().
-        float illuminance = Lambert() * ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
+        // Apply wrapped lighting to better handle thin objects (cards) at grazing angles.
+        float wrappedNdotL = ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
+
+    #ifdef LIT_DIFFUSE_LAMBERT_BRDF
+        illuminance  = Lambert() * wrappedNdotL;
+    #else
+        float tNdotL = saturate(-NdotL);
+        float  NdotV = max(preLightData.NdotV, MIN_N_DOT_V);
+        illuminance  = INV_PI * F_Transm_Schlick(0, 0.5, NdotV) * F_Transm_Schlick(0, 0.5, tNdotL) * wrappedNdotL;
+    #endif
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
+        // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
         lighting.diffuse += EvaluateTransmission(bsdfData, illuminance * lightData.diffuseScale, shadow);
     }
 
@@ -1302,14 +1381,6 @@ DirectLighting EvaluateBSDF_Punctual(   LightLoopContext lightLoopContext,
         illuminance *= shadow;
     }
 
-#ifdef VOLUMETRIC_SHADOWING_ENABLED
-    float volumetricShadow = Transmittance(OpticalDepthHomogeneous(preLightData.globalFogExtinction, dist));
-
-    // Premultiply.
-    lightData.diffuseScale  *= volumetricShadow;
-    lightData.specularScale *= volumetricShadow;
-#endif
-
     // Projector lights always have a cookies, so we can perform clipping inside the if().
     [branch] if (lightData.cookieIndex >= 0)
     {
@@ -1332,11 +1403,19 @@ DirectLighting EvaluateBSDF_Punctual(   LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        // We apply wrapped lighting instead of the regular Lambertian diffuse
-        // to compensate for approximations within EvaluateTransmission().
-        float illuminance = Lambert() * ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
+        // Apply wrapped lighting to better handle thin objects (cards) at grazing angles.
+        float wrappedNdotL = ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
+
+    #ifdef LIT_DIFFUSE_LAMBERT_BRDF
+        illuminance  = Lambert() * wrappedNdotL;
+    #else
+        float tNdotL = saturate(-NdotL);
+        float  NdotV = max(preLightData.NdotV, MIN_N_DOT_V);
+        illuminance  = INV_PI * F_Transm_Schlick(0, 0.5, NdotV) * F_Transm_Schlick(0, 0.5, tNdotL) * wrappedNdotL;
+    #endif
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
+        // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
         lighting.diffuse += EvaluateTransmission(bsdfData, illuminance * lightData.diffuseScale, shadow);
     }
 
@@ -1410,7 +1489,8 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     {
         ltcValue  = LTCEvaluate(P1, P2, B, preLightData.ltcTransformDiffuse);
         ltcValue *= lightData.diffuseScale;
-        lighting.diffuse = bsdfData.diffuseColor * (preLightData.ltcMagnitudeDiffuse * ltcValue);
+        // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
+        lighting.diffuse = preLightData.ltcMagnitudeDiffuse * ltcValue;
     }
 
     [branch] if (bsdfData.enableTransmission)
@@ -1426,6 +1506,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
         ltcValue *= lightData.diffuseScale;
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
+        // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
         lighting.diffuse += EvaluateTransmission(bsdfData, ltcValue, 1);
     }
 
@@ -1535,7 +1616,8 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
         // Polygon irradiance in the transformed configuration.
         ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformDiffuse));
         ltcValue *= lightData.diffuseScale;
-        lighting.diffuse = bsdfData.diffuseColor * (preLightData.ltcMagnitudeDiffuse * ltcValue);
+        // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
+        lighting.diffuse = preLightData.ltcMagnitudeDiffuse * ltcValue;
     }
 
     [branch] if (bsdfData.enableTransmission)
@@ -1554,6 +1636,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
         ltcValue *= lightData.diffuseScale;
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
+        // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
         lighting.diffuse += EvaluateTransmission(bsdfData, ltcValue, 1);
     }
 
@@ -1633,79 +1716,12 @@ IndirectLighting EvaluateBSDF_SSRefraction(LightLoopContext lightLoopContext,
     //    a. Get the corresponding color depending on the roughness from the gaussian pyramid of the color buffer
     //    b. Multiply by the transmittance for absorption (depends on the optical depth)
 
-    float3 refractedBackPointWS = float3(0.0, 0.0, 0.0);
-    float opticalDepth = 0.0;
-
-    uint2 depthSize = uint2(_PyramidDepthMipSize.xy);
-
-    // For all refraction approximation, to calculate the refracted point in world space,
-    //   we approximate the scene as a plane (back plane) with normal -V at the depth hit point.
-    //   (We avoid to raymarch the depth texture to get the refracted point.)
-#if defined(_REFRACTION_PLANE)
-    // Plane shape model:
-    //  We approximate locally the shape of the object as a plane with normal {bsdfData.normalWS} at {bsdfData.positionWS}
-    //  with a thickness {bsdfData.thickness}
-
-    // Refracted ray
-    float3 R = refract(-V, bsdfData.normalWS, 1.0 / bsdfData.ior);
-
-    // Get the depth of the approximated back plane
-    float pyramidDepth = LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, posInput.positionSS * (depthSize >> 2), 2).r;
-    float depth = LinearEyeDepth(pyramidDepth, _ZBufferParams);
-
-    // Distance from point to the back plane
-    float distFromP = depth - posInput.depthVS;
-
-    // Optical depth within the thin plane
-    opticalDepth = bsdfData.thickness / dot(R, -bsdfData.normalWS);
-
-    // The refracted ray exiting the thin plane is the same as the incident ray (parallel interfaces and same ior)
-    float VoR = dot(-V, R);
-    float VoN = dot(V, bsdfData.normalWS);
-    refractedBackPointWS = posInput.positionWS + R * opticalDepth - V * (distFromP - VoR * opticalDepth);
-
-#elif defined(_REFRACTION_SPHERE)
-    // Sphere shape model:
-    //  We approximate locally the shape of the object as sphere, that is tangent to the shape.
-    //  The sphere has a diameter of {bsdfData.thickness}
-    //  The center of the sphere is at {bsdfData.positionWS} - {bsdfData.normalWS} * {bsdfData.thickness}
-    //
-    //  So the light is refracted twice: in and out of the tangent sphere
-
-    // Get the depth of the approximated back plane
-    float pyramidDepth = LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, posInput.positionSS * (depthSize >> 2), 2).r;
-    float depth = LinearEyeDepth(pyramidDepth, _ZBufferParams);
-
-    // Distance from point to the back plane
-    float depthFromPosition = depth - posInput.depthVS;
-
-    // First refraction (tangent sphere in)
-    // Refracted ray
-    float3 R1 = refract(-V, bsdfData.normalWS, 1.0 / bsdfData.ior);
-    // Center of the tangent sphere
-    float3 C = posInput.positionWS - bsdfData.normalWS * bsdfData.thickness * 0.5;
-
-    // Second refraction (tangent sphere out)
-    float NoR1 = dot(bsdfData.normalWS, R1);
-    // Optical depth within the sphere
-    opticalDepth = -NoR1 * bsdfData.thickness;
-    // Out hit point in the tangent sphere
-    float3 P1 = posInput.positionWS + R1 * opticalDepth;
-    // Out normal
-    float3 N1 = normalize(C - P1);
-    // Out refracted ray
-    float3 R2 = refract(R1, N1, bsdfData.ior);
-    float N1oR2 = dot(N1, R2);
-    float VoR1 = dot(V, R1);
-
-    // Refracted source point
-    refractedBackPointWS = P1 - R2 * (depthFromPosition - NoR1 * VoR1 * bsdfData.thickness) / N1oR2;
-
-#endif
+    float3 refractedBackPointWS = EstimateRaycast(V, posInput, preLightData.transmissionPositionWS, preLightData.transmissionRefractV);
 
     // Calculate screen space coordinates of refracted point in back plane
     float4 refractedBackPointCS = mul(_ViewProjMatrix, float4(refractedBackPointWS, 1.0));
     float2 refractedBackPointSS = ComputeScreenSpacePosition(refractedBackPointCS);
+    uint2 depthSize = uint2(_PyramidDepthMipSize.xy);
     float refractedBackPointDepth = LinearEyeDepth(LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, refractedBackPointSS * depthSize, 0).r, _ZBufferParams);
 
     // Exit if texel is out of color buffer
@@ -1719,16 +1735,15 @@ IndirectLighting EvaluateBSDF_SSRefraction(LightLoopContext lightLoopContext,
     }
 
     // Map the roughness to the correct mip map level of the color pyramid
-    float mipLevel = PerceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness, uint(_GaussianPyramidColorMipSize.z));
-    lighting.specularTransmitted = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, refractedBackPointSS, mipLevel).rgb;
+    lighting.specularTransmitted = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, refractedBackPointSS, preLightData.transmissionSSMipLevel).rgb;
 
     // Beer-Lamber law for absorption
-    float3 transmittance = exp(-bsdfData.absorptionCoefficient * opticalDepth);
-    lighting.specularTransmitted *= transmittance;
+    lighting.specularTransmitted *= preLightData.transmissionTransmittance;
 
     float weight = 1.0;
-    UpdateLightingHierarchyWeights(hierarchyWeight, weight); // Shouldn't be needed, but safer in case we decide to change hiearchy priority
-    lighting.specularTransmitted *= weight;
+    UpdateLightingHierarchyWeights(hierarchyWeight, weight); // Shouldn't be needed, but safer in case we decide to change hierarchy priority
+    // We use specularFGD as an approximation of the fresnel effect (that also handle smoothness), so take the remaining for transmission
+    lighting.specularTransmitted *= (1.0 - preLightData.specularFGD) * weight;
 #else
     // No refraction, no need to go further
     hierarchyWeight = 1.0;
@@ -1790,25 +1805,8 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
     {
-        // This is the same code than what is use in screen space refraction
-        // TODO: put this code into a function
-#if defined(_REFRACTION_PLANE)
-        R = refract(-V, bsdfData.normalWS, 1.0 / bsdfData.ior);
-#elif defined(_REFRACTION_SPHERE)
-        float3 R1 = refract(-V, bsdfData.normalWS, 1.0 / bsdfData.ior);
-        // Center of the tangent sphere
-        float3 C = posInput.positionWS - bsdfData.normalWS * bsdfData.thickness * 0.5;
-        // Second refraction (tangent sphere out)
-        float NoR1 = dot(bsdfData.normalWS, R1);
-        // Optical depth within the sphere
-        float opticalDepth = -NoR1 * bsdfData.thickness;
-        // Out hit point in the tangent sphere
-        float3 P1 = posInput.positionWS + R1 * opticalDepth;
-        // Out normal
-        float3 N1 = normalize(C - P1);
-        // Out refracted ray
-        R = refract(R1, N1, bsdfData.ior);
-#endif
+        positionWS = preLightData.transmissionPositionWS;
+        R = preLightData.transmissionRefractV;
     }
 
     // In Unity the cubemaps are capture with the localToWorld transform of the component.
@@ -1889,16 +1887,18 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     }
 
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, preLightData.iblMipLevel);
-    envLighting += F * preLD.rgb * preLightData.specularFGD;
+    envLighting += F * preLD.rgb;
 
 #endif
 
     UpdateLightingHierarchyWeights(hierarchyWeight, weight);
+    envLighting *= weight;
 
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
-        lighting.specularReflected = envLighting * weight;
+        lighting.specularReflected = envLighting * preLightData.specularFGD;
     else
-        lighting.specularTransmitted = envLighting * weight;
+        // specular transmisted lighting is the remaining of the reflection (let's use this approx)
+        lighting.specularTransmitted = (1.0 - preLightData.specularFGD) * envLighting * preLightData.transmissionTransmittance;
 
     return lighting;
 }
@@ -1940,8 +1940,6 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     lighting.indirect.specularReflected *= lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), min(bsdfData.specularOcclusion, specularOcclusion));
 #endif
 
-    // TODO: we could call a function like PostBSDF that will apply albedo and divide by PI once for the loop
-
     lighting.direct.diffuse *=
 #if GTAO_MULTIBOUNCE_APPROX
                                 GTAOMultiBounce(directAmbientOcclusion, bsdfData.diffuseColor);
@@ -1949,7 +1947,12 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                                 lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), directAmbientOcclusion);
 #endif
 
-    diffuseLighting = lighting.direct.diffuse + bakeDiffuseLighting;
+    float3 modifiedDiffuseColor = ApplyDiffuseTexturingMode(bsdfData);
+
+    // Apply the albedo to the direct diffuse lighting (only once). The indirect (baked)
+    // diffuse lighting has already had the albedo applied in GetBakedDiffuseLigthing().
+    diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + bakeDiffuseLighting;
+
     // If refraction is enable we use the transmittanceMask to lerp between current diffuse lighting and refraction value
     // Physically speaking, it should be transmittanceMask should be 1, but for artistic reasons, we let the value vary
 #if HAS_REFRACTION
