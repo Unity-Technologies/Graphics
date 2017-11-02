@@ -26,7 +26,7 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.ReadWrite);
+                yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Write);
                 if (mode == Mode.Random)
                 {
                     yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
