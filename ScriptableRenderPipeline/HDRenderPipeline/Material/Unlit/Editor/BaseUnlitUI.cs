@@ -435,19 +435,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // Since we don't have those parameters in our shaders we need to provide a "fake" useless version of them with the right values for the GI to work.
         protected static void SetupMainTexForAlphaTestGI(string colorMapPropertyName, string colorPropertyName, Material material)
         {
-            if(material.HasProperty(colorMapPropertyName))
+            if (material.HasProperty(colorMapPropertyName))
             {
                 var mainTex = material.GetTexture(colorMapPropertyName);
                 material.SetTexture("_MainTex", mainTex);
             }
 
-            if(material.HasProperty(colorPropertyName))
+            if (material.HasProperty(colorPropertyName))
             {
                 var color = material.GetColor(colorPropertyName);
                 material.SetColor("_Color", color);
             }
 
-            if(material.HasProperty("_AlphaCutoff")) // Same for all our materials
+            if (material.HasProperty("_AlphaCutoff")) // Same for all our materials
             {
                 var cutoff = material.GetFloat("_AlphaCutoff");
                 material.SetFloat("_Cutoff", cutoff);
