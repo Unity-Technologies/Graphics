@@ -1,14 +1,14 @@
 ﻿using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using UnityEngine.Graphing;
-using UnityEngine.MaterialGraph;
+using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.MaterialGraph.Drawing.Inspector
+namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
     public class ShaderLayerView : VisualElement
     {
-        public LayeredShaderGraph graph { get; }
-        public LayeredShaderGraph.Layer layer { get; }
+        public LayeredShaderGraph graph { get; private set; }
+        public LayeredShaderGraph.Layer layer { get; private set; }
 
         public ShaderLayerView(LayeredShaderGraph graph, LayeredShaderGraph.Layer layer)
         {

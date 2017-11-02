@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Text;
+using UnityEngine;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     public class TextureShaderProperty : AbstractShaderProperty<SerializableTexture>
     {
         [SerializeField]
-        private bool m_Modifiable;
+        private bool m_Modifiable = true;
 
         public TextureShaderProperty()
         {
@@ -35,7 +36,6 @@ namespace UnityEngine.MaterialGraph
             var result = new StringBuilder();
             if (!m_Modifiable)
             {
-                result.Append("[HideInInspector] ");
                 result.Append("[NonModifiableTextureData] ");
             }
             result.Append("[NoScaleOffset] ");

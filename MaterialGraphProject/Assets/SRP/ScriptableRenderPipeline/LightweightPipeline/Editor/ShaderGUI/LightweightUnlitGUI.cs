@@ -1,7 +1,6 @@
 using System;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEditor.Experimental.Rendering.LightweightPipeline;
 
 public class LightweightUnlitGUI : ShaderGUI
@@ -31,7 +30,7 @@ public class LightweightUnlitGUI : ShaderGUI
     {
         blendModeProp = FindProperty("_Mode", properties);
         mainTexProp = FindProperty("_MainTex", properties);
-        mainColorProp = FindProperty("_Color", properties);
+        mainColorProp = FindProperty("_MainColor", properties);
         alphaCutoffProp = FindProperty("_Cutoff", properties);
     }
 

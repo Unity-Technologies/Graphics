@@ -1,9 +1,9 @@
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
 using System.Collections.Generic;
 using System.Linq;
 using System;
 
-/*namespace UnityEngine.MaterialGraph
+/*namespace UnityEditor.ShaderGraph
 {
     [Title("Art/Filters/Convolution")]
     public class ConvolutionFilterNode : Function2Input, IGeneratesFunction, IGeneratesBodyCode, IMayRequireMeshUV

@@ -1,8 +1,8 @@
 ﻿using UnityEngine.Experimental.UIElements;
-using UnityEngine.Graphing;
-using UnityEngine.MaterialGraph;
+using UnityEditor.Graphing;
+using UnityEngine;
 
-namespace UnityEditor.MaterialGraph.Drawing.Inspector
+namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
     public class IMGUISlotEditorView : VisualElement
     {
@@ -48,7 +48,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
                 var dynSlot = slot as Vector2MaterialSlot;
                 dynSlot.value = EditorGUILayout.Vector2Field(slot.displayName, dynSlot.value);
             }
-            
+
             if (slot is Vector3MaterialSlot)
             {
                 var dynSlot = slot as Vector3MaterialSlot;
@@ -59,6 +59,12 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             {
                 var dynSlot = slot as Vector4MaterialSlot;
                 dynSlot.value = EditorGUILayout.Vector4Field(slot.displayName, dynSlot.value);
+            }
+
+            if (slot is Texture2DInputMaterialSlot)
+            {
+                var dynslot = slot as Texture2DInputMaterialSlot;
+                dynslot.texture = EditorGUILayout.MiniThumbnailObjectField(new GUIContent("Texture"), dynslot.texture, typeof(Texture), null) as Texture;
             }
             return EditorGUI.EndChangeCheck();
         }

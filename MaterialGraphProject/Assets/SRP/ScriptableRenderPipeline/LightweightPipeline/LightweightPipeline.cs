@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.XR;
@@ -49,10 +50,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public struct LightData
     {
-        public int pixelLightsCount;
-        public int vertexLightsCount;
-        public int shadowLightIndex;
-        public bool isSingleLight;
+        public int pixelAdditionalLightsCount;
+        public int totalAdditionalLightsCount;
+        public int mainLightIndex;
         public bool shadowsRendered;
     }
 
@@ -60,30 +60,32 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     {
         private readonly LightweightPipelineAsset m_Asset;
 
-        // Max amount of visible lights. This controls the lights constant buffers in shader but not the max shaded lights.
-        // Lights are set per-object and the max shaded lights for each object are controlled by the max pixel lights in pipeline asset and kMaxVertexLights.
-        private static readonly int kMaxVisibleLights = 16;
-        private static readonly int kMaxPerObjectLights = 4;
+        // Maximum amount of visible lights the shader can process. This controls the constant global light buffer size.
+        // It must match the MAX_VISIBLE_LIGHTS in LightweightCore.cginc
+        private static readonly int kMaxVisibleAdditionalLights = 16;
 
-        private Vector4[] m_LightPositions = new Vector4[kMaxVisibleLights];
-        private Vector4[] m_LightColors = new Vector4[kMaxVisibleLights];
-        private Vector4[] m_LightAttenuations = new Vector4[kMaxVisibleLights];
-        private Vector4[] m_LightSpotDirections = new Vector4[kMaxVisibleLights];
+        // Lights are culled per-object. This holds the maximum amount of additional lights that can shade each object.
+        // The engine fills in the lights indices per-object in unity4_LightIndices0 and unity_4LightIndices1
+        private static readonly int kMaxPerObjectAdditionalLights = 8;
+
+        private Vector4[] m_LightPositions = new Vector4[kMaxVisibleAdditionalLights];
+        private Vector4[] m_LightColors = new Vector4[kMaxVisibleAdditionalLights];
+        private Vector4[] m_LightAttenuations = new Vector4[kMaxVisibleAdditionalLights];
+        private Vector4[] m_LightSpotDirections = new Vector4[kMaxVisibleAdditionalLights];
 
         private Camera m_CurrCamera = null;
-        private LightType m_SingleLightType = LightType.Directional;
-
-        private int m_LightIndicesCount = 0;
-        private ComputeBuffer m_LightIndexListBuffer;
 
         private static readonly int kMaxCascades = 4;
         private int m_ShadowCasterCascadesCount = kMaxCascades;
-        private int m_ShadowMapProperty;
-        private int m_CameraRTProperty;
-        private RenderTargetIdentifier m_ShadowMapRTID;
-        private RenderTargetIdentifier m_CameraRTID;
+        private int m_ShadowMapTexture;
+        private int m_CameraColorTexture;
+        private int m_CameraDepthTexture;
+        private int m_CameraCopyDepthTexture;
+        private RenderTargetIdentifier m_ShadowMapRT;
+        private RenderTargetIdentifier m_CameraColorRT;
+        private RenderTargetIdentifier m_CameraDepthRT;
+        private RenderTargetIdentifier m_CameraCopyDepthRT;
 
-        private bool m_RenderToIntermediateTarget = false;
         private bool m_IntermediateTextureArray = false;
 
         private const int kShadowDepthBufferBits = 16;
@@ -96,40 +98,78 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private static readonly ShaderPassName m_LitPassName = new ShaderPassName("LightweightForward");
         private static readonly ShaderPassName m_UnlitPassName = new ShaderPassName("SRPDefaultUnlit");
 
-        private RenderTextureFormat m_ColorFormat = RenderTextureFormat.ARGB32;
+        private RenderTextureFormat m_ColorFormat;
         private PostProcessRenderContext m_PostProcessRenderContext;
+        private PostProcessLayer m_CameraPostProcessLayer;
 
         private CameraComparer m_CameraComparer = new CameraComparer();
+        private LightComparer m_LightCompararer = new LightComparer();
+
+        // Maps from sorted light indices to original unsorted. We need this for shadow rendering
+        // and per-object light lists.
+        private List<int> m_SortedLightIndexMap = new List<int>();
+
+        private Mesh m_BlitQuad;
+        private Material m_BlitMaterial;
+        private Material m_CopyDepthMaterial;
+        private int m_BlitTexID = Shader.PropertyToID("_BlitTex");
+
+        private CopyTextureSupport m_CopyTextureSupport;
 
         public LightweightPipeline(LightweightPipelineAsset asset)
         {
             m_Asset = asset;
 
             BuildShadowSettings();
-            m_ShadowMapProperty = Shader.PropertyToID("_ShadowMap");
-            m_CameraRTProperty = Shader.PropertyToID("_CameraRT");
-            m_ShadowMapRTID = new RenderTargetIdentifier(m_ShadowMapProperty);
-            m_CameraRTID = new RenderTargetIdentifier(m_CameraRTProperty);
+
+            PerFrameBuffer._GlossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
+            PerFrameBuffer._AttenuationTexture = Shader.PropertyToID("_AttenuationTexture");
+
+            PerCameraBuffer._MainLightPosition = Shader.PropertyToID("_MainLightPosition");
+            PerCameraBuffer._MainLightColor = Shader.PropertyToID("_MainLightColor");
+            PerCameraBuffer._MainLightAttenuationParams = Shader.PropertyToID("_MainLightAttenuationParams");
+            PerCameraBuffer._MainLightSpotDir = Shader.PropertyToID("_MainLightSpotDir");
+            PerCameraBuffer._AdditionalLightCount = Shader.PropertyToID("_AdditionalLightCount");
+            PerCameraBuffer._AdditionalLightPosition = Shader.PropertyToID("_AdditionalLightPosition");
+            PerCameraBuffer._AdditionalLightColor = Shader.PropertyToID("_AdditionalLightColor");
+            PerCameraBuffer._AdditionalLightAttenuationParams = Shader.PropertyToID("_AdditionalLightAttenuationParams");
+            PerCameraBuffer._AdditionalLightSpotDir = Shader.PropertyToID("_AdditionalLightSpotDir");
+
+            m_ShadowMapTexture = Shader.PropertyToID("_ShadowMap");
+            m_CameraColorTexture = Shader.PropertyToID("_CameraColorTexture");
+            m_CameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture");
+            m_CameraCopyDepthTexture = Shader.PropertyToID("_CameraCopyDepthTexture");
+
+            m_ShadowMapRT = new RenderTargetIdentifier(m_ShadowMapTexture);
+            m_CameraColorRT = new RenderTargetIdentifier(m_CameraColorTexture);
+            m_CameraDepthRT = new RenderTargetIdentifier(m_CameraDepthTexture);
+            m_CameraCopyDepthRT = new RenderTargetIdentifier(m_CameraCopyDepthTexture);
             m_PostProcessRenderContext = new PostProcessRenderContext();
+
+            m_CopyTextureSupport = SystemInfo.copyTextureSupport;
 
             // Let engine know we have MSAA on for cases where we support MSAA backbuffer
             if (QualitySettings.antiAliasing != m_Asset.MSAASampleCount)
                 QualitySettings.antiAliasing = m_Asset.MSAASampleCount;
 
             Shader.globalRenderPipeline = "LightweightPipeline";
+
+            m_BlitQuad = LightweightUtils.CreateQuadMesh(false);
+            m_BlitMaterial = new Material(m_Asset.BlitShader)
+            {
+                hideFlags = HideFlags.HideAndDontSave
+            };
+
+            m_CopyDepthMaterial = new Material(m_Asset.CopyDepthShader)
+            {
+                hideFlags = HideFlags.HideAndDontSave
+            };
         }
 
         public override void Dispose()
         {
             base.Dispose();
-
             Shader.globalRenderPipeline = "";
-            if (m_LightIndexListBuffer != null)
-            {
-                m_LightIndexListBuffer.Dispose();
-                m_LightIndexListBuffer = null;
-                m_LightIndicesCount = 0;
-            }
         }
 
         CullResults m_CullResults;
@@ -143,6 +183,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // instead this should be forced when using SRP, since all SRP use linear lighting.
             GraphicsSettings.lightsUseLinearIntensity = true;
 
+            SetupPerFrameShaderConstants(ref context);
+
+            // Sort cameras array by camera depth
             Array.Sort(cameras, m_CameraComparer);
             foreach (Camera camera in cameras)
             {
@@ -152,79 +195,150 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (!CullResults.GetCullingParameters(m_CurrCamera, stereoEnabled, out cullingParameters))
                     continue;
 
-                cullingParameters.shadowDistance = Mathf.Min(m_ShadowSettings.maxShadowDistance, m_CurrCamera.farClipPlane);
-                CullResults.Cull(ref cullingParameters, context,ref m_CullResults);
+                cullingParameters.shadowDistance = Mathf.Min(m_ShadowSettings.maxShadowDistance,
+                    m_CurrCamera.farClipPlane);
 
+#if UNITY_EDITOR
+                // Emit scene view UI
+                if (camera.cameraType == CameraType.SceneView)
+                    ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
+#endif
+
+                CullResults.Cull(ref cullingParameters, context, ref m_CullResults);
                 VisibleLight[] visibleLights = m_CullResults.visibleLights.ToArray();
 
                 LightData lightData;
                 InitializeLightData(visibleLights, out lightData);
 
-                // Render Shadow Map
-                if (lightData.shadowLightIndex > -1)
-                    lightData.shadowsRendered = RenderShadows(ref m_CullResults, ref visibleLights[lightData.shadowLightIndex], lightData.shadowLightIndex, ref context);
-
-                // Setup camera matrices and RT
-                context.SetupCameraProperties(m_CurrCamera, stereoEnabled);
-
-                // Setup light and shadow shader constants
-                SetupShaderLightConstants(visibleLights, ref lightData, ref m_CullResults, ref context);
-                if (lightData.shadowsRendered)
-                    SetupShadowShaderConstants(ref context, ref visibleLights[lightData.shadowLightIndex], lightData.shadowLightIndex, m_ShadowCasterCascadesCount);
-                SetShaderKeywords(ref lightData, ref context);
-
-                RendererConfiguration configuration = RendererConfiguration.PerObjectReflectionProbes;
-                if (m_Asset.EnableLightmap)
-                    configuration |= RendererConfiguration.PerObjectLightmaps;
-
-                if (m_Asset.EnableAmbientProbe)
-                    configuration |= RendererConfiguration.PerObjectLightProbe;
-
-                if (!lightData.isSingleLight)
-                    configuration |= RendererConfiguration.PerObjectLightIndices8;
-
-                PostProcessLayer postProcessLayer = GetCurrCameraPostProcessLayer();
-                bool postProcessEnabled = postProcessLayer != null && postProcessLayer.enabled;
-                m_RenderToIntermediateTarget = postProcessEnabled || GetRenderToIntermediateTarget();
-
-                BeginForwardRendering(ref context, stereoEnabled);
-
-                var litDrawSettings = new DrawRendererSettings(m_CurrCamera, m_LitPassName);
-                litDrawSettings.sorting.flags = SortFlags.CommonOpaque;
-                litDrawSettings.rendererConfiguration = configuration;
-
-                var unlitDrawSettings = new DrawRendererSettings(m_CurrCamera, m_UnlitPassName);
-                unlitDrawSettings.sorting.flags = SortFlags.CommonTransparent;
-
-                // Render Opaques
-                var opaqueFilterSettings = new FilterRenderersSettings(true) {renderQueueRange = RenderQueueRange.opaque};
-
-                context.DrawRenderers(m_CullResults.visibleRenderers, ref litDrawSettings, opaqueFilterSettings);
-
-                // TODO: Check skybox shader
-                context.DrawSkybox(m_CurrCamera);
-
-                // Render Alpha blended
-                var transparentFilterSettings = new FilterRenderersSettings(true) {renderQueueRange = RenderQueueRange.transparent};
-
-                litDrawSettings.sorting.flags = SortFlags.CommonTransparent;
-                context.DrawRenderers(m_CullResults.visibleRenderers, ref litDrawSettings, transparentFilterSettings);
-                context.DrawRenderers(m_CullResults.visibleRenderers, ref unlitDrawSettings, transparentFilterSettings);
-
-                if (postProcessEnabled)
-                    RenderPostProcess(ref context, postProcessLayer);
-
-                EndForwardRendering(ref context, stereoEnabled, postProcessEnabled);
+                ShadowPass(visibleLights, ref context, ref lightData);
+                ForwardPass(visibleLights, ref context, ref lightData, stereoEnabled);
 
                 // Release temporary RT
-                var discardRT = CommandBufferPool.Get();
-                discardRT.ReleaseTemporaryRT(m_ShadowMapProperty);
-                discardRT.ReleaseTemporaryRT(m_CameraRTProperty);
-                context.ExecuteCommandBuffer(discardRT);
-                CommandBufferPool.Release(discardRT);
+                var cmd = CommandBufferPool.Get("After Camera Render");
+                cmd.ReleaseTemporaryRT(m_ShadowMapTexture);
+                cmd.ReleaseTemporaryRT(m_CameraColorTexture);
+                cmd.ReleaseTemporaryRT(m_CameraDepthTexture);
+                cmd.ReleaseTemporaryRT(m_CameraCopyDepthTexture);
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
+
+                context.Submit();
+            }
+        }
+
+        private void ShadowPass(VisibleLight[] visibleLights, ref ScriptableRenderContext context, ref LightData lightData)
+        {
+            if (m_Asset.AreShadowsEnabled() && lightData.mainLightIndex != -1)
+            {
+                VisibleLight mainLight = visibleLights[lightData.mainLightIndex];
+
+                if (mainLight.light.shadows != LightShadows.None)
+                {
+                    if (!LightweightUtils.IsSupportedShadowType(mainLight.lightType))
+                    {
+                        Debug.LogWarning("Only directional and spot shadows are supported by LightweightPipeline.");
+                        return;
+                    }
+
+                    // There's no way to map shadow light indices. We need to pass in the original unsorted index.
+                    // If no additional lights then no light sorting is performed and the indices match.
+                    int shadowOriginalIndex = (lightData.totalAdditionalLightsCount > 0) ? GetLightUnsortedIndex(lightData.mainLightIndex) : lightData.mainLightIndex;
+                    lightData.shadowsRendered = RenderShadows(ref m_CullResults, ref mainLight,
+                        shadowOriginalIndex, ref context);
+                }
+            }
+        }
+
+        private void ForwardPass(VisibleLight[] visibleLights, ref ScriptableRenderContext context, ref LightData lightData, bool stereoEnabled)
+        {
+            FrameRenderingConfiguration frameRenderingConfiguration;
+            SetupFrameRendering(out frameRenderingConfiguration);
+            SetupIntermediateResources(frameRenderingConfiguration, ref context);
+            SetupShaderConstants(visibleLights, ref context, ref lightData);
+
+            // SetupCameraProperties does the following:
+            // Setup Camera RenderTarget and Viewport
+            // VR Camera Setup and SINGLE_PASS_STEREO props
+            // Setup camera view, proj and their inv matrices.
+            // Setup properties: _WorldSpaceCameraPos, _ProjectionParams, _ScreenParams, _ZBufferParams, unity_OrthoParams
+            // Setup camera world clip planes props
+            // setup HDR keyword
+            // Setup global time properties (_Time, _SinTime, _CosTime)
+            context.SetupCameraProperties(m_CurrCamera, stereoEnabled);
+
+            RendererConfiguration rendererSettings = GetRendererSettings(ref lightData);
+
+            BeginForwardRendering(ref context, frameRenderingConfiguration);
+            RenderOpaques(ref context, rendererSettings);
+            AfterOpaque(ref context, frameRenderingConfiguration);
+            RenderTransparents(ref context, rendererSettings);
+            AfterTransparent(ref context, frameRenderingConfiguration);
+            EndForwardRendering(ref context, frameRenderingConfiguration);
+        }
+
+        private void RenderOpaques(ref ScriptableRenderContext context, RendererConfiguration settings)
+        {
+            var opaqueDrawSettings = new DrawRendererSettings(m_CurrCamera, m_LitPassName);
+            opaqueDrawSettings.sorting.flags = SortFlags.CommonOpaque;
+            opaqueDrawSettings.rendererConfiguration = settings;
+
+            var opaqueFilterSettings = new FilterRenderersSettings(true)
+            {
+                renderQueueRange = RenderQueueRange.opaque
+            };
+
+            context.DrawRenderers(m_CullResults.visibleRenderers, ref opaqueDrawSettings, opaqueFilterSettings);
+            context.DrawSkybox(m_CurrCamera);
+        }
+
+        private void AfterOpaque(ref ScriptableRenderContext context, FrameRenderingConfiguration config)
+        {
+            if (!LightweightUtils.HasFlag(config, FrameRenderingConfiguration.RequireDepth))
+                return;
+
+            CommandBuffer cmd = CommandBufferPool.Get("After Opaque");
+            cmd.SetGlobalTexture(m_CameraDepthTexture, m_CameraDepthRT);
+
+            // When soft particles are enabled we have to copy depth to another RT so we can read and write to depth
+            if (m_Asset.SupportsSoftParticles)
+            {
+                RenderTargetIdentifier colorRT = (m_CurrCamera.targetTexture != null) ? BuiltinRenderTextureType.CameraTarget : m_CameraColorRT;
+                CopyTexture(cmd, m_CameraDepthRT, m_CameraCopyDepthTexture);
+                SetupRenderTargets(cmd, colorRT, m_CameraCopyDepthRT);
             }
 
-            context.Submit();
+            // Only takes effect if custom BeforeTransparent PostProcessing effects are active
+            if (LightweightUtils.HasFlag(config, FrameRenderingConfiguration.PostProcess))
+                RenderPostProcess(cmd , true);
+
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+        }
+
+        private void AfterTransparent(ref ScriptableRenderContext context, FrameRenderingConfiguration config)
+        {
+            if (!LightweightUtils.HasFlag(config, FrameRenderingConfiguration.PostProcess))
+                return;
+
+            CommandBuffer cmd = CommandBufferPool.Get("After Transparent");
+            RenderPostProcess(cmd, false);
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+        }
+
+        private void RenderTransparents(ref ScriptableRenderContext context, RendererConfiguration config)
+        {
+            var transparentSettings = new DrawRendererSettings(m_CurrCamera, m_LitPassName);
+            transparentSettings.SetShaderPassName(1, m_UnlitPassName);
+            transparentSettings.sorting.flags = SortFlags.CommonTransparent;
+            transparentSettings.rendererConfiguration = config;
+
+            var transparentFilterSettings = new FilterRenderersSettings(true)
+            {
+                renderQueueRange = RenderQueueRange.transparent
+            };
+
+            context.DrawRenderers(m_CullResults.visibleRenderers, ref transparentSettings, transparentFilterSettings);
         }
 
         private void BuildShadowSettings()
@@ -252,41 +366,176 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        private void InitializeLightData(VisibleLight[] lights, out LightData lightData)
+        private void SetupFrameRendering(out FrameRenderingConfiguration configuration)
         {
-            int lightsCount = lights.Length;
-            int maxPerPixelLights = Math.Min(m_Asset.MaxSupportedPixelLights, kMaxPerObjectLights);
-            lightData.pixelLightsCount = Math.Min(lightsCount, maxPerPixelLights);
-            lightData.vertexLightsCount = (m_Asset.SupportsVertexLight) ? Math.Min(lightsCount - lightData.pixelLightsCount, kMaxPerObjectLights) : 0;
+            configuration = (XRSettings.enabled) ? FrameRenderingConfiguration.Stereo : FrameRenderingConfiguration.None;
+            if (XRSettings.enabled && XRSettings.eyeTextureDesc.dimension == TextureDimension.Tex2DArray)
+                m_IntermediateTextureArray = true;
+            else
+                m_IntermediateTextureArray = false;
 
-            // TODO: Handle Vertex lights in this case
-            lightData.isSingleLight = lightData.pixelLightsCount <= 1;
-            if (lightData.isSingleLight)
-                m_SingleLightType = (lightData.pixelLightsCount == 1) ? lights[0].lightType : LightType.Directional;
+            bool intermediateTexture = m_CurrCamera.targetTexture != null || m_CurrCamera.cameraType == CameraType.SceneView ||
+                                            m_Asset.RenderScale < 1.0f || m_CurrCamera.allowHDR;
 
-            lightData.shadowsRendered = false;
+            m_ColorFormat = m_CurrCamera.allowHDR ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32;
 
-            InitializeMainShadowLightIndex(lights, out lightData.shadowLightIndex);
+            m_CameraPostProcessLayer = m_CurrCamera.GetComponent<PostProcessLayer>();
+            bool postProcessEnabled = m_CameraPostProcessLayer != null && m_CameraPostProcessLayer.enabled;
+            if (postProcessEnabled || m_Asset.SupportsSoftParticles)
+            {
+                configuration |= FrameRenderingConfiguration.RequireDepth;
+                intermediateTexture = true;
+
+                if (postProcessEnabled)
+                    configuration |= FrameRenderingConfiguration.PostProcess;
+            }
+            // When post process or soft particles are enabled we disable msaa due to lack of depth resolve
+            // One can still use PostFX AA
+            else if (m_CurrCamera.allowMSAA && m_Asset.MSAASampleCount > 1)
+            {
+                configuration |= FrameRenderingConfiguration.Msaa;
+                intermediateTexture = !LightweightUtils.PlatformSupportsMSAABackBuffer();
+            }
+
+            Rect cameraRect = m_CurrCamera.rect;
+            if (cameraRect.x > 0.0f || cameraRect.y > 0.0f || cameraRect.width < 1.0f || cameraRect.height < 1.0f)
+                intermediateTexture = true;
+            else
+                configuration |= FrameRenderingConfiguration.DefaultViewport;
+
+            if (intermediateTexture)
+                configuration |= FrameRenderingConfiguration.IntermediateTexture;
         }
 
-        private void SetupShaderLightConstants(VisibleLight[] lights, ref LightData lightData, ref CullResults cullResults, ref ScriptableRenderContext context)
+        private void SetupIntermediateResources(FrameRenderingConfiguration renderingConfig, ref ScriptableRenderContext context)
         {
-            if (lightData.isSingleLight)
-                SetupShaderSingleLightConstants(lights, (lightData.pixelLightsCount > 0) ? 0 : -1, ref context);
-            else
-                SetupShaderLightListConstants(lights, ref lightData, ref context);
+            CommandBuffer cmd = CommandBufferPool.Get("Setup Intermediate Resources");
+
+            float renderScale = (m_CurrCamera.cameraType == CameraType.Game) ? m_Asset.RenderScale : 1.0f;
+            int rtWidth = (int)((float)m_CurrCamera.pixelWidth * renderScale);
+            int rtHeight = (int)((float)m_CurrCamera.pixelHeight * renderScale);
+            int msaaSamples = (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Msaa)) ? m_Asset.MSAASampleCount : 1;
+
+            if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture))
+            {
+                if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Stereo))
+                {
+                    RenderTextureDescriptor rtDesc = new RenderTextureDescriptor();
+                    rtDesc = XRSettings.eyeTextureDesc;
+                    rtDesc.colorFormat = m_ColorFormat;
+                    rtDesc.msaaSamples = msaaSamples;
+
+                    cmd.GetTemporaryRT(m_CameraColorTexture, rtDesc, FilterMode.Bilinear);
+                }
+                else if (m_CurrCamera.targetTexture == null)
+                {
+                    cmd.GetTemporaryRT(m_CameraColorTexture, rtWidth, rtHeight, kCameraDepthBufferBits,
+                        FilterMode.Bilinear, m_ColorFormat, RenderTextureReadWrite.Default, msaaSamples);
+                }
+            }
+
+            if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.RequireDepth))
+            {
+                cmd.GetTemporaryRT(m_CameraDepthTexture, rtWidth, rtHeight, kCameraDepthBufferBits, FilterMode.Bilinear, RenderTextureFormat.Depth);
+                if (m_Asset.SupportsSoftParticles)
+                    cmd.GetTemporaryRT(m_CameraCopyDepthTexture, rtWidth, rtHeight, kCameraDepthBufferBits, FilterMode.Bilinear, RenderTextureFormat.Depth);
+            }
+
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+        }
+
+        private void SetupShaderConstants(VisibleLight[] visibleLights, ref ScriptableRenderContext context, ref LightData lightData)
+        {
+            CommandBuffer cmd = CommandBufferPool.Get("SetupShaderConstants");
+            SetupShaderLightConstants(cmd, visibleLights, ref lightData, ref m_CullResults, ref context);
+            SetShaderKeywords(cmd, ref lightData, visibleLights);
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+        }
+
+        private void InitializeLightData(VisibleLight[] visibleLights, out LightData lightData)
+        {
+            int visibleLightsCount = visibleLights.Length;
+            m_SortedLightIndexMap.Clear();
+
+            lightData.shadowsRendered = false;
+            if (visibleLightsCount <= 1)
+            {
+                // If there's exactly one visible light that will be picked as main light.
+                // Otherwise we disable main light by setting its index to -1.
+                lightData.mainLightIndex = visibleLightsCount - 1;
+                lightData.pixelAdditionalLightsCount = 0;
+                lightData.totalAdditionalLightsCount = 0;
+                return;
+            }
+
+            // We always support at least one per-pixel light, which is main light. Shade objects up to a limit of per-object
+            // pixel lights defined in the pipeline settings.
+            int maxSupportedPixelLights = Math.Min(m_Asset.MaxAdditionalPixelLights, kMaxPerObjectAdditionalLights) + 1;
+            int maxPixelLights = Math.Min(maxSupportedPixelLights, visibleLightsCount);
+
+            // If vertex lighting is enabled in the pipeline settings, then we shade the remaining visible lights per-vertex
+            // up to the maximum amount of per-object lights.
+            int vertexLights = (m_Asset.SupportsVertexLight) ? kMaxPerObjectAdditionalLights - maxPixelLights - 1: 0;
+
+            lightData.mainLightIndex = SortLights(visibleLights);
+            lightData.pixelAdditionalLightsCount = maxPixelLights - 1;
+            lightData.totalAdditionalLightsCount = lightData.pixelAdditionalLightsCount + vertexLights;
+        }
+
+        private int SortLights(VisibleLight[] visibleLights)
+        {
+            int totalVisibleLights = visibleLights.Length;
+
+            Dictionary<int, int> visibleLightsIDMap = new Dictionary<int, int>();
+            for (int i = 0; i < totalVisibleLights; ++i)
+                visibleLightsIDMap.Add(visibleLights[i].GetHashCode(), i);
+
+            // Sorts light so we have all directionals first, then local lights.
+            // Directionals are sorted further by shadow, cookie and intensity
+            // Locals are sorted further by shadow, cookie and distance to camera
+            m_LightCompararer.CurrCamera = m_CurrCamera;
+            Array.Sort(visibleLights, m_LightCompararer);
+
+            for (int i = 0; i < totalVisibleLights; ++i)
+                m_SortedLightIndexMap.Add(visibleLightsIDMap[visibleLights[i].GetHashCode()]);
+
+            return GetMainLight(visibleLights);
+        }
+
+        // How main light is decided:
+        // If shadows enabled, main light is always a shadow casting light. Directional has priority over local lights.
+        // Otherwise directional lights have priority based on cookie support and intensity
+        // If no directional light in the scene local lights based on cookie support and distance to camera
+        private int GetMainLight(VisibleLight[] visibleLights)
+        {
+            int totalVisibleLights = visibleLights.Length;
+            bool shadowsEnabled = m_Asset.AreShadowsEnabled();
+
+            // If shadows are supported and the first visible light has shadows then this is main light
+            if (shadowsEnabled && visibleLights[0].light.shadows != LightShadows.None)
+                return 0;
+
+            // We don't have any directional shadow casting light, skip until we find the first non directional light
+            int lightIndex = 0;
+            while (lightIndex < totalVisibleLights && visibleLights[lightIndex].lightType == LightType.Directional)
+                lightIndex++;
+
+            // If first non-directional light has shadows we return it, otherwise we return first light
+            return (lightIndex < totalVisibleLights && visibleLights[lightIndex].light.shadows != LightShadows.None) ? lightIndex : 0;
         }
 
         private void InitializeLightConstants(VisibleLight[] lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightSpotDir,
             out Vector4 lightAttenuationParams)
         {
-            lightPos = Vector4.zero;
+            lightPos = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
             lightColor = Color.black;
             lightAttenuationParams = new Vector4(0.0f, 1.0f, 0.0f, 0.0f);
             lightSpotDir = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
 
-            // When no lights are available in the pipeline or maxPixelLights is set to 0
-            // In this case we want to initialize the lightData to default values and return
+            // When no lights are visible, main light will be set to -1.
+            // In this case we initialize it to default values and return
             if (lightIndex < 0)
                 return;
 
@@ -314,66 +563,160 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 Vector4 dir = light.localToWorld.GetColumn(2);
                 lightSpotDir = new Vector4(-dir.x, -dir.y, -dir.z, 0.0f);
 
+                // Spot Attenuation with a linear falloff can be defined as
+                // (SdotL - cosOuterAngle) / (cosInnerAngle - cosOuterAngle)
+                // This can be rewritten as
+                // invAngleRange = 1.0 / (cosInnerAngle - cosOuterAngle)
+                // SdotL * invAngleRange + (-cosOuterAngle * invAngleRange)
+                // If we precompute the terms in a MAD instruction
                 float spotAngle = Mathf.Deg2Rad * light.spotAngle;
                 float cosOuterAngle = Mathf.Cos(spotAngle * 0.5f);
                 float cosInneAngle = Mathf.Cos(spotAngle * 0.25f);
-                float angleRange = cosInneAngle - cosOuterAngle;
-                lightAttenuationParams = new Vector4(cosOuterAngle,
-                    Mathf.Approximately(angleRange, 0.0f) ? 1.0f : angleRange, quadAtten, rangeSq);
+                float smoothAngleRange = cosInneAngle - cosOuterAngle;
+                if (Mathf.Approximately(smoothAngleRange, 0.0f))
+                    smoothAngleRange = 1.0f;
+
+                float invAngleRange = 1.0f / smoothAngleRange;
+                float add = -cosOuterAngle * invAngleRange;
+                lightAttenuationParams = new Vector4(invAngleRange, add, quadAtten, rangeSq);
             }
             else
             {
                 lightSpotDir = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
-                lightAttenuationParams = new Vector4(-1.0f, 1.0f, quadAtten, rangeSq);
+                lightAttenuationParams = new Vector4(0.0f, 1.0f, quadAtten, rangeSq);
             }
         }
 
-        private void SetupShaderSingleLightConstants(VisibleLight[] lights, int lightIndex, ref ScriptableRenderContext context)
+        private void SetupPerFrameShaderConstants(ref ScriptableRenderContext context)
+        {
+            // When glossy reflections are OFF in the shader we set a constant color to use as indirect specular
+            SphericalHarmonicsL2 ambientSH = RenderSettings.ambientProbe;
+            Vector4 glossyEnvColor = new Vector4(ambientSH[0, 0], ambientSH[1, 0], ambientSH[2, 0]) * RenderSettings.reflectionIntensity;
+
+            CommandBuffer cmd = CommandBufferPool.Get("SetupPerFrameConstants");
+            cmd.SetGlobalVector(PerFrameBuffer._GlossyEnvironmentColor, glossyEnvColor);
+            if (m_Asset.AttenuationTexture != null) cmd.SetGlobalTexture(PerFrameBuffer._AttenuationTexture, m_Asset.AttenuationTexture);
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release (cmd);
+        }
+
+        private void SetupShaderLightConstants(CommandBuffer cmd, VisibleLight[] lights, ref LightData lightData, ref CullResults cullResults, ref ScriptableRenderContext context)
+        {
+            // Main light has an optimized shader path for main light. This will benefit games that only care about a single light.
+            // Lightweight pipeline also supports only a single shadow light, if available it will be the main light.
+            SetupMainLightConstants(cmd, lights, lightData.mainLightIndex, ref context);
+            if (lightData.shadowsRendered)
+                SetupShadowShaderConstants(cmd, ref context, ref lights[lightData.mainLightIndex], m_ShadowCasterCascadesCount);
+
+            if (lightData.totalAdditionalLightsCount > 0)
+                SetupAdditionalListConstants(cmd, lights, ref lightData, ref context);
+        }
+
+        private void SetupMainLightConstants(CommandBuffer cmd, VisibleLight[] lights, int lightIndex, ref ScriptableRenderContext context)
         {
             Vector4 lightPos, lightColor, lightSpotDir, lightAttenuationParams;
             InitializeLightConstants(lights, lightIndex, out lightPos, out lightColor, out lightSpotDir, out lightAttenuationParams);
 
-            CommandBuffer cmd = new CommandBuffer() { name = "SetupSingleLightConstants" };
-            cmd.SetGlobalVector("_LightPosition", lightPos);
-            cmd.SetGlobalColor("_LightColor", lightColor);
-            cmd.SetGlobalVector("_LightSpotDir", lightSpotDir);
-            cmd.SetGlobalVector("_LightAttenuationParams", lightAttenuationParams);
-            if (m_Asset.AttenuationTexture != null) cmd.SetGlobalTexture("_AttenuationTexture", m_Asset.AttenuationTexture);
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
+            cmd.SetGlobalVector(PerCameraBuffer._MainLightPosition, lightPos);
+            cmd.SetGlobalColor(PerCameraBuffer._MainLightColor, lightColor);
+            cmd.SetGlobalVector(PerCameraBuffer._MainLightSpotDir, lightSpotDir);
+            cmd.SetGlobalVector(PerCameraBuffer._MainLightAttenuationParams, lightAttenuationParams);
         }
 
-        private void SetupShaderLightListConstants(VisibleLight[] lights, ref LightData lightData, ref ScriptableRenderContext context)
+        private void SetupAdditionalListConstants(CommandBuffer cmd, VisibleLight[] lights, ref LightData lightData, ref ScriptableRenderContext context)
         {
-            int maxLights = Math.Min(kMaxVisibleLights, lights.Length);
+            int additionalLightIndex = 0;
 
-            for (int i = 0; i < maxLights; ++i)
-                InitializeLightConstants(lights, i, out m_LightPositions[i], out m_LightColors[i], out m_LightSpotDirections[i], out m_LightAttenuations[i]);
+            // We need to update per-object light list with the proper map to our global additional light buffer
+            // First we initialize all lights in the map to -1 to tell the system to discard main light index and
+            // remaining lights in the scene that don't fit the max additional light buffer (kMaxVisibileAdditionalLights)
+            int[] perObjectLightIndexMap = m_CullResults.GetLightIndexMap();
+            for (int i = 0; i < lights.Length; ++i)
+                perObjectLightIndexMap[i] = -1;
 
-            // Lightweight pipeline only upload kMaxVisibleLights to shader cbuffer.
-            // We tell the pipe to disable remaining lights by setting it to -1.
-            int[] lightIndexMap = m_CullResults.GetLightIndexMap();
-            for (int i = kMaxVisibleLights; i < lightIndexMap.Length; ++i)
-                lightIndexMap[i] = -1;
-            m_CullResults.SetLightIndexMap(lightIndexMap);
+            for (int i = 0; i < lights.Length && additionalLightIndex < kMaxVisibleAdditionalLights; ++i)
+            {
+                if (i != lightData.mainLightIndex)
+                {
+                    // The engine performs per-object light culling and initialize 8 light indices into two vec4 constants unity_4LightIndices0 and unity_4LightIndices1.
+                    // In the shader we iterate over each visible light using the indices provided in these constants to index our global light buffer
+                    // ex: first light position would be m_LightPosisitions[unity_4LightIndices[0]];
 
-            CommandBuffer cmd = CommandBufferPool.Get("SetupLightShaderConstants");
-            cmd.SetGlobalVector("globalLightCount", new Vector4 (lightData.pixelLightsCount, lightData.vertexLightsCount, 0.0f, 0.0f));
-            cmd.SetGlobalVectorArray ("globalLightPos", m_LightPositions);
-            cmd.SetGlobalVectorArray ("globalLightColor", m_LightColors);
-            cmd.SetGlobalVectorArray ("globalLightAtten", m_LightAttenuations);
-            cmd.SetGlobalVectorArray ("globalLightSpotDir", m_LightSpotDirections);
-            if (m_Asset.AttenuationTexture != null) cmd.SetGlobalTexture("_AttenuationTexture", m_Asset.AttenuationTexture);
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+                    // However since we sorted the lights we need to tell the engine how to map the original/unsorted indices to our global buffer
+                    // We do it by settings the perObjectLightIndexMap to the appropriate additionalLightIndex.
+                    perObjectLightIndexMap[GetLightUnsortedIndex(i)] = additionalLightIndex;
+                    InitializeLightConstants(lights, i, out m_LightPositions[additionalLightIndex],
+                            out m_LightColors[additionalLightIndex],
+                            out m_LightSpotDirections[additionalLightIndex],
+                            out m_LightAttenuations[additionalLightIndex]);
+                    additionalLightIndex++;
+                }
+            }
+            m_CullResults.SetLightIndexMap(perObjectLightIndexMap);
+
+            cmd.SetGlobalVector(PerCameraBuffer._AdditionalLightCount, new Vector4 (lightData.pixelAdditionalLightsCount,
+                 lightData.totalAdditionalLightsCount, 0.0f, 0.0f));
+            cmd.SetGlobalVectorArray (PerCameraBuffer._AdditionalLightPosition, m_LightPositions);
+            cmd.SetGlobalVectorArray (PerCameraBuffer._AdditionalLightColor, m_LightColors);
+            cmd.SetGlobalVectorArray (PerCameraBuffer._AdditionalLightAttenuationParams, m_LightAttenuations);
+            cmd.SetGlobalVectorArray (PerCameraBuffer._AdditionalLightSpotDir, m_LightSpotDirections);
         }
 
-        private void SetShaderKeywords(ref LightData lightData, ref ScriptableRenderContext context)
+        private void SetupShadowShaderConstants(CommandBuffer cmd, ref ScriptableRenderContext context, ref VisibleLight shadowLight, int cascadeCount)
         {
-            CommandBuffer cmd = new CommandBuffer() { name = "SetShaderKeywords" };
-            SetShaderKeywords(cmd, lightData.shadowsRendered, lightData.isSingleLight, lightData.vertexLightsCount > 0);
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
+            Vector3 shadowLightDir = Vector3.Normalize(shadowLight.localToWorld.GetColumn(2));
+
+            Light light = shadowLight.light;
+            float bias = light.shadowBias * 0.1f;
+            float normalBias = light.shadowNormalBias;
+            float shadowResolution = m_ShadowSlices[0].shadowResolution;
+
+            const int maxShadowCascades = 4;
+            Matrix4x4[] shadowMatrices = new Matrix4x4[maxShadowCascades];
+            for (int i = 0; i < cascadeCount; ++i)
+                shadowMatrices[i] = (cascadeCount >= i) ? m_ShadowSlices[i].shadowTransform : Matrix4x4.identity;
+
+            // TODO: shadow resolution per cascade in case cascades endup being supported.
+            float invShadowResolution = 1.0f / shadowResolution;
+            float[] pcfKernel =
+            {
+                -0.5f * invShadowResolution, 0.5f * invShadowResolution,
+                0.5f * invShadowResolution, 0.5f * invShadowResolution,
+                -0.5f * invShadowResolution, -0.5f * invShadowResolution,
+                0.5f * invShadowResolution, -0.5f * invShadowResolution
+            };
+
+            cmd.SetGlobalMatrixArray("_WorldToShadow", shadowMatrices);
+            cmd.SetGlobalVectorArray("_DirShadowSplitSpheres", m_DirectionalShadowSplitDistances);
+            cmd.SetGlobalVector("_ShadowLightDirection", new Vector4(-shadowLightDir.x, -shadowLightDir.y, -shadowLightDir.z, 0.0f));
+            cmd.SetGlobalVector("_ShadowData", new Vector4(0.0f, bias, normalBias, 0.0f));
+            cmd.SetGlobalFloatArray("_PCFKernel", pcfKernel);
+        }
+
+        private void SetShaderKeywords(CommandBuffer cmd, ref LightData lightData, VisibleLight[] visibleLights)
+        {
+            int vertexLightsCount = lightData.totalAdditionalLightsCount - lightData.pixelAdditionalLightsCount;
+            LightweightUtils.SetKeyword(cmd, "_VERTEX_LIGHTS", vertexLightsCount > 0);
+
+            int mainLightIndex = lightData.mainLightIndex;
+            LightweightUtils.SetKeyword (cmd, "_MAIN_DIRECTIONAL_LIGHT", mainLightIndex == -1 || visibleLights[mainLightIndex].lightType == LightType.Directional);
+            LightweightUtils.SetKeyword (cmd, "_MAIN_SPOT_LIGHT", mainLightIndex != -1 && visibleLights[mainLightIndex].lightType == LightType.Spot);
+            LightweightUtils.SetKeyword (cmd, "_MAIN_POINT_LIGHT", mainLightIndex != -1 && visibleLights[mainLightIndex].lightType == LightType.Point);
+            LightweightUtils.SetKeyword(cmd, "_ADDITIONAL_LIGHTS", lightData.totalAdditionalLightsCount > 0);
+
+            string[] shadowKeywords = new string[] { "_HARD_SHADOWS", "_SOFT_SHADOWS", "_HARD_SHADOWS_CASCADES", "_SOFT_SHADOWS_CASCADES" };
+            for (int i = 0; i < shadowKeywords.Length; ++i)
+                cmd.DisableShaderKeyword(shadowKeywords[i]);
+
+            if (m_Asset.AreShadowsEnabled() && lightData.shadowsRendered)
+            {
+                int keywordIndex = (int)m_Asset.ShadowSetting - 1;
+                if (m_Asset.CascadeCount > 1)
+                    keywordIndex += 2;
+                cmd.EnableShaderKeyword(shadowKeywords[keywordIndex]);
+            }
+
+            LightweightUtils.SetKeyword(cmd, "SOFTPARTICLES_ON", m_Asset.SupportsSoftParticles);
         }
 
         private bool RenderShadows(ref CullResults cullResults, ref VisibleLight shadowLight, int shadowLightIndex, ref ScriptableRenderContext context)
@@ -391,9 +734,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             var setRenderTargetCommandBuffer = CommandBufferPool.Get();
             setRenderTargetCommandBuffer.name = "Render packed shadows";
-            setRenderTargetCommandBuffer.GetTemporaryRT(m_ShadowMapProperty, m_ShadowSettings.shadowAtlasWidth,
+            setRenderTargetCommandBuffer.GetTemporaryRT(m_ShadowMapTexture, m_ShadowSettings.shadowAtlasWidth,
                 m_ShadowSettings.shadowAtlasHeight, kShadowDepthBufferBits, FilterMode.Bilinear, RenderTextureFormat.Depth);
-            setRenderTargetCommandBuffer.SetRenderTarget(m_ShadowMapRTID);
+            setRenderTargetCommandBuffer.SetRenderTarget(m_ShadowMapRT);
             setRenderTargetCommandBuffer.ClearRenderTarget(true, true, Color.black);
             context.ExecuteCommandBuffer(setRenderTargetCommandBuffer);
             CommandBufferPool.Release(setRenderTargetCommandBuffer);
@@ -509,173 +852,25 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return resolution;
         }
 
-        private void SetupShadowShaderConstants(ref ScriptableRenderContext context, ref VisibleLight shadowLight, int shadowLightIndex, int cascadeCount)
+        private void BeginForwardRendering(ref ScriptableRenderContext context, FrameRenderingConfiguration renderingConfig)
         {
-            Vector3 shadowLightDir = Vector3.Normalize(shadowLight.localToWorld.GetColumn(2));
+            RenderTargetIdentifier colorRT = BuiltinRenderTextureType.CameraTarget;
+            RenderTargetIdentifier depthRT = BuiltinRenderTextureType.None;
 
-            float bias = shadowLight.light.shadowBias * 0.1f;
-            float normalBias = shadowLight.light.shadowNormalBias;
-            float shadowResolution = m_ShadowSlices[0].shadowResolution;
-
-            const int maxShadowCascades = 4;
-            Matrix4x4[] shadowMatrices = new Matrix4x4[maxShadowCascades];
-            for (int i = 0; i < cascadeCount; ++i)
-                shadowMatrices[i] = (cascadeCount >= i) ? m_ShadowSlices[i].shadowTransform : Matrix4x4.identity;
-
-            // TODO: shadow resolution per cascade in case cascades endup being supported.
-            float invShadowResolution = 1.0f / shadowResolution;
-            float[] pcfKernel =
-            {
-                -0.5f * invShadowResolution, 0.5f * invShadowResolution,
-                0.5f * invShadowResolution, 0.5f * invShadowResolution,
-                -0.5f * invShadowResolution, -0.5f * invShadowResolution,
-                0.5f * invShadowResolution, -0.5f * invShadowResolution
-            };
-
-            var setupShadow = CommandBufferPool.Get("SetupShadowShaderConstants");
-            setupShadow.SetGlobalMatrixArray("_WorldToShadow", shadowMatrices);
-            setupShadow.SetGlobalVectorArray("_DirShadowSplitSpheres", m_DirectionalShadowSplitDistances);
-            setupShadow.SetGlobalVector("_ShadowLightDirection", new Vector4(-shadowLightDir.x, -shadowLightDir.y, -shadowLightDir.z, 0.0f));
-            setupShadow.SetGlobalVector("_ShadowData", new Vector4(shadowLightIndex, bias, normalBias, 0.0f));
-            setupShadow.SetGlobalFloatArray("_PCFKernel", pcfKernel);
-            context.ExecuteCommandBuffer(setupShadow);
-            CommandBufferPool.Release(setupShadow);
-        }
-
-        private void SetShaderKeywords(CommandBuffer cmd, bool renderShadows, bool singleLight, bool vertexLightSupport)
-        {
-            LightweightUtils.SetKeyword(cmd, "LIGHTWEIGHT_LINEAR", m_Asset.ForceLinearRendering);
-            LightweightUtils.SetKeyword(cmd, "_VERTEX_LIGHTS", vertexLightSupport);
-            LightweightUtils.SetKeyword(cmd, "_ATTENUATION_TEXTURE", m_Asset.AttenuationTexture != null);
-            LightweightUtils.SetKeyword(cmd, "_LIGHT_PROBES_ON", m_Asset.EnableAmbientProbe);
-            LightweightUtils.SetKeyword(cmd, "LIGHTWEIGHT_LINEAR", m_Asset.ForceLinearRendering);
-
-            if (!singleLight)
-            {
-                LightweightUtils.SetKeyword(cmd, "_SINGLE_DIRECTIONAL_LIGHT", false);
-                LightweightUtils.SetKeyword(cmd, "_SINGLE_SPOT_LIGHT", false);
-                LightweightUtils.SetKeyword(cmd, "_SINGLE_POINT_LIGHT", false);
-            }
-            else
-            {
-                switch (m_SingleLightType)
-                {
-                        case LightType.Directional:
-                        LightweightUtils.SetKeyword(cmd, "_SINGLE_DIRECTIONAL_LIGHT", true);
-                        LightweightUtils.SetKeyword(cmd, "_SINGLE_SPOT_LIGHT", false);
-                        LightweightUtils.SetKeyword(cmd, "_SINGLE_POINT_LIGHT", false);
-                        break;
-
-                        case LightType.Spot:
-                        LightweightUtils.SetKeyword(cmd, "_SINGLE_DIRECTIONAL_LIGHT", false);
-                        LightweightUtils.SetKeyword(cmd, "_SINGLE_SPOT_LIGHT", true);
-                        LightweightUtils.SetKeyword(cmd, "_SINGLE_POINT_LIGHT", false);
-                        break;
-
-                        case LightType.Point:
-                        LightweightUtils.SetKeyword(cmd, "_SINGLE_DIRECTIONAL_LIGHT", false);
-                        LightweightUtils.SetKeyword(cmd, "_SINGLE_SPOT_LIGHT", false);
-                        LightweightUtils.SetKeyword(cmd, "_SINGLE_POINT_LIGHT", true);
-                        break;
-                }
-            }
-
-            string[] shadowKeywords = new string[] { "_HARD_SHADOWS", "_SOFT_SHADOWS", "_HARD_SHADOWS_CASCADES", "_SOFT_SHADOWS_CASCADES" };
-            for (int i = 0; i < shadowKeywords.Length; ++i)
-                cmd.DisableShaderKeyword(shadowKeywords[i]);
-
-            if (renderShadows && m_Asset.CurrShadowType != ShadowType.NO_SHADOW)
-            {
-                int keywordIndex = (int)m_Asset.CurrShadowType - 1;
-                if (m_Asset.CascadeCount > 1)
-                    keywordIndex += 2;
-                cmd.EnableShaderKeyword(shadowKeywords[keywordIndex]);
-            }
-        }
-
-        private void InitializeMainShadowLightIndex(VisibleLight[] lights, out int shadowIndex)
-        {
-            shadowIndex = -1;
-            if (m_Asset.CurrShadowType == ShadowType.NO_SHADOW)
-                return;
-
-            float maxIntensity = -1;
-            for (int i = 0; i < lights.Length; ++i)
-            {
-                Light light = lights[i].light;
-                if (light.shadows != LightShadows.None && IsSupportedShadowType(light.type) && light.intensity > maxIntensity)
-                {
-                    shadowIndex = i;
-                    maxIntensity = light.intensity;
-                }
-            }
-        }
-
-        private bool IsSupportedShadowType(LightType type)
-        {
-            return (type == LightType.Directional || type == LightType.Spot);
-        }
-
-        private void BeginForwardRendering(ref ScriptableRenderContext context, bool stereoEnabled)
-        {
-            if (stereoEnabled)
+            if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Stereo))
                 context.StartMultiEye(m_CurrCamera);
 
-            var cmd = CommandBufferPool.Get("SetCameraRenderTarget");
-            if (m_RenderToIntermediateTarget)
+            CommandBuffer cmd = CommandBufferPool.Get("SetCameraRenderTarget");
+            if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture))
             {
                 if (m_CurrCamera.targetTexture == null)
-                {
-                    m_IntermediateTextureArray = false;
-                    if (stereoEnabled)
-                    {
-                        RenderTextureDescriptor xrDesc = XRSettings.eyeTextureDesc;
-                        xrDesc.depthBufferBits = kCameraDepthBufferBits;
-                        xrDesc.colorFormat = m_ColorFormat;
-                        xrDesc.msaaSamples = m_Asset.MSAASampleCount;
+                    colorRT = m_CameraColorRT;
 
-                        m_IntermediateTextureArray = (xrDesc.dimension == TextureDimension.Tex2DArray);
-
-                        cmd.GetTemporaryRT(m_CameraRTProperty, xrDesc, FilterMode.Bilinear);
-                    }
-                    else
-                    {
-                        cmd.GetTemporaryRT(m_CameraRTProperty, Screen.width, Screen.height, kCameraDepthBufferBits,
-                            FilterMode.Bilinear, m_ColorFormat, RenderTextureReadWrite.Default, m_Asset.MSAASampleCount);
-                    }
-
-                    if (m_IntermediateTextureArray)
-                        cmd.SetRenderTarget(m_CameraRTID, 0, CubemapFace.Unknown, -1);
-                    else
-                        cmd.SetRenderTarget(m_CameraRTID);
-                }
-                else
-                {
-                    cmd.SetRenderTarget(new RenderTargetIdentifier(m_CurrCamera.activeTexture));
-                }
-            }
-            else
-            {
-                cmd.SetRenderTarget(BuiltinRenderTextureType.CurrentActive);
+                if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.RequireDepth))
+                    depthRT = m_CameraDepthRT;
             }
 
-            if (!stereoEnabled)
-            {
-                Rect viewport = m_CurrCamera.rect;
-                if (m_CurrCamera.targetTexture == null)
-                {
-                    viewport.x *= Screen.width;
-                    viewport.y *= Screen.height;
-                    viewport.width *= Screen.width;
-                    viewport.height *= Screen.height;
-                }
-                else
-                {
-                    viewport = new Rect(0.0f, 0.0f, m_CurrCamera.targetTexture.width, m_CurrCamera.targetTexture.height);
-                }
-
-                cmd.SetViewport(viewport);
-            }
+            SetupRenderTargets(cmd, colorRT, depthRT);
 
             // Clear RenderTarget to avoid tile initialization on mobile GPUs
             // https://community.arm.com/graphics/b/blog/posts/mali-performance-2-how-to-correctly-handle-framebuffers
@@ -690,63 +885,100 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBufferPool.Release(cmd);
         }
 
-        private void EndForwardRendering(ref ScriptableRenderContext context, bool stereoEnabled, bool postProcessing)
+        private void EndForwardRendering(ref ScriptableRenderContext context, FrameRenderingConfiguration renderingConfig)
         {
+            // No additional rendering needs to be done if this is an offscren rendering camera (unless camera is scene view)
+            if (m_CurrCamera.targetTexture != null && m_CurrCamera.cameraType != CameraType.SceneView)
+                return;
 
-            if (m_RenderToIntermediateTarget || postProcessing)
+            var cmd = CommandBufferPool.Get("Blit");
+            if (m_IntermediateTextureArray)
             {
-                var cmd = CommandBufferPool.Get("Blit");
-                if (m_IntermediateTextureArray)
-                {
-                    cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
-                    cmd.Blit(m_CameraRTID, BuiltinRenderTextureType.CurrentActive);
-                }
-                // If PostProcessing is enabled, it is already blitted to CameraTarget.
-                else if (!postProcessing)
-                    cmd.Blit(BuiltinRenderTextureType.CurrentActive, BuiltinRenderTextureType.CameraTarget);
-
-                    cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
-                context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
+                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
+                cmd.Blit(m_CameraColorRT, BuiltinRenderTextureType.CurrentActive);
+            }
+            else if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture))
+            {
+                // If PostProcessing is enabled, it is already blit to CameraTarget.
+                if (!LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.PostProcess))
+                    Blit(cmd, renderingConfig, BuiltinRenderTextureType.CurrentActive, BuiltinRenderTextureType.CameraTarget);
             }
 
-            if (stereoEnabled)
+            SetupRenderTargets(cmd, BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.None);
+
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+
+            if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Stereo))
             {
                 context.StopMultiEye(m_CurrCamera);
                 context.StereoEndRender(m_CurrCamera);
             }
         }
 
-        private void RenderPostProcess(ref ScriptableRenderContext renderContext, PostProcessLayer postProcessLayer)
+        RendererConfiguration GetRendererSettings(ref LightData lightData)
         {
-            var postProcessCommand = CommandBufferPool.Get("Post Processing");
+            RendererConfiguration settings = RendererConfiguration.PerObjectReflectionProbes | RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe;
+            if (lightData.totalAdditionalLightsCount > 0)
+                settings |= RendererConfiguration.PerObjectLightIndices8;
+            return settings;
+        }
+
+        private void SetupRenderTargets(CommandBuffer cmd, RenderTargetIdentifier colorRT, RenderTargetIdentifier depthRT)
+        {
+            int depthSlice = (m_IntermediateTextureArray) ? -1 : 0;
+            if (depthRT != BuiltinRenderTextureType.None)
+                cmd.SetRenderTarget(colorRT, depthRT, 0, CubemapFace.Unknown, depthSlice);
+            else
+                cmd.SetRenderTarget(colorRT, 0, CubemapFace.Unknown, depthSlice);
+        }
+
+        private void RenderPostProcess(CommandBuffer cmd, bool opaqueOnly)
+        {
             m_PostProcessRenderContext.Reset();
             m_PostProcessRenderContext.camera = m_CurrCamera;
             m_PostProcessRenderContext.source = BuiltinRenderTextureType.CurrentActive;
             m_PostProcessRenderContext.sourceFormat = m_ColorFormat;
             m_PostProcessRenderContext.destination = BuiltinRenderTextureType.CameraTarget;
-            m_PostProcessRenderContext.command = postProcessCommand;
+            m_PostProcessRenderContext.command = cmd;
             m_PostProcessRenderContext.flip = true;
 
-            postProcessLayer.Render(m_PostProcessRenderContext);
-            renderContext.ExecuteCommandBuffer(postProcessCommand);
-            CommandBufferPool.Release(postProcessCommand);
+            if (opaqueOnly)
+                m_CameraPostProcessLayer.RenderOpaqueOnly(m_PostProcessRenderContext);
+            else
+                m_CameraPostProcessLayer.Render(m_PostProcessRenderContext);
         }
 
-        private bool GetRenderToIntermediateTarget()
+        private int GetLightUnsortedIndex(int index)
         {
-            bool allowMSAA = m_CurrCamera.allowMSAA &&
-                            m_Asset.MSAASampleCount > 1 &&
-                            !LightweightUtils.PlatformSupportsMSAABackBuffer();
-            if (m_CurrCamera.cameraType == CameraType.SceneView || allowMSAA || m_CurrCamera.targetTexture != null)
-                return true;
-
-            return false;
+            Debug.Assert(index >= 0 && index < m_SortedLightIndexMap.Count, "Invalid index while accessing light index map. If you only have a single light in scene you should not try to map indices");
+            return m_SortedLightIndexMap[index];
         }
 
-        private PostProcessLayer GetCurrCameraPostProcessLayer()
+        private void Blit(CommandBuffer cmd, FrameRenderingConfiguration renderingConfig, RenderTargetIdentifier sourceRT, RenderTargetIdentifier destRT, Material material = null)
         {
-            return m_CurrCamera.GetComponent<PostProcessLayer>();
+            if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.DefaultViewport))
+            {
+                cmd.Blit(sourceRT, destRT, material);
+            }
+            else
+            {
+                if (m_BlitQuad == null)
+                    m_BlitQuad = LightweightUtils.CreateQuadMesh(false);
+
+                cmd.SetGlobalTexture(m_BlitTexID, sourceRT);
+                cmd.SetRenderTarget(destRT);
+                cmd.SetViewport(m_CurrCamera.pixelRect);
+                cmd.DrawMesh(m_BlitQuad, Matrix4x4.identity, m_BlitMaterial);
+            }
+        }
+
+        private void CopyTexture(CommandBuffer cmd, RenderTargetIdentifier sourceRT, RenderTargetIdentifier destRT)
+        {
+            if (m_CopyTextureSupport != CopyTextureSupport.None)
+                cmd.CopyTexture(m_CameraDepthRT, m_CameraCopyDepthRT);
+            else
+                cmd.Blit(m_CameraDepthRT, m_CameraCopyDepthRT, m_CopyDepthMaterial);
         }
     }
 }

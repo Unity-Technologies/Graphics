@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     public class MaterialGraph : AbstractMaterialGraph, IShaderGraph
@@ -18,10 +18,11 @@ namespace UnityEngine.MaterialGraph
             PreviewMode pmode;
             return GetShader(masterNode as AbstractMaterialNode, mode, name, out configuredTextures, out pmode);
         }
-         
-        public override void OnAfterDeserialize()
+
+        public void LoadedFromDisk()
         {
-            base.OnAfterDeserialize(); 
+            OnEnable();
+            ValidateGraph();
         }
     }
 }

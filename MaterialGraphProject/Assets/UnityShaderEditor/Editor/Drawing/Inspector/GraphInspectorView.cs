@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Experimental.UIElements;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using UnityEngine.Graphing;
-using UnityEngine.MaterialGraph;
+using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.MaterialGraph.Drawing.Inspector
+namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
     public class GraphInspectorView : VisualElement, IDisposable
     {
@@ -16,24 +17,23 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
         VisualElement m_PropertyItems;
         VisualElement m_LayerItems;
         VisualElement m_ContentContainer;
+        Experimental.UIElements.ObjectField m_PreviewMeshPicker;
         AbstractNodeEditorView m_EditorView;
 
         TypeMapper m_TypeMapper;
-        Image m_Preview;
+        PreviewTextureView m_PreviewTextureView;
 
         AbstractMaterialGraph m_Graph;
+        PreviewManager m_PreviewManager;
+        MasterNode m_MasterNode;
         PreviewData m_PreviewHandle;
 
-        public GraphInspectorView(string assetName, PreviewSystem previewSystem, AbstractMaterialGraph graph)
+        List<INode> m_SelectedNodes;
+
+        public GraphInspectorView(string assetName, PreviewManager previewManager, AbstractMaterialGraph graph)
         {
             m_Graph = graph;
-
-            var masterNode = graph.GetNodes<MasterNode>().FirstOrDefault();
-            if (masterNode != null)
-            {
-                m_PreviewHandle = previewSystem.GetPreview(masterNode);
-                m_PreviewHandle.onPreviewChanged += OnPreviewChanged;
-            }
+            m_PreviewManager = previewManager;
             m_SelectedNodes = new List<INode>();
 
             AddStyleSheetPath("Styles/MaterialGraph");
@@ -70,7 +70,7 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
                 }
                 bottomContainer.Add(propertiesContainer);
 
-                //if (m_Presenter.graph is LayeredShaderGraph)
+                if (m_Graph is LayeredShaderGraph)
                 {
                     var layersContainer = new VisualElement {name = "properties"};
                     {
@@ -90,14 +90,18 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
                     bottomContainer.Add(layersContainer);
                 }
 
-                m_Preview = new Image {name = "preview", image = Texture2D.blackTexture};
-                bottomContainer.Add(m_Preview);
+                m_PreviewTextureView = new PreviewTextureView {name = "preview", image = Texture2D.blackTexture};
+                bottomContainer.Add(m_PreviewTextureView);
+
+                m_PreviewMeshPicker = new Experimental.UIElements.ObjectField() { objectType = typeof(Mesh) };
+                bottomContainer.Add(m_PreviewMeshPicker);
             }
             Add(bottomContainer);
 
+            masterNode = graph.GetNodes<MasterNode>().FirstOrDefault();
+
             foreach (var property in m_Graph.properties)
                 m_PropertyItems.Add(new ShaderPropertyView(m_Graph, property));
-            m_Graph.onChange += OnGraphChange;
 
             var layerGraph = m_Graph as LayeredShaderGraph;
             if (layerGraph != null)
@@ -114,7 +118,25 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             };
         }
 
-        List<INode> m_SelectedNodes;
+        MasterNode masterNode
+        {
+            get { return m_MasterNode; }
+            set
+            {
+                if (value == m_MasterNode)
+                    return;
+                if (m_MasterNode != null)
+                    m_PreviewHandle.onPreviewChanged -= OnPreviewChanged;
+                m_PreviewHandle = null;
+                m_MasterNode = value;
+                if (m_MasterNode != null)
+                {
+                    m_PreviewHandle = m_PreviewManager.GetPreview(m_MasterNode);
+                    m_PreviewHandle.mesh = null;
+                    m_PreviewHandle.onPreviewChanged += OnPreviewChanged;
+                }
+            }
+        }
 
         void OnAddProperty()
         {
@@ -146,7 +168,8 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
 
         void OnPreviewChanged()
         {
-            m_Preview.image = m_PreviewHandle.texture ?? Texture2D.blackTexture;
+            m_PreviewTextureView.image = m_PreviewHandle.texture ?? Texture2D.blackTexture;
+            m_PreviewHandle.mesh = m_PreviewMeshPicker.value as Mesh;
         }
 
         public void UpdateSelection(IEnumerable<INode> nodes)
@@ -179,34 +202,42 @@ namespace UnityEditor.MaterialGraph.Drawing.Inspector
             }
         }
 
-        void OnGraphChange(GraphChange change)
+        public void HandleGraphChanges()
         {
-            var propertyAdded = change as ShaderPropertyAdded;
-            if (propertyAdded != null)
-                m_PropertyItems.Add(new ShaderPropertyView(m_Graph, propertyAdded.shaderProperty));
-
-            var propertyRemoved = change as ShaderPropertyRemoved;
-            if (propertyRemoved != null)
+            foreach (var propertyGuid in m_Graph.removedProperties)
             {
-                var propertyView = m_PropertyItems.OfType<ShaderPropertyView>().FirstOrDefault(v => v.property.guid == propertyRemoved.guid);
-                if (propertyView != null)
+                var propertyView = m_PropertyItems.OfType<ShaderPropertyView>().FirstOrDefault(v => v.property.guid == propertyGuid);if (propertyView != null)
                     m_PropertyItems.Remove(propertyView);
             }
 
+            foreach (var property in m_Graph.addedProperties)
+                m_PropertyItems.Add(new ShaderPropertyView(m_Graph, property));
+
             var layerGraph = m_Graph as LayeredShaderGraph;
-            if (layerGraph == null)
-                return;
-
-            var layerAdded = change as LayerAdded;
-            if (layerAdded != null)
-                    m_LayerItems.Add(new ShaderLayerView(layerGraph, layerAdded.layer));
-
-            var layerRemoved = change as LayerRemoved;
-            if (layerRemoved != null)
+            if (layerGraph != null)
             {
-                var view = m_LayerItems.OfType<ShaderLayerView>().FirstOrDefault(v => v.layer.guid == layerRemoved.id);
-                if (view != null)
-                    m_LayerItems.Remove(view);
+                foreach (var id in layerGraph.removedLayers)
+                {
+                    var view = m_LayerItems.OfType<ShaderLayerView>().FirstOrDefault(v => v.layer.guid == id);
+                    if (view != null)
+                        m_LayerItems.Remove(view);
+                }
+
+                foreach (var layer in layerGraph.addedLayers)
+                    m_LayerItems.Add(new ShaderLayerView(layerGraph, layer));
+            }
+
+            if (masterNode != null)
+            {
+                if (m_Graph.removedNodes.Contains(masterNode))
+                    masterNode = null;
+            }
+
+            if (masterNode == null)
+            {
+                var addedMasterNode = m_Graph.addedNodes.OfType<MasterNode>().FirstOrDefault();
+                if (addedMasterNode != null)
+                    masterNode = addedMasterNode;
             }
         }
 

@@ -1,6 +1,8 @@
 using System;
+using System.Linq;
+using UnityEngine;
 
-namespace UnityEngine.Graphing
+namespace UnityEditor.Graphing
 {
     [Serializable]
     public class SerializableSlot : ISlot
@@ -112,6 +114,20 @@ namespace UnityEngine.Graphing
             unchecked
             {
                 return (m_Id * 397) ^ (owner != null ? owner.GetHashCode() : 0);
+            }
+        }
+
+        public bool isConnected
+        {
+            get
+            {
+                // node and graph respectivly
+                if (owner == null || owner.owner == null)
+                    return false;
+
+                var graph = owner.owner;
+                var edges = graph.GetEdges(slotReference);
+                return edges.Any();
             }
         }
     }

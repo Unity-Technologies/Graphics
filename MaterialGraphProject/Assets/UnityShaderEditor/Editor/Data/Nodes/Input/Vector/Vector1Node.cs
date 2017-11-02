@@ -1,11 +1,12 @@
 using System.Collections.Generic;
-using UnityEditor.MaterialGraph.Drawing.Controls;
-using UnityEngine.Graphing;
+using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEngine;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Input/Vector/Vector 1")]
-    public class Vector1Node : AbstractMaterialNode, IGeneratesBodyCode
+    public class Vector1Node : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
     {
         [SerializeField]
         private float m_Value;
@@ -112,5 +113,15 @@ namespace UnityEngine.MaterialGraph
                 m_Float = m_Value
             });
         }
+
+
+        public IShaderProperty AsShaderProperty()
+        {
+            var prop = new FloatShaderProperty();
+            prop.value = value;
+            return prop;
+        }
+
+        public int outputSlotId { get { return OutputSlotId; } }
     }
 }

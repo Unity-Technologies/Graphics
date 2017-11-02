@@ -1,16 +1,19 @@
 using System;
 using System.Linq;
-using UnityEditor.MaterialGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
+using UnityEditor.Graphs;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Sub-graph/Sub-graph Node")]
     public class SubGraphNode : AbstractSubGraphNode
         , IGeneratesBodyCode
+        , IOnAssetEnabled
     {
         [SerializeField]
         private string m_SerializedSubGraph = string.Empty;
@@ -132,9 +135,9 @@ namespace UnityEngine.MaterialGraph
                             prop.overrideReferenceName = fromNode.GetSlotValue(slot.id, generationMode);
                     }
                 }
-                else if (inSlot.concreteValueType == ConcreteSlotValueType.Texture2D)
+                else if (inSlot is Texture2DInputMaterialSlot)
                 {
-                    prop.overrideReferenceName = Texture2DMaterialSlot.DefaultTextureName;
+                    prop.overrideReferenceName =  ((Texture2DInputMaterialSlot)inSlot).GetDefaultValue(generationMode);
                 }
                 else
                 {
@@ -174,6 +177,11 @@ namespace UnityEngine.MaterialGraph
             outputString.AddShaderChunk("// Subgraph ends", false);
 
             shaderBodyVisitor.AddShaderChunk(outputString.GetShaderString(0), true);
+        }
+
+        public void OnEnable()
+        {
+            UpdateSlots();
         }
     }
 }

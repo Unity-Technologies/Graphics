@@ -1,11 +1,12 @@
 using System.Collections.Generic;
-using UnityEditor.MaterialGraph.Drawing.Controls;
-using UnityEngine.Graphing;
+using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEngine;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Input/Vector/Vector 4")]
-    public class Vector4Node : AbstractMaterialNode, IGeneratesBodyCode
+    public class Vector4Node : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
     {
         [SerializeField]
         private Vector4 m_Value;
@@ -59,7 +60,7 @@ namespace UnityEngine.MaterialGraph
             if (generationMode.IsPreview())
                 return;
 
-            visitor.AddShaderChunk(precision + " " + GetVariableNameForNode() + " = " + m_Value + ";", true);
+            visitor.AddShaderChunk(precision + "4 " + GetVariableNameForNode() + " = " + precision + "4" + m_Value + ";", true);
         }
 
         public override string GetVariableNameForSlot(int slotId)
@@ -76,5 +77,14 @@ namespace UnityEngine.MaterialGraph
                 m_Vector4 = m_Value
             });
         }
+        
+        public IShaderProperty AsShaderProperty()
+        {
+            var prop = new Vector4ShaderProperty();
+            prop.value = value;
+            return prop;
+        }
+
+        public int outputSlotId { get { return OutputSlotId; } }
     }
 }

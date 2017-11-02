@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine.Graphing;
+using UnityEngine;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     public abstract class AbstractSubGraphNode : AbstractMaterialNode
         , IGeneratesFunction
@@ -18,7 +19,7 @@ namespace UnityEngine.MaterialGraph
         , IMayRequireTime
     {
 
-        protected virtual AbstractSubGraph referencedGraph { get; }
+        protected abstract AbstractSubGraph referencedGraph { get; }
 
         public override bool hasPreview
         {
@@ -90,7 +91,16 @@ namespace UnityEngine.MaterialGraph
                 }
 
                 var id = prop.guid.GetHashCode();
-                AddSlot(MaterialSlot.CreateMaterialSlot(slotType, id, prop.displayName, prop.referenceName, SlotType.Input, prop.defaultValue));
+                MaterialSlot slot = MaterialSlot.CreateMaterialSlot(slotType, id, prop.displayName, prop.referenceName, SlotType.Input, prop.defaultValue);
+                // copy default for texture for niceness
+                if (slotType == SlotValueType.Texture2D && propType == PropertyType.Texture)
+                {
+                    var tSlot = slot as Texture2DInputMaterialSlot;
+                    var tProp = prop as TextureShaderProperty;
+                    if (tSlot != null && tProp != null)
+                        tSlot.texture = tProp.value.texture;
+                }
+                AddSlot(slot);
                 validNames.Add(id);
             }
 
@@ -99,7 +109,7 @@ namespace UnityEngine.MaterialGraph
             {
                 foreach (var slot in subGraphOutputNode.GetInputSlots<MaterialSlot>())
                 {
-                    AddSlot(MaterialSlot.CreateMaterialSlot( slot.valueType,slot.id, slot.displayName, slot.shaderOutputName, SlotType.Output, Vector4.zero));
+                    AddSlot(MaterialSlot.CreateMaterialSlot( slot.valueType,slot.id, slot.RawDisplayName(), slot.shaderOutputName, SlotType.Output, Vector4.zero));
                     validNames.Add(slot.id);
                 }
             }

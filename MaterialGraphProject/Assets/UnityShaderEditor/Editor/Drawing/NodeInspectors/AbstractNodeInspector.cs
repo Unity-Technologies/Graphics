@@ -1,8 +1,8 @@
 using System;
 using UnityEngine;
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
 
-namespace UnityEditor.MaterialGraph.Drawing
+namespace UnityEditor.ShaderGraph.Drawing
 {
     public abstract class AbstractNodeInspector : ScriptableObject, ISerializationCallbackReceiver
     {

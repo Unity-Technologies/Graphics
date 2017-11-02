@@ -1,6 +1,7 @@
 using System.Reflection;
+using UnityEngine;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("UV/Cartesian To Polar")]
     public class CartesianToPolarNode : CodeFunctionNode

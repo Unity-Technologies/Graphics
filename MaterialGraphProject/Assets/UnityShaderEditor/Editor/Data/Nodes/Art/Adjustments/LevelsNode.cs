@@ -1,8 +1,8 @@
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Art/Adjustments/Levels")]
     public class LevelsNode : CodeFunctionNode

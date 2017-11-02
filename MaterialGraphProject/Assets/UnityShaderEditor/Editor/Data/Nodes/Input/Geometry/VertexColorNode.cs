@@ -1,7 +1,7 @@
-using System.ComponentModel;
-using UnityEngine.Graphing;
+using UnityEngine;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     interface IMayRequireVertexColor
     {

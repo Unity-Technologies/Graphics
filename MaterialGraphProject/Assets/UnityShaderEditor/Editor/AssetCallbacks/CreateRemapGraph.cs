@@ -1,8 +1,8 @@
 using System.IO;
 using UnityEditor.ProjectWindowCallback;
-using UnityEngine.MaterialGraph;
+using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     public class CreateRemapGraph : EndNameEditAction
     {

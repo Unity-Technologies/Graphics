@@ -1,12 +1,11 @@
-using UnityEngine.MaterialGraph;
+using UnityEditor.ShaderGraph;
 using UnityEngine;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using UnityEditor;
-using UnityEditor.MaterialGraph.Drawing;
+using UnityEditor.ShaderGraph.Drawing;
 using Object = UnityEngine.Object;
 
 class ShaderGraphImporter : ICustomShaderImporter
@@ -17,6 +16,7 @@ class ShaderGraphImporter : ICustomShaderImporter
         {
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
             var graph = JsonUtility.FromJson<T>(textGraph);
+            graph.LoadedFromDisk();
 
             var name = Path.GetFileNameWithoutExtension(path);
 
@@ -44,7 +44,6 @@ class ShaderGraphImporter : ICustomShaderImporter
 
     public bool IsValidForPath(string path)
     {
-
         return
             path.EndsWith("LayeredShaderGraph", StringComparison.InvariantCultureIgnoreCase)
             || path.EndsWith("shaderGraph", StringComparison.InvariantCultureIgnoreCase);
@@ -59,21 +58,20 @@ class ShaderGraphImporter : ICustomShaderImporter
     {
         var asset = AssetDatabase.LoadAssetAtPath<Object>(path);
         var extension = Path.GetExtension(path);
-        Type windowType;
+        Type graphType;
         if (extension == ".ShaderGraph")
-            windowType = typeof(MaterialGraphEditWindow);
+            graphType = typeof(MaterialGraph);
         else if (extension == ".LayeredShaderGraph")
-            windowType = typeof(LayeredGraphEditWindow);
+            graphType = typeof(LayeredShaderGraph);
         else if (extension == ".ShaderSubGraph")
-            windowType = typeof(SubGraphEditWindow);
+            graphType = typeof(SubGraph);
         else if (extension == ".ShaderRemapGraph")
-            windowType = typeof(MasterRemapGraph);
+            graphType = typeof(MasterRemapGraph);
         else
             return;
 
-        var windows = Resources.FindObjectsOfTypeAll(windowType);
-        bool foundWindow = false;
-        foreach (var w in windows.OfType<IMaterialGraphEditWindow>())
+        var foundWindow = false;
+        foreach (var w in Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>())
         {
             if (w.selected == asset)
             {
@@ -84,9 +82,9 @@ class ShaderGraphImporter : ICustomShaderImporter
 
         if (!foundWindow)
         {
-            var window = ScriptableObject.CreateInstance(windowType) as IMaterialGraphEditWindow;
+            var window = ScriptableObject.CreateInstance<MaterialGraphEditWindow>();
             window.Show();
-            window.ChangeSelection(asset);
+            window.ChangeSelection(asset, graphType);
         }
     }
 }

@@ -1,12 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     public abstract class AbstractLightweightMasterNode : MasterNode
     {
+        private const int kMaxInterpolators = 8;
+
         protected abstract IEnumerable<int> masterSurfaceInputs { get; }
         protected abstract IEnumerable<int> masterVertexInputs { get; }
         protected abstract string GetTemplateName();
@@ -40,8 +42,7 @@ namespace UnityEngine.MaterialGraph
                 foreach (var activeNode in nodes.OfType<AbstractMaterialNode>())
                 {
                     if (activeNode is IGeneratesBodyCode)
-                        (activeNode as IGeneratesBodyCode).GenerateNodeCode(surfaceOutputRemap,
-                            GenerationMode.ForReals);
+                        (activeNode as IGeneratesBodyCode).GenerateNodeCode(surfaceOutputRemap, GenerationMode.ForReals);
                 }
 
                 foreach (var input in GetInputSlots<MaterialSlot>())
@@ -85,12 +86,14 @@ namespace UnityEngine.MaterialGraph
 
             ShaderGenerator.GenerateStandardTransforms(
                 GetInterpolatorStartIndex(),
+                10,
                 interpolators,
                 vertexShader,
                 localPixelShader,
                 surfaceInputs,
                 graphRequirements,
-                GetNodeSpecificRequirements());
+                GetNodeSpecificRequirements(),
+                CoordinateSpace.World);
 
             ShaderGenerator defines = new ShaderGenerator();
             ShaderGenerator surfaceOutputRemap = new ShaderGenerator();

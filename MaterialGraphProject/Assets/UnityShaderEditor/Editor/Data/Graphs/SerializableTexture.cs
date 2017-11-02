@@ -1,12 +1,13 @@
 using System;
-using UnityEditor;
+using UnityEngine;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     public class SerializableTexture
     {
-        [SerializeField] private string m_SerializedTexture;
+        [SerializeField]
+        private string m_SerializedTexture;
 
         [Serializable]
         private class TextureHelper
@@ -14,7 +15,6 @@ namespace UnityEngine.MaterialGraph
             public Texture texture;
         }
 
-#if UNITY_EDITOR
         public Texture texture
         {
             get
@@ -36,9 +36,5 @@ namespace UnityEngine.MaterialGraph
                 m_SerializedTexture = EditorJsonUtility.ToJson(tex, true);
             }
         }
-#else
-        public Texture defaultTexture {get; set; }
-#endif
-
     }
 }

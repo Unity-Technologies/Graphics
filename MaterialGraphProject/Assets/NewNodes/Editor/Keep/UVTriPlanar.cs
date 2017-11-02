@@ -1,8 +1,8 @@
-using UnityEngine.Graphing;
+using UnityEditor.Graphing;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace UnityEngine.MaterialGraph
+namespace UnityEditor.ShaderGraph
 {
     /* [Title("UV/Tri-Planar Mapping")]
      public class UVTriPlanar : FunctionNInNOut, IGeneratesFunction, IMayRequireNormal, IMayRequireWorldPosition
@@ -115,7 +115,7 @@ namespace UnityEngine.MaterialGraph
 
  /*
 
- namespace UnityEngine.MaterialGraph
+ namespace UnityEditor.ShaderGraph
  {
      [Title("UV/Tri-Planar Mapping")]
      public class UVTriPlanar : FunctionNInNOut, IGeneratesFunction, IMayRequireNormal, IMayRequireWorldPosition
