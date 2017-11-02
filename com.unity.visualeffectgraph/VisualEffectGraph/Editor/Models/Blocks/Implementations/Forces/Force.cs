@@ -43,7 +43,7 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("Acceleration vector applied to particles (in squared units per second), in Relative mode the flow speed of the medium (eg: wind)")]
+            [Tooltip("Force vector applied to particles (in units per squared second), in Relative mode the flow speed of the medium (eg: wind)")]
             public Vector3 Force = new Vector3(1.0f, 0.0f, 0.0f);
         }
 
@@ -54,11 +54,11 @@ namespace UnityEditor.VFX.Block
                 string forceVector = "0.0";
                 switch (Mode)
                 {
-                    case ForceMode.Absolute: forceVector = "Force"; break;
-                    case ForceMode.Relative: forceVector = "(Force - velocity)"; break;
+                    case ForceMode.Absolute: forceVector = "Force / mass"; break;
+                    case ForceMode.Relative: forceVector = "max( -velocity, ( (Force - velocity) / mass) * deltaTime)"; break;
                 }
 
-                return "velocity += max(-velocity,(" + forceVector + " / mass) * deltaTime);";
+                return "velocity += " + forceVector + ";";
             }
         }
     }

@@ -61,8 +61,10 @@ namespace UnityEditor.VFX
 
         protected override IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
         {
-            foreach (var exp in base.CollectGPUExpressions(slotExpressions).Concat(slotExpressions.Where(o => o.name != "flipBookSize")))
+            foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
+
+            yield return slotExpressions.First(o => o.name == "texture");
 
             if (flipBook != FlipbookMode.Off)
             {
@@ -76,11 +78,11 @@ namespace UnityEditor.VFX
         {
             get
             {
-                foreach (var property in PropertiesFromType(GetInputPropertiesTypeName()))
-                    yield return property;
+                string inputPropertiesType = "InputProperties";
+                if (flipBook != FlipbookMode.Off) inputPropertiesType = "InputPropertiesFlipbook";
 
-                if (flipBook != FlipbookMode.Off)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "flipBookSize"), Vector2.one);
+                foreach (var property in PropertiesFromType(inputPropertiesType))
+                    yield return property;
 
                 foreach (var property in base.inputProperties)
                     yield return property;
@@ -99,6 +101,12 @@ namespace UnityEditor.VFX
         public class InputProperties
         {
             public Texture2D texture;
+        }
+
+        public class InputPropertiesFlipbook
+        {
+            public Texture2D texture;
+            public FlipBook flipBookSize;
         }
     }
 }

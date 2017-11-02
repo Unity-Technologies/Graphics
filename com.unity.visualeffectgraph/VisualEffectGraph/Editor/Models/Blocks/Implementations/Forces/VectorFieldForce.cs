@@ -29,6 +29,7 @@ namespace UnityEditor.VFX.Block
             {
                 yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Velocity, VFXAttributeMode.ReadWrite);
+                yield return new VFXAttributeInfo(VFXAttribute.Mass, VFXAttributeMode.Read);
             }
         }
 
@@ -56,7 +57,7 @@ float3 vectorFieldCoord = mul(InvFieldTransform, float4(position,1.0f)).xyz;
 float3 value = SampleTexture(VectorField, vectorFieldCoord + 0.5f).xyz * 2.0f - 1.0f;
 value = mul(FieldTransform,float4(value,0.0f)).xyz * Intensity;
 float3 relativeForce = value - velocity;
-velocity += relativeForce * min(1.0,(DragCoefficient * deltaTime));
+velocity += relativeForce * min(1.0,(DragCoefficient * deltaTime) / mass);
 ";
                 return Source;
             }

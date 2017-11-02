@@ -29,7 +29,7 @@ namespace UnityEditor.VFX.Block
             get
             {
                 yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Write);
-                if (mode != SetMode.Constant || mode != SetMode.FromCurve)
+                if (mode == SetMode.Random || mode == SetMode.FromCurveRandom)
                     yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
             }
         }

@@ -29,7 +29,7 @@ namespace UnityEditor.VFX
             { typeof(AngleAttribute), o => new VFXPropertyAttribute(Type.kAngle) },
         };
 
-        public static VFXPropertyAttribute[] Create(object[] attributes)
+        public static VFXPropertyAttribute[] Create(params object[] attributes)
         {
             return attributes.SelectMany(a => s_RegisteredAttributes.Where(o => o.Key.IsAssignableFrom(a.GetType()))
                 .Select(o => o.Value(a))).ToArray();
