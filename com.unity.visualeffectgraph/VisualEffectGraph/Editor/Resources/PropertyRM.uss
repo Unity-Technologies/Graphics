@@ -247,15 +247,15 @@ CurvePropertyRM
     min-width:100;
 }
 
-DoubleSliderField
+.sliderField
 {
 	flex-direction:row;
 }
-DoubleSliderField Slider
+.sliderField Slider
 {
 	flex:1;
 }
-DoubleSliderField DoubleField
+.sliderField #Field
 {
 	width:40;
 	flex:0;

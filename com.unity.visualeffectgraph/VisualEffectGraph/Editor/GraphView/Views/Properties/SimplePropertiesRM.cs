@@ -63,8 +63,6 @@ namespace UnityEditor.VFX.UI
         public override INotifyValueChanged<long> CreateField()
         {
             Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
-            range.x = Mathf.Max(0, Mathf.Round(range.x));
-            range.y = Mathf.Max(range.x + 1, Mathf.Round(range.y));
             if (range == Vector2.zero)
             {
                 var field = new LabeledField<IntegerField, long>(m_Label);
@@ -73,6 +71,9 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
+                range.x = Mathf.Max(0, Mathf.Round(range.x));
+                range.y = Mathf.Max(range.x + 1, Mathf.Round(range.y));
+
                 var field = new LabeledField<IntSliderField, long>(m_Label);
                 field.control.range = range;
                 return field;
@@ -89,8 +90,6 @@ namespace UnityEditor.VFX.UI
         public override INotifyValueChanged<long> CreateField()
         {
             Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
-            range.x = Mathf.Round(range.x);
-            range.y = Mathf.Max(range.x + 1, Mathf.Round(range.y));
             if (range == Vector2.zero)
             {
                 var field = new LabeledField<IntegerField, long>(m_Label);
@@ -99,6 +98,9 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
+                range.x = Mathf.Round(range.x);
+                range.y = Mathf.Max(range.x + 1, Mathf.Round(range.y));
+
                 var field = new LabeledField<IntSliderField, long>(m_Label);
                 field.control.range = range;
                 return field;

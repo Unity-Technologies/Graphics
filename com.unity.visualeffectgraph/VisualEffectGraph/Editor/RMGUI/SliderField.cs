@@ -11,6 +11,11 @@ namespace UnityEditor.VFX.UIElements
         protected Slider m_Slider;
         protected INotifyValueChanged<T> m_Field;
 
+        public BaseSliderField()
+        {
+            AddToClassList("sliderField");
+        }
+
         public T m_Value;
 
         public T value
@@ -82,6 +87,7 @@ namespace UnityEditor.VFX.UIElements
             var doubleField = new DoubleField();
             doubleField.RegisterCallback<ChangeEvent<double>>(ValueChanged);
             doubleField.dynamicUpdate = true;
+            doubleField.name = "Field";
             m_Field = doubleField;
 
             Add(m_Slider);
@@ -109,6 +115,7 @@ namespace UnityEditor.VFX.UIElements
             var integerField = new IntegerField();
             integerField.RegisterCallback<ChangeEvent<long>>(ValueChanged);
             integerField.dynamicUpdate = true;
+            integerField.name = "Field";
             m_Field = integerField;
 
             Add(m_Slider);
