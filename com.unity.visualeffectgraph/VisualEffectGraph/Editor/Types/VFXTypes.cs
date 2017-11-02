@@ -231,7 +231,7 @@ namespace UnityEditor.VFX
         [Tooltip("The end position of the line.")]
         public Vector3 end;
 
-        public static Line defaultValue = new Line { start = Vector3.zero, end = Vector3.forward };
+        public static Line defaultValue = new Line { start = Vector3.zero, end = Vector3.left };
     }
 
     [VFXType]
