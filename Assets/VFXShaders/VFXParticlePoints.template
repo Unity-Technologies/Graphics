@@ -2,7 +2,7 @@ Shader "Hidden/VFX/ParticlePoints"
 {
 	SubShader
 	{	
-		Tags { "Queue"="Geometry" "IgnoreProjector"="True" "RenderType"="Opaque" }
+		${VFXShaderTags}
 		
 		CGINCLUDE
 		#if !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)

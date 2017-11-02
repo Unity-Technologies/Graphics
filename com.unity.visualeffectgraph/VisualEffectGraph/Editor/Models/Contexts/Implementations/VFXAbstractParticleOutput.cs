@@ -13,7 +13,6 @@ namespace UnityEditor.VFX
             Additive,
             Alpha,
             Masked,
-            //Dithered
         }
 
         [VFXSetting, SerializeField]
@@ -89,6 +88,14 @@ namespace UnityEditor.VFX
                     renderState.WriteLine("ZWrite Off");
 
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXOutputRenderState}", renderState);
+
+                var shaderTags = new VFXShaderWriter();
+                if (blendMode == BlendMode.Masked)
+                    shaderTags.Write("Tags { \"Queue\"=\"Geometry\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Opaque\" }");
+                else
+                    shaderTags.Write("Tags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\" }");
+
+                yield return new KeyValuePair<string, VFXShaderWriter>("${VFXShaderTags}", shaderTags);
             }
         }
     }
