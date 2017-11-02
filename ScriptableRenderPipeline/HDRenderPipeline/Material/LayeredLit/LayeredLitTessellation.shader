@@ -563,7 +563,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
-            #include "../Lit/ShaderPass/LitMetaPass.hlsl"
+            #include "../Lit/ShaderPass/LitSharePass.hlsl"
             #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
 
