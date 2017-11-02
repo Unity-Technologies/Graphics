@@ -196,7 +196,7 @@ Shader "HDRenderPipeline/LayeredLit"
 
         [ToggleOff]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0
 
-        _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
+        _EmissiveColor("EmissiveColor", Color) = (1, 1, 1)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
         [ToggleOff] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
@@ -573,7 +573,7 @@ Shader "HDRenderPipeline/LayeredLit"
 
             Cull[_CullMode]
 
-            ZClip Off
+            ZClip [_ZClip]
             ZWrite On
             ZTest LEqual
 
