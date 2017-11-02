@@ -8,14 +8,10 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Size")]
     class SizeOverLife : VFXBlock
     {
-        public enum Composition
-        {
-            Overwrite,
-            Scale
-        }
-
+        [Tooltip("How the new computed size is composed with its previous value")]
         [VFXSetting]
-        public Composition composition;
+        public AttributeCompositionMode composition;
+
 
         public override string name { get { return "Size over Life"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdateAndOutput; } }
@@ -27,30 +23,47 @@ namespace UnityEditor.VFX.Block
                 yield return new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Read);
 
-                if (composition == Composition.Overwrite)
+                if (composition == AttributeCompositionMode.Overwrite)
                     yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.Write);
-                if (composition == Composition.Scale)
+                else
                     yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.ReadWrite);
+            }
+        }
+
+        private IEnumerable<string> skipInputProperties
+        {
+            get
+            {
+                if (composition != AttributeCompositionMode.Blend)
+                    yield return "Blend";
+            }
+        }
+
+        protected override IEnumerable<VFXPropertyWithValue> inputProperties
+        {
+            get
+            {
+                return base.inputProperties.Where(o => !skipInputProperties.Any(a => a == o.property.name));
             }
         }
 
         public class InputProperties
         {
+            [Tooltip("The value of the size over the relative (0..1) lifetime of the particle")]
             public AnimationCurve curve;
+            [Tooltip("Size Blending factor")]
+            [Range(0.0f, 1.0f)]
+            public float Blend = 0.5f;
         }
 
         public override string source
         {
             get
             {
-                string outSource = @"
+                string outSource = string.Format(@"
 float sampledCurve = SampleCurve(curve, age/lifetime);
-";
-                switch (composition)
-                {
-                    case Composition.Overwrite: outSource += "size = sampledCurve;";    break;
-                    case Composition.Scale:     outSource += "size *= sampledCurve;";   break;
-                }
+{0}", string.Format(VFXBlockUtility.GetComposeFormatString(composition), "size", "sampledCurve", "Blend"));
+
                 return outSource;
             }
         }

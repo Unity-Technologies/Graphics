@@ -41,7 +41,7 @@ namespace UnityEditor.VFX.Block
                 return @"
 float xy = size.x * size.y;
 float z = (size.x + size.y) * 0.5f;
-float radiusCubed = xy * z * 0.5f;
+float radiusCubed = xy * z * 0.125f;
 mass = (4.0f / 3.0f) * UNITY_PI * radiusCubed * Density;
 ";
             }
