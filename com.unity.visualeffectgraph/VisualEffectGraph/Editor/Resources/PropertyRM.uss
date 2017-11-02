@@ -91,8 +91,17 @@
 {
     text-color:#888;
     width:12;
+	flex:0;
     padding-left:2;
     text-alignment:middle-center;
+}
+
+.propertyrm .fieldContainer TextField
+{
+	margin-top:0;
+	margin-bottom:0;
+	margin-left:2;
+	margin-right:2;
 }
 .propertyrm .fieldContainer
 {
@@ -236,4 +245,18 @@ CurvePropertyRM
 {
     flex:1;
     min-width:100;
+}
+
+DoubleSliderField
+{
+	flex-direction:row;
+}
+DoubleSliderField Slider
+{
+	flex:1;
+}
+DoubleSliderField DoubleField
+{
+	width:40;
+	flex:0;
 }

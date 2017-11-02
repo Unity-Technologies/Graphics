@@ -14,6 +14,7 @@ namespace UnityEditor.VFX.UI
         public VFXNodeUI()
         {
             m_CollapseButton.visible = false;
+            clippingOptions = ClippingOptions.ClipContents;
 
             Insert(0, titleContainer);
             rightContainer.Insert(0, new VisualElement() { name = "rightBackground", pickingMode = PickingMode.Ignore });
