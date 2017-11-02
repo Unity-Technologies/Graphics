@@ -54,34 +54,55 @@ namespace UnityEditor.VFX
 
 namespace UnityEditor.VFX.UI
 {
-    class UintPropertyRM : SimplePropertyRM<uint>
+    class UintPropertyRM : SimpleUIPropertyRM<uint, long>
     {
         public UintPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
         }
 
-        public override ValueControl<uint> CreateField()
+        public override INotifyValueChanged<long> CreateField()
         {
-            return new UintField(m_Label);
+            Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
+            range.x = Mathf.Max(0, Mathf.Round(range.x));
+            range.y = Mathf.Max(range.x + 1, Mathf.Round(range.y));
+            if (range == Vector2.zero)
+            {
+                var field = new LabeledField<IntegerField, long>(m_Label);
+                field.control.dynamicUpdate = true;
+                return field;
+            }
+            else
+            {
+                var field = new LabeledField<IntSliderField, long>(m_Label);
+                field.control.range = range;
+                return field;
+            }
         }
     }
 
-    class IntPropertyRM : SimplePropertyRM<int>
+    class IntPropertyRM : SimpleUIPropertyRM<int, long>
     {
         public IntPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
         }
 
-        public override ValueControl<int> CreateField()
+        public override INotifyValueChanged<long> CreateField()
         {
             Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
-            /*
+            range.x = Mathf.Round(range.x);
+            range.y = Mathf.Max(range.x + 1, Mathf.Round(range.y));
             if (range == Vector2.zero)
-                return new IntField(m_Label);
-            else*/
-            range.x = 0;
-            range.y = 10;
-            return new IntSliderField(m_Label, range);
+            {
+                var field = new LabeledField<IntegerField, long>(m_Label);
+                field.control.dynamicUpdate = true;
+                return field;
+            }
+            else
+            {
+                var field = new LabeledField<IntSliderField, long>(m_Label);
+                field.control.range = range;
+                return field;
+            }
         }
     }
     class EnumPropertyRM : SimplePropertyRM<int>
@@ -115,7 +136,7 @@ namespace UnityEditor.VFX.UI
             else
             {
                 var field = new LabeledField<DoubleSliderField, double>(m_Label);
-
+                field.control.range = range;
                 return field;
             }
         }

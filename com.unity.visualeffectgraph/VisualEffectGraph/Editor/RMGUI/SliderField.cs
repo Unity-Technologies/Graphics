@@ -6,15 +6,14 @@ using System.Collections.Generic;
 
 namespace UnityEditor.VFX.UIElements
 {
-    class DoubleSliderField : VisualElement, INotifyValueChanged<double>
+    abstract class BaseSliderField<T> : VisualElement, INotifyValueChanged<T>
     {
-        Slider m_Slider;
-        DoubleField m_DoubleField;
+        protected Slider m_Slider;
+        protected INotifyValueChanged<T> m_Field;
 
+        public T m_Value;
 
-        public double m_Value;
-
-        public double value
+        public T value
         {
             get
             {
@@ -24,28 +23,13 @@ namespace UnityEditor.VFX.UIElements
             set
             {
                 m_Value = value;
-                m_DoubleField.value = value;
-                m_Slider.value = (float)value;
+                m_Field.value = value;
+                m_Slider.value = ValueToFloat(value);
             }
         }
 
-        public void OnValueChanged(EventCallback<ChangeEvent<double>> callback)
-        {
-            RegisterCallback(callback);
-        }
+        protected abstract float ValueToFloat(T value);
 
-        public void SetValueAndNotify(double newValue)
-        {
-            if (!EqualityComparer<double>.Default.Equals(value, newValue))
-            {
-                using (ChangeEvent<double> evt = ChangeEvent<double>.GetPooled(value, newValue))
-                {
-                    evt.target = this;
-                    value = newValue;
-                    UIElementsUtility.eventDispatcher.DispatchEvent(evt, panel);
-                }
-            }
-        }
 
         private Vector2 m_Range;
 
@@ -60,65 +44,85 @@ namespace UnityEditor.VFX.UIElements
                 m_Range = value;
                 m_Slider.lowValue = m_Range.x;
                 m_Slider.highValue = m_Range.y;
+                m_Slider.pageSize = (m_Slider.highValue - m_Slider.lowValue) * 0.1f;
+            }
+        }
+        public void OnValueChanged(EventCallback<ChangeEvent<T>> callback)
+        {
+            RegisterCallback(callback);
+        }
+
+        public void SetValueAndNotify(T newValue)
+        {
+            if (!EqualityComparer<T>.Default.Equals(value, newValue))
+            {
+                using (ChangeEvent<T> evt = ChangeEvent<T>.GetPooled(value, newValue))
+                {
+                    evt.target = this;
+                    value = newValue;
+                    UIElementsUtility.eventDispatcher.DispatchEvent(evt, panel);
+                }
             }
         }
 
+        protected void ValueChanged(ChangeEvent<T> e)
+        {
+            e.StopPropagation();
+            SetValueAndNotify(e.newValue);
+        }
+    }
+    class DoubleSliderField : BaseSliderField<double>
+    {
         public DoubleSliderField()
         {
             m_Slider = new Slider(0, 1, ValueChanged, Slider.Direction.Horizontal, (range.y - range.x) * 0.1f);
             m_Slider.AddToClassList("textfield");
             m_Slider.valueChanged += ValueChanged;
 
-            m_DoubleField = new DoubleField();
-            m_DoubleField.RegisterCallback<ChangeEvent<double>>(ValueChanged);
-            m_DoubleField.dynamicUpdate = true;
+            var doubleField = new DoubleField();
+            doubleField.RegisterCallback<ChangeEvent<double>>(ValueChanged);
+            doubleField.dynamicUpdate = true;
+            m_Field = doubleField;
 
             Add(m_Slider);
-            Add(m_DoubleField);
+            Add(doubleField);
         }
 
-        void ValueChanged(ChangeEvent<double> e)
+        protected override float ValueToFloat(double value)
         {
-            e.StopPropagation();
-            SetValueAndNotify(e.newValue);
+            return (float)value;
         }
 
         void ValueChanged(float newValue)
         {
-            SetValueAndNotify(newValue);
+            SetValueAndNotify((double)newValue);
         }
     }
-    class IntSliderField : IntField
+    class IntSliderField : BaseSliderField<long>
     {
-        Slider m_Slider;
-
-        void CreateSlider(Vector2 range)
+        public IntSliderField()
         {
-            m_Slider = new Slider(range.x, range.y, ValueChanged, Slider.Direction.Horizontal, (range.y - range.x) * 0.1f);
+            m_Slider = new Slider(0, 1, ValueChanged, Slider.Direction.Horizontal, 0.1f);
             m_Slider.AddToClassList("textfield");
+            m_Slider.valueChanged += ValueChanged;
+
+            var integerField = new IntegerField();
+            integerField.RegisterCallback<ChangeEvent<long>>(ValueChanged);
+            integerField.dynamicUpdate = true;
+            m_Field = integerField;
+
+            Add(m_Slider);
+            Add(integerField);
         }
 
-        public IntSliderField(string label, Vector2 range) : base(label)
+        protected override float ValueToFloat(long value)
         {
-            CreateSlider(range);
-            Add(m_Slider);
-        }
-
-        public IntSliderField(VisualElement existingLabel, Vector2 range) : base(existingLabel)
-        {
-            CreateSlider(range);
-            Add(m_Slider);
+            return (float)value;
         }
 
         void ValueChanged(float newValue)
         {
-            SetValue((int)newValue);
-        }
-
-        protected override void ValueToGUI()
-        {
-            base.ValueToGUI();
-            m_Slider.value = (float)GetValue();
+            SetValueAndNotify((long)newValue);
         }
     }
 }
