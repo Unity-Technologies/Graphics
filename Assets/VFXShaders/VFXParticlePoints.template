@@ -17,105 +17,11 @@ Shader "Hidden/VFX/ParticlePoints"
 		#define VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)
 		
 		ByteAddressBuffer attributeBuffer;		
-		float nbMax;
-
-		float4x4 _NonJitteredVP;
-		float4x4 _PreviousVP;		
+		float nbMax;	
 		
 		#if USE_SOFT_PARTICLE
 		sampler2D_float _CameraDepthTexture;
-		#endif
-
-		struct ps_input
-		{
-			float4 pos : SV_POSITION;
-			#if VFX_NEEDS_COLOR_INTERPOLATOR
-			nointerpolation float4 color : COLOR0;
-			#endif
-			#if USE_SOFT_PARTICLE || USE_ALPHA_TEST
-			nointerpolation float2 builtInInterpolants : TEXCOORD0;
-			#endif
-			#if USE_SOFT_PARTICLE
-			float4 projPos : TEXCOORD1;		
-			#endif
-			#if USE_MOTION_VECTORS
-			float4 previousPos : TEXCOORD2;
-			float4 currentPos : TEXCOORD3;
-			#endif
-		};
-		
-		struct ps_output
-		{
-			float4 color : SV_Target0;
-		};
-		
-		struct ps_outputMV
-		{
-			float2 motion : SV_Target0;
-		};
-		
-		ps_input vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
-		{
-			uint index = id;
-			ps_input o = (ps_input)0;
-			o.pos = -1;
-			if (index < asuint(nbMax))
-			{
-				${VFXLoadAttributes:{alive}}
-				if (alive)
-				{
-					${VFXLoadAttributes:{(?!(alive))(\b\w)}}
-					${VFXProcessBlocks}
-						
-					o.pos = mul(VFXModelViewProj(), float4(position,1.0f));
-
-					#if VFX_NEEDS_COLOR_INTERPOLATOR
-					o.color = (float4)1.0f;
-					#if VFX_USE_COLOR_CURRENT
-					o.color.rgb = color;
-					#endif
-					#if VFX_USE_ALPHA_CURRENT
-					o.color.a = alpha;
-					#endif
-					#endif
-
-					#if USE_SOFT_PARTICLE		
-					${VFXLoadParameter:{invSoftParticlesFadeDistance}}
-					o.builtInInterpolants.x = invSoftParticlesFadeDistance;
-					o.projPos = ComputeScreenPos(o.pos);
-					#endif
-					#if USE_ALPHA_TEST
-					${VFXLoadParameter:{alphaThreshold}}
-					o.builtInInterpolants.y = alphaThreshold;
-					#endif
-					
-					#if USE_MOTION_VECTORS
-					o.previousPos = mul(_PreviousVP, float4(oldPosition,1.0f));
-					o.currentPos = mul(_NonJitteredVP, float4(position,1.0f));
-					#endif
-				}
-			}
-			return o;
-		}
-
-		float4 ModulateColor(float4 color,ps_input i)
-		{
-			#if VFX_NEEDS_COLOR_INTERPOLATOR
-			color *= i.color;
-			#endif
-	
-			#if USE_SOFT_PARTICLE
-			float sceneZ = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(i.projPos)));
-			float fade = saturate(i.builtInInterpolants.x * (sceneZ - i.projPos.w));
-			fade = fade * fade * (3.0 - (2.0 * fade)); // Smoothsteping the fade
-			color.a *= fade;
-			#endif
-			#if USE_ALPHA_TEST
-			clip(color.a - i.builtInInterpolants.y);
-			#endif
-			
-			return color;
-		}
+		#endif	
 		ENDCG
 		
 		// Forward pass
@@ -127,11 +33,83 @@ Shader "Hidden/VFX/ParticlePoints"
 			#pragma target 4.5
 			#pragma vertex vert
 			#pragma fragment frag
+			
+			struct ps_input
+			{
+				float4 pos : SV_POSITION;
+				#if VFX_NEEDS_COLOR_INTERPOLATOR
+				nointerpolation float4 color : COLOR0;
+				#endif
+				#if USE_SOFT_PARTICLE || USE_ALPHA_TEST
+				nointerpolation float2 builtInInterpolants : TEXCOORD0;
+				#endif
+				#if USE_SOFT_PARTICLE
+				float4 projPos : TEXCOORD1;		
+				#endif
+			};
+			
+			struct ps_output
+			{
+				float4 color : SV_Target0;
+			};
+			
+			ps_input vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
+			{
+				uint index = id;
+				ps_input o = (ps_input)0;
+				o.pos = -1;
+				if (index < asuint(nbMax))
+				{
+					${VFXLoadAttributes:{alive}}
+					if (alive)
+					{
+						${VFXLoadAttributes:{(?!(alive))(\b\w)}}
+						${VFXProcessBlocks}
+							
+						o.pos = mul(VFXModelViewProj(), float4(position,1.0f));
+
+						#if VFX_NEEDS_COLOR_INTERPOLATOR
+						o.color = (float4)1.0f;
+						#if VFX_USE_COLOR_CURRENT
+						o.color.rgb = color;
+						#endif
+						#if VFX_USE_ALPHA_CURRENT
+						o.color.a = alpha;
+						#endif
+						#endif
+
+						#if USE_SOFT_PARTICLE		
+						${VFXLoadParameter:{invSoftParticlesFadeDistance}}
+						o.builtInInterpolants.x = invSoftParticlesFadeDistance;
+						o.projPos = ComputeScreenPos(o.pos);
+						#endif
+						#if USE_ALPHA_TEST
+						${VFXLoadParameter:{alphaThreshold}}
+						o.builtInInterpolants.y = alphaThreshold;
+						#endif
+					}
+				}
+				return o;
+			}
 				
 			ps_output frag(ps_input i)
 			{
 				ps_output o = (ps_output)0;	
-				o.color = ModulateColor((float4)1.0f,i);
+				
+				o.color = 1.0f;
+				#if VFX_NEEDS_COLOR_INTERPOLATOR
+				o.color *= i.color;
+				#endif
+				#if USE_SOFT_PARTICLE
+				float sceneZ = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(i.projPos)));
+				float fade = saturate(i.builtInInterpolants.x * (sceneZ - i.projPos.w));
+				fade = fade * fade * (3.0 - (2.0 * fade)); // Smoothsteping the fade
+				o.color.a *= fade;
+				#endif
+				#if USE_ALPHA_TEST
+				clip(o.color.a - i.builtInInterpolants.y);
+				#endif
+				
 				return o;
 			}
 			ENDCG
@@ -147,14 +125,87 @@ Shader "Hidden/VFX/ParticlePoints"
 
 			CGPROGRAM
 			#pragma target 4.5
-			#pragma vertex vert
+			#pragma vertex vertMV
 			#pragma fragment fragMV
+				
+			float4x4 _NonJitteredVP;
+			float4x4 _PreviousVP;	
 			
-			ps_outputMV fragMV(ps_input i)
+			struct ps_inputMV
+			{
+				float4 pos : SV_POSITION;
+				#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || VFX_USE_ALPHA_CURRENT
+				nointerpolation float3 builtInInterpolants : TEXCOORD0;
+				#endif
+				#if USE_SOFT_PARTICLE
+				float4 projPos : TEXCOORD1;		
+				#endif
+				#if USE_MOTION_VECTORS
+				float4 previousPos : TEXCOORD2;
+				float4 currentPos : TEXCOORD3;
+				#endif
+			};
+			
+			struct ps_outputMV
+			{
+				float2 motion : SV_Target0;
+			};
+			
+			ps_inputMV vertMV(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
+			{
+				uint index = id;
+				ps_inputMV o = (ps_inputMV)0;
+				o.pos = -1;
+				if (index < asuint(nbMax))
+				{
+					${VFXLoadAttributes:{alive}}
+					if (alive)
+					{
+						${VFXLoadAttributes:{(?!(alive))(\b\w)}}
+						${VFXProcessBlocks}
+							
+						o.pos = mul(VFXModelViewProj(), float4(position,1.0f));
+
+						#if VFX_USE_ALPHA_CURRENT
+						o.builtInInterpolants.z = alpha;
+						#endif
+						#if USE_SOFT_PARTICLE		
+						${VFXLoadParameter:{invSoftParticlesFadeDistance}}
+						o.builtInInterpolants.x = invSoftParticlesFadeDistance;
+						o.projPos = ComputeScreenPos(o.pos);
+						#endif
+						#if USE_ALPHA_TEST
+						${VFXLoadParameter:{alphaThreshold}}
+						o.builtInInterpolants.y = alphaThreshold;
+						#endif
+						
+						#if USE_MOTION_VECTORS
+						o.previousPos = mul(_PreviousVP, float4(oldPosition,1.0f));
+						o.currentPos = mul(_NonJitteredVP, float4(position,1.0f));
+						#endif
+					}
+				}
+				return o;
+			}
+			
+			ps_outputMV fragMV(ps_inputMV i)
 			{
 				ps_outputMV o = (ps_outputMV)0;			
-				ModulateColor((float4)1.0f,i); // just for the alpha clipping
 				
+				float alpha = 1.0f;
+				#if USE_ALPHA_CURRENT
+				alpha = i.builtInInterpolants.z;
+				#endif
+				#if USE_SOFT_PARTICLE
+				float sceneZ = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(i.projPos)));
+				float fade = saturate(i.builtInInterpolants.x * (sceneZ - i.projPos.w));
+				fade = fade * fade * (3.0 - (2.0 * fade)); // Smoothsteping the fade
+				alpha *= fade;
+				#endif
+				#if USE_ALPHA_TEST
+				clip(alpha - i.builtInInterpolants.y);
+				#endif
+					
 				#if USE_MOTION_VECTORS
 				float3 p0 = i.previousPos.xyz / i.previousPos.w;
 				float3 p1 = i.currentPos.xyz / i.currentPos.w;
