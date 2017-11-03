@@ -16,13 +16,6 @@ namespace UnityEditor.ShaderGraph.Drawing
     public sealed class MaterialGraphView : GraphView
     {
         public AbstractMaterialGraph graph { get; private set; }
-public MaterialGraphView() // FIXME constructor deleted
-        {
-            serializeGraphElements = SerializeGraphElementsImplementation;
-            canPasteSerializedData = CanPasteSerializedDataImplementation;
-            unserializeAndPaste = UnserializeAndPasteImplementation;
-            deleteSelection = DeleteSelectionImplementation;
-            }
 
         public override List<NodeAnchor> GetCompatibleAnchors(NodeAnchor startAnchor, NodeAdapter nodeAdapter)
         {
@@ -59,7 +52,15 @@ public MaterialGraphView() // FIXME constructor deleted
 
         public OnSelectionChanged onSelectionChanged;
 
-        public MaterialGraphView(AbstractMaterialGraph graph)
+        public MaterialGraphView()
+        {
+            serializeGraphElements = SerializeGraphElementsImplementation;
+            canPasteSerializedData = CanPasteSerializedDataImplementation;
+            unserializeAndPaste = UnserializeAndPasteImplementation;
+            deleteSelection = DeleteSelectionImplementation;
+        }
+
+        public MaterialGraphView(AbstractMaterialGraph graph) : this()
         {
             this.graph = graph;
         }
@@ -88,15 +89,34 @@ public MaterialGraphView() // FIXME constructor deleted
             base.ClearSelection();
             SelectionChanged();
         }
+
+        string SerializeGraphElementsImplementation(IEnumerable<GraphElement> elements)
+        {
+            var graph = new CopyPasteGraph(elements.OfType<MaterialNodeView>().Select(x => (INode)x.node), elements.OfType<Edge>().Select(x => x.userData).OfType<IEdge>());
+            return JsonUtility.ToJson(graph, true);
+        }
+
+        bool CanPasteSerializedDataImplementation(string serializedData)
+        {
+            return CopyPasteGraph.FromJson(serializedData) != null;
+        }
+
+        void UnserializeAndPasteImplementation(string operationName, string serializedData)
+        {
+            graph.owner.RegisterCompleteObjectUndo(operationName);
+            var pastedGraph = CopyPasteGraph.FromJson(serializedData);
+            this.InsertCopyPasteGraph(pastedGraph);
+        }
+
+        void DeleteSelectionImplementation(string operationName, GraphView.AskUser askUser)
+        {
+            graph.owner.RegisterCompleteObjectUndo(operationName);
+            graph.RemoveElements(selection.OfType<MaterialNodeView>().Select(x => (INode)x.node), selection.OfType<Edge>().Select(x => x.userData).OfType<IEdge>());
+        }
     }
 
     public static class GraphViewExtensions
     {
-        internal static CopyPasteGraph SelectionAsCopyPasteGraph(this MaterialGraphView graphView)
-        {
-            return new CopyPasteGraph(graphView.selection.OfType<MaterialNodeView>().Select(x => (INode) x.node), graphView.selection.OfType<Edge>().Select(x => x.userData).OfType<IEdge>());
-        }
-
         internal static void InsertCopyPasteGraph(this MaterialGraphView graphView, CopyPasteGraph copyGraph)
         {
             if (copyGraph == null)
@@ -123,66 +143,5 @@ public MaterialGraphView() // FIXME constructor deleted
                 });
             }
         }
-
-        string SerializeGraphElementsImplementation(IEnumerable<GraphElement> elements)
-        {
-            var graph = CreateCopyPasteGraph(elements);
-            return JsonUtility.ToJson(graph, true);
-        }
-
-        bool CanPasteSerializedDataImplementation(string serializedData)
-        {
-            return DeserializeCopyBuffer(serializedData) != null;
-        }
-
-        void UnserializeAndPasteImplementation(string operationName, string serializedData)
-        {
-            var mgp = GetPresenter<MaterialGraphPresenter>();
-            mgp.graph.owner.RegisterCompleteObjectUndo(operationName);
-            var pastedGraph = DeserializeCopyBuffer(serializedData);
-            mgp.InsertCopyPasteGraph(pastedGraph);
-        }
-
-        void DeleteSelectionImplementation(string operationName, GraphView.AskUser askUser)
-        {
-            var mgp = GetPresenter<MaterialGraphPresenter>();
-            mgp.graph.owner.RegisterCompleteObjectUndo(operationName);
-            mgp.RemoveElements(selection.OfType<MaterialNodeView>(), selection.OfType<Edge>());
-        }
-
-        internal static CopyPasteGraph CreateCopyPasteGraph(IEnumerable<GraphElement> selection)
-        {
-            var graph = new CopyPasteGraph();
-            foreach (var element in selection)
-            {
-                var nodeView = element as MaterialNodeView;
-                if (nodeView != null)
-                {
-                    graph.AddNode(nodeView.node);
-                    foreach (var edge in NodeUtils.GetAllEdges(nodeView.userData as INode))
-                        graph.AddEdge(edge);
-                }
-
-                var edgeView = element as Edge;
-                if (edgeView != null)
-                    graph.AddEdge(edgeView.userData as IEdge);
-            }
-            return graph;
-        }
-
-        internal static CopyPasteGraph DeserializeCopyBuffer(string copyBuffer)
-        {
-            try
-            {
-                return JsonUtility.FromJson<CopyPasteGraph>(copyBuffer);
-            }
-            catch
-            {
-                // ignored. just means copy buffer was not a graph :(
-                return null;
-            }
-        }
-
-
     }
 }
