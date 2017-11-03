@@ -428,7 +428,7 @@ public class VFXComponentEditor : Editor
             string exposedName = asset.GetEditorExposedDescName(i);
             bool worldSpace = asset.GetEditorExposedDescWorldSpace(i);
 
-            var dataBlock = VFXEditor.BlockLibrary.GetDataBlock(semanticType);
+            var dataBlock = VFXEditor.Block.GetDataBlock(semanticType);
             if (dataBlock != null)
             {
                 var property = new VFXProperty(dataBlock.Semantics, exposedName);

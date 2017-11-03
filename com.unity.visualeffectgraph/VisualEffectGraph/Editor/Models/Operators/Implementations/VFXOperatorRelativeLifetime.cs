@@ -1,0 +1,24 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace UnityEditor.VFX
+{
+    [VFXInfo(category = "Attribute")]
+    class VFXOperatorRelativeLifetime : VFXOperator
+    {
+        public override string name
+        {
+            get
+            {
+                return "Current Relative Age (Age/Lifetime)";
+            }
+        }
+        protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        {
+            VFXExpression[] output = new VFXExpression[] { new VFXAttributeExpression(VFXAttribute.Age) / new VFXAttributeExpression(VFXAttribute.Lifetime) };
+            return output;
+        }
+    }
+}
