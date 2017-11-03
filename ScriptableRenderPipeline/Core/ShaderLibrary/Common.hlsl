@@ -282,6 +282,10 @@ void GetCubeFaceID(float3 dir, out int faceIndex)
 
 #define HFLT_MIN    0.00006103515625 // 2^14  it is the same for 10, 11 and 16bit float. ref: https://www.khronos.org/opengl/wiki/Small_Float_Formats
 
+#define SMALL_FLT_VALUE 0.0001
+
+// General constant
+
 float DegToRad(float deg)
 {
     return deg * PI / 180.0;
