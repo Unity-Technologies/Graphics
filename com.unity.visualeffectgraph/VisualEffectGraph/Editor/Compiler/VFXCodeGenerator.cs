@@ -200,9 +200,13 @@ namespace UnityEditor.VFX
         {
             var r = new VFXShaderWriter();
             var spawnLinkCount = context.GetData().sourceCount;
+            r.WriteLine("int sourceIndex = 0;");
+
+            if (spawnLinkCount <= 1)
+                r.WriteLine("/*//Loop with 1 iteration generate a wrong IL Assembly (and actually, useless code)");
+
             r.WriteLine("uint currentSumSpawnCount = 0u;");
-            r.WriteLine("int sourceIndex;");
-            r.WriteLineFormat("for (sourceIndex=0; sourceIndex<{0}; ++sourceIndex)", spawnLinkCount);
+            r.WriteLineFormat("for (sourceIndex=0; sourceIndex<{0}; sourceIndex++)", spawnLinkCount);
             r.EnterScope();
             r.WriteLineFormat("currentSumSpawnCount += uint({0});", context.GetData().GetLoadAttributeCode(new VFXAttribute("spawnCount", UnityEngine.VFX.VFXValueType.kFloat), VFXAttributeLocation.Source));
             r.WriteLine("if (id.x < currentSumSpawnCount)");
@@ -210,6 +214,9 @@ namespace UnityEditor.VFX
             r.WriteLine("break;");
             r.ExitScope();
             r.ExitScope();
+
+            if (spawnLinkCount <= 1)
+                r.WriteLine("*/");
             return r;
         }
 
