@@ -222,7 +222,7 @@ ModelImporter:
       name: PlanksMaterial
     second: {fileID: 2100000, guid: 8bc3bc972fe454363aadb1d0241d14ee, type: 2}
   materials:
-    importMaterials: 1
+    importMaterials: 0
     materialName: 1
     materialSearch: 2
     materialLocation: 0
