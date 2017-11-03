@@ -530,7 +530,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             else
                 lightData.mainLightIndex = SortLights(visibleLights);
 
-            lightData.pixelAdditionalLightsCount = (lightData.mainLightIndex >= 0) ? maxPixelLights - 1 : maxPixelLights;
+            lightData.pixelAdditionalLightsCount = Math.Max(0, maxPixelLights - 1);
             lightData.totalAdditionalLightsCount = lightData.pixelAdditionalLightsCount + vertexLights;
         }
 
