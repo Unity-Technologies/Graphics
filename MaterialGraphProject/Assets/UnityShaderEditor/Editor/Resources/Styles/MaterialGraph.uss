@@ -108,6 +108,40 @@ MaterialNodeView > #resize:active {
     background-color: rgb(0, 225, 25);
 }
 
+PortInputView {
+    width: 212;
+    height: 22;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+
+PortInputView > #controlContainer {
+    background-color: #393939;
+    flex-direction: row;
+    align-items: center;
+    padding-left: 8;
+    padding-right: 20;
+    border-left-width: 1;
+    border-top-width: 1;
+    border-right-width: 1;
+    border-bottom-width: 1;
+    border-color: rgba(25, 25, 25, 0.8);
+    border-radius: 2;
+}
+
+TextureSlotControlView {
+    flex-direction: row;
+    align-items: center;
+}
+
+TextureSlotControlView > ObjectField {
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
+    width: 100;
+}
+
 .edge.fromMatrix4, .edge.fromMatrix3, .edge.fromMatrix2 {
     edge-output-color: #8FC1DF;
 }

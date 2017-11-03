@@ -212,7 +212,8 @@ namespace UnityEditor.Graphing
         void RemoveEdgeNoValidate(IEdge e)
         {
             e = m_Edges.FirstOrDefault(x => x.Equals(e));
-            Assert.NotNull(e);
+            if (e == null)
+                throw new ArgumentException("Trying to remove an edge that does not exist.", "e");
             m_Edges.Remove(e);
 
             List<IEdge> inputNodeEdges;
