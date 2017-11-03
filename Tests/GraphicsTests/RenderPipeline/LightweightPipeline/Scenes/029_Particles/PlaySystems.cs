@@ -12,7 +12,7 @@ public class PlaySystems : MonoBehaviour {
 		foreach(ParticleSystem ps in particleSystems){
             if (ps != null)
             {
-                float life = ps.duration * simPoint;
+                float life = ps.main.duration * simPoint;
                 ps.Simulate(life, true, true, false);
             }
         }
