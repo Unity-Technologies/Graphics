@@ -13,6 +13,10 @@ using EnumField = UnityEditor.VFX.UIElements.VFXEnumField;
 
 using CurveField = UnityEditor.VFX.UIElements.LabeledField<UnityEditor.Experimental.UIElements.CurveField, UnityEngine.AnimationCurve>;
 
+using Vector3Field = UnityEditor.VFX.UIElements.Vector3Field;
+using Vector2Field = UnityEditor.VFX.UIElements.Vector2Field;
+using Vector4Field = UnityEditor.VFX.UIElements.Vector4Field;
+
 namespace UnityEditor.VFX
 {
     interface IStringProvider
