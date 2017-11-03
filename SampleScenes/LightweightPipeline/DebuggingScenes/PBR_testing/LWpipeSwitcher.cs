@@ -23,6 +23,14 @@ namespace Testing.LWtesting
 			{
                 Switch();
             }
+
+            if(Input.touchCount > 0)
+            {
+                if(Input.GetTouch(0).phase == TouchPhase.Began)
+                {
+                    Switch();
+                }
+            }
 		}
 
         [ContextMenu("SwitchPipeline")]
