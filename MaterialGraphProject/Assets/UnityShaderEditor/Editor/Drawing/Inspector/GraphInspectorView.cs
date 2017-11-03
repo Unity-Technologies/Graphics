@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         VisualElement m_PropertyItems;
         VisualElement m_LayerItems;
         VisualElement m_ContentContainer;
-        Experimental.UIElements.ObjectField m_PreviewMeshPicker;
+        ObjectField m_PreviewMeshPicker;
         AbstractNodeEditorView m_EditorView;
 
         TypeMapper m_TypeMapper;
@@ -93,7 +93,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 m_PreviewTextureView = new PreviewTextureView {name = "preview", image = Texture2D.blackTexture};
                 bottomContainer.Add(m_PreviewTextureView);
 
-                m_PreviewMeshPicker = new Experimental.UIElements.ObjectField() { objectType = typeof(Mesh) };
+                m_PreviewMeshPicker = new ObjectField() { objectType = typeof(Mesh) };
+                m_PreviewMeshPicker.OnValueChanged(OnPreviewMeshChanged);
                 bottomContainer.Add(m_PreviewMeshPicker);
             }
             Add(bottomContainer);
@@ -169,7 +170,23 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         void OnPreviewChanged()
         {
             m_PreviewTextureView.image = m_PreviewHandle.texture ?? Texture2D.blackTexture;
-            m_PreviewHandle.mesh = m_PreviewMeshPicker.value as Mesh;
+        }
+
+        void OnPreviewMeshChanged(ChangeEvent<UnityEngine.Object> changeEvent)
+        {
+            if (changeEvent.newValue == null)
+            {
+                m_PreviewHandle.mesh = null;
+
+                return;
+            }
+
+            Mesh changedMesh = changeEvent.newValue as Mesh;
+
+            if (changedMesh)
+            {
+                m_PreviewHandle.mesh = changedMesh;
+            }
         }
 
         public void UpdateSelection(IEnumerable<INode> nodes)

@@ -43,6 +43,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_GraphEditorView.onConvertToSubgraphClick += ToSubGraph;
                     m_GraphEditorView.onShowInProjectClick += PingAsset;
                     rootVisualContainer.Add(graphEditorView);
+                    rootVisualContainer.parent.clippingOptions = VisualElement.ClippingOptions.ClipContents;
                 }
             }
         }
