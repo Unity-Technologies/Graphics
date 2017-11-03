@@ -42,6 +42,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_GraphEditorView.onConvertToSubgraphClick += ToSubGraph;
                     m_GraphEditorView.onShowInProjectClick += PingAsset;
                     rootVisualContainer.Add(graphEditorView);
+                    rootVisualContainer.parent.clippingOptions = VisualElement.ClippingOptions.ClipContents;
                 }
             }
         }
@@ -140,9 +141,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 if (e.commandName == "Delete" || e.commandName == "SoftDelete")
                 {
-                    graphObject.RegisterCompleteObjectUndo("Delete");
-                    graphObject.graph.RemoveElements(graphView.selection.OfType<MaterialNodeView>().Select(x => x.node as INode), graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge));
-                    graphObject.graph.ValidateGraph();
+//                    graphObject.RegisterCompleteObjectUndo("Delete");
+//                    graphObject.graph.RemoveElements(graphView.selection.OfType<MaterialNodeView>().Select(x => x.node as INode), graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge));
+//                    graphObject.graph.ValidateGraph();
                 }
             }
 

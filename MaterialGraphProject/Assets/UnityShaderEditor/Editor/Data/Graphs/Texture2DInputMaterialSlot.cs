@@ -1,6 +1,8 @@
 using System;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Drawing.Slots;
 using UnityEngine;
+using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -27,6 +29,11 @@ namespace UnityEditor.ShaderGraph
             bool hidden = false)
             : base(slotId, displayName, shaderOutputName, SlotType.Input, shaderStage, hidden)
         {}
+
+        public override VisualElement InstantiateControl()
+        {
+            return new TextureSlotControlView(this);
+        }
 
         public override string GetDefaultValue(GenerationMode generationMode)
         {
