@@ -102,7 +102,7 @@ float4 _TransmissionTints[SSS_N_PROFILES];  // RGB = 1/4 * color, A = unused
 CBUFFER_END
 
 // General constant
-#define MIN_N_DOT_V    0.0001               // The minimum value of 'NdotV'
+#define MIN_N_DOT_V SMALL_FLT_VALUE         // The minimum value of 'NdotV'
 
 //-----------------------------------------------------------------------------
 // Helper for cheap screen space raycasting
@@ -1099,7 +1099,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     float NdotL    = saturate(dot(bsdfData.normalWS, L)); // Must have the same value without the clamp
     float NdotV    = preLightData.NdotV;                  // Get the unaltered (geometric) version
     float LdotV    = dot(L, V);
-    float invLenLV = rsqrt(abs(2 * LdotV + 2));           // invLenLV = rcp(length(L + V))
+    float invLenLV = rsqrt(max(2 * LdotV + 2, SMALL_FLT_VALUE)); // invLenLV = rcp(length(L + V)) - caution about the case where V and L are opposite, it can happen, use max to avoid this
     float NdotH    = saturate((NdotL + NdotV) * invLenLV);
     float LdotH    = saturate(invLenLV * LdotV + invLenLV);
 
@@ -1123,7 +1123,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 
         // TODO: Do comparison between this correct version and the one from isotropic and see if there is any visual difference
         DV = DV_SmithJointGGXAniso(TdotH, BdotH, NdotH,
-                                   preLightData.TdotV, preLightData.BdotV, preLightData.NdotV,
+                                   preLightData.TdotV, preLightData.BdotV, NdotV,
                                    TdotL, BdotL, NdotL,
                                    bsdfData.roughnessT, bsdfData.roughnessB
         #ifdef LIT_USE_BSDF_PRE_LAMBDAV
