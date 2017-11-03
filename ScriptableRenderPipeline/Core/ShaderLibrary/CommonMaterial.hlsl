@@ -5,8 +5,6 @@
 // Helper function for anisotropy
 //-----------------------------------------------------------------------------
 
-// Ref: http://blog.selfshadow.com/publications/s2012-shading-course/burley/s2012_pbs_disney_brdf_notes_v3.pdf (in addenda)
-// Convert anisotropic ratio (0->no isotropic; 1->full anisotropy in tangent direction) to roughness
 void ConvertAnisotropyToRoughness(float roughness, float anisotropy, out float roughnessT, out float roughnessB)
 {
     // Use the parametrization of Sony Imageworks.
