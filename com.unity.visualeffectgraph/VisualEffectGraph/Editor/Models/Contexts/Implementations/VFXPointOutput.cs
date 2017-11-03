@@ -31,18 +31,9 @@ namespace UnityEditor.VFX
                 yield return new VFXAttributeInfo(VFXAttribute.Alpha, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
 
-                // Motion vectors
+                // Motion vectors (TMP)
                 yield return new VFXAttributeInfo(VFXAttribute.OldPosition, VFXAttributeMode.Read);
             }
         }
-
-        /* protected override IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
-         {
-             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
-                 yield return exp;
-
-             // Motion vectors
-             yield return new VFXNamedExpression(VFXBuiltInExpression.DeltaTime, "deltaTime");
-         }*/
     }
 }

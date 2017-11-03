@@ -318,7 +318,13 @@ namespace UnityEditor.VFX.UI
         public override void OnDataChanged()
         {
             base.OnDataChanged();
-            m_ToggleMotionVectors.on = GetRendererSettings().motionVectorGenerationMode == MotionVectorGenerationMode.Object;
+            if (presenter != null)
+            {
+                m_ToggleMotionVectors.on = GetRendererSettings().motionVectorGenerationMode == MotionVectorGenerationMode.Object;
+                m_ToggleMotionVectors.SetEnabled(true);
+            }
+            else
+                m_ToggleMotionVectors.SetEnabled(false);
         }
 
         void AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
