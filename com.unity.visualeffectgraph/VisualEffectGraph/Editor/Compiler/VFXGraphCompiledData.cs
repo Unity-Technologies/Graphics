@@ -202,6 +202,62 @@ namespace UnityEditor.VFX
             public int systemIndex;
         }
 
+        private static VFXCPUBufferData ComputeArrayOfStructureInitialData(IEnumerable<VFXLayoutElementDesc> layout)
+        {
+            var data = new VFXCPUBufferData();
+            foreach (var element in layout)
+            {
+                var attribute = VFXAttribute.AllAttribute.FirstOrDefault(o => o.name == element.name);
+                bool useAttribute = attribute.name == element.name;
+                if (element.type == VFXValueType.kBool)
+                {
+                    var v = useAttribute ? attribute.value.Get<bool>() : default(bool);
+                    data.PushBool(v);
+                }
+                else if (element.type == VFXValueType.kFloat)
+                {
+                    var v = useAttribute ? attribute.value.Get<float>() : default(float);
+                    data.PushFloat(v);
+                }
+                else if (element.type == VFXValueType.kFloat2)
+                {
+                    var v = useAttribute ? attribute.value.Get<Vector2>() : default(Vector2);
+                    data.PushFloat(v.x);
+                    data.PushFloat(v.y);
+                }
+                else if (element.type == VFXValueType.kFloat3)
+                {
+                    var v = useAttribute ? attribute.value.Get<Vector3>() : default(Vector3);
+                    data.PushFloat(v.x);
+                    data.PushFloat(v.y);
+                    data.PushFloat(v.z);
+                }
+                else if (element.type == VFXValueType.kFloat4)
+                {
+                    var v = useAttribute ? attribute.value.Get<Vector4>() : default(Vector4);
+                    data.PushFloat(v.x);
+                    data.PushFloat(v.y);
+                    data.PushFloat(v.z);
+                    data.PushFloat(v.w);
+                }
+                else if (element.type == VFXValueType.kInt)
+                {
+                    var v = useAttribute ? attribute.value.Get<int>() : default(int);
+                    data.PushInt(v);
+                }
+                else if (element.type == VFXValueType.kUint)
+                {
+                    var v = useAttribute ? attribute.value.Get<uint>() : default(uint);
+                    data.PushUInt(v);
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            return data;
+        }
+
         private static void FillSpawner(Dictionary<VFXContext, SpawnInfo> outContextSpawnToSpawnInfo, List<VFXCPUBufferDesc> outCpuBufferDescs, List<VFXSystemDesc> outSystemDescs, HashSet<Object> models, VFXExpressionGraph graph, List<VFXLayoutElementDesc> globalEventAttributeDescs, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
         {
             var spawners = CollectSpawnersHierarchy(models.OfType<VFXContext>());
@@ -212,7 +268,8 @@ namespace UnityEditor.VFX
                 {
                     capacity = 1u,
                     stride = globalEventAttributeDescs.First().offset.structure,
-                    layout = globalEventAttributeDescs.ToArray()
+                    layout = globalEventAttributeDescs.ToArray(),
+                    initialData = ComputeArrayOfStructureInitialData(globalEventAttributeDescs)
                 });
             }
             foreach (var spawnContext in spawners)
@@ -488,12 +545,12 @@ namespace UnityEditor.VFX
                 var systemDescs = new List<VFXSystemDesc>();
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generate native systems", 8 / nbSteps);
-
                 cpuBufferDescs.Add(new VFXCPUBufferDesc()
                 {
                     capacity = 1u,
                     layout = globalEventAttributeDescs.ToArray(),
-                    stride = globalEventAttributeDescs.First().offset.structure
+                    stride = globalEventAttributeDescs.First().offset.structure,
+                    initialData = ComputeArrayOfStructureInitialData(globalEventAttributeDescs)
                 });
                 var contextSpawnToSpawnInfo = new Dictionary<VFXContext, SpawnInfo>();
                 FillSpawner(contextSpawnToSpawnInfo, cpuBufferDescs, systemDescs, models, m_ExpressionGraph, globalEventAttributeDescs, contextToCompiledData);
