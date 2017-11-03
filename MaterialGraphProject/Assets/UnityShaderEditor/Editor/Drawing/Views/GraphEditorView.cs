@@ -168,6 +168,22 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         GraphViewChange GraphViewChanged(GraphViewChange graphViewChange)
         {
+            if (graphViewChange.elementsToRemove != null)
+            {
+                foreach (var element in graphViewChange.elementsToRemove)
+                {
+                    m_Graph.owner.RegisterCompleteObjectUndo("Delete");
+                    var nodeView = element as MaterialNodeView;
+                    if (nodeView != null)
+                        m_Graph.RemoveNode(nodeView.node);
+
+                    var edgeView = element as Edge;
+                    if (edgeView != null)
+                        m_Graph.RemoveEdge(edgeView.userData as IEdge);
+                }
+                graphViewChange.elementsToRemove.Clear();
+            }
+
             if (graphViewChange.edgesToCreate != null)
             {
                 foreach (var edge in graphViewChange.edgesToCreate)
