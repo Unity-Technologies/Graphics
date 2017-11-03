@@ -221,6 +221,12 @@ namespace UnityEditor.VFX.UI
             typeFactory[typeof(Preview3DPresenter)] = typeof(Preview3D);
 
             AddStyleSheetPath("PropertyRM");
+            AddStyleSheetPath("VFXContext");
+            AddStyleSheetPath("VFXFlow");
+            AddStyleSheetPath("VFXBlock");
+            AddStyleSheetPath("VFXNode");
+            AddStyleSheetPath("VFXDataAnchor");
+            AddStyleSheetPath("VFXTypeColor");
             AddStyleSheetPath("VFXView");
 
             Dirty(ChangeType.Transform);
