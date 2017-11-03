@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         ToolbarView m_ToolbarView;
         ToolbarButtonView m_TimeButton;
         ToolbarButtonView m_CopyToClipboardButton;
-        
+
         PreviewManager m_PreviewManager;
 
         public Action onUpdateAssetClick { get; set; }
@@ -166,22 +166,33 @@ namespace UnityEditor.ShaderGraph.Drawing
             Add(content);
         }
 
+        List<INode> nodesToRemove = new List<INode>();
+        List<IEdge> edgesToRemove = new List<IEdge>();
+
         GraphViewChange GraphViewChanged(GraphViewChange graphViewChange)
         {
             if (graphViewChange.elementsToRemove != null)
             {
+                m_Graph.owner.RegisterCompleteObjectUndo("Delete");
                 foreach (var element in graphViewChange.elementsToRemove)
                 {
-                    m_Graph.owner.RegisterCompleteObjectUndo("Delete");
                     var nodeView = element as MaterialNodeView;
-                    if (nodeView != null)
-                        m_Graph.RemoveNode(nodeView.node);
+                    if (nodeView != null && nodeView.node != null)
+                        nodesToRemove.Add(nodeView.node);
 
                     var edgeView = element as Edge;
                     if (edgeView != null)
-                        m_Graph.RemoveEdge(edgeView.userData as IEdge);
+                    {
+                        var edge = edgeView.userData as IEdge;
+                        if (edge != null)
+                            edgesToRemove.Add(edge);
+                    }
                 }
+
+                m_Graph.RemoveElements(nodesToRemove, edgesToRemove);
                 graphViewChange.elementsToRemove.Clear();
+                nodesToRemove.Clear();
+                edgesToRemove.Clear();
             }
 
             if (graphViewChange.edgesToCreate != null)
@@ -272,14 +283,18 @@ namespace UnityEditor.ShaderGraph.Drawing
                     nodesToUpdate.Add((MaterialNodeView)edgeView.input.node);
             }
 
+            foreach (var node in nodesToUpdate)
+                node.UpdatePortInputVisibilities();
+
             UpdateEdgeColors(nodesToUpdate);
         }
 
         void AddNode(INode node)
         {
-            var nodeView = new MaterialNodeView(node as AbstractMaterialNode, m_PreviewManager) { userData = node };
-            node.onModified += OnNodeChanged;
+            var nodeView = new MaterialNodeView { userData = node };
             m_GraphView.AddElement(nodeView);
+            nodeView.Initialize(m_GraphView, node as AbstractMaterialNode, m_PreviewManager);
+            node.onModified += OnNodeChanged;
         }
 
         Edge AddEdge(IEdge edge)
@@ -310,6 +325,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.AddElement(edgeView);
                 sourceNodeView.RefreshAnchors();
                 targetNodeView.RefreshAnchors();
+                sourceNodeView.UpdatePortInputTypes();
+                targetNodeView.UpdatePortInputTypes();
 
                 return edgeView;
             }
@@ -328,6 +345,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             while (nodeStack.Any())
             {
                 var nodeView = nodeStack.Pop();
+                nodeView.UpdatePortInputTypes();
                 foreach (var anchorView in nodeView.outputContainer.Children().OfType<NodeAnchor>())
                 {
                     var sourceSlot = (MaterialSlot)anchorView.userData;
@@ -349,18 +367,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                 foreach (var anchorView in nodeView.inputContainer.Children().OfType<NodeAnchor>())
                 {
                     var targetSlot = (MaterialSlot)anchorView.userData;
+                    if (targetSlot.valueType != SlotValueType.Dynamic)
+                        continue;
                     foreach (var edgeView in anchorView.connections.OfType<GradientEdge>())
                     {
                         var sourceSlot = (MaterialSlot)edgeView.output.userData;
-                        if (sourceSlot.valueType == SlotValueType.Dynamic)
+                        edgeView.UpdateClasses(sourceSlot.concreteValueType, targetSlot.concreteValueType);
+                        var connectedNodeView = edgeView.output.node as MaterialNodeView;
+                        if (connectedNodeView != null && !nodeViews.Contains(connectedNodeView))
                         {
-                            edgeView.UpdateClasses(sourceSlot.concreteValueType, targetSlot.concreteValueType);
-                            var connectedNodeView = edgeView.output.node as MaterialNodeView;
-                            if (connectedNodeView != null && !nodeViews.Contains(connectedNodeView))
-                            {
-                                nodeStack.Push(connectedNodeView);
-                                nodeViews.Add(connectedNodeView);
-                            }
+                            nodeStack.Push(connectedNodeView);
+                            nodeViews.Add(connectedNodeView);
                         }
                     }
                 }
