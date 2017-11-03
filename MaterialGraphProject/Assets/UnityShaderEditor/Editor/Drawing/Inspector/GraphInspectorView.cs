@@ -174,6 +174,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         void OnPreviewMeshChanged(ChangeEvent<UnityEngine.Object> changeEvent)
         {
+            if (changeEvent.newValue == null)
+            {
+                m_PreviewHandle.mesh = null;
+
+                return;
+            }
+
             Mesh changedMesh = changeEvent.newValue as Mesh;
 
             if (changedMesh)
