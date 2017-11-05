@@ -237,23 +237,6 @@ float SphericalCapIntersectionSolidArea(float cosC1, float cosC2, float cosB)
 // Helper functions
 //-----------------------------------------------------------------------------
 
-// 'NdotV' can become negative for visible pixels due to the perspective projection, normal mapping and decals.
-// This can produce visible artifacts under specular lighting, both direct (overly dark/bright pixels) and indirect (incorrect cubemap direction).
-// One way of avoiding these artifacts is to limit the value of 'NdotV' to a small positive number,
-// and calculate the reflection vector for the cubemap fetch using a normal shifted into view.
-float3 GetViewShiftedNormal(float3 N, float3 V, float NdotV, float minNdotV)
-{
-    if (NdotV < minNdotV)
-    {
-        // We do not renormalize the normal to save a few clock cycles.
-        // The magnitude difference is typically negligible, and the normal is only used to compute
-        // the reflection vector for the IBL cube map fetch (which does not depend on the magnitude).
-        N += (-NdotV + minNdotV) * V;
-    }
-
-    return N;
-}
-
 // Inputs:    normalized normal and view vectors.
 // Outputs:   front-facing normal, and the new non-negative value of the cosine of the view angle.
 // Important: call Orthonormalize() on the tangent and recompute the bitangent afterwards.
