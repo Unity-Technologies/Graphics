@@ -254,6 +254,46 @@ float3 GetViewShiftedNormal(float3 N, float3 V, float NdotV, float minNdotV)
     return N;
 }
 
+// Inputs:    normalized normal and view vectors.
+// Outputs:   front-facing normal, and the new non-negative value of the cosine of the view angle.
+// Important: call Orthonormalize() on the tangent and recompute the bitangent afterwards.
+float3 GetViewReflectedNormal(float3 N, float3 V, out float NdotV)
+{
+    // Fragments of front-facing geometry can have back-facing normals due to interpolation,
+    // normal mapping and decals. This can cause visible artifacts from both direct (negative or
+    // extremely high values) and indirect (incorrect lookup direction) lighting.
+    // There are several ways to avoid this problem. To list a few:
+    //
+    // 1. Setting { NdotV = max(<N,V>, SMALL_VALUE) }. This effectively removes normal mapping
+    // from the affected fragments, making the surface appear flat.
+    //
+    // 2. Setting { NdotV = abs(<N,V>) }. This effectively reverses the convexity of the surface.
+    // It also reduces light leaking from non-shadow-casting lights. Note that 'NdotV' can still
+    // be 0 in this case.
+    //
+    // It's important to understand that simply changing the value of the cosine is insufficient.
+    // For one, it does not solve the incorrect lookup direction problem, since the normal itself
+    // is not modified. There is a more insidious issue, however. 'NdotV' is a constituent element
+    // of the mathematical system describing the relationships between different vectors - and
+    // not just normal and view vectors, but also light vectors, half vectors, tangent vectors, etc.
+    // Changing only one angle (or its cosine) leaves the system in an inconsistent state, where
+    // certain relationships can take on different values depending on whether 'NdotV' is used
+    // in the calculation or not. Therefore, it is important to change the normal (or another
+    // vector) in order to leave the system in a consistent state.
+    //
+    // We choose to follow the conceptual approach (2) by reflecting the normal around the
+    // (<N,V> = 0) boundary if necessary, as it allows us to preserve some normal mapping details.
+
+    NdotV = dot(N, V);
+
+    float  NdotV1 = abs(NdotV);
+    float3 N1     = N - 2 * NdotV * V;
+    bool   front  = NdotV >= 0;
+
+    NdotV = front ? NdotV : NdotV1;
+    return  front ? N : N1;
+}
+
 // Generates an orthonormal right-handed basis from a unit vector.
 // Ref: http://marc-b-reynolds.github.io/quaternions/2016/07/06/Orthonormal.html
 float3x3 GetLocalFrame(float3 localZ)
