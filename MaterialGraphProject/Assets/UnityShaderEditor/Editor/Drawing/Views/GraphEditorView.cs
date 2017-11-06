@@ -166,44 +166,19 @@ namespace UnityEditor.ShaderGraph.Drawing
             Add(content);
         }
 
-        List<INode> nodesToRemove = new List<INode>();
-        List<IEdge> edgesToRemove = new List<IEdge>();
-
         GraphViewChange GraphViewChanged(GraphViewChange graphViewChange)
         {
-            if (graphViewChange.elementsToRemove != null)
-            {
-                m_Graph.owner.RegisterCompleteObjectUndo("Delete");
-                foreach (var element in graphViewChange.elementsToRemove)
-                {
-                    var nodeView = element as MaterialNodeView;
-                    if (nodeView != null && nodeView.node != null)
-                        nodesToRemove.Add(nodeView.node);
-
-                    var edgeView = element as Edge;
-                    if (edgeView != null)
-                    {
-                        var edge = edgeView.userData as IEdge;
-                        if (edge != null)
-                            edgesToRemove.Add(edge);
-                    }
-                }
-
-                m_Graph.RemoveElements(nodesToRemove, edgesToRemove);
-                graphViewChange.elementsToRemove.Clear();
-                nodesToRemove.Clear();
-                edgesToRemove.Clear();
-            }
-
             if (graphViewChange.edgesToCreate != null)
             {
                 foreach (var edge in graphViewChange.edgesToCreate)
                 {
-                    m_Graph.owner.RegisterCompleteObjectUndo("Connect Edge");
                     var leftSlot = edge.output.userData as ISlot;
                     var rightSlot = edge.input.userData as ISlot;
                     if (leftSlot != null && rightSlot != null)
+                    {
+                        m_Graph.owner.RegisterCompleteObjectUndo("Connect Edge");
                         m_Graph.Connect(leftSlot.slotReference, rightSlot.slotReference);
+                    }
                 }
                 graphViewChange.edgesToCreate.Clear();
             }
@@ -300,9 +275,19 @@ namespace UnityEditor.ShaderGraph.Drawing
         Edge AddEdge(IEdge edge)
         {
             var sourceNode = m_Graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+            if (sourceNode == null)
+            {
+                Debug.LogWarning("Source node is null");
+                return null;
+            }
             var sourceSlot = sourceNode.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId);
 
             var targetNode = m_Graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
+            if (targetNode == null)
+            {
+                Debug.LogWarning("Target node is null");
+                return null;
+            }
             var targetSlot = targetNode.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId);
 
             var sourceNodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(x => x.node == sourceNode);

@@ -29,6 +29,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_GraphView = graphView;
             node = inNode;
+            persistenceKey = node.guid.ToString();
             UpdateTitle();
 
             m_ControlsContainer = new VisualElement
