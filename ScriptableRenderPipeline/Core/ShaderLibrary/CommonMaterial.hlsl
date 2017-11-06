@@ -120,7 +120,7 @@ float3 LerpWhiteTo(float3 b, float t)
 // Evaluate Int{0, inf}{2 * Pi * r * R(sqrt(r^2 + d^2))}, where R is the diffusion profile.
 // Note: 'volumeAlbedo' should be premultiplied by 0.25.
 // Ref: Approximate Reflectance Profiles for Efficient Subsurface Scattering by Pixar (BSSRDF only).
-float3 ComputeTransmittance(float3 S, float3 volumeAlbedo, float thickness, float radiusScale)
+float3 ComputeTransmittanceDisney(float3 S, float3 volumeAlbedo, float thickness, float radiusScale)
 {
     // Thickness and SSS radius are decoupled for artists.
     // In theory, we should modify the thickness by the inverse of the radius scale of the profile.
