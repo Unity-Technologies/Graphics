@@ -126,6 +126,9 @@ CBUFFER_START(UnityPerDraw : register(b0))
     float3 unity_ProbeVolumeSizeInv;
     float3 unity_ProbeVolumeMin;
 
+    // This contain occlusion factor from 0 to 1 for dynamic objects (no SH here)
+    float4 unity_ProbesOcclusion;
+
 CBUFFER_END
 
 #if defined(USING_STEREO_MATRICES)
@@ -203,6 +206,9 @@ TEXTURE2D(unity_DynamicLightmap);
 SAMPLER2D(samplerunity_DynamicLightmap);
 
 TEXTURE2D(unity_DynamicDirectionality);
+
+// We can have shadowMask only if we have lightmap, so no sampler
+TEXTURE2D(unity_ShadowMask);
 
 // TODO: Change code here so probe volume use only one transform instead of all this parameters!
 TEXTURE3D_FLOAT(unity_ProbeVolumeSH);
