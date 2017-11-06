@@ -197,7 +197,7 @@ namespace UnityEditor.VFX
                 .ToLowerInvariant();
         }
 
-        static private StringBuilder GetFlattenedTemplateContent(string path, List<string> includes)
+        static private StringBuilder GetFlattenedTemplateContent(string path, List<string> includes, IEnumerable<string> defines)
         {
             var formattedPath = FormatPath(path);
 
@@ -222,8 +222,17 @@ namespace UnityEditor.VFX
                 var includePath = groups[1].Value;
 
                 // TODO Test defines
+                if (groups.Count > 2 && !String.IsNullOrEmpty(groups[2].Value))
+                {
+                    var neededDefines = groups[2].Value.Split(',');
+                    if (!neededDefines.All(d => defines.Contains(d)))
+                    {
+                        ReplaceMultiline(templateContent, groups[0].Value, new StringBuilder());
+                        continue;
+                    }
+                }
 
-                var includeBuilder = GetFlattenedTemplateContent(includePath, includes);
+                var includeBuilder = GetFlattenedTemplateContent(includePath, includes, defines);
                 ReplaceMultiline(templateContent, groups[0].Value, includeBuilder);
             }
 
@@ -236,7 +245,7 @@ namespace UnityEditor.VFX
             var dependencies = new HashSet<Object>();
             context.CollectDependencies(dependencies);
 
-            var templateContent = GetFlattenedTemplateContent(templatePath, new List<string>());
+            var templateContent = GetFlattenedTemplateContent(templatePath, new List<string>(), context.additionalDefines);
 
             var globalDeclaration = new VFXShaderWriter();
             globalDeclaration.WriteCBuffer(contextData.uniformMapper, "parameters");
