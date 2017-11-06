@@ -55,11 +55,11 @@ float3 SampleSH9(float4 SHCoefficients[7], float3 N)
 }
 
 // This sample a 3D volume storing SH
-// Volume is store as 3D texture with 4 R, G, B, X set of 4 coefficient store atlas in same 3D texture. X is use for occlusion.
-// TODO: the packing here is inefficient as we will fetch values far away from each other and they may not fit into the cache - Suggest we pack only RGB continuously
+// Volume is store as 3D texture with 4 R, G, B, Occ set of 4 coefficient store atlas in same 3D texture. Occ is use for occlusion.
+// TODO: the packing here is inefficient as we will fetch values far away from each other and they may not fit into the cache - Suggest we pack RGB continuously
 // TODO: The calcul of texcoord could be perform with a single matrix multicplication calcualted on C++ side that will fold probeVolumeMin and probeVolumeSizeInv into it and handle the identity case, no reasons to do it in C++ (ask Ionut about it)
 // It should also handle the camera relative path (if the render pipeline use it)
-float3 SampleProbeVolumeSH4(TEXTURE3D_ARGS(SHVolumeTexture, SHVolumeSampler), float3 positionWS, float3 normalWS, float4x4 WorldToTexture, 
+float3 SampleProbeVolumeSH4(TEXTURE3D_ARGS(SHVolumeTexture, SHVolumeSampler), float3 positionWS, float3 normalWS, float4x4 WorldToTexture,
                             float transformToLocal, float texelSizeX, float3 probeVolumeMin, float3 probeVolumeSizeInv)
 {
     float3 position = (transformToLocal == 1.0f) ? mul(WorldToTexture, float4(positionWS, 1.0)).xyz : positionWS;
@@ -78,6 +78,20 @@ float3 SampleProbeVolumeSH4(TEXTURE3D_ARGS(SHVolumeTexture, SHVolumeSampler), fl
     float4 shAb = SAMPLE_TEXTURE3D(SHVolumeTexture, SHVolumeSampler, texCoord);
 
     return SHEvalLinearL0L1(normalWS, shAr, shAg, shAb);
+}
+
+float4 SampleProbeOcclusion(TEXTURE3D_ARGS(SHVolumeTexture, SHVolumeSampler), float3 positionWS, float4x4 WorldToTexture,
+                            float transformToLocal, float texelSizeX, float3 probeVolumeMin, float3 probeVolumeSizeInv)
+{
+    float3 position = (transformToLocal == 1.0f) ? mul(WorldToTexture, float4(positionWS, 1.0)).xyz : positionWS;
+    float3 texCoord = (position - probeVolumeMin) * probeVolumeSizeInv.xyz;
+
+    // Sample fourth texture in the atlas
+    // We need to compute proper U coordinate to sample.
+    // Clamp the coordinate otherwize we'll have leaking between ShB coefficients and Probe Occlusion(Occ) info
+    texCoord.x = max(texCoord.x * 0.25 + 0.75, 0.75 + 0.5 * texelSizeX);
+
+    return SAMPLE_TEXTURE3D(SHVolumeTexture, SHVolumeSampler, texCoord);
 }
 
 // Following functions are to sample enlighten lightmaps (or lightmaps encoded the same way as our
