@@ -84,7 +84,7 @@ namespace UnityEditor.Graphing
             ValidateGraph();
         }
 
-        void AddNodeNoValidate(INode node)
+        protected void AddNodeNoValidate(INode node)
         {
             m_Nodes.Add(node.guid, node);
             node.owner = this;
@@ -101,7 +101,7 @@ namespace UnityEditor.Graphing
             ValidateGraph();
         }
 
-        void RemoveNodeNoValidate(INode node)
+        protected void RemoveNodeNoValidate(INode node)
         {
             if (!node.canDeleteNode)
                 return;
@@ -128,7 +128,7 @@ namespace UnityEditor.Graphing
             return new Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo>();
         }
 
-        IEdge ConnectNoValidate(SlotReference fromSlotRef, SlotReference toSlotRef)
+        protected IEdge ConnectNoValidate(SlotReference fromSlotRef, SlotReference toSlotRef)
         {
             if (fromSlotRef == null || toSlotRef == null)
                 return null;
@@ -181,7 +181,7 @@ namespace UnityEditor.Graphing
             m_AddedEdges.Add(newEdge);
             AddEdgeToNodeEdges(newEdge);
 
-            Debug.Log("Connected edge: " + newEdge);
+            Debug.LogFormat("Connected edge: {0} -> {1} ({2} -> {3})\n{4}", newEdge.outputSlot.nodeGuid, newEdge.inputSlot.nodeGuid, fromNode.name, toNode.name, Environment.StackTrace);
             return newEdge;
         }
 
@@ -209,7 +209,7 @@ namespace UnityEditor.Graphing
             ValidateGraph();
         }
 
-        void RemoveEdgeNoValidate(IEdge e)
+        protected void RemoveEdgeNoValidate(IEdge e)
         {
             e = m_Edges.FirstOrDefault(x => x.Equals(e));
             if (e == null)
@@ -320,17 +320,28 @@ namespace UnityEditor.Graphing
 
             foreach (var node in GetNodes<INode>())
                 node.ValidateNode();
+
+            foreach (var edge in m_AddedEdges.ToList())
+            {
+                if (!ContainsNodeGuid(edge.outputSlot.nodeGuid) || !ContainsNodeGuid(edge.inputSlot.nodeGuid))
+                {
+                    Debug.LogWarningFormat("Added edge is invalid: {0} -> {1}", edge.outputSlot.nodeGuid, edge.inputSlot.nodeGuid);
+                    m_AddedEdges.Remove(edge);
+                }
+            }
         }
 
         public virtual void ReplaceWith(IGraph other)
         {
+            other.ValidateGraph();
+            ValidateGraph();
+
             // Current tactic is to remove all nodes and edges and then re-add them, such that depending systems
             // will re-initialize with new references.
             using (var pooledList = ListPool<IEdge>.GetDisposable())
             {
                 var removedNodeEdges = pooledList.value;
-                foreach (var edge in m_Edges)
-                    removedNodeEdges.Add(edge);
+                removedNodeEdges.AddRange(m_Edges);
                 foreach (var edge in removedNodeEdges)
                     RemoveEdgeNoValidate(edge);
             }
@@ -338,8 +349,7 @@ namespace UnityEditor.Graphing
             using (var removedNodesPooledObject = ListPool<Guid>.GetDisposable())
             {
                 var removedNodeGuids = removedNodesPooledObject.value;
-                foreach (var node in m_Nodes.Values)
-                    removedNodeGuids.Add(node.guid);
+                removedNodeGuids.AddRange(m_Nodes.Keys);
                 foreach (var nodeGuid in removedNodeGuids)
                     RemoveNodeNoValidate(m_Nodes[nodeGuid]);
             }
