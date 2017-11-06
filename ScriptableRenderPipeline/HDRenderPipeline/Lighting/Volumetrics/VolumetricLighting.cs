@@ -273,7 +273,7 @@ public partial class HDRenderPipeline : RenderPipeline
             if (!hasGlobalVolume)
             {
                 // Clear the render target instead of running the shader.
-                CoreUtils.SetRenderTarget(cmd, m_VBufferLightingRT[0], ClearFlag.Color, Color.black);
+                CoreUtils.SetRenderTarget(cmd, m_VBufferLightingRT[0]);
                 return;
             }
 
