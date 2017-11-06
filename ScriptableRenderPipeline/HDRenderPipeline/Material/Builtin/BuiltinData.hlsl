@@ -13,7 +13,13 @@
 //-----------------------------------------------------------------------------
 // common Encode/Decode functions
 //-----------------------------------------------------------------------------
-
+struct BakeLightingData
+{
+    float3 bakeDiffuseLighting;
+#ifdef SHADOWS_SHADOWMASK
+    float4 bakeShadowMask;
+#endif
+};
 // Guideline for velocity buffer.
 // We support various architecture for HDRenderPipeline
 // - Forward only rendering
@@ -34,7 +40,20 @@
 // - Same velocity buffer is use for all scenario, so if deferred define a velocity buffer, the same is reuse for forward case.
 // For these reasons we chose to avoid to pack velocity buffer with anything else in case of PackgbufferInFP16 (and also in case the format change)
 
-// Encode/Decode velocity/distortion in a buffer (either forward of deferred)
+// Encode/Decode shadowmask/velocity/distortion in a buffer (either forward of deferred)
+
+// Design note: We assume that shadowmask/velocity/distortion fit into a single buffer (i.e not spread on several buffer)
+void EncodeShadowMask(float4 shadowMask, out float4 outBuffer)
+{
+    // RT - RGBA
+    outBuffer = shadowMask;
+}
+
+void DecodeShadowMask(float4 inBuffer, out float4 shadowMask)
+{
+    shadowMask = inBuffer;
+}
+
 // Design note: We assume that velocity/distortion fit into a single buffer (i.e not spread on several buffer)
 void EncodeVelocity(float2 velocity, out float4 outBuffer)
 {
@@ -78,7 +97,7 @@ void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, inout float3 res
         break;
     case DEBUGVIEW_BUILTIN_BUILTINDATA_DEPTH_OFFSET:
         result = builtinData.depthOffset.xxx * 10.0; // * 10 assuming 1 unity is 1m
-        break; 
+        break;
     case DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION:
         result = float3((builtinData.distortion / (abs(builtinData.distortion) + 1) + 1) * 0.5, 0.5);
         break;

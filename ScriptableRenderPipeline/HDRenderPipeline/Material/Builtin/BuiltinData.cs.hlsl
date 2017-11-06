@@ -9,12 +9,16 @@
 //
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_OPACITY (100)
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_BAKE_DIFFUSE_LIGHTING (101)
-#define DEBUGVIEW_BUILTIN_BUILTINDATA_EMISSIVE_COLOR (102)
-#define DEBUGVIEW_BUILTIN_BUILTINDATA_EMISSIVE_INTENSITY (103)
-#define DEBUGVIEW_BUILTIN_BUILTINDATA_VELOCITY (104)
-#define DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION (105)
-#define DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION_BLUR (106)
-#define DEBUGVIEW_BUILTIN_BUILTINDATA_DEPTH_OFFSET (107)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_SHADOW_MASK0 (102)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_SHADOW_MASK1 (103)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_SHADOW_MASK2 (104)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_SHADOW_MASK3 (105)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_EMISSIVE_COLOR (106)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_EMISSIVE_INTENSITY (107)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_VELOCITY (108)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION (109)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION_BLUR (110)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_DEPTH_OFFSET (111)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Builtin+LightTransportData:  static fields
@@ -28,6 +32,10 @@ struct BuiltinData
 {
     float opacity;
     float3 bakeDiffuseLighting;
+    float shadowMask0;
+    float shadowMask1;
+    float shadowMask2;
+    float shadowMask3;
     float3 emissiveColor;
     float emissiveIntensity;
     float2 velocity;
@@ -57,6 +65,18 @@ void GetGeneratedBuiltinDataDebug(uint paramId, BuiltinData builtindata, inout f
         case DEBUGVIEW_BUILTIN_BUILTINDATA_BAKE_DIFFUSE_LIGHTING:
             result = builtindata.bakeDiffuseLighting;
             needLinearToSRGB = true;
+            break;
+        case DEBUGVIEW_BUILTIN_BUILTINDATA_SHADOW_MASK0:
+            result = builtindata.shadowMask0.xxx;
+            break;
+        case DEBUGVIEW_BUILTIN_BUILTINDATA_SHADOW_MASK1:
+            result = builtindata.shadowMask1.xxx;
+            break;
+        case DEBUGVIEW_BUILTIN_BUILTINDATA_SHADOW_MASK2:
+            result = builtindata.shadowMask2.xxx;
+            break;
+        case DEBUGVIEW_BUILTIN_BUILTINDATA_SHADOW_MASK3:
+            result = builtindata.shadowMask3.xxx;
             break;
         case DEBUGVIEW_BUILTIN_BUILTINDATA_EMISSIVE_COLOR:
             result = builtindata.emissiveColor;
