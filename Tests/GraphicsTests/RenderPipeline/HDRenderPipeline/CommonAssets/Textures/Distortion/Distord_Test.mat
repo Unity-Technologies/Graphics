@@ -6,8 +6,8 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: New Material
-  m_Shader: {fileID: 4800000, guid: 7f033e9aeb69daa47b4469d53c547419, type: 3}
+  m_Name: Distord_Test
+  m_Shader: {fileID: 4800000, guid: d133630aa023e0f4e89581914056f837, type: 3}
   m_ShaderKeywords: _ALBEDOAFFECTEMISSIVE_OFF _ALPHACUTOFFENABLE_OFF _DEPTHOFFSETENABLE_OFF
     _DISTORTIONENABLE_OFF _DOUBLESIDEDENABLE_OFF _ENABLESPECULAROCCLUSION_OFF _ENABLEWIND_OFF
     _PREREFRACTIONPASS_OFF
