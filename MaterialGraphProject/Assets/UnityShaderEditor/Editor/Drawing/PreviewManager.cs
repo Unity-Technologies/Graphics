@@ -56,6 +56,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 renderTexture = new RenderTexture(256, 256, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave }
             };
+            if (m_Previews.ContainsKey(node.guid))
+            {
+                Debug.LogWarningFormat("A preview already exists for {0} {1}", node.name, node.guid);
+                RemovePreview(node);
+            }
             m_Previews.Add(node.guid, previewData);
             m_DirtyShaders.Add(node.guid);
             node.onModified += OnNodeModified;
