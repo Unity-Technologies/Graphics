@@ -269,12 +269,10 @@ float3 GetViewReflectedNormal(float3 N, float3 V, out float NdotV)
 
     NdotV = dot(N, V);
 
-    float  NdotV1 = abs(NdotV);
-    float3 N1     = N - 2 * NdotV * V;
-    bool   front  = NdotV >= 0;
+    N = (NdotV >= 0) ? N : (N - 2 * NdotV * V);
+    NdotV = abs(NdotV);
 
-    NdotV = front ? NdotV : NdotV1;
-    return  front ? N : N1;
+    return N;
 }
 
 // Generates an orthonormal right-handed basis from a unit vector.
