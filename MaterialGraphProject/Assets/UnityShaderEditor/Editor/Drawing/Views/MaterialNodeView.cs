@@ -230,6 +230,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void UpdatePortInputTypes()
         {
+            foreach (var anchor in inputContainer.Concat(outputContainer).OfType<NodeAnchor>())
+            {
+                var slot = (MaterialSlot) anchor.userData;
+                anchor.anchorName = slot.displayName;
+            }
+
             foreach (var attacher in m_Attachers)
             {
                 var portInputView = (PortInputView)attacher.element;
