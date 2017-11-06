@@ -256,9 +256,9 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
 
         if (_UseDisneySSS)
         {
-            bsdfData.transmittance = ComputeTransmittance(_ShapeParams[subsurfaceProfile].rgb,
-                                                          _TransmissionTints[subsurfaceProfile].rgb,
-                                                          bsdfData.thickness, bsdfData.subsurfaceRadius);
+            bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParams[subsurfaceProfile].rgb,
+                                                                _TransmissionTints[subsurfaceProfile].rgb,
+                                                                bsdfData.thickness, bsdfData.subsurfaceRadius);
         }
         else
         {
@@ -1093,7 +1093,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     float NdotL    = saturate(dot(bsdfData.normalWS, L)); // Must have the same value without the clamp
     float NdotV    = preLightData.NdotV;                  // Get the unaltered (geometric) version
     float LdotV    = dot(L, V);
-    float invLenLV = rsqrt(abs(2 * LdotV + 2));           // invLenLV = rcp(length(L + V))
+    float invLenLV = rsqrt(max(2 * LdotV + 2, FLT_SMALL)); // invLenLV = rcp(length(L + V)) - caution about the case where V and L are opposite, it can happen, use max to avoid this
     float NdotH    = saturate((NdotL + NdotV) * invLenLV);
     float LdotH    = saturate(invLenLV * LdotV + invLenLV);
 
@@ -1115,7 +1115,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 
         // TODO: Do comparison between this correct version and the one from isotropic and see if there is any visual difference
         DV = DV_SmithJointGGXAniso(TdotH, BdotH, NdotH,
-                                   preLightData.TdotV, preLightData.BdotV, preLightData.NdotV,
+                                   preLightData.TdotV, preLightData.BdotV, NdotV,
                                    TdotL, BdotL, NdotL,
                                    bsdfData.roughnessT, bsdfData.roughnessB
         #ifdef LIT_USE_BSDF_PRE_LAMBDAV
@@ -1217,7 +1217,7 @@ float4 EvaluateCookie_Directional(LightLoopContext lightLoopContext, Directional
 
 DirectLighting EvaluateBSDF_Directional(    LightLoopContext lightLoopContext,
                                             float3 V, PositionInputs posInput, PreLightData preLightData,
-                                            DirectionalLightData lightData, BSDFData bsdfData)
+                                            DirectionalLightData lightData, BSDFData bsdfData, BakeLightingData bakeLightingData)
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
@@ -1228,7 +1228,13 @@ DirectLighting EvaluateBSDF_Directional(    LightLoopContext lightLoopContext,
     float NdotL = dot(bsdfData.normalWS, L);
     float illuminance = saturate(NdotL);
 
-    float shadow     = 1.0;
+    float shadow = 1.0;
+    float shadowMask = 1.0;
+#ifdef SHADOWS_SHADOWMASK
+    // shadowMaskSelector.x is -1 if there is no shadow mask
+    // Note that we override shadow value (in case we don't have any dynamic shadow)
+    shadow = shadowMask = (lightData.shadowMaskSelector.x >= 0.0) ? dot(bakeLightingData.bakeShadowMask, lightData.shadowMaskSelector) : 1.0;
+#endif
 
     [branch] if (lightData.shadowIndex >= 0)
     {
@@ -1237,8 +1243,19 @@ DirectLighting EvaluateBSDF_Directional(    LightLoopContext lightLoopContext,
 #else
         shadow = LOAD_TEXTURE2D(_DeferredShadowTexture, posInput.unPositionSS).x;
 #endif
-        illuminance *= shadow;
+
+#ifdef SHADOWS_SHADOWMASK
+        float fade = saturate(posInput.depthVS * lightData.fadeDistanceScaleAndBias.x + lightData.fadeDistanceScaleAndBias.y);
+
+        // See comment in EvaluateBSDF_Punctual
+        shadow = lightData.dynamicShadowCasterOnly ? min(shadowMask, shadow) : shadow;
+        shadow = lerp(shadow, shadowMask, fade); // Caution to lerp parameter: fade is the reverse of shadowDimmer
+
+        // Note: There is no shadowDimmer when there is no shadow mask
+#endif
     }
+
+    illuminance *= shadow;
 
     [branch] if (lightData.cookieIndex >= 0)
     {
@@ -1333,7 +1350,7 @@ float GetPunctualShapeAttenuation(LightData lightData, float3 L, float distSq)
 
 DirectLighting EvaluateBSDF_Punctual(   LightLoopContext lightLoopContext,
                                         float3 V, PositionInputs posInput,
-                                        PreLightData preLightData, LightData lightData, BSDFData bsdfData, int GPULightType)
+                                        PreLightData preLightData, LightData lightData, BSDFData bsdfData, BakeLightingData bakeLightingData, int GPULightType)
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
@@ -1361,6 +1378,12 @@ DirectLighting EvaluateBSDF_Punctual(   LightLoopContext lightLoopContext,
     lightData.specularScale *= attenuation;
 
     float shadow = 1.0;
+    float shadowMask = 1.0;
+#ifdef SHADOWS_SHADOWMASK
+    // shadowMaskSelector.x is -1 if there is no shadow mask
+    // Note that we override shadow value (in case we don't have any dynamic shadow)
+    shadow = shadowMask = (lightData.shadowMaskSelector.x >= 0.0) ? dot(bakeLightingData.bakeShadowMask, lightData.shadowMaskSelector) : 1.0;
+#endif
 
     [branch] if (lightData.shadowIndex >= 0)
     {
@@ -1368,9 +1391,22 @@ DirectLighting EvaluateBSDF_Punctual(   LightLoopContext lightLoopContext,
         float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
         float4 L_dist = { L, dist };
         shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS + offset, bsdfData.normalWS, lightData.shadowIndex, L_dist, posInput.unPositionSS);
+#ifdef SHADOWS_SHADOWMASK
+        // Note: Legacy Unity have two shadow mask mode. ShadowMask (ShadowMask contain static objects shadow and ShadowMap contain only dynamic objects shadow, final result is the minimun of both value)
+        // and ShadowMask_Distance (ShadowMask contain static objects shadow and ShadowMap contain everything and is blend with ShadowMask based on distance (Global distance setup in QualitySettigns)).
+        // HDRenderPipeline change this behavior. Only ShadowMask mode is supported but we support both blend with distance AND minimun of both value. Distance is control by light.
+        // The following code do this.
+        // The min handle the case of having only dynamic objects in the ShadowMap
+        // The second case for blend with distance is handled with ShadowDimmer. ShadowDimmer is define manually and by shadowDistance by light.
+        // With distance, ShadowDimmer become one and only the ShadowMask appear, we get the blend with distance behavior.
+        shadow = lightData.dynamicShadowCasterOnly ? min(shadowMask, shadow) : shadow;
+        shadow = lerp(shadowMask, shadow, lightData.shadowDimmer);
+#else
         shadow = lerp(1.0, shadow, lightData.shadowDimmer);
-        illuminance *= shadow;
+#endif
     }
+
+    illuminance *= shadow;
 
     // Projector lights always have a cookies, so we can perform clipping inside the if().
     [branch] if (lightData.cookieIndex >= 0)
@@ -1425,7 +1461,7 @@ DirectLighting EvaluateBSDF_Punctual(   LightLoopContext lightLoopContext,
 
 DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
                                     float3 V, PositionInputs posInput,
-                                    PreLightData preLightData, LightData lightData, BSDFData bsdfData)
+                                    PreLightData preLightData, LightData lightData, BSDFData bsdfData, BakeLightingData bakeLightingData)
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
@@ -1454,7 +1490,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
                                                         axis, invAspectRatio);
 
     // Terminate if the shaded point is too far away.
-    if (intensity == 0.0) 
+    if (intensity == 0.0)
         return lighting;
 
     lightData.diffuseScale  *= intensity;
@@ -1533,7 +1569,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
 
 DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                                     float3 V, PositionInputs posInput,
-                                    PreLightData preLightData, LightData lightData, BSDFData bsdfData)
+                                    PreLightData preLightData, LightData lightData, BSDFData bsdfData, BakeLightingData bakeLightingData)
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
@@ -1580,7 +1616,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 #endif
 
     // Terminate if the shaded point is too far away.
-    if (intensity == 0.0) 
+    if (intensity == 0.0)
         return lighting;
 
     lightData.diffuseScale  *= intensity;
@@ -1662,15 +1698,15 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 
 DirectLighting EvaluateBSDF_Area(   LightLoopContext lightLoopContext,
                                     float3 V, PositionInputs posInput,
-                                    PreLightData preLightData, LightData lightData, BSDFData bsdfData, int GPULightType)
+                                    PreLightData preLightData, LightData lightData, BSDFData bsdfData, BakeLightingData bakeLightingData, int GPULightType)
 {
     if (GPULightType == GPULIGHTTYPE_LINE)
     {
-        return EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData);
+        return EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, bakeLightingData);
     }
     else
     {
-        return EvaluateBSDF_Rect(lightLoopContext, V, posInput, preLightData, lightData, bsdfData);
+        return EvaluateBSDF_Rect(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, bakeLightingData);
     }
 }
 
@@ -1900,9 +1936,11 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
 void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         float3 V, PositionInputs posInput,
-                        PreLightData preLightData, BSDFData bsdfData, float3 bakeDiffuseLighting, AggregateLighting lighting,
+                        PreLightData preLightData, BSDFData bsdfData, BakeLightingData bakeLightingData, AggregateLighting lighting,
                         out float3 diffuseLighting, out float3 specularLighting)
 {
+    float3 bakeDiffuseLighting = bakeLightingData.bakeDiffuseLighting;
+
     // Use GTAOMultiBounce approximation for ambient occlusion (allow to get a tint from the baseColor)
 #define GTAO_MULTIBOUNCE_APPROX 1
 
