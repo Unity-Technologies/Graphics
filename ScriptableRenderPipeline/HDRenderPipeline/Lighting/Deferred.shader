@@ -40,7 +40,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
             // Split lighting is utilized during the SSS pass.
             #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING
-
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile _ DEBUG_DISPLAY
 
             //-------------------------------------------------------------------------------------
@@ -64,6 +64,9 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
         #ifdef VOLUMETRIC_LIGHTING_ENABLED
             TEXTURE3D(_VBufferLighting);
+        #endif
+        #ifdef SHADOWS_SHADOWMASK
+            TEXTURE2D(_ShadowMaskTexture);
         #endif
 
             struct Attributes
@@ -105,14 +108,17 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
                 FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
                 BSDFData bsdfData;
-                float3 bakeDiffuseLighting;
-                DECODE_FROM_GBUFFER(gbuffer, MATERIAL_FEATURE_MASK_FLAGS, bsdfData, bakeDiffuseLighting);
+                BakeLightingData bakeLightingData;
+                DECODE_FROM_GBUFFER(gbuffer, MATERIAL_FEATURE_MASK_FLAGS, bsdfData, bakeLightingData.bakeDiffuseLighting);
+                #ifdef SHADOWS_SHADOWMASK
+                DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.unPositionSS), bakeLightingData.bakeShadowMask);
+                #endif
 
                 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
                 float3 diffuseLighting;
                 float3 specularLighting;
-                LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, LIGHT_FEATURE_MASK_FLAGS_OPAQUE, diffuseLighting, specularLighting);
+                LightLoop(V, posInput, preLightData, bsdfData, bakeLightingData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE, diffuseLighting, specularLighting);
 
             #ifdef VOLUMETRIC_LIGHTING_ENABLED
                 float4 volumetricLighting = GetInScatteredRadianceAndTransmittance(posInput.positionSS,

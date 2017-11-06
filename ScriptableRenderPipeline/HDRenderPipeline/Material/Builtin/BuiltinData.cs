@@ -24,6 +24,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Bake Diffuse Lighting", false, true)]
             public Vector3 bakeDiffuseLighting; // This is the result of sampling lightmap/lightprobe/proxyvolume
 
+            // Use for float instead of vector4 to ease the debug (no performance impact)
+            // Note: We have no way to remove these value automatically based on either SHADEROPTIONS_BAKED_SHADOW_MASK_ENABLE or s_BakedShadowMaskEnable here. Unless we make two structure... For now always keep this value
+            [SurfaceDataAttributes("Shadow Mask 0")]
+            public float shadowMask0;
+            [SurfaceDataAttributes("Shadow Mask 1")]
+            public float shadowMask1;
+            [SurfaceDataAttributes("Shadow Mask 2")]
+            public float shadowMask2;
+            [SurfaceDataAttributes("Shadow Mask 3")]
+            public float shadowMask3;
+
             [SurfaceDataAttributes("Emissive Color", false, true)]
             public Vector3 emissiveColor;
             [SurfaceDataAttributes("Emissive Intensity")]
@@ -55,6 +66,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3 diffuseColor;
             public Vector3 emissiveColor; // HDR value
         };
+
+        public static RenderTextureFormat GetShadowMaskBufferFormat()
+        {
+            return RenderTextureFormat.ARGB32;
+        }
+
+        public static RenderTextureReadWrite GetShadowMaskBufferReadWrite()
+        {
+            return RenderTextureReadWrite.Linear;
+        }
 
         public static RenderTextureFormat GetVelocityBufferFormat()
         {

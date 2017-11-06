@@ -139,15 +139,23 @@ float4 LoadSample(int2 pixelCoord, int2 cacheAnchor)
     }
 }
 
-// Computes the value of the integrand over a disk: (2 * PI * r) * KernelVal().
-// N.b.: the returned value is multiplied by 4. It is irrelevant due to weight renormalization.
-float3 KernelValCircle(float r, float3 S)
+// Computes the value of the integrand in polar coordinates: f(r, s) = r * R(r, s).
+// f(r, s) = (Exp[-r * s] + Exp[-r * s / 3]) * (s / (8 * Pi))
+// We can drop the constant (s / (8 * Pi)) due to the subsequent weight renormalization.
+float3 DisneyProfilePolar(float r, float3 S)
 {
+#if 0
     float3 expOneThird = exp(((-1.0 / 3.0) * r) * S);
-    return /* 0.25 * */ S * (expOneThird + expOneThird * expOneThird * expOneThird);
+#else
+    // Help the compiler.
+    float  k = (-1.0 / 3.0) * LOG2_E;
+    float3 p = (k * r) * S;
+    float3 expOneThird = exp2(p);
+#endif
+    return expOneThird + expOneThird * expOneThird * expOneThird;
 }
 
-// Computes F(r)/P(r), s.t. r = sqrt(xy^2 + z^2).
+// Computes f(r, s)/p(r, s), s.t. r = sqrt(xy^2 + z^2).
 // Rescaling of the PDF is handled by 'totalWeight'.
 float3 ComputeBilateralWeight(float xy2, float z, float mmPerUnit, float3 S, float rcpPdf)
 {
@@ -164,9 +172,9 @@ float3 ComputeBilateralWeight(float xy2, float z, float mmPerUnit, float3 S, flo
 #endif
 
 #if SSS_CLAMP_ARTIFACT
-    return saturate(KernelValCircle(r, S) * rcpPdf);
+    return saturate(DisneyProfilePolar(r, S) * rcpPdf);
 #else
-    return KernelValCircle(r, S) * rcpPdf;
+    return DisneyProfilePolar(r, S) * rcpPdf;
 #endif
 }
 
@@ -420,7 +428,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
 
     float  centerRadius = _FilterKernels[profileID][0][iR];
     float  centerRcpPdf = _FilterKernels[profileID][0][iP];
-    float3 centerWeight = KernelValCircle(centerRadius, shapeParam) * centerRcpPdf;
+    float3 centerWeight = DisneyProfilePolar(centerRadius, shapeParam) * centerRcpPdf;
 
     // Accumulate filtered irradiance and bilateral weights (for renormalization).
     float3 totalIrradiance = centerWeight * centerIrradiance;
