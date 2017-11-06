@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using UnityEditor.Experimental.UIElements;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
@@ -95,71 +96,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             Undo.ClearUndo(graphObject);
             DestroyImmediate(graphObject);
             graphEditorView = null;
-        }
-
-        void OnGUI()
-        {
-            if (graphEditorView == null)
-                return;
-
-            var e = Event.current;
-
-            var graphView = graphEditorView.graphView;
-            var graphViewHasSelection = graphView.selection.Any();
-            if (e.type == EventType.ValidateCommand && (
-                e.commandName == "Copy" && graphViewHasSelection
-                || e.commandName == "Paste" && CopyPasteGraph.FromJson(EditorGUIUtility.systemCopyBuffer) != null
-                || e.commandName == "Duplicate" && graphViewHasSelection
-                || e.commandName == "Cut" && graphViewHasSelection
-                || (e.commandName == "Delete" || e.commandName == "SoftDelete") && graphViewHasSelection))
-            {
-                e.Use();
-            }
-
-            if (e.type == EventType.ExecuteCommand)
-            {
-                if (e.commandName == "Copy")
-                {
-                    EditorGUIUtility.systemCopyBuffer = JsonUtility.ToJson(graphView.SelectionAsCopyPasteGraph(), true);
-                }
-                if (e.commandName == "Paste")
-                {
-                    graphObject.RegisterCompleteObjectUndo("Paste");
-                    graphView.InsertCopyPasteGraph(CopyPasteGraph.FromJson(EditorGUIUtility.systemCopyBuffer));
-                }
-                if (e.commandName == "Duplicate")
-                {
-                    graphObject.RegisterCompleteObjectUndo("Duplicate");
-                    graphView.InsertCopyPasteGraph(CopyPasteGraph.FromJson(JsonUtility.ToJson(graphView.SelectionAsCopyPasteGraph(), false)));
-                }
-                if (e.commandName == "Cut")
-                {
-                    graphObject.RegisterCompleteObjectUndo("Cut");
-                    EditorGUIUtility.systemCopyBuffer = JsonUtility.ToJson(graphView.SelectionAsCopyPasteGraph(), true);
-                    graphObject.graph.RemoveElements(graphView.selection.OfType<MaterialNodeView>().Select(x => x.node as INode), graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge));
-                    graphObject.graph.ValidateGraph();
-                }
-                if (e.commandName == "Delete" || e.commandName == "SoftDelete")
-                {
-//                    graphObject.RegisterCompleteObjectUndo("Delete");
-//                    graphObject.graph.RemoveElements(graphView.selection.OfType<MaterialNodeView>().Select(x => x.node as INode), graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge));
-//                    graphObject.graph.ValidateGraph();
-                }
-            }
-
-            if (e.type == EventType.KeyDown)
-            {
-                if (e.keyCode == KeyCode.A)
-                    graphView.FrameAll();
-                if (e.keyCode == KeyCode.F)
-                    graphView.FrameSelection();
-                if (e.keyCode == KeyCode.O)
-                    graphView.FrameOrigin();
-                if (e.keyCode == KeyCode.Tab)
-                    graphView.FrameNext();
-                if (e.keyCode == KeyCode.Tab && (e.modifiers & EventModifiers.Shift) > 0)
-                    graphView.FramePrev();
-            }
         }
 
         public void PingAsset()
