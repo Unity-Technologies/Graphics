@@ -324,20 +324,17 @@ namespace UnityEditor.Graphing
 
         public virtual void ReplaceWith(IGraph other)
         {
+            // Current tactic is to remove all nodes and edges and then re-add them, such that depending systems
+            // will re-initialize with new references.
             using (var pooledList = ListPool<IEdge>.GetDisposable())
             {
                 var removedNodeEdges = pooledList.value;
                 foreach (var edge in m_Edges)
-                {
-                    // Remove the edge if it doesn't exist in the other graph.
-                    if (!other.ContainsNodeGuid(edge.inputSlot.nodeGuid) || !other.GetEdges(edge.inputSlot).Any(otherEdge => otherEdge.outputSlot.Equals(edge.outputSlot)))
-                        removedNodeEdges.Add(edge);
-                }
+                    removedNodeEdges.Add(edge);
                 foreach (var edge in removedNodeEdges)
                     RemoveEdgeNoValidate(edge);
             }
 
-            // Remove all nodes and re-add them.
             using (var removedNodesPooledObject = ListPool<Guid>.GetDisposable())
             {
                 var removedNodeGuids = removedNodesPooledObject.value;
@@ -349,19 +346,11 @@ namespace UnityEditor.Graphing
 
             ValidateGraph();
 
-            // Add nodes from other graph which don't exist in this one.
             foreach (var node in other.GetNodes<INode>())
-            {
-                if (!ContainsNodeGuid(node.guid))
-                    AddNodeNoValidate(node);
-            }
+                AddNodeNoValidate(node);
 
-            // Add edges from other graph which don't exist in this one.
             foreach (var edge in other.edges)
-            {
-                if (!GetEdges(edge.inputSlot).Any(otherEdge => otherEdge.outputSlot.Equals(edge.outputSlot)))
-                    ConnectNoValidate(edge.outputSlot, edge.inputSlot);
-            }
+                ConnectNoValidate(edge.outputSlot, edge.inputSlot);
 
             ValidateGraph();
         }
