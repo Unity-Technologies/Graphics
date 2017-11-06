@@ -166,7 +166,7 @@ float3 IntegrateDisneyDiffuseIBLRef(LightLoopContext lightLoopContext,
                                     uint sampleCount = 4096)
 {
     float3x3 localToWorld = float3x3(bsdfData.tangentWS, bsdfData.bitangentWS, bsdfData.normalWS);
-    float    NdotV        = max(preLightData.NdotV, MIN_N_DOT_V);
+    float    NdotV        = preLightData.NdotV;
     float3   acc          = float3(0.0, 0.0, 0.0);
 
     // Add some jittering on Hammersley2d
@@ -216,8 +216,8 @@ float3 IntegrateSpecularGGXIBLRef(LightLoopContext lightLoopContext,
         localToWorld = GetLocalFrame(bsdfData.normalWS);
     }
 
-    float    NdotV        = max(preLightData.NdotV, MIN_N_DOT_V);
-    float3   acc          = float3(0.0, 0.0, 0.0);
+    float  NdotV = preLightData.NdotV;
+    float3 acc   = float3(0.0, 0.0, 0.0);
 
     // Add some jittering on Hammersley2d
     float2 randNum  = InitRandom(V.xy * 0.5 + 0.5);
