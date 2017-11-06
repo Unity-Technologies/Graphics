@@ -106,7 +106,7 @@ namespace UnityEditor.VFX
         public class InputPropertiesFlipbook
         {
             public Texture2D texture;
-            public FlipBook flipBookSize;
+            public Vector2 flipBookSize = new Vector2(5, 5);
         }
     }
 }
