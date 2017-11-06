@@ -366,7 +366,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             VertexNormalWS,
             VertexColor,
             VertexColorAlpha,
-            // caution if you add something here, it must be use to start enum below
+            Last,
         };
 
         // Number must be contiguous
@@ -374,13 +374,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public enum DebugViewGbuffer
         {
             None = 0,
-            Depth = DebugViewVarying.VertexColorAlpha + 1,
+            Depth = DebugViewVarying.Last + 1,
             BakeDiffuseLightingWithAlbedoPlusEmissive,
             BakeShadowMask0,
             BakeShadowMask1,
             BakeShadowMask2,
             BakeShadowMask3,
-            // caution if you add something here, it must be use to start enum below
+            Last,
         }
 
         // Number must be contiguous
@@ -388,7 +388,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public enum DebugViewProperties
         {
             None = 0,
-            Tessellation = DebugViewGbuffer.BakeShadowMask3 + 1,
+            Tessellation = DebugViewGbuffer.Last + 1,
             PixelDisplacement,
             VertexDisplacement,
             TessellationDisplacement,
