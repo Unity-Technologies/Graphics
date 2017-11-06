@@ -158,6 +158,14 @@ MultiFloatSlotControlView > DoubleField {
     margin-right: 0;
 }
 
+UVSlotControlView > EnumField {
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
+    width: 40;
+}
+
 .edge.fromMatrix4, .edge.fromMatrix3, .edge.fromMatrix2 {
     edge-output-color: #8FC1DF;
 }
