@@ -71,7 +71,7 @@ void FillVolumetricLightingBuffer(Ray cameraRay, uint2 voxelCoord, uint2 tileCoo
     float4 depthParams  = _VBufferDepthEncodingParams;
 
     float z0 = depthParams.x;              // View space Z coordinate of the near plane
-    float t0 = z0 * cameraRay.ratioLenToZ; // Distance to the near plane
+    float t0 = cameraRay.ratioLenToZ * z0; // Distance to the near plane
     float de = rcp(VBUFFER_SLICE_COUNT);   // Log-encoded distance between slices
 
     float3 totalRadiance = 0;
@@ -84,12 +84,12 @@ void FillVolumetricLightingBuffer(Ray cameraRay, uint2 voxelCoord, uint2 tileCoo
     {
         float e1 = s * de + de; // (s + 1) / sliceCount
         float z1 = DecodeLogarithmicDepth(e1, depthParams);
-        float t1 = z1 * cameraRay.ratioLenToZ;
+        float t1 = cameraRay.ratioLenToZ * z1;
         float dt = t1 - t0;
 
         // TODO: low-discrepancy point set.
         float t = t0 + 0.5 * dt;
-        float z = t * cameraRay.ratioZtoLen;
+        float z = cameraRay.ratioZtoLen * t;
         float3 positionWS = cameraRay.originWS + t * cameraRay.directionWS;
 
         // Get volume properties at 't'.
@@ -180,7 +180,7 @@ void FillVolumetricLightingBuffer(Ray cameraRay, uint2 voxelCoord, uint2 tileCoo
                     intensity *= lerp(1, shadow, lightData.shadowDimmer);
                 }
 
-                // Projector lights always have a cookies, so we can perform clipping inside the if().
+                // Projector lights always have cookies, so we can perform clipping inside the if().
                 [branch] if (lightData.cookieIndex >= 0)
                 {
                     float4 cookie = EvaluateCookie_Punctual(context, lightData, lightToSample);

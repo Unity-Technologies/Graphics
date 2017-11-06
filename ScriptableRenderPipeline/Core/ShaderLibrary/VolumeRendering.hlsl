@@ -78,7 +78,7 @@ float HenyeyGreensteinPhaseFunction(float asymmetry, float LdotD)
 #endif
 
 float4 GetInScatteredRadianceAndTransmittance(float2 positionSS, float depthVS,
-                                              TEXTURE3D(VBufferLighting), SAMPLER3D(sampler_LinearXY_PointZ_Clamp),
+                                              TEXTURE3D(VBufferLighting), SAMPLER3D(linearClampSampler),
                                               float4 VBufferDepthEncodingParams, float2 VBufferScale)
 {
     int   n = VBUFFER_SLICE_COUNT;
@@ -99,8 +99,8 @@ float4 GetInScatteredRadianceAndTransmittance(float2 positionSS, float depthVS,
     float2 uv = positionSS * VBufferScale;
 
     // Perform 2 bilinear taps. The sampler should clamp the values at the boundaries of the 3D texture.
-    float4 v0 = SAMPLE_TEXTURE3D_LOD(VBufferLighting, sampler_LinearXY_PointZ_Clamp, float3(uv, d0), 0);
-    float4 v1 = SAMPLE_TEXTURE3D_LOD(VBufferLighting, sampler_LinearXY_PointZ_Clamp, float3(uv, d1), 0);
+    float4 v0 = SAMPLE_TEXTURE3D_LOD(VBufferLighting, linearClampSampler, float3(uv, d0), 0);
+    float4 v1 = SAMPLE_TEXTURE3D_LOD(VBufferLighting, linearClampSampler, float3(uv, d1), 0);
     float4 vt = lerp(v0, v1, saturate((z - z0) / (z1 - z0)));
 
     return float4(vt.rgb, Transmittance(vt.a));
