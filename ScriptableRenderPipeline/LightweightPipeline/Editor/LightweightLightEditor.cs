@@ -79,19 +79,11 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
             public readonly GUIContent[] LightmapBakeTypeTitles = { new GUIContent("Realtime"), new GUIContent("Mixed"), new GUIContent("Baked") };
             public readonly int[] LightmapBakeTypeValues = { (int)LightmapBakeType.Realtime, (int)LightmapBakeType.Mixed, (int)LightmapBakeType.Baked };
-        }
 
-        class AdditionalStyles
-        {
             public readonly GUIContent ShadowsNotSupportedWarning = new GUIContent("Realtime shadows for point lights are not supported. Either disable shadows or set the light mode to Baked.");
         }
 
         static Styles s_Styles;
-        static AdditionalStyles s_AdditionalStyles;
-
-        // Should match same colors in GizmoDrawers.cpp!
-        internal static Color kGizmoLight = new Color(254 / 255f, 253 / 255f, 136 / 255f, 128 / 255f);
-        internal static Color kGizmoDisabledLight = new Color(135 / 255f, 116 / 255f, 50 / 255f, 128 / 255f);
 
         private bool TypeIsSame { get { return !typeProp.hasMultipleDifferentValues; } }
         private bool ShadowTypeIsSame { get { return !shadowsTypeProp.hasMultipleDifferentValues; } }
@@ -133,7 +125,6 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        
         private bool IsShadowEnabled { get { return shadowsTypeProp.intValue != 0; } }
 
         private bool RealtimeShadowsWarningValue
@@ -331,9 +322,6 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             if (s_Styles == null)
                 s_Styles = new Styles();
 
-            if (s_AdditionalStyles == null)
-                s_AdditionalStyles = new AdditionalStyles();
-
             serializedObject.Update();
 
             // Update AnimBool options. For properties changed they will be smoothly interpolated.
@@ -376,7 +364,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             // Cookie size also requires directional light
             using (var group = new EditorGUILayout.FadeGroupScope(animShowRuntimeOptions.faded * animShowDirOptions.faded))
                 if (group.visible) DrawCookieSize();
-            
+
             DrawRenderMode();
             DrawCullingMask();
 
@@ -412,7 +400,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
             if (RealtimeShadowsWarningValue || BakingWarningValue)
             {
-                EditorGUILayout.HelpBox(s_AdditionalStyles.ShadowsNotSupportedWarning.text, MessageType.Warning);
+                EditorGUILayout.HelpBox(s_Styles.ShadowsNotSupportedWarning.text, MessageType.Warning);
             }
 
             EditorGUILayout.Space();
