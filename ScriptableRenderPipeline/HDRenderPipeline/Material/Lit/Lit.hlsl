@@ -259,9 +259,9 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
 
         if (_UseDisneySSS)
         {
-            bsdfData.transmittance = ComputeTransmittance(_ShapeParams[subsurfaceProfile].rgb,
-                                                          _TransmissionTints[subsurfaceProfile].rgb,
-                                                          bsdfData.thickness, bsdfData.subsurfaceRadius);
+            bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParams[subsurfaceProfile].rgb,
+                                                                _TransmissionTints[subsurfaceProfile].rgb,
+                                                                bsdfData.thickness, bsdfData.subsurfaceRadius);
         }
         else
         {
