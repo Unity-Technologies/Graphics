@@ -124,7 +124,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                 float4 volumetricLighting = GetInScatteredRadianceAndTransmittance(posInput.positionSS,
                                                                                    posInput.depthVS,
                                                                                    _VBufferLighting,
-                                                                                   s_linear_clamp_sampler, // TODO: use the right sampler
+                                                                                   s_linear_clamp_sampler,
                                                                                    _VBufferDepthEncodingParams,
                                                                                    _VBufferResolutionAndScale.zw);
                 diffuseLighting  *= volumetricLighting.a;
