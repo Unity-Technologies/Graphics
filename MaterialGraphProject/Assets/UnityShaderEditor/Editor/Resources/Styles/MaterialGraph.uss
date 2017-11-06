@@ -119,7 +119,12 @@ PortInputView {
 PortInputView > #container > #slot {
     width: 8;
     height: 8;
-    background-color: #000000;
+    background-color: #2B2B2B;
+    border-color: #232323;
+    border-top-width: 1;
+    border-bottom-width: 1;
+    border-left-width: 1;
+    border-right-width: 1;
     border-radius: 4;
     margin-left: 6;
     margin-right: 6;
