@@ -64,7 +64,7 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
 
                 if (_UseDisneySSS)
                 {
-                    T = ComputeTransmittance(_ShapeParam.rgb, float3(0.25, 0.25, 0.25), d, 1);
+                    T = ComputeTransmittanceDisney(_ShapeParam.rgb, float3(0.25, 0.25, 0.25), d, 1);
                 }
                 else
                 {
