@@ -273,6 +273,8 @@ void GetCubeFaceID(float3 dir, out int faceIndex)
 #define HALF_PI     1.57079632679
 #define INV_HALF_PI 0.636619772367
 #define INFINITY    asfloat(0x7F800000)
+#define FLT_SMALL   0.0001
+#define LOG2_E      1.44269504089
 
 #define FLT_EPSILON 1.192092896e-07 // Smallest positive number, such that 1.0 + FLT_EPSILON != 1.0
 #define FLT_MIN     1.175494351e-38 // Minimum representable positive floating-point number
@@ -398,9 +400,9 @@ float3 FastSign(float x)
     return  saturate(x * FLT_MAX) * 2.0 - 1.0;
 }
 
-// Orthonormalize the basis vectors using the Gram-Schmidt process.
-// We assume that the length of the surface normal is sufficiently close to 1.
-// return orthonormalize tangent
+// Orthonormalizes the tangent frame using the Gram-Schmidt process.
+// We assume that both the tangent and the normal are normalized.
+// Returns the new tangent (the normal is unaffected).
 float3 Orthonormalize(float3 tangent, float3 normal)
 {
     return normalize(tangent - dot(tangent, normal) * normal);

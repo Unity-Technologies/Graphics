@@ -195,7 +195,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _CameraFilteringBuffer          = Shader.PropertyToID("_CameraFilteringTexture");
         public static readonly int _IrradianceSource               = Shader.PropertyToID("_IrradianceSource");
 
+        public static readonly int[] _GBufferTexture =
+        {
+            Shader.PropertyToID("_GBufferTexture0"),
+            Shader.PropertyToID("_GBufferTexture1"),
+            Shader.PropertyToID("_GBufferTexture2"),
+            Shader.PropertyToID("_GBufferTexture3"),
+            Shader.PropertyToID("_GBufferTexture4"),
+            Shader.PropertyToID("_GBufferTexture5"),
+            Shader.PropertyToID("_GBufferTexture6"),
+            Shader.PropertyToID("_GBufferTexture7")
+        };
+
         public static readonly int _VelocityTexture = Shader.PropertyToID("_VelocityTexture");
+        public static readonly int _ShadowMaskTexture = Shader.PropertyToID("_ShadowMaskTexture");
         public static readonly int _DistortionTexture = Shader.PropertyToID("_DistortionTexture");
         public static readonly int _GaussianPyramidColorTexture = Shader.PropertyToID("_GaussianPyramidColorTexture");
         public static readonly int _DepthPyramidTexture = Shader.PropertyToID("_PyramidDepthTexture");
@@ -272,14 +285,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _Source4 = Shader.PropertyToID("_Source4");
         public static readonly int _Result1 = Shader.PropertyToID("_Result1");
 
-
-        internal static readonly int _GlobalFog_Extinction       = Shader.PropertyToID("_GlobalFog_Extinction");
-        internal static readonly int _GlobalFog_Scattering       = Shader.PropertyToID("_GlobalFog_Scattering");
-        internal static readonly int _VBufferResolutionAndScale  = Shader.PropertyToID("_VBufferResolutionAndScale");
-        internal static readonly int _VBufferDepthEncodingParams = Shader.PropertyToID("_VBufferDepthEncodingParams");
-        internal static readonly int _VBufferCoordToViewDirWS    = Shader.PropertyToID("_VBufferCoordToViewDirWS");
-        internal static readonly int _VBufferDensity             = Shader.PropertyToID("_VBufferDensity");
-        internal static readonly int _VBufferLighting            = Shader.PropertyToID("_VBufferLighting");
-        internal static readonly int _VBufferLightingPrev        = Shader.PropertyToID("_VBufferLightingPrev");
+        public static readonly int _GlobalFog_Extinction       = Shader.PropertyToID("_GlobalFog_Extinction");
+        public static readonly int _GlobalFog_Scattering       = Shader.PropertyToID("_GlobalFog_Scattering");
+        public static readonly int _VBufferResolutionAndScale  = Shader.PropertyToID("_VBufferResolutionAndScale");
+        public static readonly int _VBufferDepthEncodingParams = Shader.PropertyToID("_VBufferDepthEncodingParams");
+        public static readonly int _VBufferCoordToViewDirWS    = Shader.PropertyToID("_VBufferCoordToViewDirWS");
+        public static readonly int _VBufferDensity             = Shader.PropertyToID("_VBufferDensity");
+        public static readonly int _VBufferLighting            = Shader.PropertyToID("_VBufferLighting");
+        public static readonly int _VBufferLightingPrev        = Shader.PropertyToID("_VBufferLightingPrev");
     }
 }

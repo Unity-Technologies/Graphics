@@ -4,6 +4,12 @@
 
 #define ATTRIBUTES_NEED_TEXCOORD0
 
+#if defined(DEBUG_DISPLAY) || (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT)
+// For the meta pass with emissive we require UV1 and/or UV2
+#define ATTRIBUTES_NEED_TEXCOORD1
+#define ATTRIBUTES_NEED_TEXCOORD2
+#endif
+
 #if defined(_ENABLE_FOG_ON_TRANSPARENT)
 #define VARYINGS_NEED_POSITION_WS
 #endif
