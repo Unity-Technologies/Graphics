@@ -1,4 +1,4 @@
-Shader "Remy/DistordFromTex"
+Shader "Hidden/DistordFromTex"
 {
 	Properties
 	{
@@ -25,8 +25,7 @@ Shader "Remy/DistordFromTex"
 
                 c.rgb = tex2D(_Tex, IN.localTexcoord.xy).rgb;
                 c.rg = c.rg * 2 - 1;
-
-                c.rgb = float3(0, 1, 0);
+				
                 return c;
             }
 			ENDCG
