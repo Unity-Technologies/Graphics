@@ -77,6 +77,22 @@ namespace UnityEditor.VFX
         }
     }
 
+    class VFXModelDescriptorAttributeBlockSpawner : VFXModelDescriptor<VFXBlock>
+    {
+        public VFXModelDescriptorAttributeBlockSpawner(string parameter) : base(ScriptableObject.CreateInstance<VFXSpawnerSetAttribute>())
+        {
+            (m_Template as VFXSpawnerSetAttribute).attribute = parameter;
+        }
+
+        public override VFXBlock CreateInstance()
+        {
+            var instance = base.CreateInstance() as VFXSpawnerSetAttribute;
+            instance.attribute = (m_Template as VFXSpawnerSetAttribute).attribute;
+            instance.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
+            return instance;
+        }
+    }
+
     class VFXModelDescriptorAttributeBlock : VFXModelDescriptor<VFXBlock>
     {
         public VFXModelDescriptorAttributeBlock(string parameter) : base(ScriptableObject.CreateInstance<UnityEditor.VFX.Block.SetAttribute>())
@@ -232,6 +248,7 @@ namespace UnityEditor.VFX
                     t =>
                     {
                         m_BlockDescs.Add(new VFXModelDescriptorAttributeBlock(t));
+                        m_BlockDescs.Add(new VFXModelDescriptorAttributeBlockSpawner(t));
                     });
 
                 m_OperatorDescs = LoadModels<VFXOperator>();
