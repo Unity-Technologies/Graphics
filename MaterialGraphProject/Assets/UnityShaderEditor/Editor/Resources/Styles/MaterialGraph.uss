@@ -111,16 +111,96 @@ MaterialNodeView > #resize:active {
 PortInputView {
     width: 212;
     height: 22;
+    padding-top: 1;
     flex-direction: row;
     justify-content: flex-end;
 }
 
-PortInputView > #controlContainer {
+PortInputView > #container > #slot {
+    width: 8;
+    height: 8;
+    background-color: #000000;
+    border-radius: 4;
+    margin-left: 6;
+    margin-right: 6;
+    align-items: center;
+    justify-content: center;
+}
+
+PortInputView > #edge {
+    position-type: absolute;
+    position-right: 0;
+    position-top: 10.5;
+    height: 2;
+    width: 20;
+    background-color: #ff0000;
+}
+
+PortInputView > #container > #slot > #dot {
+    width: 4;
+    height: 4;
+    background-color: #ff0000;
+    border-radius: 4;
+}
+
+PortInputView.typeMatrix4 > #container > #slot > #dot,
+PortInputView.typeMatrix3 > #container > #slot > #dot,
+PortInputView.typeMatrix2 > #container > #slot > #dot {
+    background-color: #8FC1DF;
+}
+
+PortInputView.typeMatrix4,
+PortInputView.typeMatrix3,
+PortInputView.typeMatrix2 {
+    edge-color: #8FC1DF;
+}
+
+PortInputView.typeTexture2D > #container > #slot > #dot {
+    background-color: #FF8B8B;
+}
+
+PortInputView.typeTexture2D {
+    edge-color: #FF8B8B;
+}
+
+PortInputView.typeVector4 > #container > #slot > #dot {
+    background-color: #FBCBF4;
+}
+
+PortInputView.typeVector4 {
+    edge-color: #FBCBF4;
+}
+
+PortInputView.typeVector3 > #container > #slot > #dot {
+    background-color: #F6FF9A;
+}
+
+PortInputView.typeVector3 {
+    edge-color: #F6FF9A;
+}
+
+PortInputView.typeVector2 > #container > #slot > #dot {
+    background-color: #9AEF92;
+}
+
+PortInputView.typeVector2 {
+    edge-color: #9AEF92;
+}
+
+PortInputView.typeVector1 > #container > #slot > #dot {
+    background-color: #84E4E7;
+}
+
+PortInputView.typeVector1 {
+    edge-color: #84E4E7;
+}
+
+PortInputView > #container {
     background-color: #393939;
     flex-direction: row;
     align-items: center;
     padding-left: 8;
-    padding-right: 20;
+    margin-right: 10;
     border-left-width: 1;
     border-top-width: 1;
     border-right-width: 1;
