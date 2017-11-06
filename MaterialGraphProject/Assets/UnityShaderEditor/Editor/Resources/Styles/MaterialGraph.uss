@@ -142,6 +142,22 @@ TextureSlotControlView > ObjectField {
     width: 100;
 }
 
+MultiFloatSlotControlView {
+    flex-direction: row;
+    align-items: center;
+}
+
+MultiFloatSlotControlView > Label {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+MultiFloatSlotControlView > DoubleField {
+    width: 30;
+    margin-left: 0;
+    margin-right: 0;
+}
+
 .edge.fromMatrix4, .edge.fromMatrix3, .edge.fromMatrix2 {
     edge-output-color: #8FC1DF;
 }
