@@ -281,7 +281,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void ForwardPass(VisibleLight[] visibleLights, ref ScriptableRenderContext context, ref LightData lightData, bool stereoEnabled)
         {
             FrameRenderingConfiguration frameRenderingConfiguration;
-            SetupFrameRendering(out frameRenderingConfiguration);
+            SetupFrameRendering(out frameRenderingConfiguration, stereoEnabled);
             SetupIntermediateResources(frameRenderingConfiguration, ref context);
             SetupShaderConstants(visibleLights, ref context, ref lightData);
 
@@ -401,10 +401,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        private void SetupFrameRendering(out FrameRenderingConfiguration configuration)
+        private void SetupFrameRendering(out FrameRenderingConfiguration configuration, bool stereoEnabled)
         {
-            configuration = (XRSettings.enabled) ? FrameRenderingConfiguration.Stereo : FrameRenderingConfiguration.None;
-            if (XRSettings.enabled && XRSettings.eyeTextureDesc.dimension == TextureDimension.Tex2DArray)
+            configuration = (stereoEnabled) ? FrameRenderingConfiguration.Stereo : FrameRenderingConfiguration.None;
+            if (stereoEnabled && XRSettings.eyeTextureDesc.dimension == TextureDimension.Tex2DArray)
                 m_IntermediateTextureArray = true;
             else
                 m_IntermediateTextureArray = false;
@@ -446,48 +446,50 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             CommandBuffer cmd = CommandBufferPool.Get("Setup Intermediate Resources");
 
-            float renderScale = (m_CurrCamera.cameraType == CameraType.Game) ? m_Asset.RenderScale : 1.0f;
-            int rtWidth = (int)((float)m_CurrCamera.pixelWidth * renderScale);
-            int rtHeight = (int)((float)m_CurrCamera.pixelHeight * renderScale);
             int msaaSamples = (m_IsOffscreenCamera) ? Math.Min(m_CurrCamera.targetTexture.antiAliasing, m_Asset.MSAASampleCount) : m_Asset.MSAASampleCount;
             msaaSamples = (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Msaa)) ? msaaSamples : 1;
 
             if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture))
             {
                 if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Stereo))
-                {
-                    RenderTextureDescriptor rtDesc = new RenderTextureDescriptor();
-                    rtDesc = XRSettings.eyeTextureDesc;
-                    rtDesc.colorFormat = m_ColorFormat;
-                    rtDesc.msaaSamples = msaaSamples;
-
-                    cmd.GetTemporaryRT(CameraRenderTargetID.finalColor, rtDesc, FilterMode.Bilinear);
-                    //if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.PostProcess))
-                    //    cmd.GetTemporaryRT(CameraRenderTargetID.opaqueColor, rtDesc, FilterMode.Bilinear);
-                }
+                    SetupIntermediateResourcesStereo(cmd, msaaSamples);
                 else if (!m_IsOffscreenCamera)
-                {
-                    cmd.GetTemporaryRT(CameraRenderTargetID.finalColor, rtWidth, rtHeight, kCameraDepthBufferBits,
-                        FilterMode.Bilinear, m_ColorFormat, RenderTextureReadWrite.Default, msaaSamples);
-
-                    //if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.PostProcess))
-                    //    cmd.GetTemporaryRT(CameraRenderTargetID.opaqueColor, rtWidth, rtHeight, kCameraDepthBufferBits,
-                    //        FilterMode.Bilinear, m_ColorFormat, RenderTextureReadWrite.Default, msaaSamples);
-
-                    // When postprocessing is enabled we might have a before transparent effect. In that case we need to
-                    // use the camera render target as input. We blit to an opaque RT and then after before postprocessing is done
-                    // we blit to the final camera RT. If no postprocessing we blit to final camera RT from beginning.
-                    // TODO: We need to have way to check if before opaque post processing is enabled and only then set camera RT to opaqueColorRT
-                    //if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.PostProcess))
-                    //    m_CurrCameraColorRT = m_OpaqueColorRT;
-                    //else
-                    //    m_CurrCameraColorRT = m_FinalColorRT;
-                }
+                    SetupIntermediateResourcesSingle(cmd, renderingConfig, msaaSamples);
             }
             //else
             //{
             //    m_CurrCameraColorRT = BuiltinRenderTextureType.CameraTarget;
             //}
+
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+        }
+
+        private void SetupIntermediateResourcesSingle(CommandBuffer cmd, FrameRenderingConfiguration renderingConfig, int msaaSamples)
+        {
+            float renderScale = (m_CurrCamera.cameraType == CameraType.Game) ? m_Asset.RenderScale : 1.0f;
+            int rtWidth = (int)((float)m_CurrCamera.pixelWidth * renderScale);
+            int rtHeight = (int)((float)m_CurrCamera.pixelHeight * renderScale);
+
+            // All RT are required to be bound with same amount of samples. We cannot resolve depth msaa.
+            if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.RequireDepth))
+                msaaSamples = 1;
+
+            cmd.GetTemporaryRT(CameraRenderTargetID.finalColor, rtWidth, rtHeight, kCameraDepthBufferBits,
+                        FilterMode.Bilinear, m_ColorFormat, RenderTextureReadWrite.Default, msaaSamples);
+
+            //if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.PostProcess))
+            //    cmd.GetTemporaryRT(CameraRenderTargetID.opaqueColor, rtWidth, rtHeight, kCameraDepthBufferBits,
+            //        FilterMode.Bilinear, m_ColorFormat, RenderTextureReadWrite.Default, msaaSamples);
+
+            // When postprocessing is enabled we might have a before transparent effect. In that case we need to
+            // use the camera render target as input. We blit to an opaque RT and then after before postprocessing is done
+            // we blit to the final camera RT. If no postprocessing we blit to final camera RT from beginning.
+            // TODO: We need to have way to check if before opaque post processing is enabled and only then set camera RT to opaqueColorRT
+            //if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.PostProcess))
+            //    m_CurrCameraColorRT = m_OpaqueColorRT;
+            //else
+            //    m_CurrCameraColorRT = m_FinalColorRT;
 
             if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.RequireDepth))
             {
@@ -496,9 +498,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (m_Asset.SupportsSoftParticles)
                     cmd.GetTemporaryRT(CameraRenderTargetID.depthCopy, rtWidth, rtHeight, kCameraDepthBufferBits, FilterMode.Bilinear, RenderTextureFormat.Depth);
             }
+        }
 
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+        private void SetupIntermediateResourcesStereo(CommandBuffer cmd, int msaaSamples)
+        {
+            RenderTextureDescriptor rtDesc = new RenderTextureDescriptor();
+            rtDesc = XRSettings.eyeTextureDesc;
+            rtDesc.colorFormat = m_ColorFormat;
+            rtDesc.msaaSamples = msaaSamples;
+
+            cmd.GetTemporaryRT(CameraRenderTargetID.finalColor, rtDesc, FilterMode.Bilinear);
+            //if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.PostProcess))
+            //    cmd.GetTemporaryRT(CameraRenderTargetID.opaqueColor, rtDesc, FilterMode.Bilinear);
         }
 
         private void SetupShaderConstants(VisibleLight[] visibleLights, ref ScriptableRenderContext context, ref LightData lightData)
