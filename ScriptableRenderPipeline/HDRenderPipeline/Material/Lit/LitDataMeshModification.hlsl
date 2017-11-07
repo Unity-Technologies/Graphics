@@ -56,31 +56,33 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
 {
     float maxDisplacement = GetMaxDisplacement();
 
-
     // For tessellation we want to process tessellation factor always from the point of view of the camera (to be consistent and avoid Z-fight).
     // For the culling part however we want to use the current view (shadow view).
     // Thus the following code play with both.
 
+    float frustumCullEps = -maxDisplacement;
+
 #if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_SHADOWS)
-    bool frustumCulledCurrentView = WorldViewFrustumCull(p0, p1, p2, maxDisplacement, (float4[4])_FrustumPlanes); // _FrustumPlanes are primary camera planes
+    bool frustumCulledCurrentView = CullTriangleFrustum(p0, p1, p2, frustumCullEps, (float4[4])_FrustumPlanes); // _FrustumPlanes are primary camera planes
     bool frustumCulledMainView = false;
 #else
-    bool frustumCulledCurrentView = WorldViewFrustumCull(p0, p1, p2, maxDisplacement, (float4[4])unity_CameraWorldClipPlanes); // unity_CameraWorldClipPlanes is set by legacy Unity in case of shadow and contain shadow view plan
+    // 'unity_CameraWorldClipPlanes' are set by the legacy Unity and are not aware of camera-relative rendering.
+    bool frustumCulledCurrentView = CullTriangleFrustum(GetAbsolutePositionWS(p0), GetAbsolutePositionWS(p1), GetAbsolutePositionWS(p2), frustumCullEps, (float4[4])unity_CameraWorldClipPlanes);
     // In the case of shadow, we don't want to tessellate anything that is not seen by the main view frustum. It can result in minor popping of tessellation into a shadow but we can't afford it anyway.
-    bool frustumCulledMainView = WorldViewFrustumCull(p0, p1, p2, maxDisplacement, (float4[4])_FrustumPlanes);
+    bool frustumCulledMainView = CullTriangleFrustum(p0, p1, p2, frustumCullEps, (float4[4])_FrustumPlanes);
 #endif
 
     bool faceCull = false;
 
 #ifndef _DOUBLESIDED_ON
-    if (_TessellationBackFaceCullEpsilon > -0.99) // Is backface culling enabled ?
+    if (_TessellationBackFaceCullEpsilon > -1) // Is backface culling enabled ?
     {
         // Handle transform mirroring (like negative scaling)
         // Caution: don't change p1/p2 directly as it is use later
         float3 backfaceP1 = unity_WorldTransformParams.w < 0.0 ? p2 : p1;
         float3 backfaceP2 = unity_WorldTransformParams.w < 0.0 ? p1 : p2;
 
-        faceCull = BackFaceCullTriangle(p0, backfaceP1, backfaceP2, _TessellationBackFaceCullEpsilon, GetCurrentViewPosition()); // Use shadow view
+        faceCull = CullTriangleBackFace(p0, backfaceP1, backfaceP2, _TessellationBackFaceCullEpsilon, GetCurrentViewPosition()); // Use shadow view
     }
 #endif
 
@@ -94,6 +96,9 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     // During shadow passes, we decide that anything outside the main view frustum should not be tessellated.
     if (frustumCulledMainView)
     {
+        // Warning: currently, having different (discontinuous) tessellation factors causes
+        // cracks in tessellation just outside of the primary camera (view) frustum.
+        // The issue doesn't show up on geometry on-screen, but can become visible in shadows.
         return float4(1.0, 1.0, 1.0, 1.0);
     }
 
