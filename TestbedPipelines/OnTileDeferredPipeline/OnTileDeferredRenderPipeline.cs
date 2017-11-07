@@ -130,14 +130,14 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 	public class OnTileDeferredRenderPipeline : RenderPipelineAsset {
 
 	#if UNITY_EDITOR
-		[UnityEditor.MenuItem("RenderPipeline/OnTileDeferredPipeline/Create Pipeline Asset", false, 17)]
+		[UnityEditor.MenuItem("Assets/Create/Render Pipeline/On Tile Deferred/Render Pipeline", priority = CoreUtils.assetCreateMenuPriority1)]
 		static void CreateDeferredRenderPipeline()
 		{
 			var instance = ScriptableObject.CreateInstance<OnTileDeferredRenderPipeline> ();
 			UnityEditor.AssetDatabase.CreateAsset (instance, "Assets/OnTileDeferredPipeline.asset");
 		}
 
-		[UnityEditor.MenuItem("RenderPipeline/OnTileDeferredPipeline/Material Upgraders/Upgrade Standard Shader Materials")]
+		[UnityEditor.MenuItem("Edit/Render Pipeline/Upgrade/On Tile Deferred/Upgrade Standard Shader Materials", priority = CoreUtils.editMenuPriority2)]
 		static void SetupDeferredRenderPipelineMaterials()
 		{
 			Renderer[] _renderers = Component.FindObjectsOfType<Renderer> ();
