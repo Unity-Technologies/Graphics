@@ -25,6 +25,18 @@ namespace UnityEditor.VFX
         public override bool codeGeneratorCompute { get { return true; } }
         public override VFXTaskType taskType { get { return VFXTaskType.kUpdate; } }
 
+        public override IEnumerable<VFXAttributeInfo> attributes
+        {
+            get
+            {
+                if (GetData().IsCurrentAttributeRead(VFXAttribute.OldPosition))
+                {
+                    yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.OldPosition, VFXAttributeMode.Write);
+                }
+            }
+        }
+
         protected override IEnumerable<VFXBlock> implicitPostBlock
         {
             get

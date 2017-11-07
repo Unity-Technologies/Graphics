@@ -175,7 +175,6 @@ namespace UnityEditor.VFX.Test
 
             graph.vfxAsset = new VFXAsset();
             graph.RecompileIfNeeded();
-            graph.vfxAsset.bounds = new Bounds(Vector3.zero, Vector3.positiveInfinity);
 
             while (m_mainObject.GetComponent<VFXComponent>() != null)
             {

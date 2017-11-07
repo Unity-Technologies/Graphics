@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
             Additive,
             Alpha,
             Masked,
-            //Dithered
+            AlphaPremultiplied,
         }
 
         [VFXSetting, SerializeField]
@@ -82,13 +82,25 @@ namespace UnityEditor.VFX
                     renderState.WriteLine("Blend SrcAlpha One");
                 else if (blendMode == BlendMode.Alpha)
                     renderState.WriteLine("Blend SrcAlpha OneMinusSrcAlpha");
+                else if (blendMode == BlendMode.AlphaPremultiplied)
+                    renderState.WriteLine("Blend One OneMinusSrcAlpha");
+
                 renderState.WriteLine("ZTest LEqual");
-                if (blendMode == BlendMode.Masked /*|| blendMode == BlendMode.Dithered*/)
+
+                if (blendMode == BlendMode.Masked)
                     renderState.WriteLine("ZWrite On");
                 else
                     renderState.WriteLine("ZWrite Off");
 
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXOutputRenderState}", renderState);
+
+                var shaderTags = new VFXShaderWriter();
+                if (blendMode == BlendMode.Masked)
+                    shaderTags.Write("Tags { \"Queue\"=\"Geometry\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Opaque\" }");
+                else
+                    shaderTags.Write("Tags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\" }");
+
+                yield return new KeyValuePair<string, VFXShaderWriter>("${VFXShaderTags}", shaderTags);
             }
         }
     }

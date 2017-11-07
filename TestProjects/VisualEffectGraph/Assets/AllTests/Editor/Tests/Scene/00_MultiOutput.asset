@@ -146,7 +146,6 @@ MonoBehaviour:
   blendMode: 1
   useSoftParticle: 0
   flipBook: 0
-  frameInterpolationMode: 0
 --- !u!114 &114033604711334270
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -194,6 +193,7 @@ MonoBehaviour:
   m_UICollapsed: 1
   m_Owners:
   - {fileID: 114095934640662620}
+  m_TestId: 1269710556
 --- !u!114 &114051895635770072
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -223,7 +223,6 @@ MonoBehaviour:
   blendMode: 1
   useSoftParticle: 0
   flipBook: 0
-  frameInterpolationMode: 0
 --- !u!114 &114069458236294264
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -245,6 +244,7 @@ MonoBehaviour:
   - {fileID: 114051895635770072}
   - {fileID: 114802777676336084}
   - {fileID: 114033350763109576}
+  m_TestId: 261905873
   m_Capacity: 65536
   m_Bounds:
     m_Center: {x: 0, y: 0, z: 0}
@@ -1596,7 +1596,6 @@ MonoBehaviour:
   blendMode: 1
   useSoftParticle: 0
   flipBook: 0
-  frameInterpolationMode: 0
 --- !u!114 &114809451265799136
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2350,9 +2349,6 @@ VFXAsset:
     m_NeedsLocalToWorld: 0
     m_NeedsWorldToLocal: 0
   m_ExposedExpressions: []
-  m_Bounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
   m_PropertySheet:
     m_Float:
       m_Array:
@@ -2449,88 +2445,25 @@ VFXAsset:
       m_Array: []
   m_Buffers:
   - type: 1
-    size: 720896
-    capacity: 65536
-    layout:
-    - name: velocity
-      type: 3
-      offset:
-        bucket: 0
-        structure: 4
-        element: 0
-    - name: lifetime
-      type: 1
-      offset:
-        bucket: 0
-        structure: 4
-        element: 3
-    - name: size
-      type: 2
-      offset:
-        bucket: 262144
-        structure: 2
-        element: 0
-    - name: age
-      type: 1
-      offset:
-        bucket: 393216
-        structure: 1
-        element: 0
-    - name: position
-      type: 3
-      offset:
-        bucket: 458752
-        structure: 4
-        element: 0
-    - name: alive
-      type: 14
-      offset:
-        bucket: 458752
-        structure: 4
-        element: 3
-  - type: 1
-    size: 1
-    capacity: 1
-    layout:
-    - name: spawnCount
-      type: 1
-      offset:
-        bucket: 0
-        structure: 1
-        element: 0
+    stride: 4
+    capacity: 720896
   - type: 2
-    size: 65536
-    capacity: 0
-    layout: []
+    stride: 4
+    capacity: 65536
   - type: 1
-    size: 1
-    capacity: 0
-    layout: []
+    stride: 4
+    capacity: 1
   m_CPUBuffers:
   - capacity: 1
-    stride: 1
     layout:
     - name: spawnCount
       type: 1
-      offset:
-        bucket: 0
-        structure: 1
-        element: 0
-  - capacity: 1
-    stride: 1
-    layout:
-    - name: spawnCount
-      type: 1
-      offset:
-        bucket: 0
-        structure: 1
-        element: 0
   m_Systems:
   - type: 0
     flags: 0
     capacity: 0
     buffers:
-    - bufferIndex: 1
+    - bufferIndex: 0
       nameId: spawner_output
     values: []
     tasks:
@@ -2547,12 +2480,10 @@ VFXAsset:
     - bufferIndex: 0
       nameId: attributeBuffer
     - bufferIndex: 1
-      nameId: sourceAttributeBuffer
-    - bufferIndex: 2
       nameId: deadList
-    - bufferIndex: 3
+    - bufferIndex: 2
       nameId: deadListCount
-    - bufferIndex: 1
+    - bufferIndex: 0
       nameId: spawner_input
     values:
     - expressionIndex: 19
@@ -2564,23 +2495,21 @@ VFXAsset:
       buffers:
       - bufferIndex: 0
         nameId: attributeBuffer
-      - bufferIndex: 2
-        nameId: deadListIn
-      - bufferIndex: 3
-        nameId: deadListCount
       - bufferIndex: 1
-        nameId: sourceAttributeBuffer
+        nameId: deadListIn
+      - bufferIndex: 2
+        nameId: deadListCount
       values:
       - expressionIndex: 22
         nameId: uniform_Lifetime_b
       - expressionIndex: 23
         nameId: uniform_Velocity_c
-      processor: {fileID: 7200000, guid: de67aab3db0a2164790e269425073a7c, type: 3}
+      processor: {fileID: 7200000, guid: 52439d2a8a2476b4a9192436e50aeb51, type: 3}
     - type: 805306368
       buffers:
       - bufferIndex: 0
         nameId: attributeBuffer
-      - bufferIndex: 2
+      - bufferIndex: 1
         nameId: deadListOut
       values:
       - expressionIndex: 3
@@ -2589,7 +2518,7 @@ VFXAsset:
         nameId: uniform_c
       - expressionIndex: 26
         nameId: uniform_deltaTime_c
-      processor: {fileID: 7200000, guid: 9b7e01995d8b8ca46a1973560407ae0b, type: 3}
+      processor: {fileID: 7200000, guid: 1b9477a5212728d4ebc89e99aeb6839d, type: 3}
     - type: 1073741826
       buffers:
       - bufferIndex: 0
@@ -2597,7 +2526,7 @@ VFXAsset:
       values:
       - expressionIndex: 25
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: cd81b4630ee8df043a8aabba409d8cb8, type: 3}
+      processor: {fileID: 4800000, guid: 86ed34001435b48448e84b9a1564e903, type: 3}
     - type: 1073741826
       buffers:
       - bufferIndex: 0
@@ -2607,7 +2536,7 @@ VFXAsset:
         nameId: uniform_b
       - expressionIndex: 20
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: c53a26675ff03064287a69547c909f82, type: 3}
+      processor: {fileID: 4800000, guid: d6124f4ec9b8cdd4495689d54df10235, type: 3}
     - type: 1073741826
       buffers:
       - bufferIndex: 0
@@ -2619,7 +2548,7 @@ VFXAsset:
         nameId: uniform_c
       - expressionIndex: 18
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: 390491f29a1ad3a43940c53d8b44b90e, type: 3}
+      processor: {fileID: 4800000, guid: ab378cd9b49623647ab534e4ff07ca61, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000
@@ -2627,3 +2556,9 @@ VFXAsset:
   - name: OnStop
     startSystems: 
     stopSystems: 00000000
+  m_RendererSettings:
+    motionVectorGenerationMode: 0
+    shadowCastingMode: 0
+    receiveShadows: 0
+    reflectionProbeUsage: 0
+    lightProbeUsage: 0

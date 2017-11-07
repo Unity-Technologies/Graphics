@@ -2,7 +2,8 @@ Shader "Hidden/VFX/ParticleQuads"
 {
 	SubShader
 	{
-		Tags { "Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent" }
+		${VFXShaderTags}
+		
 		Pass
 		{
 			${VFXOutputRenderState}

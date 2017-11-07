@@ -19,6 +19,7 @@ namespace UnityEditor.VFX
     struct VFXAttribute
     {
         public static readonly VFXAttribute Seed                = new VFXAttribute("seed", VFXValueType.kUint);
+        public static readonly VFXAttribute OldPosition         = new VFXAttribute("oldPosition", VFXValueType.kFloat3);
         public static readonly VFXAttribute Position            = new VFXAttribute("position", VFXValueType.kFloat3);
         public static readonly VFXAttribute Velocity            = new VFXAttribute("velocity", VFXValueType.kFloat3);
         public static readonly VFXAttribute Color               = new VFXAttribute("color", VFXValue.Constant(Vector3.one));

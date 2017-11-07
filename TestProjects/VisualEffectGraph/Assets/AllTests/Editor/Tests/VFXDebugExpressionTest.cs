@@ -33,7 +33,6 @@ namespace UnityEditor.VFX.Test
             graph.vfxAsset = new VFXAsset();
             graph.RecompileIfNeeded();
             var expressionIndex = graph.FindReducedExpressionIndexFromSlotCPU(slotRate);
-            graph.vfxAsset.bounds = new Bounds(Vector3.zero, Vector3.positiveInfinity);
 
             var gameObj = new GameObject("CreateAssetAndComponentDebugExpressionTest");
             var vfxComponent = gameObj.AddComponent<VFXComponent>();

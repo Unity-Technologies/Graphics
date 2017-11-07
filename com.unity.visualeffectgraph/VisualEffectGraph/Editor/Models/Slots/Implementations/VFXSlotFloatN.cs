@@ -33,7 +33,7 @@ namespace UnityEditor.VFX
 
             if (expression.valueType == VFXValueType.kInt)
             {
-                var floatExpression = new VFXExpressionCastUintToFloat(expression);
+                var floatExpression = new VFXExpressionCastIntToFloat(expression);
                 return floatExpression;
             }
 

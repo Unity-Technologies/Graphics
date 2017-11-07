@@ -188,7 +188,7 @@ namespace UnityEditor.VFX
         // Get the HLSL code snippet
         public virtual string GetCodeString(string[] parents)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(GetType().ToString());
         }
 
         // Get the operands for the runtime evaluation

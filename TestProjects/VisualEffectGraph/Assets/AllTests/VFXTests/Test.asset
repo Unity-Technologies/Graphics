@@ -5677,9 +5677,6 @@ VFXAsset:
     m_NeedsLocalToWorld: 0
     m_NeedsWorldToLocal: 0
   m_ExposedExpressions: []
-  m_Bounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
   m_PropertySheet:
     m_Float:
       m_Array:
@@ -6011,3 +6008,9 @@ VFXAsset:
   - name: OnStop
     startSystems: 
     stopSystems: 00000000
+  m_RendererSettings:
+    motionVectorGenerationMode: 0
+    shadowCastingMode: 0
+    receiveShadows: 0
+    reflectionProbeUsage: 0
+    lightProbeUsage: 0
