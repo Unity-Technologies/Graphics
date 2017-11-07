@@ -197,6 +197,13 @@ namespace UnityEditor.VFX
                 .ToLowerInvariant();
         }
 
+        static IEnumerable<Match> GetUniqueMatches(string regexStr, string src)
+        {
+            var regex = new Regex(regexStr);
+            var matches = regex.Matches(src);
+            return matches.Cast<Match>().GroupBy(m => m.Groups[0].Value).Select(g => g.First());
+        }
+
         static private StringBuilder GetFlattenedTemplateContent(string path, List<string> includes, IEnumerable<string> defines)
         {
             var formattedPath = FormatPath(path);
@@ -212,19 +219,14 @@ namespace UnityEditor.VFX
             includes.Add(formattedPath);
             var templateContent = new StringBuilder(System.IO.File.ReadAllText(formattedPath));
 
-            var vfxIncludeRegex = new Regex("\\${VFXInclude\\(\\\"(.*?)\\\"\\)(,.*)?}");
-            var matches = vfxIncludeRegex.Matches(templateContent.ToString());
-            var uniqueMatches = matches.Cast<Match>().GroupBy(m => m.Groups[0].Value).Select(g => g.First());
-
-            foreach (var match in uniqueMatches)
+            foreach (var match in GetUniqueMatches("\\${VFXInclude\\(\\\"(.*?)\\\"\\)(,.*)?}", templateContent.ToString()))
             {
                 var groups = match.Groups;
                 var includePath = groups[1].Value;
 
-                // TODO Test defines
                 if (groups.Count > 2 && !String.IsNullOrEmpty(groups[2].Value))
                 {
-                    var neededDefines = groups[2].Value.Split(',');
+                    var neededDefines = groups[2].Value.Split(new char[] {',', ' ', '\t'}, StringSplitOptions.RemoveEmptyEntries);
                     if (!neededDefines.All(d => defines.Contains(d)))
                     {
                         ReplaceMultiline(templateContent, groups[0].Value, new StringBuilder());
@@ -342,39 +344,28 @@ namespace UnityEditor.VFX
             ReplaceMultiline(stringBuilder, "${VFXGeneratedBlockFunction}", blockFunction.builder);
             ReplaceMultiline(stringBuilder, "${VFXProcessBlocks}", blockCallFunction.builder);
 
-            //< Load Parameter
+            var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
+            foreach (var match in GetUniqueMatches("\\${VFXLoadParameter:{(.*?)}}", stringBuilder.ToString()))
             {
-                var loadParameterRegex = new Regex("\\${VFXLoadParameter:{(.*?)}}");
-                var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
-                string str = String.Empty;
-                while (loadParameterRegex.IsMatch(str = stringBuilder.ToString()))
-                {
-                    var current = loadParameterRegex.Match(str);
-                    var match = current.Groups[0].Value;
-                    var pattern = current.Groups[1].Value;
-                    var loadParameters = GenerateLoadParameter(pattern, mainParameters, expressionToName);
-                    ReplaceMultiline(stringBuilder, match, loadParameters.builder);
-                }
+                var str = match.Groups[0].Value;
+                var pattern = match.Groups[1].Value;
+                var loadParameters = GenerateLoadParameter(pattern, mainParameters, expressionToName);
+                ReplaceMultiline(stringBuilder, str, loadParameters.builder);
             }
 
             //< Load Attribute
             if (stringBuilder.ToString().Contains("${VFXLoadAttributes}"))
             {
-                var loadAttribute = GenerateLoadAttribute(".*", context);
-                ReplaceMultiline(stringBuilder, "${VFXLoadAttributes}", loadAttribute.builder);
+                var loadAttributes = GenerateLoadAttribute(".*", context);
+                ReplaceMultiline(stringBuilder, "${VFXLoadAttributes}", loadAttributes.builder);
             }
 
+            foreach (var match in GetUniqueMatches("\\${VFXLoadAttributes:{(.*?)}}", stringBuilder.ToString()))
             {
-                var loadAttributeRegex = new Regex("\\${VFXLoadAttributes:{(.*?)}}");
-                string str = String.Empty;
-                while (loadAttributeRegex.IsMatch(str = stringBuilder.ToString()))
-                {
-                    var current = loadAttributeRegex.Match(str);
-                    var match = current.Groups[0].Value;
-                    var pattern = current.Groups[1].Value;
-                    var loadAttribute = GenerateLoadAttribute(pattern, context);
-                    ReplaceMultiline(stringBuilder, match, loadAttribute.builder);
-                }
+                var str = match.Groups[0].Value;
+                var pattern = match.Groups[1].Value;
+                var loadAttributes = GenerateLoadAttribute(pattern, context);
+                ReplaceMultiline(stringBuilder, str, loadAttributes.builder);
             }
 
             //< Store Attribute
@@ -384,17 +375,12 @@ namespace UnityEditor.VFX
                 ReplaceMultiline(stringBuilder, "${VFXStoreAttributes}", storeAttribute);
             }
 
+            foreach (var match in GetUniqueMatches("\\${VFXStoreAttributes:{(.*?)}}", stringBuilder.ToString()))
             {
-                var storeAttributeRegex = new Regex("\\${VFXStoreAttributes:{(.*?)}}");
-                string str = String.Empty;
-                while (storeAttributeRegex.IsMatch(stringBuilder.ToString()))
-                {
-                    var current = storeAttributeRegex.Match(stringBuilder.ToString());
-                    var match = current.Groups[0].Value;
-                    var pattern = current.Groups[1].Value;
-                    var storeAttribute = GenerateStoreAttribute(pattern, context);
-                    ReplaceMultiline(stringBuilder, match, storeAttribute);
-                }
+                var str = match.Groups[0].Value;
+                var pattern = match.Groups[1].Value;
+                var storeAttributes = GenerateStoreAttribute(pattern, context);
+                ReplaceMultiline(stringBuilder, str, storeAttributes);
             }
 
             foreach (var addionnalReplacement in context.additionnalReplacements)
