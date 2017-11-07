@@ -559,6 +559,12 @@ float2 ComputeScreenSpacePosition(float4 positionCS)
     return positionSS;
 }
 
+float2 ComputeScreenSpacePosition(float3 positionWS, float4x4 viewProjectionMatrix)
+{
+    float4 positionCS = mul(viewProjectionMatrix, float4(positionWS, 1.0));
+    return ComputeScreenSpacePosition(positionCS);
+}
+
 float3 ComputeViewSpacePosition(float2 positionSS, float depthRaw, float4x4 invProjMatrix)
 {
     float4 positionCS = ComputeClipSpacePosition(positionSS, depthRaw);
