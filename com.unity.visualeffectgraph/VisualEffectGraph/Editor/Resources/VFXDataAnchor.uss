@@ -3,8 +3,6 @@
 .VFXDataAnchor
 {
 	-background-color:rgba(0,0,255,255);
-	im-border : 4;
-	im-padding : 2;
 	selected-field-background :resource("VFX/SelectedField");
 	flex-direction: row;
 	align-items: stretch;

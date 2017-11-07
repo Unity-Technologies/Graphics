@@ -48,6 +48,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public override Vector3 GetGlobalCenter()
+        {
+            return this.LocalToWorld(new Vector3(this.contentRect.center.x, direction == Direction.Output ? this.contentRect.yMax : this.contentRect.yMin, 0));
+        }
+
         void IEdgeConnectorListener.OnDrop(GraphView graphView, Edge edge)
         {
             VFXFlowEdgePresenter edgePresenter = VFXFlowEdgePresenter.CreateInstance<VFXFlowEdgePresenter>();
