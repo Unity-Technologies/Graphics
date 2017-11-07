@@ -115,17 +115,17 @@ float DistanceFromPlane(float3 p, float4 plane)
 // 'epsilon' is the (negative) distance to (outside of) the frustum below which we cull the triangle.
 bool CullTriangleFrustum(float3 p0, float3 p1, float3 p2, float epsilon, float4 frustumPlanes[4])
 {
-    bool hidden = false;
+    bool outside = false;
 
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 4; i++)
     {
         // If all 3 points are behind any of the planes, we cull.
-        hidden = hidden || Max3(DistanceFromPlane(p0, frustumPlanes[i]),
-                                DistanceFromPlane(p1, frustumPlanes[i]),
-                                DistanceFromPlane(p2, frustumPlanes[i])) < epsilon;
+        outside = outside || Max3(DistanceFromPlane(p0, frustumPlanes[i]),
+                                  DistanceFromPlane(p1, frustumPlanes[i]),
+                                  DistanceFromPlane(p2, frustumPlanes[i])) < epsilon;
     }
 
-    return hidden;
+    return outside;
 }
 
 // Returns 'true' if a triangle defined by 3 vertices is back-facing.
