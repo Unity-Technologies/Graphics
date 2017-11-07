@@ -121,7 +121,8 @@ namespace UnityEditor.VFX.UIElements
             {
                 m_Dragging = false;
 
-                VFXViewPresenter.viewPresenter.EndLiveModification();
+                //TODO reactivate live modification
+                //VFXViewPresenter.viewPresenter.EndLiveModification();
                 if (target.HasMouseCapture())
                 {
                     target.ReleaseMouseCapture();
@@ -150,7 +151,8 @@ namespace UnityEditor.VFX.UIElements
                 target.RegisterCallback<MouseMoveEvent>(OnMouseDrag, Capture.Capture);
                 target.TakeMouseCapture();
                 m_Dragging = true;
-                VFXViewPresenter.viewPresenter.BeginLiveModification();
+                //TODO reactivate live modification
+                //VFXViewPresenter.viewPresenter.BeginLiveModification();
                 m_OriginalValue = m_Listener.GetValue(m_UserData);
                 evt.StopPropagation();
             }
@@ -250,7 +252,8 @@ namespace UnityEditor.VFX.UIElements
             {
                 m_Dragging = false;
 
-                VFXViewPresenter.viewPresenter.EndLiveModification();
+                //TODO reactivate live modification
+                //VFXViewPresenter.viewPresenter.EndLiveModification();
                 if (target.HasMouseCapture())
                 {
                     target.ReleaseMouseCapture();
@@ -279,7 +282,8 @@ namespace UnityEditor.VFX.UIElements
                 target.RegisterCallback<MouseMoveEvent>(OnMouseDrag, Capture.Capture);
                 target.TakeMouseCapture();
                 m_Dragging = true;
-                VFXViewPresenter.viewPresenter.BeginLiveModification();
+                //TODO reactivate live modification
+                //VFXViewPresenter.viewPresenter.BeginLiveModification();
                 m_OriginalValue = m_Listener.value;
                 evt.StopPropagation();
             }

@@ -102,9 +102,11 @@ namespace UnityEditor.VFX.Test
             }
         }
 
+        public VFXAsset m_Asset;
+
         public void CreateTestAsset(string name)
         {
-            VFXAsset asset = new VFXAsset();
+            m_Asset = new VFXAsset();
 
             var filePath = string.Format(testAssetName, name);
             var directoryPath = Path.GetDirectoryName(filePath);
@@ -113,13 +115,11 @@ namespace UnityEditor.VFX.Test
                 Directory.CreateDirectory(directoryPath);
             }
 
-            AssetDatabase.CreateAsset(asset, filePath);
-
-            Selection.activeObject = AssetDatabase.LoadAssetAtPath<VFXAsset>(filePath);
-
+            AssetDatabase.CreateAsset(m_Asset, filePath);
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
             window.Close();
             window = EditorWindow.GetWindow<VFXViewWindow>();
+            window.LoadAsset(m_Asset);
             m_ViewPresenter = window.GetPresenter<VFXViewPresenter>();
             //m_View = m_ViewPresenter.View;
         }
@@ -128,7 +128,7 @@ namespace UnityEditor.VFX.Test
         {
             var filePath = string.Format(testAssetName, name);
             AssetDatabase.DeleteAsset(filePath);
-            UnityEngine.Object.DestroyImmediate(Selection.activeObject);
+            UnityEngine.Object.DestroyImmediate(m_Asset);
 
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
             window.Close();
