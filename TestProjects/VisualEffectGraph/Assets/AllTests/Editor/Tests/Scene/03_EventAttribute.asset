@@ -378,7 +378,6 @@ MonoBehaviour:
   blendMode: 1
   useSoftParticle: 0
   flipBook: 0
-  frameInterpolationMode: 0
 --- !u!114 &114125608592678332
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3843,9 +3842,6 @@ VFXAsset:
     m_NeedsLocalToWorld: 0
     m_NeedsWorldToLocal: 0
   m_ExposedExpressions: []
-  m_Bounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
   m_PropertySheet:
     m_Float:
       m_Array:
@@ -4259,7 +4255,7 @@ VFXAsset:
         nameId: uniform_Speed_f
       - expressionIndex: 51
         nameId: uniform_DirectionBlend_f
-      processor: {fileID: 7200000, guid: c4eb3f5427bf8f040b27fea71badaed6, type: 3}
+      processor: {fileID: 7200000, guid: 3c2a8cd685bf41b49ba7a2d4ff5b6950, type: 3}
     - type: 805306368
       buffers:
       - bufferIndex: 0
@@ -4269,7 +4265,7 @@ VFXAsset:
       values:
       - expressionIndex: 50
         nameId: uniform_deltaTime_b
-      processor: {fileID: 7200000, guid: e91dcf5127feb1e4f85930b99434606e, type: 3}
+      processor: {fileID: 7200000, guid: d2eec26de94d2ff48afd99b390efc672, type: 3}
     - type: 1073741826
       buffers:
       - bufferIndex: 0
@@ -4283,7 +4279,7 @@ VFXAsset:
         nameId: uniform_d
       - expressionIndex: 48
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: dd6d462b125cceb4ab80bdee3e09259d, type: 3}
+      processor: {fileID: 4800000, guid: a4121b547f4c95b4ba271a6075096626, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 0000000001000000
@@ -4291,3 +4287,9 @@ VFXAsset:
   - name: OnStop
     startSystems: 
     stopSystems: 0000000001000000
+  m_RendererSettings:
+    motionVectorGenerationMode: 0
+    shadowCastingMode: 0
+    receiveShadows: 0
+    reflectionProbeUsage: 0
+    lightProbeUsage: 0
