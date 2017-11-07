@@ -145,7 +145,7 @@ uint GetTileSize()
 #endif // LIGHTLOOP_TILE_PASS
 
 // bakeDiffuseLighting is part of the prototype so a user is able to implement a "base pass" with GI and multipass direct light (aka old unity rendering path)
-void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, float3 bakeDiffuseLighting, uint featureFlags,
+void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, BakeLightingData bakeLightingData, uint featureFlags,
                 out float3 diffuseLighting,
                 out float3 specularLighting)
 {
@@ -164,7 +164,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     {
         for (i = 0; i < _DirectionalLightCount; ++i)
         {
-            DirectLighting lighting = EvaluateBSDF_Directional(context, V, posInput, preLightData, _DirectionalLightDatas[i], bsdfData);
+            DirectLighting lighting = EvaluateBSDF_Directional(context, V, posInput, preLightData, _DirectionalLightDatas[i], bsdfData, bakeLightingData);
             AccumulateDirectLighting(lighting, aggregateLighting);
         }
     }
@@ -181,7 +181,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         for (i = 0; i < punctualLightCount; ++i)
         {
             int punctualIndex = FetchIndex(punctualLightStart, i);
-            DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, _LightDatas[punctualIndex], bsdfData, _LightDatas[punctualIndex].lightType);
+            DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, _LightDatas[punctualIndex], bsdfData, bakeLightingData, _LightDatas[punctualIndex].lightType);
             AccumulateDirectLighting(lighting, aggregateLighting);
         }
 
@@ -189,7 +189,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
         for (i = 0; i < _PunctualLightCount; ++i)
         {
-            DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, _LightDatas[i], bsdfData, _LightDatas[i].lightType);
+            DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, _LightDatas[i], bsdfData, bakeLightingData, _LightDatas[i].lightType);
             AccumulateDirectLighting(lighting, aggregateLighting);
         }
 
@@ -217,9 +217,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
             while (i < areaLightCount && lightType == GPULIGHTTYPE_LINE)
             {
-                DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, _LightDatas[areaIndex], bsdfData, GPULIGHTTYPE_LINE);
+                DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, _LightDatas[areaIndex], bsdfData, bakeLightingData, GPULIGHTTYPE_LINE);
                 AccumulateDirectLighting(lighting, aggregateLighting);
-                
+
                 i++;
                 areaIndex = i < areaLightCount ? FetchIndex(areaLightStart, i) : 0;
                 lightType = i < areaLightCount ? _LightDatas[areaIndex].lightType : 0xFF;
@@ -227,7 +227,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
             while (i < areaLightCount && lightType == GPULIGHTTYPE_RECTANGLE)
             {
-                DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, _LightDatas[areaIndex], bsdfData, GPULIGHTTYPE_RECTANGLE);
+                DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, _LightDatas[areaIndex], bsdfData, bakeLightingData, GPULIGHTTYPE_RECTANGLE);
                 AccumulateDirectLighting(lighting, aggregateLighting);
 
                 i++;
@@ -240,7 +240,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
         for (i = _PunctualLightCount; i < _PunctualLightCount + _AreaLightCount; ++i)
         {
-            DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, _LightDatas[i], bsdfData, _LightDatas[i].lightType);
+            DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, _LightDatas[i], bsdfData, bakeLightingData, _LightDatas[i].lightType);
             AccumulateDirectLighting(lighting, aggregateLighting);
         }
 
@@ -340,7 +340,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
     // Also Apply indiret diffuse (GI)
     // PostEvaluateBSDF will perform any operation wanted by the material and sum everything into diffuseLighting and specularLighting
-    PostEvaluateBSDF(   context, V, posInput, preLightData, bsdfData, bakeDiffuseLighting, aggregateLighting,
+    PostEvaluateBSDF(   context, V, posInput, preLightData, bsdfData, bakeLightingData, aggregateLighting,
                         diffuseLighting, specularLighting);
 
     ApplyDebug(context, posInput.positionWS, diffuseLighting, specularLighting);

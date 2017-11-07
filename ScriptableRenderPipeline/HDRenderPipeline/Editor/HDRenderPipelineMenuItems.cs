@@ -107,6 +107,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        static void CheckOutFile(bool VSCEnabled, Material mat)
+        {
+            if (VSCEnabled)
+            {
+                UnityEditor.VersionControl.Task task = UnityEditor.VersionControl.Provider.Checkout(mat, UnityEditor.VersionControl.CheckoutMode.Both);
+
+                if (!task.success)
+                {
+                    Debug.Log(task.text + " " + task.resultCode);
+                }
+            }
+        }
+
         [MenuItem("HDRenderPipeline/Update/Update SSS profile indices")]
         static void UpdateSSSProfileIndices()
         {
@@ -124,29 +137,48 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         string.Format("{0} / {1} materials SSS updated.", i, length),
                         i / (float)(length - 1));
 
+                    bool VSCEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
+
                     if (mat.shader.name == "HDRenderPipeline/LitTessellation" ||
                         mat.shader.name == "HDRenderPipeline/Lit")
                     {
                         float fvalue = mat.GetFloat("_MaterialID");
                         if (fvalue == 0.0) // SSS
                         {
+                            CheckOutFile(VSCEnabled, mat);
                             int ivalue = mat.GetInt("_SubsurfaceProfile");
-                            mat.SetInt("_SubsurfaceProfile", ivalue + 1);
+                            if (ivalue == 15)
+                            {
+                                mat.SetInt("_SubsurfaceProfile", 0);
+                            }
+                            else
+                            {
+                                mat.SetInt("_SubsurfaceProfile", ivalue + 1);
+                            }
+
                             EditorUtility.SetDirty(mat);
-                        }                        
+                        }
                     }
-                    else if (   mat.shader.name == "HDRenderPipeline/LayeredLit" ||
+                    else if (mat.shader.name == "HDRenderPipeline/LayeredLit" ||
                                 mat.shader.name == "HDRenderPipeline/LayeredLitTessellation")
                     {
                         float fvalue = mat.GetFloat("_MaterialID");
                         if (fvalue == 0.0) // SSS
                         {
+                            CheckOutFile(VSCEnabled, mat);
                             int numLayer = (int)mat.GetFloat("_LayerCount");
-                            
+
                             for (int x = 0; x < numLayer; ++x)
                             {
                                 int ivalue = mat.GetInt("_SubsurfaceProfile" + x);
-                                mat.SetInt("_SubsurfaceProfile" + x, ivalue + 1);
+                                if (ivalue == 15)
+                                {
+                                    mat.SetInt("_SubsurfaceProfile" + x, 0);
+                                }
+                                else
+                                {
+                                    mat.SetInt("_SubsurfaceProfile" + x, ivalue + 1);
+                                }
                             }
                             EditorUtility.SetDirty(mat);
                         }

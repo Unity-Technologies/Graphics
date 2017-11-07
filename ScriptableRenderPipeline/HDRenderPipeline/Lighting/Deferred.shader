@@ -40,7 +40,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
             // Split lighting is utilized during the SSS pass.
             #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING
-
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile _ DEBUG_DISPLAY
 
             //-------------------------------------------------------------------------------------
@@ -62,6 +62,9 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             //-------------------------------------------------------------------------------------
 
             DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
+            #ifdef SHADOWS_SHADOWMASK
+            TEXTURE2D(_ShadowMaskTexture);
+            #endif
 
             struct Attributes
             {
@@ -102,24 +105,22 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
                 FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
                 BSDFData bsdfData;
-                float3 bakeDiffuseLighting;
-                DECODE_FROM_GBUFFER(gbuffer, MATERIAL_FEATURE_MASK_FLAGS, bsdfData, bakeDiffuseLighting);
+                BakeLightingData bakeLightingData;
+                DECODE_FROM_GBUFFER(gbuffer, MATERIAL_FEATURE_MASK_FLAGS, bsdfData, bakeLightingData.bakeDiffuseLighting);
+                #ifdef SHADOWS_SHADOWMASK
+                DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.unPositionSS), bakeLightingData.bakeShadowMask);
+                #endif
 
                 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
                 float3 diffuseLighting;
                 float3 specularLighting;
-                LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, LIGHT_FEATURE_MASK_FLAGS_OPAQUE, diffuseLighting, specularLighting);
+                LightLoop(V, posInput, preLightData, bsdfData, bakeLightingData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE, diffuseLighting, specularLighting);
 
                 Outputs outputs;
             #ifdef OUTPUT_SPLIT_LIGHTING
                 outputs.specularLighting = float4(specularLighting, 1.0);
-                outputs.diffuseLighting  = diffuseLighting;
-                // We SSSSS is enabled with use split lighting.
-                // SSSSS algorithm need to know which pixels contribute to SSS and which doesn't. We could use the stencil for that but it mean that it will increase the cost of SSSSS
-                // A simpler solution is to add a slight contribution here that isn't visible (here we chose fp16 min (which is also fp11 and fp10 min).
-                // The SSSSS algorithm will check if diffuse lighting is black and discard the pixel if it is the case
-                outputs.diffuseLighting.r = max(outputs.diffuseLighting.r, HFLT_MIN);
+                outputs.diffuseLighting  = TagLightingForSSS(diffuseLighting);
             #else
                 outputs.combinedLighting = float4(diffuseLighting + specularLighting, 1.0);
             #endif

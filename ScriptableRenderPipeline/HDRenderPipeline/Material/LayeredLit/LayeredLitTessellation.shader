@@ -196,7 +196,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
         [ToggleOff]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0
 
-        _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
+        _EmissiveColor("EmissiveColor", Color) = (1, 1, 1)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
         [ToggleOff] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
@@ -389,9 +389,6 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
     // Note _MATID_STANDARD is not define as there is always the default case "_". We assign default as _MATID_STANDARD, so we never test _MATID_STANDARD
     #pragma shader_feature _ _MATID_SSS
 
-    #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-    #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
-    #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
     // enable dithering LOD crossfade
     #pragma multi_compile _ LOD_FADE_CROSSFADE
     // TODO: We should have this keyword only if VelocityInGBuffer is enable, how to do that ?
@@ -469,6 +466,11 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             #pragma hull Hull
             #pragma domain Domain
 
+            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
+            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
+            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
+
             #define SHADERPASS SHADERPASS_GBUFFER
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
@@ -500,6 +502,11 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             #pragma hull Hull
             #pragma domain Domain
 
+            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
+            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
+            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
+
             #define SHADERPASS SHADERPASS_GBUFFER
             #define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
             #include "../../ShaderVariables.hlsl"
@@ -529,6 +536,11 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
             #pragma hull Hull
             #pragma domain Domain
+
+            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
+            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
+            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
 
             #define DEBUG_DISPLAY
             #define SHADERPASS SHADERPASS_GBUFFER
@@ -563,7 +575,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
-            #include "../Lit/ShaderPass/LitMetaPass.hlsl"
+            #include "../Lit/ShaderPass/LitSharePass.hlsl"
             #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
 
@@ -602,7 +614,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
             Cull[_CullMode]
 
-            ZClip Off
+            ZClip [_ZClip]
             ZWrite On
             ZTest LEqual
 
@@ -660,12 +672,15 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             #pragma hull Hull
             #pragma domain Domain
 
+            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
+            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
+            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
+            #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
+
             #define SHADERPASS SHADERPASS_FORWARD
             #include "../../ShaderVariables.hlsl"
             #include "../../Lighting/Forward.hlsl"
-            // TEMP until pragma work in include
-            #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
-
             #include "../../Lighting/Lighting.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
             #include "LayeredLitData.hlsl"
@@ -688,14 +703,17 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             #pragma hull Hull
             #pragma domain Domain
 
+            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
+            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
+            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
+            #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
+
             #define DEBUG_DISPLAY
             #define SHADERPASS SHADERPASS_FORWARD
             #include "../../ShaderVariables.hlsl"
             #include "../../Debug/DebugDisplay.hlsl"
             #include "../../Lighting/Forward.hlsl"
-            // TEMP until pragma work in include
-            #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
-
             #include "../../Lighting/Lighting.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
             #include "LayeredLitData.hlsl"

@@ -14,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         IndirectDiffuseOcclusionFromSsao,
         IndirectDiffuseGtaoFromSsao,
         IndirectSpecularOcclusionFromSsao,
-        IndirectSpecularGtaoFromSsao   
+        IndirectSpecularGtaoFromSsao
     }
 
     public class DebugDisplaySettings
@@ -366,7 +366,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             VertexNormalWS,
             VertexColor,
             VertexColorAlpha,
-            // caution if you add something here, it must start below
+            Last,
         };
 
         // Number must be contiguous
@@ -374,8 +374,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public enum DebugViewGbuffer
         {
             None = 0,
-            Depth = DebugViewVarying.VertexColorAlpha + 1,
+            Depth = DebugViewVarying.Last,
             BakeDiffuseLightingWithAlbedoPlusEmissive,
+            BakeShadowMask0,
+            BakeShadowMask1,
+            BakeShadowMask2,
+            BakeShadowMask3,
+            Last,
         }
 
         // Number must be contiguous
@@ -383,7 +388,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public enum DebugViewProperties
         {
             None = 0,
-            Tessellation = DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive + 1,
+            Tessellation = DebugViewGbuffer.Last,
             PixelDisplacement,
             VertexDisplacement,
             TessellationDisplacement,

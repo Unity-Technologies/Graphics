@@ -39,18 +39,31 @@ void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, floa
         builtinData.bakeDiffuseLighting += SampleBakedGI(input.positionWS, -input.worldToTangent[2], input.texCoord1, input.texCoord2) * bsdfData.transmittance;
     }
 
+#ifdef SHADOWS_SHADOWMASK
+    float4 shadowMask = SampleShadowMask(input.positionWS, input.texCoord1);
+    builtinData.shadowMask0 = shadowMask.x;
+    builtinData.shadowMask1 = shadowMask.y;
+    builtinData.shadowMask2 = shadowMask.z;
+    builtinData.shadowMask3 = shadowMask.w;
+#else
+    builtinData.shadowMask0 = 0.0;
+    builtinData.shadowMask1 = 0.0;
+    builtinData.shadowMask2 = 0.0;
+    builtinData.shadowMask3 = 0.0;
+#endif
+
     // Emissive Intensity is only use here, but is part of BuiltinData to enforce UI parameters as we want the users to fill one color and one intensity
     builtinData.emissiveIntensity = _EmissiveIntensity; // We still store intensity here so we can reuse it with debug code
 
     builtinData.emissiveColor = _EmissiveColor * builtinData.emissiveIntensity * lerp(float3(1.0, 1.0, 1.0), surfaceData.baseColor.rgb, _AlbedoAffectEmissive);
 #ifdef _EMISSIVE_COLOR_MAP
-    builtinData.emissiveColor *= SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, input.texCoord0).rgb;
+    builtinData.emissiveColor *= SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, TRANSFORM_TEX(input.texCoord0, _EmissiveColorMap)).rgb;
 #endif
 
     builtinData.velocity = float2(0.0, 0.0);
 
 #if (SHADERPASS == SHADERPASS_DISTORTION) || defined(DEBUG_DISPLAY)
-    float3 distortion = SAMPLE_TEXTURE2D(_DistortionVectorMap, sampler_DistortionVectorMap, input.texCoord0).rgb;
+    float3 distortion = SAMPLE_TEXTURE2D(_DistortionVectorMap, sampler_DistortionVectorMap, input.texCoord0).rgb * 2.0 - 1.0;
     builtinData.distortion = distortion.rg * _DistortionScale;
     builtinData.distortionBlur = clamp(distortion.b * _DistortionBlurScale, 0.0, 1.0) * (_DistortionBlurRemapMax - _DistortionBlurRemapMin) + _DistortionBlurRemapMin;
 #else
@@ -239,6 +252,11 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float3 bentNormalWS;
     float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS, bentNormalTS);
     GetNormalWS(input, V, normalTS, surfaceData.normalWS);
+
+    // Ensure that the normal is front-facing.
+    float NdotV;
+    surfaceData.normalWS = GetViewReflectedNormal(surfaceData.normalWS, V, NdotV);
+
     // Use bent normal to sample GI if available
 #ifdef _BENTNORMALMAP
     GetNormalWS(input, V, bentNormalTS, bentNormalWS);
@@ -252,7 +270,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // If we have bent normal and ambient occlusion, process a specular occlusion
     surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAO(V, bentNormalWS, surfaceData);
 #elif defined(_MASKMAP)
-    surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(dot(surfaceData.normalWS, V), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
+    surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(NdotV, surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
 #else
     surfaceData.specularOcclusion = 1.0;
 #endif

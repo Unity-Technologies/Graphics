@@ -15,6 +15,7 @@ namespace UnityEngine.Experimental.Rendering
     {
         public const uint k_MaxCascadesInShader = 4;
         protected readonly int                        m_TempDepthId;
+        protected readonly int                        m_ZClipId;
         protected          RenderTexture              m_Shadowmap;
         protected          RenderTargetIdentifier     m_ShadowmapId;
         protected          VectorArray<CachedEntry>   m_EntryCache = new VectorArray<CachedEntry>( 0, true );
@@ -58,6 +59,7 @@ namespace UnityEngine.Experimental.Rendering
             public Key  key;
             public Data current;
             public Data previous;
+            public bool zclip;
 
             public int CompareTo( CachedEntry other )
             {
@@ -101,6 +103,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public ShadowAtlas( ref AtlasInit init ) : base( ref init.baseInit )
         {
+            m_ZClipId = Shader.PropertyToID( "_ZClip" );
             if( !IsNativeDepth() )
             {
                 m_TempDepthId = Shader.PropertyToID( "Temporary Shadowmap Depth" );
@@ -300,6 +303,8 @@ namespace UnityEngine.Experimental.Rendering
                     // read
                     float texelSizeX = 1.0f, texelSizeY = 1.0f;
                     CachedEntry ce = m_EntryCache[ceIdx];
+                    ce.zclip = sr.shadowType != GPUShadowType.Directional;
+
                     // modify
                     Matrix4x4 vp, invvp;
                     if( sr.shadowType == GPUShadowType.Point )
@@ -516,6 +521,7 @@ namespace UnityEngine.Experimental.Rendering
                 cmd.SetViewport( m_EntryCache[i].current.viewport );
                 cmd.SetViewProjectionMatrices( m_EntryCache[i].current.view, m_EntryCache[i].current.proj );
                 cmd.SetGlobalVector( "g_vLightDirWs", m_EntryCache[i].current.lightDir );
+                cmd.SetGlobalFloat( m_ZClipId, m_EntryCache[i].zclip ? 1.0f : 0.0f );
                 //cmd.EndSample(cbName);
 
                 dss.lightIndex = m_EntryCache[i].key.visibleIdx;
@@ -537,6 +543,7 @@ namespace UnityEngine.Experimental.Rendering
                 cmd.EndSample("Shadowmap.DisableShaderKeyword");
             }
 
+            cmd.SetGlobalFloat( m_ZClipId, 1.0f ); // Re-enable zclip globally
             m_ActiveEntriesCount = 0;
 
             profilingSample.Dispose();
