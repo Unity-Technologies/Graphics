@@ -126,6 +126,9 @@ CBUFFER_START(UnityPerDraw : register(b0))
     float3 unity_ProbeVolumeSizeInv;
     float3 unity_ProbeVolumeMin;
 
+    // This contain occlusion factor from 0 to 1 for dynamic objects (no SH here)
+    float4 unity_ProbesOcclusion;
+
 CBUFFER_END
 
 #if defined(USING_STEREO_MATRICES)
@@ -204,6 +207,9 @@ SAMPLER2D(samplerunity_DynamicLightmap);
 
 TEXTURE2D(unity_DynamicDirectionality);
 
+// We can have shadowMask only if we have lightmap, so no sampler
+TEXTURE2D(unity_ShadowMask);
+
 // TODO: Change code here so probe volume use only one transform instead of all this parameters!
 TEXTURE3D_FLOAT(unity_ProbeVolumeSH);
 SAMPLER3D(samplerunity_ProbeVolumeSH);
@@ -229,16 +235,6 @@ float4x4 _InvProjMatrix;
 float4   _InvProjParam;
 float4   _ScreenSize;       // (w, h, 1/w, 1/h)
 float4   _FrustumPlanes[6]; // (N, -dot(N, P))
-
-// Volumetric lighting. Should be a struct in 'UnityPerFrame'.
-// Unfortunately, we cannot modify the layout of 'UnityPerFrame',
-// and structures inside constant buffers are not supported by Unity.
-float3 _GlobalFog_Scattering;
-float  _GlobalFog_Extinction;
-float  _GlobalFog_Asymmetry;
-float  _GlobalFog_Align16_0;
-float  _GlobalFog_Align16_1;
-float  _GlobalFog_Align16_2;
 CBUFFER_END
 
 #ifdef USE_LEGACY_UNITY_MATRIX_VARIABLES

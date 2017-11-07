@@ -20,15 +20,20 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     builtinData.emissiveIntensity = _EmissiveIntensity;
 
 #ifdef _EMISSIVE_COLOR_MAP
-    builtinData.emissiveColor = SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, input.texCoord0).rgb * _EmissiveColor * builtinData.emissiveIntensity;
+    builtinData.emissiveColor = SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, TRANSFORM_TEX(input.texCoord0, _EmissiveColorMap)).rgb * _EmissiveColor * builtinData.emissiveIntensity;
 #else
     builtinData.emissiveColor = _EmissiveColor * builtinData.emissiveIntensity;
 #endif
 
     builtinData.velocity = float2(0.0, 0.0);
 
+    builtinData.shadowMask0 = 0.0;
+    builtinData.shadowMask1 = 0.0;
+    builtinData.shadowMask2 = 0.0;
+    builtinData.shadowMask3 = 0.0;
+
 #if (SHADERPASS == SHADERPASS_DISTORTION) || defined(DEBUG_DISPLAY)
-    float3 distortion = SAMPLE_TEXTURE2D(_DistortionVectorMap, sampler_DistortionVectorMap, input.texCoord0).rgb;
+    float3 distortion = SAMPLE_TEXTURE2D(_DistortionVectorMap, sampler_DistortionVectorMap, input.texCoord0).rgb * 2.0 - 1.0;
     builtinData.distortion = distortion.rg * _DistortionScale;
     builtinData.distortionBlur = clamp(distortion.b * _DistortionBlurScale, 0.0, 1.0) * (_DistortionBlurRemapMax - _DistortionBlurRemapMin) + _DistortionBlurRemapMin;
 #else

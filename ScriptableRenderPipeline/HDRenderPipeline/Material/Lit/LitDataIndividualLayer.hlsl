@@ -301,6 +301,10 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #if HAS_REFRACTION
     surfaceData.ior = _IOR;
     surfaceData.transmittanceColor = _TransmittanceColor;
+    #ifdef _TRANSMITTANCECOLORMAP
+    surfaceData.transmittanceColor *= SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_TransmittanceColorMap), ADD_ZERO_IDX(sampler_TransmittanceColorMap), ADD_IDX(layerTexCoord.base)).rgb;
+    #endif
+
     surfaceData.atDistance = _ATDistance;
     // Thickness already defined with SSS (from both thickness and thicknessMap)
     surfaceData.thickness *= _ThicknessMultiplier;

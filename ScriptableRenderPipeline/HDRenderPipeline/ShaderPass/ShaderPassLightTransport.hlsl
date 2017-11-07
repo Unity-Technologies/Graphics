@@ -40,15 +40,25 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
     // OpenGL right now needs to actually use the incoming vertex position
     // so we create a fake dependency on it here that haven't any impact.
     output.vmesh.positionCS = float4(uv * 2.0 - 1.0, inputMesh.positionOS.z > 0 ? 1.0e-4 : 0.0, 1.0);
-    output.vmesh.texCoord0  = inputMesh.uv0;
-    output.vmesh.texCoord1  = inputMesh.uv1;
-    output.vmesh.texCoord2  = inputMesh.uv2;
-    output.vmesh.texCoord3  = inputMesh.uv3;
 
+#ifdef VARYINGS_NEED_POSITION_WS
     float3 positionWS = GetCameraRelativePositionWS(TransformObjectToWorld(inputMesh.positionOS));
     output.vmesh.positionWS = positionWS;
+#endif
 
-#if defined(VARYINGS_NEED_COLOR)
+#ifdef VARYINGS_NEED_TEXCOORD0
+    output.vmesh.texCoord0 = inputMesh.uv0;
+#endif
+#ifdef VARYINGS_NEED_TEXCOORD1
+    output.vmesh.texCoord1 = inputMesh.uv1;
+#endif
+#ifdef VARYINGS_NEED_TEXCOORD2
+    output.vmesh.texCoord2 = inputMesh.uv2;
+#endif
+#ifdef VARYINGS_NEED_TEXCOORD3
+    output.vmesh.texCoord3 = inputMesh.uv3;
+#endif
+#ifdef VARYINGS_NEED_COLOR
     output.vmesh.color = inputMesh.color;
 #endif
 
@@ -80,7 +90,7 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     {
         // Apply diffuseColor Boost from LightmapSettings.
         // put abs here to silent a warning, no cost, no impact as color is assume to be positive.
-        res.rgb = Clamp(pow(abs(lightTransportData.diffuseColor), saturate(unity_OneOverOutputBoost)), 0, unity_MaxOutputValue);
+        res.rgb = clamp(pow(abs(lightTransportData.diffuseColor), saturate(unity_OneOverOutputBoost)), 0, unity_MaxOutputValue);
     }
 
     if (unity_MetaFragmentControl.y)
