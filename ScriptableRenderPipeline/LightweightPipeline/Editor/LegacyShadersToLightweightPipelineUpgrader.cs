@@ -4,7 +4,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 {
     public class LegacyShadersToLightweightPipelineUpgrader
     {
-        //[MenuItem("Edit/Render Pipeline/Lightweight/Upgrade/Upgrade Legacy Materials to Lightweight Pipeline (Project)", priority = CoreUtils.editMenuPriority)]
+        //[MenuItem("Edit/Render Pipeline/Upgrade/Lightweight/Upgrade Legacy Materials to Lightweight Pipeline (Project)", priority = CoreUtils.editMenuPriority)]
         //public static void UpgradeMaterialsToLDProject()
         //{
         //    List<MaterialUpgrader> materialUpgraders = new List<MaterialUpgrader>();
@@ -12,7 +12,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
         //    MaterialUpgrader.UpgradeProjectFolder(materialUpgraders, "Upgrade to LD Materials");
         //}
 
-        //[MenuItem("Edit/Render Pipeline/Lightweight/Upgrade/Upgrade Legacy Materials to Lightweight Pipeline (Selection)", priority = CoreUtils.editMenuPriority)]
+        //[MenuItem("Edit/Render Pipeline/Upgrade/Lightweight/Upgrade Legacy Materials to Lightweight Pipeline (Selection)", priority = CoreUtils.editMenuPriority)]
         //public static void UpgradeMaterialsToLDSelection()
         //{
         //    List<MaterialUpgrader> materialUpgraders = new List<MaterialUpgrader>();

@@ -9,7 +9,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
     public class HDRenderPipelineMenuItems
     {
-        [MenuItem("Edit/Render Pipeline/High Definition/Upgrade/Add \"Additional Light-shadow Data\" (if not present)", priority = CoreUtils.editMenuPriority)]
+        [MenuItem("Internal/HDRenderPipeline/Add \"Additional Light-shadow Data\" (if not present)")]
         static void AddAdditionalLightData()
         {
             var lights = UnityObject.FindObjectsOfType(typeof(Light)) as Light[];
@@ -25,7 +25,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/High Definition/Upgrade/Add \"Additional Camera Data\" (if not present)", priority = CoreUtils.editMenuPriority)]
+        [MenuItem("Internal/HDRenderPipeline/Add \"Additional Camera Data\" (if not present)")]
         static void AddAdditionalCameraData()
         {
             var cameras = UnityObject.FindObjectsOfType(typeof(Camera)) as Camera[];
@@ -58,7 +58,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // In case the shader code have change and the inspector have been update with new kind of keywords we need to regenerate the set of keywords use by the material.
         // This script will remove all keyword of a material and trigger the inspector that will re-setup all the used keywords.
         // It require that the inspector of the material have a static function call that update all keyword based on material properties.
-        [MenuItem("Internal/HDRenderPipeline/Test/Reset all materials keywords")]
+        [MenuItem("Edit/Render Pipeline/Upgrade/High Definition/Reset All Materials Keywords (Loaded Materials)", priority = CoreUtils.editMenuPriority2)]
         static void ResetAllMaterialKeywords()
         {
             try
@@ -81,7 +81,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("Internal/HDRenderPipeline/Test/Reset all materials keywords in project")]
+        [MenuItem("Edit/Render Pipeline/Upgrade/High Definition/Reset All Materials Keywords (Materials in Project)", priority = CoreUtils.editMenuPriority2)]
         static void ResetAllMaterialKeywordsInProject()
         {
             try
@@ -120,7 +120,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/High Definition/Upgrade/Update SSS Profile Indices", priority = CoreUtils.editMenuPriority)]
+        [MenuItem("Internal/HDRenderPipeline/Update/Update SSS profile indices")]
         static void UpdateSSSProfileIndices()
         {
             try
@@ -222,7 +222,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/High Definition/Tools/Export Sky to Image", priority = CoreUtils.editMenuPriority)]
+        [MenuItem("Edit/Render Pipeline/Tools/High Definition/Export Sky to Image", priority = CoreUtils.editMenuPriority2)]
         static void ExportSkyToImage()
         {
             var renderpipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
@@ -275,35 +275,35 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         class DoCreateNewAssetProceduralSkySettings : DoCreateNewAsset<ProceduralSkySettings> {}
         class DoCreateNewAssetSubsurfaceScatteringSettings : DoCreateNewAsset<SubsurfaceScatteringSettings> {}
 
-        [MenuItem("Assets/Create/Render Pipeline/High Definition/Common Settings")]
+        [MenuItem("Assets/Create/Render Pipeline/High Definition/Common Settings", priority = CoreUtils.assetCreateMenuPriority2)]
         static void MenuCreateCommonSettings()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetCommonSettings>(), "New CommonSettings.asset", icon, null);
         }
 
-        [MenuItem("Assets/Create/Render Pipeline/High Definition/Subsurface Scattering Settings")]
+        [MenuItem("Assets/Create/Render Pipeline/High Definition/Subsurface Scattering Settings", priority = CoreUtils.assetCreateMenuPriority2)]
         static void MenuCreateSubsurfaceScatteringProfile()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetSubsurfaceScatteringSettings>(), "New SSS Settings.asset", icon, null);
         }
 
-        [MenuItem("Assets/Create/Render Pipeline/High Definition/HDRISky Settings")]
+        [MenuItem("Assets/Create/Render Pipeline/High Definition/HDRISky Settings", priority = CoreUtils.assetCreateMenuPriority2)]
         static void MenuCreateHDRISkySettings()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetHDRISkySettings>(), "New HDRISkySettings.asset", icon, null);
         }
 
-        [MenuItem("Assets/Create/Render Pipeline/High Definition/BlacksmithSky Settings")]
+        [MenuItem("Assets/Create/Render Pipeline/High Definition/BlacksmithSky Settings", priority = CoreUtils.assetCreateMenuPriority2)]
         static void MenuCreateBlacksmithSkySettings()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetBlacksmithSkySettings>(), "New BlacksmithSkySettings.asset", icon, null);
         }
 
-        [MenuItem("Assets/Create/Render Pipeline/High Definition/ProceduralSky Settings")]
+        [MenuItem("Assets/Create/Render Pipeline/High Definition/ProceduralSky Settings", priority = CoreUtils.assetCreateMenuPriority2)]
         static void MenuCreateProceduralSkySettings()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");

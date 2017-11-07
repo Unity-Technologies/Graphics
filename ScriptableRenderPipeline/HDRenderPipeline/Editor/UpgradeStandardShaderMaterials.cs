@@ -14,19 +14,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return upgraders;
         }
 
-        [MenuItem("Edit/Render Pipeline/High Definition/Upgrade/Upgrade Standard Materials to Lit Materials (Project)", priority = CoreUtils.editMenuPriority)]
+        [MenuItem("Edit/Render Pipeline/Upgrade/High Definition/Upgrade Standard Materials to Lit Materials (Project)", priority = CoreUtils.editMenuPriority2)]
         static void UpgradeMaterialsProject()
         {
             MaterialUpgrader.UpgradeProjectFolder(GetHDUpgraders(), "Upgrade to HD Material");
         }
 
-        [MenuItem("Edit/Render Pipeline/High Definition/Upgrade/Upgrade Standard Materials to Lit Materials (Selection)", priority = CoreUtils.editMenuPriority)]
+        [MenuItem("Edit/Render Pipeline/Upgrade/High Definition/Upgrade Standard Materials to Lit Materials (Selection)", priority = CoreUtils.editMenuPriority2)]
         static void UpgradeMaterialsSelection()
         {
             MaterialUpgrader.UpgradeSelection(GetHDUpgraders(), "Upgrade to HD Material");
         }
 
-        [MenuItem("Edit/Render Pipeline/High Definition/Upgrade/Modify Light Intensity for Upgrade (Scene Only)", priority = CoreUtils.editMenuPriority)]
+        [MenuItem("Edit/Render Pipeline/Upgrade/High Definition/Modify Light Intensity for Upgrade (Scene Only)", priority = CoreUtils.editMenuPriority2)]
         static void UpgradeLights()
         {
             Light[] lights = Light.GetLights(LightType.Directional, 0);
