@@ -169,6 +169,7 @@ namespace UnityEditor.VFX.UI
             orientation = Orientation.Vertical;
         }
 
+        /*
         protected override void DrawEndpoint(Vector2 pos, bool start)
         {
             VFXFlowEdgePresenter edgePresenter = this.GetFirstAncestorOfType<Edge>().GetPresenter<VFXFlowEdgePresenter>();
@@ -184,7 +185,7 @@ namespace UnityEditor.VFX.UI
             {
                 VFXEdgeUtils.RenderTriangle(pos, 12, edgeColor);
             }
-        }
+        }*/
     }
 
 
