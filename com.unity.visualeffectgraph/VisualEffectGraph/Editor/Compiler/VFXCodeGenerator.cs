@@ -251,11 +251,11 @@ namespace UnityEditor.VFX
         {
             var definesToCode = new Dictionary<string, string>();
             var source = builder.ToString();
-            Regex beginRegex = new Regex("{\\$VFXBegin:(.*)}");
+            Regex beginRegex = new Regex("\\${VFXBegin:(.*)}");
 
             int currentPos = -1;
             int builderOffset = 0;
-            while ((currentPos = source.IndexOf("{$")) != -1)
+            while ((currentPos = source.IndexOf("${")) != -1)
             {
                 int endPos = source.IndexOf('}', currentPos);
                 if (endPos == -1)
@@ -275,20 +275,20 @@ namespace UnityEditor.VFX
                     var match = beginRegex.Match(source, currentPos, tag.Length);
                     if (match.Success)
                     {
-                        const string endStr = "{$VFXEnd}";
+                        const string endStr = "${VFXEnd}";
                         var macroStartPos = match.Index + match.Length;
                         var macroEndCodePos = source.IndexOf(endStr, macroStartPos);
                         if (macroEndCodePos == -1)
-                            throw new FormatException("{$VFXBegin} found without {$VFXEnd}");
+                            throw new FormatException("${VFXBegin} found without ${VFXEnd}");
 
-                        var defineStr = "{$" + match.Groups[1].Value + "}";
+                        var defineStr = "${" + match.Groups[1].Value + "}";
                         definesToCode[defineStr] = source.Substring(macroStartPos, macroEndCodePos - macroStartPos);
 
                         // Remove the define in builder
                         builder.Remove(match.Index + builderOffset, macroEndCodePos - match.Index + endStr.Length);
                     }
                     else
-                        throw new FormatException(string.Format("Invalid VFX tag found (Cannot be substituted): {0}", tag));
+                        throw new FormatException(string.Format("Invalid VFX tag found (Cannot be substituted): {0}\n{1}", tag, source));
                 }
 
                 builderOffset += currentPos;
