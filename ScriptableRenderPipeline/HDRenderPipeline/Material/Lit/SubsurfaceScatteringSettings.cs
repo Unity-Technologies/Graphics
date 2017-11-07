@@ -5,8 +5,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [GenerateHLSL]
     public class SssConstants
     {
-        public const int SSS_N_PROFILES           = 16;  // Max. number of profiles, including the slot taken by the neutral profile
-        public const int SSS_NEUTRAL_PROFILE_ID   = SSS_N_PROFILES - 1; // Does not result in blurring
+        public const int SSS_N_PROFILES           = 16; // Max. number of profiles, including the slot taken by the neutral profile
+        public const int SSS_NEUTRAL_PROFILE_ID   = 0;  // Does not result in blurring
         public const int SSS_N_SAMPLES_NEAR_FIELD = 55; // Used for extreme close ups; must be a Fibonacci number
         public const int SSS_N_SAMPLES_FAR_FIELD  = 21; // Used at a regular distance; must be a Fibonacci number
         public const int SSS_LOD_THRESHOLD        = 4;  // The LoD threshold of the near-field kernel (in pixels)
@@ -125,35 +125,35 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // We importance sample the color channel with the widest scattering distance.
             float s = Mathf.Min(shapeParam.x, shapeParam.y, shapeParam.z);
 
-            // Importance sample the normalized diffusion profile for the computed value of 's'.
+            // Importance sample the normalized diffuse reflectance profile for the computed value of 's'.
             // ------------------------------------------------------------------------------------
-            // R(r, s)   = s * (Exp[-r * s] + Exp[-r * s / 3]) / (8 * Pi * r)
-            // PDF(r, s) = s * (Exp[-r * s] + Exp[-r * s / 3]) / 4
-            // CDF(r, s) = 1 - 1/4 * Exp[-r * s] - 3/4 * Exp[-r * s / 3]
+            // R[r, phi, s]   = s * (Exp[-r * s] + Exp[-r * s / 3]) / (8 * Pi * r)
+            // PDF[r, phi, s] = r * R[r, phi, s]
+            // CDF[r, s]      = 1 - 1/4 * Exp[-r * s] - 3/4 * Exp[-r * s / 3]
             // ------------------------------------------------------------------------------------
 
             // Importance sample the near field kernel.
             for (int i = 0, n = SssConstants.SSS_N_SAMPLES_NEAR_FIELD; i < n; i++)
             {
                 float p = (i + 0.5f) * (1f / n);
-                float r = KernelCdfInverse(p, s);
+                float r = DisneyProfileCdfInverse(p, s);
 
                 // N.b.: computation of normalized weights, and multiplication by the surface albedo
                 // of the actual geometry is performed at runtime (in the shader).
                 filterKernelNearField[i].x = r;
-                filterKernelNearField[i].y = 1f / KernelPdf(r, s);
+                filterKernelNearField[i].y = 1f / DisneyProfilePdf(r, s);
             }
 
             // Importance sample the far field kernel.
             for (int i = 0, n = SssConstants.SSS_N_SAMPLES_FAR_FIELD; i < n; i++)
             {
                 float p = (i + 0.5f) * (1f / n);
-                float r = KernelCdfInverse(p, s);
+                float r = DisneyProfileCdfInverse(p, s);
 
                 // N.b.: computation of normalized weights, and multiplication by the surface albedo
                 // of the actual geometry is performed at runtime (in the shader).
                 filterKernelFarField[i].x = r;
-                filterKernelFarField[i].y = 1f / KernelPdf(r, s);
+                filterKernelFarField[i].y = 1f / DisneyProfilePdf(r, s);
             }
 
             maxRadius = filterKernelFarField[SssConstants.SSS_N_SAMPLES_FAR_FIELD - 1].x;
@@ -253,40 +253,34 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
         // <<< Old SSS Model
 
-        static float KernelVal(float r, float s)
+        static float DisneyProfile(float r, float s)
         {
             return s * (Mathf.Exp(-r * s) + Mathf.Exp(-r * s * (1.0f / 3.0f))) / (8.0f * Mathf.PI * r);
         }
 
-        // Computes the value of the integrand over a disk: (2 * PI * r) * KernelVal().
-        static float KernelValCircle(float r, float s)
+        static float DisneyProfilePdf(float r, float s)
         {
-            return 0.25f * s * (Mathf.Exp(-r * s) + Mathf.Exp(-r * s * (1.0f / 3.0f)));
+            return r * DisneyProfile(r, s);
         }
 
-        static float KernelPdf(float r, float s)
-        {
-            return KernelValCircle(r, s);
-        }
-
-        static float KernelCdf(float r, float s)
+        static float DisneyProfileCdf(float r, float s)
         {
             return 1.0f - 0.25f * Mathf.Exp(-r * s) - 0.75f * Mathf.Exp(-r * s * (1.0f / 3.0f));
         }
 
-        static float KernelCdfDerivative1(float r, float s)
+        static float DisneyProfileCdfDerivative1(float r, float s)
         {
             return 0.25f * s * Mathf.Exp(-r * s) * (1.0f + Mathf.Exp(r * s * (2.0f / 3.0f)));
         }
 
-        static float KernelCdfDerivative2(float r, float s)
+        static float DisneyProfileCdfDerivative2(float r, float s)
         {
             return (-1.0f / 12.0f) * s * s * Mathf.Exp(-r * s) * (3.0f + Mathf.Exp(r * s * (2.0f / 3.0f)));
         }
 
         // The CDF is not analytically invertible, so we use Halley's Method of root finding.
         // { f(r, s, p) = CDF(r, s) - p = 0 } with the initial guess { r = (10^p - 1) / s }.
-        static float KernelCdfInverse(float p, float s)
+        static float DisneyProfileCdfInverse(float p, float s)
         {
             // Supply the initial guess.
             float r = (Mathf.Pow(10f, p) - 1f) / s;
@@ -294,9 +288,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             while (true)
             {
-                float f0 = KernelCdf(r, s) - p;
-                float f1 = KernelCdfDerivative1(r, s);
-                float f2 = KernelCdfDerivative2(r, s);
+                float f0 = DisneyProfileCdf(r, s) - p;
+                float f1 = DisneyProfileCdfDerivative1(r, s);
+                float f2 = DisneyProfileCdfDerivative2(r, s);
                 float dr = f0 / (f1 * (1f - f0 * f2 / (2f * f1 * f1)));
 
                 if (Mathf.Abs(dr) < t)
@@ -393,16 +387,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void OnEnable()
         {
-            if (profiles != null && profiles.Length != SssConstants.SSS_NEUTRAL_PROFILE_ID)
-                Array.Resize(ref profiles, SssConstants.SSS_NEUTRAL_PROFILE_ID);
+            // The neutral profile is not a part of the array.
+            int profileArraySize = SssConstants.SSS_N_PROFILES - 1;
+
+            if (profiles != null && profiles.Length != profileArraySize)
+                Array.Resize(ref profiles, profileArraySize);
 
             if (profiles == null)
-                profiles = new SubsurfaceScatteringProfile[SssConstants.SSS_NEUTRAL_PROFILE_ID];
+                profiles = new SubsurfaceScatteringProfile[profileArraySize];
 
-            for (int i = 0; i < SssConstants.SSS_NEUTRAL_PROFILE_ID; i++)
+            for (int i = 0; i < profileArraySize; i++)
             {
                 if (profiles[i] == null)
-                    profiles[i] = new SubsurfaceScatteringProfile("Profile " + i);
+                    profiles[i] = new SubsurfaceScatteringProfile("Profile " + (i + 1));
 
                 profiles[i].Validate();
             }
@@ -418,7 +415,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ValidateArray(ref halfRcpVariancesAndWeights, SssConstants.SSS_N_PROFILES * 2);
             ValidateArray(ref filterKernelsBasic,         SssConstants.SSS_N_PROFILES * SssConstants.SSS_BASIC_N_SAMPLES);
 
-            Debug.Assert(SssConstants.SSS_NEUTRAL_PROFILE_ID < 16, "Transmission flags (32-bit integer) cannot support more than 16 profiles.");
+            Debug.Assert(SssConstants.SSS_NEUTRAL_PROFILE_ID < 16, "Transmission flags (32-bit integer) cannot support more than 16 profiles (2 bits per profile).");
 
             UpdateCache();
         }
@@ -461,50 +458,53 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // <<< Old SSS Model
         }
 
-        public void UpdateCache(int i)
+        public void UpdateCache(int p)
         {
+            // 'p' is the profile array index. 'i' is the index in the shader (accounting for the neutral profile).
+            int i = p + 1;
+
             // Erase previous value (This need to be done here individually as in the SSS editor we edit individual component)
             int mask = 1 << i;
             texturingModeFlags &= ~mask;
             mask = 3 << i * 2;
             transmissionFlags &= ~mask;
 
-            texturingModeFlags |= (int)profiles[i].texturingMode        << i;
-            transmissionFlags   |= (int)profiles[i].transmissionMode    << i * 2;
+            texturingModeFlags |= (int)profiles[p].texturingMode    << i;
+            transmissionFlags  |= (int)profiles[p].transmissionMode << i * 2;
 
-            thicknessRemaps[i]   = new Vector4(profiles[i].thicknessRemap.x, profiles[i].thicknessRemap.y - profiles[i].thicknessRemap.x, 0f, 0f);
-            worldScales[i]       = new Vector4(profiles[i].worldScale, 0f, 0f, 0f);
-            shapeParams[i]       = profiles[i].shapeParam;
-            shapeParams[i].w     = profiles[i].maxRadius;
-            transmissionTints[i] = profiles[i].transmissionTint * 0.25f; // Premultiplied
+            thicknessRemaps[i]   = new Vector4(profiles[p].thicknessRemap.x, profiles[p].thicknessRemap.y - profiles[p].thicknessRemap.x, 0f, 0f);
+            worldScales[i]       = new Vector4(profiles[p].worldScale, 0f, 0f, 0f);
+            shapeParams[i]       = profiles[p].shapeParam;
+            shapeParams[i].w     = profiles[p].maxRadius;
+            transmissionTints[i] = profiles[p].transmissionTint * 0.25f; // Premultiplied
 
             for (int j = 0, n = SssConstants.SSS_N_SAMPLES_NEAR_FIELD; j < n; j++)
             {
-                filterKernels[n * i + j].x = profiles[i].filterKernelNearField[j].x;
-                filterKernels[n * i + j].y = profiles[i].filterKernelNearField[j].y;
+                filterKernels[n * i + j].x = profiles[p].filterKernelNearField[j].x;
+                filterKernels[n * i + j].y = profiles[p].filterKernelNearField[j].y;
 
                 if (j < SssConstants.SSS_N_SAMPLES_FAR_FIELD)
                 {
-                    filterKernels[n * i + j].z = profiles[i].filterKernelFarField[j].x;
-                    filterKernels[n * i + j].w = profiles[i].filterKernelFarField[j].y;
+                    filterKernels[n * i + j].z = profiles[p].filterKernelFarField[j].x;
+                    filterKernels[n * i + j].w = profiles[p].filterKernelFarField[j].y;
                 }
             }
 
             // Old SSS Model >>>
-            halfRcpWeightedVariances[i] = profiles[i].halfRcpWeightedVariances;
+            halfRcpWeightedVariances[i] = profiles[p].halfRcpWeightedVariances;
 
-            var stdDev1 = ((1f / 3f) * SssConstants.SSS_BASIC_DISTANCE_SCALE) * (Vector4)profiles[i].scatterDistance1;
-            var stdDev2 = ((1f / 3f) * SssConstants.SSS_BASIC_DISTANCE_SCALE) * (Vector4)profiles[i].scatterDistance2;
+            var stdDev1 = ((1f / 3f) * SssConstants.SSS_BASIC_DISTANCE_SCALE) * (Vector4)profiles[p].scatterDistance1;
+            var stdDev2 = ((1f / 3f) * SssConstants.SSS_BASIC_DISTANCE_SCALE) * (Vector4)profiles[p].scatterDistance2;
 
             // Multiply by 0.1 to convert from millimeters to centimeters. Apply the distance scale.
             // Rescale by 4 to counter rescaling of transmission tints.
             float a = 0.1f * SssConstants.SSS_BASIC_DISTANCE_SCALE;
-            halfRcpVariancesAndWeights[2 * i + 0] = new Vector4(a * a * 0.5f / (stdDev1.x * stdDev1.x), a * a * 0.5f / (stdDev1.y * stdDev1.y), a * a * 0.5f / (stdDev1.z * stdDev1.z), 4f * (1f - profiles[i].lerpWeight));
-            halfRcpVariancesAndWeights[2 * i + 1] = new Vector4(a * a * 0.5f / (stdDev2.x * stdDev2.x), a * a * 0.5f / (stdDev2.y * stdDev2.y), a * a * 0.5f / (stdDev2.z * stdDev2.z), 4f * profiles[i].lerpWeight);
+            halfRcpVariancesAndWeights[2 * i + 0] = new Vector4(a * a * 0.5f / (stdDev1.x * stdDev1.x), a * a * 0.5f / (stdDev1.y * stdDev1.y), a * a * 0.5f / (stdDev1.z * stdDev1.z), 4f * (1f - profiles[p].lerpWeight));
+            halfRcpVariancesAndWeights[2 * i + 1] = new Vector4(a * a * 0.5f / (stdDev2.x * stdDev2.x), a * a * 0.5f / (stdDev2.y * stdDev2.y), a * a * 0.5f / (stdDev2.z * stdDev2.z), 4f * profiles[p].lerpWeight);
 
             for (int j = 0, n = SssConstants.SSS_BASIC_N_SAMPLES; j < n; j++)
             {
-                filterKernelsBasic[n * i + j] = profiles[i].filterKernelBasic[j];
+                filterKernelsBasic[n * i + j] = profiles[p].filterKernelBasic[j];
             }
             // <<< Old SSS Model
         }

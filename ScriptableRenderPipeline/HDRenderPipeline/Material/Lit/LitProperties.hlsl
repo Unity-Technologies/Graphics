@@ -50,6 +50,9 @@ SAMPLER2D(sampler_ThicknessMap);
 TEXTURE2D(_SpecularColorMap);
 SAMPLER2D(sampler_SpecularColorMap);
 
+TEXTURE2D(_TransmittanceColorMap);
+SAMPLER2D(sampler_TransmittanceColorMap);
+
 #else
 
 // Set of users variables
@@ -116,6 +119,7 @@ float _ThicknessMultiplier;
 // In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
 // TODO: Fix the code in legacy unity so we can customize the beahvior for GI
 float3 _EmissionColor;
+float4 _EmissiveColorMap_ST;
 
 float4 _InvPrimScale; // Only XY are used
 
@@ -154,6 +158,7 @@ float _Anisotropy;
 int   _SubsurfaceProfile;
 float _SubsurfaceRadius;
 float _Thickness;
+float4 _ThicknessRemap;
 
 float _CoatCoverage;
 float _CoatIOR;
@@ -202,6 +207,7 @@ PROP_DECL(float, _HeightCenter);
 PROP_DECL(int, _SubsurfaceProfile);
 PROP_DECL(float, _SubsurfaceRadius);
 PROP_DECL(float, _Thickness);
+PROP_DECL(float4, _ThicknessRemap);
 
 PROP_DECL(float, _OpacityAsDensity);
 float _InheritBaseNormal1;

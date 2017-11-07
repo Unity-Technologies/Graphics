@@ -245,14 +245,16 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
     surfaceData.subsurfaceProfile = ADD_IDX(_SubsurfaceProfile);
     surfaceData.subsurfaceRadius = ADD_IDX(_SubsurfaceRadius);
-    surfaceData.thickness = ADD_IDX(_Thickness);
 
 #ifdef _SUBSURFACE_RADIUS_MAP_IDX
     surfaceData.subsurfaceRadius *= SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_SubsurfaceRadiusMap), SAMPLER_SUBSURFACE_RADIUSMAP_IDX, ADD_IDX(layerTexCoord.base)).r;
 #endif
 
 #ifdef _THICKNESSMAP_IDX
-    surfaceData.thickness *= SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_ThicknessMap), SAMPLER_THICKNESSMAP_IDX, ADD_IDX(layerTexCoord.base)).r;
+    surfaceData.thickness = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_ThicknessMap), SAMPLER_THICKNESSMAP_IDX, ADD_IDX(layerTexCoord.base)).r;
+    surfaceData.thickness = ADD_IDX(_ThicknessRemap).x + ADD_IDX(_ThicknessRemap).y * surfaceData.thickness;
+#else
+    surfaceData.thickness = ADD_IDX(_Thickness);
 #endif
 
     // This part of the code is not used in case of layered shader but we keep the same macro system for simplicity
@@ -299,6 +301,10 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #if HAS_REFRACTION
     surfaceData.ior = _IOR;
     surfaceData.transmittanceColor = _TransmittanceColor;
+    #ifdef _TRANSMITTANCECOLORMAP
+    surfaceData.transmittanceColor *= SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_TransmittanceColorMap), ADD_ZERO_IDX(sampler_TransmittanceColorMap), ADD_IDX(layerTexCoord.base)).rgb;
+    #endif
+
     surfaceData.atDistance = _ATDistance;
     // Thickness already defined with SSS (from both thickness and thicknessMap)
     surfaceData.thickness *= _ThicknessMultiplier;
