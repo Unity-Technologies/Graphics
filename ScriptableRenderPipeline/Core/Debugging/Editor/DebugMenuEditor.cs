@@ -8,7 +8,7 @@ namespace UnityEngine.Experimental.Rendering
         [SerializeField]
         private DebugMenuState m_DebugMenuState;
 
-        [MenuItem("Edit/Render Pipeline/High Definition/Tools/Debug Window", priority = CoreUtils.editMenuPriority)]
+        [MenuItem("Edit/Render Pipeline/Tools/High Definition/Debug Window", priority = CoreUtils.editMenuPriority2)]
         static void DisplayDebugMenu()
         {
             var window = EditorWindow.GetWindow<DebugMenuEditor>("Debug Window");

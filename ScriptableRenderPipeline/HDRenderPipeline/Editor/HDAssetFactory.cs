@@ -13,7 +13,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             get { return HDEditorUtils.GetHDRenderPipelinePath() + "RenderPipelineResources/HDRenderPipelineResources.asset"; }
         }
 
-        [MenuItem("Assets/Create/Render Pipeline/High Definition/Render Pipeline", priority = CoreUtils.assetCreateMenuPriority)]
+        [MenuItem("Assets/Create/Render Pipeline/High Definition/Render Pipeline", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateHDRenderPipeline()
         {
             var instance = ScriptableObject.CreateInstance<HDRenderPipelineAsset>();
@@ -25,7 +25,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         // TODO skybox/cubemap
 
-        [MenuItem("Assets/Create/Render Pipeline/High Definition/Render Pipeline Resources")]
+        [MenuItem("Assets/Create/Render Pipeline/High Definition/Render Pipeline Resources", priority = CoreUtils.assetCreateMenuPriority2)]
         static void CreateRenderPipelineResources()
         {
             string HDRenderPipelinePath = HDEditorUtils.GetHDRenderPipelinePath();
