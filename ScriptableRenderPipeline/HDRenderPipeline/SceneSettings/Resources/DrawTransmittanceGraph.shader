@@ -11,7 +11,7 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 metal // TEMP: until we go further in dev
+            #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -64,7 +64,7 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
 
                 if (_UseDisneySSS)
                 {
-                    T = ComputeTransmittance(_ShapeParam.rgb, float3(0.25, 0.25, 0.25), d, 1);
+                    T = ComputeTransmittanceDisney(_ShapeParam.rgb, float3(0.25, 0.25, 0.25), d, 1);
                 }
                 else
                 {

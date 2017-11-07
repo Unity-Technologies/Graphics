@@ -2,10 +2,11 @@ Shader "HDRenderPipeline/Unlit"
 {
     Properties
     {
-        _Color("Color", Color) = (1,1,1,1)
-        _ColorMap("ColorMap", 2D) = "white" {}
+        // Be careful, do not change the name here to _Color. It will conflict with the "fake" parameters (see end of properties) required for GI.
+        _UnlitColor("Color", Color) = (1,1,1,1)
+        _UnlitColorMap("ColorMap", 2D) = "white" {}
 
-        _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
+        _EmissiveColor("EmissiveColor", Color) = (1, 1, 1)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
 
@@ -47,12 +48,17 @@ Shader "HDRenderPipeline/Unlit"
         // In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
         // TODO: Fix the code in legacy unity so we can customize the beahvior for GI
         _EmissionColor("Color", Color) = (1, 1, 1)
+        
+        // HACK: GI Baking system relies on some properties existing in the shader ("_MainTex", "_Cutoff" and "_Color") for opacity handling, so we need to store our version of those parameters in the hard-coded name the GI baking system recognizes.
+        _MainTex("Albedo", 2D) = "white" {}
+        _Color("Color", Color) = (1,1,1,1)
+        _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
     }
 
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 metal  // TEMP: until we go further in dev
+    #pragma only_renderers d3d11 ps4 vulkan metal  // TEMP: until we go further in dev
     //#pragma enable_d3d11_debug_symbols
 
     //-------------------------------------------------------------------------------------
@@ -115,7 +121,7 @@ Shader "HDRenderPipeline/Unlit"
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #include "../../Material/Material.hlsl"
-            #include "ShaderPass/UnlitMetaPass.hlsl"
+            #include "ShaderPass/UnlitSharePass.hlsl"
             #include "UnlitData.hlsl"
             #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
 

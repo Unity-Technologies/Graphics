@@ -70,6 +70,8 @@
 #include "API/D3D11_1.hlsl"
 #elif defined(SHADER_API_METAL)
 #include "API/Metal.hlsl"
+#elif defined(SHADER_API_VULKAN)
+#include "API/Vulkan.hlsl"
 #else
 #error unsupported shader api
 #endif
@@ -115,11 +117,13 @@ bool IsBitSet(uint data, uint bitPos)
     return BitFieldExtract(data, 1u, bitPos) != 0;
 }
 
-#ifndef INTRINSIC_CLAMP
-// TODO: should we force all clamp to be intrinsic by default ?
-// Some platform have one instruction clamp
-#define Clamp clamp
-#endif // INTRINSIC_CLAMP
+#ifndef INTRINSIC_WAVEREADFIRSTLANE
+// Warning: for correctness, the value you pass to the function must be constant across the wave!
+uint WaveReadFirstLane(uint scalarValue)
+{
+    return scalarValue;
+}
+#endif
 
 #ifndef INTRINSIC_MUL24
 int Mul24(int a, int b)
@@ -144,13 +148,6 @@ uint Mad24(uint a, uint b, uint c)
     return a * b + c;
 }
 #endif // INTRINSIC_MAD24
-
-#ifndef INTRINSIC_MED3
-float Med3(float a, float b, float c)
-{
-    return Clamp(a, b, c);
-}
-#endif // INTRINSIC_MED3
 
 #ifndef INTRINSIC_MINMAX3
 float Min3(float a, float b, float c)
@@ -278,12 +275,17 @@ void GetCubeFaceID(float3 dir, out int faceIndex)
 #define HALF_PI     1.57079632679
 #define INV_HALF_PI 0.636619772367
 #define INFINITY    asfloat(0x7F800000)
+#define LOG2_E      1.44269504089
 
 #define FLT_EPSILON 1.192092896e-07 // Smallest positive number, such that 1.0 + FLT_EPSILON != 1.0
 #define FLT_MIN     1.175494351e-38 // Minimum representable positive floating-point number
 #define FLT_MAX     3.402823466e+38 // Maximum representable floating-point number
 
 #define HFLT_MIN    0.00006103515625 // 2^14  it is the same for 10, 11 and 16bit float. ref: https://www.khronos.org/opengl/wiki/Small_Float_Formats
+
+#define SMALL_FLT_VALUE 0.0001
+
+// General constant
 
 float DegToRad(float deg)
 {

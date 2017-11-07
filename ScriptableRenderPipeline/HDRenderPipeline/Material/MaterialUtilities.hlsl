@@ -64,17 +64,27 @@ float3 SampleBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap
 #endif
 }
 
-// This function must be use instead of clip instruction. It allow to manage in which case the clip is perform
-void DoAlphaTest(float alpha, float alphaCutoff)
+float4 SampleShadowMask(float3 positionWS, float2 uvStaticLightmap) // normalWS not use for now
 {
-    // For Deferred:
-    // If we have a prepass, we need to remove the clip from the GBuffer pass (otherwise HiZ does not work on PS4) - SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
-    // For Forward (Lit or Unlit)
-    // Opaque geometry always has a depth pre-pass so we never want to do the clip here. For transparent we perform the clip as usual.
-    // Also no alpha test for light transport
-#if !(SHADERPASS == SHADERPASS_FORWARD && !defined(_SURFACE_TYPE_TRANSPARENT)) && !(SHADERPASS == SHADERPASS_FORWARD_UNLIT && !defined(_SURFACE_TYPE_TRANSPARENT)) && !defined(SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST) && !(SHADERPASS == SHADERPASS_LIGHT_TRANSPORT)
-    clip(alpha - alphaCutoff);
+#if defined(LIGHTMAP_ON)
+    float2 uv = uvStaticLightmap * unity_LightmapST.xy + unity_LightmapST.zw;
+    float4 rawOcclusionMask = SAMPLE_TEXTURE2D(unity_ShadowMask, samplerunity_Lightmap, uv); // Reuse sampler from Lightmap
+#else
+    float4 rawOcclusionMask;
+    if (unity_ProbeVolumeParams.x == 1.0)
+    {
+        // TODO: We use GetAbsolutePositionWS(positionWS) to handle the camera relative case here but this should be part of the unity_ProbeVolumeWorldToObject matrix on C++ side (sadly we can't modify it for HDRenderPipeline...)
+        rawOcclusionMask = SampleProbeOcclusion(TEXTURE3D_PARAM(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), GetAbsolutePositionWS(positionWS), unity_ProbeVolumeWorldToObject,
+                                                unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin, unity_ProbeVolumeSizeInv);
+    }
+    else
+    {
+        // Note: Default value when the feature is not enabled is float(1.0, 1.0, 1.0, 1.0) in C++
+        rawOcclusionMask = unity_ProbesOcclusion;
+    }
 #endif
+
+    return rawOcclusionMask;
 }
 
 float2 CalculateVelocity(float4 positionCS, float4 previousPositionCS)

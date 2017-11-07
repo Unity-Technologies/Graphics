@@ -420,11 +420,38 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // The fixup routine makes sure that the material is in the correct state if/when changes are made to the mode or color.
             MaterialEditor.FixupEmissiveFlag(material);
 
+            // Commented out for now because unfortunately we used the hard coded property names used by the GI system for our own parameters
+            // So we need a way to work around that before we activate this.
+            SetupMainTexForAlphaTestGI("_EmissiveColorMap", "_EmissiveColor", material);
+
             // DoubleSidedGI has to be synced with our double sided toggle
             var serializedObject = new SerializedObject(material);
             var doubleSidedGIppt = serializedObject.FindProperty("m_DoubleSidedGI");
             doubleSidedGIppt.boolValue = doubleSidedEnable;
             serializedObject.ApplyModifiedProperties();
+        }
+
+        // This is a hack for GI. PVR looks in the shader for a texture named "_MainTex" to extract the opacity of the material for baking. In the same manner, "_Cutoff" and "_Color" are also necessary.
+        // Since we don't have those parameters in our shaders we need to provide a "fake" useless version of them with the right values for the GI to work.
+        protected static void SetupMainTexForAlphaTestGI(string colorMapPropertyName, string colorPropertyName, Material material)
+        {
+            if (material.HasProperty(colorMapPropertyName))
+            {
+                var mainTex = material.GetTexture(colorMapPropertyName);
+                material.SetTexture("_MainTex", mainTex);
+            }
+
+            if (material.HasProperty(colorPropertyName))
+            {
+                var color = material.GetColor(colorPropertyName);
+                material.SetColor("_Color", color);
+            }
+
+            if (material.HasProperty("_AlphaCutoff")) // Same for all our materials
+            {
+                var cutoff = material.GetFloat("_AlphaCutoff");
+                material.SetFloat("_Cutoff", cutoff);
+            }
         }
 
         static public void SetupBaseUnlitMaterialPass(Material material)
