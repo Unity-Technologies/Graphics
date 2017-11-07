@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
 
@@ -42,6 +42,11 @@ namespace UnityEngine.Experimental.Rendering
 
         // Note: Color.Black have alpha channel set to 1. Most of the time we want alpha channel set to 0 as we use black to clear render target
         public static Color clearColorAllBlack { get { return new Color(0f, 0f, 0f, 0f); } }
+
+        public const int editMenuPriority1 = 320;
+        public const int editMenuPriority2 = 331;
+        public const int assetCreateMenuPriority1 = 230;
+        public const int assetCreateMenuPriority2 = 241;
 
         // Render Target Management.
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)

@@ -5,7 +5,7 @@ using UnityEditor;
 
 public class GraphicTestTools
 {
-    [MenuItem("GraphicTest Tools/Make Material Scene Instance")]
+    [MenuItem("Internal/GraphicTest Tools/Make Material Scene Instance")]
     public static void MakeMaterialSceneInstance()
     {
         foreach(Object obj in Selection.objects)
