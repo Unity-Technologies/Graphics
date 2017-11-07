@@ -18,6 +18,18 @@ namespace UnityEditor.VFX
             Runtime
         }
 
+        private static string GetIndent(string src, int index)
+        {
+            var indent = "";
+            index--;
+            while (index > 0 && (src[index] == ' ' || src[index] == '\t'))
+            {
+                indent = src[index] + indent;
+                index--;
+            }
+            return indent;
+        }
+
         //This function insure to keep padding while replacing a specific string
         private static void ReplaceMultiline(StringBuilder target, string targetQuery, StringBuilder value)
         {
@@ -38,20 +50,13 @@ namespace UnityEditor.VFX
                         break;
                     }
 
-                    var padding = "";
-                    index--;
-                    while (index > 0 && (targetCopy[index] == ' ' || targetCopy[index] == '\t'))
-                    {
-                        padding = targetCopy[index] + padding;
-                        index--;
-                    }
-
+                    var indent = GetIndent(targetCopy, index);
                     var currentValue = new StringBuilder();
                     foreach (var line in valueLines)
                     {
-                        currentValue.AppendLine(padding + line);
+                        currentValue.AppendLine(indent + line);
                     }
-                    target.Replace(padding + targetQuery, currentValue.ToString());
+                    target.Replace(indent + targetQuery, currentValue.ToString());
                 }
             }
         }
@@ -242,6 +247,55 @@ namespace UnityEditor.VFX
             return templateContent;
         }
 
+        static void SubstitudeMacros(StringBuilder builder)
+        {
+            var definesToCode = new Dictionary<string, string>();
+            var source = builder.ToString();
+            Regex beginRegex = new Regex("{\\$VFXBegin:(.*)}");
+
+            int currentPos = -1;
+            int builderOffset = 0;
+            while ((currentPos = source.IndexOf("{$")) != -1)
+            {
+                int endPos = source.IndexOf('}', currentPos);
+                if (endPos == -1)
+                    throw new FormatException("Ill-formed VFX tag (Missing closing brace");
+
+                var tag = source.Substring(currentPos, endPos - currentPos + 1);
+                // Replace any tag found
+                if (definesToCode.ContainsKey(tag))
+                {
+                    var macro = definesToCode[tag];
+                    builder.Remove(currentPos + builderOffset, tag.Length);
+                    var indentedMacro = macro.Replace("\n", "\n" + GetIndent(source, currentPos));
+                    builder.Insert(currentPos + builderOffset, indentedMacro);
+                }
+                else
+                {
+                    var match = beginRegex.Match(source, currentPos, tag.Length);
+                    if (match.Success)
+                    {
+                        const string endStr = "{$VFXEnd}";
+                        var macroStartPos = match.Index + match.Length;
+                        var macroEndCodePos = source.IndexOf(endStr, macroStartPos);
+                        if (macroEndCodePos == -1)
+                            throw new FormatException("{$VFXBegin} found without {$VFXEnd}");
+
+                        var defineStr = "{$" + match.Groups[1].Value + "}";
+                        definesToCode[defineStr] = source.Substring(macroStartPos, macroEndCodePos - macroStartPos);
+
+                        // Remove the define in builder
+                        builder.Remove(match.Index + builderOffset, macroEndCodePos - match.Index + endStr.Length);
+                    }
+                    else
+                        throw new FormatException(string.Format("Invalid VFX tag found (Cannot be substituted): {0}", tag));
+                }
+
+                builderOffset += currentPos;
+                source = builder.ToString(builderOffset, builder.Length - builderOffset);
+            }
+        }
+
         static private void Build(VFXContext context, string templatePath, StringBuilder stringBuilder, VFXContextCompiledData contextData)
         {
             var dependencies = new HashSet<Object>();
@@ -387,6 +441,9 @@ namespace UnityEditor.VFX
             {
                 ReplaceMultiline(stringBuilder, addionnalReplacement.Key, addionnalReplacement.Value.builder);
             }
+
+            // Replace defines
+            SubstitudeMacros(stringBuilder);
 
             Debug.LogFormat("GENERATED_OUTPUT_FILE_FOR : {0}\n{1}", context.ToString(), stringBuilder.ToString());
         }
