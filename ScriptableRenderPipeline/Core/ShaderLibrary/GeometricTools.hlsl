@@ -142,7 +142,7 @@ bool CullTriangleBackFace(float3 p0, float3 p1, float3 p2, float epsilon, float3
     // Optimize:
     // NdotV / (length(N) * length(V)) < Epsilon
     // NdotV < Epsilon * length(N) * length(V)
-    // NdotV < Epsilon * sqrt(dot(N, N) * sqrt(dot(V, V)
+    // NdotV < Epsilon * sqrt(dot(N, N)) * sqrt(dot(V, V))
     // NdotV < Epsilon * sqrt(dot(N, N) * dot(V, V))
     return NdotV < epsilon * sqrt(dot(N, N) * dot(V, V));
 }
