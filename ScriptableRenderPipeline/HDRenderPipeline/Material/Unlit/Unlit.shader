@@ -121,7 +121,7 @@ Shader "HDRenderPipeline/Unlit"
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #include "../../Material/Material.hlsl"
-            #include "ShaderPass/UnlitMetaPass.hlsl"
+            #include "ShaderPass/UnlitSharePass.hlsl"
             #include "UnlitData.hlsl"
             #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
 

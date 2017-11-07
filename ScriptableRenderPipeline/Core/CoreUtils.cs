@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
 
@@ -18,6 +18,9 @@ namespace UnityEngine.Experimental.Rendering
 
     public static class CoreUtils
     {
+        // Note: Color.Black have alpha channel set to 1. Most of the time we want alpha channel set to 0 as we use black to clear render target
+        public static Color clearColorAllBlack { get { return new Color(0f, 0f, 0f, 0f); } }
+
         public const int editMenuPriority1 = 320;
         public const int editMenuPriority2 = 331;
         public const int assetCreateMenuPriority1 = 230;
@@ -34,17 +37,17 @@ namespace UnityEngine.Experimental.Rendering
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, ClearFlag clearFlag = ClearFlag.None, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
-            SetRenderTarget(cmd, buffer, clearFlag, Color.black, miplevel, cubemapFace);
+            SetRenderTarget(cmd, buffer, clearFlag, clearColorAllBlack, miplevel, cubemapFace);
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
-            SetRenderTarget(cmd, colorBuffer, depthBuffer, ClearFlag.None, Color.black, miplevel, cubemapFace);
+            SetRenderTarget(cmd, colorBuffer, depthBuffer, ClearFlag.None, clearColorAllBlack, miplevel, cubemapFace);
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
-            SetRenderTarget(cmd, colorBuffer, depthBuffer, clearFlag, Color.black, miplevel, cubemapFace);
+            SetRenderTarget(cmd, colorBuffer, depthBuffer, clearFlag, clearColorAllBlack, miplevel, cubemapFace);
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
@@ -57,12 +60,12 @@ namespace UnityEngine.Experimental.Rendering
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer)
         {
-            SetRenderTarget(cmd, colorBuffers, depthBuffer, ClearFlag.None, Color.black);
+            SetRenderTarget(cmd, colorBuffers, depthBuffer, ClearFlag.None, clearColorAllBlack);
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag = ClearFlag.None)
         {
-            SetRenderTarget(cmd, colorBuffers, depthBuffer, clearFlag, Color.black);
+            SetRenderTarget(cmd, colorBuffers, depthBuffer, clearFlag, clearColorAllBlack);
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor)
@@ -76,7 +79,7 @@ namespace UnityEngine.Experimental.Rendering
         public static void ClearCubemap(CommandBuffer cmd, RenderTargetIdentifier buffer, Color clearColor)
         {
             for(int i = 0; i < 6; ++i)
-                SetRenderTarget(cmd, buffer, ClearFlag.Color, Color.black, 0, (CubemapFace)i);
+                SetRenderTarget(cmd, buffer, ClearFlag.Color, clearColorAllBlack, 0, (CubemapFace)i);
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full screen quad.
@@ -155,6 +158,15 @@ namespace UnityEngine.Experimental.Rendering
             return mat;
         }
 
+        public static void SetKeyword(CommandBuffer cmd, string keyword, bool state)
+        {
+            if (state)
+                cmd.EnableShaderKeyword(keyword);
+            else
+                cmd.DisableShaderKeyword(keyword);
+        }
+
+        // Caution: such a call should not be use interlaced with command buffer command, as it is immediate
         public static void SetKeyword(Material m, string keyword, bool state)
         {
             if (state)

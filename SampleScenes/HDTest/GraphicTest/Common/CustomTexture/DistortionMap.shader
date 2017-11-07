@@ -1,4 +1,4 @@
-﻿Shader "Hidden/HDRenderPipeline/Test/DistortionMap"{
+Shader "Hidden/HDRenderPipeline/Test/DistortionMap"{
     Properties
     {
         _Size("Size", Float) = 1
@@ -206,7 +206,7 @@
                 float2 distortion = s.xy * _DistortionAmplitude;
                 float blur = s.z;
 
-                return float4(distortion, blur, 1.0);
+                return float4(distortion * 0.5 + 0.5, blur, 1.0);
             }
             ENDCG
         }
@@ -233,7 +233,7 @@
                 
                 float blur = (min(t, 1-t) * 2);
 
-                return float4(distortion, blur, 1.0);
+                return float4(distortion * 0.5 + 0.5, blur, 1.0);
             }
             ENDCG
         }
@@ -267,7 +267,7 @@
 
                 float blur = v;
 
-                return float4(distortion, blur, 1.0);
+                return float4(distortion * 0.5 + 0.5, blur, 1.0);
             }
             ENDCG
         }
