@@ -312,7 +312,7 @@ namespace UnityEditor.VFX.UI
                 if (asset != null)
                 {
                     asset.rendererSettings = settings;
-                    VFXViewPresenter.viewPresenter.GetGraph().SetExpressionGraphDirty();
+                    presenter.GetGraph().SetExpressionGraphDirty();
                 }
             }
         }
@@ -342,18 +342,6 @@ namespace UnityEditor.VFX.UI
             var graph = GetPresenter<VFXViewPresenter>().GetGraph();
             graph.SetExpressionGraphDirty();
             graph.RecompileIfNeeded();
-        }
-
-        public override void OnDataChanged()
-        {
-            base.OnDataChanged();
-            if (presenter != null)
-            {
-                m_ToggleMotionVectors.on = GetRendererSettings().motionVectorGenerationMode == MotionVectorGenerationMode.Object;
-                m_ToggleMotionVectors.SetEnabled(true);
-            }
-            else
-                m_ToggleMotionVectors.SetEnabled(false);
         }
 
         void AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
@@ -495,6 +483,9 @@ namespace UnityEditor.VFX.UI
 
             if (presenter != null)
             {
+                m_ToggleMotionVectors.on = GetRendererSettings().motionVectorGenerationMode == MotionVectorGenerationMode.Object;
+                m_ToggleMotionVectors.SetEnabled(true);
+
                 // if the asset dis destroy somehow, fox example if the user delete the asset, delete the presenter and update the window.
                 VFXAsset asset = presenter.GetVFXAsset();
                 if (asset == null)
@@ -505,6 +496,10 @@ namespace UnityEditor.VFX.UI
                     this.presenter = null; // this recall OnDataChanged recursively;
                     return;
                 }
+            }
+            else
+            {
+                m_ToggleMotionVectors.SetEnabled(false);
             }
 
             if (presenter != null)
