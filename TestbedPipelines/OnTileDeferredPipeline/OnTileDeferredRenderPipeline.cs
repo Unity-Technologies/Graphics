@@ -912,7 +912,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 					m_LightData[i].x = LightDefinitions.SPHERE_LIGHT;
 
 					if (light.light.cookie != null)
-						m_LightData[i].z = m_CubeCookieTexArray.FetchSlice(light.light.cookie);
+						m_LightData[i].z = m_CubeCookieTexArray.FetchSlice(cmd, light.light.cookie);
 
 				} else if (light.lightType == LightType.Spot) {
 					m_LightData[i].x = LightDefinitions.SPOT_LIGHT;
@@ -923,9 +923,9 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 					m_LightMatrix[i] = SpotlightMatrix (light, worldToLight, range, chsa); 
 
 					if (light.light.cookie != null)
-						m_LightData[i].z = m_CookieTexArray.FetchSlice (light.light.cookie);
+						m_LightData[i].z = m_CookieTexArray.FetchSlice (cmd, light.light.cookie);
 					else
-						m_LightData [i].z = m_CookieTexArray.FetchSlice (m_DefaultSpotCookie);
+						m_LightData [i].z = m_CookieTexArray.FetchSlice (cmd, m_DefaultSpotCookie);
 					
 				} else if (light.lightType == LightType.Directional) {
 					m_LightData[i].x = LightDefinitions.DIRECTIONAL_LIGHT;
@@ -934,7 +934,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 					m_LightMatrix[i] = DirectionalLightmatrix (light, worldToLight);
 
 					if (light.light.cookie != null)
-						m_LightData[i].z = m_CookieTexArray.FetchSlice (light.light.cookie);
+						m_LightData[i].z = m_CookieTexArray.FetchSlice (cmd, light.light.cookie);
 
 				}
 			}
@@ -993,7 +993,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 				lgtData.lightIntensity = decodeVals.x;
 				lgtData.decodeExp = decodeVals.y;
 
-				lgtData.sliceIndex = m_CubeReflTexArray.FetchSlice(cubemap);
+				lgtData.sliceIndex = m_CubeReflTexArray.FetchSlice(cmd, cubemap);
 
 				var delta = combinedExtent - e;
 				lgtData.boxInnerDist = e;

@@ -1,4 +1,4 @@
-using UnityEngine.Rendering;
+﻿using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System;
 
@@ -306,8 +306,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             static Texture2DArray m_DefaultTexture2DArray;
 
-            TextureCacheCubemap m_CubeReflTexArray;
-            int m_CubeReflTexArraySize = 128;
+            ReflectionProbeCache m_ReflectionProbeCache;
+            int m_ReflectionProbeCacheSize = 128;
             TextureCache2D m_CookieTexArray;
             int m_CookieTexArraySize = 16;
             TextureCacheCubemap m_CubeCookieTexArray;
@@ -490,7 +490,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public LightLoop()
             {}
 
-            public void Build(RenderPipelineResources renderPipelineResources, TileSettings tileSettings, TextureSettings textureSettings, ShadowInitParameters shadowInit, ShadowSettings shadowSettings)
+            public void Build(RenderPipelineResources renderPipelineResources, TileSettings tileSettings, TextureSettings textureSettings, ShadowInitParameters shadowInit, ShadowSettings shadowSettings, IBLFilterGGX iblFilterGGX)
             {
                 m_Resources = renderPipelineResources;
                 m_TileSettings = tileSettings;
@@ -507,8 +507,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_CookieTexArray.AllocTextureArray(m_CookieTexArraySize, textureSettings.spotCookieSize, textureSettings.spotCookieSize, TextureFormat.RGBA32, true);
                 m_CubeCookieTexArray = new TextureCacheCubemap();
                 m_CubeCookieTexArray.AllocTextureArray(m_CubeCookieTexArraySize, textureSettings.pointCookieSize, TextureFormat.RGBA32, true);
-                m_CubeReflTexArray = new TextureCacheCubemap();
-                m_CubeReflTexArray.AllocTextureArray(m_CubeReflTexArraySize, textureSettings.reflectionCubemapSize, TextureCache.GetPreferredHdrCompressedTextureFormat, true);
+
+                m_ReflectionProbeCache = new ReflectionProbeCache(iblFilterGGX, m_ReflectionProbeCacheSize, textureSettings.reflectionCubemapSize, TextureCache.GetPreferredHdrCompressedTextureFormat, true);
 
                 s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
 
@@ -626,10 +626,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 CoreUtils.SafeRelease(s_EnvLightDatas);
                 CoreUtils.SafeRelease(s_shadowDatas);
 
-                if (m_CubeReflTexArray != null)
+                if (m_ReflectionProbeCache != null)
                 {
-                    m_CubeReflTexArray.Release();
-                    m_CubeReflTexArray = null;
+                    m_ReflectionProbeCache.Release();
+                    m_ReflectionProbeCache = null;
                 }
                 if (m_CookieTexArray != null)
                 {
@@ -676,7 +676,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_CookieTexArray.NewFrame();
                 m_CubeCookieTexArray.NewFrame();
-                m_CubeReflTexArray.NewFrame();
+                m_ReflectionProbeCache.NewFrame();
             }
 
             public bool NeedResize()
@@ -765,7 +765,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return new Vector3(light.finalColor.r, light.finalColor.g, light.finalColor.b);
             }
 
-            public bool GetDirectionalLightData(ShadowSettings shadowSettings, GPULightType gpuLightType, VisibleLight light, HDAdditionalLightData additionalData, AdditionalShadowData additionalShadowData, int lightIndex)
+            public bool GetDirectionalLightData(CommandBuffer cmd, ShadowSettings shadowSettings, GPULightType gpuLightType, VisibleLight light, HDAdditionalLightData additionalData, AdditionalShadowData additionalShadowData, int lightIndex)
             {
                 var directionalLightData = new DirectionalLightData();
 
@@ -788,7 +788,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (light.light.cookie != null)
                 {
                     directionalLightData.tileCookie = light.light.cookie.wrapMode == TextureWrapMode.Repeat;
-                    directionalLightData.cookieIndex = m_CookieTexArray.FetchSlice(light.light.cookie);
+                    directionalLightData.cookieIndex = m_CookieTexArray.FetchSlice(cmd, light.light.cookie);
                 }
                 // fix up shadow information
                 int shadowIdx;
@@ -843,7 +843,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return 1.0f - Mathf.Clamp01(distanceToCamera * scale + bias);
             }
 
-            public bool GetLightData(ShadowSettings shadowSettings, Camera camera, GPULightType gpuLightType, VisibleLight light, HDAdditionalLightData additionalLightData, AdditionalShadowData additionalshadowData, int lightIndex)
+            public bool GetLightData(CommandBuffer cmd, ShadowSettings shadowSettings, Camera camera, GPULightType gpuLightType, VisibleLight light, HDAdditionalLightData additionalLightData, AdditionalShadowData additionalshadowData, int lightIndex)
             {
                 var lightData = new LightData();
 
@@ -935,17 +935,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     switch (light.lightType)
                     {
                         case LightType.Spot:
-                            lightData.cookieIndex = m_CookieTexArray.FetchSlice(light.light.cookie);
+                            lightData.cookieIndex = m_CookieTexArray.FetchSlice(cmd, light.light.cookie);
                             break;
                         case LightType.Point:
-                            lightData.cookieIndex = m_CubeCookieTexArray.FetchSlice(light.light.cookie);
+                            lightData.cookieIndex = m_CubeCookieTexArray.FetchSlice(cmd, light.light.cookie);
                             break;
                     }
                 }
                 else if (light.lightType == LightType.Spot && additionalLightData.spotLightShape != SpotLightShape.Cone)
                 {
                     // Projectors lights must always have a cookie texture.
-                    lightData.cookieIndex = m_CookieTexArray.FetchSlice(Texture2D.whiteTexture);
+                    lightData.cookieIndex = m_CookieTexArray.FetchSlice(cmd, Texture2D.whiteTexture);
                 }
 
                 if (additionalshadowData)
@@ -1161,8 +1161,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_lightList.lightVolumes.Add(lightVolumeData);
             }
 
-            public void GetEnvLightData(VisibleReflectionProbe probe)
+            public bool GetEnvLightData(CommandBuffer cmd, VisibleReflectionProbe probe)
             {
+                int envIndex = m_ReflectionProbeCache.FetchSlice(cmd, probe.texture);
+                // -1 means that the texture is not ready yet (ie not convolved/compressed yet)
+                if (envIndex == -1)
+                    return false;
+
                 var envLightData = new EnvLightData();
 
                 // CAUTION: localToWorld is the transform for the widget of the reflection probe. i.e the world position of the point use to do the cubemap capture (mean it include the local offset)
@@ -1197,13 +1202,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 float maxBlendDist = Mathf.Min(probe.bounds.extents.x, Mathf.Min(probe.bounds.extents.y, probe.bounds.extents.z));
                 float blendDistance = Mathf.Min(maxBlendDist, probe.blendDistance);
                 envLightData.innerDistance = probe.bounds.extents - new Vector3(blendDistance, blendDistance, blendDistance);
-
-                envLightData.envIndex = m_CubeReflTexArray.FetchSlice(probe.texture);
-
+                envLightData.envIndex = envIndex;
                 envLightData.offsetLS = probe.center; // center is misnamed, it is the offset (in local space) from center of the bounding box to the cubemap capture point
                 envLightData.blendDistance = blendDistance;
 
                 m_lightList.envLights.Add(envLightData);
+
+                return true;
             }
 
             public void GetEnvLightVolumeDataAndBound(VisibleReflectionProbe probe, LightVolumeType lightVolumeType, Matrix4x4 worldToView)
@@ -1284,7 +1289,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Return true if BakedShadowMask are enabled
-            public bool PrepareLightsForGPU(ShadowSettings shadowSettings, CullResults cullResults, Camera camera)
+            public bool PrepareLightsForGPU(CommandBuffer cmd, ShadowSettings shadowSettings, CullResults cullResults, Camera camera)
             {
                 // If any light require it, we need to enabled bake shadow mask feature
                 m_enableBakeShadowMask = false;
@@ -1479,7 +1484,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Directional rendering side, it is separated as it is always visible so no volume to handle here
                         if (gpuLightType == GPULightType.Directional)
                         {
-                            if (GetDirectionalLightData(shadowSettings, gpuLightType, light, additionalLightData, additionalShadowData, lightIndex))
+                            if (GetDirectionalLightData(cmd, shadowSettings, gpuLightType, light, additionalLightData, additionalShadowData, lightIndex))
                             {
                                 directionalLightcount++;
 
@@ -1498,7 +1503,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
 
                         // Punctual, area, projector lights - the rendering side.
-                        if (GetLightData(shadowSettings, camera, gpuLightType, light, additionalLightData, additionalShadowData, lightIndex))
+                        if (GetLightData(cmd, shadowSettings, camera, gpuLightType, light, additionalLightData, additionalShadowData, lightIndex))
                         {
                             switch (lightCategory)
                             {
@@ -1585,8 +1590,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         VisibleReflectionProbe probe = cullResults.visibleReflectionProbes[probeIndex];
 
-                        GetEnvLightData(probe);
-
+                        if(GetEnvLightData(cmd, probe))
+                        {
                         GetEnvLightVolumeDataAndBound(probe, lightVolumeType, worldToView);
 
                         // We make the light position camera-relative as late as possible in order
@@ -1601,8 +1606,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                     }
 
-                    // Sanity check
-                    Debug.Assert(m_lightList.envLights.Count == envLightCount);
+                    }
 
                     // Restore values after "special rendering"
                     m_TileSettings.specularGlobalDimmer = oldSpecularGlobalDimmer;
@@ -1910,7 +1914,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 SetGlobalTexture(HDShaderIDs._CookieTextures, m_CookieTexArray.GetTexCache());
                 SetGlobalTexture(HDShaderIDs._CookieCubeTextures, m_CubeCookieTexArray.GetTexCache());
-                SetGlobalTexture(HDShaderIDs._EnvTextures, m_CubeReflTexArray.GetTexCache());
+                SetGlobalTexture(HDShaderIDs._EnvTextures, m_ReflectionProbeCache.GetTexCache());
 
                 SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, s_DirectionalLightDatas);
                 SetGlobalInt(HDShaderIDs._DirectionalLightCount, m_lightList.directionalLights.Count);

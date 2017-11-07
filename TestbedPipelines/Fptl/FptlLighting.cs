@@ -610,7 +610,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             return dirLightCount;
         }
 
-        int GenerateSourceLightBuffers(Camera camera, CullResults inputs)
+        int GenerateSourceLightBuffers(CommandBuffer cmd, Camera camera, CullResults inputs)
         {
             // 0. deal with shadows
             {
@@ -738,7 +738,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                     var isCircularSpot = !bHasCookie;
                     if (!isCircularSpot)    // square spots always have cookie
                     {
-                        light.sliceIndex = m_CookieTexArray.FetchSlice(cl.light.cookie);
+                        light.sliceIndex = m_CookieTexArray.FetchSlice(cmd, cl.light.cookie);
                     }
 
                     Vector3 lightDir = lightToWorld.GetColumn(2);   // Z axis in world space
@@ -812,7 +812,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 {
                     if (bHasCookie)
                     {
-                        light.sliceIndex = m_CubeCookieTexArray.FetchSlice(cl.light.cookie);
+                        light.sliceIndex = m_CubeCookieTexArray.FetchSlice(cmd, cl.light.cookie);
                     }
 
                     var lightToView = worldToView * lightToWorld;
@@ -920,7 +920,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 lgtData.lightIntensity = decodeVals.x;
                 lgtData.decodeExp = decodeVals.y;
 
-                lgtData.sliceIndex = m_CubeReflTexArray.FetchSlice(cubemap);
+                lgtData.sliceIndex = m_CubeReflTexArray.FetchSlice(cmd, cubemap);
 
                 var delta = combinedExtent - e;
                 lgtData.boxInnerDist = e;
@@ -1018,7 +1018,10 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             var invProjscr = projscr.inverse;
 
             // build per tile light lists
-            var numLights = GenerateSourceLightBuffers(camera, cullResults);
+            CommandBuffer cmdGenerateLightBuffers = CommandBufferPool.Get();
+            var numLights = GenerateSourceLightBuffers(cmdGenerateLightBuffers, camera, cullResults);
+            loop.ExecuteCommandBuffer(cmdGenerateLightBuffers);
+            CommandBufferPool.Release(cmdGenerateLightBuffers);
 
             GPUFence postLightListFence;
 
