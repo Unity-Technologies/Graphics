@@ -517,22 +517,20 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             lightData.shadowsRendered = false;
 
-            // We always support at least one per-pixel light, which is main light. Shade objects up to a limit of per-object
-            // pixel lights defined in the pipeline settings.
-            int maxSupportedPixelLights = Math.Min(m_Asset.MaxAdditionalPixelLights, kMaxPerObjectAdditionalLights) + 1;
-            int maxPixelLights = Math.Min(maxSupportedPixelLights, visibleLightsCount);
-
-            // If vertex lighting is enabled in the pipeline settings, then we shade the remaining visible lights per-vertex
-            // up to the maximum amount of per-object lights.
-            int vertexLights = (m_Asset.SupportsVertexLight) ? kMaxPerObjectAdditionalLights + 1 - maxPixelLights : 0;
-
             if (visibleLightsCount <= 1)
                 lightData.mainLightIndex = GetMainLight(visibleLights);
             else
                 lightData.mainLightIndex = SortLights(visibleLights);
 
-            lightData.pixelAdditionalLightsCount = Math.Max(0, maxPixelLights - 1);
-            lightData.totalAdditionalLightsCount = lightData.pixelAdditionalLightsCount + vertexLights;
+            // If we have a main light we don't shade it in the per-object light loop. We also remove it from the per-object cull list
+            int additionalLightsCount = (lightData.mainLightIndex > 0) ? visibleLightsCount - 1 : visibleLightsCount;
+            additionalLightsCount = Math.Min(additionalLightsCount, kMaxPerObjectAdditionalLights);
+
+            int pixelLightsCount = Math.Min(additionalLightsCount, m_Asset.MaxAdditionalPixelLights);
+            int vertexLightCount = (m_Asset.SupportsVertexLight) ? additionalLightsCount - pixelLightsCount : 0;
+
+            lightData.pixelAdditionalLightsCount = pixelLightsCount;
+            lightData.totalAdditionalLightsCount = pixelLightsCount + vertexLightCount;
         }
 
         private int SortLights(VisibleLight[] visibleLights)
