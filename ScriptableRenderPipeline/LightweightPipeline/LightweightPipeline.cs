@@ -426,7 +426,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
             // When post process or soft particles are enabled we disable msaa due to lack of depth resolve
             // One can still use PostFX AA
-            else if (m_CurrCamera.allowMSAA && m_Asset.MSAASampleCount > 1)
+            else if (m_Asset.MSAASampleCount > 1)
             {
                 configuration |= FrameRenderingConfiguration.Msaa;
                 intermediateTexture = !LightweightUtils.PlatformSupportsMSAABackBuffer();
@@ -449,7 +449,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             float renderScale = (m_CurrCamera.cameraType == CameraType.Game) ? m_Asset.RenderScale : 1.0f;
             int rtWidth = (int)((float)m_CurrCamera.pixelWidth * renderScale);
             int rtHeight = (int)((float)m_CurrCamera.pixelHeight * renderScale);
-            int msaaSamples = (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Msaa)) ? m_Asset.MSAASampleCount : 1;
+            int msaaSamples = (m_IsOffscreenCamera) ? Math.Min(m_CurrCamera.targetTexture.antiAliasing, m_Asset.MSAASampleCount) : m_Asset.MSAASampleCount;
+            msaaSamples = (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Msaa)) ? msaaSamples : 1;
 
             if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture))
             {

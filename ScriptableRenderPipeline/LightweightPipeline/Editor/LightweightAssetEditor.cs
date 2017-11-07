@@ -55,7 +55,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent defaultShader = new GUIContent("Default Shader",
                 "Shader to use when creating materials");
 
-            public static GUIContent msaaContent = new GUIContent("Anti Aliasing (MSAA)", "Controls the global anti aliasing quality. When set to disabled, MSAA will not be performed even if the camera allows it.");
+            public static GUIContent msaaContent = new GUIContent("Anti Aliasing (MSAA)", "Controls the global anti aliasing applied to all cameras.");
+
+            public static GUIContent msaaDisabledWarning = new GUIContent("MSAA is not supported when Soft Particles are enabled.");
         }
 
         private int kMaxSupportedAdditionalPixelLights = 8;
@@ -118,6 +120,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             EditorGUILayout.PropertyField(m_SupportsVertexLightProp, Styles.enableVertexLightLabel);
             EditorGUILayout.PropertyField(m_SupportSoftParticlesProp, Styles.enableSoftParticles);
             EditorGUILayout.PropertyField(m_MSAA, Styles.msaaContent);
+
+            if (m_SupportSoftParticlesProp.boolValue && m_MSAA.intValue > 1)
+                EditorGUILayout.HelpBox(Styles.msaaDisabledWarning.text, MessageType.Warning);
+
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
             EditorGUILayout.Space();
