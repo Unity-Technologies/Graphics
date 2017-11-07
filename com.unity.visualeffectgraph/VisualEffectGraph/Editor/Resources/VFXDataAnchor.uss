@@ -3,8 +3,6 @@
 .VFXDataAnchor
 {
 	-background-color:rgba(0,0,255,255);
-	im-border : 4;
-	im-padding : 2;
 	selected-field-background :resource("VFX/SelectedField");
 	flex-direction: row;
 	align-items: stretch;
@@ -84,7 +82,7 @@ VFXDataAnchor.Output #type
 	margin-top:5;
 	padding-top:0;
 	margin-left:0;
-	background-image:resource("VFX/connectors/unconnected-input");
+	-background-image:resource("VFX/connectors/unconnected-input");
 	border-radius:0;
 	width:10;
 	height:10;
@@ -94,16 +92,16 @@ VFXDataAnchor.Output #type
 	border-color:#212121;
 	position-right:10;
 	margin-top:2;
-	background-image:resource("VFX/connectors/unconnected-output");
+	-background-image:resource("VFX/connectors/unconnected-output");
 }
 
 .VFXDataAnchor #connector.anchorHighlight *
 {
-	background-image:resource("VFX/connectors/highlighted-input");
+	-background-image:resource("VFX/connectors/highlighted-input");
 }
 .VFXDataAnchor.Output #connector.anchorHighlight *
 {
-	background-image:resource("VFX/connectors/highlighted-output");
+	-background-image:resource("VFX/connectors/highlighted-output");
 }
 
 .VFXDataAnchor  #IMGUI
@@ -142,12 +140,12 @@ VFXOutputDataAnchor #type
 
 .VFXDataAnchor.connected > #connector
 {
-	background-image: resource("VFX/connectors/default-input");
+	-background-image: resource("VFX/connectors/default-input");
 }
 
 .VFXDataAnchor.connected.Output > #connector
 {
-	background-image: resource("VFX/connectors/default-output");
+	-background-image: resource("VFX/connectors/default-output");
 }
 
 
@@ -156,20 +154,20 @@ VFXOutputDataAnchor #type
 
 .node .VFXDataAnchor.selected.connected > #connector
 {
-	background-image: resource("VFX/connectors/selected-input");
+	-background-image: resource("VFX/connectors/selected-input");
 }
 
 .node .VFXDataAnchor.selected.connected.Output > #connector
 {
-	background-image: resource("VFX/connectors/selected-output");
+	-background-image: resource("VFX/connectors/selected-output");
 }
 
 .node.selected .VFXDataAnchor.selected.connected > #connector
 {
-	background-image: resource("VFX/connectors/selected-input-selected");
+	-background-image: resource("VFX/connectors/selected-input-selected");
 }
 
 .node.selected .VFXDataAnchor.selected.connected.Output > #connector
 {
-	background-image: resource("VFX/connectors/selected-output-selected");
+	-background-image: resource("VFX/connectors/selected-output-selected");
 }

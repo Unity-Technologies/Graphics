@@ -85,6 +85,7 @@ namespace UnityEditor.VFX.UI
             {
                 name = "Inside"
             };
+            m_InsideContainer.clippingOptions = ClippingOptions.ClipAndCacheContents;
 
             shadow.Add(m_NodeContainer);
 

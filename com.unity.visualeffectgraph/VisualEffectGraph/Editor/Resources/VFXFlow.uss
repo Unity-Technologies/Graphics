@@ -22,6 +22,11 @@ VFXFlowAnchor.EdgeConnector {
 	background-image:resource("VFX/flow-anchor");
 }
 
+VFXFlowAnchor #connector #hole #cap{
+	width:0;
+	height:0;
+}
+
 VFXFlowAnchor #connector{
 	position-type:absolute;
 	position-left:0;
