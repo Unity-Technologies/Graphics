@@ -18,6 +18,26 @@
 }
 
 
+.VFXDataAnchor #connector #hole
+{
+	position-type:absolute;
+	position-right:0;
+	position-left:0;
+	position-top:0;
+	position-bottom:0;
+}
+.VFXDataAnchor #connector #hole #cap
+{
+	position-type:absolute;
+	position-right:0;
+	position-left:0;
+	position-top:0;
+	position-bottom:0;
+	width:-1;
+	height:-1;
+}
+
+
 .VFXDataAnchor.invisible
 {
 	max-height:0;
