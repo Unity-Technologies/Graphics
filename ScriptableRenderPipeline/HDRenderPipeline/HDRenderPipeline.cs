@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine.Rendering;
 using System;
 using System.Diagnostics;
@@ -118,6 +118,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Material m_CopyStencilForRegularLighting;
         GPUCopy m_GPUCopy;
 
+        IBLFilterGGX m_IBLFilterGGX = null;
+
         // Various set of material use in render loop
         ComputeShader m_SubsurfaceScatteringCS { get { return m_Asset.renderPipelineResources.subsurfaceScatteringCS; } }
         int m_SubsurfaceScatteringKernel;
@@ -181,7 +183,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderTargetIdentifier m_CameraStencilBufferCopyRT;
         RenderTargetIdentifier m_HTileRT;
 
-        // The pass "SRPDefaultUnlit" is a fall back to legacy unlit rendering and is required to support unity 2d + unity UI that render in the scene.
+        // The pass "SRPDefaultUnlit" is a fallback to legacy unlit rendering and is required to support unity 2d + unity UI that render in the scene.
         ShaderPassName[] m_ForwardAndForwardOnlyPassNames = { new ShaderPassName(), new ShaderPassName(), HDShaderPassNames.s_SRPDefaultUnlitName};
         ShaderPassName[] m_ForwardOnlyPassNames = { new ShaderPassName(), HDShaderPassNames.s_SRPDefaultUnlitName};
         ShaderPassName[] m_DepthOnlyAndDepthForwardOnlyPassNames = { HDShaderPassNames.s_DepthForwardOnlyName, HDShaderPassNames.s_DepthOnlyName };
@@ -345,9 +347,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_MaterialList.ForEach(material => material.Build(asset.renderPipelineResources));
 
-            m_LightLoop.Build(asset.renderPipelineResources, asset.tileSettings, asset.textureSettings, asset.shadowInitParams, m_ShadowSettings);
+            m_IBLFilterGGX = new IBLFilterGGX(asset.renderPipelineResources);
 
-            m_SkyManager.Build(asset.renderPipelineResources);
+            m_LightLoop.Build(asset.renderPipelineResources, asset.tileSettings, asset.textureSettings, asset.shadowInitParams, m_ShadowSettings, m_IBLFilterGGX);
+
+            m_SkyManager.Build(asset.renderPipelineResources, m_IBLFilterGGX);
             m_SkyManager.skySettings = skySettingsToUse;
 
             m_PostProcessContext = new PostProcessRenderContext();
@@ -453,7 +457,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if UNITY_EDITOR
         static readonly SupportedRenderingFeatures s_NeededFeatures = new SupportedRenderingFeatures()
         {
-            reflectionProbeSupportFlags = SupportedRenderingFeatures.ReflectionProbeSupportFlags.Rotation
+            reflectionProbe = SupportedRenderingFeatures.ReflectionProbe.Rotation
         };
 #endif
 
@@ -726,6 +730,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ApplyDebugDisplaySettings();
             UpdateCommonSettings();
 
+            if (!m_IBLFilterGGX.IsInitialized())
+                m_IBLFilterGGX.Initialize(cmd);
+
             ScriptableCullingParameters cullingParams;
             if (!CullResults.GetCullingParameters(camera, out cullingParams))
             {
@@ -782,7 +789,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Currently to know if you need shadow mask you need to go through all visible lights (of CullResult), check the LightBakingOutput struct and look at lightmapBakeType/mixedLightingMode. If one light have shadow mask bake mode, then you need shadow mask features (i.e extra Gbuffer).
             // It mean that when we build a standalone player, if we detect a light with bake shadow mask, we generate all shader variant (with and without shadow mask) and at runtime, when a bake shadow mask light is visible, we dynamically allocate an extra GBuffer and switch the shader.
             // So the first thing to do is to go through all the light: PrepareLightsForGPU
-            bool enableBakeShadowMask = m_LightLoop.PrepareLightsForGPU(m_ShadowSettings, m_CullResults, camera);
+            bool enableBakeShadowMask = m_LightLoop.PrepareLightsForGPU(cmd, m_ShadowSettings, m_CullResults, camera);
             ConfigureForShadowMask(enableBakeShadowMask, cmd);
 
             InitAndClearBuffer(hdCamera, enableBakeShadowMask, cmd);

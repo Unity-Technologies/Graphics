@@ -57,7 +57,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         IBLFilterGGX            m_iblFilterGgx;
 
         Vector4                 m_CubemapScreenSize;
-        Matrix4x4[]             m_faceWorldToViewMatrixMatrices     = new Matrix4x4[6];
         Matrix4x4[]             m_facePixelCoordToViewDirMatrices   = new Matrix4x4[6];
         Matrix4x4[]             m_faceCameraInvViewProjectionMatrix = new Matrix4x4[6];
 
@@ -69,27 +68,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         float                   m_CurrentUpdateTime;
 
         bool                    m_useMIS = false;
-
-        // Ref: https://msdn.microsoft.com/en-us/library/windows/desktop/bb204881(v=vs.85).aspx
-        readonly Vector3[] m_LookAtList =
-        {
-            new Vector3(1.0f, 0.0f, 0.0f),
-            new Vector3(-1.0f, 0.0f, 0.0f),
-            new Vector3(0.0f, 1.0f, 0.0f),
-            new Vector3(0.0f, -1.0f, 0.0f),
-            new Vector3(0.0f, 0.0f, 1.0f),
-            new Vector3(0.0f, 0.0f, -1.0f),
-        };
-
-        readonly Vector3[] m_UpVectorList =
-        {
-            new Vector3(0.0f, 1.0f, 0.0f),
-            new Vector3(0.0f, 1.0f, 0.0f),
-            new Vector3(0.0f, 0.0f, -1.0f),
-            new Vector3(0.0f, 0.0f, 1.0f),
-            new Vector3(0.0f, 1.0f, 0.0f),
-            new Vector3(0.0f, 1.0f, 0.0f),
-        };
 
         SkySettings m_SkySettings;
         public SkySettings skySettings
@@ -201,11 +179,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             for (int i = 0; i < 6; ++i)
             {
-                var lookAt      = Matrix4x4.LookAt(Vector3.zero, m_LookAtList[i], m_UpVectorList[i]);
+                var lookAt      = Matrix4x4.LookAt(Vector3.zero, CoreUtils.lookAtList[i], CoreUtils.upVectorList[i]);
                 var worldToView = lookAt * Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)); // Need to scale -1.0 on Z to match what is being done in the camera.wolrdToCameraMatrix API. ...
                 var screenSize  = new Vector4((int)m_SkySettings.resolution, (int)m_SkySettings.resolution, 1.0f / (int)m_SkySettings.resolution, 1.0f / (int)m_SkySettings.resolution);
 
-                m_faceWorldToViewMatrixMatrices[i]     = worldToView;
                 m_facePixelCoordToViewDirMatrices[i]   = ComputePixelCoordToWorldSpaceViewDirectionMatrix(0.5f * Mathf.PI, screenSize, worldToView, true);
                 m_faceCameraInvViewProjectionMatrix[i] = HDUtils.GetViewProjectionMatrix(lookAt, cubeProj).inverse;
             }
@@ -266,10 +243,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RebuildSkyMatrices(nearPlane, farPlane);
         }
 
-        public void Build(RenderPipelineResources renderPipelinesResources)
+        public void Build(RenderPipelineResources renderPipelinesResources, IBLFilterGGX iblFilterGGX)
         {
-            // Create unititialized. Lazy initialization is performed later.
-            m_iblFilterGgx = new IBLFilterGGX(renderPipelinesResources);
+            m_iblFilterGgx = iblFilterGGX;
 
             // TODO: We need to have an API to send our sky information to Enlighten. For now use a workaround through skybox/cubemap material...
             m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(renderPipelinesResources.skyboxCubemap);
@@ -333,36 +309,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.GenerateMips(dest);
         }
 
-        void RenderCubemapGGXConvolution(CommandBuffer cmd, BuiltinSkyParameters builtinParams, SkySettings skyParams, Texture input, RenderTexture target)
+        void RenderCubemapGGXConvolution(CommandBuffer cmd, Texture input, RenderTexture target)
         {
             using (new ProfilingSample(cmd, "Update Env: GGX Convolution"))
             {
-                int mipCount = 1 + (int)Mathf.Log(input.width, 2.0f);
-                if (mipCount < ((int)EnvConstants.SpecCubeLodStep + 1))
-                {
-                    Debug.LogWarning("RenderCubemapGGXConvolution: Cubemap size is too small for GGX convolution, needs at least " + ((int)EnvConstants.SpecCubeLodStep + 1) + " mip levels");
-                    return;
-                }
-
-                if (!m_iblFilterGgx.IsInitialized())
-                    m_iblFilterGgx.Initialize(cmd);
-
-                // Copy the first mip
-                using (new ProfilingSample(cmd, "Copy Original Mip"))
-                {
-                    for (int f = 0; f < 6; f++)
-                    {
-                        cmd.CopyTexture(input, f, 0, target, f, 0);
-                    }
-                }
-
-                using (new ProfilingSample(cmd, "GGX Convolution"))
-                {
-                    if (m_useMIS && m_iblFilterGgx.supportMis)
-                        m_iblFilterGgx.FilterCubemapMIS(cmd, input, target, mipCount, m_SkyboxConditionalCdfRT, m_SkyboxMarginalRowCdfRT, m_faceWorldToViewMatrixMatrices);
-                    else
-                        m_iblFilterGgx.FilterCubemap(cmd, input, target, mipCount, m_faceWorldToViewMatrixMatrices);
-                }
+                if (m_useMIS && m_iblFilterGgx.supportMis)
+                    m_iblFilterGgx.FilterCubemapMIS(cmd, input, target, m_SkyboxConditionalCdfRT, m_SkyboxMarginalRowCdfRT);
+                else
+                    m_iblFilterGgx.FilterCubemap(cmd, input, target);
             }
         }
 
@@ -418,7 +372,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
 
                         // Convolve downsampled cubemap
-                        RenderCubemapGGXConvolution(cmd, m_BuiltinParameters, skySettings, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
+                        RenderCubemapGGXConvolution(cmd, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
 
                         m_NeedLowLevelUpdateEnvironment = true;
                         m_UpdatedFramesRequired--;
@@ -440,7 +394,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         // Clear temp cubemap and redo GGX from black and then feed it to enlighten for default light probe.
                         CoreUtils.ClearCubemap(cmd, m_SkyboxCubemapRT, Color.black);
-                        RenderCubemapGGXConvolution(cmd, m_BuiltinParameters, skySettings, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
+                        RenderCubemapGGXConvolution(cmd, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
 
                         m_SkyParametersHash = 0;
                         m_NeedLowLevelUpdateEnvironment = true;
