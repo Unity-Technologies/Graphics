@@ -21,6 +21,11 @@ void CSMain(uint3 id : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID)
 		if (alive)
 		{
 			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
+			
+#if VFX_USE_OLDPOSITION_CURRENT
+			oldPosition = position;
+#endif
+			
 			${VFXProcessBlocks}
 			if (alive)
 			{

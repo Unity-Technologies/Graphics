@@ -1,10 +1,11 @@
+/*
 @import url("Assets/VFXEditor/Editor/Resources/VFXContext.uss");
 @import url("VFXFlow.uss");
 @import url("VFXBlock.uss");
 @import url("VFXNode.uss");
 @import url("VFXDataAnchor.uss");
 @import url("VFXTypeColor.uss");
-
+*/
 VFXView #VFXBackgroundGrid {
 	grid-background-color:#141515;
 	line-color:#181818;
