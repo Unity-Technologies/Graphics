@@ -12,6 +12,21 @@ namespace UnityEditor.VFX.UI
     [Serializable]
     internal partial class VFXViewPresenter : GraphViewPresenter
     {
+        public int m_UseCount;
+        public int useCount
+        {
+            get { return m_UseCount; }
+            set
+            {
+                m_UseCount = value;
+                if (m_UseCount == 0)
+                {
+                    Manager.RemovePresenter(this);
+                    Object.DestroyImmediate(this);
+                }
+            }
+        }
+
         [SerializeField]
         public List<VFXFlowAnchorPresenter> m_FlowAnchorPresenters;
 
@@ -39,34 +54,6 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        static public VFXViewPresenter viewPresenter
-        {
-            get
-            {
-                if (s_ViewPresenter == null)
-                {
-                    VFXViewPresenter[] objects = FindObjectsOfType<VFXViewPresenter>();
-                    if (objects.Length == 0)
-                    {
-                        Debug.Log("Before CreateInstance<VFXViewPresenter> ");
-                        s_ViewPresenter = CreateInstance<VFXViewPresenter>();
-                        Debug.Log("After CreateInstance<VFXViewPresenter>");
-                    }
-                    else
-                    {
-                        if (objects.Length != 1)
-                        {
-                            Debug.LogError("Only one instance of VFXViewPresenter should exist");
-                        }
-                        s_ViewPresenter = objects[0];
-                    }
-                }
-                return s_ViewPresenter;
-            }
-        }
-
-        static VFXViewPresenter s_ViewPresenter;
-
         protected void OnEnable()
         {
             Debug.Log("OnEnable of VFXViewPresenter with instanceID:" + this.GetInstanceID());
@@ -88,8 +75,10 @@ namespace UnityEditor.VFX.UI
             if (m_DataInputAnchorPresenters == null)
                 m_DataInputAnchorPresenters = new Dictionary<Type, List<NodeAnchorPresenter>>();
 
-            SetVFXAsset(m_VFXAsset, true);
-            InitializeUndoStack();
+            if (m_VFXAsset)
+            {
+                InitializeUndoStack();
+            }
             Undo.undoRedoPerformed += SynchronizeUndoRedoState;
             Undo.willFlushUndoRecord += WillFlushUndoRecord;
         }
@@ -100,21 +89,6 @@ namespace UnityEditor.VFX.UI
             ReleaseUndoStack();
             Undo.undoRedoPerformed -= SynchronizeUndoRedoState;
             Undo.willFlushUndoRecord -= WillFlushUndoRecord;
-            SetVFXAsset(null, true);
-
-            if (s_ViewPresenter == this)
-                s_ViewPresenter = null;
-        }
-
-        public VFXView View
-        {
-            get
-            {
-                // TODO Is that good design?
-                if (m_View == null)
-                    m_View = new VFXView();
-                return m_View;
-            }
         }
 
         IEnumerable<VFXSlotContainerPresenter> AllSlotContainerPresenters
@@ -645,7 +619,7 @@ namespace UnityEditor.VFX.UI
         public void RemoveInvalidateDelegate(VFXModel model, VFXModel.InvalidateEvent evt)
         {
             List<VFXModel.InvalidateEvent> evtList;
-            if (m_registeredEvent.TryGetValue(model, out evtList))
+            if (model != null && m_registeredEvent.TryGetValue(model, out evtList))
             {
                 model.onInvalidateDelegate -= evt;
                 evtList.Remove(evt);
@@ -659,6 +633,73 @@ namespace UnityEditor.VFX.UI
         public bool HasVFXAsset()
         {
             return m_VFXAsset != null;
+        }
+
+        public static class Manager
+        {
+            static Dictionary<VFXAsset, VFXViewPresenter> s_Presenters = new Dictionary<VFXAsset, VFXViewPresenter>();
+
+            public static VFXViewPresenter GetPresenter(VFXAsset asset, bool forceUpdate = false)
+            {
+                VFXViewPresenter presenter;
+                if (!s_Presenters.TryGetValue(asset, out presenter))
+                {
+                    presenter = CreateInstance<VFXViewPresenter>();
+                    presenter.SetVFXAsset(asset, false);
+                    s_Presenters[asset] = presenter;
+                }
+                else
+                {
+                    if (forceUpdate)
+                    {
+                        presenter.SetVFXAsset(asset, true);
+                    }
+                }
+
+                return presenter;
+            }
+
+            static public void RemovePresenter(VFXViewPresenter presenter)
+            {
+                s_Presenters.Remove(presenter.GetVFXAsset());
+            }
+        }
+
+
+        public void ForceReload()
+        {
+            // Do we have a leak without this line ?
+            /*if (m_VFXAsset != null && !EditorUtility.IsPersistent(m_VFXAsset))
+                DestroyImmediate(m_VFXAsset);*/
+
+            Clear();
+            //Debug.Log(string.Format("SET GRAPH ASSET new:{0} old:{1} force:{2}", vfx, m_VFXAsset, force));
+
+            if (m_Graph != null)
+            {
+                RemoveInvalidateDelegate(m_Graph, SyncPresentersFromModel);
+                RemoveInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
+            }
+
+            m_Graph = m_VFXAsset.GetOrCreateGraph();
+
+            AddInvalidateDelegate(m_Graph, SyncPresentersFromModel);
+            AddInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
+
+            // First trigger
+            RecompileExpressionGraphIfNeeded();
+
+
+            // Doesn't work for some reason
+            //View.FrameAll();
+
+#if ENABLE_VIEW_3D_PRESENTER
+            if (presenter != null)
+                RemoveElement(presenter);
+            presenter = CreateInstance<Preview3DPresenter>();
+            AddElement(presenter);
+#endif
+            SyncPresentersFromModel(m_Graph, VFXModel.InvalidationCause.kStructureChanged);
         }
 
         public void SetVFXAsset(VFXAsset vfx, bool force)
@@ -680,6 +721,7 @@ namespace UnityEditor.VFX.UI
 
                 m_VFXAsset = vfx == null ? new VFXAsset() : vfx;
                 m_Graph = m_VFXAsset.GetOrCreateGraph();
+                InitializeUndoStack();
 
                 AddInvalidateDelegate(m_Graph, SyncPresentersFromModel);
                 AddInvalidateDelegate(m_Graph, InvalidateExpressionGraph);

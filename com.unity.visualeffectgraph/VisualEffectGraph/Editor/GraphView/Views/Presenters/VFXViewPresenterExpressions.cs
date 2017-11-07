@@ -17,8 +17,15 @@ namespace UnityEditor.VFX.UI
 
             ExpressionGraphDirty = false;
 
-            CreateExpressionContext(true /*cause == VFXModel.InvalidationCause.kStructureChanged || cause == VFXModel.InvalidationCause.kConnectionChanged*/);
-            m_ExpressionContext.Recompile();
+            try
+            {
+                CreateExpressionContext(true /*cause == VFXModel.InvalidationCause.kStructureChanged || cause == VFXModel.InvalidationCause.kConnectionChanged*/);
+                m_ExpressionContext.Recompile();
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
 
             if (onRecompileEvent != null)
             {

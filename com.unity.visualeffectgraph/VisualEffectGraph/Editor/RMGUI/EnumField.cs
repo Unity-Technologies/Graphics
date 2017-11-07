@@ -6,7 +6,7 @@ using UnityEditor.Experimental.UIElements;
 
 namespace UnityEditor.VFX.UIElements
 {
-    class EnumField : ValueControl<int>
+    class VFXEnumField : ValueControl<int>
     {
         Button m_DropDownButton;
         System.Type m_EnumType;
@@ -39,7 +39,7 @@ namespace UnityEditor.VFX.UIElements
             }
         }
 
-        public EnumField(string label, System.Type enumType) : base(label)
+        public VFXEnumField(string label, System.Type enumType) : base(label)
         {
             CreateButton();
 
@@ -53,7 +53,7 @@ namespace UnityEditor.VFX.UIElements
             Add(m_DropDownButton);
         }
 
-        public EnumField(VisualElement existingLabel, System.Type enumType) : base(existingLabel)
+        public VFXEnumField(VisualElement existingLabel, System.Type enumType) : base(existingLabel)
         {
             CreateButton();
             if (!enumType.IsEnum)

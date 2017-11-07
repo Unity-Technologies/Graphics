@@ -11,6 +11,17 @@ namespace UnityEditor.VFX
         public override string codeGeneratorTemplate { get { return "VFXShaders/VFXParticlePoints"; } }
         public override VFXTaskType taskType { get { return VFXTaskType.kParticlePointOutput; } }
 
+        public override IEnumerable<string> additionalDefines
+        {
+            get
+            {
+                foreach (var d in base.additionalDefines)
+                    yield return d;
+
+                yield return "USE_MOTION_VECTORS";
+            }
+        }
+
         public override IEnumerable<VFXAttributeInfo> attributes
         {
             get
@@ -19,6 +30,9 @@ namespace UnityEditor.VFX
                 yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Alpha, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
+
+                // Motion vectors (TMP)
+                yield return new VFXAttributeInfo(VFXAttribute.OldPosition, VFXAttributeMode.Read);
             }
         }
     }

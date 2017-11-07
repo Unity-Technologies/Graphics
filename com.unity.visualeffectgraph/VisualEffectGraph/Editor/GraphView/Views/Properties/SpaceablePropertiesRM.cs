@@ -8,6 +8,7 @@ using UnityEditor.VFX;
 using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
+using Vector3Field = UnityEditor.VFX.UIElements.Vector3Field;
 
 namespace UnityEditor.VFX.UI
 {
@@ -61,16 +62,16 @@ namespace UnityEditor.VFX.UI
     {
         public Vector3SpaceablePropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
-            m_VectorField = new Vector3Field(m_Label);
-            m_VectorField.OnValueChanged = OnValueChanged;
+            m_VectorField = new LabeledField<Vector3Field, Vector3>(m_Label);
+            m_VectorField.RegisterCallback<ChangeEvent<Vector3>>(OnValueChanged);
             m_VectorField.AddToClassList("fieldContainer");
 
             Add(m_VectorField);
         }
 
-        public abstract void OnValueChanged();
+        public abstract void OnValueChanged(ChangeEvent<Vector3> e);
 
-        protected Vector3Field m_VectorField;
+        protected LabeledField<Vector3Field, Vector3> m_VectorField;
 
         protected override void UpdateEnabled()
         {
@@ -87,9 +88,9 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        public override void OnValueChanged()
+        public override void OnValueChanged(ChangeEvent<Vector3> e)
         {
-            Vector3 newValue = m_VectorField.GetValue();
+            Vector3 newValue = m_VectorField.value;
             if (newValue != m_Value.vector)
             {
                 m_Value.vector = newValue;
@@ -100,7 +101,7 @@ namespace UnityEditor.VFX.UI
         public override void UpdateGUI()
         {
             base.UpdateGUI();
-            m_VectorField.SetValue(m_Value.vector);
+            m_VectorField.value = m_Value.vector;
         }
     }
 
@@ -110,9 +111,9 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        public override void OnValueChanged()
+        public override void OnValueChanged(ChangeEvent<Vector3> e)
         {
-            Vector3 newValue = m_VectorField.GetValue();
+            Vector3 newValue = m_VectorField.value;
             if (newValue != m_Value.position)
             {
                 m_Value.position = newValue;
@@ -123,7 +124,7 @@ namespace UnityEditor.VFX.UI
         public override void UpdateGUI()
         {
             base.UpdateGUI();
-            m_VectorField.SetValue(m_Value.position);
+            m_VectorField.value = m_Value.position;
         }
     }
 
@@ -133,9 +134,9 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        public override void OnValueChanged()
+        public override void OnValueChanged(ChangeEvent<Vector3> e)
         {
-            Vector3 newValue = m_VectorField.GetValue();
+            Vector3 newValue = m_VectorField.value;
             if (newValue != m_Value.direction)
             {
                 m_Value.direction = newValue;
@@ -146,7 +147,7 @@ namespace UnityEditor.VFX.UI
         public override void UpdateGUI()
         {
             base.UpdateGUI();
-            m_VectorField.SetValue(m_Value.direction);
+            m_VectorField.value = m_Value.direction;
         }
     }
 }
