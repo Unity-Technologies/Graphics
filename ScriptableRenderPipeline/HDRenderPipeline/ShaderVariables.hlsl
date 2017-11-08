@@ -233,8 +233,8 @@ float4x4 _InvViewProjMatrix;
 float4x4 _InvViewMatrix;
 float4x4 _InvProjMatrix;
 float4   _InvProjParam;
-float4   _ScreenSize;       // (w, h, 1/w, 1/h)
-float4   _FrustumPlanes[6]; // (N, -dot(N, P))
+float4   _ScreenSize;       // {w, h, 1/w, 1/h}
+float4   _FrustumPlanes[6]; // {(a, b, c) = N, d = -dot(N, P)} [L, R, T, B, N, F]
 CBUFFER_END
 
 #ifdef USE_LEGACY_UNITY_MATRIX_VARIABLES
