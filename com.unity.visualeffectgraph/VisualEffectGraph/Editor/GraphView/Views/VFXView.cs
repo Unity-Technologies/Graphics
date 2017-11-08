@@ -476,6 +476,8 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        VFXViewPresenter m_OldPresenter;
+
         public override void OnDataChanged()
         {
             base.OnDataChanged();
@@ -512,6 +514,16 @@ namespace UnityEditor.VFX.UI
                 {
                     Add(m_NoAssetLabel);
                 }
+            }
+
+            if (m_OldPresenter != presenter && panel != null)
+            {
+                BaseVisualElementPanel panel = this.panel as BaseVisualElementPanel;
+
+
+                panel.scheduler.ScheduleOnce(t => { panel.ValidateLayout(); FrameAll(); } , 100);
+
+                m_OldPresenter = presenter;
             }
         }
 
