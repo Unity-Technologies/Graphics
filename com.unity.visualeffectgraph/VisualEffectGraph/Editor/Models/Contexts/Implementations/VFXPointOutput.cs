@@ -11,17 +11,6 @@ namespace UnityEditor.VFX
         public override string codeGeneratorTemplate { get { return "VFXShaders/VFXParticlePoints"; } }
         public override VFXTaskType taskType { get { return VFXTaskType.kParticlePointOutput; } }
 
-        public override IEnumerable<string> additionalDefines
-        {
-            get
-            {
-                foreach (var d in base.additionalDefines)
-                    yield return d;
-
-                yield return "USE_MOTION_VECTORS";
-            }
-        }
-
         public override IEnumerable<VFXAttributeInfo> attributes
         {
             get

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-
+using UnityEngine.Rendering;
 
 namespace UnityEditor.VFX
 {
@@ -69,6 +69,16 @@ namespace UnityEditor.VFX
                     yield return "USE_ALPHA_TEST";
                 if (useSoftParticle)
                     yield return "USE_SOFT_PARTICLE";
+
+                VFXAsset asset = GetAsset();
+                if (asset != null)
+                {
+                    var settings = asset.rendererSettings;
+                    if (settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object)
+                        yield return "USE_MOTION_VECTORS_PASS";
+                    if (settings.shadowCastingMode != ShadowCastingMode.Off)
+                        yield return "USE_CAST_SHADOWS_PASS";
+                }
             }
         }
 
@@ -96,7 +106,7 @@ namespace UnityEditor.VFX
 
                 var shaderTags = new VFXShaderWriter();
                 if (blendMode == BlendMode.Masked)
-                    shaderTags.Write("Tags { \"Queue\"=\"Geometry\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Opaque\" }");
+                    shaderTags.Write("Tags { \"Queue\"=\"Geometry\" \"IgnoreProjector\"=\"False\" \"RenderType\"=\"Opaque\" }");
                 else
                     shaderTags.Write("Tags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\" }");
 

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.VFX;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
@@ -253,6 +254,12 @@ namespace UnityEditor.VFX.UI
             spacer.style.flex = 1;
             toolbar.Add(spacer);
 
+            m_ToggleCastShadows = new Toggle(OnToggleCastShadows);
+            m_ToggleCastShadows.text = "Cast Shadows";
+            m_ToggleCastShadows.on = GetRendererSettings().shadowCastingMode != ShadowCastingMode.Off;
+            toolbar.Add(m_ToggleCastShadows);
+            m_ToggleCastShadows.AddToClassList("toolbarItem");
+
             m_ToggleMotionVectors = new Toggle(OnToggleMotionVectors);
             m_ToggleMotionVectors.text = "Use Motion Vectors";
             m_ToggleMotionVectors.on = GetRendererSettings().motionVectorGenerationMode == MotionVectorGenerationMode.Object;
@@ -315,6 +322,16 @@ namespace UnityEditor.VFX.UI
                     presenter.GetGraph().SetExpressionGraphDirty();
                 }
             }
+        }
+
+        void OnToggleCastShadows()
+        {
+            var settings = GetRendererSettings();
+            if (settings.shadowCastingMode != ShadowCastingMode.Off)
+                settings.shadowCastingMode = ShadowCastingMode.Off;
+            else
+                settings.shadowCastingMode = ShadowCastingMode.On;
+            SetRendererSettings(settings);
         }
 
         void OnToggleMotionVectors()
@@ -483,6 +500,9 @@ namespace UnityEditor.VFX.UI
 
             if (presenter != null)
             {
+                m_ToggleCastShadows.on = settings.shadowCastingMode != ShadowCastingMode.Off;
+                m_ToggleCastShadows.SetEnabled(true);
+
                 m_ToggleMotionVectors.on = GetRendererSettings().motionVectorGenerationMode == MotionVectorGenerationMode.Object;
                 m_ToggleMotionVectors.SetEnabled(true);
 
@@ -499,6 +519,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
+                m_ToggleCastShadows.SetEnabled(false);
                 m_ToggleMotionVectors.SetEnabled(false);
             }
 
@@ -682,6 +703,7 @@ namespace UnityEditor.VFX.UI
                 SelectionUpdated();
         }
 
+        private Toggle m_ToggleCastShadows;
         private Toggle m_ToggleMotionVectors;
     }
 }
