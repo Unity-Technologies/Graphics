@@ -23,7 +23,7 @@ namespace UnityEditor.VFX.UI
             AddToClassList("VFXContextSlotContainerUI");
         }
 
-        public override NodeAnchor InstantiateNodeAnchor(NodeAnchorPresenter presenter)
+        public override Port InstantiatePort(PortPresenter presenter)
         {
             VFXContextDataAnchorPresenter anchorPresenter = presenter as VFXContextDataAnchorPresenter;
 
@@ -34,7 +34,7 @@ namespace UnityEditor.VFX.UI
             return anchor;
         }
 
-        protected override void OnAnchorRemoved(NodeAnchor anchor)
+        protected override void OnPortRemoved(Port anchor)
         {
             if (anchor is VFXEditableDataAnchor)
             {

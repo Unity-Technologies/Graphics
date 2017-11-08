@@ -344,7 +344,7 @@ public class VFXComponentEditor : Editor
     {
         VFXComponent comp = (VFXComponent)target;
 
-        string fieldName = VFXComponentUtility.GetTypeField(parameter.anchorType);
+        string fieldName = VFXComponentUtility.GetTypeField(parameter.portType);
 
 
         var vfxField = m_VFXPropertySheet.FindPropertyRelative(fieldName + ".m_Array");
@@ -379,7 +379,7 @@ public class VFXComponentEditor : Editor
             EditorGUIUtility.SetBoldDefaultFont(overrideProperty.boolValue);
 
             EditorGUI.BeginChangeCheck();
-            if (parameter.anchorType == typeof(Color))
+            if (parameter.portType == typeof(Color))
             {
                 Vector4 vVal = property.vector4Value;
                 Color c = new Color(vVal.x, vVal.y, vVal.z, vVal.w);

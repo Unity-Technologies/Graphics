@@ -119,7 +119,7 @@ namespace UnityEditor.VFX.UI
 
         public override ValueControl<int> CreateField()
         {
-            return new EnumField(m_Label, m_Provider.anchorType);
+            return new EnumField(m_Label, m_Provider.portType);
         }
     }
 

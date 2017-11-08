@@ -21,9 +21,9 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        public override void OnAnchorChanged(bool isInput)
+        public override void OnPortChanged(bool isInput)
         {
-            base.OnAnchorChanged(isInput);
+            base.OnPortChanged(isInput);
 
             //UpdateColor();
         }

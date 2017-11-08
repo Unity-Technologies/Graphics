@@ -103,7 +103,7 @@ namespace UnityEditor.VFX.UI
         // TODO This is a workaround to avoid having a generic type for the anchor as generic types mess with USS.
         public static new VFXEditableDataAnchor Create(VFXDataAnchorPresenter presenter)
         {
-            var anchor = new VFXEditableDataAnchor(presenter.orientation, presenter.direction, presenter.anchorType);
+            var anchor = new VFXEditableDataAnchor(presenter.orientation, presenter.direction, presenter.portType);
 
             anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
             anchor.presenter = presenter;
@@ -133,7 +133,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                m_PropertyIM = VFXPropertyIM.Create(presenter.anchorType, 100);
+                m_PropertyIM = VFXPropertyIM.Create(presenter.portType, 100);
 
                 m_Container = new IMGUIContainer(OnGUI) { name = "IMGUI" };
                 Add(m_Container);
@@ -175,10 +175,10 @@ namespace UnityEditor.VFX.UI
 
             VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
 
-            if ((m_PropertyIM == null && m_PropertyRM == null) || m_EditedType != presenter.anchorType)
+            if ((m_PropertyIM == null && m_PropertyRM == null) || m_EditedType != presenter.portType)
             {
                 BuildProperty();
-                m_EditedType = presenter.anchorType;
+                m_EditedType = presenter.portType;
             }
             /*if (m_Container != null)
                 m_Container.executionContext = presenter.GetInstanceID();*/

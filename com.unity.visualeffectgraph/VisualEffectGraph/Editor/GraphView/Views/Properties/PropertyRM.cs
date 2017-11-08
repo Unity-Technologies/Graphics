@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.UI
         string name { get; }
         VFXPropertyAttribute[] attributes { get; }
         object[] customAttributes { get; }
-        Type anchorType { get; }
+        Type portType { get; }
         int depth {get; }
         bool editable { get; }
         void RetractPath();
@@ -84,8 +84,8 @@ namespace UnityEditor.VFX.UI
             if (provider.expandable)
             {
                 m_IconStates = new Texture2D[] {
-                    Resources.Load<Texture2D>("VFX/" + provider.anchorType.Name + "_plus"),
-                    Resources.Load<Texture2D>("VFX/" + provider.anchorType.Name + "_minus")
+                    Resources.Load<Texture2D>("VFX/" + provider.portType.Name + "_plus"),
+                    Resources.Load<Texture2D>("VFX/" + provider.portType.Name + "_minus")
                 };
 
                 if (m_IconStates[0] == null)
@@ -98,7 +98,7 @@ namespace UnityEditor.VFX.UI
             else
             {
                 m_IconStates = new Texture2D[] {
-                    Resources.Load<Texture2D>("VFX/" + provider.anchorType.Name)
+                    Resources.Load<Texture2D>("VFX/" + provider.portType.Name)
                 };
 
                 if (m_IconStates[0] == null)
@@ -172,7 +172,7 @@ namespace UnityEditor.VFX.UI
         {
             Type propertyType = null;
 
-            Type type = presenter.anchorType;
+            Type type = presenter.portType;
 
             if (type.IsEnum)
             {

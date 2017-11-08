@@ -7,11 +7,11 @@ using Type = System.Type;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXFlowAnchor : NodeAnchor, IEdgeConnectorListener
+    class VFXFlowAnchor : Port, IEdgeConnectorListener
     {
         public static VFXFlowAnchor Create(VFXFlowAnchorPresenter presenter)
         {
-            var anchor = new VFXFlowAnchor(presenter.orientation, presenter.direction, presenter.anchorType);
+            var anchor = new VFXFlowAnchor(presenter.orientation, presenter.direction, presenter.portType);
             anchor.m_EdgeConnector = new EdgeConnector<VFXFlowEdge>(anchor);
             anchor.AddManipulator(anchor.m_EdgeConnector);
             anchor.presenter = presenter;
@@ -63,7 +63,7 @@ namespace UnityEditor.VFX.UI
             graphView.GetPresenter<VFXViewPresenter>().AddElement(edgePresenter);
         }
 
-        void IEdgeConnectorListener.OnDropOutsideAnchor(Edge edge, Vector2 position)
+        void IEdgeConnectorListener.OnDropOutsidePort(Edge edge, Vector2 position)
         {
             VFXFlowAnchorPresenter presenter = GetPresenter<VFXFlowAnchorPresenter>();
 
@@ -84,7 +84,7 @@ namespace UnityEditor.VFX.UI
             {
                 VFXContextPresenter nodePresenter = endContext.GetPresenter<VFXContextPresenter>();
 
-                var compatibleAnchors = viewPresenter.GetCompatibleAnchors(presenter, null);
+                var compatibleAnchors = viewPresenter.GetCompatiblePorts(presenter, null);
 
                 if (presenter.direction == Direction.Input)
                 {

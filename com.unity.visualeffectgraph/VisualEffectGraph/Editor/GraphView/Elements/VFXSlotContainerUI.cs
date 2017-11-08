@@ -79,7 +79,7 @@ namespace UnityEditor.VFX.UI
             {
                 var allEdges = graphView.Query<Edge>().ToList();
 
-                foreach (NodeAnchor anchor in this.Query<NodeAnchor>().Where(t => true).ToList())
+                foreach (Port anchor in this.Query<Port>().Where(t => true).ToList())
                 {
                     foreach (var edge in allEdges.Where(t =>
                         {

@@ -100,7 +100,7 @@ namespace UnityEditor.VFX.UI
                 if (presenter.expandable)
                 {
                     bool expanded = presenter.expanded;
-                    if (GUILayout.Toggle(presenter.expanded, "", VFXDataGUIStyles.instance.GetGUIStyleForExpandableType(presenter.anchorType), GUILayout.Width(iconSize), GUILayout.Height(iconSize)) != expanded)
+                    if (GUILayout.Toggle(presenter.expanded, "", VFXDataGUIStyles.instance.GetGUIStyleForExpandableType(presenter.portType), GUILayout.Width(iconSize), GUILayout.Height(iconSize)) != expanded)
                     {
                         if (!expanded)
                         {
@@ -118,7 +118,7 @@ namespace UnityEditor.VFX.UI
                 }
                 else
                 {
-                    GUILayout.Label("", VFXDataGUIStyles.instance.GetGUIStyleForType(presenter.anchorType), GUILayout.Width(iconSize), GUILayout.Height(iconSize));
+                    GUILayout.Label("", VFXDataGUIStyles.instance.GetGUIStyleForType(presenter.portType), GUILayout.Width(iconSize), GUILayout.Height(iconSize));
                 }
             }
             GUILayout.EndVertical();

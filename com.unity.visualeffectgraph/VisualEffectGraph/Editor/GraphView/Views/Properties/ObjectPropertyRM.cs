@@ -19,7 +19,7 @@ namespace UnityEditor.VFX.UI
         public ObjectPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
             m_ObjectField = new ObjectField(m_Label);
-            m_ObjectField.control.objectType = presenter.anchorType;
+            m_ObjectField.control.objectType = presenter.portType;
 
             m_ObjectField.RegisterCallback<ChangeEvent<Object>>(OnValueChanged);
 
@@ -60,7 +60,7 @@ namespace UnityEditor.VFX.UI
         public ObjectPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
             m_ObjectField = new ObjectField(m_Label);
-            m_ObjectField.editedType = presenter.anchorType;
+            m_ObjectField.editedType = presenter.portType;
             m_ObjectField.OnValueChanged = OnValueChanged;
 
             m_ObjectField.style.flex = 1;

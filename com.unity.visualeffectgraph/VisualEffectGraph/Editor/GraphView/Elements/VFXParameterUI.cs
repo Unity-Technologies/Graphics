@@ -116,7 +116,7 @@ namespace UnityEditor.VFX.UI
                 }
                 else
                 {
-                    m_PropertyIM = VFXPropertyIM.Create(presenter.anchorType, 55);
+                    m_PropertyIM = VFXPropertyIM.Create(presenter.portType, 55);
 
                     m_Container = new IMGUIContainer(OnGUI) { name = "IMGUI" };
                     inputContainer.Add(m_Container);

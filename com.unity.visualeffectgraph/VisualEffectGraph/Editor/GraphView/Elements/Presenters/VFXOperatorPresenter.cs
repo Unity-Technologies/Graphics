@@ -21,7 +21,7 @@ namespace UnityEditor.VFX.UI
             }
             anchor.Init(slot, this);
 
-            anchor.anchorType = VFXOperatorAnchorPresenter.GetDisplayAnchorType(slot);
+            anchor.portType = VFXOperatorAnchorPresenter.GetDisplayAnchorType(slot);
 
             if (slot.GetExpression() == null)
             {

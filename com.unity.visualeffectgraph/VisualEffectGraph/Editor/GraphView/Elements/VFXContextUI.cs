@@ -597,7 +597,7 @@ namespace UnityEditor.VFX.UI
 
             m_OwnData.presenter = presenter.slotPresenter;
 
-            bool slotsVisible = presenter.slotPresenter.inputAnchors.Count() > 0 || (presenter.slotPresenter.settings != null && presenter.slotPresenter.settings.Count() > 0);
+            bool slotsVisible = presenter.slotPresenter.inputPorts.Count() > 0 || (presenter.slotPresenter.settings != null && presenter.slotPresenter.settings.Count() > 0);
             if (slotsVisible && m_OwnData.parent == null)
             {
                 m_Header.Add(m_OwnData);
@@ -635,9 +635,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public IEnumerable<NodeAnchor> GetAllAnchors(bool input, bool output)
+        public IEnumerable<Port> GetAllAnchors(bool input, bool output)
         {
-            return (IEnumerable<NodeAnchor>)GetFlowAnchors(input, output);
+            return (IEnumerable<Port>)GetFlowAnchors(input, output);
         }
 
         public IEnumerable<VFXFlowAnchor> GetFlowAnchors(bool input, bool output)

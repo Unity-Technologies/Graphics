@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXDataAnchor : NodeAnchor, IEdgeConnectorListener
+    class VFXDataAnchor : Port, IEdgeConnectorListener
     {
         VisualElement m_ConnectorHighlight;
 
@@ -38,7 +38,7 @@ namespace UnityEditor.VFX.UI
 
         public static VFXDataAnchor Create(VFXDataAnchorPresenter presenter)
         {
-            var anchor = new VFXDataAnchor(presenter.orientation, presenter.direction, presenter.anchorType);
+            var anchor = new VFXDataAnchor(presenter.orientation, presenter.direction, presenter.portType);
             anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
             anchor.presenter = presenter;
 
@@ -88,7 +88,7 @@ namespace UnityEditor.VFX.UI
             {
                 foreach (var edge in GetAllEdges())
                 {
-                    edge.OnAnchorChanged(direction == Direction.Input);
+                    edge.OnPortChanged(direction == Direction.Input);
                 }
             }
         }
@@ -128,7 +128,7 @@ namespace UnityEditor.VFX.UI
                 RemoveFromClassList(cls);
             }
 
-            string className = VFXTypeDefinition.GetTypeCSSClass(presenter.anchorType);
+            string className = VFXTypeDefinition.GetTypeCSSClass(presenter.portType);
             AddToClassList(className);
             m_ConnectorBox.AddToClassList(className);
 
@@ -184,7 +184,7 @@ namespace UnityEditor.VFX.UI
             graphView.GetPresenter<VFXViewPresenter>().AddElement(edgePresenter);
         }
 
-        void IEdgeConnectorListener.OnDropOutsideAnchor(Edge edge, Vector2 position)
+        void IEdgeConnectorListener.OnDropOutsidePort(Edge edge, Vector2 position)
         {
             VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
 
@@ -207,7 +207,7 @@ namespace UnityEditor.VFX.UI
             {
                 VFXSlotContainerPresenter nodePresenter = endNode.GetPresenter<VFXSlotContainerPresenter>();
 
-                var compatibleAnchors = nodePresenter.viewPresenter.GetCompatibleAnchors(presenter, null);
+                var compatibleAnchors = nodePresenter.viewPresenter.GetCompatiblePorts(presenter, null);
 
                 if (nodePresenter != null)
                 {
@@ -240,7 +240,7 @@ namespace UnityEditor.VFX.UI
             }
             else if (presenter.direction == Direction.Input && Event.current.modifiers == EventModifiers.Alt)
             {
-                VFXModelDescriptorParameters parameterDesc = VFXLibrary.GetParameters().FirstOrDefault(t => t.name == presenter.anchorType.UserFriendlyName());
+                VFXModelDescriptorParameters parameterDesc = VFXLibrary.GetParameters().FirstOrDefault(t => t.name == presenter.portType.UserFriendlyName());
                 if (parameterDesc != null)
                 {
                     VFXParameter parameter = viewPresenter.AddVFXParameter(view.contentViewContainer.GlobalToBound(position) - new Vector2(360, 0), parameterDesc);

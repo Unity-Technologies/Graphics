@@ -33,38 +33,38 @@ namespace UnityEditor.VFX.UI
         {
             if (model as IVFXSlotContainer == slotContainer && (cause == VFXModel.InvalidationCause.kStructureChanged || cause == VFXModel.InvalidationCause.kSettingChanged))
             {
-                var inputs = inputAnchors;
-                List<NodeAnchorPresenter> newAnchors = new List<NodeAnchorPresenter>();
+                var inputs = inputPorts;
+                List<PortPresenter> newAnchors = new List<PortPresenter>();
 
                 UpdateSlots(newAnchors, slotContainer.inputSlots, true, true);
 
-                foreach (var anchor in inputAnchors.Except(newAnchors).Cast<VFXDataAnchorPresenter>())
+                foreach (var anchor in inputPorts.Except(newAnchors).Cast<VFXDataAnchorPresenter>())
                 {
                     viewPresenter.UnregisterDataAnchorPresenter(anchor);
                 }
-                m_InputAnchors = newAnchors;
-                newAnchors = new List<NodeAnchorPresenter>();
+                m_InputPorts = newAnchors;
+                newAnchors = new List<PortPresenter>();
                 UpdateSlots(newAnchors, slotContainer.outputSlots, true, false);
 
-                foreach (var anchor in outputAnchors.Except(newAnchors).Cast<VFXDataAnchorPresenter>())
+                foreach (var anchor in outputPorts.Except(newAnchors).Cast<VFXDataAnchorPresenter>())
                 {
                     viewPresenter.UnregisterDataAnchorPresenter(anchor);
                 }
-                m_OutputAnchors = newAnchors;
+                m_OutputPorts = newAnchors;
 
                 // separate UpdateInfos for the recreation of the list to make the code more reantrant, as UpdateInfos can trigger a compilation, that itself calls OnInvalidate.
-                foreach (var anchor in m_InputAnchors)
+                foreach (var anchor in m_InputPorts)
                 {
                     (anchor as VFXDataAnchorPresenter).UpdateInfos();
                 }
-                foreach (var anchor in m_OutputAnchors)
+                foreach (var anchor in m_OutputPorts)
                 {
                     (anchor as VFXDataAnchorPresenter).UpdateInfos();
                 }
             }
         }
 
-        void UpdateSlots(List<NodeAnchorPresenter> newAnchors, IEnumerable<VFXSlot> slotList, bool expanded, bool input)
+        void UpdateSlots(List<PortPresenter> newAnchors, IEnumerable<VFXSlot> slotList, bool expanded, bool input)
         {
             VFXSlot[] slots = slotList.ToArray();
             {
@@ -97,9 +97,9 @@ namespace UnityEditor.VFX.UI
             VFXDataAnchorPresenter result = null;
 
             if (input)
-                result = inputAnchors.Cast<VFXDataAnchorPresenter>().Where(t => t.model == slot).FirstOrDefault();
+                result = inputPorts.Cast<VFXDataAnchorPresenter>().Where(t => t.model == slot).FirstOrDefault();
             else
-                result = outputAnchors.Cast<VFXDataAnchorPresenter>().Where(t => t.model == slot).FirstOrDefault();
+                result = outputPorts.Cast<VFXDataAnchorPresenter>().Where(t => t.model == slot).FirstOrDefault();
 
             return result;
         }
@@ -139,7 +139,7 @@ namespace UnityEditor.VFX.UI
 
         public virtual void DrawGizmos(VFXComponent component)
         {
-            foreach (VFXDataAnchorPresenter presenter in inputAnchors.Cast<VFXDataAnchorPresenter>())
+            foreach (VFXDataAnchorPresenter presenter in inputPorts.Cast<VFXDataAnchorPresenter>())
             {
                 presenter.DrawGizmo(component);
             }
