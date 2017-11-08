@@ -25,7 +25,7 @@ namespace UnityEditor.VFX.UI
         {
             base.OnPortChanged(isInput);
 
-            //UpdateColor();
+            UpdateColor();
         }
 
         public virtual void UpdateColor()
