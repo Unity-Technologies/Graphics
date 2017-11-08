@@ -111,13 +111,13 @@ float DistanceFromPlane(float3 p, float4 plane)
     return dot(float4(p, 1.0), plane);
 }
 
-// Returns 'true' if a triangle defined by 3 vertices is outside of the frustum.
+// Returns 'true' if the triangle is outside of the frustum.
 // 'epsilon' is the (negative) distance to (outside of) the frustum below which we cull the triangle.
-bool CullTriangleFrustum(float3 p0, float3 p1, float3 p2, float epsilon, float4 frustumPlanes[4])
+bool CullTriangleFrustum(float3 p0, float3 p1, float3 p2, float epsilon, float4 frustumPlanes[6], int numPlanes)
 {
     bool outside = false;
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < numPlanes; i++)
     {
         // If all 3 points are behind any of the planes, we cull.
         outside = outside || Max3(DistanceFromPlane(p0, frustumPlanes[i]),
@@ -128,11 +128,32 @@ bool CullTriangleFrustum(float3 p0, float3 p1, float3 p2, float epsilon, float4 
     return outside;
 }
 
+// Returns 'true' if the edge of the triangle is outside of the frustum.
+// The edges are defined s.t. they are on the opposite side of the point with the given index.
+// 'epsilon' is the (negative) distance to (outside of) the frustum below which we cull the triangle.
+bool3 CullTriangleEdgesFrustum(float3 p0, float3 p1, float3 p2, float epsilon, float4 frustumPlanes[6], int numPlanes)
+{
+    bool3 edgesOutside = false;
+
+    for (int i = 0; i < numPlanes; i++)
+    {
+        bool3 pointsOutside = bool3(DistanceFromPlane(p0, frustumPlanes[i]) < epsilon,
+                                    DistanceFromPlane(p1, frustumPlanes[i]) < epsilon,
+                                    DistanceFromPlane(p2, frustumPlanes[i]) < epsilon);
+
+        // If both points of the edge are behind any of the planes, we cull.
+        edgesOutside.x = edgesOutside.x || (pointsOutside.y && pointsOutside.z);
+        edgesOutside.y = edgesOutside.y || (pointsOutside.x && pointsOutside.z);
+        edgesOutside.z = edgesOutside.z || (pointsOutside.x && pointsOutside.y);
+    }
+
+    return edgesOutside;
+}
+
 // Returns 'true' if a triangle defined by 3 vertices is back-facing.
 // 'epsilon' is the (negative) value of dot(N, V) below which we cull the triangle.
 // 'winding' can be used to change the order: pass 1 for (p0 -> p1 -> p2), or -1 for (p0 -> p2 -> p1).
-bool CullTriangleBackFace(float3 p0, float3 p1, float3 p2, float epsilon, float3 viewPos,
-                          float winding)
+bool CullTriangleBackFace(float3 p0, float3 p1, float3 p2, float epsilon, float3 viewPos, float winding)
 {
     float3 edge1 = p1 - p0;
     float3 edge2 = p2 - p0;

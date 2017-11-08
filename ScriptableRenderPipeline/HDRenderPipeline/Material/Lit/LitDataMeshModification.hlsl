@@ -60,22 +60,20 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     // For the culling part however we want to use the current view (shadow view).
     // Thus the following code play with both.
 
-    float frustumCullEps = -maxDisplacement;
+    float frustumEps = -maxDisplacement;
+    bool3 frustumCullEdgesMainView = CullTriangleEdgesFrustum(p0, p1, p2, frustumEps, _FrustumPlanes, 5); // Do not test the far plane
 
 #if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_SHADOWS)
-    bool frustumCulledCurrentView = CullTriangleFrustum(p0, p1, p2, frustumCullEps, (float4[4])_FrustumPlanes); // _FrustumPlanes are primary camera planes
-    bool frustumCulledMainView = false;
+    bool frustumCullCurrView = all(frustumCullEdgesMainView);
 #else
-    // 'unity_CameraWorldClipPlanes' are set by the legacy Unity and are not aware of camera-relative rendering.
-    bool frustumCulledCurrentView = CullTriangleFrustum(GetAbsolutePositionWS(p0), GetAbsolutePositionWS(p1), GetAbsolutePositionWS(p2), frustumCullEps, (float4[4])unity_CameraWorldClipPlanes);
-    // In the case of shadow, we don't want to tessellate anything that is not seen by the main view frustum. It can result in minor popping of tessellation into a shadow but we can't afford it anyway.
-    bool frustumCulledMainView = CullTriangleFrustum(p0, p1, p2, frustumCullEps, (float4[4])_FrustumPlanes);
+    // 'unity_CameraWorldClipPlanes' are camera-relative rendering aware.
+    bool frustumCullCurrView = CullTriangleFrustum(p0, p1, p2, frustumEps, unity_CameraWorldClipPlanes, 4); // Do not test near/far planes
 #endif
 
     bool faceCull = false;
 
 #ifndef _DOUBLESIDED_ON
-    if (_TessellationBackFaceCullEpsilon > -1) // Is backface culling enabled ?
+    if (_TessellationBackFaceCullEpsilon > -1.0) // Is back-face culling enabled ?
     {
         // Handle transform mirroring (like negative scaling)
         float winding = unity_WorldTransformParams.w;
@@ -83,22 +81,26 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     }
 #endif
 
-    if (frustumCulledCurrentView || faceCull)
+    if (frustumCullCurrView || faceCull)
     {
         // Settings factor to 0 will kill the triangle
-        return float4(0.0, 0.0, 0.0, 0.0);
+        return 0;
     }
 
-    // We use the parameters of the primary (scene view) camera in order
-    // to have identical tessellation levels for both the scene view and
-    // shadow views. Otherwise, depth comparisons become meaningless!
-    float3 tessFactor = float3(1.0, 1.0, 1.0);
+    // For performance reasons, we choose not to tessellate outside of the main camera view
+    // (we perform this test both during the regular scene rendering and the shadow pass).
+    // For edges not visible from the main view, our goal is to set the tessellation factor to 1.
+    // In this case, we set the tessellation factor to 0 here.
+    // That way, all scaling of this tessellation factor will still result in 0.
+    // Before we call CalcTriTessFactorsFromEdgeTessFactors(), all factors are clamped by max(f, 1),
+    // which achieves the desired effect.
+    float3 edgeTessFactors = float3(frustumCullEdgesMainView.x ? 0 : 1, frustumCullEdgesMainView.y ? 0 : 1, frustumCullEdgesMainView.z ? 0 : 1);
 
     // Adaptive screen space tessellation
     if (_TessellationFactorTriangleSize > 0.0)
     {
         // return a value between 0 and 1
-        tessFactor *= GetScreenSpaceTessFactor( p0, p1, p2, _ViewProjMatrix, _ScreenSize, _TessellationFactorTriangleSize); // Use primary camera view
+        edgeTessFactors *= GetScreenSpaceTessFactor( p0, p1, p2, _ViewProjMatrix, _ScreenSize, _TessellationFactorTriangleSize); // Use primary camera view
     }
 
     // Distance based tessellation
@@ -106,27 +108,15 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     {
         float3 distFactor = GetDistanceBasedTessFactor(p0, p1, p2, GetPrimaryCameraPosition(), _TessellationFactorMinDistance, _TessellationFactorMaxDistance);  // Use primary camera view
         // We square the disance factor as it allow a better percptual descrease of vertex density.
-        tessFactor *= distFactor * distFactor;
+        edgeTessFactors *= distFactor * distFactor;
     }
 
-    tessFactor *= _TessellationFactor;
+    edgeTessFactors *= _TessellationFactor;
 
     // TessFactor below 1.0 have no effect. At 0 it kill the triangle, so clamp it to 1.0
-    tessFactor.xyz = float3(max(1.0, tessFactor.x), max(1.0, tessFactor.y), max(1.0, tessFactor.z));
+    edgeTessFactors = max(edgeTessFactors, float3(1.0, 1.0, 1.0));
 
-    float4 triTessFactors = CalcTriEdgeTessFactors(tessFactor);
-
-    // See comment above:
-    // During shadow passes, we decide that anything outside the main view frustum should not be tessellated.
-    if (frustumCulledMainView)
-    {
-        // Warning: we cannot modify the edge tessellation factors, as that creates cracks between patches.
-        // Therefore, we only modify the inside tessellation factor.
-        // TODO: find a way to modify the edge tessellation factors as well.
-        triTessFactors.w = 1.0;
-    }
-
-    return triTessFactors;
+    return CalcTriTessFactorsFromEdgeTessFactors(edgeTessFactors);
 }
 
 // tessellationFactors
