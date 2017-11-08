@@ -189,6 +189,13 @@ namespace UnityEditor.VFX
         public bool UpdateSubAssets()
         {
             bool modified = false;
+
+            if (!EditorUtility.IsPersistent(this) && EditorUtility.IsPersistent(this.vfxAsset))
+            {
+                string assetPath = AssetDatabase.GetAssetPath(this.vfxAsset);
+                AssetDatabase.AddObjectToAsset(this, assetPath);
+            }
+
             if (EditorUtility.IsPersistent(this))
             {
                 Profiler.BeginSample("VFXEditor.UpdateSubAssets");
