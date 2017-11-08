@@ -215,3 +215,23 @@ float SampleCurve(float4 curveData,float u)
     }
     return bakedTexture.SampleLevel(samplerbakedTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];
 }
+
+///////////
+// Utils //
+///////////
+
+float3x3 GetRotationMatrix(float3 axis,float angle)
+{
+    float2 sincosA;
+    sincos(angle, sincosA.x, sincosA.y);
+    const float c = sincosA.y;
+    const float s = sincosA.x;
+    const float t = 1.0 - c;
+    const float x = axis.x;
+    const float y = axis.y;
+    const float z = axis.z;
+
+    return float3x3(t * x * x + c,      t * x * y - s * z,  t * x * z + s * y,
+                    t * x * y + s * z,  t * y * y + c,      t * y * z - s * x,
+                    t * x * z - s * y,  t * y * z + s * x,  t * z * z + c);
+}

@@ -1,4 +1,6 @@
 ${VFXShaderTags}
+
+${VFXInclude("Assets/VFXShaders/VFXParticleCommon.template")}
 		
 CGINCLUDE
 #if !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)
@@ -19,3 +21,5 @@ float nbMax;
 sampler2D_float _CameraDepthTexture;
 #endif	
 ENDCG
+
+
