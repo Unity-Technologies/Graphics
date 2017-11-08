@@ -15,39 +15,7 @@ public class MasterRemapGraphImporterEditor : ScriptedImporterEditor
         {
             AssetImporter importer = target as AssetImporter;
             Debug.Assert(importer != null, "importer != null");
-            ShowGraphEditWindow(importer.assetPath);
+            ShaderGraphImporterEditor.ShowGraphEditWindow(importer.assetPath);
         }
-    }
-
-    static bool ShowGraphEditWindow(string path)
-    {
-        var asset = AssetDatabase.LoadAssetAtPath<Object>(path) as MasterRemapGraphAsset;
-        if (asset == null)
-            return false;
-
-        var foundWindow = false;
-        foreach (var w in Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>())
-        {
-            if (w.selected == asset)
-            {
-                foundWindow = true;
-                w.Focus();
-            }
-        }
-
-        if (!foundWindow)
-        {
-            var window = CreateInstance<MaterialGraphEditWindow>();
-            window.Show();
-            window.ChangeSelection(asset, typeof(MasterRemapGraph));
-        }
-        return true;
-    }
-
-    [OnOpenAsset]
-    static bool OnOpenAsset(int instanceID, int line)
-    {
-        var path = AssetDatabase.GetAssetPath(instanceID);
-        return ShowGraphEditWindow(path);
     }
 }
