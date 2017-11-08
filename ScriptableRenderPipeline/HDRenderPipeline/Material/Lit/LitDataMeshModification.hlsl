@@ -88,16 +88,6 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
         // Settings factor to 0 will kill the triangle
         return float4(0.0, 0.0, 0.0, 0.0);
     }
-    
-    // See comment above:
-    // During shadow passes, we decide that anything outside the main view frustum should not be tessellated.
-    if (frustumCulledMainView)
-    {
-        // Warning: currently, having different (discontinuous) tessellation factors causes
-        // cracks in tessellation just outside of the primary camera (view) frustum.
-        // The issue doesn't show up on geometry on-screen, but can become visible in shadows.
-        return float4(1.0, 1.0, 1.0, 1.0);
-    }
 
     // We use the parameters of the primary (scene view) camera in order
     // to have identical tessellation levels for both the scene view and
@@ -124,7 +114,19 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     // TessFactor below 1.0 have no effect. At 0 it kill the triangle, so clamp it to 1.0
     tessFactor.xyz = float3(max(1.0, tessFactor.x), max(1.0, tessFactor.y), max(1.0, tessFactor.z));
 
-    return CalcTriEdgeTessFactors(tessFactor);
+    float4 triTessFactors = CalcTriEdgeTessFactors(tessFactor);
+
+    // See comment above:
+    // During shadow passes, we decide that anything outside the main view frustum should not be tessellated.
+    if (frustumCulledMainView)
+    {
+        // Warning: we cannot modify the edge tessellation factors, as that creates cracks between patches.
+        // Therefore, we only modify the inside tessellation factor.
+        // TODO: find a way to modify the edge tessellation factors as well.
+        triTessFactors.w = 1.0;
+    }
+
+    return triTessFactors;
 }
 
 // tessellationFactors
