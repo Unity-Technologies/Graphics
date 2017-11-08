@@ -54,7 +54,7 @@ float3 GetDistanceBasedTessFactor(float3 p0, float3 p1, float3 p2, float3 camera
     return tessFactor;
 }
 
-float4 CalcTriEdgeTessFactors(float3 triVertexFactors)
+float4 CalcTriTessFactorsFromEdgeTessFactors(float3 triVertexFactors)
 {
     float4 tess;
     tess.x = triVertexFactors.x;
