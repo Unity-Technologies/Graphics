@@ -78,7 +78,7 @@ namespace UnityEditor.VFX.UI
             m_Provider = provider;
             m_labelWidth = labelWidth;
 
-            m_Icon =  new VisualElement() {name = "icon"};
+            m_Icon = new VisualElement() { name = "icon" };
             Add(m_Icon);
 
             if (provider.expandable)
@@ -136,6 +136,13 @@ namespace UnityEditor.VFX.UI
             Add(m_Label);
 
             AddToClassList("propertyrm");
+
+
+            RegisterCallback<MouseDownEvent>(OnCatchMouse);
+        }
+
+        void OnCatchMouse(MouseDownEvent e)
+        {
         }
 
         protected float m_labelWidth = 100;
