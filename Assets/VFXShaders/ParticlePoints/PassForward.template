@@ -33,7 +33,7 @@ Pass
 #define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
 #define VFX_VARYING_ ALPHA_THRESHOLD builtInInterpolants.y
 	
-	${VFXBegin:VFXVertexProcess}${VFXEnd}
+	${VFXBegin:VFXVertexAdditionalProcess}${VFXEnd}
 	
 	${VFXInclude("Assets/VFXShaders/ParticlePoints/Pass.template")}	
 		

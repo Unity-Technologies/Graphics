@@ -247,7 +247,7 @@ namespace UnityEditor.VFX
             return templateContent;
         }
 
-        static void SubstitudeMacros(StringBuilder builder)
+        static private void SubstituteMacros(StringBuilder builder)
         {
             var definesToCode = new Dictionary<string, string>();
             var source = builder.ToString();
@@ -443,7 +443,7 @@ namespace UnityEditor.VFX
             }
 
             // Replace defines
-            SubstitudeMacros(stringBuilder);
+            SubstituteMacros(stringBuilder);
 
             Debug.LogFormat("GENERATED_OUTPUT_FILE_FOR : {0}\n{1}", context.ToString(), stringBuilder.ToString());
         }

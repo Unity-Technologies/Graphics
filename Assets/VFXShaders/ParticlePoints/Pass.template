@@ -1,3 +1,7 @@
+#if !(defined(VFX_VARYING_STRUCT) && defined(VFX_VARYING_POSITIONWS))
+#error VFX_VARYING_STRUCT and VFX_VARYING_POSITIONWS must be defined.
+#endif
+
 #pragma vertex vert
 
 VFX_VARYING_STRUCT vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
@@ -36,7 +40,7 @@ VFX_VARYING_STRUCT vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 			o.VFX_VARYING_ALPHATHRESHOLD = alphaThreshold;
 			#endif
 			
-			${VFXVertexProcess}
+			${VFXVertexAdditionalProcess}
 		}
 	}
 	return o;
@@ -68,11 +72,3 @@ void VFXClipFragmentColor(float alpha,VFX_VARYING_STRUCT i)
 	clip(alpha - i.VFX_VARYING_ALPHATHRESHOLD);
 	#endif
 }
-
-//#undef VFX_VARYING_STRUCT
-//#undef VFX_VARYING_POSITIONWS
-//#undef VFX_VARYING_POSITIONCS
-//#undef VFX_VARYING_COLOR
-//#undef VFX_VARYING_ALPHA
-//#undef VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE
-//#undef VFX_VARYING_ALPHATHRESHOLD

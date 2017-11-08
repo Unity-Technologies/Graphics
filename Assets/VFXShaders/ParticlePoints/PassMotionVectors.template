@@ -4,11 +4,13 @@ Pass
 	Name "MOTIONVECTORS"
 	Tags { "LightMode"="MotionVectors" }
 
+	ZWrite Off
+	
 	CGPROGRAM
 	#pragma target 4.5
 	
 	float4x4 _NonJitteredVP;
-	float4x4 _PreviousVP;	
+	float4x4 _PreviousVP;
 	
 	struct ps_input
 	{
@@ -37,7 +39,7 @@ Pass
 #define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
 #define VFX_VARYING_ ALPHA_THRESHOLD builtInInterpolants.y
 	
-${VFXBegin:VFXVertexProcess}
+${VFXBegin:VFXVertexAdditionalProcess}
 o.previousPos = mul(_PreviousVP, float4(oldPosition,1.0f));
 o.currentPos = mul(_NonJitteredVP, float4(position,1.0f));
 ${VFXEnd}
