@@ -500,10 +500,12 @@ namespace UnityEditor.VFX.UI
 
             if (presenter != null)
             {
+                var settings = GetRendererSettings();
+
                 m_ToggleCastShadows.on = settings.shadowCastingMode != ShadowCastingMode.Off;
                 m_ToggleCastShadows.SetEnabled(true);
 
-                m_ToggleMotionVectors.on = GetRendererSettings().motionVectorGenerationMode == MotionVectorGenerationMode.Object;
+                m_ToggleMotionVectors.on = settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object;
                 m_ToggleMotionVectors.SetEnabled(true);
 
                 // if the asset dis destroy somehow, fox example if the user delete the asset, delete the presenter and update the window.
