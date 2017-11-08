@@ -21,7 +21,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXContextUI : GraphElement, IDropTarget, IEdgeDrawerOwner
+    class VFXContextUI : GraphElement, IDropTarget, IEdgeDrawerContainer
     {
         // TODO: Unused except for debugging
         const string RectColorProperty = "rect-color";
@@ -47,7 +47,7 @@ namespace UnityEditor.VFX.UI
 
         VFXContextSlotContainerUI  m_OwnData;
 
-        VFXEdgeDrawer m_EdgeDrawer;
+        EdgeDrawer m_EdgeDrawer;
 
         protected GraphViewTypeFactory typeFactory { get; set; }
 
@@ -189,7 +189,7 @@ namespace UnityEditor.VFX.UI
             clippingOptions = VisualElement.ClippingOptions.NoClipping;
         }
 
-        public void DirtyDrawer()
+        void IEdgeDrawerContainer.EdgeDirty()
         {
             m_EdgeDrawer.Dirty(ChangeType.Repaint);
         }

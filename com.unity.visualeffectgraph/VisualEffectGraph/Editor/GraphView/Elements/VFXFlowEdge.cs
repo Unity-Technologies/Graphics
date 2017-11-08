@@ -194,7 +194,6 @@ namespace UnityEditor.VFX.UI
     {
         public VFXFlowEdge()
         {
-            layer = 1;
         }
 
         protected override EdgeControl CreateEdgeControl()
