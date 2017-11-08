@@ -130,14 +130,16 @@ bool CullTriangleFrustum(float3 p0, float3 p1, float3 p2, float epsilon, float4 
 
 // Returns 'true' if a triangle defined by 3 vertices is back-facing.
 // 'epsilon' is the (negative) value of dot(N, V) below which we cull the triangle.
-bool CullTriangleBackFace(float3 p0, float3 p1, float3 p2, float epsilon, float3 viewPos)
+// 'winding' can be used to change the order: pass 1 for (p0 -> p1 -> p2), or -1 for (p0 -> p2 -> p1).
+bool CullTriangleBackFace(float3 p0, float3 p1, float3 p2, float epsilon, float3 viewPos,
+                          float winding)
 {
     float3 edge1 = p1 - p0;
     float3 edge2 = p2 - p0;
 
     float3 N     = cross(edge1, edge2);
     float3 V     = viewPos - p0;
-    float  NdotV = dot(N, V);
+    float  NdotV = dot(N, V) * winding;
 
     // Optimize:
     // NdotV / (length(N) * length(V)) < Epsilon
