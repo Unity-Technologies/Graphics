@@ -17,6 +17,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent metallicText = new GUIContent("Metallic", "Metallic scale factor");
             public static GUIContent smoothnessText = new GUIContent("Smoothness", "Smoothness scale factor");
             public static GUIContent smoothnessRemappingText = new GUIContent("Smoothness Remapping", "Smoothness remapping");
+            public static GUIContent aoRemappingText = new GUIContent("AmbientOcclusion Remapping", "AmbientOcclusion remapping");
             public static GUIContent maskMapSText = new GUIContent("Mask Map - M(R), AO(G), D(B), S(A)", "Mask map");
             public static GUIContent maskMapSpecularText = new GUIContent("Mask Map - AO(G), D(B), S(A)", "Mask map");            
 
@@ -145,6 +146,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kSmoothnessRemapMin = "_SmoothnessRemapMin";
         protected MaterialProperty[] smoothnessRemapMax = new MaterialProperty[kMaxLayerCount];
         protected const string kSmoothnessRemapMax = "_SmoothnessRemapMax";
+        protected MaterialProperty[] aoRemapMin = new MaterialProperty[kMaxLayerCount];
+        protected const string kAORemapMin = "_AORemapMin";
+        protected MaterialProperty[] aoRemapMax = new MaterialProperty[kMaxLayerCount];
+        protected const string kAORemapMax = "_AORemapMax";
         protected MaterialProperty[] maskMap = new MaterialProperty[kMaxLayerCount];
         protected const string kMaskMap = "_MaskMap";
         protected MaterialProperty[] normalScale = new MaterialProperty[kMaxLayerCount];
@@ -264,6 +269,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 smoothness[i] = FindProperty(string.Format("{0}{1}", kSmoothness, m_PropertySuffixes[i]), props);
                 smoothnessRemapMin[i] = FindProperty(string.Format("{0}{1}", kSmoothnessRemapMin, m_PropertySuffixes[i]), props);
                 smoothnessRemapMax[i] = FindProperty(string.Format("{0}{1}", kSmoothnessRemapMax, m_PropertySuffixes[i]), props);
+                aoRemapMin[i] = FindProperty(string.Format("{0}{1}", kAORemapMin, m_PropertySuffixes[i]), props);
+                aoRemapMax[i] = FindProperty(string.Format("{0}{1}", kAORemapMax, m_PropertySuffixes[i]), props);
                 maskMap[i] = FindProperty(string.Format("{0}{1}", kMaskMap, m_PropertySuffixes[i]), props);
                 normalMap[i] = FindProperty(string.Format("{0}{1}", kNormalMap, m_PropertySuffixes[i]), props);
                 normalMapOS[i] = FindProperty(string.Format("{0}{1}", kNormalMapOS, m_PropertySuffixes[i]), props);
@@ -452,6 +459,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     smoothnessRemapMin[layerIndex].floatValue = remapMin;
                     smoothnessRemapMax[layerIndex].floatValue = remapMax;
+                }
+
+                float aoMin = aoRemapMin[layerIndex].floatValue;
+                float aoMax = aoRemapMax[layerIndex].floatValue;
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.MinMaxSlider(Styles.aoRemappingText, ref aoMin, ref aoMax, 0.0f, 1.0f);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    aoRemapMin[layerIndex].floatValue = aoMin;
+                    aoRemapMax[layerIndex].floatValue = aoMax;
                 }
             }
 
