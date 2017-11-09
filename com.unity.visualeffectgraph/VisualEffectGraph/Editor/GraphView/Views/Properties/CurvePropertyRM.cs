@@ -31,7 +31,7 @@ namespace UnityEditor.VFX.UI
 
         public override float GetPreferredControlWidth()
         {
-            return 120;
+            return 160;
         }
 
         public void OnValueChanged(ChangeEvent<AnimationCurve> e)
