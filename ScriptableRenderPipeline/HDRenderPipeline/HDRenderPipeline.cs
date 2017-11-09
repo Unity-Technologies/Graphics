@@ -366,7 +366,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RegisterDebug()
         {
-            // These need to be Runtime Only because those values are hold by the HDRenderPipeline asset so if user change them through the editor debug menu they might change the value in the asset without noticing it.
+            // These need to be Runtime Only because those values are held by the HDRenderPipeline asset so if user change them through the editor debug menu they might change the value in the asset without noticing it.
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Forward Only", () => m_Asset.renderingSettings.useForwardRenderingOnly, (value) => m_Asset.renderingSettings.useForwardRenderingOnly = (bool)value, DebugItemFlag.RuntimeOnly);
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Deferred Depth Prepass", () => m_Asset.renderingSettings.useDepthPrepassWithDeferredRendering, (value) => m_Asset.renderingSettings.useDepthPrepassWithDeferredRendering = (bool)value, DebugItemFlag.RuntimeOnly);
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Deferred Depth Prepass ATest Only", () => m_Asset.renderingSettings.renderAlphaTestOnlyInDeferredPrepass, (value) => m_Asset.renderingSettings.renderAlphaTestOnlyInDeferredPrepass = (bool)value, DebugItemFlag.RuntimeOnly);
