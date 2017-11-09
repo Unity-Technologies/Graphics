@@ -308,6 +308,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             else
             {
+                ShaderUtil.ClearShaderErrors(previewData.shader);
                 ShaderUtil.UpdateShaderAsset(previewData.shader, previewData.shaderString);
             }
 
