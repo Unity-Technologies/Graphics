@@ -87,28 +87,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     RenderTargetIdentifier[] tex;
                     sc.GetTex2DArrays(out tex, out offset, out count);
 
-                    if(computeShader)
-                    {
-                        // bind buffers
-                        cb.SetComputeBufferParam(computeShader, computeKernel, HDShaderIDs._ShadowDatasExp, s_ShadowDataBuffer);
-                        cb.SetComputeBufferParam(computeShader, computeKernel, HDShaderIDs._ShadowPayloads, s_ShadowPayloadBuffer);
-                        // bind textures
-                        cb.SetComputeTextureParam(computeShader, computeKernel, HDShaderIDs._ShadowmapExp_VSM_0, tex[0]);
-                        cb.SetComputeTextureParam(computeShader, computeKernel, HDShaderIDs._ShadowmapExp_VSM_1, tex[1]);
-                        cb.SetComputeTextureParam(computeShader, computeKernel, HDShaderIDs._ShadowmapExp_VSM_2, tex[2]);
-                        cb.SetComputeTextureParam(computeShader, computeKernel, HDShaderIDs._ShadowmapExp_PCF, tex[3]);
-                    }
-                    else
-                    {
-                        // bind buffers
-                        cb.SetGlobalBuffer(HDShaderIDs._ShadowDatasExp, s_ShadowDataBuffer);
-                        cb.SetGlobalBuffer(HDShaderIDs._ShadowPayloads, s_ShadowPayloadBuffer);
-                        // bind textures
-                        cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_VSM_0, tex[0]);
-                        cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_VSM_1, tex[1]);
-                        cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_VSM_2, tex[2]);
-                        cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_PCF, tex[3]);
-                    }
+                    // bind buffers
+                    cb.SetGlobalBuffer(HDShaderIDs._ShadowDatasExp, s_ShadowDataBuffer);
+                    cb.SetGlobalBuffer(HDShaderIDs._ShadowPayloads, s_ShadowPayloadBuffer);
+                    // bind textures
+                    cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_VSM_0, tex[0]);
+                    cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_VSM_1, tex[1]);
+                    cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_VSM_2, tex[2]);
+                    cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_PCF, tex[3]);
 
                     // TODO: Currently samplers are hard coded in ShadowContext.hlsl, so we can't really set them here
                 };
@@ -1824,6 +1810,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 cmd.EndSample("Build Light List");
+
+                PushGlobalParams(camera, cmd);
             }
 
             private void UpdateDataBuffers()
@@ -1838,20 +1826,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_LightVolumeDataBuffer.SetData(m_lightList.lightVolumes);
             }
 
-            private void BindGlobalParams(CommandBuffer cmd, Camera camera, bool forceClustered)
-            {
-
-            }
-
-            public void PushGlobalParams(Camera camera, CommandBuffer cmd, ComputeShader computeShader, int kernelIndex, bool forceClustered = false)
+            public void PushGlobalParams(Camera camera, CommandBuffer cmd)
             {
                 using (new ProfilingSample(cmd, "Push Global Parameters"))
                 {
                     // Shadows
                     m_ShadowMgr.SyncData();
-                    m_ShadowMgr.BindResources(cmd, computeShader, kernelIndex);
-
-                    cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, (forceClustered || !usingFptl) ? s_PerVoxelLightLists : s_LightList);       // opaques list (unless MSAA possibly)
+                    m_ShadowMgr.BindResources(cmd, null, 0);
 
                     cmd.SetGlobalTexture(HDShaderIDs._CookieTextures, m_CookieTexArray.GetTexCache());
                     cmd.SetGlobalTexture(HDShaderIDs._CookieCubeTextures, m_CubeCookieTexArray.GetTexCache());
@@ -1937,7 +1918,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     #endif
 
                     // Debug tiles
-                    PushGlobalParams(hdCamera.camera, cmd, null, 0);
                     if (lightingDebug.tileDebugByCategory == TileSettings.TileDebug.FeatureVariants)
                     {
                         if (GetFeatureVariantsEnabled(m_TileSettings))
@@ -2004,6 +1984,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                                 LightingPassOptions options)
             {
                 var bUseClusteredForDeferred = !usingFptl;
+                cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);
 
                 if (m_TileSettings.enableTileAndCluster && m_TileSettings.enableComputeLightEvaluation && options.outputSplitLighting)
                 {
@@ -2073,15 +2054,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 }
                             }
 
-                            // Pass global parameters to compute shader
-                            // TODO: get rid of this by making global parameters visible to compute shaders
-                            PushGlobalParams(camera, cmd, deferredComputeShader, kernel);
                             hdCamera.SetupComputeShader(deferredComputeShader, cmd);
-
-                            // TODO: Update value like in ApplyDebugDisplaySettings() call. Sadly it is high likely that this will not be keep in sync. we really need to get rid of this by making global parameters visible to compute shaders
- 
-                            cmd.SetComputeBufferParam(deferredComputeShader, kernel, HDShaderIDs.g_vLightListGlobal, bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);
-
 
                             cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._MainDepthTexture, depthTexture);
 
@@ -2119,8 +2092,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                                                                 bUseClusteredForDeferred ? 1 : 0,
                                                                                 debugDisplaySettings.IsDebugDisplayEnabled() ? 1 : 0];
 
-                        PushGlobalParams(camera, cmd, null, 0);
-
                         if (options.outputSplitLighting)
                         {
                             CoreUtils.DrawFullScreen(cmd, currentLightingMaterial, colorBuffers, depthStencilBuffer);
@@ -2148,8 +2119,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public void RenderForward(Camera camera, CommandBuffer cmd, bool renderOpaque)
             {
-                PushGlobalParams(camera, cmd, null, 0);
-
                 // Note: SHADOWS_SHADOWMASK keyword is enabled in HDRenderPipeline.cs ConfigureForShadowMask
 
                 // Note: if we use render opaque with deferred tiling we need to render a opaque depth pass for these opaque objects
