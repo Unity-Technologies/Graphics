@@ -1,7 +1,3 @@
-#ifndef USE_LEGACY_UNITY_SHADER_VARIABLES
-#define VOLUMETRIC_LIGHTING_ENABLED
-#endif
-
 //-----------------------------------------------------------------------------
 // SurfaceData and BSDFData
 //-----------------------------------------------------------------------------
@@ -10,10 +6,11 @@
 #include "Lit.cs.hlsl"
 #include "SubsurfaceScatteringSettings.cs.hlsl"
 
+#include "../../../Core/ShaderLibrary/VolumeRendering.hlsl"
+
 #ifdef VOLUMETRIC_LIGHTING_ENABLED
     // Apparently, not all shaders include "ShaderVariables.hlsl".
     #include "../../ShaderVariables.hlsl"
-    #include "../../../Core/ShaderLibrary/VolumeRendering.hlsl"
 #endif
 
 // Define refraction keyword helpers
