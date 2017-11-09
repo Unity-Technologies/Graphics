@@ -91,6 +91,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kDistortionBlendMode = "_DistortionBlendMode";
         protected MaterialProperty distortionScale = null;
         protected const string kDistortionScale = "_DistortionScale";
+        protected MaterialProperty distortionVectorScale = null;
+        protected const string kDistortionVectorScale = "_DistortionVectorScale";
+        protected MaterialProperty distortionVectorBias = null;
+        protected const string kDistortionVectorBias = "_DistortionVectorBias";
         protected MaterialProperty distortionBlurScale = null;
         protected const string kDistortionBlurScale = "_DistortionBlurScale";
         protected MaterialProperty distortionBlurRemapMin = null;
@@ -141,6 +145,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             distortionVectorMap = FindProperty(kDistortionVectorMap, props, false);
             distortionBlendMode = FindProperty(kDistortionBlendMode, props, false);
             distortionScale = FindProperty(kDistortionScale, props, false);
+            distortionVectorScale = FindProperty(kDistortionVectorScale, props, false);
+            distortionVectorBias = FindProperty(kDistortionVectorBias, props, false);
             distortionBlurScale = FindProperty(kDistortionBlurScale, props, false);
             distortionBlurRemapMin = FindProperty(kDistortionBlurRemapMin, props, false);
             distortionBlurRemapMax = FindProperty(kDistortionBlurRemapMax, props, false);
@@ -256,7 +262,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     m_MaterialEditor.ShaderProperty(distortionDepthTest, StylesBaseUnlit.distortionDepthTestText);
 
                     EditorGUI.indentLevel++;
-                    m_MaterialEditor.TexturePropertySingleLine(StylesBaseUnlit.distortionVectorMapText, distortionVectorMap);
+                    m_MaterialEditor.TexturePropertySingleLine(StylesBaseUnlit.distortionVectorMapText, distortionVectorMap, distortionVectorScale, distortionVectorBias);
                     EditorGUI.indentLevel++;
                     m_MaterialEditor.ShaderProperty(distortionScale, StylesBaseUnlit.distortionScaleText);
                     m_MaterialEditor.ShaderProperty(distortionBlurScale, StylesBaseUnlit.distortionBlurScaleText);
@@ -458,7 +464,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             if (material.HasProperty(kDistortionEnable))
             {
-                bool distortionEnable = material.GetFloat(kDistortionEnable) > 0.0f;
+                bool distortionEnable = material.GetFloat(kDistortionEnable) > 0.0f && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent);
 
                 bool distortionOnly = false;
                 if (material.HasProperty(kDistortionOnly))
