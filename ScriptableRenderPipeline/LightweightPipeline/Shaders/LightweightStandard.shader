@@ -118,6 +118,7 @@
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
+            ColorMask 0
 
             CGPROGRAM
             #pragma target 2.0
