@@ -29,4 +29,15 @@ public class GraphicTestTools
             }
         }
     }
+
+    [MenuItem("GraphicTest Tools/Update All Material Placers")]
+    public static void UpdateAllPlacers()
+    {
+        MultiMaterialPlacer[] placers = Object.FindObjectsOfType<MultiMaterialPlacer>();
+
+        for (int i=0; i<placers.Length; ++i)
+        {
+            MultiMaterialPlacerEditor.PlaceObjects(placers[i]);
+        }
+    }
 }

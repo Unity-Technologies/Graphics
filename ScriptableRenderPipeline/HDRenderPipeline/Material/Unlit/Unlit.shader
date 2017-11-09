@@ -21,6 +21,8 @@ Shader "HDRenderPipeline/Unlit"
         [HideInInspector] _DistortionBlurDstBlend("Distortion Blur Blend Dst", Int) = 0
         [HideInInspector] _DistortionBlurBlendMode("Distortion Blur Blend Mode", Int) = 0
         _DistortionScale("Distortion Scale", Float) = 1
+        _DistortionVectorScale("Distortion Vector Scale", Float) = 2
+        _DistortionVectorBias("Distortion Vector Bias", Float) = -1
         _DistortionBlurScale("Distortion Blur Scale", Float) = 1
         _DistortionBlurRemapMin("DistortionBlurRemapMin", Float) = 0.0
         _DistortionBlurRemapMax("DistortionBlurRemapMax", Float) = 1.0
