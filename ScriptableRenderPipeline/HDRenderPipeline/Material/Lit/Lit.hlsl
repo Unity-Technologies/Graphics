@@ -1115,7 +1115,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 
         // TODO: Do comparison between this correct version and the one from isotropic and see if there is any visual difference
         DV = DV_SmithJointGGXAniso(TdotH, BdotH, NdotH,
-                                   preLightData.TdotV, preLightData.BdotV, NdotV,
+                                   preLightData.TdotV, preLightData.BdotV, preLightData.NdotV,
                                    TdotL, BdotL, NdotL,
                                    bsdfData.roughnessT, bsdfData.roughnessB
         #ifdef LIT_USE_BSDF_PRE_LAMBDAV

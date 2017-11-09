@@ -29,17 +29,9 @@ public class MultiMaterialPlacerEditor : Editor
         base.OnInspectorGUI();
         if ( GUILayout.Button("Place") )
         {
-            foreach ( Object obj in targets)
+            foreach (object obj in targets)
             {
-                MultiMaterialPlacer m = obj as MultiMaterialPlacer;
-                Material[] materials = PlaceObjects(m);
-                if (materials != null)
-                {
-                    foreach (Material mat in materials)
-                    {
-                        UnityEditor.Experimental.Rendering.HDPipeline.HDEditorUtils.ResetMaterialKeywords(mat);
-                    }
-                }
+                PlaceObjects(obj as MultiMaterialPlacer);
             }
         }
 
@@ -81,7 +73,7 @@ public class MultiMaterialPlacerEditor : Editor
         }
     }
 
-    public Material[] PlaceObjects(MultiMaterialPlacer _target)
+    public static void PlaceObjects(MultiMaterialPlacer _target)
     {
         //clear hierarchy
         for (int i=_target.transform.childCount-1; i>=0; --i)
@@ -90,9 +82,9 @@ public class MultiMaterialPlacerEditor : Editor
             DestroyImmediate(_target.transform.GetChild(i).gameObject);
         }
 
-        if (_target.prefabObject == null) return null;
+        if (_target.prefabObject == null) return;
 
-        List<Material> outMats = new List<Material>(); ;
+        List<Material> materials = new List<Material>();
 
         Renderer refObject = Instantiate(_target.prefabObject.gameObject).GetComponent<Renderer>();
         if (_target.material != null)
@@ -110,8 +102,8 @@ public class MultiMaterialPlacerEditor : Editor
 
         if (_target.is2D)
         {
-            if (_target.instanceParameters.Length < 2) return null;
-            if (!(_target.instanceParameters[0].multi && _target.instanceParameters[1].multi)) return null;
+            if (_target.instanceParameters.Length < 2) return;
+            if (!(_target.instanceParameters[0].multi && _target.instanceParameters[1].multi)) return;
 
             for (int i = 0; i < _target.instanceParameters[0].count; i++)
             {
@@ -120,7 +112,7 @@ public class MultiMaterialPlacerEditor : Editor
                     Renderer tmp = CopyObject(refObject, x, y, _target.transform, _target);
                     tmp.gameObject.name = _target.prefabObject.name+"_"+ ApplyParameterToMaterial(tmp.sharedMaterial, _target.instanceParameters[0], i);
                     tmp.gameObject.name += "_"+ApplyParameterToMaterial(tmp.sharedMaterial, _target.instanceParameters[1], j);
-                    outMats.Add(tmp.sharedMaterial);
+                    materials.Add(tmp.sharedMaterial);
                     y -= _target.offset;
                 }
                 x += _target.offset;
@@ -139,7 +131,7 @@ public class MultiMaterialPlacerEditor : Editor
                         {
                             Renderer tmp = CopyObject(refObject, x, y, _target.transform, _target);
                             tmp.gameObject.name = _target.prefabObject.name + "_" + ApplyParameterToMaterial(tmp.sharedMaterial, _target.instanceParameters[i]);
-                            outMats.Add(tmp.sharedMaterial);
+                            materials.Add(tmp.sharedMaterial);
                         }
                         else
                         {
@@ -150,7 +142,7 @@ public class MultiMaterialPlacerEditor : Editor
 
                                 Renderer tmp = CopyObject(refObject, x, y, _target.transform, _target);
                                 tmp.gameObject.name = _target.prefabObject.name + "_" + ApplyParameterToMaterial(tmp.sharedMaterial, _target.instanceParameters[i], j);
-                                outMats.Add(tmp.sharedMaterial);
+                                materials.Add(tmp.sharedMaterial);
                             }
                         }
                     }
@@ -158,7 +150,7 @@ public class MultiMaterialPlacerEditor : Editor
                     {
                         Renderer tmp = CopyObject(refObject, x, y, _target.transform, _target);
                         tmp.gameObject.name = _target.prefabObject.name + "_" + ApplyParameterToMaterial(tmp.sharedMaterial, _target.instanceParameters[i]);
-                        outMats.Add(tmp.sharedMaterial);
+                        materials.Add(tmp.sharedMaterial);
                     }
                 }
 
@@ -167,11 +159,17 @@ public class MultiMaterialPlacerEditor : Editor
         }
 
         DestroyImmediate(refObject.gameObject);
-
-        return outMats.ToArray();
+        
+        if (materials != null)
+        {
+            foreach (Material mat in materials)
+            {
+                UnityEditor.Experimental.Rendering.HDPipeline.HDEditorUtils.ResetMaterialKeywords(mat);
+            }
+        }
     }
 
-    Renderer CopyObject( Renderer _target, float _x, float _y, Transform _parent, MultiMaterialPlacer _placer )
+    public static Renderer CopyObject( Renderer _target, float _x, float _y, Transform _parent, MultiMaterialPlacer _placer )
     {
         Renderer o = Instantiate(_target.gameObject).GetComponent<Renderer>();
         o.sharedMaterial = Instantiate(_target.sharedMaterial);
@@ -183,7 +181,7 @@ public class MultiMaterialPlacerEditor : Editor
         return o;
     }
 
-    string ApplyParameterToMaterial(Material _mat, MaterialParameterVariation _param)
+    public static string ApplyParameterToMaterial(Material _mat, MaterialParameterVariation _param)
     {
         if (_param.multi) return null;
         string o = _param.parameter + "_";
@@ -218,7 +216,7 @@ public class MultiMaterialPlacerEditor : Editor
         return o;
     }
 
-    string ApplyParameterToMaterial(Material _mat, MaterialParameterVariation _param, int _num)
+    public static string ApplyParameterToMaterial(Material _mat, MaterialParameterVariation _param, int _num)
     {
         if (!_param.multi) return null;
         if (_param.paramType == MaterialParameterVariation.ParamType.Texture) return null;
