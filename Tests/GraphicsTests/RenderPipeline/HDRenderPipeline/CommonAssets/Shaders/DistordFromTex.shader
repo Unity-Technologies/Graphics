@@ -3,6 +3,8 @@ Shader "Hidden/DistordFromTex"
 	Properties
 	{
         _Tex("InputTex", 2D) = "white" {}
+        _Scale("Scale", Float) = 2
+        _Bias("Bias", Float) = -1
 	}
 	SubShader
 	{
@@ -18,13 +20,14 @@ Shader "Hidden/DistordFromTex"
             #pragma target 3.0
 
             sampler2D   _Tex;
+            float _Scale, _Bias;
 
             float4 frag(v2f_customrendertexture IN) : COLOR
             {
                 float4 c = float4(0,0,0,0);
 
                 c.rgb = tex2D(_Tex, IN.localTexcoord.xy).rgb;
-                c.rg = c.rg * 2 - 1;
+                c.rg = c.rg * _Scale + _Bias;
 				
                 return c;
             }
