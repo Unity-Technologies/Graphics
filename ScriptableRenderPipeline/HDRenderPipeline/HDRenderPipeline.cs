@@ -540,7 +540,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (m_SkyManager.IsSkyValid())
                 {
-                    m_SkyManager.SetGlobalSkyTexture();
+                    m_SkyManager.SetGlobalSkyTexture(cmd);
                     cmd.SetGlobalInt(HDShaderIDs._EnvLightSkyEnabled, 1);
                 }
                 else
