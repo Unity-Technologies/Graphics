@@ -38,6 +38,16 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         _SmoothnessRemapMax2("SmoothnessRemapMax2", Range(0.0, 1.0)) = 1.0
         _SmoothnessRemapMax3("SmoothnessRemapMax3", Range(0.0, 1.0)) = 1.0
 
+        _AORemapMin0("AORemapMin0", Range(0.0, 1.0)) = 0.0
+        _AORemapMin1("AORemapMin1", Range(0.0, 1.0)) = 0.0
+        _AORemapMin2("AORemapMin2", Range(0.0, 1.0)) = 0.0
+        _AORemapMin3("AORemapMin3", Range(0.0, 1.0)) = 0.0
+
+        _AORemapMax0("AORemapMax0", Range(0.0, 1.0)) = 1.0
+        _AORemapMax1("AORemapMax1", Range(0.0, 1.0)) = 1.0
+        _AORemapMax2("AORemapMax2", Range(0.0, 1.0)) = 1.0
+        _AORemapMax3("AORemapMax3", Range(0.0, 1.0)) = 1.0
+
         _MaskMap0("MaskMap0", 2D) = "white" {}
         _MaskMap1("MaskMap1", 2D) = "white" {}
         _MaskMap2("MaskMap2", 2D) = "white" {}
@@ -412,6 +422,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
     #include "../../../Core/ShaderLibrary/common.hlsl"
     #include "../../../Core/ShaderLibrary/Wind.hlsl"
+    #include "../../../Core/ShaderLibrary/GeometricTools.hlsl"
     #include "../../../Core/ShaderLibrary/tessellation.hlsl"
     #include "../../ShaderPass/FragInputs.hlsl"
     #include "../../ShaderPass/ShaderPass.cs.hlsl"

@@ -92,11 +92,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(nonJitteredCameraProj, true);
 
             var pos = camera.transform.position;
+            var relPos = pos; // World-origin-relative
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
                 // Zero out the translation component.
                 gpuView.SetColumn(3, new Vector4(0, 0, 0, 1));
+                relPos = Vector3.zero; // Camera-relative
             }
 
             var gpuVP = gpuNonJitteredProj * gpuView;
@@ -124,12 +126,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cameraPos = pos;
             screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
 
+            // Warning: near and far planes appear to be broken.
             GeometryUtility.CalculateFrustumPlanes(viewProjMatrix, frustumPlanes);
 
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < 4; i++)
             {
+                // Left, right, top, bottom.
                 frustumPlaneEquations[i] = new Vector4(frustumPlanes[i].normal.x, frustumPlanes[i].normal.y, frustumPlanes[i].normal.z, frustumPlanes[i].distance);
             }
+
+            // Near, far.
+            frustumPlaneEquations[4] = new Vector4( camera.transform.forward.x,  camera.transform.forward.y,  camera.transform.forward.z, -Vector3.Dot(camera.transform.forward, relPos) - camera.nearClipPlane);
+            frustumPlaneEquations[5] = new Vector4(-camera.transform.forward.x, -camera.transform.forward.y, -camera.transform.forward.z,  Vector3.Dot(camera.transform.forward, relPos) + camera.farClipPlane);
 
             m_LastFrameActive = Time.frameCount;
         }

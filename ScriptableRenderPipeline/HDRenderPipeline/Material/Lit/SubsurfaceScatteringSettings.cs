@@ -244,12 +244,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             weightedStdDev.w = Mathf.Lerp(maxStdDev1, maxStdDev2, lerpWeight);
 
             // Store (1 / (2 * WeightedVariance)) per color channel.
-            halfRcpWeightedVariances.Set(
-                0.5f / (weightedStdDev.x * weightedStdDev.x),
-                0.5f / (weightedStdDev.y * weightedStdDev.y),
-                0.5f / (weightedStdDev.z * weightedStdDev.z),
-                0.5f / (weightedStdDev.w * weightedStdDev.w)
-            );
+            // Warning: do not use halfRcpWeightedVariances.Set(). It will not work.
+            halfRcpWeightedVariances = new Vector4(0.5f / (weightedStdDev.x * weightedStdDev.x),
+                                                   0.5f / (weightedStdDev.y * weightedStdDev.y),
+                                                   0.5f / (weightedStdDev.z * weightedStdDev.z),
+                                                   0.5f / (weightedStdDev.w * weightedStdDev.w));
         }
         // <<< Old SSS Model
 

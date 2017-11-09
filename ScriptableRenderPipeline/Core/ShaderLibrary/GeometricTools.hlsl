@@ -89,13 +89,85 @@ float3 RayPlaneIntersect(in float3 rayOrigin, in float3 rayDirection, in float3 
 }
 
 //-----------------------------------------------------------------------------
-// Distance functions
+// Miscellaneous functions
 //-----------------------------------------------------------------------------
 
 // Box is AABB
 float DistancePointBox(float3 position, float3 boxMin, float3 boxMax)
 {
     return length(max(max(position - boxMax, boxMin - position), float3(0.0, 0.0, 0.0)));
+}
+
+float3 ProjectPointOnPlane(float3 position, float3 planePosition, float3 planeNormal)
+{
+    return position - (dot(position - planePosition, planeNormal) * planeNormal);
+}
+
+// Plane equation: {(a, b, c) = N, d = -dot(N, P)}.
+// Returns the distance from the plane to the point 'p' along the normal.
+// Positive -> in front (above), negative -> behind (below).
+float DistanceFromPlane(float3 p, float4 plane)
+{
+    return dot(float4(p, 1.0), plane);
+}
+
+// Returns 'true' if the triangle is outside of the frustum.
+// 'epsilon' is the (negative) distance to (outside of) the frustum below which we cull the triangle.
+bool CullTriangleFrustum(float3 p0, float3 p1, float3 p2, float epsilon, float4 frustumPlanes[6], int numPlanes)
+{
+    bool outside = false;
+
+    for (int i = 0; i < numPlanes; i++)
+    {
+        // If all 3 points are behind any of the planes, we cull.
+        outside = outside || Max3(DistanceFromPlane(p0, frustumPlanes[i]),
+                                  DistanceFromPlane(p1, frustumPlanes[i]),
+                                  DistanceFromPlane(p2, frustumPlanes[i])) < epsilon;
+    }
+
+    return outside;
+}
+
+// Returns 'true' if the edge of the triangle is outside of the frustum.
+// The edges are defined s.t. they are on the opposite side of the point with the given index.
+// 'epsilon' is the (negative) distance to (outside of) the frustum below which we cull the triangle.
+bool3 CullTriangleEdgesFrustum(float3 p0, float3 p1, float3 p2, float epsilon, float4 frustumPlanes[6], int numPlanes)
+{
+    bool3 edgesOutside = false;
+
+    for (int i = 0; i < numPlanes; i++)
+    {
+        bool3 pointsOutside = bool3(DistanceFromPlane(p0, frustumPlanes[i]) < epsilon,
+                                    DistanceFromPlane(p1, frustumPlanes[i]) < epsilon,
+                                    DistanceFromPlane(p2, frustumPlanes[i]) < epsilon);
+
+        // If both points of the edge are behind any of the planes, we cull.
+        edgesOutside.x = edgesOutside.x || (pointsOutside.y && pointsOutside.z);
+        edgesOutside.y = edgesOutside.y || (pointsOutside.x && pointsOutside.z);
+        edgesOutside.z = edgesOutside.z || (pointsOutside.x && pointsOutside.y);
+    }
+
+    return edgesOutside;
+}
+
+// Returns 'true' if a triangle defined by 3 vertices is back-facing.
+// 'epsilon' is the (negative) value of dot(N, V) below which we cull the triangle.
+// 'winding' can be used to change the order: pass 1 for (p0 -> p1 -> p2), or -1 for (p0 -> p2 -> p1).
+bool CullTriangleBackFace(float3 p0, float3 p1, float3 p2, float epsilon, float3 viewPos, float winding)
+{
+    float3 edge1 = p1 - p0;
+    float3 edge2 = p2 - p0;
+
+    float3 N     = cross(edge1, edge2);
+    float3 V     = viewPos - p0;
+    float  NdotV = dot(N, V) * winding;
+
+    // Optimize:
+    // NdotV / (length(N) * length(V)) < Epsilon
+    // NdotV < Epsilon * length(N) * length(V)
+    // NdotV < Epsilon * sqrt(dot(N, N)) * sqrt(dot(V, V))
+    // NdotV < Epsilon * sqrt(dot(N, N) * dot(V, V))
+    return NdotV < epsilon * sqrt(dot(N, N) * dot(V, V));
 }
 
 #endif // UNITY_GEOMETRICTOOLS_INCLUDED
