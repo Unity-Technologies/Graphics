@@ -1,9 +1,11 @@
 ﻿using System;
+using UnityEditor.Experimental.UIElements;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
@@ -18,6 +20,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             this.graph = graph;
             this.property = property;
 
+
+            var displayNameField = new TextField { name = "displayName", value = property.displayName };
+            displayNameField.OnValueChanged(OnDisplayNameChanged);
+            Add(displayNameField);
+
             m_ValueAction = null;
             if (property is FloatShaderProperty)
                 m_ValueAction = FloatField;
@@ -27,15 +34,57 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 m_ValueAction = Vector3Field;
             else if (property is Vector4ShaderProperty)
                 m_ValueAction = Vector4Field;
-            else if (property is ColorShaderProperty)
-                m_ValueAction = ColorField;
-            else if (property is TextureShaderProperty)
-                m_ValueAction = TextureField;
-            Assert.IsNotNull(m_ValueAction);
 
-            Add(new IMGUIContainer(DisplayNameField) { name = "displayName" });
-            Add(new IMGUIContainer(ValueField) { name = "value" });
+            if (m_ValueAction != null)
+            {
+                Add(new IMGUIContainer(ValueField) { name = "value" });
+            }
+            else if (property is ColorShaderProperty)
+            {
+                var fProp = (ColorShaderProperty) property;
+                var colorField = new ColorField { name = "value", value = fProp.value };
+                colorField.OnValueChanged(OnColorChanged);
+                Add(colorField);
+            }
+            else if (property is TextureShaderProperty)
+            {
+                var fProp = (TextureShaderProperty) property;
+                var objectField = new ObjectField { name = "value", objectType = typeof(Texture), value = fProp.value.texture };
+                objectField.OnValueChanged(OnTextureChanged);
+                Add(objectField);
+            }
+
             Add(new Button(OnClickRemove) { name = "remove", text = "Remove" });
+        }
+
+        void OnColorChanged(ChangeEvent<Color> evt)
+        {
+            var fProp = (ColorShaderProperty) property;
+            if (evt.newValue != fProp.value)
+            {
+                fProp.value = evt.newValue;
+                NotifyNodes();
+            }
+        }
+
+        void OnTextureChanged(ChangeEvent<Object> evt)
+        {
+            var fProp = (TextureShaderProperty) property;
+            var newValue = (Texture)evt.newValue;
+            if (newValue != fProp.value.texture)
+            {
+                fProp.value.texture = newValue;
+                NotifyNodes();
+            }
+        }
+
+        void OnDisplayNameChanged(ChangeEvent<string> evt)
+        {
+            if (evt.newValue != property.displayName)
+            {
+                property.displayName = evt.newValue;
+                NotifyNodes();
+            }
         }
 
         void OnClickRemove()
@@ -43,14 +92,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             graph.owner.RegisterCompleteObjectUndo("Remove Property");
             graph.RemoveShaderProperty(property.guid);
             NotifyNodes();
-        }
-
-        void DisplayNameField()
-        {
-            EditorGUI.BeginChangeCheck();
-            property.displayName = EditorGUILayout.DelayedTextField(property.displayName);
-            if (EditorGUI.EndChangeCheck())
-                NotifyNodes();
         }
 
         void ValueField()
@@ -89,18 +130,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         {
             var fProp = (Vector4ShaderProperty) property;
             fProp.value = EditorGUILayout.Vector4Field("", fProp.value);
-        }
-
-        void ColorField()
-        {
-            var fProp = (ColorShaderProperty) property;
-            fProp.value = EditorGUILayout.ColorField("", fProp.value);
-        }
-
-        void TextureField()
-        {
-            //var fProp = (TextureShaderProperty) property;
-            //fProp.value.texture = EditorGUILayout.MiniThumbnailObjectField(new GUIContent("Texture"), fProp.value.texture, typeof(Texture), null) as Texture;
         }
     }
 }
