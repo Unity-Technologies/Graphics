@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using UnityEditor.Experimental.UIElements;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using Object = UnityEngine.Object;
@@ -26,7 +27,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
     {
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;
-        GUIContent m_Label;
 
         public ObjectControlView(string label, AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
@@ -34,21 +34,24 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 throw new ArgumentException("Property must be assignable to UnityEngine.Object.");
             m_Node = node;
             m_PropertyInfo = propertyInfo;
-            m_Label = new GUIContent(label ?? propertyInfo.Name);
-            Add(new IMGUIContainer(OnGUIHandler));
+            label = label ?? propertyInfo.Name;
+
+            if (!string.IsNullOrEmpty(label))
+                Add(new Label{text = label});
+
+            var value = (Object) m_PropertyInfo.GetValue(m_Node, null);
+            var objectField = new ObjectField { objectType = propertyInfo.PropertyType, value = value };
+            objectField.OnValueChanged(OnValueChanged);
+            Add(objectField);
         }
 
-        void OnGUIHandler()
+        void OnValueChanged(ChangeEvent<Object> evt)
         {
             var value = (Object) m_PropertyInfo.GetValue(m_Node, null);
-            using (var changeCheckScope = new EditorGUI.ChangeCheckScope())
+            if (evt.newValue != value)
             {
-                //value = EditorGUILayout.MiniThumbnailObjectField(m_Label, value, m_PropertyInfo.PropertyType);
-                if (changeCheckScope.changed)
-                {
-                    m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
-                    m_PropertyInfo.SetValue(m_Node, value, null);
-                }
+                m_Node.owner.owner.RegisterCompleteObjectUndo("Change + " + m_Node.name);
+                m_PropertyInfo.SetValue(m_Node, evt.newValue, null);
             }
         }
     }
