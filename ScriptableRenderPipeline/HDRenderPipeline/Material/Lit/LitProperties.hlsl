@@ -94,6 +94,8 @@ CBUFFER_START(_PerMaterial)
 float _AlphaCutoff;
 float4 _DoubleSidedConstants;
 float _DistortionScale;
+float _DistortionVectorScale;
+float _DistortionVectorBias;
 float _DistortionBlurScale;
 float _DistortionBlurRemapMin;
 float _DistortionBlurRemapMax;
@@ -140,6 +142,8 @@ float _Metallic;
 float _Smoothness;
 float _SmoothnessRemapMin;
 float _SmoothnessRemapMax;
+float _AORemapMin;
+float _AORemapMax;
 
 float _NormalScale;
 
@@ -184,6 +188,9 @@ PROP_DECL(float, _Metallic);
 PROP_DECL(float, _Smoothness);
 PROP_DECL(float, _SmoothnessRemapMin);
 PROP_DECL(float, _SmoothnessRemapMax);
+PROP_DECL(float, _AORemapMin);
+PROP_DECL(float, _AORemapMax);
+
 PROP_DECL(float, _NormalScale);
 float4 _NormalMap0_TexelSize; // Unity facility. This will provide the size of the base normal to the shader
 
