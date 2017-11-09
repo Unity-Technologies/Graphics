@@ -100,7 +100,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private int m_ShadowMapRTID;
         private RenderTargetIdentifier m_CurrCameraColorRT;
         private RenderTargetIdentifier m_ShadowMapRT;
-        //private RenderTargetIdentifier m_OpaqueColorRT;
+        private RenderTargetIdentifier m_OpaqueColorRT;
         private RenderTargetIdentifier m_FinalColorRT;
         private RenderTargetIdentifier m_OpaqueDepthRT;
         private RenderTargetIdentifier m_FinalDepthRT;
@@ -167,7 +167,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             m_ShadowMapRT = new RenderTargetIdentifier(m_ShadowMapRTID);
 
-            //m_OpaqueColorRT = new RenderTargetIdentifier(CameraRenderTargetID.opaqueColor);
+            m_OpaqueColorRT = new RenderTargetIdentifier(CameraRenderTargetID.opaqueColor);
             m_FinalColorRT = new RenderTargetIdentifier(CameraRenderTargetID.finalColor);
             m_OpaqueDepthRT = new RenderTargetIdentifier(CameraRenderTargetID.depth);
             m_FinalDepthRT = new RenderTargetIdentifier(CameraRenderTargetID.depthCopy);
@@ -204,8 +204,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             base.Render(context, cameras);
 
-            bool stereoEnabled = XRSettings.isDeviceActive;
-
             // TODO: This is at the moment required for all pipes. We should not implicitly change user project settings
             // instead this should be forced when using SRP, since all SRP use linear lighting.
             GraphicsSettings.lightsUseLinearIntensity = true;
@@ -216,6 +214,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Array.Sort(cameras, m_CameraComparer);
             foreach (Camera camera in cameras)
             {
+                bool sceneViewCamera = camera.cameraType == CameraType.SceneView;
+                bool stereoEnabled = XRSettings.isDeviceActive && !sceneViewCamera;
                 m_CurrCamera = camera;
                 m_IsOffscreenCamera = m_CurrCamera.targetTexture != null && m_CurrCamera.cameraType != CameraType.SceneView;
 
@@ -228,7 +228,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
 #if UNITY_EDITOR
                 // Emit scene view UI
-                if (camera.cameraType == CameraType.SceneView)
+                if (sceneViewCamera)
                     ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
 #endif
 
@@ -329,15 +329,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBuffer cmd = CommandBufferPool.Get("After Opaque");
             cmd.SetGlobalTexture(CameraRenderTargetID.depth, m_OpaqueDepthRT);
 
-            // Only takes effect if custom BeforeTransparent PostProcessing effects are active
-            // Custom BeforeTransparent custom postfx disabled for VR.
-            // TODO: Need to check when post process volume is active/in effect to apply before opaque post processing
-            // If active we blit Opaque to FinalColor
-            //if (LightweightUtils.HasFlag(config, FrameRenderingConfiguration.PostProcess) && !XRSettings.isDeviceActive)
-            //{
-            //    RenderPostProcess(cmd, m_OpaqueColorRT, m_FinalColorRT, true);
-            //    m_CurrCameraColorRT = (m_IsOffscreenCamera) ? BuiltinRenderTextureType.CameraTarget : m_FinalColorRT;
-            //}
+            // When only one opaque effect is active we need setup a intermediate opaque RT and then blit it to final RT when
+            // in the postfx.
+            // TODO: There's currently an issue in the PostFX stack that has a one frame delay when an effect is enabled/disabled
+            // when an effect is disabled, HasOpaqueOnlyEffects returns true in the first frame, however inside render the effect
+            // state is update, causing RenderPostProcess here to not blit to FinalColorRT. Until the next frame the RT will have garbage.
+            if (LightweightUtils.HasFlag(config, FrameRenderingConfiguration.BeforeTransparentPostProcess))
+            {
+                RenderPostProcess(cmd, m_OpaqueColorRT, m_FinalColorRT, true);
+                m_CurrCameraColorRT = (m_IsOffscreenCamera) ? BuiltinRenderTextureType.CameraTarget : m_FinalColorRT;
+            }
 
             if (m_Asset.SupportsSoftParticles)
             {
@@ -415,14 +416,21 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_ColorFormat = m_CurrCamera.allowHDR ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32;
 
             m_CameraPostProcessLayer = m_CurrCamera.GetComponent<PostProcessLayer>();
-            bool postProcessEnabled = m_CameraPostProcessLayer != null && m_CameraPostProcessLayer.enabled;
-            if (postProcessEnabled || m_Asset.SupportsSoftParticles)
+
+            // TODO: PostProcessing and SoftParticles are currently not support for VR
+            bool postProcessEnabled = m_CameraPostProcessLayer != null && m_CameraPostProcessLayer.enabled && !stereoEnabled;
+            bool softParticlesEnabled = m_Asset.SupportsSoftParticles && !stereoEnabled;
+            if (postProcessEnabled || softParticlesEnabled)
             {
                 configuration |= FrameRenderingConfiguration.RequireDepth;
                 intermediateTexture = true;
 
                 if (postProcessEnabled)
+                {
                     configuration |= FrameRenderingConfiguration.PostProcess;
+                    if (m_CameraPostProcessLayer.HasOpaqueOnlyEffects(m_PostProcessRenderContext))
+                        configuration |= FrameRenderingConfiguration.BeforeTransparentPostProcess;
+                }
             }
             // When post process or soft particles are enabled we disable msaa due to lack of depth resolve
             // One can still use PostFX AA
@@ -448,18 +456,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             int msaaSamples = (m_IsOffscreenCamera) ? Math.Min(m_CurrCamera.targetTexture.antiAliasing, m_Asset.MSAASampleCount) : m_Asset.MSAASampleCount;
             msaaSamples = (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Msaa)) ? msaaSamples : 1;
+            m_CurrCameraColorRT = BuiltinRenderTextureType.CameraTarget;
 
             if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture))
             {
                 if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Stereo))
                     SetupIntermediateResourcesStereo(cmd, msaaSamples);
-                else if (!m_IsOffscreenCamera)
+                else
                     SetupIntermediateResourcesSingle(cmd, renderingConfig, msaaSamples);
             }
-            //else
-            //{
-            //    m_CurrCameraColorRT = BuiltinRenderTextureType.CameraTarget;
-            //}
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -471,32 +476,34 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             int rtWidth = (int)((float)m_CurrCamera.pixelWidth * renderScale);
             int rtHeight = (int)((float)m_CurrCamera.pixelHeight * renderScale);
 
-            // All RT are required to be bound with same amount of samples. We cannot resolve depth msaa.
-            if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.RequireDepth))
-                msaaSamples = 1;
-
-            cmd.GetTemporaryRT(CameraRenderTargetID.finalColor, rtWidth, rtHeight, kCameraDepthBufferBits,
-                        FilterMode.Bilinear, m_ColorFormat, RenderTextureReadWrite.Default, msaaSamples);
-
-            //if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.PostProcess))
-            //    cmd.GetTemporaryRT(CameraRenderTargetID.opaqueColor, rtWidth, rtHeight, kCameraDepthBufferBits,
-            //        FilterMode.Bilinear, m_ColorFormat, RenderTextureReadWrite.Default, msaaSamples);
-
-            // When postprocessing is enabled we might have a before transparent effect. In that case we need to
-            // use the camera render target as input. We blit to an opaque RT and then after before postprocessing is done
-            // we blit to the final camera RT. If no postprocessing we blit to final camera RT from beginning.
-            // TODO: We need to have way to check if before opaque post processing is enabled and only then set camera RT to opaqueColorRT
-            //if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.PostProcess))
-            //    m_CurrCameraColorRT = m_OpaqueColorRT;
-            //else
-            //    m_CurrCameraColorRT = m_FinalColorRT;
-
             if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.RequireDepth))
             {
                 cmd.GetTemporaryRT(CameraRenderTargetID.depth, rtWidth, rtHeight, kCameraDepthBufferBits, FilterMode.Bilinear, RenderTextureFormat.Depth);
 
                 if (m_Asset.SupportsSoftParticles)
                     cmd.GetTemporaryRT(CameraRenderTargetID.depthCopy, rtWidth, rtHeight, kCameraDepthBufferBits, FilterMode.Bilinear, RenderTextureFormat.Depth);
+
+                // All RT are required to be bound with same amount of samples. We cannot resolve depth msaa.
+                msaaSamples = 1;
+            }
+
+            // When offscreen camera current rendertarget is CameraTarget
+            if (!m_IsOffscreenCamera)
+            {
+                cmd.GetTemporaryRT(CameraRenderTargetID.finalColor, rtWidth, rtHeight, kCameraDepthBufferBits,
+                    FilterMode.Bilinear, m_ColorFormat, RenderTextureReadWrite.Default, msaaSamples);
+                m_CurrCameraColorRT = m_FinalColorRT;
+            }
+
+            // When postprocessing is enabled we might have a before transparent effect. In that case we need to
+            // use the camera render target as input. We blit to an opaque RT and then after before postprocessing is done
+            // we blit to the final camera RT. If no postprocessing we blit to final camera RT from beginning.
+            if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.BeforeTransparentPostProcess))
+            {
+                cmd.GetTemporaryRT(CameraRenderTargetID.opaqueColor, rtWidth, rtHeight, kCameraDepthBufferBits,
+                    FilterMode.Bilinear, m_ColorFormat, RenderTextureReadWrite.Default, msaaSamples);
+
+                m_CurrCameraColorRT = m_OpaqueColorRT;
             }
         }
 
@@ -952,7 +959,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture))
             {
                 if (!m_IsOffscreenCamera)
-                    colorRT = m_FinalColorRT;
+                    colorRT = m_CurrCameraColorRT;
 
                 if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.RequireDepth))
                     depthRT = m_OpaqueDepthRT;
@@ -983,7 +990,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (m_IntermediateTextureArray)
             {
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
-                cmd.Blit(m_FinalColorRT, BuiltinRenderTextureType.CurrentActive);
+                cmd.Blit(m_CurrCameraColorRT, BuiltinRenderTextureType.CurrentActive);
             }
             else if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture))
             {
