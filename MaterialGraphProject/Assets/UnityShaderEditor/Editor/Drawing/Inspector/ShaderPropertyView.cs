@@ -99,8 +99,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         void TextureField()
         {
-            var fProp = (TextureShaderProperty) property;
-            fProp.value.texture = EditorGUILayout.MiniThumbnailObjectField(new GUIContent("Texture"), fProp.value.texture, typeof(Texture), null) as Texture;
+            //var fProp = (TextureShaderProperty) property;
+            //fProp.value.texture = EditorGUILayout.MiniThumbnailObjectField(new GUIContent("Texture"), fProp.value.texture, typeof(Texture), null) as Texture;
         }
     }
 }

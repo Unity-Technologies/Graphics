@@ -2,7 +2,6 @@
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using UnityEditor.ShaderGraph;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
@@ -44,7 +43,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             var value = (Object) m_PropertyInfo.GetValue(m_Node, null);
             using (var changeCheckScope = new EditorGUI.ChangeCheckScope())
             {
-                value = EditorGUILayout.MiniThumbnailObjectField(m_Label, value, m_PropertyInfo.PropertyType);
+                //value = EditorGUILayout.MiniThumbnailObjectField(m_Label, value, m_PropertyInfo.PropertyType);
                 if (changeCheckScope.changed)
                 {
                     m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);

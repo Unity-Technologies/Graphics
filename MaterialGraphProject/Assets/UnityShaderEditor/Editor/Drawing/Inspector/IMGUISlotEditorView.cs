@@ -63,8 +63,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
             if (slot is Texture2DInputMaterialSlot)
             {
-                var dynslot = slot as Texture2DInputMaterialSlot;
-                dynslot.texture = EditorGUILayout.MiniThumbnailObjectField(new GUIContent("Texture"), dynslot.texture, typeof(Texture), null) as Texture;
+                //var dynslot = slot as Texture2DInputMaterialSlot;
+                //dynslot.texture = EditorGUILayout.MiniThumbnailObjectField(new GUIContent("Texture"), dynslot.texture, typeof(Texture), null) as Texture;
             }
             return EditorGUI.EndChangeCheck();
         }
