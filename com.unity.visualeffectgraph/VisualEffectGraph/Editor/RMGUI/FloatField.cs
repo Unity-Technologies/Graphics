@@ -150,7 +150,7 @@ namespace UnityEditor.VFX.UIElements
         protected abstract void ValueToGUI();
     }
 
-    class FloatField : ValueControl<float>, IValueChangeListener<float>
+    class OldFloatField : ValueControl<float>, IValueChangeListener<float>
     {
         TextField m_TextField;
 
@@ -164,11 +164,21 @@ namespace UnityEditor.VFX.UIElements
             m_TextField.RegisterCallback<BlurEvent>(OnLostFocus);
         }
 
-        public FloatField(string label) : base(label)
+        public OldFloatField(string label) : base(label)
         {
             CreateFields();
             m_Label.AddManipulator(new DragValueManipulator<float>(this, null));
             Add(m_TextField);
+
+            m_Multiplier = 1.0f;
+        }
+
+        public OldFloatField(VisualElement existingLabel) : base(existingLabel)
+        {
+            CreateFields();
+            Add(m_TextField);
+
+            m_Label.AddManipulator(new DragValueManipulator<float>(this, null));
 
             m_Multiplier = 1.0f;
         }
@@ -189,16 +199,6 @@ namespace UnityEditor.VFX.UIElements
             {
                 OnValueChanged();
             }
-        }
-
-        public FloatField(VisualElement existingLabel) : base(existingLabel)
-        {
-            CreateFields();
-            Add(m_TextField);
-
-            m_Label.AddManipulator(new DragValueManipulator<float>(this, null));
-
-            m_Multiplier = 1.0f;
         }
 
         float IValueChangeListener<float>.GetValue(object userData)

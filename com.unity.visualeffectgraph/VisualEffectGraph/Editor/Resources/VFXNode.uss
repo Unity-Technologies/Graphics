@@ -40,12 +40,12 @@
 
 .VFXNodeUI.node.horizontal .mainContainer > #left
 {
-	width:250;
+	width:-1;
 	margin-right:1;
 }
 VFXOperatorUI.VFXNodeUI.node.horizontal .mainContainer > #left
 {
-	width:280;
+	width:-1;
 }
 
 .VFXNodeUI.node.horizontal .mainContainer #right

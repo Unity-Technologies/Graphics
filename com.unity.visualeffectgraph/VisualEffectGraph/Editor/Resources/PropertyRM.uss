@@ -157,6 +157,10 @@ ColorField
     flex:1;
     flex-direction:row;
 }
+ColorPropertyRM OldFloatField TextField
+{
+	flex:1;
+}
 
 FloatField TextField
 {

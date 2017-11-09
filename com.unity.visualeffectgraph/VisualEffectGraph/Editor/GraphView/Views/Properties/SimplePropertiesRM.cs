@@ -16,6 +16,7 @@ using CurveField = UnityEditor.VFX.UIElements.LabeledField<UnityEditor.Experimen
 using Vector3Field = UnityEditor.VFX.UIElements.Vector3Field;
 using Vector2Field = UnityEditor.VFX.UIElements.Vector2Field;
 using Vector4Field = UnityEditor.VFX.UIElements.Vector4Field;
+using FloatField = UnityEditor.Experimental.UIElements.FloatField;
 
 namespace UnityEditor.VFX
 {
@@ -64,6 +65,11 @@ namespace UnityEditor.VFX.UI
         {
         }
 
+        public override float GetPreferredControlWidth()
+        {
+            return 60;
+        }
+
         public override INotifyValueChanged<long> CreateField()
         {
             Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
@@ -110,11 +116,21 @@ namespace UnityEditor.VFX.UI
                 return field;
             }
         }
+
+        public override float GetPreferredControlWidth()
+        {
+            return 60;
+        }
     }
     class EnumPropertyRM : SimplePropertyRM<int>
     {
         public EnumPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
+        }
+
+        public override float GetPreferredControlWidth()
+        {
+            return 120;
         }
 
         public override ValueControl<int> CreateField()
@@ -123,28 +139,33 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class FloatPropertyRM : SimpleUIPropertyRM<float, double>
+    class FloatPropertyRM : SimpleUIPropertyRM<float, float>
     {
         public FloatPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
         }
 
-        public override INotifyValueChanged<double> CreateField()
+        public override INotifyValueChanged<float> CreateField()
         {
             Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
 
             if (range == Vector2.zero)
             {
-                var field = new LabeledField<DoubleField, double>(m_Label);
+                var field = new LabeledField<FloatField, float>(m_Label);
                 field.control.dynamicUpdate = true;
                 return field;
             }
             else
             {
-                var field = new LabeledField<DoubleSliderField, double>(m_Label);
+                var field = new LabeledField<DoubleSliderField, float>(m_Label);
                 field.control.range = range;
                 return field;
             }
+        }
+
+        public override float GetPreferredControlWidth()
+        {
+            return 100;
         }
     }
 
@@ -160,6 +181,11 @@ namespace UnityEditor.VFX.UI
             field.control.dynamicUpdate = true;
 
             return field;
+        }
+
+        public override float GetPreferredControlWidth()
+        {
+            return 240;
         }
     }
 
@@ -177,6 +203,11 @@ namespace UnityEditor.VFX.UI
 
             return field;
         }
+
+        public override float GetPreferredControlWidth()
+        {
+            return 180;
+        }
     }
 
     class Vector2PropertyRM : SimpleUIPropertyRM<Vector2, Vector2>
@@ -193,12 +224,22 @@ namespace UnityEditor.VFX.UI
 
             return field;
         }
+
+        public override float GetPreferredControlWidth()
+        {
+            return 100;
+        }
     }
 
     class StringPropertyRM : SimplePropertyRM<string>
     {
         public StringPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
+        }
+
+        public override float GetPreferredControlWidth()
+        {
+            return 100;
         }
 
         public static Func<string[]> FindStringProvider(object[] customAttributes)

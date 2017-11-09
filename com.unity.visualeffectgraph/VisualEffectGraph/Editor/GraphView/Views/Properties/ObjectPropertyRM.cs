@@ -28,6 +28,11 @@ namespace UnityEditor.VFX.UI
             Add(m_ObjectField);
         }
 
+        public override float GetPreferredControlWidth()
+        {
+            return 120;
+        }
+
         public void OnValueChanged(ChangeEvent<Object> onObjectChanged)
         {
             Object newValue = m_ObjectField.value;

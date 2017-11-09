@@ -53,6 +53,30 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public float GetPreferredLabelWidth()
+        {
+            if (m_Label.panel == null) return 40;
+
+            VisualElement element = this;
+            while (element != null && element.style.font.value == null)
+            {
+                element = element.parent;
+            }
+            if (element != null)
+            {
+                m_Label.style.font = element.style.font;
+                return m_Label.MeasureTextSize(m_Label.text, -1, MeasureMode.Undefined, m_Label.style.height, MeasureMode.Exactly).x + m_Provider.depth * VFXPropertyIM.depthOffset;
+            }
+            return 40 + m_Provider.depth * VFXPropertyIM.depthOffset;
+        }
+
+        public abstract float GetPreferredControlWidth();
+
+        public void SetLabelWidth(float label)
+        {
+            m_labelWidth = label;
+            m_Label.style.width = effectiveLabelWidth - m_Provider.depth * VFXPropertyIM.depthOffset;
+        }
 
         protected abstract void UpdateEnabled();
 
