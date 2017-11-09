@@ -230,6 +230,7 @@ CBUFFER_END
 
 // ----------------------------------------------------------------------------
 
+// TODO: all affine matrices should be 3x4.
 CBUFFER_START(UnityPerPass)
 float4x4 _PrevViewProjMatrix;
 float4x4 _ViewProjMatrix;
@@ -240,9 +241,37 @@ float4x4 _InvViewProjMatrix;
 float4x4 _InvViewMatrix;
 float4x4 _InvProjMatrix;
 float4   _InvProjParam;
-float4   _ScreenSize;       // (w, h, 1/w, 1/h)
-float4   _FrustumPlanes[6]; // (N, -dot(N, P))
+float4   _ScreenSize;       // {w, h, 1/w, 1/h}
+float4   _FrustumPlanes[6]; // {(a, b, c) = N, d = -dot(N, P)} [L, R, T, B, N, F]
 CBUFFER_END
+
+float4x4 OptimizeAffineMatrix(float4x4 M)
+{
+    // Matrix format (x = non-constant value).
+    // | x x x x |
+    // | x x x x |
+    // | x x x x |
+    // | 0 0 0 1 |
+    // Notice that the last row is constant.
+    // We can avoid loading and doing math with constants.
+    M[3] = float4(0, 0, 0, 1);
+    return M;
+}
+
+float4x4 OptimizeProjectionMatrix(float4x4 M)
+{
+    // Matrix format (x = non-constant value).
+    // Orthographic Perspective  Combined(OR)
+    // | x 0 0 x |  | x 0 x 0 |  | x 0 x x |
+    // | 0 x 0 x |  | 0 x x 0 |  | 0 x x x |
+    // | x x x x |  | x x x x |  | x x x x | <- oblique projection row
+    // | 0 0 0 1 |  | 0 0 x 0 |  | 0 0 x x |
+    // Notice that some values are always 0.
+    // We can avoid loading and doing math with constants.
+    M._21_41 = 0;
+    M._12_42 = 0;
+    return M;
+}
 
 #ifdef USE_LEGACY_UNITY_MATRIX_VARIABLES
     #include "ShaderVariablesMatrixDefsLegacyUnity.hlsl"
