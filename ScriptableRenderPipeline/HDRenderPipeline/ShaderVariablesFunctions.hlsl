@@ -128,10 +128,7 @@ bool IsPerspectiveProjection()
     return (unity_OrthoParams.w == 0);
 #else
     // TODO: set 'unity_OrthoParams' during the shadow pass.
-    return (GetWorldToHClipMatrix()[3].x != 0 ||
-            GetWorldToHClipMatrix()[3].y != 0 ||
-            GetWorldToHClipMatrix()[3].z != 0 ||
-            GetWorldToHClipMatrix()[3].w != 1);
+    return UNITY_MATRIX_P[3][3] == 0;
 #endif
 }
 
