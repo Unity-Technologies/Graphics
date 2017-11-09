@@ -549,6 +549,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
+        {
+            base.AssignNewShaderToMaterial(material, oldShader, newShader);
+
+            SetupMaterialKeywordsAndPassInternal(material);
+        }
+
         // This is call by the inspector
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
