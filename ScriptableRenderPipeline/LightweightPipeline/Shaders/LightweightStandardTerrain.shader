@@ -188,5 +188,31 @@
             }
             ENDCG
         }
+
+        Pass
+        {
+            Tags{"Lightmode" = "DepthOnly"}
+
+            ZWrite On
+            ColorMask 0
+
+            CGPROGRAM
+            #pragma target 2.0
+            #pragma vertex vert
+            #pragma fragment frag
+
+            #include "UnityCG.cginc"
+
+            float4 vert(float4 pos : POSITION) : SV_POSITION
+            {
+                return UnityObjectToClipPos(pos);
+            }
+
+            half4 frag() : SV_TARGET
+            {
+                return 0;
+            }
+            ENDCG
+        }
     }
 }

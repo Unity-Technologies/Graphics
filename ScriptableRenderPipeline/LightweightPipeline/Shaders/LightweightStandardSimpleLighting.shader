@@ -105,6 +105,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             Tags{"Lightmode" = "DepthOnly"}
 
             ZWrite On
+            ColorMask 0
 
             CGPROGRAM
             #pragma target 2.0

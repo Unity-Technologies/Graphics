@@ -44,7 +44,6 @@ namespace UnityEditor
 
         private static Styles s_Styles;
         private LightweightPipelineAsset lightweightPipeline;
-        private PostProcessLayer postProcessLayer;
 
         public SerializedProperty clearFlags { get; private set; }
         public SerializedProperty backgroundColor { get; private set; }
@@ -122,7 +121,6 @@ namespace UnityEditor
         void OnEnable()
         {
             lightweightPipeline = GraphicsSettings.renderPipelineAsset as LightweightPipelineAsset;
-            postProcessLayer = camera.GetComponent<PostProcessLayer>();
 
             clearFlags = serializedObject.FindProperty("m_ClearFlags");
             backgroundColor = serializedObject.FindProperty("m_BackGroundColor");
@@ -255,19 +253,13 @@ namespace UnityEditor
             {
                 var texture = targetTexture.objectReferenceValue as RenderTexture;
 
-                // Lightweight pipeline forces MSAA off when postprocessing or softparticles are enabled
-                bool postProcessEnabled = postProcessLayer != null && postProcessLayer.enabled;
-                bool msaaDisable = postProcessEnabled || lightweightPipeline.SupportsSoftParticles;
-                int pipelineSamplesCount = (msaaDisable) ? 1 : lightweightPipeline.MSAASampleCount;
+                int pipelineSamplesCount = lightweightPipeline.MSAASampleCount;
 
                 if (texture && texture.antiAliasing > pipelineSamplesCount)
                 {
                     string pipelineMSAACaps = (pipelineSamplesCount > 1)
                         ? String.Format("is set to support {0}x", pipelineSamplesCount)
                         : "has MSAA disabled";
-                    if (postProcessEnabled)
-                        pipelineMSAACaps += " due to this camera having a post process effect enabled";
-                    else if (lightweightPipeline.SupportsSoftParticles)
                         pipelineMSAACaps += " due to Soft Particles being enabled in the pipeline asset";
                     EditorGUILayout.HelpBox(String.Format("Camera target texture requires {0}x MSAA. Lightweight pipeline {1}.", texture.antiAliasing, pipelineMSAACaps),
                         MessageType.Warning, true);
