@@ -91,7 +91,11 @@ float3 GetCameraRelativePositionWS(float3 positionWS)
 // Note: '_WorldSpaceCameraPos' is set by the legacy Unity code.
 float3 GetPrimaryCameraPosition()
 {
-    return GetCameraRelativePositionWS(_WorldSpaceCameraPos);
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    return float3(0, 0, 0);
+#else
+    return _WorldSpaceCameraPos;
+#endif
 }
 
 // Could be e.g. the position of a primary camera or a shadow-casting light.

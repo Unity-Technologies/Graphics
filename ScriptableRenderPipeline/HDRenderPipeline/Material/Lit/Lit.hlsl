@@ -101,9 +101,6 @@ float4 _ShapeParams[SSS_N_PROFILES];        // RGB = S = 1 / D, A = filter radiu
 float4 _TransmissionTints[SSS_N_PROFILES];  // RGB = 1/4 * color, A = unused
 CBUFFER_END
 
-// General constant
-#define MIN_N_DOT_V SMALL_FLT_VALUE         // The minimum value of 'NdotV'
-
 //-----------------------------------------------------------------------------
 // Helper for cheap screen space raycasting
 //-----------------------------------------------------------------------------
@@ -732,7 +729,7 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
 struct PreLightData
 {
     // General
-    float NdotV;                         // Geometric version (could be negative)
+    float NdotV;
 
     // GGX
     float partLambdaV;
@@ -787,24 +784,24 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 {
     PreLightData preLightData;
 
+    float3 N;
+    float  NdotV;
+
     if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
+        N     = bsdfData.coatNormalWS;
+        NdotV = saturate(dot(N, V));
+        preLightData.coatNdotV = NdotV;
+
         float ieta = 1.0 / bsdfData.coatIOR; // inverse eta
         preLightData.ieta = ieta;
         preLightData.coatFresnel0 = Sqr(bsdfData.coatIOR - 1.0) / Sqr(bsdfData.coatIOR + 1.0);
 
-        preLightData.coatNdotV = dot(bsdfData.coatNormalWS, V);
-
         // Clear coat IBL
-
-        // In the case of IBL we want  shift a bit the normal that are not toward the viewver to reduce artifact
-        float3 coatIblNormalWS = GetViewShiftedNormal(bsdfData.coatNormalWS, V, preLightData.coatNdotV, MIN_N_DOT_V); // Use non-clamped NdotV
-        preLightData.coatIblDirWS = reflect(-V, coatIblNormalWS);
-
-        float coatNdotV = max(preLightData.coatNdotV, MIN_N_DOT_V); // Use the modified (clamped) version
+        preLightData.coatIblDirWS = reflect(-V, N);
 
         // Clear coat area light
-        float theta = FastACosPos(coatNdotV);
+        float theta = FastACosPos(NdotV);
         float2 uv = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(0.0, theta * INV_HALF_PI); // Use Roughness of 0.0 for clearCoat roughness
 
                                                                                        // Get the inverse LTC matrix for GGX
@@ -819,23 +816,20 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
         preLightData.ltcClearCoatFresnelTerm = preLightData.coatFresnel0 * ltcClearCoatFresnelMagnitudeDiff + ltcClearCoatFresnelMagnitude;
 
         // TODO: Convert the area light with respect to Fresnel transmission
-        float3 N = bsdfData.coatNormalWS; // TODO : check with Laurentb
         preLightData.ltcCoatT = float3x3(   ieta + (1.0 - ieta) * N.x * N.x, 0.0 + (1.0 - ieta) * N.y * N.x, 0.0 + (1.0 - ieta) * N.z * N.x,
                                             0.0 + (1.0 - ieta) * N.x * N.y, ieta + (1.0 - ieta) * N.y * N.y, 0.0 + (1.0 - ieta) * N.z * N.y,
                                             0.0 + (1.0 - ieta) * N.x * N.z, 0.0 + (1.0 - ieta) * N.y * N.z, ieta + (1.0 - ieta) * N.z * N.z );
 
         // Modify V for following calculation
-        preLightData.refractV = ClearCoatTransform(V, bsdfData.coatNormalWS, ieta);
+        preLightData.refractV = ClearCoatTransform(V, N, ieta);
         V = preLightData.refractV;
     }
 
-    preLightData.NdotV = dot(bsdfData.normalWS, V); // Store the unaltered (geometric) version
+    N     = bsdfData.normalWS;
+    NdotV = saturate(dot(N, V));
+    preLightData.NdotV = NdotV;
 
-    // In the case of IBL we want  shift a bit the normal that are not toward the viewver to reduce artifact
-    float3 iblNormalWS = GetViewShiftedNormal(bsdfData.normalWS, V, preLightData.NdotV, MIN_N_DOT_V); // Use non-clamped NdotV
     float3 iblR;
-
-    float NdotV = max(preLightData.NdotV, MIN_N_DOT_V); // Use the modified (clamped) version
 
     // GGX aniso
     if (bsdfData.materialId == MATERIALID_LIT_ANISO && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
@@ -851,10 +845,10 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
         float3 grainDirWS = (bsdfData.anisotropy >= 0) ? bsdfData.bitangentWS : bsdfData.tangentWS;
         // Reduce stretching for (perceptualRoughness < 0.2).
         float  stretch = abs(bsdfData.anisotropy) * saturate(5 * bsdfData.perceptualRoughness);
-        // NOTE: If we follow the theory we should use the modified normal for the different calculation implying a normal (like NdotV) and use iblNormalWS
+        // NOTE: If we follow the theory we should use the modified normal for the different calculation implying a normal (like NdotV) and use 'anisoIblNormalWS'
         // into function like GetSpecularDominantDir(). However modified normal is just a hack. The goal is just to stretch a cubemap, no accuracy here.
         // With this in mind and for performance reasons we chose to only use modified normal to calculate R.
-        float3 anisoIblNormalWS = GetAnisotropicModifiedNormal(grainDirWS, iblNormalWS, V, stretch);
+        float3 anisoIblNormalWS = GetAnisotropicModifiedNormal(grainDirWS, N, V, stretch);
         iblR = reflect(-V, anisoIblNormalWS);
     }
     else // GGX iso
@@ -862,7 +856,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
         preLightData.TdotV       = 0;
         preLightData.BdotV       = 0;
         preLightData.partLambdaV = GetSmithJointGGXPartLambdaV(NdotV, bsdfData.roughness);
-        iblR                     = reflect(-V, iblNormalWS);
+        iblR                     = reflect(-V, N);
     }
 
     float reflectivity;
@@ -877,7 +871,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
         float roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
         float shininess = Sqr(preLightData.ieta) * (2.0 / Sqr(roughness) - 2.0);
         roughness = sqrt(2.0 / (shininess + 2.0));
-        preLightData.iblDirWS = GetSpecularDominantDir(iblNormalWS, iblR, roughness, NdotV);
+        preLightData.iblDirWS = GetSpecularDominantDir(N, iblR, roughness, NdotV);
         preLightData.iblMipLevel = PerceptualRoughnessToMipmapLevel(RoughnessToPerceptualRoughness(roughness));
     }
     else
@@ -898,7 +892,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
             iblPerceptualRoughness = bsdfData.perceptualRoughness;
         }
 
-        preLightData.iblDirWS    = GetSpecularDominantDir(iblNormalWS, iblR, iblRoughness, NdotV);
+        preLightData.iblDirWS    = GetSpecularDominantDir(N, iblR, iblRoughness, NdotV);
         preLightData.iblMipLevel = PerceptualRoughnessToMipmapLevel(iblPerceptualRoughness);
     }
 
@@ -936,8 +930,8 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     preLightData.ltcTransformSpecular._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_GGX_MATRIX_INDEX, 0);
 
     // Construct a right-handed view-dependent orthogonal basis around the normal
-    preLightData.orthoBasisViewNormal[0] = normalize(V - bsdfData.normalWS * preLightData.NdotV);
-    preLightData.orthoBasisViewNormal[2] = bsdfData.normalWS;
+    preLightData.orthoBasisViewNormal[0] = normalize(V - N * NdotV);
+    preLightData.orthoBasisViewNormal[2] = N;
     preLightData.orthoBasisViewNormal[1] = normalize(cross(preLightData.orthoBasisViewNormal[2], preLightData.orthoBasisViewNormal[0]));
 
     float3 ltcMagnitude = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_MULTI_GGX_FRESNEL_DISNEY_DIFFUSE_INDEX, 0).rgb;
@@ -1077,7 +1071,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
         float NdotL = saturate(dot(bsdfData.coatNormalWS, L));
         float NdotV = preLightData.coatNdotV;
         float LdotV = dot(L, V);
-        float invLenLV = rsqrt(abs(2 * LdotV + 2));
+        float invLenLV = rsqrt(max(2 * LdotV + 2, FLT_SMALL));
         float NdotH = saturate((NdotL + NdotV) * invLenLV);
         float LdotH = saturate(invLenLV * LdotV + invLenLV);
 
@@ -1099,11 +1093,9 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     float NdotL    = saturate(dot(bsdfData.normalWS, L)); // Must have the same value without the clamp
     float NdotV    = preLightData.NdotV;                  // Get the unaltered (geometric) version
     float LdotV    = dot(L, V);
-    float invLenLV = rsqrt(max(2 * LdotV + 2, SMALL_FLT_VALUE)); // invLenLV = rcp(length(L + V)) - caution about the case where V and L are opposite, it can happen, use max to avoid this
+    float invLenLV = rsqrt(max(2 * LdotV + 2, FLT_SMALL)); // invLenLV = rcp(length(L + V)) - caution about the case where V and L are opposite, it can happen, use max to avoid this
     float NdotH    = saturate((NdotL + NdotV) * invLenLV);
     float LdotH    = saturate(invLenLV * LdotV + invLenLV);
-
-    NdotV          = max(NdotV, MIN_N_DOT_V);             // Use the modified (clamped) version
 
     F *= F_Schlick(bsdfData.fresnel0, LdotH);
 
@@ -1123,7 +1115,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 
         // TODO: Do comparison between this correct version and the one from isotropic and see if there is any visual difference
         DV = DV_SmithJointGGXAniso(TdotH, BdotH, NdotH,
-                                   preLightData.TdotV, preLightData.BdotV, NdotV,
+                                   preLightData.TdotV, preLightData.BdotV, preLightData.NdotV,
                                    TdotL, BdotL, NdotL,
                                    bsdfData.roughnessT, bsdfData.roughnessB
         #ifdef LIT_USE_BSDF_PRE_LAMBDAV
@@ -1293,7 +1285,7 @@ DirectLighting EvaluateBSDF_Directional(    LightLoopContext lightLoopContext,
         illuminance  = Lambert() * wrappedNdotL;
     #else
         float tNdotL = saturate(-NdotL);
-        float  NdotV = max(preLightData.NdotV, MIN_N_DOT_V);
+        float  NdotV = preLightData.NdotV;
         illuminance  = INV_PI * F_Transm_Schlick(0, 0.5, NdotV) * F_Transm_Schlick(0, 0.5, tNdotL) * wrappedNdotL;
     #endif
 
@@ -1445,7 +1437,7 @@ DirectLighting EvaluateBSDF_Punctual(   LightLoopContext lightLoopContext,
         illuminance  = Lambert() * wrappedNdotL;
     #else
         float tNdotL = saturate(-NdotL);
-        float  NdotV = max(preLightData.NdotV, MIN_N_DOT_V);
+        float  NdotV = preLightData.NdotV;
         illuminance  = INV_PI * F_Transm_Schlick(0, 0.5, NdotV) * F_Transm_Schlick(0, 0.5, tNdotL) * wrappedNdotL;
     #endif
 
