@@ -58,5 +58,36 @@ namespace UnityEditor.VFX.UI
             if (presenter == null || presenter.Operator == null)
                 return;
         }
+
+        protected override void OnStyleResolved(ICustomStyle style)
+        {
+            base.OnStyleResolved(style);
+
+            float labelWidth = 30;
+            float controlWidth = 50;
+
+            foreach (var port in GetPorts(true, false).Cast<VFXEditableDataAnchor>())
+            {
+                port.OnDataChanged();
+                float portLabelWidth = port.GetPreferredLabelWidth();
+                float portControlWidth = port.GetPreferredControlWidth();
+
+                if (labelWidth < portLabelWidth)
+                {
+                    labelWidth = portLabelWidth;
+                }
+                if (controlWidth < portControlWidth)
+                {
+                    controlWidth = portControlWidth;
+                }
+            }
+
+            foreach (var port in GetPorts(true, false).Cast<VFXEditableDataAnchor>())
+            {
+                port.SetLabelWidth(labelWidth);
+            }
+
+            inputContainer.style.width = labelWidth + controlWidth + 20;
+        }
     }
 }
