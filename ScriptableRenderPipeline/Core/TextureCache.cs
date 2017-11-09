@@ -223,7 +223,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public static TextureFormat GetPreferredHdrCompressedTextureFormat
+        public static TextureFormat GetPreferredHDRCompressedTextureFormat
         {
             get
             {

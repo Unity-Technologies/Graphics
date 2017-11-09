@@ -177,10 +177,5 @@ bool TestLightingForSSS(float3 subsurfaceLighting)
     return subsurfaceLighting.r > 0;
 }
 
-// MACRO from Legacy Untiy
-// Transforms 2D UV by scale/bias property
-#define TRANSFORM_TEX(tex, name) ((tex.xy) * name##_ST.xy + name##_ST.zw)
-
-#define GET_TEXELSIZE_NAME(name) (name##_TexelSize)
 
 #endif // UNITY_COMMON_MATERIAL_INCLUDED

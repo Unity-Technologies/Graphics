@@ -640,4 +640,11 @@ void LODDitheringTransition(uint2 unPositionSS, float ditherFactor)
     clip(ditherFactor - p);
 }
 
+
+// MACRO from Legacy Untiy
+// Transforms 2D UV by scale/bias property
+#define TRANSFORM_TEX(tex, name) ((tex.xy) * name##_ST.xy + name##_ST.zw)
+
+#define GET_TEXELSIZE_NAME(name) (name##_TexelSize)
+
 #endif // UNITY_COMMON_INCLUDED

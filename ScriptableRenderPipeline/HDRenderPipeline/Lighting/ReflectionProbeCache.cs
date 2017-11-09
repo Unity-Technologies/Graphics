@@ -15,14 +15,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         int                     m_ProbeSize;
         int                     m_CacheSize;
+        TextureFormat           m_CacheFormat;
         IBLFilterGGX            m_IBLFilterGGX;
         TextureCacheCubemap     m_TextureCache;
         RenderTexture           m_TempRenderTexture;
-        RenderTexture           m_TempRenderTexture2;
+        RenderTexture           m_ConvolutionTargetTexture;
         ProbeFilteringState[]   m_ProbeBakingState;
+        Material                m_ConvertTextureMaterial;
+        MaterialPropertyBlock   m_ConvertTextureMPB;
 
         public ReflectionProbeCache(IBLFilterGGX iblFilter, int cacheSize, int probeSize, TextureFormat probeFormat, bool isMipmaped)
         {
+            Debug.Assert(probeFormat == TextureFormat.BC6H || probeFormat == TextureFormat.RGBAHalf, "Reflection Probe Cache format for HDRP can only be BC6H or FP16.");
+
+            m_CacheFormat = probeFormat;
             m_ProbeSize = probeSize;
             m_CacheSize = cacheSize;
             m_TextureCache = new TextureCacheCubemap();
@@ -43,11 +49,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_TempRenderTexture.autoGenerateMips = false;
                 m_TempRenderTexture.Create();
 
-                m_TempRenderTexture2 = new RenderTexture(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf);
-                m_TempRenderTexture2.dimension = TextureDimension.Cube;
-                m_TempRenderTexture2.useMipMap = true;
-                m_TempRenderTexture2.autoGenerateMips = false;
-                m_TempRenderTexture2.Create();
+                m_ConvolutionTargetTexture = new RenderTexture(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf);
+                m_ConvolutionTargetTexture.dimension = TextureDimension.Cube;
+                m_ConvolutionTargetTexture.useMipMap = true;
+                m_ConvolutionTargetTexture.autoGenerateMips = false;
+                m_ConvolutionTargetTexture.Create();
+
+                m_ConvertTextureMaterial = CoreUtils.CreateEngineMaterial("Hidden/SRP/BlitCubeTextureFace");
+                m_ConvertTextureMPB = new MaterialPropertyBlock();
 
                 InitializeProbeBakingStates();
             }
@@ -75,6 +84,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_TextureCache.NewFrame();
         }
 
+        // This method is used to convert inputs that are either compressed or not of the right size.
+        // We can't use Graphics.ConvertTexture here because it does not work with a RenderTexture as destination.
+        void ConvertTexture(CommandBuffer cmd, Texture input, RenderTexture target)
+        {
+            m_ConvertTextureMPB.SetTexture("_InputTex", input);
+            for (int f = 0 ; f < 6 ; ++f)
+            {
+                m_ConvertTextureMPB.SetFloat("_FaceIndex", (float)f);
+                CoreUtils.SetRenderTarget(cmd, target, ClearFlag.None, Color.black, 0, (CubemapFace)f);
+                CoreUtils.DrawFullScreen(cmd, m_ConvertTextureMaterial, m_ConvertTextureMPB);
+            }
+        }
+
         public int FetchSlice(CommandBuffer cmd, Texture texture)
         {
             bool needUpdate;
@@ -92,30 +114,65 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         Cubemap cubeTexture = texture as Cubemap;
                         RenderTexture renderTexture = texture as RenderTexture;
 
-                        Texture convolutionSourceTexture = null;
-                        RenderTexture convolutionTargetTexture = m_TempRenderTexture2;
+                        RenderTexture convolutionSourceTexture = null;
                         if (cubeTexture != null)
                         {
-                            // TODO: Write a shader to copy the texture, because this will not work if input is compressed.
-                            // Ideally if input is not compressed and has mipmaps, don't do anything here. Problem is, we can't know if mips have been already convolved offline...
-                            if (cubeTexture.format != TextureFormat.RGBAHalf)
-                                return -1;
-                            for (int f = 0; f < 6; f++)
+                            // if the size if different from the cache probe size or if the input texture format is compressed, we need to convert it 
+                            // 1) to a format for which we can generate mip maps 
+                            // 2) to the proper reflection probe cache size
+                            bool sizeMismatch = cubeTexture.width != m_ProbeSize || cubeTexture.height != m_ProbeSize;
+                            bool formatMismatch = cubeTexture.format != TextureFormat.RGBAHalf; // Temporary RT for convolution is always FP16
+                            if (formatMismatch || sizeMismatch)
                             {
-                                cmd.CopyTexture(cubeTexture, f, 0, m_TempRenderTexture, f, 0);
+                                if(sizeMismatch)
+                                {
+                                    Debug.LogWarningFormat("Baked Reflection Probe {0} does not match HDRP Reflection Probe Cache size of {1}. Consider baking it at the same size for better loading performance.", texture.name, m_ProbeSize);
+                                }
+                                else if(cubeTexture.format == TextureFormat.BC6H)
+                                {
+                                    Debug.LogWarningFormat("Baked Reflection Probe {0} is compressed but the HDRP Reflection Probe Cache is not. Consider removing compression from the input texture for better quality.", texture.name);
+                                }
+                                ConvertTexture(cmd, cubeTexture, m_TempRenderTexture);
                             }
+                            else
+                            {
+                                for (int f = 0; f < 6; f++)
+                                {
+                                    cmd.CopyTexture(cubeTexture, f, 0, m_TempRenderTexture, f, 0);
+                                }
+                            }
+
+                            // Ideally if input is not compressed and has mipmaps, don't do anything here. Problem is, we can't know if mips have been already convolved offline...
                             cmd.GenerateMips(m_TempRenderTexture);
                             convolutionSourceTexture = m_TempRenderTexture;
                         }
                         else
                         {
                             Debug.Assert(renderTexture != null);
-                            cmd.GenerateMips(renderTexture);
-                            convolutionSourceTexture = renderTexture;
+                            if(renderTexture.dimension != TextureDimension.Cube)
+                            {
+                                Debug.LogError("Realtime reflection probe should always be a Cube RenderTexture.");
+                                return -1;
+                            }
+
+                            // TODO: Do a different case for downsizing, in this case, instead of doing ConvertTexture just use the relevant mipmaps.
+                            bool sizeMismatch = renderTexture.width != m_ProbeSize || renderTexture.height != m_ProbeSize;
+                            if (sizeMismatch)
+                            {
+                                ConvertTexture(cmd, renderTexture, m_TempRenderTexture);
+                                convolutionSourceTexture = m_TempRenderTexture;
+                            }
+                            else
+                            {
+                                convolutionSourceTexture = renderTexture;
+                            }
+                            // Generate unfiltered mipmaps as a base for convolution
+                            // TODO: Make sure that we don't first convolve everything on the GPU with the legacy code path executed after rendering the probe.
+                            cmd.GenerateMips(convolutionSourceTexture);
                         }
 
-                        m_IBLFilterGGX.FilterCubemap(cmd, convolutionSourceTexture, convolutionTargetTexture);
-                        m_TextureCache.UpdateSlice(cmd, sliceIndex, convolutionTargetTexture, m_TextureCache.GetTextureUpdateCount(texture)); // Be careful to provide the update count from the input texture, not the temporary one used for baking.
+                        m_IBLFilterGGX.FilterCubemap(cmd, convolutionSourceTexture, m_ConvolutionTargetTexture);
+                        m_TextureCache.UpdateSlice(cmd, sliceIndex, m_ConvolutionTargetTexture, m_TextureCache.GetTextureUpdateCount(texture)); // Be careful to provide the update count from the input texture, not the temporary one used for baking.
 
                         m_ProbeBakingState[sliceIndex] = ProbeFilteringState.Ready;
                     }
