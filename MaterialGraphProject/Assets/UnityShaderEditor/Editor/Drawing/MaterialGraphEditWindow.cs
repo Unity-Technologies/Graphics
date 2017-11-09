@@ -114,7 +114,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     return;
                 }
 
-                if (m_GraphObject.graph.GetType() == typeof(ShaderGraph.MaterialGraph))
+                if (m_GraphObject.graph.GetType() == typeof(MaterialGraph))
                     UpdateShaderGraphOnDisk(path);
 
                 if (m_GraphObject.graph.GetType() == typeof(LayeredShaderGraph))
@@ -290,33 +290,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             List<PropertyCollector.TextureInfo> configuredTextures;
             graph.GetShader(Path.GetFileNameWithoutExtension(path), GenerationMode.ForReals, out configuredTextures);
 
-            var shaderImporter = AssetImporter.GetAtPath(path) as ShaderImporter;
+            var shaderImporter = AssetImporter.GetAtPath(path) as ShaderGraphImporter;
             if (shaderImporter == null)
                 return;
-
-            var textureNames = new List<string>();
-            var textures = new List<Texture>();
-            foreach (var textureInfo in configuredTextures.Where(x => x.modifiable))
-            {
-                var texture = EditorUtility.InstanceIDToObject(textureInfo.textureId) as Texture;
-                if (texture == null)
-                    continue;
-                textureNames.Add(textureInfo.name);
-                textures.Add(texture);
-            }
-            shaderImporter.SetDefaultTextures(textureNames.ToArray(), textures.ToArray());
-
-            textureNames.Clear();
-            textures.Clear();
-            foreach (var textureInfo in configuredTextures.Where(x => !x.modifiable))
-            {
-                var texture = EditorUtility.InstanceIDToObject(textureInfo.textureId) as Texture;
-                if (texture == null)
-                    continue;
-                textureNames.Add(textureInfo.name);
-                textures.Add(texture);
-            }
-            shaderImporter.SetNonModifiableTextures(textureNames.ToArray(), textures.ToArray());
+            
             File.WriteAllText(path, EditorJsonUtility.ToJson(graph, true));
             shaderImporter.SaveAndReimport();
             AssetDatabase.ImportAsset(path);
