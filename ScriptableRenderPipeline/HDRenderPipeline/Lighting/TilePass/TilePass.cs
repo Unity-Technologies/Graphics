@@ -2063,9 +2063,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                             cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._AmbientOcclusionTexture, HDShaderIDs._AmbientOcclusionTexture);
 
-                            cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._SkyTexture, skyTexture ? skyTexture : m_DefaultTexture2DArray);
-                            cmd.SetComputeFloatParam(deferredComputeShader, HDShaderIDs._SkyTextureMipCount, skyTextureMipCount);
-
                             cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, colorBuffers[0]);
                             cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.diffuseLightingUAV,  colorBuffers[1]);
 
