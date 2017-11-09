@@ -1859,7 +1859,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (activeComputeShader)
                     activeCommandBuffer.SetComputeIntParam(activeComputeShader, nameID, value);
                 else
-                    Shader.SetGlobalInt(nameID, value);
+                    activeCommandBuffer.SetGlobalInt(nameID, value);
             }
 
             private void SetGlobalFloat(int nameID, float value)
@@ -2106,35 +2106,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         if (enableFeatureVariants)
                             numVariants = LightDefinitions.s_NumFeatureVariants;
 
-                        int debugViewMaterial = Shader.GetGlobalInt(HDShaderIDs._DebugViewMaterial);
-                        int debugLightingMode = Shader.GetGlobalInt(HDShaderIDs._DebugLightingMode);
-                        Vector4 debugLightingAlbedo = Shader.GetGlobalVector(HDShaderIDs._DebugLightingAlbedo);
-                        Vector4 debugLightingSmoothness = Shader.GetGlobalVector(HDShaderIDs._DebugLightingSmoothness);
-
-                        Texture ltcData = Shader.GetGlobalTexture(HDShaderIDs._LtcData);
-                        Texture preIntegratedFGD = Shader.GetGlobalTexture(HDShaderIDs._PreIntegratedFGD);
-                        Texture ltcGGXMatrix = Shader.GetGlobalTexture(HDShaderIDs._LtcGGXMatrix);
-                        Texture ltcDisneyDiffuseMatrix = Shader.GetGlobalTexture(HDShaderIDs._LtcDisneyDiffuseMatrix);
-                        Texture ltcMultiGGXFresnelDisneyDiffuse = Shader.GetGlobalTexture(HDShaderIDs._LtcMultiGGXFresnelDisneyDiffuse);
-
-                        Matrix4x4 invScrProjection = Shader.GetGlobalMatrix(HDShaderIDs.g_mInvScrProjection);
-                        int useTileLightList = Shader.GetGlobalInt(HDShaderIDs._UseTileLightList);
-
-                        Vector4 time = Shader.GetGlobalVector(HDShaderIDs._Time);
-                        Vector4 sinTime = Shader.GetGlobalVector(HDShaderIDs._SinTime);
-                        Vector4 cosTime = Shader.GetGlobalVector(HDShaderIDs._CosTime);
-                        Vector4 unity_DeltaTime = Shader.GetGlobalVector(HDShaderIDs.unity_DeltaTime);
-                        int envLightSkyEnabled = Shader.GetGlobalInt(HDShaderIDs._EnvLightSkyEnabled);
-                        Vector4 ambientOcclusionParam = Shader.GetGlobalVector(HDShaderIDs._AmbientOcclusionParam);
-
-                        int enableSSSAndTransmission = Shader.GetGlobalInt(HDShaderIDs._EnableSSSAndTransmission);
-                        int texturingModeFlags = Shader.GetGlobalInt(HDShaderIDs._TexturingModeFlags);
-                        int transmissionFlags = Shader.GetGlobalInt(HDShaderIDs._TransmissionFlags);
-                        int useDisneySSS = Shader.GetGlobalInt(HDShaderIDs._UseDisneySSS);
-                        Vector4[] thicknessRemaps = Shader.GetGlobalVectorArray(HDShaderIDs._ThicknessRemaps);
-                        Vector4[] shapeParams = Shader.GetGlobalVectorArray(HDShaderIDs._ShapeParams);
-                        Vector4[] transmissionTints = Shader.GetGlobalVectorArray(HDShaderIDs._TransmissionTints);
-                        Vector4[] halfRcpVariancesAndWeights = Shader.GetGlobalVectorArray(HDShaderIDs._HalfRcpVariancesAndWeights);
 
                         Texture skyTexture = Shader.GetGlobalTexture(HDShaderIDs._SkyTexture);
                         float skyTextureMipCount = Shader.GetGlobalFloat(HDShaderIDs._SkyTextureMipCount);
@@ -2176,11 +2147,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             hdCamera.SetupComputeShader(deferredComputeShader, cmd);
 
                             // TODO: Update value like in ApplyDebugDisplaySettings() call. Sadly it is high likely that this will not be keep in sync. we really need to get rid of this by making global parameters visible to compute shaders
-                            cmd.SetComputeIntParam(deferredComputeShader, HDShaderIDs._DebugViewMaterial, debugViewMaterial);
-                            cmd.SetComputeIntParam(deferredComputeShader, HDShaderIDs._DebugLightingMode, debugLightingMode);
-                            cmd.SetComputeVectorParam(deferredComputeShader, HDShaderIDs._DebugLightingAlbedo, debugLightingAlbedo);
-                            cmd.SetComputeVectorParam(deferredComputeShader, HDShaderIDs._DebugLightingSmoothness, debugLightingSmoothness);
-
+ 
                             cmd.SetComputeBufferParam(deferredComputeShader, kernel, HDShaderIDs.g_vLightListGlobal, bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);
 
                             cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._DeferredShadowTexture, deferredShadowTexture);
@@ -2197,34 +2164,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._VelocityTexture, HDShaderIDs._VelocityTexture);
                             cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._AmbientOcclusionTexture, HDShaderIDs._AmbientOcclusionTexture);
 
-                            cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._LtcData, ltcData);
-                            cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._PreIntegratedFGD, preIntegratedFGD);
-                            cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._LtcGGXMatrix, ltcGGXMatrix);
-                            cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._LtcDisneyDiffuseMatrix, ltcDisneyDiffuseMatrix);
-                            cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._LtcMultiGGXFresnelDisneyDiffuse, ltcMultiGGXFresnelDisneyDiffuse);
-
-                            cmd.SetComputeMatrixParam(deferredComputeShader, HDShaderIDs.g_mInvScrProjection, invScrProjection);
-                            cmd.SetComputeIntParam(deferredComputeShader, HDShaderIDs._UseTileLightList, useTileLightList);
-
-                            cmd.SetComputeVectorParam(deferredComputeShader, HDShaderIDs._Time, time);
-                            cmd.SetComputeVectorParam(deferredComputeShader, HDShaderIDs._SinTime, sinTime);
-                            cmd.SetComputeVectorParam(deferredComputeShader, HDShaderIDs._CosTime, cosTime);
-                            cmd.SetComputeVectorParam(deferredComputeShader, HDShaderIDs.unity_DeltaTime, unity_DeltaTime);
-                            cmd.SetComputeIntParam(deferredComputeShader, HDShaderIDs._EnvLightSkyEnabled, envLightSkyEnabled);
-                            cmd.SetComputeVectorParam(deferredComputeShader, HDShaderIDs._AmbientOcclusionParam, ambientOcclusionParam);
-
                             cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._SkyTexture, skyTexture ? skyTexture : m_DefaultTexture2DArray);
                             cmd.SetComputeFloatParam(deferredComputeShader, HDShaderIDs._SkyTextureMipCount, skyTextureMipCount);
-
-                            // Set SSS parameters.
-                            cmd.SetComputeIntParam(        deferredComputeShader, HDShaderIDs._EnableSSSAndTransmission,   enableSSSAndTransmission);
-                            cmd.SetComputeIntParam(        deferredComputeShader, HDShaderIDs._TexturingModeFlags,         texturingModeFlags);
-                            cmd.SetComputeIntParam(        deferredComputeShader, HDShaderIDs._TransmissionFlags,          transmissionFlags);
-                            cmd.SetComputeIntParam(        deferredComputeShader, HDShaderIDs._UseDisneySSS,               useDisneySSS);
-                            cmd.SetComputeVectorArrayParam(deferredComputeShader, HDShaderIDs._ThicknessRemaps,            thicknessRemaps);
-                            cmd.SetComputeVectorArrayParam(deferredComputeShader, HDShaderIDs._ShapeParams,                shapeParams);
-                            cmd.SetComputeVectorArrayParam(deferredComputeShader, HDShaderIDs._TransmissionTints,          transmissionTints);
-                            cmd.SetComputeVectorArrayParam(deferredComputeShader, HDShaderIDs._HalfRcpVariancesAndWeights, halfRcpVariancesAndWeights);
 
                             cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, colorBuffers[0]);
                             cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.diffuseLightingUAV,  colorBuffers[1]);
