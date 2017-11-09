@@ -125,9 +125,10 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                                                                                    posInput.depthVS,
                                                                                    _VBufferLighting,
                                                                                    s_linear_clamp_sampler,
-                                                                                   _VBufferDepthEncodingParams,
-                                                                                   _VBufferResolutionAndScale.zw);
-                diffuseLighting  *= volumetricLighting.a;
+                                                                                   _VBufferResolutionAndScale.zw,
+                                                                                   _VBufferDepthEncodingParams);
+                // TODO: apply volumetrics after SSS.
+                // diffuseLighting  *= volumetricLighting.a;
                 specularLighting *= volumetricLighting.a;
                 specularLighting += volumetricLighting.rgb;
             #endif

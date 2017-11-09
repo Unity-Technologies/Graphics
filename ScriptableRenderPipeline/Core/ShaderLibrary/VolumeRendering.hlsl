@@ -64,6 +64,16 @@ float HenyeyGreensteinPhaseFunction(float asymmetry, float LdotD)
            HenyeyGreensteinPhasePartVarying(asymmetry, LdotD);
 }
 
+// Absorption coefficient from Disney: http://blog.selfshadow.com/publications/s2015-shading-course/burley/s2015_pbs_disney_bsdf_notes.pdf
+float3 TransmittanceColorAtDistanceToAbsorption(float3 transmittanceColor, float atDistance)
+{
+    return -log(transmittanceColor + 0.00001) / max(atDistance, 0.000001);
+}
+
+#ifndef USE_LEGACY_UNITY_SHADER_VARIABLES
+    #define VOLUMETRIC_LIGHTING_ENABLED
+#endif
+
 // TODO: share this...
 #define PRESET_ULTRA 0
 
@@ -79,37 +89,45 @@ float HenyeyGreensteinPhaseFunction(float asymmetry, float LdotD)
 
 float4 GetInScatteredRadianceAndTransmittance(float2 positionSS, float depthVS,
                                               TEXTURE3D(VBufferLighting), SAMPLER3D(linearClampSampler),
-                                              float4 VBufferDepthEncodingParams, float2 VBufferScale)
+                                              float2 VBufferScale, float4 VBufferDepthEncodingParams)
 {
     int   n = VBUFFER_SLICE_COUNT;
     float z = depthVS;
     float d = EncodeLogarithmicDepth(z, VBufferDepthEncodingParams);
 
-    float slice0 = clamp(floor(d * n - 0.5), 0, n - 1); // TODO: somehow avoid the clamp...
-    float slice1 = clamp( ceil(d * n - 0.5), 0, n - 1); // TODO: somehow avoid the clamp...
-
     // We cannot use hardware trilinear interpolation since the distance between slices is log-encoded.
+    // Therefore, we perform 2 bilinear taps.
     // TODO: test the visual difference in practice.
-    float d0 = slice0 * rcp(n) + (0.5 * rcp(n));
-    float d1 = slice1 * rcp(n) + (0.5 * rcp(n));
+    float s0 = clamp(floor(d * n - 0.5), 0, n - 1); // TODO: somehow avoid the clamp...
+    float s1 = clamp( ceil(d * n - 0.5), 0, n - 1); // TODO: somehow avoid the clamp...
+    float d0 = s0 * rcp(n) + (0.5 * rcp(n));
+    float d1 = s1 * rcp(n) + (0.5 * rcp(n));
     float z0 = DecodeLogarithmicDepth(d0, VBufferDepthEncodingParams);
     float z1 = DecodeLogarithmicDepth(d1, VBufferDepthEncodingParams);
 
     // Account for the visible area of the VBuffer.
     float2 uv = positionSS * VBufferScale;
 
-    // Perform 2 bilinear taps. The sampler should clamp the values at the boundaries of the 3D texture.
-    float4 v0 = SAMPLE_TEXTURE3D_LOD(VBufferLighting, linearClampSampler, float3(uv, d0), 0);
-    float4 v1 = SAMPLE_TEXTURE3D_LOD(VBufferLighting, linearClampSampler, float3(uv, d1), 0);
-    float4 vt = lerp(v0, v1, saturate((z - z0) / (z1 - z0)));
+    // The sampler should clamp to edge.
+    float4 L0 = SAMPLE_TEXTURE3D_LOD(VBufferLighting, linearClampSampler, float3(uv, d0), 0);
+    float4 L1 = SAMPLE_TEXTURE3D_LOD(VBufferLighting, linearClampSampler, float3(uv, d1), 0);
+    float4 L  = lerp(L0, L1, saturate((z - z0) / (z1 - z0)));
 
-    return float4(vt.rgb, Transmittance(vt.a));
+    return float4(L.rgb, Transmittance(L.a));
 }
 
-// Absorption coefficient from Disney: http://blog.selfshadow.com/publications/s2015-shading-course/burley/s2015_pbs_disney_bsdf_notes.pdf
-float3 TransmittanceColorAtDistanceToAbsorption(float3 transmittanceColor, float atDistance)
+// A version without depth - returns the value for the far plane.
+float4 GetInScatteredRadianceAndTransmittance(float2 positionSS,
+                                              TEXTURE3D(VBufferLighting), SAMPLER3D(linearClampSampler),
+                                              float2 VBufferScale)
 {
-    return -log(transmittanceColor + 0.00001) / max(atDistance, 0.000001);
+    // Account for the visible area of the VBuffer.
+    float2 uv = positionSS * VBufferScale;
+
+    // The sampler should clamp to edge.
+    float4 L = SAMPLE_TEXTURE3D_LOD(VBufferLighting, linearClampSampler, float3(uv, 1), 0);
+
+    return float4(L.rgb, Transmittance(L.a));
 }
 
 #endif // UNITY_VOLUME_RENDERING_INCLUDED
