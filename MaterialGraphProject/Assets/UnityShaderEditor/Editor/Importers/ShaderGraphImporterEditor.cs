@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using UnityEditor;
+using UnityEditor.Callbacks;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
@@ -21,7 +22,7 @@ public class ShaderGraphImporterEditor : ScriptedImporterEditor
         }
     }
 
-    internal static void ShowGraphEditWindow(string path)
+    internal static bool ShowGraphEditWindow(string path)
     {
         var asset = AssetDatabase.LoadAssetAtPath<Object>(path);
         var extension = Path.GetExtension(path);
@@ -35,7 +36,7 @@ public class ShaderGraphImporterEditor : ScriptedImporterEditor
         else if (extension == ".ShaderRemapGraph")
             graphType = typeof(MasterRemapGraph);
         else
-            return;
+            return false;
 
         var foundWindow = false;
         foreach (var w in Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>())
@@ -53,6 +54,14 @@ public class ShaderGraphImporterEditor : ScriptedImporterEditor
             window.Show();
             window.ChangeSelection(asset, graphType);
         }
+        return true;
+    }
+
+    [OnOpenAsset]
+    public static bool OnOpenAsset(int instanceID, int line)
+    {
+        var path = AssetDatabase.GetAssetPath(instanceID);
+        return ShowGraphEditWindow(path);
     }
 
 }
