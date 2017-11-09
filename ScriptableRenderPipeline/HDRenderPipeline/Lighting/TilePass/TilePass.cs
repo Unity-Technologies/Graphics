@@ -1826,70 +1826,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.EndSample("Build Light List");
             }
 
-            // This is a workaround for global properties not being accessible from compute.
-            // When activeComputeShader is set, all calls to SetGlobalXXX will set the property on the select compute shader instead of the global scope.
-            private ComputeShader activeComputeShader;
-            private int activeComputeKernel;
-            private CommandBuffer activeCommandBuffer;
-            private void SetGlobalPropertyRedirect(ComputeShader computeShader, int computeKernel, CommandBuffer commandBuffer)
-            {
-                activeComputeShader = computeShader;
-                activeComputeKernel = computeKernel;
-                activeCommandBuffer = commandBuffer;
-            }
-
-            private void SetGlobalTexture(int nameID, Texture value)
-            {
-                if (activeComputeShader)
-                    activeCommandBuffer.SetComputeTextureParam(activeComputeShader, activeComputeKernel, nameID, value);
-                else
-                    activeCommandBuffer.SetGlobalTexture(nameID, value);
-            }
-
-            private void SetGlobalBuffer(int nameID, ComputeBuffer buffer)
-            {
-                if (activeComputeShader)
-                    activeCommandBuffer.SetComputeBufferParam(activeComputeShader, activeComputeKernel, nameID, buffer);
-                else
-                    activeCommandBuffer.SetGlobalBuffer(nameID, buffer);
-            }
-
-            private void SetGlobalInt(int nameID, int value)
-            {
-                if (activeComputeShader)
-                    activeCommandBuffer.SetComputeIntParam(activeComputeShader, nameID, value);
-                else
-                    activeCommandBuffer.SetGlobalInt(nameID, value);
-            }
-
-            private void SetGlobalFloat(int nameID, float value)
-            {
-                if (activeComputeShader)
-                    activeCommandBuffer.SetComputeFloatParam(activeComputeShader, nameID, value);
-                else
-                    activeCommandBuffer.SetGlobalFloat(nameID, value);
-            }
-
-            private void SetGlobalVector(int nameID, Vector4 value)
-            {
-                if (activeComputeShader)
-                    activeCommandBuffer.SetComputeVectorParam(activeComputeShader, nameID, value);
-                else
-                    activeCommandBuffer.SetGlobalVector(nameID, value);
-            }
-
-            private void SetGlobalVectorArray(int nameID, Vector4[] values)
-            {
-                if (activeComputeShader)
-                {
-                    activeCommandBuffer.SetComputeVectorArrayParam(activeComputeShader, nameID, values);
-                }
-                else
-                {
-                    activeCommandBuffer.SetGlobalVectorArray(nameID, values);
-                }
-            }
-
             private void UpdateDataBuffers()
             {
                 s_DirectionalLightDatas.SetData(m_lightList.directionalLights);
@@ -1904,49 +1840,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             private void BindGlobalParams(CommandBuffer cmd, Camera camera, bool forceClustered)
             {
-                m_ShadowMgr.BindResources(cmd, activeComputeShader, activeComputeKernel);
 
-                SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, (forceClustered || !usingFptl) ? s_PerVoxelLightLists : s_LightList);       // opaques list (unless MSAA possibly)
-
-                SetGlobalTexture(HDShaderIDs._CookieTextures, m_CookieTexArray.GetTexCache());
-                SetGlobalTexture(HDShaderIDs._CookieCubeTextures, m_CubeCookieTexArray.GetTexCache());
-                SetGlobalTexture(HDShaderIDs._EnvTextures, m_CubeReflTexArray.GetTexCache());
-
-                SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, s_DirectionalLightDatas);
-                SetGlobalInt(HDShaderIDs._DirectionalLightCount, m_lightList.directionalLights.Count);
-                SetGlobalBuffer(HDShaderIDs._LightDatas, s_LightDatas);
-                SetGlobalInt(HDShaderIDs._PunctualLightCount, m_punctualLightCount);
-                SetGlobalInt(HDShaderIDs._AreaLightCount, m_areaLightCount);
-                SetGlobalBuffer(HDShaderIDs._EnvLightDatas, s_EnvLightDatas);
-                SetGlobalInt(HDShaderIDs._EnvLightCount, m_lightList.envLights.Count);
-                SetGlobalBuffer(HDShaderIDs._ShadowDatas, s_shadowDatas);
-                SetGlobalVectorArray(HDShaderIDs._DirShadowSplitSpheres, m_lightList.directionalShadowSplitSphereSqr);
-
-                SetGlobalInt(HDShaderIDs._NumTileFtplX, GetNumTileFtplX(camera));
-                SetGlobalInt(HDShaderIDs._NumTileFtplY, GetNumTileFtplY(camera));
-
-                SetGlobalInt(HDShaderIDs._NumTileClusteredX, GetNumTileClusteredX(camera));
-                SetGlobalInt(HDShaderIDs._NumTileClusteredY, GetNumTileClusteredY(camera));
-
-                if (m_TileSettings.enableBigTilePrepass)
-                    SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, s_BigTileLightList);
-
-                if (m_TileSettings.enableClustered)
-               {
-                    SetGlobalFloat(HDShaderIDs.g_fClustScale, m_ClustScale);
-                    SetGlobalFloat(HDShaderIDs.g_fClustBase, k_ClustLogBase);
-                    SetGlobalFloat(HDShaderIDs.g_fNearPlane, camera.nearClipPlane);
-                    SetGlobalFloat(HDShaderIDs.g_fFarPlane, camera.farClipPlane);
-                    SetGlobalInt(HDShaderIDs.g_iLog2NumClusters, k_Log2NumClusters);
-
-                    SetGlobalInt(HDShaderIDs.g_isLogBaseBufferEnabled, k_UseDepthBuffer ? 1 : 0);
-
-                    SetGlobalBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, s_PerVoxelOffset);
-                    if (k_UseDepthBuffer)
-                    {
-                        SetGlobalBuffer(HDShaderIDs.g_logBaseBuffer, s_PerTileLogBaseTweak);
-                    }
-                }
             }
 
             public void PushGlobalParams(Camera camera, CommandBuffer cmd, ComputeShader computeShader, int kernelIndex, bool forceClustered = false)
@@ -1955,10 +1849,49 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     // Shadows
                     m_ShadowMgr.SyncData();
+                    m_ShadowMgr.BindResources(cmd, computeShader, kernelIndex);
 
-                    SetGlobalPropertyRedirect(computeShader, kernelIndex, cmd);
-                    BindGlobalParams(cmd, camera, forceClustered);
-                    SetGlobalPropertyRedirect(null, 0, null);
+                    cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, (forceClustered || !usingFptl) ? s_PerVoxelLightLists : s_LightList);       // opaques list (unless MSAA possibly)
+
+                    cmd.SetGlobalTexture(HDShaderIDs._CookieTextures, m_CookieTexArray.GetTexCache());
+                    cmd.SetGlobalTexture(HDShaderIDs._CookieCubeTextures, m_CubeCookieTexArray.GetTexCache());
+                    cmd.SetGlobalTexture(HDShaderIDs._EnvTextures, m_CubeReflTexArray.GetTexCache());
+
+                    cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, s_DirectionalLightDatas);
+                    cmd.SetGlobalInt(HDShaderIDs._DirectionalLightCount, m_lightList.directionalLights.Count);
+                    cmd.SetGlobalBuffer(HDShaderIDs._LightDatas, s_LightDatas);
+                    cmd.SetGlobalInt(HDShaderIDs._PunctualLightCount, m_punctualLightCount);
+                    cmd.SetGlobalInt(HDShaderIDs._AreaLightCount, m_areaLightCount);
+                    cmd.SetGlobalBuffer(HDShaderIDs._EnvLightDatas, s_EnvLightDatas);
+                    cmd.SetGlobalInt(HDShaderIDs._EnvLightCount, m_lightList.envLights.Count);
+                    cmd.SetGlobalBuffer(HDShaderIDs._ShadowDatas, s_shadowDatas);
+                    cmd.SetGlobalVectorArray(HDShaderIDs._DirShadowSplitSpheres, m_lightList.directionalShadowSplitSphereSqr);
+
+                    cmd.SetGlobalInt(HDShaderIDs._NumTileFtplX, GetNumTileFtplX(camera));
+                    cmd.SetGlobalInt(HDShaderIDs._NumTileFtplY, GetNumTileFtplY(camera));
+
+                    cmd.SetGlobalInt(HDShaderIDs._NumTileClusteredX, GetNumTileClusteredX(camera));
+                    cmd.SetGlobalInt(HDShaderIDs._NumTileClusteredY, GetNumTileClusteredY(camera));
+
+                    if (m_TileSettings.enableBigTilePrepass)
+                        cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, s_BigTileLightList);
+
+                    if (m_TileSettings.enableClustered)
+                    {
+                        cmd.SetGlobalFloat(HDShaderIDs.g_fClustScale, m_ClustScale);
+                        cmd.SetGlobalFloat(HDShaderIDs.g_fClustBase, k_ClustLogBase);
+                        cmd.SetGlobalFloat(HDShaderIDs.g_fNearPlane, camera.nearClipPlane);
+                        cmd.SetGlobalFloat(HDShaderIDs.g_fFarPlane, camera.farClipPlane);
+                        cmd.SetGlobalInt(HDShaderIDs.g_iLog2NumClusters, k_Log2NumClusters);
+
+                        cmd.SetGlobalInt(HDShaderIDs.g_isLogBaseBufferEnabled, k_UseDepthBuffer ? 1 : 0);
+
+                        cmd.SetGlobalBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, s_PerVoxelOffset);
+                        if (k_UseDepthBuffer)
+                        {
+                            cmd.SetGlobalBuffer(HDShaderIDs.g_logBaseBuffer, s_PerTileLogBaseTweak);
+                        }
+                    }
                 }
             }
 
@@ -2035,7 +1968,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         CoreUtils.DrawFullScreen(cmd, m_DebugViewTilesMaterial, 0, colorBuffer);
                     }
-                    SetGlobalPropertyRedirect(null, 0, null);
                 }
             }
 
@@ -2217,8 +2149,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             CoreUtils.DrawFullScreen(cmd, currentLightingMaterial, colorBuffers[0], depthStencilBuffer);
                         }
                     }
-
-                    SetGlobalPropertyRedirect(null, 0, null);
                 } // End profiling
             }
 
