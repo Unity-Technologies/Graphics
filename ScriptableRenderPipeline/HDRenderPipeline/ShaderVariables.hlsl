@@ -238,19 +238,6 @@ float4   _ScreenSize;       // {w, h, 1/w, 1/h}
 float4   _FrustumPlanes[6]; // {(a, b, c) = N, d = -dot(N, P)} [L, R, T, B, N, F]
 CBUFFER_END
 
-float4x4 OptimizeAffineMatrix(float4x4 M)
-{
-    // Matrix format (x = non-constant value).
-    // | x x x x |
-    // | x x x x |
-    // | x x x x |
-    // | 0 0 0 1 |
-    // Notice that the last row is constant.
-    // We can avoid loading and doing math with constants.
-    M[3] = float4(0, 0, 0, 1);
-    return M;
-}
-
 float4x4 OptimizeProjectionMatrix(float4x4 M)
 {
     // Matrix format (x = non-constant value).
