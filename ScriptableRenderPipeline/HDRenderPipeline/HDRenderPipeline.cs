@@ -538,23 +538,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 hdCamera.SetupGlobalParams(cmd);
 
-                // TODO: cmd.SetGlobalInt() does not exist, so we are forced to use Shader.SetGlobalInt() instead.
-
                 if (m_SkyManager.IsSkyValid())
                 {
                     m_SkyManager.SetGlobalSkyTexture();
-                    Shader.SetGlobalInt(HDShaderIDs._EnvLightSkyEnabled, 1);
+                    cmd.SetGlobalInt(HDShaderIDs._EnvLightSkyEnabled, 1);
                 }
                 else
                 {
-                    Shader.SetGlobalInt(HDShaderIDs._EnvLightSkyEnabled, 0);
+                    cmd.SetGlobalInt(HDShaderIDs._EnvLightSkyEnabled, 0);
                 }
 
                 // Broadcast SSS parameters to all shaders.
-                Shader.SetGlobalInt(     HDShaderIDs._EnableSSSAndTransmission,   m_CurrentDebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission ? 1 : 0);
-                Shader.SetGlobalInt(     HDShaderIDs._TexturingModeFlags,         sssParameters.texturingModeFlags);
-                Shader.SetGlobalInt(     HDShaderIDs._TransmissionFlags,          sssParameters.transmissionFlags);
-                Shader.SetGlobalInt(     HDShaderIDs._UseDisneySSS,               sssParameters.useDisneySSS ? 1 : 0);
+                cmd.SetGlobalInt(HDShaderIDs._EnableSSSAndTransmission, m_CurrentDebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission ? 1 : 0);
+                cmd.SetGlobalInt(HDShaderIDs._TexturingModeFlags, sssParameters.texturingModeFlags);
+                cmd.SetGlobalInt(HDShaderIDs._TransmissionFlags, sssParameters.transmissionFlags);
+                cmd.SetGlobalInt(HDShaderIDs._UseDisneySSS, sssParameters.useDisneySSS ? 1 : 0);
                 cmd.SetGlobalVectorArray(HDShaderIDs._ThicknessRemaps,            sssParameters.thicknessRemaps);
                 cmd.SetGlobalVectorArray(HDShaderIDs._ShapeParams,                sssParameters.shapeParams);
                 cmd.SetGlobalVectorArray(HDShaderIDs._HalfRcpVariancesAndWeights, sssParameters.halfRcpVariancesAndWeights);
