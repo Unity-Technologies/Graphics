@@ -721,7 +721,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_CurrentDebugDisplaySettings = m_DebugDisplaySettings;
             }
 
-            ApplyDebugDisplaySettings();
+            ApplyDebugDisplaySettings(cmd);
             UpdateCommonSettings();
 
             ScriptableCullingParameters cullingParams;
@@ -1533,7 +1533,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void ApplyDebugDisplaySettings()
+        public void ApplyDebugDisplaySettings(CommandBuffer cmd)
         {
             m_ShadowSettings.enabled = m_CurrentDebugDisplaySettings.lightingDebugSettings.enableShadows;
 
@@ -1541,10 +1541,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var debugAlbedo = new Vector4(lightingDebugSettings.debugLightingAlbedo.r, lightingDebugSettings.debugLightingAlbedo.g, lightingDebugSettings.debugLightingAlbedo.b, 0.0f);
             var debugSmoothness = new Vector4(lightingDebugSettings.overrideSmoothness ? 1.0f : 0.0f, lightingDebugSettings.overrideSmoothnessValue, 0.0f, 0.0f);
 
-            Shader.SetGlobalInt(HDShaderIDs._DebugViewMaterial, (int)m_CurrentDebugDisplaySettings.GetDebugMaterialIndex());
-            Shader.SetGlobalInt(HDShaderIDs._DebugLightingMode, (int)m_CurrentDebugDisplaySettings.GetDebugLightingMode());
-            Shader.SetGlobalVector(HDShaderIDs._DebugLightingAlbedo, debugAlbedo);
-            Shader.SetGlobalVector(HDShaderIDs._DebugLightingSmoothness, debugSmoothness);
+            cmd.SetGlobalInt(HDShaderIDs._DebugViewMaterial, (int)m_CurrentDebugDisplaySettings.GetDebugMaterialIndex());
+            cmd.SetGlobalInt(HDShaderIDs._DebugLightingMode, (int)m_CurrentDebugDisplaySettings.GetDebugLightingMode());
+            cmd.SetGlobalVector(HDShaderIDs._DebugLightingAlbedo, debugAlbedo);
+            cmd.SetGlobalVector(HDShaderIDs._DebugLightingSmoothness, debugSmoothness);
         }
 
         public void PushFullScreenDebugTexture(CommandBuffer cb, RenderTargetIdentifier textureID, Camera camera, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
