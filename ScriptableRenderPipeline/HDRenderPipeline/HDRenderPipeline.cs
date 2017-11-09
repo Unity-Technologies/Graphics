@@ -1201,13 +1201,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Output split lighting for materials asking for it (masked in the stencil buffer)
                 options.outputSplitLighting = true;
 
-                m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_CurrentDebugDisplaySettings, m_MRTCache2, m_CameraDepthStencilBufferRT, depthTexture, m_DeferredShadowBuffer, options);
+                m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_CurrentDebugDisplaySettings, m_MRTCache2, m_CameraDepthStencilBufferRT, depthTexture, options);
             }
 
             // Output combined lighting for all the other materials.
             options.outputSplitLighting = false;
 
-            m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_CurrentDebugDisplaySettings, m_MRTCache2, m_CameraDepthStencilBufferRT, depthTexture, m_DeferredShadowBuffer, options);
+            m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_CurrentDebugDisplaySettings, m_MRTCache2, m_CameraDepthStencilBufferRT, depthTexture, options);
         }
 
         // Combines specular lighting and diffuse lighting with subsurface scattering.
