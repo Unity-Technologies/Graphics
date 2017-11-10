@@ -11,6 +11,9 @@ VFX_VARYING_STRUCT vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
 			${VFXProcessBlocks}
 			
+			if (!alive)
+				return o;
+			
 			o.VFX_VARYING_UV.x = float(id & 1);
 			o.VFX_VARYING_UV.y = float((id & 2) >> 1);
 			

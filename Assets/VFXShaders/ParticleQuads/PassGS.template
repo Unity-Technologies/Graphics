@@ -18,6 +18,9 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_S
 			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
 			${VFXProcessBlocks}
 			
+			if (!alive)
+				return o;
+			
 			#if USE_FLIPBOOK
 			${VFXLoadParameter:{flipBookSize}}
 			${VFXLoadParameter:{invFlipBookSize}}
