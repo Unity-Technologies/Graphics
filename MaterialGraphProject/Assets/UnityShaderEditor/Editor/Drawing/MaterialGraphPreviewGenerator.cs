@@ -197,9 +197,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             Mesh previewMesh = mesh == null ? s_Meshes[0] : mesh;
 
+            Vector3 previewPosition = -previewMesh.bounds.center;
+
             Graphics.DrawMesh(
                 mode == PreviewMode.Preview3D ? previewMesh : quad,
-                Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one),
+                Matrix4x4.TRS(previewPosition, Quaternion.identity, Vector3.one),
                 mat,
                 1,
                 m_Camera,
