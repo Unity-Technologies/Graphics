@@ -1,7 +1,8 @@
 ${VFXShaderTags}
 
 ${VFXInclude("Assets/VFXShaders/VFXParticleCommon.template")}
-		
+${VFXOutputRenderState}	
+	
 CGINCLUDE
 #if !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)
 #define VFX_LOCAL_SPACE 1
