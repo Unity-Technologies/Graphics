@@ -1828,7 +1828,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public void PushGlobalParams(Camera camera, CommandBuffer cmd)
             {
-                using (new ProfilingSample(cmd, "Push Global Parameters"))
+                using (new ProfilingSample(cmd, "Push Global Parameters",HDRenderPipeline.GetSampler(HDRenderPipeline.CustomSamplerId.TP_Push_Global_Parameters))
                 {
                     // Shadows
                     m_ShadowMgr.SyncData();
@@ -1864,7 +1864,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         cmd.SetGlobalFloat(HDShaderIDs.g_fNearPlane, camera.nearClipPlane);
                         cmd.SetGlobalFloat(HDShaderIDs.g_fFarPlane, camera.farClipPlane);
                         cmd.SetGlobalInt(HDShaderIDs.g_iLog2NumClusters, k_Log2NumClusters);
-
                         cmd.SetGlobalInt(HDShaderIDs.g_isLogBaseBufferEnabled, k_UseDepthBuffer ? 1 : 0);
 
                         cmd.SetGlobalBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, s_PerVoxelOffset);
@@ -1898,7 +1897,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (lightingDebug.tileDebugByCategory == TileSettings.TileDebug.None)
                     return;
 
-                using (new ProfilingSample(cmd, "Tiled Lighting Debug"))
+                using (new ProfilingSample(cmd, "Tiled Lighting Debug",HDRenderPipeline.GetSampler(HDRenderPipeline.CustomSamplerId.TP_Tiled_Lighting_Debug)))
                 {
                     bool bUseClusteredForDeferred = !usingFptl;
 
@@ -1961,7 +1960,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_CurrentSunLight == null)
                     return;
 
-                using (new ProfilingSample(cmd, "Deferred Directional"))
+                using (new ProfilingSample(cmd, "Deferred Directional",HDRenderPipeline.GetSampler(HDRenderPipeline.CustomSamplerId.TP_Deferred_Directional)))
                 {
                     m_ShadowMgr.BindResources(cmd, deferredDirectionalShadowComputeShader, s_deferredDirectionalShadowKernel);
 
@@ -1997,13 +1996,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 string singlePassName = "SinglePass - Deferred Lighting Pass";
                 string SinglePassMRTName = "SinglePass - Deferred Lighting Pass MRT";
 
-                                   Texture skyTexture = Shader.GetGlobalTexture(HDShaderIDs._SkyTexture);
-                       float skyTextureMipCount = Shader.GetGlobalFloat(HDShaderIDs._SkyTextureMipCount);
 
+				Texture skyTexture = Shader.GetGlobalTexture(HDShaderIDs._SkyTexture);
+				float skyTextureMipCount = Shader.GetGlobalFloat(HDShaderIDs._SkyTextureMipCount);
 
-                using (new ProfilingSample(cmd, m_TileSettings.enableTileAndCluster ?
+                string sLabel = m_TileSettings.enableTileAndCluster ?
                     (options.outputSplitLighting ? tilePassMRTName : tilePassName) :
-                    (options.outputSplitLighting ? SinglePassMRTName : singlePassName)))
+                    (options.outputSplitLighting ? SinglePassMRTName : singlePassName);
+                using (new ProfilingSample(cmd, sLabel,HDRenderPipeline.GetSampler(HDRenderPipeline.CustomSamplerId.TP_RenderDeferredLighting )))
                 {
                     var camera = hdCamera.camera;
 
@@ -2066,6 +2066,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             cmd.SetComputeFloatParam(deferredComputeShader, HDShaderIDs._SkyTextureMipCount, skyTextureMipCount);
 
 
+
                             // always do deferred lighting in blocks of 16x16 (not same as tiled light size)
 
                             if (enableFeatureVariants)
@@ -2121,7 +2122,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Note: if we use render opaque with deferred tiling we need to render a opaque depth pass for these opaque objects
                 if (!m_TileSettings.enableTileAndCluster)
                 {
-                    using (new ProfilingSample(cmd, "Forward pass"))
+                    using (new ProfilingSample(cmd, "Forward pass",HDRenderPipeline.GetSampler(HDRenderPipeline.CustomSamplerId.TP_Forward_pass)))
                     {
                         cmd.EnableShaderKeyword("LIGHTLOOP_SINGLE_PASS");
                         cmd.DisableShaderKeyword("LIGHTLOOP_TILE_PASS");
@@ -2132,7 +2133,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Only opaques can use FPTL, transparent must use clustered!
                     bool useFptl = renderOpaque && usingFptl;
 
-                    using (new ProfilingSample(cmd, useFptl ? "Forward Tiled pass" : "Forward Clustered pass"))
+                    using (new ProfilingSample(cmd, useFptl ? "Forward Tiled pass" : "Forward Clustered pass",HDRenderPipeline.GetSampler(HDRenderPipeline.CustomSamplerId.TP_Forward_Tiled_Cluster_pass)))
                     {
                         // say that we want to use tile of single loop
                         cmd.EnableShaderKeyword("LIGHTLOOP_TILE_PASS");
@@ -2146,7 +2147,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public void RenderDebugOverlay(Camera camera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width)
             {
                 LightingDebugSettings lightingDebug = debugDisplaySettings.lightingDebugSettings;
-                using (new ProfilingSample(cmd, "Display Shadows"))
+                using (new ProfilingSample(cmd, "Display Shadows",HDRenderPipeline.GetSampler(HDRenderPipeline.CustomSamplerId.TP_Display_Shadows)))
                 {
                     if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeShadowMap)
                     {
