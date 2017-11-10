@@ -11,7 +11,7 @@ Material:
   m_ShaderKeywords: _ALBEDOAFFECTEMISSIVE_OFF _ALPHACUTOFFENABLE_OFF _BLENDMODE_ALPHA
     _DEPTHOFFSETENABLE_OFF _DISTORTIONDEPTHTEST_OFF _DISTORTIONENABLE_OFF _DOUBLESIDEDENABLE_OFF
     _ENABLEBLENDMODEPRESERVESPECULARLIGHTING_OFF _ENABLESPECULAROCCLUSION_OFF _ENABLEWIND_OFF
-    _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _PREREFRACTIONPASS_OFF _REFRACTION_SPHERE
+    _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _PREREFRACTIONPASS_OFF _REFRACTION_PLANE
     _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -56,6 +56,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _MaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -88,6 +92,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
@@ -98,6 +106,7 @@ Material:
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
     - _DetailNormalScale: 1
@@ -131,7 +140,7 @@ Material:
     - _HeightCenter: 0.5
     - _HeightMax: 1
     - _HeightMin: -1
-    - _IOR: 1
+    - _IOR: 1.5
     - _InitialBend: 1
     - _InvTilingScale: 1
     - _LinkDetailsWithBase: 1
@@ -145,7 +154,7 @@ Material:
     - _PPDPrimitiveLength: 1
     - _PPDPrimitiveWidth: 1
     - _PreRefractionPass: 0
-    - _RefractionMode: 2
+    - _RefractionMode: 1
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
     - _Smoothness: 1
@@ -158,7 +167,7 @@ Material:
     - _SubsurfaceRadius: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
-    - _Thickness: 1
+    - _Thickness: 0
     - _ThicknessMultiplier: 1
     - _UVBase: 0
     - _UVDetail: 0
@@ -166,11 +175,13 @@ Material:
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 0}
+    - _Color: {r: 1, g: 1, b: 1, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
+    - _ThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _TransmittanceColor: {r: 1, g: 1, b: 1, a: 1}
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}

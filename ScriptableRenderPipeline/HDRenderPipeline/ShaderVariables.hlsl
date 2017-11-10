@@ -126,6 +126,9 @@ CBUFFER_START(UnityPerDraw : register(b0))
     float3 unity_ProbeVolumeSizeInv;
     float3 unity_ProbeVolumeMin;
 
+    // This contain occlusion factor from 0 to 1 for dynamic objects (no SH here)
+    float4 unity_ProbesOcclusion;
+
 CBUFFER_END
 
 #if defined(USING_STEREO_MATRICES)
@@ -204,6 +207,9 @@ SAMPLER2D(samplerunity_DynamicLightmap);
 
 TEXTURE2D(unity_DynamicDirectionality);
 
+// We can have shadowMask only if we have lightmap, so no sampler
+TEXTURE2D(unity_ShadowMask);
+
 // TODO: Change code here so probe volume use only one transform instead of all this parameters!
 TEXTURE3D_FLOAT(unity_ProbeVolumeSH);
 SAMPLER3D(samplerunity_ProbeVolumeSH);
@@ -217,6 +223,7 @@ CBUFFER_END
 
 // ----------------------------------------------------------------------------
 
+// TODO: all affine matrices should be 3x4.
 CBUFFER_START(UnityPerPass)
 float4x4 _PrevViewProjMatrix;
 float4x4 _ViewProjMatrix;
@@ -227,9 +234,24 @@ float4x4 _InvViewProjMatrix;
 float4x4 _InvViewMatrix;
 float4x4 _InvProjMatrix;
 float4   _InvProjParam;
-float4   _ScreenSize;       // (w, h, 1/w, 1/h)
-float4   _FrustumPlanes[6]; // (N, -dot(N, P))
+float4   _ScreenSize;       // {w, h, 1/w, 1/h}
+float4   _FrustumPlanes[6]; // {(a, b, c) = N, d = -dot(N, P)} [L, R, T, B, N, F]
 CBUFFER_END
+
+float4x4 OptimizeProjectionMatrix(float4x4 M)
+{
+    // Matrix format (x = non-constant value).
+    // Orthographic Perspective  Combined(OR)
+    // | x 0 0 x |  | x 0 x 0 |  | x 0 x x |
+    // | 0 x 0 x |  | 0 x x 0 |  | 0 x x x |
+    // | x x x x |  | x x x x |  | x x x x | <- oblique projection row
+    // | 0 0 0 1 |  | 0 0 x 0 |  | 0 0 x x |
+    // Notice that some values are always 0.
+    // We can avoid loading and doing math with constants.
+    M._21_41 = 0;
+    M._12_42 = 0;
+    return M;
+}
 
 #ifdef USE_LEGACY_UNITY_MATRIX_VARIABLES
     #include "ShaderVariablesMatrixDefsLegacyUnity.hlsl"
