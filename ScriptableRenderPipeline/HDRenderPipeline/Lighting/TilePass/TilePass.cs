@@ -1997,6 +1997,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 string singlePassName = "SinglePass - Deferred Lighting Pass";
                 string SinglePassMRTName = "SinglePass - Deferred Lighting Pass MRT";
 
+                                   Texture skyTexture = Shader.GetGlobalTexture(HDShaderIDs._SkyTexture);
+                       float skyTextureMipCount = Shader.GetGlobalFloat(HDShaderIDs._SkyTextureMipCount);
+
+
                 using (new ProfilingSample(cmd, m_TileSettings.enableTileAndCluster ?
                     (options.outputSplitLighting ? tilePassMRTName : tilePassName) :
                     (options.outputSplitLighting ? SinglePassMRTName : singlePassName)))
@@ -2057,6 +2061,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             // TODO: Is it possible to setup this outside the loop ? Can figure out how, get this: Property (specularLightingUAV) at kernel index (21) is not set
                             cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, colorBuffers[0]);
                             cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.diffuseLightingUAV,  colorBuffers[1]);
+
+                            cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._SkyTexture, skyTexture ? skyTexture : m_DefaultTexture2DArray);
+                            cmd.SetComputeFloatParam(deferredComputeShader, HDShaderIDs._SkyTextureMipCount, skyTextureMipCount);
+
 
                             // always do deferred lighting in blocks of 16x16 (not same as tiled light size)
 
