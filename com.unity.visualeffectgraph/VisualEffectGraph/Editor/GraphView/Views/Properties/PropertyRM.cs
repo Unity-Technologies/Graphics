@@ -230,8 +230,12 @@ namespace UnityEditor.VFX.UI
                     type = type.BaseType;
                 }
             }
+            if (propertyType == null)
+            {
+                propertyType = typeof(EmptyPropertyRM);
+            }
 
-            return (propertyType != null) ? System.Activator.CreateInstance(propertyType, new object[] { presenter, labelWidth }) as PropertyRM : null;
+            return System.Activator.CreateInstance(propertyType, new object[] { presenter, labelWidth }) as PropertyRM;
         }
 
         protected void NotifyValueChanged()
@@ -390,6 +394,34 @@ namespace UnityEditor.VFX.UI
         public override void UpdateGUI()
         {
             m_Field.value = (U)System.Convert.ChangeType(m_Value, typeof(U));
+        }
+
+        public override bool showsEverything { get { return true; } }
+    }
+
+
+    class EmptyPropertyRM : PropertyRM
+    {
+        public override float GetPreferredControlWidth()
+        {
+            return 0;
+        }
+
+        public override void SetValue(object obj)
+        {
+        }
+
+        public override object GetValue()
+        {
+            return null;
+        }
+
+        protected override void UpdateEnabled()
+        {
+        }
+
+        public EmptyPropertyRM(IPropertyRMProvider provider, float labelWidth) : base(provider, labelWidth)
+        {
         }
 
         public override bool showsEverything { get { return true; } }
