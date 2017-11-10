@@ -9,14 +9,6 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXBuiltInParameterUI : VFXStandaloneSlotContainerUI
-    {
-    }
-
-    class VFXAttributeParameterUI : VFXStandaloneSlotContainerUI
-    {
-    }
-
     class VFXParameterUI : VFXStandaloneSlotContainerUI
     {
         private TextField m_ExposedName;

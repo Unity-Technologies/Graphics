@@ -62,8 +62,6 @@ namespace UnityEditor.VFX.UI
 
             m_PresenterFactory[typeof(VFXContext)] = typeof(VFXContextPresenter);
             m_PresenterFactory[typeof(VFXOperator)] = typeof(VFXOperatorPresenter);
-            m_PresenterFactory[typeof(VFXBuiltInParameter)] = typeof(VFXBuiltInParameterPresenter);
-            m_PresenterFactory[typeof(VFXAttributeParameter)] = typeof(VFXAttributeParameterPresenter);
             m_PresenterFactory[typeof(VFXParameter)] = typeof(VFXParameterPresenter);
 
             if (m_FlowAnchorPresenters == null)
@@ -528,34 +526,6 @@ namespace UnityEditor.VFX.UI
         }
 
         public VFXOperator AddVFXOperator(Vector2 pos, VFXModelDescriptor<VFXOperator> desc)
-        {
-            var model = desc.CreateInstance();
-            AddVFXModel(pos, model);
-            return model;
-        }
-
-        public VFXBuiltInParameter AddVFXBuiltInParameter(Vector2 pos, VFXModelDescriptorBuiltInParameters desc)
-        {
-            var model = desc.CreateInstance();
-            AddVFXModel(pos, model);
-            return model;
-        }
-
-        public VFXCurrentAttributeParameter AddVFXCurrentAttributeParameter(Vector2 pos, VFXModelDescriptorCurrentAttributeParameters desc)
-        {
-            var model = desc.CreateInstance();
-            AddVFXModel(pos, model);
-            return model;
-        }
-
-        public VFXSourceAttributeParameter AddVFXSourceAttributeParameter(Vector2 pos, VFXModelDescriptorSourceAttributeParameters desc)
-        {
-            var model = desc.CreateInstance();
-            AddVFXModel(pos, model);
-            return model;
-        }
-
-        public VFXSourceAttributeParameter AddVFXAttributeParameter(Vector2 pos, VFXModelDescriptorSourceAttributeParameters desc)
         {
             var model = desc.CreateInstance();
             AddVFXModel(pos, model);

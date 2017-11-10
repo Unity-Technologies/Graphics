@@ -197,6 +197,20 @@ namespace UnityEditor.VFX
             return m_Children.IndexOf(child);
         }
 
+        public void SetSettingValue(string name, object value)
+        {
+            SetSettingValue(name, value, true);
+        }
+
+        protected void SetSettingValue(string name, object value, bool notify)
+        {
+            GetType().GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).SetValue(this, value);
+            if (notify)
+            {
+                Invalidate(InvalidationCause.kSettingChanged);
+            }
+        }
+
         public void Invalidate(InvalidationCause cause)
         {
             string sampleName = GetType().Name + "-" + name + "-" + cause;
@@ -218,12 +232,9 @@ namespace UnityEditor.VFX
                 m_Parent.Invalidate(model, cause);
         }
 
-        public IEnumerable<FieldInfo> activeSettings
+        public IEnumerable<FieldInfo> GetActiveSettings(bool listHidden = false)
         {
-            get
-            {
-                return VFXSettingAttribute.Collect(this).Where(fo => !filteredOutSettings.Contains(fo.Name));
-            }
+            return VFXSettingAttribute.Collect(this, listHidden).Where(fo => !filteredOutSettings.Contains(fo.Name));
         }
 
         protected virtual IEnumerable<string> filteredOutSettings

@@ -58,7 +58,7 @@ namespace UnityEditor.VFX.UI
             }
             if (m_SettingsContainer != null)
             {
-                var activeSettings = presenter.model.activeSettings;
+                var activeSettings = presenter.model.GetActiveSettings(false);
 
                 for (int i = 0; i < m_Settings.Count; ++i)
                     m_Settings[i].RemoveFromHierarchy();
