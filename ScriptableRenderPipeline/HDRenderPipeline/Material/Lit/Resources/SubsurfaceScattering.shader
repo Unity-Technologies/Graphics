@@ -134,8 +134,10 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
                 float  halfRcpVariance = _HalfRcpWeightedVariances[profileID].a;
             #endif
 
+            float3 albedo = ApplyDiffuseTexturingMode(bsdfData);
+
             #ifndef SSS_FILTER_HORIZONTAL_AND_COMBINE
-                bsdfData.diffuseColor = float3(1, 1, 1);
+                albedo = float3(1, 1, 1);
             #endif
 
                 // Take the first (central) sample.
@@ -154,7 +156,7 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
                     #if SSS_DEBUG_LOD
                         return float4(0, 0, 1, 1);
                     #else
-                        return float4(bsdfData.diffuseColor * sampleIrradiance, 1);
+                        return float4(albedo * sampleIrradiance, 1);
                     #endif
                 }
 
@@ -173,8 +175,7 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
                     sampleWeight     = _FilterKernelsBasic[profileID][i].rgb;
                     sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource, samplePosition).rgb;
 
-                    [flatten]
-                    if (any(sampleIrradiance))
+                    if (TestLightingForSSS(sampleIrradiance))
                     {
                         // Apply bilateral weighting.
                         // Ref #1: Skin Rendering by Pseudo–Separable Cross Bilateral Filtering.
@@ -189,17 +190,16 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
                     }
                     else
                     {
-                        // The irradiance is 0. This could happen for 3 reasons.
+                        // The irradiance is 0. This could happen for 2 reasons.
                         // Most likely, the surface fragment does not have an SSS material.
                         // Alternatively, our sample comes from a region without any geometry.
-                        // Finally, the surface fragment could be completely shadowed.
                         // Our blur is energy-preserving, so 'centerWeight' should be set to 0.
                         // We do not terminate the loop since we want to gather the contribution
                         // of the remaining samples (e.g. in case of hair covering skin).
                     }
                 }
 
-                return float4(bsdfData.diffuseColor * totalIrradiance / totalWeight, 1);
+                return float4(albedo * totalIrradiance / totalWeight, 1);
             }
             ENDHLSL
         }

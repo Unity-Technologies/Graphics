@@ -17,8 +17,8 @@
 //#define SHADOW_DISPATCH_USE_SEPARATE_PUNC_ALGOS	    // enables separate resources and algorithms for spot and point lights
 
 // directional
-#define SHADOW_DISPATCH_DIR_TEX 3
-#define SHADOW_DISPATCH_DIR_SMP 0
+#define SHADOW_DISPATCH_DIR_TEX   3
+#define SHADOW_DISPATCH_DIR_SMP   0
 #define SHADOW_DISPATCH_DIR_ALG   GPUSHADOWALGORITHM_PCF_TENT_5X5   // all cascades
 #define SHADOW_DISPATCH_DIR_ALG_0 GPUSHADOWALGORITHM_PCF_TENT_7X7   // 1st cascade
 #define SHADOW_DISPATCH_DIR_ALG_1 GPUSHADOWALGORITHM_PCF_TENT_5X5   // 2nd cascade

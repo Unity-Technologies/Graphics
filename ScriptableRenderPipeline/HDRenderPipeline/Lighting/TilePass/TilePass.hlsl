@@ -71,24 +71,6 @@ struct LightLoopContext
     ShadowContext shadowContext;
 };
 
-// Store all the accumulated lighting produce by the light loop
-struct LightLoopAccumulatedLighting
-{
-    float3 dirDiffuseLighting;
-    float3 dirSpecularLighting;
-
-    float3 punctualDiffuseLighting;
-    float3 punctualSpecularLighting;
-
-    float3 areaDiffuseLighting;
-    float3 areaSpecularLighting;
-
-    float3 envDiffuseLighting;
-    float3 envSpecularLighting;
-
-    float envDiffuseLightingWeight;
-};
-
 //-----------------------------------------------------------------------------
 // Cookie sampling functions
 // ----------------------------------------------------------------------------

@@ -108,8 +108,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3 transmittanceColor;
             [SurfaceDataAttributes("Transmittance Absorption Distance")]
             public float atDistance;
-            [SurfaceDataAttributes("Refraction mask")]
-            public float refractionMask;
+            [SurfaceDataAttributes("Transmittance mask")]
+            public float transmittanceMask;
         };
 
         //-----------------------------------------------------------------------------
@@ -166,7 +166,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float ior;
             // Reuse thickness from SSS
             public Vector3 absorptionCoefficient;
-            public float refractionMask;
+            public float transmittanceMask;
         };
 
         //-----------------------------------------------------------------------------
@@ -186,23 +186,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override int GetMaterialGBufferCount() { return (int)GBufferMaterial.Count; }
 
+        RenderTextureFormat[] m_RTFormat4 = { RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB2101010, RenderTextureFormat.ARGB32, RenderTextureFormat.RGB111110Float };
+        RenderTextureReadWrite[] m_RTReadWrite4 = { RenderTextureReadWrite.sRGB, RenderTextureReadWrite.Linear, RenderTextureReadWrite.Linear, RenderTextureReadWrite.Linear };
+
+        // TODO: Just discovered that Unity doesn't support unsigned 16 RT format.
+        RenderTextureFormat[] m_RTFormat2 = { RenderTextureFormat.ARGBInt, RenderTextureFormat.ARGBInt };
+        RenderTextureReadWrite[] m_RTReadWrite2 = { RenderTextureReadWrite.Linear, RenderTextureReadWrite.Linear };
+
         public override void GetMaterialGBufferDescription(out RenderTextureFormat[] RTFormat, out RenderTextureReadWrite[] RTReadWrite)
         {
-            RTFormat = new RenderTextureFormat[(int)GBufferMaterial.Count];
-            RTReadWrite = new RenderTextureReadWrite[(int)GBufferMaterial.Count];
-
             if (ShaderConfig.s_PackgbufferInU16 == 1)
             {
-                // TODO: Just discovered that Unity doesn't support unsigned 16 RT format.
-                RTFormat[0] = RenderTextureFormat.ARGBInt; RTReadWrite[0] = RenderTextureReadWrite.Linear;
-                RTFormat[1] = RenderTextureFormat.ARGBInt; RTReadWrite[1] = RenderTextureReadWrite.Linear;
+                RTFormat = m_RTFormat2;
+                RTReadWrite = m_RTReadWrite2;
             }
             else
             {
-                RTFormat[0] = RenderTextureFormat.ARGB32; RTReadWrite[0] = RenderTextureReadWrite.sRGB;
-                RTFormat[1] = RenderTextureFormat.ARGB2101010; RTReadWrite[1] = RenderTextureReadWrite.Linear;
-                RTFormat[2] = RenderTextureFormat.ARGB32; RTReadWrite[2] = RenderTextureReadWrite.Linear;
-                RTFormat[3] = RenderTextureFormat.RGB111110Float; RTReadWrite[3] = RenderTextureReadWrite.Linear;
+                RTFormat = m_RTFormat4;
+                RTReadWrite = m_RTReadWrite4;
             }
         }
 
@@ -281,8 +282,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_InitPreFGD = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/PreIntegratedFGD");
 
-            // For DisneyDiffuse integration values goes from (0.5 to 1.53125). GGX need 0 to 1. Use float format.
-            m_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear);
+            m_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGB2101010, RenderTextureReadWrite.Linear);
             m_PreIntegratedFGD.filterMode = FilterMode.Bilinear;
             m_PreIntegratedFGD.wrapMode = TextureWrapMode.Clamp;
             m_PreIntegratedFGD.hideFlags = HideFlags.DontSave;
@@ -322,6 +322,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 CoreUtils.DrawFullScreen(cmd, m_InitPreFGD, new RenderTargetIdentifier(m_PreIntegratedFGD));
             }
+
             m_isInit = true;
         }
 
