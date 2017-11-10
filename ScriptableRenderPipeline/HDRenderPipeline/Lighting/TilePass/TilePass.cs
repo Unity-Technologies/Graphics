@@ -1820,7 +1820,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_LightVolumeDataBuffer.SetData(m_lightList.lightVolumes);
             }
 
-            public void PushGlobalParams(Camera camera, CommandBuffer cmd)
+             void PushGlobalParams(Camera camera, CommandBuffer cmd)
             {
                 using (new ProfilingSample(cmd, "Push Global Parameters", HDRenderPipeline.GetSampler(CustomSamplerId.TPPushGlobalParameters)))
                 {
