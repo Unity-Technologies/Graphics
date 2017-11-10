@@ -1092,18 +1092,13 @@ VFXAsset:
       m_Array: []
     m_Bool:
       m_Array: []
-  m_Buffers:
-  - type: 1
-    stride: 4
-    capacity: 262144
+  m_Buffers: []
   m_CPUBuffers: []
   m_Systems:
   - type: 1
     flags: 0
     capacity: 65536
-    buffers:
-    - bufferIndex: 0
-      nameId: attributeBuffer
+    buffers: []
     values:
     - expressionIndex: 12
       nameId: bounds_center
@@ -1111,21 +1106,15 @@ VFXAsset:
       nameId: bounds_size
     tasks:
     - type: 536870912
-      buffers:
-      - bufferIndex: 0
-        nameId: attributeBuffer
+      buffers: []
       values: []
       processor: {fileID: 7200000, guid: 34630fa5f453c4c48a722d160ec8e2a0, type: 3}
     - type: 805306368
-      buffers:
-      - bufferIndex: 0
-        nameId: attributeBuffer
+      buffers: []
       values: []
       processor: {fileID: 7200000, guid: ca8d18d09c4182e4796e0b05ac42e094, type: 3}
     - type: 1073741825
-      buffers:
-      - bufferIndex: 0
-        nameId: attributeBuffer
+      buffers: []
       values: []
       processor: {fileID: 4800000, guid: d5cd5ffefb045024aa747d04bcbcbdaf, type: 3}
   - type: 1
