@@ -329,7 +329,7 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
     return vertexLightColor;
 }
 
-half4 LightweightFragmentPBR(float3 positionWS, half3 normalWS, half3 viewDirectionWS, half fogFactor, half3 indirectDiffuse, half3 vertexLighting, half3 albedo, half metallic, half3 specular, half smoothness, half occlusion, half3 emission, half alpha)
+half4 LightweightFragmentPBR(float3 positionWS, half3 normalWS, half3 viewDirectionWS, half3 indirectDiffuse, half3 vertexLighting, half3 albedo, half metallic, half3 specular, half smoothness, half occlusion, half3 emission, half alpha)
 {
     BRDFData brdfData;
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
@@ -367,10 +367,7 @@ half4 LightweightFragmentPBR(float3 positionWS, half3 normalWS, half3 viewDirect
 #endif
 
     color += emission;
-
-    // Computes fog factor per-vertex
-    ApplyFog(color, fogFactor);
-    return OutputColor(color, alpha);
+    return half4(color, alpha);
 }
 
 half4 LightweightFragmentLambert(float3 positionWS, half3 normalWS, half3 viewDirectionWS, half fogFactor, half3 diffuseGI, half3 diffuse, half3 emission, half alpha)
@@ -401,7 +398,8 @@ half4 LightweightFragmentLambert(float3 positionWS, half3 normalWS, half3 viewDi
 
     // Computes Fog Factor per vextex
     ApplyFog(finalColor, fogFactor);
-    return OutputColor(finalColor, alpha);
+    half4 color = half4(finalColor, alpha);
+    return OUTPUT_COLOR(color);
 }
 
 half4 LightweightFragmentBlinnPhong(float3 positionWS, half3 normalWS, half3 viewDirectionWS, half fogFactor, half3 diffuseGI, half3 diffuse, half4 specularGloss, half shininess, half3 emission, half alpha)
@@ -437,6 +435,7 @@ half4 LightweightFragmentBlinnPhong(float3 positionWS, half3 normalWS, half3 vie
 
     // Computes Fog Factor per vextex
     ApplyFog(finalColor, fogFactor);
-    return OutputColor(finalColor, alpha);
+    half4 color = half4(finalColor, alpha);
+    return OUTPUT_COLOR(color);
 }
 #endif

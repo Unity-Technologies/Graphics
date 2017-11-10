@@ -182,9 +182,11 @@
 
                 half3 viewDirectionWS = SafeNormalize(_WorldSpaceCameraPos - IN.positionWS);
                 half fogFactor = IN.fogFactorAndVertexLight.x;
-                half4 color = LightweightFragmentPBR(IN.positionWS, normalWS, viewDirectionWS, fogFactor, indirectDiffuse,
+                half4 color = LightweightFragmentPBR(IN.positionWS, normalWS, viewDirectionWS, indirectDiffuse,
                     IN.fogFactorAndVertexLight.yzw, albedo, metallic, specular, smoothness, /* occlusion */ 1.0, /* emission */ half3(0, 0, 0), alpha);
-                return color;
+
+                ApplyFog(color.rgb, fogFactor);
+                return OUTPUT_COLOR(color);
             }
             ENDCG
         }

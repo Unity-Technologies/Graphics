@@ -38,22 +38,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent shadowCascadeSplit = new GUIContent("Shadow Cascade Split",
                 "Percentages to split shadow volume");
 
-            public static GUIContent defaultDiffuseMaterial = new GUIContent("Default Diffuse Material",
+            public static GUIContent defaultMaterial = new GUIContent("Default Material",
                 "Material to use when creating 3D objects");
 
             public static GUIContent defaultParticleMaterial = new GUIContent("Default Particle Material",
                 "Material to use when creating Particle Systems");
 
-            public static GUIContent defaultLineMaterial = new GUIContent("Default Line Material",
-                "Material to use when creating Line Renderers");
-
-            public static GUIContent defaultSpriteMaterial = new GUIContent("Default Sprite Material",
-                "Material to use when creating Sprites");
-
-            public static GUIContent defaultUIMaterial = new GUIContent("Default UI Material", "Material to use when creating UI Text");
-
-            public static GUIContent defaultShader = new GUIContent("Default Shader",
-                "Shader to use when creating materials");
+            public static GUIContent defaultTerrainMaterial = new GUIContent("Default Terrain Material",
+                "Material to use in Terrains");
 
             public static GUIContent msaaContent = new GUIContent("Anti Aliasing (MSAA)", "Controls the global anti aliasing applied to all cameras.");
         }
@@ -70,12 +62,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private SerializedProperty m_ShadowCascadesProp;
         private SerializedProperty m_ShadowCascade2SplitProp;
         private SerializedProperty m_ShadowCascade4SplitProp;
-        private SerializedProperty m_DefaultDiffuseMaterial;
+        private SerializedProperty m_DefaultMaterial;
         private SerializedProperty m_DefaultParticleMaterial;
-        private SerializedProperty m_DefaultLineMaterial;
-        private SerializedProperty m_DefaultSpriteMaterial;
-        private SerializedProperty m_DefaultUIMaterial;
-        private SerializedProperty m_DefaultShader;
+        private SerializedProperty m_DefaultTerrainMaterial;
         private SerializedProperty m_MSAA;
 
         void OnEnable()
@@ -91,12 +80,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_ShadowCascadesProp = serializedObject.FindProperty("m_ShadowCascades");
             m_ShadowCascade2SplitProp = serializedObject.FindProperty("m_Cascade2Split");
             m_ShadowCascade4SplitProp = serializedObject.FindProperty("m_Cascade4Split");
-            m_DefaultDiffuseMaterial = serializedObject.FindProperty("m_DefaultDiffuseMaterial");
+            m_DefaultMaterial = serializedObject.FindProperty("m_DefaultMaterial");
             m_DefaultParticleMaterial = serializedObject.FindProperty("m_DefaultParticleMaterial");
-            m_DefaultLineMaterial = serializedObject.FindProperty("m_DefaultLineMaterial");
-            m_DefaultSpriteMaterial = serializedObject.FindProperty("m_DefaultSpriteMaterial");
-            m_DefaultUIMaterial = serializedObject.FindProperty("m_DefaultUIMaterial");
-            m_DefaultShader = serializedObject.FindProperty("m_DefaultShader");
+            m_DefaultTerrainMaterial = serializedObject.FindProperty("m_DefaultTerrainMaterial");
             m_MSAA = serializedObject.FindProperty("m_MSAA");
         }
 
@@ -146,12 +132,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(Styles.defaults, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(m_DefaultDiffuseMaterial, Styles.defaultDiffuseMaterial);
+            EditorGUILayout.PropertyField(m_DefaultMaterial, Styles.defaultMaterial);
             EditorGUILayout.PropertyField(m_DefaultParticleMaterial, Styles.defaultParticleMaterial);
-            EditorGUILayout.PropertyField(m_DefaultLineMaterial, Styles.defaultLineMaterial);
-            EditorGUILayout.PropertyField(m_DefaultSpriteMaterial, Styles.defaultSpriteMaterial);
-            EditorGUILayout.PropertyField(m_DefaultUIMaterial, Styles.defaultUIMaterial);
-            EditorGUILayout.PropertyField(m_DefaultShader, Styles.defaultShader);
+            EditorGUILayout.PropertyField(m_DefaultTerrainMaterial, Styles.defaultTerrainMaterial);
             EditorGUI.indentLevel--;
 
             serializedObject.ApplyModifiedProperties();

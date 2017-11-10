@@ -150,8 +150,10 @@
 #endif
 
                 half3 zero = half3(0.0, 0.0, 0.0);
-                return LightweightFragmentPBR(positionWS, normalWS, viewDirWS, fogFactor, /*indirectDiffuse*/ zero, /*vertex lighting*/ zero, surfaceData.Albedo,
+                half4 color = LightweightFragmentPBR(positionWS, normalWS, viewDirWS, /*indirectDiffuse*/ zero, /*vertex lighting*/ zero, surfaceData.Albedo,
                     surfaceData.Metallic, /* specularColor */ zero, surfaceData.Smoothness, surfaceData.Occlusion, surfaceData.Emission, surfaceData.Alpha);
+                ApplyFog(color.rgb, fogFactor);
+                return OUTPUT_COLOR(color);
             }
             ENDCG
         }

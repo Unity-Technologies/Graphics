@@ -228,7 +228,11 @@ half4 LitPassFragment(LightweightVertexOutput IN) : SV_Target
 #endif
 
     float fogFactor = IN.fogFactorAndVertexLight.x;
-    return LightweightFragmentPBR(IN.posWS, normalWS, IN.viewDir, fogFactor, indirectDiffuse, IN.fogFactorAndVertexLight.yzw, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
+    half4 color = LightweightFragmentPBR(IN.posWS, normalWS, IN.viewDir, indirectDiffuse, IN.fogFactorAndVertexLight.yzw, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
+
+    // Computes fog factor per-vertex
+    ApplyFog(color.rgb, fogFactor);
+    return OUTPUT_COLOR(color);
 }
 
 half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
