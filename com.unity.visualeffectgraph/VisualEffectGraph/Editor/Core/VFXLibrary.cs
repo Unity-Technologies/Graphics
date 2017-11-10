@@ -219,9 +219,7 @@ namespace UnityEditor.VFX
                 }
             }
 
-            return modelDescs.GroupBy(o => o.name)
-                .Select(o => o.First())
-                .OrderBy(o => o.name).ToList();
+            return modelDescs.OrderBy(o => o.name).ToList();
         }
 
         private static Dictionary<Type, VFXModelDescriptor<VFXSlot>> LoadSlots()
