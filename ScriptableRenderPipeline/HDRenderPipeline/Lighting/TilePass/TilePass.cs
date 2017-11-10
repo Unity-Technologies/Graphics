@@ -2051,11 +2051,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                             cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._MainDepthTexture, depthTexture);
 
-                            // TODO: Don't know why but If we use Shader.GetGlobalTexture(HDShaderIDs._GBufferTexture0) instead of HDShaderIDs._GBufferTexture0 the screen start to flicker in SceneView...
-                            // Need to investigate what is happening. But this may be unnecessary as development of SetGlobalTexture for compute shader have begin
-
+                            // TODO: Should remove this setting but can't remove it else get error: Property (_AmbientOcclusionTexture) at kernel index (32) is not set. Check why
                             cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._AmbientOcclusionTexture, HDShaderIDs._AmbientOcclusionTexture);
 
+                            // TODO: Is it possible to setup this outside the loop ? Can figure out how, get this: Property (specularLightingUAV) at kernel index (21) is not set
                             cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, colorBuffers[0]);
                             cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.diffuseLightingUAV,  colorBuffers[1]);
 
