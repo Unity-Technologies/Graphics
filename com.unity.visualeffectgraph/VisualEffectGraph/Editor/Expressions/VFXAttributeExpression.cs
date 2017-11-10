@@ -38,7 +38,7 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute Up = new VFXAttribute("up", VFXValue.Constant(Vector3.up));
         public static readonly VFXAttribute Alive = new VFXAttribute("alive", VFXValue.Constant(true));
         public static readonly VFXAttribute Mass = new VFXAttribute("mass", VFXValue.Constant(1.0f));
-
+        public static readonly VFXAttribute TargetPosition = new VFXAttribute("targetPosition", VFXValueType.kFloat3);
         public static readonly VFXAttribute[] AllAttributeReadOnly = new VFXAttribute[] { Seed, ParticleId };
         public static readonly string[] AllReadOnly = AllAttributeReadOnly.Select(e => e.name).ToArray();
 
