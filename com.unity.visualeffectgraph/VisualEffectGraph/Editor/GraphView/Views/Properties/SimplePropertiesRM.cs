@@ -231,6 +231,27 @@ namespace UnityEditor.VFX.UI
         }
     }
 
+    class FlipBookPropertyRM : SimpleUIPropertyRM<FlipBook, FlipBook>
+    {
+        public FlipBookPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        {
+        }
+
+        public override INotifyValueChanged<FlipBook> CreateField()
+        {
+            var field = new LabeledField<FlipBookField, FlipBook>(m_Label);
+
+            field.control.dynamicUpdate = true;
+
+            return field;
+        }
+
+        public override float GetPreferredControlWidth()
+        {
+            return 100;
+        }
+    }
+
     class StringPropertyRM : SimplePropertyRM<string>
     {
         public StringPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
