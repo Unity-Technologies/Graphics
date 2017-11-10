@@ -808,29 +808,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 using (new ProfilingSample(cmd, "Build Light list and render shadows"))
                 {
                     // TODO: Everything here (SSAO, Shadow, Build light list, deferred shadow, material and light classification can be parallelize with Async compute)
-
-                    // Apply SSAO from PostprocessLayer
-                    if (postProcessLayer != null)
-                    {
-                        var settings = postProcessLayer.GetSettings<AmbientOcclusion>();
-
-                        if (settings.IsEnabledAndSupported(null))
-                        {
-                            cmd.GetTemporaryRT(HDShaderIDs._AmbientOcclusionTexture, new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight, RenderTextureFormat.R8, 0)
-                            {
-                                sRGB = false,
-                                enableRandomWrite = true
-                            }, FilterMode.Bilinear);
-                            postProcessLayer.BakeMSVOMap(cmd, camera, HDShaderIDs._AmbientOcclusionTexture, GetDepthTexture(), true);
-                            cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, new Vector4(settings.color.value.r, settings.color.value.g, settings.color.value.b, settings.directLightingStrength.value));
-                            PushFullScreenDebugTexture(cmd, HDShaderIDs._AmbientOcclusionTexture, camera, renderContext, FullScreenDebugMode.SSAO);
-                        }
-                        else
-                        {
-                            cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, RuntimeUtilities.blackTexture); // Neutral is black, see the comment in the shaders
-                            cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, Vector4.zero);
-                        }
-                    }
+                    RenderSSAO(cmd, camera, renderContext, postProcessLayer);
 
                     m_LightLoop.RenderShadows(renderContext, cmd, m_CullResults);
 
@@ -1185,6 +1163,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.Blit(m_CameraColorBufferRT, BuiltinRenderTextureType.CameraTarget);
                 }
             }
+        }
+
+        void RenderSSAO(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext, PostProcessLayer postProcessLayer)
+        {
+            // Apply SSAO from PostProcessLayer
+            if (postProcessLayer != null && postProcessLayer.enabled)
+            {
+                var settings = postProcessLayer.GetSettings<AmbientOcclusion>();
+
+                if (settings.IsEnabledAndSupported(null))
+                {
+                    cmd.GetTemporaryRT(HDShaderIDs._AmbientOcclusionTexture, new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight, RenderTextureFormat.R8, 0)
+                    {
+                        sRGB = false,
+                        enableRandomWrite = true
+                    }, FilterMode.Bilinear);
+                    postProcessLayer.BakeMSVOMap(cmd, camera, HDShaderIDs._AmbientOcclusionTexture, GetDepthTexture(), true);
+                    cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, new Vector4(settings.color.value.r, settings.color.value.g, settings.color.value.b, settings.directLightingStrength.value));
+                    PushFullScreenDebugTexture(cmd, HDShaderIDs._AmbientOcclusionTexture, camera, renderContext, FullScreenDebugMode.SSAO);
+                    return;
+                }
+            }
+            
+            // No AO applied - neutral is black, see the comment in the shaders
+            cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, RuntimeUtilities.blackTexture);
+            cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, Vector4.zero);
         }
 
         void RenderDeferredLighting(HDCamera hdCamera, CommandBuffer cmd)
