@@ -210,26 +210,5 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             material.SetMatrix(HDShaderIDs._PrevViewProjMatrix, prevViewProjMatrix);
             material.SetVectorArray(HDShaderIDs._FrustumPlanes, frustumPlaneEquations);
         }
-
-        public void SetupComputeShader(ComputeShader cs, CommandBuffer cmd)
-        {
-            cmd.SetComputeMatrixParam(cs, HDShaderIDs._ViewMatrix, viewMatrix);
-            cmd.SetComputeMatrixParam(cs, HDShaderIDs._InvViewMatrix, viewMatrix.inverse);
-            cmd.SetComputeMatrixParam(cs, HDShaderIDs._ProjMatrix, projMatrix);
-            cmd.SetComputeMatrixParam(cs, HDShaderIDs._InvProjMatrix, projMatrix.inverse);
-            cmd.SetComputeMatrixParam(cs, HDShaderIDs._NonJitteredViewProjMatrix, nonJitteredViewProjMatrix);
-            cmd.SetComputeMatrixParam(cs, HDShaderIDs._ViewProjMatrix, viewProjMatrix);
-            cmd.SetComputeMatrixParam(cs, HDShaderIDs._InvViewProjMatrix, viewProjMatrix.inverse);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._InvProjParam, invProjParam);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._ScreenSize, screenSize);
-            cmd.SetComputeMatrixParam(cs, HDShaderIDs._PrevViewProjMatrix, prevViewProjMatrix);
-            cmd.SetComputeVectorArrayParam(cs, HDShaderIDs._FrustumPlanes, frustumPlaneEquations);
-            // Copy values set by Unity which are not configured in scripts.
-            cmd.SetComputeVectorParam(cs, HDShaderIDs.unity_OrthoParams, Shader.GetGlobalVector(HDShaderIDs.unity_OrthoParams));
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._ProjectionParams, Shader.GetGlobalVector(HDShaderIDs._ProjectionParams));
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._ScreenParams, Shader.GetGlobalVector(HDShaderIDs._ScreenParams));
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._ZBufferParams, Shader.GetGlobalVector(HDShaderIDs._ZBufferParams));
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._WorldSpaceCameraPos, Shader.GetGlobalVector(HDShaderIDs._WorldSpaceCameraPos));
-        }
     }
 }

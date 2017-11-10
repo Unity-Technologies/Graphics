@@ -1221,8 +1221,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (sssSettings.useDisneySSS)
                 {
-                    hdCamera.SetupComputeShader(m_SubsurfaceScatteringCS, cmd);
-
                     cmd.SetComputeIntParam(        m_SubsurfaceScatteringCS, HDShaderIDs._TexturingModeFlags, sssParameters.texturingModeFlags);
                     cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, HDShaderIDs._WorldScales,        sssParameters.worldScales);
                     cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, HDShaderIDs._FilterKernels,      sssParameters.filterKernels);
