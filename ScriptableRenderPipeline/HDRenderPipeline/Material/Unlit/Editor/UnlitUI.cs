@@ -16,9 +16,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         protected MaterialProperty color = null;
-        protected const string kColor = "_Color";
+        protected const string kColor = "_UnlitColor";
         protected MaterialProperty colorMap = null;
-        protected const string kColorMap = "_ColorMap";
+        protected const string kColorMap = "_UnlitColorMap";
         protected MaterialProperty emissiveColor = null;
         protected const string kEmissiveColor = "_EmissiveColor";
         protected MaterialProperty emissiveColorMap = null;
@@ -41,8 +41,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.LabelField(Styles.InputsText, EditorStyles.boldLabel);
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.colorText, colorMap, color);
+            m_MaterialEditor.TextureScaleOffsetProperty(colorMap);
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
+            m_MaterialEditor.TextureScaleOffsetProperty(emissiveColorMap);
             m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
 
             var surfaceTypeValue = (SurfaceType)surfaceType.floatValue;

@@ -91,6 +91,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kDistortionBlendMode = "_DistortionBlendMode";
         protected MaterialProperty distortionScale = null;
         protected const string kDistortionScale = "_DistortionScale";
+        protected MaterialProperty distortionVectorScale = null;
+        protected const string kDistortionVectorScale = "_DistortionVectorScale";
+        protected MaterialProperty distortionVectorBias = null;
+        protected const string kDistortionVectorBias = "_DistortionVectorBias";
         protected MaterialProperty distortionBlurScale = null;
         protected const string kDistortionBlurScale = "_DistortionBlurScale";
         protected MaterialProperty distortionBlurRemapMin = null;
@@ -141,6 +145,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             distortionVectorMap = FindProperty(kDistortionVectorMap, props, false);
             distortionBlendMode = FindProperty(kDistortionBlendMode, props, false);
             distortionScale = FindProperty(kDistortionScale, props, false);
+            distortionVectorScale = FindProperty(kDistortionVectorScale, props, false);
+            distortionVectorBias = FindProperty(kDistortionVectorBias, props, false);
             distortionBlurScale = FindProperty(kDistortionBlurScale, props, false);
             distortionBlurRemapMin = FindProperty(kDistortionBlurRemapMin, props, false);
             distortionBlurRemapMax = FindProperty(kDistortionBlurRemapMax, props, false);
@@ -256,7 +262,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     m_MaterialEditor.ShaderProperty(distortionDepthTest, StylesBaseUnlit.distortionDepthTestText);
 
                     EditorGUI.indentLevel++;
-                    m_MaterialEditor.TexturePropertySingleLine(StylesBaseUnlit.distortionVectorMapText, distortionVectorMap);
+                    m_MaterialEditor.TexturePropertySingleLine(StylesBaseUnlit.distortionVectorMapText, distortionVectorMap, distortionVectorScale, distortionVectorBias);
                     EditorGUI.indentLevel++;
                     m_MaterialEditor.ShaderProperty(distortionScale, StylesBaseUnlit.distortionScaleText);
                     m_MaterialEditor.ShaderProperty(distortionBlurScale, StylesBaseUnlit.distortionBlurScaleText);
@@ -419,13 +425,46 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // or is enabled and may be modified at runtime. This state depends on the values of the current flag and emissive color.
             // The fixup routine makes sure that the material is in the correct state if/when changes are made to the mode or color.
             MaterialEditor.FixupEmissiveFlag(material);
+
+            // Commented out for now because unfortunately we used the hard coded property names used by the GI system for our own parameters
+            // So we need a way to work around that before we activate this.
+            SetupMainTexForAlphaTestGI("_EmissiveColorMap", "_EmissiveColor", material);
+
+            // DoubleSidedGI has to be synced with our double sided toggle
+            var serializedObject = new SerializedObject(material);
+            var doubleSidedGIppt = serializedObject.FindProperty("m_DoubleSidedGI");
+            doubleSidedGIppt.boolValue = doubleSidedEnable;
+            serializedObject.ApplyModifiedProperties();
+        }
+
+        // This is a hack for GI. PVR looks in the shader for a texture named "_MainTex" to extract the opacity of the material for baking. In the same manner, "_Cutoff" and "_Color" are also necessary.
+        // Since we don't have those parameters in our shaders we need to provide a "fake" useless version of them with the right values for the GI to work.
+        protected static void SetupMainTexForAlphaTestGI(string colorMapPropertyName, string colorPropertyName, Material material)
+        {
+            if (material.HasProperty(colorMapPropertyName))
+            {
+                var mainTex = material.GetTexture(colorMapPropertyName);
+                material.SetTexture("_MainTex", mainTex);
+            }
+
+            if (material.HasProperty(colorPropertyName))
+            {
+                var color = material.GetColor(colorPropertyName);
+                material.SetColor("_Color", color);
+            }
+
+            if (material.HasProperty("_AlphaCutoff")) // Same for all our materials
+            {
+                var cutoff = material.GetFloat("_AlphaCutoff");
+                material.SetFloat("_Cutoff", cutoff);
+            }
         }
 
         static public void SetupBaseUnlitMaterialPass(Material material)
         {
             if (material.HasProperty(kDistortionEnable))
             {
-                bool distortionEnable = material.GetFloat(kDistortionEnable) > 0.0f;
+                bool distortionEnable = material.GetFloat(kDistortionEnable) > 0.0f && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent);
 
                 bool distortionOnly = false;
                 if (material.HasProperty(kDistortionOnly))
@@ -506,7 +545,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // NB RenderQueue editor is not shown on purpose: we want to override it based on blend mode
                 EditorGUI.indentLevel++;
                 m_MaterialEditor.EnableInstancingField();
-                m_MaterialEditor.DoubleSidedGIField();
                 EditorGUI.indentLevel--;
             }
 
@@ -515,6 +553,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 foreach (var obj in m_MaterialEditor.targets)
                     SetupMaterialKeywordsAndPassInternal((Material)obj);
             }
+        }
+
+        public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
+        {
+            base.AssignNewShaderToMaterial(material, oldShader, newShader);
+
+            SetupMaterialKeywordsAndPassInternal(material);
         }
 
         // This is call by the inspector
