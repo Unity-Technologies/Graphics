@@ -1963,7 +1963,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 using (new ProfilingSample(cmd, "Deferred Directional"))
                 {
-                    hdCamera.SetupComputeShader(deferredDirectionalShadowComputeShader, cmd);
                     m_ShadowMgr.BindResources(cmd, deferredDirectionalShadowComputeShader, s_deferredDirectionalShadowKernel);
 
                     cmd.SetComputeFloatParam(deferredDirectionalShadowComputeShader, HDShaderIDs._DirectionalShadowIndex, (float)m_CurrentSunLightShadowIndex);
@@ -2019,10 +2018,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         if (enableFeatureVariants)
                             numVariants = LightDefinitions.s_NumFeatureVariants;
 
-
-                        Texture skyTexture = Shader.GetGlobalTexture(HDShaderIDs._SkyTexture);
-                        float skyTextureMipCount = Shader.GetGlobalFloat(HDShaderIDs._SkyTextureMipCount);
-
                         for (int variant = 0; variant < numVariants; variant++)
                         {
                             int kernel;
@@ -2053,8 +2048,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                         kernel = usingFptl ? s_shadeOpaqueDirectShadowMaskFptlKernel : s_shadeOpaqueDirectShadowMaskClusteredKernel;
                                 }
                             }
-
-                            hdCamera.SetupComputeShader(deferredComputeShader, cmd);
 
                             cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._MainDepthTexture, depthTexture);
 
