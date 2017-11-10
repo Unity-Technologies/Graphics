@@ -68,20 +68,23 @@
             #pragma target 3.0
 
             // -------------------------------------
-            #pragma shader_feature _METALLIC_SETUP _SPECULAR_SETUP
             #pragma shader_feature _NORMALMAP
             #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON
             #pragma shader_feature _EMISSION
             #pragma shader_feature _METALLICSPECGLOSSMAP
             #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-            #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
-            #pragma shader_feature _GLOSSYREFLECTIONS_OFF
             #pragma shader_feature _OCCLUSIONMAP
 
+            #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
+            #pragma shader_feature _GLOSSYREFLECTIONS_OFF
+            #pragma shader_feature _SPECULAR_SETUP
+
+            #pragma multi_compile _ _MAIN_LIGHT_COOKIE
             #pragma multi_compile _MAIN_DIRECTIONAL_LIGHT _MAIN_SPOT_LIGHT _MAIN_POINT_LIGHT
             #pragma multi_compile _ _ADDITIONAL_LIGHTS
             #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
             #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ _HARD_SHADOWS _SOFT_SHADOWS _HARD_SHADOWS_CASCADES _SOFT_SHADOWS_CASCADES
             #pragma multi_compile _ _VERTEX_LIGHTS
 
@@ -90,14 +93,13 @@
 
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
-            #include "UnityStandardInput.cginc"
             #include "LightweightPassLit.cginc"
             ENDCG
         }
 
         Pass
         {
-            Tags{"Lightmode" = "ShadowCaster"}
+            Tags{"LightMode" = "ShadowCaster"}
 
             ZWrite On ZTest LEqual
 
@@ -113,9 +115,10 @@
 
         Pass
         {
-            Tags{"Lightmode" = "DepthOnly"}
+            Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
+            ColorMask 0
 
             CGPROGRAM
             #pragma target 2.0

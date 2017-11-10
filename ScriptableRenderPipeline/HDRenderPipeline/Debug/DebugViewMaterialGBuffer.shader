@@ -13,6 +13,8 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
             #pragma vertex Vert
             #pragma fragment Frag
 
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
+
             #include "../../Core/ShaderLibrary/Common.hlsl"
             #include "../../Core/ShaderLibrary/Color.hlsl"
 
@@ -24,6 +26,9 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
             #include "../Material/Material.hlsl"
 
             DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
+            #ifdef SHADOWS_SHADOWMASK
+            TEXTURE2D(_ShadowMaskTexture);
+            #endif
 
             struct Attributes
             {
@@ -51,8 +56,11 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
 
                 FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
                 BSDFData bsdfData;
-                float3 bakeDiffuseLighting;
-                DECODE_FROM_GBUFFER(gbuffer, 0xFFFFFFFF, bsdfData, bakeDiffuseLighting);
+                BakeLightingData bakeLightingData;
+                DECODE_FROM_GBUFFER(gbuffer, 0xFFFFFFFF, bsdfData, bakeLightingData.bakeDiffuseLighting);
+                #ifdef SHADOWS_SHADOWMASK
+                DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.unPositionSS), bakeLightingData.bakeShadowMask);
+                #endif
 
                 // Init to not expected value
                 float3 result = float3(-666.0, 0.0, 0.0);
@@ -68,8 +76,26 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
                 {
                     // TODO: require a remap
                     // TODO: we should not gamma correct, but easier to debug for now without correct high range value
-                    result = bakeDiffuseLighting; needLinearToSRGB = true;
+                    result = bakeLightingData.bakeDiffuseLighting; needLinearToSRGB = true;
                 }
+                #ifdef SHADOWS_SHADOWMASK
+                else if (_DebugViewMaterial == DEBUGVIEWGBUFFER_BAKE_SHADOW_MASK0)
+                {
+                    result = bakeLightingData.bakeShadowMask.xxx;
+                }
+                else if (_DebugViewMaterial == DEBUGVIEWGBUFFER_BAKE_SHADOW_MASK1)
+                {
+                    result = bakeLightingData.bakeShadowMask.yyy;
+                }
+                else if (_DebugViewMaterial == DEBUGVIEWGBUFFER_BAKE_SHADOW_MASK2)
+                {
+                    result = bakeLightingData.bakeShadowMask.zzz;
+                }
+                else if (_DebugViewMaterial == DEBUGVIEWGBUFFER_BAKE_SHADOW_MASK3)
+                {
+                    result = bakeLightingData.bakeShadowMask.www;
+                }
+                #endif
 
                 GetBSDFDataDebug(_DebugViewMaterial, bsdfData, result, needLinearToSRGB);
 

@@ -5,8 +5,6 @@
 // Helper function for anisotropy
 //-----------------------------------------------------------------------------
 
-// Ref: http://blog.selfshadow.com/publications/s2012-shading-course/burley/s2012_pbs_disney_brdf_notes_v3.pdf (in addenda)
-// Convert anisotropic ratio (0->no isotropic; 1->full anisotropy in tangent direction) to roughness
 void ConvertAnisotropyToRoughness(float roughness, float anisotropy, out float roughnessT, out float roughnessB)
 {
     // Use the parametrization of Sony Imageworks.
@@ -120,13 +118,20 @@ float3 LerpWhiteTo(float3 b, float t)
 // Evaluate Int{0, inf}{2 * Pi * r * R(sqrt(r^2 + d^2))}, where R is the diffusion profile.
 // Note: 'volumeAlbedo' should be premultiplied by 0.25.
 // Ref: Approximate Reflectance Profiles for Efficient Subsurface Scattering by Pixar (BSSRDF only).
-float3 ComputeTransmittance(float3 S, float3 volumeAlbedo, float thickness, float radiusScale)
+float3 ComputeTransmittanceDisney(float3 S, float3 volumeAlbedo, float thickness, float radiusScale)
 {
     // Thickness and SSS radius are decoupled for artists.
     // In theory, we should modify the thickness by the inverse of the radius scale of the profile.
     // thickness /= radiusScale;
 
+#if 0
     float3 expOneThird = exp(((-1.0 / 3.0) * thickness) * S);
+#else
+    // Help the compiler.
+    float  k = (-1.0 / 3.0) * LOG2_E;
+    float3 p = (k * thickness) * S;
+    float3 expOneThird = exp2(p);
+#endif
 
     // Premultiply & optimize: T = (1/4 * A) * (e^(-t * S) + 3 * e^(-1/3 * t * S))
     return volumeAlbedo * (expOneThird * expOneThird * expOneThird + 3 * expOneThird);

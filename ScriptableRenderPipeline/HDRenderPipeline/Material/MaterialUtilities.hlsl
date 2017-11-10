@@ -64,6 +64,29 @@ float3 SampleBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap
 #endif
 }
 
+float4 SampleShadowMask(float3 positionWS, float2 uvStaticLightmap) // normalWS not use for now
+{
+#if defined(LIGHTMAP_ON)
+    float2 uv = uvStaticLightmap * unity_LightmapST.xy + unity_LightmapST.zw;
+    float4 rawOcclusionMask = SAMPLE_TEXTURE2D(unity_ShadowMask, samplerunity_Lightmap, uv); // Reuse sampler from Lightmap
+#else
+    float4 rawOcclusionMask;
+    if (unity_ProbeVolumeParams.x == 1.0)
+    {
+        // TODO: We use GetAbsolutePositionWS(positionWS) to handle the camera relative case here but this should be part of the unity_ProbeVolumeWorldToObject matrix on C++ side (sadly we can't modify it for HDRenderPipeline...)
+        rawOcclusionMask = SampleProbeOcclusion(TEXTURE3D_PARAM(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), GetAbsolutePositionWS(positionWS), unity_ProbeVolumeWorldToObject,
+                                                unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin, unity_ProbeVolumeSizeInv);
+    }
+    else
+    {
+        // Note: Default value when the feature is not enabled is float(1.0, 1.0, 1.0, 1.0) in C++
+        rawOcclusionMask = unity_ProbesOcclusion;
+    }
+#endif
+
+    return rawOcclusionMask;
+}
+
 float2 CalculateVelocity(float4 positionCS, float4 previousPositionCS)
 {
     // This test on define is required to remove warning of divide by 0 when initializing empty struct
