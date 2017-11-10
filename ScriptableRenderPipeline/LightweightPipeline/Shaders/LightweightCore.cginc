@@ -6,9 +6,11 @@
 #if defined(UNITY_COLORSPACE_GAMMA)
     #define LIGHTWEIGHT_GAMMA_TO_LINEAR(gammaColor) gammaColor * gammaColor
     #define LIGHTWEIGHT_LINEAR_TO_GAMMA(linColor) sqrt(color)
+    #define OUTPUT_COLOR(color) return half4(LIGHTWEIGHT_LINEAR_TO_GAMMA(color.rgb), color.a)
 #else
     #define LIGHTWEIGHT_GAMMA_TO_LINEAR(color) color
     #define LIGHTWEIGHT_LINEAR_TO_GAMMA(color) color
+    #define OUTPUT_COLOR(color) color
 #endif
 
 half _Pow4(half x)
@@ -135,10 +137,5 @@ void ApplyFog(inout half3 color, half fogFactor)
 #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
     color = lerp(unity_FogColor, color, fogFactor);
 #endif
-}
-
-half4 OutputColor(half3 color, half alpha)
-{
-    return half4(LIGHTWEIGHT_LINEAR_TO_GAMMA(color), alpha);
 }
 #endif
