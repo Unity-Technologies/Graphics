@@ -142,10 +142,11 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 	specularLighting *= (bsdfData.isFrontFace ? 1.0 : 0.0); //Disable backfacing specular for now. Look into having a flipped normal entirely.
 	float scatterFresnel;
 	#if defined(_HAIRSPRAYS_ON)
-	  scatterFresnel = 5*scatterInvVdotL*(1.0 - NdotV)*(1.0 - NdotL)+ 2*(1-NdotV)*(1-NdotV);
+	  scatterFresnel = 20*scatterInvVdotL*(1.0 - NdotV)*(1.0 - NdotL)+ 5*pow((1-NdotV),6);
 	#else
-	  scatterFresnel = 30*pow(scatterInvVdotL,9)*(1.0 - NdotV)*(1.0 - NdotL)+ 5*pow((1-NdotV),9);
+	  scatterFresnel = 20*pow(scatterInvVdotL,9)*(1.0 - NdotV)*(1.0 - NdotL)+ 5*pow((1-NdotV),9);
 	#endif
+    //float3 distFactor = GetDistanceBasedTessFactor(p0, p1, p2, GetPrimaryCameraPosition(), 0.1, 10);  // Use primary camera view
     float scatterAmount = _Scatter*scatterFresnel;
 	float3 transColor = 2*saturate(scatterAmount * float3(1, 0.6, 0.26)*bsdfData.specularOcclusion*bsdfData.specularOcclusion);
     float  diffuseTerm = Lambert();

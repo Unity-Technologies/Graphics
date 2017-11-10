@@ -1,8 +1,8 @@
-Shader "HDRenderPipeline/ExperimentalEye"
+﻿Shader "HDRenderPipeline/Vegetation"
 {
-    Properties
-    {
-        // Following set of parameters represent the parameters node inside the MaterialGraph.
+	Properties
+	{
+		// Following set of parameters represent the parameters node inside the MaterialGraph.
         // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
 
         // Reminder. Color here are in linear but the UI (color picker) do the conversion sRGB to linear
@@ -56,7 +56,7 @@ Shader "HDRenderPipeline/ExperimentalEye"
         // These option below will cause different compilation flag.
         [ToggleOff]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0
 
-        _EmissiveColor("EmissiveColor", Color) = (1, 1, 1)
+        _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
         [ToggleOff] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
@@ -83,7 +83,6 @@ Shader "HDRenderPipeline/ExperimentalEye"
         _IOR("Indice Of Refraction", Range(1.0, 2.5)) = 1.0
         _ThicknessMultiplier("Thickness Multiplier", Float) = 1.0
         _TransmittanceColor("Transmittance Color", Color) = (1.0, 1.0, 1.0)
-        _TransmittanceColorMap("TransmittanceColorMap", 2D) = "white" {}
         _ATDistance("Transmittance Absorption Distance", Float) = 1.0
         [ToggleOff] _PreRefractionPass("PreRefractionPass", Float) = 0.0
 
@@ -139,6 +138,25 @@ Shader "HDRenderPipeline/ExperimentalEye"
         _ShiverDrag("Shiver Drag", float) = 0.2
         _ShiverDirectionality("Shiver Directionality", Range(0.0, 1.0)) = 0.5
 
+		//-------------------------------------------------------
+        //Windup Vegetation Wind
+        _VegNoise("Noise", 2D) = "white" {}
+        _VegWindMask("Wind Mask", 2D) = "white" {}
+        _VegPivot("Pivot", Vector) = (0, 0, 0, 0)
+        _VegStiffness("Stiffness", Range(0.1, 3.0)) = 1.0
+        _VegAssistantDirectional("Assistant Directional", Vector) = (0, 0, 0, 0)
+        _VegWindDirection("Wind Direction", Vector) = (0, 0, 0, 0)
+        _VegWindIntensity("Wind Intensity", Range(0.0, 1.0)) = 1.0
+        _VegWindSpeed("Wind Speed", Range(0.0, 2.0)) = 1.0
+        _VegDetailVariation("Detail Variation", Range(0.0, 100.0)) = 1.0
+        _VegLeafShakeScale("Leaf Shake Scale", Range(0.01, 8.0)) = 1.0
+        _VegLeafShakeSpeed("Leaf Shake Speed", Range(0.0, 1.0)) = 1.0
+        _VegLeafShakePower("Leaf Shake Power", Range(0.0, 3.0)) = 1.0
+        _VegPerLeafBendScale("Per-Leaf Bend Scale", Range(0.01, 3.0)) = 1.0
+        _VegPerLeafBendSpeed("Per-Leaf Bend Speed", Range(0.0, 1.0)) = 1.0
+        _VegPerLeafBendPower("Per-Leaf Bend Power", Range(0.0, 5.0)) = 1.0
+        //-------------------------------------------------------
+
         // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
         // value that exist to identify if the GI emission need to be enabled.
         // In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
@@ -149,15 +167,9 @@ Shader "HDRenderPipeline/ExperimentalEye"
         _MainTex("Albedo", 2D) = "white" {}
         _Color("Color", Color) = (1,1,1,1)
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+	}
 
-        //Eye
-        [PerRenderData] _EyeLookVector ("LookVector", Vector) = (0, 0, 1)
-        _EyeIrisDepth("Iris Depth", Range(0.0, 5.0)) = 0.5
-        _EyeIrisRadius("Iris Radius", Range(0.0, 1.0)) = 0.5
-        _EyeIOR("IOR", Range(0.0, 1.0)) = 0.5
-    }
-
-    HLSLINCLUDE
+        HLSLINCLUDE
 
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 metal // TEMP: until we go futher in dev
@@ -193,7 +205,6 @@ Shader "HDRenderPipeline/ExperimentalEye"
     #pragma shader_feature _SUBSURFACE_RADIUS_MAP
     #pragma shader_feature _THICKNESSMAP
     #pragma shader_feature _SPECULARCOLORMAP
-    #pragma shader_feature _TRANSMITTANCECOLORMAP    
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
@@ -238,16 +249,15 @@ Shader "HDRenderPipeline/ExperimentalEye"
     //-------------------------------------------------------------------------------------
 
     #include "../../Material/Lit/LitProperties.hlsl"
-    #include "EyeProperties.hlsl"
 
     // All our shaders use same name for entry point
-    #pragma vertex   Vert
+    #pragma vertex Vert
     #pragma fragment Frag
 
     ENDHLSL
 
-    SubShader
-    {
+	SubShader
+	{
         Pass
         {
             Name "GBuffer"  // Name is not used
@@ -264,11 +274,14 @@ Shader "HDRenderPipeline/ExperimentalEye"
 
             HLSLPROGRAM
 
+            #define ATTRIBUTES_NEED_TEXCOORD0
+            #define ATTRIBUTES_NEED_COLOR
+
             #define SHADERPASS SHADERPASS_GBUFFER
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
-            #include "EyeData.hlsl"
+            #include "VegetationData.hlsl"
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
             ENDHLSL
@@ -297,7 +310,7 @@ Shader "HDRenderPipeline/ExperimentalEye"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
-            #include "EyeData.hlsl"
+            #include "VegetationData.hlsl"
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
             ENDHLSL
@@ -325,7 +338,7 @@ Shader "HDRenderPipeline/ExperimentalEye"
             #include "../../Debug/DebugDisplay.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
-            #include "EyeData.hlsl"
+            #include "VegetationData.hlsl"
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
             ENDHLSL
@@ -350,7 +363,7 @@ Shader "HDRenderPipeline/ExperimentalEye"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
-            #include "EyeData.hlsl"
+            #include "VegetationData.hlsl"
             #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
 
             ENDHLSL
@@ -363,18 +376,22 @@ Shader "HDRenderPipeline/ExperimentalEye"
 
             Cull[_CullMode]
 
-            ZClip [_ZClip]
+            ZClip Off
             ZWrite On
             ZTest LEqual
 
             HLSLPROGRAM
+
+            //Need to force reading of uv + color for vertex animated shadows.
+            #define ATTRIBUTES_NEED_TEXCOORD0
+            #define ATTRIBUTES_NEED_COLOR
 
             #define SHADERPASS SHADERPASS_SHADOWS
             #define USE_LEGACY_UNITY_MATRIX_VARIABLES
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitDepthPass.hlsl"
-            #include "EyeData.hlsl"
+            #include "VegetationData.hlsl"
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
@@ -395,7 +412,7 @@ Shader "HDRenderPipeline/ExperimentalEye"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitDepthPass.hlsl"
-            #include "EyeData.hlsl"
+            #include "VegetationData.hlsl"
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
@@ -416,7 +433,7 @@ Shader "HDRenderPipeline/ExperimentalEye"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitVelocityPass.hlsl"
-            #include "EyeData.hlsl"
+            #include "VegetationData.hlsl"
             #include "../../ShaderPass/ShaderPassVelocity.hlsl"
 
             ENDHLSL
@@ -439,7 +456,7 @@ Shader "HDRenderPipeline/ExperimentalEye"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitDistortionPass.hlsl"
-            #include "EyeData.hlsl"
+            #include "VegetationData.hlsl"
             #include "../../ShaderPass/ShaderPassDistortion.hlsl"
 
             ENDHLSL
@@ -464,7 +481,7 @@ Shader "HDRenderPipeline/ExperimentalEye"
 
             #include "../../Lighting/Lighting.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
-            #include "EyeData.hlsl"
+            #include "VegetationData.hlsl"
             #include "../../ShaderPass/ShaderPassForward.hlsl"
 
             ENDHLSL
@@ -491,13 +508,12 @@ Shader "HDRenderPipeline/ExperimentalEye"
 
             #include "../../Lighting/Lighting.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
-            #include "EyeData.hlsl"
+            #include "VegetationData.hlsl"
             #include "../../ShaderPass/ShaderPassForward.hlsl"
 
             ENDHLSL
         }
-
-    }
-
-    CustomEditor "Experimental.Rendering.HDPipeline.EyeGUI"
+	}
+	
+    CustomEditor "Experimental.Rendering.HDPipeline.VegetationGUI"
 }

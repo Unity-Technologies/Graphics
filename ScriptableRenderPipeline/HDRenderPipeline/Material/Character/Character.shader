@@ -1,4 +1,4 @@
-﻿Shader "HDRenderPipeline/ExperimentalSkin"
+﻿Shader "HDRenderPipeline/Experimental/Skin"
 {
 	Properties
 	{

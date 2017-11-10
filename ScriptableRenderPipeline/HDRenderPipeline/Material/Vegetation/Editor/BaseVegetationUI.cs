@@ -8,7 +8,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     // Such a Material will share some properties between it various variant (shader graph variant or hand authored variant).
     // This is the purpose of BaseLitGUI. It contain all properties that are common to all Material based on Lit template.
     // For the default hand written Lit material see LitUI.cs that contain specific properties for our default implementation.
-    public abstract class BaseEyeGUI : BaseUnlitGUI
+    public abstract class BaseVegetationGUI : BaseUnlitGUI
     {
         protected static class StylesBaseLit
         {
@@ -21,11 +21,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent displacementModeText = new GUIContent("Displacement mode", "Apply heightmap displacement to the selected element: Vertex, pixel or tessellated vertex. Pixel displacement must be use with flat surfaces, it is an expensive features and typical usage is paved road.");
             public static GUIContent lockWithObjectScaleText = new GUIContent("Lock with object scale", "Displacement mapping will take the absolute value of the scale of the object into account.");
             public static GUIContent lockWithTilingRateText = new GUIContent("Lock with height map tiling rate", "Displacement mapping will take the absolute value of the tiling rate of the height map into account.");
-
-            // Eye
-            public static GUIContent eyeIrisDepthText  = new GUIContent("Iris Depth", "Iris Depth factor");
-			public static GUIContent eyeIrisRadiusText = new GUIContent("Iris Radius", "Iris Radius factor");
-			public static GUIContent eyeIORText        = new GUIContent("Index of Refraction", "IOR factor");
 
             // Material ID
             public static GUIContent materialIDText = new GUIContent("Material type", "Subsurface Scattering: enable for translucent materials such as skin, vegetation, fruit, marble, wax and milk.");
@@ -59,6 +54,25 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent windDragText = new GUIContent("Drag");
             public static GUIContent windShiverDragText = new GUIContent("Shiver Drag");
             public static GUIContent windShiverDirectionalityText = new GUIContent("Shiver Directionality");
+        
+            // Windup Vegetation Wind
+            public static GUIContent vegWindText = new GUIContent("Vegetation Wind");
+            public static GUIContent vegNoise    = new GUIContent("Wind Noise");
+            public static GUIContent vegWindMask = new GUIContent("Wind Mask");
+            public static GUIContent vegPivot    = new GUIContent("Pivot");
+            public static GUIContent vegStiffness = new GUIContent("Stiffness");
+            public static GUIContent vegAssistantDirectional = new GUIContent("Assist. Directional");
+            public static GUIContent vegWindDirection = new GUIContent("Wind Direction");
+            public static GUIContent vegWindIntensity = new GUIContent("Wind Intensity");
+            public static GUIContent vegWindSpeed = new GUIContent("Wind Speed");
+            public static GUIContent vegDetailVariation = new GUIContent("Detail Variation");
+            public static GUIContent vegLeafShakeScale = new GUIContent("Leaf Shake Scale");
+            public static GUIContent vegLeafShakeSpeed = new GUIContent("Leaf Shake Speed");
+            public static GUIContent vegLeafShakePower = new GUIContent("Leaf Shake Power");
+            public static GUIContent vegPerLeafBendScale = new GUIContent("Per-Leaf Bend Scale");
+            public static GUIContent vegPerLeafBendSpeed = new GUIContent("Per-Leaf Bend Speed");
+            public static GUIContent vegPerLeafBendPower = new GUIContent("Per-Leaf Bend Power");
+
         }
 
         public enum DoubleSidedNormalMode
@@ -81,14 +95,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Pixel,
             Tessellation
         }
-
-        // Eye
-        protected MaterialProperty eyeIrisDepth = null;
-		protected const string kEyeIrisDepth = "_EyeIrisDepth";
-		protected MaterialProperty eyeIrisRadius = null;
-		protected const string kEyeIrisRadius = "_EyeIrisRadius";
-		protected MaterialProperty eyeIOR = null;
-		protected const string kEyeIOR = "_EyeIOR";
 
         protected MaterialProperty doubleSidedNormalMode = null;
         protected const string kDoubleSidedNormalMode = "_DoubleSidedNormalMode";
@@ -137,6 +143,38 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty windShiverDirectionality = null;
         protected const string kWindShiverDirectionality = "_ShiverDirectionality";
 
+        // Windup Vegetation Wind
+        protected MaterialProperty vegNoise = null;
+        protected const string kVegNoise = "_VegNoise";
+        protected MaterialProperty vegWindMask = null;
+        protected const string kVegWindMask = "_VegWindMask";
+        protected MaterialProperty vegPivot = null;
+        protected const string kVegPivot = "_VegPivot";
+        protected MaterialProperty vegStiffness = null;
+        protected const string kVegStiffness = "_VegStiffness";
+        protected MaterialProperty vegAssistantDirectional = null;
+        protected const string kVegAssistantDirectional = "_VegAssistantDirectional";
+        protected MaterialProperty vegWindDirection = null;
+        protected const string kVegWindDirection = "_VegWindDirection";
+        protected MaterialProperty vegWindIntensity = null;
+        protected const string kVegWindIntensity = "_VegWindIntensity";
+        protected MaterialProperty vegWindSpeed = null;
+        protected const string kVegWindSpeed = "_VegWindSpeed";
+        protected MaterialProperty vegDetailVariation = null;
+        protected const string kVegDetailVariation = "_VegDetailVariation";
+        protected MaterialProperty vegLeafShakeScale = null;
+        protected const string kVegLeafShakeScale = "_VegLeafShakeScale";
+        protected MaterialProperty vegLeafShakeSpeed = null;
+        protected const string kVegLeafShakeSpeed = "_VegLeafShakeSpeed";
+        protected MaterialProperty vegLeafShakePower = null;
+        protected const string kVegLeafShakePower = "_VegLeafShakePower";
+        protected MaterialProperty vegPerLeafBendScale = null;
+        protected const string kVegPerLeafBendScale = "_VegPerLeafBendScale";
+        protected MaterialProperty vegPerLeafBendSpeed = null;
+        protected const string kVegPerLeafBendSpeed = "_VegPerLeafBendSpeed";
+        protected MaterialProperty vegPerLeafBendPower = null;
+        protected const string kVegPerLeafBendPower = "_VegPerLeafBendPower";
+
         // tessellation params
         protected MaterialProperty tessellationMode = null;
         protected const string kTessellationMode = "_TessellationMode";
@@ -155,11 +193,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void FindBaseMaterialProperties(MaterialProperty[] props)
         {
-			//eye
-			eyeIrisDepth  = FindProperty(kEyeIrisDepth, props);
-			eyeIrisRadius = FindProperty(kEyeIrisRadius, props);
-			eyeIOR        = FindProperty(kEyeIOR, props);
-
             base.FindBaseMaterialProperties(props);
 
             doubleSidedNormalMode = FindProperty(kDoubleSidedNormalMode, props);
@@ -196,6 +229,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             windDrag = FindProperty(kWindDrag, props);
             windShiverDrag = FindProperty(kWindShiverDrag, props);
             windShiverDirectionality = FindProperty(kWindShiverDirectionality, props);
+       
+            // Windup Vegetation Wind
+            vegNoise = FindProperty(kVegNoise, props);
+            vegWindMask = FindProperty(kVegWindMask, props);
+            vegPivot = FindProperty(kVegPivot, props);
+            vegStiffness = FindProperty(kVegStiffness, props);
+            vegAssistantDirectional = FindProperty(kVegAssistantDirectional, props);
+            vegWindDirection = FindProperty(kVegWindDirection, props);
+            vegWindIntensity = FindProperty(kVegWindIntensity, props);
+            vegWindSpeed = FindProperty(kVegWindSpeed, props);
+            vegDetailVariation = FindProperty(kVegDetailVariation, props);
+            vegLeafShakeScale = FindProperty(kVegLeafShakeScale, props);
+            vegLeafShakeSpeed = FindProperty(kVegLeafShakeSpeed, props);
+            vegLeafShakePower = FindProperty(kVegLeafShakePower, props);
+            vegPerLeafBendScale = FindProperty(kVegPerLeafBendScale, props);
+            vegPerLeafBendSpeed = FindProperty(kVegPerLeafBendSpeed, props);
+            vegPerLeafBendPower = FindProperty(kVegPerLeafBendPower, props);
         }
 
         void TessellationModePopup()
@@ -216,23 +266,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void BaseMaterialPropertiesGUI()
         {
-            //Eye
-            {
-                EditorGUILayout.Space();
-                Color p = GUI.color;
-                GUI.color = Color.cyan;
-                EditorGUILayout.LabelField("Eye Properties", EditorStyles.boldLabel);
-                GUI.color = p;
-
-                EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(eyeIrisDepth, StylesBaseLit.eyeIrisDepthText);
-                m_MaterialEditor.ShaderProperty(eyeIrisRadius, StylesBaseLit.eyeIrisRadiusText);
-                m_MaterialEditor.ShaderProperty(eyeIOR, StylesBaseLit.eyeIORText);
-                EditorGUI.indentLevel--;
-                
-                EditorGUILayout.Space();
-            }
-
             base.BaseMaterialPropertiesGUI();
 
             EditorGUI.indentLevel++;
@@ -302,6 +335,36 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void VertexAnimationPropertiesGUI()
         {
+            EditorGUILayout.LabelField(StylesBaseLit.vegWindText, EditorStyles.boldLabel);
+
+            EditorGUI.indentLevel++;
+            m_MaterialEditor.TexturePropertySingleLine(StylesBaseLit.vegWindMask, vegWindMask);
+            m_MaterialEditor.TexturePropertySingleLine(StylesBaseLit.vegNoise, vegNoise);
+            
+            EditorGUILayout.Space();
+
+            m_MaterialEditor.ShaderProperty(vegPivot, StylesBaseLit.vegPivot);
+            m_MaterialEditor.ShaderProperty(vegAssistantDirectional, StylesBaseLit.vegAssistantDirectional);
+            m_MaterialEditor.ShaderProperty(vegWindDirection, StylesBaseLit.vegWindDirection);
+            m_MaterialEditor.ShaderProperty(vegStiffness, StylesBaseLit.vegStiffness);
+            m_MaterialEditor.ShaderProperty(vegWindIntensity, StylesBaseLit.vegWindIntensity);
+            m_MaterialEditor.ShaderProperty(vegWindSpeed, StylesBaseLit.vegWindSpeed);
+            m_MaterialEditor.ShaderProperty(vegDetailVariation, StylesBaseLit.vegDetailVariation);
+           
+            EditorGUILayout.Space();
+           
+            m_MaterialEditor.ShaderProperty(vegLeafShakeScale, StylesBaseLit.vegLeafShakeScale);
+            m_MaterialEditor.ShaderProperty(vegLeafShakeSpeed, StylesBaseLit.vegLeafShakeSpeed);
+            m_MaterialEditor.ShaderProperty(vegLeafShakePower, StylesBaseLit.vegLeafShakePower);
+            
+            EditorGUILayout.Space();
+            
+            m_MaterialEditor.ShaderProperty(vegPerLeafBendScale, StylesBaseLit.vegPerLeafBendScale);
+            m_MaterialEditor.ShaderProperty(vegPerLeafBendSpeed, StylesBaseLit.vegPerLeafBendSpeed);
+            m_MaterialEditor.ShaderProperty(vegPerLeafBendPower, StylesBaseLit.vegPerLeafBendPower);
+            EditorGUI.indentLevel--;
+
+            /*
             EditorGUILayout.LabelField(StylesBaseLit.vertexAnimation, EditorStyles.boldLabel);
 
             EditorGUI.indentLevel++;
@@ -319,6 +382,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             EditorGUI.indentLevel--;
+            */
         }
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change

@@ -1,4 +1,4 @@
-Shader "HDRenderPipeline/ExperimentalFabric"
+Shader "HDRenderPipeline/Experimental/Fabric"
 {
     Properties
     {
