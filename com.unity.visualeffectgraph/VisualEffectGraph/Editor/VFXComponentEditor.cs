@@ -293,6 +293,7 @@ public class VFXComponentEditor : Editor
     public static bool CanSetOverride = false;
 
     SerializedProperty m_VFXAsset;
+    SerializedProperty m_ReseedOnStart;
     SerializedProperty m_RandomSeed;
     SerializedProperty m_VFXPropertySheet;
     bool m_useNewSerializedField = false;
@@ -317,6 +318,7 @@ public class VFXComponentEditor : Editor
     void OnEnable()
     {
         m_RandomSeed = serializedObject.FindProperty("m_StartSeed");
+        m_ReseedOnStart = serializedObject.FindProperty("m_ResetSeedOnStart");
         m_VFXAsset = serializedObject.FindProperty("m_Asset");
         m_VFXPropertySheet = serializedObject.FindProperty("m_PropertySheet");
 
@@ -599,14 +601,16 @@ public class VFXComponentEditor : Editor
         //Seed
         using (new GUILayout.HorizontalScope())
         {
+            EditorGUI.BeginDisabledGroup(m_ReseedOnStart.boolValue);
             EditorGUILayout.PropertyField(m_RandomSeed, m_Contents.RandomSeed);
             if (GUILayout.Button(m_Contents.SetRandomSeed, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
             {
                 m_RandomSeed.intValue = UnityEngine.Random.Range(0, int.MaxValue);
                 component.startSeed = (uint)m_RandomSeed.intValue; // As accessors are bypassed with serialized properties...
-                component.Reinit();
             }
+            EditorGUI.EndDisabledGroup();
         }
+        EditorGUILayout.PropertyField(m_ReseedOnStart, m_Contents.ReseedOnStart);
 
         //Field
         GUILayout.Label(m_Contents.HeaderParameters, m_Styles.InspectorHeader);
@@ -618,7 +622,8 @@ public class VFXComponentEditor : Editor
             OnParamGUI(parameter);
         }
         */
-        serializedObject.ApplyModifiedProperties();
+        if (serializedObject.ApplyModifiedProperties())
+            component.Reinit();
 
         EditMode.DoEditModeInspectorModeButton(
             EditMode.SceneViewEditMode.Collider,
@@ -679,6 +684,7 @@ public class VFXComponentEditor : Editor
 
         public GUIContent AssetPath = new GUIContent("Asset Template");
         public GUIContent RandomSeed = new GUIContent("Random Seed");
+        public GUIContent ReseedOnStart = new GUIContent("Reseed on start");
         public GUIContent OpenEditor = new GUIContent("Edit");
         public GUIContent SetRandomSeed = new GUIContent("Reseed");
         public GUIContent SetPlayRate = new GUIContent("Set");

@@ -1,0 +1,29 @@
+#if !(defined(VFX_VARYING_STRUCT) && defined(VFX_VARYING_POSITIONWS))
+#error VFX_VARYING_STRUCT and VFX_VARYING_POSITIONWS must be defined.
+#endif
+
+#pragma vertex vert
+
+VFX_VARYING_STRUCT vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
+{
+	uint index = id;
+	VFX_VARYING_STRUCT o = (VFX_VARYING_STRUCT)0;
+	o.VFX_VARYING_POSITIONWS = -1;
+	if (index < asuint(nbMax))
+	{
+		${VFXLoadAttributes:{alive}}
+		if (alive)
+		{
+			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
+			${VFXProcessBlocks}
+							
+			o.VFX_VARYING_POSITIONWS = mul(VFXModelViewProj(), float4(position,1.0f));
+
+			${VFXVertexCommonProcess}
+			${VFXVertexAdditionalProcess}
+		}
+	}
+	return o;
+}
+
+${VFXFragmentCommonFunctions}

@@ -80,19 +80,7 @@ Shader "Hidden/VFX/ParticleQuads"
 							o.uv.y = float((id & 2) >> 1);
 							
 							float2 offsets = size.xy * (o.uv - pivot.xy - 0.5f);
-														
-							float2 sincosA;
-							sincos(radians(angle), sincosA.x, sincosA.y);
-							const float c = sincosA.y;
-							const float s = sincosA.x;
-							const float t = 1.0 - c;
-							const float x = front.x;
-							const float y = front.y;
-							const float z = front.z;
-					
-							float3x3 rot = float3x3(t * x * x + c, t * x * y - s * z, t * x * z + s * y,
-								t * x * y + s * z, t * y * y + c, t * y * z - s * x,
-								t * x * z - s * y, t * y * z + s * x, t * z * z + c);
+							float3x3 rot = GetRotationMatrix(front,radians(angle));
 							
 							position += mul(rot,side * offsets.x);
 							position += mul(rot,up * offsets.y);

@@ -7,6 +7,7 @@ RWByteAddressBuffer attributeBuffer;
 CBUFFER_START(initParams)
     uint nbSpawned;		// Numbers of particle spawned
     uint spawnIndex;	// Index of the first particle spawned
+	uint systemSeed;
 CBUFFER_END
 
 #if VFX_USE_ALIVE_CURRENT 
@@ -33,11 +34,11 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 		particleId = particleIndex;
 #endif
 #if VFX_USE_SEED_CURRENT
-		seed = WangHash(particleIndex); // Needs system seed
+		seed = WangHash(particleIndex ^ systemSeed);
 #endif
 #if VFX_USE_PHASE_CURRENT
 #if !VFX_USE_SEED_CURRENT // TODO Quite bad
-		uint seed = WangHash(particleIndex); // Needs system seed
+		uint seed = WangHash(particleIndex ^ systemSeed);
 #endif
 		phase = randLcg(seed);
 #endif
