@@ -190,7 +190,7 @@ namespace UnityEditor.VFX
         {
             bool modified = false;
 
-            if (!EditorUtility.IsPersistent(this) && EditorUtility.IsPersistent(this.vfxAsset))
+            if (!EditorUtility.IsPersistent(this) && (this.vfxAsset != null && EditorUtility.IsPersistent(this.vfxAsset)))
             {
                 string assetPath = AssetDatabase.GetAssetPath(this.vfxAsset);
                 AssetDatabase.AddObjectToAsset(this, assetPath);
