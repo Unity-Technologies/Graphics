@@ -5,6 +5,7 @@ Pass
 	Tags { "LightMode"="MotionVectors" }
 
 	ZWrite Off
+	Blend Off
 	
 	CGPROGRAM
 	#pragma target 4.5

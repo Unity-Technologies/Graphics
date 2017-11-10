@@ -4,6 +4,7 @@ Pass
 	Tags { "LightMode"="ShadowCaster" }
 	
 	ZWrite On
+	Blend Off
 
 	CGPROGRAM
 	#pragma target 4.5
