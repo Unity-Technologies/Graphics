@@ -6,20 +6,20 @@ namespace UnityEngine.Experimental.Rendering
 {
     public struct ProfilingSample : IDisposable
     {
-        CommandBuffer m_Cmd;
-        string m_Name;
+        readonly CommandBuffer m_Cmd;
+        readonly string m_Name;
 
         bool m_Disposed;
         CustomSampler m_Sampler;
 
-        public ProfilingSample(CommandBuffer cmd, string name,CustomSampler sampler=null)
+        public ProfilingSample(CommandBuffer cmd, string name,CustomSampler sampler = null)
         {
             m_Cmd = cmd;
             m_Name = name;
             m_Disposed = false;
             cmd.BeginSample(name);
             m_Sampler = sampler;
-            if ( m_Sampler != null )
+            if (m_Sampler != null)
                 m_Sampler.Begin();
         }
 
