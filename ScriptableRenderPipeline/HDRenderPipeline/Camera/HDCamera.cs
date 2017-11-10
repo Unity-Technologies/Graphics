@@ -210,5 +210,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             material.SetMatrix(HDShaderIDs._PrevViewProjMatrix, prevViewProjMatrix);
             material.SetVectorArray(HDShaderIDs._FrustumPlanes, frustumPlaneEquations);
         }
+
+        // TODO: We should set all the value below globally and not let it under the control of Unity,
+        // Need to test that because we are not sure in which order these value are setup, but we need to have control on them, or rename them in our shader.
+        // For now, apply it for all our compute shader to make it work
+        public void SetupComputeShader(ComputeShader cs, CommandBuffer cmd)
+        {
+            // Copy values set by Unity which are not configured in scripts.
+            cmd.SetComputeVectorParam(cs, HDShaderIDs.unity_OrthoParams, Shader.GetGlobalVector(HDShaderIDs.unity_OrthoParams));
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ProjectionParams, Shader.GetGlobalVector(HDShaderIDs._ProjectionParams));
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ScreenParams, Shader.GetGlobalVector(HDShaderIDs._ScreenParams));
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ZBufferParams, Shader.GetGlobalVector(HDShaderIDs._ZBufferParams));
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._WorldSpaceCameraPos, Shader.GetGlobalVector(HDShaderIDs._WorldSpaceCameraPos));
+        }
     }
 }
