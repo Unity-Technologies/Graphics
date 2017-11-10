@@ -18,27 +18,27 @@ namespace UnityEditor.VFX
 
     struct VFXAttribute
     {
-        public static readonly VFXAttribute Seed            = new VFXAttribute("seed", VFXValueType.kUint);
-        public static readonly VFXAttribute OldPosition     = new VFXAttribute("oldPosition", VFXValueType.kFloat3);
-        public static readonly VFXAttribute Position        = new VFXAttribute("position", VFXValueType.kFloat3);
-        public static readonly VFXAttribute Velocity        = new VFXAttribute("velocity", VFXValueType.kFloat3);
-        public static readonly VFXAttribute Color           = new VFXAttribute("color", VFXValue.Constant(Vector3.one));
-        public static readonly VFXAttribute Alpha           = new VFXAttribute("alpha", VFXValue.Constant(1.0f));
-        public static readonly VFXAttribute Phase           = new VFXAttribute("phase", VFXValueType.kFloat);
-        public static readonly VFXAttribute Size            = new VFXAttribute("size", VFXValue.Constant(new Vector2(0.1f, 0.1f)));
-        public static readonly VFXAttribute Lifetime        = new VFXAttribute("lifetime", VFXValueType.kFloat);
-        public static readonly VFXAttribute Age             = new VFXAttribute("age", VFXValueType.kFloat);
-        public static readonly VFXAttribute Angle           = new VFXAttribute("angle", VFXValueType.kFloat);
-        public static readonly VFXAttribute AngularVelocity = new VFXAttribute("angularVelocity", VFXValueType.kFloat);
-        public static readonly VFXAttribute TexIndex        = new VFXAttribute("texIndex", VFXValueType.kFloat);
-        public static readonly VFXAttribute Pivot           = new VFXAttribute("pivot", VFXValueType.kFloat3);
-        public static readonly VFXAttribute ParticleId      = new VFXAttribute("particleId", VFXValueType.kUint);
-        public static readonly VFXAttribute Front           = new VFXAttribute("front", VFXValue.Constant(Vector3.forward));
-        public static readonly VFXAttribute Side            = new VFXAttribute("side", VFXValue.Constant(Vector3.right));
-        public static readonly VFXAttribute Up              = new VFXAttribute("up", VFXValue.Constant(Vector3.up));
-        public static readonly VFXAttribute Alive           = new VFXAttribute("alive", VFXValue.Constant(true));
-        public static readonly VFXAttribute Mass            = new VFXAttribute("mass", VFXValue.Constant(1.0f));
-        public static readonly VFXAttribute TargetPosition  = new VFXAttribute("targetPosition", VFXValueType.kFloat3);
+        public static readonly VFXAttribute Seed                = new VFXAttribute("seed", VFXValueType.kUint);
+        public static readonly VFXAttribute OldPosition         = new VFXAttribute("oldPosition", VFXValueType.kFloat3);
+        public static readonly VFXAttribute Position            = new VFXAttribute("position", VFXValueType.kFloat3);
+        public static readonly VFXAttribute Velocity            = new VFXAttribute("velocity", VFXValueType.kFloat3);
+        public static readonly VFXAttribute Color               = new VFXAttribute("color", VFXValue.Constant(Vector3.one));
+        public static readonly VFXAttribute Alpha               = new VFXAttribute("alpha", VFXValue.Constant(1.0f));
+        public static readonly VFXAttribute Phase               = new VFXAttribute("phase", VFXValueType.kFloat);
+        public static readonly VFXAttribute Size                = new VFXAttribute("size", VFXValue.Constant(new Vector2(0.1f, 0.1f)));
+        public static readonly VFXAttribute Lifetime            = new VFXAttribute("lifetime", VFXValueType.kFloat);
+        public static readonly VFXAttribute Age                 = new VFXAttribute("age", VFXValueType.kFloat);
+        public static readonly VFXAttribute Angle               = new VFXAttribute("angle", VFXValueType.kFloat);
+        public static readonly VFXAttribute AngularVelocity     = new VFXAttribute("angularVelocity", VFXValueType.kFloat);
+        public static readonly VFXAttribute TexIndex            = new VFXAttribute("texIndex", VFXValueType.kFloat);
+        public static readonly VFXAttribute Pivot               = new VFXAttribute("pivot", VFXValueType.kFloat3);
+        public static readonly VFXAttribute ParticleId          = new VFXAttribute("particleId", VFXValueType.kUint);
+        public static readonly VFXAttribute Front               = new VFXAttribute("front", VFXValue.Constant(Vector3.forward));
+        public static readonly VFXAttribute Side                = new VFXAttribute("side", VFXValue.Constant(Vector3.right));
+        public static readonly VFXAttribute Up                  = new VFXAttribute("up", VFXValue.Constant(Vector3.up));
+        public static readonly VFXAttribute Alive               = new VFXAttribute("alive", VFXValue.Constant(true));
+        public static readonly VFXAttribute Mass                = new VFXAttribute("mass", VFXValue.Constant(1.0f));
+        public static readonly VFXAttribute TargetPosition      = new VFXAttribute("targetPosition", VFXValueType.kFloat3);
         public static readonly VFXAttribute[] AllAttributeReadOnly = new VFXAttribute[] { Seed, ParticleId };
         public static readonly string[] AllReadOnly = AllAttributeReadOnly.Select(e => e.name).ToArray();
 
