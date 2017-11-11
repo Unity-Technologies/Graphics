@@ -25,7 +25,18 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 #endif // TESSELLATION_ON
 
 void Frag(PackedVaryingsToPS packedInput,
-          out float4 outColor : SV_Target0
+// YIBING BEGIN
+        #ifdef FORWARD_SPLIT_LIGHTING
+            out float4 outColor : SV_Target0, // this is outSpecular
+            out float4 outDiffuse : SV_Target1,
+            out float4 outGbuffer0 : SV_Target2,
+            out float4 outGbuffer2 : SV_Target3
+        #else
+            out float4 outColor : SV_Target0
+        #endif
+
+          //out float4 outColor : SV_Target0
+// YIBING END
       #ifdef _DEPTHOFFSET_ON
           , out float outputDepth : SV_Depth
       #endif
@@ -66,8 +77,20 @@ void Frag(PackedVaryingsToPS packedInput,
         bakeLightingData.bakeShadowMask = float4(builtinData.shadowMask0, builtinData.shadowMask1, builtinData.shadowMask2, builtinData.shadowMask3);
 #endif
         LightLoop(V, posInput, preLightData, bsdfData, bakeLightingData, featureFlags, diffuseLighting, specularLighting);
+
+	    // YIBING BEGIN
+        // If we have split lighting it mean we are opaque (no SSS on transparent)
+    #ifdef FORWARD_SPLIT_LIGHTING
+        outColor = float4(specularLighting, 1.0);
+        outDiffuse = float4(diffuseLighting, 1.0);
+        outGbuffer0 = EncodeSplitLightingGBuffer0(surfaceData);
+        outGbuffer2 = EncodeSplitLightingGBuffer1(surfaceData);
+    #else
         outColor = ApplyBlendMode(diffuseLighting, specularLighting, builtinData.opacity);
         outColor = EvaluateAtmosphericScattering(posInput, outColor);
+    #endif
+	    // outColor = float4(diffuseLighting + specularLighting, builtinData.opacity);
+	    // YIBING END
     }
 
 #ifdef _DEPTHOFFSET_ON
