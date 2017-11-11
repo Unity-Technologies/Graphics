@@ -293,10 +293,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             var sourceNodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(x => x.node == sourceNode);
             if (sourceNodeView != null)
             {
-                var sourceAnchor = sourceNodeView.outputContainer.Children().OfType<NodeAnchor>().FirstOrDefault(x => x.userData is ISlot && (x.userData as ISlot).Equals(sourceSlot));
+                var sourceAnchor = sourceNodeView.outputContainer.Children().OfType<Port>().FirstOrDefault(x => x.userData is ISlot && (x.userData as ISlot).Equals(sourceSlot));
 
                 var targetNodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(x => x.node == targetNode);
-                var targetAnchor = targetNodeView.inputContainer.Children().OfType<NodeAnchor>().FirstOrDefault(x => x.userData is ISlot && (x.userData as ISlot).Equals(targetSlot));
+                var targetAnchor = targetNodeView.inputContainer.Children().OfType<Port>().FirstOrDefault(x => x.userData is ISlot && (x.userData as ISlot).Equals(targetSlot));
 
                 var edgeView = new GradientEdge
                 {
@@ -308,8 +308,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 edgeView.output.Connect(edgeView);
                 edgeView.input.Connect(edgeView);
                 m_GraphView.AddElement(edgeView);
-                sourceNodeView.RefreshAnchors();
-                targetNodeView.RefreshAnchors();
+                sourceNodeView.RefreshPorts();
+                targetNodeView.RefreshPorts();
                 sourceNodeView.UpdatePortInputTypes();
                 targetNodeView.UpdatePortInputTypes();
 
@@ -331,7 +331,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var nodeView = nodeStack.Pop();
                 nodeView.UpdatePortInputTypes();
-                foreach (var anchorView in nodeView.outputContainer.Children().OfType<NodeAnchor>())
+                foreach (var anchorView in nodeView.outputContainer.Children().OfType<Port>())
                 {
                     var sourceSlot = (MaterialSlot)anchorView.userData;
                     foreach (var edgeView in anchorView.connections.OfType<GradientEdge>())
@@ -349,7 +349,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         }
                     }
                 }
-                foreach (var anchorView in nodeView.inputContainer.Children().OfType<NodeAnchor>())
+                foreach (var anchorView in nodeView.inputContainer.Children().OfType<Port>())
                 {
                     var targetSlot = (MaterialSlot)anchorView.userData;
                     if (targetSlot.valueType != SlotValueType.Dynamic)

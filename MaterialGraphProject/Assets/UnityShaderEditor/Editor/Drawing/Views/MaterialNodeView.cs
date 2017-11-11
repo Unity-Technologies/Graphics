@@ -201,9 +201,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (slot.hidden)
                     continue;
 
-                var anchor = InstantiateNodeAnchor(Orientation.Horizontal, slot.isInputSlot ? Direction.Input : Direction.Output, typeof(Vector4));
+                var anchor = InstantiatePort(Orientation.Horizontal, slot.isInputSlot ? Direction.Input : Direction.Output, typeof(Vector4));
                 anchor.capabilities &= ~Capabilities.Movable;
-                anchor.anchorName = slot.displayName;
+                anchor.portName = slot.displayName;
                 anchor.userData = slot;
 
                 if (slot.isOutputSlot)
@@ -231,10 +231,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void UpdatePortInputTypes()
         {
-            foreach (var anchor in inputContainer.Concat(outputContainer).OfType<NodeAnchor>())
+            foreach (var anchor in inputContainer.Concat(outputContainer).OfType<Port>())
             {
                 var slot = (MaterialSlot) anchor.userData;
-                anchor.anchorName = slot.displayName;
+                anchor.portName = slot.displayName;
             }
 
             foreach (var attacher in m_Attachers)
