@@ -17,9 +17,9 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         public AbstractMaterialGraph graph { get; private set; }
 
-        public override List<NodeAnchor> GetCompatibleAnchors(NodeAnchor startAnchor, NodeAdapter nodeAdapter)
+        public override List<Port> GetCompatiblePorts(Port startAnchor, NodeAdapter nodeAdapter)
         {
-            var compatibleAnchors = new List<NodeAnchor>();
+            var compatibleAnchors = new List<Port>();
             var startSlot = startAnchor.userData as MaterialSlot;
             if (startSlot == null)
                 return compatibleAnchors;
@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (startStage == ShaderStage.Dynamic)
                 startStage = NodeUtils.FindEffectiveShaderStage(startSlot.owner, startSlot.isOutputSlot);
 
-            foreach (var candidateAnchor in anchors.ToList())
+            foreach (var candidateAnchor in ports.ToList())
             {
                 var candidateSlot = candidateAnchor.userData as MaterialSlot;
                 if (!startSlot.IsCompatibleWith(candidateSlot))
