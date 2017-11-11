@@ -857,21 +857,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // We compute subsurface scattering here. Therefore, no objects rendered afterwards will exhibit SSS.
                 // Currently, there is no efficient way to switch between SRT and MRT for the forward pass;
                 // therefore, forward-rendered objects do not output split lighting required for the SSS pass.
-
-				// YIBING END
-                //SubsurfaceScatteringPass(hdCamera, cmd, m_Asset.sssSettings);
-				// YIBING END
+                SubsurfaceScatteringPass(hdCamera, cmd, sssSettings);
 
                 RenderForward(m_CullResults, camera, renderContext, cmd, ForwardPass.Opaque);
                 RenderForwardError(m_CullResults, camera, renderContext, cmd, ForwardPass.Opaque);
-
-                // YIBING BEGIN
-                RenderForwardOnlyOpaqueSplitLighting(m_CullResults, camera, renderContext, cmd);
-                // TEMP: We need to perform a second render of the stencil it to be take into account for SSS with Disney
-                // When we implement forward SSS i HD,be sure we do it correctly and don't duplicate copy
-                PrepareAndBindStencilTexture(cmd);
-                SubsurfaceScatteringPass(hdCamera, cmd, m_Asset.sssSettings);
-				// YIBING END
 
                 RenderLightingDebug(hdCamera, cmd, m_CameraColorBufferRT, m_CurrentDebugDisplaySettings);
 
@@ -1358,33 +1347,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
         }
-
-		// YIBING BEGIN
-        void RenderForwardOnlyOpaqueSplitLighting(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
-        {
-            string passName = "ForwardOnlyOpaqueSplitLighting";
-
-            using (new ProfilingSample(cmd, passName))
-            {
-                RenderTargetIdentifier[] colorMRTs = new RenderTargetIdentifier[4];
-                colorMRTs[0] = m_CameraColorBufferRT;
-                colorMRTs[1] = m_CameraSssDiffuseLightingBufferRT;
-                colorMRTs[2] = m_GbufferManager.GetGBuffers()[0];
-                colorMRTs[3] = m_GbufferManager.GetGBuffers()[2];
-
-                CoreUtils.SetRenderTarget(cmd, colorMRTs, m_CameraDepthStencilBufferRT);
-                m_LightLoop.RenderForward(camera, cmd, true);
-
-                // Forward opaque material always have a prepass (whether or not we use deferred, whether or not there is option like alpha test only) so we pass the right depth state here.
-                // YIBING PROJECT Note: The shader don't use DoAlphaTest, let's don't care about performance and just redo the clip test here.
-                RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, new ShaderPassName(passName), HDUtils.k_RendererConfigurationBakedLighting);
-
-                // We need to unset the multi render target before going further, because compute shader SSS pass will not be able to bind the Gbuffer set in write mode.
-                CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
-            }
-        }
-
-		// YIBING END
 
         void RenderTransparentDepthPrepass(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
