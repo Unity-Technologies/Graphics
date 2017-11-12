@@ -137,6 +137,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var graphView = graphEditorView.graphView;
 
+            var nodes = graphView.selection.OfType<MaterialNodeView>().Where(x => !(x.node is PropertyNode)).Select(x => x.node as INode).ToArray();
+            Vector2 middle = Vector2.zero;
+            foreach (var node in nodes)
+            {
+                middle += node.drawState.position.center;
+            }
+            middle /= nodes.Length;
+
             var copyPasteGraph = new CopyPasteGraph(
                 graphView.selection.OfType<MaterialNodeView>().Where(x => !(x.node is PropertyNode)).Select(x => x.node as INode),
                 graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge));
@@ -145,8 +153,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (deserialized == null)
                 return;
 
-            var graph = new SubGraph();
-            graph.AddNode(new SubGraphOutputNode());
+            var subGraph = new SubGraph();
+            subGraph.AddNode(new SubGraphOutputNode());
 
             var nodeGuidMap = new Dictionary<Guid, Guid>();
             foreach (var node in deserialized.GetNodes<INode>())
@@ -154,12 +162,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var oldGuid = node.guid;
                 var newGuid = node.RewriteGuid();
                 nodeGuidMap[oldGuid] = newGuid;
-                graph.AddNode(node);
+                subGraph.AddNode(node);
             }
 
-            // remap outputs to the subgraph
-            var onlyInputInternallyConnected = new List<IEdge>();
-            var onlyOutputInternallyConnected = new List<IEdge>();
+            // figure out what needs remapping
+            var externalOutputSlots = new List<IEdge>();
+            var externalInputSlots = new List<IEdge>();
             foreach (var edge in deserialized.edges)
             {
                 var outputSlot = edge.outputSlot;
@@ -167,100 +175,121 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 Guid remappedOutputNodeGuid;
                 Guid remappedInputNodeGuid;
-                var outputRemapExists = nodeGuidMap.TryGetValue(outputSlot.nodeGuid, out remappedOutputNodeGuid);
-                var inputRemapExists = nodeGuidMap.TryGetValue(inputSlot.nodeGuid, out remappedInputNodeGuid);
+                var outputSlotExistsInSubgraph = nodeGuidMap.TryGetValue(outputSlot.nodeGuid, out remappedOutputNodeGuid);
+                var inputSlotExistsInSubgraph = nodeGuidMap.TryGetValue(inputSlot.nodeGuid, out remappedInputNodeGuid);
 
                 // pasting nice internal links!
-                if (outputRemapExists && inputRemapExists)
+                if (outputSlotExistsInSubgraph && inputSlotExistsInSubgraph)
                 {
                     var outputSlotRef = new SlotReference(remappedOutputNodeGuid, outputSlot.slotId);
                     var inputSlotRef = new SlotReference(remappedInputNodeGuid, inputSlot.slotId);
-                    graph.Connect(outputSlotRef, inputSlotRef);
+                    subGraph.Connect(outputSlotRef, inputSlotRef);
                 }
 
                 // one edge needs to go to outside world
-                else if (outputRemapExists)
+                else if (outputSlotExistsInSubgraph)
                 {
-                    onlyOutputInternallyConnected.Add(edge);
+                    externalInputSlots.Add(edge);
                 }
-                else if (inputRemapExists)
+                else if (inputSlotExistsInSubgraph)
                 {
-                    onlyInputInternallyConnected.Add(edge);
+                    externalOutputSlots.Add(edge);
                 }
             }
 
-            var uniqueInputEdges = onlyOutputInternallyConnected.GroupBy(
+            // Find the unique edges coming INTO the graph
+            var uniqueIncomingEdges = externalOutputSlots.GroupBy(
                 edge => edge.outputSlot,
                 edge => edge,
-                (key, edges) => new { slotRef = key, edges = edges.ToList() });
-            foreach (var group in uniqueInputEdges)
+                (key, edges) => new {slotRef = key, edges = edges.ToList()});
+
+
+            var externalInputNeedingConnection = new List<KeyValuePair<IEdge, IShaderProperty>>();
+            foreach (var group in uniqueIncomingEdges)
             {
                 var sr = group.slotRef;
                 var fromNode = graphObject.graph.GetNodeFromGuid(sr.nodeGuid);
                 var fromSlot = fromNode.FindOutputSlot<MaterialSlot>(sr.slotId);
 
+                IShaderProperty prop;
                 switch (fromSlot.concreteValueType)
                 {
-                    case ConcreteSlotValueType.SamplerState:
-                        break;
-                    case ConcreteSlotValueType.Matrix4:
-                        break;
-                    case ConcreteSlotValueType.Matrix3:
-                        break;
-                    case ConcreteSlotValueType.Matrix2:
-                        break;
                     case ConcreteSlotValueType.Texture2D:
+                        prop = new TextureShaderProperty();
                         break;
                     case ConcreteSlotValueType.Vector4:
+                        prop = new Vector4ShaderProperty();
                         break;
                     case ConcreteSlotValueType.Vector3:
+                        prop = new Vector3ShaderProperty();
                         break;
                     case ConcreteSlotValueType.Vector2:
+                        prop = new Vector2ShaderProperty();
                         break;
                     case ConcreteSlotValueType.Vector1:
+                        prop = new FloatShaderProperty();
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
+
+                if (prop != null)
+                {
+                    subGraph.AddShaderProperty(prop);
+                    var propNode = new PropertyNode();
+                    subGraph.AddNode(propNode);
+                    propNode.propertyGuid = prop.guid;
+
+                    foreach (var edge in group.edges)
+                    {
+                        subGraph.Connect(
+                            new SlotReference(propNode.guid, PropertyNode.OutputSlotId),
+                            new SlotReference(nodeGuidMap[edge.inputSlot.nodeGuid], edge.inputSlot.slotId));
+                        externalInputNeedingConnection.Add(new KeyValuePair<IEdge, IShaderProperty>(edge, prop));
+                    }
+                }
             }
 
-            var uniqueOutputEdges = onlyInputInternallyConnected.GroupBy(
+            var uniqueOutgoingEdges = externalInputSlots.GroupBy(
                 edge => edge.inputSlot,
                 edge => edge,
-                (key, edges) => new { slot = key, edges = edges.ToList() });
+                (key, edges) => new {slot = key, edges = edges.ToList()});
 
-            var outputsNeedingConnection = new List<KeyValuePair<IEdge, IEdge>>();
-            foreach (var group in uniqueOutputEdges)
+            var externalOutputsNeedingConnection = new List<KeyValuePair<IEdge, IEdge>>();
+            foreach (var group in uniqueOutgoingEdges)
             {
-                var outputNode = graph.outputNode;
+                var outputNode = subGraph.outputNode;
                 var slotId = outputNode.AddSlot();
 
                 var inputSlotRef = new SlotReference(outputNode.guid, slotId);
 
                 foreach (var edge in group.edges)
                 {
-                    var newEdge = graph.Connect(new SlotReference(nodeGuidMap[edge.outputSlot.nodeGuid], edge.outputSlot.slotId), inputSlotRef);
-                    outputsNeedingConnection.Add(new KeyValuePair<IEdge, IEdge>(edge, newEdge));
+                    var newEdge = subGraph.Connect(new SlotReference(nodeGuidMap[edge.outputSlot.nodeGuid], edge.outputSlot.slotId), inputSlotRef);
+                    externalOutputsNeedingConnection.Add(new KeyValuePair<IEdge, IEdge>(edge, newEdge));
                 }
             }
 
-            File.WriteAllText(path, EditorJsonUtility.ToJson(graph));
+            File.WriteAllText(path, EditorJsonUtility.ToJson(subGraph));
             AssetDatabase.ImportAsset(path);
 
-            var subGraph = AssetDatabase.LoadAssetAtPath(path, typeof(MaterialSubGraphAsset)) as MaterialSubGraphAsset;
-            if (subGraph == null)
+            var loadedSubGraph = AssetDatabase.LoadAssetAtPath(path, typeof(MaterialSubGraphAsset)) as MaterialSubGraphAsset;
+            if (loadedSubGraph == null)
                 return;
 
             var subGraphNode = new SubGraphNode();
+            var ds = subGraphNode.drawState;
+            ds.position = new Rect(middle, Vector2.one);
+            subGraphNode.drawState = ds;
             graphObject.graph.AddNode(subGraphNode);
-            subGraphNode.subGraphAsset = subGraph;
+            subGraphNode.subGraphAsset = loadedSubGraph;
 
-            /*  foreach (var edgeMap in inputsNeedingConnection)
-              {
-                  graphObject.graph.Connect(edgeMap.Key.outputSlot, new SlotReference(subGraphNode.guid, edgeMap.Value.outputSlot.slotId));
-              }*/
+            foreach (var edgeMap in externalInputNeedingConnection)
+            {
+                graphObject.graph.Connect(edgeMap.Key.outputSlot, new SlotReference(subGraphNode.guid, edgeMap.Value.guid.GetHashCode()));
+            }
 
-            foreach (var edgeMap in outputsNeedingConnection)
+            foreach (var edgeMap in externalOutputsNeedingConnection)
             {
                 graphObject.graph.Connect(new SlotReference(subGraphNode.guid, edgeMap.Value.inputSlot.slotId), edgeMap.Key.inputSlot);
             }
@@ -293,7 +322,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var shaderImporter = AssetImporter.GetAtPath(path) as ShaderGraphImporter;
             if (shaderImporter == null)
                 return;
-            
+
             File.WriteAllText(path, EditorJsonUtility.ToJson(graph, true));
             shaderImporter.SaveAndReimport();
             AssetDatabase.ImportAsset(path);
