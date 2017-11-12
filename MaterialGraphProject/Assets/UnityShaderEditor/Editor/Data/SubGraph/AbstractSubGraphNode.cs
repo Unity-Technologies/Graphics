@@ -109,7 +109,7 @@ namespace UnityEditor.ShaderGraph
             {
                 foreach (var slot in subGraphOutputNode.GetInputSlots<MaterialSlot>())
                 {
-                    AddSlot(MaterialSlot.CreateMaterialSlot( slot.valueType,slot.id, slot.RawDisplayName(), slot.shaderOutputName, SlotType.Output, Vector4.zero));
+                    AddSlot(MaterialSlot.CreateMaterialSlot(slot.valueType, slot.id, slot.RawDisplayName(), slot.shaderOutputName, SlotType.Output, Vector4.zero));
                     validNames.Add(slot.id);
                 }
             }
