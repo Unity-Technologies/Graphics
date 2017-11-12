@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return m_GraphInspectorView; }
         }
 
-        public GraphEditorView(AbstractMaterialGraph graph, Object asset)
+        public GraphEditorView(AbstractMaterialGraph graph, string assetName)
         {
             m_Graph = graph;
             AddStyleSheetPath("Styles/MaterialGraph");
@@ -127,7 +127,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                         var textureInfo = new List<PropertyCollector.TextureInfo>();
                         PreviewMode previewMode;
-                        string shader = graph.GetShader(copyFromNode, GenerationMode.ForReals, asset.name, out textureInfo, out previewMode);
+                        string shader = graph.GetShader(copyFromNode, GenerationMode.ForReals, assetName, out textureInfo, out previewMode);
                         GUIUtility.systemCopyBuffer = shader;
                     }
                 ));
@@ -150,7 +150,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.AddManipulator(new GraphDropTarget(graph));
                 content.Add(m_GraphView);
 
-                m_GraphInspectorView = new GraphInspectorView(asset.name, previewManager, graph) { name = "inspector" };
+                m_GraphInspectorView = new GraphInspectorView(assetName, previewManager, graph) { name = "inspector" };
                 m_GraphView.onSelectionChanged += m_GraphInspectorView.UpdateSelection;
                 content.Add(m_GraphInspectorView);
 

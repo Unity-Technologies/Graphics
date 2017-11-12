@@ -24,7 +24,7 @@ public class ShaderGraphImporterEditor : ScriptedImporterEditor
 
     internal static bool ShowGraphEditWindow(string path)
     {
-        var asset = AssetDatabase.LoadAssetAtPath<Object>(path);
+        var guid = AssetDatabase.AssetPathToGUID(path);
         var extension = Path.GetExtension(path);
         Type graphType;
         if (extension == ".ShaderGraph")
@@ -41,7 +41,7 @@ public class ShaderGraphImporterEditor : ScriptedImporterEditor
         var foundWindow = false;
         foreach (var w in Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>())
         {
-            if (w.selected == asset)
+            if (w.selectedGuid == guid)
             {
                 foundWindow = true;
                 w.Focus();
@@ -52,7 +52,7 @@ public class ShaderGraphImporterEditor : ScriptedImporterEditor
         {
             var window = ScriptableObject.CreateInstance<MaterialGraphEditWindow>();
             window.Show();
-            window.ChangeSelection(asset, graphType);
+            window.ChangeSelection(guid, graphType);
         }
         return true;
     }

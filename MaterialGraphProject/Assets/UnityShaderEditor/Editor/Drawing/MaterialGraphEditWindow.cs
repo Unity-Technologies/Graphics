@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     public class MaterialGraphEditWindow : EditorWindow
     {
         [SerializeField]
-        Object m_Selected;
+        string m_Selected;
 
         [SerializeField]
         SerializableGraphObject m_GraphObject;
@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public Object selected
+        public string selectedGuid
         {
             get { return m_Selected; }
             private set { m_Selected = value; }
@@ -73,7 +73,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (materialGraph == null)
                 return;
             if (graphEditorView == null)
-                graphEditorView = new GraphEditorView(materialGraph, selected) { persistenceKey = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(selected)) };
+            {
+                var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(selectedGuid));
+                graphEditorView = new GraphEditorView(materialGraph, asset.name) {persistenceKey = AssetDatabase.AssetPathToGUID(AssetDatabase.GUIDToAssetPath(selectedGuid))};
+            }
 
             graphEditorView.previewManager.HandleGraphChanges();
             graphEditorView.previewManager.RenderPreviews();
@@ -100,19 +103,21 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void PingAsset()
         {
-            if (selected != null)
-                EditorGUIUtility.PingObject(selected);
+            if (selectedGuid != null)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(selectedGuid);
+                var asset = AssetDatabase.LoadAssetAtPath<Object>(path);
+                EditorGUIUtility.PingObject(asset);
+            }
         }
 
         public void UpdateAsset()
         {
-            if (selected != null && graphObject != null)
+            if (selectedGuid != null && graphObject != null)
             {
-                var path = AssetDatabase.GetAssetPath(selected);
+                var path = AssetDatabase.GUIDToAssetPath(selectedGuid);
                 if (string.IsNullOrEmpty(path) || graphObject == null)
-                {
                     return;
-                }
 
                 if (m_GraphObject.graph.GetType() == typeof(MaterialGraph))
                     UpdateShaderGraphOnDisk(path);
@@ -125,6 +130,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 if (m_GraphObject.graph.GetType() == typeof(MasterRemapGraph))
                     UpdateAbstractSubgraphOnDisk<MasterRemapGraph>(path);
+
+                var windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
+                foreach (var materialGraphEditWindow in windows)
+                {
+                    materialGraphEditWindow.Rebuild();
+                }
             }
         }
 
@@ -328,17 +339,31 @@ namespace UnityEditor.ShaderGraph.Drawing
             AssetDatabase.ImportAsset(path);
         }
 
-        public void ChangeSelection(Object newSelection, Type graphType)
+        private void Rebuild()
         {
-            if (!EditorUtility.IsPersistent(newSelection))
+            if (graphObject != null && graphObject.graph != null)
+            {
+                var subNodes = graphObject.graph.GetNodes<AbstractSubGraphNode>();
+                foreach (var node in subNodes)
+                    node.UpdateSlots();
+            }
+        }
+
+        public void ChangeSelection(string newSelectionGuid, Type graphType)
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(newSelectionGuid));
+            if (asset == null)
                 return;
 
-            if (selected == newSelection)
+            if (!EditorUtility.IsPersistent(asset))
                 return;
 
-            selected = newSelection;
+            if (selectedGuid == newSelectionGuid)
+                return;
 
-            var path = AssetDatabase.GetAssetPath(newSelection);
+            selectedGuid = newSelectionGuid;
+
+            var path = AssetDatabase.GetAssetPath(asset);
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
             graphObject = CreateInstance<SerializableGraphObject>();
             graphObject.hideFlags = HideFlags.HideAndDontSave;
@@ -346,9 +371,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             graphObject.graph.OnEnable();
             graphObject.graph.ValidateGraph();
 
-            graphEditorView = new GraphEditorView(m_GraphObject.graph as AbstractMaterialGraph, selected) { persistenceKey = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(selected)) };
+            graphEditorView = new GraphEditorView(m_GraphObject.graph as AbstractMaterialGraph, asset.name) { persistenceKey = AssetDatabase.GUIDToAssetPath(selectedGuid) };
             graphEditorView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
-            titleContent = new GUIContent(selected.name);
+
+            titleContent = new GUIContent(asset.name);
 
             Repaint();
         }
