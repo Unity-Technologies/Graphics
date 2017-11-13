@@ -604,6 +604,7 @@ MonoBehaviour:
   blendMode: 1
   useSoftParticle: 0
   flipBook: 0
+  useGeometryShader: 0
 --- !u!114 &114472202488033534
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1504,6 +1505,8 @@ VFXAsset:
         bucket: 0
         structure: 1
         element: 0
+    initialData:
+      data: 00000000
   m_Systems:
   - type: 1
     flags: 1
@@ -1542,7 +1545,7 @@ VFXAsset:
         nameId: uniform_Min_d
       - expressionIndex: 19
         nameId: uniform_Max_d
-      processor: {fileID: 7200000, guid: d9672ed5511b1bc4bba2d0ec6b894b0b, type: 3}
+      processor: {fileID: 7200000, guid: 89adbf3ad7db4da4d8b046510e68789c, type: 3}
     - type: 805306368
       buffers:
       - bufferIndex: 0
@@ -1552,7 +1555,7 @@ VFXAsset:
       values:
       - expressionIndex: 20
         nameId: uniform_deltaTime_b
-      processor: {fileID: 7200000, guid: 07a33720515a93a41b19106ccb4298cc, type: 3}
+      processor: {fileID: 7200000, guid: ba21e9739684b594681209f3096da343, type: 3}
     - type: 1073741826
       buffers:
       - bufferIndex: 0
@@ -1564,7 +1567,7 @@ VFXAsset:
         nameId: uniform_gradient_c
       - expressionIndex: 22
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: 1c9c6aa91adaa0644b2b28ef4d8d3ada, type: 3}
+      processor: {fileID: 4800000, guid: 7179e0d47f2f72240afddf5fae580bd4, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 

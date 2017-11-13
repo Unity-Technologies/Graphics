@@ -1014,6 +1014,7 @@ MonoBehaviour:
   blendMode: 0
   useSoftParticle: 0
   flipBook: 0
+  useGeometryShader: 0
 --- !u!114 &114799785256960774
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1626,6 +1627,8 @@ VFXAsset:
         bucket: 0
         structure: 1
         element: 0
+    initialData:
+      data: 00000000
   - capacity: 1
     stride: 1
     layout:
@@ -1635,6 +1638,8 @@ VFXAsset:
         bucket: 0
         structure: 1
         element: 0
+    initialData:
+      data: 00000000
   m_Systems:
   - type: 0
     flags: 0
@@ -1687,7 +1692,7 @@ VFXAsset:
         nameId: uniform_Color_c
       - expressionIndex: 23
         nameId: uniform_Lifetime_d
-      processor: {fileID: 7200000, guid: 9a85db44cdf59094193329cfee0d050c, type: 3}
+      processor: {fileID: 7200000, guid: 0ea9eb2093f6e2243b43f43f3cf3e576, type: 3}
     - type: 805306368
       buffers:
       - bufferIndex: 0
@@ -1697,7 +1702,7 @@ VFXAsset:
       values:
       - expressionIndex: 20
         nameId: uniform_deltaTime_b
-      processor: {fileID: 7200000, guid: 030694e934cedce459483d2a0807400a, type: 3}
+      processor: {fileID: 7200000, guid: c40e6db6ff7033646a9830d761096064, type: 3}
     - type: 1073741826
       buffers:
       - bufferIndex: 0
@@ -1707,7 +1712,7 @@ VFXAsset:
         nameId: uniform_Size_b
       - expressionIndex: 18
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: 144b9b741a051e1458586061cd49ba04, type: 3}
+      processor: {fileID: 4800000, guid: 1880ad7a4632e924aa872b238363a510, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000
