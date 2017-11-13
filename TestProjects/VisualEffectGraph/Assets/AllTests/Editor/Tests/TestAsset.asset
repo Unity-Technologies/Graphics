@@ -1090,17 +1090,7 @@ VFXAsset:
       m_Array: []
     m_Bool:
       m_Array: []
-  m_Buffers:
-  - type: 1
-    size: 262144
-    capacity: 65536
-    layout:
-    - name: oldPosition
-      type: 3
-      offset:
-        bucket: 0
-        structure: 4
-        element: 0
+  m_Buffers: []
   m_CPUBuffers:
   - capacity: 1
     stride: 1
@@ -1111,13 +1101,13 @@ VFXAsset:
         bucket: 0
         structure: 1
         element: 0
+    initialData:
+      data: 00000000
   m_Systems:
   - type: 1
     flags: 0
     capacity: 65536
-    buffers:
-    - bufferIndex: 0
-      nameId: attributeBuffer
+    buffers: []
     values:
     - expressionIndex: 12
       nameId: bounds_center
@@ -1125,23 +1115,17 @@ VFXAsset:
       nameId: bounds_size
     tasks:
     - type: 536870912
-      buffers:
-      - bufferIndex: 0
-        nameId: attributeBuffer
+      buffers: []
       values: []
-      processor: {fileID: 7200000, guid: 18b5e4c13aaf0194b93cb2681d22ace8, type: 3}
+      processor: {fileID: 7200000, guid: e7ef0e454559191418878b7d9d1dddaf, type: 3}
     - type: 805306368
-      buffers:
-      - bufferIndex: 0
-        nameId: attributeBuffer
+      buffers: []
       values: []
-      processor: {fileID: 7200000, guid: a75cfa0ded7100a4bafc6da4bf3bd910, type: 3}
+      processor: {fileID: 7200000, guid: a1eb5f4ab70a638459af5a0c282c7e28, type: 3}
     - type: 1073741825
-      buffers:
-      - bufferIndex: 0
-        nameId: attributeBuffer
+      buffers: []
       values: []
-      processor: {fileID: 4800000, guid: ae90377dbe6bcb142922291cb907cb03, type: 3}
+      processor: {fileID: 4800000, guid: 8768b96ed84590945aa10c27235081e7, type: 3}
   - type: 1
     flags: 0
     capacity: 65536
@@ -1155,11 +1139,11 @@ VFXAsset:
     - type: 536870912
       buffers: []
       values: []
-      processor: {fileID: 7200000, guid: 8674a39e35ebc504e99bf9b29a64cb75, type: 3}
+      processor: {fileID: 7200000, guid: ac7870c8521255743959d209c0f99454, type: 3}
     - type: 1073741825
       buffers: []
       values: []
-      processor: {fileID: 4800000, guid: 95baecdfc0d4bb64ab7d17ba0758f85f, type: 3}
+      processor: {fileID: 4800000, guid: 400fabca98ef1514694173c98f35c958, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 

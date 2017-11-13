@@ -1902,6 +1902,7 @@ MonoBehaviour:
   blendMode: 2
   useSoftParticle: 0
   flipBook: 0
+  useGeometryShader: 0
 --- !u!114 &114364075504055620
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2117,6 +2118,7 @@ MonoBehaviour:
   blendMode: 2
   useSoftParticle: 0
   flipBook: 0
+  useGeometryShader: 0
 --- !u!114 &114401068537687094
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5863,6 +5865,8 @@ VFXAsset:
         bucket: 0
         structure: 1
         element: 0
+    initialData:
+      data: 00000000
   - capacity: 1
     stride: 1
     layout:
@@ -5872,6 +5876,8 @@ VFXAsset:
         bucket: 0
         structure: 1
         element: 0
+    initialData:
+      data: 00000000
   m_Systems:
   - type: 0
     flags: 0
@@ -5928,7 +5934,7 @@ VFXAsset:
         nameId: uniform_e
       - expressionIndex: 57
         nameId: uniform_Lifetime_e
-      processor: {fileID: 7200000, guid: c1b752ed5c3bc2542a8a07f1c91bab7d, type: 3}
+      processor: {fileID: 7200000, guid: 6653a03008b3985408449055bf48726d, type: 3}
     - type: 805306368
       buffers:
       - bufferIndex: 0
@@ -5938,7 +5944,7 @@ VFXAsset:
       values:
       - expressionIndex: 66
         nameId: uniform_deltaTime_b
-      processor: {fileID: 7200000, guid: f1515b58403b3854bacf322fea76c632, type: 3}
+      processor: {fileID: 7200000, guid: eeb3d4787f2eb464ea536e0cb6e350fa, type: 3}
     - type: 1073741826
       buffers:
       - bufferIndex: 0
@@ -5968,7 +5974,7 @@ VFXAsset:
         nameId: uniform_alphaThreshold
       - expressionIndex: 60
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: 0b55b3e87a962044a8a71944c8ef1acf, type: 3}
+      processor: {fileID: 4800000, guid: be7a22e3cefdcd04e92f6316c0d9a575, type: 3}
     - type: 1073741826
       buffers:
       - bufferIndex: 0
@@ -5998,7 +6004,7 @@ VFXAsset:
         nameId: uniform_alphaThreshold
       - expressionIndex: 60
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: efa0054ac2ced374b99d9b733eeab716, type: 3}
+      processor: {fileID: 4800000, guid: c798688d9ca08204aa00e59ed3a03615, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000

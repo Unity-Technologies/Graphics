@@ -1,0 +1,26 @@
+${VFXShaderTags}
+
+${VFXInclude("Assets/VFXShaders/VFXParticleCommon.template")}
+${VFXOutputRenderState}	
+	
+CGINCLUDE
+#if !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)
+#define VFX_LOCAL_SPACE 1
+#endif
+
+#include "UnityCG.cginc"
+${VFXGlobalInclude}
+${VFXGlobalDeclaration}
+${VFXGeneratedBlockFunction}
+
+#define VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)
+
+ByteAddressBuffer attributeBuffer;		
+float nbMax;	
+
+#if USE_SOFT_PARTICLE
+sampler2D_float _CameraDepthTexture;
+#endif	
+ENDCG
+
+
