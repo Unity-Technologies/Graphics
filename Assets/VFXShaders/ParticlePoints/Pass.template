@@ -16,6 +16,9 @@ VFX_VARYING_STRUCT vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 		{
 			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
 			${VFXProcessBlocks}
+			
+			if (!alive)
+				return o;
 							
 			o.VFX_VARYING_POSITIONWS = mul(VFXModelViewProj(), float4(position,1.0f));
 
