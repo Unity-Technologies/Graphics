@@ -97,7 +97,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 UpdateSize();
             }
 
-            clippingOptions = ClippingOptions.ClipContents;
+            mainContainer.clippingOptions = ClippingOptions.ClipContents;
         }
 
         public AbstractMaterialNode node { get; private set; }
