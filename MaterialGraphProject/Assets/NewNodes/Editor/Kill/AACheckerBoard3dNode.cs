@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Procedural/AACheckerboard3d")]
+    [Title("OLD/AACheckerboard3d")]
     public class AACheckerboard3dNode : CodeFunctionNode
     {
         protected override MethodInfo GetFunctionToConvert()
@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph
     float3 blend_out = saturate((scale - aaTweak.zzz) / (aaTweak.yyy - aaTweak.zzz));
     float3 vectorAlpha = clamp(distance3 * scale.xyz * blend_out.xyz, -1.0f, 1.0f);
     float alpha = saturate(0.5f + 0.5f * vectorAlpha.x * vectorAlpha.y * vectorAlpha.z);
-    result= lerp(colorA, colorB, alpha.xxxx);;
+    result= lerp(colorA, colorB, alpha.xxxx);
 }";
         }
     }

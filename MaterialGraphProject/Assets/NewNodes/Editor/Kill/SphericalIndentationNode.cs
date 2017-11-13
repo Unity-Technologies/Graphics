@@ -3,9 +3,14 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("UV/SphericalIndentation")]
-    public class SphericalIndentationNode : CodeFunctionNode
+    /*
+    [Title("UV/Spherize 3D")]
+    public class SphericalIndentationNode : CodeFunctionNode 
     {
+        public SphericalIndentationNode()
+        {
+            name = "Spherize 3D";
+        }
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_SphericalIndentation", BindingFlags.Static | BindingFlags.NonPublic);
@@ -45,4 +50,5 @@ namespace UnityEditor.ShaderGraph
 }";
         }
     }
+    */
 }

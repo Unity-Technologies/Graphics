@@ -3,6 +3,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
+    /*
     [Title("Input/Time/Sine Time")]
     public class SinTimeNode : AbstractMaterialNode, IMayRequireTime
     {
@@ -36,4 +37,5 @@ namespace UnityEditor.ShaderGraph
             return true;
         }
     }
+    */
 }

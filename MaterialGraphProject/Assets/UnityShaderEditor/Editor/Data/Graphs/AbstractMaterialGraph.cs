@@ -163,7 +163,7 @@ namespace UnityEditor.ShaderGraph
             {
                 fullName = "UnityEngine.MaterialGraph.NormalNode"
             };
-            result[normalNode] = SerializationHelper.GetTypeSerializableAsString(typeof(NormalNode));
+            result[normalNode] = SerializationHelper.GetTypeSerializableAsString(typeof(NormalVectorNode));
 
             var worldPosNode = new SerializationHelper.TypeSerializationInfo
             {
@@ -456,6 +456,7 @@ struct GraphVertexInput
      float4 vertex : POSITION;
      float3 normal : NORMAL;
      float4 tangent : TANGENT;
+     float4 color : COLOR;
      float4 texcoord0 : TEXCOORD0;
      float4 lightmapUV : TEXCOORD1;
      UNITY_VERTEX_INPUT_INSTANCE_ID

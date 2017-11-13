@@ -12,18 +12,18 @@ namespace UnityEditor.ShaderGraph
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_Pow", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_Power", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_Pow(
-            [Slot(0, Binding.None)] DynamicDimensionVector first,
-            [Slot(1, Binding.None)] DynamicDimensionVector second,
-            [Slot(2, Binding.None)] out DynamicDimensionVector result)
+        static string Unity_Power(
+            [Slot(0, Binding.None)] DynamicDimensionVector A,
+            [Slot(1, Binding.None)] DynamicDimensionVector B,
+            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
 {
-    result = pow(first, second);
+    Out = pow(A, B);
 }
 ";
         }
