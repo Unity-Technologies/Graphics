@@ -3,12 +3,12 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Procedural/Voronoi Noise")]
+    [Title("Procedural/Voronoi")]
     public class VoronoiNoiseNode : CodeFunctionNode
     {
         public VoronoiNoiseNode()
         {
-            name = "VoronoiNoise";
+            name = "Voronoi";
         }
 
         protected override MethodInfo GetFunctionToConvert()
@@ -17,17 +17,17 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_VoronoiNoise(
-            [Slot(0, Binding.MeshUV0)] Vector2 uv,
-            [Slot(1, Binding.None, 2.0f, 0, 0, 0)] Vector1 angleOffset,
-            [Slot(2, Binding.None)] out Vector1 n1,
-            [Slot(2, Binding.None)] out Vector1 n2,
-            [Slot(2, Binding.None)] out Vector1 n3)
+            [Slot(0, Binding.MeshUV0)] Vector2 UV,
+            [Slot(1, Binding.None, 2.0f, 0, 0, 0)] Vector1 AngleOffset,
+            [Slot(2, Binding.None,5.0f,5.0f,5.0f,5.0f)] Vector1 CellDensity,
+            [Slot(3, Binding.None)] out Vector1 Out,
+            [Slot(4, Binding.None)] out Vector1 Cells)
         {
             return
                 @"
 {
-    float2 g = floor(uv);
-    float2 f = frac(uv);
+    float2 g = floor(UV * CellDensity);
+    float2 f = frac(UV * CellDensity);
     float t = 8.0;
     float3 res = float3(8.0, 0.0, 0.0);
 
@@ -36,21 +36,21 @@ namespace UnityEditor.ShaderGraph
         for(int x=-1; x<=1; x++)
         {
             float2 lattice = float2(x,y);
-            float2 offset = unity_voronoi_noise_randomVector(lattice + g, angleOffset);
+            float2 offset = unity_voronoi_noise_randomVector(lattice + g, AngleOffset);
             float d = distance(lattice + offset, f);
 
             if(d < res.x)
             {
 
                 res = float3(d, offset.x, offset.y);
-                n1 = res.x;
-                n2 = res.y;
-                n3 = 1.0 - res.x;
+                Out = res.x;
+                Cells = res.y;
 
             }
         }
 
     }
+
 }
 ";
         }
@@ -58,11 +58,11 @@ namespace UnityEditor.ShaderGraph
         public override void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
             var preamble = @"
-inline float2 unity_voronoi_noise_randomVector (float2 uv, float offset)
+inline float2 unity_voronoi_noise_randomVector (float2 UV, float offset)
 {
     float2x2 m = float2x2(15.27, 47.63, 99.41, 89.98);
-    uv = frac(sin(mul(uv, m)) * 46839.32);
-    return float2(sin(uv.y*+offset)*0.5+0.5, cos(uv.x*offset)*0.5+0.5);
+    UV = frac(sin(mul(UV, m)) * 46839.32);
+    return float2(sin(UV.y*+offset)*0.5+0.5, cos(UV.x*offset)*0.5+0.5);
 }
 ";
             visitor.AddShaderChunk(preamble, true);

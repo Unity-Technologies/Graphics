@@ -7,7 +7,7 @@ namespace UnityEditor.ShaderGraph
     public class PositionNode : GeometryNode, IMayRequirePosition
     {
         private const int kOutputSlotId = 0;
-        public const string kOutputSlotName = "Position";
+        public const string kOutputSlotName = "Out";
 
 
         public PositionNode()

@@ -22,14 +22,10 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetPropertyDeclarationString()
         {
-            string ss = referenceName + "_"
-                        + Enum.GetName(typeof(TextureSamplerState.FilterMode), value.filter) + "_"
-                        + Enum.GetName(typeof(TextureSamplerState.WrapMode), value.wrap) + "_sampler;";
-
             return string.Format(@"
 #ifdef UNITY_COMPILER_HLSL
 SamplerState {0};
-#endif", ss);
+#endif", referenceName);
         }
 
         public override PreviewProperty GetPreviewMaterialProperty()

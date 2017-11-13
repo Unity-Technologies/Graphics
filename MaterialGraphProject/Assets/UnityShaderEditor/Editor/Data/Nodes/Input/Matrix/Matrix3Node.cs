@@ -4,11 +4,11 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input/Matrix/Matrix 3")]
+    [Title("Input/Matrix/Matrix 3x3")]
     public class Matrix3Node : AbstractMaterialNode, IGeneratesBodyCode
     {
         const int kOutputSlotId = 0;
-        const string kOutputSlotName = "Value";
+        const string kOutputSlotName = "Out";
 
         [SerializeField]
         Vector3 m_Row0;
@@ -51,7 +51,7 @@ namespace UnityEditor.ShaderGraph
 
         public Matrix3Node()
         {
-            name = "Matrix3";
+            name = "Matrix 3x3";
             UpdateNodeAfterDeserialization();
         }
 
