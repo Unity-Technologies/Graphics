@@ -4913,108 +4913,108 @@ VFXAsset:
     flags: 0
     capacity: 0
     buffers:
-    - bufferIndex: 0
+    - index: 0
       nameId: spawner_output
     values: []
     tasks:
     - type: 268435457
       buffers: []
       values:
-      - expressionIndex: 73
+      - index: 73
         nameId: Rate
       processor: {fileID: 0}
   - type: 1
     flags: 1
     capacity: 2000000
     buffers:
-    - bufferIndex: 0
+    - index: 0
       nameId: attributeBuffer
-    - bufferIndex: 1
+    - index: 1
       nameId: deadList
-    - bufferIndex: 2
+    - index: 2
       nameId: deadListCount
-    - bufferIndex: 0
+    - index: 0
       nameId: spawner_input
     values:
-    - expressionIndex: 68
+    - index: 68
       nameId: bounds_center
-    - expressionIndex: 74
+    - index: 74
       nameId: bounds_size
     tasks:
     - type: 536870912
       buffers:
-      - bufferIndex: 0
+      - index: 0
         nameId: attributeBuffer
-      - bufferIndex: 1
+      - index: 1
         nameId: deadListIn
-      - bufferIndex: 2
+      - index: 2
         nameId: deadListCount
       values:
-      - expressionIndex: 70
+      - index: 70
         nameId: uniform_Torus_center_b
-      - expressionIndex: 7
+      - index: 7
         nameId: uniform_Torus_majorRadius_b
-      - expressionIndex: 8
+      - index: 8
         nameId: uniform_Torus_minorRadius_b
-      - expressionIndex: 78
+      - index: 78
         nameId: uniform_Torus_arc_b
-      - expressionIndex: 76
+      - index: 76
         nameId: uniform_volumeFactor_b
-      - expressionIndex: 64
+      - index: 64
         nameId: uniform_r_b
-      - expressionIndex: 51
+      - index: 51
         nameId: uniform_h
-      - expressionIndex: 71
+      - index: 71
         nameId: uniform_Lifetime_d
-      - expressionIndex: 72
+      - index: 72
         nameId: uniform_box_center_e
-      - expressionIndex: 67
+      - index: 67
         nameId: uniform_box_size_e
-      - expressionIndex: 69
+      - index: 69
         nameId: uniform_Sphere_center_f
-      - expressionIndex: 79
+      - index: 79
         nameId: uniform_Sphere_radius_f
       processor: {fileID: 7200000, guid: d097d10e900b5924aaabed4568e65465, type: 3}
     - type: 805306368
       buffers:
-      - bufferIndex: 0
+      - index: 0
         nameId: attributeBuffer
-      - bufferIndex: 1
+      - index: 1
         nameId: deadListOut
       values:
-      - expressionIndex: 72
+      - index: 72
         nameId: uniform_box_center_b
-      - expressionIndex: 67
+      - index: 67
         nameId: uniform_box_size_b
-      - expressionIndex: 80
+      - index: 80
         nameId: uniform_Elasticity_b
-      - expressionIndex: 77
+      - index: 77
         nameId: uniform_Friction_b
-      - expressionIndex: 75
+      - index: 75
         nameId: uniform_LifetimeLoss_b
-      - expressionIndex: 60
+      - index: 60
         nameId: uniform_deltaTime_b
-      - expressionIndex: 69
+      - index: 69
         nameId: uniform_Sphere_center_c
-      - expressionIndex: 79
+      - index: 79
         nameId: uniform_Sphere_radius_c
-      - expressionIndex: 61
+      - index: 61
         nameId: uniform_Elasticity_c
-      - expressionIndex: 62
+      - index: 62
         nameId: uniform_Friction_c
-      - expressionIndex: 65
+      - index: 65
         nameId: uniform_LifetimeLoss_c
-      - expressionIndex: 63
+      - index: 63
         nameId: uniform_Force_d
       processor: {fileID: 7200000, guid: b6f714c68d790784089f95a62cb3ebf1, type: 3}
     - type: 1073741825
       buffers:
-      - bufferIndex: 0
+      - index: 0
         nameId: attributeBuffer
       values:
-      - expressionIndex: 66
+      - index: 66
         nameId: uniform_gradient_b
-      - expressionIndex: 59
+      - index: 59
         nameId: uniform_alphaThreshold
       processor: {fileID: 4800000, guid: 0799e2b5725df924cb0b9c2766e5ce2c, type: 3}
   m_Events:

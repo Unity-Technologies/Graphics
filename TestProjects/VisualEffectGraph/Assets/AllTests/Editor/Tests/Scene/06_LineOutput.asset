@@ -3943,76 +3943,76 @@ VFXAsset:
     flags: 0
     capacity: 0
     buffers:
-    - bufferIndex: 0
+    - index: 0
       nameId: spawner_output
     values: []
     tasks:
     - type: 268435458
       buffers: []
       values:
-      - expressionIndex: 45
+      - index: 45
         nameId: Count
-      - expressionIndex: 46
+      - index: 46
         nameId: Delay
       processor: {fileID: 0}
   - type: 1
     flags: 0
     capacity: 65536
     buffers:
-    - bufferIndex: 0
+    - index: 0
       nameId: attributeBuffer
-    - bufferIndex: 0
+    - index: 0
       nameId: spawner_input
     values:
-    - expressionIndex: 44
+    - index: 44
       nameId: bounds_center
-    - expressionIndex: 42
+    - index: 42
       nameId: bounds_size
     tasks:
     - type: 536870912
       buffers:
-      - bufferIndex: 0
+      - index: 0
         nameId: attributeBuffer
       values:
-      - expressionIndex: 6
+      - index: 6
         nameId: uniform_b
-      - expressionIndex: 7
+      - index: 7
         nameId: uniform_c
-      - expressionIndex: 0
+      - index: 0
         nameId: uniform_d
-      - expressionIndex: 1
+      - index: 1
         nameId: uniform_e
-      - expressionIndex: 10
+      - index: 10
         nameId: uniform_f
-      - expressionIndex: 11
+      - index: 11
         nameId: uniform_g
-      - expressionIndex: 43
+      - index: 43
         nameId: uniform_Sphere_center_c
-      - expressionIndex: 50
+      - index: 50
         nameId: uniform_Sphere_radius_c
-      - expressionIndex: 51
+      - index: 51
         nameId: uniform_Sphere_arc_c
       processor: {fileID: 7200000, guid: 9983445f7a3bc4a4abbcca47a9351f94, type: 3}
     - type: 805306368
       buffers:
-      - bufferIndex: 0
+      - index: 0
         nameId: attributeBuffer
       values: []
       processor: {fileID: 7200000, guid: 834b3f6aa316ed943a2a272dd2773cb3, type: 3}
     - type: 1073741828
       buffers:
-      - bufferIndex: 0
+      - index: 0
         nameId: attributeBuffer
       values:
-      - expressionIndex: 49
+      - index: 49
         nameId: uniform_Angle_b
-      - expressionIndex: 47
+      - index: 47
         nameId: uniform_Pivot_c
-      - expressionIndex: 48
+      - index: 48
         nameId: uniform_Size_d
-      - expressionIndex: 40
+      - index: 40
         nameId: uniform_Position_position_e
-      - expressionIndex: 41
+      - index: 41
         nameId: uniform_targetOffset
       processor: {fileID: 4800000, guid: 1f53a7b5540775b49bd8b80bd81766de, type: 3}
   m_Events:

@@ -196,14 +196,14 @@ namespace UnityEditor.VFX
             var deadListBufferIndex = -1;
             var deadListCountIndex = -1;
 
-            var systemBufferMappings = new List<VFXBufferMapping>();
-            var systemValueMappings = new List<VFXValueMapping>();
+            var systemBufferMappings = new List<VFXMapping>();
+            var systemValueMappings = new List<VFXMapping>();
 
             if (hasState)
             {
                 attributeBufferIndex = outBufferDescs.Count;
                 outBufferDescs.Add(new VFXBufferDesc(ComputeBufferType.Raw, bufferSize, 4));
-                systemBufferMappings.Add(new VFXBufferMapping(attributeBufferIndex, "attributeBuffer"));
+                systemBufferMappings.Add(new VFXMapping(attributeBufferIndex, "attributeBuffer"));
             }
 
             var systemFlag = VFXSystemFlag.kVFXSystemDefault;
@@ -213,11 +213,11 @@ namespace UnityEditor.VFX
 
                 deadListBufferIndex = outBufferDescs.Count;
                 outBufferDescs.Add(new VFXBufferDesc(ComputeBufferType.Append, capacity, 4));
-                systemBufferMappings.Add(new VFXBufferMapping(deadListBufferIndex, "deadList"));
+                systemBufferMappings.Add(new VFXMapping(deadListBufferIndex, "deadList"));
 
                 deadListCountIndex = outBufferDescs.Count;
                 outBufferDescs.Add(new VFXBufferDesc(ComputeBufferType.Raw, 1, 4));
-                systemBufferMappings.Add(new VFXBufferMapping(deadListCountIndex, "deadListCount"));
+                systemBufferMappings.Add(new VFXMapping(deadListCountIndex, "deadListCount"));
             }
 
             if (owners.Count() > 0 && owners.First().contextType == VFXContextType.kInit) // TODO This test can be removed once we ensure priorly the system is valid
@@ -232,14 +232,14 @@ namespace UnityEditor.VFX
 
                 if (boundsCenterIndex != -1 && boundsSizeIndex != -1)
                 {
-                    systemValueMappings.Add(new VFXValueMapping(boundsCenterIndex, "bounds_center"));
-                    systemValueMappings.Add(new VFXValueMapping(boundsSizeIndex, "bounds_size"));
+                    systemValueMappings.Add(new VFXMapping(boundsCenterIndex, "bounds_center"));
+                    systemValueMappings.Add(new VFXMapping(boundsSizeIndex, "bounds_size"));
                 }
             }
 
             var taskDescs = new List<VFXTaskDesc>();
-            var bufferMappings = new List<VFXBufferMapping>();
-            var uniformMappings = new List<VFXValueMapping>();
+            var bufferMappings = new List<VFXMapping>();
+            var uniformMappings = new List<VFXMapping>();
 
             foreach (var context in owners)
             {
@@ -247,7 +247,7 @@ namespace UnityEditor.VFX
                 //    continue;
 
                 if (context.contextType == VFXContextType.kInit)
-                    systemBufferMappings.AddRange(context.inputContexts.Select(o => new VFXBufferMapping(contextSpawnToBufferIndex[o], "spawner_input")));
+                    systemBufferMappings.AddRange(context.inputContexts.Select(o => new VFXMapping(contextSpawnToBufferIndex[o], "spawner_input")));
 
                 var contextData = contextToCompiledData[context];
 
@@ -256,15 +256,15 @@ namespace UnityEditor.VFX
 
                 bufferMappings.Clear();
                 if (attributeBufferIndex != -1)
-                    bufferMappings.Add(new VFXBufferMapping(attributeBufferIndex, "attributeBuffer"));
+                    bufferMappings.Add(new VFXMapping(attributeBufferIndex, "attributeBuffer"));
                 if (deadListBufferIndex != -1 && context.contextType != VFXContextType.kOutput)
-                    bufferMappings.Add(new VFXBufferMapping(deadListBufferIndex, context.contextType == VFXContextType.kUpdate ? "deadListOut" : "deadListIn"));
+                    bufferMappings.Add(new VFXMapping(deadListBufferIndex, context.contextType == VFXContextType.kUpdate ? "deadListOut" : "deadListIn"));
                 if (deadListCountIndex != -1 && context.contextType == VFXContextType.kInit)
-                    bufferMappings.Add(new VFXBufferMapping(deadListCountIndex, "deadListCount"));
+                    bufferMappings.Add(new VFXMapping(deadListCountIndex, "deadListCount"));
 
                 uniformMappings.Clear();
                 foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.textures))
-                    uniformMappings.Add(new VFXValueMapping(expressionGraph.GetFlattenedIndex(uniform), contextData.uniformMapper.GetName(uniform)));
+                    uniformMappings.Add(new VFXMapping(expressionGraph.GetFlattenedIndex(uniform), contextData.uniformMapper.GetName(uniform)));
 
                 taskDesc.buffers = bufferMappings.ToArray();
                 taskDesc.values = uniformMappings.ToArray();

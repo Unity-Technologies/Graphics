@@ -1100,9 +1100,9 @@ VFXAsset:
     capacity: 65536
     buffers: []
     values:
-    - expressionIndex: 12
+    - index: 12
       nameId: bounds_center
-    - expressionIndex: 14
+    - index: 14
       nameId: bounds_size
     tasks:
     - type: 536870912
@@ -1122,9 +1122,9 @@ VFXAsset:
     capacity: 65536
     buffers: []
     values:
-    - expressionIndex: 13
+    - index: 13
       nameId: bounds_center
-    - expressionIndex: 15
+    - index: 15
       nameId: bounds_size
     tasks:
     - type: 536870912

@@ -606,6 +606,7 @@ MonoBehaviour:
   blendMode: 1
   useSoftParticle: 0
   flipBook: 0
+  useGeometryShader: 0
 --- !u!114 &114472202488033534
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1469,60 +1470,60 @@ VFXAsset:
     flags: 1
     capacity: 65536
     buffers:
-    - bufferIndex: 0
+    - index: 0
       nameId: attributeBuffer
-    - bufferIndex: 1
+    - index: 1
       nameId: deadList
-    - bufferIndex: 2
+    - index: 2
       nameId: deadListCount
     values:
-    - expressionIndex: 23
+    - index: 23
       nameId: bounds_center
-    - expressionIndex: 25
+    - index: 25
       nameId: bounds_size
     tasks:
     - type: 536870912
       buffers:
-      - bufferIndex: 0
+      - index: 0
         nameId: attributeBuffer
-      - bufferIndex: 1
+      - index: 1
         nameId: deadListIn
-      - bufferIndex: 2
+      - index: 2
         nameId: deadListCount
       values:
-      - expressionIndex: 31
+      - index: 31
         nameId: uniform_Velocity_b
-      - expressionIndex: 28
+      - index: 28
         nameId: uniform_Sphere_center_c
-      - expressionIndex: 27
+      - index: 27
         nameId: uniform_Sphere_radius_c
-      - expressionIndex: 26
+      - index: 26
         nameId: uniform_Sphere_arc_c
-      - expressionIndex: 29
+      - index: 29
         nameId: uniform_Min_d
-      - expressionIndex: 19
+      - index: 19
         nameId: uniform_Max_d
       processor: {fileID: 7200000, guid: 81f17fc458b645340b0993dd560881b5, type: 3}
     - type: 805306368
       buffers:
-      - bufferIndex: 0
+      - index: 0
         nameId: attributeBuffer
-      - bufferIndex: 1
+      - index: 1
         nameId: deadListOut
       values:
-      - expressionIndex: 20
+      - index: 20
         nameId: uniform_deltaTime_b
       processor: {fileID: 7200000, guid: 514a44495fa515a4083c27765ff14d5f, type: 3}
     - type: 1073741826
       buffers:
-      - bufferIndex: 0
+      - index: 0
         nameId: attributeBuffer
       values:
-      - expressionIndex: 18
+      - index: 18
         nameId: uniform_curve_b
-      - expressionIndex: 24
+      - index: 24
         nameId: uniform_gradient_c
-      - expressionIndex: 22
+      - index: 22
         nameId: texture_texture
       processor: {fileID: 4800000, guid: 0cffc1a8d9a1a5b4586d70a8ef30c256, type: 3}
   m_Events:
