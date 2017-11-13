@@ -244,7 +244,7 @@ namespace UnityEditor.VFX.UI
             Add(toolbar);
 
 
-            Button button = new Button(() => {Resync(); });
+            Button button = new Button(() => { Resync(); });
             button.text = "Refresh";
             button.AddToClassList("toolbarItem");
             toolbar.Add(button);
@@ -295,6 +295,9 @@ namespace UnityEditor.VFX.UI
             m_NoAssetLabel.style.textColor = Color.white * 0.75f;
 
             Add(m_NoAssetLabel);
+
+            this.serializeGraphElements = SerializeElements;
+            this.unserializeAndPaste = UnserializeAndPasteElements;
         }
 
         VFXRendererSettings GetRendererSettings()
@@ -544,7 +547,7 @@ namespace UnityEditor.VFX.UI
                 BaseVisualElementPanel panel = this.panel as BaseVisualElementPanel;
 
 
-                panel.scheduler.ScheduleOnce(t => { panel.ValidateLayout(); FrameAll(); } , 100);
+                panel.scheduler.ScheduleOnce(t => { panel.ValidateLayout(); FrameAll(); }, 100);
 
                 m_OldPresenter = presenter;
             }
@@ -719,5 +722,178 @@ namespace UnityEditor.VFX.UI
 
         private Toggle m_ToggleCastShadows;
         private Toggle m_ToggleMotionVectors;
+
+
+        [System.Serializable]
+        struct CopyPasteAnchor
+        {
+            public int targetIndex;
+            public int[] slotPath;
+        }
+
+        [System.Serializable]
+        struct CopyPasteDataEdge
+        {
+            public bool inputContext;
+            public int inputBlockIndex;
+            public CopyPasteAnchor input;
+            public CopyPasteAnchor output;
+        }
+
+        [System.Serializable]
+        struct CopyPasteStruct
+        {
+            public VFXContext[] contexts;
+            public VFXModel[] slotContainers;
+            public CopyPasteDataEdge[] dataEdges;
+        }
+
+
+        public readonly Vector2 defaultPasteOffset = new Vector2(100, 100);
+        public Vector2 pasteOffset = Vector2.zero;
+
+        string SerializeElements(IEnumerable<GraphElement> elements)
+        {
+            IEnumerable<VFXContextUI> contexts = elements.OfType<VFXContextUI>();
+            IEnumerable<VFXStandaloneSlotContainerUI> slotContainers = elements.OfType<VFXStandaloneSlotContainerUI>();
+
+            IEnumerable<VFXSlotContainerUI> dataEdgeTargets = slotContainers.Cast<VFXSlotContainerUI>().Concat(contexts.Select(t => t.ownData as VFXSlotContainerUI)).Concat(contexts.SelectMany(t => t.GetAllBlocks()).Cast<VFXSlotContainerUI>()).ToArray();
+
+            // consider only edges contained in the selection
+
+            VFXDataEdge[] de = elements.OfType<VFXDataEdge>().ToArray();
+
+            IEnumerable<VFXDataEdge> dataEdges = de.Where(t => dataEdgeTargets.Contains(t.input.GetFirstAncestorOfType<VFXSlotContainerUI>()) && dataEdgeTargets.Contains(t.output.GetFirstAncestorOfType<VFXSlotContainerUI>()));
+            IEnumerable<VFXFlowEdge> flowEdges = elements.OfType<VFXFlowEdge>().Where(t => contexts.Contains(t.input.GetFirstAncestorOfType<VFXContextUI>()) && contexts.Contains(t.output.GetFirstAncestorOfType<VFXContextUI>()));
+            CopyPasteStruct copyData = new CopyPasteStruct();
+
+            copyData.contexts = contexts.Select(t => t.GetPresenter<VFXContextPresenter>().context).ToArray();
+            copyData.slotContainers = slotContainers.Select(t => t.GetPresenter<VFXSlotContainerPresenter>().model).ToArray();
+
+            copyData.dataEdges = new CopyPasteDataEdge[dataEdges.Count()];
+            int cpt = 0;
+            foreach (var edge in dataEdges)
+            {
+                CopyPasteDataEdge copyPasteEdge = new CopyPasteDataEdge();
+
+                var edgePresenter = edge.GetPresenter<VFXDataEdgePresenter>();
+
+                var inputPresenter = edgePresenter.input as VFXDataAnchorPresenter;
+                var outputPresenter = edgePresenter.output as VFXDataAnchorPresenter;
+
+
+                copyPasteEdge.input.slotPath = MakeSlotPath(inputPresenter.model, true);
+
+                if (inputPresenter.model.owner is VFXContext)
+                {
+                    VFXContext context = inputPresenter.model.owner as VFXContext;
+                    copyPasteEdge.inputContext = true;
+                    copyPasteEdge.input.targetIndex = System.Array.FindIndex(copyData.contexts, t => t == context);
+                    copyPasteEdge.inputBlockIndex = -1;
+                }
+                else if (inputPresenter.model.owner is VFXBlock)
+                {
+                    VFXBlock block = inputPresenter.model.owner as VFXBlock;
+                    copyPasteEdge.inputContext = true;
+                    copyPasteEdge.input.targetIndex = System.Array.FindIndex(copyData.contexts, t => t == block.GetParent());
+                    copyPasteEdge.inputBlockIndex = block.GetParent().GetIndex(block);
+                }
+                else
+                {
+                    copyPasteEdge.inputContext = false;
+                    copyPasteEdge.input.targetIndex = System.Array.FindIndex(copyData.slotContainers, t => t == inputPresenter.model.owner as VFXModel);
+                    copyPasteEdge.inputBlockIndex = -1;
+                }
+
+
+                copyPasteEdge.output.slotPath = MakeSlotPath(outputPresenter.model, false);
+                copyPasteEdge.output.targetIndex = System.Array.FindIndex(copyData.slotContainers, t => t == outputPresenter.model.owner as VFXModel);
+
+                copyData.dataEdges[cpt++] = copyPasteEdge;
+            }
+
+            pasteOffset = defaultPasteOffset;
+            return JsonUtility.ToJson(copyData);
+        }
+
+        int[] MakeSlotPath(VFXSlot slot, bool input)
+        {
+            List<int> slotPath = new List<int>(slot.depth + 1);
+            while (slot.GetParent() != null)
+            {
+                slotPath.Add(slot.GetParent().GetIndex(slot));
+                slot = slot.GetParent();
+            }
+            slotPath.Add((input ? (slot.owner as IVFXSlotContainer).inputSlots : (slot.owner as IVFXSlotContainer).outputSlots).IndexOf(slot));
+
+            return slotPath.ToArray();
+        }
+
+        VFXSlot FetchSlot(IVFXSlotContainer container, int[] slotPath, bool input)
+        {
+            VFXSlot slot = input ? container.GetInputSlot(slotPath[slotPath.Length - 1]) : container.GetOutputSlot(slotPath[slotPath.Length - 1]);
+
+            for (int i = slotPath.Length - 2; i >= 0; --i)
+            {
+                slot = slot[slotPath[i]];
+            }
+
+            return slot;
+        }
+
+        void UnserializeAndPasteElements(string operationName, string data)
+        {
+            CopyPasteStruct copyData = (CopyPasteStruct)JsonUtility.FromJson<CopyPasteStruct>(data);
+
+            var graph = GetPresenter<VFXViewPresenter>().GetGraph();
+
+            List<VFXContext> newContexts = new List<VFXContext>(copyData.contexts.Length);
+
+            foreach (var context in copyData.contexts)
+            {
+                var newContext = context.Clone<VFXContext>();
+                newContext.position += pasteOffset;
+                newContexts.Add(newContext);
+                graph.AddChild(newContext);
+            }
+
+            List<VFXModel> newSlotContainers = new List<VFXModel>(copyData.slotContainers.Length);
+
+            foreach (var slotContainer in copyData.slotContainers)
+            {
+                var newSlotContainer = slotContainer.Clone<VFXModel>();
+                newSlotContainer.position += pasteOffset;
+                newSlotContainers.Add(newSlotContainer);
+                graph.AddChild(newSlotContainer);
+            }
+
+            foreach (var dataEdge in copyData.dataEdges)
+            {
+                VFXSlot inputSlot = null;
+                if (dataEdge.inputContext)
+                {
+                    VFXContext targetContext = newContexts[dataEdge.input.targetIndex];
+                    if (dataEdge.inputBlockIndex == -1)
+                    {
+                        inputSlot = FetchSlot(targetContext, dataEdge.input.slotPath, true);
+                    }
+                    else
+                    {
+                        inputSlot = FetchSlot(targetContext[dataEdge.inputBlockIndex], dataEdge.input.slotPath, true);
+                    }
+                }
+                else
+                {
+                    VFXModel model = newSlotContainers[dataEdge.input.targetIndex];
+                    inputSlot = FetchSlot(model as IVFXSlotContainer, dataEdge.input.slotPath, true);
+                }
+
+                VFXSlot outputSlot = FetchSlot(newSlotContainers[dataEdge.output.targetIndex] as IVFXSlotContainer, dataEdge.output.slotPath, false);
+
+                inputSlot.Link(outputSlot);
+            }
+
+            pasteOffset += defaultPasteOffset;
+        }
     }
 }
