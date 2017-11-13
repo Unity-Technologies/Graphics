@@ -197,7 +197,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             Mesh previewMesh = mesh == null ? s_Meshes[0] : mesh;
 
-            Vector3 previewPosition = -previewMesh.bounds.center;
+            Vector3 previewPosition = previewMesh.bounds.center;
 
             Graphics.DrawMesh(
                 mode == PreviewMode.Preview3D ? previewMesh : quad,
