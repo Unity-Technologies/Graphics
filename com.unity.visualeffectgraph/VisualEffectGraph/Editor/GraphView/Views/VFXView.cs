@@ -782,8 +782,8 @@ namespace UnityEditor.VFX.UI
             IEnumerable<VFXFlowEdge> flowEdges = elements.OfType<VFXFlowEdge>().Where(t => contexts.Contains(t.input.GetFirstAncestorOfType<VFXContextUI>()) && contexts.Contains(t.output.GetFirstAncestorOfType<VFXContextUI>()));
             CopyPasteStruct copyData = new CopyPasteStruct();
 
-            copyData.contexts = contexts.Select(t => t.GetPresenter<VFXContextPresenter>().context).ToArray();
-            copyData.slotContainers = slotContainers.Select(t => t.GetPresenter<VFXSlotContainerPresenter>().model).ToArray();
+            copyData.contexts = contexts.Select(t => t.GetPresenter<VFXContextPresenter>().context.Clone<VFXContext>()).ToArray();
+            copyData.slotContainers = slotContainers.Select(t => t.GetPresenter<VFXSlotContainerPresenter>().model.Clone<VFXModel>()).ToArray();
 
             copyData.dataEdges = new CopyPasteDataEdge[dataEdges.Count()];
             int cpt = 0;
