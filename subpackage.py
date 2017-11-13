@@ -27,9 +27,12 @@ def main():
     parser.add_argument("-p", "--publish", action="store_true",
                         help="DANGER: actually do the publish and then clean-up. if not set, only preparation will be "
                              "done for inspection purposes")
+    parser.add_argument("-F", "--filter", default="",
+                        help="only packages containing the specified string will be published")
     parser.add_argument("-d", "--dirty", action="store_true",
                         help="don't clean-up files")
-    parser.add_argument("-s", "--silent", action="store_true", help="don't tell me what's going on here")
+    parser.add_argument("-s", "--silent", action="store_true",
+                        help="don't tell me what's going on here")
     args = parser.parse_args()
     silent = args.silent
     base_folder = os.path.realpath(args.folder)
@@ -56,9 +59,10 @@ def main():
                 error_print(e)
                 exit(1)
 
+    potential_folders = master_package["subPackages"] if "subPackages" in master_package else []
     sub_packages = {}
     sub_package_folders = {}
-    for item in os.listdir(base_folder):
+    for item in potential_folders:
         file_path = os.path.join(base_folder, item, "sub-package.json")
         if os.path.isfile(file_path):
             info_print("Found sub-package file: {}".format(file_path))
@@ -66,7 +70,8 @@ def main():
                 try:
                     sub_package = json.load(file)
                     sub_packages[sub_package["name"]] = sub_package
-                    sub_package_folders[sub_package["name"]] = os.path.join(base_folder, item)
+                    sub_package_folders[sub_package["name"]
+                                       ] = os.path.join(base_folder, item)
                 except json.JSONDecodeError as e:
                     error_print("Error: {}".format(e))
 
@@ -107,12 +112,15 @@ def main():
     for i, sub_package in enumerate(sub_packages.values()):
         if "subDependencies" in sub_package and sub_package["subDependencies"]:
             for dependency in sub_package["subDependencies"]:
-                dependency_list[dependency][sub_package["name"]] = dependency_list[sub_package["name"]]
+                dependency_list[dependency][sub_package["name"]
+                                            ] = dependency_list[sub_package["name"]]
         else:
-            dependency_tree[sub_package["name"]] = dependency_list[sub_package["name"]]
+            dependency_tree[sub_package["name"]
+                            ] = dependency_list[sub_package["name"]]
 
     if not dependency_tree:
-        error_print("Dependency tree is empty. You might have a circular reference.")
+        error_print(
+            "Dependency tree is empty. You might have a circular reference.")
         exit(1)
 
     def print_dependency_tree(tree, indent):
@@ -130,7 +138,8 @@ def main():
     def fill_publish_order(tree):
         for key, sub_tree in tree.items():
             if key not in visited:
-                publish_order.append(key)
+                if args.filter in key:
+                    publish_order.append(key)
                 fill_publish_order(sub_tree)
 
     fill_publish_order(dependency_tree)
@@ -146,7 +155,8 @@ def main():
             info_print("  {}:".format(sub_package["name"]))
             for sub_dependency in sub_package["subDependencies"]:
                 sub_package["dependencies"][sub_dependency] = master_package["version"]
-                info_print("    {}@{}".format(sub_dependency, sub_package["dependencies"][sub_dependency]))
+                info_print("    {}@{}".format(sub_dependency,
+                                              sub_package["dependencies"][sub_dependency]))
             del sub_package["subDependencies"]
     info_print("")
 
@@ -163,13 +173,15 @@ def main():
 
     info_print("Downloading npm config:")
     c = HTTPSConnection("staging-packages.unity.com")
-    auth = b64encode("{}@unity:{}".format(args.username, args.key).encode("ascii")).decode("ascii")
+    auth = b64encode("{}@unity:{}".format(
+        args.username, args.key).encode("ascii")).decode("ascii")
     c.request('GET', '/auth', headers={"Authorization": "Basic %s" % auth})
     res = c.getresponse()
     npm_config = res.read().decode(res.headers.get_content_charset("ascii"))
     print(textwrap.indent(npm_config, "  >"))
     info_print("Writing config to sub-package folders:")
-    for folder in sub_package_folders.values():
+    for name in publish_order:
+        folder = sub_package_folders[name]
         path = os.path.join(folder, ".npmrc")
         with open(path, 'w') as file:
             file.write(npm_config)
@@ -186,7 +198,8 @@ def main():
     if not args.dirty:
         info_print("Removing temporary files:")
         files = []
-        for folder in sub_package_folders.values():
+        for name in publish_order:
+            folder = sub_package_folders[name]
             files.append(os.path.join(folder, "package.json"))
             files.append(os.path.join(folder, ".npmrc"))
         for file in files:
