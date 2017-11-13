@@ -10,35 +10,27 @@ namespace UnityEditor.VFX.Block
     class AttributeFromMap : VFXBlock
     {
         // TODO: Let's factorize this this into a utility class
-        public enum RandomMode
+        public enum AttributeMapSampleMode
         {
-            Constant,
+            IndexRelative,
+            Index,
+            Sequential,
             Random,
             RandomUniformPerParticle,
         }
 
-        public enum AttributeMapDataLayout
-        {
-            Unsigned8Bits,
-            Signed8BitsGrayCentered,
-            SignedFloat,
-        }
-
         [VFXSetting]
         [StringProvider(typeof(AttributeProvider))]
+        [Tooltip("Target Attribute")]
         public string attribute = VFXAttribute.All.First();
 
         [VFXSetting]
         [Tooltip("How to compose the attribute with its previous value")]
-        public AttributeCompositionMode composition = AttributeCompositionMode.Overwrite;
+        public AttributeCompositionMode Composition = AttributeCompositionMode.Overwrite;
 
         [VFXSetting]
         [Tooltip("How to sample inside the AttributeMap")]
-        public RandomMode randomMode = RandomMode.RandomUniformPerParticle;
-
-        [VFXSetting]
-        [Tooltip("How the data is stored in the Texture")]
-        public AttributeMapDataLayout Layout = AttributeMapDataLayout.SignedFloat;
+        public AttributeMapSampleMode SampleMode = AttributeMapSampleMode.RandomUniformPerParticle;
 
         public override string name { get { return "Attribute from Map"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
@@ -47,9 +39,10 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                yield return new VFXAttributeInfo(currentAttribute, composition == AttributeCompositionMode.Overwrite ? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);
-                if (randomMode == RandomMode.Random) yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
-                if (randomMode == RandomMode.RandomUniformPerParticle) yield return new VFXAttributeInfo(VFXAttribute.Phase, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(currentAttribute, Composition == AttributeCompositionMode.Overwrite ? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);
+                if (SampleMode == AttributeMapSampleMode.Sequential) yield return new VFXAttributeInfo(VFXAttribute.ParticleId, VFXAttributeMode.Read);
+                if (SampleMode == AttributeMapSampleMode.Random) yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
+                if (SampleMode == AttributeMapSampleMode.RandomUniformPerParticle) yield return new VFXAttributeInfo(VFXAttribute.Phase, VFXAttributeMode.Read);
             }
         }
 
@@ -60,13 +53,19 @@ namespace UnityEditor.VFX.Block
                 foreach (var prop in PropertiesFromType("InputProperties"))
                     yield return prop;
 
-                if (randomMode == RandomMode.Constant)
+                if (SampleMode == AttributeMapSampleMode.IndexRelative)
                 {
-                    foreach (var prop in PropertiesFromType("InputPropertiesConstant"))
+                    foreach (var prop in PropertiesFromType("InputPropertiesRelative"))
                         yield return prop;
                 }
 
-                if (composition == AttributeCompositionMode.Blend)
+                if (SampleMode == AttributeMapSampleMode.Index)
+                {
+                    foreach (var prop in PropertiesFromType("InputPropertiesIndex"))
+                        yield return prop;
+                }
+
+                if (Composition == AttributeCompositionMode.Blend)
                 {
                     foreach (var prop in PropertiesFromType("InputPropertiesBlend"))
                         yield return prop;
@@ -97,88 +96,95 @@ namespace UnityEditor.VFX.Block
                 string attributeName = attribute.name;
 
                 string samplePos = "0";
-                switch (randomMode)
+                switch (SampleMode)
                 {
-                    case RandomMode.Constant:                   samplePos = "uint(relativePos * count)"; break;
-                    case RandomMode.Random:                     samplePos = "uint(RAND * count)"; break;
-                    case RandomMode.RandomUniformPerParticle:   samplePos = "uint(phase * count)"; break;
+                    case AttributeMapSampleMode.IndexRelative:           samplePos = "relativePos * count"; break;
+                    case AttributeMapSampleMode.Index:                      samplePos = "index % count"; break;
+                    case AttributeMapSampleMode.Sequential:                 samplePos = "particleId % count"; break;
+                    case AttributeMapSampleMode.Random:                     samplePos = "RAND * count"; break;
+                    case AttributeMapSampleMode.RandomUniformPerParticle:   samplePos = "phase * count"; break;
                 }
 
-                string scale = (Layout == AttributeMapDataLayout.Signed8BitsGrayCentered) ? "value = (value - 0.5f) * valueScale;" : "value *= valueScale;";
+                string biasScale = "value = (value  + valueBias) * valueScale;";
+
                 string output = string.Format(@"
 uint width, height;
 attributeMap.t.GetDimensions(width, height);
 uint count = width * height;
-uint id = {0};
-{1} value = attributeMap.t[uint2(id % width, id / width)]{2};
-{3}
-", samplePos, GetCompatTypeString(attribute), GetCompatTypeSubscript(attribute), scale);
-                if (composition != AttributeCompositionMode.Blend)
-                    return output + string.Format(VFXBlockUtility.GetComposeFormatString(composition), attributeName, "value");
+uint id = clamp(uint({0}), 0, count - 1);
+{1} value = ({1})attributeMap.t.Load(int3(id % width, id / width,0));
+{2}
+", samplePos, GetCompatTypeString(attribute), biasScale);
+
+                if (Composition != AttributeCompositionMode.Blend)
+                    return output + string.Format(VFXBlockUtility.GetComposeFormatString(Composition), attributeName, "value");
                 else
-                    return output + string.Format(VFXBlockUtility.GetComposeFormatString(composition), attributeName, "value", "blend");
+                    return output + string.Format(VFXBlockUtility.GetComposeFormatString(Composition), attributeName, "value", "blend");
             }
         }
 
         public class InputProperties
         {
+            [Tooltip("AttributeMap texture to read attributes from")]
             public Texture2D attributeMap;
         }
 
-        public class InputPropertiesConstant
+        public class InputPropertiesRelative
         {
+            [Tooltip("Position in range [0..1] to sample")]
             public float relativePos = 0.0f;
         }
+
+        public class InputPropertiesIndex
+        {
+            [Tooltip("Absolute index to sample")]
+            public uint index = 0;
+        }
+
         public class InputPropertiesBlend
         {
+            [Tooltip("Blend fraction with previous value")]
             public float blend = 0.5f;
         }
 
         public class InputPropertiesScaleFloat
         {
+            [Tooltip("Bias Applied to the read float value")]
+            public float valueBias = 0.0f;
+            [Tooltip("Scale Applied to the read float value")]
             public float valueScale = 1.0f;
         }
         public class InputPropertiesScaleFloat2
         {
+            [Tooltip("Bias Applied to the read Vector2 value")]
+            public Vector2 valueBias = new Vector2(0.0f, 0.0f);
+            [Tooltip("Scale Applied to the read Vector2 value")]
             public Vector2 valueScale = new Vector2(1.0f, 1.0f);
         }
         public class InputPropertiesScaleFloat3
         {
+            [Tooltip("Bias Applied to the read Vector3 value")]
+            public Vector3 valueBias = new Vector3(0.0f, 0.0f, 0.0f);
+            [Tooltip("Scale Applied to the read Vector3 value")]
             public Vector3 valueScale = new Vector3(1.0f, 1.0f, 1.0f);
         }
+
         public class InputPropertiesScaleFloat4
         {
+            [Tooltip("Bias Applied to the read Vector4 value")]
+            public Vector4 valueBias = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+            [Tooltip("Scale Applied to the read Vector4 value")]
             public Vector4 valueScale = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
         }
 
-        private string GetCompatTypeString(VFXAttribute attrib)
+        private VFXAttribute currentAttribute { get { return VFXAttribute.Find(attribute); } }
+
+        private static string GetCompatTypeString(VFXAttribute attrib)
         {
             if (!VFXExpression.IsUniform(attrib.type))
                 throw new InvalidOperationException("Trying to fetch an attribute of type: " + attrib.type);
 
             return VFXExpression.TypeToCode(attrib.type);
-        }
-
-        private string GetCompatTypeSubscript(VFXAttribute attrib)
-        {
-            if (!VFXExpression.IsUniform(attrib.type))
-                throw new InvalidOperationException("Trying to fetch an attribute of type: " + attrib.type);
-
-            int count = VFXExpression.TypeToSize(attrib.type);
-            switch (count)
-            {
-                case 2: return ".xy";
-                case 3: return ".xyz";
-                case 4: return ".xyzw";
-            }
-            return "";
-        }
-
-        private VFXAttribute currentAttribute { get { return VFXAttribute.Find(attribute); } }
-
-        static private string GenerateLocalAttributeName(string name)
-        {
-            return name[0].ToString().ToUpper() + name.Substring(1);
         }
     }
 }
