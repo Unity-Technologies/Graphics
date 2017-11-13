@@ -202,6 +202,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnNodeChanged(INode inNode, ModificationScope scope)
         {
+            if (m_GraphView == null)
+                return;
+            
             var dependentNodes = new List<INode>();
             NodeUtils.CollectNodesNodeFeedsInto(dependentNodes, inNode);
             foreach (var node in dependentNodes)
