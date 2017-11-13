@@ -271,7 +271,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_PreviewTextureView.RemoveFromClassList("hidden");
                 m_PreviewTextureView.image = m_PreviewData.texture;
             }
-            Dirty(ChangeType.Repaint);
+            m_PreviewTextureView.Dirty(ChangeType.Repaint);
         }
 
         void UpdateControls()
