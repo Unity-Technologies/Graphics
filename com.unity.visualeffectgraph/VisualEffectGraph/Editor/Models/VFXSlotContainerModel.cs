@@ -200,7 +200,7 @@ namespace UnityEditor.VFX
         {
             var clone = base.Clone<T>() as VFXSlotContainerModel<ParentType, ChildrenType>;
 
-            var settings = VFXSettingAttribute.Collect(this, true);
+            var settings = GetSettings(true);
             foreach (var setting in settings)
             {
                 clone.SetSettingValue(setting.Name, setting.GetValue(this), false);

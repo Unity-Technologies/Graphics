@@ -23,8 +23,16 @@ namespace UnityEditor.VFX
     [VFXInfo(category = "BuiltIn", variantProvider = typeof(BuiltInVariant))]
     class VFXBuiltInParameter : VFXOperator
     {
-        [SerializeField, VFXSetting(hidden = true)]
+        [SerializeField, VFXSetting]
         protected VFXExpressionOp m_expressionOp;
+
+        protected sealed override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                yield return "m_expressionOp";
+            }
+        }
 
         override public string name { get { return m_expressionOp.ToString(); } }
 

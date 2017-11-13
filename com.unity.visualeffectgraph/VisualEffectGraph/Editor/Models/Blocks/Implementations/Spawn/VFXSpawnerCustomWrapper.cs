@@ -23,8 +23,16 @@ namespace UnityEditor.VFX
     [VFXInfo(category = "Spawner/Custom", variantProvider = typeof(CustomSpawnerVariant))]
     class VFXSpawnerCustomWrapper : VFXAbstractSpawner
     {
-        [SerializeField, VFXSetting(hidden = true)]
+        [SerializeField, VFXSetting]
         protected SerializableType m_customType;
+
+        protected override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                yield return "m_customType";
+            }
+        }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {

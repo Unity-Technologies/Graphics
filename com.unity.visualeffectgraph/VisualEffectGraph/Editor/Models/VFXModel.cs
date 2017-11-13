@@ -232,9 +232,21 @@ namespace UnityEditor.VFX
                 m_Parent.Invalidate(model, cause);
         }
 
-        public IEnumerable<FieldInfo> GetActiveSettings(bool listHidden = false)
+        public IEnumerable<FieldInfo> GetSettings(bool listHidden)
         {
-            return VFXSettingAttribute.Collect(this, listHidden).Where(fo => !filteredOutSettings.Contains(fo.Name));
+            return GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(f =>
+                {
+                    var attrArray = f.GetCustomAttributes(typeof(VFXSettingAttribute), true);
+                    if (attrArray.Length == 1)
+                    {
+                        var attr = attrArray[0] as VFXSettingAttribute;
+                        if (!filteredOutSettings.Contains(f.Name) || listHidden)
+                        {
+                            return true;
+                        }
+                    }
+                    return false;
+                });
         }
 
         protected virtual IEnumerable<string> filteredOutSettings

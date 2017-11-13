@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.UI
         {
             base.Init(model, viewPresenter);
 
-            var settings = VFXSettingAttribute.Collect(model).Where(o => IsTypeSupported(o.FieldType));
+            var settings = model.GetSettings(true).Where(o => IsTypeSupported(o.FieldType));
             m_Settings = new VFXSettingPresenter[settings.Count()];
             int cpt = 0;
             foreach (var setting in settings)
