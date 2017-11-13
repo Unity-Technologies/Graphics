@@ -9,6 +9,9 @@ namespace UnityEditor.Graphing
         [SerializeField]
         SerializationHelper.JSONSerializedElement m_SerializedGraph;
 
+        [SerializeField]
+        bool m_IsDirty;
+
         IGraph m_Graph;
         IGraph m_DeserializedGraph;
 
@@ -25,9 +28,15 @@ namespace UnityEditor.Graphing
             }
         }
 
+        public bool isDirty
+        {
+            get { return m_IsDirty; }
+        }
+
         public void RegisterCompleteObjectUndo(string name)
         {
             Undo.RegisterCompleteObjectUndo(this, name);
+            m_IsDirty = true;
         }
 
         public void OnBeforeSerialize()
