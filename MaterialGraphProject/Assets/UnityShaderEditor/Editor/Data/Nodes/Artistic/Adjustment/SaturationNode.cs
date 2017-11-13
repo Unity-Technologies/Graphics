@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Art/Adjustments/Saturation")]
+    [Title("Artistic/Adjustment/Saturation")]
     public class SaturationNode : CodeFunctionNode
     {
         public SaturationNode()
@@ -17,20 +17,15 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_Saturation(
-            [Slot(0, Binding.None)] Vector3 first,
-            [Slot(1, Binding.None)] Vector1 second,
-            [Slot(2, Binding.None)] out Vector3 result)
+            [Slot(0, Binding.None)] Vector3 In,
+            [Slot(1, Binding.None, 1, 1, 1, 1)] Vector1 Saturation,
+            [Slot(2, Binding.None)] out Vector3 Out)
         {
-            result = Vector3.zero;
-
+            Out = Vector3.zero;
             return @"
 {
-    // RGB Saturation (closer to a vibrance effect than actual saturation)
-    // Recommended workspace: ACEScg (linear)
-    // Optimal range: [0.0, 2.0]
-    // From PostProcessing
-    {precision} luma = dot(first, {precision}3(0.2126729, 0.7151522, 0.0721750));
-    result = luma.xxx + first.xxx * (second - luma.xxx);
+    {precision} luma = dot(In, float3(0.2126729, 0.7151522, 0.0721750));
+    Out =  luma.xxx + Saturation.xxx * (In - luma.xxx);
 }
 ";
         }
