@@ -452,7 +452,6 @@ MonoBehaviour:
   m_UICollapsed: 1
   m_Owners:
   - {fileID: 114592171084504942}
-  m_TestId: 1914268104
 --- !u!114 &114348003522140610
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -571,7 +570,6 @@ MonoBehaviour:
   - {fileID: 114378104080370812}
   - {fileID: 114498537633067934}
   - {fileID: 114421384271978552}
-  m_TestId: 258342230
   m_Capacity: 65536
   m_Bounds:
     m_Center: {x: 0, y: 0, z: 0}
@@ -1456,15 +1454,59 @@ VFXAsset:
       m_Array: []
   m_Buffers:
   - type: 1
-    stride: 4
-    capacity: 851968
-  - type: 2
-    stride: 4
+    size: 851968
     capacity: 65536
+    layout:
+    - name: velocity
+      type: 3
+      offset:
+        bucket: 0
+        structure: 4
+        element: 0
+    - name: position
+      type: 3
+      offset:
+        bucket: 262144
+        structure: 8
+        element: 0
+    - name: alive
+      type: 14
+      offset:
+        bucket: 262144
+        structure: 8
+        element: 3
+    - name: age
+      type: 1
+      offset:
+        bucket: 262144
+        structure: 8
+        element: 4
+    - name: lifetime
+      type: 1
+      offset:
+        bucket: 786432
+        structure: 1
+        element: 0
+  - type: 2
+    size: 65536
+    capacity: 0
+    layout: []
   - type: 1
-    stride: 4
-    capacity: 1
-  m_CPUBuffers: []
+    size: 1
+    capacity: 0
+    layout: []
+  m_CPUBuffers:
+  - capacity: 1
+    stride: 1
+    layout:
+    - name: spawnCount
+      type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+    initialData:
+      data: 00000000
   m_Systems:
   - type: 1
     flags: 1
@@ -1503,7 +1545,7 @@ VFXAsset:
         nameId: uniform_Min_d
       - index: 19
         nameId: uniform_Max_d
-      processor: {fileID: 7200000, guid: 81f17fc458b645340b0993dd560881b5, type: 3}
+      processor: {fileID: 7200000, guid: 89adbf3ad7db4da4d8b046510e68789c, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -1513,7 +1555,7 @@ VFXAsset:
       values:
       - index: 20
         nameId: uniform_deltaTime_b
-      processor: {fileID: 7200000, guid: 514a44495fa515a4083c27765ff14d5f, type: 3}
+      processor: {fileID: 7200000, guid: ba21e9739684b594681209f3096da343, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -1525,7 +1567,7 @@ VFXAsset:
         nameId: uniform_gradient_c
       - index: 22
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: 0cffc1a8d9a1a5b4586d70a8ef30c256, type: 3}
+      processor: {fileID: 4800000, guid: 7179e0d47f2f72240afddf5fae580bd4, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 
