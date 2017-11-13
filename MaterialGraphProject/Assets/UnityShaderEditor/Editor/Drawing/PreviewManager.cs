@@ -297,6 +297,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (previewData.shader != null && MaterialGraphAsset.ShaderHasError(previewData.shader))
             {
+                ShaderUtil.ClearShaderErrors(previewData.shader);
                 Object.DestroyImmediate(previewData.shader, true);
                 previewData.shader = null;
             }
