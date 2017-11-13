@@ -18,6 +18,7 @@ MonoBehaviour:
   m_Owners:
   - {fileID: 114200878334508554}
   - {fileID: 114484488579883542}
+  m_TestId: 1048902260
   m_Capacity: 65536
   m_Bounds:
     m_Center: {x: 0, y: 0, z: 0}
@@ -643,6 +644,7 @@ MonoBehaviour:
   - {fileID: 114869919447921010}
   - {fileID: 114047252597674588}
   - {fileID: 114729319468502618}
+  m_TestId: 1123777830
   m_Capacity: 65536
   m_Bounds:
     m_Center: {x: 0, y: 0, z: 0}
@@ -1090,34 +1092,13 @@ VFXAsset:
       m_Array: []
     m_Bool:
       m_Array: []
-  m_Buffers:
-  - type: 1
-    size: 262144
-    capacity: 65536
-    layout:
-    - name: oldPosition
-      type: 3
-      offset:
-        bucket: 0
-        structure: 4
-        element: 0
-  m_CPUBuffers:
-  - capacity: 1
-    stride: 1
-    layout:
-    - name: spawnCount
-      type: 1
-      offset:
-        bucket: 0
-        structure: 1
-        element: 0
+  m_Buffers: []
+  m_CPUBuffers: []
   m_Systems:
   - type: 1
     flags: 0
     capacity: 65536
-    buffers:
-    - bufferIndex: 0
-      nameId: attributeBuffer
+    buffers: []
     values:
     - expressionIndex: 12
       nameId: bounds_center
@@ -1125,23 +1106,17 @@ VFXAsset:
       nameId: bounds_size
     tasks:
     - type: 536870912
-      buffers:
-      - bufferIndex: 0
-        nameId: attributeBuffer
+      buffers: []
       values: []
-      processor: {fileID: 7200000, guid: 18b5e4c13aaf0194b93cb2681d22ace8, type: 3}
+      processor: {fileID: 7200000, guid: 34630fa5f453c4c48a722d160ec8e2a0, type: 3}
     - type: 805306368
-      buffers:
-      - bufferIndex: 0
-        nameId: attributeBuffer
+      buffers: []
       values: []
-      processor: {fileID: 7200000, guid: a75cfa0ded7100a4bafc6da4bf3bd910, type: 3}
+      processor: {fileID: 7200000, guid: ca8d18d09c4182e4796e0b05ac42e094, type: 3}
     - type: 1073741825
-      buffers:
-      - bufferIndex: 0
-        nameId: attributeBuffer
+      buffers: []
       values: []
-      processor: {fileID: 4800000, guid: ae90377dbe6bcb142922291cb907cb03, type: 3}
+      processor: {fileID: 4800000, guid: d5cd5ffefb045024aa747d04bcbcbdaf, type: 3}
   - type: 1
     flags: 0
     capacity: 65536
@@ -1155,11 +1130,11 @@ VFXAsset:
     - type: 536870912
       buffers: []
       values: []
-      processor: {fileID: 7200000, guid: 8674a39e35ebc504e99bf9b29a64cb75, type: 3}
+      processor: {fileID: 7200000, guid: 343c8c460852d0e4a9ca5de76690deb4, type: 3}
     - type: 1073741825
       buffers: []
       values: []
-      processor: {fileID: 4800000, guid: 95baecdfc0d4bb64ab7d17ba0758f85f, type: 3}
+      processor: {fileID: 4800000, guid: 390ca5eee0be0d341850efc1f7e7c9d1, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 
