@@ -276,7 +276,7 @@ namespace UnityEditor.VFX
                 attributeSourceBufferIndex = outBufferDescs.Count;
                 var bufferDesc = m_layoutAttributeSource.GetBufferDesc(sourceCount);
                 outBufferDescs.Add(bufferDesc);
-                systemBufferMappings.Add(new VFXBufferMapping(attributeSourceBufferIndex, "sourceAttributeBuffer"));
+                systemBufferMappings.Add(new VFXMapping(attributeSourceBufferIndex, "sourceAttributeBuffer"));
             }
 
             var systemFlag = VFXSystemFlag.kVFXSystemDefault;
@@ -295,7 +295,7 @@ namespace UnityEditor.VFX
 
             var initContext = owners.FirstOrDefault(o => o.contextType == VFXContextType.kInit);
             if (initContext != null)
-                systemBufferMappings.AddRange(initContext.inputContexts.Select(o => new VFXBufferMapping(contextSpawnToBufferIndex[o], "spawner_input")));
+                systemBufferMappings.AddRange(initContext.inputContexts.Select(o => new VFXMapping(contextSpawnToBufferIndex[o], "spawner_input")));
             if (owners.Count() > 0 && owners.First().contextType == VFXContextType.kInit) // TODO This test can be removed once we ensure priorly the system is valid
             {
                 var mapper = contextToCompiledData[owners.First()].cpuMapper;
@@ -335,7 +335,7 @@ namespace UnityEditor.VFX
                 if (deadListCountIndex != -1 && context.contextType == VFXContextType.kInit)
                     bufferMappings.Add(new VFXMapping(deadListCountIndex, "deadListCount"));
                 if (attributeSourceBufferIndex != -1 && context.contextType == VFXContextType.kInit)
-                    bufferMappings.Add(new VFXBufferMapping(attributeSourceBufferIndex, "sourceAttributeBuffer"));
+                    bufferMappings.Add(new VFXMapping(attributeSourceBufferIndex, "sourceAttributeBuffer"));
 
                 uniformMappings.Clear();
                 foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.textures))

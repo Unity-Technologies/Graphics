@@ -795,7 +795,6 @@ MonoBehaviour:
   - {fileID: 114566370008860848}
   - {fileID: 114889596446218778}
   - {fileID: 114978069437681324}
-  m_TestId: 1881888680
   m_Capacity: 65536
   m_Bounds:
     m_Center: {x: 0, y: 0, z: 0}
@@ -2129,7 +2128,6 @@ MonoBehaviour:
   m_UICollapsed: 1
   m_Owners:
   - {fileID: 114290022498365920}
-  m_TestId: 594388027
 --- !u!114 &114624924747082904
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3931,19 +3929,60 @@ VFXAsset:
       m_Array: []
   m_Buffers:
   - type: 1
-    stride: 4
-    capacity: 524288
-  m_CPUBuffers:
-  - capacity: 1
+    size: 524288
+    capacity: 65536
+    layout:
+    - name: color
+      type: 3
+      offset:
+        bucket: 0
+        structure: 8
+        element: 0
+    - name: position
+      type: 3
+      offset:
+        bucket: 0
+        structure: 8
+        element: 4
+  - type: 1
+    size: 1
+    capacity: 1
     layout:
     - name: spawnCount
       type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+  m_CPUBuffers:
+  - capacity: 1
+    stride: 1
+    layout:
+    - name: spawnCount
+      type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+    initialData:
+      data: 00000000
+  - capacity: 1
+    stride: 1
+    layout:
+    - name: spawnCount
+      type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+    initialData:
+      data: 00000000
   m_Systems:
   - type: 0
     flags: 0
     capacity: 0
     buffers:
-    - index: 0
+    - index: 1
       nameId: spawner_output
     values: []
     tasks:
@@ -3961,7 +4000,9 @@ VFXAsset:
     buffers:
     - index: 0
       nameId: attributeBuffer
-    - index: 0
+    - index: 1
+      nameId: sourceAttributeBuffer
+    - index: 1
       nameId: spawner_input
     values:
     - index: 44
@@ -3973,6 +4014,8 @@ VFXAsset:
       buffers:
       - index: 0
         nameId: attributeBuffer
+      - index: 1
+        nameId: sourceAttributeBuffer
       values:
       - index: 6
         nameId: uniform_b

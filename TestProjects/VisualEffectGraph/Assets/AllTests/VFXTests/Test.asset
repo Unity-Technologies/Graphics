@@ -3104,7 +3104,6 @@ MonoBehaviour:
   - {fileID: 114116801909999344}
   - {fileID: 114363922546830494}
   - {fileID: 114398040047341524}
-  m_TestId: 2133584971
   m_Capacity: 65536
   m_Bounds:
     m_Center: {x: 0, y: 0, z: 0}
@@ -3127,7 +3126,6 @@ MonoBehaviour:
   m_UICollapsed: 1
   m_Owners:
   - {fileID: 114887803095184970}
-  m_TestId: 1097476115
 --- !u!114 &114565439697697792
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5800,25 +5798,92 @@ VFXAsset:
       m_Array: []
   m_Buffers:
   - type: 1
-    stride: 4
-    capacity: 851968
-  - type: 2
-    stride: 4
+    size: 851968
     capacity: 65536
+    layout:
+    - name: color
+      type: 3
+      offset:
+        bucket: 0
+        structure: 4
+        element: 0
+    - name: position
+      type: 3
+      offset:
+        bucket: 262144
+        structure: 4
+        element: 0
+    - name: alive
+      type: 14
+      offset:
+        bucket: 262144
+        structure: 4
+        element: 3
+    - name: velocity
+      type: 3
+      offset:
+        bucket: 524288
+        structure: 4
+        element: 0
+    - name: lifetime
+      type: 1
+      offset:
+        bucket: 524288
+        structure: 4
+        element: 3
+    - name: age
+      type: 1
+      offset:
+        bucket: 786432
+        structure: 1
+        element: 0
   - type: 1
-    stride: 4
+    size: 1
     capacity: 1
-  m_CPUBuffers:
-  - capacity: 1
     layout:
     - name: spawnCount
       type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+  - type: 2
+    size: 65536
+    capacity: 0
+    layout: []
+  - type: 1
+    size: 1
+    capacity: 0
+    layout: []
+  m_CPUBuffers:
+  - capacity: 1
+    stride: 1
+    layout:
+    - name: spawnCount
+      type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+    initialData:
+      data: 00000000
+  - capacity: 1
+    stride: 1
+    layout:
+    - name: spawnCount
+      type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+    initialData:
+      data: 00000000
   m_Systems:
   - type: 0
     flags: 0
     capacity: 0
     buffers:
-    - index: 0
+    - index: 1
       nameId: spawner_output
     values: []
     tasks:
@@ -5835,10 +5900,12 @@ VFXAsset:
     - index: 0
       nameId: attributeBuffer
     - index: 1
-      nameId: deadList
+      nameId: sourceAttributeBuffer
     - index: 2
+      nameId: deadList
+    - index: 3
       nameId: deadListCount
-    - index: 0
+    - index: 1
       nameId: spawner_input
     values:
     - index: 59
@@ -5850,10 +5917,12 @@ VFXAsset:
       buffers:
       - index: 0
         nameId: attributeBuffer
-      - index: 1
-        nameId: deadListIn
       - index: 2
+        nameId: deadListIn
+      - index: 3
         nameId: deadListCount
+      - index: 1
+        nameId: sourceAttributeBuffer
       values:
       - index: 62
         nameId: uniform_Color_b
@@ -5870,7 +5939,7 @@ VFXAsset:
       buffers:
       - index: 0
         nameId: attributeBuffer
-      - index: 1
+      - index: 2
         nameId: deadListOut
       values:
       - index: 66
