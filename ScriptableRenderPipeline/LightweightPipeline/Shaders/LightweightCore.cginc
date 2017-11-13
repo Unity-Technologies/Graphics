@@ -3,46 +3,107 @@
 
 #include "UnityCG.cginc"
 
-#define MAX_VISIBLE_LIGHTS 16
-
 #if defined(UNITY_COLORSPACE_GAMMA)
     #define LIGHTWEIGHT_GAMMA_TO_LINEAR(gammaColor) gammaColor * gammaColor
     #define LIGHTWEIGHT_LINEAR_TO_GAMMA(linColor) sqrt(color)
+    #define OUTPUT_COLOR(color) return half4(LIGHTWEIGHT_LINEAR_TO_GAMMA(color.rgb), color.a)
 #else
     #define LIGHTWEIGHT_GAMMA_TO_LINEAR(color) color
     #define LIGHTWEIGHT_LINEAR_TO_GAMMA(color) color
+    #define OUTPUT_COLOR(color) color
 #endif
 
-#ifdef _SPECULAR_SETUP
-    #define SAMPLE_METALLICSPECULAR(uv) tex2D(_SpecGlossMap, uv)
+half _Pow4(half x)
+{
+    return x * x * x * x;
+}
+
+half _LerpOneTo(half b, half t)
+{
+    half oneMinusT = 1 - t;
+    return oneMinusT + b * t;
+}
+
+half3 SafeNormalize(half3 inVec)
+{
+    half dp3 = max(1.e-4h, dot(inVec, inVec));
+    return inVec * rsqrt(dp3);
+}
+
+half3 UnpackNormalScale(half4 packednormal, half bumpScale)
+{
+#if defined(UNITY_NO_DXT5nm)
+    half3 normal = packednormal.xyz * 2 - 1;
+#if (SHADER_TARGET >= 30)
+    // SM2.0: instruction count limitation
+    // SM2.0: normal scaler is not supported
+    normal.xy *= bumpScale;
+#endif
+    return normal;
 #else
-    #define SAMPLE_METALLICSPECULAR(uv) tex2D(_MetallicGlossMap, uv)
+    // This do the trick
+    packednormal.x *= packednormal.w;
+
+    half3 normal;
+    normal.xy = (packednormal.xy * 2 - 1);
+#if (SHADER_TARGET >= 30)
+    // SM2.0: instruction count limitation
+    // SM2.0: normal scaler is not supported
+    normal.xy *= bumpScale;
+#endif
+    normal.z = sqrt(1.0 - saturate(dot(normal.xy, normal.xy)));
+    return normal;
+#endif
+}
+
+half3 EvaluateSHPerVertex(half3 normalWS)
+{
+#if defined(EVALUATE_SH_VERTEX)
+    return max(half3(0, 0, 0), ShadeSH9(half4(normalWS, 1.0)));
+#elif defined(EVALUATE_SH_MIXED)
+    // no max since this is only L2 contribution
+    return SHEvalLinearL2(half4(normalWS, 1.0));
 #endif
 
-CBUFFER_START(_PerObject)
-half4 unity_LightIndicesOffsetAndCount;
-half4 unity_4LightIndices0;
-half4 unity_4LightIndices1;
-half _Shininess;
-CBUFFER_END
+    // Fully per-pixel. Nothing to compute.
+    return half3(0.0, 0.0, 0.0);
+}
 
-CBUFFER_START(_PerCamera)
-float4 _MainLightPosition;
-half4 _MainLightColor;
-float4 _MainLightAttenuationParams;
-half4 _MainLightSpotDir;
+half3 EvaluateSHPerPixel(half3 normalWS)
+{
+    return max(half3(0, 0, 0), ShadeSH9(half4(normalWS, 1.0)));
+}
 
-half4 _AdditionalLightCount;
-float4 _AdditionalLightPosition[MAX_VISIBLE_LIGHTS];
-half4 _AdditionalLightColor[MAX_VISIBLE_LIGHTS];
-float4 _AdditionalLightAttenuationParams[MAX_VISIBLE_LIGHTS];
-half4 _AdditionalLightSpotDir[MAX_VISIBLE_LIGHTS];
-CBUFFER_END
+half3 EvaluateSHPerPixel(half3 normalWS, half3 L2Term)
+{
+#ifdef EVALUATE_SH_MIXED
+    return = max(half3(0, 0, 0), L2Term + SHEvalLinearL0L1(half4(normalWS, 1.0)));
+#endif
 
-CBUFFER_START(_PerFrame)
-half4 _GlossyEnvironmentColor;
-sampler2D _AttenuationTexture;
-CBUFFER_END
+    // Default: Evaluate SH fully per-pixel
+    return max(half3(0, 0, 0), ShadeSH9(half4(normalWS, 1.0)));
+}
+
+half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
+{
+    half4 encodedBakedColor = UNITY_SAMPLE_TEX2D(unity_Lightmap, lightmapUV);
+    half3 bakedColor = DecodeLightmap(encodedBakedColor);
+
+#if DIRLIGHTMAP_COMBINED
+    half4 bakedDirection = UNITY_SAMPLE_TEX2D_SAMPLER(unity_LightmapInd, unity_Lightmap, lightmapUV);
+    bakedColor = DecodeDirectionalLightmap(bakedColor, bakedDirection, normalWS);
+#endif
+
+    return bakedColor;
+}
+
+void OutputTangentToWorld(half4 vertexTangent, half3 vertexNormal, out half3 tangentWS, out half3 binormalWS, out half3 normalWS)
+{
+    half sign = vertexTangent.w * unity_WorldTransformParams.w;
+    normalWS = normalize(UnityObjectToWorldNormal(vertexNormal));
+    tangentWS = normalize(mul((half3x3)unity_ObjectToWorld, vertexTangent.xyz));
+    binormalWS = cross(normalWS, tangentWS) * sign;
+}
 
 half3 TangentToWorldNormal(half3 normalTangent, half3 tangent, half3 binormal, half3 normal)
 {
@@ -77,109 +138,4 @@ void ApplyFog(inout half3 color, half fogFactor)
     color = lerp(unity_FogColor, color, fogFactor);
 #endif
 }
-
-half4 OutputColor(half3 color, half alpha)
-{
-#if defined(_ALPHABLEND_ON) || defined(_ALPHAPREMULTIPLY_ON)
-    return half4(LIGHTWEIGHT_LINEAR_TO_GAMMA(color), alpha);
-#else
-    return half4(LIGHTWEIGHT_LINEAR_TO_GAMMA(color), 1);
-#endif
-}
-
-inline half Alpha(half albedoAlpha)
-{
-#if defined(_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A)
-    half alpha = _Color.a;
-#else
-    half alpha = albedoAlpha * _Color.a;
-#endif
-
-#if defined(_ALPHATEST_ON)
-    clip(alpha - _Cutoff);
-#endif
-
-    return alpha;
-}
-
-half3 Normal(float2 uv)
-{
-#if _NORMALMAP
-    return UnpackNormal(tex2D(_BumpMap, uv));
-#else
-    return half3(0.0h, 0.0h, 1.0h);
-#endif
-}
-
-inline void SpecularGloss(half2 uv, half alpha, out half4 specularGloss)
-{
-    specularGloss = half4(0, 0, 0, 1);
-#ifdef _SPECGLOSSMAP
-    specularGloss = tex2D(_SpecGlossMap, uv);
-    specularGloss.rgb = LIGHTWEIGHT_GAMMA_TO_LINEAR(specularGloss.rgb);
-#elif defined(_SPECULAR_COLOR)
-    specularGloss = _SpecColor;
-#endif
-
-#ifdef _GLOSSINESS_FROM_BASE_ALPHA
-    specularGloss.a = alpha;
-#endif
-}
-
-half4 MetallicSpecGloss(float2 uv, half albedoAlpha)
-{
-    half4 specGloss;
-
-#ifdef _METALLICSPECGLOSSMAP
-    specGloss = specGloss = SAMPLE_METALLICSPECULAR(uv);
-#ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-    specGloss.a = albedoAlpha * _GlossMapScale;
-#else
-    specGloss.a *= _GlossMapScale;
-#endif
-
-#else // _METALLICSPECGLOSSMAP
-#if _METALLIC_SETUP
-    specGloss.rgb = _Metallic.rrr;
-#else
-    specGloss.rgb = _SpecColor.rgb;
-#endif
-
-#ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-    specGloss.a = albedoAlpha * _GlossMapScale;
-#else
-    specGloss.a = _Glossiness;
-#endif
-#endif
-
-    return specGloss;
-}
-
-half OcclusionLW(float2 uv)
-{
-#ifdef _OCCLUSIONMAP
-    #if (SHADER_TARGET < 30)
-    // SM20: instruction count limitation
-    // SM20: simpler occlusion
-    return tex2D(_OcclusionMap, uv).g;
-#else
-    half occ = tex2D(_OcclusionMap, uv).g;
-    return LerpOneTo(occ, _OcclusionStrength);
-#endif
-#else
-    return 1.0;
-#endif
-}
-
-half3 EmissionLW(float2 uv)
-{
-#ifndef _EMISSION
-    return 0;
-#else
-    return LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_EmissionMap, uv).rgb) * _EmissionColor.rgb;
-#endif
-}
-
-
-
 #endif

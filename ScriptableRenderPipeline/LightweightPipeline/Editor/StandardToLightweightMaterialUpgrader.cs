@@ -27,7 +27,6 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
         {
             upgraders.Add(new StandardUpgrader("Standard (Specular setup)"));
             upgraders.Add(new StandardUpgrader("Standard"));
-            upgraders.Add(new TerrainUpgrader("TerrainSurface"));
         }
     }
 }

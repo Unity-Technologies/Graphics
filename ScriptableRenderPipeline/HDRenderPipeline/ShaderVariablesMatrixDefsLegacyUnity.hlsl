@@ -9,7 +9,7 @@
 #define UNITY_MATRIX_I_M   unity_WorldToObject
 #define UNITY_MATRIX_V     unity_MatrixV
 #define UNITY_MATRIX_I_V   unity_MatrixInvV
-#define UNITY_MATRIX_P     glstate_matrix_projection
+#define UNITY_MATRIX_P     OptimizeProjectionMatrix(glstate_matrix_projection)
 #define UNITY_MATRIX_I_P   inverse_glstate_matrix_projection_is_not_defined
 #define UNITY_MATRIX_VP    unity_MatrixVP
 #define UNITY_MATRIX_MVP   mul(UNITY_MATRIX_VP, UNITY_MATRIX_M)
