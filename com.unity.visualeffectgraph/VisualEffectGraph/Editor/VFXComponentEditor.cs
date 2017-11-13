@@ -599,18 +599,21 @@ public class VFXComponentEditor : Editor
         }
 
         //Seed
+        EditorGUI.BeginChangeCheck();
         using (new GUILayout.HorizontalScope())
         {
-            EditorGUI.BeginDisabledGroup(m_ReseedOnStart.boolValue);
-            EditorGUILayout.PropertyField(m_RandomSeed, m_Contents.RandomSeed);
-            if (GUILayout.Button(m_Contents.SetRandomSeed, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
+            using (new EditorGUI.DisabledGroupScope(m_ReseedOnStart.boolValue))
             {
-                m_RandomSeed.intValue = UnityEngine.Random.Range(0, int.MaxValue);
-                component.startSeed = (uint)m_RandomSeed.intValue; // As accessors are bypassed with serialized properties...
+                EditorGUILayout.PropertyField(m_RandomSeed, m_Contents.RandomSeed);
+                if (GUILayout.Button(m_Contents.SetRandomSeed, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
+                {
+                    m_RandomSeed.intValue = UnityEngine.Random.Range(0, int.MaxValue);
+                    component.startSeed = (uint)m_RandomSeed.intValue; // As accessors are bypassed with serialized properties...
+                }
             }
-            EditorGUI.EndDisabledGroup();
         }
         EditorGUILayout.PropertyField(m_ReseedOnStart, m_Contents.ReseedOnStart);
+        bool reinit = EditorGUI.EndChangeCheck();
 
         //Field
         GUILayout.Label(m_Contents.HeaderParameters, m_Styles.InspectorHeader);
@@ -622,8 +625,11 @@ public class VFXComponentEditor : Editor
             OnParamGUI(parameter);
         }
         */
-        if (serializedObject.ApplyModifiedProperties())
+        serializedObject.ApplyModifiedProperties();
+        if (reinit)
+        {
             component.Reinit();
+        }
 
         EditMode.DoEditModeInspectorModeButton(
             EditMode.SceneViewEditMode.Collider,
