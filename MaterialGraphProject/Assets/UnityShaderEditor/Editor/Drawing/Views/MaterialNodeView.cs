@@ -183,6 +183,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 foreach (var ve in anchorsToRemove)
                     outputContainer.Remove(ve);
 
+                foreach (var port in inputContainer.Union(outputContainer).OfType<Port>())
+                {
+                    var slot = (MaterialSlot)port.userData;
+                    port.portName = slot.displayName;
+                }
+
                 AddSlots(slots.Except(inputContainer.Children().Concat(outputContainer.Children()).Select(data => data.userData as MaterialSlot)));
 
                 if (inputContainer.childCount > 0)
@@ -201,21 +207,21 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (slot.hidden)
                     continue;
 
-                var anchor = InstantiatePort(Orientation.Horizontal, slot.isInputSlot ? Direction.Input : Direction.Output, typeof(Vector4));
-                anchor.capabilities &= ~Capabilities.Movable;
-                anchor.portName = slot.displayName;
-                anchor.userData = slot;
+                var port = InstantiatePort(Orientation.Horizontal, slot.isInputSlot ? Direction.Input : Direction.Output, typeof(Vector4));
+                port.capabilities &= ~Capabilities.Movable;
+                port.portName = slot.displayName;
+                port.userData = slot;
 
                 if (slot.isOutputSlot)
                 {
-                    outputContainer.Add(anchor);
+                    outputContainer.Add(port);
                 }
                 else
                 {
-                    inputContainer.Add(anchor);
+                    inputContainer.Add(port);
                     var portInputView = new PortInputView(slot);
                     m_GraphView.AddElement(portInputView);
-                    m_Attachers.Add(new Attacher(portInputView, anchor, SpriteAlignment.LeftCenter) { distance = 0f });
+                    m_Attachers.Add(new Attacher(portInputView, port, SpriteAlignment.LeftCenter) { distance = 0f });
                 }
             }
         }
