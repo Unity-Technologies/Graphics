@@ -66,6 +66,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         bool                    m_NeedLowLevelUpdateEnvironment;
         int                     m_UpdatedFramesRequired = 2; // The first frame after the scene load is currently not rendered correctly
         float                   m_CurrentUpdateTime;
+        int                     m_LastFrameUpdated = -1;
 
         bool                    m_useMIS = false;
 
@@ -166,6 +167,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 m_UpdatedFramesRequired = 2; // Special case. Even if update mode is set to OnDemand, we need to regenerate the environment after destroying the texture.
+                m_LastFrameUpdated = -1;
             }
 
             m_CubemapScreenSize = new Vector4((float)resolution, (float)resolution, 1.0f / (float)resolution, 1.0f / (float)resolution);
@@ -327,6 +329,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void UpdateEnvironment(HDCamera camera, Light sunLight, CommandBuffer cmd)
         {
+            if (m_LastFrameUpdated == Time.frameCount)
+                return;
+
+            m_LastFrameUpdated = Time.frameCount;
+
             // We need one frame delay for this update to work since DynamicGI.UpdateEnvironment is executed directly but the renderloop is not (so we need to wait for the sky texture to be rendered first)
             if (m_NeedLowLevelUpdateEnvironment)
             {
@@ -354,8 +361,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_BuiltinParameters.screenSize = m_CubemapScreenSize;
                 m_BuiltinParameters.cameraPosWS = camera.camera.transform.position;
 
+                int sunHash = (sunLight.GetHashCode() * 23 + sunLight.transform.position.GetHashCode()) * 23 + sunLight.transform.rotation.GetHashCode();
+                int skyHash = sunHash * 23 + skySettings.GetHashCode();
+
                 if (m_UpdatedFramesRequired > 0 ||
-                    (skySettings.updateMode == EnvironementUpdateMode.OnChanged && skySettings.GetHashCode() != m_SkyParametersHash) ||
+                    (skySettings.updateMode == EnvironementUpdateMode.OnChanged && skyHash != m_SkyParametersHash) ||
                     (skySettings.updateMode == EnvironementUpdateMode.Realtime && m_CurrentUpdateTime > skySettings.updatePeriod))
                 {
                     using (new ProfilingSample(cmd, "Sky Environment Pass"))
@@ -376,7 +386,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         m_NeedLowLevelUpdateEnvironment = true;
                         m_UpdatedFramesRequired--;
-                        m_SkyParametersHash = skySettings.GetHashCode();
+                        m_SkyParametersHash = skyHash;
                         m_CurrentUpdateTime = 0.0f;
                         #if UNITY_EDITOR
                         // In the editor when we change the sky we want to make the GI dirty so when baking again the new sky is taken into account.

@@ -1161,8 +1161,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_lightList.lightVolumes.Add(lightVolumeData);
             }
 
-            public bool GetEnvLightData(CommandBuffer cmd, VisibleReflectionProbe probe)
+            public bool GetEnvLightData(CommandBuffer cmd, Camera camera, VisibleReflectionProbe probe)
             {
+                // For now we won't display real time probe when rendering one.
+                // TODO: We may want to display last frame result but in this case we need to be careful not to update the atlas before all realtime probes are rendered (for frame coherency).
+                // Unfortunately we don't have this information at the moment.
+                if (probe.probe.mode == ReflectionProbeMode.Realtime && camera.cameraType == CameraType.Reflection)
+                    return false;
+
                 int envIndex = m_ReflectionProbeCache.FetchSlice(cmd, probe.texture);
                 // -1 means that the texture is not ready yet (ie not convolved/compressed yet)
                 if (envIndex == -1)
@@ -1291,6 +1297,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Return true if BakedShadowMask are enabled
             public bool PrepareLightsForGPU(CommandBuffer cmd, ShadowSettings shadowSettings, CullResults cullResults, Camera camera)
             {
+                using (new ProfilingSample(cmd, "Prepare Lights For GPU"))
+                {
+
                 // If any light require it, we need to enabled bake shadow mask feature
                 m_enableBakeShadowMask = false;
 
@@ -1590,21 +1599,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         VisibleReflectionProbe probe = cullResults.visibleReflectionProbes[probeIndex];
 
-                        if(GetEnvLightData(cmd, probe))
+                        if (GetEnvLightData(cmd, camera, probe))
                         {
-                        GetEnvLightVolumeDataAndBound(probe, lightVolumeType, worldToView);
+                            GetEnvLightVolumeDataAndBound(probe, lightVolumeType, worldToView);
 
-                        // We make the light position camera-relative as late as possible in order
-                        // to allow the preceding code to work with the absolute world space coordinates.
-                        if (ShaderConfig.s_CameraRelativeRendering != 0)
-                        {
-                            // Caution: 'EnvLightData.positionWS' is camera-relative after this point.
-                            int n = m_lightList.envLights.Count;
-                            EnvLightData envLightData = m_lightList.envLights[n - 1];
-                            envLightData.positionWS -= camPosWS;
-                            m_lightList.envLights[n - 1] = envLightData;
+                            // We make the light position camera-relative as late as possible in order
+                            // to allow the preceding code to work with the absolute world space coordinates.
+                            if (ShaderConfig.s_CameraRelativeRendering != 0)
+                            {
+                                // Caution: 'EnvLightData.positionWS' is camera-relative after this point.
+                                int n = m_lightList.envLights.Count;
+                                EnvLightData envLightData = m_lightList.envLights[n - 1];
+                                envLightData.positionWS -= camPosWS;
+                                m_lightList.envLights[n - 1] = envLightData;
+                            }
                         }
-                    }
 
                     }
 
@@ -1621,6 +1630,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_maxShadowDistance = shadowSettings.maxShadowDistance;
 
                 return m_enableBakeShadowMask;
+                }
             }
 
             void VoxelLightListGeneration(CommandBuffer cmd, Camera camera, Matrix4x4 projscr, Matrix4x4 invProjscr, RenderTargetIdentifier cameraDepthBufferRT)
