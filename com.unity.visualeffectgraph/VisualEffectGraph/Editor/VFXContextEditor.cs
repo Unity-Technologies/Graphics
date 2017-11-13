@@ -12,15 +12,33 @@ using UnityEditor.VFX.UI;
 
 using Object = UnityEngine.Object;
 using UnityEditorInternal;
+using System.Reflection;
 
 [CustomEditor(typeof(VFXContext), true)]
 [CanEditMultipleObjects]
 public class VFXContextEditor : Editor
 {
     SerializedProperty spaceProperty;
+    SerializedProperty[] settingsProperty;
     void OnEnable()
     {
         spaceProperty = serializedObject.FindProperty("m_Space");
+
+        Type type = targets[0].GetType();
+        for (int i = 1; i < targets.Length; ++i)
+        {
+            while (!type.IsAssignableFrom(targets[i].GetType()))
+            {
+                type = type.BaseType;
+            }
+        }
+
+
+        settingsProperty = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(f =>
+            {
+                return f.GetCustomAttributes(typeof(VFXSettingAttribute), true).Length == 1 &&
+                VFXSettingAttribute.IsTypeSupported(f.FieldType);
+            }).Select(t => serializedObject.FindProperty(t.Name)).ToArray();
     }
 
     void OnDisable()
@@ -34,6 +52,12 @@ public class VFXContextEditor : Editor
     public override void OnInspectorGUI()
     {
         EditorGUILayout.PropertyField(spaceProperty);
+
+
+        foreach (var prop in settingsProperty)
+        {
+            EditorGUILayout.PropertyField(prop);
+        }
 
         if (serializedObject.ApplyModifiedProperties())
         {
