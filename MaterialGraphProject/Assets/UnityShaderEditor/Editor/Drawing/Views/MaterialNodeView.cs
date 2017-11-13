@@ -32,7 +32,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 name = "controls"
             };
-            leftContainer.Add(m_ControlsContainer);
+            topContainer.Add(m_ControlsContainer);
+            m_ControlsContainer.SendToBack();
+            inputContainer.PlaceBehind(m_ControlsContainer);
 
             if (node.hasPreview)
             {
@@ -48,18 +50,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_PreviewData = previewManager.GetPreview(inNode);
                     m_PreviewData.onPreviewChanged += UpdatePreviewTexture;
                     UpdatePreviewTexture();
-                    m_PreviewContainer.Add(m_PreviewTextureView);
 
-                    var collapsePreviewButton = new VisualElement { name = "collapse", text = "▲" };
+                    var collapsePreviewButton = new VisualElement { name = "collapse"/*, text = "▲" */};
+                    collapsePreviewButton.Add(new VisualElement { name = "icon" });
                     collapsePreviewButton.AddManipulator(new Clickable(() =>
                     {
                         node.owner.owner.RegisterCompleteObjectUndo("Collapse Preview");
                         UpdatePreviewExpandedState(false);
                     }));
                     UpdatePreviewExpandedState(node.previewExpanded);
-                    m_PreviewContainer.Add(collapsePreviewButton);
+                    m_PreviewTextureView.Add(collapsePreviewButton);
 
-                    var expandPreviewButton = new VisualElement { name = "expand", text = "▼" };
+                    var expandPreviewButton = new VisualElement { name = "expand"};
+                    expandPreviewButton.Add(new VisualElement { name = "icon"});
                     expandPreviewButton.AddManipulator(new Clickable(() =>
                     {
                         node.owner.owner.RegisterCompleteObjectUndo("Expand Preview");
@@ -67,7 +70,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }));
                     m_PreviewContainer.Add(expandPreviewButton);
                 }
-                leftContainer.Add(m_PreviewContainer);
+
+                extensionContainer.Add(m_PreviewContainer);
             }
 
             m_ControlViews = new List<VisualElement>();
@@ -121,11 +125,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
             if (expanded)
             {
+                if (m_PreviewTextureView.parent != m_PreviewContainer)
+                {
+                    m_PreviewContainer.Add(m_PreviewTextureView);
+                }
                 m_PreviewContainer.AddToClassList("expanded");
                 m_PreviewContainer.RemoveFromClassList("collapsed");
             }
             else
             {
+                if (m_PreviewTextureView.parent == m_PreviewContainer)
+                {
+                    m_PreviewTextureView.RemoveFromHierarchy();
+                }
                 m_PreviewContainer.RemoveFromClassList("expanded");
                 m_PreviewContainer.AddToClassList("collapsed");
             }
@@ -182,7 +194,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (slot.hidden)
                     continue;
 
-                var data = InstantiateNodeAnchor(Orientation.Horizontal, slot.isInputSlot ? Direction.Input : Direction.Output, typeof(Vector4));
+                var data = InstantiateNodeAnchor(slot.isInputSlot ? Direction.Input : Direction.Output, typeof(Vector4));
                 data.capabilities &= ~Capabilities.Movable;
                 data.anchorName = slot.displayName;
                 data.userData = slot;
@@ -196,7 +208,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnResize(Vector2 deltaSize)
         {
-            var updatedWidth = leftContainer.layout.width + deltaSize.x;
+            var updatedWidth = topContainer.layout.width + deltaSize.x;
             var updatedHeight = m_PreviewTextureView.layout.height + deltaSize.y;
 
             var previewNode = node as PreviewNode;
@@ -209,7 +221,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdatePreviewTexture()
         {
-            if (m_PreviewData.texture == null || !node.previewExpanded)
+            if (m_PreviewData.texture == null || !node.previewExpanded || m_PreviewTextureView.panel == null)
             {
                 m_PreviewTextureView.visible = false;
                 m_PreviewTextureView.image = Texture2D.blackTexture;
@@ -220,8 +232,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_PreviewTextureView.AddToClassList("visible");
                 m_PreviewTextureView.RemoveFromClassList("hidden");
                 m_PreviewTextureView.image = m_PreviewData.texture;
+                m_PreviewTextureView.Dirty(ChangeType.Repaint);
+                m_PreviewTextureView.style.height = m_PreviewTextureView.layout.width;
             }
-            Dirty(ChangeType.Repaint);
         }
 
         void UpdateControls()
@@ -248,7 +261,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             var width = previewNode.width;
             var height = previewNode.height;
 
-            leftContainer.style.width = width;
             m_PreviewTextureView.style.height = height;
         }
 

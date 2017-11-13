@@ -21,74 +21,64 @@ GraphEditorView > #content > #inspector {
     width: 400;
 }
 
-MaterialGraphView {
-    background-color: rgb(20, 21, 21);
+
+MaterialNodeView #previewContainer > #preview
+{
+    align-items:center;
 }
 
-MaterialNodeView > .mainContainer > #left > #previewContainer {
-    width: 200;
-}
-
-MaterialNodeView > .mainContainer > #left > #previewContainer.expanded > #preview.active,
-MaterialNodeView > .mainContainer > #left > #previewContainer.expanded > #preview.visible {
-    width: 200;
-    height: 200;
-}
-
-MaterialNodeView > .mainContainer > #left > #previewContainer.collapsed > #collapse {
-    height: 0;
-}
-
-MaterialNodeView > .mainContainer > #left > #previewContainer.expanded > #collapse {
-    background-color: rgba(0, 0, 0, 0.5);
-    text-color: rgba(255, 255, 255, 0.75);
-    border-color: rgba(255, 255, 255, 0.75);
-    border-radius: 2;
-    text-alignment: middle-center;
-    position-left: 87;
-    position-right: 87;
-    position-top: 5;
-    position-type: absolute;
-    height: 0;
-    border-top-width: 0;
-    border-bottom-width: 0;
-    border-left-width: 0;
-    border-right-width: 0;
-}
-
-MaterialNodeView > .mainContainer > #left > #previewContainer.expanded:hover > #collapse {
+MaterialNodeView #previewContainer > #preview > #collapse {
+    background-color: #000;
+    border-color: #F0F0F0;
+    width: 20;
+    height: 20;
+    border-radius: 1;
     border-top-width: 1;
     border-bottom-width: 1;
     border-left-width: 1;
     border-right-width: 1;
-    height: 26;
+    margin-top: 4;
+    opacity: 0.6;
+    align-items:center;
+    justify-content:center;
 }
 
-MaterialNodeView > .mainContainer > #left > #previewContainer.expanded > #collapse:hover {
-    background-color: rgba(0, 0, 0, 0.75);
-    text-color: rgba(255, 255, 255, 1);
-    border-color: rgba(255, 255, 255, 1);
+
+MaterialNodeView #previewContainer > #preview > #collapse > #icon
+{
+    background-image : resource("GraphView/Nodes/PreviewCollapse.png"); 
+    width: 16;
+    height: 16;
+}
+MaterialNodeView #previewContainer > #preview > #collapse:hover {
+    opacity: 1.0;
 }
 
-MaterialNodeView > .mainContainer > #left > #previewContainer.expanded > #collapse:active {
-	background-color: rgba(0, 0, 0, 0.66);
-}
-
-MaterialNodeView > .mainContainer > #left > #previewContainer.expanded > #expand {
+MaterialNodeView #previewContainer.collapsed > #preview > #collapse {
     height: 0;
 }
 
-MaterialNodeView > .mainContainer > #left > #previewContainer.collapsed > #expand {
-    text-alignment: middle-center;
-    text-color: rgb(153, 153, 153);
+MaterialNodeView #previewContainer > #expand {
     align-self: center;
-    width: 50;
+    width: 56;
+    height: 16;
+    flex-direction: row;
+    justify-content:center;
 }
 
-MaterialNodeView > .mainContainer > #left > #previewContainer.collapsed > #expand:hover {
-    background-color: rgba(0, 0, 0, 0.5);
-    text-color: rgba(255, 255, 255, 1);
+MaterialNodeView #previewContainer > #expand > #icon {
+    align-self: center;
+    background-image : resource("GraphView/Nodes/PreviewExpand.png"); 
+    width: 16;
+    height: 16;
+}
 
+MaterialNodeView #previewContainer.collapsed > #expand:hover {
+    background-color: #2B2B2B;
+}
+
+MaterialNodeView #previewContainer.expanded > #expand {
+    height: 0;
 }
 
 MaterialNodeView > #resize {
@@ -153,9 +143,9 @@ MaterialNodeView > #resize:active {
 GraphInspectorView {
     background-color: rgb(56, 56, 56);
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
 }
-
+ 
 GraphInspectorView > #top > #header {
     background-color: rgb(64, 64, 64);
     border-color: rgb(79, 79, 79);
