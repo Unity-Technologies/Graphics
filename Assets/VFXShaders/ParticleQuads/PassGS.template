@@ -1,0 +1,70 @@
+#pragma vertex vert
+#pragma geometry geom
+
+uint vert(uint id : SV_VertexID) : TEXCOORD0
+{
+	return id;
+}
+
+[maxvertexcount(4)]
+void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_STRUCT> outStream)
+{
+	uint index = intStream[0];
+	if (index < asuint(nbMax))
+	{
+		${VFXLoadAttributes:{alive}}
+		if (alive)
+		{
+			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
+			${VFXProcessBlocks}
+			
+			if (!alive)
+				return o;
+			
+			#if USE_FLIPBOOK
+			${VFXLoadParameter:{flipBookSize}}
+			${VFXLoadParameter:{invFlipBookSize}}
+			
+			float frameBlend = frac(texIndex);
+			float frameIndex = texIndex - frameBlend;
+			#endif
+
+			float3 particlePosition = position;
+			
+			[unroll]
+			for (int id = 0; id < 4; ++id)
+			{
+				VFX_VARYING_STRUCT o = (VFX_VARYING_STRUCT)0;
+				
+				o.VFX_VARYING_UV.x = float((id & 2) >> 1);
+				o.VFX_VARYING_UV.y = float(id & 1);
+				
+				float2 offsets = size.xy * (o.VFX_VARYING_UV - pivot.xy - 0.5f);
+				float3x3 rot = GetRotationMatrix(front,radians(angle));
+				
+				float3 vPos = position;
+				vPos += mul(rot,side * offsets.x);
+				vPos += mul(rot,up * offsets.y);
+				vPos -= front * pivot.z;
+
+				o.VFX_VARYING_POSITIONWS = mul(VFXModelViewProj(), float4(vPos,1.0f));
+
+				${VFXVertexCommonProcess}
+				
+				#if USE_FLIPBOOK			
+				#if USE_FLIPBOOK_INTERPOLATION && defined(VFX_VARYING_FRAMEBLEND)
+				o.VFX_VARYING_FRAMEBLEND = frameBlend;
+				o.VFX_VARYING_UV.zw = GetSubUV(frameIndex + 1,o.VFX_VARYING_UV.xy,flipBookSize,invFlipBookSize);					
+				#endif
+				o.VFX_VARYING_UV.xy = GetSubUV(frameIndex,o.VFX_VARYING_UV.xy,flipBookSize,invFlipBookSize);
+				#endif
+				
+				${VFXVertexAdditionalProcess}
+				
+				outStream.Append(o);
+			}
+			
+			outStream.RestartStrip();
+		}
+	}	
+}

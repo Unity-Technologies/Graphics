@@ -17,6 +17,9 @@ VFX_VARYING_STRUCT vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
 			${VFXProcessBlocks}
 			
+			if (!alive)
+				return o;
+			
 			#if TARGET_FROM_ATTRIBUTES
 			float3x3 rot = GetRotationMatrix(front,radians(angle));
 			

@@ -1275,7 +1275,6 @@ MonoBehaviour:
   m_UICollapsed: 1
   m_Owners:
   - {fileID: 114978657291914718}
-  m_TestId: 410721498
 --- !u!114 &114366292537874682
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3262,7 +3261,6 @@ MonoBehaviour:
   - {fileID: 114280324403005594}
   - {fileID: 114967288652437010}
   - {fileID: 114886110431456336}
-  m_TestId: 45097567
   m_Capacity: 2000000
   m_Bounds:
     m_Center: {x: 0, y: 0, z: 0}
@@ -4895,25 +4893,92 @@ VFXAsset:
       m_Array: []
   m_Buffers:
   - type: 1
-    stride: 4
-    capacity: 34000000
-  - type: 2
-    stride: 4
+    size: 34000000
     capacity: 2000000
+    layout:
+    - name: position
+      type: 3
+      offset:
+        bucket: 0
+        structure: 8
+        element: 0
+    - name: alive
+      type: 14
+      offset:
+        bucket: 0
+        structure: 8
+        element: 3
+    - name: age
+      type: 1
+      offset:
+        bucket: 0
+        structure: 8
+        element: 4
+    - name: lifetime
+      type: 1
+      offset:
+        bucket: 16000000
+        structure: 1
+        element: 0
+    - name: velocity
+      type: 3
+      offset:
+        bucket: 18000000
+        structure: 4
+        element: 0
+    - name: oldPosition
+      type: 3
+      offset:
+        bucket: 26000000
+        structure: 4
+        element: 0
   - type: 1
-    stride: 4
+    size: 1
     capacity: 1
-  m_CPUBuffers:
-  - capacity: 1
     layout:
     - name: spawnCount
       type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+  - type: 2
+    size: 2000000
+    capacity: 0
+    layout: []
+  - type: 1
+    size: 1
+    capacity: 0
+    layout: []
+  m_CPUBuffers:
+  - capacity: 1
+    stride: 1
+    layout:
+    - name: spawnCount
+      type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+    initialData:
+      data: 00000000
+  - capacity: 1
+    stride: 1
+    layout:
+    - name: spawnCount
+      type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+    initialData:
+      data: 00000000
   m_Systems:
   - type: 0
     flags: 0
     capacity: 0
     buffers:
-    - bufferIndex: 0
+    - bufferIndex: 1
       nameId: spawner_output
     values: []
     tasks:
@@ -4930,10 +4995,12 @@ VFXAsset:
     - bufferIndex: 0
       nameId: attributeBuffer
     - bufferIndex: 1
-      nameId: deadList
+      nameId: sourceAttributeBuffer
     - bufferIndex: 2
+      nameId: deadList
+    - bufferIndex: 3
       nameId: deadListCount
-    - bufferIndex: 0
+    - bufferIndex: 1
       nameId: spawner_input
     values:
     - expressionIndex: 68
@@ -4945,10 +5012,12 @@ VFXAsset:
       buffers:
       - bufferIndex: 0
         nameId: attributeBuffer
-      - bufferIndex: 1
-        nameId: deadListIn
       - bufferIndex: 2
+        nameId: deadListIn
+      - bufferIndex: 3
         nameId: deadListCount
+      - bufferIndex: 1
+        nameId: sourceAttributeBuffer
       values:
       - expressionIndex: 70
         nameId: uniform_Torus_center_b
@@ -4974,12 +5043,12 @@ VFXAsset:
         nameId: uniform_Sphere_center_f
       - expressionIndex: 79
         nameId: uniform_Sphere_radius_f
-      processor: {fileID: 7200000, guid: d097d10e900b5924aaabed4568e65465, type: 3}
+      processor: {fileID: 7200000, guid: b32da582648bb6f4fbaaf48db956991c, type: 3}
     - type: 805306368
       buffers:
       - bufferIndex: 0
         nameId: attributeBuffer
-      - bufferIndex: 1
+      - bufferIndex: 2
         nameId: deadListOut
       values:
       - expressionIndex: 72
@@ -5006,7 +5075,7 @@ VFXAsset:
         nameId: uniform_LifetimeLoss_c
       - expressionIndex: 63
         nameId: uniform_Force_d
-      processor: {fileID: 7200000, guid: b6f714c68d790784089f95a62cb3ebf1, type: 3}
+      processor: {fileID: 7200000, guid: bf321dd621f9dfe4d89b6a8900aa1861, type: 3}
     - type: 1073741825
       buffers:
       - bufferIndex: 0
@@ -5016,7 +5085,7 @@ VFXAsset:
         nameId: uniform_gradient_b
       - expressionIndex: 59
         nameId: uniform_alphaThreshold
-      processor: {fileID: 4800000, guid: 0799e2b5725df924cb0b9c2766e5ce2c, type: 3}
+      processor: {fileID: 4800000, guid: bd39b57c8b47abd4f90a5c4398c7375b, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000

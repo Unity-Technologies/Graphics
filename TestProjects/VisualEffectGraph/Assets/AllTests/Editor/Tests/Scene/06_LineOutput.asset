@@ -795,7 +795,6 @@ MonoBehaviour:
   - {fileID: 114566370008860848}
   - {fileID: 114889596446218778}
   - {fileID: 114978069437681324}
-  m_TestId: 1881888680
   m_Capacity: 65536
   m_Bounds:
     m_Center: {x: 0, y: 0, z: 0}
@@ -2129,7 +2128,6 @@ MonoBehaviour:
   m_UICollapsed: 1
   m_Owners:
   - {fileID: 114290022498365920}
-  m_TestId: 594388027
 --- !u!114 &114624924747082904
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3931,19 +3929,60 @@ VFXAsset:
       m_Array: []
   m_Buffers:
   - type: 1
-    stride: 4
-    capacity: 524288
-  m_CPUBuffers:
-  - capacity: 1
+    size: 524288
+    capacity: 65536
+    layout:
+    - name: color
+      type: 3
+      offset:
+        bucket: 0
+        structure: 8
+        element: 0
+    - name: position
+      type: 3
+      offset:
+        bucket: 0
+        structure: 8
+        element: 4
+  - type: 1
+    size: 1
+    capacity: 1
     layout:
     - name: spawnCount
       type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+  m_CPUBuffers:
+  - capacity: 1
+    stride: 1
+    layout:
+    - name: spawnCount
+      type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+    initialData:
+      data: 00000000
+  - capacity: 1
+    stride: 1
+    layout:
+    - name: spawnCount
+      type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+    initialData:
+      data: 00000000
   m_Systems:
   - type: 0
     flags: 0
     capacity: 0
     buffers:
-    - bufferIndex: 0
+    - bufferIndex: 1
       nameId: spawner_output
     values: []
     tasks:
@@ -3961,7 +4000,9 @@ VFXAsset:
     buffers:
     - bufferIndex: 0
       nameId: attributeBuffer
-    - bufferIndex: 0
+    - bufferIndex: 1
+      nameId: sourceAttributeBuffer
+    - bufferIndex: 1
       nameId: spawner_input
     values:
     - expressionIndex: 44
@@ -3973,6 +4014,8 @@ VFXAsset:
       buffers:
       - bufferIndex: 0
         nameId: attributeBuffer
+      - bufferIndex: 1
+        nameId: sourceAttributeBuffer
       values:
       - expressionIndex: 6
         nameId: uniform_b
@@ -3992,13 +4035,13 @@ VFXAsset:
         nameId: uniform_Sphere_radius_c
       - expressionIndex: 51
         nameId: uniform_Sphere_arc_c
-      processor: {fileID: 7200000, guid: 9983445f7a3bc4a4abbcca47a9351f94, type: 3}
+      processor: {fileID: 7200000, guid: c450391cced58b84ca29ebb63b0f4911, type: 3}
     - type: 805306368
       buffers:
       - bufferIndex: 0
         nameId: attributeBuffer
       values: []
-      processor: {fileID: 7200000, guid: 834b3f6aa316ed943a2a272dd2773cb3, type: 3}
+      processor: {fileID: 7200000, guid: beca822ed7448934883d0dd69e70416c, type: 3}
     - type: 1073741828
       buffers:
       - bufferIndex: 0
@@ -4014,7 +4057,7 @@ VFXAsset:
         nameId: uniform_Position_position_e
       - expressionIndex: 41
         nameId: uniform_targetOffset
-      processor: {fileID: 4800000, guid: 1f53a7b5540775b49bd8b80bd81766de, type: 3}
+      processor: {fileID: 4800000, guid: 68a30d41455d39243bab33e4e0a8b188, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000
