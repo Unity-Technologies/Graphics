@@ -21,6 +21,7 @@
             SAMPLERCUBE(sampler_InputTex);
 
             float _FaceIndex;
+            float _LoD;
 
             struct Attributes
             {
@@ -55,7 +56,7 @@
 
             float4 frag (Varyings input) : SV_Target
             {
-                return SAMPLE_TEXTURECUBE(_InputTex, sampler_InputTex, input.texcoord);
+                return SAMPLE_TEXTURECUBE_LOD(_InputTex, sampler_InputTex, input.texcoord, _LoD);
             }
 
             ENDHLSL
