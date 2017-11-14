@@ -90,23 +90,43 @@ uint GetTileSize()
         return TILE_SIZE_CLUSTERED;
 }
 
-void GetCountAndStartCluster(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
+float GetLightClusterMinDepthVS(uint2 tileIndex, uint clusterIndex)
 {
-    uint2 tileIndex = posInput.unTileCoord;
-
     float logBase = g_fClustBase;
     if (g_isLogBaseBufferEnabled)
     {
         logBase = g_logBaseBuffer[tileIndex.y * _NumTileClusteredX + tileIndex.x];
     }
 
-    int clustIdx = SnapToClusterIdxFlex(posInput.depthVS, logBase, g_isLogBaseBufferEnabled != 0);
+    return ClusterIdxToZFlex(clusterIndex, logBase, g_isLogBaseBufferEnabled != 0);
+}
 
+uint GetLightClusterIndex(uint2 tileIndex, float depthVS)
+{
+    float logBase = g_fClustBase;
+    if (g_isLogBaseBufferEnabled)
+    {
+        logBase = g_logBaseBuffer[tileIndex.y * _NumTileClusteredX + tileIndex.x];
+    }
+
+    return SnapToClusterIdxFlex(depthVS, logBase, g_isLogBaseBufferEnabled != 0);
+}
+
+void GetCountAndStartCluster(uint2 tileIndex, uint clusterIndex, uint lightCategory, out uint start, out uint lightCount)
+{
     int nrClusters = (1 << g_iLog2NumClusters);
-    const int idx = ((lightCategory * nrClusters + clustIdx) * _NumTileClusteredY + tileIndex.y) * _NumTileClusteredX + tileIndex.x;
+    const int idx = ((lightCategory * nrClusters + clusterIndex) * _NumTileClusteredY + tileIndex.y) * _NumTileClusteredX + tileIndex.x;
     uint dataPair = g_vLayeredOffsetsBuffer[idx];
     start = dataPair & 0x7ffffff;
     lightCount = (dataPair >> 27) & 31;
+}
+
+void GetCountAndStartCluster(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
+{
+    uint2 tileIndex    = posInput.unTileCoord;
+    uint  clusterIndex = GetLightClusterIndex(tileIndex, posInput.depthVS);
+
+    GetCountAndStartCluster(tileIndex, clusterIndex, lightCategory, start, lightCount);
 }
 
 void GetCountAndStart(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
