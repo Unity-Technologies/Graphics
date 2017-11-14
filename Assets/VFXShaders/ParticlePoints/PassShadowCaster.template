@@ -4,6 +4,7 @@ Pass
 	Tags { "LightMode"="ShadowCaster" }
 	
 	ZWrite On
+	Blend Off
 
 	CGPROGRAM
 	#pragma target 4.5
@@ -25,7 +26,7 @@ Pass
 #undef VFX_VARYING_COLOR
 #define VFX_VARYING_ALPHA builtInInterpolants.z
 #define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
-#define VFX_VARYING_ ALPHA_THRESHOLD builtInInterpolants.y
+#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
 	
 ${VFXBegin:VFXVertexAdditionalProcess}
 	o.pos = UnityApplyLinearShadowBias(o.pos);

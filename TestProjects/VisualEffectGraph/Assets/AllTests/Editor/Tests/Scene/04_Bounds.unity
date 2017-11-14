@@ -220,7 +220,7 @@ VFXComponent:
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 71f8e6fc5d551f54e98bbc4f9b941d90, type: 2}
   m_StartSeed: 0
-  m_ResetSeedOnStart: 1
+  m_ResetSeedOnStart: 0
   m_PropertySheet:
     m_Float:
       m_Array: []
@@ -954,7 +954,7 @@ VFXComponent:
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 71f8e6fc5d551f54e98bbc4f9b941d90, type: 2}
   m_StartSeed: 0
-  m_ResetSeedOnStart: 1
+  m_ResetSeedOnStart: 0
   m_PropertySheet:
     m_Float:
       m_Array: []
@@ -1100,7 +1100,7 @@ VFXComponent:
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 71f8e6fc5d551f54e98bbc4f9b941d90, type: 2}
   m_StartSeed: 0
-  m_ResetSeedOnStart: 1
+  m_ResetSeedOnStart: 0
   m_PropertySheet:
     m_Float:
       m_Array: []
@@ -1243,7 +1243,7 @@ VFXComponent:
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 71f8e6fc5d551f54e98bbc4f9b941d90, type: 2}
   m_StartSeed: 0
-  m_ResetSeedOnStart: 1
+  m_ResetSeedOnStart: 0
   m_PropertySheet:
     m_Float:
       m_Array: []
@@ -1305,7 +1305,7 @@ VFXComponent:
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 71f8e6fc5d551f54e98bbc4f9b941d90, type: 2}
   m_StartSeed: 0
-  m_ResetSeedOnStart: 1
+  m_ResetSeedOnStart: 0
   m_PropertySheet:
     m_Float:
       m_Array: []
@@ -1367,7 +1367,7 @@ VFXComponent:
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 71f8e6fc5d551f54e98bbc4f9b941d90, type: 2}
   m_StartSeed: 0
-  m_ResetSeedOnStart: 1
+  m_ResetSeedOnStart: 0
   m_PropertySheet:
     m_Float:
       m_Array: []
@@ -1429,7 +1429,7 @@ VFXComponent:
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 71f8e6fc5d551f54e98bbc4f9b941d90, type: 2}
   m_StartSeed: 0
-  m_ResetSeedOnStart: 1
+  m_ResetSeedOnStart: 0
   m_PropertySheet:
     m_Float:
       m_Array: []
@@ -1491,7 +1491,7 @@ VFXComponent:
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 71f8e6fc5d551f54e98bbc4f9b941d90, type: 2}
   m_StartSeed: 0
-  m_ResetSeedOnStart: 1
+  m_ResetSeedOnStart: 0
   m_PropertySheet:
     m_Float:
       m_Array: []
@@ -1553,7 +1553,7 @@ VFXComponent:
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 71f8e6fc5d551f54e98bbc4f9b941d90, type: 2}
   m_StartSeed: 0
-  m_ResetSeedOnStart: 1
+  m_ResetSeedOnStart: 0
   m_PropertySheet:
     m_Float:
       m_Array: []
@@ -1699,7 +1699,7 @@ VFXComponent:
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 71f8e6fc5d551f54e98bbc4f9b941d90, type: 2}
   m_StartSeed: 0
-  m_ResetSeedOnStart: 1
+  m_ResetSeedOnStart: 0
   m_PropertySheet:
     m_Float:
       m_Array: []
@@ -1761,7 +1761,7 @@ VFXComponent:
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 71f8e6fc5d551f54e98bbc4f9b941d90, type: 2}
   m_StartSeed: 0
-  m_ResetSeedOnStart: 1
+  m_ResetSeedOnStart: 0
   m_PropertySheet:
     m_Float:
       m_Array: []
@@ -1823,7 +1823,7 @@ VFXComponent:
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 71f8e6fc5d551f54e98bbc4f9b941d90, type: 2}
   m_StartSeed: 0
-  m_ResetSeedOnStart: 1
+  m_ResetSeedOnStart: 0
   m_PropertySheet:
     m_Float:
       m_Array: []
@@ -2053,7 +2053,7 @@ VFXComponent:
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 71f8e6fc5d551f54e98bbc4f9b941d90, type: 2}
   m_StartSeed: 0
-  m_ResetSeedOnStart: 1
+  m_ResetSeedOnStart: 0
   m_PropertySheet:
     m_Float:
       m_Array: []
@@ -2115,7 +2115,7 @@ VFXComponent:
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 71f8e6fc5d551f54e98bbc4f9b941d90, type: 2}
   m_StartSeed: 0
-  m_ResetSeedOnStart: 1
+  m_ResetSeedOnStart: 0
   m_PropertySheet:
     m_Float:
       m_Array: []

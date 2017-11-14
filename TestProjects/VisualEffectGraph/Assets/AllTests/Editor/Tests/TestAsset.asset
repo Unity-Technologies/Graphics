@@ -18,7 +18,6 @@ MonoBehaviour:
   m_Owners:
   - {fileID: 114200878334508554}
   - {fileID: 114484488579883542}
-  m_TestId: 1048902260
   m_Capacity: 65536
   m_Bounds:
     m_Center: {x: 0, y: 0, z: 0}
@@ -644,7 +643,6 @@ MonoBehaviour:
   - {fileID: 114869919447921010}
   - {fileID: 114047252597674588}
   - {fileID: 114729319468502618}
-  m_TestId: 1123777830
   m_Capacity: 65536
   m_Bounds:
     m_Center: {x: 0, y: 0, z: 0}
@@ -1092,40 +1090,40 @@ VFXAsset:
       m_Array: []
     m_Bool:
       m_Array: []
-  m_Buffers:
-  - type: 1
-    stride: 4
-    capacity: 262144
-  m_CPUBuffers: []
+  m_Buffers: []
+  m_CPUBuffers:
+  - capacity: 1
+    stride: 1
+    layout:
+    - name: spawnCount
+      type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+    initialData:
+      data: 00000000
   m_Systems:
   - type: 1
     flags: 0
     capacity: 65536
-    buffers:
-    - bufferIndex: 0
-      nameId: attributeBuffer
+    buffers: []
     values:
-    - expressionIndex: 12
+    - index: 12
       nameId: bounds_center
-    - expressionIndex: 14
+    - index: 14
       nameId: bounds_size
     tasks:
     - type: 536870912
-      buffers:
-      - bufferIndex: 0
-        nameId: attributeBuffer
+      buffers: []
       values: []
       processor: {fileID: 7200000, guid: 34630fa5f453c4c48a722d160ec8e2a0, type: 3}
     - type: 805306368
-      buffers:
-      - bufferIndex: 0
-        nameId: attributeBuffer
+      buffers: []
       values: []
       processor: {fileID: 7200000, guid: ca8d18d09c4182e4796e0b05ac42e094, type: 3}
     - type: 1073741825
-      buffers:
-      - bufferIndex: 0
-        nameId: attributeBuffer
+      buffers: []
       values: []
       processor: {fileID: 4800000, guid: d5cd5ffefb045024aa747d04bcbcbdaf, type: 3}
   - type: 1
@@ -1133,9 +1131,9 @@ VFXAsset:
     capacity: 65536
     buffers: []
     values:
-    - expressionIndex: 13
+    - index: 13
       nameId: bounds_center
-    - expressionIndex: 15
+    - index: 15
       nameId: bounds_size
     tasks:
     - type: 536870912
