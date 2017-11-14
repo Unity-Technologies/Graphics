@@ -131,6 +131,10 @@ namespace UnityEditor.ShaderGraph
             {
                 return SlotValueType.Vector4;
             }
+            if (t == typeof(Color))
+            {
+                return SlotValueType.Vector4;
+            }
             if (t == typeof(Texture2D))
             {
                 return SlotValueType.Texture2D;
@@ -174,21 +178,19 @@ namespace UnityEditor.ShaderGraph
                 var attribute = GetSlotAttribute(par);
 
                 MaterialSlot s;
-                if (attribute.binding == Binding.None || par.IsOut)
-                {
+                if (attribute.binding == Binding.None && !par.IsOut && par.ParameterType == typeof(Color))
+                    s = new ColorMaterialSlot(attribute.slotId, par.Name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, hidden: attribute.hidden);
+                else if (attribute.binding == Binding.None || par.IsOut)
                     s = MaterialSlot.CreateMaterialSlot(
-                            ConvertTypeToSlotValueType(par),
-                            attribute.slotId,
-                            par.Name,
-                            par.Name,
-                            par.IsOut ? SlotType.Output : SlotType.Input,
-                            attribute.defaultValue ?? Vector4.zero,
-                            hidden: attribute.hidden);
-                }
+                        ConvertTypeToSlotValueType(par),
+                        attribute.slotId,
+                        par.Name,
+                        par.Name,
+                        par.IsOut ? SlotType.Output : SlotType.Input,
+                        attribute.defaultValue ?? Vector4.zero,
+                        hidden: attribute.hidden);
                 else
-                {
                     s = CreateBoundSlot(attribute.binding, attribute.slotId, par.Name, par.Name, attribute.hidden);
-                }
                 slots.Add(s);
 
                 m_Slots.Add(attribute);

@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_ColorBalance(
-            [Slot(0, Binding.None)] Vector4 inputColor,
+            [Slot(0, Binding.None)] Color inputColor,
             [Slot(1, Binding.None)] Vector3 adjustRGB,
             [Slot(2, Binding.None)] out Vector4 outColor)
         {

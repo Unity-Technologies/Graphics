@@ -251,6 +251,15 @@ UVSlotControlView > EnumField {
     width: 40;
 }
 
+ColorSlotControlView {
+    flex-direction: row;
+    align-items: center;
+}
+
+ColorSlotControlView > ColorField {
+    width: 50;
+}
+
 .edge.fromMatrix4, .edge.fromMatrix3, .edge.fromMatrix2 {
     edge-output-color: #8FC1DF;
 }
