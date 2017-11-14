@@ -1,3 +1,4 @@
+#pragma require geometry
 #pragma vertex vert
 #pragma geometry geom
 

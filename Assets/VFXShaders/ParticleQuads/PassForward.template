@@ -44,8 +44,6 @@ Pass
 #define VFX_VARYING_FRAMEBLEND builtInInterpolants.z
 #define VFX_VARYING_UV uv
 		
-	${VFXBegin:VFXVertexAdditionalProcess}${VFXEnd}	
-		
 	${VFXInclude("Assets/VFXShaders/ParticleQuads/Pass.template")}	
 		
 	#pragma fragment frag

@@ -33,8 +33,6 @@ Pass
 #define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
 	
-	${VFXBegin:VFXVertexAdditionalProcess}${VFXEnd}
-	
 	${VFXInclude("Assets/VFXShaders/ParticleLines/Pass.template")}	
 		
 	#pragma fragment frag
