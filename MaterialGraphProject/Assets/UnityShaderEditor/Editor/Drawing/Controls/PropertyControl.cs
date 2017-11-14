@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             var currentSelectedIndex = propertiesGUID.IndexOf(currentGUID);
             using (var changeCheckScope = new EditorGUI.ChangeCheckScope())
             {
-                var value = EditorGUILayout.Popup("Property", currentSelectedIndex, properties.Select(x => x.displayName).ToArray());
+                var value = EditorGUILayout.Popup(currentSelectedIndex, properties.Select(x => x.displayName).ToArray());
                 if (changeCheckScope.changed)
                 {
                     m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
