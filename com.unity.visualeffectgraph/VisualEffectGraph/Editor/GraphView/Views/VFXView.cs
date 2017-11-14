@@ -871,11 +871,38 @@ namespace UnityEditor.VFX.UI
 
         VFXSlot FetchSlot(IVFXSlotContainer container, int[] slotPath, bool input)
         {
-            VFXSlot slot = input ? container.GetInputSlot(slotPath[slotPath.Length - 1]) : container.GetOutputSlot(slotPath[slotPath.Length - 1]);
+            int containerSlotIndex = slotPath[slotPath.Length - 1];
+
+            VFXSlot slot = null;
+            if (input)
+            {
+                if (container.GetNbInputSlots() > containerSlotIndex)
+                {
+                    slot = container.GetInputSlot(slotPath[slotPath.Length - 1]);
+                }
+            }
+            else
+            {
+                if (container.GetNbOutputSlots() > containerSlotIndex)
+                {
+                    slot = container.GetOutputSlot(slotPath[slotPath.Length - 1]);
+                }
+            }
+            if (slot == null)
+            {
+                return null;
+            }
 
             for (int i = slotPath.Length - 2; i >= 0; --i)
             {
-                slot = slot[slotPath[i]];
+                if (slot.GetNbChildren() > slotPath[i])
+                {
+                    slot = slot[slotPath[i]];
+                }
+                else
+                {
+                    return null;
+                }
             }
 
             return slot;
