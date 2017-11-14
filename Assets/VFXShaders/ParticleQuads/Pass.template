@@ -1,11 +1,11 @@
-#if !(defined(VFX_VARYING_STRUCT) && defined(VFX_VARYING_POSITIONWS))
-#error VFX_VARYING_STRUCT, VFX_VARYING_POSITIONWS and VFX_VARYING_UV must be defined.
+#if !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))
+#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.
 #endif
 
 ${VFXInclude("Assets/VFXShaders/ParticleQuads/PassVS.template"),DONT_USE_GEOMETRY_SHADER}
 ${VFXInclude("Assets/VFXShaders/ParticleQuads/PassGS.template"),USE_GEOMETRY_SHADER}
 
-float4 VFXGetTextureColor(VFX_VARYING_STRUCT i)
+float4 VFXGetTextureColor(VFX_VARYING_PS_INPUTS i)
 {
 	float4 texColor = texture_texture.Sample(samplertexture_texture,i.VFX_VARYING_UV.xy);			
 	#if USE_FLIPBOOK_INTERPOLATION

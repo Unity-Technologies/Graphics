@@ -32,10 +32,10 @@ Pass
 		float2 motion : SV_Target0;
 	};
 
-#define VFX_VARYING_STRUCT ps_input
-#define VFX_VARYING_POSITIONWS pos
-#define VFX_VARYING_POSITIONCS projPos
-#undef VFX_VARYING_COLOR
+#define VFX_VARYING_PS_INPUTS ps_input
+#define VFX_VARYING_POSCS pos
+#define VFX_VARYING_POSSS projPos
+#undef VFX_VARYING_COLOR // Not used
 #define VFX_VARYING_ALPHA builtInInterpolants.z
 #define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y

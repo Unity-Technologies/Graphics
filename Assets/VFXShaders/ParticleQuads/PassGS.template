@@ -7,7 +7,7 @@ uint vert(uint id : SV_VertexID) : TEXCOORD0
 }
 
 [maxvertexcount(4)]
-void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_STRUCT> outStream)
+void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_PS_INPUTS> outStream)
 {
 	uint index = intStream[0];
 	if (index < asuint(nbMax))
@@ -28,26 +28,21 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_S
 			float frameBlend = frac(texIndex);
 			float frameIndex = texIndex - frameBlend;
 			#endif
-
-			float3 particlePosition = position;
+			
+			float3x3 rot = GetRotationMatrix(front,radians(angle));
 			
 			[unroll]
 			for (int id = 0; id < 4; ++id)
 			{
-				VFX_VARYING_STRUCT o = (VFX_VARYING_STRUCT)0;
+				VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
 				
 				o.VFX_VARYING_UV.x = float((id & 2) >> 1);
 				o.VFX_VARYING_UV.y = float(id & 1);
 				
-				float2 offsets = size.xy * (o.VFX_VARYING_UV - pivot.xy - 0.5f);
-				float3x3 rot = GetRotationMatrix(front,radians(angle));
-				
 				float3 vPos = position;
-				vPos += mul(rot,side * offsets.x);
-				vPos += mul(rot,up * offsets.y);
-				vPos -= front * pivot.z;
-
-				o.VFX_VARYING_POSITIONWS = mul(VFXModelViewProj(), float4(vPos,1.0f));
+				vPos += TransformInElementSpace(float3(o.VFX_VARYING_UV - 0.5f,0.0f),side,up,front,rot,pivot,size);
+				
+				o.VFX_VARYING_POSCS = mul(VFXModelViewProj(), float4(vPos,1.0f));
 
 				${VFXVertexCommonProcess}
 				
@@ -63,8 +58,6 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_S
 				
 				outStream.Append(o);
 			}
-			
-			outStream.RestartStrip();
 		}
 	}	
 }
