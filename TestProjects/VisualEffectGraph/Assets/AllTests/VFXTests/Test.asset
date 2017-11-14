@@ -4795,7 +4795,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114414263575358230}
   m_Children:
   - {fileID: 114353812460326728}
-  m_UIPosition: {x: -280.78268, y: -1297.2594}
+  m_UIPosition: {x: -317.8945, y: -1248.7285}
   m_UICollapsed: 0
   m_InputSlots: []
   m_OutputSlots: []
@@ -5883,128 +5883,128 @@ VFXAsset:
     flags: 0
     capacity: 0
     buffers:
-    - bufferIndex: 1
+    - index: 1
       nameId: spawner_output
     values: []
     tasks:
     - type: 268435457
       buffers: []
       values:
-      - expressionIndex: 58
+      - index: 58
         nameId: Rate
       processor: {fileID: 0}
   - type: 1
     flags: 1
     capacity: 65536
     buffers:
-    - bufferIndex: 0
+    - index: 0
       nameId: attributeBuffer
-    - bufferIndex: 1
+    - index: 1
       nameId: sourceAttributeBuffer
-    - bufferIndex: 2
+    - index: 2
       nameId: deadList
-    - bufferIndex: 3
+    - index: 3
       nameId: deadListCount
-    - bufferIndex: 1
+    - index: 1
       nameId: spawner_input
     values:
-    - expressionIndex: 59
+    - index: 59
       nameId: bounds_center
-    - expressionIndex: 65
+    - index: 65
       nameId: bounds_size
     tasks:
     - type: 536870912
       buffers:
-      - bufferIndex: 0
+      - index: 0
         nameId: attributeBuffer
-      - bufferIndex: 2
+      - index: 2
         nameId: deadListIn
-      - bufferIndex: 3
+      - index: 3
         nameId: deadListCount
-      - bufferIndex: 1
+      - index: 1
         nameId: sourceAttributeBuffer
       values:
-      - expressionIndex: 62
+      - index: 62
         nameId: uniform_Color_b
-      - expressionIndex: 64
+      - index: 64
         nameId: uniform_Position_c
-      - expressionIndex: 34
+      - index: 34
         nameId: uniform_d
-      - expressionIndex: 52
+      - index: 52
         nameId: uniform_e
-      - expressionIndex: 57
+      - index: 57
         nameId: uniform_Lifetime_e
-      processor: {fileID: 7200000, guid: 6653a03008b3985408449055bf48726d, type: 3}
+      processor: {fileID: 7200000, guid: e17bb5f2871d46942a6b596187ab7e46, type: 3}
     - type: 805306368
       buffers:
-      - bufferIndex: 0
+      - index: 0
         nameId: attributeBuffer
-      - bufferIndex: 2
+      - index: 2
         nameId: deadListOut
       values:
-      - expressionIndex: 66
+      - index: 66
         nameId: uniform_deltaTime_b
-      processor: {fileID: 7200000, guid: eeb3d4787f2eb464ea536e0cb6e350fa, type: 3}
+      processor: {fileID: 7200000, guid: adcba99bfb60ef24fb50b14b7363543f, type: 3}
     - type: 1073741826
       buffers:
-      - bufferIndex: 0
+      - index: 0
         nameId: attributeBuffer
       values:
-      - expressionIndex: 18
+      - index: 18
         nameId: uniform_b
-      - expressionIndex: 0
+      - index: 0
         nameId: uniform_c
-      - expressionIndex: 1
+      - index: 1
         nameId: uniform_d
-      - expressionIndex: 5
+      - index: 5
         nameId: uniform_e
-      - expressionIndex: 9
+      - index: 9
         nameId: uniform_f
-      - expressionIndex: 12
+      - index: 12
         nameId: uniform_g
-      - expressionIndex: 21
+      - index: 21
         nameId: uniform_h
-      - expressionIndex: 35
+      - index: 35
         nameId: uniform_i
-      - expressionIndex: 27
+      - index: 27
         nameId: uniform_j
-      - expressionIndex: 40
+      - index: 40
         nameId: uniform_k
-      - expressionIndex: 63
+      - index: 63
         nameId: uniform_alphaThreshold
-      - expressionIndex: 60
+      - index: 60
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: be7a22e3cefdcd04e92f6316c0d9a575, type: 3}
+      processor: {fileID: 4800000, guid: ec0ebec7c77d7614d9cf533935a7ada4, type: 3}
     - type: 1073741826
       buffers:
-      - bufferIndex: 0
+      - index: 0
         nameId: attributeBuffer
       values:
-      - expressionIndex: 18
+      - index: 18
         nameId: uniform_b
-      - expressionIndex: 0
+      - index: 0
         nameId: uniform_c
-      - expressionIndex: 1
+      - index: 1
         nameId: uniform_d
-      - expressionIndex: 5
+      - index: 5
         nameId: uniform_e
-      - expressionIndex: 9
+      - index: 9
         nameId: uniform_f
-      - expressionIndex: 12
+      - index: 12
         nameId: uniform_g
-      - expressionIndex: 21
+      - index: 21
         nameId: uniform_h
-      - expressionIndex: 35
+      - index: 35
         nameId: uniform_i
-      - expressionIndex: 27
+      - index: 27
         nameId: uniform_j
-      - expressionIndex: 38
+      - index: 38
         nameId: uniform_k
-      - expressionIndex: 61
+      - index: 61
         nameId: uniform_alphaThreshold
-      - expressionIndex: 60
+      - index: 60
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: c798688d9ca08204aa00e59ed3a03615, type: 3}
+      processor: {fileID: 4800000, guid: fde97ad691d313543a48cfa3772cece2, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000

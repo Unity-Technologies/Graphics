@@ -4165,128 +4165,128 @@ VFXAsset:
     flags: 0
     capacity: 0
     buffers:
-    - bufferIndex: 1
+    - index: 1
       nameId: spawner_output
     values: []
     tasks:
     - type: 268435460
       buffers: []
       values:
-      - expressionIndex: 58
+      - index: 58
         nameId: nb
-      - expressionIndex: 53
+      - index: 53
         nameId: period
       processor: {fileID: 0}
     - type: 268435472
       buffers: []
       values:
-      - expressionIndex: 54
+      - index: 54
         nameId: Color
       processor: {fileID: 11500000, guid: 0e3a0567e36be704dba82dc8f2ab882e, type: 3}
     - type: 268435472
       buffers: []
       values:
-      - expressionIndex: 55
+      - index: 55
         nameId: Lifetime
       processor: {fileID: 11500000, guid: 561d9bf94443677468c70e633879a3b4, type: 3}
   - type: 0
     flags: 0
     capacity: 0
     buffers:
-    - bufferIndex: 2
+    - index: 2
       nameId: spawner_output
     values: []
     tasks:
     - type: 268435457
       buffers: []
       values:
-      - expressionIndex: 59
+      - index: 59
         nameId: Rate
       processor: {fileID: 0}
     - type: 268435472
       buffers: []
       values:
-      - expressionIndex: 63
+      - index: 63
         nameId: Color
       processor: {fileID: 11500000, guid: 0e3a0567e36be704dba82dc8f2ab882e, type: 3}
     - type: 268435472
       buffers: []
       values:
-      - expressionIndex: 64
+      - index: 64
         nameId: Lifetime
       processor: {fileID: 11500000, guid: 561d9bf94443677468c70e633879a3b4, type: 3}
   - type: 1
     flags: 1
     capacity: 65536
     buffers:
-    - bufferIndex: 0
+    - index: 0
       nameId: attributeBuffer
-    - bufferIndex: 1
+    - index: 1
       nameId: sourceAttributeBuffer
-    - bufferIndex: 2
+    - index: 2
       nameId: deadList
-    - bufferIndex: 3
+    - index: 3
       nameId: deadListCount
-    - bufferIndex: 2
+    - index: 2
       nameId: spawner_input
-    - bufferIndex: 1
+    - index: 1
       nameId: spawner_input
     values:
-    - expressionIndex: 56
+    - index: 56
       nameId: bounds_center
-    - expressionIndex: 57
+    - index: 57
       nameId: bounds_size
     tasks:
     - type: 536870912
       buffers:
-      - bufferIndex: 0
+      - index: 0
         nameId: attributeBuffer
-      - bufferIndex: 2
+      - index: 2
         nameId: deadListIn
-      - bufferIndex: 3
+      - index: 3
         nameId: deadListCount
-      - bufferIndex: 1
+      - index: 1
         nameId: sourceAttributeBuffer
       values:
-      - expressionIndex: 65
+      - index: 65
         nameId: uniform_Direction_d
-      - expressionIndex: 60
+      - index: 60
         nameId: uniform_Speed_d
-      - expressionIndex: 61
+      - index: 61
         nameId: uniform_DirectionBlend_d
-      - expressionIndex: 62
+      - index: 62
         nameId: uniform_Box_center_e
-      - expressionIndex: 49
+      - index: 49
         nameId: uniform_Box_size_e
-      - expressionIndex: 52
+      - index: 52
         nameId: uniform_Speed_f
-      - expressionIndex: 51
+      - index: 51
         nameId: uniform_DirectionBlend_f
-      processor: {fileID: 7200000, guid: d3a47f9455d9adf498f9bd3c3fb900f0, type: 3}
+      processor: {fileID: 7200000, guid: 9ca717810f3a3564f97ce2cc47a76a42, type: 3}
     - type: 805306368
       buffers:
-      - bufferIndex: 0
+      - index: 0
         nameId: attributeBuffer
-      - bufferIndex: 2
+      - index: 2
         nameId: deadListOut
       values:
-      - expressionIndex: 50
+      - index: 50
         nameId: uniform_deltaTime_b
-      processor: {fileID: 7200000, guid: c2d7b2951825f254a9d1a2a7a87bf378, type: 3}
+      processor: {fileID: 7200000, guid: f162a4f9320d38649b050f14ac38f15a, type: 3}
     - type: 1073741826
       buffers:
-      - bufferIndex: 0
+      - index: 0
         nameId: attributeBuffer
       values:
-      - expressionIndex: 19
+      - index: 19
         nameId: uniform_b
-      - expressionIndex: 13
+      - index: 13
         nameId: uniform_c
-      - expressionIndex: 21
+      - index: 21
         nameId: uniform_d
-      - expressionIndex: 48
+      - index: 48
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: 67e1e5c79534c5c4c9e426b53b5f94c8, type: 3}
+      processor: {fileID: 4800000, guid: 53d10a73dcb8fac4fa7b1eef1475768a, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 0000000001000000
