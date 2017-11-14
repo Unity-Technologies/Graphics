@@ -1,6 +1,8 @@
 using System;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Drawing.Slots;
 using UnityEngine;
+using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -23,6 +25,11 @@ namespace UnityEditor.ShaderGraph
             : base(slotId, displayName, shaderOutputName, SlotType.Input, Vector2.zero, shaderStage, hidden)
         {
             this.channel = channel;
+        }
+
+        public override VisualElement InstantiateControl()
+        {
+            return new UVSlotControlView(this);
         }
 
         public override string GetDefaultValue(GenerationMode generationMode)

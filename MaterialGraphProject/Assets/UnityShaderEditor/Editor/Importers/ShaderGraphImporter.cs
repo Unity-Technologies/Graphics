@@ -3,14 +3,84 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using UnityEditor;
-using UnityEditor.ShaderGraph.Drawing;
-using Object = UnityEngine.Object;
+using UnityEditor.Experimental.AssetImporters;
 
-class ShaderGraphImporter : ICustomShaderImporter
+[ScriptedImporter(1, "shadergraph")]
+public class ShaderGraphImporter : ScriptedImporter
 {
-    private static string GetShaderText<T>(string path) where T : IShaderGraph
+    private string errorShader = @"
+Shader ""Hidden/GraphErrorShader2""
+{
+    SubShader
+    {
+        Pass
+        {
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma target 2.0
+            #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
+            #include ""UnityCG.cginc""
+
+            struct appdata_t {
+                float4 vertex : POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct v2f {
+                float4 vertex : SV_POSITION;
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
+
+            v2f vert (appdata_t v)
+            {
+                v2f o;
+                UNITY_SETUP_INSTANCE_ID(v);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+                o.vertex = UnityObjectToClipPos(v.vertex);
+                return o;
+            }
+            fixed4 frag (v2f i) : SV_Target
+            {
+                return fixed4(1,0,1,1);
+            }
+            ENDCG
+        }
+    }
+    Fallback Off
+}";
+
+
+    public override void OnImportAsset(AssetImportContext ctx)
+    {
+        var oldShader = AssetDatabase.LoadAssetAtPath<Shader>(ctx.assetPath);
+        if (oldShader != null)
+            ShaderUtil.ClearShaderErrors(oldShader);
+
+        List<PropertyCollector.TextureInfo> configuredTextures;
+        var text = GetShaderText<MaterialGraph>(ctx.assetPath, out configuredTextures);
+        if (text == null)
+            text = errorShader;
+        
+        var shader = ShaderUtil.CreateShaderAsset(text);
+        
+        EditorMaterialUtility.SetShaderDefaults(
+            shader,
+            configuredTextures.Where(x => x.modifiable).Select(x => x.name).ToArray(),
+            configuredTextures.Where(x => x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
+        EditorMaterialUtility.SetShaderNonModifiableDefaults(
+            shader,
+            configuredTextures.Where(x => !x.modifiable).Select(x => x.name).ToArray(),
+            configuredTextures.Where(x => !x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
+
+        ctx.AddObjectToAsset("MainAsset", shader);
+        ctx.SetMainObject(shader);
+    }
+
+    private static string GetShaderText<T>(string path, out List<PropertyCollector.TextureInfo> configuredTextures) where T : IShaderGraph
     {
         try
         {
@@ -19,8 +89,6 @@ class ShaderGraphImporter : ICustomShaderImporter
             graph.LoadedFromDisk();
 
             var name = Path.GetFileNameWithoutExtension(path);
-
-            List<PropertyCollector.TextureInfo> configuredTextures;
             var shaderString = graph.GetShader(string.Format("graphs/{0}", name), GenerationMode.ForReals, out configuredTextures);
             Debug.Log(shaderString);
             return shaderString;
@@ -29,62 +97,7 @@ class ShaderGraphImporter : ICustomShaderImporter
         {
             // ignored
         }
+        configuredTextures = new List<PropertyCollector.TextureInfo>();
         return null;
-    }
-
-    public string GetShaderText(string path)
-    {
-        if (path.EndsWith("LayeredShaderGraph", StringComparison.InvariantCultureIgnoreCase))
-            return GetShaderText<LayeredShaderGraph>(path);
-        if (path.EndsWith("shaderGraph", StringComparison.InvariantCultureIgnoreCase))
-            return GetShaderText<MaterialGraph>(path);
-
-        return null;
-    }
-
-    public bool IsValidForPath(string path)
-    {
-        return
-            path.EndsWith("LayeredShaderGraph", StringComparison.InvariantCultureIgnoreCase)
-            || path.EndsWith("shaderGraph", StringComparison.InvariantCultureIgnoreCase);
-    }
-
-    public void OpenAsset(string path)
-    {
-        ShowGraphEditWindow(path);
-    }
-
-    internal static void ShowGraphEditWindow(string path)
-    {
-        var asset = AssetDatabase.LoadAssetAtPath<Object>(path);
-        var extension = Path.GetExtension(path);
-        Type graphType;
-        if (extension == ".ShaderGraph")
-            graphType = typeof(MaterialGraph);
-        else if (extension == ".LayeredShaderGraph")
-            graphType = typeof(LayeredShaderGraph);
-        else if (extension == ".ShaderSubGraph")
-            graphType = typeof(SubGraph);
-        else if (extension == ".ShaderRemapGraph")
-            graphType = typeof(MasterRemapGraph);
-        else
-            return;
-
-        var foundWindow = false;
-        foreach (var w in Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>())
-        {
-            if (w.selected == asset)
-            {
-                foundWindow = true;
-                w.Focus();
-            }
-        }
-
-        if (!foundWindow)
-        {
-            var window = ScriptableObject.CreateInstance<MaterialGraphEditWindow>();
-            window.Show();
-            window.ChangeSelection(asset, graphType);
-        }
     }
 }

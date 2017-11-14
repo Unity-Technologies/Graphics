@@ -3,14 +3,15 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
+    /*
     [Title("Input/Time/Time")]
     public class TimeNode : AbstractMaterialNode, IMayRequireTime
     {
         private const string kOutputSlotName = "Time";
-        private const string kOutputSlotNameX = "Time/20";
-        private const string kOutputSlotNameY = "Time";
-        private const string kOutputSlotNameZ = "Time * 2";
-        private const string kOutputSlotNameW = "Time * 3";
+        private const string kOutputSlotNameX = "T/20";
+        private const string kOutputSlotNameY = "T";
+        private const string kOutputSlotNameZ = "T*2";
+        private const string kOutputSlotNameW = "T*3";
 
         public const int OutputSlotId = 0;
         public const int OutputSlotIdX = 1;
@@ -61,4 +62,5 @@ namespace UnityEditor.ShaderGraph
             return true;
         }
     }
+    */
 }

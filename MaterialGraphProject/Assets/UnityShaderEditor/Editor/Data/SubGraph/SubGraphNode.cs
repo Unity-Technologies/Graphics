@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph
         }
 
 #if UNITY_EDITOR
-        [ObjectControl("Subgraph")]
+        [ObjectControl("")]
         public MaterialSubGraphAsset subGraphAsset
         {
             get

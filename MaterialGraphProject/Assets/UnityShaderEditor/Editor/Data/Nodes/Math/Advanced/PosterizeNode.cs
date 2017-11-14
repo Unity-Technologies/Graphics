@@ -16,14 +16,14 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_Posterize(
-            [Slot(0, Binding.None)] DynamicDimensionVector input,
-            [Slot(1, Binding.None)] DynamicDimensionVector stepsize,
-            [Slot(2, Binding.None)] out DynamicDimensionVector result)
+            [Slot(0, Binding.None)] DynamicDimensionVector In,
+            [Slot(1, Binding.None)] DynamicDimensionVector Steps,
+            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
 {
-    result = floor(input / stepsize) * stepsize;;
+    Out = floor(In / (1 / Steps)) * (1 / Steps);
 }
 ";
         }

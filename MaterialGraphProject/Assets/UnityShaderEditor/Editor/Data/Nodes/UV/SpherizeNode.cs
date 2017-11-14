@@ -10,26 +10,27 @@ namespace UnityEditor.ShaderGraph
         {
             name = "Spherize";
         }
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Spherize", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
         static string Unity_Spherize(
-            [Slot(0, Binding.MeshUV0)] Vector2 uv,
-            [Slot(1, Binding.None)] Vector2 position,
-            [Slot(2, Binding.None)] Vector2 radiusAndStrength,
-            [Slot(3, Binding.None)] out Vector2 result)
+            [Slot(0, Binding.MeshUV0)] Vector2 UV,
+            [Slot(1, Binding.None, 0.5f, 0.5f, 0.5f, 0.5f)] Vector2 Center,
+            [Slot(2, Binding.None, 10f, 10f, 10f, 10f)] Vector2 Strength,
+            [Slot(3, Binding.None)] Vector2 Offset,
+            [Slot(4, Binding.None)] out Vector2 Out)
         {
-            result = Vector2.zero;
+            Out = Vector2.zero;
             return
                 @"
 {
-     {precision}2 fromUVToPoint = position - uv;
-     {precision} dist = length(fromUVToPoint);
-     {precision} mag = ((1.0 - (dist / radiusAndStrength.x)) * radiusAndStrength.y) * step(dist, radiusAndStrength.x);
-     result = uv + (mag * fromUVToPoint);
+    float2 delta = UV - Center;
+    float delta2 = dot(delta.xy, delta.xy);
+    float delta4 = delta2 * delta2;
+    float2 delta_offset = delta4 * Strength;
+    Out = UV + delta * delta_offset + Offset;
 }";
         }
     }

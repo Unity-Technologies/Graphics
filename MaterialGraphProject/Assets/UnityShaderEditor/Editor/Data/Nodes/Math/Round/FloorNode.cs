@@ -16,13 +16,13 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_Floor(
-            [Slot(0, Binding.None)] DynamicDimensionVector argument,
-            [Slot(1, Binding.None)] out DynamicDimensionVector result)
+            [Slot(0, Binding.None)] DynamicDimensionVector In,
+            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
 {
-    result = floor(argument);
+    Out = floor(In);
 }
 ";
         }

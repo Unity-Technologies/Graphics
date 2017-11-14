@@ -75,12 +75,79 @@ namespace UnityEditor.ShaderGraph
 
         public void RemoveShaderProperty(Guid guid)
         {
-            var propertyNodes = GetNodes<PropertyNode>().Where(x => x.propertyGuid == guid).ToArray();
-            foreach (var pNode in propertyNodes)
-                pNode.ReplaceWithConcreteNode();
+            RemoveShaderPropertyNoValidate(guid);
+            ValidateGraph();
+        }
 
+        void RemoveShaderPropertyNoValidate(Guid guid)
+        {
             if (m_Properties.RemoveAll(x => x.guid == guid) > 0)
                 m_RemovedProperties.Add(guid);
+        }
+
+        public void ReplacePropertyNodeWithConcreteNode(PropertyNode propertyNode)
+        {
+            var property = properties.FirstOrDefault(x => x.guid == propertyNode.propertyGuid);
+            if (property != null)
+            {
+                AbstractMaterialNode node = null;
+                int slotId = -1;
+                if (property is FloatShaderProperty)
+                {
+                    var createdNode = new Vector1Node();
+                    createdNode.value = ((FloatShaderProperty) property).value;
+                    slotId = Vector1Node.OutputSlotId;
+                    node = createdNode;
+                }
+                else if (property is Vector2ShaderProperty)
+                {
+                    var createdNode = new Vector2Node();
+                    createdNode.value = ((Vector2ShaderProperty) property).value;
+                    slotId = Vector2Node.OutputSlotId;
+                    node = createdNode;
+                }
+                else if (property is Vector3ShaderProperty)
+                {
+                    var createdNode = new Vector3Node();
+                    createdNode.value = ((Vector3ShaderProperty) property).value;
+                    slotId = Vector3Node.OutputSlotId;
+                    node = createdNode;
+                }
+                else if (property is Vector4ShaderProperty)
+                {
+                    var createdNode = new Vector4Node();
+                    createdNode.value = ((Vector4ShaderProperty) property).value;
+                    slotId = Vector4Node.OutputSlotId;
+                    node = createdNode;
+                }
+                else if (property is ColorShaderProperty)
+                {
+                    var createdNode = new ColorNode();
+                    createdNode.color = ((ColorShaderProperty) property).value;
+                    slotId = ColorNode.OutputSlotId;
+                    node = createdNode;
+                }
+
+                if (node == null)
+                    return;
+
+                var slot = propertyNode.FindOutputSlot<MaterialSlot>(PropertyNode.OutputSlotId);
+                node.drawState = propertyNode.drawState;
+                AddNodeNoValidate(node);
+
+                foreach (var edge in GetEdges(slot.slotReference).ToArray())
+                    ConnectNoValidate(node.GetSlotReference(slotId), edge.inputSlot);
+
+                RemoveNodeNoValidate(propertyNode);
+            }
+        }
+
+        public override void ValidateGraph()
+        {
+            var propertyNodes = GetNodes<PropertyNode>().Where(n => !m_Properties.Any(p => p.guid == n.propertyGuid)).ToArray();
+            foreach (var pNode in propertyNodes)
+                ReplacePropertyNodeWithConcreteNode(pNode);
+            base.ValidateGraph();
         }
 
         public override Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo> GetLegacyTypeRemapping()
@@ -96,7 +163,7 @@ namespace UnityEditor.ShaderGraph
             {
                 fullName = "UnityEngine.MaterialGraph.NormalNode"
             };
-            result[normalNode] = SerializationHelper.GetTypeSerializableAsString(typeof(NormalNode));
+            result[normalNode] = SerializationHelper.GetTypeSerializableAsString(typeof(NormalVectorNode));
 
             var worldPosNode = new SerializationHelper.TypeSerializationInfo
             {
@@ -118,7 +185,7 @@ namespace UnityEditor.ShaderGraph
                     foreach (var property in m_Properties)
                         removedPropertyGuids.Add(property.guid);
                     foreach (var propertyGuid in removedPropertyGuids)
-                        RemoveShaderProperty(propertyGuid);
+                        RemoveShaderPropertyNoValidate(propertyGuid);
                 }
                 foreach (var otherProperty in otherMG.properties)
                 {
@@ -389,6 +456,7 @@ struct GraphVertexInput
      float4 vertex : POSITION;
      float3 normal : NORMAL;
      float4 tangent : TANGENT;
+     float4 color : COLOR;
      float4 texcoord0 : TEXCOORD0;
      float4 lightmapUV : TEXCOORD1;
      UNITY_VERTEX_INPUT_INSTANCE_ID

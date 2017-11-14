@@ -46,7 +46,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 .OfType<PropertyNode>();
 
             foreach (var propNode in slected)
-                propNode.ReplaceWithConcreteNode();
+                ((AbstractMaterialGraph)propNode.owner).ReplacePropertyNodeWithConcreteNode(propNode);
         }
 
         private void OnConvertToProperty()

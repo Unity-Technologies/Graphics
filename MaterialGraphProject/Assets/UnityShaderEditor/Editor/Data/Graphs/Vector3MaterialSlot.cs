@@ -1,6 +1,8 @@
 using System;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Drawing.Slots;
 using UnityEngine;
+using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -36,6 +38,11 @@ namespace UnityEditor.ShaderGraph
         {
             get { return m_Value; }
             set { m_Value = value; }
+        }
+
+        public override VisualElement InstantiateControl()
+        {
+            return new MultiFloatSlotControlView(owner, 3, () => value, (newValue) => value = newValue);
         }
 
         protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
