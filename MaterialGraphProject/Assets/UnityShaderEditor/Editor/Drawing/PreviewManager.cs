@@ -56,6 +56,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var previewData = new PreviewData
             {
+                node = node,
                 renderTexture = new RenderTexture(256, 256, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave }
             };
             if (m_Previews.ContainsKey(node.guid))
@@ -145,6 +146,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_DirtyShaders.Add(edge.inputSlot.nodeGuid);
         }
 
+        List<PreviewData> m_RenderList2D = new List<PreviewData>();
+        List<PreviewData> m_RenderList3D = new List<PreviewData>();
+
         public void RenderPreviews()
         {
             if (previewRate == PreviewRate.Off)
@@ -220,13 +224,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_PreviewProperties.Clear();
             }
 
-            var time = Time.realtimeSinceStartup;
             foreach (var nodeGuid in m_DirtyPreviews)
             {
                 PreviewData previewData;
                 if (!m_Previews.TryGetValue(nodeGuid, out previewData))
                     continue;
-
                 if (previewData.shader == null)
                 {
                     previewData.texture = null;
@@ -237,62 +239,70 @@ namespace UnityEditor.ShaderGraph.Drawing
                     previewData.texture = m_ErrorTexture;
                     continue;
                 }
-                var node = m_Graph.GetNodeFromGuid(nodeGuid);
-                m_PreviewMaterial.shader = previewData.shader;
-
-                if (previewData.previewMode == PreviewMode.Preview3D)
-                {
-                    m_SceneResources.camera.transform.position = -Vector3.forward * 5;
-                    m_SceneResources.camera.transform.rotation = Quaternion.identity;
-                    m_SceneResources.camera.orthographic = false;
-                }
+                
+                if (previewData.previewMode == PreviewMode.Preview2D)
+                    m_RenderList2D.Add(previewData);
                 else
-                {
-                    m_SceneResources.camera.transform.position = -Vector3.forward * 2;
-                    m_SceneResources.camera.transform.rotation = Quaternion.identity;
-                    m_SceneResources.camera.orthographicSize = 1;
-                    m_SceneResources.camera.orthographic = true;
-                }
+                    m_RenderList3D.Add(previewData);
+            }
 
+            var time = Time.realtimeSinceStartup;
+            EditorUtility.SetCameraAnimateMaterialsTime(m_SceneResources.camera, time);
+            m_SceneResources.light0.enabled = true;
+            m_SceneResources.light0.intensity = 1.0f;
+            m_SceneResources.light0.transform.rotation = Quaternion.Euler(50f, 50f, 0);
+            m_SceneResources.light1.enabled = true;
+            m_SceneResources.light1.intensity = 1.0f;
+            m_SceneResources.camera.clearFlags = CameraClearFlags.Depth;
+
+            // Render 2D previews
+            m_SceneResources.camera.transform.position = -Vector3.forward * 2;
+            m_SceneResources.camera.transform.rotation = Quaternion.identity;
+            m_SceneResources.camera.orthographicSize = 1;
+            m_SceneResources.camera.orthographic = true;
+            foreach (var previewData in m_RenderList2D)
+            {
+                m_PreviewMaterial.shader = previewData.shader;
                 m_SceneResources.camera.targetTexture = previewData.renderTexture;
                 var previousRenderTexure = RenderTexture.active;
                 RenderTexture.active = previewData.renderTexture;
-
                 GL.Clear(true, true, Color.black);
                 Graphics.Blit(Texture2D.whiteTexture, previewData.renderTexture, m_SceneResources.checkerboardMaterial);
-
-                EditorUtility.SetCameraAnimateMaterialsTime(m_SceneResources.camera, time);
-                m_SceneResources.light0.enabled = true;
-                m_SceneResources.light0.intensity = 1.0f;
-                m_SceneResources.light0.transform.rotation = Quaternion.Euler(50f, 50f, 0);
-                m_SceneResources.light1.enabled = true;
-                m_SceneResources.light1.intensity = 1.0f;
-                m_SceneResources.camera.clearFlags = CameraClearFlags.Depth;
-
-                Mesh mesh = previewData.previewMode == PreviewMode.Preview2D ? m_SceneResources.quad : (previewData.mesh ?? m_SceneResources.sphere);
-                Graphics.DrawMesh(
-                    mesh,
-                    previewData.previewMode == PreviewMode.Preview3D ? Matrix4x4.TRS(-mesh.bounds.center, Quaternion.identity, Vector3.one) : Matrix4x4.identity,
-                    m_PreviewMaterial,
-                    1,
-                    m_SceneResources.camera,
-                    0,
-                    m_PreviewPropertyBlock,
-                    ShadowCastingMode.Off,
-                    false,
-                    null,
-                    false);
-
+                Graphics.DrawMesh(m_SceneResources.quad, Matrix4x4.identity, m_PreviewMaterial, 1, m_SceneResources.camera, 0, m_PreviewPropertyBlock, ShadowCastingMode.Off, false, null, false);
                 var previousUseSRP = Unsupported.useScriptableRenderPipeline;
-                Unsupported.useScriptableRenderPipeline = node is IMasterNode;
+                Unsupported.useScriptableRenderPipeline = false;
                 m_SceneResources.camera.Render();
                 Unsupported.useScriptableRenderPipeline = previousUseSRP;
                 RenderTexture.active = previousRenderTexure;
-                m_SceneResources.light0.enabled = false;
-                m_SceneResources.light1.enabled = false;
-
                 previewData.texture = previewData.renderTexture;
             }
+            m_RenderList2D.Clear();
+
+            // Render 3D previews
+            m_SceneResources.camera.transform.position = -Vector3.forward * 5;
+            m_SceneResources.camera.transform.rotation = Quaternion.identity;
+            m_SceneResources.camera.orthographic = false;
+            foreach (var previewData in m_RenderList3D)
+            {
+                m_PreviewMaterial.shader = previewData.shader;
+                m_SceneResources.camera.targetTexture = previewData.renderTexture;
+                var previousRenderTexure = RenderTexture.active;
+                RenderTexture.active = previewData.renderTexture;
+                GL.Clear(true, true, Color.black);
+                Graphics.Blit(Texture2D.whiteTexture, previewData.renderTexture, m_SceneResources.checkerboardMaterial);
+                var mesh = previewData.mesh ?? m_SceneResources.sphere;
+                Graphics.DrawMesh(mesh, Matrix4x4.TRS(-mesh.bounds.center, Quaternion.identity, Vector3.one), m_PreviewMaterial, 1, m_SceneResources.camera, 0, m_PreviewPropertyBlock, ShadowCastingMode.Off, false, null, false);
+                var previousUseSRP = Unsupported.useScriptableRenderPipeline;
+                Unsupported.useScriptableRenderPipeline = previewData.node is IMasterNode;
+                m_SceneResources.camera.Render();
+                Unsupported.useScriptableRenderPipeline = previousUseSRP;
+                RenderTexture.active = previousRenderTexure;
+                previewData.texture = previewData.renderTexture;
+            }
+            m_RenderList3D.Clear();
+
+            m_SceneResources.light0.enabled = false;
+            m_SceneResources.light1.enabled = false;
 
             foreach (var nodeGuid in m_DirtyPreviews)
             {
@@ -420,6 +430,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
     public class PreviewData
     {
+        public INode node { get; set; }
         public Shader shader { get; set; }
         public Mesh mesh { get; set; }
         public string shaderString { get; set; }
