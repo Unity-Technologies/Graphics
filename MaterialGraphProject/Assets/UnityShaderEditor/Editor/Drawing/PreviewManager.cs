@@ -8,6 +8,7 @@ using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
+using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.ShaderGraph.Drawing
@@ -21,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         HashSet<Guid> m_TimeDependentPreviews = new HashSet<Guid>();
         Material m_PreviewMaterial;
         MaterialPropertyBlock m_PreviewPropertyBlock;
-        MaterialGraphPreviewGenerator m_PreviewGenerator = new MaterialGraphPreviewGenerator();
+        PreviewSceneResources m_SceneResources;
         Texture2D m_ErrorTexture;
         DateTime m_LastUpdate;
 
@@ -40,6 +41,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_ErrorTexture.SetPixel(1, 1, Color.magenta);
             m_ErrorTexture.filterMode = FilterMode.Point;
             m_ErrorTexture.Apply();
+            m_SceneResources = new PreviewSceneResources();
 
             foreach (var node in m_Graph.GetNodes<INode>())
                 AddPreview(node);
@@ -237,7 +239,58 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 var node = m_Graph.GetNodeFromGuid(nodeGuid);
                 m_PreviewMaterial.shader = previewData.shader;
-                m_PreviewGenerator.DoRenderPreview(previewData.renderTexture, m_PreviewMaterial, previewData.mesh, previewData.previewMode, node is IMasterNode, time, m_PreviewPropertyBlock);
+
+                if (previewData.previewMode == PreviewMode.Preview3D)
+                {
+                    m_SceneResources.camera.transform.position = -Vector3.forward * 5;
+                    m_SceneResources.camera.transform.rotation = Quaternion.identity;
+                    m_SceneResources.camera.orthographic = false;
+                }
+                else
+                {
+                    m_SceneResources.camera.transform.position = -Vector3.forward * 2;
+                    m_SceneResources.camera.transform.rotation = Quaternion.identity;
+                    m_SceneResources.camera.orthographicSize = 1;
+                    m_SceneResources.camera.orthographic = true;
+                }
+
+                m_SceneResources.camera.targetTexture = previewData.renderTexture;
+                var previousRenderTexure = RenderTexture.active;
+                RenderTexture.active = previewData.renderTexture;
+
+                GL.Clear(true, true, Color.black);
+                Graphics.Blit(Texture2D.whiteTexture, previewData.renderTexture, m_SceneResources.checkerboardMaterial);
+
+                EditorUtility.SetCameraAnimateMaterialsTime(m_SceneResources.camera, time);
+                m_SceneResources.light0.enabled = true;
+                m_SceneResources.light0.intensity = 1.0f;
+                m_SceneResources.light0.transform.rotation = Quaternion.Euler(50f, 50f, 0);
+                m_SceneResources.light1.enabled = true;
+                m_SceneResources.light1.intensity = 1.0f;
+                m_SceneResources.camera.clearFlags = CameraClearFlags.Depth;
+
+                Mesh mesh = previewData.previewMode == PreviewMode.Preview2D ? m_SceneResources.quad : (previewData.mesh ?? m_SceneResources.sphere);
+                Graphics.DrawMesh(
+                    mesh,
+                    previewData.previewMode == PreviewMode.Preview3D ? Matrix4x4.TRS(-mesh.bounds.center, Quaternion.identity, Vector3.one) : Matrix4x4.identity,
+                    m_PreviewMaterial,
+                    1,
+                    m_SceneResources.camera,
+                    0,
+                    m_PreviewPropertyBlock,
+                    ShadowCastingMode.Off,
+                    false,
+                    null,
+                    false);
+
+                var previousUseSRP = Unsupported.useScriptableRenderPipeline;
+                Unsupported.useScriptableRenderPipeline = node is IMasterNode;
+                m_SceneResources.camera.Render();
+                Unsupported.useScriptableRenderPipeline = previousUseSRP;
+                RenderTexture.active = previousRenderTexure;
+                m_SceneResources.light0.enabled = false;
+                m_SceneResources.light1.enabled = false;
+
                 previewData.texture = previewData.renderTexture;
             }
 
@@ -343,9 +396,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_PreviewMaterial != null)
                 Object.DestroyImmediate(m_PreviewMaterial, true);
             m_PreviewMaterial = null;
-            if (m_PreviewGenerator != null)
-                m_PreviewGenerator.Dispose();
-            m_PreviewGenerator = null;
+            if (m_SceneResources != null)
+                m_SceneResources.Dispose();
+            m_SceneResources = null;
             var previews = m_Previews.ToList();
             foreach (var kvp in previews)
                 DestroyPreview(kvp.Key, kvp.Value);
