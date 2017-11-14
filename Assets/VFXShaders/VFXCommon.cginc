@@ -235,3 +235,9 @@ float3x3 GetRotationMatrix(float3 axis,float angle)
                     t * x * y + s * z,  t * y * y + c,      t * y * z - s * x,
                     t * x * z - s * y,  t * y * z + s * x,  t * z * z + c);
 }
+
+float2 GetSubUV(int flipBookIndex,float2 uv,float2 dim,float2 invDim)
+{
+    float2 tile = float2(fmod(flipBookIndex,dim.x),dim.y - 1.0 - floor(flipBookIndex * invDim.x));
+    return (tile + uv) * invDim;
+}

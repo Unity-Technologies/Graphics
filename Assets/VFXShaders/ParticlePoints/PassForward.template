@@ -31,7 +31,7 @@ Pass
 #define VFX_VARYING_COLOR color.rgb
 #define VFX_VARYING_ALPHA color.a
 #define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
-#define VFX_VARYING_ ALPHA_THRESHOLD builtInInterpolants.y
+#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
 	
 	${VFXBegin:VFXVertexAdditionalProcess}${VFXEnd}
 	

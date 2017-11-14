@@ -513,7 +513,7 @@ namespace UnityEditor.VFX.Test
             Undo.IncrementCurrentGroup();
             var cosDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Cosine");
             var contextUpdateDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Update"));
-            var blockAttributeDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.name.Contains("Attribute"));
+            var blockAttributeDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.name.Contains("Set Attribute"));
 
             var cos = m_ViewPresenter.AddVFXOperator(new Vector2(0, 0), cosDesc);
             var update = m_ViewPresenter.AddVFXContext(new Vector2(2, 2), contextUpdateDesc);

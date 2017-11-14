@@ -136,14 +136,13 @@ namespace UnityEditor.VFX.UI
 
         private void WillFlushUndoRecord()
         {
+            if (m_graphUndoStack == null)
+            {
+                return;
+            }
+
             if (!m_InLiveModification)
             {
-                if (m_graphUndoStack == null)
-                {
-                    Debug.LogError("Unexpected WillFlushUndoRecord (not initialize)");
-                    return;
-                }
-
                 if (m_graphUndoStack.IsDirtyState())
                 {
                     m_graphUndoStack.FlushAndPushGraphState(m_Graph);
@@ -156,7 +155,6 @@ namespace UnityEditor.VFX.UI
         {
             if (m_graphUndoStack == null)
             {
-                Debug.LogError("Unexpected SynchronizeUndoRedoState (not yet initialize)");
                 return;
             }
 
