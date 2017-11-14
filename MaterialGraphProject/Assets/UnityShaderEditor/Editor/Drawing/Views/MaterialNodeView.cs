@@ -17,15 +17,19 @@ namespace UnityEditor.ShaderGraph.Drawing
         PreviewTextureView m_PreviewTextureView;
         VisualElement m_ControlsContainer;
         VisualElement m_PreviewContainer;
+        List<Attacher> m_Attachers;
+        GraphView m_GraphView;
 
-        public MaterialNodeView(AbstractMaterialNode inNode, PreviewManager previewManager)
+        public void Initialize(GraphView graphView, AbstractMaterialNode inNode, PreviewManager previewManager)
         {
             AddToClassList("MaterialNode");
 
             if (inNode == null)
                 return;
 
+            m_GraphView = graphView;
             node = inNode;
+            persistenceKey = node.guid.ToString();
             UpdateTitle();
 
             m_ControlsContainer = new VisualElement
@@ -78,9 +82,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var propertyInfo in node.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
             foreach (IControlAttribute attribute in propertyInfo.GetCustomAttributes(typeof(IControlAttribute), false))
                 m_ControlViews.Add(attribute.InstantiateControl(node, propertyInfo));
+            m_Attachers = new List<Attacher>(node.GetInputSlots<MaterialSlot>().Count());
             expanded = node.drawState.expanded;
 
-            AddSlots(node.GetSlots<ISlot>());
+
+            AddSlots(node.GetSlots<MaterialSlot>());
+            UpdatePortInputVisibilities();
 
             SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
             UpdateControls();
@@ -94,7 +101,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 UpdateSize();
             }
 
-            clippingOptions = ClippingOptions.ClipContents;
+            mainContainer.clippingOptions = ClippingOptions.ClipContents;
         }
 
         public AbstractMaterialNode node { get; private set; }
@@ -115,6 +122,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
 
                 UpdateControls();
+                UpdatePortInputVisibilities();
             }
         }
 
@@ -162,47 +170,95 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Update slots to match node modification
             if (scope == ModificationScope.Topological)
             {
-                var slots = node.GetSlots<ISlot>().ToList();
+                var slots = node.GetSlots<MaterialSlot>().ToList();
 
                 var anchorsToRemove = new List<VisualElement>();
                 foreach (var anchor in inputContainer.Children())
-                    if (!slots.Contains(anchor.userData as ISlot))
+                    if (!slots.Contains(anchor.userData as MaterialSlot))
                         anchorsToRemove.Add(anchor);
-                foreach (var ve in anchorsToRemove)
-                    inputContainer.Remove(ve);
+                foreach (var anchorElement in anchorsToRemove)
+                {
+                    inputContainer.Remove(anchorElement);
+                    var attacher = m_Attachers.FirstOrDefault(a => a.target == anchorElement);
+                    if (attacher != null)
+                    {
+                        attacher.Detach();
+                        attacher.element.parent.Remove(attacher.element);
+                        m_Attachers.Remove(attacher);
+                    }
+                }
 
                 anchorsToRemove.Clear();
                 foreach (var anchor in outputContainer.Children())
-                    if (!slots.Contains(anchor.userData as ISlot))
+                    if (!slots.Contains(anchor.userData as MaterialSlot))
                         anchorsToRemove.Add(anchor);
                 foreach (var ve in anchorsToRemove)
                     outputContainer.Remove(ve);
 
-                AddSlots(slots.Except(inputContainer.Children().Concat(outputContainer.Children()).Select(data => data.userData as ISlot)));
+                foreach (var port in inputContainer.Union(outputContainer).OfType<Port>())
+                {
+                    var slot = (MaterialSlot)port.userData;
+                    port.portName = slot.displayName;
+                }
+
+                AddSlots(slots.Except(inputContainer.Children().Concat(outputContainer.Children()).Select(data => data.userData as MaterialSlot)));
 
                 if (inputContainer.childCount > 0)
-                    inputContainer.Sort((x, y) => slots.IndexOf(x.userData as ISlot) - slots.IndexOf(y.userData as ISlot));
+                    inputContainer.Sort((x, y) => slots.IndexOf(x.userData as MaterialSlot) - slots.IndexOf(y.userData as MaterialSlot));
                 if (outputContainer.childCount > 0)
-                    outputContainer.Sort((x, y) => slots.IndexOf(x.userData as ISlot) - slots.IndexOf(y.userData as ISlot));
+                    outputContainer.Sort((x, y) => slots.IndexOf(x.userData as MaterialSlot) - slots.IndexOf(y.userData as MaterialSlot));
             }
+
+            UpdatePortInputVisibilities();
         }
 
-        void AddSlots(IEnumerable<ISlot> slots)
+        void AddSlots(IEnumerable<MaterialSlot> slots)
         {
             foreach (var slot in slots)
             {
                 if (slot.hidden)
                     continue;
 
-                var data = InstantiateNodeAnchor(slot.isInputSlot ? Direction.Input : Direction.Output, typeof(Vector4));
-                data.capabilities &= ~Capabilities.Movable;
-                data.anchorName = slot.displayName;
-                data.userData = slot;
+                var port = InstantiatePort(Orientation.Horizontal, slot.isInputSlot ? Direction.Input : Direction.Output, typeof(Vector4));
+                port.capabilities &= ~Capabilities.Movable;
+                port.portName = slot.displayName;
+                port.userData = slot;
 
                 if (slot.isOutputSlot)
-                    outputContainer.Add(data);
+                {
+                    outputContainer.Add(port);
+                }
                 else
-                    inputContainer.Add(data);
+                {
+                    inputContainer.Add(port);
+                    var portInputView = new PortInputView(slot);
+                    m_GraphView.AddElement(portInputView);
+                    m_Attachers.Add(new Attacher(portInputView, port, SpriteAlignment.LeftCenter) { distance = 0f });
+                }
+            }
+        }
+
+        public void UpdatePortInputVisibilities()
+        {
+            foreach (var attacher in m_Attachers)
+            {
+                var slot = (MaterialSlot)attacher.target.userData;
+                attacher.element.visible = expanded && !node.owner.GetEdges(node.GetSlotReference(slot.id)).Any();
+            }
+        }
+
+        public void UpdatePortInputTypes()
+        {
+            foreach (var anchor in inputContainer.Concat(outputContainer).OfType<Port>())
+            {
+                var slot = (MaterialSlot) anchor.userData;
+                anchor.portName = slot.displayName;
+            }
+
+            foreach (var attacher in m_Attachers)
+            {
+                var portInputView = (PortInputView)attacher.element;
+                portInputView.UpdateSlotType();
             }
         }
 
@@ -266,6 +322,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void Dispose()
         {
+            foreach (var attacher in m_Attachers)
+            {
+                ((PortInputView) attacher.element).Dispose();
+                attacher.Detach();
+                attacher.element.parent.Remove(attacher.element);
+            }
+            m_Attachers.Clear();
+
             node = null;
             if (m_PreviewData != null)
             {

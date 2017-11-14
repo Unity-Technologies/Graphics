@@ -2,12 +2,12 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Interpolation/InverseLerp")]
+    [Title("Math/Interpolation/Inverse Lerp")]
     public class InverseLerpNode : CodeFunctionNode
     {
         public InverseLerpNode()
         {
-            name = "InverseLerp";
+            name = "Inverse Lerp";
         }
 
         protected override MethodInfo GetFunctionToConvert()
@@ -16,15 +16,15 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_InverseLerp(
-            [Slot(0, Binding.None)] DynamicDimensionVector inputA,
-            [Slot(1, Binding.None)] DynamicDimensionVector inputB,
-            [Slot(2, Binding.None)] DynamicDimensionVector t,
-            [Slot(3, Binding.None)] out DynamicDimensionVector result)
+            [Slot(0, Binding.None)] DynamicDimensionVector A,
+            [Slot(1, Binding.None)] DynamicDimensionVector B,
+            [Slot(2, Binding.None)] DynamicDimensionVector T,
+            [Slot(3, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
 {
-    result = (t - inputA)/(inputB - inputA);
+    Out = (T - A)/(B - A);
 }";
         }
     }

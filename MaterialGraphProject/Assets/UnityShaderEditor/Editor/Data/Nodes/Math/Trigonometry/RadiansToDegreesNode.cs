@@ -7,7 +7,7 @@ namespace UnityEditor.ShaderGraph
     {
         public RadiansToDegreesNode()
         {
-            name = "RadiansToDegrees";
+            name = "Radians To Degrees";
         }
 
         protected override MethodInfo GetFunctionToConvert()
@@ -16,13 +16,13 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_RadiansToDegrees(
-            [Slot(0, Binding.None)] DynamicDimensionVector argument,
-            [Slot(1, Binding.None)] out DynamicDimensionVector result)
+            [Slot(0, Binding.None)] DynamicDimensionVector In,
+            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
 {
-    result = degrees(argument);
+    Out = degrees(In);
 }
 ";
         }

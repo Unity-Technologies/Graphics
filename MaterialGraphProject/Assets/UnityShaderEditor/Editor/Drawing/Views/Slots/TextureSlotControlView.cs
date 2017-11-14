@@ -1,0 +1,35 @@
+﻿using System;
+using UnityEditor.Experimental.UIElements;
+using UnityEditor.Graphing;
+using UnityEngine;
+using UnityEngine.Experimental.UIElements;
+using UnityEngine.Experimental.UIElements.StyleSheets;
+using Object = UnityEngine.Object;
+
+namespace UnityEditor.ShaderGraph.Drawing.Slots
+{
+    public class TextureSlotControlView : VisualElement
+    {
+        Texture2DInputMaterialSlot m_Slot;
+
+        public TextureSlotControlView(Texture2DInputMaterialSlot slot)
+        {
+            m_Slot = slot;
+            var objectField = new ObjectField { objectType = typeof(Texture), value = m_Slot.texture };
+            objectField.OnValueChanged(OnValueChanged);
+            Add(objectField);
+        }
+
+        void OnValueChanged(ChangeEvent<Object> evt)
+        {
+            var texture = evt.newValue as Texture2D;
+            if (texture != m_Slot.texture)
+            {
+                m_Slot.owner.owner.owner.RegisterCompleteObjectUndo("Change Texture");
+                m_Slot.texture = texture;
+                if (m_Slot.owner.onModified != null)
+                    m_Slot.owner.onModified(m_Slot.owner, ModificationScope.Node);
+            }
+        }
+    }
+}

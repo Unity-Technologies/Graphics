@@ -199,7 +199,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             Graphics.DrawMesh(
                 mode == PreviewMode.Preview3D ? previewMesh : quad,
-                Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one),
+                mode == PreviewMode.Preview3D ? Matrix4x4.TRS(-previewMesh.bounds.center, Quaternion.identity, Vector3.one) : Matrix4x4.identity,
                 mat,
                 1,
                 m_Camera,

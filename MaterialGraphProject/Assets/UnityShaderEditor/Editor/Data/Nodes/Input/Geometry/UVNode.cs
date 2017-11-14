@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph
     public class UVNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
         public const int OutputSlotId = 0;
-        private const string kOutputSlotName = "UV";
+        private const string kOutputSlotName = "Out";
 
         [SerializeField]
         private UVChannel m_OutputChannel;
