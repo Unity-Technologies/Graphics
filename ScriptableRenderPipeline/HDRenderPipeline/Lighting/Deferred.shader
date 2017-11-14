@@ -128,7 +128,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                                                                                    _VBufferResolutionAndScale.zw,
                                                                                    _VBufferDepthEncodingParams);
                 // TODO: apply volumetrics after SSS.
-                // diffuseLighting  *= volumetricLighting.a;
+                diffuseLighting  *= volumetricLighting.a;
                 specularLighting *= volumetricLighting.a;
                 specularLighting += volumetricLighting.rgb;
             #endif

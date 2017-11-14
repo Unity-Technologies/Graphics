@@ -2,9 +2,7 @@
 // Definitions
 //--------------------------------------------------------------------------------------------------
 
-#define PRESET_ULTRA 0
-
-#if PRESET_ULTRA
+#ifdef PRESET_ULTRA
     // E.g. for 1080p: (1920/4)x(1080/4)x(256) = 33,177,600 voxels
     #define VBUFFER_TILE_SIZE   4
     #define VBUFFER_SLICE_COUNT 256
@@ -12,7 +10,7 @@
     // E.g. for 1080p: (1920/8)x(1080/8)x(128) =  4,147,200 voxels
     #define VBUFFER_TILE_SIZE   8
     #define VBUFFER_SLICE_COUNT 128
-#endif
+#endif // PRESET_ULTRA
 
 #pragma kernel VolumetricLightingAllLights VolumetricLighting=VolumetricLightingAllLights LIGHTLOOP_SINGLE_PASS
 #pragma kernel VolumetricLightingClustered VolumetricLighting=VolumetricLightingClustered LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
@@ -60,8 +58,13 @@ struct Ray
     float  ratioZtoLen; // ViewSpaceZ
 };
 
+float3 GetPointAtDistance(Ray ray, float t)
+{
+    return ray.originWS + t * ray.directionWS;
+}
+
 // Computes the in-scattered radiance along the ray.
-void FillVolumetricLightingBuffer(Ray cameraRay, uint2 voxelCoord, uint2 tileCoord)
+void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
 {
     LightLoopContext context;
     // ZERO_INITIALIZE(LightLoopContext, context);
@@ -71,7 +74,7 @@ void FillVolumetricLightingBuffer(Ray cameraRay, uint2 voxelCoord, uint2 tileCoo
     float4 depthParams  = _VBufferDepthEncodingParams;
 
     float z0 = depthParams.x;              // View space Z coordinate of the near plane
-    float t0 = cameraRay.ratioLenToZ * z0; // Distance to the near plane
+    float t0 = z0 * ray.ratioLenToZ; // Distance to the near plane
     float de = rcp(VBUFFER_SLICE_COUNT);   // Log-encoded distance between slices
 
     float3 totalRadiance = 0;
@@ -79,34 +82,53 @@ void FillVolumetricLightingBuffer(Ray cameraRay, uint2 voxelCoord, uint2 tileCoo
 
     uint sliceCountHack = max(VBUFFER_SLICE_COUNT, (uint)z0); // Prevent unrolling...
 
+#ifdef LIGHTLOOP_TILE_PASS
+    // Our voxel is not necessarily completely inside a single light cluster.
+    uint  clusterIndices[2];
+    float clusterDistances[2];
+    // TODO: the clustered code could be made faster & simpler.
+    clusterIndices[0]   = GetLightClusterIndex(tileCoord, z0);
+    clusterDistances[0] = GetLightClusterMinDepthVS(tileCoord, clusterIndices[0]) * ray.ratioLenToZ;
+#endif // LIGHTLOOP_TILE_PASS
+
     // TODO: replace 'sliceCountHack' with VBUFFER_SLICE_COUNT when the shader compiler bug is fixed.
-    for (uint s = 0; s < sliceCountHack; s++)
+    for (uint slice = 0; slice < sliceCountHack; slice++)
     {
-        float e1 = s * de + de; // (s + 1) / sliceCount
+        float e1 = slice * de + de; // (slice + 1) / sliceCount
         float z1 = DecodeLogarithmicDepth(e1, depthParams);
-        float t1 = cameraRay.ratioLenToZ * z1;
+        float t1 = ray.ratioLenToZ * z1;
         float dt = t1 - t0;
 
-        // TODO: low-discrepancy point set.
-        float t = t0 + 0.5 * dt;
-        float z = cameraRay.ratioZtoLen * t;
-        float3 positionWS = cameraRay.originWS + t * cameraRay.directionWS;
+        // Compute the position of the center of the voxel.
+        // We will use it for participating media sampling and reprojection.
+        float  tc       = t0 + 0.5 * dt;
+        float3 centerWS = GetPointAtDistance(ray, tc);
 
-        // Get volume properties at 't'.
+        // Sample the participating media at 'tc' (or 'centerWS').
+        // We consider it to be constant along the interval [t0, t1] (within the voxel).
         float3 scattering = _GlobalFog_Scattering;
         float  extinction = _GlobalFog_Extinction;
+
+        // TODO: use a low-discrepancy point set.
+        float rndVal = 0.5;
 
         float3 sampleRadiance = 0;
 
         if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
         {
+            float tOffset, weight;
+            ImportanceSampleHomogeneousMedia(extinction, dt, rndVal, tOffset, weight);
+
+            float t = t0 + tOffset;
+            float3 positionWS = GetPointAtDistance(ray, t);
+
             for (uint i = 0; i < _DirectionalLightCount; ++i)
             {
                 // Fetch the light.
                 DirectionalLightData lightData = _DirectionalLightDatas[i];
 
                 float3 L         = -lightData.forward; // Lights point backwards in Unity
-                float  intensity = 1;
+                float  intensity = weight;
                 float3 color     = lightData.color;
 
                 [branch] if (lightData.shadowIndex >= 0)
@@ -117,7 +139,7 @@ void FillVolumetricLightingBuffer(Ray cameraRay, uint2 voxelCoord, uint2 tileCoo
                     intensity *= shadow;
                 }
 
-                // Note: no global fog attenuation along shadow rays for directional lights.
+                // Note: no fog attenuation along shadow rays for directional lights.
 
                 [branch] if (lightData.cookieIndex >= 0)
                 {
@@ -133,84 +155,126 @@ void FillVolumetricLightingBuffer(Ray cameraRay, uint2 voxelCoord, uint2 tileCoo
             }
         }
 
-        if (featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
+    #ifdef LIGHTLOOP_TILE_PASS
+        // TODO: the clustered code could be made faster & simpler.
+        clusterIndices[1]   = GetLightClusterIndex(tileCoord, z1);
+        clusterDistances[1] = GetLightClusterMinDepthVS(tileCoord, clusterIndices[1]) * ray.ratioLenToZ;
+
+        // Loop over 1 or 2 light clusters.
+        for (int cluster = 0; cluster < 2; cluster++)
         {
-            uint punctualLightCount;
+            float tMin = max(t0, clusterDistances[cluster]);
+            float tMax = t1;
 
-        #ifdef LIGHTLOOP_TILE_PASS
-            PositionInputs posInput;
-            posInput.depthVS = z;
-            posInput.unTileCoord = tileCoord;
-
-            // TODO: do not refetch between consecutive samples if possible.
-            uint punctualLightStart;
-            GetCountAndStartCluster(posInput, LIGHTCATEGORY_PUNCTUAL, punctualLightStart, punctualLightCount);
-        #else
-            punctualLightCount = _PunctualLightCount;
-        #endif
-
-            for (uint i = 0; i < punctualLightCount; ++i)
+            if (cluster == 0 && clusterDistances[0] != clusterDistances[1])
             {
-            #ifdef LIGHTLOOP_TILE_PASS
-                uint punctualLightIndex = FetchIndex(punctualLightStart, i);
-            #else
-                uint punctualLightIndex = i;
-            #endif
-
-                // Fetch the light.
-                LightData lightData  = _LightDatas[punctualLightIndex];
-                int       lightType  = lightData.lightType;
-
-                float3 lightToSample = positionWS - lightData.positionWS;
-                float  distSq        = dot(lightToSample, lightToSample);
-                float  dist          = sqrt(distSq);
-                float3 L             = lightToSample * -rsqrt(distSq);
-                float  clampedDistSq = max(distSq, 0.5 * dt); // Hack to reduce undersampling
-                float  intensity     = GetPunctualShapeAttenuation(lightData, L, clampedDistSq);
-                float3 color         = lightData.color;
-
-                intensity *= Transmittance(OpticalDepthHomogeneous(extinction, dist));
-
-                [branch] if (lightData.shadowIndex >= 0)
-                {
-                    // TODO: make projector lights cast shadows.
-                    float shadow = GetPunctualShadowAttenuation(context.shadowContext, positionWS,
-                                   float3(0, 0, 0), lightData.shadowIndex, float4(L, dist));
-
-                    intensity *= lerp(1, shadow, lightData.shadowDimmer);
-                }
-
-                // Projector lights always have cookies, so we can perform clipping inside the if().
-                [branch] if (lightData.cookieIndex >= 0)
-                {
-                    float4 cookie = EvaluateCookie_Punctual(context, lightData, lightToSample);
-
-                    color     *= cookie.rgb;
-                    intensity *= cookie.a;
-                }
-
-                // Compute the amount of in-scattered radiance.
-                sampleRadiance += color * intensity;
+                tMax = min(t1, clusterDistances[1]);
             }
+    #else
+            float tMin = t0;
+            float tMax = t1;
+    #endif // LIGHTLOOP_TILE_PASS
+
+            if (featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
+            {
+                uint punctualLightCount;
+
+            #ifdef LIGHTLOOP_TILE_PASS
+                uint punctualLightStart;
+                GetCountAndStartCluster(tileCoord, clusterIndices[cluster], LIGHTCATEGORY_PUNCTUAL,
+                                        punctualLightStart, punctualLightCount);
+            #else
+                punctualLightCount = _PunctualLightCount;
+            #endif // LIGHTLOOP_TILE_PASS
+
+                for (uint i = 0; i < punctualLightCount; ++i)
+                {
+                #ifdef LIGHTLOOP_TILE_PASS
+                    uint punctualLightIndex = FetchIndex(punctualLightStart, i);
+                #else
+                    uint punctualLightIndex = i;
+                #endif // LIGHTLOOP_TILE_PASS
+
+                    // Fetch the light.
+                    LightData lightData = _LightDatas[punctualLightIndex];
+                    int       lightType = lightData.lightType;
+
+                    // TODO...
+                    if (lightType != GPULIGHTTYPE_POINT) continue;
+
+                    float t, rcpPdf;
+                    ImportanceSamplePunctualLight(lightData.positionWS, ray.originWS, ray.directionWS,
+                                                  tMin, tMax, rndVal, t, rcpPdf);
+
+                    float3 positionWS = GetPointAtDistance(ray, t);
+
+                    // TODO: we could compute this data in ImportanceSamplePunctualLight().
+                    float3 lightToSample = positionWS - lightData.positionWS;
+                    float  distSq        = dot(lightToSample, lightToSample);
+                    float  dist          = sqrt(distSq);
+                    float3 L             = lightToSample * -rsqrt(distSq);
+                    float  intensity     = GetPunctualShapeAttenuation(lightData, L, distSq);
+                    float3 color         = lightData.color;
+
+                    // TODO: heterogeneous media.
+                    intensity *= TransmittanceHomogeneousMedia(extinction, dist);
+
+                    [branch] if (lightData.shadowIndex >= 0)
+                    {
+                        // TODO: make projector lights cast shadows.
+                        float shadow = GetPunctualShadowAttenuation(context.shadowContext, positionWS,
+                                       float3(0, 0, 0), lightData.shadowIndex, float4(L, dist));
+
+                        intensity *= lerp(1, shadow, lightData.shadowDimmer);
+                    }
+
+                    // Projector lights always have cookies, so we can perform clipping inside the if().
+                    [branch] if (lightData.cookieIndex >= 0)
+                    {
+                        float4 cookie = EvaluateCookie_Punctual(context, lightData, lightToSample);
+
+                        color     *= cookie.rgb;
+                        intensity *= cookie.a;
+                    }
+
+                    // Compute transmittance from 't0' to 't'.
+                    float transmittance = TransmittanceHomogeneousMedia(extinction, t - t0);
+
+                    intensity *= transmittance * rcpPdf;
+                    color     *= scattering;
+
+                    // Compute the amount of in-scattered radiance.
+                    sampleRadiance += color * intensity;
+                }
+            }
+    #ifdef LIGHTLOOP_TILE_PASS
+            // The voxel is completely inside the light cluster.
+            if (clusterIndices[0] == clusterIndices[1]) break;
         }
+    #endif // LIGHTLOOP_TILE_PASS
 
-        // We consider the volume to be homogeneous along the interval (within the voxel).
-        // Integral{a, b}{Transmittance(0, x) dx} = Transmittance(0, a) * Integral{0, b - a}{Transmittance(a, a + x) dx}.
-        float transmittance = Transmittance(opticalDepth) * TransmittanceIntegralHomogeneous(extinction, dt);
+        // Compute the transmittance up to the start of the interval.
+        float transmittance = Transmittance(opticalDepth);
 
-        // Compute the optical depth up to the sample.
-        opticalDepth  += extinction * (t - t0);
+        // Integral{a, b}{Transmittance(0, t) * Li(t) dt} = Transmittance(0, a) * Integral{a, b}{Transmittance(0, t - a) * Li(t) dt}.
+        // We multiply by the scattering coefficient per light.
+        totalRadiance += (transmittance * IsotropicPhaseFunction()) * sampleRadiance;
 
-        // We consider the lighting (and the volume properties) to be constant along the interval (within the voxel).
-        totalRadiance += (transmittance * IsotropicPhaseFunction()) * scattering * sampleRadiance;
+        // Compute the optical depth up to the center of the interval.
+        opticalDepth += 0.5 * extinction * dt;
 
-        // Store the voxel data. TODO: reprojection using camera motion vectors.
-        _VBufferLighting[uint3(voxelCoord, s)] = float4(totalRadiance, opticalDepth);
+        // Store the voxel data. TODO: reprojection of 'tc' (or 'centerWS').
+        _VBufferLighting[uint3(voxelCoord, slice)] = float4(totalRadiance, opticalDepth);
 
         // Compute the optical depth up to the end of the interval.
-        opticalDepth += extinction * (t1 - t);
+        opticalDepth += 0.5 * extinction * dt;
 
         t0 = t1;
+
+    #ifdef LIGHTLOOP_TILE_PASS
+        clusterIndices[0]   = clusterIndices[1];
+        clusterDistances[0] = clusterDistances[1];
+    #endif // LIGHTLOOP_TILE_PASS
     }
 }
 
@@ -239,14 +303,14 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
     // TODO: use a low-discrepancy point set.
     float2 sampleCoord = voxelCoord + 0.5;
 
-    // Compute the unnormalized ray direction s.t. its ViewSpaceZ = 1.
+    // Compute the ray direction s.t. its ViewSpaceZ = 1.
     float3 dir = -mul(float3(sampleCoord, 1), (float3x3)_VBufferCoordToViewDirWS);
 
-    Ray cameraRay;
-    cameraRay.originWS    = GetCurrentViewPosition();
-    cameraRay.ratioLenToZ = sqrt(dot(dir, dir));
-    cameraRay.ratioZtoLen = rsqrt(dot(dir, dir));
-    cameraRay.directionWS = dir * cameraRay.ratioZtoLen;
+    Ray ray;
+    ray.originWS    = GetCurrentViewPosition();
+    ray.ratioLenToZ = sqrt(dot(dir, dir));
+    ray.ratioZtoLen = rsqrt(dot(dir, dir));
+    ray.directionWS = dir * ray.ratioZtoLen;
 
-    FillVolumetricLightingBuffer(cameraRay, voxelCoord, tileCoord);
+    FillVolumetricLightingBuffer(ray, voxelCoord, tileCoord);
 }

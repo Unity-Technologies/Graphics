@@ -194,7 +194,7 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
                                                                        _VBufferResolutionAndScale.zw,
                                                                        _VBufferDepthEncodingParams);
     // TODO: apply volumetrics after SSS.
-    // diffuseLighting  *= volumetricLighting.a;
+    diffuseLighting  *= volumetricLighting.a;
     specularLighting *= volumetricLighting.a;
     specularLighting += volumetricLighting.rgb;
 #endif

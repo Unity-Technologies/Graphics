@@ -5,14 +5,14 @@
 // Optical_Depth(x, y) = Integral{x, y}{Extinction(t) dt}
 // Transmittance(x, y) = Exp(-Optical_Depth(x, y))
 // Transmittance(x, z) = Transmittance(x, y) * Transmittance(y, z)
-// Integral{a, b}{Transmittance(0, x) dx} = Transmittance(0, a) * Integral{0, b - a}{Transmittance(a, a + x) dx}
+// Integral{a, b}{Transmittance(0, t) * Li(t) dt} = Transmittance(0, a) * Integral{a, b}{Transmittance(0, t - a) * Li(t) dt}.
 
-float OpticalDepthHomogeneous(float extinction, float intervalLength)
+float OpticalDepthHomogeneousMedia(float extinction, float intervalLength)
 {
     return extinction * intervalLength;
 }
 
-float3 OpticalDepthHomogeneous(float3 extinction, float intervalLength)
+float3 OpticalDepthHomogeneousMedia(float3 extinction, float intervalLength)
 {
     return extinction * intervalLength;
 }
@@ -27,14 +27,24 @@ float3 Transmittance(float3 opticalDepth)
     return exp(-opticalDepth);
 }
 
-// Integral{0, b - a}{Transmittance(a, a + x) dx}.
-float TransmittanceIntegralHomogeneous(float extinction, float intervalLength)
+float TransmittanceHomogeneousMedia(float extinction, float intervalLength)
+{
+    return Transmittance(OpticalDepthHomogeneousMedia(extinction, intervalLength));
+}
+
+float3 TransmittanceHomogeneousMedia(float3 extinction, float intervalLength)
+{
+    return Transmittance(OpticalDepthHomogeneousMedia(extinction, intervalLength));
+}
+
+// Integral{a, b}{Transmittance(0, t - a) dt}.
+float TransmittanceIntegralHomogeneousMedia(float extinction, float intervalLength)
 {
     return rcp(extinction) - rcp(extinction) * exp(-extinction * intervalLength);
 }
 
-// Integral{0, b - a}{Transmittance(a, a + x) dx}.
-float3 TransmittanceIntegralHomogeneous(float3 extinction, float intervalLength)
+// Integral{a, b}{Transmittance(0, t - a) dt}.
+float3 TransmittanceIntegralHomogeneousMedia(float3 extinction, float intervalLength)
 {
     return rcp(extinction) - rcp(extinction) * exp(-extinction * intervalLength);
 }
@@ -64,20 +74,59 @@ float HenyeyGreensteinPhaseFunction(float asymmetry, float LdotD)
            HenyeyGreensteinPhasePartVarying(asymmetry, LdotD);
 }
 
+// Samples the interval of homogeneous participating media using the closed-form tracking approach
+// (proportionally to the transmittance times the extinction coefficient).
+// Returns the offset from the start of the interval and the weight = (extinction * transmittance / pdf).
+// Ref: Production Volume Rendering, 3.6.1.
+void ImportanceSampleHomogeneousMedia(float extinction, float intervalLength, float rndVal,
+                                      out float offset, out float weight)
+{
+    // pdf    = extinction * exp(-extinction * t) / (1 - exp(-intervalLength * extinction))
+    // weight = extinction * exp(-extinction * t) / pdf
+    // weight = 1 - exp(-intervalLength * extinction)
+
+    weight = 1 - exp(-extinction * intervalLength);
+    offset = log(1 - rndVal * weight) / extinction;
+}
+
+// Implements equiangular light sampling.
+// Returns the distance from 0 and the reciprocal of the PDF.
+// Ref: Importance Sampling of Area Lights in Participating Media.
+void ImportanceSamplePunctualLight(float3 lightPosition, float3 rayOrigin, float3 rayDirection,
+                                   float tMin, float tMax, float rndVal,
+                                   out float dist, out float rcpPdf)
+{
+    float3 originToLight       = lightPosition - rayOrigin;
+    float  originToLightProj   = dot(originToLight, rayDirection);
+    float  originToLightDistSq = dot(originToLight, originToLight);
+    float  rayToLightDistSq    = max(originToLightDistSq - originToLightProj * originToLightProj, FLT_SMALL);
+    float  rayToLightDist      = sqrt(rayToLightDistSq);
+
+    float a = tMin - originToLightProj;
+    float b = tMax - originToLightProj;
+    float d = rayToLightDist;
+
+    // TODO: optimize me. :-(
+    float theta0 = atan(a / d);
+    float theta1 = atan(b / d);
+    float theta  = lerp(theta0, theta1, rndVal);
+    float t      = d * tan(theta);
+
+    dist   = originToLightProj + t;
+    rcpPdf = (theta1 - theta0) * (d + t * tan(theta));
+}
+
 // Absorption coefficient from Disney: http://blog.selfshadow.com/publications/s2015-shading-course/burley/s2015_pbs_disney_bsdf_notes.pdf
 float3 TransmittanceColorAtDistanceToAbsorption(float3 transmittanceColor, float atDistance)
 {
-    return -log(transmittanceColor + 0.00001) / max(atDistance, 0.000001);
+    return -log(transmittanceColor + FLT_SMALL) / max(atDistance, FLT_SMALL);
 }
 
 #ifndef USE_LEGACY_UNITY_SHADER_VARIABLES
     #define VOLUMETRIC_LIGHTING_ENABLED
 #endif
 
-// TODO: share this...
-#define PRESET_ULTRA 0
-
-#if PRESET_ULTRA
+#ifdef PRESET_ULTRA
     // E.g. for 1080p: (1920/4)x(1080/4)x(256) = 33,177,600 voxels
     #define VBUFFER_TILE_SIZE   4
     #define VBUFFER_SLICE_COUNT 256
@@ -85,7 +134,7 @@ float3 TransmittanceColorAtDistanceToAbsorption(float3 transmittanceColor, float
     // E.g. for 1080p: (1920/8)x(1080/8)x(128) =  4,147,200 voxels
     #define VBUFFER_TILE_SIZE   8
     #define VBUFFER_SLICE_COUNT 128
-#endif
+#endif // PRESET_ULTRA
 
 float4 GetInScatteredRadianceAndTransmittance(float2 positionSS, float depthVS,
                                               TEXTURE3D(VBufferLighting), SAMPLER3D(linearClampSampler),

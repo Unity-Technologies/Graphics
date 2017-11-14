@@ -98,7 +98,7 @@ public partial class HDRenderPipeline : RenderPipeline
     ComputeShader            m_VolumetricLightingCS { get { return m_Asset.renderPipelineResources.volumetricLightingCS; } }
 
     float                    m_VBufferNearPlane  =  0.5f; // Distance in meters
-    float                    m_VBufferFarPlane   = 32.0f; // Distance in meters
+    float                    m_VBufferFarPlane   = 64.0f; // Distance in meters
 
     RenderTexture[]          m_VBufferLighting   = null;  // Used for even / odd frames
     RenderTargetIdentifier[] m_VBufferLightingRT = null;
