@@ -326,16 +326,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (!m_Previews.TryGetValue(nodeGuid, out previewData))
                 return;
 
-            if (node is IMasterNode)
-            {
-                var materialGraph = (AbstractMaterialGraph) node.owner;
-
-                List<PropertyCollector.TextureInfo> defaultTextures;
-                PreviewMode pmode;
-                previewData.shaderString = materialGraph.GetShader(node, GenerationMode.Preview, node.guid + "_preview",  out defaultTextures, out pmode);
-                previewData.previewMode = node.previewMode;
-            }
-            else if (!node.hasPreview || NodeUtils.FindEffectiveShaderStage(node, true) == ShaderStage.Vertex)
+             if (!(node is IMasterNode) && (!node.hasPreview || NodeUtils.FindEffectiveShaderStage(node, true) == ShaderStage.Vertex))
             {
                 previewData.shaderString = null;
             }
