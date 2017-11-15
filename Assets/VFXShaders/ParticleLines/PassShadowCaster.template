@@ -2,10 +2,10 @@
 Pass
 {		
 	Tags { "LightMode"="ShadowCaster" }
-	
+
 	ZWrite On
 	Blend Off
-
+	
 	CGPROGRAM
 	#pragma target 4.5
 	
@@ -23,21 +23,21 @@ Pass
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
 #define VFX_VARYING_POSSS projPos
-#undef VFX_VARYING_COLOR // Not used
+#undef VFX_VARYING_COLOR
 #define VFX_VARYING_ALPHA builtInInterpolants.z
 #define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
-	
-${VFXBegin:VFXVertexAdditionalProcess}
-	o.pos = UnityApplyLinearShadowBias(o.pos);
-${VFXEnd}
-
-	${VFXInclude("Assets/VFXShaders/ParticlePoints/Pass.template")}	
+		
+	${VFXBegin:VFXVertexAdditionalProcess}
+		o.pos = UnityApplyLinearShadowBias(o.pos);
+	${VFXEnd}
+		
+	${VFXInclude("Assets/VFXShaders/ParticleLines/Pass.template")}	
 		
 	#pragma fragment frag
 	float frag(ps_input i) : SV_TARGET
 	{
-		float alpha = VFXGetFragmentColor(i).a;
+		float alpha = VFXGetFragmentColor(i);
 		VFXClipFragmentColor(alpha,i);
 		return 0;
 	}
