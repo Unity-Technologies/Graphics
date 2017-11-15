@@ -25,15 +25,13 @@ Pass
 		float4 color : SV_Target0;
 	};
 
-#define VFX_VARYING_STRUCT ps_input
-#define VFX_VARYING_POSITIONWS pos
-#define VFX_VARYING_POSITIONCS projPos
+#define VFX_VARYING_PS_INPUTS ps_input
+#define VFX_VARYING_POSCS pos
+#define VFX_VARYING_POSSS projPos
 #define VFX_VARYING_COLOR color.rgb
 #define VFX_VARYING_ALPHA color.a
 #define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
-	
-	${VFXBegin:VFXVertexAdditionalProcess}${VFXEnd}
 	
 	${VFXInclude("Assets/VFXShaders/ParticleLines/Pass.template")}	
 		

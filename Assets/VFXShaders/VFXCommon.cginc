@@ -236,6 +236,21 @@ float3x3 GetRotationMatrix(float3 axis,float angle)
                     t * x * z - s * y,  t * y * z + s * x,  t * z * z + c);
 }
 
+float3 TransformInElementSpace(float3 offsets,float3 side,float3 up,float3 front,float3x3 rot,float3 pivot,float2 size)
+{
+    offsets -= pivot;
+    offsets.xy *=  size.xy;
+    float3 tOffsets = mul(rot,side * offsets.x + up * offsets.y);
+    tOffsets += front * offsets.z;
+    return tOffsets;
+}
+
+float3 TransformInElementSpace(float3 offsets,float3 side,float3 up,float3 front,float angle,float3 pivot,float2 size)
+{
+    float3x3 rot = GetRotationMatrix(front,radians(angle));
+    return TransformInElementSpace(offsets,side,up,front,rot,pivot,size);
+}
+
 float2 GetSubUV(int flipBookIndex,float2 uv,float2 dim,float2 invDim)
 {
     float2 tile = float2(fmod(flipBookIndex,dim.x),dim.y - 1.0 - floor(flipBookIndex * invDim.x));
