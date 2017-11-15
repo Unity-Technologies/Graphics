@@ -18,8 +18,8 @@ namespace UnityEditor.ShaderGraph
 
         static string Unity_ReplaceColor(
             [Slot(0, Binding.None)] Vector3 In,
-            [Slot(1, Binding.None)] Vector3 From,
-            [Slot(2, Binding.None)] Vector3 To,
+            [Slot(1, Binding.None)] Color From,
+            [Slot(2, Binding.None)] Color To,
             [Slot(3, Binding.None)] Vector1 Range,
             [Slot(4, Binding.None)] out Vector3 Out)
         {
