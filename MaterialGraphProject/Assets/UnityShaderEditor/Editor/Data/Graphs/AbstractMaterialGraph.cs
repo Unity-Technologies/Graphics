@@ -209,7 +209,7 @@ namespace UnityEditor.ShaderGraph
             base.OnAfterDeserialize();
         }
 
-        protected static ShaderGraphRequirements GetRequierments(AbstractMaterialNode nodeForRequirements)
+        protected static ShaderGraphRequirements GetRequirements(AbstractMaterialNode nodeForRequirements)
         {
             if (nodeForRequirements == null)
                 return ShaderGraphRequirements.none;
@@ -435,7 +435,7 @@ struct GraphVertexInput
 
             surfaceInputs.AddShaderChunk("struct SurfaceInputs{", false);
             surfaceInputs.Indent();
-            var requirements = GetRequierments(node);
+            var requirements = GetRequirements(node);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, surfaceInputs);

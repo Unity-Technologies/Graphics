@@ -224,9 +224,9 @@ struct GraphVertexInput
 
             var requirements = ShaderGraphRequirements.none;
             foreach (var layer in layerMap)
-                requirements = requirements.Union(GetRequierments(layer.Value.masterNode as AbstractMaterialNode));
+                requirements = requirements.Union(GetRequirements(layer.Value.masterNode as AbstractMaterialNode));
 
-            requirements = requirements.Union(GetRequierments(outputNode));
+            requirements = requirements.Union(GetRequirements(outputNode));
 
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, surfaceInputs);
