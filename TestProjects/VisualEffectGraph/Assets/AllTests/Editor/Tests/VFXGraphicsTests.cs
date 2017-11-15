@@ -159,7 +159,7 @@ namespace UnityEditor.VFX.Test
                 Color p2 = pixels2[i];
                 Color diff = p1 - p2;
                 diff = diff * diff;
-                sumOfSquaredColorDistances += (diff.r + diff.g + diff.b) / 3.0f;
+                sumOfSquaredColorDistances += (diff.r + diff.g + diff.b + diff.a) / 4.0f;
             }
             float rmse = Mathf.Sqrt(sumOfSquaredColorDistances / numberOfPixels);
             return rmse;
