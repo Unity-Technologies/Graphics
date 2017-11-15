@@ -11,8 +11,8 @@ o.VFX_VARYING_ALPHA = alpha;
 ${VFXLoadParameter:{invSoftParticlesFadeDistance}}
 o.VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE = invSoftParticlesFadeDistance;
 #endif
-#ifdef VFX_VARYING_POSITIONCS
-o.VFX_VARYING_POSITIONCS = ComputeScreenPos(o.pos);
+#ifdef VFX_VARYING_POSSS
+o.VFX_VARYING_POSSS = ComputeScreenPos(o.pos);
 #endif
 #endif
 #if USE_ALPHA_TEST && defined(VFX_VARYING_ALPHATHRESHOLD)
@@ -22,7 +22,7 @@ o.VFX_VARYING_ALPHATHRESHOLD = alphaThreshold;
 ${VFXEnd}
 
 ${VFXBegin:VFXFragmentCommonFunctions}
-float4 VFXGetFragmentColor(VFX_VARYING_STRUCT i)
+float4 VFXGetFragmentColor(VFX_VARYING_PS_INPUTS i)
 {
 	float4 color = 1.0f;
 	#if VFX_NEEDS_COLOR_INTERPOLATOR
@@ -33,16 +33,16 @@ float4 VFXGetFragmentColor(VFX_VARYING_STRUCT i)
 	color.a *= i.VFX_VARYING_ALPHA;
 	#endif
 	#endif
-	#if USE_SOFT_PARTICLE && defined(VFX_VARYING_POSITIONCS) && defined(VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE)
-	float sceneZ = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(i.VFX_VARYING_POSITIONCS)));
-	float fade = saturate(i.VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE * (sceneZ - i.VFX_VARYING_POSITIONCS.w));
+	#if USE_SOFT_PARTICLE && defined(VFX_VARYING_POSSS) && defined(VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE)
+	float sceneZ = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(i.VFX_VARYING_POSSS)));
+	float fade = saturate(i.VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE * (sceneZ - i.VFX_VARYING_POSSS.w));
 	fade = fade * fade * (3.0 - (2.0 * fade)); // Smoothsteping the fade
 	color.a *= fade;
 	#endif
 	return color;
 }
 
-void VFXClipFragmentColor(float alpha,VFX_VARYING_STRUCT i)
+void VFXClipFragmentColor(float alpha,VFX_VARYING_PS_INPUTS i)
 {
 	#if USE_ALPHA_TEST && defined(VFX_VARYING_ALPHATHRESHOLD)
 	clip(alpha - i.VFX_VARYING_ALPHATHRESHOLD);

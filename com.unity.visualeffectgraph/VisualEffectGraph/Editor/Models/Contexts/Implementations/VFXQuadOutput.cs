@@ -42,8 +42,6 @@ namespace UnityEditor.VFX
 
                 if (useGeometryShader)
                     yield return "USE_GEOMETRY_SHADER";
-                else
-                    yield return "DONT_USE_GEOMETRY_SHADER";
             }
         }
 
