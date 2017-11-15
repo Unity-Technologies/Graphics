@@ -222,11 +222,18 @@ struct GraphVertexInput
             surfaceInputs.AddShaderChunk("struct SurfaceInputs{", false);
             surfaceInputs.Indent();
 
-            var requirements = ShaderGraphRequirements.none;
-            foreach (var layer in layerMap)
-                requirements = requirements.Union(GetRequirements(layer.Value.masterNode as AbstractMaterialNode));
+            ShaderGraphRequirements requirements;
+            using (var activeNodesDisposable = ListPool<INode>.GetDisposable())
+            {
+                var activeNodes = activeNodesDisposable.value;
+                foreach (var layer in layerMap)
+                {
+                    NodeUtils.DepthFirstCollectNodesFromNode(activeNodes, layer.Value.masterNode as AbstractMaterialNode);
+                }
+                NodeUtils.DepthFirstCollectNodesFromNode(activeNodes, outputNode);
+                requirements = GetRequirements(activeNodes);
+            }
 
-            requirements = requirements.Union(GetRequirements(outputNode));
 
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, surfaceInputs);
