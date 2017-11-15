@@ -205,6 +205,7 @@ namespace UnityEditor.VFX.UI
         public bool CanDrop(IEnumerable<VFXBlockUI> blocks, VFXBlockUI target)
         {
             bool accept = true;
+            if (blocks.Count() == 0) return false;
             foreach (var block in blocks)
             {
                 if (block == target)
