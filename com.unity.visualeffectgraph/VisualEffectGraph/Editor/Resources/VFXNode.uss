@@ -41,18 +41,29 @@
 .VFXNodeUI.node.horizontal .mainContainer > #left
 {
 	width:-1;
-	margin-right:1;
+	flex:0;
+	margin-right:0;
 }
 VFXOperatorUI.VFXNodeUI.node.horizontal .mainContainer > #left
 {
-	width:-1;
+	flex:0;
+}
+VFXOperatorUI.VFXNodeUI.node.horizontal .mainContainer > #middle
+{
+	flex:1;
+	background-color:#363636;
+	
+}
+.VFXNodeUI.node.horizontal #title Label
+{
+	margin-right:10;
 }
 
 .VFXNodeUI.node.horizontal .mainContainer #right
 {
 	background-color:rgba(0,0,0,0);
 	width:120;
-	margin-left:0;
+	margin-left:1;
 	padding-right:0;
 }
 .VFXNodeUI.node.horizontal .mainContainer #left

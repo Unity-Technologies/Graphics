@@ -49,6 +49,9 @@ namespace UnityEditor.VFX.UI
     {
         public VFXOperatorUI()
         {
+            VisualElement element = new VisualElement();
+            element.name = "middle";
+            leftContainer.parent.Insert(1, element);
         }
 
         public override void OnDataChanged()
@@ -64,7 +67,7 @@ namespace UnityEditor.VFX.UI
             base.OnStyleResolved(style);
 
             float labelWidth = 30;
-            float controlWidth = 50;
+            float controlWidth = 110;
 
             foreach (var port in GetPorts(true, false).Cast<VFXEditableDataAnchor>())
             {
@@ -87,7 +90,7 @@ namespace UnityEditor.VFX.UI
                 port.SetLabelWidth(labelWidth);
             }
 
-            inputContainer.style.width = labelWidth + controlWidth + 20;
+            leftContainer.style.width = labelWidth + controlWidth + 20;
         }
     }
 }
