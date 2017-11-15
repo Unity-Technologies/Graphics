@@ -129,14 +129,16 @@ namespace UnityEditor.Graphing
                 nodeList.Add(node);
         }
 
+        static Stack<INode> s_NodeStack = new Stack<INode>();
+
         public static ShaderStage FindEffectiveShaderStage(INode initialNode, bool goingBackwards)
         {
             var shaderStage = ShaderStage.Dynamic;
-            var nodeStack = new Stack<INode>();
-            nodeStack.Push(initialNode);
-            while (nodeStack.Any() && shaderStage == ShaderStage.Dynamic)
+            s_NodeStack.Clear();
+            s_NodeStack.Push(initialNode);
+            while (s_NodeStack.Any() && shaderStage == ShaderStage.Dynamic)
             {
-                var node = nodeStack.Pop();
+                var node = s_NodeStack.Pop();
                 foreach (var slot in goingBackwards ? node.GetInputSlots<MaterialSlot>() : node.GetOutputSlots<MaterialSlot>())
                 {
                     if (shaderStage != ShaderStage.Dynamic)
@@ -148,7 +150,7 @@ namespace UnityEditor.Graphing
                             var connectedNode = node.owner.GetNodeFromGuid(goingBackwards ? edge.outputSlot.nodeGuid : edge.inputSlot.nodeGuid);
                             var connectedSlot = goingBackwards ? connectedNode.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId) : connectedNode.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId);
                             if (connectedSlot.shaderStage == ShaderStage.Dynamic)
-                                nodeStack.Push(connectedNode);
+                                s_NodeStack.Push(connectedNode);
                             else
                             {
                                 shaderStage = connectedSlot.shaderStage;
