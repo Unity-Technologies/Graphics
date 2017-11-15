@@ -36,6 +36,11 @@ namespace UnityEditor.VFX.UI
         }
     }
 
+
+    class GroupNodeAdder
+    {
+    }
+
     class VFXNodeProvider : VFXAbstractProvider<VFXNodeProvider.Descriptor>
     {
         public class Descriptor
@@ -66,6 +71,12 @@ namespace UnityEditor.VFX.UI
                 modelDescriptor = null,
                 category = "System",
                 name = "Default System"
+            };
+            var groupNodeDesc = new Descriptor()
+            {
+                modelDescriptor = new GroupNodeAdder(),
+                category = "Misc",
+                name = "Group Node"
             };
             var descriptorsContext = VFXLibrary.GetContexts().Select(o =>
                 {
@@ -132,7 +143,8 @@ namespace UnityEditor.VFX.UI
                 .Concat(descriptorBuiltInParameter)
                 .Concat(descriptorSourceAttributeParameter)
                 .Concat(descriptorCurrentAttributeParameter)
-                .Concat(Enumerable.Repeat(systemDesc, 1));
+                .Concat(Enumerable.Repeat(systemDesc, 1))
+                .Concat(Enumerable.Repeat(groupNodeDesc, 1));
         }
     }
 
@@ -184,6 +196,11 @@ namespace UnityEditor.VFX.UI
                     {
                         AddVFXSourceAttributeParameter(tPos, d.modelDescriptor as VFXModelDescriptorSourceAttributeParameters);
                     }
+                    else if (d.modelDescriptor is GroupNodeAdder)
+                    {
+                        VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
+                        presenter.AddGroupNode(tPos);
+                    }
                     else if (d.modelDescriptor == null)
                     {
                         VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
@@ -221,6 +238,7 @@ namespace UnityEditor.VFX.UI
             typeFactory[typeof(VFXInputOperatorAnchorPresenter)] = typeof(VFXDataAnchor);
             typeFactory[typeof(VFXOutputOperatorAnchorPresenter)] = typeof(VFXDataAnchor);
             typeFactory[typeof(Preview3DPresenter)] = typeof(Preview3D);
+            typeFactory[typeof(VFXGroupNodePresenter)] = typeof(VFXGroupNode);
 
             AddStyleSheetPath("PropertyRM");
             AddStyleSheetPath("VFXContext");
@@ -293,6 +311,11 @@ namespace UnityEditor.VFX.UI
             m_NoAssetLabel.style.textAlignment = TextAnchor.MiddleCenter;
             m_NoAssetLabel.style.fontSize = 72;
             m_NoAssetLabel.style.textColor = Color.white * 0.75f;
+
+
+            elementAddedToGroupNode = ElementAddedToGroupNode;
+            elementRemovedFromGroupNode = ElementRemovedFromGroupNode;
+            groupNodeTitleChanged = GroupNodeTitleChanged;
 
             Add(m_NoAssetLabel);
         }
@@ -697,6 +720,21 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        void ElementAddedToGroupNode(GroupNode groupNode, GraphElement element)
+        {
+            (groupNode as VFXGroupNode).ElementAddedToGroupNode(element);
+        }
+
+        void ElementRemovedFromGroupNode(GroupNode groupNode, GraphElement element)
+        {
+            (groupNode as VFXGroupNode).ElementAddedToGroupNode(element);
+        }
+
+        void GroupNodeTitleChanged(GroupNode groupNode, string title)
+        {
+            (groupNode as VFXGroupNode).GroupNodeTitleChanged(title);
+        }
+
         public override void AddToSelection(ISelectable selectable)
         {
             base.AddToSelection(selectable);
@@ -715,6 +753,27 @@ namespace UnityEditor.VFX.UI
             base.ClearSelection();
             if (!selectionEmpty)
                 SelectionUpdated();
+        }
+
+        protected override UnityEngine.Object[] toWatch
+        {
+            get
+            {
+                List<UnityEngine.Object> result = new List<UnityEngine.Object>();
+                if (presenter != null)
+                {
+                    VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
+                    result.Add(presenter);
+                    result.Add(presenter.GetVFXAsset());
+                    if (presenter.GetVFXAsset().graph)
+                    {
+                        result.Add(presenter.GetVFXAsset().graph);
+                        VFXGraph graph = presenter.GetVFXAsset().GetOrCreateGraph();
+                        result.Add(graph.UIInfos);
+                    }
+                }
+                return result.ToArray();
+            }
         }
 
         private Toggle m_ToggleCastShadows;

@@ -39,6 +39,16 @@ namespace UnityEditor.VFX.UI
         // Model / Presenters synchronization
         private Dictionary<VFXModel, VFXNodePresenter> m_SyncedModels = new Dictionary<VFXModel, VFXNodePresenter>();
 
+
+        public VFXNodePresenter GetPresenterFromModel(VFXModel model)
+        {
+            VFXNodePresenter result = null;
+
+            m_SyncedModels.TryGetValue(model, out result);
+
+            return result;
+        }
+
         private class PresenterFactory : BaseTypeFactory<VFXModel, GraphElementPresenter>
         {
             protected override GraphElementPresenter InternalCreate(Type valueType)
@@ -350,9 +360,50 @@ namespace UnityEditor.VFX.UI
             {
                 //TODO
             }
+            else if (element is VFXGroupNodePresenter)
+            {
+                RemoveGroupNode(element as VFXGroupNodePresenter);
+            }
             else
             {
                 Debug.LogErrorFormat("Unexpected type : {0}", element.GetType().FullName);
+            }
+        }
+
+        public void AddGroupNode(Vector2 pos)
+        {
+            if (m_VFXAsset == null) return;
+            if (m_VFXAsset.graph == null) return;
+
+            var ui = m_VFXAsset.GetOrCreateGraph().UIInfos;
+
+            var newGroupInfo = new VFXUI.GroupInfo { position = new Rect(pos, Vector2.one * 100) };
+
+            if (ui.groupInfos != null)
+                ui.groupInfos = ui.groupInfos.Concat(Enumerable.Repeat(newGroupInfo, 1)).ToArray();
+            else
+                ui.groupInfos = new VFXUI.GroupInfo[] { newGroupInfo };
+
+            m_Graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+        }
+
+        void RemoveGroupNode(VFXGroupNodePresenter groupNode)
+        {
+            if (m_VFXAsset == null) return;
+            if (m_VFXAsset.graph == null) return;
+
+            var ui = m_VFXAsset.GetOrCreateGraph().UIInfos;
+
+            int index = groupNode.index;
+
+            ui.groupInfos = ui.groupInfos.Where((t, i) => i != index).ToArray();
+
+            DestroyImmediate(groupNode);
+            m_GroupNodePresenters.RemoveAt(index);
+
+            for (int i = index; i < m_GroupNodePresenters.Count; ++i)
+            {
+                m_GroupNodePresenters[i].index = index;
             }
         }
 
@@ -737,6 +788,35 @@ namespace UnityEditor.VFX.UI
 #endif
             }
             SyncPresentersFromModel(m_Graph, VFXModel.InvalidationCause.kStructureChanged);
+            SyncPresentersFromModel(m_Graph, VFXModel.InvalidationCause.kUIChanged);
+        }
+
+        [SerializeField]
+        List<VFXGroupNodePresenter> m_GroupNodePresenters = new List<VFXGroupNodePresenter>();
+
+        public void RecreateUI()
+        {
+            if (m_VFXAsset == null) return;
+            if (m_VFXAsset.graph == null) return;
+
+            VFXUI ui = m_VFXAsset.GetOrCreateGraph().UIInfos;
+            if (ui != null && ui.groupInfos != null)
+            {
+                for (int i = m_GroupNodePresenters.Count; i < ui.groupInfos.Length; ++i)
+                {
+                    VFXGroupNodePresenter groupNodePresenter = ScriptableObject.CreateInstance<VFXGroupNodePresenter>();
+                    groupNodePresenter.Init(this, ui, i);
+                    m_GroupNodePresenters.Add(groupNodePresenter);
+                    AddElement(groupNodePresenter);
+                }
+
+                while (ui.groupInfos.Length < m_GroupNodePresenters.Count)
+                {
+                    RemoveElement(m_GroupNodePresenters[m_GroupNodePresenters.Count - 1]);
+                    DestroyImmediate(m_GroupNodePresenters[m_GroupNodePresenters.Count - 1]);
+                    m_GroupNodePresenters.RemoveAt(m_GroupNodePresenters.Count - 1);
+                }
+            }
         }
 
         public void SyncPresentersFromModel(VFXModel model, VFXModel.InvalidationCause cause)
@@ -747,7 +827,9 @@ namespace UnityEditor.VFX.UI
                 {
                     Dictionary<VFXModel, VFXNodePresenter> syncedModels = null;
                     if (model is VFXGraph)
+                    {
                         syncedModels = m_SyncedModels;
+                    }
 
                     if (syncedModels != null)
                     {
@@ -767,6 +849,12 @@ namespace UnityEditor.VFX.UI
                 }
                 case VFXModel.InvalidationCause.kConnectionChanged:
                     RecreateNodeEdges();
+                    break;
+                case VFXModel.InvalidationCause.kUIChanged:
+                    if (model is VFXGraph)
+                    {
+                        RecreateUI();
+                    }
                     break;
             }
 
