@@ -56,6 +56,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public bool shadowsRendered;
     }
 
+    public enum MixedLightingSetup
+    {
+        None = 0,
+        ShadowMask,
+        Subtractive,
+    };
+
     public static class CameraRenderTargetID
     {
         // Camera color target. Not used when camera is rendering to backbuffer or camera
@@ -78,7 +85,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private readonly LightweightPipelineAsset m_Asset;
 
         // Maximum amount of visible lights the shader can process. This controls the constant global light buffer size.
-        // It must match the MAX_VISIBLE_LIGHTS in LightweightCore.cginc
+        // It must match the MAX_VISIBLE_LIGHTS in LightweightInput.cginc
         private static readonly int kMaxVisibleAdditionalLights = 16;
 
         // Lights are culled per-object. This holds the maximum amount of additional lights that can shade each object.
@@ -93,7 +100,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private Vector4[] m_LightSpotDirections = new Vector4[kMaxVisibleAdditionalLights];
         private Vector4[] m_LightSpotAttenuations = new Vector4[kMaxVisibleAdditionalLights];
 
-        private Camera m_CurrCamera = null;
+        private Camera m_CurrCamera;
 
         private static readonly int kMaxCascades = 4;
         private int m_ShadowCasterCascadesCount = kMaxCascades;
@@ -106,8 +113,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private RenderTargetIdentifier m_CopyDepth;
         private RenderTargetIdentifier m_Color;
 
-        private bool m_IntermediateTextureArray = false;
-        private bool m_RequiredDepth = false;
+        private bool m_IntermediateTextureArray;
+        private bool m_RequiredDepth;
+        private MixedLightingSetup m_MixedLightingSetup;
 
         private const int kShadowDepthBufferBits = 16;
         private const int kCameraDepthBufferBits = 32;
@@ -145,6 +153,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             BuildShadowSettings();
 
             PerFrameBuffer._GlossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
+            PerFrameBuffer._SubtractiveShadowColor = Shader.PropertyToID("_SubtractiveShadowColor");
 
             // Lights are culled per-camera. Therefore we need to reset light buffers on each camera render
             PerCameraBuffer._MainLightPosition = Shader.PropertyToID("_MainLightPosition");
@@ -211,7 +220,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // instead this should be forced when using SRP, since all SRP use linear lighting.
             GraphicsSettings.lightsUseLinearIntensity = true;
 
-            SetupPerFrameShaderConstants(ref context);
+            SetupPerFrameShaderConstants();
 
             // Sort cameras array by camera depth
             Array.Sort(cameras, m_CameraComparer);
@@ -574,7 +583,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 lightData.mainLightIndex = SortLights(visibleLights);
 
             // If we have a main light we don't shade it in the per-object light loop. We also remove it from the per-object cull list
-            int additionalLightsCount = (lightData.mainLightIndex > 0) ? visibleLightsCount - 1 : visibleLightsCount;
+            int additionalLightsCount = (lightData.mainLightIndex >= 0) ? visibleLightsCount - 1 : visibleLightsCount;
             additionalLightsCount = Math.Min(additionalLightsCount, kMaxPerObjectAdditionalLights);
 
             int pixelLightsCount = Math.Min(additionalLightsCount, m_Asset.MaxAdditionalPixelLights);
@@ -582,6 +591,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             lightData.pixelAdditionalLightsCount = pixelLightsCount;
             lightData.totalAdditionalLightsCount = pixelLightsCount + vertexLightCount;
+
+            m_MixedLightingSetup = MixedLightingSetup.None;
         }
 
         private int SortLights(VisibleLight[] visibleLights)
@@ -639,9 +650,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void InitializeLightConstants(VisibleLight[] lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightDistanceAttenuation, out Vector4 lightSpotDir,
             out Vector4 lightSpotAttenuation)
         {
+            float directContributionNotBaked = 1.0f;
             lightPos = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
             lightColor = Color.black;
-            lightDistanceAttenuation = new Vector4(0.0f, 1.0f, 0.0f, 0.0f);
+            lightDistanceAttenuation = new Vector4(0.0f, 1.0f, 0.0f, directContributionNotBaked);
             lightSpotDir = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
             lightSpotAttenuation = new Vector4(0.0f, 1.0f, 0.0f, 0.0f);
 
@@ -650,22 +662,22 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (lightIndex < 0)
                 return;
 
-            VisibleLight light = lights[lightIndex];
-            if (light.lightType == LightType.Directional)
+            VisibleLight lightData = lights[lightIndex];
+            if (lightData.lightType == LightType.Directional)
             {
-                Vector4 dir = -light.localToWorld.GetColumn(2);
+                Vector4 dir = -lightData.localToWorld.GetColumn(2);
                 lightPos = new Vector4(dir.x, dir.y, dir.z, 0.0f);
             }
             else
             {
-                Vector4 pos = light.localToWorld.GetColumn(3);
+                Vector4 pos = lightData.localToWorld.GetColumn(3);
                 lightPos = new Vector4(pos.x, pos.y, pos.z, 1.0f);
             }
 
-            lightColor = light.finalColor;
+            lightColor = lightData.finalColor;
 
             // Directional Light attenuation is initialize so distance attenuation always be 1.0
-            if (light.lightType != LightType.Directional)
+            if (lightData.lightType != LightType.Directional)
             {
                 // Light attenuation in lightweight matches the unity vanilla one.
                 // attenuation = 1.0 / 1.0 + distanceToLightSqr * quadraticAttenuation
@@ -676,18 +688,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 // with one MAD instruction
                 // smoothFactor =  distanceSqr * (1.0 / (fadeDistanceSqr - lightRangeSqr)) + (-lightRangeSqr / (fadeDistanceSqr - lightRangeSqr)
                 //                 distanceSqr *           oneOverFadeRangeSqr             +              lightRangeSqrOverFadeRangeSqr
-                float lightRangeSqr = light.range * light.range;
+                float lightRangeSqr = lightData.range * lightData.range;
                 float fadeStartDistanceSqr = 0.8f * 0.8f * lightRangeSqr;
                 float fadeRangeSqr = (fadeStartDistanceSqr - lightRangeSqr);
                 float oneOverFadeRangeSqr = 1.0f / fadeRangeSqr;
                 float lightRangeSqrOverFadeRangeSqr = -lightRangeSqr / fadeRangeSqr;
                 float quadAtten = 25.0f / lightRangeSqr;
-                lightDistanceAttenuation = new Vector4(quadAtten, oneOverFadeRangeSqr, lightRangeSqrOverFadeRangeSqr, 0.0f);
+                lightDistanceAttenuation = new Vector4(quadAtten, oneOverFadeRangeSqr, lightRangeSqrOverFadeRangeSqr, directContributionNotBaked);
             }
 
-            if (light.lightType == LightType.Spot)
+            if (lightData.lightType == LightType.Spot)
             {
-                Vector4 dir = light.localToWorld.GetColumn(2);
+                Vector4 dir = lightData.localToWorld.GetColumn(2);
                 lightSpotDir = new Vector4(-dir.x, -dir.y, -dir.z, 0.0f);
 
                 // Spot Attenuation with a linear falloff can be defined as
@@ -696,7 +708,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 // invAngleRange = 1.0 / (cosInnerAngle - cosOuterAngle)
                 // SdotL * invAngleRange + (-cosOuterAngle * invAngleRange)
                 // If we precompute the terms in a MAD instruction
-                float spotAngle = Mathf.Deg2Rad * light.spotAngle;
+                float spotAngle = Mathf.Deg2Rad * lightData.spotAngle;
                 float cosOuterAngle = Mathf.Cos(spotAngle * 0.5f);
                 float cosInneAngle = Mathf.Cos(spotAngle * 0.25f);
                 float smoothAngleRange = cosInneAngle - cosOuterAngle;
@@ -707,14 +719,28 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 float add = -cosOuterAngle * invAngleRange;
                 lightSpotAttenuation = new Vector4(invAngleRange, add, 0.0f);
             }
+
+            Light light = lightData.light;
+            if (light.lightmapBakeType == LightmapBakeType.Mixed)
+            {
+                // TODO: Add support to shadow mask
+                if (m_MixedLightingSetup == MixedLightingSetup.None && lightData.light.shadows != LightShadows.None)
+                {
+                    m_MixedLightingSetup = MixedLightingSetup.Subtractive;
+                    lightDistanceAttenuation.w = 0.0f;
+                }
+            }
         }
 
-        private void SetupPerFrameShaderConstants(ref ScriptableRenderContext context)
+        private void SetupPerFrameShaderConstants()
         {
             // When glossy reflections are OFF in the shader we set a constant color to use as indirect specular
             SphericalHarmonicsL2 ambientSH = RenderSettings.ambientProbe;
             Vector4 glossyEnvColor = new Vector4(ambientSH[0, 0], ambientSH[1, 0], ambientSH[2, 0]) * RenderSettings.reflectionIntensity;
             Shader.SetGlobalVector(PerFrameBuffer._GlossyEnvironmentColor, glossyEnvColor);
+
+            // Used when subtractive mode is selected
+            Shader.SetGlobalColor(PerFrameBuffer._SubtractiveShadowColor, RenderSettings.subtractiveShadowColor.linear);
         }
 
         private void SetupShaderLightConstants(CommandBuffer cmd, VisibleLight[] lights, ref LightData lightData)
@@ -734,19 +760,25 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Vector4 lightPos, lightColor, lightDistanceAttenuation, lightSpotDir, lightSpotAttenuation;
             InitializeLightConstants(lights, lightIndex, out lightPos, out lightColor, out lightDistanceAttenuation, out lightSpotDir, out lightSpotAttenuation);
 
+            if (lightIndex >= 0)
+            {
+                LightType mainLightType = lights[lightIndex].lightType;
+                Light mainLight = lights[lightIndex].light;
+
+                if (LightweightUtils.IsSupportedCookieType(mainLightType) && mainLight.cookie != null)
+                {
+                    Matrix4x4 lightCookieMatrix;
+                    LightweightUtils.GetLightCookieMatrix(lights[lightIndex], out lightCookieMatrix);
+                    cmd.SetGlobalTexture(PerCameraBuffer._MainLightCookie, mainLight.cookie);
+                    cmd.SetGlobalMatrix(PerCameraBuffer._WorldToLight, lightCookieMatrix);
+                }
+            }
+
             cmd.SetGlobalVector(PerCameraBuffer._MainLightPosition, lightPos);
             cmd.SetGlobalColor(PerCameraBuffer._MainLightColor, lightColor);
             cmd.SetGlobalVector(PerCameraBuffer._MainLightDistanceAttenuation, lightDistanceAttenuation);
             cmd.SetGlobalVector(PerCameraBuffer._MainLightSpotDir, lightSpotDir);
             cmd.SetGlobalVector(PerCameraBuffer._MainLightSpotAttenuation, lightSpotAttenuation);
-
-            if (lightIndex >= 0 && LightweightUtils.IsSupportedCookieType(lights[lightIndex].lightType) && lights[lightIndex].light.cookie != null)
-            {
-                Matrix4x4 lightCookieMatrix;
-                LightweightUtils.GetLightCookieMatrix(lights[lightIndex], out lightCookieMatrix);
-                cmd.SetGlobalTexture(PerCameraBuffer._MainLightCookie, lights[lightIndex].light.cookie);
-                cmd.SetGlobalMatrix(PerCameraBuffer._WorldToLight, lightCookieMatrix);
-            }
         }
 
         private void SetupAdditionalListConstants(CommandBuffer cmd, VisibleLight[] lights, ref LightData lightData)
@@ -793,8 +825,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void SetupShadowShaderConstants(CommandBuffer cmd, ref VisibleLight shadowLight, int cascadeCount)
         {
             Light light = shadowLight.light;
+            float strength = 1.0f - light.shadowStrength;
             float bias = light.shadowBias * 0.1f;
             float normalBias = light.shadowNormalBias;
+            float nearPlane = light.shadowNearPlane;
             float shadowResolution = m_ShadowSlices[0].shadowResolution;
 
             const int maxShadowCascades = 4;
@@ -814,7 +848,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             cmd.SetGlobalMatrixArray("_WorldToShadow", shadowMatrices);
             cmd.SetGlobalVectorArray("_DirShadowSplitSpheres", m_DirectionalShadowSplitDistances);
-            cmd.SetGlobalVector("_ShadowData", new Vector4(0.0f, bias, normalBias, 0.0f));
+            cmd.SetGlobalVector("_ShadowData", new Vector4(strength, bias, normalBias, nearPlane));
             cmd.SetGlobalFloatArray("_PCFKernel", pcfKernel);
         }
 
@@ -831,6 +865,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             LightweightUtils.SetKeyword (cmd, "_MAIN_SPOT_LIGHT", mainLightIndex != -1 && visibleLights[mainLightIndex].lightType == LightType.Spot);
             LightweightUtils.SetKeyword (cmd, "_MAIN_POINT_LIGHT", mainLightIndex != -1 && visibleLights[mainLightIndex].lightType == LightType.Point);
             LightweightUtils.SetKeyword(cmd, "_ADDITIONAL_LIGHTS", lightData.totalAdditionalLightsCount > 0);
+            LightweightUtils.SetKeyword(cmd, "_MIXED_LIGHTING_SHADOWMASK", m_MixedLightingSetup == MixedLightingSetup.ShadowMask);
+            LightweightUtils.SetKeyword(cmd, "_MIXED_LIGHTING_SUBTRACTIVE", m_MixedLightingSetup == MixedLightingSetup.Subtractive);
 
             string[] shadowKeywords = new string[] { "_HARD_SHADOWS", "_SOFT_SHADOWS", "_HARD_SHADOWS_CASCADES", "_SOFT_SHADOWS_CASCADES" };
             for (int i = 0; i < shadowKeywords.Length; ++i)
