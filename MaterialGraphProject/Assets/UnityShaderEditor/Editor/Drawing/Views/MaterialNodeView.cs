@@ -198,6 +198,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             UpdatePortInputVisibilities();
+
+            foreach (var control in m_ControlViews)
+            {
+                var listener = control as INodeModificationListener;
+                if (listener != null)
+                    listener.OnNodeModified(scope);
+            }
         }
 
         void AddSlots(IEnumerable<MaterialSlot> slots)
