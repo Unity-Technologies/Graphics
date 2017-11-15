@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.Experimental.Rendering.HDPipeline.TilePass;
+using UnityEngine.Experimental.Rendering.HDPipeline.Decal;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -69,6 +70,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
     }
 
+
     public partial class HDRenderPipeline : RenderPipeline
     {
         enum ForwardPass
@@ -101,6 +103,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         readonly List<RenderPipelineMaterial> m_MaterialList = new List<RenderPipelineMaterial>();
 
         readonly GBufferManager m_GbufferManager = new GBufferManager();
+        readonly GBufferManager m_DbufferManager = new GBufferManager();
 
         Material m_CopyStencilForSplitLighting;
         Material m_CopyStencilForRegularLighting;
@@ -311,6 +314,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_GbufferManager.SetBufferDescription(gbufferIndex, "_GBufferTexture" + gbufferIndex, rtFormat[gbufferIndex], rtReadWrite[gbufferIndex]);
             }
+
+            m_DbufferManager.SetBufferDescription(0, "_DBufferTexture0", RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
 
             m_VelocityBuffer = HDShaderIDs._VelocityTexture;
             if (ShaderConfig.s_VelocityInGbuffer == 1)
@@ -761,6 +766,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             InitAndClearBuffer(hdCamera, cmd);
 
             RenderDepthPrepass(m_CullResults, camera, renderContext, cmd);
+
+            using (new ProfilingSample(cmd, "Decals"))
+            {
+                DecalSystem.instance.Render(renderContext, camera, cmd);
+            }
 
             RenderGBuffer(m_CullResults, camera, renderContext, cmd);
 
@@ -1630,6 +1640,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     if (!m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
                         m_GbufferManager.InitGBuffers(w, h, cmd);
+
+                    m_DbufferManager.InitGBuffers(w, h, cmd);
 
                     CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.Depth);
                 }
