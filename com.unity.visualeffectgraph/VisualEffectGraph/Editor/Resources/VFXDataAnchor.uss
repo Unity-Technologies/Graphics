@@ -1,4 +1,11 @@
 
+
+
+.VFXDataAnchor > #connector.portHighlight #hole #cap{
+    background-color: rgb(220, 220, 220);
+    border-color: rgb(220, 220, 220);
+}
+
 /* Properties */
 .VFXDataAnchor
 {
@@ -113,15 +120,6 @@ VFXDataAnchor.Output #type
 	position-right:10;
 	margin-top:2;
 	-background-image:resource("VFX/connectors/unconnected-output");
-}
-
-.VFXDataAnchor #connector.anchorHighlight *
-{
-	-background-image:resource("VFX/connectors/highlighted-input");
-}
-.VFXDataAnchor.Output #connector.anchorHighlight *
-{
-	-background-image:resource("VFX/connectors/highlighted-output");
 }
 
 .VFXDataAnchor  #IMGUI
