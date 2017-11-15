@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] Vector1 Range,
             [Slot(3, Binding.None)] out Vector3 Out)
         {
-            Out = Vector2.zero;
+            Out = Vector3.zero;
             return
                 @"
 {
