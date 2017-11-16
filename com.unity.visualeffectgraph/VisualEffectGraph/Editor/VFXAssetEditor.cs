@@ -95,7 +95,7 @@ public class VFXAssetEditor : Editor
             {
                 var parameter = m_ExposedList[i];
                 Undo.RegisterCompleteObjectUndo(parameter.model, "VFX parameter");
-                parameter.order = i;
+                (parameter.model as IVFXSlotContainer).SetSettingValue("m_order", i); //TODOPAUL Change this code after variant PR merge
                 EditorUtility.SetDirty(parameter.model);
             }
         }
@@ -149,7 +149,7 @@ public class VFXAssetEditor : Editor
         bool orderChange = parameter.order != order;
         if (orderChange)
         {
-            parameter.order = order;
+            (parameter.model as IVFXSlotContainer).SetSettingValue("m_order", order); //TODOPAUL : Change this code after variant PR merge
         }
         ParamInfo infos;
         m_AdvDictionary.TryGetValue(parameter, out infos);
@@ -173,8 +173,7 @@ public class VFXAssetEditor : Editor
         fieldRect.xMin += labelWidth + toggleWidth + offsetWidth;
         fieldRect.height = lineHeight;
 
-        parameter.exposedName = EditorGUI.TextField(fieldRect, parameter.exposedName);
-
+        (parameter.model as IVFXSlotContainer).SetSettingValue("m_exposedName", EditorGUI.TextField(fieldRect, parameter.exposedName)); //TODOPAUL : Change this code after variant PR merge
         if (orderChange || EditorGUI.EndChangeCheck())
         {
             Undo.RegisterCompleteObjectUndo(parameter.model, "VFX parameter");

@@ -296,8 +296,8 @@ namespace UnityEditor.VFX.Test
             Action<VFXAsset> write = delegate(VFXAsset asset)
                 {
                     var parameter = VFXLibrary.GetParameters().First(o => o.name == "Vector2").CreateInstance();
-                    parameter.exposed = true;
-                    parameter.exposedName = name;
+                    parameter.SetSettingValue("m_exposed", true);
+                    parameter.SetSettingValue("m_exposedName", name);
                     asset.GetOrCreateGraph().AddChild(parameter);
                     Assert.AreEqual(VFXValueType.kFloat2, parameter.outputSlots[0].GetExpression().valueType);
                 };

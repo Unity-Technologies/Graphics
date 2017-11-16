@@ -105,9 +105,6 @@ namespace UnityEditor.VFX.UI
         {
             base.Init(model, viewPresenter);
 
-            exposed = parameter.exposed;
-            exposedName = parameter.exposedName;
-
             m_CachedMinValue = parameter.m_Min != null ? parameter.m_Min.Get() : null;
             m_CachedMaxValue = parameter.m_Max != null ? parameter.m_Max.Get() : null;
         }
@@ -154,36 +151,15 @@ namespace UnityEditor.VFX.UI
         public string exposedName
         {
             get { return parameter.exposedName; }
-            set
-            {
-                if (parameter.exposedName != value)
-                {
-                    parameter.exposedName = value;
-                }
-            }
         }
         public bool exposed
         {
             get { return parameter.exposed; }
-            set
-            {
-                if (parameter.exposed != value)
-                {
-                    parameter.exposed = value;
-                }
-            }
         }
 
         public int order
         {
             get { return parameter.order; }
-            set
-            {
-                if (parameter.order != value)
-                {
-                    parameter.order = value;
-                }
-            }
         }
 
         private VFXParameter parameter { get { return model as VFXParameter; } }

@@ -659,11 +659,7 @@ namespace UnityEditor.VFX.UI
         {
             VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
             if (presenter == null) return;
-
-            VFXParameter newParameter = presenter.AddVFXParameter(contentViewContainer.GlobalToBound(evt.imguiEvent.mousePosition), VFXLibrary.GetParameters().FirstOrDefault(t => t.name == parameter.anchorType.UserFriendlyName()));
-
-            newParameter.exposedName = parameter.exposedName;
-            newParameter.exposed = true;
+            presenter.AddVFXParameter(contentViewContainer.GlobalToBound(evt.imguiEvent.mousePosition), VFXLibrary.GetParameters().FirstOrDefault(t => t.name == parameter.anchorType.UserFriendlyName()));
         }
 
         void SelectionUpdated()
