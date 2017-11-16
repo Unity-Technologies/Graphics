@@ -41,8 +41,11 @@
 .VFXNodeUI.node.horizontal .mainContainer > #left
 {
 	width:-1;
-	flex:0;
 	margin-right:0;
+}
+VFXOperatorUI.VFXNodeUI.node.horizontal .mainContainer > #left
+{
+	flex:0;
 }
 VFXOperatorUI.VFXNodeUI.node.horizontal .mainContainer > #left
 {
