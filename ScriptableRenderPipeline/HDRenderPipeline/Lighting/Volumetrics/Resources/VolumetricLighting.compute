@@ -2,16 +2,6 @@
 // Definitions
 //--------------------------------------------------------------------------------------------------
 
-#ifdef PRESET_ULTRA
-    // E.g. for 1080p: (1920/4)x(1080/4)x(256) = 33,177,600 voxels
-    #define VBUFFER_TILE_SIZE   4
-    #define VBUFFER_SLICE_COUNT 256
-#else
-    // E.g. for 1080p: (1920/8)x(1080/8)x(128) =  4,147,200 voxels
-    #define VBUFFER_TILE_SIZE   8
-    #define VBUFFER_SLICE_COUNT 128
-#endif // PRESET_ULTRA
-
 #pragma kernel VolumetricLightingAllLights VolumetricLighting=VolumetricLightingAllLights LIGHTLOOP_SINGLE_PASS
 #pragma kernel VolumetricLightingClustered VolumetricLighting=VolumetricLightingClustered LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
 
@@ -104,7 +94,7 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
         float  tc       = t0 + 0.5 * dt;
         float3 centerWS = GetPointAtDistance(ray, tc);
 
-        // Sample the participating media at 'tc' (or 'centerWS').
+        // Sample the participating medium at 'tc' (or 'centerWS').
         // We consider it to be constant along the interval [t0, t1] (within the voxel).
         float3 scattering = _GlobalFog_Scattering;
         float  extinction = _GlobalFog_Extinction;
@@ -117,7 +107,7 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
         if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
         {
             float tOffset, weight;
-            ImportanceSampleHomogeneousMedia(extinction, dt, rndVal, tOffset, weight);
+            ImportanceSampleHomogeneousMedium(rndVal, extinction, dt, tOffset, weight);
 
             float t = t0 + tOffset;
             float3 positionWS = GetPointAtDistance(ray, t);
@@ -203,8 +193,9 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
                     if (lightType != GPULIGHTTYPE_POINT) continue;
 
                     float t, rcpPdf;
-                    ImportanceSamplePunctualLight(lightData.positionWS, ray.originWS, ray.directionWS,
-                                                  tMin, tMax, rndVal, t, rcpPdf);
+                    ImportanceSamplePunctualLight(rndVal, lightData.positionWS,
+                                                  ray.originWS, ray.directionWS,
+                                                  tMin, tMax, t, rcpPdf);
 
                     float3 positionWS = GetPointAtDistance(ray, t);
 
@@ -216,8 +207,8 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
                     float  intensity     = GetPunctualShapeAttenuation(lightData, L, distSq);
                     float3 color         = lightData.color;
 
-                    // TODO: heterogeneous media.
-                    intensity *= TransmittanceHomogeneousMedia(extinction, dist);
+                    // TODO: heterogeneous medium.
+                    intensity *= TransmittanceHomogeneousMedium(extinction, dist);
 
                     [branch] if (lightData.shadowIndex >= 0)
                     {
@@ -238,10 +229,9 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
                     }
 
                     // Compute transmittance from 't0' to 't'.
-                    float transmittance = TransmittanceHomogeneousMedia(extinction, t - t0);
+                    float transmittance = TransmittanceHomogeneousMedium(extinction, t - t0);
 
                     intensity *= transmittance * rcpPdf;
-                    color     *= scattering;
 
                     // Compute the amount of in-scattered radiance.
                     sampleRadiance += color * intensity;
@@ -257,8 +247,7 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
         float transmittance = Transmittance(opticalDepth);
 
         // Integral{a, b}{Transmittance(0, t) * Li(t) dt} = Transmittance(0, a) * Integral{a, b}{Transmittance(0, t - a) * Li(t) dt}.
-        // We multiply by the scattering coefficient per light.
-        totalRadiance += (transmittance * IsotropicPhaseFunction()) * sampleRadiance;
+        totalRadiance += (transmittance * IsotropicPhaseFunction()) * scattering * sampleRadiance;
 
         // Compute the optical depth up to the center of the interval.
         opticalDepth += 0.5 * extinction * dt;
