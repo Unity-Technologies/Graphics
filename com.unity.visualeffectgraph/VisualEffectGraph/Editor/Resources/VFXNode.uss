@@ -253,6 +253,13 @@ width:-1;
 	margin-top : 8;
 }
 
+
+VFXOperatorUI.collapsed.VFXNodeUI.node.horizontal .mainContainer > #middle
+{
+	width:0;
+	height:0;
+}
+
 VFXParameterUI .value
 {
 	flex:1;
