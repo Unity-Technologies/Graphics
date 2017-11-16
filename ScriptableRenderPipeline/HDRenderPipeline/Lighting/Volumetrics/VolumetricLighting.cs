@@ -153,16 +153,10 @@ public partial class HDRenderPipeline : RenderPipeline
 
     void CreateVBuffer(int screenWidth, int screenHeight)
     {
-        if (m_VBufferLighting != null)
-        {
-            if (m_VBufferLighting[0] != null) m_VBufferLighting[0].Release();
-            if (m_VBufferLighting[1] != null) m_VBufferLighting[1].Release();
-        }
-        else
-        {
-            m_VBufferLighting   = new RenderTexture[2];
-            m_VBufferLightingRT = new RenderTargetIdentifier[2];
-        }
+        DestroyVBuffer();
+
+        m_VBufferLighting   = new RenderTexture[2];
+        m_VBufferLightingRT = new RenderTargetIdentifier[2];
 
         int w = 0, h = 0, d = 0;
         ComputeVBufferResolutionAndScale(screenWidth, screenHeight, ref w, ref h, ref d);
@@ -177,6 +171,18 @@ public partial class HDRenderPipeline : RenderPipeline
             m_VBufferLighting[i].Create();
 
             m_VBufferLightingRT[i] = new RenderTargetIdentifier(m_VBufferLighting[i]);
+        }
+    }
+
+    void DestroyVBuffer()
+    {
+        if (m_VBufferLighting != null)
+        {
+            if (m_VBufferLighting[0] != null) m_VBufferLighting[0].Release();
+            if (m_VBufferLighting[1] != null) m_VBufferLighting[1].Release();
+
+            m_VBufferLighting   = null;
+            m_VBufferLightingRT = null;
         }
     }
 
