@@ -326,11 +326,13 @@ namespace UnityEditor.VFX.UI
 
                 var inputAnchor = flowEdge.input as VFXFlowAnchorPresenter;
                 var outputAnchor = flowEdge.output as VFXFlowAnchorPresenter;
+                if (inputAnchor != null && outputAnchor != null)
+                {
+                    var contextInput = inputAnchor.Owner as VFXContext;
+                    var contextOutput = outputAnchor.Owner as VFXContext;
 
-                var contextInput = inputAnchor.Owner as VFXContext;
-                var contextOutput = outputAnchor.Owner as VFXContext;
-
-                contextInput.UnlinkFrom(contextOutput, outputAnchor.slotIndex, inputAnchor.slotIndex);
+                    contextInput.UnlinkFrom(contextOutput, outputAnchor.slotIndex, inputAnchor.slotIndex);
+                }
             }
             else if (element is VFXDataEdgePresenter)
             {
