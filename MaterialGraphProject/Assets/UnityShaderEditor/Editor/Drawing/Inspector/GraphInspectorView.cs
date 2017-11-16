@@ -188,6 +188,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         void OnPreviewChanged()
         {
             m_PreviewTextureView.image = m_PreviewHandle.texture ?? Texture2D.blackTexture;
+            m_PreviewTextureView.Dirty(ChangeType.Repaint);
         }
 
         void OnPreviewMeshChanged(ChangeEvent<UnityEngine.Object> changeEvent)
