@@ -11,15 +11,32 @@ namespace UnityEditor.VFX.UI
 {
     public class VFXGroupNode : GroupNode
     {
-        public override void OnDataChanged()
+        public VFXGroupNode()
         {
-            base.OnDataChanged();
+        }
 
+        public override void UpdatePresenterPosition()
+        {
+            base.UpdatePresenterPosition();
+
+            if (containedElements != null)
+            {
+                foreach (var element in containedElements)
+                {
+                    element.UpdatePresenterPosition();
+                }
+            }
+        }
+
+        public void OnViewDataChanged()
+        {
+            // use are custom data changed from the view because we can't listen simply to the VFXUI, because the VFXUI might have been modified because we were removed and the datawatch might call us before the view
             VFXView view = this.GetFirstAncestorOfType<VFXView>();
             if (view == null) return;
-
             VFXGroupNodePresenter presenter = GetPresenter<VFXGroupNodePresenter>();
 
+
+            title = presenter.title;
             var presenterContent = presenter.nodes.ToArray();
             var elementContent = containedElements;
 
@@ -29,8 +46,6 @@ namespace UnityEditor.VFX.UI
             }
             m_ModificationFromPresenter = true;
 
-            title = presenter.title;
-
             var elementToDelete = elementContent.Where(t => !presenterContent.Contains(t.presenter as VFXNodePresenter)).ToArray();
             foreach (var element in elementToDelete)
             {
@@ -39,7 +54,7 @@ namespace UnityEditor.VFX.UI
 
             var viewElements = view.Query().Children<VisualElement>().Children<GraphElement>().ToList();
 
-            var elementToAdd = presenterContent.Where(t => elementContent.FirstOrDefault(u => u.presenter = t) == null).Select(t => viewElements.FirstOrDefault(u => u.presenter == t)).ToArray();
+            var elementToAdd = presenterContent.Where(t => elementContent.FirstOrDefault(u => u.presenter == t) == null).Select(t => viewElements.FirstOrDefault(u => u.presenter == t)).ToArray();
 
             foreach (var element in elementToAdd)
             {
@@ -53,10 +68,9 @@ namespace UnityEditor.VFX.UI
         bool m_ModificationFromPresenter;
 
 
-        public override void DoRepaint()
+        public override void SetPosition(Rect newPos)
         {
-            base.DoRepaint();
-
+            base.SetPosition(newPos);
             VFXGroupNodePresenter presenter = GetPresenter<VFXGroupNodePresenter>();
 
             if (GetPosition() != presenter.position)

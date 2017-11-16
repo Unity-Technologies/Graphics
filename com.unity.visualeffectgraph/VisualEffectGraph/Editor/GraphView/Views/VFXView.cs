@@ -571,6 +571,12 @@ namespace UnityEditor.VFX.UI
 
                 m_OldPresenter = presenter;
             }
+
+            //Update groupnode content after all the view has been updated.
+            foreach (VFXGroupNode node in this.Query().Children<VisualElement>().Children<VFXGroupNode>().ToList())
+            {
+                node.OnViewDataChanged();
+            }
         }
 
         public VFXDataAnchor GetDataAnchorByPresenter(VFXDataAnchorPresenter presenter)
@@ -727,7 +733,7 @@ namespace UnityEditor.VFX.UI
 
         void ElementRemovedFromGroupNode(GroupNode groupNode, GraphElement element)
         {
-            (groupNode as VFXGroupNode).ElementAddedToGroupNode(element);
+            (groupNode as VFXGroupNode).ElementRemovedFromGroupNode(element);
         }
 
         void GroupNodeTitleChanged(GroupNode groupNode, string title)

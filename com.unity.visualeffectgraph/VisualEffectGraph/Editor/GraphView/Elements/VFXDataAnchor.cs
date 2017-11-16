@@ -113,7 +113,8 @@ namespace UnityEditor.VFX.UI
             VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
 
             // reverse because we want the flex to choose the position of the connector
-            presenter.position = layout;
+            if (presenter.position != layout)
+                presenter.position = layout;
 
             if (presenter.connected)
                 AddToClassList("connected");

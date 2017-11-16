@@ -368,6 +368,11 @@ namespace UnityEditor.VFX.UI
             {
                 Debug.LogErrorFormat("Unexpected type : {0}", element.GetType().FullName);
             }
+
+            if (element is VFXNodePresenter)
+            {
+                RemoveFromGroupNodes(element as VFXNodePresenter);
+            }
         }
 
         public void AddGroupNode(Vector2 pos)
@@ -400,10 +405,22 @@ namespace UnityEditor.VFX.UI
 
             DestroyImmediate(groupNode);
             m_GroupNodePresenters.RemoveAt(index);
+            base.RemoveElement(groupNode);
 
             for (int i = index; i < m_GroupNodePresenters.Count; ++i)
             {
                 m_GroupNodePresenters[i].index = index;
+            }
+        }
+
+        void RemoveFromGroupNodes(VFXNodePresenter presenter)
+        {
+            foreach (var groupNode in m_GroupNodePresenters)
+            {
+                if (groupNode.ContainsNode(presenter))
+                {
+                    groupNode.nodes = groupNode.nodes.Where(t => t != presenter).ToArray();
+                }
             }
         }
 

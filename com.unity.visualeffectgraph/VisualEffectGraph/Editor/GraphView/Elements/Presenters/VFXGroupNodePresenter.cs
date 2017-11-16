@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
+using System;
 
 namespace UnityEditor.VFX.UI
 {
@@ -13,12 +14,6 @@ namespace UnityEditor.VFX.UI
 
         [SerializeField]
         VFXUI m_UI;
-
-
-        public override Object[] GetObjectsToWatch()
-        {
-            return new Object[] { this, m_UI };
-        }
 
         protected override void OnEnable()
         {
@@ -55,8 +50,8 @@ namespace UnityEditor.VFX.UI
             {
                 if (title != value)
                 {
-                    Undo.RecordObject(m_UI, "VFX");
                     m_UI.groupInfos[m_Index].title = value;
+                    m_ViewPresenter.GetGraph().Invalidate(VFXModel.InvalidationCause.kUIChanged);
                 }
             }
         }
@@ -69,7 +64,7 @@ namespace UnityEditor.VFX.UI
                     return m_UI.groupInfos[m_Index].content.Select(t => m_ViewPresenter.GetPresenterFromModel(t));
                 return new VFXNodePresenter[0];
             }
-            //set { m_UI.groupInfos[m_Index].content = value.Select(t=> t.model).ToArray(); }
+            set { m_UI.groupInfos[m_Index].content = value.Select(t => t.model).ToArray(); }
         }
 
 
@@ -78,11 +73,11 @@ namespace UnityEditor.VFX.UI
             if (presenter == null)
                 return;
 
-            Undo.RecordObject(m_UI, "VFX");
             if (m_UI.groupInfos[m_Index].content != null)
                 m_UI.groupInfos[m_Index].content = m_UI.groupInfos[m_Index].content.Concat(Enumerable.Repeat(presenter.model, 1)).Distinct().ToArray();
             else
                 m_UI.groupInfos[m_Index].content = new VFXModel[] { presenter.model };
+            m_ViewPresenter.GetGraph().Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
 
         public void RemoveNode(VFXNodePresenter presenter)
@@ -90,9 +85,18 @@ namespace UnityEditor.VFX.UI
             if (presenter == null)
                 return;
 
-            Undo.RecordObject(m_UI, "VFX");
             if (m_UI.groupInfos[m_Index].content != null)
                 m_UI.groupInfos[m_Index].content = m_UI.groupInfos[m_Index].content.Where(t => t != presenter.model).ToArray();
+            m_ViewPresenter.GetGraph().Invalidate(VFXModel.InvalidationCause.kUIChanged);
+        }
+
+        public bool ContainsNode(VFXNodePresenter presenter)
+        {
+            if (m_UI.groupInfos[m_Index].content != null)
+            {
+                return m_UI.groupInfos[m_Index].content.Contains(presenter.model);
+            }
+            return false;
         }
     }
 }

@@ -122,16 +122,24 @@ namespace UnityEditor.VFX
             Profiler.BeginSample("VFXEditor.CloneGraph");
             try
             {
-                var from = children.ToArray();
-                var copy = from.Select(o => o.Clone<VFXModel>()).ToArray();
-                VFXSlot.ReproduceLinkedSlotFromHierachy(from, copy);
-                VFXContext.ReproduceLinkedFlowFromHiearchy(from, copy);
+                Dictionary<VFXModel, VFXModel> oldNewDic = children.ToDictionary(o => o, o => o.Clone<VFXModel>());
+
+                var from = oldNewDic.Keys.ToArray();
+                var to = oldNewDic.Values.ToArray();
+
+                VFXSlot.ReproduceLinkedSlotFromHierachy(from, to);
+                VFXContext.ReproduceLinkedFlowFromHiearchy(from, to);
 
                 var clone = CreateInstance(GetType()) as VFXGraph;
                 clone.m_Children = new List<VFXModel>();
-                foreach (var model in copy)
+                foreach (var model in to)
                 {
                     clone.AddChild(model, -1, false);
+                }
+
+                if (m_UIInfos != null)
+                {
+                    clone.m_UIInfos = m_UIInfos.Clone(oldNewDic);
                 }
                 return clone as T;
             }

@@ -20,5 +20,18 @@ namespace UnityEditor.VFX
         }
 
         public GroupInfo[] groupInfos;
+
+
+        public VFXUI Clone(Dictionary<VFXModel, VFXModel> oldNewMap)
+        {
+            VFXUI clone = Instantiate(this);
+
+            foreach (var groupInfo in clone.groupInfos)
+            {
+                groupInfo.content = groupInfo.content.Where(t => oldNewMap.ContainsKey(t)).Select(t => oldNewMap[t]).ToArray();
+            }
+
+            return clone;
+        }
     }
 }
