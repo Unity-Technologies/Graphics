@@ -21,7 +21,6 @@ float _PCFKernel[8];
 float4x4 _WorldToShadow[MAX_SHADOW_CASCADES];
 float4 _DirShadowSplitSpheres[MAX_SHADOW_CASCADES];
 half4 _ShadowData;
-half4 _ShadowLightDirection;
 
 inline half ShadowAttenuation(float3 shadowCoord)
 {

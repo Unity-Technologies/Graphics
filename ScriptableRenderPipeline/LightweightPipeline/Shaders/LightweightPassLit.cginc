@@ -3,6 +3,30 @@
 
 #include "LightweightLighting.cginc"
 
+#ifdef _SPECULAR_SETUP
+#define SAMPLE_METALLICSPECULAR(uv) tex2D(_SpecGlossMap, uv)
+#else
+#define SAMPLE_METALLICSPECULAR(uv) tex2D(_MetallicGlossMap, uv)
+#endif
+
+half4 _Color;
+sampler2D _MainTex; half4 _MainTex_ST;
+half _Cutoff;
+half _Glossiness;
+half _GlossMapScale;
+half _SmoothnessTextureChannel;
+half _Metallic;
+sampler2D _MetallicGlossMap;
+half4 _SpecColor;
+sampler2D _SpecGlossMap;
+half _BumpScale;
+sampler2D _BumpMap;
+half _OcclusionStrength;
+sampler2D _OcclusionMap;
+half4 _EmissionColor;
+sampler2D _EmissionMap;
+half _Shininess;
+
 struct LightweightVertexInput
 {
     float4 vertex : POSITION;
@@ -15,66 +39,139 @@ struct LightweightVertexInput
 
 struct LightweightVertexOutput
 {
-    float2 uv                       : TEXCOORD0;
-    float4 ambientOrLightmapUV      : TEXCOORD1; // xy: lightmapUV, zw: dynamicLightmapUV OR color from SH
-    float4 posWS                    : TEXCOORD2;
+    float4 uv01                     : TEXCOORD0; // xy: main UV, zw: lightmap UV (directional / non-directional)
+    float3 posWS                    : TEXCOORD1;
 #if _NORMALMAP
-    half3 tangent                   : TEXCOORD3;
-    half3 binormal                  : TEXCOORD4;
-    half3 normal                    : TEXCOORD5;
+    half3 tangent                   : TEXCOORD2;
+    half3 binormal                  : TEXCOORD3;
+    half3 normal                    : TEXCOORD4;
 #else
-    half3 normal                    : TEXCOORD3;
+    half3 normal                    : TEXCOORD2;
 #endif
-    half4 viewDir                   : TEXCOORD6; // xyz: viewDir
-    half4 fogFactorAndVertexLight   : TEXCOORD7; // x: fogFactor, yzw: vertex light
+    half3 viewDir                   : TEXCOORD5;
+    half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
+#if defined(EVALUATE_SH_VERTEX) || defined(EVALUATE_SH_MIXED)
+    half4 vertexSH                  : TEXCOORD7;
+#endif
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
+inline half Alpha(half albedoAlpha)
+{
+#if defined(_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A)
+    half alpha = _Color.a;
+#else
+    half alpha = albedoAlpha * _Color.a;
+#endif
+
+#if defined(_ALPHATEST_ON)
+    clip(alpha - _Cutoff);
+#endif
+
+    return alpha;
+}
+
+half3 Normal(float2 uv)
+{
+#if _NORMALMAP
+    return UnpackNormalScale(tex2D(_BumpMap, uv), _BumpScale);
+#else
+    return half3(0.0h, 0.0h, 1.0h);
+#endif
+}
+
+half SpecularGloss(half2 uv, half alpha)
+{
+    half4 specularGloss = half4(0, 0, 0, 1);
+#ifdef _SPECGLOSSMAP
+    specularGloss = tex2D(_SpecGlossMap, uv);
+    specularGloss.rgb = LIGHTWEIGHT_GAMMA_TO_LINEAR(specularGloss.rgb);
+#elif defined(_SPECULAR_COLOR)
+    specularGloss = _SpecColor;
+#endif
+
+#ifdef _GLOSSINESS_FROM_BASE_ALPHA
+    specularGloss.a = alpha;
+#endif
+    return specularGloss;
+}
+
+half4 MetallicSpecGloss(float2 uv, half albedoAlpha)
+{
+    half4 specGloss;
+
+#ifdef _METALLICSPECGLOSSMAP
+    specGloss = specGloss = SAMPLE_METALLICSPECULAR(uv);
+#ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+    specGloss.a = albedoAlpha * _GlossMapScale;
+#else
+    specGloss.a *= _GlossMapScale;
+#endif
+
+#else // _METALLICSPECGLOSSMAP
+#if _SPECULAR_SETUP
+    specGloss.rgb = _SpecColor.rgb;
+#else
+    specGloss.rgb = _Metallic.rrr;
+#endif
+
+#ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+    specGloss.a = albedoAlpha * _GlossMapScale;
+#else
+    specGloss.a = _Glossiness;
+#endif
+#endif
+
+    return specGloss;
+}
+
+half Occlusion(float2 uv)
+{
+#ifdef _OCCLUSIONMAP
+#if (SHADER_TARGET < 30)
+    // SM20: instruction count limitation
+    // SM20: simpler occlusion
+    return tex2D(_OcclusionMap, uv).g;
+#else
+    half occ = tex2D(_OcclusionMap, uv).g;
+    return _LerpOneTo(occ, _OcclusionStrength);
+#endif
+#else
+    return 1.0;
+#endif
+}
+
+half3 Emission(float2 uv)
+{
+#ifndef _EMISSION
+    return 0;
+#else
+    return LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_EmissionMap, uv).rgb) * _EmissionColor.rgb;
+#endif
+}
+
 inline void InitializeStandardLitSurfaceData(LightweightVertexOutput IN, out SurfaceData outSurfaceData)
 {
-    float2 uv = IN.uv;
+    float2 uv = IN.uv01.xy;
     half4 albedoAlpha = tex2D(_MainTex, uv);
 
     half4 specGloss = MetallicSpecGloss(uv, albedoAlpha);
     outSurfaceData.albedo = LIGHTWEIGHT_GAMMA_TO_LINEAR(albedoAlpha.rgb) * _Color.rgb;
 
-#if _METALLIC_SETUP
-    outSurfaceData.metallic = specGloss.r;
-    outSurfaceData.specular = half3(0.0h, 0.0h, 0.0h);
-#else
+#if _SPECULAR_SETUP
     outSurfaceData.metallic = 1.0h;
     outSurfaceData.specular = specGloss.rgb;
+#else
+    outSurfaceData.metallic = specGloss.r;
+    outSurfaceData.specular = half3(0.0h, 0.0h, 0.0h);
 #endif
 
     outSurfaceData.smoothness = specGloss.a;
     outSurfaceData.normal = Normal(uv);
-    outSurfaceData.occlusion = OcclusionLW(uv);
-    outSurfaceData.emission = EmissionLW(uv);
-    outSurfaceData.emission += IN.fogFactorAndVertexLight.yzw;
+    outSurfaceData.occlusion = Occlusion(uv);
+    outSurfaceData.emission = Emission(uv);
     outSurfaceData.alpha = Alpha(albedoAlpha.a);
-}
-
-void InitializeSurfaceInput(LightweightVertexOutput IN, out SurfaceInput outSurfaceInput)
-{
-#if LIGHTMAP_ON
-    outSurfaceInput.lightmapUV = float4(IN.ambientOrLightmapUV.xy, 0.0, 0.0);
-#else
-    outSurfaceInput.lightmapUV = float4(0.0, 0.0, 0.0, 0.0);
-#endif
-
-#if _NORMALMAP
-    outSurfaceInput.tangentWS = IN.tangent;
-    outSurfaceInput.bitangentWS = IN.binormal;
-#else
-    outSurfaceInput.tangentWS = half3(1.0h, 0.0h, 0.0h);
-    outSurfaceInput.bitangentWS = half3(0.0h, 1.0h, 0.0h);
-#endif
-
-    outSurfaceInput.normalWS = IN.normal;
-    outSurfaceInput.positionWS = IN.posWS;
-    outSurfaceInput.viewDirectionWS = IN.viewDir;
-    outSurfaceInput.fogFactor = IN.fogFactorAndVertexLight.x;
 }
 
 LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
@@ -84,55 +181,32 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     UNITY_SETUP_INSTANCE_ID(v);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-    o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);
+    o.uv01.xy = TRANSFORM_TEX(v.texcoord, _MainTex);
+#ifdef LIGHTMAP_ON
+    o.uv01.zw = v.lightmapUV * unity_LightmapST.xy + unity_LightmapST.zw;
+#endif
 
-    float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
-    o.posWS.xyz = worldPos;
-
-    half3 viewDir = normalize(_WorldSpaceCameraPos - worldPos);
-    o.viewDir.xyz = viewDir;
-
-    half3 normal = normalize(UnityObjectToWorldNormal(v.normal));
+    float3 positionWS = mul(unity_ObjectToWorld, v.vertex).xyz;
+    half3 viewDirectionWS = SafeNormalize(_WorldSpaceCameraPos - positionWS);
 
 #if _NORMALMAP
-    half sign = v.tangent.w * unity_WorldTransformParams.w;
-    o.tangent = normalize(mul((half3x3)unity_ObjectToWorld, v.tangent.xyz));
-    o.binormal = cross(normal, o.tangent) * sign;
-    o.normal = normal;
+    OutputTangentToWorld(v.tangent, v.normal, o.tangent, o.binormal, o.normal);
 #else
-    o.normal = normal;
-#endif
-
-#ifdef LIGHTMAP_ON
-    o.ambientOrLightmapUV.xy = v.lightmapUV * unity_LightmapST.xy + unity_LightmapST.zw;
-    // TODO: Dynamic Lightmap
-    o.ambientOrLightmapUV.zw = float2(0.0, 0.0);
-
-    // TODO: Currently there's no way to pass in ambient contribution to fragmentPBR.
-    // We should allow to create custom ambient computation for things like SH evaluation, lightmap, ambient color etc.
-//#else
-//    o.ambientOrLightmapUV = half4(SHEvalLinearL2(half4(normal, 1.0)), 0.0h);
-#endif
-
-    o.fogFactorAndVertexLight.yzw = half3(0.0h, 0.0h, 0.0h);
-#if defined(_VERTEX_LIGHTS)
-    half3 diffuse = half3(1.0, 1.0, 1.0);
-    int vertexLightStart = _AdditionalLightCount.x;
-    int vertexLightEnd = min(_AdditionalLightCount.y, unity_LightIndicesOffsetAndCount.y);
-    for (int lightIter = vertexLightStart; lightIter < vertexLightEnd; ++lightIter)
-    {
-        LightInput lightData;
-        INITIALIZE_LIGHT(lightData, lightIter);
-
-        half3 lightDirection;
-        half atten = ComputeVertexLightAttenuation(lightData, normal, worldPos, lightDirection);
-        o.fogFactorAndVertexLight.yzw += LightingLambert(diffuse, lightDirection, normal, atten) * lightData.color;
-    }
+    o.normal = UnityObjectToWorldNormal(v.normal);
 #endif
 
     float4 clipPos = UnityObjectToClipPos(v.vertex);
+
+#if defined(EVALUATE_SH_VERTEX) || defined(EVALUATE_SH_MIXED)
+    o.vertexSH = half4(EvaluateSHPerVertex(o.normal), 0.0);
+#endif
+
+    o.posWS = positionWS;
+    o.viewDir = viewDirectionWS;
+    o.fogFactorAndVertexLight.yzw = VertexLighting(positionWS, o.normal);
     o.fogFactorAndVertexLight.x = ComputeFogFactor(clipPos.z);
     o.clipPos = clipPos;
+
     return o;
 }
 
@@ -141,15 +215,30 @@ half4 LitPassFragment(LightweightVertexOutput IN) : SV_Target
     SurfaceData surfaceData;
     InitializeStandardLitSurfaceData(IN, surfaceData);
 
-    SurfaceInput surfaceInput;
-    InitializeSurfaceInput(IN, surfaceInput);
+#if _NORMALMAP
+    half3 normalWS = TangentToWorldNormal(surfaceData.normal, IN.tangent, IN.binormal, IN.normal);
+#else
+    half3 normalWS = normalize(IN.normal);
+#endif
 
-    return LightweightFragmentPBR(surfaceInput.lightmapUV, surfaceInput.positionWS, surfaceInput.normalWS, surfaceInput.tangentWS, surfaceInput.bitangentWS, surfaceInput.viewDirectionWS, surfaceInput.fogFactor, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.normal, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
+#if LIGHTMAP_ON
+    half3 indirectDiffuse = SampleLightmap(IN.uv01.zw, normalWS);
+#else
+    half3 indirectDiffuse = EvaluateSHPerPixel(normalWS, IN.vertexSH);
+#endif
+
+    float fogFactor = IN.fogFactorAndVertexLight.x;
+    half4 color = LightweightFragmentPBR(IN.posWS, normalWS, IN.viewDir, indirectDiffuse, IN.fogFactorAndVertexLight.yzw, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
+
+    // Computes fog factor per-vertex
+    ApplyFog(color.rgb, fogFactor);
+    return OUTPUT_COLOR(color);
 }
 
 half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
 {
-    float2 uv = IN.uv;
+    float2 uv = IN.uv01.xy;
+    float2 lightmapUV = IN.uv01.zw;
 
     half4 diffuseAlpha = tex2D(_MainTex, uv);
     half3 diffuse = LIGHTWEIGHT_GAMMA_TO_LINEAR(diffuseAlpha.rgb) * _Color.rgb;
@@ -160,67 +249,41 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
     half alpha = diffuseAlpha.a * _Color.a;
 #endif
 
-    // Keep for compatibility reasons. Shader Inpector throws a warning when using cutoff
-    // due overdraw performance impact.
 #ifdef _ALPHATEST_ON
     clip(alpha - _Cutoff);
 #endif
 
 #if _NORMALMAP
     half3 normalTangent = Normal(uv);
-    half3 normalWorld = TangentToWorldNormal(normalTangent, IN.tangent, IN.binormal, IN.normal);
+    half3 normalWS = TangentToWorldNormal(normalTangent, IN.tangent, IN.binormal, IN.normal);
 #else
-    half3 normalWorld = normalize(IN.normal);
+    half3 normalWS = normalize(IN.normal);
 #endif
 
-    half4 specularGloss;
-    SpecularGloss(uv, alpha, specularGloss);
+    half3 emission = Emission(uv);
 
-    half3 viewDir = IN.viewDir.xyz;
-    float3 worldPos = IN.posWS.xyz;
-
-    half3 lightDirection;
+    half3 viewDirectionWS = SafeNormalize(IN.viewDir.xyz);
+    float3 positionWS = IN.posWS.xyz;
 
 #if defined(LIGHTMAP_ON)
-    half3 color = DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, IN.ambientOrLightmapUV.xy)) * diffuse;
+    half3 diffuseGI = SampleLightmap(lightmapUV, normalWS);
 #else
-    half3 color = (ShadeSH9(half4(normalWorld, 1.0)) + IN.ambientOrLightmapUV.xyz) * diffuse;
+    half3 diffuseGI = EvaluateSHPerPixel(normalWS, IN.vertexSH);
 #endif
 
-    LightInput lightInput;
-    INITIALIZE_MAIN_LIGHT(lightInput);
-    half lightAtten = ComputeMainLightAttenuation(lightInput, normalWorld, worldPos, lightDirection);
-    lightAtten *= LIGHTWEIGHT_SHADOW_ATTENUATION(worldPos, normalize(IN.normal), _ShadowLightDirection.xyz);
+#if _VERTEX_LIGHTS
+    diffuseGI += IN.fogFactorAndVertexLight.yzw;
+#endif
+
+    half shininess = _Shininess * 128.0h;
+    half fogFactor = IN.fogFactorAndVertexLight.x;
 
 #if defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
-    color += LightingBlinnPhong(diffuse, specularGloss, lightDirection, normalWorld, viewDir, lightAtten) * lightInput.color;
+    half4 specularGloss = SpecularGloss(uv, alpha);
+    return LightweightFragmentBlinnPhong(positionWS, normalWS, viewDirectionWS, fogFactor, diffuseGI, diffuse, specularGloss, shininess, emission, alpha);
 #else
-    color += LightingLambert(diffuse, lightDirection, normalWorld, lightAtten) * lightInput.color;
+    return LightweightFragmentLambert(positionWS, normalWS, viewDirectionWS, fogFactor, diffuseGI, diffuse, emission, alpha);
 #endif
-
-#ifdef _ADDITIONAL_LIGHTS
-    int pixelLightCount = min(_AdditionalLightCount.x, unity_LightIndicesOffsetAndCount.y);
-    for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
-    {
-        LightInput lightData;
-        INITIALIZE_LIGHT(lightData, lightIter);
-        half lightAtten = ComputePixelLightAttenuation(lightData, normalWorld, worldPos, lightDirection);
-
-#if defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
-        color += LightingBlinnPhong(diffuse, specularGloss, lightDirection, normalWorld, viewDir, lightAtten) * lightData.color;
-#else
-        color += LightingLambert(diffuse, lightDirection, normalWorld, lightAtten) * lightData.color;
-#endif
-    }
-
-#endif // _ADDITIONAL_LIGHTS
-
-    color += EmissionLW(uv);
-    color += IN.fogFactorAndVertexLight.yzw;
-
-    // Computes Fog Factor per vextex
-    ApplyFog(color, IN.fogFactorAndVertexLight.x);
-    return OutputColor(color, alpha);
 };
 
 #endif

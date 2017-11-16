@@ -38,12 +38,12 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.54236203, g: 0.4884355, b: 0.49545544, a: 1}
+  m_IndirectSpecularColor: {r: 0.5423716, g: 0.4884358, b: 0.49541453, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 11
-  m_GIWorkflowMode: 0
+  m_GIWorkflowMode: 1
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -1531,6 +1531,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
+  featuresFoldout: 1
   showAdditionalSettings: 1
 --- !u!1 &2024053722
 GameObject:

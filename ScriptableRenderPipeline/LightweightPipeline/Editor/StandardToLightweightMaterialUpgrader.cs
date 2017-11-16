@@ -1,10 +1,11 @@
 using System.Collections.Generic;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 {
     public class StandardToLightweightMaterialUpgrader
     {
-        [MenuItem("RenderPipeline/Lightweight Pipeline/Material Upgraders/Upgrade Project Materials", false, 1)]
+        [MenuItem("Edit/Render Pipeline/Upgrade/Lightweight/Upgrade Standard Materials to Lightweight Pipeline (Project)", priority = CoreUtils.editMenuPriority2)]
         private static void UpgradeMaterialsToLDProject()
         {
             List<MaterialUpgrader> upgraders = new List<MaterialUpgrader>();
@@ -13,7 +14,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             MaterialUpgrader.UpgradeProjectFolder(upgraders, "Upgrade to Lightweight Pipeline Materials");
         }
 
-        [MenuItem("RenderPipeline/Lightweight Pipeline/Material Upgraders/Upgrade Selected Materials", false, 2)]
+        [MenuItem("Edit/Render Pipeline/Upgrade/Lightweight/Upgrade Standard Materials to Lightweight Pipeline (Selection)", priority = CoreUtils.editMenuPriority2)]
         private static void UpgradeMaterialsToLDSelection()
         {
             List<MaterialUpgrader> upgraders = new List<MaterialUpgrader>();
@@ -26,7 +27,6 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
         {
             upgraders.Add(new StandardUpgrader("Standard (Specular setup)"));
             upgraders.Add(new StandardUpgrader("Standard"));
-            upgraders.Add(new TerrainUpgrader("TerrainSurface"));
         }
     }
 }

@@ -70,6 +70,8 @@
 #include "API/D3D11_1.hlsl"
 #elif defined(SHADER_API_METAL)
 #include "API/Metal.hlsl"
+#elif defined(SHADER_API_VULKAN)
+#include "API/Vulkan.hlsl"
 #else
 #error unsupported shader api
 #endif

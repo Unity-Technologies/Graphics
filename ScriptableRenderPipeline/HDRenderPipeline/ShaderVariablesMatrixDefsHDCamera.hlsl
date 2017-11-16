@@ -5,10 +5,10 @@
 #ifndef UNITY_SHADER_VARIABLES_MATRIX_DEFS_HDCAMERA_INCLUDED
 #define UNITY_SHADER_VARIABLES_MATRIX_DEFS_HDCAMERA_INCLUDED
 
-#define UNITY_MATRIX_M     OptimizeAffineMatrix(unity_ObjectToWorld)
-#define UNITY_MATRIX_I_M   OptimizeAffineMatrix(unity_WorldToObject)
-#define UNITY_MATRIX_V     OptimizeAffineMatrix(_ViewMatrix)
-#define UNITY_MATRIX_I_V   OptimizeAffineMatrix(_InvViewMatrix)
+#define UNITY_MATRIX_M     unity_ObjectToWorld
+#define UNITY_MATRIX_I_M   unity_WorldToObject
+#define UNITY_MATRIX_V     _ViewMatrix
+#define UNITY_MATRIX_I_V   _InvViewMatrix
 #define UNITY_MATRIX_P     OptimizeProjectionMatrix(_ProjMatrix)
 #define UNITY_MATRIX_I_P   _InvProjMatrix
 #define UNITY_MATRIX_VP    _ViewProjMatrix
