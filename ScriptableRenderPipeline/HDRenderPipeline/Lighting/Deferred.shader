@@ -118,9 +118,18 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                 LightLoop(V, posInput, preLightData, bsdfData, bakeLightingData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE, diffuseLighting, specularLighting);
 
                 Outputs outputs;
+
             #ifdef OUTPUT_SPLIT_LIGHTING
-                outputs.specularLighting = float4(specularLighting, 1.0);
-                outputs.diffuseLighting  = TagLightingForSSS(diffuseLighting);
+                if (_EnableSSSAndTransmission != 0)
+                {
+                    outputs.specularLighting = float4(specularLighting, 1.0);
+                    outputs.diffuseLighting  = TagLightingForSSS(diffuseLighting);
+                }
+                else
+                {
+                    outputs.specularLighting = float4(diffuseLighting + specularLighting, 1.0);
+                    outputs.diffuseLighting  = 0;
+                }
             #else
                 outputs.combinedLighting = float4(diffuseLighting + specularLighting, 1.0);
             #endif
