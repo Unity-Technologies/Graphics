@@ -16,7 +16,8 @@ namespace UnityEditor.ShaderGraph
         public string GetShader(string name, GenerationMode mode, out List<PropertyCollector.TextureInfo> configuredTextures)
         {
             PreviewMode pmode;
-            return GetShader(masterNode as AbstractMaterialNode, mode, name, out configuredTextures, out pmode);
+            FloatShaderProperty outputIdProperty;
+            return base.GetShader(masterNode as AbstractMaterialNode, mode, name, out configuredTextures, out pmode, out outputIdProperty);
         }
 
         public void LoadedFromDisk()

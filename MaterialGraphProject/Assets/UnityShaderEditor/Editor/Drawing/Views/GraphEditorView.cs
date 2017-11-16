@@ -127,7 +127,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                         var textureInfo = new List<PropertyCollector.TextureInfo>();
                         PreviewMode previewMode;
-                        string shader = graph.GetShader(copyFromNode, GenerationMode.ForReals, assetName, out textureInfo, out previewMode);
+                        FloatShaderProperty outputIdProperty;
+                        string shader = graph.GetShader(copyFromNode, GenerationMode.ForReals, assetName, out textureInfo, out previewMode, out outputIdProperty);
                         GUIUtility.systemCopyBuffer = shader;
                     }
                 ));
