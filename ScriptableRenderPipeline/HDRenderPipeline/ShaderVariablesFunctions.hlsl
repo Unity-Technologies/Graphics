@@ -104,13 +104,10 @@ float3 GetCurrentViewPosition()
 #if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_SHADOWS)
     return GetPrimaryCameraPosition();
 #else
-    // TEMP: this is rather expensive. Then again, we need '_WorldSpaceCameraPos'
-    // to represent the position of the primary (scene view) camera in order to
-    // have identical tessellation levels for both the scene view and shadow views.
-    // Otherwise, depth comparisons become meaningless!
-    float4x4 trViewMat = transpose(GetWorldToViewMatrix());
-    float3   rotCamPos = trViewMat[3].xyz;
-    return mul((float3x3)trViewMat, -rotCamPos);
+    // This is a generic solution.
+    // However, for the primary camera, using '_WorldSpaceCameraPos' is better for cache locality,
+    // and in case we enable camera-relative rendering, we can statically set the position is 0.
+    return UNITY_MATRIX_I_V._14_24_34;
 #endif
 }
 

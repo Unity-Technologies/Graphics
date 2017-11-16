@@ -169,7 +169,7 @@ Shader "HDRenderPipeline/LitTessellation"
     HLSLINCLUDE
 
     #pragma target 5.0
-    #pragma only_renderers d3d11 ps4// TEMP: until we go futher in dev
+    #pragma only_renderers d3d11 ps4 vulkan// TEMP: until we go futher in dev
     // #pragma enable_d3d11_debug_symbols
 
     //-------------------------------------------------------------------------------------

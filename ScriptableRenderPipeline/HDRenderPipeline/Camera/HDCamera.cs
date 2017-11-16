@@ -211,19 +211,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             material.SetVectorArray(HDShaderIDs._FrustumPlanes, frustumPlaneEquations);
         }
 
+        // TODO: We should set all the value below globally and not let it under the control of Unity,
+        // Need to test that because we are not sure in which order these value are setup, but we need to have control on them, or rename them in our shader.
+        // For now, apply it for all our compute shader to make it work
         public void SetupComputeShader(ComputeShader cs, CommandBuffer cmd)
         {
-            cmd.SetComputeMatrixParam(cs, HDShaderIDs._ViewMatrix, viewMatrix);
-            cmd.SetComputeMatrixParam(cs, HDShaderIDs._InvViewMatrix, viewMatrix.inverse);
-            cmd.SetComputeMatrixParam(cs, HDShaderIDs._ProjMatrix, projMatrix);
-            cmd.SetComputeMatrixParam(cs, HDShaderIDs._InvProjMatrix, projMatrix.inverse);
-            cmd.SetComputeMatrixParam(cs, HDShaderIDs._NonJitteredViewProjMatrix, nonJitteredViewProjMatrix);
-            cmd.SetComputeMatrixParam(cs, HDShaderIDs._ViewProjMatrix, viewProjMatrix);
-            cmd.SetComputeMatrixParam(cs, HDShaderIDs._InvViewProjMatrix, viewProjMatrix.inverse);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._InvProjParam, invProjParam);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._ScreenSize, screenSize);
-            cmd.SetComputeMatrixParam(cs, HDShaderIDs._PrevViewProjMatrix, prevViewProjMatrix);
-            cmd.SetComputeVectorArrayParam(cs, HDShaderIDs._FrustumPlanes, frustumPlaneEquations);
             // Copy values set by Unity which are not configured in scripts.
             cmd.SetComputeVectorParam(cs, HDShaderIDs.unity_OrthoParams, Shader.GetGlobalVector(HDShaderIDs.unity_OrthoParams));
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ProjectionParams, Shader.GetGlobalVector(HDShaderIDs._ProjectionParams));

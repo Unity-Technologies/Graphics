@@ -9,7 +9,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
     public class HDRenderPipelineMenuItems
     {
-        [MenuItem("HDRenderPipeline/Add \"Additional Light-shadow Data\" (if not present)")]
+        [MenuItem("Internal/HDRenderPipeline/Add \"Additional Light-shadow Data\" (if not present)")]
         static void AddAdditionalLightData()
         {
             var lights = UnityObject.FindObjectsOfType(typeof(Light)) as Light[];
@@ -25,7 +25,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("HDRenderPipeline/Add \"Additional Camera Data\" (if not present)")]
+        [MenuItem("Internal/HDRenderPipeline/Add \"Additional Camera Data\" (if not present)")]
         static void AddAdditionalCameraData()
         {
             var cameras = UnityObject.FindObjectsOfType(typeof(Camera)) as Camera[];
@@ -39,7 +39,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         // This script is a helper for the artists to re-synchronize all layered materials
-        [MenuItem("HDRenderPipeline/Synchronize all Layered materials")]
+        [MenuItem("Internal/HDRenderPipeline/Synchronize all Layered materials")]
         static void SynchronizeAllLayeredMaterial()
         {
             var materials = Resources.FindObjectsOfTypeAll<Material>();
@@ -58,7 +58,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // In case the shader code have change and the inspector have been update with new kind of keywords we need to regenerate the set of keywords use by the material.
         // This script will remove all keyword of a material and trigger the inspector that will re-setup all the used keywords.
         // It require that the inspector of the material have a static function call that update all keyword based on material properties.
-        [MenuItem("HDRenderPipeline/Test/Reset all materials keywords")]
+        [MenuItem("Edit/Render Pipeline/Upgrade/High Definition/Reset All Materials Keywords (Loaded Materials)", priority = CoreUtils.editMenuPriority2)]
         static void ResetAllMaterialKeywords()
         {
             try
@@ -81,7 +81,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("HDRenderPipeline/Test/Reset all materials keywords in project")]
+        [MenuItem("Edit/Render Pipeline/Upgrade/High Definition/Reset All Materials Keywords (Materials in Project)", priority = CoreUtils.editMenuPriority2)]
         static void ResetAllMaterialKeywordsInProject()
         {
             try
@@ -120,7 +120,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("HDRenderPipeline/Update/Update SSS profile indices")]
+        [MenuItem("Internal/HDRenderPipeline/Update/Update SSS profile indices")]
         static void UpdateSSSProfileIndices()
         {
             try
@@ -192,7 +192,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         // Function used only to check performance of data with and without tessellation
-        [MenuItem("HDRenderPipeline/Test/Remove tessellation materials (not reversible)")]
+        [MenuItem("Internal/HDRenderPipeline/Test/Remove tessellation materials (not reversible)")]
         static void RemoveTessellationMaterials()
         {
             var materials = Resources.FindObjectsOfTypeAll<Material>();
@@ -221,7 +221,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("HDRenderPipeline/Export Sky to Image")]
+        [MenuItem("Edit/Render Pipeline/Tools/High Definition/Export Sky to Image", priority = CoreUtils.editMenuPriority2)]
         static void ExportSkyToImage()
         {
             var renderpipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
@@ -247,7 +247,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("GameObject/HD Render Pipeline/Scene Settings", false, 10)]
+        [MenuItem("GameObject/Render Pipeline/High Definition/Scene Settings", priority = 10)]
         static void CreateCustomGameObject(MenuCommand menuCommand)
         {
             var sceneSettings = new GameObject("Scene Settings");
@@ -274,35 +274,35 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         class DoCreateNewAssetProceduralSkySettings : DoCreateNewAsset<ProceduralSkySettings> {}
         class DoCreateNewAssetSubsurfaceScatteringSettings : DoCreateNewAsset<SubsurfaceScatteringSettings> {}
 
-        [MenuItem("Assets/Create/HDRenderPipeline/Common Settings", priority = 700)]
+        [MenuItem("Assets/Create/Render Pipeline/High Definition/Common Settings", priority = CoreUtils.assetCreateMenuPriority2)]
         static void MenuCreateCommonSettings()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetCommonSettings>(), "New CommonSettings.asset", icon, null);
         }
 
-        [MenuItem("Assets/Create/HDRenderPipeline/Subsurface Scattering Settings", priority = 702)]
+        [MenuItem("Assets/Create/Render Pipeline/High Definition/Subsurface Scattering Settings", priority = CoreUtils.assetCreateMenuPriority2)]
         static void MenuCreateSubsurfaceScatteringProfile()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetSubsurfaceScatteringSettings>(), "New SSS Settings.asset", icon, null);
         }
 
-        [MenuItem("Assets/Create/HDRenderPipeline/HDRISky Settings", priority = 750)]
+        [MenuItem("Assets/Create/Render Pipeline/High Definition/HDRISky Settings", priority = CoreUtils.assetCreateMenuPriority2)]
         static void MenuCreateHDRISkySettings()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetHDRISkySettings>(), "New HDRISkySettings.asset", icon, null);
         }
 
-        [MenuItem("Assets/Create/HDRenderPipeline/BlacksmithSky Settings", priority = 751)]
+        [MenuItem("Assets/Create/Render Pipeline/High Definition/BlacksmithSky Settings", priority = CoreUtils.assetCreateMenuPriority2)]
         static void MenuCreateBlacksmithSkySettings()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetBlacksmithSkySettings>(), "New BlacksmithSkySettings.asset", icon, null);
         }
 
-        [MenuItem("Assets/Create/HDRenderPipeline/ProceduralSky Settings", priority = 752)]
+        [MenuItem("Assets/Create/Render Pipeline/High Definition/ProceduralSky Settings", priority = CoreUtils.assetCreateMenuPriority2)]
         static void MenuCreateProceduralSkySettings()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");

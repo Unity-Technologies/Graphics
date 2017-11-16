@@ -135,7 +135,8 @@ public partial class HDRenderPipeline : RenderPipeline
         }
     }
 
-    // Since we are rendering tiles of pixels, our VBuffer can potentially extend past the boundaries of the viewport.
+    // Since a single voxel corresponds to a tile (e.g. 8x8) of pixels,
+    // the VBuffer can potentially extend past the boundaries of the viewport.
     // The function returns the fraction of the {width, height} of the VBuffer visible on screen.
     Vector2 ComputeVBufferResolutionAndScale(float screenWidth, float screenHeight,
                                              ref int w, ref int h, ref int d)
@@ -174,41 +175,9 @@ public partial class HDRenderPipeline : RenderPipeline
             m_VBufferLighting[i].volumeDepth       = d;
             m_VBufferLighting[i].enableRandomWrite = true;
             m_VBufferLighting[i].Create();
+
             m_VBufferLightingRT[i] = new RenderTargetIdentifier(m_VBufferLighting[i]);
         }
-    }
-
-    // Returns 'true' if a global fog component exists.
-    public static bool SetGlobalVolumeProperties(CommandBuffer cmd, ComputeShader cs = null)
-    {
-        HomogeneousFog globalFogComponent = null;
-
-        HomogeneousFog[] fogComponents = Object.FindObjectsOfType(typeof(HomogeneousFog)) as HomogeneousFog[];
-
-        foreach (HomogeneousFog fogComponent in fogComponents)
-        {
-            if (fogComponent.enabled && fogComponent.volumeParameters.IsVolumeUnbounded())
-            {
-                globalFogComponent = fogComponent;
-                break;
-            }
-        }
-
-        // TODO: may want to cache these results somewhere.
-        VolumeProperties globalFogProperties = (globalFogComponent != null) ? globalFogComponent.volumeParameters.GetProperties()
-                                                                            : VolumeProperties.GetNeutralVolumeProperties();
-        if (cs)
-        {
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._GlobalFog_Scattering, globalFogProperties.scattering);
-            cmd.SetComputeFloatParam( cs, HDShaderIDs._GlobalFog_Extinction, globalFogProperties.extinction);
-        }
-        else
-        {
-            cmd.SetGlobalVector(HDShaderIDs._GlobalFog_Scattering, globalFogProperties.scattering);
-            cmd.SetGlobalFloat( HDShaderIDs._GlobalFog_Extinction, globalFogProperties.extinction);
-        }
-
-        return (globalFogComponent != null);
     }
 
     // Uses a logarithmic depth encoding.
@@ -223,15 +192,41 @@ public partial class HDRenderPipeline : RenderPipeline
 
         depthParams.x = n;
         depthParams.y = Mathf.Log(f / n, 2);
-        depthParams.z = 1 / depthParams.x;
-        depthParams.w = 1 / depthParams.y;
+        depthParams.z = 1.0f / depthParams.x;
+        depthParams.w = 1.0f / depthParams.y;
 
         return depthParams;
     }
-
-    public void SetVolumetricLightingData(HDCamera camera, CommandBuffer cmd, ComputeShader cs = null, int kernel = 0)
+    
+    // Returns NULL if a global fog component does not exist, or is not enabled.
+    public static HomogeneousFog GetGlobalFogComponent()
     {
-        SetGlobalVolumeProperties(cmd, cs);
+        HomogeneousFog globalFogComponent = null;
+
+        HomogeneousFog[] fogComponents = Object.FindObjectsOfType(typeof(HomogeneousFog)) as HomogeneousFog[];
+
+        foreach (HomogeneousFog fogComponent in fogComponents)
+        {
+            if (fogComponent.enabled && fogComponent.volumeParameters.IsVolumeUnbounded())
+            {
+                globalFogComponent = fogComponent;
+                break;
+            }
+        }
+
+        return globalFogComponent;
+    }
+
+    public void SetVolumetricLightingData(HDCamera camera, CommandBuffer cmd)
+    {
+        HomogeneousFog globalFogComponent = GetGlobalFogComponent();
+
+        // TODO: may want to cache these results somewhere.
+        VolumeProperties globalFogProperties = (globalFogComponent != null) ? globalFogComponent.volumeParameters.GetProperties()
+                                                                            : VolumeProperties.GetNeutralVolumeProperties();
+
+        cmd.SetGlobalVector(HDShaderIDs._GlobalFog_Scattering, globalFogProperties.scattering);
+        cmd.SetGlobalFloat( HDShaderIDs._GlobalFog_Extinction, globalFogProperties.extinction);
 
         int w = 0, h = 0, d = 0;
         Vector2 scale = ComputeVBufferResolutionAndScale(camera.screenSize.x, camera.screenSize.y, ref w, ref h, ref d);
@@ -239,27 +234,9 @@ public partial class HDRenderPipeline : RenderPipeline
         Vector4 resAndScale = new Vector4(w, h, scale.x, scale.y);
         Vector4 depthParams = ComputeLogarithmicDepthEncodingParams(m_VBufferNearPlane, m_VBufferFarPlane);
 
-        if (cs)
-        {
-            cmd.SetComputeVectorParam( cs,         HDShaderIDs._VBufferResolutionAndScale,  resAndScale);
-            cmd.SetComputeVectorParam( cs,         HDShaderIDs._VBufferDepthEncodingParams, depthParams);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VBufferLighting,            m_VBufferLightingRT[0]);
-        }
-        else
-        {
-            cmd.SetGlobalVector( HDShaderIDs._VBufferResolutionAndScale,  resAndScale);
-            cmd.SetGlobalVector( HDShaderIDs._VBufferDepthEncodingParams, depthParams);
-            cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,            m_VBufferLightingRT[0]);
-        }
-    }
-
-    public static void SetVolumetricLightingDataFromGlobals(CommandBuffer cmd, ComputeShader cs, int kernel)
-    {
-        SetGlobalVolumeProperties(cmd, cs);
-
-        cmd.SetComputeVectorParam( cs,         HDShaderIDs._VBufferResolutionAndScale,  Shader.GetGlobalVector( HDShaderIDs._VBufferResolutionAndScale));
-        cmd.SetComputeVectorParam( cs,         HDShaderIDs._VBufferDepthEncodingParams, Shader.GetGlobalVector( HDShaderIDs._VBufferDepthEncodingParams));
-        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VBufferLighting,            Shader.GetGlobalTexture(HDShaderIDs._VBufferLighting));
+        cmd.SetGlobalVector( HDShaderIDs._VBufferResolutionAndScale,  resAndScale);
+        cmd.SetGlobalVector( HDShaderIDs._VBufferDepthEncodingParams, depthParams);
+        cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,            m_VBufferLightingRT[0]);
     }
 
     void VolumetricLightingPass(HDCamera camera, CommandBuffer cmd)
@@ -268,9 +245,7 @@ public partial class HDRenderPipeline : RenderPipeline
 
         using (new ProfilingSample(cmd, "Volumetric Lighting"))
         {
-            bool hasGlobalVolume = SetGlobalVolumeProperties(cmd, m_VolumetricLightingCS);
-
-            if (!hasGlobalVolume)
+            if (GetGlobalFogComponent() == null)
             {
                 // Clear the render target instead of running the shader.
                 CoreUtils.SetRenderTarget(cmd, m_VBufferLightingRT[0], ClearFlag.Color, CoreUtils.clearColorAllBlack);
@@ -280,15 +255,11 @@ public partial class HDRenderPipeline : RenderPipeline
             camera.SetupComputeShader(m_VolumetricLightingCS, cmd);
 
             bool enableClustered = m_Asset.tileSettings.enableClustered && m_Asset.tileSettings.enableTileAndCluster;
-
-            int kernel = m_VolumetricLightingCS.FindKernel(enableClustered ? "VolumetricLightingClustered"
-                                                                           : "VolumetricLightingAllLights");
+            int  kernel          = m_VolumetricLightingCS.FindKernel(enableClustered ? "VolumetricLightingClustered"
+                                                                                     : "VolumetricLightingAllLights");
             int w = 0, h = 0, d = 0;
             Vector2 scale = ComputeVBufferResolutionAndScale(camera.screenSize.x, camera.screenSize.y, ref w, ref h, ref d);
-
-            Vector4 resAndScale = new Vector4(w, h, scale.x, scale.y);
-            Vector4 depthParams = ComputeLogarithmicDepthEncodingParams(m_VBufferNearPlane, m_VBufferFarPlane);
-            float   vFoV        = camera.camera.fieldOfView * Mathf.Deg2Rad;
+            float   vFoV  = camera.camera.fieldOfView * Mathf.Deg2Rad;
 
             // Compose the matrix which allows us to compute the world space view direction.
             // Compute it using the scaled resolution to account for the visible area of the VBuffer.
@@ -296,15 +267,9 @@ public partial class HDRenderPipeline : RenderPipeline
             Matrix4x4 transform = SkyManager.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, scaledRes, camera.viewMatrix, false);
 
             // TODO: set 'm_VolumetricLightingPreset'.
-            cmd.SetComputeVectorParam( m_VolumetricLightingCS,         HDShaderIDs._Time,                       Shader.GetGlobalVector(HDShaderIDs._Time));
-            cmd.SetComputeVectorParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferResolutionAndScale,  resAndScale);
-            cmd.SetComputeVectorParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferDepthEncodingParams, depthParams);
-            cmd.SetComputeMatrixParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferCoordToViewDirWS,    transform);
-            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLighting,            m_VBufferLightingRT[0]);
-            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingPrev,        m_VBufferLightingRT[1]);
-
-            // Pass the light data to the compute shader.
-            m_LightLoop.PushGlobalParams(camera.camera, cmd, m_VolumetricLightingCS, kernel, true);
+            cmd.SetComputeMatrixParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferCoordToViewDirWS, transform);
+            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLighting,         m_VBufferLightingRT[0]);
+            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingPrev,     m_VBufferLightingRT[1]);
 
             // The shader defines GROUP_SIZE_1D = 16.
             cmd.DispatchCompute(m_VolumetricLightingCS, kernel, (w + 15) / 16, (h + 15) / 16, 1);

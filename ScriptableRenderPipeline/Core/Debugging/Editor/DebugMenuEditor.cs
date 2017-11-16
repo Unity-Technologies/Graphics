@@ -1,4 +1,3 @@
-﻿using UnityEngine;
 using UnityEditor;
 
 namespace UnityEngine.Experimental.Rendering
@@ -9,7 +8,7 @@ namespace UnityEngine.Experimental.Rendering
         [SerializeField]
         private DebugMenuState m_DebugMenuState;
 
-        [MenuItem("HDRenderPipeline/Debug Window")]
+        [MenuItem("Edit/Render Pipeline/Tools/High Definition/Debug Window", priority = CoreUtils.editMenuPriority2)]
         static void DisplayDebugMenu()
         {
             var window = EditorWindow.GetWindow<DebugMenuEditor>("Debug Window");

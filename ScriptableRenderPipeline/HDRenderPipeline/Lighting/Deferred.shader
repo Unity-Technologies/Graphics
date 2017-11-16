@@ -28,7 +28,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 metal // TEMP: until we go further in dev
+            #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
             // #pragma enable_d3d11_debug_symbols
 
             #pragma vertex Vert
@@ -134,9 +134,18 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             #endif
 
                 Outputs outputs;
+
             #ifdef OUTPUT_SPLIT_LIGHTING
-                outputs.specularLighting = float4(specularLighting, 1.0);
-                outputs.diffuseLighting  = TagLightingForSSS(diffuseLighting);
+                if (_EnableSSSAndTransmission != 0)
+                {
+                    outputs.specularLighting = float4(specularLighting, 1.0);
+                    outputs.diffuseLighting  = TagLightingForSSS(diffuseLighting);
+                }
+                else
+                {
+                    outputs.specularLighting = float4(diffuseLighting + specularLighting, 1.0);
+                    outputs.diffuseLighting  = 0;
+                }
             #else
                 outputs.combinedLighting = float4(diffuseLighting + specularLighting, 1.0);
             #endif
