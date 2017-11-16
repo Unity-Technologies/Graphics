@@ -374,7 +374,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public enum DebugViewGbuffer
         {
             None = 0,
-            Depth = DebugViewVarying.Last + 1,
+            Depth = DebugViewVarying.Last,
             BakeDiffuseLightingWithAlbedoPlusEmissive,
             BakeShadowMask0,
             BakeShadowMask1,
@@ -388,7 +388,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public enum DebugViewProperties
         {
             None = 0,
-            Tessellation = DebugViewGbuffer.Last + 1,
+            Tessellation = DebugViewGbuffer.Last,
             PixelDisplacement,
             VertexDisplacement,
             TessellationDisplacement,

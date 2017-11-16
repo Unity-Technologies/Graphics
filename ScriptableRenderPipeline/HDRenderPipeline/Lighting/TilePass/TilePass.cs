@@ -87,19 +87,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     RenderTargetIdentifier[] tex;
                     sc.GetTex2DArrays(out tex, out offset, out count);
 
-                    if(computeShader)
-                    {
-                        // bind buffers
-                        cb.SetComputeBufferParam(computeShader, computeKernel, HDShaderIDs._ShadowDatasExp, s_ShadowDataBuffer);
-                        cb.SetComputeBufferParam(computeShader, computeKernel, HDShaderIDs._ShadowPayloads, s_ShadowPayloadBuffer);
-                        // bind textures
-                        cb.SetComputeTextureParam(computeShader, computeKernel, HDShaderIDs._ShadowmapExp_VSM_0, tex[0]);
-                        cb.SetComputeTextureParam(computeShader, computeKernel, HDShaderIDs._ShadowmapExp_VSM_1, tex[1]);
-                        cb.SetComputeTextureParam(computeShader, computeKernel, HDShaderIDs._ShadowmapExp_VSM_2, tex[2]);
-                        cb.SetComputeTextureParam(computeShader, computeKernel, HDShaderIDs._ShadowmapExp_PCF, tex[3]);
-                    }
-                    else
-                    {
                         // bind buffers
                         cb.SetGlobalBuffer(HDShaderIDs._ShadowDatasExp, s_ShadowDataBuffer);
                         cb.SetGlobalBuffer(HDShaderIDs._ShadowPayloads, s_ShadowPayloadBuffer);
@@ -108,7 +95,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_VSM_1, tex[1]);
                         cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_VSM_2, tex[2]);
                         cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_PCF, tex[3]);
-                    }
 
                     // TODO: Currently samplers are hard coded in ShadowContext.hlsl, so we can't really set them here
                 };
@@ -1298,7 +1284,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public bool PrepareLightsForGPU(CommandBuffer cmd, ShadowSettings shadowSettings, CullResults cullResults, Camera camera)
             {
                 using (new ProfilingSample(cmd, "Prepare Lights For GPU"))
-                {
+            {
 
                 // If any light require it, we need to enabled bake shadow mask feature
                 m_enableBakeShadowMask = false;
@@ -1601,19 +1587,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         if (GetEnvLightData(cmd, camera, probe))
                         {
-                            GetEnvLightVolumeDataAndBound(probe, lightVolumeType, worldToView);
+                        GetEnvLightVolumeDataAndBound(probe, lightVolumeType, worldToView);
 
-                            // We make the light position camera-relative as late as possible in order
-                            // to allow the preceding code to work with the absolute world space coordinates.
-                            if (ShaderConfig.s_CameraRelativeRendering != 0)
-                            {
-                                // Caution: 'EnvLightData.positionWS' is camera-relative after this point.
-                                int n = m_lightList.envLights.Count;
-                                EnvLightData envLightData = m_lightList.envLights[n - 1];
-                                envLightData.positionWS -= camPosWS;
-                                m_lightList.envLights[n - 1] = envLightData;
-                            }
+                        // We make the light position camera-relative as late as possible in order
+                        // to allow the preceding code to work with the absolute world space coordinates.
+                        if (ShaderConfig.s_CameraRelativeRendering != 0)
+                        {
+                            // Caution: 'EnvLightData.positionWS' is camera-relative after this point.
+                            int n = m_lightList.envLights.Count;
+                            EnvLightData envLightData = m_lightList.envLights[n - 1];
+                            envLightData.positionWS -= camPosWS;
+                            m_lightList.envLights[n - 1] = envLightData;
                         }
+                    }
 
                     }
 
@@ -1630,7 +1616,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_maxShadowDistance = shadowSettings.maxShadowDistance;
 
                 return m_enableBakeShadowMask;
-                }
+            }
             }
 
             void VoxelLightListGeneration(CommandBuffer cmd, Camera camera, Matrix4x4 projscr, Matrix4x4 invProjscr, RenderTargetIdentifier cameraDepthBufferRT)
@@ -1814,12 +1800,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         cmd.SetComputeBufferParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs.g_TileFeatureFlags, s_TileFeatureFlags);
 
                         cmd.SetComputeTextureParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._StencilTexture, stencilTextureRT);
-                        cmd.SetComputeTextureParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._GBufferTexture0, HDShaderIDs._GBufferTexture0);
-                        cmd.SetComputeTextureParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._GBufferTexture1, HDShaderIDs._GBufferTexture1);
-                        cmd.SetComputeTextureParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._GBufferTexture2, HDShaderIDs._GBufferTexture2);
-                        cmd.SetComputeTextureParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._GBufferTexture3, HDShaderIDs._GBufferTexture3);
-                        cmd.SetComputeTextureParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._ShadowMaskTexture, HDShaderIDs._ShadowMaskTexture);
-                        cmd.SetComputeTextureParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._VelocityTexture, HDShaderIDs._VelocityTexture);
 
                         cmd.DispatchCompute(buildMaterialFlagsShader, buildMaterialFlagsKernel, numTilesX, numTilesY, 1);
                     }
@@ -1838,70 +1818,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 cmd.EndSample("Build Light List");
-            }
 
-            // This is a workaround for global properties not being accessible from compute.
-            // When activeComputeShader is set, all calls to SetGlobalXXX will set the property on the select compute shader instead of the global scope.
-            private ComputeShader activeComputeShader;
-            private int activeComputeKernel;
-            private CommandBuffer activeCommandBuffer;
-            private void SetGlobalPropertyRedirect(ComputeShader computeShader, int computeKernel, CommandBuffer commandBuffer)
-            {
-                activeComputeShader = computeShader;
-                activeComputeKernel = computeKernel;
-                activeCommandBuffer = commandBuffer;
-            }
-
-            private void SetGlobalTexture(int nameID, Texture value)
-            {
-                if (activeComputeShader)
-                    activeCommandBuffer.SetComputeTextureParam(activeComputeShader, activeComputeKernel, nameID, value);
-                else
-                    activeCommandBuffer.SetGlobalTexture(nameID, value);
-            }
-
-            private void SetGlobalBuffer(int nameID, ComputeBuffer buffer)
-            {
-                if (activeComputeShader)
-                    activeCommandBuffer.SetComputeBufferParam(activeComputeShader, activeComputeKernel, nameID, buffer);
-                else
-                    activeCommandBuffer.SetGlobalBuffer(nameID, buffer);
-            }
-
-            private void SetGlobalInt(int nameID, int value)
-            {
-                if (activeComputeShader)
-                    activeCommandBuffer.SetComputeIntParam(activeComputeShader, nameID, value);
-                else
-                    Shader.SetGlobalInt(nameID, value);
-            }
-
-            private void SetGlobalFloat(int nameID, float value)
-            {
-                if (activeComputeShader)
-                    activeCommandBuffer.SetComputeFloatParam(activeComputeShader, nameID, value);
-                else
-                    activeCommandBuffer.SetGlobalFloat(nameID, value);
-            }
-
-            private void SetGlobalVector(int nameID, Vector4 value)
-            {
-                if (activeComputeShader)
-                    activeCommandBuffer.SetComputeVectorParam(activeComputeShader, nameID, value);
-                else
-                    activeCommandBuffer.SetGlobalVector(nameID, value);
-            }
-
-            private void SetGlobalVectorArray(int nameID, Vector4[] values)
-            {
-                if (activeComputeShader)
-                {
-                    activeCommandBuffer.SetComputeVectorArrayParam(activeComputeShader, nameID, values);
-                }
-                else
-                {
-                    activeCommandBuffer.SetGlobalVectorArray(nameID, values);
-                }
+                PushGlobalParams(camera, cmd);
             }
 
             private void UpdateDataBuffers()
@@ -1916,63 +1834,52 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_LightVolumeDataBuffer.SetData(m_lightList.lightVolumes);
             }
 
-            private void BindGlobalParams(CommandBuffer cmd, Camera camera, bool forceClustered)
+             void PushGlobalParams(Camera camera, CommandBuffer cmd)
             {
-                m_ShadowMgr.BindResources(cmd, activeComputeShader, activeComputeKernel);
-
-                SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, (forceClustered || !usingFptl) ? s_PerVoxelLightLists : s_LightList);       // opaques list (unless MSAA possibly)
-
-                SetGlobalTexture(HDShaderIDs._CookieTextures, m_CookieTexArray.GetTexCache());
-                SetGlobalTexture(HDShaderIDs._CookieCubeTextures, m_CubeCookieTexArray.GetTexCache());
-                SetGlobalTexture(HDShaderIDs._EnvTextures, m_ReflectionProbeCache.GetTexCache());
-
-                SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, s_DirectionalLightDatas);
-                SetGlobalInt(HDShaderIDs._DirectionalLightCount, m_lightList.directionalLights.Count);
-                SetGlobalBuffer(HDShaderIDs._LightDatas, s_LightDatas);
-                SetGlobalInt(HDShaderIDs._PunctualLightCount, m_punctualLightCount);
-                SetGlobalInt(HDShaderIDs._AreaLightCount, m_areaLightCount);
-                SetGlobalBuffer(HDShaderIDs._EnvLightDatas, s_EnvLightDatas);
-                SetGlobalInt(HDShaderIDs._EnvLightCount, m_lightList.envLights.Count);
-                SetGlobalBuffer(HDShaderIDs._ShadowDatas, s_shadowDatas);
-                SetGlobalVectorArray(HDShaderIDs._DirShadowSplitSpheres, m_lightList.directionalShadowSplitSphereSqr);
-
-                SetGlobalInt(HDShaderIDs._NumTileFtplX, GetNumTileFtplX(camera));
-                SetGlobalInt(HDShaderIDs._NumTileFtplY, GetNumTileFtplY(camera));
-
-                SetGlobalInt(HDShaderIDs._NumTileClusteredX, GetNumTileClusteredX(camera));
-                SetGlobalInt(HDShaderIDs._NumTileClusteredY, GetNumTileClusteredY(camera));
-
-                if (m_TileSettings.enableBigTilePrepass)
-                    SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, s_BigTileLightList);
-
-                if (m_TileSettings.enableClustered)
-               {
-                    SetGlobalFloat(HDShaderIDs.g_fClustScale, m_ClustScale);
-                    SetGlobalFloat(HDShaderIDs.g_fClustBase, k_ClustLogBase);
-                    SetGlobalFloat(HDShaderIDs.g_fNearPlane, camera.nearClipPlane);
-                    SetGlobalFloat(HDShaderIDs.g_fFarPlane, camera.farClipPlane);
-                    SetGlobalInt(HDShaderIDs.g_iLog2NumClusters, k_Log2NumClusters);
-
-                    SetGlobalInt(HDShaderIDs.g_isLogBaseBufferEnabled, k_UseDepthBuffer ? 1 : 0);
-
-                    SetGlobalBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, s_PerVoxelOffset);
-                    if (k_UseDepthBuffer)
-                    {
-                        SetGlobalBuffer(HDShaderIDs.g_logBaseBuffer, s_PerTileLogBaseTweak);
-                    }
-                }
-            }
-
-            public void PushGlobalParams(Camera camera, CommandBuffer cmd, ComputeShader computeShader, int kernelIndex, bool forceClustered = false)
-            {
-                using (new ProfilingSample(cmd, "Push Global Parameters"))
+                using (new ProfilingSample(cmd, "Push Global Parameters", HDRenderPipeline.GetSampler(CustomSamplerId.TPPushGlobalParameters)))
                 {
                     // Shadows
                     m_ShadowMgr.SyncData();
+                    m_ShadowMgr.BindResources(cmd, null, 0);
 
-                    SetGlobalPropertyRedirect(computeShader, kernelIndex, cmd);
-                    BindGlobalParams(cmd, camera, forceClustered);
-                    SetGlobalPropertyRedirect(null, 0, null);
+                    cmd.SetGlobalTexture(HDShaderIDs._CookieTextures, m_CookieTexArray.GetTexCache());
+                    cmd.SetGlobalTexture(HDShaderIDs._CookieCubeTextures, m_CubeCookieTexArray.GetTexCache());
+                    cmd.SetGlobalTexture(HDShaderIDs._EnvTextures, m_CubeReflTexArray.GetTexCache());
+
+                    cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, s_DirectionalLightDatas);
+                    cmd.SetGlobalInt(HDShaderIDs._DirectionalLightCount, m_lightList.directionalLights.Count);
+                    cmd.SetGlobalBuffer(HDShaderIDs._LightDatas, s_LightDatas);
+                    cmd.SetGlobalInt(HDShaderIDs._PunctualLightCount, m_punctualLightCount);
+                    cmd.SetGlobalInt(HDShaderIDs._AreaLightCount, m_areaLightCount);
+                    cmd.SetGlobalBuffer(HDShaderIDs._EnvLightDatas, s_EnvLightDatas);
+                    cmd.SetGlobalInt(HDShaderIDs._EnvLightCount, m_lightList.envLights.Count);
+                    cmd.SetGlobalBuffer(HDShaderIDs._ShadowDatas, s_shadowDatas);
+                    cmd.SetGlobalVectorArray(HDShaderIDs._DirShadowSplitSpheres, m_lightList.directionalShadowSplitSphereSqr);
+
+                    cmd.SetGlobalInt(HDShaderIDs._NumTileFtplX, GetNumTileFtplX(camera));
+                    cmd.SetGlobalInt(HDShaderIDs._NumTileFtplY, GetNumTileFtplY(camera));
+
+                    cmd.SetGlobalInt(HDShaderIDs._NumTileClusteredX, GetNumTileClusteredX(camera));
+                    cmd.SetGlobalInt(HDShaderIDs._NumTileClusteredY, GetNumTileClusteredY(camera));
+
+                if (m_TileSettings.enableBigTilePrepass)
+                        cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, s_BigTileLightList);
+
+                if (m_TileSettings.enableClustered)
+               {
+                        cmd.SetGlobalFloat(HDShaderIDs.g_fClustScale, m_ClustScale);
+                        cmd.SetGlobalFloat(HDShaderIDs.g_fClustBase, k_ClustLogBase);
+                        cmd.SetGlobalFloat(HDShaderIDs.g_fNearPlane, camera.nearClipPlane);
+                        cmd.SetGlobalFloat(HDShaderIDs.g_fFarPlane, camera.farClipPlane);
+                        cmd.SetGlobalInt(HDShaderIDs.g_iLog2NumClusters, k_Log2NumClusters);
+                        cmd.SetGlobalInt(HDShaderIDs.g_isLogBaseBufferEnabled, k_UseDepthBuffer ? 1 : 0);
+
+                        cmd.SetGlobalBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, s_PerVoxelOffset);
+                    if (k_UseDepthBuffer)
+                    {
+                            cmd.SetGlobalBuffer(HDShaderIDs.g_logBaseBuffer, s_PerTileLogBaseTweak);
+                }
+            }
                 }
             }
 
@@ -1998,7 +1905,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (lightingDebug.tileDebugByCategory == TileSettings.TileDebug.None)
                     return;
 
-                using (new ProfilingSample(cmd, "Tiled Lighting Debug"))
+                using (new ProfilingSample(cmd, "Tiled Lighting Debug", HDRenderPipeline.GetSampler(CustomSamplerId.TPTiledLightingDebug)))
                 {
                     bool bUseClusteredForDeferred = !usingFptl;
 
@@ -2018,7 +1925,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     #endif
 
                     // Debug tiles
-                    PushGlobalParams(hdCamera.camera, cmd, null, 0);
                     if (lightingDebug.tileDebugByCategory == TileSettings.TileDebug.FeatureVariants)
                     {
                         if (GetFeatureVariantsEnabled(m_TileSettings))
@@ -2049,7 +1955,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         CoreUtils.DrawFullScreen(cmd, m_DebugViewTilesMaterial, 0, colorBuffer);
                     }
-                    SetGlobalPropertyRedirect(null, 0, null);
                 }
             }
 
@@ -2063,9 +1968,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_CurrentSunLight == null)
                     return;
 
-                using (new ProfilingSample(cmd, "Deferred Directional"))
+                using (new ProfilingSample(cmd, "Deferred Directional Shadow", HDRenderPipeline.GetSampler(CustomSamplerId.TPDeferredDirectionalShadow)))
                 {
-                    hdCamera.SetupComputeShader(deferredDirectionalShadowComputeShader, cmd);
                     m_ShadowMgr.BindResources(cmd, deferredDirectionalShadowComputeShader, s_deferredDirectionalShadowKernel);
 
                     cmd.SetComputeFloatParam(deferredDirectionalShadowComputeShader, HDShaderIDs._DirectionalShadowIndex, (float)m_CurrentSunLightShadowIndex);
@@ -2082,10 +1986,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public void RenderDeferredLighting( HDCamera hdCamera, CommandBuffer cmd,
                                                 DebugDisplaySettings debugDisplaySettings,
-                                                RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer, RenderTargetIdentifier depthTexture, RenderTargetIdentifier deferredShadowTexture,
+                                                RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer, RenderTargetIdentifier depthTexture,
                                                 LightingPassOptions options)
             {
                 var bUseClusteredForDeferred = !usingFptl;
+                cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);
 
                 if (m_TileSettings.enableTileAndCluster && m_TileSettings.enableComputeLightEvaluation && options.outputSplitLighting)
                 {
@@ -2099,9 +2004,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 string singlePassName = "SinglePass - Deferred Lighting Pass";
                 string SinglePassMRTName = "SinglePass - Deferred Lighting Pass MRT";
 
-                using (new ProfilingSample(cmd, m_TileSettings.enableTileAndCluster ?
+                // TODO: Check if we can remove this, when I test I can't
+				Texture skyTexture = Shader.GetGlobalTexture(HDShaderIDs._SkyTexture);
+				float skyTextureMipCount = Shader.GetGlobalFloat(HDShaderIDs._SkyTextureMipCount);
+
+                string sLabel = m_TileSettings.enableTileAndCluster ?
                     (options.outputSplitLighting ? tilePassMRTName : tilePassName) :
-                    (options.outputSplitLighting ? SinglePassMRTName : singlePassName)))
+                    (options.outputSplitLighting ? SinglePassMRTName : singlePassName);
+
+                using (new ProfilingSample(cmd, sLabel, HDRenderPipeline.GetSampler(CustomSamplerId.TPRenderDeferredLighting)))
                 {
                     var camera = hdCamera.camera;
 
@@ -2119,39 +2030,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         int numVariants = 1;
                         if (enableFeatureVariants)
                             numVariants = LightDefinitions.s_NumFeatureVariants;
-
-                        int debugViewMaterial = Shader.GetGlobalInt(HDShaderIDs._DebugViewMaterial);
-                        int debugLightingMode = Shader.GetGlobalInt(HDShaderIDs._DebugLightingMode);
-                        Vector4 debugLightingAlbedo = Shader.GetGlobalVector(HDShaderIDs._DebugLightingAlbedo);
-                        Vector4 debugLightingSmoothness = Shader.GetGlobalVector(HDShaderIDs._DebugLightingSmoothness);
-
-                        Texture ltcData = Shader.GetGlobalTexture(HDShaderIDs._LtcData);
-                        Texture preIntegratedFGD = Shader.GetGlobalTexture(HDShaderIDs._PreIntegratedFGD);
-                        Texture ltcGGXMatrix = Shader.GetGlobalTexture(HDShaderIDs._LtcGGXMatrix);
-                        Texture ltcDisneyDiffuseMatrix = Shader.GetGlobalTexture(HDShaderIDs._LtcDisneyDiffuseMatrix);
-                        Texture ltcMultiGGXFresnelDisneyDiffuse = Shader.GetGlobalTexture(HDShaderIDs._LtcMultiGGXFresnelDisneyDiffuse);
-
-                        Matrix4x4 invScrProjection = Shader.GetGlobalMatrix(HDShaderIDs.g_mInvScrProjection);
-                        int useTileLightList = Shader.GetGlobalInt(HDShaderIDs._UseTileLightList);
-
-                        Vector4 time = Shader.GetGlobalVector(HDShaderIDs._Time);
-                        Vector4 sinTime = Shader.GetGlobalVector(HDShaderIDs._SinTime);
-                        Vector4 cosTime = Shader.GetGlobalVector(HDShaderIDs._CosTime);
-                        Vector4 unity_DeltaTime = Shader.GetGlobalVector(HDShaderIDs.unity_DeltaTime);
-                        int envLightSkyEnabled = Shader.GetGlobalInt(HDShaderIDs._EnvLightSkyEnabled);
-                        Vector4 ambientOcclusionParam = Shader.GetGlobalVector(HDShaderIDs._AmbientOcclusionParam);
-
-                        int enableSSSAndTransmission = Shader.GetGlobalInt(HDShaderIDs._EnableSSSAndTransmission);
-                        int texturingModeFlags = Shader.GetGlobalInt(HDShaderIDs._TexturingModeFlags);
-                        int transmissionFlags = Shader.GetGlobalInt(HDShaderIDs._TransmissionFlags);
-                        int useDisneySSS = Shader.GetGlobalInt(HDShaderIDs._UseDisneySSS);
-                        Vector4[] thicknessRemaps = Shader.GetGlobalVectorArray(HDShaderIDs._ThicknessRemaps);
-                        Vector4[] shapeParams = Shader.GetGlobalVectorArray(HDShaderIDs._ShapeParams);
-                        Vector4[] transmissionTints = Shader.GetGlobalVectorArray(HDShaderIDs._TransmissionTints);
-                        Vector4[] halfRcpVariancesAndWeights = Shader.GetGlobalVectorArray(HDShaderIDs._HalfRcpVariancesAndWeights);
-
-                        Texture skyTexture = Shader.GetGlobalTexture(HDShaderIDs._SkyTexture);
-                        float skyTextureMipCount = Shader.GetGlobalFloat(HDShaderIDs._SkyTextureMipCount);
 
                         for (int variant = 0; variant < numVariants; variant++)
                         {
@@ -2171,77 +2049,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 if (m_enableBakeShadowMask)
                                 {
                                     if (debugDisplaySettings.IsDebugDisplayEnabled())
-                                        kernel = usingFptl ? s_shadeOpaqueDirectFptlDebugDisplayKernel : s_shadeOpaqueDirectClusteredDebugDisplayKernel;
-                                    else
-                                        kernel = usingFptl ? s_shadeOpaqueDirectFptlKernel : s_shadeOpaqueDirectClusteredKernel;
-                                }
-                                else
-                                {
-                                    if (debugDisplaySettings.IsDebugDisplayEnabled())
                                         kernel = usingFptl ? s_shadeOpaqueDirectShadowMaskFptlDebugDisplayKernel : s_shadeOpaqueDirectShadowMaskClusteredDebugDisplayKernel;
                                     else
                                         kernel = usingFptl ? s_shadeOpaqueDirectShadowMaskFptlKernel : s_shadeOpaqueDirectShadowMaskClusteredKernel;
                                 }
+                                else
+                                {
+                                    if (debugDisplaySettings.IsDebugDisplayEnabled())
+                                        kernel = usingFptl ? s_shadeOpaqueDirectFptlDebugDisplayKernel : s_shadeOpaqueDirectClusteredDebugDisplayKernel;
+                                    else
+                                        kernel = usingFptl ? s_shadeOpaqueDirectFptlKernel : s_shadeOpaqueDirectClusteredKernel;
+                                }
                             }
-
-                            // Pass global parameters to compute shader
-                            // TODO: get rid of this by making global parameters visible to compute shaders
-                            PushGlobalParams(camera, cmd, deferredComputeShader, kernel);
-                            hdCamera.SetupComputeShader(deferredComputeShader, cmd);
-
-                            // TODO: Update value like in ApplyDebugDisplaySettings() call. Sadly it is high likely that this will not be keep in sync. we really need to get rid of this by making global parameters visible to compute shaders
-                            cmd.SetComputeIntParam(deferredComputeShader, HDShaderIDs._DebugViewMaterial, debugViewMaterial);
-                            cmd.SetComputeIntParam(deferredComputeShader, HDShaderIDs._DebugLightingMode, debugLightingMode);
-                            cmd.SetComputeVectorParam(deferredComputeShader, HDShaderIDs._DebugLightingAlbedo, debugLightingAlbedo);
-                            cmd.SetComputeVectorParam(deferredComputeShader, HDShaderIDs._DebugLightingSmoothness, debugLightingSmoothness);
-
-                            cmd.SetComputeBufferParam(deferredComputeShader, kernel, HDShaderIDs.g_vLightListGlobal, bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);
-
-                            cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._DeferredShadowTexture, deferredShadowTexture);
 
                             cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._MainDepthTexture, depthTexture);
 
-                            // TODO: Don't know why but If we use Shader.GetGlobalTexture(HDShaderIDs._GBufferTexture0) instead of HDShaderIDs._GBufferTexture0 the screen start to flicker in SceneView...
-                            // Need to investigate what is happening. But this may be unnecessary as development of SetGlobalTexture for compute shader have begin
-                            cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._GBufferTexture0, HDShaderIDs._GBufferTexture0);
-                            cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._GBufferTexture1, HDShaderIDs._GBufferTexture1);
-                            cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._GBufferTexture2, HDShaderIDs._GBufferTexture2);
-                            cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._GBufferTexture3, HDShaderIDs._GBufferTexture3);
-                            cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._ShadowMaskTexture, HDShaderIDs._ShadowMaskTexture);
-                            cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._VelocityTexture, HDShaderIDs._VelocityTexture);
+                            // TODO: Should remove this setting but can't remove it else get error: Property (_AmbientOcclusionTexture) at kernel index (32) is not set. Check why
                             cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._AmbientOcclusionTexture, HDShaderIDs._AmbientOcclusionTexture);
 
-                            cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._LtcData, ltcData);
-                            cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._PreIntegratedFGD, preIntegratedFGD);
-                            cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._LtcGGXMatrix, ltcGGXMatrix);
-                            cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._LtcDisneyDiffuseMatrix, ltcDisneyDiffuseMatrix);
-                            cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._LtcMultiGGXFresnelDisneyDiffuse, ltcMultiGGXFresnelDisneyDiffuse);
-
-                            cmd.SetComputeMatrixParam(deferredComputeShader, HDShaderIDs.g_mInvScrProjection, invScrProjection);
-                            cmd.SetComputeIntParam(deferredComputeShader, HDShaderIDs._UseTileLightList, useTileLightList);
-
-                            cmd.SetComputeVectorParam(deferredComputeShader, HDShaderIDs._Time, time);
-                            cmd.SetComputeVectorParam(deferredComputeShader, HDShaderIDs._SinTime, sinTime);
-                            cmd.SetComputeVectorParam(deferredComputeShader, HDShaderIDs._CosTime, cosTime);
-                            cmd.SetComputeVectorParam(deferredComputeShader, HDShaderIDs.unity_DeltaTime, unity_DeltaTime);
-                            cmd.SetComputeIntParam(deferredComputeShader, HDShaderIDs._EnvLightSkyEnabled, envLightSkyEnabled);
-                            cmd.SetComputeVectorParam(deferredComputeShader, HDShaderIDs._AmbientOcclusionParam, ambientOcclusionParam);
-
-                            cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._SkyTexture, skyTexture ? skyTexture : m_DefaultTexture2DArray);
-                            cmd.SetComputeFloatParam(deferredComputeShader, HDShaderIDs._SkyTextureMipCount, skyTextureMipCount);
-
-                            // Set SSS parameters.
-                            cmd.SetComputeIntParam(        deferredComputeShader, HDShaderIDs._EnableSSSAndTransmission,   enableSSSAndTransmission);
-                            cmd.SetComputeIntParam(        deferredComputeShader, HDShaderIDs._TexturingModeFlags,         texturingModeFlags);
-                            cmd.SetComputeIntParam(        deferredComputeShader, HDShaderIDs._TransmissionFlags,          transmissionFlags);
-                            cmd.SetComputeIntParam(        deferredComputeShader, HDShaderIDs._UseDisneySSS,               useDisneySSS);
-                            cmd.SetComputeVectorArrayParam(deferredComputeShader, HDShaderIDs._ThicknessRemaps,            thicknessRemaps);
-                            cmd.SetComputeVectorArrayParam(deferredComputeShader, HDShaderIDs._ShapeParams,                shapeParams);
-                            cmd.SetComputeVectorArrayParam(deferredComputeShader, HDShaderIDs._TransmissionTints,          transmissionTints);
-                            cmd.SetComputeVectorArrayParam(deferredComputeShader, HDShaderIDs._HalfRcpVariancesAndWeights, halfRcpVariancesAndWeights);
-
+                            // TODO: Is it possible to setup this outside the loop ? Can figure out how, get this: Property (specularLightingUAV) at kernel index (21) is not set
                             cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, colorBuffers[0]);
                             cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.diffuseLightingUAV,  colorBuffers[1]);
+
+                            // TODO: Check if we can remove this, when I test I can't
+                            cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._SkyTexture, skyTexture);
+                            cmd.SetComputeFloatParam(deferredComputeShader, HDShaderIDs._SkyTextureMipCount, skyTextureMipCount);
 
                             // always do deferred lighting in blocks of 16x16 (not same as tiled light size)
 
@@ -2266,8 +2098,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                                                                 bUseClusteredForDeferred ? 1 : 0,
                                                                                 debugDisplaySettings.IsDebugDisplayEnabled() ? 1 : 0];
 
-                        PushGlobalParams(camera, cmd, null, 0);
-
                         if (options.outputSplitLighting)
                         {
                             CoreUtils.DrawFullScreen(cmd, currentLightingMaterial, colorBuffers, depthStencilBuffer);
@@ -2290,21 +2120,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             CoreUtils.DrawFullScreen(cmd, currentLightingMaterial, colorBuffers[0], depthStencilBuffer);
                         }
                     }
-
-                    SetGlobalPropertyRedirect(null, 0, null);
                 } // End profiling
             }
 
             public void RenderForward(Camera camera, CommandBuffer cmd, bool renderOpaque)
             {
-                PushGlobalParams(camera, cmd, null, 0);
-
                 // Note: SHADOWS_SHADOWMASK keyword is enabled in HDRenderPipeline.cs ConfigureForShadowMask
 
                 // Note: if we use render opaque with deferred tiling we need to render a opaque depth pass for these opaque objects
                 if (!m_TileSettings.enableTileAndCluster)
                 {
-                    using (new ProfilingSample(cmd, "Forward pass"))
+                    using (new ProfilingSample(cmd, "Forward pass", HDRenderPipeline.GetSampler(CustomSamplerId.TPForwardPass)))
                     {
                         cmd.EnableShaderKeyword("LIGHTLOOP_SINGLE_PASS");
                         cmd.DisableShaderKeyword("LIGHTLOOP_TILE_PASS");
@@ -2315,7 +2141,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Only opaques can use FPTL, transparent must use clustered!
                     bool useFptl = renderOpaque && usingFptl;
 
-                    using (new ProfilingSample(cmd, useFptl ? "Forward Tiled pass" : "Forward Clustered pass"))
+                    using (new ProfilingSample(cmd, useFptl ? "Forward Tiled pass" : "Forward Clustered pass", HDRenderPipeline.GetSampler(CustomSamplerId.TPForwardTiledClusterpass)))
                     {
                         // say that we want to use tile of single loop
                         cmd.EnableShaderKeyword("LIGHTLOOP_TILE_PASS");
@@ -2329,7 +2155,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public void RenderDebugOverlay(Camera camera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width)
             {
                 LightingDebugSettings lightingDebug = debugDisplaySettings.lightingDebugSettings;
-                using (new ProfilingSample(cmd, "Display Shadows"))
+                using (new ProfilingSample(cmd, "Display Shadows", HDRenderPipeline.GetSampler(CustomSamplerId.TPDisplayShadows)))
                 {
                     if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeShadowMap)
                     {

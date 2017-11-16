@@ -9,7 +9,7 @@
 #define UNITY_MATRIX_I_M   unity_WorldToObject
 #define UNITY_MATRIX_V     _ViewMatrix
 #define UNITY_MATRIX_I_V   _InvViewMatrix
-#define UNITY_MATRIX_P     _ProjMatrix
+#define UNITY_MATRIX_P     OptimizeProjectionMatrix(_ProjMatrix)
 #define UNITY_MATRIX_I_P   _InvProjMatrix
 #define UNITY_MATRIX_VP    _ViewProjMatrix
 #define UNITY_MATRIX_MVP   mul(UNITY_MATRIX_VP, UNITY_MATRIX_M)

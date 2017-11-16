@@ -46,6 +46,8 @@ namespace UnityEditor
             public static GUIContent detailMaskText = new GUIContent("Detail Mask", "Mask for Secondary Maps (A)");
             public static GUIContent detailAlbedoText = new GUIContent("Detail Albedo x2", "Albedo (RGB) multiplied by 2");
             public static GUIContent detailNormalMapText = new GUIContent("Normal Map", "Normal Map");
+            public static GUIContent bumpScaleNotSupported = new GUIContent("Bump scale is not supported on mobile platforms");
+            public static GUIContent fixNow = new GUIContent("Fix now");
 
             public static string primaryMapsText = "Main Maps";
             public static string secondaryMapsText = "Secondary Maps";
@@ -260,7 +262,10 @@ namespace UnityEditor
 
         void DoNormalArea()
         {
-            m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, bumpMap);
+            m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, bumpMap, bumpMap.textureValue != null ? bumpScale : null);
+            if (bumpScale.floatValue != 1 && UnityEditorInternal.InternalEditorUtility.IsMobilePlatform(EditorUserBuildSettings.activeBuildTarget))
+                if (m_MaterialEditor.HelpBoxWithButton(Styles.bumpScaleNotSupported, Styles.fixNow))
+                    bumpScale.floatValue = 1;
         }
 
         void DoAlbedoArea(Material material)
@@ -399,7 +404,6 @@ namespace UnityEditor
                 hasGlossMap = material.GetTexture("_MetallicGlossMap");
 
             LightweightShaderHelper.SetKeyword(material, "_SPECULAR_SETUP", isSpecularWorkFlow);
-            LightweightShaderHelper.SetKeyword(material, "_METALLIC_SETUP", !isSpecularWorkFlow);
 
             LightweightShaderHelper.SetKeyword(material, "_METALLICSPECGLOSSMAP", hasGlossMap);
             LightweightShaderHelper.SetKeyword(material, "_SPECGLOSSMAP", hasGlossMap && isSpecularWorkFlow);
