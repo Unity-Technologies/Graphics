@@ -316,6 +316,10 @@ namespace UnityEditor.VFX.UI
             elementAddedToGroupNode = ElementAddedToGroupNode;
             elementRemovedFromGroupNode = ElementRemovedFromGroupNode;
             groupNodeTitleChanged = GroupNodeTitleChanged;
+            graphViewChanged = VFXGraphViewChanged;
+
+
+            vfxGroupNodes = this.Query<VisualElement>().Children<VFXGroupNode>().Build();
 
             Add(m_NoAssetLabel);
         }
@@ -516,6 +520,36 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        GraphViewChange VFXGraphViewChanged(GraphViewChange change)
+        {
+            if (change.movedElements.Count > 0)
+            {
+                foreach (var groupNode in vfxGroupNodes.ToList())
+                {
+                    var containedElements = groupNode.containedElements;
+
+                    if (containedElements != null && containedElements.Intersect(change.movedElements).Count() > 0)
+                    {
+                        groupNode.UpdateGeometryFromContent();
+                        groupNode.UpdatePresenterPosition();
+                    }
+                }
+
+                foreach (var groupNode in change.movedElements.OfType<VFXGroupNode>())
+                {
+                    var containedElements = groupNode.containedElements;
+                    if (containedElements != null)
+                    {
+                        foreach (var node in containedElements)
+                        {
+                            node.UpdatePresenterPosition();
+                        }
+                    }
+                }
+            }
+            return change;
+        }
+
         VFXViewPresenter m_OldPresenter;
 
         public override void OnDataChanged()
@@ -578,6 +612,8 @@ namespace UnityEditor.VFX.UI
                 node.OnViewDataChanged();
             }
         }
+
+        public UQuery.QueryState<VFXGroupNode> vfxGroupNodes;
 
         public VFXDataAnchor GetDataAnchorByPresenter(VFXDataAnchorPresenter presenter)
         {

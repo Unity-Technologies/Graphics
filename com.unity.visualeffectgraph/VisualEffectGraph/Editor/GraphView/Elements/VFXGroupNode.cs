@@ -15,32 +15,6 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        public override void UpdateGeometryFromContent()
-        {
-            base.UpdateGeometryFromContent();
-
-            UpdatePresenterPosition();
-        }
-
-        public override void UpdatePresenterPosition()
-        {
-            if (presenter != null)
-            {
-                if (presenter.position != layout)
-                {
-                    base.UpdatePresenterPosition();
-
-                    if (containedElements != null)
-                    {
-                        foreach (var element in containedElements)
-                        {
-                            element.UpdatePresenterPosition();
-                        }
-                    }
-                }
-            }
-        }
-
         public void OnViewDataChanged()
         {
             // use are custom data changed from the view because we can't listen simply to the VFXUI, because the VFXUI might have been modified because we were removed and the datawatch might call us before the view

@@ -37,6 +37,13 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public override void UpdatePresenterPosition()
+        {
+            base.UpdatePresenterPosition();
+
+            VFXView view = GetFirstAncestorOfType<VFXView>();
+        }
+
         protected override void OnPortRemoved(Port anchor)
         {
             if (anchor is VFXEditableDataAnchor)
