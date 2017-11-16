@@ -66,6 +66,11 @@ VFXBlockUI.VFXContextSlotContainerUI.node.horizontal.collapsed #title Toggle
 	margin-left:17;
 }
 
+VFXBlockUI.VFXContextSlotContainerUI.node.horizontal.collapsed .mainContainer
+{
+	max-height:0;
+}
+
 VFXBlockUI.VFXNodeUI.node.horizontal.collapsed #title > Label {
 	margin-top:4;
 	margin-left:6;

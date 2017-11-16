@@ -234,6 +234,17 @@ namespace UnityEditor.VFX
             }
         }
 
+        public VFXAsset GetAsset()
+        {
+            var graph = this as VFXGraph;
+            if (graph != null)
+                return graph.vfxAsset;
+            var parent = GetParent();
+            if (parent != null)
+                return parent.GetAsset();
+            return null;
+        }
+
         [SerializeField]
         protected VFXModel m_Parent;
 

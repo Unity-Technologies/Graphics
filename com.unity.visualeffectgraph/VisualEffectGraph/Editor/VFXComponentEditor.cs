@@ -293,6 +293,7 @@ public class VFXComponentEditor : Editor
     public static bool CanSetOverride = false;
 
     SerializedProperty m_VFXAsset;
+    SerializedProperty m_ReseedOnStart;
     SerializedProperty m_RandomSeed;
     SerializedProperty m_VFXPropertySheet;
     bool m_useNewSerializedField = false;
@@ -317,6 +318,7 @@ public class VFXComponentEditor : Editor
     void OnEnable()
     {
         m_RandomSeed = serializedObject.FindProperty("m_StartSeed");
+        m_ReseedOnStart = serializedObject.FindProperty("m_ResetSeedOnStart");
         m_VFXAsset = serializedObject.FindProperty("m_Asset");
         m_VFXPropertySheet = serializedObject.FindProperty("m_PropertySheet");
 
@@ -416,8 +418,6 @@ public class VFXComponentEditor : Editor
         VFXAsset asset = m_VFXAsset.objectReferenceValue as VFXAsset;
         if (asset == null)
             return;
-
-        VFXViewPresenter.viewPresenter.SetVFXAsset(asset, false);
 
 
         /*
@@ -592,35 +592,44 @@ public class VFXComponentEditor : Editor
             GUI.enabled = component.vfxAsset != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
             if (GUILayout.Button(m_Contents.OpenEditor, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
             {
-                EditorWindow.GetWindow<VFXViewWindow>();
+                VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
 
-                VFXViewPresenter.viewPresenter.SetVFXAsset(component.vfxAsset, false);
+                window.LoadAsset(component.vfxAsset);
             }
         }
 
         //Seed
+        EditorGUI.BeginChangeCheck();
         using (new GUILayout.HorizontalScope())
         {
-            EditorGUILayout.PropertyField(m_RandomSeed, m_Contents.RandomSeed);
-            if (GUILayout.Button(m_Contents.SetRandomSeed, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
+            using (new EditorGUI.DisabledGroupScope(m_ReseedOnStart.boolValue))
             {
-                m_RandomSeed.intValue = UnityEngine.Random.Range(0, int.MaxValue);
-                component.startSeed = (uint)m_RandomSeed.intValue; // As accessors are bypassed with serialized properties...
-                component.Reinit();
+                EditorGUILayout.PropertyField(m_RandomSeed, m_Contents.RandomSeed);
+                if (GUILayout.Button(m_Contents.SetRandomSeed, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
+                {
+                    m_RandomSeed.intValue = UnityEngine.Random.Range(0, int.MaxValue);
+                    component.startSeed = (uint)m_RandomSeed.intValue; // As accessors are bypassed with serialized properties...
+                }
             }
         }
+        EditorGUILayout.PropertyField(m_ReseedOnStart, m_Contents.ReseedOnStart);
+        bool reinit = EditorGUI.EndChangeCheck();
 
         //Field
         GUILayout.Label(m_Contents.HeaderParameters, m_Styles.InspectorHeader);
 
-        var newList = VFXViewPresenter.viewPresenter.allChildren.OfType<VFXParameterPresenter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
+        /*var newList = m_Presenter.allChildren.OfType<VFXParameterPresenter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
 
         foreach (var parameter in newList)
         {
             OnParamGUI(parameter);
         }
-
+        */
         serializedObject.ApplyModifiedProperties();
+        if (reinit)
+        {
+            component.Reinit();
+        }
 
         EditMode.DoEditModeInspectorModeButton(
             EditMode.SceneViewEditMode.Collider,
@@ -681,6 +690,7 @@ public class VFXComponentEditor : Editor
 
         public GUIContent AssetPath = new GUIContent("Asset Template");
         public GUIContent RandomSeed = new GUIContent("Random Seed");
+        public GUIContent ReseedOnStart = new GUIContent("Reseed on start");
         public GUIContent OpenEditor = new GUIContent("Edit");
         public GUIContent SetRandomSeed = new GUIContent("Reseed");
         public GUIContent SetPlayRate = new GUIContent("Set");

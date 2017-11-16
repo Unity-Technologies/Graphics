@@ -3,8 +3,11 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+using UnityEngine.Rendering;
 using UnityEngine.VFX;
+using UnityEngine.Experimental.UIElements;
+using UnityEngine.Experimental.UIElements.StyleEnums;
+
 
 namespace UnityEditor.VFX.UI
 {
@@ -136,6 +139,8 @@ namespace UnityEditor.VFX.UI
     //[StyleSheet("Assets/VFXEditor/Editor/GraphView/Views/")]
     class VFXView : GraphView, IParameterDropTarget
     {
+        VisualElement m_NoAssetLabel;
+
         public VFXView()
         {
             forceNotififcationOnAdd = true;
@@ -181,14 +186,20 @@ namespace UnityEditor.VFX.UI
                     }
                     else if (d.modelDescriptor == null)
                     {
-                        var spawner = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos, VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Spawner"));
-                        var initialize = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos + new Vector2(0, 200), VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Initialize"));
-                        var update = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos + new Vector2(0, 400), VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Update"));
-                        var output = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos + new Vector2(0, 600), VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Point Output"));
+                        VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
+                        if (presenter != null)
+                        {
+                            var contexts = VFXLibrary.GetContexts().ToArray();
+                            var spawnerDesc = contexts.FirstOrDefault(t => t.name == "Spawner");
+                            var spawner = presenter.AddVFXContext(tPos, spawnerDesc);
+                            var initialize = presenter.AddVFXContext(tPos + new Vector2(0, 200), contexts.FirstOrDefault(t => t.name == "Initialize"));
+                            var update = presenter.AddVFXContext(tPos + new Vector2(0, 400), contexts.FirstOrDefault(t => t.name == "Update"));
+                            var output = presenter.AddVFXContext(tPos + new Vector2(0, 600), contexts.FirstOrDefault(t => t.name == "Point Output"));
 
-                        spawner.LinkTo(initialize);
-                        initialize.LinkTo(update);
-                        update.LinkTo(output);
+                            spawner.LinkTo(initialize);
+                            initialize.LinkTo(update);
+                            update.LinkTo(output);
+                        }
                     }
                     else
                     {
@@ -212,6 +223,12 @@ namespace UnityEditor.VFX.UI
             typeFactory[typeof(Preview3DPresenter)] = typeof(Preview3D);
 
             AddStyleSheetPath("PropertyRM");
+            AddStyleSheetPath("VFXContext");
+            AddStyleSheetPath("VFXFlow");
+            AddStyleSheetPath("VFXBlock");
+            AddStyleSheetPath("VFXNode");
+            AddStyleSheetPath("VFXDataAnchor");
+            AddStyleSheetPath("VFXTypeColor");
             AddStyleSheetPath("VFXView");
 
             Dirty(ChangeType.Transform);
@@ -237,6 +254,12 @@ namespace UnityEditor.VFX.UI
             spacer.style.flex = 1;
             toolbar.Add(spacer);
 
+            m_ToggleCastShadows = new Toggle(OnToggleCastShadows);
+            m_ToggleCastShadows.text = "Cast Shadows";
+            m_ToggleCastShadows.on = GetRendererSettings().shadowCastingMode != ShadowCastingMode.Off;
+            toolbar.Add(m_ToggleCastShadows);
+            m_ToggleCastShadows.AddToClassList("toolbarItem");
+
             m_ToggleMotionVectors = new Toggle(OnToggleMotionVectors);
             m_ToggleMotionVectors.text = "Use Motion Vectors";
             m_ToggleMotionVectors.on = GetRendererSettings().motionVectorGenerationMode == MotionVectorGenerationMode.Object;
@@ -259,6 +282,19 @@ namespace UnityEditor.VFX.UI
             button.text = "Compile";
             button.AddToClassList("toolbarItem");
             toolbar.Add(button);
+
+
+            m_NoAssetLabel = new Label("Please Select An Asset");
+            m_NoAssetLabel.style.positionType = PositionType.Absolute;
+            m_NoAssetLabel.style.positionLeft = 0;
+            m_NoAssetLabel.style.positionRight = 0;
+            m_NoAssetLabel.style.positionTop = 0;
+            m_NoAssetLabel.style.positionBottom = 0;
+            m_NoAssetLabel.style.textAlignment = TextAnchor.MiddleCenter;
+            m_NoAssetLabel.style.fontSize = 72;
+            m_NoAssetLabel.style.textColor = Color.white * 0.75f;
+
+            Add(m_NoAssetLabel);
         }
 
         VFXRendererSettings GetRendererSettings()
@@ -283,9 +319,19 @@ namespace UnityEditor.VFX.UI
                 if (asset != null)
                 {
                     asset.rendererSettings = settings;
-                    VFXViewPresenter.viewPresenter.GetGraph().SetExpressionGraphDirty();
+                    presenter.GetGraph().SetExpressionGraphDirty();
                 }
             }
+        }
+
+        void OnToggleCastShadows()
+        {
+            var settings = GetRendererSettings();
+            if (settings.shadowCastingMode != ShadowCastingMode.Off)
+                settings.shadowCastingMode = ShadowCastingMode.Off;
+            else
+                settings.shadowCastingMode = ShadowCastingMode.On;
+            SetRendererSettings(settings);
         }
 
         void OnToggleMotionVectors()
@@ -310,50 +356,44 @@ namespace UnityEditor.VFX.UI
 
         void OnCompile()
         {
-            var graph = VFXViewPresenter.viewPresenter.GetGraph();
+            var graph = GetPresenter<VFXViewPresenter>().GetGraph();
             graph.SetExpressionGraphDirty();
             graph.RecompileIfNeeded();
         }
 
-        public override void OnDataChanged()
-        {
-            base.OnDataChanged();
-            if (presenter != null)
-            {
-                m_ToggleMotionVectors.on = GetRendererSettings().motionVectorGenerationMode == MotionVectorGenerationMode.Object;
-                m_ToggleMotionVectors.SetEnabled(true);
-            }
-            else
-                m_ToggleMotionVectors.SetEnabled(false);
-        }
-
         void AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
         {
+            if (presenter == null) return;
             GetPresenter<VFXViewPresenter>().AddVFXContext(pos, desc);
         }
 
         void AddVFXOperator(Vector2 pos, VFXModelDescriptor<VFXOperator> desc)
         {
+            if (presenter == null) return;
             GetPresenter<VFXViewPresenter>().AddVFXOperator(pos, desc);
         }
 
         void AddVFXParameter(Vector2 pos, VFXModelDescriptorParameters desc)
         {
+            if (presenter == null) return;
             GetPresenter<VFXViewPresenter>().AddVFXParameter(pos, desc);
         }
 
         void AddVFXBuiltInParameter(Vector2 pos, VFXModelDescriptorBuiltInParameters desc)
         {
+            if (presenter == null) return;
             GetPresenter<VFXViewPresenter>().AddVFXBuiltInParameter(pos, desc);
         }
 
         void AddVFXCurrentAttributeParameter(Vector2 pos, VFXModelDescriptorCurrentAttributeParameters desc)
         {
+            if (presenter == null) return;
             GetPresenter<VFXViewPresenter>().AddVFXCurrentAttributeParameter(pos, desc);
         }
 
         void AddVFXSourceAttributeParameter(Vector2 pos, VFXModelDescriptorSourceAttributeParameters desc)
         {
+            if (presenter == null) return;
             GetPresenter<VFXViewPresenter>().AddVFXSourceAttributeParameter(pos, desc);
         }
 
@@ -378,24 +418,28 @@ namespace UnityEditor.VFX.UI
         public EventPropagation Resync()
         {
             var presenter = GetPresenter<VFXViewPresenter>();
-            presenter.SetVFXAsset(presenter.GetVFXAsset(), true);
+            if (presenter != null)
+                presenter.ForceReload();
             return EventPropagation.Stop;
         }
 
         public EventPropagation OutputToDot()
         {
+            if (presenter == null) return EventPropagation.Stop;
             DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraph(), VFXExpressionContextOption.None);
             return EventPropagation.Stop;
         }
 
         public EventPropagation OutputToDotReduced()
         {
+            if (presenter == null) return EventPropagation.Stop;
             DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraph(), VFXExpressionContextOption.Reduction);
             return EventPropagation.Stop;
         }
 
         public EventPropagation OutputToDotConstantFolding()
         {
+            if (presenter == null) return EventPropagation.Stop;
             DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraph(), VFXExpressionContextOption.ConstantFolding);
             return EventPropagation.Stop;
         }
@@ -424,6 +468,7 @@ namespace UnityEditor.VFX.UI
         public override List<NodeAnchor> GetCompatibleAnchors(NodeAnchor startAnchor, NodeAdapter nodeAdapter)
         {
             VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
+            if (presenter == null) return null;
 
             var presenters = presenter.GetCompatibleAnchors(startAnchor.GetPresenter<NodeAnchorPresenter>(), nodeAdapter);
 
@@ -444,6 +489,51 @@ namespace UnityEditor.VFX.UI
                 foreach (VFXFlowAnchor anchor in context.GetFlowAnchors(input, output))
                 {
                     yield return anchor;
+                }
+            }
+        }
+
+        public override void OnDataChanged()
+        {
+            base.OnDataChanged();
+            VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
+
+            if (presenter != null)
+            {
+                var settings = GetRendererSettings();
+
+                m_ToggleCastShadows.on = settings.shadowCastingMode != ShadowCastingMode.Off;
+                m_ToggleCastShadows.SetEnabled(true);
+
+                m_ToggleMotionVectors.on = settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object;
+                m_ToggleMotionVectors.SetEnabled(true);
+
+                // if the asset dis destroy somehow, fox example if the user delete the asset, delete the presenter and update the window.
+                VFXAsset asset = presenter.GetVFXAsset();
+                if (asset == null)
+                {
+                    VFXViewPresenter.Manager.RemovePresenter(presenter);
+
+                    VFXViewWindow.currentWindow.presenter = null;
+                    this.presenter = null; // this recall OnDataChanged recursively;
+                    return;
+                }
+            }
+            else
+            {
+                m_ToggleCastShadows.SetEnabled(false);
+                m_ToggleMotionVectors.SetEnabled(false);
+            }
+
+            if (presenter != null)
+            {
+                m_NoAssetLabel.RemoveFromHierarchy();
+            }
+            else
+            {
+                if (m_NoAssetLabel.parent == null)
+                {
+                    Add(m_NoAssetLabel);
                 }
             }
         }
@@ -568,6 +658,7 @@ namespace UnityEditor.VFX.UI
         void IParameterDropTarget.OnDragPerform(IMGUIEvent evt, VFXParameterPresenter parameter)
         {
             VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
+            if (presenter == null) return;
 
             VFXParameter newParameter = presenter.AddVFXParameter(contentViewContainer.GlobalToBound(evt.imguiEvent.mousePosition), VFXLibrary.GetParameters().FirstOrDefault(t => t.name == parameter.anchorType.UserFriendlyName()));
 
@@ -580,6 +671,8 @@ namespace UnityEditor.VFX.UI
             if (!VFXComponentEditor.s_IsEditingAsset)
             {
                 var contextSelected = selection.OfType<VFXContextUI>();
+
+                if (presenter == null) return;
 
                 if (contextSelected.Count() > 0)
                 {
@@ -612,6 +705,7 @@ namespace UnityEditor.VFX.UI
                 SelectionUpdated();
         }
 
+        private Toggle m_ToggleCastShadows;
         private Toggle m_ToggleMotionVectors;
     }
 }

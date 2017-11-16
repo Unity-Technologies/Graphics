@@ -9,8 +9,13 @@ using UnityEditor.VFX;
 using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
+using EnumField = UnityEditor.VFX.UIElements.VFXEnumField;
 
 using CurveField = UnityEditor.VFX.UIElements.LabeledField<UnityEditor.Experimental.UIElements.CurveField, UnityEngine.AnimationCurve>;
+
+using Vector3Field = UnityEditor.VFX.UIElements.Vector3Field;
+using Vector2Field = UnityEditor.VFX.UIElements.Vector2Field;
+using Vector4Field = UnityEditor.VFX.UIElements.Vector4Field;
 
 namespace UnityEditor.VFX
 {
@@ -53,32 +58,57 @@ namespace UnityEditor.VFX
 
 namespace UnityEditor.VFX.UI
 {
-    class UintPropertyRM : SimplePropertyRM<uint>
+    class UintPropertyRM : SimpleUIPropertyRM<uint, long>
     {
         public UintPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
         }
 
-        public override ValueControl<uint> CreateField()
+        public override INotifyValueChanged<long> CreateField()
         {
-            return new UintField(m_Label);
+            Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
+            if (range == Vector2.zero)
+            {
+                var field = new LabeledField<IntegerField, long>(m_Label);
+                field.control.dynamicUpdate = true;
+                return field;
+            }
+            else
+            {
+                range.x = Mathf.Max(0, Mathf.Round(range.x));
+                range.y = Mathf.Max(range.x + 1, Mathf.Round(range.y));
+
+                var field = new LabeledField<IntSliderField, long>(m_Label);
+                field.control.range = range;
+                return field;
+            }
         }
     }
 
-    class IntPropertyRM : SimplePropertyRM<int>
+    class IntPropertyRM : SimpleUIPropertyRM<int, long>
     {
         public IntPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
         }
 
-        public override ValueControl<int> CreateField()
+        public override INotifyValueChanged<long> CreateField()
         {
             Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
-
             if (range == Vector2.zero)
-                return new IntField(m_Label);
+            {
+                var field = new LabeledField<IntegerField, long>(m_Label);
+                field.control.dynamicUpdate = true;
+                return field;
+            }
             else
-                return new IntSliderField(m_Label, range);
+            {
+                range.x = Mathf.Round(range.x);
+                range.y = Mathf.Max(range.x + 1, Mathf.Round(range.y));
+
+                var field = new LabeledField<IntSliderField, long>(m_Label);
+                field.control.range = range;
+                return field;
+            }
         }
     }
     class EnumPropertyRM : SimplePropertyRM<int>
@@ -93,56 +123,75 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class FloatPropertyRM : SimplePropertyRM<float>
+    class FloatPropertyRM : SimpleUIPropertyRM<float, double>
     {
         public FloatPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
         }
 
-        public override ValueControl<float> CreateField()
+        public override INotifyValueChanged<double> CreateField()
         {
             Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
 
             if (range == Vector2.zero)
-                return new FloatField(m_Label);
+            {
+                var field = new LabeledField<DoubleField, double>(m_Label);
+                field.control.dynamicUpdate = true;
+                return field;
+            }
             else
-                return new SliderField(m_Label, range);
+            {
+                var field = new LabeledField<DoubleSliderField, double>(m_Label);
+                field.control.range = range;
+                return field;
+            }
         }
     }
 
-    class Vector4PropertyRM : SimplePropertyRM<Vector4>
+    class Vector4PropertyRM : SimpleUIPropertyRM<Vector4, Vector4>
     {
         public Vector4PropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
         }
 
-        public override ValueControl<Vector4> CreateField()
+        public override INotifyValueChanged<Vector4> CreateField()
         {
-            return new Vector4Field(m_Label);
+            var field = new LabeledField<Vector4Field, Vector4>(m_Label);
+            field.control.dynamicUpdate = true;
+
+            return field;
         }
     }
 
-    class Vector3PropertyRM : SimplePropertyRM<Vector3>
+    class Vector3PropertyRM : SimpleUIPropertyRM<Vector3, Vector3>
     {
         public Vector3PropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
         }
 
-        public override ValueControl<Vector3> CreateField()
+        public override INotifyValueChanged<Vector3> CreateField()
         {
-            return new Vector3Field(m_Label);
+            var field = new LabeledField<Vector3Field, Vector3>(m_Label);
+
+            field.control.dynamicUpdate = true;
+
+            return field;
         }
     }
 
-    class Vector2PropertyRM : SimplePropertyRM<Vector2>
+    class Vector2PropertyRM : SimpleUIPropertyRM<Vector2, Vector2>
     {
         public Vector2PropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
         }
 
-        public override ValueControl<Vector2> CreateField()
+        public override INotifyValueChanged<Vector2> CreateField()
         {
-            return new Vector2Field(m_Label);
+            var field = new LabeledField<Vector2Field, Vector2>(m_Label);
+
+            field.control.dynamicUpdate = true;
+
+            return field;
         }
     }
 

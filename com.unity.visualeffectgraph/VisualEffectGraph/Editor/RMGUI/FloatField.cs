@@ -17,38 +17,7 @@ namespace UnityEditor.VFX.UIElements
             SetupLabel();
         }
 
-        void SetupLabel()
-        {
-            if (typeof(U) == typeof(double))
-            {
-                m_Label.AddManipulator(new UIDragValueManipulator<double>((INotifyValueChanged<double> )m_Control));
-            }/*
-            else if (typeof(U) == typeof(float))
-            {
-                m_Label.AddManipulator(new UIDragValueManipulator<float>(m_Control));
-            }*/
-            else if (typeof(U) == typeof(long))
-            {
-                m_Label.AddManipulator(new UIDragValueManipulator<long>((INotifyValueChanged<long>)m_Control));
-            }/*
-            else if (typeof(U) == typeof(int))
-            {
-                m_Label.AddManipulator(new UIDragValueManipulator<int>(m_Control));
-            }*/
-        }
-
-        void CreateControl()
-        {
-            m_Control = new T();
-            Add(m_Control);
-        }
-
-        public T control
-        {
-            get { return m_Control; }
-        }
-
-        LabeledField(string label)
+        public LabeledField(string label)
         {
             if (!string.IsNullOrEmpty(label))
             {
@@ -62,6 +31,56 @@ namespace UnityEditor.VFX.UIElements
             CreateControl();
             SetupLabel();
         }
+
+        void SetupLabel()
+        {
+            if (typeof(IValueField<U>).IsAssignableFrom(typeof(T)))
+                if (typeof(U) == typeof(double))
+                {
+                    var dragger = new FieldMouseDragger<double>((IValueField<double>)m_Control);
+                    dragger.SetDragZone(m_Label);
+
+                    //m_Label.AddManipulator(new UIDragValueManipulator<double>((INotifyValueChanged<double> )m_Control));
+                }/*
+            else if (typeof(U) == typeof(float))
+            {
+                m_Label.AddManipulator(new UIDragValueManipulator<float>(m_Control));
+            }*/
+                else if (typeof(U) == typeof(long))
+                {
+                    var dragger = new FieldMouseDragger<long>((IValueField<long> )m_Control);
+                    dragger.SetDragZone(m_Label);
+                }/*
+            else if (typeof(U) == typeof(int))
+            {
+                m_Label.AddManipulator(new UIDragValueManipulator<int>(m_Control));
+            }*/
+        }
+
+        void CreateControl()
+        {
+            m_Control = new T();
+            Add(m_Control);
+
+            m_Control.RegisterCallback<ChangeEvent<U>>(OnControlChange);
+        }
+
+        void OnControlChange(ChangeEvent<U> e)
+        {
+            e.StopPropagation();
+            using (ChangeEvent<U> evt = ChangeEvent<U>.GetPooled(e.previousValue, e.newValue))
+            {
+                evt.target = this;
+                value = e.newValue;
+                UIElementsUtility.eventDispatcher.DispatchEvent(evt, panel);
+            }
+        }
+
+        public T control
+        {
+            get { return m_Control; }
+        }
+
 
         public void OnValueChanged(EventCallback<ChangeEvent<U>> callback)
         {
