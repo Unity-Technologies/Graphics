@@ -54,7 +54,7 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput)
     if (_AtmosphericScatteringType == FOGTYPE_EXPONENTIAL)
     {
         float3 fogColor = GetFogColor(posInput);
-        float fogFactor = _ExpFogDensity * (1.0f - Transmittance(OpticalDepthHomogeneousMedia(1.0f / _ExpFogDistance, posInput.depthVS)));
+        float fogFactor = _ExpFogDensity * (1.0f - TransmittanceHomogeneousMedium(1.0f / _ExpFogDistance, posInput.depthVS));
         return float4(fogColor, fogFactor);
     }
     else if (_AtmosphericScatteringType == FOGTYPE_LINEAR)

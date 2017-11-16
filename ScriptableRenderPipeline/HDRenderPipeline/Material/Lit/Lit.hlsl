@@ -1424,7 +1424,7 @@ DirectLighting EvaluateBSDF_Punctual(   LightLoopContext lightLoopContext,
     }
 
 #ifdef VOLUMETRIC_LIGHTING_ENABLED
-    shadow *= Transmittance(OpticalDepthHomogeneousMedia(preLightData.globalFogExtinction, dist));
+    shadow *= TransmittanceHomogeneousMedium(preLightData.globalFogExtinction, dist);
 #endif
 
     illuminance *= shadow;

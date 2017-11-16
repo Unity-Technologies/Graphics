@@ -7,12 +7,12 @@
 // Transmittance(x, z) = Transmittance(x, y) * Transmittance(y, z)
 // Integral{a, b}{Transmittance(0, t) * Li(t) dt} = Transmittance(0, a) * Integral{a, b}{Transmittance(0, t - a) * Li(t) dt}.
 
-float OpticalDepthHomogeneousMedia(float extinction, float intervalLength)
+float OpticalDepthHomogeneousMedium(float extinction, float intervalLength)
 {
     return extinction * intervalLength;
 }
 
-float3 OpticalDepthHomogeneousMedia(float3 extinction, float intervalLength)
+float3 OpticalDepthHomogeneousMedium(float3 extinction, float intervalLength)
 {
     return extinction * intervalLength;
 }
@@ -27,24 +27,24 @@ float3 Transmittance(float3 opticalDepth)
     return exp(-opticalDepth);
 }
 
-float TransmittanceHomogeneousMedia(float extinction, float intervalLength)
+float TransmittanceHomogeneousMedium(float extinction, float intervalLength)
 {
-    return Transmittance(OpticalDepthHomogeneousMedia(extinction, intervalLength));
+    return Transmittance(OpticalDepthHomogeneousMedium(extinction, intervalLength));
 }
 
-float3 TransmittanceHomogeneousMedia(float3 extinction, float intervalLength)
+float3 TransmittanceHomogeneousMedium(float3 extinction, float intervalLength)
 {
-    return Transmittance(OpticalDepthHomogeneousMedia(extinction, intervalLength));
+    return Transmittance(OpticalDepthHomogeneousMedium(extinction, intervalLength));
 }
 
 // Integral{a, b}{Transmittance(0, t - a) dt}.
-float TransmittanceIntegralHomogeneousMedia(float extinction, float intervalLength)
+float TransmittanceIntegralHomogeneousMedium(float extinction, float intervalLength)
 {
     return rcp(extinction) - rcp(extinction) * exp(-extinction * intervalLength);
 }
 
 // Integral{a, b}{Transmittance(0, t - a) dt}.
-float3 TransmittanceIntegralHomogeneousMedia(float3 extinction, float intervalLength)
+float3 TransmittanceIntegralHomogeneousMedium(float3 extinction, float intervalLength)
 {
     return rcp(extinction) - rcp(extinction) * exp(-extinction * intervalLength);
 }
@@ -74,26 +74,29 @@ float HenyeyGreensteinPhaseFunction(float asymmetry, float LdotD)
            HenyeyGreensteinPhasePartVarying(asymmetry, LdotD);
 }
 
-// Samples the interval of homogeneous participating media using the closed-form tracking approach
-// (proportionally to the transmittance times the extinction coefficient).
-// Returns the offset from the start of the interval and the weight = (extinction * transmittance / pdf).
+// Samples the interval of homogeneous participating medium using the closed-form tracking approach
+// (proportionally to the transmittance).
+// Returns the offset from the start of the interval and the weight = (transmittance / pdf).
 // Ref: Production Volume Rendering, 3.6.1.
-void ImportanceSampleHomogeneousMedia(float extinction, float intervalLength, float rndVal,
+void ImportanceSampleHomogeneousMedium(float rndVal, float extinction, float intervalLength,
                                       out float offset, out float weight)
 {
     // pdf    = extinction * exp(-extinction * t) / (1 - exp(-intervalLength * extinction))
-    // weight = extinction * exp(-extinction * t) / pdf
-    // weight = 1 - exp(-intervalLength * extinction)
+    // weight = exp(-extinction * t) / pdf
+    // weight = (1 - exp(-extinction * intervalLength)) / extinction;
 
-    weight = 1 - exp(-extinction * intervalLength);
-    offset = log(1 - rndVal * weight) / extinction;
+    float x = 1 - exp(-extinction * intervalLength);
+
+    weight = x * rcp(extinction);
+    offset = -log(1 - rndVal * x) * rcp(extinction);
 }
 
 // Implements equiangular light sampling.
 // Returns the distance from 0 and the reciprocal of the PDF.
-// Ref: Importance Sampling of Area Lights in Participating Media.
-void ImportanceSamplePunctualLight(float3 lightPosition, float3 rayOrigin, float3 rayDirection,
-                                   float tMin, float tMax, float rndVal,
+// Ref: Importance Sampling of Area Lights in Participating Medium.
+void ImportanceSamplePunctualLight(float rndVal, float3 lightPosition,
+                                   float3 rayOrigin, float3 rayDirection,
+                                   float tMin, float tMax,
                                    out float dist, out float rcpPdf)
 {
     float3 originToLight       = lightPosition - rayOrigin;
