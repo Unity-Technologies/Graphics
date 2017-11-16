@@ -15,15 +15,28 @@ namespace UnityEditor.VFX.UI
         {
         }
 
+        public override void UpdateGeometryFromContent()
+        {
+            base.UpdateGeometryFromContent();
+
+            UpdatePresenterPosition();
+        }
+
         public override void UpdatePresenterPosition()
         {
-            base.UpdatePresenterPosition();
-
-            if (containedElements != null)
+            if (presenter != null)
             {
-                foreach (var element in containedElements)
+                if (presenter.position != layout)
                 {
-                    element.UpdatePresenterPosition();
+                    base.UpdatePresenterPosition();
+
+                    if (containedElements != null)
+                    {
+                        foreach (var element in containedElements)
+                        {
+                            element.UpdatePresenterPosition();
+                        }
+                    }
                 }
             }
         }
@@ -66,18 +79,6 @@ namespace UnityEditor.VFX.UI
         }
 
         bool m_ModificationFromPresenter;
-
-
-        public override void SetPosition(Rect newPos)
-        {
-            base.SetPosition(newPos);
-            VFXGroupNodePresenter presenter = GetPresenter<VFXGroupNodePresenter>();
-
-            if (GetPosition() != presenter.position)
-            {
-                presenter.position = GetPosition();
-            }
-        }
 
         public void ElementAddedToGroupNode(GraphElement element)
         {
