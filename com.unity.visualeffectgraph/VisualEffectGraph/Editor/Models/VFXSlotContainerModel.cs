@@ -372,10 +372,20 @@ namespace UnityEditor.VFX
 
         private void SetSettingValue(string name, object value, bool notify)
         {
-            GetType().GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).SetValue(this, value);
-            if (notify)
+            var field = GetType().GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            if (field == null)
             {
-                Invalidate(InvalidationCause.kSettingChanged);
+                throw new ArgumentException(string.Format("Unable to find field {0} in {1}", name, GetType().ToString()));
+            }
+
+            var currentValue = field.GetValue(this);
+            if (currentValue != value)
+            {
+                field.SetValue(this, value);
+                if (notify)
+                {
+                    Invalidate(InvalidationCause.kSettingChanged);
+                }
             }
         }
     }
