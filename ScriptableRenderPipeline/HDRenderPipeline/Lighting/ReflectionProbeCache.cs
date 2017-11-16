@@ -185,7 +185,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         if (result == null)
                             return -1;
 
-                        m_TextureCache.UpdateSlice(cmd, sliceIndex, m_ConvolutionTargetTexture, m_TextureCache.GetTextureUpdateCount(texture)); // Be careful to provide the update count from the input texture, not the temporary one used for convolving.
+                        m_TextureCache.UpdateSlice(cmd, sliceIndex, result, m_TextureCache.GetTextureUpdateCount(texture)); // Be careful to provide the update count from the input texture, not the temporary one used for convolving.
 
                         m_ProbeBakingState[sliceIndex] = ProbeFilteringState.Ready;
                     }
