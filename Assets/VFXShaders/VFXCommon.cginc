@@ -1,18 +1,6 @@
 //Helper to disable bounding box compute code
 #define USE_DYNAMIC_AABB 1
 
-// Pi variables are redefined here as UnityCG.cginc is not included for compute shader as it adds too many unused uniforms to constant buffers
-#ifndef UNITY_CG_INCLUDED
-#define UNITY_PI            3.14159265359f
-#define UNITY_TWO_PI        6.28318530718f
-#define UNITY_FOUR_PI       12.56637061436f
-#define UNITY_INV_PI        0.31830988618f
-#define UNITY_INV_TWO_PI    0.15915494309f
-#define UNITY_INV_FOUR_PI   0.07957747155f
-#define UNITY_HALF_PI       1.57079632679f
-#define UNITY_INV_HALF_PI   0.636619772367f
-#endif
-
 // Special semantics for VFX blocks
 #define RAND randLcg(seed)
 #define RAND2 float2(RAND,RAND)
@@ -49,18 +37,14 @@ struct VFXSampler3D
 #define VFX_DATA_NB_UPDATE              10
 #define VFX_DATA_NB_FREE                11
 
-#ifdef VFX_WORLD_SPACE // World Space
-float3 VFXCameraPos()                   { return _WorldSpaceCameraPos.xyz; }
-float3 VFXCameraLook()                  { return -unity_WorldToCamera[2].xyz; }
-float4x4 VFXCameraMatrix()              { return unity_WorldToCamera; }
-float VFXNearPlaneDist(float3 position) { return mul(unity_WorldToCamera,float4(position,1.0f)).z; }
-float4x4 VFXModelViewProj()             { return UNITY_MATRIX_VP; }
-#elif defined(VFX_LOCAL_SPACE) // Local space
-float3 VFXCameraPos()                   { return mul(unity_WorldToObject,float4(_WorldSpaceCameraPos.xyz,1.0)).xyz; }
-float3 VFXCameraLook()                  { return UNITY_MATRIX_MV[2].xyz; }
-float4x4 VFXCameraMatrix()              { return UNITY_MATRIX_MV; }
-float VFXNearPlaneDist(float3 position) { return -mul(UNITY_MATRIX_MV,float4(position,1.0f)).z; }
-float4x4 VFXModelViewProj()             { return UNITY_MATRIX_MVP; }
+#ifdef VFX_WORLD_SPACE
+float4 TransformPositionVFXToClip(float3 pos)   { return VFXTransformPositionWorldToClip(pos); }
+float3x3 GetVFXToViewRotMatrix()                { return VFXGetWorldToViewRotMatrix(); }
+float3 GetViewVFXPosition()                     { return VFXGetViewWorldPosition(); }
+#else
+float4 TransformPositionVFXToClip(float3 pos)   { return VFXTransformPositionObjectToClip(pos); }
+float3x3 GetVFXToViewRotMatrix()                { return mul(VFXGetWorldToViewRotMatrix(),(float3x3)VFXGetObjectToWorldMatrix()); }
+float3 GetViewVFXPosition()                     { return mul(VFXGetWorldToObjectMatrix(),float4(VFXGetViewWorldPosition(),1.0f)).xyz; }
 #endif
 
 float4 SampleTexture(VFXSampler2D s,float2 coords)

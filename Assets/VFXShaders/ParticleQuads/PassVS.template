@@ -20,7 +20,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 			float3 vPos = position;
 			vPos += TransformInElementSpace(float3(o.VFX_VARYING_UV - 0.5f,0.0f),side,up,front,angle,pivot,size);
 
-			o.VFX_VARYING_POSCS = mul(VFXModelViewProj(), float4(vPos,1.0f));
+			o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
 
 			${VFXVertexCommonProcess}
 			

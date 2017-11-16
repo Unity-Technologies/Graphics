@@ -8,6 +8,8 @@ namespace UnityEditor.VFX
 {
     abstract class VFXAbstractParticleOutput : VFXContext
     {
+        private readonly static bool HDRP = false;
+
         public enum BlendMode
         {
             Additive,
@@ -25,6 +27,7 @@ namespace UnityEditor.VFX
         protected VFXAbstractParticleOutput() : base(VFXContextType.kOutput, VFXDataType.kParticle, VFXDataType.kNone) {}
 
         public override bool codeGeneratorCompute { get { return false; } }
+        public override string renderLoopCommonInclude { get { return !HDRP ? "VFXShaders/Common/VFXCommonLegacy.cginc" : "VFXShaders/Common/VFXCommonHDRP.hlsl"; } }
 
         protected virtual IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
         {

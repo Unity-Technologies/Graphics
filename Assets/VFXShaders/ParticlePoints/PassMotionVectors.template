@@ -7,7 +7,7 @@ Pass
 	ZWrite Off
 	Blend Off
 	
-	CGPROGRAM
+	HLSLPROGRAM
 	#pragma target 4.5
 	
 	float4x4 _NonJitteredVP;
@@ -69,5 +69,5 @@ ${VFXEnd}
 		
 		return o;
 	}
-	ENDCG
+	ENDHLSL
 }

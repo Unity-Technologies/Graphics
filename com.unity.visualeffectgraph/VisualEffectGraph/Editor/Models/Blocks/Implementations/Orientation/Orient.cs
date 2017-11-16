@@ -70,23 +70,23 @@ namespace UnityEditor.VFX.Block
                 {
                     case Mode.FaceCameraPlane:
                         return @"
-float4x4 cameraMat = VFXCameraMatrix();
-front = VFXCameraLook();
-side = cameraMat[0].xyz;
-up = cameraMat[1].xyz;
+float3x3 viewRot = GetVFXToViewRotMatrix();
+side = viewRot[0].xyz;
+up = viewRot[1].xyz;
+front = viewRot[2].xyz;
 ";
 
                     case Mode.FaceCameraPosition:
                         return @"
-front = normalize(VFXCameraPos() - position);
-side = normalize(cross(front,VFXCameraMatrix()[1].xyz));
+front = normalize(GetViewVFXPosition() - position);
+side = normalize(cross(front,GetVFXToViewRotMatrix()[1].xyz));
 up = cross(side,front);
 ";
 
                     case Mode.LookAtPosition:
                         return @"
 front = normalize(Position_position - position);
-side = normalize(cross(front,VFXCameraMatrix()[1].xyz));
+side = normalize(cross(front,GetVFXToViewRotMatrix()[1].xyz));
 up = cross(side,front);
 ";
 
@@ -100,7 +100,7 @@ up = cross(side,front);
                     case Mode.FixedAxis:
                         return @"
 up = Up;
-front = VFXCameraPos() - position;
+front = GetViewVFXPosition() - position;
 side = normalize(cross(front,up));
 front = cross(up,side);
 ";
@@ -108,7 +108,7 @@ front = cross(up,side);
                     case Mode.AlongVelocity:
                         return @"
 up = normalize(velocity);
-front = VFXCameraPos() - position;
+front = GetViewVFXPosition() - position;
 side = normalize(cross(front,up));
 front = cross(up,side);
 ";
