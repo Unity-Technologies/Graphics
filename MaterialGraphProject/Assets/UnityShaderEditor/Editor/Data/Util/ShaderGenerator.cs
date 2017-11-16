@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph
     {
         private static string[] UV = {"uv0", "uv1", "uv2", "uv3"};
         public static int UVCount = 4;
-        
+
         public const string ScreenPosition = "screenPosition";
         public const string VertexColor = "vertexColor";
 
@@ -610,11 +610,8 @@ namespace UnityEditor.ShaderGraph
                         ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.Tangent, inputType, from)), false);
         }
 
-        public static string GetPreviewSubShader(AbstractMaterialNode node, ShaderGraphRequirements shaderGraphRequirements)
+        public static string GetPreviewSubShader(List<INode> activeNodeList, AbstractMaterialNode node, ShaderGraphRequirements shaderGraphRequirements, FloatShaderProperty outputIdProperty, Dictionary<Guid, int> ids)
         {
-            var activeNodeList = ListPool<INode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, node);
-
             var interpolators = new ShaderGenerator();
             var vertexShader = new ShaderGenerator();
             var pixelShader = new ShaderGenerator();
@@ -632,14 +629,33 @@ namespace UnityEditor.ShaderGraph
                 CoordinateSpace.World);
 
             var outputs = new ShaderGenerator();
-            var outputSlot = node.GetOutputSlots<MaterialSlot>().FirstOrDefault();
-            if (outputSlot != null)
+            var currentId = -1;
+            if (node != null)
             {
-                var result = string.Format("surf.{0}", node.GetVariableNameForSlot(outputSlot.id));
-                outputs.AddShaderChunk(string.Format("return {0};", AdaptNodeOutputForPreview(node, outputSlot.id, result)), true);
+                var outputSlot = node.GetOutputSlots<MaterialSlot>().FirstOrDefault();
+                if (outputSlot != null)
+                {
+                    var result = string.Format("surf.{0}", node.GetVariableNameForSlot(outputSlot.id));
+                    outputs.AddShaderChunk(string.Format("return {0};", AdaptNodeOutputForPreview(node, outputSlot.id, result)), true);
+                }
+                else
+                    outputs.AddShaderChunk("return 0;", true);
             }
             else
-                outputs.AddShaderChunk("return 0;", true);
+            {
+                foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
+                {
+                    var outputSlot = activeNode.GetOutputSlots<MaterialSlot>().FirstOrDefault();
+                    if (activeNode.hasPreview && outputSlot != null)
+                    {
+                        currentId++;
+                        ids[activeNode.guid] = currentId;
+                        var result = string.Format("surf.{0}", activeNode.GetVariableNameForSlot(outputSlot.id));
+                        outputs.AddShaderChunk(string.Format("if ({0} == {1}) return {2}; else ", outputIdProperty.referenceName, currentId, AdaptNodeOutputForPreview(activeNode, outputSlot.id, result)), false);
+                    }
+                }
+                outputs.AddShaderChunk("return 0;", false);
+            }
 
             var res = subShaderTemplate.Replace("${Interpolators}", interpolators.GetShaderString(0));
             res = res.Replace("${VertexShader}", vertexShader.GetShaderString(0));
