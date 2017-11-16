@@ -566,9 +566,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Broadcast SSS parameters to all shaders.
                 cmd.SetGlobalInt(HDShaderIDs._EnableSSSAndTransmission, m_CurrentDebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission ? 1 : 0);
-                cmd.SetGlobalInt(HDShaderIDs._TexturingModeFlags, sssParameters.texturingModeFlags);
-                cmd.SetGlobalInt(HDShaderIDs._TransmissionFlags, sssParameters.transmissionFlags);
                 cmd.SetGlobalInt(HDShaderIDs._UseDisneySSS, sssParameters.useDisneySSS ? 1 : 0);
+                unsafe
+                {
+                    // Warning: Unity is not able to losslessly transfer integers larger than 2^24 to the shader system.
+                    // Therefore, we bitcast uint to float in C#, and bitcast back to uint in the shader.
+                    uint texturingModeFlags = sssParameters.texturingModeFlags;
+                    uint transmissionFlags  = sssParameters.transmissionFlags;
+                    cmd.SetGlobalFloat(HDShaderIDs._TexturingModeFlags, *(float*)&texturingModeFlags);
+                    cmd.SetGlobalFloat(HDShaderIDs._TransmissionFlags,  *(float*)&transmissionFlags);
+                }
                 cmd.SetGlobalVectorArray(HDShaderIDs._ThicknessRemaps,            sssParameters.thicknessRemaps);
                 cmd.SetGlobalVectorArray(HDShaderIDs._ShapeParams,                sssParameters.shapeParams);
                 cmd.SetGlobalVectorArray(HDShaderIDs._HalfRcpVariancesAndWeights, sssParameters.halfRcpVariancesAndWeights);
@@ -1263,10 +1270,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // TODO: Remove this once fix, see comment inside the function
                     hdCamera.SetupComputeShader(m_SubsurfaceScatteringCS, cmd);
 
-                    cmd.SetComputeIntParam(        m_SubsurfaceScatteringCS, HDShaderIDs._TexturingModeFlags, sssParameters.texturingModeFlags);
-                    cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, HDShaderIDs._WorldScales,        sssParameters.worldScales);
-                    cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, HDShaderIDs._FilterKernels,      sssParameters.filterKernels);
-                    cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, HDShaderIDs._ShapeParams,        sssParameters.shapeParams);
+                    unsafe
+                    {
+                        // Warning: Unity is not able to losslessly transfer integers larger than 2^24 to the shader system.
+                        // Therefore, we bitcast uint to float in C#, and bitcast back to uint in the shader.
+                        uint texturingModeFlags = sssParameters.texturingModeFlags;
+                        cmd.SetComputeFloatParam(m_SubsurfaceScatteringCS, HDShaderIDs._TexturingModeFlags, *(float*)&texturingModeFlags);
+                    }
+
+                    cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, HDShaderIDs._WorldScales,   sssParameters.worldScales);
+                    cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, HDShaderIDs._FilterKernels, sssParameters.filterKernels);
+                    cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, HDShaderIDs._ShapeParams,   sssParameters.shapeParams);
 
                     cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._GBufferTexture0,  m_GbufferManager.GetGBuffers()[0]);
                     cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._GBufferTexture1,  m_GbufferManager.GetGBuffers()[1]);
