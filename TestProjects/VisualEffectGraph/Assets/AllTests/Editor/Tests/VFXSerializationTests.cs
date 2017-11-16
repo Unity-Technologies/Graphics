@@ -346,7 +346,7 @@ namespace UnityEditor.VFX.Test
         {
             Action<VFXAsset> write = delegate(VFXAsset asset)
                 {
-                    var builtIn = VFXLibrary.GetBuiltInParameters().First(o => o.name == VFXExpressionOp.kVFXTotalTimeOp.ToString()).CreateInstance();
+                    var builtIn = VFXLibrary.GetOperators().First(o => o.name == VFXExpressionOp.kVFXTotalTimeOp.ToString()).CreateInstance();
                     asset.GetOrCreateGraph().AddChild(builtIn);
                     Assert.AreEqual(VFXExpressionOp.kVFXTotalTimeOp, builtIn.outputSlots[0].GetExpression().operation);
                 };
@@ -367,7 +367,7 @@ namespace UnityEditor.VFX.Test
                 {
                     var graph = asset.GetOrCreateGraph();
                     var add = ScriptableObject.CreateInstance<VFXOperatorAdd>();
-                    var builtIn = VFXLibrary.GetBuiltInParameters().First(o => o.name == VFXExpressionOp.kVFXTotalTimeOp.ToString()).CreateInstance();
+                    var builtIn = VFXLibrary.GetOperators().First(o => o.name == VFXExpressionOp.kVFXTotalTimeOp.ToString()).CreateInstance();
                     graph.AddChild(builtIn);
                     graph.AddChild(add);
                     add.inputSlots[0].Link(builtIn.outputSlots[0]);
@@ -405,12 +405,12 @@ namespace UnityEditor.VFX.Test
 
             Action<VFXAsset> write = delegate(VFXAsset asset)
                 {
-                    var sizeCurrent = VFXLibrary.GetCurrentAttributeParameters().First(o => o.name == testAttribute).CreateInstance();
-                    var sizeSource = VFXLibrary.GetSourceAttributeParameters().First(o => o.name == testAttribute).CreateInstance();
+                    var sizeCurrent = VFXLibrary.GetOperators().First(o => o.name.Contains(testAttribute) && o.modelType == typeof(VFXCurrentAttributeParameter)).CreateInstance();
+                    var sizeSource = VFXLibrary.GetOperators().First(o => o.name.Contains(testAttribute) && o.modelType == typeof(VFXSourceAttributeParameter)).CreateInstance();
                     asset.GetOrCreateGraph().AddChild(sizeCurrent);
                     asset.GetOrCreateGraph().AddChild(sizeSource);
-                    test(sizeCurrent, VFXAttributeLocation.Current);
-                    test(sizeSource, VFXAttributeLocation.Source);
+                    test(sizeCurrent as VFXCurrentAttributeParameter, VFXAttributeLocation.Current);
+                    test(sizeSource as VFXSourceAttributeParameter, VFXAttributeLocation.Source);
                 };
 
             Action<VFXAsset> read = delegate(VFXAsset asset)

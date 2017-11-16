@@ -200,7 +200,7 @@ namespace UnityEditor.VFX
         {
             var clone = base.Clone<T>() as VFXSlotContainerModel<ParentType, ChildrenType>;
 
-            var settings = VFXSettingAttribute.Collect(this);
+            var settings = GetSettings(true);
             foreach (var setting in settings)
             {
                 clone.SetSettingValue(setting.Name, setting.GetValue(this), false);
@@ -363,30 +363,5 @@ namespace UnityEditor.VFX
 
         [SerializeField]
         List<VFXSlot> m_OutputSlots;
-
-        // TODO This could be directly in VFXModel and remove from the IVFXSlotContainer interface
-        public void SetSettingValue(string name, object value)
-        {
-            SetSettingValue(name, value, true);
-        }
-
-        private void SetSettingValue(string name, object value, bool notify)
-        {
-            var field = GetType().GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            if (field == null)
-            {
-                throw new ArgumentException(string.Format("Unable to find field {0} in {1}", name, GetType().ToString()));
-            }
-
-            var currentValue = field.GetValue(this);
-            if (currentValue != value)
-            {
-                field.SetValue(this, value);
-                if (notify)
-                {
-                    Invalidate(InvalidationCause.kSettingChanged);
-                }
-            }
-        }
     }
 }

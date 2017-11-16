@@ -119,7 +119,7 @@ namespace UnityEditor.VFX.Test
         public void CloneBuiltInAttribute()
         {
             var builtIn = ScriptableObject.CreateInstance<VFXBuiltInParameter>();
-            builtIn.Init(UnityEngine.VFX.VFXExpressionOp.kVFXTotalTimeOp);
+            builtIn.SetSettingValue("m_expressionOp", UnityEngine.VFX.VFXExpressionOp.kVFXTotalTimeOp);
             Assert.AreEqual(UnityEngine.VFX.VFXExpressionOp.kVFXTotalTimeOp, builtIn.outputSlots[0].GetExpression().operation);
             var copy = builtIn.Clone<VFXBuiltInParameter>();
             Assert.AreEqual(UnityEngine.VFX.VFXExpressionOp.kVFXTotalTimeOp, copy.outputSlots[0].GetExpression().operation);
