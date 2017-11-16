@@ -231,11 +231,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Sets the global MIP-mapped cubemap '_SkyTexture' in the shader.
         // The texture being set is the sky (environment) map pre-convolved with GGX.
-        public void SetGlobalSkyTexture()
+        public void SetGlobalSkyTexture(CommandBuffer cmd)
         {
-            Shader.SetGlobalTexture(HDShaderIDs._SkyTexture, m_SkyboxGGXCubemapRT);
+            cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, m_SkyboxGGXCubemapRT);
             float mipCount = Mathf.Clamp(Mathf.Log((float)m_SkyboxGGXCubemapRT.width, 2.0f) + 1, 0.0f, 6.0f);
-            Shader.SetGlobalFloat(HDShaderIDs._SkyTextureMipCount, mipCount);
+            cmd.SetGlobalFloat(HDShaderIDs._SkyTextureMipCount, mipCount);
         }
 
         public void Resize(float nearPlane, float farPlane)

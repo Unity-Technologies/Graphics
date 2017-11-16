@@ -244,12 +244,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             weightedStdDev.w = Mathf.Lerp(maxStdDev1, maxStdDev2, lerpWeight);
 
             // Store (1 / (2 * WeightedVariance)) per color channel.
-            halfRcpWeightedVariances.Set(
-                0.5f / (weightedStdDev.x * weightedStdDev.x),
-                0.5f / (weightedStdDev.y * weightedStdDev.y),
-                0.5f / (weightedStdDev.z * weightedStdDev.z),
-                0.5f / (weightedStdDev.w * weightedStdDev.w)
-            );
+            // Warning: do not use halfRcpWeightedVariances.Set(). It will not work.
+            halfRcpWeightedVariances = new Vector4(0.5f / (weightedStdDev.x * weightedStdDev.x),
+                                                   0.5f / (weightedStdDev.y * weightedStdDev.y),
+                                                   0.5f / (weightedStdDev.z * weightedStdDev.z),
+                                                   0.5f / (weightedStdDev.w * weightedStdDev.w));
         }
         // <<< Old SSS Model
 
@@ -360,8 +359,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool useDisneySSS = true;
         public SubsurfaceScatteringProfile[] profiles;
 
-        [NonSerialized] public int       texturingModeFlags;        // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
-        [NonSerialized] public int       transmissionFlags;         // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
+        [NonSerialized] public uint      texturingModeFlags;        // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
+        [NonSerialized] public uint      transmissionFlags;         // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
         [NonSerialized] public Vector4[] thicknessRemaps;           // Remap: 0 = start, 1 = end - start
         [NonSerialized] public Vector4[] worldScales;               // Size of the world unit in meters (only the X component is used)
         [NonSerialized] public Vector4[] shapeParams;               // RGB = S = 1 / D, A = filter radius
@@ -464,13 +463,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int i = p + 1;
 
             // Erase previous value (This need to be done here individually as in the SSS editor we edit individual component)
-            int mask = 1 << i;
+            uint mask = 1u << i;
             texturingModeFlags &= ~mask;
-            mask = 3 << i * 2;
+            mask = 3u << i * 2;
             transmissionFlags &= ~mask;
 
-            texturingModeFlags |= (int)profiles[p].texturingMode    << i;
-            transmissionFlags  |= (int)profiles[p].transmissionMode << i * 2;
+            texturingModeFlags |= (uint)profiles[p].texturingMode    << i;
+            transmissionFlags  |= (uint)profiles[p].transmissionMode << i * 2;
 
             thicknessRemaps[i]   = new Vector4(profiles[p].thicknessRemap.x, profiles[p].thicknessRemap.y - profiles[p].thicknessRemap.x, 0f, 0f);
             worldScales[i]       = new Vector4(profiles[p].worldScale, 0f, 0f, 0f);

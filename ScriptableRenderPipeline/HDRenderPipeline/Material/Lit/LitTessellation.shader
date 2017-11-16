@@ -14,6 +14,8 @@ Shader "HDRenderPipeline/LitTessellation"
         _MaskMap("MaskMap", 2D) = "white" {}
         _SmoothnessRemapMin("SmoothnessRemapMin", Float) = 0.0
         _SmoothnessRemapMax("SmoothnessRemapMax", Float) = 1.0
+        _AORemapMin("AORemapMin", Float) = 0.0
+        _AORemapMax("AORemapMax", Float) = 1.0
 
         _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
         _NormalMapOS("NormalMapOS", 2D) = "white" {} // Object space normal map - no good default value
@@ -72,6 +74,8 @@ Shader "HDRenderPipeline/LitTessellation"
         [HideInInspector] _DistortionBlurDstBlend("Distortion Blur Blend Dst", Int) = 0
         [HideInInspector] _DistortionBlurBlendMode("Distortion Blur Blend Mode", Int) = 0
         _DistortionScale("Distortion Scale", Float) = 1
+        _DistortionVectorScale("Distortion Vector Scale", Float) = 2
+        _DistortionVectorBias("Distortion Vector Bias", Float) = -1
         _DistortionBlurScale("Distortion Blur Scale", Float) = 1
         _DistortionBlurRemapMin("DistortionBlurRemapMin", Float) = 0.0
         _DistortionBlurRemapMax("DistortionBlurRemapMax", Float) = 1.0
@@ -234,6 +238,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
     #include "../../../Core/ShaderLibrary/common.hlsl"
     #include "../../../Core/ShaderLibrary/Wind.hlsl"
+    #include "../../../Core/ShaderLibrary/GeometricTools.hlsl"
     #include "../../../Core/ShaderLibrary/tessellation.hlsl"
     #include "../../ShaderPass/FragInputs.hlsl"
     #include "../../ShaderPass/ShaderPass.cs.hlsl"
