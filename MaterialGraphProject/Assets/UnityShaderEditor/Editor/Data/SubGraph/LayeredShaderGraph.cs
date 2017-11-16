@@ -273,12 +273,12 @@ struct GraphVertexInput
                     GenerateSurfaceDescription(
                         activeNodes,
                         layer.Value.masterNode as AbstractMaterialNode,
+                        this,
                         surfaceDescriptionFunction,
                         shaderFunctionVisitor,
                         shaderProperties,
                         requirements,
                         mode,
-                        true,
                         LayerToFunctionName(layer.Key));
                 }
 
@@ -296,12 +296,12 @@ struct GraphVertexInput
                 GenerateSurfaceDescription(
                     activeNodes,
                     outputNode,
+                    this,
                     surfaceDescriptionFunction,
                     shaderFunctionVisitor,
                     shaderProperties,
                     requirements,
                     mode,
-                    true,
                     "PopulateWeightsGraph",
                     "WeightsSurfaceDescription");
 
