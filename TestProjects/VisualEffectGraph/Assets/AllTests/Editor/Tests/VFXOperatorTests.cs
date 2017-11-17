@@ -183,7 +183,7 @@ namespace UnityEditor.VFX.Test
         {
             foreach (var attribute in VFXAttribute.All)
             {
-                var desc = VFXLibrary.GetCurrentAttributeParameters().First(p => p.name == attribute);
+                var desc = VFXLibrary.GetOperators().First(p => p.name.Contains(attribute) && p.modelType == typeof(VFXCurrentAttributeParameter));
                 var a = desc.CreateInstance();
                 var b = desc.CreateInstance();
                 Assert.IsNotNull(a);
@@ -202,7 +202,7 @@ namespace UnityEditor.VFX.Test
         {
             foreach (var operation in VFXBuiltInExpression.All)
             {
-                var desc = VFXLibrary.GetBuiltInParameters().First(p => p.name == operation.ToString());
+                var desc = VFXLibrary.GetOperators().First(p => p.name == operation.ToString());
                 var a = desc.CreateInstance();
                 var b = desc.CreateInstance();
                 Assert.IsNotNull(a);

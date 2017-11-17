@@ -15,41 +15,45 @@ namespace UnityEditor.VFX
             m_UICollapsed = false;
         }
 
-        [SerializeField]
+        [VFXSetting, SerializeField]
         private string m_exposedName;
-        [SerializeField]
+        [VFXSetting, SerializeField]
         private bool m_exposed;
-        [SerializeField]
-        public int order;
-
-
-        // parameter control data;
+        [VFXSetting, SerializeField]
+        private int m_order;
+        [VFXSetting, SerializeField]
         public VFXSerializableObject m_Min;
+        [VFXSetting, SerializeField]
         public VFXSerializableObject m_Max;
 
         public string exposedName
         {
-            get { return m_exposedName; }
-            set
+            get
             {
-                if (m_exposedName != value)
-                {
-                    m_exposedName = value;
-                    Invalidate(InvalidationCause.kParamChanged); // TODO needs a special event for that
-                }
+                return m_exposedName;
             }
         }
 
         public bool exposed
         {
-            get { return m_exposed; }
-            set
+            get
             {
-                if (m_exposed != value)
-                {
-                    m_exposed = value;
-                    Invalidate(InvalidationCause.kExpressionGraphChanged); // Tmp
-                }
+                return m_exposed;
+            }
+        }
+
+        public int order
+        {
+            get { return m_order; }
+        }
+
+        protected override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                yield return "m_order";
+                yield return "m_Min";
+                yield return "m_Max";
             }
         }
 
