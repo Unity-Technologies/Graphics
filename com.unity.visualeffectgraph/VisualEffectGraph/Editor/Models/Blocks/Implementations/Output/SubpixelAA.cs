@@ -27,7 +27,7 @@ namespace UnityEditor.VFX.Block
             get
             {
                 string outSource = @"
-float clipPosW = mul(VFXModelViewProj(),float4(position,1.0f)).w;
+float clipPosW = TransformPositionVFXToClip(position).w;
 float minSize = clipPosW / (0.5f * min(UNITY_MATRIX_P[0][0] * _ScreenParams.x,-UNITY_MATRIX_P[1][1] * _ScreenParams.y)); // max size in one pixel
 float2 clampedSize = max(size,minSize);
 float fade = (size.x * size.y) / (clampedSize.x * clampedSize.y);

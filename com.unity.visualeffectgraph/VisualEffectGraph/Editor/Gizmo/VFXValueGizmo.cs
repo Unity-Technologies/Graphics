@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.UI
     {
         object value { get; set; }
 
-        System.Type anchorType { get; }
+        System.Type portType { get; }
     }
 
 
@@ -73,7 +73,7 @@ namespace UnityEditor.VFX.UI
         static internal void Draw(IValuePresenter anchor, VFXComponent component)
         {
             System.Action<IValuePresenter, VFXComponent> func;
-            if (s_DrawFunctions.TryGetValue(anchor.anchorType, out func))
+            if (s_DrawFunctions.TryGetValue(anchor.portType, out func))
             {
                 func(anchor, component);
             }

@@ -50,8 +50,6 @@ namespace UnityEditor.VFX.UI
 
 
             m_Element.AddManipulator(new Rotate3DManipulator(m_Element));
-
-            layer = 2;
         }
 
         public override void OnDataChanged()

@@ -22,6 +22,17 @@ VFXFlowAnchor.EdgeConnector {
 	background-image:resource("VFX/flow-anchor");
 }
 
+VFXFlowAnchor #connector #hole #cap{
+	width:0;
+	height:0;
+}
+
+VFXFlowAnchor #connector.portHighlight #hole #cap{
+    background-color: rgb(220, 220, 220);
+    border-color: rgb(220, 220, 220);
+}
+
+
 VFXFlowAnchor #connector{
 	position-type:absolute;
 	position-left:0;
@@ -34,7 +45,7 @@ VFXFlowAnchor.connected #connector
 {
 }
 
-VFXFlowAnchor #connector.anchorHighlight{
+VFXFlowAnchor #connector.portHighlight{
 	background-image:resource("VFX/flow-anchor-highlight");
 }
 
@@ -42,6 +53,7 @@ VFXFlowEdge.edge
 {
 	edge-width:4;
 	border-color : rgba(146,146,146,255);
+	layer:1;
 }
 
 VFXFlowEdge.edge.selected

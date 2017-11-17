@@ -1,4 +1,4 @@
-// Motion Vectors pass
+// Shadow pass
 Pass
 {		
 	Tags { "LightMode"="ShadowCaster" }
@@ -6,7 +6,7 @@ Pass
 	ZWrite On
 	Blend Off
 
-	CGPROGRAM
+	HLSLPROGRAM
 	#pragma target 4.5
 	
 	struct ps_input
@@ -41,5 +41,5 @@ ${VFXEnd}
 		VFXClipFragmentColor(alpha,i);
 		return 0;
 	}
-	ENDCG
+	ENDHLSL
 }

@@ -43,8 +43,8 @@ namespace UnityEditor.VFX.UIElements
 
     class Vector2Field : VFXControl<Vector2>
     {
-        LabeledField<DoubleField, double> m_X;
-        LabeledField<DoubleField, double> m_Y;
+        LabeledField<FloatField, float> m_X;
+        LabeledField<FloatField, float> m_Y;
 
         public bool dynamicUpdate
         {
@@ -60,26 +60,26 @@ namespace UnityEditor.VFX.UIElements
         }
         void CreateTextField()
         {
-            m_X = new LabeledField<DoubleField, double>("X");
-            m_Y = new LabeledField<DoubleField, double>("Y");
+            m_X = new LabeledField<FloatField, float>("X");
+            m_Y = new LabeledField<FloatField, float>("Y");
 
             m_X.control.AddToClassList("fieldContainer");
             m_Y.control.AddToClassList("fieldContainer");
             m_X.AddToClassList("fieldContainer");
             m_Y.AddToClassList("fieldContainer");
 
-            m_X.RegisterCallback<ChangeEvent<double>>(OnXValueChanged);
-            m_Y.RegisterCallback<ChangeEvent<double>>(OnYValueChanged);
+            m_X.RegisterCallback<ChangeEvent<float>>(OnXValueChanged);
+            m_Y.RegisterCallback<ChangeEvent<float>>(OnYValueChanged);
         }
 
-        void OnXValueChanged(ChangeEvent<double> e)
+        void OnXValueChanged(ChangeEvent<float> e)
         {
             Vector2 newValue = value;
             newValue.x = (float)m_X.value;
             SetValueAndNotify(newValue);
         }
 
-        void OnYValueChanged(ChangeEvent<double> e)
+        void OnYValueChanged(ChangeEvent<float> e)
         {
             Vector2 newValue = value;
             newValue.y = (float)m_Y.value;

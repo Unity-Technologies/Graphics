@@ -41,7 +41,7 @@ namespace UnityEditor.VFX.UI
         protected new void OnEnable()
         {
             base.OnEnable();
-            capabilities |= Capabilities.Deletable | Capabilities.SendToFrontOnSelection;
+            capabilities |= Capabilities.Deletable | Capabilities.Ascendable;
         }
 
         public override void OnRemoveFromGraph()
@@ -66,8 +66,8 @@ namespace UnityEditor.VFX.UI
             UnregisterAnchors();
 
             m_SlotPresenter = CreateInstance<VFXContextSlotContainerPresenter>();
-            inputAnchors.Clear();
-            outputAnchors.Clear();
+            inputPorts.Clear();
+            outputPorts.Clear();
 
             base.Init(model, viewPresenter);
 
@@ -190,8 +190,8 @@ namespace UnityEditor.VFX.UI
             get
             {
                 return Enumerable.Repeat((GraphElementPresenter)this, 1)
-                    .Concat(inputAnchors.Cast<GraphElementPresenter>())
-                    .Concat(outputAnchors.Cast<GraphElementPresenter>())
+                    .Concat(inputPorts.Cast<GraphElementPresenter>())
+                    .Concat(outputPorts.Cast<GraphElementPresenter>())
                     .Concat(flowInputAnchors.Cast<GraphElementPresenter>())
                     .Concat(flowOutputAnchors.Cast<GraphElementPresenter>())
                     .Concat(blockPresenters.Cast<GraphElementPresenter>());

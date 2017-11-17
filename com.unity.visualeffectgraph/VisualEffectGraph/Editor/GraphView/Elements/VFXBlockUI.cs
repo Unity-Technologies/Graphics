@@ -9,17 +9,17 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXBlockUI : VFXContextSlotContainerUI, IDropTarget, IEdgeDrawerOwner
+    class VFXBlockUI : VFXContextSlotContainerUI, IDropTarget, IEdgeDrawerContainer
     {
         Toggle m_EnableToggle;
 
 
-        public void DirtyDrawer()
+        void IEdgeDrawerContainer.EdgeDirty()
         {
             VFXContextUI contextUI = GetFirstAncestorOfType<VFXContextUI>();
 
             if (contextUI != null)
-                contextUI.DirtyDrawer();
+                (contextUI as IEdgeDrawerContainer).EdgeDirty();
         }
 
         public VFXBlockUI()
@@ -32,7 +32,9 @@ namespace UnityEditor.VFX.UI
 
 
             this.AddManipulator(new Collapser());
-            capabilities &= ~Capabilities.SendToFrontOnSelection;
+            capabilities &= ~Capabilities.Ascendable;
+
+            edgeDrawer.RemoveFromHierarchy();
         }
 
         void OnToggleEnable()

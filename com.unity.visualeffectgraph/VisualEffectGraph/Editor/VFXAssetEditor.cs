@@ -165,7 +165,7 @@ public class VFXAssetEditor : Editor
         toggleRect.width = labelWidth + toggleWidth;
         toggleRect.height = lineHeight;
 
-        infos.adv = EditorGUI.Foldout(toggleRect, infos.adv, string.Format("{0} : name ({1})", parameter.order + 1, parameter.anchorType.UserFriendlyName()));
+        infos.adv = EditorGUI.Foldout(toggleRect, infos.adv, string.Format("{0} : name ({1})", parameter.order + 1, parameter.portType.UserFriendlyName()));
 
         Rect fieldRect = rect;
 
@@ -182,7 +182,7 @@ public class VFXAssetEditor : Editor
         {
             if (infos.propertyIM == null)
             {
-                infos.propertyIM = VFXPropertyIM.Create(parameter.anchorType, labelWidth);
+                infos.propertyIM = VFXPropertyIM.Create(parameter.portType, labelWidth);
             }
 
             if (infos.propertyIM != null)
@@ -212,7 +212,7 @@ public class VFXAssetEditor : Editor
                         {
                             object val = parameter.minValue;
                             if (val == null)
-                                val = System.Activator.CreateInstance(parameter.anchorType);
+                                val = System.Activator.CreateInstance(parameter.portType);
 
                             toggleRect.xMin = toggleRect.xMax;
                             toggleRect.xMax = areaRect.xMax;
@@ -233,7 +233,7 @@ public class VFXAssetEditor : Editor
                         {
                             object val = parameter.maxValue;
                             if (val == null)
-                                val = System.Activator.CreateInstance(parameter.anchorType);
+                                val = System.Activator.CreateInstance(parameter.portType);
 
                             toggleRect.xMin = toggleRect.xMax;
                             toggleRect.xMax = areaRect.xMax;
@@ -252,7 +252,7 @@ public class VFXAssetEditor : Editor
                         {
                             object val = parameter.maxValue;
                             if (val == null)
-                                val = System.Activator.CreateInstance(parameter.anchorType);
+                                val = System.Activator.CreateInstance(parameter.portType);
                             val = infos.propertyIM.OnGUI("max", val);
                             if (maxChecked)
                                 parameter.maxValue = val;

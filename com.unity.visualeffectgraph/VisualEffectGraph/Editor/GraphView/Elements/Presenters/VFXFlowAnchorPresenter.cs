@@ -5,7 +5,7 @@ using UnityEditor.Experimental.UIElements.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
-    abstract class VFXFlowAnchorPresenter : NodeAnchorPresenter
+    abstract class VFXFlowAnchorPresenter : PortPresenter
     {
         [SerializeField]
         private VFXContext m_Owner;
@@ -19,7 +19,7 @@ namespace UnityEditor.VFX.UI
         {
             m_Owner = owner;
             m_SlotIndex = slotIndex;
-            anchorType = typeof(int); // We dont care about that atm!
+            portType = typeof(int); // We dont care about that atm!
             orientation = Orientation.Vertical;
         }
     }

@@ -400,20 +400,20 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override List<NodeAnchor> GetCompatibleAnchors(NodeAnchor startAnchor, NodeAdapter nodeAdapter)
+        public override List<Port> GetCompatiblePorts(Port startAnchor, NodeAdapter nodeAdapter)
         {
             VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
             if (presenter == null) return null;
 
-            var presenters = presenter.GetCompatibleAnchors(startAnchor.GetPresenter<NodeAnchorPresenter>(), nodeAdapter);
+            var presenters = presenter.GetCompatiblePorts(startAnchor.GetPresenter<PortPresenter>(), nodeAdapter);
 
             if (startAnchor is VFXDataAnchor)
             {
-                return presenters.Select(t => (NodeAnchor)GetDataAnchorByPresenter(t as VFXDataAnchorPresenter)).ToList();
+                return presenters.Select(t => (Port)GetDataAnchorByPresenter(t as VFXDataAnchorPresenter)).ToList();
             }
             else
             {
-                return presenters.Select(t => (NodeAnchor)GetFlowAnchorByPresenter(t as VFXFlowAnchorPresenter)).ToList();
+                return presenters.Select(t => (Port)GetFlowAnchorByPresenter(t as VFXFlowAnchorPresenter)).ToList();
             }
         }
 
@@ -427,6 +427,8 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
+
+        VFXViewPresenter m_OldPresenter;
 
         public override void OnDataChanged()
         {
@@ -471,6 +473,16 @@ namespace UnityEditor.VFX.UI
                     Add(m_NoAssetLabel);
                 }
             }
+
+            if (m_OldPresenter != presenter && panel != null)
+            {
+                BaseVisualElementPanel panel = this.panel as BaseVisualElementPanel;
+
+
+                panel.scheduler.ScheduleOnce(t => { panel.ValidateLayout(); FrameAll(); } , 100);
+
+                m_OldPresenter = presenter;
+            }
         }
 
         public VFXDataAnchor GetDataAnchorByPresenter(VFXDataAnchorPresenter presenter)
@@ -498,19 +510,19 @@ namespace UnityEditor.VFX.UI
                         var context = element as VFXContextUI;
 
 
-                        foreach (VFXDataAnchor anchor in context.ownData.GetAnchors(input, output))
+                        foreach (VFXDataAnchor anchor in context.ownData.GetPorts(input, output))
                             yield return anchor;
 
                         foreach (VFXBlockUI block in context.GetAllBlocks())
                         {
-                            foreach (VFXDataAnchor anchor in block.GetAnchors(input, output))
+                            foreach (VFXDataAnchor anchor in block.GetPorts(input, output))
                                 yield return anchor;
                         }
                     }
                     else if (element is VFXNodeUI)
                     {
                         var ope = element as VFXNodeUI;
-                        foreach (VFXDataAnchor anchor in ope.GetAnchors(input, output))
+                        foreach (VFXDataAnchor anchor in ope.GetPorts(input, output))
                             yield return anchor;
                     }
                 }
@@ -548,7 +560,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override IEnumerable<NodeAnchor> GetAllAnchors(bool input, bool output)
+        public override IEnumerable<Port> GetAllPorts(bool input, bool output)
         {
             foreach (var anchor in GetAllDataAnchors(input, output))
             {
@@ -594,7 +606,7 @@ namespace UnityEditor.VFX.UI
         {
             VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
             if (presenter == null) return;
-            presenter.AddVFXParameter(contentViewContainer.GlobalToBound(evt.imguiEvent.mousePosition), VFXLibrary.GetParameters().FirstOrDefault(t => t.name == parameter.anchorType.UserFriendlyName()));
+            presenter.AddVFXParameter(contentViewContainer.GlobalToBound(evt.imguiEvent.mousePosition), VFXLibrary.GetParameters().FirstOrDefault(t => t.name == parameter.portType.UserFriendlyName()));
         }
 
         void SelectionUpdated()

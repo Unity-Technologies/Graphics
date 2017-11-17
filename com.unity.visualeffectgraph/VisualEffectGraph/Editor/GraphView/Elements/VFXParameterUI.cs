@@ -13,27 +13,41 @@ namespace UnityEditor.VFX.UI
     {
         PropertyRM m_Property;
         PropertyRM[] m_SubProperties;
-        VFXPropertyIM m_PropertyIM;
-        IMGUIContainer m_Container;
 
         public VFXParameterUI()
         {
-            VisualElement exposedLabel = new VisualElement();
-            exposedLabel.text = "exposed";
-            exposedLabel.AddToClassList("label");
-            VisualElement exposedNameLabel = new VisualElement();
-            exposedNameLabel.text = "name";
-            exposedNameLabel.AddToClassList("label");
         }
 
-        void OnGUI()
+        protected override void OnStyleResolved(ICustomStyle style)
         {
-            if (m_PropertyIM != null)
+            base.OnStyleResolved(style);
+
+            float labelWidth = 70;
+            float controlWidth = 120;
+
+            var properties = inputContainer.Query().OfType<PropertyRM>().ToList();
+
+            foreach (var port in properties)
             {
-                var presenter = GetPresenter<VFXParameterPresenter>();
-                var all = presenter.allChildren.OfType<VFXDataAnchorPresenter>();
-                m_PropertyIM.OnGUI(all.FirstOrDefault());
+                float portLabelWidth = port.GetPreferredLabelWidth();
+                float portControlWidth = port.GetPreferredControlWidth();
+
+                if (labelWidth < portLabelWidth)
+                {
+                    labelWidth = portLabelWidth;
+                }
+                if (controlWidth < portControlWidth)
+                {
+                    controlWidth = portControlWidth;
+                }
             }
+
+            foreach (var port in properties)
+            {
+                port.SetLabelWidth(labelWidth);
+            }
+
+            inputContainer.style.width = labelWidth + controlWidth;
         }
 
         public override void OnDataChanged()
@@ -43,7 +57,7 @@ namespace UnityEditor.VFX.UI
             if (presenter == null)
                 return;
 
-            if (m_Property == null && m_PropertyIM == null)
+            if (m_Property == null)
             {
                 m_Property = PropertyRM.Create(presenter, 55);
                 if (m_Property != null)
@@ -61,13 +75,6 @@ namespace UnityEditor.VFX.UI
                             inputContainer.Add(m_SubProperties[i]);
                         }
                     }
-                }
-                else
-                {
-                    m_PropertyIM = VFXPropertyIM.Create(presenter.anchorType, 55);
-
-                    m_Container = new IMGUIContainer(OnGUI) { name = "IMGUI" };
-                    inputContainer.Add(m_Container);
                 }
             }
             if (m_Property != null)

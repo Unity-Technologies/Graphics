@@ -3,6 +3,7 @@ using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEditor.Experimental.UIElements;
 using System.Collections.Generic;
+using FloatField = UnityEditor.Experimental.UIElements.FloatField;
 
 namespace UnityEditor.VFX.UIElements
 {
@@ -76,7 +77,7 @@ namespace UnityEditor.VFX.UIElements
             SetValueAndNotify(e.newValue);
         }
     }
-    class DoubleSliderField : BaseSliderField<double>
+    class DoubleSliderField : BaseSliderField<float>
     {
         public DoubleSliderField()
         {
@@ -84,8 +85,8 @@ namespace UnityEditor.VFX.UIElements
             m_Slider.AddToClassList("textfield");
             m_Slider.valueChanged += ValueChanged;
 
-            var doubleField = new DoubleField();
-            doubleField.RegisterCallback<ChangeEvent<double>>(ValueChanged);
+            var doubleField = new UnityEditor.Experimental.UIElements.FloatField();
+            doubleField.RegisterCallback<ChangeEvent<float>>(ValueChanged);
             doubleField.dynamicUpdate = true;
             doubleField.name = "Field";
             m_Field = doubleField;
@@ -94,14 +95,14 @@ namespace UnityEditor.VFX.UIElements
             Add(doubleField);
         }
 
-        protected override float ValueToFloat(double value)
+        protected override float ValueToFloat(float value)
         {
-            return (float)value;
+            return value;
         }
 
         void ValueChanged(float newValue)
         {
-            SetValueAndNotify((double)newValue);
+            SetValueAndNotify(newValue);
         }
     }
     class IntSliderField : BaseSliderField<long>
