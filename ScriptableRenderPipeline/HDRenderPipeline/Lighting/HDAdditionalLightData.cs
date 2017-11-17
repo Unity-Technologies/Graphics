@@ -23,6 +23,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [RequireComponent(typeof(Light))]
     public class HDAdditionalLightData : MonoBehaviour
     {
+ #pragma warning disable 414 // CS0414 The private field '...' is assigned but its value is never used
+        // We can't rely on Unity for our additional data, we need to version it ourself.
+        [SerializeField]
+        float m_Version = 1.0f;
+ #pragma warning restore 414
+            
         [Range(0.0f, 100.0f)]
         [FormerlySerializedAs("m_innerSpotPercent")]
         public float m_InnerSpotPercent = 0.0f; // To display this field in the UI this need to be public
