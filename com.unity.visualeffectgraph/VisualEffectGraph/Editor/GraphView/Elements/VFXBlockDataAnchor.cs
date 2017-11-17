@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.UI
 
         public static new VFXBlockDataAnchor Create(VFXDataAnchorPresenter presenter)
         {
-            var anchor = new VFXBlockDataAnchor(presenter.orientation, presenter.direction, presenter.anchorType);
+            var anchor = new VFXBlockDataAnchor(presenter.orientation, presenter.direction, presenter.portType);
             anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
             anchor.presenter = presenter;
 

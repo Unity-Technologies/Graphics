@@ -31,10 +31,10 @@ namespace UnityEditor.VFX.UI
         public List<VFXFlowAnchorPresenter> m_FlowAnchorPresenters;
 
         [SerializeField]
-        public Dictionary<Type, List<NodeAnchorPresenter>> m_DataInputAnchorPresenters = new Dictionary<Type, List<NodeAnchorPresenter>>();
+        public Dictionary<Type, List<PortPresenter>> m_DataInputAnchorPresenters = new Dictionary<Type, List<PortPresenter>>();
 
         [SerializeField]
-        public Dictionary<Type, List<NodeAnchorPresenter>> m_DataOutputAnchorPresenters = new Dictionary<Type, List<NodeAnchorPresenter>>();
+        public Dictionary<Type, List<PortPresenter>> m_DataOutputAnchorPresenters = new Dictionary<Type, List<PortPresenter>>();
 
         // Model / Presenters synchronization
         private Dictionary<VFXModel, VFXNodePresenter> m_SyncedModels = new Dictionary<VFXModel, VFXNodePresenter>();
@@ -70,10 +70,10 @@ namespace UnityEditor.VFX.UI
                 m_FlowAnchorPresenters = new List<VFXFlowAnchorPresenter>();
 
             if (m_DataOutputAnchorPresenters == null)
-                m_DataOutputAnchorPresenters = new Dictionary<Type, List<NodeAnchorPresenter>>();
+                m_DataOutputAnchorPresenters = new Dictionary<Type, List<PortPresenter>>();
 
             if (m_DataInputAnchorPresenters == null)
-                m_DataInputAnchorPresenters = new Dictionary<Type, List<NodeAnchorPresenter>>();
+                m_DataInputAnchorPresenters = new Dictionary<Type, List<PortPresenter>>();
 
             if (m_VFXAsset)
             {
@@ -138,8 +138,8 @@ namespace UnityEditor.VFX.UI
 
                 if (operatorPresenterFrom != null && operatorPresenterTo != null)
                 {
-                    var anchorFrom = operatorPresenterFrom.outputAnchors.FirstOrDefault(o => (o as VFXDataAnchorPresenter).model == input.refSlot);
-                    var anchorTo = operatorPresenterTo.inputAnchors.FirstOrDefault(o => (o as VFXDataAnchorPresenter).model == input);
+                    var anchorFrom = operatorPresenterFrom.outputPorts.FirstOrDefault(o => (o as VFXDataAnchorPresenter).model == input.refSlot);
+                    var anchorTo = operatorPresenterTo.inputPorts.FirstOrDefault(o => (o as VFXDataAnchorPresenter).model == input);
 
                     var edgePresenter = m_Elements.OfType<VFXDataEdgePresenter>().FirstOrDefault(t => t.input == anchorTo && t.output == anchorFrom);
 
@@ -326,11 +326,13 @@ namespace UnityEditor.VFX.UI
 
                 var inputAnchor = flowEdge.input as VFXFlowAnchorPresenter;
                 var outputAnchor = flowEdge.output as VFXFlowAnchorPresenter;
+                if (inputAnchor != null && outputAnchor != null)
+                {
+                    var contextInput = inputAnchor.Owner as VFXContext;
+                    var contextOutput = outputAnchor.Owner as VFXContext;
 
-                var contextInput = inputAnchor.Owner as VFXContext;
-                var contextOutput = outputAnchor.Owner as VFXContext;
-
-                contextInput.UnlinkFrom(contextOutput, outputAnchor.slotIndex, inputAnchor.slotIndex);
+                    contextInput.UnlinkFrom(contextOutput, outputAnchor.slotIndex, inputAnchor.slotIndex);
+                }
             }
             else if (element is VFXDataEdgePresenter)
             {
@@ -369,14 +371,14 @@ namespace UnityEditor.VFX.UI
 
         public void RegisterDataAnchorPresenter(VFXDataAnchorPresenter presenter)
         {
-            List<NodeAnchorPresenter> list;
+            List<PortPresenter> list;
 
-            Dictionary<Type, List<NodeAnchorPresenter>> dict = presenter.direction == Direction.Input ? m_DataInputAnchorPresenters : m_DataOutputAnchorPresenters;
+            Dictionary<Type, List<PortPresenter>> dict = presenter.direction == Direction.Input ? m_DataInputAnchorPresenters : m_DataOutputAnchorPresenters;
 
-            if (!dict.TryGetValue(presenter.anchorType, out list))
+            if (!dict.TryGetValue(presenter.portType, out list))
             {
-                list = new List<NodeAnchorPresenter>();
-                dict[presenter.anchorType] = list;
+                list = new List<PortPresenter>();
+                dict[presenter.portType] = list;
             }
             if (!list.Contains(presenter))
                 list.Add(presenter);
@@ -384,10 +386,10 @@ namespace UnityEditor.VFX.UI
 
         public void UnregisterDataAnchorPresenter(VFXDataAnchorPresenter presenter)
         {
-            Dictionary<Type, List<NodeAnchorPresenter>> dict = presenter.direction == Direction.Input ? m_DataInputAnchorPresenters : m_DataOutputAnchorPresenters;
+            Dictionary<Type, List<PortPresenter>> dict = presenter.direction == Direction.Input ? m_DataInputAnchorPresenters : m_DataOutputAnchorPresenters;
 
-            List<NodeAnchorPresenter> result;
-            if (dict.TryGetValue(presenter.anchorType, out result))
+            List<PortPresenter> result;
+            if (dict.TryGetValue(presenter.portType, out result))
             {
                 result.Remove(presenter);
             }
@@ -419,14 +421,14 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchorPresenter, NodeAdapter nodeAdapter)
+        public override List<PortPresenter> GetCompatiblePorts(PortPresenter startAnchorPresenter, NodeAdapter nodeAdapter)
         {
             if (startAnchorPresenter is VFXDataAnchorPresenter)
             {
                 var allSlotContainerPresenters = AllSlotContainerPresenters;
 
 
-                IEnumerable<NodeAnchorPresenter> allCandidates = Enumerable.Empty<NodeAnchorPresenter>();
+                IEnumerable<PortPresenter> allCandidates = Enumerable.Empty<PortPresenter>();
 
                 if (startAnchorPresenter.direction == Direction.Input)
                 {
@@ -438,7 +440,7 @@ namespace UnityEditor.VFX.UI
                         CollectChildOperator(currentOperator, childrenOperators);
                         allSlotContainerPresenters = allSlotContainerPresenters.Where(o => !childrenOperators.Contains(o.slotContainer));
                         var toSlot = startAnchorOperatorPresenter.model;
-                        allCandidates = allSlotContainerPresenters.SelectMany(o => o.outputAnchors).Where(o =>
+                        allCandidates = allSlotContainerPresenters.SelectMany(o => o.outputPorts).Where(o =>
                             {
                                 var candidate = o as VFXDataAnchorPresenter;
                                 return toSlot.CanLink(candidate.model) && candidate.model.CanLink(toSlot);
@@ -455,7 +457,7 @@ namespace UnityEditor.VFX.UI
                     var parentOperators = new HashSet<IVFXSlotContainer>();
                     CollectParentOperator(currentOperator, parentOperators);
                     allSlotContainerPresenters = allSlotContainerPresenters.Where(o => !parentOperators.Contains(o.slotContainer));
-                    allCandidates = allSlotContainerPresenters.SelectMany(o => o.inputAnchors).Where(o =>
+                    allCandidates = allSlotContainerPresenters.SelectMany(o => o.inputPorts).Where(o =>
                         {
                             var candidate = o as VFXDataAnchorPresenter;
                             var toSlot = candidate.model;
@@ -463,18 +465,18 @@ namespace UnityEditor.VFX.UI
                         }).ToList();
 
                     // For edge starting with an output, we must add all data anchors from all blocks
-                    List<NodeAnchorPresenter> presenters;
-                    /*if (!m_DataInputAnchorPresenters.TryGetValue(startAnchorPresenter.anchorType, out presenters))
+                    List<PortPresenter> presenters;
+                    /*if (!m_DataInputAnchorPresenters.TryGetValue(startAnchorPresenter.portType, out presenters))
                     {
-                        presenters = new List<NodeAnchorPresenter>();
-                        m_DataInputAnchorPresenters[startAnchorPresenter.anchorType] = presenters;
+                        presenters = new List<PortPresenter>();
+                        m_DataInputAnchorPresenters[startAnchorPresenter.portType] = presenters;
                     }
                     else
                     {
-                        presenters = m_DataInputAnchorPresenters[startAnchorPresenter.anchorType];
+                        presenters = m_DataInputAnchorPresenters[startAnchorPresenter.portType];
                     }
                     */
-                    presenters = new List<NodeAnchorPresenter>();
+                    presenters = new List<PortPresenter>();
 
                     allCandidates = allCandidates.Concat(presenters);
                 }
@@ -483,7 +485,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                var res = new List<NodeAnchorPresenter>();
+                var res = new List<PortPresenter>();
 
                 if (!(startAnchorPresenter is VFXFlowAnchorPresenter))
                     return res;

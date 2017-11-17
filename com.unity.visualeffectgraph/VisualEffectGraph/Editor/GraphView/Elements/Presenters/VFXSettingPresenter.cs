@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.UI
 
         System.Type m_SettingType;
 
-        public System.Type anchorType { get { return m_SettingType; } }
+        public System.Type portType { get { return m_SettingType; } }
 
         public override UnityEngine.Object[] GetObjectsToWatch()
         {
@@ -32,9 +32,9 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                if (anchorType != null)
+                if (portType != null)
                 {
-                    return VFXConverter.ConvertTo(owner.GetType().GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).GetValue(owner), anchorType);
+                    return VFXConverter.ConvertTo(owner.GetType().GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).GetValue(owner), portType);
                 }
                 else
                 {
@@ -44,7 +44,7 @@ namespace UnityEditor.VFX.UI
 
             set
             {
-                m_Owner.SetSettingValue(name, VFXConverter.ConvertTo(value, anchorType));
+                m_Owner.SetSettingValue(name, VFXConverter.ConvertTo(value, portType));
             }
         }
 
@@ -71,7 +71,7 @@ namespace UnityEditor.VFX.UI
 
         public virtual string iconName
         {
-            get { return anchorType.Name; }
+            get { return portType.Name; }
         }
 
         public bool editable

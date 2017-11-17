@@ -38,9 +38,9 @@ namespace UnityEditor.VFX.UI
 
         PropertyRM m_Property;
         PropertyRM[] m_SubProperties;
-        VFXPropertyIM m_PropertyIM;
-        IMGUIContainer m_Container;
 
+        VisualElement m_ExposedLabel;
+        VisualElement m_ExposedNameLabel;
         public VFXParameterUI()
         {
             m_Exposed = new Toggle(ToggleExposed);
@@ -49,23 +49,23 @@ namespace UnityEditor.VFX.UI
             m_ExposedName.RegisterCallback<ChangeEvent<string>>(OnNameChanged);
             m_ExposedName.AddToClassList("value");
 
-            VisualElement exposedLabel = new VisualElement();
-            exposedLabel.text = "exposed";
-            exposedLabel.AddToClassList("label");
-            VisualElement exposedNameLabel = new VisualElement();
-            exposedNameLabel.text = "name";
-            exposedNameLabel.AddToClassList("label");
+            m_ExposedLabel = new VisualElement();
+            m_ExposedLabel.text = "exposed";
+            m_ExposedLabel.AddToClassList("label");
+            m_ExposedNameLabel = new VisualElement();
+            m_ExposedNameLabel.text = "name";
+            m_ExposedNameLabel.AddToClassList("label");
 
             m_ExposedContainer = new VisualElement();
             VisualElement exposedNameContainer = new VisualElement();
 
-            m_ExposedContainer.Add(exposedLabel);
+            m_ExposedContainer.Add(m_ExposedLabel);
             m_ExposedContainer.Add(m_Exposed);
 
             m_ExposedContainer.name = "exposedContainer";
             exposedNameContainer.name = "exposedNameContainer";
 
-            exposedNameContainer.Add(exposedNameLabel);
+            exposedNameContainer.Add(m_ExposedNameLabel);
             exposedNameContainer.Add(m_ExposedName);
 
 
@@ -73,14 +73,39 @@ namespace UnityEditor.VFX.UI
             inputContainer.Add(m_ExposedContainer);
         }
 
-        void OnGUI()
+        protected override void OnStyleResolved(ICustomStyle style)
         {
-            if (m_PropertyIM != null)
+            base.OnStyleResolved(style);
+
+            float labelWidth = 70;
+            float controlWidth = 120;
+
+            var properties = inputContainer.Query().OfType<PropertyRM>().ToList();
+
+            foreach (var port in properties)
             {
-                var presenter = GetPresenter<VFXParameterPresenter>();
-                var all = presenter.allChildren.OfType<VFXDataAnchorPresenter>();
-                m_PropertyIM.OnGUI(all.FirstOrDefault());
+                float portLabelWidth = port.GetPreferredLabelWidth();
+                float portControlWidth = port.GetPreferredControlWidth();
+
+                if (labelWidth < portLabelWidth)
+                {
+                    labelWidth = portLabelWidth;
+                }
+                if (controlWidth < portControlWidth)
+                {
+                    controlWidth = portControlWidth;
+                }
             }
+
+            foreach (var port in properties)
+            {
+                port.SetLabelWidth(labelWidth);
+            }
+
+            m_ExposedLabel.style.width = labelWidth + 16;
+            m_ExposedNameLabel.style.width = labelWidth + 16;
+
+            inputContainer.style.width = labelWidth + controlWidth;
         }
 
         public override void OnDataChanged()
@@ -95,7 +120,7 @@ namespace UnityEditor.VFX.UI
             m_ExposedName.text = presenter.exposedName == null ? "" : presenter.exposedName;
             m_Exposed.on = presenter.exposed;
 
-            if (m_Property == null && m_PropertyIM == null)
+            if (m_Property == null)
             {
                 m_Property = PropertyRM.Create(presenter, 55);
                 if (m_Property != null)
@@ -113,13 +138,6 @@ namespace UnityEditor.VFX.UI
                             inputContainer.Add(m_SubProperties[i]);
                         }
                     }
-                }
-                else
-                {
-                    m_PropertyIM = VFXPropertyIM.Create(presenter.anchorType, 55);
-
-                    m_Container = new IMGUIContainer(OnGUI) { name = "IMGUI" };
-                    inputContainer.Add(m_Container);
                 }
             }
             if (m_Property != null)
