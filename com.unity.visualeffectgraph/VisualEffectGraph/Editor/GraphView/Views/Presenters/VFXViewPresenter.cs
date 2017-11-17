@@ -54,7 +54,7 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        protected void OnEnable()
+        protected new void OnEnable()
         {
             Debug.Log("OnEnable of VFXViewPresenter with instanceID:" + this.GetInstanceID());
 

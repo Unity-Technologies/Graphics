@@ -248,6 +248,7 @@ namespace UnityEditor.VFX.UI
             return value;
         }
     }
+    /*
     class VFXColorPropertyIM : VFXPropertyIM<Color>
     {
         public override Color OnParameterGUI(VFXDataAnchorPresenter presenter, Color value, string label)
@@ -282,7 +283,7 @@ namespace UnityEditor.VFX.UI
 
             return color;
         }
-    }
+    }*/
     class VFXAnimationCurvePropertyIM : VFXPropertyIM<AnimationCurve>
     {
         public override bool isNumeric { get { return false; } }

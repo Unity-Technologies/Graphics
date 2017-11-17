@@ -340,13 +340,6 @@ namespace UnityEditor.VFX.UI
             m_Field.SetValue(m_Value);
         }
 
-        /*
-        public override void SetEnabled(bool value)
-        {
-            base.SetEnabled(value);
-            if (m_Field != null)
-                m_Field.SetEnabled(value);
-        }*/
         public override bool showsEverything { get { return true; } }
 
         public override void SetMultiplier(object obj)

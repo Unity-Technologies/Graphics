@@ -67,20 +67,8 @@ namespace UnityEditor.VFX.UI
             UpdateColor();
         }
 
-        /*
-        protected override EdgeControl CreateEdgeControl()
-        {
-            return new VFXEdgeControl
-            {
-                capRadius = 4,
-                interceptWidth = 3
-            };
-        }*/
-
         protected override void DrawEdge()
         {
-            EdgePresenter edgePresenter = GetPresenter<EdgePresenter>();
-
             UpdateEdgeControl();
         }
     }
