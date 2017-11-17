@@ -194,8 +194,7 @@ void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, float2 cen
     #if SSS_USE_TANGENT_PLANE
         float3 relPosVS   = vec.x * tangentX + vec.y * tangentY;
         float3 positionVS = centerPosVS + relPosVS;
-        float4 positionCS = mul(projMatrix, float4(positionVS, 1));
-        float2 positionSS = ComputeScreenSpacePosition(positionCS);
+        float2 positionSS = ComputeScreenSpacePosition(positionCS, projMatrix);
 
         position = (int2)(positionSS * _ScreenSize.xy);
         xy2      = dot(relPosVS.xy, relPosVS.xy);

@@ -459,7 +459,7 @@ float3 LatlongToDirectionCoordinate(float2 coord)
 }
 
 // ----------------------------------------------------------------------------
-// World position reconstruction / transformation
+// Depth encoding/decoding
 // ----------------------------------------------------------------------------
 
 // Z buffer to linear 0..1 depth (0 at near plane, 1 at far plane).
@@ -493,6 +493,52 @@ float LinearEyeDepth(float2 positionSS, float depthRaw, float4 invProjParam)
     // The view space uses a right-handed coordinate system.
     return -viewSpaceZ;
 }
+
+// ----------------------------------------------------------------------------
+// Space transformations
+// ----------------------------------------------------------------------------
+
+// Use case examples:
+// (position = positionCS) => (clipSpaceTransform = use default)
+// (position = positionVS) => (clipSpaceTransform = UNITY_MATRIX_P)
+// (position = positionWS) => (clipSpaceTransform = UNITY_MATRIX_VP)
+float2 ComputeScreenSpacePosition(float3 position, float4x4 clipSpaceTransform = k_identity4x4)
+{
+    float4 positionCS = mul(clipSpaceTransform, float4(position, 1.0));
+    float2 positionSS = positionCS.xy * (rcp(positionCS.w) * 0.5) + 0.5;
+#if UNITY_UV_STARTS_AT_TOP
+    positionSS.y = 1.0 - positionSS.y;
+#endif
+    return positionSS;
+}
+
+float4 ComputeClipSpacePosition(float2 positionSS, float depthRaw)
+{
+#if UNITY_UV_STARTS_AT_TOP
+    positionSS.y = 1.0 - positionSS.y;
+#endif
+    return float4(positionSS * 2.0 - 1.0, depthRaw, 1.0);
+}
+
+float3 ComputeViewSpacePosition(float2 positionSS, float depthRaw, float4x4 invProjMatrix)
+{
+    float4 positionCS = ComputeClipSpacePosition(positionSS, depthRaw);
+    float4 positionVS = mul(invProjMatrix, positionCS);
+    // The view space uses a right-handed coordinate system.
+    positionVS.z = -positionVS.z;
+    return positionVS.xyz / positionVS.w;
+}
+
+float3 ComputeWorldSpacePosition(float2 positionSS, float depthRaw, float4x4 invViewProjMatrix)
+{
+    float4 positionCS  = ComputeClipSpacePosition(positionSS, depthRaw);
+    float4 hpositionWS = mul(invViewProjMatrix, positionCS);
+    return hpositionWS.xyz / hpositionWS.w;
+}
+
+// ----------------------------------------------------------------------------
+// PositionInputs
+// ----------------------------------------------------------------------------
 
 struct PositionInputs
 {
@@ -542,45 +588,6 @@ void UpdatePositionInput(float depthRaw, float depthVS, float3 positionWS, inout
     posInput.depthRaw   = depthRaw;
     posInput.depthVS    = depthVS;
     posInput.positionWS = positionWS;
-}
-
-float4 ComputeClipSpacePosition(float2 positionSS, float depthRaw)
-{
-#if UNITY_UV_STARTS_AT_TOP
-    positionSS.y = 1.0 - positionSS.y;
-#endif
-    return float4(positionSS * 2.0 - 1.0, depthRaw, 1.0);
-}
-
-float2 ComputeScreenSpacePosition(float4 positionCS)
-{
-    float2 positionSS = positionCS.xy * (rcp(positionCS.w) * 0.5) + 0.5;
-#if UNITY_UV_STARTS_AT_TOP
-    positionSS.y = 1.0 - positionSS.y;
-#endif
-    return positionSS;
-}
-
-float2 ComputeScreenSpacePosition(float3 positionWS, float4x4 viewProjectionMatrix)
-{
-    float4 positionCS = mul(viewProjectionMatrix, float4(positionWS, 1.0));
-    return ComputeScreenSpacePosition(positionCS);
-}
-
-float3 ComputeViewSpacePosition(float2 positionSS, float depthRaw, float4x4 invProjMatrix)
-{
-    float4 positionCS = ComputeClipSpacePosition(positionSS, depthRaw);
-    float4 positionVS = mul(invProjMatrix, positionCS);
-    // The view space uses a right-handed coordinate system.
-    positionVS.z = -positionVS.z;
-    return positionVS.xyz / positionVS.w;
-}
-
-float3 ComputeWorldSpacePosition(float2 positionSS, float depthRaw, float4x4 invViewProjMatrix)
-{
-    float4 positionCS  = ComputeClipSpacePosition(positionSS, depthRaw);
-    float4 hpositionWS = mul(invViewProjMatrix, positionCS);
-    return hpositionWS.xyz / hpositionWS.w;
 }
 
 // From deferred or compute shader
