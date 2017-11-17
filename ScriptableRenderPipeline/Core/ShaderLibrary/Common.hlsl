@@ -286,21 +286,21 @@ void GetCubeFaceID(float3 dir, out int faceIndex)
 
 float DegToRad(float deg)
 {
-    return deg * PI / 180.0;
+    return deg * (PI / 180.0);
 }
 
 float RadToDeg(float rad)
 {
-    return rad * 180.0 / PI;
+    return rad * (180.0 / PI);
 }
 
-// Square functions for cleaner code
-float Sqr(float x)
+// Square functions for cleaner code (SQ = SQuare. SQRT = SQuareRooT).
+float Sq(float x)
 {
     return x * x;
 }
 
-float3 Sqr(float3 x)
+float3 Sq(float3 x)
 {
     return x * x;
 }
