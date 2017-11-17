@@ -20,10 +20,9 @@ namespace UnityEditor.VFX.UI
             public VFXBlockElement(int level, T desc, string category, string name)
             {
                 this.level = level;
-                var str = "";
+                var str = name;
                 if (!string.IsNullOrEmpty(category))
-                    str = category.Replace("/", " ") + " : ";
-                str += name;
+                    str += " (" + category.Replace("/", " ") + ") ";
                 content = new GUIContent(str /*, VFXEditor.styles.GetIcon(desc.Icon)*/);
                 descriptor = desc;
             }

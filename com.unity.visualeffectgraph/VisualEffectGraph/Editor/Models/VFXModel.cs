@@ -197,6 +197,30 @@ namespace UnityEditor.VFX
             return m_Children.IndexOf(child);
         }
 
+        public void SetSettingValue(string name, object value)
+        {
+            SetSettingValue(name, value, true);
+        }
+
+        protected void SetSettingValue(string name, object value, bool notify)
+        {
+            var field = GetType().GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            if (field == null)
+            {
+                throw new ArgumentException(string.Format("Unable to find field {0} in {1}", name, GetType().ToString()));
+            }
+
+            var currentValue = field.GetValue(this);
+            if (currentValue != value)
+            {
+                field.SetValue(this, value);
+                if (notify)
+                {
+                    Invalidate(InvalidationCause.kSettingChanged);
+                }
+            }
+        }
+
         public void Invalidate(InvalidationCause cause)
         {
             string sampleName = GetType().Name + "-" + name + "-" + cause;
@@ -218,12 +242,21 @@ namespace UnityEditor.VFX
                 m_Parent.Invalidate(model, cause);
         }
 
-        public IEnumerable<FieldInfo> activeSettings
+        public IEnumerable<FieldInfo> GetSettings(bool listHidden)
         {
-            get
-            {
-                return VFXSettingAttribute.Collect(this).Where(fo => !filteredOutSettings.Contains(fo.Name));
-            }
+            return GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(f =>
+                {
+                    var attrArray = f.GetCustomAttributes(typeof(VFXSettingAttribute), true);
+                    if (attrArray.Length == 1)
+                    {
+                        var attr = attrArray[0] as VFXSettingAttribute;
+                        if (!filteredOutSettings.Contains(f.Name) || listHidden)
+                        {
+                            return true;
+                        }
+                    }
+                    return false;
+                });
         }
 
         protected virtual IEnumerable<string> filteredOutSettings

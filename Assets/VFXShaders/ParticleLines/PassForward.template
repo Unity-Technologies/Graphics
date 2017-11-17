@@ -3,7 +3,7 @@ Pass
 {		
 	Tags { "LightMode"="ForwardBase" }
 
-	CGPROGRAM
+	HLSLPROGRAM
 	#pragma target 4.5
 	
 	struct ps_input
@@ -43,5 +43,5 @@ Pass
 		VFXClipFragmentColor(o.color.a,i);
 		return o;
 	}
-	ENDCG
+	ENDHLSL
 }

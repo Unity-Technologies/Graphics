@@ -9,68 +9,13 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXBuiltInParameterUI : VFXStandaloneSlotContainerUI
-    {
-    }
-
-    class VFXAttributeParameterUI : VFXStandaloneSlotContainerUI
-    {
-    }
-
     class VFXParameterUI : VFXStandaloneSlotContainerUI
     {
-        private TextField m_ExposedName;
-        private Toggle m_Exposed;
-        VisualElement m_ExposedContainer;
-
-        public void OnNameChanged(ChangeEvent<string> e)
-        {
-            var presenter = GetPresenter<VFXParameterPresenter>();
-
-            presenter.exposedName = m_ExposedName.text;
-        }
-
-        private void ToggleExposed()
-        {
-            var presenter = GetPresenter<VFXParameterPresenter>();
-            presenter.exposed = !presenter.exposed;
-        }
-
         PropertyRM m_Property;
         PropertyRM[] m_SubProperties;
 
-        VisualElement m_ExposedLabel;
-        VisualElement m_ExposedNameLabel;
         public VFXParameterUI()
         {
-            m_Exposed = new Toggle(ToggleExposed);
-            m_ExposedName = new TextField();
-
-            m_ExposedName.RegisterCallback<ChangeEvent<string>>(OnNameChanged);
-            m_ExposedName.AddToClassList("value");
-
-            m_ExposedLabel = new VisualElement();
-            m_ExposedLabel.text = "exposed";
-            m_ExposedLabel.AddToClassList("label");
-            m_ExposedNameLabel = new VisualElement();
-            m_ExposedNameLabel.text = "name";
-            m_ExposedNameLabel.AddToClassList("label");
-
-            m_ExposedContainer = new VisualElement();
-            VisualElement exposedNameContainer = new VisualElement();
-
-            m_ExposedContainer.Add(m_ExposedLabel);
-            m_ExposedContainer.Add(m_Exposed);
-
-            m_ExposedContainer.name = "exposedContainer";
-            exposedNameContainer.name = "exposedNameContainer";
-
-            exposedNameContainer.Add(m_ExposedNameLabel);
-            exposedNameContainer.Add(m_ExposedName);
-
-
-            inputContainer.Add(exposedNameContainer);
-            inputContainer.Add(m_ExposedContainer);
         }
 
         protected override void OnStyleResolved(ICustomStyle style)
@@ -102,9 +47,6 @@ namespace UnityEditor.VFX.UI
                 port.SetLabelWidth(labelWidth);
             }
 
-            m_ExposedLabel.style.width = labelWidth + 16;
-            m_ExposedNameLabel.style.width = labelWidth + 16;
-
             inputContainer.style.width = labelWidth + controlWidth;
         }
 
@@ -114,11 +56,6 @@ namespace UnityEditor.VFX.UI
             var presenter = GetPresenter<VFXParameterPresenter>();
             if (presenter == null)
                 return;
-
-            m_ExposedName.style.height = 24.0f;
-            m_Exposed.style.height = 24.0f;
-            m_ExposedName.text = presenter.exposedName == null ? "" : presenter.exposedName;
-            m_Exposed.on = presenter.exposed;
 
             if (m_Property == null)
             {

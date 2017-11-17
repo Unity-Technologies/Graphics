@@ -8,23 +8,5 @@ namespace UnityEditor.VFX
     [AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
     class VFXSettingAttribute : Attribute
     {
-        public static bool IsTypeSupported(Type type)
-        {
-            return type.IsEnum ||
-                type == typeof(bool) ||
-                type == typeof(string);
-        }
-
-        public static IEnumerable<FieldInfo> Collect(Object owner)
-        {
-            if (owner == null)
-                return Enumerable.Empty<FieldInfo>();
-
-            return owner.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(f =>
-                {
-                    return f.GetCustomAttributes(typeof(VFXSettingAttribute), true).Length == 1 &&
-                    IsTypeSupported(f.FieldType);
-                });
-        }
     }
 }
