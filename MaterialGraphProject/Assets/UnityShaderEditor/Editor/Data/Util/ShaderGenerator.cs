@@ -610,7 +610,7 @@ namespace UnityEditor.ShaderGraph
                         ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.Tangent, inputType, from)), false);
         }
 
-        public static string GetPreviewSubShader(List<INode> activeNodeList, AbstractMaterialNode node, ShaderGraphRequirements shaderGraphRequirements, FloatShaderProperty outputIdProperty, Dictionary<Guid, int> ids)
+        public static string GetPreviewSubShader(AbstractMaterialNode node, ShaderGraphRequirements shaderGraphRequirements)
         {
             var interpolators = new ShaderGenerator();
             var vertexShader = new ShaderGenerator();
@@ -629,7 +629,6 @@ namespace UnityEditor.ShaderGraph
                 CoordinateSpace.World);
 
             var outputs = new ShaderGenerator();
-            var currentId = -1;
             if (node != null)
             {
                 var outputSlot = node.GetOutputSlots<MaterialSlot>().FirstOrDefault();
@@ -643,18 +642,7 @@ namespace UnityEditor.ShaderGraph
             }
             else
             {
-                foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
-                {
-                    var outputSlot = activeNode.GetOutputSlots<MaterialSlot>().FirstOrDefault();
-                    if (activeNode.hasPreview && outputSlot != null)
-                    {
-                        currentId++;
-                        ids[activeNode.guid] = currentId;
-                        var result = string.Format("surf.{0}", activeNode.GetVariableNameForSlot(outputSlot.id));
-                        outputs.AddShaderChunk(string.Format("if ({0} == {1}) return {2}; else ", outputIdProperty.referenceName, currentId, AdaptNodeOutputForPreview(activeNode, outputSlot.id, result)), false);
-                    }
-                }
-                outputs.AddShaderChunk("return 0;", false);
+                outputs.AddShaderChunk("return surf.PreviewOutput;", false);
             }
 
             var res = subShaderTemplate.Replace("${Interpolators}", interpolators.GetShaderString(0));
