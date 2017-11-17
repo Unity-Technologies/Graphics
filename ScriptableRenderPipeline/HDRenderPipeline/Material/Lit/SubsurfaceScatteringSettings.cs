@@ -36,7 +36,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public string name;
 
-        [ColorUsage(false, true, 0f, 8f, 0.125f, 3f)]
+        [ColorUsage(false, true)]
         public Color            scatteringDistance;         // Per color channel (no meaningful units)
         [ColorUsage(false)]
         public Color            transmissionTint;           // Color, 0 to 1
@@ -46,9 +46,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float            worldScale;                 // Size of the world unit in meters
 
         // Old SSS Model >>>
-        [ColorUsage(false, true, 0f, 8f, 0.125f, 3f)]
+        [ColorUsage(false, true)]
         public Color            scatterDistance1;
-        [ColorUsage(false, true, 0f, 8f, 0.125f, 3f)]
+        [ColorUsage(false, true)]
         public Color            scatterDistance2;
         [Range(0f, 1f)]
         public float            lerpWeight;
