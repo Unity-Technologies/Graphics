@@ -19,7 +19,7 @@ void DeferredDirectionalShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 gro
     PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, tileCoord);
 
     float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
-    UpdatePositionInput(depth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
+    UpdatePositionInput(depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, posInput);
 
     ShadowContext shadowContext = InitShadowContext();
     float shadow = GetDirectionalShadowAttenuation(shadowContext, posInput.positionWS, float3(0.0, 0.0, 0.0), (uint)_DirectionalShadowIndex, float3(0.0, 0.0, 0.0));
