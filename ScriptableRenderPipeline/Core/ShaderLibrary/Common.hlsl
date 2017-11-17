@@ -123,6 +123,11 @@ uint WaveReadFirstLane(uint scalarValue)
 {
     return scalarValue;
 }
+
+uint2 WaveReadFirstLane(uint2 scalarValue)
+{
+    return scalarValue;
+}
 #endif
 
 #ifndef INTRINSIC_MUL24
@@ -303,6 +308,11 @@ float Sq(float x)
 float3 Sq(float3 x)
 {
     return x * x;
+}
+
+bool IsPower2(uint x)
+{
+    return (x & (x - 1)) == 0;
 }
 
 // Input [0, 1] and output [0, PI/2]

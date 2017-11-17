@@ -60,12 +60,12 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
     // ZERO_INITIALIZE(LightLoopContext, context);
     context.shadowContext = InitShadowContext();
 
-    uint   featureFlags = 0xFFFFFFFF;      // TODO
+    uint   featureFlags = 0xFFFFFFFF;       // TODO
     float4 depthParams  = _VBufferDepthEncodingParams;
 
-    float z0 = depthParams.x;              // View space Z coordinate of the near plane
-    float t0 = z0 * ray.ratioLenToZ; // Distance to the near plane
-    float de = rcp(VBUFFER_SLICE_COUNT);   // Log-encoded distance between slices
+    float z0 = depthParams.x;               // View space Z coordinate of the near plane
+    float t0 = z0 * ray.ratioLenToZ;        // Distance to the near plane
+    float de = rcp(VBUFFER_SLICE_COUNT);    // Log-encoded distance between slices
 
     float3 totalRadiance = 0;
     float  opticalDepth  = 0;
@@ -75,10 +75,10 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
 #ifdef LIGHTLOOP_TILE_PASS
     // Our voxel is not necessarily completely inside a single light cluster.
     uint  clusterIndices[2];
-    float clusterDistances[2];
+    float clusterDepths[2];
     // TODO: the clustered code could be made faster & simpler.
-    clusterIndices[0]   = GetLightClusterIndex(tileCoord, z0);
-    clusterDistances[0] = GetLightClusterMinDepthVS(tileCoord, clusterIndices[0]) * ray.ratioLenToZ;
+    clusterIndices[0] = GetLightClusterIndex(tileCoord, z0);
+    clusterDepths[0]  = GetLightClusterMinDepthVS(tileCoord, clusterIndices[0]);
 #endif // LIGHTLOOP_TILE_PASS
 
     // TODO: replace 'sliceCountHack' with VBUFFER_SLICE_COUNT when the shader compiler bug is fixed.
@@ -147,18 +147,18 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
 
     #ifdef LIGHTLOOP_TILE_PASS
         // TODO: the clustered code could be made faster & simpler.
-        clusterIndices[1]   = GetLightClusterIndex(tileCoord, z1);
-        clusterDistances[1] = GetLightClusterMinDepthVS(tileCoord, clusterIndices[1]) * ray.ratioLenToZ;
+        clusterIndices[1] = GetLightClusterIndex(tileCoord, z1);
+        clusterDepths[1]  = GetLightClusterMinDepthVS(tileCoord, clusterIndices[1]);
 
         // Loop over 1 or 2 light clusters.
         for (int cluster = 0; cluster < 2; cluster++)
         {
-            float tMin = max(t0, clusterDistances[cluster]);
+            float tMin = max(t0, clusterDepths[cluster] * ray.ratioLenToZ);
             float tMax = t1;
 
-            if (cluster == 0 && clusterDistances[0] != clusterDistances[1])
+            if (cluster == 0 && (clusterIndices[0] != clusterIndices[1]))
             {
-                tMax = min(t1, clusterDistances[1]);
+                tMax = min(t1, clusterDepths[1] * ray.ratioLenToZ);
             }
     #else
             float tMin = t0;
@@ -177,6 +177,7 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
                 punctualLightCount = _PunctualLightCount;
             #endif // LIGHTLOOP_TILE_PASS
 
+                // TODO: since lights are sorted, make a while loop per light type.
                 for (uint i = 0; i < punctualLightCount; ++i)
                 {
                 #ifdef LIGHTLOOP_TILE_PASS
@@ -261,8 +262,8 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
         t0 = t1;
 
     #ifdef LIGHTLOOP_TILE_PASS
-        clusterIndices[0]   = clusterIndices[1];
-        clusterDistances[0] = clusterDistances[1];
+        clusterIndices[0] = clusterIndices[1];
+        clusterDepths[0]  = clusterDepths[1];
     #endif // LIGHTLOOP_TILE_PASS
     }
 }
@@ -271,6 +272,9 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
 void VolumetricLighting(uint2 groupId       : SV_GroupID,
                         uint  groupThreadId : SV_GroupThreadID)
 {
+    // Perform compile-time checks.
+    if (!IsPower2(VBUFFER_TILE_SIZE) || !IsPower2(TILE_SIZE_CLUSTERED)) return;
+
     // Note: any factor of 64 is a suitable wave size for our algorithm.
     uint waveIndex = WaveReadFirstLane(groupThreadId / 64);
     uint laneIndex = groupThreadId % 64;
@@ -281,7 +285,15 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
     uint2 localCoord = DecodeMorton2D(mortonCode);
     uint2 groupCoord = groupId * GROUP_SIZE_1D;
     uint2 voxelCoord = groupCoord + localCoord;
-    uint2 tileCoord  = voxelCoord * VBUFFER_TILE_SIZE / TILE_SIZE_CLUSTERED; // TODO: scalarize
+    uint2 tileCoord  = voxelCoord * VBUFFER_TILE_SIZE / TILE_SIZE_CLUSTERED;
+
+    uint voxelsPerClusterTile = Sq(TILE_SIZE_CLUSTERED / VBUFFER_TILE_SIZE);
+
+    if (voxelsPerClusterTile >= 64)
+    {
+        // TODO: this is a compile-time test, make sure the compiler actually scalarizes.
+        tileCoord = WaveReadFirstLane(tileCoord);
+    }
 
     [branch] if (voxelCoord.x >= (uint)_VBufferResolutionAndScale.x ||
                  voxelCoord.y >= (uint)_VBufferResolutionAndScale.y)
