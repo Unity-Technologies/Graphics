@@ -99,6 +99,60 @@
 #define SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(textureName, samplerName, coord3, index, lod) SAMPLE_TEXTURECUBE_ARRAY_LOD(textureName, samplerName, coord3, index, lod)
 #endif
 
+#define TEMPLATE_1(FunctionName, Parameter1, FunctionBody) \
+int    FunctionName(int    Parameter1) { FunctionBody; } \
+int2   FunctionName(int2   Parameter1) { FunctionBody; } \
+int3   FunctionName(int3   Parameter1) { FunctionBody; } \
+int4   FunctionName(int4   Parameter1) { FunctionBody; } \
+uint   FunctionName(uint   Parameter1) { FunctionBody; } \
+uint2  FunctionName(uint2  Parameter1) { FunctionBody; } \
+uint3  FunctionName(uint3  Parameter1) { FunctionBody; } \
+uint4  FunctionName(uint4  Parameter1) { FunctionBody; } \
+float  FunctionName(float  Parameter1) { FunctionBody; } \
+float2 FunctionName(float2 Parameter1) { FunctionBody; } \
+float3 FunctionName(float3 Parameter1) { FunctionBody; } \
+float4 FunctionName(float4 Parameter1) { FunctionBody; } \
+bool   FunctionName(bool   Parameter1) { FunctionBody; } \
+bool2  FunctionName(bool2  Parameter1) { FunctionBody; } \
+bool3  FunctionName(bool3  Parameter1) { FunctionBody; } \
+bool4  FunctionName(bool4  Parameter1) { FunctionBody; }
+
+#define TEMPLATE_2(FunctionName, Parameter1, Parameter2, FunctionBody) \
+int    FunctionName(int    Parameter1, int    Parameter2) { FunctionBody; } \
+int2   FunctionName(int2   Parameter1, int2   Parameter2) { FunctionBody; } \
+int3   FunctionName(int3   Parameter1, int3   Parameter2) { FunctionBody; } \
+int4   FunctionName(int4   Parameter1, int4   Parameter2) { FunctionBody; } \
+uint   FunctionName(uint   Parameter1, uint   Parameter2) { FunctionBody; } \
+uint2  FunctionName(uint2  Parameter1, uint2  Parameter2) { FunctionBody; } \
+uint3  FunctionName(uint3  Parameter1, uint3  Parameter2) { FunctionBody; } \
+uint4  FunctionName(uint4  Parameter1, uint4  Parameter2) { FunctionBody; } \
+float  FunctionName(float  Parameter1, float  Parameter2) { FunctionBody; } \
+float2 FunctionName(float2 Parameter1, float2 Parameter2) { FunctionBody; } \
+float3 FunctionName(float3 Parameter1, float3 Parameter2) { FunctionBody; } \
+float4 FunctionName(float4 Parameter1, float4 Parameter2) { FunctionBody; } \
+bool   FunctionName(bool   Parameter1, bool   Parameter2) { FunctionBody; } \
+bool2  FunctionName(bool2  Parameter1, bool2  Parameter2) { FunctionBody; } \
+bool3  FunctionName(bool3  Parameter1, bool3  Parameter2) { FunctionBody; } \
+bool4  FunctionName(bool4  Parameter1, bool4  Parameter2) { FunctionBody; }
+
+#define TEMPLATE_3(FunctionName, Parameter1, Parameter2, Parameter3, FunctionBody) \
+int    FunctionName(int    Parameter1, int    Parameter2, int    Parameter3) { FunctionBody; } \
+int2   FunctionName(int2   Parameter1, int2   Parameter2, int2   Parameter3) { FunctionBody; } \
+int3   FunctionName(int3   Parameter1, int3   Parameter2, int3   Parameter3) { FunctionBody; } \
+int4   FunctionName(int4   Parameter1, int4   Parameter2, int4   Parameter3) { FunctionBody; } \
+uint   FunctionName(uint   Parameter1, uint   Parameter2, uint   Parameter3) { FunctionBody; } \
+uint2  FunctionName(uint2  Parameter1, uint2  Parameter2, uint2  Parameter3) { FunctionBody; } \
+uint3  FunctionName(uint3  Parameter1, uint3  Parameter2, uint3  Parameter3) { FunctionBody; } \
+uint4  FunctionName(uint4  Parameter1, uint4  Parameter2, uint4  Parameter3) { FunctionBody; } \
+float  FunctionName(float  Parameter1, float  Parameter2, float  Parameter3) { FunctionBody; } \
+float2 FunctionName(float2 Parameter1, float2 Parameter2, float2 Parameter3) { FunctionBody; } \
+float3 FunctionName(float3 Parameter1, float3 Parameter2, float3 Parameter3) { FunctionBody; } \
+float4 FunctionName(float4 Parameter1, float4 Parameter2, float4 Parameter3) { FunctionBody; } \
+bool   FunctionName(bool   Parameter1, bool   Parameter2, bool   Parameter3) { FunctionBody; } \
+bool2  FunctionName(bool2  Parameter1, bool2  Parameter2, bool2  Parameter3) { FunctionBody; } \
+bool3  FunctionName(bool3  Parameter1, bool3  Parameter2, bool3  Parameter3) { FunctionBody; } \
+bool4  FunctionName(bool4  Parameter1, bool4  Parameter2, bool4  Parameter3) { FunctionBody; }
+
 // ----------------------------------------------------------------------------
 // Common intrinsic (general implementation of intrinsic available on some platform)
 // ----------------------------------------------------------------------------
@@ -118,77 +172,21 @@ bool IsBitSet(uint data, uint bitPos)
 }
 
 #ifndef INTRINSIC_WAVEREADFIRSTLANE
-// Warning: for correctness, the value you pass to the function must be constant across the wave!
-uint WaveReadFirstLane(uint scalarValue)
-{
-    return scalarValue;
-}
+    // Warning: for correctness, the value you pass to the function must be constant across the wave!
+    TEMPLATE_1(WaveReadFirstLane, scalarValue, return scalarValue)
 #endif
 
 #ifndef INTRINSIC_MUL24
-int Mul24(int a, int b)
-{
-    return a * b;
-}
-
-uint Mul24(uint a, uint b)
-{
-    return a * b;
-}
+    TEMPLATE_2(Mul24, a, b, return a * b)
 #endif // INTRINSIC_MUL24
 
 #ifndef INTRINSIC_MAD24
-int Mad24(int a, int b, int c)
-{
-    return a * b + c;
-}
-
-uint Mad24(uint a, uint b, uint c)
-{
-    return a * b + c;
-}
+    TEMPLATE_3(Mad24, a, b, c, return a * b + c)
 #endif // INTRINSIC_MAD24
 
 #ifndef INTRINSIC_MINMAX3
-float Min3(float a, float b, float c)
-{
-    return min(min(a, b), c);
-}
-
-float2 Min3(float2 a, float2 b, float2 c)
-{
-    return min(min(a, b), c);
-}
-
-float3 Min3(float3 a, float3 b, float3 c)
-{
-    return min(min(a, b), c);
-}
-
-float4 Min3(float4 a, float4 b, float4 c)
-{
-    return min(min(a, b), c);
-}
-
-float Max3(float a, float b, float c)
-{
-    return max(max(a, b), c);
-}
-
-float2 Max3(float2 a, float2 b, float2 c)
-{
-    return max(max(a, b), c);
-}
-
-float3 Max3(float3 a, float3 b, float3 c)
-{
-    return max(max(a, b), c);
-}
-
-float4 Max3(float4 a, float4 b, float4 c)
-{
-    return max(max(a, b), c);
-}
+    TEMPLATE_3(Min3, a, b, c, return min(min(a, b), c))
+    TEMPLATE_3(Max3, a, b, c, return max(max(a, b), c))
 #endif // INTRINSIC_MINMAX3
 
 void Swap(inout float a, inout float b)
@@ -286,24 +284,16 @@ void GetCubeFaceID(float3 dir, out int faceIndex)
 
 float DegToRad(float deg)
 {
-    return deg * PI / 180.0;
+    return deg * (PI / 180.0);
 }
 
 float RadToDeg(float rad)
 {
-    return rad * 180.0 / PI;
+    return rad * (180.0 / PI);
 }
 
 // Square functions for cleaner code
-float Sqr(float x)
-{
-    return x * x;
-}
-
-float3 Sqr(float3 x)
-{
-    return x * x;
-}
+TEMPLATE_1(Sqr, x, return x * x)
 
 // Input [0, 1] and output [0, PI/2]
 // 9 VALU
@@ -375,25 +365,7 @@ static const float4x4 k_identity4x4 = {1.0, 0.0, 0.0, 0.0,
 // Using pow often result to a warning like this
 // "pow(f, e) will not work for negative f, use abs(f) or conditionally handle negative values if you expect them"
 // PositivePow remove this warning when you know the value is positive and avoid inf/NAN.
-float PositivePow(float base, float power)
-{
-    return pow(max(abs(base), float(FLT_EPSILON)), power);
-}
-
-float2 PositivePow(float2 base, float2 power)
-{
-    return pow(max(abs(base), float2(FLT_EPSILON, FLT_EPSILON)), power);
-}
-
-float3 PositivePow(float3 base, float3 power)
-{
-    return pow(max(abs(base), float3(FLT_EPSILON, FLT_EPSILON, FLT_EPSILON)), power);
-}
-
-float4 PositivePow(float4 base, float4 power)
-{
-    return pow(max(abs(base), float4(FLT_EPSILON, FLT_EPSILON, FLT_EPSILON, FLT_EPSILON)), power);
-}
+TEMPLATE_2(PositivePow, base, power, return pow(max(abs(base), FLT_EPSILON), power))
 
 // Ref: https://twitter.com/SebAaltonen/status/878250919879639040
 // 2 mads (mad_sat and mad), faster than regular sign
