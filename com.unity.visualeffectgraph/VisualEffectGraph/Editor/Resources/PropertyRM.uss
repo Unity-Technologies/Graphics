@@ -24,7 +24,7 @@
 
 .spaceablepropertyrm.propertyrm #label
 {
-	margin-right:12px;
+	-margin-right:12px;
 }
 
 .spaceCamera
@@ -49,7 +49,7 @@
 {
     flex:1;
 	margin-bottom:3;
-	margin-left:6;
+	margin-left:2;
 }
 .propertyrm .textfieldd
 {
@@ -156,6 +156,10 @@ ColorField
 {
     flex:1;
     flex-direction:row;
+}
+ColorPropertyRM OldFloatField TextField
+{
+	flex:1;
 }
 
 FloatField TextField

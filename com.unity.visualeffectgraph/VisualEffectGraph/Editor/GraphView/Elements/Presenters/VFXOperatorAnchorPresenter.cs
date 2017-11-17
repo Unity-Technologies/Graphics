@@ -29,10 +29,10 @@ namespace UnityEditor.VFX.UI
             {
                 System.Type newAnchorType = GetDisplayAnchorType(model);
 
-                if (newAnchorType != anchorType)
+                if (newAnchorType != portType)
                 {
                     this.sourceNode.viewPresenter.UnregisterDataAnchorPresenter(this);
-                    anchorType = newAnchorType;
+                    portType = newAnchorType;
                     this.sourceNode.viewPresenter.RegisterDataAnchorPresenter(this);
                 }
             }

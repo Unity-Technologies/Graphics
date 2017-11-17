@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXContextSlotContainerUI : VFXSlotContainerUI, IEdgeDrawerOwner
+    class VFXContextSlotContainerUI : VFXSlotContainerUI, IEdgeDrawerContainer
     {
         public VFXContextSlotContainerUI()
         {
@@ -17,12 +17,13 @@ namespace UnityEditor.VFX.UI
             pickingMode = PickingMode.Ignore;
 
             leftContainer.style.alignContent = Align.Stretch;
+            mainContainer.clippingOptions = ClippingOptions.ClipContents;
 
 
             AddToClassList("VFXContextSlotContainerUI");
         }
 
-        public override NodeAnchor InstantiateNodeAnchor(NodeAnchorPresenter presenter)
+        public override Port InstantiatePort(PortPresenter presenter)
         {
             VFXContextDataAnchorPresenter anchorPresenter = presenter as VFXContextDataAnchorPresenter;
 
@@ -33,7 +34,7 @@ namespace UnityEditor.VFX.UI
             return anchor;
         }
 
-        protected override void OnAnchorRemoved(NodeAnchor anchor)
+        protected override void OnPortRemoved(Port anchor)
         {
             if (anchor is VFXEditableDataAnchor)
             {
@@ -63,9 +64,9 @@ namespace UnityEditor.VFX.UI
             get {return this.GetFirstAncestorOfType<VFXContextUI>(); }
         }
 
-        public void DirtyDrawer()
+        public void EdgeDirty()
         {
-            context.DirtyDrawer();
+            (context as IEdgeDrawerContainer).EdgeDirty();
         }
     }
 }

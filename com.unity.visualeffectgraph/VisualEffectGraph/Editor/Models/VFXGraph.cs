@@ -43,6 +43,7 @@ namespace UnityEditor.VFX
     {
         static string[] OnWillSaveAssets(string[] paths)
         {
+            Profiler.BeginSample("VFXAssetModicationProcessor.OnWillSaveAssets");
             foreach (string path in paths)
             {
                 var vfxAsset = AssetDatabase.LoadAssetAtPath<VFXAsset>(path);
@@ -52,6 +53,7 @@ namespace UnityEditor.VFX
                     graph.OnSaved();
                 }
             }
+            Profiler.EndSample();
             return paths;
         }
     }

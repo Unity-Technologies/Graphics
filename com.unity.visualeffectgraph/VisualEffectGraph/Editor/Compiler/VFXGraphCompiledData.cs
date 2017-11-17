@@ -274,11 +274,11 @@ namespace UnityEditor.VFX
             }
             foreach (var spawnContext in spawners)
             {
-                var buffers = new VFXBufferMapping[]
+                var buffers = new VFXMapping[]
                 {
-                    new VFXBufferMapping()
+                    new VFXMapping()
                     {
-                        bufferIndex = outContextSpawnToSpawnInfo[spawnContext].bufferIndex,
+                        index = outContextSpawnToSpawnInfo[spawnContext].bufferIndex,
                         name = "spawner_output"
                     }
                 };
@@ -307,9 +307,9 @@ namespace UnityEditor.VFX
 
                             var cpuExpression = contextData.cpuMapper.CollectExpression(index, false).Select(o =>
                             {
-                                return new VFXValueMapping
+                                return new VFXMapping
                                 {
-                                    expressionIndex = graph.GetFlattenedIndex(o.exp),
+                                    index = graph.GetFlattenedIndex(o.exp),
                                     name = o.name
                                 };
                             }).ToArray();
@@ -330,7 +330,7 @@ namespace UnityEditor.VFX
                             return new VFXTaskDesc
                             {
                                 type = spawnerBlock.spawnerType,
-                                buffers = Enumerable.Empty<VFXBufferMapping>().ToArray(),
+                                buffers = Enumerable.Empty<VFXMapping>().ToArray(),
                                 processor = processor,
                                 values = cpuExpression.ToArray()
                             };
@@ -461,11 +461,12 @@ namespace UnityEditor.VFX
                     if (hasChanged)
                     {
                         System.IO.File.WriteAllText(path, newContent);
+                        Profiler.BeginSample("VFXEditor.SaveShaderFiles.ImportAsset");
+                        AssetDatabase.ImportAsset(path);
+                        Profiler.EndSample();
                     }
 
-                    AssetDatabase.ImportAsset(path);
                     Object imported = AssetDatabase.LoadAssetAtPath<Object>(path);
-
                     var contextData = contextToCompiledData[generated.context];
                     contextData.processor = imported;
                     contextToCompiledData[generated.context] = contextData;

@@ -175,7 +175,7 @@ namespace UnityEditor.VFX.Test
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
             var blockCustomSpawner = ScriptableObject.CreateInstance<VFXSpawnerCustomWrapper>();
-            blockCustomSpawner.Init(typeof(VFXCustomSpawnerTest));
+            blockCustomSpawner.SetSettingValue("m_customType", new SerializableType(typeof(VFXCustomSpawnerTest)));
 
             var spawnerInit = ScriptableObject.CreateInstance<VFXBasicInitialize>();
             var blockSetAttribute = ScriptableObject.CreateInstance<SetAttribute>();

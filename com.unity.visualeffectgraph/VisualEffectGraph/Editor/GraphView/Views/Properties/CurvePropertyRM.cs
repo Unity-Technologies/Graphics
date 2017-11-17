@@ -29,6 +29,11 @@ namespace UnityEditor.VFX.UI
             Add(m_GradientField);
         }
 
+        public override float GetPreferredControlWidth()
+        {
+            return 160;
+        }
+
         public void OnValueChanged(ChangeEvent<AnimationCurve> e)
         {
             AnimationCurve newValue = m_GradientField.value;

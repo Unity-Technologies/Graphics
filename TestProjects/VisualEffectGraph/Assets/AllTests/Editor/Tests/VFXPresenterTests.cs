@@ -230,8 +230,8 @@ namespace UnityEditor.VFX.Test
             var addPresenter = fnFindPresenter(add);
             var edgePresenter = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
 
-            edgePresenter.input = addPresenter.outputAnchors[0];
-            edgePresenter.output = absPresenter.inputAnchors[0];
+            edgePresenter.input = addPresenter.outputPorts[0];
+            edgePresenter.output = absPresenter.inputPorts[0];
             m_ViewPresenter.AddElement(edgePresenter);
             Assert.AreEqual(VFXValueType.kFloat, abs.outputSlots[0].GetExpression().valueType);
 
@@ -239,8 +239,8 @@ namespace UnityEditor.VFX.Test
             for (int i = 0; i < 4; ++i)
             {
                 edgePresenter = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
-                edgePresenter.input = vector2Presenter.outputAnchors[0];
-                edgePresenter.output = addPresenter.inputAnchors[i];
+                edgePresenter.input = vector2Presenter.outputPorts[0];
+                edgePresenter.output = addPresenter.inputPorts[i];
                 m_ViewPresenter.AddElement(edgePresenter);
             }
 
@@ -279,28 +279,28 @@ namespace UnityEditor.VFX.Test
             var append = m_ViewPresenter.AddVFXOperator(new Vector2(300, 100), appendDesc); fnResync();
 
             var edgePresenterCos = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
-            edgePresenterCos.input = fnFindPresenter(append).outputAnchors[0];
-            edgePresenterCos.output = fnFindPresenter(cos).inputAnchors[0];
+            edgePresenterCos.input = fnFindPresenter(append).outputPorts[0];
+            edgePresenterCos.output = fnFindPresenter(cos).inputPorts[0];
             m_ViewPresenter.AddElement(edgePresenterCos); fnResync();
 
             var edgePresenterAppend_A = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
-            edgePresenterAppend_A.input = fnFindPresenter(abs).outputAnchors[0];
-            edgePresenterAppend_A.output = fnFindPresenter(append).inputAnchors[0];
+            edgePresenterAppend_A.input = fnFindPresenter(abs).outputPorts[0];
+            edgePresenterAppend_A.output = fnFindPresenter(append).inputPorts[0];
             m_ViewPresenter.AddElement(edgePresenterAppend_A); fnResync();
 
             var edgePresenterAppend_B = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
-            edgePresenterAppend_B.input = fnFindPresenter(abs).outputAnchors[0];
-            edgePresenterAppend_B.output = fnFindPresenter(append).inputAnchors[1];
+            edgePresenterAppend_B.input = fnFindPresenter(abs).outputPorts[0];
+            edgePresenterAppend_B.output = fnFindPresenter(append).inputPorts[1];
             m_ViewPresenter.AddElement(edgePresenterAppend_B); fnResync();
 
             var edgePresenterAppend_C = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
-            edgePresenterAppend_C.input = fnFindPresenter(abs).outputAnchors[0];
-            edgePresenterAppend_C.output = fnFindPresenter(append).inputAnchors[2];
+            edgePresenterAppend_C.input = fnFindPresenter(abs).outputPorts[0];
+            edgePresenterAppend_C.output = fnFindPresenter(append).inputPorts[2];
             m_ViewPresenter.AddElement(edgePresenterAppend_C); fnResync();
 
             var edgePresenterAppend_D = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
-            edgePresenterAppend_D.input = fnFindPresenter(abs).outputAnchors[0];
-            edgePresenterAppend_D.output = fnFindPresenter(append).inputAnchors[3];
+            edgePresenterAppend_D.input = fnFindPresenter(abs).outputPorts[0];
+            edgePresenterAppend_D.output = fnFindPresenter(append).inputPorts[3];
             m_ViewPresenter.AddElement(edgePresenterAppend_D); fnResync();
 
             DestroyTestAsset();
@@ -471,8 +471,8 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(0, fnCountEdge());
 
             var edgePresenterSin = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
-            edgePresenterSin.input = cosPresenter.outputAnchors[0];
-            edgePresenterSin.output = sinPresenter.inputAnchors[0];
+            edgePresenterSin.input = cosPresenter.outputPorts[0];
+            edgePresenterSin.output = sinPresenter.inputPorts[0];
             m_ViewPresenter.AddElement(edgePresenterSin);
             Assert.AreEqual(1, fnCountEdge());
 
@@ -522,8 +522,8 @@ namespace UnityEditor.VFX.Test
             fnFirstContextPresenter().AddBlock(0, blockAttribute);
 
             var edgePresenter = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
-            edgePresenter.input = fnFindPresenter(typeof(VFXOperatorCosine)).outputAnchors[0];
-            edgePresenter.output = fnFirstBlockPresenter().inputAnchors[0];
+            edgePresenter.input = fnFindPresenter(typeof(VFXOperatorCosine)).outputPorts[0];
+            edgePresenter.output = fnFirstBlockPresenter().inputPorts[0];
             m_ViewPresenter.AddElement(edgePresenter);
             Undo.IncrementCurrentGroup();
 
@@ -575,22 +575,22 @@ namespace UnityEditor.VFX.Test
             for (int i = 0; i < 3; ++i)
             {
                 var edgePresenter = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
-                edgePresenter.input = absPresenter.outputAnchors[0];
-                edgePresenter.output = appendPresenter.inputAnchors[i];
+                edgePresenter.input = absPresenter.outputPorts[0];
+                edgePresenter.output = appendPresenter.inputPorts[i];
                 m_ViewPresenter.AddElement(edgePresenter);
             }
 
             var edgePresenterCross = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
-            edgePresenterCross.input = appendPresenter.outputAnchors[0];
-            edgePresenterCross.output = crossPresenter.inputAnchors[0];
+            edgePresenterCross.input = appendPresenter.outputPorts[0];
+            edgePresenterCross.output = crossPresenter.inputPorts[0];
             m_ViewPresenter.AddElement(edgePresenterCross);
 
             Undo.IncrementCurrentGroup();
             Assert.AreEqual(4, fnCountEdge());
-            Assert.IsInstanceOf(typeof(VFXSlotFloat3), (appendPresenter.outputAnchors[0] as VFXDataAnchorPresenter).model);
+            Assert.IsInstanceOf(typeof(VFXSlotFloat3), (appendPresenter.outputPorts[0] as VFXDataAnchorPresenter).model);
 
             //Find last edge in append node
-            var referenceAnchor = appendPresenter.inputAnchors[2];
+            var referenceAnchor = appendPresenter.inputPorts[2];
             var edgeToDelete = m_ViewPresenter.allChildren
                 .OfType<VFXDataEdgePresenter>()
                 .Cast<VFXDataEdgePresenter>()
@@ -602,30 +602,30 @@ namespace UnityEditor.VFX.Test
 
             m_ViewPresenter.RemoveElement(edgeToDelete);
             Assert.AreEqual(2, fnCountEdge()); //cross should be implicitly disconnected ...
-            Assert.IsInstanceOf(typeof(VFXSlotFloat2), (appendPresenter.outputAnchors[0] as VFXDataAnchorPresenter).model);
+            Assert.IsInstanceOf(typeof(VFXSlotFloat2), (appendPresenter.outputPorts[0] as VFXDataAnchorPresenter).model);
 
             Undo.PerformUndo();
             Assert.AreEqual(4, fnCountEdge()); //... and restored !
-            Assert.IsInstanceOf(typeof(VFXSlotFloat3), (fnFindPresenter(typeof(VFXOperatorAppendVector)).outputAnchors[0] as VFXDataAnchorPresenter).model);
+            Assert.IsInstanceOf(typeof(VFXSlotFloat3), (fnFindPresenter(typeof(VFXOperatorAppendVector)).outputPorts[0] as VFXDataAnchorPresenter).model);
             Undo.PerformRedo();
             Assert.AreEqual(2, fnCountEdge());
-            Assert.IsInstanceOf(typeof(VFXSlotFloat2), (fnFindPresenter(typeof(VFXOperatorAppendVector)).outputAnchors[0] as VFXDataAnchorPresenter).model);
+            Assert.IsInstanceOf(typeof(VFXSlotFloat2), (fnFindPresenter(typeof(VFXOperatorAppendVector)).outputPorts[0] as VFXDataAnchorPresenter).model);
 
             //Improve test connecting cos & sin => then try delete append
             Undo.PerformUndo();
             Undo.IncrementCurrentGroup();
             Assert.AreEqual(4, fnCountEdge());
-            Assert.IsInstanceOf(typeof(VFXSlotFloat3), (fnFindPresenter(typeof(VFXOperatorAppendVector)).outputAnchors[0] as VFXDataAnchorPresenter).model);
+            Assert.IsInstanceOf(typeof(VFXSlotFloat3), (fnFindPresenter(typeof(VFXOperatorAppendVector)).outputPorts[0] as VFXDataAnchorPresenter).model);
 
             var edgePresenterCos = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
-            edgePresenterCos.input = fnFindPresenter(typeof(VFXOperatorAppendVector)).outputAnchors[0];
-            edgePresenterCos.output = fnFindPresenter(typeof(VFXOperatorCosine)).inputAnchors[0];
+            edgePresenterCos.input = fnFindPresenter(typeof(VFXOperatorAppendVector)).outputPorts[0];
+            edgePresenterCos.output = fnFindPresenter(typeof(VFXOperatorCosine)).inputPorts[0];
             m_ViewPresenter.AddElement(edgePresenterCos);
             Assert.AreEqual(5, fnCountEdge());
 
             var edgePresenterSin = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
-            edgePresenterSin.input = fnFindPresenter(typeof(VFXOperatorAppendVector)).outputAnchors[0];
-            edgePresenterSin.output = fnFindPresenter(typeof(VFXOperatorSine)).inputAnchors[0];
+            edgePresenterSin.input = fnFindPresenter(typeof(VFXOperatorAppendVector)).outputPorts[0];
+            edgePresenterSin.output = fnFindPresenter(typeof(VFXOperatorSine)).inputPorts[0];
             m_ViewPresenter.AddElement(edgePresenterSin);
             Assert.AreEqual(6, fnCountEdge());
 

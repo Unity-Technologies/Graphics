@@ -31,10 +31,10 @@ namespace UnityEditor.VFX.UI
         public List<VFXFlowAnchorPresenter> m_FlowAnchorPresenters;
 
         [SerializeField]
-        public Dictionary<Type, List<NodeAnchorPresenter>> m_DataInputAnchorPresenters = new Dictionary<Type, List<NodeAnchorPresenter>>();
+        public Dictionary<Type, List<PortPresenter>> m_DataInputAnchorPresenters = new Dictionary<Type, List<PortPresenter>>();
 
         [SerializeField]
-        public Dictionary<Type, List<NodeAnchorPresenter>> m_DataOutputAnchorPresenters = new Dictionary<Type, List<NodeAnchorPresenter>>();
+        public Dictionary<Type, List<PortPresenter>> m_DataOutputAnchorPresenters = new Dictionary<Type, List<PortPresenter>>();
 
         // Model / Presenters synchronization
         private Dictionary<VFXModel, VFXNodePresenter> m_SyncedModels = new Dictionary<VFXModel, VFXNodePresenter>();
@@ -62,18 +62,16 @@ namespace UnityEditor.VFX.UI
 
             m_PresenterFactory[typeof(VFXContext)] = typeof(VFXContextPresenter);
             m_PresenterFactory[typeof(VFXOperator)] = typeof(VFXOperatorPresenter);
-            m_PresenterFactory[typeof(VFXBuiltInParameter)] = typeof(VFXBuiltInParameterPresenter);
-            m_PresenterFactory[typeof(VFXAttributeParameter)] = typeof(VFXAttributeParameterPresenter);
             m_PresenterFactory[typeof(VFXParameter)] = typeof(VFXParameterPresenter);
 
             if (m_FlowAnchorPresenters == null)
                 m_FlowAnchorPresenters = new List<VFXFlowAnchorPresenter>();
 
             if (m_DataOutputAnchorPresenters == null)
-                m_DataOutputAnchorPresenters = new Dictionary<Type, List<NodeAnchorPresenter>>();
+                m_DataOutputAnchorPresenters = new Dictionary<Type, List<PortPresenter>>();
 
             if (m_DataInputAnchorPresenters == null)
-                m_DataInputAnchorPresenters = new Dictionary<Type, List<NodeAnchorPresenter>>();
+                m_DataInputAnchorPresenters = new Dictionary<Type, List<PortPresenter>>();
 
             if (m_VFXAsset)
             {
@@ -138,8 +136,8 @@ namespace UnityEditor.VFX.UI
 
                 if (operatorPresenterFrom != null && operatorPresenterTo != null)
                 {
-                    var anchorFrom = operatorPresenterFrom.outputAnchors.FirstOrDefault(o => (o as VFXDataAnchorPresenter).model == input.refSlot);
-                    var anchorTo = operatorPresenterTo.inputAnchors.FirstOrDefault(o => (o as VFXDataAnchorPresenter).model == input);
+                    var anchorFrom = operatorPresenterFrom.outputPorts.FirstOrDefault(o => (o as VFXDataAnchorPresenter).model == input.refSlot);
+                    var anchorTo = operatorPresenterTo.inputPorts.FirstOrDefault(o => (o as VFXDataAnchorPresenter).model == input);
 
                     var edgePresenter = m_Elements.OfType<VFXDataEdgePresenter>().FirstOrDefault(t => t.input == anchorTo && t.output == anchorFrom);
 
@@ -326,11 +324,13 @@ namespace UnityEditor.VFX.UI
 
                 var inputAnchor = flowEdge.input as VFXFlowAnchorPresenter;
                 var outputAnchor = flowEdge.output as VFXFlowAnchorPresenter;
+                if (inputAnchor != null && outputAnchor != null)
+                {
+                    var contextInput = inputAnchor.Owner as VFXContext;
+                    var contextOutput = outputAnchor.Owner as VFXContext;
 
-                var contextInput = inputAnchor.Owner as VFXContext;
-                var contextOutput = outputAnchor.Owner as VFXContext;
-
-                contextInput.UnlinkFrom(contextOutput, outputAnchor.slotIndex, inputAnchor.slotIndex);
+                    contextInput.UnlinkFrom(contextOutput, outputAnchor.slotIndex, inputAnchor.slotIndex);
+                }
             }
             else if (element is VFXDataEdgePresenter)
             {
@@ -369,14 +369,14 @@ namespace UnityEditor.VFX.UI
 
         public void RegisterDataAnchorPresenter(VFXDataAnchorPresenter presenter)
         {
-            List<NodeAnchorPresenter> list;
+            List<PortPresenter> list;
 
-            Dictionary<Type, List<NodeAnchorPresenter>> dict = presenter.direction == Direction.Input ? m_DataInputAnchorPresenters : m_DataOutputAnchorPresenters;
+            Dictionary<Type, List<PortPresenter>> dict = presenter.direction == Direction.Input ? m_DataInputAnchorPresenters : m_DataOutputAnchorPresenters;
 
-            if (!dict.TryGetValue(presenter.anchorType, out list))
+            if (!dict.TryGetValue(presenter.portType, out list))
             {
-                list = new List<NodeAnchorPresenter>();
-                dict[presenter.anchorType] = list;
+                list = new List<PortPresenter>();
+                dict[presenter.portType] = list;
             }
             if (!list.Contains(presenter))
                 list.Add(presenter);
@@ -384,10 +384,10 @@ namespace UnityEditor.VFX.UI
 
         public void UnregisterDataAnchorPresenter(VFXDataAnchorPresenter presenter)
         {
-            Dictionary<Type, List<NodeAnchorPresenter>> dict = presenter.direction == Direction.Input ? m_DataInputAnchorPresenters : m_DataOutputAnchorPresenters;
+            Dictionary<Type, List<PortPresenter>> dict = presenter.direction == Direction.Input ? m_DataInputAnchorPresenters : m_DataOutputAnchorPresenters;
 
-            List<NodeAnchorPresenter> result;
-            if (dict.TryGetValue(presenter.anchorType, out result))
+            List<PortPresenter> result;
+            if (dict.TryGetValue(presenter.portType, out result))
             {
                 result.Remove(presenter);
             }
@@ -408,7 +408,10 @@ namespace UnityEditor.VFX.UI
         private static void CollectChildOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> hashChildren)
         {
             hashChildren.Add(operatorInput);
-            var all = operatorInput.outputSlots.SelectMany(s => s.LinkedSlots.Select(o => o.owner));
+
+            var all = operatorInput.outputSlots.SelectMany(s => s.LinkedSlots.Select(
+                        o => o.owner
+                        ));
             var children = all.Cast<IVFXSlotContainer>();
             foreach (var child in children)
             {
@@ -416,78 +419,71 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchorPresenter, NodeAdapter nodeAdapter)
+        public override List<PortPresenter> GetCompatiblePorts(PortPresenter startAnchorPresenter, NodeAdapter nodeAdapter)
         {
             if (startAnchorPresenter is VFXDataAnchorPresenter)
             {
-                var startAnchorOperatorPresenter = (startAnchorPresenter as VFXDataAnchorPresenter);
-                var currentOperator = startAnchorOperatorPresenter.sourceNode.slotContainer;
+                var allSlotContainerPresenters = AllSlotContainerPresenters;
 
-                var allCandidates = Enumerable.Empty<NodeAnchorPresenter>();
+
+                IEnumerable<PortPresenter> allCandidates = Enumerable.Empty<PortPresenter>();
+
                 if (startAnchorPresenter.direction == Direction.Input)
                 {
-                    var childrenOperators = new HashSet<IVFXSlotContainer>();
-                    CollectChildOperator(currentOperator, childrenOperators);
-
-                    var allSlotContainerPresenters = AllSlotContainerPresenters.Where(o => !childrenOperators.Contains(o.slotContainer));
-                    var contextTypeInChildren = childrenOperators.OfType<VFXBlock>().Select(o => o.GetParent().contextType).Distinct();
-                    if (contextTypeInChildren.Any(o => o == VFXContextType.kSpawner || o == VFXContextType.kUpdate))
+                    var startAnchorOperatorPresenter = (startAnchorPresenter as VFXDataAnchorPresenter);
+                    if (startAnchorOperatorPresenter != null) // is is an input from another operator
                     {
-                        var additionnalExcludeOperator = new HashSet<IVFXSlotContainer>();
-
-                        Func<VFXModel, bool> fnConditionSpawner = delegate(VFXModel model) { return model is VFXAttributeParameter; };
-                        Func<VFXModel, bool> fnConditionUpdate = delegate(VFXModel model) { return model is VFXSourceAttributeParameter; };
-                        var filterForSpawner = contextTypeInChildren.Any(o => o == VFXContextType.kSpawner);
-                        var filterForUpdate = contextTypeInChildren.Any(o => o == VFXContextType.kUpdate);
-
-                        foreach (var attributeParameter in allSlotContainerPresenters.Where(o =>
-                                     (!filterForSpawner || fnConditionSpawner(o.model))
-                                     &&  (!filterForUpdate || fnConditionUpdate(o.model)))
-                                 .Select(o => o.model as VFXOperator))
-                        {
-                            CollectChildOperator(attributeParameter, additionnalExcludeOperator);
-                        }
-                        allSlotContainerPresenters = allSlotContainerPresenters.Where(o => !additionnalExcludeOperator.Contains(o.slotContainer));
+                        var currentOperator = startAnchorOperatorPresenter.sourceNode.slotContainer;
+                        var childrenOperators = new HashSet<IVFXSlotContainer>();
+                        CollectChildOperator(currentOperator, childrenOperators);
+                        allSlotContainerPresenters = allSlotContainerPresenters.Where(o => !childrenOperators.Contains(o.slotContainer));
+                        var toSlot = startAnchorOperatorPresenter.model;
+                        allCandidates = allSlotContainerPresenters.SelectMany(o => o.outputPorts).Where(o =>
+                            {
+                                var candidate = o as VFXDataAnchorPresenter;
+                                return toSlot.CanLink(candidate.model) && candidate.model.CanLink(toSlot);
+                            }).ToList();
                     }
-
-                    var toSlot = startAnchorOperatorPresenter.model;
-                    allCandidates = allSlotContainerPresenters.SelectMany(o => o.outputAnchors).Where(o =>
-                        {
-                            var candidate = o as VFXDataAnchorPresenter;
-                            return toSlot.CanLink(candidate.model) && candidate.model.CanLink(toSlot);
-                        });
+                    else
+                    {
+                    }
                 }
                 else
                 {
+                    var startAnchorOperatorPresenter = (startAnchorPresenter as VFXDataAnchorPresenter);
+                    var currentOperator = startAnchorOperatorPresenter.sourceNode.slotContainer;
                     var parentOperators = new HashSet<IVFXSlotContainer>();
                     CollectParentOperator(currentOperator, parentOperators);
-
-                    var attributeLocationInParents = parentOperators.OfType<VFXAttributeParameter>().Select(o => o.location).Distinct();
-                    var allSlotContainerPresenters = AllSlotContainerPresenters.Where(o => !parentOperators.Contains(o.slotContainer));
-
-                    if (attributeLocationInParents.Any())
-                    {
-                        var filterUpdate = attributeLocationInParents.Any(o => o == VFXAttributeLocation.Source) ? new VFXContextType[] { VFXContextType.kSpawner, VFXContextType.kUpdate } : new VFXContextType[] { VFXContextType.kSpawner };
-                        var additionnalExcludeOperator = new HashSet<IVFXSlotContainer>();
-                        foreach (var block in allSlotContainerPresenters.Where(o => o.model is VFXBlock && filterUpdate.Contains((o.model as VFXBlock).GetParent().contextType)).Select(o => o.model as VFXBlock))
-                        {
-                            CollectParentOperator(block, additionnalExcludeOperator);
-                        }
-                        allSlotContainerPresenters = allSlotContainerPresenters.Where(o => !additionnalExcludeOperator.Contains(o.slotContainer));
-                    }
-
-                    allCandidates = allSlotContainerPresenters.SelectMany(o => o.inputAnchors).Where(o =>
+                    allSlotContainerPresenters = allSlotContainerPresenters.Where(o => !parentOperators.Contains(o.slotContainer));
+                    allCandidates = allSlotContainerPresenters.SelectMany(o => o.inputPorts).Where(o =>
                         {
                             var candidate = o as VFXDataAnchorPresenter;
                             var toSlot = candidate.model;
                             return toSlot.CanLink(startAnchorOperatorPresenter.model) && startAnchorOperatorPresenter.model.CanLink(toSlot);
-                        });
+                        }).ToList();
+
+                    // For edge starting with an output, we must add all data anchors from all blocks
+                    List<PortPresenter> presenters;
+                    /*if (!m_DataInputAnchorPresenters.TryGetValue(startAnchorPresenter.portType, out presenters))
+                    {
+                        presenters = new List<PortPresenter>();
+                        m_DataInputAnchorPresenters[startAnchorPresenter.portType] = presenters;
+                    }
+                    else
+                    {
+                        presenters = m_DataInputAnchorPresenters[startAnchorPresenter.portType];
+                    }
+                    */
+                    presenters = new List<PortPresenter>();
+
+                    allCandidates = allCandidates.Concat(presenters);
                 }
+
                 return allCandidates.ToList();
             }
             else
             {
-                var res = new List<NodeAnchorPresenter>();
+                var res = new List<PortPresenter>();
 
                 if (!(startAnchorPresenter is VFXFlowAnchorPresenter))
                     return res;
@@ -532,34 +528,6 @@ namespace UnityEditor.VFX.UI
         }
 
         public VFXOperator AddVFXOperator(Vector2 pos, VFXModelDescriptor<VFXOperator> desc)
-        {
-            var model = desc.CreateInstance();
-            AddVFXModel(pos, model);
-            return model;
-        }
-
-        public VFXBuiltInParameter AddVFXBuiltInParameter(Vector2 pos, VFXModelDescriptorBuiltInParameters desc)
-        {
-            var model = desc.CreateInstance();
-            AddVFXModel(pos, model);
-            return model;
-        }
-
-        public VFXCurrentAttributeParameter AddVFXCurrentAttributeParameter(Vector2 pos, VFXModelDescriptorCurrentAttributeParameters desc)
-        {
-            var model = desc.CreateInstance();
-            AddVFXModel(pos, model);
-            return model;
-        }
-
-        public VFXSourceAttributeParameter AddVFXSourceAttributeParameter(Vector2 pos, VFXModelDescriptorSourceAttributeParameters desc)
-        {
-            var model = desc.CreateInstance();
-            AddVFXModel(pos, model);
-            return model;
-        }
-
-        public VFXSourceAttributeParameter AddVFXAttributeParameter(Vector2 pos, VFXModelDescriptorSourceAttributeParameters desc)
         {
             var model = desc.CreateInstance();
             AddVFXModel(pos, model);

@@ -21,7 +21,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXContextUI : GraphElement, IDropTarget, IEdgeDrawerOwner
+    class VFXContextUI : GraphElement, IDropTarget, IEdgeDrawerContainer
     {
         // TODO: Unused except for debugging
         const string RectColorProperty = "rect-color";
@@ -47,7 +47,7 @@ namespace UnityEditor.VFX.UI
 
         VFXContextSlotContainerUI  m_OwnData;
 
-        VFXEdgeDrawer m_EdgeDrawer;
+        EdgeDrawer m_EdgeDrawer;
 
         protected GraphViewTypeFactory typeFactory { get; set; }
 
@@ -85,6 +85,7 @@ namespace UnityEditor.VFX.UI
             {
                 name = "Inside"
             };
+            m_InsideContainer.clippingOptions = ClippingOptions.ClipAndCacheContents;
 
             shadow.Add(m_NodeContainer);
 
@@ -188,7 +189,7 @@ namespace UnityEditor.VFX.UI
             clippingOptions = VisualElement.ClippingOptions.NoClipping;
         }
 
-        public void DirtyDrawer()
+        void IEdgeDrawerContainer.EdgeDirty()
         {
             m_EdgeDrawer.Dirty(ChangeType.Repaint);
         }
@@ -204,6 +205,7 @@ namespace UnityEditor.VFX.UI
         public bool CanDrop(IEnumerable<VFXBlockUI> blocks, VFXBlockUI target)
         {
             bool accept = true;
+            if (blocks.Count() == 0) return false;
             foreach (var block in blocks)
             {
                 if (block == target)
@@ -596,7 +598,7 @@ namespace UnityEditor.VFX.UI
 
             m_OwnData.presenter = presenter.slotPresenter;
 
-            bool slotsVisible = presenter.slotPresenter.inputAnchors.Count() > 0 || (presenter.slotPresenter.settings != null && presenter.slotPresenter.settings.Count() > 0);
+            bool slotsVisible = presenter.slotPresenter.inputPorts.Count() > 0 || (presenter.slotPresenter.settings != null && presenter.slotPresenter.settings.Count() > 0);
             if (slotsVisible && m_OwnData.parent == null)
             {
                 m_Header.Add(m_OwnData);
@@ -634,9 +636,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public IEnumerable<NodeAnchor> GetAllAnchors(bool input, bool output)
+        public IEnumerable<Port> GetAllAnchors(bool input, bool output)
         {
-            return (IEnumerable<NodeAnchor>)GetFlowAnchors(input, output);
+            return (IEnumerable<Port>)GetFlowAnchors(input, output);
         }
 
         public IEnumerable<VFXFlowAnchor> GetFlowAnchors(bool input, bool output)

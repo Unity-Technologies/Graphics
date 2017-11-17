@@ -58,8 +58,7 @@ namespace UnityEditor.VFX.UI
             }
             if (m_SettingsContainer != null)
             {
-                var activeSettings = presenter.model.activeSettings;
-
+                var activeSettings = presenter.model.GetSettings(false);
                 for (int i = 0; i < m_Settings.Count; ++i)
                     m_Settings[i].RemoveFromHierarchy();
 
@@ -79,7 +78,7 @@ namespace UnityEditor.VFX.UI
             {
                 var allEdges = graphView.Query<Edge>().ToList();
 
-                foreach (NodeAnchor anchor in this.Query<NodeAnchor>().Where(t => true).ToList())
+                foreach (Port anchor in this.Query<Port>().Where(t => true).ToList())
                 {
                     foreach (var edge in allEdges.Where(t =>
                         {

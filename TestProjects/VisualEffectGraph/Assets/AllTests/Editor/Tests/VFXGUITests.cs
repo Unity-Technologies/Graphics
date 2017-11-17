@@ -79,15 +79,15 @@ namespace UnityEditor.VFX.Test
             {
                 VFXParameterPresenter paramPresenter = m_ViewPresenter.allChildren.OfType<VFXParameterPresenter>().First(t => t.model == param);
 
-                VFXDataAnchorPresenter outputAnchor = paramPresenter.outputAnchors.First() as VFXDataAnchorPresenter;
-                System.Type type = outputAnchor.anchorType;
+                VFXDataAnchorPresenter outputAnchor = paramPresenter.outputPorts.First() as VFXDataAnchorPresenter;
+                System.Type type = outputAnchor.portType;
 
                 bool found = false;
                 foreach (var block in updateContext.blockPresenters)
                 {
-                    foreach (var anchor in block.inputAnchors)
+                    foreach (var anchor in block.inputPorts)
                     {
-                        if (anchor.anchorType == type)
+                        if (anchor.portType == type)
                         {
                             found = true;
 

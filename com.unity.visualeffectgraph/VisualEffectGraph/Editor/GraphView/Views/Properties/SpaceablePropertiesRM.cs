@@ -22,6 +22,11 @@ namespace UnityEditor.VFX.UI
             AddToClassList("spaceablepropertyrm");
         }
 
+        public override float GetPreferredControlWidth()
+        {
+            return 120;
+        }
+
         void OnButtonClick()
         {
             m_Value.space = (CoordinateSpace)((int)(m_Value.space + 1) % CoordinateSpaceInfo.SpaceCount);

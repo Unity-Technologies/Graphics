@@ -6,7 +6,7 @@ using UnityEditor.Experimental.UIElements.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
-    abstract class VFXDataAnchorPresenter : NodeAnchorPresenter, IPropertyRMProvider, IValuePresenter
+    abstract class VFXDataAnchorPresenter : PortPresenter, IPropertyRMProvider, IValuePresenter
     {
         [SerializeField]
         private VFXSlot m_Model;
@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.UI
             m_Model = model;
             m_SourceNode = scPresenter;
 
-            anchorType = model.property.type;
+            portType = model.property.type;
             name = model.property.name;
 
             UpdateHidden();
@@ -67,10 +67,10 @@ namespace UnityEditor.VFX.UI
 
         public virtual void UpdateInfos()
         {
-            if (model.property.type != anchorType)
+            if (model.property.type != portType)
             {
                 sourceNode.viewPresenter.UnregisterDataAnchorPresenter(this);
-                anchorType = model.property.type;
+                portType = model.property.type;
                 sourceNode.viewPresenter.RegisterDataAnchorPresenter(this);
             }
         }
@@ -79,7 +79,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                if (anchorType != null)
+                if (portType != null)
                 {
                     if (!editable)
                     {
@@ -87,11 +87,11 @@ namespace UnityEditor.VFX.UI
 
                         if (presenter.CanGetEvaluatedContent(model))
                         {
-                            return VFXConverter.ConvertTo(presenter.GetEvaluatedContent(model), anchorType);
+                            return VFXConverter.ConvertTo(presenter.GetEvaluatedContent(model), portType);
                         }
                     }
 
-                    return VFXConverter.ConvertTo(model.value, anchorType);
+                    return VFXConverter.ConvertTo(model.value, portType);
                 }
                 else
                 {
@@ -99,7 +99,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            set { SetPropertyValue(VFXConverter.ConvertTo(value, anchorType)); }
+            set { SetPropertyValue(VFXConverter.ConvertTo(value, portType)); }
         }
 
 
@@ -138,12 +138,12 @@ namespace UnityEditor.VFX.UI
 
         public virtual bool expandable
         {
-            get { return VFXContextSlotContainerPresenter.IsTypeExpandable(anchorType); }
+            get { return VFXContextSlotContainerPresenter.IsTypeExpandable(portType); }
         }
 
         public virtual string iconName
         {
-            get { return anchorType.Name; }
+            get { return portType.Name; }
         }
 
         [SerializeField]

@@ -7,10 +7,10 @@ namespace UnityEditor.VFX.UIElements
 {
     class Vector4Field : VFXControl<Vector4>
     {
-        LabeledField<DoubleField, double> m_X;
-        LabeledField<DoubleField, double> m_Y;
-        LabeledField<DoubleField, double> m_Z;
-        LabeledField<DoubleField, double> m_W;
+        LabeledField<FloatField, float> m_X;
+        LabeledField<FloatField, float> m_Y;
+        LabeledField<FloatField, float> m_Z;
+        LabeledField<FloatField, float> m_W;
 
 
         public bool dynamicUpdate
@@ -30,10 +30,10 @@ namespace UnityEditor.VFX.UIElements
 
         void CreateTextField()
         {
-            m_X = new LabeledField<DoubleField, double>("X");
-            m_Y = new LabeledField<DoubleField, double>("Y");
-            m_Z = new LabeledField<DoubleField, double>("Z");
-            m_W = new LabeledField<DoubleField, double>("W");
+            m_X = new LabeledField<FloatField, float>("X");
+            m_Y = new LabeledField<FloatField, float>("Y");
+            m_Z = new LabeledField<FloatField, float>("Z");
+            m_W = new LabeledField<FloatField, float>("W");
 
             m_X.control.AddToClassList("fieldContainer");
             m_Y.control.AddToClassList("fieldContainer");
@@ -44,34 +44,34 @@ namespace UnityEditor.VFX.UIElements
             m_Z.AddToClassList("fieldContainer");
             m_W.AddToClassList("fieldContainer");
 
-            m_X.RegisterCallback<ChangeEvent<double>>(OnXValueChanged);
-            m_Y.RegisterCallback<ChangeEvent<double>>(OnYValueChanged);
-            m_Z.RegisterCallback<ChangeEvent<double>>(OnZValueChanged);
-            m_W.RegisterCallback<ChangeEvent<double>>(OnWValueChanged);
+            m_X.RegisterCallback<ChangeEvent<float>>(OnXValueChanged);
+            m_Y.RegisterCallback<ChangeEvent<float>>(OnYValueChanged);
+            m_Z.RegisterCallback<ChangeEvent<float>>(OnZValueChanged);
+            m_W.RegisterCallback<ChangeEvent<float>>(OnWValueChanged);
         }
 
-        void OnXValueChanged(ChangeEvent<double> e)
+        void OnXValueChanged(ChangeEvent<float> e)
         {
             Vector4 newValue = value;
             newValue.x = (float)m_X.value;
             SetValueAndNotify(newValue);
         }
 
-        void OnYValueChanged(ChangeEvent<double> e)
+        void OnYValueChanged(ChangeEvent<float> e)
         {
             Vector4 newValue = value;
             newValue.y = (float)m_Y.value;
             SetValueAndNotify(newValue);
         }
 
-        void OnZValueChanged(ChangeEvent<double> e)
+        void OnZValueChanged(ChangeEvent<float> e)
         {
             Vector4 newValue = value;
             newValue.z = (float)m_Z.value;
             SetValueAndNotify(newValue);
         }
 
-        void OnWValueChanged(ChangeEvent<double> e)
+        void OnWValueChanged(ChangeEvent<float> e)
         {
             Vector4 newValue = value;
             newValue.w = (float)m_W.value;
