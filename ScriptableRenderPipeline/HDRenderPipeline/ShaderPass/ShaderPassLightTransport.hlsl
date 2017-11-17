@@ -46,6 +46,12 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
     output.vmesh.positionWS = positionWS;
 #endif
 
+    // Not required for meta pass but to silent the shader compiler warning in case it is declare
+#ifdef VARYINGS_NEED_TANGENT_TO_WORLD
+    output.vmesh.normalWS = float3(0.0, 0.0, 0.0);
+    output.vmesh.tangentWS = float4(0.0, 0.0, 0.0, 0.0);
+#endif
+
 #ifdef VARYINGS_NEED_TEXCOORD0
     output.vmesh.texCoord0 = inputMesh.uv0;
 #endif
