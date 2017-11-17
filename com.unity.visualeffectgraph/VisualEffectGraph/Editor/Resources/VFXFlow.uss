@@ -27,6 +27,12 @@ VFXFlowAnchor #connector #hole #cap{
 	height:0;
 }
 
+VFXFlowAnchor #connector.portHighlight #hole #cap{
+    background-color: rgb(220, 220, 220);
+    border-color: rgb(220, 220, 220);
+}
+
+
 VFXFlowAnchor #connector{
 	position-type:absolute;
 	position-left:0;
@@ -39,7 +45,7 @@ VFXFlowAnchor.connected #connector
 {
 }
 
-VFXFlowAnchor #connector.anchorHighlight{
+VFXFlowAnchor #connector.portHighlight{
 	background-image:resource("VFX/flow-anchor-highlight");
 }
 

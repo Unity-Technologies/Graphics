@@ -97,41 +97,8 @@ namespace UnityEditor.VFX.UI
                     };
                 }).OrderBy(o => o.category + o.name);
 
-            var descriptorBuiltInParameter = VFXLibrary.GetBuiltInParameters().Select(o =>
-                {
-                    return new Descriptor()
-                    {
-                        modelDescriptor = o,
-                        category = "BuiltIn/",
-                        name = o.name
-                    };
-                }).OrderBy(o => o.category + o.name);
-
-            var descriptorSourceAttributeParameter = VFXLibrary.GetSourceAttributeParameters().Select(o =>
-                {
-                    return new Descriptor()
-                    {
-                        modelDescriptor = o,
-                        category = "SourceAttribute/",
-                        name = o.name
-                    };
-                }).OrderBy(o => o.name);
-
-            var descriptorCurrentAttributeParameter = VFXLibrary.GetCurrentAttributeParameters().Select(o =>
-                {
-                    return new Descriptor()
-                    {
-                        modelDescriptor = o,
-                        category = "CurrentAttribute/",
-                        name = o.name
-                    };
-                }).OrderBy(o => o.category + o.name);
-
             return descriptorsContext.Concat(descriptorsOperator)
                 .Concat(descriptorParameter)
-                .Concat(descriptorBuiltInParameter)
-                .Concat(descriptorSourceAttributeParameter)
-                .Concat(descriptorCurrentAttributeParameter)
                 .Concat(Enumerable.Repeat(systemDesc, 1));
         }
     }
@@ -172,18 +139,6 @@ namespace UnityEditor.VFX.UI
                     {
                         AddVFXParameter(tPos, d.modelDescriptor as VFXModelDescriptorParameters);
                     }
-                    else if (d.modelDescriptor is VFXModelDescriptorBuiltInParameters)
-                    {
-                        AddVFXBuiltInParameter(tPos, d.modelDescriptor as VFXModelDescriptorBuiltInParameters);
-                    }
-                    else if (d.modelDescriptor is VFXModelDescriptorCurrentAttributeParameters)
-                    {
-                        AddVFXCurrentAttributeParameter(tPos, d.modelDescriptor as VFXModelDescriptorCurrentAttributeParameters);
-                    }
-                    else if (d.modelDescriptor is VFXModelDescriptorSourceAttributeParameters)
-                    {
-                        AddVFXSourceAttributeParameter(tPos, d.modelDescriptor as VFXModelDescriptorSourceAttributeParameters);
-                    }
                     else if (d.modelDescriptor == null)
                     {
                         /*
@@ -220,8 +175,6 @@ namespace UnityEditor.VFX.UI
                     }
                 }), null));
 
-            typeFactory[typeof(VFXAttributeParameterPresenter)] = typeof(VFXAttributeParameterUI);
-            typeFactory[typeof(VFXBuiltInParameterPresenter)] = typeof(VFXBuiltInParameterUI);
             typeFactory[typeof(VFXParameterPresenter)] = typeof(VFXParameterUI);
             typeFactory[typeof(VFXOperatorPresenter)] = typeof(VFXOperatorUI);
             typeFactory[typeof(VFXContextPresenter)] = typeof(VFXContextUI);
@@ -393,24 +346,6 @@ namespace UnityEditor.VFX.UI
         {
             if (presenter == null) return;
             GetPresenter<VFXViewPresenter>().AddVFXParameter(pos, desc);
-        }
-
-        void AddVFXBuiltInParameter(Vector2 pos, VFXModelDescriptorBuiltInParameters desc)
-        {
-            if (presenter == null) return;
-            GetPresenter<VFXViewPresenter>().AddVFXBuiltInParameter(pos, desc);
-        }
-
-        void AddVFXCurrentAttributeParameter(Vector2 pos, VFXModelDescriptorCurrentAttributeParameters desc)
-        {
-            if (presenter == null) return;
-            GetPresenter<VFXViewPresenter>().AddVFXCurrentAttributeParameter(pos, desc);
-        }
-
-        void AddVFXSourceAttributeParameter(Vector2 pos, VFXModelDescriptorSourceAttributeParameters desc)
-        {
-            if (presenter == null) return;
-            GetPresenter<VFXViewPresenter>().AddVFXSourceAttributeParameter(pos, desc);
         }
 
         public EventPropagation CloneModels() // TEST clean that
@@ -687,11 +622,7 @@ namespace UnityEditor.VFX.UI
         {
             VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
             if (presenter == null) return;
-
-            VFXParameter newParameter = presenter.AddVFXParameter(contentViewContainer.GlobalToBound(evt.imguiEvent.mousePosition), VFXLibrary.GetParameters().FirstOrDefault(t => t.name == parameter.portType.UserFriendlyName()));
-
-            newParameter.exposedName = parameter.exposedName;
-            newParameter.exposed = true;
+            presenter.AddVFXParameter(contentViewContainer.GlobalToBound(evt.imguiEvent.mousePosition), VFXLibrary.GetParameters().FirstOrDefault(t => t.name == parameter.portType.UserFriendlyName()));
         }
 
         void SelectionUpdated()

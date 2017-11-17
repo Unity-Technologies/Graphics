@@ -9,6 +9,7 @@ namespace UnityEditor.VFX.UIElements
     {
         protected VisualElement m_Label;
         protected T m_Control;
+
         public LabeledField(VisualElement existingLabel)
         {
             m_Label = existingLabel;
@@ -35,26 +36,25 @@ namespace UnityEditor.VFX.UIElements
         void SetupLabel()
         {
             if (typeof(IValueField<U>).IsAssignableFrom(typeof(T)))
-                if (typeof(U) == typeof(double))
+                if (typeof(U) == typeof(float))
+                {
+                    var dragger = new FieldMouseDragger<float>((IValueField<float>)m_Control);
+                    dragger.SetDragZone(m_Label);
+
+                    //m_Label.AddManipulator(new UIDragValueManipulator<double>((INotifyValueChanged<double> )m_Control));
+                }
+                else if (typeof(U) == typeof(double))
                 {
                     var dragger = new FieldMouseDragger<double>((IValueField<double>)m_Control);
                     dragger.SetDragZone(m_Label);
 
                     //m_Label.AddManipulator(new UIDragValueManipulator<double>((INotifyValueChanged<double> )m_Control));
-                }/*
-            else if (typeof(U) == typeof(float))
-            {
-                m_Label.AddManipulator(new UIDragValueManipulator<float>(m_Control));
-            }*/
+                }
                 else if (typeof(U) == typeof(long))
                 {
                     var dragger = new FieldMouseDragger<long>((IValueField<long> )m_Control);
                     dragger.SetDragZone(m_Label);
-                }/*
-            else if (typeof(U) == typeof(int))
-            {
-                m_Label.AddManipulator(new UIDragValueManipulator<int>(m_Control));
-            }*/
+                }
         }
 
         void CreateControl()

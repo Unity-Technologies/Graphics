@@ -28,17 +28,9 @@ namespace UnityEditor.VFX.UI
             m_undoStack.Add(0, initialState.Clone<VFXGraph>());
         }
 
-        public void ClearUndoStack()
-        {
-            Undo.ClearUndo(m_graphUndoCursor);
-            m_graphUndoCursor.index = 0;
-            m_lastGraphUndoCursor = 0;
-            m_undoStack.Clear();
-        }
-
         public void IncrementGraphState()
         {
-            Undo.RecordObject(m_graphUndoCursor, "VFXGraph");
+            Undo.RecordObject(m_graphUndoCursor, string.Format("VFXGraph ({0})", m_graphUndoCursor.index + 1));
             m_graphUndoCursor.index = m_graphUndoCursor.index + 1;
         }
 
@@ -165,6 +157,7 @@ namespace UnityEditor.VFX.UI
                     var cloneGraph = m_graphUndoStack.GetCopyCurrentGraphState();
                     m_VFXAsset.graph = cloneGraph;
                     m_reentrant = true;
+                    ExpressionGraphDirty = true;
                     ForceReload();
                     m_reentrant = false;
                     m_graphUndoStack.CleanDirtyState();
@@ -172,7 +165,8 @@ namespace UnityEditor.VFX.UI
                 catch (Exception e)
                 {
                     Debug.LogError(e);
-                    m_graphUndoStack.ClearUndoStack();
+                    Undo.ClearAll();
+                    m_graphUndoStack = new VFXGraphUndoStack(m_Graph);
                 }
             }
         }

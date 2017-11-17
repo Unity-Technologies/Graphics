@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -9,6 +10,20 @@ namespace UnityEditor.VFX
         public string[] GetAvailableString()
         {
             return VFXAttribute.All;
+        }
+    }
+
+    class AttributeVariant : IVariantProvider
+    {
+        public Dictionary<string, object[]> variants
+        {
+            get
+            {
+                return new Dictionary<string, object[]>
+                {
+                    { "attribute", VFXAttribute.All.Cast<object>().ToArray() }
+                };
+            }
         }
     }
 

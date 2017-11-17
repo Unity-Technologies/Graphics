@@ -1,14 +1,14 @@
-#if !(defined(VFX_VARYING_STRUCT) && defined(VFX_VARYING_POSITIONWS))
-#error VFX_VARYING_STRUCT and VFX_VARYING_POSITIONWS must be defined.
+#if !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))
+#error VFX_VARYING_PS_INPUTS and VFX_VARYING_POSCS must be defined.
 #endif
 
 #pragma vertex vert
 
-VFX_VARYING_STRUCT vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
+VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 {
 	uint index = id >> 1;
-	VFX_VARYING_STRUCT o = (VFX_VARYING_STRUCT)0;
-	o.VFX_VARYING_POSITIONWS = -1;
+	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
+	o.VFX_VARYING_POSCS = -1;
 	if (index < asuint(nbMax))
 	{
 		${VFXLoadAttributes:{alive}}
@@ -21,24 +21,17 @@ VFX_VARYING_STRUCT vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 				return o;
 			
 			#if TARGET_FROM_ATTRIBUTES
-			float3x3 rot = GetRotationMatrix(front,radians(angle));
-			
+			float3x3 rot = GetRotationMatrix(front,radians(angle));	
 			targetPosition = position;
-
-			float2 offsets0 = -size.xy * pivot.xy;
-			position += mul(rot,side * offsets0.x);
-			position += mul(rot,up * offsets0.y);
-			position -= front * pivot.z;
-
+			
+			position += TransformInElementSpace((float3)0.0f,side,up,front,rot,pivot,size);
+			
 			${VFXLoadParameter:{targetOffset}}
-			float2 offsets1 = size.xy * (targetOffset.xy - pivot.xy);
-			targetPosition += mul(rot,side * offsets1.x);
-			targetPosition += mul(rot,up * offsets1.y);
-			targetPosition += front * (targetOffset.z - pivot.z);	
+			targetPosition += TransformInElementSpace(targetOffset,side,up,front,rot,pivot,size);
 			#endif
 				
-			float3 vertexPos = id & 1 ? targetPosition : position;
-			o.VFX_VARYING_POSITIONWS = mul(VFXModelViewProj(), float4(vertexPos,1.0f));
+			float3 vPos = id & 1 ? targetPosition : position;
+			o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
 			
 			${VFXVertexCommonProcess}
 			${VFXVertexAdditionalProcess}
