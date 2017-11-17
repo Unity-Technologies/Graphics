@@ -102,6 +102,32 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public virtual void GetPreferedWidths(ref float labelWidth, ref float controlWidth)
+        {
+            foreach (var setting in m_Settings)
+            {
+                float portLabelWidth = setting.GetPreferredLabelWidth();
+                float portControlWidth = setting.GetPreferredControlWidth();
+
+                if (labelWidth < portLabelWidth)
+                {
+                    labelWidth = portLabelWidth;
+                }
+                if (controlWidth < portControlWidth)
+                {
+                    controlWidth = portControlWidth;
+                }
+            }
+        }
+
+        public virtual void ApplyWidths(float labelWidth, float controlWidth)
+        {
+            foreach (var setting in m_Settings)
+            {
+                setting.SetLabelWidth(labelWidth);
+            }
+        }
+
         protected void AddSetting(VFXSettingPresenter setting)
         {
             var rm = PropertyRM.Create(setting, 100);
