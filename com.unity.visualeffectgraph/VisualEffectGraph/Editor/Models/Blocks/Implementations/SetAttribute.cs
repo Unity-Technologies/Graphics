@@ -2,9 +2,26 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 
+namespace UnityEditor.VFX
+{
+    class AttributeVariantWritable : IVariantProvider
+    {
+        public Dictionary<string, object[]> variants
+        {
+            get
+            {
+                return new Dictionary<string, object[]>
+                {
+                    { "attribute", VFXAttribute.All.Where(o => !VFXAttribute.AllReadOnly.Contains(o)).Cast<object>().ToArray() }
+                };
+            }
+        }
+    }
+}
+
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Attribute", autoRegister = false)]
+    [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeVariantWritable))]
     class SetAttribute : VFXBlock
     {
         [VFXSetting]

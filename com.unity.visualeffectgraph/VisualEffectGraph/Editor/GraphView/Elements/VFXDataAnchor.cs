@@ -176,7 +176,7 @@ namespace UnityEditor.VFX.UI
 
         void IEdgeConnectorListener.OnDrop(GraphView graphView, Edge edge)
         {
-            EdgePresenter edgePresenter = new VFXDataEdgePresenter();
+            EdgePresenter edgePresenter = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
             edge.presenter = edgePresenter;
             edgePresenter.input = edge.input.GetPresenter<VFXDataAnchorPresenter>();
             edgePresenter.output = edge.output.GetPresenter<VFXDataAnchorPresenter>();

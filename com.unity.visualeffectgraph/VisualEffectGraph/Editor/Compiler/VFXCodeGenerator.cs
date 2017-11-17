@@ -182,7 +182,7 @@ namespace UnityEditor.VFX
 
         static private void GetFunctionName(VFXBlock block, out string functionName, out string comment)
         {
-            var settings = block.activeSettings.ToArray();
+            var settings = block.GetSettings(true).ToArray();
             if (settings.Length > 0)
             {
                 comment = "";
@@ -419,6 +419,7 @@ namespace UnityEditor.VFX
                 globalIncludeContent.WriteLineFormat("#define {0} 1", additionnalDefine);
 
             globalIncludeContent.WriteLine();
+            globalIncludeContent.WriteLine("#include \"Assets/" + context.renderLoopCommonInclude + "\"");
             globalIncludeContent.WriteLine("#include \"Assets/VFXShaders/VFXCommon.cginc\"");
 
             // Per-block includes
