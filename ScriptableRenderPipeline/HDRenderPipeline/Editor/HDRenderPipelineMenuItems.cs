@@ -206,7 +206,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     mat.shader = litShader;
                     // We remove all keyword already present
-                    HDEditorUtils.RemoveMaterialKeywords(mat);
+                    CoreEditorUtils.RemoveMaterialKeywords(mat);
                     LitGUI.SetupMaterialKeywordsAndPass(mat);
                     EditorUtility.SetDirty(mat);
                 }
@@ -214,7 +214,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     mat.shader = layeredLitShader;
                     // We remove all keyword already present
-                    HDEditorUtils.RemoveMaterialKeywords(mat);
+                    CoreEditorUtils.RemoveMaterialKeywords(mat);
                     LayeredLitGUI.SetupMaterialKeywordsAndPass(mat);
                     EditorUtility.SetDirty(mat);
                 }
