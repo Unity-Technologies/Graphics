@@ -11,22 +11,16 @@ namespace UnityEditor.VFX.UI
 {
     class VFXSlotContainerPresenter : VFXNodePresenter
     {
-        private static bool IsTypeSupported(Type type)
-        {
-            return type.IsEnum || type == typeof(bool) || type == typeof(string);
-        }
-
         public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
             base.Init(model, viewPresenter);
 
-            var settings = model.GetSettings(true).Where(o => IsTypeSupported(o.FieldType));
+            var settings = model.GetSettings(true);
             m_Settings = new VFXSettingPresenter[settings.Count()];
             int cpt = 0;
             foreach (var setting in settings)
             {
-                VFXSettingPresenter settingPresenter = VFXSettingPresenter.CreateInstance<VFXSettingPresenter>();
-
+                var settingPresenter = VFXSettingPresenter.CreateInstance<VFXSettingPresenter>();
                 settingPresenter.Init(this.slotContainer, setting.Name, setting.FieldType);
                 m_Settings[cpt++] = settingPresenter;
             }
