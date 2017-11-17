@@ -248,7 +248,7 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
         INITIALIZE_LIGHT(light, lightIter);
 
         half3 lightDirection;
-        half atten = GetLightDirectionAndAttenuation(light, normalWS, positionWS, lightDirection);
+        half atten = GetLightDirectionAndRealtimeAttenuation(light, normalWS, positionWS, lightDirection);
         half3 lightColor = light.color * atten;
         vertexLightColor += LightingLambert(lightColor, lightDirection, normalWS);
     }
