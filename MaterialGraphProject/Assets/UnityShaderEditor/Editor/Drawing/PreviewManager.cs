@@ -254,6 +254,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Fill MaterialPropertyBlock
             m_PreviewPropertyBlock.Clear();
+            var outputIdName = m_OutputIdProperty != null ? m_OutputIdProperty.referenceName : null;
+            m_PreviewPropertyBlock.SetFloat(outputIdName, -1);
             foreach (var nodeGuid in m_PropertyNodeGuids)
             {
                 var node = m_Graph.GetNodeFromGuid<AbstractMaterialNode>(nodeGuid);
@@ -283,7 +285,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_PreviewProperties.Clear();
             }
 
-            var outputIdName = m_OutputIdProperty != null ? m_OutputIdProperty.referenceName : null;
 
             foreach (var nodeGuid in m_DirtyPreviews)
             {
@@ -436,7 +437,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Debug output
             var message = "RecreateShader: " + node.GetVariableNameForNode() + Environment.NewLine + previewData.shaderString;
             if (MaterialGraphAsset.ShaderHasError(previewData.shader))
-                Debug.LogWarningFormat(message);
+                Debug.LogWarning(message);
             else
                 Debug.Log(message);
         }
