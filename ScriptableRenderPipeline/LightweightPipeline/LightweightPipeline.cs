@@ -486,7 +486,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (msaaEnabled)
             {
                 configuration |= FrameRenderingConfiguration.Msaa;
-                intermediateTexture = !LightweightUtils.PlatformSupportsMSAABackBuffer();
+                intermediateTexture = intermediateTexture || !LightweightUtils.PlatformSupportsMSAABackBuffer();
             }
 
             Rect cameraRect = m_CurrCamera.rect;
