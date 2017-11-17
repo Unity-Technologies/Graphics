@@ -1,0 +1,45 @@
+// Shadow pass
+Pass
+{		
+	Tags { "LightMode"="ShadowCaster" }
+
+	ZWrite On
+	Blend Off
+	
+	HLSLPROGRAM
+	#pragma target 4.5
+	
+	struct ps_input
+	{
+		V2F_SHADOW_CASTER;
+		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || VFX_USE_ALPHA_CURRENT
+		nointerpolation float3 builtInInterpolants : TEXCOORD0;
+		#endif
+		#if USE_SOFT_PARTICLE
+		float4 projPos : TEXCOORD1;		
+		#endif
+	};
+
+#define VFX_VARYING_PS_INPUTS ps_input
+#define VFX_VARYING_POSCS pos
+#define VFX_VARYING_POSSS projPos
+#undef VFX_VARYING_COLOR
+#define VFX_VARYING_ALPHA builtInInterpolants.z
+#define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
+#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
+		
+	${VFXBegin:VFXVertexAdditionalProcess}
+		o.pos = UnityApplyLinearShadowBias(o.pos);
+	${VFXEnd}
+		
+	${VFXInclude("Assets/VFXShaders/ParticleLines/Pass.template")}	
+		
+	#pragma fragment frag
+	float frag(ps_input i) : SV_TARGET
+	{
+		float alpha = VFXGetFragmentColor(i);
+		VFXClipFragmentColor(alpha,i);
+		return 0;
+	}
+	ENDHLSL
+}

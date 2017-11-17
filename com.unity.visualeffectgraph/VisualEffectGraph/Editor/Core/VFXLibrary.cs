@@ -1,29 +1,49 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.VFX.Block;
 using UnityEngine;
 using UnityEngine.VFX;
 using Object = System.Object;
 
 namespace UnityEditor.VFX
 {
+    interface IVariantProvider
+    {
+        Dictionary<string, object[]> variants {  get; }
+    };
+
+
     // Attribute used to register VFX type to library
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-    public class VFXInfoAttribute : Attribute
+    class VFXInfoAttribute : Attribute
     {
-        public VFXInfoAttribute(bool register = true)
+        public VFXInfoAttribute()
         {
-            this.autoRegister = register;
+            this.autoRegister = true;
+            this.category = "";
+            this.type = null;
         }
 
-        public bool autoRegister = true;
-        public string category = "";
-        public Type type = null; // Used by slots to map types to slot
-
-        public static VFXInfoAttribute Get(Object obj)
+        public bool autoRegister
         {
-            return Get(obj.GetType());
+            get;
+            set;
+        }
+        public string category
+        {
+            get;
+            set;
+        }
+        public Type type
+        {
+            get;
+            set;
+        }
+
+        public Type variantProvider
+        {
+            get;
+            set;
         }
 
         public static VFXInfoAttribute Get(Type type)
@@ -35,14 +55,16 @@ namespace UnityEditor.VFX
 
     class VFXModelDescriptor<T> where T : VFXModel
     {
-        public VFXModelDescriptor(T template)
+        public VFXModelDescriptor(T template, IEnumerable<KeyValuePair<string, Object>> variants = null)
         {
             m_Template = template;
             m_Template.hideFlags = HideFlags.HideAndDontSave;
+            m_Variants = variants == null ? Enumerable.Empty<KeyValuePair<string, object>>() : variants;
+            ApplyVariant(m_Template);
         }
 
         virtual public string name { get { return m_Template.name; } }
-        public VFXInfoAttribute info { get { return VFXInfoAttribute.Get(m_Template); } }
+        public VFXInfoAttribute info { get { return VFXInfoAttribute.Get(m_Template.GetType()); } }
         public Type modelType { get { return m_Template.GetType(); } }
 
         public bool AcceptParent(VFXModel parent, int index = -1)
@@ -52,45 +74,21 @@ namespace UnityEditor.VFX
 
         virtual public T CreateInstance()
         {
-            T instance = (T)ScriptableObject.CreateInstance(m_Template.GetType());
-
+            var instance = (T)ScriptableObject.CreateInstance(m_Template.GetType());
+            ApplyVariant(instance);
             return instance;
         }
 
-        public T m_Template;
-    }
-
-    class VFXModelDescriptorCustomSpawnerBlock : VFXModelDescriptor<VFXBlock>
-    {
-        public VFXModelDescriptorCustomSpawnerBlock(Type customType) : base(ScriptableObject.CreateInstance<VFXSpawnerCustomWrapper>())
+        private void ApplyVariant(VFXModel model)
         {
-            (m_Template as VFXSpawnerCustomWrapper).Init(customType);
+            foreach (var variant in m_Variants)
+            {
+                model.SetSettingValue(variant.Key, variant.Value);
+            }
         }
 
-        public override VFXBlock CreateInstance()
-        {
-            var instance = base.CreateInstance();
-            var vfxSpawnerInstance = instance as VFXSpawnerCustomWrapper;
-            var vfxSpawnerTemplate = m_Template as VFXSpawnerCustomWrapper;
-            vfxSpawnerInstance.Init(vfxSpawnerTemplate.customBehavior);
-            return vfxSpawnerInstance;
-        }
-    }
-
-    class VFXModelDescriptorAttributeBlock : VFXModelDescriptor<VFXBlock>
-    {
-        public VFXModelDescriptorAttributeBlock(string parameter) : base(ScriptableObject.CreateInstance<UnityEditor.VFX.Block.SetAttribute>())
-        {
-            (m_Template as UnityEditor.VFX.Block.SetAttribute).attribute = parameter;
-        }
-
-        public override VFXBlock CreateInstance()
-        {
-            var instance = base.CreateInstance() as UnityEditor.VFX.Block.SetAttribute;
-            instance.attribute = (m_Template as UnityEditor.VFX.Block.SetAttribute).attribute;
-            instance.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
-            return instance;
-        }
+        private IEnumerable<KeyValuePair<string, object>> m_Variants;
+        protected T m_Template;
     }
 
     class VFXModelDescriptorParameters : VFXModelDescriptor<VFXParameter>
@@ -118,71 +116,6 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VFXModelDescriptorBuiltInParameters : VFXModelDescriptor<VFXBuiltInParameter>
-    {
-        private string m_name;
-        private VFXExpressionOp m_op;
-        public override string name
-        {
-            get
-            {
-                return m_name;
-            }
-        }
-
-        public VFXModelDescriptorBuiltInParameters(VFXExpressionOp op) : base(ScriptableObject.CreateInstance<VFXBuiltInParameter>())
-        {
-            m_name = op.ToString();
-            m_op = op;
-            m_Template.Init(op);
-        }
-
-        public override VFXBuiltInParameter CreateInstance()
-        {
-            var instance = base.CreateInstance();
-            instance.Init(m_op);
-            return instance;
-        }
-    }
-
-    class VFXModelDescriptorAttributeParameters<T> : VFXModelDescriptor<T> where T : VFXAttributeParameter
-    {
-        private string m_attributeName;
-        public override string name
-        {
-            get
-            {
-                return m_attributeName;
-            }
-        }
-
-        public VFXModelDescriptorAttributeParameters(string attributeName) : base(ScriptableObject.CreateInstance<T>())
-        {
-            m_attributeName = attributeName;
-        }
-
-        public override T CreateInstance()
-        {
-            var instance = base.CreateInstance();
-            instance.SetSettingValue("attribute", m_attributeName);
-            return instance;
-        }
-    }
-
-    class VFXModelDescriptorCurrentAttributeParameters : VFXModelDescriptorAttributeParameters<VFXCurrentAttributeParameter>
-    {
-        public VFXModelDescriptorCurrentAttributeParameters(string attributeName) : base(attributeName)
-        {
-        }
-    }
-
-    class VFXModelDescriptorSourceAttributeParameters : VFXModelDescriptorAttributeParameters<VFXSourceAttributeParameter>
-    {
-        public VFXModelDescriptorSourceAttributeParameters(string attributeName) : base(attributeName)
-        {
-        }
-    }
-
     static class VFXLibrary
     {
         public static IEnumerable<VFXModelDescriptor<VFXContext>> GetContexts()     { LoadIfNeeded(); return m_ContextDescs; }
@@ -190,9 +123,6 @@ namespace UnityEditor.VFX
         public static IEnumerable<VFXModelDescriptor<VFXOperator>> GetOperators()   { LoadIfNeeded(); return m_OperatorDescs; }
         public static IEnumerable<VFXModelDescriptor<VFXSlot>> GetSlots()           { LoadSlotsIfNeeded(); return m_SlotDescs.Values; }
         public static IEnumerable<VFXModelDescriptorParameters> GetParameters()     { LoadIfNeeded(); return m_ParametersDescs; }
-        public static IEnumerable<VFXModelDescriptorBuiltInParameters> GetBuiltInParameters() { LoadIfNeeded(); return m_BuiltInParametersDescs; }
-        public static IEnumerable<VFXModelDescriptorCurrentAttributeParameters> GetCurrentAttributeParameters() { LoadIfNeeded(); return m_CurrentAttributeParametersDecs; }
-        public static IEnumerable<VFXModelDescriptorSourceAttributeParameters> GetSourceAttributeParameters() { LoadIfNeeded(); return m_SourceAttributeParametersDecs; }
 
         public static VFXModelDescriptor<VFXSlot> GetSlot(System.Type type)
         {
@@ -221,42 +151,10 @@ namespace UnityEditor.VFX
                 LoadSlotsIfNeeded();
                 m_ContextDescs = LoadModels<VFXContext>();
                 m_BlockDescs = LoadModels<VFXBlock>();
-                var customSpawners = FindConcreteSubclasses(typeof(VFXSpawnerFunction));
-                foreach (var customSpawnerType in customSpawners)
-                {
-                    m_BlockDescs.Add(new VFXModelDescriptorCustomSpawnerBlock(customSpawnerType));
-                }
-
-                // add all Set Attributes something to blocks.
-                System.Array.ForEach(VFXAttribute.All,
-                    t =>
-                    {
-                        m_BlockDescs.Add(new VFXModelDescriptorAttributeBlock(t));
-                    });
-
                 m_OperatorDescs = LoadModels<VFXOperator>();
-
                 m_ParametersDescs = m_SlotDescs.Select(s =>
                     {
                         var desc = new VFXModelDescriptorParameters(s.Key);
-                        return desc;
-                    }).ToList();
-
-                m_BuiltInParametersDescs = VFXBuiltInExpression.All.Select(e =>
-                    {
-                        var desc = new VFXModelDescriptorBuiltInParameters(e);
-                        return desc;
-                    }).ToList();
-
-                m_CurrentAttributeParametersDecs = VFXAttribute.All.Select(a =>
-                    {
-                        var desc = new VFXModelDescriptorCurrentAttributeParameters(a);
-                        return desc;
-                    }).ToList();
-
-                m_SourceAttributeParametersDecs = VFXAttribute.All.Select(a =>
-                    {
-                        var desc = new VFXModelDescriptorSourceAttributeParameters(a);
                         return desc;
                     }).ToList();
 
@@ -291,7 +189,28 @@ namespace UnityEditor.VFX
                     var modelDesc = new VFXModelDescriptor<T>(instance);
                     if (modelDesc.info.autoRegister)
                     {
-                        modelDescs.Add(modelDesc);
+                        if (modelDesc.info.variantProvider != null)
+                        {
+                            var provider = Activator.CreateInstance(modelDesc.info.variantProvider) as IVariantProvider;
+                            if (provider == null)
+                            {
+                                throw new Exception("Invalid variant type (except IVariantProvider) : " + modelDesc.info.variantProvider);
+                            }
+                            var arrVariants = provider.variants.Select(o => o.Value as IEnumerable<Object>);
+
+                            //Cartesian product
+                            IEnumerable<IEnumerable<object>> empty = new[] { Enumerable.Empty<object>() };
+                            var combinations = arrVariants.Aggregate(empty, (x, y) => x.SelectMany(accSeq => y.Select(item => accSeq.Concat(new[] { item }))));
+                            foreach (var combination in combinations)
+                            {
+                                var variant = combination.Select((o, i) => new KeyValuePair<string, object>(provider.variants.ElementAt(i).Key, o)).ToArray();
+                                modelDescs.Add(new VFXModelDescriptor<T>((T)ScriptableObject.CreateInstance(modelType), variant));
+                            }
+                        }
+                        else
+                        {
+                            modelDescs.Add(modelDesc);
+                        }
                     }
                 }
                 catch (Exception e)
@@ -342,7 +261,7 @@ namespace UnityEditor.VFX
             return dictionary;
         }
 
-        private static IEnumerable<Type> FindConcreteSubclasses(Type objectType = null, Type attributeType = null)
+        public static IEnumerable<Type> FindConcreteSubclasses(Type objectType = null, Type attributeType = null)
         {
             List<Type> types = new List<Type>();
             foreach (var domainAssembly in AppDomain.CurrentDomain.GetAssemblies())
@@ -369,9 +288,6 @@ namespace UnityEditor.VFX
         private static volatile List<VFXModelDescriptor<VFXOperator>> m_OperatorDescs;
         private static volatile List<VFXModelDescriptor<VFXBlock>> m_BlockDescs;
         private static volatile List<VFXModelDescriptorParameters> m_ParametersDescs;
-        private static volatile List<VFXModelDescriptorBuiltInParameters> m_BuiltInParametersDescs;
-        private static volatile List<VFXModelDescriptorCurrentAttributeParameters> m_CurrentAttributeParametersDecs;
-        private static volatile List<VFXModelDescriptorSourceAttributeParameters> m_SourceAttributeParametersDecs;
         private static volatile Dictionary<Type, VFXModelDescriptor<VFXSlot>> m_SlotDescs;
 
         private static Object m_Lock = new Object();

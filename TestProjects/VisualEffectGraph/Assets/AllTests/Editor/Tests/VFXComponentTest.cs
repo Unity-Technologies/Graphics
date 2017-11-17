@@ -133,8 +133,8 @@ namespace UnityEditor.VFX.Test
                 VFXValueType type = types.FirstOrDefault(e => newInstance.type == VFXExpression.TypeToType(e));
                 if (type != VFXValueType.kNone)
                 {
-                    newInstance.exposedName = commonBaseName + type.ToString();
-                    newInstance.exposed = true;
+                    newInstance.SetSettingValue("m_exposedName", commonBaseName + type.ToString());
+                    newInstance.SetSettingValue("m_exposed", true);
                     var value = GetValue_A(type);
                     Assert.IsNotNull(value);
                     newInstance.value = value;

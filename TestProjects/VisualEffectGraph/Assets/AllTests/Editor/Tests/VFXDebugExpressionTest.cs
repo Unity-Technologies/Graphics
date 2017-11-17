@@ -24,7 +24,7 @@ namespace UnityEditor.VFX.Test
             var constantRate = ScriptableObject.CreateInstance<VFXSpawnerConstantRate>();
 
             var slotRate = constantRate.GetInputSlot(0);
-            var totalTime = VFXLibrary.GetBuiltInParameters().First(o => o.name == VFXExpressionOp.kVFXTotalTimeOp.ToString()).CreateInstance();
+            var totalTime = VFXLibrary.GetOperators().First(o => o.name == VFXExpressionOp.kVFXTotalTimeOp.ToString()).CreateInstance();
             slotRate.Link(totalTime.GetOutputSlot(0));
 
             spawnerContext.AddChild(constantRate);

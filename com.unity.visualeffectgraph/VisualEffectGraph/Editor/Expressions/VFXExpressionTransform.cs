@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionTRSToMatrix(VFXExpression[] parents) : base(VFXExpression.Flags.None, parents)
+        public VFXExpressionTRSToMatrix(params VFXExpression[] parents) : base(VFXExpression.Flags.InvalidOnGPU, parents)
         {
         }
 
@@ -75,7 +75,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionExtractPositionFromMatrix(VFXExpression parent) : base(VFXExpression.Flags.None, new VFXExpression[] { parent })
+        public VFXExpressionExtractPositionFromMatrix(VFXExpression parent) : base(VFXExpression.Flags.InvalidOnGPU, new VFXExpression[] { parent })
         {
         }
 

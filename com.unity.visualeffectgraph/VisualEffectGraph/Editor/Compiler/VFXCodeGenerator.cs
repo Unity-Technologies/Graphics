@@ -68,15 +68,15 @@ namespace UnityEditor.VFX
             var regex = new Regex(matching);
             var attributesFromContext = context.GetData().GetAttributes().Where(o => regex.IsMatch(o.attrib.name)).ToArray();
             var attributesSource = attributesFromContext.Where(o => (o.mode & VFXAttributeMode.ReadSource) != 0).ToArray();
-            var attributesCurrent = attributesFromContext.Where(o => o.mode != VFXAttributeMode.ReadSource).ToArray();
+            var attributesCurrent = attributesFromContext.Where(o => o.mode != VFXAttributeMode.ReadSource).Where(a => context.GetData().IsAttributeUsed(a.attrib, context) || (context.contextType == VFXContextType.kInit && context.GetData().IsAttributeStored(a.attrib))).ToArray();
 
             //< Current Attribute
-            foreach (var attribute in attributesCurrent.Select(o => o.attrib).Where(a => context.GetData().IsAttributeUsed(a, context) || (context.contextType == VFXContextType.kInit && context.GetData().IsAttributeStored(a))))
+            foreach (var attribute in attributesCurrent.Select(o => o.attrib))
             {
                 var name = attribute.name;
                 if (context.contextType != VFXContextType.kInit && context.GetData().IsAttributeStored(attribute))
                 {
-                    r.WriteVariable(attribute.type, name, context.GetData().GetLoadAttributeCode(attribute));
+                    r.WriteVariable(attribute.type, name, context.GetData().GetLoadAttributeCode(attribute, VFXAttributeLocation.Current));
                 }
                 else
                 {
@@ -85,18 +85,25 @@ namespace UnityEditor.VFX
                 r.WriteLine();
             }
 
-            //< Source Attribute (default temporary behavior, source is initial value)
+            //< Source Attribute (default temporary behavior, source is always the initial current value)
             foreach (var attribute in attributesSource.Select(o => o.attrib))
             {
                 var name = string.Format("{0}_source", attribute.name);
-                if (attributesCurrent.Any(o => o.attrib.name == attribute.name))
+                if (context.contextType == VFXContextType.kInit)
                 {
-                    var reference = new VFXAttributeExpression(new VFXAttribute(attribute.name, attribute.value), VFXAttributeLocation.Current);
-                    r.WriteVariable(reference.valueType, name, reference.GetCodeString(null));
+                    r.WriteVariable(attribute.type, name, context.GetData().GetLoadAttributeCode(attribute, VFXAttributeLocation.Source));
                 }
                 else
                 {
-                    r.WriteVariable(attribute.type, name, attribute.value.GetCodeString(null));
+                    if (attributesCurrent.Any(o => o.attrib.name == attribute.name))
+                    {
+                        var reference = new VFXAttributeExpression(new VFXAttribute(attribute.name, attribute.value), VFXAttributeLocation.Current);
+                        r.WriteVariable(reference.valueType, name, reference.GetCodeString(null));
+                    }
+                    else
+                    {
+                        r.WriteVariable(attribute.type, name, attribute.value.GetCodeString(null));
+                    }
                 }
                 r.WriteLine();
             }
@@ -175,7 +182,7 @@ namespace UnityEditor.VFX
 
         static private void GetFunctionName(VFXBlock block, out string functionName, out string comment)
         {
-            var settings = block.activeSettings.ToArray();
+            var settings = block.GetSettings(true).ToArray();
             if (settings.Length > 0)
             {
                 comment = "";
@@ -209,6 +216,30 @@ namespace UnityEditor.VFX
             return matches.Cast<Match>().GroupBy(m => m.Groups[0].Value).Select(g => g.First());
         }
 
+        static private VFXShaderWriter GenerateComputeSourceIndex(VFXContext context)
+        {
+            var r = new VFXShaderWriter();
+            var spawnLinkCount = context.GetData().sourceCount;
+            r.WriteLine("int sourceIndex = 0;");
+
+            if (spawnLinkCount <= 1)
+                r.WriteLine("/*//Loop with 1 iteration generate a wrong IL Assembly (and actually, useless code)");
+
+            r.WriteLine("uint currentSumSpawnCount = 0u;");
+            r.WriteLineFormat("for (sourceIndex=0; sourceIndex<{0}; sourceIndex++)", spawnLinkCount);
+            r.EnterScope();
+            r.WriteLineFormat("currentSumSpawnCount += uint({0});", context.GetData().GetLoadAttributeCode(new VFXAttribute("spawnCount", UnityEngine.VFX.VFXValueType.kFloat), VFXAttributeLocation.Source));
+            r.WriteLine("if (id.x < currentSumSpawnCount)");
+            r.EnterScope();
+            r.WriteLine("break;");
+            r.ExitScope();
+            r.ExitScope();
+
+            if (spawnLinkCount <= 1)
+                r.WriteLine("*/");
+            return r;
+        }
+
         static private StringBuilder GetFlattenedTemplateContent(string path, List<string> includes, IEnumerable<string> defines)
         {
             var formattedPath = FormatPath(path);
@@ -231,8 +262,10 @@ namespace UnityEditor.VFX
 
                 if (groups.Count > 2 && !String.IsNullOrEmpty(groups[2].Value))
                 {
-                    var neededDefines = groups[2].Value.Split(new char[] {',', ' ', '\t'}, StringSplitOptions.RemoveEmptyEntries);
-                    if (!neededDefines.All(d => defines.Contains(d)))
+                    var allDefines = groups[2].Value.Split(new char[] {',', ' ', '\t'}, StringSplitOptions.RemoveEmptyEntries);
+                    var neededDefines = allDefines.Where(d => d[0] != '!');
+                    var forbiddenDefines = allDefines.Except(neededDefines).Select(d => d.Substring(1));
+                    if (!neededDefines.All(d => defines.Contains(d)) || forbiddenDefines.Any(d => defines.Contains(d)))
                     {
                         ReplaceMultiline(templateContent, groups[0].Value, new StringBuilder());
                         continue;
@@ -272,10 +305,10 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
+                    const string endStr = "${VFXEnd}";
                     var match = beginRegex.Match(source, currentPos, tag.Length);
                     if (match.Success)
                     {
-                        const string endStr = "${VFXEnd}";
                         var macroStartPos = match.Index + match.Length;
                         var macroEndCodePos = source.IndexOf(endStr, macroStartPos);
                         if (macroEndCodePos == -1)
@@ -287,8 +320,10 @@ namespace UnityEditor.VFX
                         // Remove the define in builder
                         builder.Remove(match.Index + builderOffset, macroEndCodePos - match.Index + endStr.Length);
                     }
-                    else
-                        throw new FormatException(string.Format("Invalid VFX tag found (Cannot be substituted): {0}\n{1}", tag, source));
+                    else if (tag == endStr)
+                        throw new FormatException("${VFXEnd} found without ${VFXBegin}");
+                    else // Remove undefined tag
+                        builder.Remove(currentPos + builderOffset, tag.Length);
                 }
 
                 builderOffset += currentPos;
@@ -376,11 +411,15 @@ namespace UnityEditor.VFX
             globalIncludeContent.WriteLine("#include \"HLSLSupport.cginc\"");
             globalIncludeContent.WriteLine("#define NB_THREADS_PER_GROUP 64");
             foreach (var attribute in context.GetData().GetAttributes().Where(a => (context.contextType == VFXContextType.kInit && context.GetData().IsAttributeStored(a.attrib)) || (context.GetData().IsAttributeUsed(a.attrib, context))))
-                globalIncludeContent.WriteLineFormat("#define VFX_USE_{0}_{1} 1", attribute.attrib.name.ToUpper(), ((attribute.mode & VFXAttributeMode.ReadSource) != 0) ? "SOURCE" : "CURRENT");
+                globalIncludeContent.WriteLineFormat("#define VFX_USE_{0}_{1} 1", attribute.attrib.name.ToUpper(), "CURRENT");
+            foreach (var attribute in context.GetData().GetAttributes().Where(a => context.GetData().IsSourceAttributeUsed(a.attrib, context)))
+                globalIncludeContent.WriteLineFormat("#define VFX_USE_{0}_{1} 1", attribute.attrib.name.ToUpper(), "SOURCE");
+
             foreach (var additionnalDefine in context.additionalDefines)
                 globalIncludeContent.WriteLineFormat("#define {0} 1", additionnalDefine);
 
             globalIncludeContent.WriteLine();
+            globalIncludeContent.WriteLine("#include \"Assets/" + context.renderLoopCommonInclude + "\"");
             globalIncludeContent.WriteLine("#include \"Assets/VFXShaders/VFXCommon.cginc\"");
 
             // Per-block includes
@@ -405,6 +444,13 @@ namespace UnityEditor.VFX
                 var pattern = match.Groups[1].Value;
                 var loadParameters = GenerateLoadParameter(pattern, mainParameters, expressionToName);
                 ReplaceMultiline(stringBuilder, str, loadParameters.builder);
+            }
+
+            //< Compute sourceIndex
+            if (stringBuilder.ToString().Contains("${VFXComputeSourceIndex}"))
+            {
+                var r = GenerateComputeSourceIndex(context);
+                ReplaceMultiline(stringBuilder, "${VFXComputeSourceIndex}", r.builder);
             }
 
             //< Load Attribute

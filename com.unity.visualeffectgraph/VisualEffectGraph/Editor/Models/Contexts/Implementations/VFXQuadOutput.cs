@@ -12,6 +12,9 @@ namespace UnityEditor.VFX
         [VFXSetting, SerializeField]
         protected FlipbookMode flipBook;
 
+        //[VFXSetting] // tmp dont expose as settings atm
+        public bool useGeometryShader = false;
+
         public enum FlipbookMode
         {
             Off,
@@ -21,7 +24,7 @@ namespace UnityEditor.VFX
 
         public override string name { get { return "Quad Output"; } }
         public override string codeGeneratorTemplate { get { return "VFXShaders/VFXParticleQuad"; } }
-        public override VFXTaskType taskType { get { return VFXTaskType.kParticleQuadOutput; } }
+        public override VFXTaskType taskType { get { return useGeometryShader ? VFXTaskType.kParticlePointOutput : VFXTaskType.kParticleQuadOutput; } }
 
         public override IEnumerable<string> additionalDefines
         {
@@ -36,6 +39,9 @@ namespace UnityEditor.VFX
                     if (flipBook == FlipbookMode.FlipbookBlend)
                         yield return "USE_FLIPBOOK_INTERPOLATION";
                 }
+
+                if (useGeometryShader)
+                    yield return "USE_GEOMETRY_SHADER";
             }
         }
 

@@ -7,9 +7,18 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    class VFXDataParticle : VFXData
+    interface ILayoutProvider
     {
-        public struct AttributeLayout
+        void GenerateAttributeLayout(uint capacity, Dictionary<VFXAttribute, int> storedAttribute);
+        string GetCodeOffset(VFXAttribute attrib, string index);
+        uint GetBufferSize(uint capacity);
+
+        VFXGPUBufferDesc GetBufferDesc(uint capacity);
+    }
+
+    class StructureOfArrayProvider : ILayoutProvider
+    {
+        private struct AttributeLayout
         {
             public int bucket;
             public int offset;
@@ -19,133 +28,6 @@ namespace UnityEditor.VFX
                 this.bucket = bucket;
                 this.offset = offset;
             }
-        }
-
-        public override VFXDataType type { get { return VFXDataType.kParticle; } }
-
-        public uint capacity
-        {
-            get { return m_Capacity; }
-            set
-            {
-                const uint kThreadPerGroup = 64;
-                if (value > kThreadPerGroup)
-                    value = (value + kThreadPerGroup - 1u) & ~(kThreadPerGroup - 1u); // multiple of kThreadPerGroup
-                m_Capacity = (value + 3u) & ~3u;
-            }
-        }
-
-        public uint bufferSize
-        {
-            get
-            {
-                return (uint)m_BucketOffsets.LastOrDefault() + m_Capacity * (uint)m_BucketSizes.LastOrDefault();
-            }
-        }
-
-        public Bounds bbox
-        {
-            get { return m_Bounds; }
-            set { m_Bounds = value; }
-        }
-
-        public bool worldSpace
-        {
-            get { return m_WorldSpace; }
-            set { m_WorldSpace = value; }
-        }
-
-        public override void GenerateAttributeLayout()
-        {
-            m_BucketSizes.Clear();
-            m_AttributeLayout.Clear();
-            m_BucketOffsets.Clear();
-
-            var attributeBuckets = new Dictionary<int, List<VFXAttribute>>();
-            foreach (var kvp in m_StoredCurrentAttributes)
-            {
-                List<VFXAttribute> attributes;
-                if (!attributeBuckets.ContainsKey(kvp.Value))
-                {
-                    attributes = new List<VFXAttribute>();
-                    attributeBuckets[kvp.Value] = attributes;
-                }
-                else
-                    attributes = attributeBuckets[kvp.Value];
-
-                attributes.Add(kvp.Key);
-            }
-
-            int bucketId = 0;
-            foreach (var bucket in attributeBuckets)
-            {
-                int bucketOffset = bucketId == 0 ? 0 : m_BucketOffsets[bucketId - 1] + (int)m_Capacity * m_BucketSizes[bucketId - 1];
-                m_BucketOffsets.Add((bucketOffset + 3) & ~3); // align on dword;
-                m_BucketSizes.Add(GenerateBucketLayout(bucket.Value, bucketId));
-                ++bucketId;
-            }
-
-            // Debug log
-            var builder = new StringBuilder();
-            builder.AppendLine("ATTRIBUTE LAYOUT");
-            builder.Append(string.Format("NbBuckets:{0} ( ", m_BucketSizes.Count));
-            foreach (int size in m_BucketSizes)
-                builder.Append(size + " ");
-            builder.AppendLine(")");
-            foreach (var kvp in m_AttributeLayout)
-                builder.AppendLine(string.Format("Attrib:{0} type:{1} bucket:{2} offset:{3}", kvp.Key.name, kvp.Key.type, kvp.Value.bucket, kvp.Value.offset));
-            Debug.Log(builder.ToString());
-        }
-
-        public override string GetAttributeDataDeclaration(VFXAttributeMode mode)
-        {
-            if (m_StoredCurrentAttributes.Count == 0)
-                return string.Empty;
-            else if ((mode & VFXAttributeMode.Write) != 0)
-                return "RWByteAddressBuffer attributeData;";
-            else
-                return "ByteAddressBuffer attributeData;";
-        }
-
-        private string GetCastAttributePrefix(VFXAttribute attrib)
-        {
-            if (VFXExpression.IsFloatValueType(attrib.type))
-                return "asfloat";
-            return "";
-        }
-
-        private string GetByteAddressBufferMethodSuffix(VFXAttribute attrib)
-        {
-            int size = VFXExpression.TypeToSize(attrib.type);
-            if (size == 1)
-                return string.Empty;
-            else if (size <= 4)
-                return size.ToString();
-            else
-                throw new ArgumentException(string.Format("Attribute {0} of type {1} cannot be handled in ByteAddressBuffer due to its size of {2}", attrib.name, attrib.type, size));
-        }
-
-        private string GetOffset(VFXAttribute attrib)
-        {
-            AttributeLayout layout = m_AttributeLayout[attrib];
-            return string.Format("(index * 0x{0:X} + 0x{1:X}) << 2", m_BucketSizes[layout.bucket], m_BucketOffsets[layout.bucket] + layout.offset);
-        }
-
-        public override string GetLoadAttributeCode(VFXAttribute attrib)
-        {
-            if (!m_StoredCurrentAttributes.ContainsKey(attrib))
-                throw new ArgumentException(string.Format("Attribute {0} does not exist in data layout", attrib.name));
-
-
-            return string.Format("{0}(attributeBuffer.Load{1}({2}))", GetCastAttributePrefix(attrib), GetByteAddressBufferMethodSuffix(attrib), GetOffset(attrib));
-        }
-
-        public override string GetStoreAttributeCode(VFXAttribute attrib, string value)
-        {
-            if (!m_StoredCurrentAttributes.ContainsKey(attrib))
-                throw new ArgumentException(string.Format("Attribute {0} does not exist in data layout", attrib.name));
-
-            return string.Format("attributeBuffer.Store{0}({1},{3}({2}))", GetByteAddressBufferMethodSuffix(attrib), GetOffset(attrib), value, attrib.type == UnityEngine.VFX.VFXValueType.kBool ? "uint" : "asuint");
         }
 
         // return size
@@ -182,28 +64,219 @@ namespace UnityEditor.VFX
             return (currentOffset + minAlignment - 1) & ~(minAlignment - 1);
         }
 
+        public void GenerateAttributeLayout(uint capacity, Dictionary<VFXAttribute, int> storedAttribute)
+        {
+            m_BucketSizes.Clear();
+            m_AttributeLayout.Clear();
+            m_BucketOffsets.Clear();
+
+            var attributeBuckets = new Dictionary<int, List<VFXAttribute>>();
+            foreach (var kvp in storedAttribute)
+            {
+                List<VFXAttribute> attributes;
+                if (!attributeBuckets.ContainsKey(kvp.Value))
+                {
+                    attributes = new List<VFXAttribute>();
+                    attributeBuckets[kvp.Value] = attributes;
+                }
+                else
+                    attributes = attributeBuckets[kvp.Value];
+
+                attributes.Add(kvp.Key);
+            }
+
+            int bucketId = 0;
+            foreach (var bucket in attributeBuckets)
+            {
+                int bucketOffset = bucketId == 0 ? 0 : m_BucketOffsets[bucketId - 1] + (int)capacity * m_BucketSizes[bucketId - 1];
+                m_BucketOffsets.Add((bucketOffset + 3) & ~3); // align on dword;
+                m_BucketSizes.Add(GenerateBucketLayout(bucket.Value, bucketId));
+                ++bucketId;
+            }
+
+            // Debug log
+            var builder = new StringBuilder();
+            builder.AppendLine("ATTRIBUTE LAYOUT");
+            builder.Append(string.Format("NbBuckets:{0} ( ", m_BucketSizes.Count));
+            foreach (int size in m_BucketSizes)
+                builder.Append(size + " ");
+            builder.AppendLine(")");
+            foreach (var kvp in m_AttributeLayout)
+                builder.AppendLine(string.Format("Attrib:{0} type:{1} bucket:{2} offset:{3}", kvp.Key.name, kvp.Key.type, kvp.Value.bucket, kvp.Value.offset));
+            Debug.Log(builder.ToString());
+        }
+
+        public string GetCodeOffset(VFXAttribute attrib, string index)
+        {
+            AttributeLayout layout = m_AttributeLayout[attrib];
+            return string.Format("({2} * 0x{0:X} + 0x{1:X}) << 2", m_BucketSizes[layout.bucket], m_BucketOffsets[layout.bucket] + layout.offset, index);
+        }
+
+        public uint GetBufferSize(uint capacity)
+        {
+            return (uint)m_BucketOffsets.LastOrDefault() + capacity * (uint)m_BucketSizes.LastOrDefault();
+        }
+
+        public VFXGPUBufferDesc GetBufferDesc(uint capacity)
+        {
+            var layout = m_AttributeLayout.Select(o => new VFXLayoutElementDesc()
+            {
+                name = o.Key.name,
+                type = o.Key.type,
+                offset = new VFXLayoutOffset()
+                {
+                    structure = (uint)m_BucketSizes[o.Value.bucket],
+                    bucket = (uint)m_BucketOffsets[o.Value.bucket],
+                    element = (uint)o.Value.offset
+                }
+            });
+            return new VFXGPUBufferDesc()
+            {
+                type = ComputeBufferType.Raw,
+                size = GetBufferSize(capacity),
+                capacity = capacity,
+                layout = layout.ToArray()
+            };
+        }
+
+        private Dictionary<VFXAttribute, AttributeLayout> m_AttributeLayout = new Dictionary<VFXAttribute, AttributeLayout>();
+        private List<int> m_BucketSizes = new List<int>();
+        private List<int> m_BucketOffsets = new List<int>();
+    }
+
+    class VFXDataParticle : VFXData
+    {
+        public override VFXDataType type { get { return VFXDataType.kParticle; } }
+
+        public uint capacity
+        {
+            get { return m_Capacity; }
+            set
+            {
+                const uint kThreadPerGroup = 64;
+                if (value > kThreadPerGroup)
+                    value = (uint)((value + kThreadPerGroup - 1) & ~(kThreadPerGroup - 1)); // multiple of kThreadPerGroup
+                m_Capacity = (value + 3u) & ~3u;
+            }
+        }
+
+        public override uint sourceCount
+        {
+            get
+            {
+                var init = owners.FirstOrDefault(o => o.contextType == VFXContextType.kInit);
+                return init != null ? (uint)init.inputContexts.Count() : 0u;
+            }
+        }
+
+        private uint attributeBufferSize
+        {
+            get
+            {
+                return m_layoutAttributeCurrent.GetBufferSize(m_Capacity);
+            }
+        }
+
+        public Bounds bbox
+        {
+            get { return m_Bounds; }
+            set { m_Bounds = value; }
+        }
+
+        public bool worldSpace
+        {
+            get { return m_WorldSpace; }
+            set { m_WorldSpace = value; }
+        }
+
+        public override void GenerateAttributeLayout()
+        {
+            m_layoutAttributeCurrent.GenerateAttributeLayout(m_Capacity, m_StoredCurrentAttributes);
+            var readSourceAttribute = m_ReadSourceAttributes.ToDictionary(o => o, _ => (int)VFXAttributeMode.ReadSource);
+            m_layoutAttributeSource.GenerateAttributeLayout(sourceCount, readSourceAttribute);
+        }
+
+        public override string GetAttributeDataDeclaration(VFXAttributeMode mode)
+        {
+            if (m_StoredCurrentAttributes.Count == 0)
+                return string.Empty;
+            else if ((mode & VFXAttributeMode.Write) != 0)
+                return "RWByteAddressBuffer attributeData;";
+            else
+                return "ByteAddressBuffer attributeData;";
+        }
+
+        private string GetCastAttributePrefix(VFXAttribute attrib)
+        {
+            if (VFXExpression.IsFloatValueType(attrib.type))
+                return "asfloat";
+            return "";
+        }
+
+        private string GetByteAddressBufferMethodSuffix(VFXAttribute attrib)
+        {
+            int size = VFXExpression.TypeToSize(attrib.type);
+            if (size == 1)
+                return string.Empty;
+            else if (size <= 4)
+                return size.ToString();
+            else
+                throw new ArgumentException(string.Format("Attribute {0} of type {1} cannot be handled in ByteAddressBuffer due to its size of {2}", attrib.name, attrib.type, size));
+        }
+
+        public override string GetLoadAttributeCode(VFXAttribute attrib, VFXAttributeLocation location)
+        {
+            var attributeStore = location == VFXAttributeLocation.Current ? m_layoutAttributeCurrent : m_layoutAttributeSource;
+            var attributeBuffer = location == VFXAttributeLocation.Current ? "attributeBuffer" : "sourceAttributeBuffer";
+            var index = location == VFXAttributeLocation.Current ? "index" : "sourceIndex";
+
+            if (location == VFXAttributeLocation.Current && !m_StoredCurrentAttributes.ContainsKey(attrib))
+                throw new ArgumentException(string.Format("Attribute {0} does not exist in data layout", attrib.name));
+
+            if (location == VFXAttributeLocation.Source && !m_ReadSourceAttributes.Any(a => a.name == attrib.name))
+                throw new ArgumentException(string.Format("Attribute {0} does not exist in data layout", attrib.name));
+
+            return string.Format("{0}({3}.Load{1}({2}))", GetCastAttributePrefix(attrib), GetByteAddressBufferMethodSuffix(attrib), attributeStore.GetCodeOffset(attrib, index), attributeBuffer);
+        }
+
+        public override string GetStoreAttributeCode(VFXAttribute attrib, string value)
+        {
+            if (!m_StoredCurrentAttributes.ContainsKey(attrib))
+                throw new ArgumentException(string.Format("Attribute {0} does not exist in data layout", attrib.name));
+
+            return string.Format("attributeBuffer.Store{0}({1},{3}({2}))", GetByteAddressBufferMethodSuffix(attrib), m_layoutAttributeCurrent.GetCodeOffset(attrib, "index"), value, attrib.type == UnityEngine.VFX.VFXValueType.kBool ? "uint" : "asuint");
+        }
+
         public void FillDescs(
-            List<VFXBufferDesc> outBufferDescs,
+            List<VFXGPUBufferDesc> outBufferDescs,
             List<VFXSystemDesc> outSystemDescs,
             VFXExpressionGraph expressionGraph,
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
             Dictionary<VFXContext, int> contextSpawnToBufferIndex)
         {
-            bool hasState = bufferSize > 0;
             bool hasKill = IsAttributeStored(VFXAttribute.Alive);
 
             var attributeBufferIndex = -1;
+            var attributeSourceBufferIndex = -1;
             var deadListBufferIndex = -1;
             var deadListCountIndex = -1;
 
-            var systemBufferMappings = new List<VFXBufferMapping>();
-            var systemValueMappings = new List<VFXValueMapping>();
+            var systemBufferMappings = new List<VFXMapping>();
+            var systemValueMappings = new List<VFXMapping>();
 
-            if (hasState)
+            if (attributeBufferSize > 0)
             {
                 attributeBufferIndex = outBufferDescs.Count;
-                outBufferDescs.Add(new VFXBufferDesc(ComputeBufferType.Raw, bufferSize, 4));
-                systemBufferMappings.Add(new VFXBufferMapping(attributeBufferIndex, "attributeBuffer"));
+                outBufferDescs.Add(m_layoutAttributeCurrent.GetBufferDesc(m_Capacity));
+                systemBufferMappings.Add(new VFXMapping(attributeBufferIndex, "attributeBuffer"));
+            }
+
+            if (m_layoutAttributeSource.GetBufferSize(sourceCount) > 0u)
+            {
+                attributeSourceBufferIndex = outBufferDescs.Count;
+                var bufferDesc = m_layoutAttributeSource.GetBufferDesc(sourceCount);
+                outBufferDescs.Add(bufferDesc);
+                systemBufferMappings.Add(new VFXMapping(attributeSourceBufferIndex, "sourceAttributeBuffer"));
             }
 
             var systemFlag = VFXSystemFlag.kVFXSystemDefault;
@@ -212,14 +285,17 @@ namespace UnityEditor.VFX
                 systemFlag |= VFXSystemFlag.kVFXSystemHasKill;
 
                 deadListBufferIndex = outBufferDescs.Count;
-                outBufferDescs.Add(new VFXBufferDesc(ComputeBufferType.Append, capacity, 4));
-                systemBufferMappings.Add(new VFXBufferMapping(deadListBufferIndex, "deadList"));
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = capacity });
+                systemBufferMappings.Add(new VFXMapping(deadListBufferIndex, "deadList"));
 
                 deadListCountIndex = outBufferDescs.Count;
-                outBufferDescs.Add(new VFXBufferDesc(ComputeBufferType.Raw, 1, 4));
-                systemBufferMappings.Add(new VFXBufferMapping(deadListCountIndex, "deadListCount"));
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Raw, size = 1 });
+                systemBufferMappings.Add(new VFXMapping(deadListCountIndex, "deadListCount"));
             }
 
+            var initContext = owners.FirstOrDefault(o => o.contextType == VFXContextType.kInit);
+            if (initContext != null)
+                systemBufferMappings.AddRange(initContext.inputContexts.Select(o => new VFXMapping(contextSpawnToBufferIndex[o], "spawner_input")));
             if (owners.Count() > 0 && owners.First().contextType == VFXContextType.kInit) // TODO This test can be removed once we ensure priorly the system is valid
             {
                 var mapper = contextToCompiledData[owners.First()].cpuMapper;
@@ -232,22 +308,19 @@ namespace UnityEditor.VFX
 
                 if (boundsCenterIndex != -1 && boundsSizeIndex != -1)
                 {
-                    systemValueMappings.Add(new VFXValueMapping(boundsCenterIndex, "bounds_center"));
-                    systemValueMappings.Add(new VFXValueMapping(boundsSizeIndex, "bounds_size"));
+                    systemValueMappings.Add(new VFXMapping(boundsCenterIndex, "bounds_center"));
+                    systemValueMappings.Add(new VFXMapping(boundsSizeIndex, "bounds_size"));
                 }
             }
 
             var taskDescs = new List<VFXTaskDesc>();
-            var bufferMappings = new List<VFXBufferMapping>();
-            var uniformMappings = new List<VFXValueMapping>();
+            var bufferMappings = new List<VFXMapping>();
+            var uniformMappings = new List<VFXMapping>();
 
             foreach (var context in owners)
             {
                 //if (!contextToCompiledData.ContainsKey(context))
                 //    continue;
-
-                if (context.contextType == VFXContextType.kInit)
-                    systemBufferMappings.AddRange(context.inputContexts.Select(o => new VFXBufferMapping(contextSpawnToBufferIndex[o], "spawner_input")));
 
                 var contextData = contextToCompiledData[context];
 
@@ -256,15 +329,17 @@ namespace UnityEditor.VFX
 
                 bufferMappings.Clear();
                 if (attributeBufferIndex != -1)
-                    bufferMappings.Add(new VFXBufferMapping(attributeBufferIndex, "attributeBuffer"));
+                    bufferMappings.Add(new VFXMapping(attributeBufferIndex, "attributeBuffer"));
                 if (deadListBufferIndex != -1 && context.contextType != VFXContextType.kOutput)
-                    bufferMappings.Add(new VFXBufferMapping(deadListBufferIndex, context.contextType == VFXContextType.kUpdate ? "deadListOut" : "deadListIn"));
+                    bufferMappings.Add(new VFXMapping(deadListBufferIndex, context.contextType == VFXContextType.kUpdate ? "deadListOut" : "deadListIn"));
                 if (deadListCountIndex != -1 && context.contextType == VFXContextType.kInit)
-                    bufferMappings.Add(new VFXBufferMapping(deadListCountIndex, "deadListCount"));
+                    bufferMappings.Add(new VFXMapping(deadListCountIndex, "deadListCount"));
+                if (attributeSourceBufferIndex != -1 && context.contextType == VFXContextType.kInit)
+                    bufferMappings.Add(new VFXMapping(attributeSourceBufferIndex, "sourceAttributeBuffer"));
 
                 uniformMappings.Clear();
                 foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.textures))
-                    uniformMappings.Add(new VFXValueMapping(expressionGraph.GetFlattenedIndex(uniform), contextData.uniformMapper.GetName(uniform)));
+                    uniformMappings.Add(new VFXMapping(expressionGraph.GetFlattenedIndex(uniform), contextData.uniformMapper.GetName(uniform)));
 
                 taskDesc.buffers = bufferMappings.ToArray();
                 taskDesc.values = uniformMappings.ToArray();
@@ -291,12 +366,9 @@ namespace UnityEditor.VFX
         private Bounds m_Bounds;
         [SerializeField]
         private bool m_WorldSpace;
-
         [NonSerialized]
-        private Dictionary<VFXAttribute, AttributeLayout> m_AttributeLayout = new Dictionary<VFXAttribute, AttributeLayout>();
+        private StructureOfArrayProvider m_layoutAttributeCurrent = new StructureOfArrayProvider();
         [NonSerialized]
-        private List<int> m_BucketSizes = new List<int>();
-        [NonSerialized]
-        private List<int> m_BucketOffsets = new List<int>();
+        private StructureOfArrayProvider m_layoutAttributeSource = new StructureOfArrayProvider();
     }
 }

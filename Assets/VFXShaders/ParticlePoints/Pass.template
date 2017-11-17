@@ -1,14 +1,14 @@
-#if !(defined(VFX_VARYING_STRUCT) && defined(VFX_VARYING_POSITIONWS))
-#error VFX_VARYING_STRUCT and VFX_VARYING_POSITIONWS must be defined.
+#if !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))
+#error VFX_VARYING_PS_INPUTS and VFX_VARYING_POSCS must be defined.
 #endif
 
 #pragma vertex vert
 
-VFX_VARYING_STRUCT vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
+VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 {
 	uint index = id;
-	VFX_VARYING_STRUCT o = (VFX_VARYING_STRUCT)0;
-	o.VFX_VARYING_POSITIONWS = -1;
+	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
+	o.VFX_VARYING_POSCS = -1;
 	if (index < asuint(nbMax))
 	{
 		${VFXLoadAttributes:{alive}}
@@ -16,8 +16,11 @@ VFX_VARYING_STRUCT vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 		{
 			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
 			${VFXProcessBlocks}
+			
+			if (!alive)
+				return o;
 							
-			o.VFX_VARYING_POSITIONWS = mul(VFXModelViewProj(), float4(position,1.0f));
+			o.VFX_VARYING_POSCS = TransformPositionVFXToClip(position);
 
 			${VFXVertexCommonProcess}
 			${VFXVertexAdditionalProcess}
