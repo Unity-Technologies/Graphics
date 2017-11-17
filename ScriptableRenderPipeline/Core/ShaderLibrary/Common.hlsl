@@ -99,7 +99,7 @@ bool IsBitSet(uint data, uint bitPos)
 }
 
 #ifndef INTRINSIC_WAVEREADFIRSTLANE
-    // Warning: for correctness, the value you pass to the function must be constant across the wave!
+    // Warning: for correctness, the argument must have the same value across the wave!
     TEMPLATE_1(WaveReadFirstLane, scalarValue, return scalarValue)
 #endif
 
