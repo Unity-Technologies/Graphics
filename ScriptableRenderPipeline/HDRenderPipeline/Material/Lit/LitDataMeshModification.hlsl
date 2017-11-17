@@ -103,7 +103,7 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     if (_TessellationFactorTriangleSize > 0.0)
     {
         // return a value between 0 and 1
-        edgeTessFactors *= GetScreenSpaceTessFactor( p0, p1, p2, _ViewProjMatrix, _ScreenSize, _TessellationFactorTriangleSize); // Use primary camera view
+        edgeTessFactors *= GetScreenSpaceTessFactor( p0, p1, p2, UNITY_MATRIX_VP, _ScreenSize, _TessellationFactorTriangleSize); // Use primary camera view
     }
 
     // Distance based tessellation

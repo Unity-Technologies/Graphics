@@ -105,8 +105,8 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
                 float2 centerPosSS = posInput.positionSS;
                 float2 cornerPosSS = centerPosSS + 0.5 * _ScreenSize.zw;
                 float  centerDepth = LOAD_TEXTURE2D(_MainDepthTexture, centerPosition).r;
-                float3 centerPosVS = ComputeViewSpacePosition(centerPosSS, centerDepth, _InvProjMatrix);
-                float3 cornerPosVS = ComputeViewSpacePosition(cornerPosSS, centerDepth, _InvProjMatrix);
+                float3 centerPosVS = ComputeViewSpacePosition(centerPosSS, centerDepth, UNITY_MATRIX_I_P);
+                float3 cornerPosVS = ComputeViewSpacePosition(cornerPosSS, centerDepth, UNITY_MATRIX_I_P);
 
                 // Rescaling the filter is equivalent to inversely scaling the world.
                 float  metersPerUnit = _WorldScales[profileID].x / distScale * SSS_BASIC_DISTANCE_SCALE;
