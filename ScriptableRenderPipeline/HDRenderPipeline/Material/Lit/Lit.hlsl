@@ -88,9 +88,11 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define SSS_WRAP_LIGHT cos(PI/2 - SSS_WRAP_ANGLE)
 
 CBUFFER_START(UnitySSSParameters)
-uint   _EnableSSSAndTransmission;           // Globally toggles subsurface and transmission scattering on/off
-uint   _TexturingModeFlags;                 // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
-uint   _TransmissionFlags;                  // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
+// Warning: Unity is not able to losslessly transfer integers larger than 2^24 to the shader system.
+// Therefore, we bitcast uint to float in C#, and bitcast back to uint in the shader.
+uint   _EnableSSSAndTransmission; // Globally toggles subsurface and transmission scattering on/off
+float  _TexturingModeFlags;       // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
+float  _TransmissionFlags;        // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
 // Old SSS Model >>>
 uint   _UseDisneySSS;
 float4 _HalfRcpVariancesAndWeights[SSS_N_PROFILES][2]; // 2x Gaussians in RGB, A is interpolation weights
@@ -246,15 +248,15 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
     bsdfData.subsurfaceRadius  = subsurfaceRadius;
     bsdfData.thickness = _ThicknessRemaps[subsurfaceProfile].x + _ThicknessRemaps[subsurfaceProfile].y * thickness;
 
-    uint transmissionMode = BitFieldExtract(_TransmissionFlags, 2u, 2u * subsurfaceProfile);
+    uint transmissionMode = BitFieldExtract(asuint(_TransmissionFlags), 2u, 2u * subsurfaceProfile);
 
-    bsdfData.enableTransmission = transmissionMode != SSS_TRSM_MODE_NONE && (_EnableSSSAndTransmission > 0);
+    bsdfData.enableTransmission = _EnableSSSAndTransmission != 0 && transmissionMode != SSS_TRSM_MODE_NONE;
 
     if (bsdfData.enableTransmission)
     {
         bsdfData.useThinObjectMode = transmissionMode == SSS_TRSM_MODE_THIN;
 
-        if (_UseDisneySSS)
+        if (_UseDisneySSS != 0)
         {
             bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParams[subsurfaceProfile].rgb,
                                                                 _TransmissionTints[subsurfaceProfile].rgb,
@@ -289,7 +291,7 @@ float3 ApplyDiffuseTexturingMode(BSDFData bsdfData)
 
         if (enableSssAndTransmission)
         {
-            bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, bsdfData.subsurfaceProfile);
+            bool performPostScatterTexturing = IsBitSet(asuint(_TexturingModeFlags), bsdfData.subsurfaceProfile);
 
             if (performPostScatterTexturing)
             {
