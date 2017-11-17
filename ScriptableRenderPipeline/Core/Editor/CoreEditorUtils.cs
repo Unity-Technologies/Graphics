@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
@@ -116,6 +116,11 @@ namespace UnityEditor.Experimental.Rendering
             }
 
             return state;
+        }
+
+        public static void RemoveMaterialKeywords(Material material)
+        {
+            material.shaderKeywords = null;
         }
     }
 }
