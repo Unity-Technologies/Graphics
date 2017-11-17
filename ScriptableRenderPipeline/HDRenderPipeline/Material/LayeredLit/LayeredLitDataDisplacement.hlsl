@@ -340,7 +340,7 @@ float3 ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCo
     height3 += height0 * _InheritBaseHeight3 * influenceMask;
 #endif
 
-    float heightResult = BlendLayeredScalar(height0, height1, height2, height3, weights).xxx;
+    float heightResult = BlendLayeredScalar(height0, height1, height2, height3, weights);
 
    // Applying scaling of the object if requested
     #ifdef _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE

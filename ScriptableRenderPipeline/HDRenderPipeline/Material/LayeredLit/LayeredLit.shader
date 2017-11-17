@@ -683,9 +683,6 @@ Shader "HDRenderPipeline/LayeredLit"
             #include "../../ShaderVariables.hlsl"
             #include "../../Debug/DebugDisplay.hlsl"
             #include "../../Lighting/Forward.hlsl"
-            // TEMP until pragma work in include
-            #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
-
             #include "../../Lighting/Lighting.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
             #include "LayeredLitData.hlsl"
