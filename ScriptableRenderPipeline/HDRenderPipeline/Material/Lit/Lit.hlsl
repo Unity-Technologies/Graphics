@@ -1584,7 +1584,6 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 #else
     float3 unL = lightData.positionWS - positionWS;
 
-    [branch]
     if (dot(lightData.forward, unL) >= 0.0001)
     {
         // The light is back-facing.
