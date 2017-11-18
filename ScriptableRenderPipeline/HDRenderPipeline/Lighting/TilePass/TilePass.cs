@@ -392,7 +392,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // clustered light list specific buffers and data end
 
             // Following is an array of material of size eight for all combination of keyword: OUTPUT_SPLIT_LIGHTING - LIGHTLOOP_TILE_PASS - SHADOWS_SHADOWMASK - USE_FPTL_LIGHTLIST/USE_CLUSTERED_LIGHTLIST - DEBUG_DISPLAY
-            Material[, , , ,] m_lightingMaterial;
+            Material[] m_deferredLightingMaterial;
             Material m_DebugViewTilesMaterial;
 
             Light m_CurrentSunLight;
@@ -453,6 +453,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public LightLoop()
             {}
+
+            int GetDeferredLightingMaterialIndex(int outputSplitLighting, int lightLoopTilePass, int shadowMask, int debugDisplay)
+            {
+                return (outputSplitLighting) | (lightLoopTilePass << 1) | (shadowMask << 2) | (debugDisplay << 3);
+            }
 
             public void Build(RenderPipelineResources renderPipelineResources, TileSettings tileSettings, TextureSettings textureSettings, ShadowInitParameters shadowInit, ShadowSettings shadowSettings)
             {
@@ -527,31 +532,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_TileList = null;
                 s_TileFeatureFlags = null;
 
-                // OUTPUT_SPLIT_LIGHTING - LIGHTLOOP_TILE_PASS - SHADOWS_SHADOWMASK - USE_FPTL_LIGHTLIST/USE_CLUSTERED_LIGHTLIST - DEBUG_DISPLAY
-                m_lightingMaterial = new Material[2, 2, 2, 2, 2];
+                // OUTPUT_SPLIT_LIGHTING - LIGHTLOOP_TILE_PASS - SHADOWS_SHADOWMASK - DEBUG_DISPLAY
+                m_deferredLightingMaterial = new Material[16];
 
                 for (int outputSplitLighting = 0; outputSplitLighting < 2; ++outputSplitLighting)
                 {
                     for (int lightLoopTilePass = 0; lightLoopTilePass < 2; ++lightLoopTilePass)
                     {
-                        for (int ShadowMask = 0; ShadowMask < 2; ++ShadowMask)
+                        for (int shadowMask = 0; shadowMask < 2; ++shadowMask)
                         {
-                            for (int clustered = 0; clustered < 2; ++clustered)
+                            for (int debugDisplay = 0; debugDisplay < 2; ++debugDisplay)
                             {
-                                for (int debugDisplay = 0; debugDisplay < 2; ++debugDisplay)
-                                {
-                                    m_lightingMaterial[outputSplitLighting, lightLoopTilePass, ShadowMask, clustered, debugDisplay] = CoreUtils.CreateEngineMaterial(m_Resources.deferredShader);
-                                    CoreUtils.SetKeyword(m_lightingMaterial[outputSplitLighting, lightLoopTilePass, ShadowMask, clustered, debugDisplay], "OUTPUT_SPLIT_LIGHTING", outputSplitLighting == 1);
-                                    CoreUtils.SelectKeyword(m_lightingMaterial[outputSplitLighting, lightLoopTilePass, ShadowMask, clustered, debugDisplay], "LIGHTLOOP_TILE_PASS", "LIGHTLOOP_SINGLE_PASS", lightLoopTilePass == 1);
-                                    CoreUtils.SetKeyword(m_lightingMaterial[outputSplitLighting, lightLoopTilePass, ShadowMask, clustered, debugDisplay], "SHADOWS_SHADOWMASK", ShadowMask == 1);
-                                    CoreUtils.SelectKeyword(m_lightingMaterial[outputSplitLighting, lightLoopTilePass, ShadowMask, clustered, debugDisplay], "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", clustered == 1);
-                                    CoreUtils.SetKeyword(m_lightingMaterial[outputSplitLighting, lightLoopTilePass, ShadowMask, clustered, debugDisplay], "DEBUG_DISPLAY", debugDisplay == 1);
+                                int index = GetDeferredLightingMaterialIndex(outputSplitLighting, lightLoopTilePass, shadowMask, debugDisplay);
 
-                                    m_lightingMaterial[outputSplitLighting, lightLoopTilePass, ShadowMask, clustered, debugDisplay].SetInt(HDShaderIDs._StencilRef, outputSplitLighting == 1 ? (int)StencilLightingUsage.SplitLighting : (int)StencilLightingUsage.RegularLighting);
-                                    m_lightingMaterial[outputSplitLighting, lightLoopTilePass, ShadowMask, clustered, debugDisplay].SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.Equal);
-                                    m_lightingMaterial[outputSplitLighting, lightLoopTilePass, ShadowMask, clustered, debugDisplay].SetInt(HDShaderIDs._SrcBlend, (int)BlendMode.One);
-                                    m_lightingMaterial[outputSplitLighting, lightLoopTilePass, ShadowMask, clustered, debugDisplay].SetInt(HDShaderIDs._DstBlend, (int)BlendMode.Zero);
-                                }
+                                m_deferredLightingMaterial[index] = CoreUtils.CreateEngineMaterial(m_Resources.deferredShader);
+                                CoreUtils.SetKeyword(m_deferredLightingMaterial[index], "OUTPUT_SPLIT_LIGHTING", outputSplitLighting == 1);
+                                CoreUtils.SelectKeyword(m_deferredLightingMaterial[index], "LIGHTLOOP_TILE_PASS", "LIGHTLOOP_SINGLE_PASS", lightLoopTilePass == 1);
+                                CoreUtils.SetKeyword(m_deferredLightingMaterial[index], "SHADOWS_SHADOWMASK", shadowMask == 1);
+                                CoreUtils.SetKeyword(m_deferredLightingMaterial[index], "DEBUG_DISPLAY", debugDisplay == 1);
+
+                                m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilRef, outputSplitLighting == 1 ? (int)StencilLightingUsage.SplitLighting : (int)StencilLightingUsage.RegularLighting);
+                                m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.Equal);
+                                m_deferredLightingMaterial[index].SetInt(HDShaderIDs._SrcBlend, (int)BlendMode.One);
+                                m_deferredLightingMaterial[index].SetInt(HDShaderIDs._DstBlend, (int)BlendMode.Zero);
                             }
                         }
                     }
@@ -614,14 +617,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     for (int lightLoopTilePass = 0; lightLoopTilePass < 2; ++lightLoopTilePass)
                     {
-                        for (int ShadowMask = 0; ShadowMask < 2; ++ShadowMask)
+                        for (int shadowMask = 0; shadowMask < 2; ++shadowMask)
                         {
-                            for (int clustered = 0; clustered < 2; ++clustered)
+                            for (int debugDisplay = 0; debugDisplay < 2; ++debugDisplay)
                             {
-                                for (int debugDisplay = 0; debugDisplay < 2; ++debugDisplay)
-                                {
-                                    CoreUtils.Destroy(m_lightingMaterial[outputSplitLighting, lightLoopTilePass, ShadowMask, clustered, debugDisplay]);
-                                }
+                                int index = GetDeferredLightingMaterialIndex(outputSplitLighting, lightLoopTilePass, shadowMask, debugDisplay);
+                                CoreUtils.Destroy(m_deferredLightingMaterial[index]);
                             }
                         }
                     }
@@ -2040,12 +2041,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     else // Pixel shader evaluation
                     {
-                        // OUTPUT_SPLIT_LIGHTING - LIGHTLOOP_TILE_PASS - SHADOWS_SHADOWMASK - USE_FPTL_LIGHTLIST/USE_CLUSTERED_LIGHTLIST - DEBUG_DISPLAY
-                        Material currentLightingMaterial = m_lightingMaterial[options.outputSplitLighting ? 1 : 0,
-                                                                                m_TileSettings.enableTileAndCluster ? 1 : 0,
-                                                                                m_enableBakeShadowMask ? 1 : 0,
-                                                                                0,
-                                                                                debugDisplaySettings.IsDebugDisplayEnabled() ? 1 : 0];
+                        int index = GetDeferredLightingMaterialIndex(   options.outputSplitLighting ? 1 : 0,
+                                                                        m_TileSettings.enableTileAndCluster ? 1 : 0,
+                                                                        m_enableBakeShadowMask ? 1 : 0,
+                                                                        debugDisplaySettings.IsDebugDisplayEnabled() ? 1 : 0);
+
+                        Material currentLightingMaterial = m_deferredLightingMaterial[index];
 
                         if (options.outputSplitLighting)
                         {
