@@ -250,11 +250,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [Range(0.0f, 1.0f)]
             public float specularGlobalDimmer = 1.0f;
 
-            public enum TileDebug : int
+            public enum TileClusterDebug : int
             {
-                None = 0, Punctual = 1, Area = 2, AreaAndPunctual = 3, Environment = 4, EnvironmentAndPunctual = 5, EnvironmentAndArea = 6, EnvironmentAndAreaAndPunctual = 7,
-                FeatureVariants = 8
-            }; //TODO: we should probably make this checkboxes
+                None,
+                Tile,
+                Cluster,
+                FeatureVariants
+            };
+
+            public enum TileClusterCategoryDebug : int
+            {
+                Punctual = 1,
+                Area = 2,
+                AreaAndPunctual = 3,
+                Environment = 4,
+                EnvironmentAndPunctual = 5,
+                EnvironmentAndArea = 6,
+                EnvironmentAndAreaAndPunctual = 7
+            };
 
             public TileSettings()
             {
@@ -1861,13 +1874,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public void RenderLightingDebug(HDCamera hdCamera, CommandBuffer cmd, RenderTargetIdentifier colorBuffer, DebugDisplaySettings debugDisplaySettings, bool renderOpaque)
             {
                 LightingDebugSettings lightingDebug = debugDisplaySettings.lightingDebugSettings;
-                if (lightingDebug.tileDebugByCategory == TileSettings.TileDebug.None)
-                    return;
+                if (lightingDebug.tileClusterDebug == TileSettings.TileClusterDebug.None ||
+                    renderOpaque && lightingDebug.tileClusterDebug == TileSettings.TileClusterDebug.Cluster || // Cluster if for transparent
+                    !renderOpaque && lightingDebug.tileClusterDebug == TileSettings.TileClusterDebug.Tile) // Tile is for opaque
+                    return ;
 
-                using (new ProfilingSample(cmd, "Tiled Lighting Debug", HDRenderPipeline.GetSampler(CustomSamplerId.TPTiledLightingDebug)))
+                using (new ProfilingSample(cmd, "Tiled/cluster Lighting Debug", HDRenderPipeline.GetSampler(CustomSamplerId.TPTiledLightingDebug)))
                 {
-                    bool bUseClusteredForDeferred = !renderOpaque;
-
                     int w = hdCamera.camera.pixelWidth;
                     int h = hdCamera.camera.pixelHeight;
                     int numTilesX = (w + 15) / 16;
@@ -1875,37 +1888,39 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int numTiles = numTilesX * numTilesY;
 
                     Vector2 mousePixelCoord = Input.mousePosition;
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
                     if (!UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
                     {
                         mousePixelCoord = m_mousePosition;
                         mousePixelCoord.y = (hdCamera.screenSize.y - 1.0f) - mousePixelCoord.y;
                     }
-    #endif
+#endif
 
                     // Debug tiles
-                    if (lightingDebug.tileDebugByCategory == TileSettings.TileDebug.FeatureVariants)
+                    if (lightingDebug.tileClusterDebug == TileSettings.TileClusterDebug.FeatureVariants)
                     {
                         if (GetFeatureVariantsEnabled(m_TileSettings))
                         {
                             // featureVariants
                             m_DebugViewTilesMaterial.SetInt(HDShaderIDs._NumTiles, numTiles);
-                            m_DebugViewTilesMaterial.SetInt(HDShaderIDs._ViewTilesFlags, (int)lightingDebug.tileDebugByCategory);
+                            m_DebugViewTilesMaterial.SetInt(HDShaderIDs._ViewTilesFlags, (int)lightingDebug.tileClusterDebugByCategory);
                             m_DebugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, mousePixelCoord);
                             m_DebugViewTilesMaterial.SetBuffer(HDShaderIDs.g_TileList, s_TileList);
                             m_DebugViewTilesMaterial.SetBuffer(HDShaderIDs.g_DispatchIndirectBuffer, s_DispatchIndirectBuffer);
-                            m_DebugViewTilesMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                            m_DebugViewTilesMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
+                            m_DebugViewTilesMaterial.EnableKeyword("USE_FPTL_LIGHTLIST");
+                            m_DebugViewTilesMaterial.DisableKeyword("USE_CLUSTERED_LIGHTLIST");
                             m_DebugViewTilesMaterial.DisableKeyword("SHOW_LIGHT_CATEGORIES");
                             m_DebugViewTilesMaterial.EnableKeyword("SHOW_FEATURE_VARIANTS");
                             cmd.SetRenderTarget(colorBuffer);
                             cmd.DrawProcedural(Matrix4x4.identity, m_DebugViewTilesMaterial, 0, MeshTopology.Triangles, numTiles * 6);
                         }
                     }
-                    else if (lightingDebug.tileDebugByCategory != TileSettings.TileDebug.None)
+                    else // tile or cluster
                     {
+                        bool bUseClusteredForDeferred = lightingDebug.tileClusterDebug == TileSettings.TileClusterDebug.Cluster;
+
                         // lightCategories
-                        m_DebugViewTilesMaterial.SetInt(HDShaderIDs._ViewTilesFlags, (int)lightingDebug.tileDebugByCategory);
+                        m_DebugViewTilesMaterial.SetInt(HDShaderIDs._ViewTilesFlags, (int)lightingDebug.tileClusterDebugByCategory);
                         m_DebugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, mousePixelCoord);
                         m_DebugViewTilesMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                         m_DebugViewTilesMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");

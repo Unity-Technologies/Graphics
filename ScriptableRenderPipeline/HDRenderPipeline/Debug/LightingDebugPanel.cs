@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System;
 
 #if UNITY_EDITOR
@@ -114,8 +114,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         break;
                 }
 
-
-                m_DebugPanel.GetDebugItem(DebugDisplaySettings.kTileDebug).handler.OnEditorGUI();
+                DebugItem tileClusterDebug = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kTileClusterDebug);
+                tileClusterDebug.handler.OnEditorGUI();
+                if ((int)tileClusterDebug.GetValue() != 0 && (int)tileClusterDebug.GetValue() != 3) // None and FeatureVariant
+                {
+                    EditorGUI.indentLevel++;
+                    m_DebugPanel.GetDebugItem(DebugDisplaySettings.kTileClusterCategoryDebug).handler.OnEditorGUI();
+                    EditorGUI.indentLevel--;
+                }
 
                 DebugItem displaySkyReflecItem = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kDisplaySkyReflectionDebug);
                 displaySkyReflecItem.handler.OnEditorGUI();
