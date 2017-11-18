@@ -1871,67 +1871,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ShadowMgr.RenderShadows(m_FrameId, renderContext, cmd, cullResults, cullResults.visibleLights);
             }
 
-            public void RenderLightingDebug(HDCamera hdCamera, CommandBuffer cmd, RenderTargetIdentifier colorBuffer, DebugDisplaySettings debugDisplaySettings, bool renderOpaque)
-            {
-                LightingDebugSettings lightingDebug = debugDisplaySettings.lightingDebugSettings;
-                if (lightingDebug.tileClusterDebug == TileSettings.TileClusterDebug.None ||
-                    renderOpaque && lightingDebug.tileClusterDebug == TileSettings.TileClusterDebug.Cluster || // Cluster if for transparent
-                    !renderOpaque && lightingDebug.tileClusterDebug == TileSettings.TileClusterDebug.Tile) // Tile is for opaque
-                    return ;
-
-                using (new ProfilingSample(cmd, "Tiled/cluster Lighting Debug", HDRenderPipeline.GetSampler(CustomSamplerId.TPTiledLightingDebug)))
-                {
-                    int w = hdCamera.camera.pixelWidth;
-                    int h = hdCamera.camera.pixelHeight;
-                    int numTilesX = (w + 15) / 16;
-                    int numTilesY = (h + 15) / 16;
-                    int numTiles = numTilesX * numTilesY;
-
-                    Vector2 mousePixelCoord = Input.mousePosition;
-#if UNITY_EDITOR
-                    if (!UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
-                    {
-                        mousePixelCoord = m_mousePosition;
-                        mousePixelCoord.y = (hdCamera.screenSize.y - 1.0f) - mousePixelCoord.y;
-                    }
-#endif
-
-                    // Debug tiles
-                    if (lightingDebug.tileClusterDebug == TileSettings.TileClusterDebug.FeatureVariants)
-                    {
-                        if (GetFeatureVariantsEnabled(m_TileSettings))
-                        {
-                            // featureVariants
-                            m_DebugViewTilesMaterial.SetInt(HDShaderIDs._NumTiles, numTiles);
-                            m_DebugViewTilesMaterial.SetInt(HDShaderIDs._ViewTilesFlags, (int)lightingDebug.tileClusterDebugByCategory);
-                            m_DebugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, mousePixelCoord);
-                            m_DebugViewTilesMaterial.SetBuffer(HDShaderIDs.g_TileList, s_TileList);
-                            m_DebugViewTilesMaterial.SetBuffer(HDShaderIDs.g_DispatchIndirectBuffer, s_DispatchIndirectBuffer);
-                            m_DebugViewTilesMaterial.EnableKeyword("USE_FPTL_LIGHTLIST");
-                            m_DebugViewTilesMaterial.DisableKeyword("USE_CLUSTERED_LIGHTLIST");
-                            m_DebugViewTilesMaterial.DisableKeyword("SHOW_LIGHT_CATEGORIES");
-                            m_DebugViewTilesMaterial.EnableKeyword("SHOW_FEATURE_VARIANTS");
-                            cmd.SetRenderTarget(colorBuffer);
-                            cmd.DrawProcedural(Matrix4x4.identity, m_DebugViewTilesMaterial, 0, MeshTopology.Triangles, numTiles * 6);
-                        }
-                    }
-                    else // tile or cluster
-                    {
-                        bool bUseClusteredForDeferred = lightingDebug.tileClusterDebug == TileSettings.TileClusterDebug.Cluster;
-
-                        // lightCategories
-                        m_DebugViewTilesMaterial.SetInt(HDShaderIDs._ViewTilesFlags, (int)lightingDebug.tileClusterDebugByCategory);
-                        m_DebugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, mousePixelCoord);
-                        m_DebugViewTilesMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                        m_DebugViewTilesMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                        m_DebugViewTilesMaterial.EnableKeyword("SHOW_LIGHT_CATEGORIES");
-                        m_DebugViewTilesMaterial.DisableKeyword("SHOW_FEATURE_VARIANTS");
-
-                        CoreUtils.DrawFullScreen(cmd, m_DebugViewTilesMaterial, 0, colorBuffer);
-                    }
-                }
-            }
-
             public struct LightingPassOptions
             {
                 public bool outputSplitLighting;
@@ -2116,9 +2055,66 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            public void RenderDebugOverlay(Camera camera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width)
+            public void RenderDebugOverlay(HDCamera hdCamera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width)
             {
                 LightingDebugSettings lightingDebug = debugDisplaySettings.lightingDebugSettings;
+
+                using (new ProfilingSample(cmd, "Tiled/cluster Lighting Debug", HDRenderPipeline.GetSampler(CustomSamplerId.TPTiledLightingDebug)))
+                {
+                    if (lightingDebug.tileClusterDebug != TileSettings.TileClusterDebug.None)
+                    {
+
+                        int w = hdCamera.camera.pixelWidth;
+                        int h = hdCamera.camera.pixelHeight;
+                        int numTilesX = (w + 15) / 16;
+                        int numTilesY = (h + 15) / 16;
+                        int numTiles = numTilesX * numTilesY;
+
+                        Vector2 mousePixelCoord = Input.mousePosition;
+#if UNITY_EDITOR
+                        if (!UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
+                        {
+                            mousePixelCoord = m_mousePosition;
+                            mousePixelCoord.y = (hdCamera.screenSize.y - 1.0f) - mousePixelCoord.y;
+                        }
+#endif
+
+                        // Debug tiles
+                        if (lightingDebug.tileClusterDebug == TileSettings.TileClusterDebug.FeatureVariants)
+                        {
+                            if (GetFeatureVariantsEnabled(m_TileSettings))
+                            {
+                                // featureVariants
+                                m_DebugViewTilesMaterial.SetInt(HDShaderIDs._NumTiles, numTiles);
+                                m_DebugViewTilesMaterial.SetInt(HDShaderIDs._ViewTilesFlags, (int)lightingDebug.tileClusterDebugByCategory);
+                                m_DebugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, mousePixelCoord);
+                                m_DebugViewTilesMaterial.SetBuffer(HDShaderIDs.g_TileList, s_TileList);
+                                m_DebugViewTilesMaterial.SetBuffer(HDShaderIDs.g_DispatchIndirectBuffer, s_DispatchIndirectBuffer);
+                                m_DebugViewTilesMaterial.EnableKeyword("USE_FPTL_LIGHTLIST");
+                                m_DebugViewTilesMaterial.DisableKeyword("USE_CLUSTERED_LIGHTLIST");
+                                m_DebugViewTilesMaterial.DisableKeyword("SHOW_LIGHT_CATEGORIES");
+                                m_DebugViewTilesMaterial.EnableKeyword("SHOW_FEATURE_VARIANTS");
+                                cmd.DrawProcedural(Matrix4x4.identity, m_DebugViewTilesMaterial, 0, MeshTopology.Triangles, numTiles * 6);
+                            }
+                        }
+                        else // tile or cluster
+                        {
+                            bool bUseClustered = lightingDebug.tileClusterDebug == TileSettings.TileClusterDebug.Cluster;
+
+                            // lightCategories
+                            m_DebugViewTilesMaterial.SetInt(HDShaderIDs._ViewTilesFlags, (int)lightingDebug.tileClusterDebugByCategory);
+                            m_DebugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, mousePixelCoord);
+                            m_DebugViewTilesMaterial.SetBuffer(HDShaderIDs.g_vLightListGlobal, bUseClustered ? s_PerVoxelLightLists : s_LightList);
+                            m_DebugViewTilesMaterial.EnableKeyword(bUseClustered ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
+                            m_DebugViewTilesMaterial.DisableKeyword(!bUseClustered ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
+                            m_DebugViewTilesMaterial.EnableKeyword("SHOW_LIGHT_CATEGORIES");
+                            m_DebugViewTilesMaterial.DisableKeyword("SHOW_FEATURE_VARIANTS");
+
+                            CoreUtils.DrawFullScreen(cmd, m_DebugViewTilesMaterial, 0);
+                        }
+                    }
+                }
+ 
                 using (new ProfilingSample(cmd, "Display Shadows", HDRenderPipeline.GetSampler(CustomSamplerId.TPDisplayShadows)))
                 {
                     if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeShadowMap)
@@ -2147,14 +2143,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             for (uint i = 0; i < faceCount; ++i)
                             {
                                 m_ShadowMgr.DisplayShadow(cmd, index, i, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
-                                HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, camera.pixelWidth);
+                                HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera.camera.pixelWidth);
                             }
                         }
                     }
                     else if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeAtlas)
                     {
                         m_ShadowMgr.DisplayShadowMap(cmd, lightingDebug.shadowAtlasIndex, 0, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
-                        HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, camera.pixelWidth);
+                        HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera.camera.pixelWidth);
                     }
                 }
             }
