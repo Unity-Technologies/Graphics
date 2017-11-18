@@ -38,6 +38,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent enableComputeLightEvaluation = new GUIContent("Compute Light Evaluation");
             public readonly GUIContent enableComputeLightVariants = new GUIContent("Compute Light Variants");
             public readonly GUIContent enableComputeMaterialVariants = new GUIContent("Compute Material Variants");
+            public readonly GUIContent enableFptlForForwardOpaque = new GUIContent("Fptl for forward opaque");
             public readonly GUIContent enableBigTilePrepass = new GUIContent("Big tile prepass");
         }
 
