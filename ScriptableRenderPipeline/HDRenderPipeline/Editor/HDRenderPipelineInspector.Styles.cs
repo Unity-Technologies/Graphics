@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -38,8 +38,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent enableComputeLightEvaluation = new GUIContent("Compute Light Evaluation");
             public readonly GUIContent enableComputeLightVariants = new GUIContent("Compute Light Variants");
             public readonly GUIContent enableComputeMaterialVariants = new GUIContent("Compute Material Variants");
-            public readonly GUIContent enableClustered = new GUIContent("Clustered");
-            public readonly GUIContent enableFptlForOpaqueWhenClustered = new GUIContent("Fptl For Opaque When Clustered");
             public readonly GUIContent enableBigTilePrepass = new GUIContent("Big tile prepass");
         }
 

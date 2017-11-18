@@ -243,8 +243,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public bool enableComputeMaterialVariants;
 
             // clustered light list specific buffers and data begin
-            public bool enableClustered;
-            public bool enableFptlForOpaqueWhenClustered; // still useful on opaques. Should be true by default to force tile on opaque.
             public bool enableBigTilePrepass;
 
             [Range(0.0f, 1.0f)]
@@ -265,8 +263,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 enableComputeLightVariants = true;
                 enableComputeMaterialVariants = true;
 
-                enableClustered = true;
-                enableFptlForOpaqueWhenClustered = true;
                 enableBigTilePrepass = true;
 
                 diffuseGlobalDimmer = 1.0f;
@@ -362,18 +358,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             static int s_BuildMaterialFlagsWriteKernel;
             static int s_BuildMaterialFlagsOrKernel;
 
-            static int s_shadeOpaqueDirectClusteredKernel;
             static int s_shadeOpaqueDirectFptlKernel;
-            static int s_shadeOpaqueDirectClusteredDebugDisplayKernel;
             static int s_shadeOpaqueDirectFptlDebugDisplayKernel;
-
-            static int s_shadeOpaqueDirectShadowMaskClusteredKernel;
             static int s_shadeOpaqueDirectShadowMaskFptlKernel;
-            static int s_shadeOpaqueDirectShadowMaskClusteredDebugDisplayKernel;
             static int s_shadeOpaqueDirectShadowMaskFptlDebugDisplayKernel;
 
-            // Tag: SUPPORT_COMPUTE_CLUSTER_OPAQUE - Uncomment this if you want to do cluster opaque with compute shader (by default we support only fptl on opaque)
-            //static int[] s_shadeOpaqueIndirectClusteredKernels = new int[LightDefinitions.s_NumFeatureVariants];
             static int[] s_shadeOpaqueIndirectFptlKernels = new int[LightDefinitions.s_NumFeatureVariants];
             static int[] s_shadeOpaqueIndirectShadowMaskFptlKernels = new int[LightDefinitions.s_NumFeatureVariants];
 
@@ -401,17 +390,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             static ComputeBuffer s_PerTileLogBaseTweak = null;
             static ComputeBuffer s_GlobalLightListAtomic = null;
             // clustered light list specific buffers and data end
-
-            bool usingFptl
-            {
-                get
-                {
-                    bool isEnabledMSAA = false;
-                    Debug.Assert(!isEnabledMSAA || m_TileSettings.enableClustered);
-                    bool disableFptl = (!m_TileSettings.enableFptlForOpaqueWhenClustered && m_TileSettings.enableClustered) || isEnabledMSAA;
-                    return !disableFptl;
-                }
-            }
 
             // Following is an array of material of size eight for all combination of keyword: OUTPUT_SPLIT_LIGHTING - LIGHTLOOP_TILE_PASS - SHADOWS_SHADOWMASK - USE_FPTL_LIGHTLIST/USE_CLUSTERED_LIGHTLIST - DEBUG_DISPLAY
             Material[, , , ,] m_lightingMaterial;
@@ -467,7 +445,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public static bool GetFeatureVariantsEnabled(TileSettings tileSettings)
             {
-                return tileSettings.enableComputeLightEvaluation && (tileSettings.enableComputeLightVariants || tileSettings.enableComputeMaterialVariants) && !(tileSettings.enableClustered && !tileSettings.enableFptlForOpaqueWhenClustered);
+                return tileSettings.enableComputeLightEvaluation && (tileSettings.enableComputeLightVariants || tileSettings.enableComputeMaterialVariants);
             }
 
             TileSettings m_TileSettings = null;
@@ -512,7 +490,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_LightVolumeDataBuffer = new ComputeBuffer(k_MaxLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightVolumeData)));
                 s_DispatchIndirectBuffer = new ComputeBuffer(LightDefinitions.s_NumFeatureVariants * 3, sizeof(uint), ComputeBufferType.IndirectArguments);
 
-                if (m_TileSettings.enableClustered)
+                // Cluster
                 {
                     var kernelName = m_TileSettings.enableBigTilePrepass ? (k_UseDepthBuffer ? "TileLightListGen_DepthRT_SrcBigTile" : "TileLightListGen_NoDepthRT_SrcBigTile") : (k_UseDepthBuffer ? "TileLightListGen_DepthRT" : "TileLightListGen_NoDepthRT");
                     s_GenListPerVoxelKernel = buildPerVoxelLightListShader.FindKernel(kernelName);
@@ -531,22 +509,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_BuildMaterialFlagsOrKernel = buildMaterialFlagsShader.FindKernel("MaterialFlagsGen_Or");
                 s_BuildMaterialFlagsWriteKernel = buildMaterialFlagsShader.FindKernel("MaterialFlagsGen_Write");
 
-                s_shadeOpaqueDirectClusteredKernel = deferredComputeShader.FindKernel("Deferred_Direct_Clustered");
                 s_shadeOpaqueDirectFptlKernel = deferredComputeShader.FindKernel("Deferred_Direct_Fptl");
-                s_shadeOpaqueDirectClusteredDebugDisplayKernel = deferredComputeShader.FindKernel("Deferred_Direct_Clustered_DebugDisplay");
                 s_shadeOpaqueDirectFptlDebugDisplayKernel = deferredComputeShader.FindKernel("Deferred_Direct_Fptl_DebugDisplay");
 
-                s_shadeOpaqueDirectShadowMaskClusteredKernel = deferredComputeShader.FindKernel("Deferred_Direct_ShadowMask_Clustered");
                 s_shadeOpaqueDirectShadowMaskFptlKernel = deferredComputeShader.FindKernel("Deferred_Direct_ShadowMask_Fptl");
-                s_shadeOpaqueDirectShadowMaskClusteredDebugDisplayKernel = deferredComputeShader.FindKernel("Deferred_Direct_ShadowMask_Clustered_DebugDisplay");
                 s_shadeOpaqueDirectShadowMaskFptlDebugDisplayKernel = deferredComputeShader.FindKernel("Deferred_Direct_ShadowMask_Fptl_DebugDisplay");
 
                 s_deferredDirectionalShadowKernel = deferredDirectionalShadowComputeShader.FindKernel("DeferredDirectionalShadow");
 
                 for (int variant = 0; variant < LightDefinitions.s_NumFeatureVariants; variant++)
                 {
-                    // Tag: SUPPORT_CLUSTER_OPAQUE - Uncomment this if you want to do cluster opaque (by default we support only fptl on opaque)
-                    // s_shadeOpaqueIndirectClusteredKernels[variant] = deferredComputeShader.FindKernel("Deferred_Indirect_Clustered_Variant" + variant);
                     s_shadeOpaqueIndirectFptlKernels[variant] = deferredComputeShader.FindKernel("Deferred_Indirect_Fptl_Variant" + variant);
                     s_shadeOpaqueIndirectShadowMaskFptlKernels[variant] = deferredComputeShader.FindKernel("Deferred_Indirect_ShadowMask_Fptl_Variant" + variant);
                 }
@@ -669,7 +641,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 return s_LightList == null || s_TileList == null || s_TileFeatureFlags == null ||
                     (s_BigTileLightList == null && m_TileSettings.enableBigTilePrepass) ||
-                    (s_PerVoxelLightLists == null && m_TileSettings.enableClustered);
+                    (s_PerVoxelLightLists == null);
             }
 
             public void ReleaseResolutionDependentBuffers()
@@ -704,7 +676,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_TileList = new ComputeBuffer((int)LightDefinitions.s_NumFeatureVariants * nrTiles, sizeof(uint));
                 s_TileFeatureFlags = new ComputeBuffer(nrTilesX * nrTilesY, sizeof(uint));
 
-                if (m_TileSettings.enableClustered)
+                // Cluster
                 {
                     var nrClustersX = (width + LightDefinitions.s_TileSizeClustered - 1) / LightDefinitions.s_TileSizeClustered;
                     var nrClustersY = (height + LightDefinitions.s_TileSizeClustered - 1) / LightDefinitions.s_TileSizeClustered;
@@ -1722,7 +1694,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var numTiles = numTilesX * numTilesY;
                 bool enableFeatureVariants = GetFeatureVariantsEnabled(m_TileSettings);
 
-                if (usingFptl)       // optimized for opaques only
+                // optimized for opaques only
                 {
                     cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
                     cmd.SetComputeIntParams(buildPerTileLightListShader, HDShaderIDs.g_viDimensions, w, h);
@@ -1762,7 +1734,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.DispatchCompute(buildPerTileLightListShader, s_GenListPerTileKernel, numTilesX, numTilesY, 1);
                 }
 
-                if (m_TileSettings.enableClustered)        // works for transparencies too.
+                // Cluster
                 {
                     VoxelLightListGeneration(cmd, camera, projscr, invProjscr, cameraDepthBufferRT);
                 }
@@ -1851,7 +1823,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     if (m_TileSettings.enableBigTilePrepass)
                         cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, s_BigTileLightList);
 
-                    if (m_TileSettings.enableClustered)
+                    // Cluster
                     {
                         cmd.SetGlobalFloat(HDShaderIDs.g_fClustScale, m_ClustScale);
                         cmd.SetGlobalFloat(HDShaderIDs.g_fClustBase, k_ClustLogBase);
@@ -1885,7 +1857,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ShadowMgr.RenderShadows(m_FrameId, renderContext, cmd, cullResults, cullResults.visibleLights);
             }
 
-            public void RenderLightingDebug(HDCamera hdCamera, CommandBuffer cmd, RenderTargetIdentifier colorBuffer, DebugDisplaySettings debugDisplaySettings)
+            public void RenderLightingDebug(HDCamera hdCamera, CommandBuffer cmd, RenderTargetIdentifier colorBuffer, DebugDisplaySettings debugDisplaySettings, bool renderOpaque)
             {
                 LightingDebugSettings lightingDebug = debugDisplaySettings.lightingDebugSettings;
                 if (lightingDebug.tileDebugByCategory == TileSettings.TileDebug.None)
@@ -1893,7 +1865,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 using (new ProfilingSample(cmd, "Tiled Lighting Debug", HDRenderPipeline.GetSampler(CustomSamplerId.TPTiledLightingDebug)))
                 {
-                    bool bUseClusteredForDeferred = !usingFptl;
+                    bool bUseClusteredForDeferred = !renderOpaque;
 
                     int w = hdCamera.camera.pixelWidth;
                     int h = hdCamera.camera.pixelHeight;
@@ -1975,8 +1947,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                                 RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer, RenderTargetIdentifier depthTexture,
                                                 LightingPassOptions options)
             {
-                var bUseClusteredForDeferred = !usingFptl;
-                cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);
+                cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, s_LightList);
 
                 if (m_TileSettings.enableTileAndCluster && m_TileSettings.enableComputeLightEvaluation && options.outputSplitLighting)
                 {
@@ -2023,8 +1994,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                             if (enableFeatureVariants)
                             {
-                                // Tag: SUPPORT_COMPUTE_CLUSTER_OPAQUE - Update the code with following comment this if you want to do cluster opaque with compute shader (by default we support only fptl on opaque)
-                                // kernel = usingFptl ? s_shadeOpaqueIndirectFptlKernels[variant] : s_shadeOpaqueIndirectClusteredKernels[variant];
                                 if (m_enableBakeShadowMask)
                                     kernel = s_shadeOpaqueIndirectShadowMaskFptlKernels[variant];
                                 else
@@ -2034,17 +2003,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             {
                                 if (m_enableBakeShadowMask)
                                 {
-                                    if (debugDisplaySettings.IsDebugDisplayEnabled())
-                                        kernel = usingFptl ? s_shadeOpaqueDirectShadowMaskFptlDebugDisplayKernel : s_shadeOpaqueDirectShadowMaskClusteredDebugDisplayKernel;
-                                    else
-                                        kernel = usingFptl ? s_shadeOpaqueDirectShadowMaskFptlKernel : s_shadeOpaqueDirectShadowMaskClusteredKernel;
+                                    kernel = debugDisplaySettings.IsDebugDisplayEnabled() ? s_shadeOpaqueDirectShadowMaskFptlDebugDisplayKernel : s_shadeOpaqueDirectShadowMaskFptlKernel;
                                 }
                                 else
                                 {
-                                    if (debugDisplaySettings.IsDebugDisplayEnabled())
-                                        kernel = usingFptl ? s_shadeOpaqueDirectFptlDebugDisplayKernel : s_shadeOpaqueDirectClusteredDebugDisplayKernel;
-                                    else
-                                        kernel = usingFptl ? s_shadeOpaqueDirectFptlKernel : s_shadeOpaqueDirectClusteredKernel;
+                                    kernel = debugDisplaySettings.IsDebugDisplayEnabled() ? s_shadeOpaqueDirectFptlDebugDisplayKernel : s_shadeOpaqueDirectFptlKernel;
                                 }
                             }
 
@@ -2081,7 +2044,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         Material currentLightingMaterial = m_lightingMaterial[options.outputSplitLighting ? 1 : 0,
                                                                                 m_TileSettings.enableTileAndCluster ? 1 : 0,
                                                                                 m_enableBakeShadowMask ? 1 : 0,
-                                                                                bUseClusteredForDeferred ? 1 : 0,
+                                                                                0,
                                                                                 debugDisplaySettings.IsDebugDisplayEnabled() ? 1 : 0];
 
                         if (options.outputSplitLighting)
@@ -2125,14 +2088,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else
                 {
                     // Only opaques can use FPTL, transparent must use clustered!
-                    bool useFptl = renderOpaque && usingFptl;
+                    bool useFptl = renderOpaque;
 
                     using (new ProfilingSample(cmd, useFptl ? "Forward Tiled pass" : "Forward Clustered pass", HDRenderPipeline.GetSampler(CustomSamplerId.TPForwardTiledClusterpass)))
                     {
                         // say that we want to use tile of single loop
                         cmd.EnableShaderKeyword("LIGHTLOOP_TILE_PASS");
                         cmd.DisableShaderKeyword("LIGHTLOOP_SINGLE_PASS");
-                        cmd.SetGlobalFloat(HDShaderIDs._UseTileLightList, useFptl ? 1 : 0);      // leaving this as a dynamic toggle for now for forward opaques to keep shader variants down.
                         cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, useFptl ? s_LightList : s_PerVoxelLightLists);
                     }
                 }
