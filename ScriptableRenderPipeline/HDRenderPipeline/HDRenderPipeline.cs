@@ -91,16 +91,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         static readonly string[] k_ForwardPassDebugName =
         {
-            "Forward Opaque Debug Display",
-            "Forward PreRefraction Debug Display",
-            "Forward Transparent Debug Display"
+            "Forward Opaque Debug",
+            "Forward PreRefraction Debug",
+            "Forward Transparent Debug"
         };
 
         static readonly string[] k_ForwardPassName =
         {
-            "Forward Opaque Display",
-            "Forward PreRefraction Display",
-            "Forward Transparent Display"
+            "Forward Opaque",
+            "Forward PreRefraction",
+            "Forward Transparent"
         };
 
         static readonly RenderQueueRange k_RenderQueue_PreRefraction = new RenderQueueRange { min = (int)HDRenderQueue.PreRefraction, max = (int)HDRenderQueue.Transparent - 1 };
@@ -353,7 +353,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_MaterialList.ForEach(material => material.Build(asset.renderPipelineResources));
 
-            m_LightLoop.Build(asset.renderPipelineResources, asset.tileSettings, asset.textureSettings, asset.shadowInitParams, m_ShadowSettings);
+            m_LightLoop.Build(asset.renderPipelineResources, asset.renderingSettings, asset.tileSettings, asset.textureSettings, asset.shadowInitParams, m_ShadowSettings);
 
             m_SkyManager.Build(asset.renderPipelineResources);
             m_SkyManager.skySettings = skySettingsToUse;
@@ -593,7 +593,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Currently, Unity does not offer a way to bind the stencil buffer as a texture in a compute shader.
             // Therefore, it's manually copied using a pixel shader.
-            return m_CurrentDebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission || LightLoop.GetFeatureVariantsEnabled(m_Asset.tileSettings);
+            return m_CurrentDebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission || m_LightLoop.GetFeatureVariantsEnabled();
         }
 
         bool NeedHTileCopy()

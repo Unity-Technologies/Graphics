@@ -241,6 +241,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public bool enableComputeLightEvaluation;
             public bool enableComputeLightVariants;
             public bool enableComputeMaterialVariants;
+            // Deferred opaque always use FPTL, forward opaque can use FPTL or cluster, transparent always use cluster
+            // When MSAA is enabled, we only support cluster (Fptl is too slow with MSAA), and we don't support MSAA for deferred path (mean it is ok to keep fptl)
+            public bool enableFptlForForwardOpaque;
 
             // clustered light list specific buffers and data begin
             public bool enableBigTilePrepass;
@@ -276,6 +279,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 enableComputeLightVariants = true;
                 enableComputeMaterialVariants = true;
 
+                enableFptlForForwardOpaque = true;
                 enableBigTilePrepass = true;
 
                 diffuseGlobalDimmer = 1.0f;
@@ -404,6 +408,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             static ComputeBuffer s_GlobalLightListAtomic = null;
             // clustered light list specific buffers and data end
 
+            bool m_isFptlEnabled;
+            bool m_isFptlEnabledForForwardOpaque;
+
             // Following is an array of material of size eight for all combination of keyword: OUTPUT_SPLIT_LIGHTING - LIGHTLOOP_TILE_PASS - SHADOWS_SHADOWMASK - USE_FPTL_LIGHTLIST/USE_CLUSTERED_LIGHTLIST - DEBUG_DISPLAY
             Material[] m_deferredLightingMaterial;
             Material m_DebugViewTilesMaterial;
@@ -456,9 +463,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return (camera.pixelHeight + (LightDefinitions.s_TileSizeClustered - 1)) / LightDefinitions.s_TileSizeClustered;
             }
 
-            public static bool GetFeatureVariantsEnabled(TileSettings tileSettings)
+            public bool GetFeatureVariantsEnabled()
             {
-                return tileSettings.enableComputeLightEvaluation && (tileSettings.enableComputeLightVariants || tileSettings.enableComputeMaterialVariants);
+                return m_isFptlEnabled && m_TileSettings.enableComputeLightEvaluation && (m_TileSettings.enableComputeLightVariants || m_TileSettings.enableComputeMaterialVariants);
             }
 
             TileSettings m_TileSettings = null;
@@ -472,8 +479,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return (outputSplitLighting) | (lightLoopTilePass << 1) | (shadowMask << 2) | (debugDisplay << 3);
             }
 
-            public void Build(RenderPipelineResources renderPipelineResources, TileSettings tileSettings, TextureSettings textureSettings, ShadowInitParameters shadowInit, ShadowSettings shadowSettings)
+            public void Build(  RenderPipelineResources renderPipelineResources,
+                                RenderingSettings renderingSettings,
+                                TileSettings tileSettings,
+                                TextureSettings textureSettings,
+                                ShadowInitParameters shadowInit, ShadowSettings shadowSettings)
             {
+                // Deferred opaque are always using Fptl. Forward opaque can use Fptl or Cluster, transparent use cluster.
+                // When MSAA is enabled we disable Fptl as it become expensive compare to cluster
+                // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
+
+                // If Deferred, enable Fptl. If we are forward renderer only and not using Fptl for forward opaque, disable Fptl
+                m_isFptlEnabled = !renderingSettings.ShouldUseForwardRenderingOnly() || tileSettings.enableFptlForForwardOpaque; // TODO: Disable if MSAA
+                m_isFptlEnabledForForwardOpaque = tileSettings.enableFptlForForwardOpaque; // TODO: Disable if MSAA
+
                 m_Resources = renderPipelineResources;
                 m_TileSettings = tileSettings;
 
@@ -494,8 +513,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
 
-                bool enableFeatureVariants = GetFeatureVariantsEnabled(m_TileSettings);
-                if (enableFeatureVariants)
+                if (GetFeatureVariantsEnabled())
                 {
                     s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(m_TileSettings.enableBigTilePrepass ? "TileLightListGen_SrcBigTile_FeatureFlags" : "TileLightListGen_FeatureFlags");
                 }
@@ -1706,9 +1724,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var numTilesX = GetNumTileFtplX(camera);
                 var numTilesY = GetNumTileFtplY(camera);
                 var numTiles = numTilesX * numTilesY;
-                bool enableFeatureVariants = GetFeatureVariantsEnabled(m_TileSettings);
+                bool enableFeatureVariants = GetFeatureVariantsEnabled();
 
                 // optimized for opaques only
+                if (m_isFptlEnabled)
                 {
                     cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
                     cmd.SetComputeIntParams(buildPerTileLightListShader, HDShaderIDs.g_viDimensions, w, h);
@@ -1749,9 +1768,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 // Cluster
-                {
-                    VoxelLightListGeneration(cmd, camera, projscr, invProjscr, cameraDepthBufferRT);
-                }
+                VoxelLightListGeneration(cmd, camera, projscr, invProjscr, cameraDepthBufferRT);
 
                 if (enableFeatureVariants)
                 {
@@ -1937,7 +1954,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         int numTilesY = (h + 15) / 16;
                         int numTiles = numTilesX * numTilesY;
 
-                        bool enableFeatureVariants = GetFeatureVariantsEnabled(m_TileSettings) && !debugDisplaySettings.IsDebugDisplayEnabled();
+                        bool enableFeatureVariants = GetFeatureVariantsEnabled() && !debugDisplaySettings.IsDebugDisplayEnabled();
 
                         int numVariants = 1;
                         if (enableFeatureVariants)
@@ -2043,13 +2060,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else
                 {
                     // Only opaques can use FPTL, transparent must use clustered!
-                    bool useFptl = renderOpaque;
+                    bool useFptl = renderOpaque && m_isFptlEnabledForForwardOpaque;
 
                     using (new ProfilingSample(cmd, useFptl ? "Forward Tiled pass" : "Forward Clustered pass", HDRenderPipeline.GetSampler(CustomSamplerId.TPForwardTiledClusterpass)))
                     {
                         // say that we want to use tile of single loop
                         cmd.EnableShaderKeyword("LIGHTLOOP_TILE_PASS");
                         cmd.DisableShaderKeyword("LIGHTLOOP_SINGLE_PASS");
+                        CoreUtils.SetKeyword(cmd, "USE_FPTL_LIGHTLIST", useFptl);
+                        CoreUtils.SetKeyword(cmd, "USE_CLUSTERED_LIGHTLIST", !useFptl);
                         cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, useFptl ? s_LightList : s_PerVoxelLightLists);
                     }
                 }
@@ -2082,7 +2101,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Debug tiles
                         if (lightingDebug.tileClusterDebug == TileSettings.TileClusterDebug.FeatureVariants)
                         {
-                            if (GetFeatureVariantsEnabled(m_TileSettings))
+                            if (GetFeatureVariantsEnabled())
                             {
                                 // featureVariants
                                 m_DebugViewTilesMaterial.SetInt(HDShaderIDs._NumTiles, numTiles);

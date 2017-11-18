@@ -16,6 +16,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedProperty m_enableComputeLightEvaluation;
         SerializedProperty m_enableComputeLightVariants;
         SerializedProperty m_enableComputeMaterialVariants;
+        SerializedProperty m_enableFptlForForwardOpaque;
         SerializedProperty m_enableBigTilePrepass;
 
         // Rendering Settings
@@ -45,6 +46,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_enableComputeLightEvaluation = properties.Find(x => x.tileSettings.enableComputeLightEvaluation);
             m_enableComputeLightVariants = properties.Find(x => x.tileSettings.enableComputeLightVariants);
             m_enableComputeMaterialVariants = properties.Find(x => x.tileSettings.enableComputeMaterialVariants);
+            m_enableFptlForForwardOpaque = properties.Find(x => x.tileSettings.enableFptlForForwardOpaque);
             m_enableBigTilePrepass = properties.Find(x => x.tileSettings.enableBigTilePrepass);
 
             // Shadow settings
@@ -86,6 +88,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_enableBigTilePrepass, s_Styles.enableBigTilePrepass);
+
+                // Allow to disable cluster for foward opaque when in forward only (option have no effect when MSAA is enabled)
+                // Deferred opaque are always tiled
+                EditorGUILayout.PropertyField(m_enableFptlForForwardOpaque, s_Styles.enableFptlForForwardOpaque);
 
                 EditorGUILayout.PropertyField(m_enableComputeLightEvaluation, s_Styles.enableComputeLightEvaluation);
                 if (m_enableComputeLightEvaluation.boolValue)
