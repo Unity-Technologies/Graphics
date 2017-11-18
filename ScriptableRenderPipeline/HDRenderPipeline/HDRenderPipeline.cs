@@ -385,7 +385,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Tile/Cluster", () => m_Asset.tileSettings.enableTileAndCluster, (value) => m_Asset.tileSettings.enableTileAndCluster = (bool)value, DebugItemFlag.RuntimeOnly);
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Big Tile", () => m_Asset.tileSettings.enableBigTilePrepass, (value) => m_Asset.tileSettings.enableBigTilePrepass = (bool)value, DebugItemFlag.RuntimeOnly);
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Cluster", () => m_Asset.tileSettings.enableClustered, (value) => m_Asset.tileSettings.enableClustered = (bool)value, DebugItemFlag.RuntimeOnly);
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Compute Lighting", () => m_Asset.tileSettings.enableComputeLightEvaluation, (value) => m_Asset.tileSettings.enableComputeLightEvaluation = (bool)value, DebugItemFlag.RuntimeOnly);
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Light Classification", () => m_Asset.tileSettings.enableComputeLightVariants, (value) => m_Asset.tileSettings.enableComputeLightVariants = (bool)value, DebugItemFlag.RuntimeOnly);
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Material Classification", () => m_Asset.tileSettings.enableComputeMaterialVariants, (value) => m_Asset.tileSettings.enableComputeMaterialVariants = (bool)value, DebugItemFlag.RuntimeOnly);
@@ -879,7 +878,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 RenderForward(m_CullResults, camera, renderContext, cmd, ForwardPass.Opaque);
                 RenderForwardError(m_CullResults, camera, renderContext, cmd, ForwardPass.Opaque);
 
-                RenderLightingDebug(hdCamera, cmd, m_CameraColorBufferRT, m_CurrentDebugDisplaySettings);
+                RenderLightingDebug(hdCamera, cmd, m_CameraColorBufferRT, m_CurrentDebugDisplaySettings, true);
 
                 RenderSky(hdCamera, cmd);
 
@@ -1345,9 +1344,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_SkyManager.ExportSkyToTexture();
         }
 
-        void RenderLightingDebug(HDCamera camera, CommandBuffer cmd, RenderTargetIdentifier colorBuffer, DebugDisplaySettings debugDisplaySettings)
+        void RenderLightingDebug(HDCamera camera, CommandBuffer cmd, RenderTargetIdentifier colorBuffer, DebugDisplaySettings debugDisplaySettings, bool renderOpaque)
         {
-            m_LightLoop.RenderLightingDebug(camera, cmd, colorBuffer, debugDisplaySettings);
+            m_LightLoop.RenderLightingDebug(camera, cmd, colorBuffer, debugDisplaySettings, renderOpaque);
         }
 
         // Render forward is use for both transparent and opaque objects. In case of deferred we can still render opaque object in forward.
