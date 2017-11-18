@@ -877,7 +877,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 RenderForward(m_CullResults, camera, renderContext, cmd, ForwardPass.Opaque);
                 RenderForwardError(m_CullResults, camera, renderContext, cmd, ForwardPass.Opaque);
-                RenderLightingDebug(hdCamera, cmd, m_CameraColorBufferRT, m_CurrentDebugDisplaySettings, true);
 
                 RenderSky(hdCamera, cmd);
 
@@ -893,7 +892,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                 RenderForward(m_CullResults, camera, renderContext, cmd, ForwardPass.Transparent);
                 RenderForwardError(m_CullResults, camera, renderContext, cmd, ForwardPass.Transparent);
-                RenderLightingDebug(hdCamera, cmd, m_CameraColorBufferRT, m_CurrentDebugDisplaySettings, false);
 
                 PushFullScreenDebugTexture(cmd, m_CameraColorBuffer, camera, renderContext, FullScreenDebugMode.NanTracker);
 
@@ -923,8 +921,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            if (camera.cameraType != CameraType.Reflection)
-                RenderDebug(hdCamera, cmd);                          
+            RenderDebug(hdCamera, cmd);                
 
 #if UNITY_EDITOR
             // bind depth surface for editor grid/gizmo/selection rendering
@@ -1345,11 +1342,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_SkyManager.ExportSkyToTexture();
         }
 
-        void RenderLightingDebug(HDCamera camera, CommandBuffer cmd, RenderTargetIdentifier colorBuffer, DebugDisplaySettings debugDisplaySettings, bool renderOpaque)
-        {
-            m_LightLoop.RenderLightingDebug(camera, cmd, colorBuffer, debugDisplaySettings, renderOpaque);
-        }
-
         // Render forward is use for both transparent and opaque objects. In case of deferred we can still render opaque object in forward.
         void RenderForward(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, ForwardPass pass)
         {
@@ -1676,7 +1668,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, camera.camera.pixelWidth);
                 }
 
-                m_LightLoop.RenderDebugOverlay(camera.camera, cmd, m_CurrentDebugDisplaySettings, ref x, ref y, overlaySize, camera.camera.pixelWidth);
+                m_LightLoop.RenderDebugOverlay(camera, cmd, m_CurrentDebugDisplaySettings, ref x, ref y, overlaySize, camera.camera.pixelWidth);
             }
         }
 
