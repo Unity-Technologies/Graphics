@@ -877,7 +877,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 RenderForward(m_CullResults, camera, renderContext, cmd, ForwardPass.Opaque);
                 RenderForwardError(m_CullResults, camera, renderContext, cmd, ForwardPass.Opaque);
-
                 RenderLightingDebug(hdCamera, cmd, m_CameraColorBufferRT, m_CurrentDebugDisplaySettings, true);
 
                 RenderSky(hdCamera, cmd);
@@ -894,6 +893,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                 RenderForward(m_CullResults, camera, renderContext, cmd, ForwardPass.Transparent);
                 RenderForwardError(m_CullResults, camera, renderContext, cmd, ForwardPass.Transparent);
+                RenderLightingDebug(hdCamera, cmd, m_CameraColorBufferRT, m_CurrentDebugDisplaySettings, false);
 
                 PushFullScreenDebugTexture(cmd, m_CameraColorBuffer, camera, renderContext, FullScreenDebugMode.NanTracker);
 
@@ -923,7 +923,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            RenderDebug(hdCamera, cmd);
+            if (camera.cameraType != CameraType.Reflection)
+                RenderDebug(hdCamera, cmd);                          
 
 #if UNITY_EDITOR
             // bind depth surface for editor grid/gizmo/selection rendering
