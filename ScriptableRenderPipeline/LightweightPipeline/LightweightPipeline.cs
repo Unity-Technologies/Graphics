@@ -194,15 +194,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Shader.globalRenderPipeline = "LightweightPipeline";
 
             m_BlitQuad = LightweightUtils.CreateQuadMesh(false);
-            m_BlitMaterial = new Material(m_Asset.BlitShader)
-            {
-                hideFlags = HideFlags.HideAndDontSave
-            };
-
-            m_CopyDepthMaterial = new Material(m_Asset.CopyDepthShader)
-            {
-                hideFlags = HideFlags.HideAndDontSave
-            };
+            m_BlitMaterial = CoreUtils.CreateEngineMaterial(m_Asset.BlitShader);
+            m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(m_Asset.CopyDepthShader);
         }
 
         public override void Dispose()
@@ -310,7 +303,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void DepthPass(ref ScriptableRenderContext context)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Depth Prepass");
-            cmd.SetRenderTarget(m_DepthRT);
+            SetRenderTarget(cmd, m_DepthRT);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
@@ -352,7 +345,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             };
 
             context.DrawRenderers(m_CullResults.visibleRenderers, ref opaqueDrawSettings, opaqueFilterSettings);
-            context.DrawSkybox(m_CurrCamera);
+
+            if (m_CurrCamera.clearFlags == CameraClearFlags.Skybox)
+                context.DrawSkybox(m_CurrCamera);
         }
 
         private void AfterOpaque(ref ScriptableRenderContext context, FrameRenderingConfiguration config)
@@ -378,7 +373,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 RenderTargetIdentifier colorRT = (m_IsOffscreenCamera) ? BuiltinRenderTextureType.CameraTarget : m_ColorRT;
                 CopyTexture(cmd, m_DepthRT, m_CopyDepth, m_CopyDepthMaterial);
-                SetupRenderTargets(cmd, colorRT, m_CopyDepth);
+                SetRenderTarget(cmd, colorRT, m_CopyDepth);
             }
 
             context.ExecuteCommandBuffer(cmd);
@@ -855,18 +850,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void SetShaderKeywords(CommandBuffer cmd, ref LightData lightData, VisibleLight[] visibleLights)
         {
             int vertexLightsCount = lightData.totalAdditionalLightsCount - lightData.pixelAdditionalLightsCount;
-            LightweightUtils.SetKeyword(cmd, "_VERTEX_LIGHTS", vertexLightsCount > 0);
+            CoreUtils.SetKeyword(cmd, "_VERTEX_LIGHTS", vertexLightsCount > 0);
 
             int mainLightIndex = lightData.mainLightIndex;
 
             // Currently only directional light cookie is supported
-            LightweightUtils.SetKeyword(cmd, "_MAIN_LIGHT_COOKIE", mainLightIndex != -1 && LightweightUtils.IsSupportedCookieType(visibleLights[mainLightIndex].lightType) && visibleLights[mainLightIndex].light.cookie != null);
-            LightweightUtils.SetKeyword (cmd, "_MAIN_DIRECTIONAL_LIGHT", mainLightIndex == -1 || visibleLights[mainLightIndex].lightType == LightType.Directional);
-            LightweightUtils.SetKeyword (cmd, "_MAIN_SPOT_LIGHT", mainLightIndex != -1 && visibleLights[mainLightIndex].lightType == LightType.Spot);
-            LightweightUtils.SetKeyword (cmd, "_MAIN_POINT_LIGHT", mainLightIndex != -1 && visibleLights[mainLightIndex].lightType == LightType.Point);
-            LightweightUtils.SetKeyword(cmd, "_ADDITIONAL_LIGHTS", lightData.totalAdditionalLightsCount > 0);
-            LightweightUtils.SetKeyword(cmd, "_MIXED_LIGHTING_SHADOWMASK", m_MixedLightingSetup == MixedLightingSetup.ShadowMask);
-            LightweightUtils.SetKeyword(cmd, "_MIXED_LIGHTING_SUBTRACTIVE", m_MixedLightingSetup == MixedLightingSetup.Subtractive);
+            CoreUtils.SetKeyword(cmd, "_MAIN_LIGHT_COOKIE", mainLightIndex != -1 && LightweightUtils.IsSupportedCookieType(visibleLights[mainLightIndex].lightType) && visibleLights[mainLightIndex].light.cookie != null);
+            CoreUtils.SetKeyword (cmd, "_MAIN_DIRECTIONAL_LIGHT", mainLightIndex == -1 || visibleLights[mainLightIndex].lightType == LightType.Directional);
+            CoreUtils.SetKeyword (cmd, "_MAIN_SPOT_LIGHT", mainLightIndex != -1 && visibleLights[mainLightIndex].lightType == LightType.Spot);
+            CoreUtils.SetKeyword (cmd, "_MAIN_POINT_LIGHT", mainLightIndex != -1 && visibleLights[mainLightIndex].lightType == LightType.Point);
+            CoreUtils.SetKeyword(cmd, "_ADDITIONAL_LIGHTS", lightData.totalAdditionalLightsCount > 0);
+            CoreUtils.SetKeyword(cmd, "_MIXED_LIGHTING_SHADOWMASK", m_MixedLightingSetup == MixedLightingSetup.ShadowMask);
+            CoreUtils.SetKeyword(cmd, "_MIXED_LIGHTING_SUBTRACTIVE", m_MixedLightingSetup == MixedLightingSetup.Subtractive);
 
             string[] shadowKeywords = new string[] { "_HARD_SHADOWS", "_SOFT_SHADOWS", "_HARD_SHADOWS_CASCADES", "_SOFT_SHADOWS_CASCADES" };
             for (int i = 0; i < shadowKeywords.Length; ++i)
@@ -880,7 +875,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cmd.EnableShaderKeyword(shadowKeywords[keywordIndex]);
             }
 
-            LightweightUtils.SetKeyword(cmd, "SOFTPARTICLES_ON", m_Asset.SupportsSoftParticles);
+            CoreUtils.SetKeyword(cmd, "SOFTPARTICLES_ON", m_Asset.SupportsSoftParticles);
         }
 
         private bool RenderShadows(ref CullResults cullResults, ref VisibleLight shadowLight, int shadowLightIndex, ref ScriptableRenderContext context)
@@ -896,14 +891,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (!cullResults.GetShadowCasterBounds(shadowLightIndex, out bounds))
                 return false;
 
-            var setRenderTargetCommandBuffer = CommandBufferPool.Get();
-            setRenderTargetCommandBuffer.name = "Render packed shadows";
-            setRenderTargetCommandBuffer.GetTemporaryRT(m_ShadowMapRTID, m_ShadowSettings.shadowAtlasWidth,
+            var cmd = CommandBufferPool.Get();
+            cmd.name = "Render packed shadows";
+            cmd.GetTemporaryRT(m_ShadowMapRTID, m_ShadowSettings.shadowAtlasWidth,
                 m_ShadowSettings.shadowAtlasHeight, kShadowDepthBufferBits, FilterMode.Bilinear, RenderTextureFormat.Depth);
-            setRenderTargetCommandBuffer.SetRenderTarget(m_ShadowMapRT);
-            setRenderTargetCommandBuffer.ClearRenderTarget(true, true, Color.black);
-            context.ExecuteCommandBuffer(setRenderTargetCommandBuffer);
-            CommandBufferPool.Release(setRenderTargetCommandBuffer);
+            SetRenderTarget(cmd, m_ShadowMapRT, ClearFlag.All);
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
 
             float shadowNearPlane = m_Asset.ShadowNearOffset;
             Vector3 splitRatio = m_ShadowSettings.directionalLightCascades;
@@ -1034,15 +1028,23 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     depthRT = m_DepthRT;
             }
 
-            SetupRenderTargets(cmd, colorRT, depthRT);
 
-            // Clear RenderTarget to avoid tile initialization on mobile GPUs
-            // https://community.arm.com/graphics/b/blog/posts/mali-performance-2-how-to-correctly-handle-framebuffers
-            if (m_CurrCamera.clearFlags != CameraClearFlags.Nothing)
+            if (ForceClear()) 
             {
-                bool clearDepth = (m_CurrCamera.clearFlags != CameraClearFlags.Nothing);
-                bool clearColor = (m_CurrCamera.clearFlags == CameraClearFlags.Color || m_CurrCamera.clearFlags == CameraClearFlags.Skybox);
-                cmd.ClearRenderTarget(clearDepth, clearColor, m_CurrCamera.backgroundColor.linear);
+                SetRenderTarget(cmd, colorRT, depthRT, ClearFlag.All);
+            } 
+            else
+            {
+                ClearFlag clearFlag = ClearFlag.None;
+                CameraClearFlags cameraClearFlags = m_CurrCamera.clearFlags;
+                if (cameraClearFlags != CameraClearFlags.Nothing)
+                {
+                    clearFlag |= ClearFlag.Depth;
+                    if (cameraClearFlags == CameraClearFlags.Color || cameraClearFlags == CameraClearFlags.Skybox)
+                        clearFlag |= ClearFlag.Color;
+                }
+
+                SetRenderTarget (cmd, colorRT, depthRT, clearFlag);
             }
 
             context.ExecuteCommandBuffer(cmd);
@@ -1058,7 +1060,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             var cmd = CommandBufferPool.Get("Blit");
             if (m_IntermediateTextureArray)
             {
-                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
+                SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget);
                 cmd.Blit(m_CurrCameraColorRT, BuiltinRenderTextureType.CurrentActive);
             }
             else if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture))
@@ -1068,7 +1070,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     Blit(cmd, renderingConfig, BuiltinRenderTextureType.CurrentActive, BuiltinRenderTextureType.CameraTarget);
             }
 
-            SetupRenderTargets(cmd, BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.None);
+            SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -1088,13 +1090,22 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return settings;
         }
 
-        private void SetupRenderTargets(CommandBuffer cmd, RenderTargetIdentifier colorRT, RenderTargetIdentifier depthRT)
+        private void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorRT, ClearFlag clearFlag = ClearFlag.None)
         {
             int depthSlice = (m_IntermediateTextureArray) ? -1 : 0;
-            if (depthRT != BuiltinRenderTextureType.None)
-                cmd.SetRenderTarget(colorRT, depthRT, 0, CubemapFace.Unknown, depthSlice);
-            else
-                cmd.SetRenderTarget(colorRT, 0, CubemapFace.Unknown, depthSlice);
+            CoreUtils.SetRenderTarget(cmd, colorRT, clearFlag, m_CurrCamera.backgroundColor.linear, 0, CubemapFace.Unknown, depthSlice);
+        }
+
+        private void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorRT, RenderTargetIdentifier depthRT, ClearFlag clearFlag = ClearFlag.None)
+        {
+            if (depthRT == BuiltinRenderTextureType.None) 
+            {
+                SetRenderTarget (cmd, colorRT, clearFlag);
+                return;
+            }
+
+            int depthSlice = (m_IntermediateTextureArray) ? -1 : 0;
+            CoreUtils.SetRenderTarget(cmd, colorRT, depthRT, clearFlag, m_CurrCamera.backgroundColor.linear, 0, CubemapFace.Unknown, depthSlice);
         }
 
         private void RenderPostProcess(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier dest, bool opaqueOnly)
@@ -1121,6 +1132,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return (index < m_SortedLightIndexMap.Count) ? m_SortedLightIndexMap[index] : index;
         }
 
+        private bool ForceClear()
+        {
+            // Clear RenderTarget to avoid tile initialization on mobile GPUs
+            // https://community.arm.com/graphics/b/blog/posts/mali-performance-2-how-to-correctly-handle-framebuffers
+            return (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer);
+        }
+
         private void Blit(CommandBuffer cmd, FrameRenderingConfiguration renderingConfig, RenderTargetIdentifier sourceRT, RenderTargetIdentifier destRT, Material material = null)
         {
             if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.DefaultViewport))
@@ -1133,7 +1151,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     m_BlitQuad = LightweightUtils.CreateQuadMesh(false);
 
                 cmd.SetGlobalTexture(m_BlitTexID, sourceRT);
-                cmd.SetRenderTarget(destRT);
+                SetRenderTarget(cmd, destRT);
                 cmd.SetViewport(m_CurrCamera.pixelRect);
                 cmd.DrawMesh(m_BlitQuad, Matrix4x4.identity, m_BlitMaterial);
             }
