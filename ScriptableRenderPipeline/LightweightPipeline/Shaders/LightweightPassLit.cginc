@@ -81,7 +81,7 @@ half3 Normal(float2 uv)
 #endif
 }
 
-half SpecularGloss(half2 uv, half alpha)
+half4 SpecularGloss(half2 uv, half alpha)
 {
     half4 specularGloss = half4(0, 0, 0, 1);
 #ifdef _SPECGLOSSMAP
