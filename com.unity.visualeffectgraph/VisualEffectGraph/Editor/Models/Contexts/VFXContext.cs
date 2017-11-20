@@ -199,7 +199,6 @@ namespace UnityEditor.VFX
         {
             for (int slot = 0; slot < m_OutputFlowSlot.Length; slot++)
             {
-                var slotsList = m_OutputFlowSlot[slot].link;
                 while (m_OutputFlowSlot[slot].link.Count > 0)
                 {
                     var clean = m_OutputFlowSlot[slot].link.Last();
@@ -209,7 +208,6 @@ namespace UnityEditor.VFX
 
             for (int slot = 0; slot < m_InputFlowSlot.Length; slot++)
             {
-                var slotsList = m_InputFlowSlot[slot].link;
                 while (m_InputFlowSlot[slot].link.Count > 0)
                 {
                     var clean = m_InputFlowSlot[slot].link.Last();

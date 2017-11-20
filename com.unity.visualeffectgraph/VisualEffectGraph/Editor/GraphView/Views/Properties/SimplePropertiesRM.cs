@@ -260,7 +260,7 @@ namespace UnityEditor.VFX.UI
 
         public override float GetPreferredControlWidth()
         {
-            return 100;
+            return 140;
         }
 
         public static Func<string[]> FindStringProvider(object[] customAttributes)
