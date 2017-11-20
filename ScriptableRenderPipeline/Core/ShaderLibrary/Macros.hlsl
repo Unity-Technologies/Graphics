@@ -21,7 +21,13 @@
 #define SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(textureName, samplerName, coord3, index, lod) SAMPLE_TEXTURECUBE_ARRAY_LOD(textureName, samplerName, coord3, index, lod)
 #endif
 
-#define TEMPLATE_1(FunctionName, Parameter1, FunctionBody) \
+#define TEMPLATE_1_FLT(FunctionName, Parameter1, FunctionBody) \
+float  FunctionName(float  Parameter1) { FunctionBody; } \
+float2 FunctionName(float2 Parameter1) { FunctionBody; } \
+float3 FunctionName(float3 Parameter1) { FunctionBody; } \
+float4 FunctionName(float4 Parameter1) { FunctionBody; }
+
+#define TEMPLATE_1_INT(FunctionName, Parameter1, FunctionBody) \
 int    FunctionName(int    Parameter1) { FunctionBody; } \
 int2   FunctionName(int2   Parameter1) { FunctionBody; } \
 int3   FunctionName(int3   Parameter1) { FunctionBody; } \
@@ -29,17 +35,15 @@ int4   FunctionName(int4   Parameter1) { FunctionBody; } \
 uint   FunctionName(uint   Parameter1) { FunctionBody; } \
 uint2  FunctionName(uint2  Parameter1) { FunctionBody; } \
 uint3  FunctionName(uint3  Parameter1) { FunctionBody; } \
-uint4  FunctionName(uint4  Parameter1) { FunctionBody; } \
-float  FunctionName(float  Parameter1) { FunctionBody; } \
-float2 FunctionName(float2 Parameter1) { FunctionBody; } \
-float3 FunctionName(float3 Parameter1) { FunctionBody; } \
-float4 FunctionName(float4 Parameter1) { FunctionBody; } \
-bool   FunctionName(bool   Parameter1) { FunctionBody; } \
-bool2  FunctionName(bool2  Parameter1) { FunctionBody; } \
-bool3  FunctionName(bool3  Parameter1) { FunctionBody; } \
-bool4  FunctionName(bool4  Parameter1) { FunctionBody; }
+uint4  FunctionName(uint4  Parameter1) { FunctionBody; }
 
-#define TEMPLATE_2(FunctionName, Parameter1, Parameter2, FunctionBody) \
+#define TEMPLATE_2_FLT(FunctionName, Parameter1, Parameter2, FunctionBody) \
+float  FunctionName(float  Parameter1, float  Parameter2) { FunctionBody; } \
+float2 FunctionName(float2 Parameter1, float2 Parameter2) { FunctionBody; } \
+float3 FunctionName(float3 Parameter1, float3 Parameter2) { FunctionBody; } \
+float4 FunctionName(float4 Parameter1, float4 Parameter2) { FunctionBody; }
+
+#define TEMPLATE_2_INT(FunctionName, Parameter1, Parameter2, FunctionBody) \
 int    FunctionName(int    Parameter1, int    Parameter2) { FunctionBody; } \
 int2   FunctionName(int2   Parameter1, int2   Parameter2) { FunctionBody; } \
 int3   FunctionName(int3   Parameter1, int3   Parameter2) { FunctionBody; } \
@@ -47,17 +51,15 @@ int4   FunctionName(int4   Parameter1, int4   Parameter2) { FunctionBody; } \
 uint   FunctionName(uint   Parameter1, uint   Parameter2) { FunctionBody; } \
 uint2  FunctionName(uint2  Parameter1, uint2  Parameter2) { FunctionBody; } \
 uint3  FunctionName(uint3  Parameter1, uint3  Parameter2) { FunctionBody; } \
-uint4  FunctionName(uint4  Parameter1, uint4  Parameter2) { FunctionBody; } \
-float  FunctionName(float  Parameter1, float  Parameter2) { FunctionBody; } \
-float2 FunctionName(float2 Parameter1, float2 Parameter2) { FunctionBody; } \
-float3 FunctionName(float3 Parameter1, float3 Parameter2) { FunctionBody; } \
-float4 FunctionName(float4 Parameter1, float4 Parameter2) { FunctionBody; } \
-bool   FunctionName(bool   Parameter1, bool   Parameter2) { FunctionBody; } \
-bool2  FunctionName(bool2  Parameter1, bool2  Parameter2) { FunctionBody; } \
-bool3  FunctionName(bool3  Parameter1, bool3  Parameter2) { FunctionBody; } \
-bool4  FunctionName(bool4  Parameter1, bool4  Parameter2) { FunctionBody; }
+uint4  FunctionName(uint4  Parameter1, uint4  Parameter2) { FunctionBody; }
 
-#define TEMPLATE_3(FunctionName, Parameter1, Parameter2, Parameter3, FunctionBody) \
+#define TEMPLATE_3_FLT(FunctionName, Parameter1, Parameter2, Parameter3, FunctionBody) \
+float  FunctionName(float  Parameter1, float  Parameter2, float  Parameter3) { FunctionBody; } \
+float2 FunctionName(float2 Parameter1, float2 Parameter2, float2 Parameter3) { FunctionBody; } \
+float3 FunctionName(float3 Parameter1, float3 Parameter2, float3 Parameter3) { FunctionBody; } \
+float4 FunctionName(float4 Parameter1, float4 Parameter2, float4 Parameter3) { FunctionBody; }
+
+#define TEMPLATE_3_INT(FunctionName, Parameter1, Parameter2, Parameter3, FunctionBody) \
 int    FunctionName(int    Parameter1, int    Parameter2, int    Parameter3) { FunctionBody; } \
 int2   FunctionName(int2   Parameter1, int2   Parameter2, int2   Parameter3) { FunctionBody; } \
 int3   FunctionName(int3   Parameter1, int3   Parameter2, int3   Parameter3) { FunctionBody; } \
@@ -65,14 +67,6 @@ int4   FunctionName(int4   Parameter1, int4   Parameter2, int4   Parameter3) { F
 uint   FunctionName(uint   Parameter1, uint   Parameter2, uint   Parameter3) { FunctionBody; } \
 uint2  FunctionName(uint2  Parameter1, uint2  Parameter2, uint2  Parameter3) { FunctionBody; } \
 uint3  FunctionName(uint3  Parameter1, uint3  Parameter2, uint3  Parameter3) { FunctionBody; } \
-uint4  FunctionName(uint4  Parameter1, uint4  Parameter2, uint4  Parameter3) { FunctionBody; } \
-float  FunctionName(float  Parameter1, float  Parameter2, float  Parameter3) { FunctionBody; } \
-float2 FunctionName(float2 Parameter1, float2 Parameter2, float2 Parameter3) { FunctionBody; } \
-float3 FunctionName(float3 Parameter1, float3 Parameter2, float3 Parameter3) { FunctionBody; } \
-float4 FunctionName(float4 Parameter1, float4 Parameter2, float4 Parameter3) { FunctionBody; } \
-bool   FunctionName(bool   Parameter1, bool   Parameter2, bool   Parameter3) { FunctionBody; } \
-bool2  FunctionName(bool2  Parameter1, bool2  Parameter2, bool2  Parameter3) { FunctionBody; } \
-bool3  FunctionName(bool3  Parameter1, bool3  Parameter2, bool3  Parameter3) { FunctionBody; } \
-bool4  FunctionName(bool4  Parameter1, bool4  Parameter2, bool4  Parameter3) { FunctionBody; }
+uint4  FunctionName(uint4  Parameter1, uint4  Parameter2, uint4  Parameter3) { FunctionBody; }
 
 #endif // UNITY_MACROS_INCLUDED
