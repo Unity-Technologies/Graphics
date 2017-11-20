@@ -31,6 +31,7 @@ namespace UnityEditor.Graphing
         public bool isDirty
         {
             get { return m_IsDirty; }
+            set { m_IsDirty = value; }
         }
 
         public void RegisterCompleteObjectUndo(string name)
