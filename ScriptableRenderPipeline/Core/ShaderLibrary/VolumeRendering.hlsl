@@ -92,31 +92,35 @@ void ImportanceSampleHomogeneousMedium(float rndVal, float extinction, float int
 }
 
 // Implements equiangular light sampling.
-// Returns the distance from 0 and the reciprocal of the PDF.
+// Returns the distance from the origin of the ray, the squared (radial) distance from the light,
+// and the reciprocal of the PDF.
 // Ref: Importance Sampling of Area Lights in Participating Medium.
 void ImportanceSamplePunctualLight(float rndVal, float3 lightPosition,
                                    float3 rayOrigin, float3 rayDirection,
                                    float tMin, float tMax,
-                                   out float dist, out float rcpPdf)
+                                   out float dist, out float rSq, out float rcpPdf)
 {
     float3 originToLight       = lightPosition - rayOrigin;
     float  originToLightProj   = dot(originToLight, rayDirection);
     float  originToLightDistSq = dot(originToLight, originToLight);
     float  rayToLightDistSq    = max(originToLightDistSq - originToLightProj * originToLightProj, FLT_SMALL);
-    float  rayToLightDist      = sqrt(rayToLightDistSq);
 
-    float a = tMin - originToLightProj;
-    float b = tMax - originToLightProj;
-    float d = rayToLightDist;
+    float a    = tMin - originToLightProj;
+    float b    = tMax - originToLightProj;
+    float dSq  = rayToLightDistSq;
+    float d    = sqrt(dSq);
+    float dInv = rsqrt(dSq);
 
     // TODO: optimize me. :-(
-    float theta0 = atan(a / d);
-    float theta1 = atan(b / d);
+    float theta0 = FastATan(a * dInv);
+    float theta1 = FastATan(b * dInv);
+    float gamma  = theta1 - theta0;
     float theta  = lerp(theta0, theta1, rndVal);
     float t      = d * tan(theta);
 
     dist   = originToLightProj + t;
-    rcpPdf = (theta1 - theta0) * (d + t * tan(theta));
+    rSq    = dSq + t * t;
+    rcpPdf = gamma * rSq * dInv;
 }
 
 // Absorption coefficient from Disney: http://blog.selfshadow.com/publications/s2015-shading-course/burley/s2015_pbs_disney_bsdf_notes.pdf
