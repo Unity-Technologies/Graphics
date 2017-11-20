@@ -1,5 +1,7 @@
 #include "UnityCG.cginc"
 
+UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+
 float4 VFXTransformPositionWorldToClip(float3 posWS)
 {
     return UnityWorldToClipPos(posWS);
@@ -28,6 +30,16 @@ float3x3 VFXGetWorldToViewRotMatrix()
 float3 VFXGetViewWorldPosition()
 {
     // Not using _WorldSpaceCameraPos as it's not what expected for the shadow pass
-    // (It remains primary camera pos not transposed inverse view position)
+    // (It remains primary camera position not view position)
     return UNITY_MATRIX_I_V._m03_m13_m23;
+}
+
+float4 VFXGetPOSSS(float4 posCS)
+{
+    return ComputeScreenPos(posCS);
+}
+
+float VFXLinearEyeDepth(float4 posSS)
+{
+    return LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(posSS)));
 }

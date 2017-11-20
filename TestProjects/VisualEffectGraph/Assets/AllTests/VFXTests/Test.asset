@@ -5936,7 +5936,7 @@ VFXAsset:
         nameId: uniform_e
       - index: 57
         nameId: uniform_Lifetime_e
-      processor: {fileID: 7200000, guid: e7781abb1efef3b429adc58d0d41d1de, type: 3}
+      processor: {fileID: 7200000, guid: e17bb5f2871d46942a6b596187ab7e46, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5946,7 +5946,7 @@ VFXAsset:
       values:
       - index: 66
         nameId: uniform_deltaTime_b
-      processor: {fileID: 7200000, guid: c7790c853e9015148ac5b28b23c7bbfb, type: 3}
+      processor: {fileID: 7200000, guid: adcba99bfb60ef24fb50b14b7363543f, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -5976,7 +5976,7 @@ VFXAsset:
         nameId: uniform_alphaThreshold
       - index: 60
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: 4bc644bca53d36a4abd975d075a812a9, type: 3}
+      processor: {fileID: 4800000, guid: ec0ebec7c77d7614d9cf533935a7ada4, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -6006,7 +6006,7 @@ VFXAsset:
         nameId: uniform_alphaThreshold
       - index: 60
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: 6dfe1c8e24651e7448e7c0e3a876aec2, type: 3}
+      processor: {fileID: 4800000, guid: fde97ad691d313543a48cfa3772cece2, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000
