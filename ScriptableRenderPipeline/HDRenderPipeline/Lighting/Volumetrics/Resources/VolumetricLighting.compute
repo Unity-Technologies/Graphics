@@ -62,8 +62,7 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
     uint   featureFlags = 0xFFFFFFFF;       // TODO
     float4 depthParams  = _VBufferDepthEncodingParams;
 
-    float z0 = depthParams.x;               // View space Z coordinate of the near plane
-    float t0 = z0 * ray.ratioLenToZ;        // Distance to the near plane
+    float z0 = 0, t0 = 0;                   // Start at the origin of the ray
     float de = rcp(VBUFFER_SLICE_COUNT);    // Log-encoded distance between slices
 
     float3 totalRadiance = 0;
@@ -73,9 +72,10 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
 
 #ifdef LIGHTLOOP_TILE_PASS
     // Our voxel is not necessarily completely inside a single light cluster.
+    // Note that Z-binning can solve this problem, as we can iterate over all Z-bins
+    // to compute min/max light indices, and then use this range for the entire slice.
     uint  clusterIndices[2];
     float clusterDepths[2];
-    // TODO: the clustered code could be made faster & simpler.
     clusterIndices[0] = GetLightClusterIndex(tileCoord, z0);
     clusterDepths[0]  = GetLightClusterMinDepthVS(tileCoord, clusterIndices[0]);
 #endif // LIGHTLOOP_TILE_PASS
@@ -145,7 +145,6 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
         }
 
     #ifdef LIGHTLOOP_TILE_PASS
-        // TODO: the clustered code could be made faster & simpler.
         clusterIndices[1] = GetLightClusterIndex(tileCoord, z1);
         clusterDepths[1]  = GetLightClusterMinDepthVS(tileCoord, clusterIndices[1]);
 
