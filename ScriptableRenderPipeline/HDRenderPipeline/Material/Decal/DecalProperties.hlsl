@@ -1,0 +1,8 @@
+﻿#ifndef UNITY_DECALPROPERTIES_INCLUDED
+#define UNITY_DECALPROPERTIES_INCLUDED
+
+
+TEXTURE2D(_BaseColorMap);
+SAMPLER2D(sampler_BaseColorMap);
+
+#endif 

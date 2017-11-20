@@ -315,6 +315,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_GbufferManager.SetBufferDescription(gbufferIndex, "_GBufferTexture" + gbufferIndex, rtFormat[gbufferIndex], rtReadWrite[gbufferIndex]);
             }
 
+			m_DbufferManager.gbufferCount = 1;
             m_DbufferManager.SetBufferDescription(0, "_DBufferTexture0", RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
 
             m_VelocityBuffer = HDShaderIDs._VelocityTexture;
@@ -769,6 +770,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, "Decals"))
             {
+				CoreUtils.SetRenderTarget(cmd, m_DbufferManager.GetGBuffers(), m_CameraDepthStencilBufferRT);
                 DecalSystem.instance.Render(renderContext, camera, cmd);
             }
 
