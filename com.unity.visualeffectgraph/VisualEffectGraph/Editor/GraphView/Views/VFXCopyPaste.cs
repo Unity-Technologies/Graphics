@@ -56,7 +56,7 @@ namespace UnityEditor.VFX.UI
         public static object CreateCopy(IEnumerable<GraphElementPresenter> elements)
         {
             IEnumerable<VFXContextPresenter> contexts = elements.OfType<VFXContextPresenter>().ToArray();
-            IEnumerable<VFXSlotContainerPresenter> slotContainers = elements.OfType<VFXSlotContainerPresenter>().ToArray();
+            IEnumerable<VFXSlotContainerPresenter> slotContainers = elements.Where(t => t is VFXOperatorPresenter || t is VFXParameterPresenter).Cast<VFXSlotContainerPresenter>().ToArray();
 
             IEnumerable<VFXSlotContainerPresenter> dataEdgeTargets = slotContainers.Concat(contexts.Select(t => t.slotPresenter as VFXSlotContainerPresenter)).Concat(contexts.SelectMany(t => t.blockPresenters).Cast<VFXSlotContainerPresenter>()).ToArray();
 
