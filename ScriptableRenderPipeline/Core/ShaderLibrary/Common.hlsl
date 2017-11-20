@@ -100,20 +100,23 @@ bool IsBitSet(uint data, uint bitPos)
 
 #ifndef INTRINSIC_WAVEREADFIRSTLANE
     // Warning: for correctness, the argument must have the same value across the wave!
-    TEMPLATE_1(WaveReadFirstLane, scalarValue, return scalarValue)
+    TEMPLATE_1_FLT(WaveReadFirstLane, scalarValue, return scalarValue)
+    TEMPLATE_1_INT(WaveReadFirstLane, scalarValue, return scalarValue)
 #endif
 
 #ifndef INTRINSIC_MUL24
-    TEMPLATE_2(Mul24, a, b, return a * b)
+    TEMPLATE_2_INT(Mul24, a, b, return a * b)
 #endif // INTRINSIC_MUL24
 
 #ifndef INTRINSIC_MAD24
-    TEMPLATE_3(Mad24, a, b, c, return a * b + c)
+    TEMPLATE_3_INT(Mad24, a, b, c, return a * b + c)
 #endif // INTRINSIC_MAD24
 
 #ifndef INTRINSIC_MINMAX3
-    TEMPLATE_3(Min3, a, b, c, return min(min(a, b), c))
-    TEMPLATE_3(Max3, a, b, c, return max(max(a, b), c))
+    TEMPLATE_3_FLT(Min3, a, b, c, return min(min(a, b), c))
+    TEMPLATE_3_INT(Min3, a, b, c, return min(min(a, b), c))
+    TEMPLATE_3_FLT(Max3, a, b, c, return max(max(a, b), c))
+    TEMPLATE_3_INT(Max3, a, b, c, return max(max(a, b), c))
 #endif // INTRINSIC_MINMAX3
 
 void Swap(inout float a, inout float b)
@@ -220,7 +223,8 @@ float RadToDeg(float rad)
 }
 
 // Square functions for cleaner code
-TEMPLATE_1(Sqr, x, return x * x)
+TEMPLATE_1_FLT(Sqr, x, return x * x)
+TEMPLATE_1_INT(Sqr, x, return x * x)
 
 // Input [0, 1] and output [0, PI/2]
 // 9 VALU
@@ -292,7 +296,7 @@ static const float4x4 k_identity4x4 = {1.0, 0.0, 0.0, 0.0,
 // Using pow often result to a warning like this
 // "pow(f, e) will not work for negative f, use abs(f) or conditionally handle negative values if you expect them"
 // PositivePow remove this warning when you know the value is positive and avoid inf/NAN.
-TEMPLATE_2(PositivePow, base, power, return pow(max(abs(base), FLT_EPSILON), power))
+TEMPLATE_2_FLT(PositivePow, base, power, return pow(max(abs(base), FLT_EPSILON), power))
 
 // Ref: https://twitter.com/SebAaltonen/status/878250919879639040
 // 2 mads (mad_sat and mad), faster than regular sign
