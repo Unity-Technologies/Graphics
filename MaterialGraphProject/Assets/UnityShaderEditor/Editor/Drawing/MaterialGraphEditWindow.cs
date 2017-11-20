@@ -129,6 +129,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (m_GraphObject.graph.GetType() == typeof(MasterRemapGraph))
                     UpdateAbstractSubgraphOnDisk<MasterRemapGraph>(path);
 
+                graphObject.isDirty = false;
                 var windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
                 foreach (var materialGraphEditWindow in windows)
                 {
