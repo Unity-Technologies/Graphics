@@ -60,7 +60,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             {
                 var headerContainer = new VisualElement {name = "header"};
                 {
-                    headerContainer.Add(new VisualElement {name = "title", text = assetName});
+                    headerContainer.Add(new Label(assetName) {name = "title"});
                 }
                 topContainer.Add(headerContainer);
 
@@ -75,7 +75,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 {
                     var header = new VisualElement {name = "header"};
                     {
-                        var title = new VisualElement {name = "title", text = "Properties"};
+                        var title = new Label("Properties") {name = "title"};
                         header.Add(title);
 
                         var addPropertyButton = new Button(OnAddProperty) {text = "Add", name = "addButton"};
@@ -94,7 +94,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                     {
                         var header = new VisualElement {name = "header"};
                         {
-                            var title = new VisualElement {name = "title", text = "Layers"};
+                            var title = new Label("Layers") {name = "title"};
                             header.Add(title);
 
                             var addLayerButton = new Button(OnAddLayer) {text = "Add", name = "addButton"};
@@ -237,10 +237,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 m_ContentContainer.Clear();
                 if (m_SelectedNodes.Count > 1)
                 {
-                    var element = new VisualElement
+                    var element = new Label(string.Format("{0} nodes selected.", m_SelectedNodes.Count))
                     {
-                        name = "selectionCount",
-                        text = string.Format("{0} nodes selected.", m_SelectedNodes.Count)
+                        name = "selectionCount"
                     };
                     m_ContentContainer.Add(element);
                 }

@@ -4,17 +4,17 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
     public class NodeEditorHeaderView : VisualElement
     {
-        VisualElement m_Title;
-        VisualElement m_Type;
+        Label m_Title;
+        Label m_Type;
 
         public NodeEditorHeaderView()
         {
-            m_Title = new VisualElement { name = "title", text = "" };
+            m_Title = new Label("") { name = "title" };
             Add(m_Title);
-            Add(new VisualElement { name = "preType", text = "(" });
-            m_Type = new VisualElement { name = "type", text = "" };
+            Add(new Label("(") { name = "preType" });
+            m_Type = new Label("") { name = "type" };
             Add(m_Type);
-            Add(new VisualElement { name = "postType", text = ")" });
+            Add(new Label(")") { name = "postType" });
         }
 
         public string title
