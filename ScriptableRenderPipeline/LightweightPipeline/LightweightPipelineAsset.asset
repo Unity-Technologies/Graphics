@@ -13,7 +13,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_MaxAdditionalPixelLights: 4
   m_SupportsVertexLight: 0
-  m_SupportSoftParticles: 1
+  m_SupportSoftParticles: 0
   m_MSAA: 4
   m_RenderScale: 1
   m_ShadowType: 1
