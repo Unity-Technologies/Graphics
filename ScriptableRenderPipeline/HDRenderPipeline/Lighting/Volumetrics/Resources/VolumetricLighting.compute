@@ -45,7 +45,6 @@ struct Ray
     float3 originWS;
     float3 directionWS; // Normalized
     float  ratioLenToZ; // 1 / ViewSpaceZ
-    float  ratioZtoLen; // ViewSpaceZ
 };
 
 float3 GetPointAtDistance(Ray ray, float t)
@@ -309,9 +308,8 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
 
     Ray ray;
     ray.originWS    = GetCurrentViewPosition();
-    ray.ratioLenToZ = sqrt(dot(dir, dir));
-    ray.ratioZtoLen = rsqrt(dot(dir, dir));
-    ray.directionWS = dir * ray.ratioZtoLen;
+    ray.ratioLenToZ = length(dir);
+    ray.directionWS = normalize(dir);
 
     FillVolumetricLightingBuffer(ray, voxelCoord, tileCoord);
 }
