@@ -55,7 +55,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_PreviewData.onPreviewChanged += UpdatePreviewTexture;
                     UpdatePreviewTexture();
 
-                    var collapsePreviewButton = new VisualElement { name = "collapse"/*, text = "▲" */};
+                    var collapsePreviewButton = new VisualElement { name = "collapse"};
                     collapsePreviewButton.Add(new VisualElement { name = "icon" });
                     collapsePreviewButton.AddManipulator(new Clickable(() =>
                     {
@@ -94,7 +94,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (node is PreviewNode)
             {
-                var resizeHandle = new VisualElement { name = "resize", text = "" };
+                var resizeHandle = new Label { name = "resize", text = "" };
                 resizeHandle.AddManipulator(new Draggable(OnResize));
                 Add(resizeHandle);
 
@@ -224,10 +224,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (slot.hidden)
                     continue;
 
-                var port = InstantiatePort(Orientation.Horizontal, slot.isInputSlot ? Direction.Input : Direction.Output, typeof(Vector4));
-                port.capabilities &= ~Capabilities.Movable;
+                var port = InstantiatePort(Orientation.Horizontal, slot.isInputSlot ? Direction.Input : Direction.Output, null);
                 port.portName = slot.displayName;
                 port.userData = slot;
+                port.visualClass = slot.concreteValueType.ToClassName();
 
                 if (slot.isOutputSlot)
                 {
@@ -258,6 +258,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var slot = (MaterialSlot) anchor.userData;
                 anchor.portName = slot.displayName;
+                anchor.visualClass = slot.concreteValueType.ToClassName();
             }
 
             foreach (var attacher in m_Attachers)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -9,6 +10,7 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
+using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.ShaderGraph.Drawing
@@ -196,6 +198,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 try
                 {
+                    var sw = new Stopwatch();
+                    sw.Start();
                     var i = 0;
                     EditorUtility.DisplayProgressBar("Shader Graph", string.Format("Compiling preview shaders ({0}/{1})", i, count), 0f);
                     foreach (var node in masterNodes)
@@ -233,6 +237,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                         i++;
                         EditorUtility.DisplayProgressBar("Shader Graph", string.Format("Compiling preview shaders ({0}/{1})", i, count), 0f);
                     }
+                    sw.Stop();
+                    Debug.LogFormat("Compiled preview shaders in {0} seconds", sw.Elapsed.TotalSeconds);
                 }
                 finally
                 {
@@ -254,6 +260,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Fill MaterialPropertyBlock
             m_PreviewPropertyBlock.Clear();
+            var outputIdName = m_OutputIdProperty != null ? m_OutputIdProperty.referenceName : null;
+            m_PreviewPropertyBlock.SetFloat(outputIdName, -1);
             foreach (var nodeGuid in m_PropertyNodeGuids)
             {
                 var node = m_Graph.GetNodeFromGuid<AbstractMaterialNode>(nodeGuid);
@@ -282,8 +290,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 m_PreviewProperties.Clear();
             }
-
-            var outputIdName = m_OutputIdProperty != null ? m_OutputIdProperty.referenceName : null;
 
             foreach (var nodeGuid in m_DirtyPreviews)
             {
@@ -436,7 +442,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Debug output
             var message = "RecreateShader: " + node.GetVariableNameForNode() + Environment.NewLine + previewData.shaderString;
             if (MaterialGraphAsset.ShaderHasError(previewData.shader))
-                Debug.LogWarningFormat(message);
+                Debug.LogWarning(message);
             else
                 Debug.Log(message);
         }
