@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (m_GraphEditorView != null)
                 {
-                    rootVisualContainer.Remove(m_GraphEditorView);
+                    m_GraphEditorView.RemoveFromHierarchy();
                     m_GraphEditorView.Dispose();
                 }
                 m_GraphEditorView = value;
@@ -42,8 +42,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_GraphEditorView.onUpdateAssetClick += UpdateAsset;
                     m_GraphEditorView.onConvertToSubgraphClick += ToSubGraph;
                     m_GraphEditorView.onShowInProjectClick += PingAsset;
-                    rootVisualContainer.Add(graphEditorView);
-                    rootVisualContainer.parent.clippingOptions = VisualElement.ClippingOptions.ClipContents;
+                    this.GetRootVisualContainer().Add(graphEditorView);
+                    this.GetRootVisualContainer().parent.clippingOptions = VisualElement.ClippingOptions.ClipContents;
                 }
             }
         }
