@@ -279,7 +279,7 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
     half fogFactor = IN.fogFactorAndVertexLight.x;
 
 #if defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
-    half4 specularGloss = SpecularGloss(uv, alpha);
+    half4 specularGloss = SpecularGloss(uv, diffuseAlpha.a);
     return LightweightFragmentBlinnPhong(positionWS, normalWS, viewDirectionWS, fogFactor, diffuseGI, diffuse, specularGloss, shininess, emission, alpha);
 #else
     return LightweightFragmentLambert(positionWS, normalWS, viewDirectionWS, fogFactor, diffuseGI, diffuse, emission, alpha);
