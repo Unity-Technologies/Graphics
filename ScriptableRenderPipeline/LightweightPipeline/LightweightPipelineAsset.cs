@@ -34,7 +34,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static readonly string m_SimpleLightShaderPath = "LightweightPipeline/Standard (Simple Lighting)";
         public static readonly string m_StandardShaderPath = "LightweightPipeline/Standard (Physically Based)";
 
-        [SerializeField] private int m_MaxAdditionalPixelLights = 4;
+        // Default values set when a new LightweightPipeline asset is created
+        [SerializeField] private int m_MaxPixelLights = 4;
         [SerializeField] private bool m_SupportsVertexLight = false;
         [SerializeField] private bool m_SupportSoftParticles = false;
         [SerializeField] private MSAAQuality m_MSAA = MSAAQuality._4x;
@@ -88,9 +89,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return ShadowSetting != ShadowType.NO_SHADOW;
         }
 
-        public int MaxAdditionalPixelLights
+        public int MaxPixelLights
         {
-            get { return m_MaxAdditionalPixelLights; }
+            get { return m_MaxPixelLights; }
         }
 
         public bool SupportsVertexLight

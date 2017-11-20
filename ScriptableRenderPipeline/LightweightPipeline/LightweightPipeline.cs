@@ -86,19 +86,21 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         // Maximum amount of visible lights the shader can process. This controls the constant global light buffer size.
         // It must match the MAX_VISIBLE_LIGHTS in LightweightInput.cginc
-        private static readonly int kMaxVisibleAdditionalLights = 16;
+        private static readonly int kMaxVisibleLights = 16;
 
-        // Lights are culled per-object. This holds the maximum amount of additional lights that can shade each object.
+        // Lights are culled per-object. This holds the maximum amount of lights that can be shaded per-object.
         // The engine fills in the lights indices per-object in unity4_LightIndices0 and unity_4LightIndices1
-        private static readonly int kMaxPerObjectAdditionalLights = 8;
+        private static readonly int kMaxPerObjectLights = 8;
+
+        private static readonly int kMaxVertexLights = 4;
 
         private bool m_IsOffscreenCamera;
 
-        private Vector4[] m_LightPositions = new Vector4[kMaxVisibleAdditionalLights];
-        private Vector4[] m_LightColors = new Vector4[kMaxVisibleAdditionalLights];
-        private Vector4[] m_LightDistanceAttenuations = new Vector4[kMaxVisibleAdditionalLights];
-        private Vector4[] m_LightSpotDirections = new Vector4[kMaxVisibleAdditionalLights];
-        private Vector4[] m_LightSpotAttenuations = new Vector4[kMaxVisibleAdditionalLights];
+        private Vector4[] m_LightPositions = new Vector4[kMaxVisibleLights];
+        private Vector4[] m_LightColors = new Vector4[kMaxVisibleLights];
+        private Vector4[] m_LightDistanceAttenuations = new Vector4[kMaxVisibleLights];
+        private Vector4[] m_LightSpotDirections = new Vector4[kMaxVisibleLights];
+        private Vector4[] m_LightSpotAttenuations = new Vector4[kMaxVisibleLights];
 
         private Camera m_CurrCamera;
 
@@ -568,7 +570,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void InitializeLightData(VisibleLight[] visibleLights, out LightData lightData)
         {
-            int visibleLightsCount = visibleLights.Length;
+            int visibleLightsCount = Math.Min(visibleLights.Length, m_Asset.MaxPixelLights);
             m_SortedLightIndexMap.Clear();
 
             lightData.shadowsRendered = false;
@@ -579,14 +581,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 lightData.mainLightIndex = SortLights(visibleLights);
 
             // If we have a main light we don't shade it in the per-object light loop. We also remove it from the per-object cull list
-            int additionalLightsCount = (lightData.mainLightIndex >= 0) ? visibleLightsCount - 1 : visibleLightsCount;
-            additionalLightsCount = Math.Min(additionalLightsCount, kMaxPerObjectAdditionalLights);
+            int mainLightPresent = (lightData.mainLightIndex >= 0) ? 1 : 0;
+            int additionalPixelLightsCount = visibleLightsCount - mainLightPresent;
+            int vertexLightCount = (m_Asset.SupportsVertexLight) ? Math.Min(visibleLights.Length, kMaxPerObjectLights) - additionalPixelLightsCount : 0;
+            vertexLightCount = Math.Min(vertexLightCount, kMaxVertexLights);
 
-            int pixelLightsCount = Math.Min(additionalLightsCount, m_Asset.MaxAdditionalPixelLights);
-            int vertexLightCount = (m_Asset.SupportsVertexLight) ? additionalLightsCount - pixelLightsCount : 0;
-
-            lightData.pixelAdditionalLightsCount = pixelLightsCount;
-            lightData.totalAdditionalLightsCount = pixelLightsCount + vertexLightCount;
+            lightData.pixelAdditionalLightsCount = additionalPixelLightsCount;
+            lightData.totalAdditionalLightsCount = additionalPixelLightsCount + vertexLightCount;
 
             m_MixedLightingSetup = MixedLightingSetup.None;
         }
@@ -619,7 +620,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             int totalVisibleLights = visibleLights.Length;
             bool shadowsEnabled = m_Asset.AreShadowsEnabled();
 
-            if (totalVisibleLights == 0)
+            if (totalVisibleLights == 0 || m_Asset.MaxPixelLights == 0)
                 return -1;
 
             int brighestDirectionalIndex = -1;
@@ -788,7 +789,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             for (int i = 0; i < lights.Length; ++i)
                 perObjectLightIndexMap[i] = -1;
 
-            for (int i = 0; i < lights.Length && additionalLightIndex < kMaxVisibleAdditionalLights; ++i)
+            for (int i = 0; i < lights.Length && additionalLightIndex < kMaxVisibleLights; ++i)
             {
                 if (i != lightData.mainLightIndex)
                 {
@@ -809,13 +810,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
             m_CullResults.SetLightIndexMap(perObjectLightIndexMap);
 
-            cmd.SetGlobalVector(PerCameraBuffer._AdditionalLightCount, new Vector4 (lightData.pixelAdditionalLightsCount,
+            cmd.SetGlobalVector(PerCameraBuffer._AdditionalLightCount, new Vector4(lightData.pixelAdditionalLightsCount,
                  lightData.totalAdditionalLightsCount, 0.0f, 0.0f));
-            cmd.SetGlobalVectorArray (PerCameraBuffer._AdditionalLightPosition, m_LightPositions);
-            cmd.SetGlobalVectorArray (PerCameraBuffer._AdditionalLightColor, m_LightColors);
-            cmd.SetGlobalVectorArray (PerCameraBuffer._AdditionalLightDistanceAttenuation, m_LightDistanceAttenuations);
-            cmd.SetGlobalVectorArray (PerCameraBuffer._AdditionalLightSpotDir, m_LightSpotDirections);
-            cmd.SetGlobalVectorArray (PerCameraBuffer._AdditionalLightSpotAttenuation, m_LightSpotAttenuations);
+            cmd.SetGlobalVectorArray(PerCameraBuffer._AdditionalLightPosition, m_LightPositions);
+            cmd.SetGlobalVectorArray(PerCameraBuffer._AdditionalLightColor, m_LightColors);
+            cmd.SetGlobalVectorArray(PerCameraBuffer._AdditionalLightDistanceAttenuation, m_LightDistanceAttenuations);
+            cmd.SetGlobalVectorArray(PerCameraBuffer._AdditionalLightSpotDir, m_LightSpotDirections);
+            cmd.SetGlobalVectorArray(PerCameraBuffer._AdditionalLightSpotAttenuation, m_LightSpotAttenuations);
         }
 
         private void SetupShadowShaderConstants(CommandBuffer cmd, ref VisibleLight shadowLight, int cascadeCount)
@@ -857,8 +858,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             // Currently only directional light cookie is supported
             CoreUtils.SetKeyword(cmd, "_MAIN_LIGHT_COOKIE", mainLightIndex != -1 && LightweightUtils.IsSupportedCookieType(visibleLights[mainLightIndex].lightType) && visibleLights[mainLightIndex].light.cookie != null);
-            CoreUtils.SetKeyword (cmd, "_MAIN_DIRECTIONAL_LIGHT", mainLightIndex == -1 || visibleLights[mainLightIndex].lightType == LightType.Directional);
-            CoreUtils.SetKeyword (cmd, "_MAIN_SPOT_LIGHT", mainLightIndex != -1 && visibleLights[mainLightIndex].lightType == LightType.Spot);
+            CoreUtils.SetKeyword(cmd, "_MAIN_DIRECTIONAL_LIGHT", mainLightIndex == -1 || visibleLights[mainLightIndex].lightType == LightType.Directional);
+            CoreUtils.SetKeyword(cmd, "_MAIN_SPOT_LIGHT", mainLightIndex != -1 && visibleLights[mainLightIndex].lightType == LightType.Spot);
             CoreUtils.SetKeyword(cmd, "_ADDITIONAL_LIGHTS", lightData.totalAdditionalLightsCount > 0);
             CoreUtils.SetKeyword(cmd, "_MIXED_LIGHTING_SHADOWMASK", m_MixedLightingSetup == MixedLightingSetup.ShadowMask);
             CoreUtils.SetKeyword(cmd, "_MIXED_LIGHTING_SUBTRACTIVE", m_MixedLightingSetup == MixedLightingSetup.Subtractive);
@@ -1044,7 +1045,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                         clearFlag |= ClearFlag.Color;
                 }
 
-                SetRenderTarget (cmd, colorRT, depthRT, clearFlag);
+                SetRenderTarget(cmd, colorRT, depthRT, clearFlag);
             }
 
             context.ExecuteCommandBuffer(cmd);
@@ -1100,7 +1101,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             if (depthRT == BuiltinRenderTextureType.None)
             {
-                SetRenderTarget (cmd, colorRT, clearFlag);
+                SetRenderTarget(cmd, colorRT, clearFlag);
                 return;
             }
 
