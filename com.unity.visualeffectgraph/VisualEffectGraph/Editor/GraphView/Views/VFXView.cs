@@ -498,6 +498,8 @@ namespace UnityEditor.VFX.UI
                 panel.scheduler.ScheduleOnce(t => { panel.ValidateLayout(); FrameAll(); }, 100);
 
                 m_OldPresenter = presenter;
+
+                pasteOffset = Vector2.zero; // if we change asset we want to paste exactly at the same place as the original asset the first time.
             }
         }
 
