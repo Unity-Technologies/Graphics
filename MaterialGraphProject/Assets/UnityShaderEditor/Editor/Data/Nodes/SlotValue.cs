@@ -57,5 +57,23 @@ namespace UnityEditor.ShaderGraph
                     return ChannelCount.Zero;
             }
         }
+
+        static readonly string[] k_ConcreteSlotValueTypeClassNames =
+        {
+            null,
+            "typeMatrix",
+            "typeMatrix",
+            "typeMatrix",
+            "typeTexture2D",
+            "typeFloat4",
+            "typeFloat3",
+            "typeFloat2",
+            "typeFloat1"
+        };
+
+        public static string ToClassName(this ConcreteSlotValueType type)
+        {
+            return k_ConcreteSlotValueTypeClassNames[(int)type];
+        }
     }
 }

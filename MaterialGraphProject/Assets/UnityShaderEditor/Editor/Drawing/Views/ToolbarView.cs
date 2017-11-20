@@ -5,7 +5,7 @@ using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public class ToolbarView : VisualElement
+    public class ToolbarView : BaseTextElement
     {
         public ToolbarView()
         {
@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
     }
 
-    public class ToolbarButtonView : VisualElement
+    public class ToolbarButtonView : BaseTextElement
     {
         public ToolbarButtonView()
         {
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
     }
 
-    public class ToolbarSeparatorView : VisualElement
+    public class ToolbarSeparatorView : BaseTextElement
     {
         public ToolbarSeparatorView()
         {
@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
     }
 
-    public class ToolbarSpaceView : VisualElement
+    public class ToolbarSpaceView : BaseTextElement
     {
         public ToolbarSpaceView()
         {

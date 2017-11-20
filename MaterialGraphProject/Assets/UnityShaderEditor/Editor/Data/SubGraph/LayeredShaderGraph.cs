@@ -264,7 +264,7 @@ struct GraphVertexInput
                 }
 
                 var masterNode = baseGraph.masterNode;
-                GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, ((AbstractMaterialNode) masterNode).GetInputSlots<MaterialSlot>().ToList());
+                GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, ((AbstractMaterialNode) masterNode).GetInputSlots<MaterialSlot>().ToList(), true);
 
                 foreach (var layer in layerMap)
                 {
