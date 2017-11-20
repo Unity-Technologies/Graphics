@@ -522,17 +522,21 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (m_RequiredDepth)
             {
-                cmd.GetTemporaryRT(CameraRenderTargetID.depth, rtWidth, rtHeight, kCameraDepthBufferBits, FilterMode.Bilinear, RenderTextureFormat.Depth);
+                RenderTextureDescriptor depthRTDesc = new RenderTextureDescriptor(rtWidth, rtHeight, RenderTextureFormat.Depth, kCameraDepthBufferBits);
+                cmd.GetTemporaryRT(CameraRenderTargetID.depth, depthRTDesc, FilterMode.Bilinear);
 
                 if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.DepthCopy))
-                    cmd.GetTemporaryRT(CameraRenderTargetID.depthCopy, rtWidth, rtHeight, kCameraDepthBufferBits, FilterMode.Bilinear, RenderTextureFormat.Depth);
+                    cmd.GetTemporaryRT(CameraRenderTargetID.depthCopy, depthRTDesc, FilterMode.Bilinear);
             }
+
+            RenderTextureDescriptor colorRTDesc = new RenderTextureDescriptor(rtWidth, rtHeight, m_ColorFormat, kCameraDepthBufferBits);
+            colorRTDesc.msaaSamples = msaaSamples;
+            colorRTDesc.enableRandomWrite = false;
 
             // When offscreen camera current rendertarget is CameraTarget
             if (!m_IsOffscreenCamera)
             {
-                cmd.GetTemporaryRT(CameraRenderTargetID.color, rtWidth, rtHeight, kCameraDepthBufferBits,
-                    FilterMode.Bilinear, m_ColorFormat, RenderTextureReadWrite.Default, msaaSamples);
+                cmd.GetTemporaryRT(CameraRenderTargetID.color, colorRTDesc, FilterMode.Bilinear);
                 m_CurrCameraColorRT = m_ColorRT;
             }
 
@@ -540,10 +544,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // use the camera render target as input. We blit to an opaque RT and then after before postprocessing is done
             // we blit to the final camera RT. If no postprocessing we blit to final camera RT from beginning.
             if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.BeforeTransparentPostProcess))
-            {
-                cmd.GetTemporaryRT(CameraRenderTargetID.copyColor, rtWidth, rtHeight, kCameraDepthBufferBits,
-                    FilterMode.Bilinear, m_ColorFormat, RenderTextureReadWrite.Default, msaaSamples);
-            }
+                cmd.GetTemporaryRT(CameraRenderTargetID.copyColor, colorRTDesc, FilterMode.Point);
         }
 
         private void SetupIntermediateResourcesStereo(CommandBuffer cmd, int msaaSamples)
@@ -1029,10 +1030,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
 
 
-            if (ForceClear()) 
+            if (ForceClear())
             {
                 SetRenderTarget(cmd, colorRT, depthRT, ClearFlag.All);
-            } 
+            }
             else
             {
                 ClearFlag clearFlag = ClearFlag.None;
@@ -1098,7 +1099,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorRT, RenderTargetIdentifier depthRT, ClearFlag clearFlag = ClearFlag.None)
         {
-            if (depthRT == BuiltinRenderTextureType.None) 
+            if (depthRT == BuiltinRenderTextureType.None)
             {
                 SetRenderTarget (cmd, colorRT, clearFlag);
                 return;
