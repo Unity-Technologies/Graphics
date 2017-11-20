@@ -45,6 +45,7 @@ struct LightweightVertexOutput
 {
     float4 uv01                     : TEXCOORD0; // xy: main UV, zw: lightmap UV (directional / non-directional)
     float3 posWS                    : TEXCOORD1;
+
 #if _NORMALMAP
     half3 tangent                   : TEXCOORD2;
     half3 binormal                  : TEXCOORD3;
@@ -52,6 +53,7 @@ struct LightweightVertexOutput
 #else
     half3 normal                    : TEXCOORD2;
 #endif
+
     half3 viewDir                   : TEXCOORD5;
     half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
 
