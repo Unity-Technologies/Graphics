@@ -13,16 +13,19 @@ Shader "Hidden/Checkerboard"
 
             #include "UnityCG.cginc"
 
-            static const float rows = 32;
-            static const float columns = 32;
-
-            static const float4 col1 = float4(32.0/255.0, 32.0/255.0, 32.0/255.0, 1.0);
-            static const float4 col2 = float4(42.0/255.0, 42.0/255.0, 42.0/255.0, 1.0);
+            static const float rows = 24;
+            static const float columns = 24;
 
             float4 frag(v2f_img i) : COLOR
             {
+                float3 col1 = float3(32.0/255.0, 32.0/255.0, 32.0/255.0);
+                float3 col2 = float3(42.0/255.0, 42.0/255.0, 42.0/255.0);
+                if (!IsGammaSpace()) {
+                    col1 = GammaToLinearSpace(col1);
+                    col2 = GammaToLinearSpace(col2);
+                }
                 float total = floor(i.uv.x * rows) + floor(i.uv.y * columns);
-                return lerp(col1, col2, step(fmod(total, 2.0), 0.5));
+                return float4(lerp(col1, col2, step(fmod(total, 2.0), 0.5)), 1.0);
             }
             ENDCG
         }
