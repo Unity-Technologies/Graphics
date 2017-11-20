@@ -8,13 +8,6 @@ import subprocess
 from pprint import pprint
 
 
-def create_or_increment(map, key):
-    if key not in map:
-        map[key] = 1
-    else:
-        map[key] += 1
-
-
 def main():
     parser = argparse.ArgumentParser()
 
@@ -33,6 +26,8 @@ def main():
                         help="don't clean-up files")
     parser.add_argument("-s", "--silent", action="store_true",
                         help="don't tell me what's going on here")
+    parser.add_argument("--save-npmrc", action="store_true",
+                        help="save the downloaded .npmrc file to the current working directory")
     args = parser.parse_args()
     silent = args.silent
     base_folder = os.path.realpath(args.folder)
@@ -179,10 +174,15 @@ def main():
     res = c.getresponse()
     npm_config = res.read().decode(res.headers.get_content_charset("ascii"))
     print(textwrap.indent(npm_config, "  >"))
-    info_print("Writing config to sub-package folders:")
+    info_print("Writing config to files:")
     for name in publish_order:
         folder = sub_package_folders[name]
         path = os.path.join(folder, ".npmrc")
+        with open(path, 'w') as file:
+            file.write(npm_config)
+            info_print("  {}".format(path))
+    if args.save_npmrc:
+        path = os.path.join(os.getcwd(), ".npmrc")
         with open(path, 'w') as file:
             file.write(npm_config)
             info_print("  {}".format(path))
