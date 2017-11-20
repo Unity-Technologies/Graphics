@@ -120,7 +120,7 @@ namespace UnityEditor.VFX.UI
             get { return true; }
         }
 
-        public bool expanded
+        public new bool expanded
         {
             get
             {
