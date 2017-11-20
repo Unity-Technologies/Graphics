@@ -216,6 +216,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 port.capabilities &= ~Capabilities.Movable;
                 port.portName = slot.displayName;
                 port.userData = slot;
+                port.visualClass = slot.concreteValueType.ToClassName();
 
                 if (slot.isOutputSlot)
                 {
@@ -246,6 +247,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var slot = (MaterialSlot) anchor.userData;
                 anchor.portName = slot.displayName;
+                anchor.visualClass = slot.concreteValueType.ToClassName();
             }
 
             foreach (var attacher in m_Attachers)
