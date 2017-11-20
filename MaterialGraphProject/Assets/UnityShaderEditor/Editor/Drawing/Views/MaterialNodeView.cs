@@ -76,6 +76,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
 
                 extensionContainer.Add(m_PreviewContainer);
+                RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
             }
 
             m_ControlViews = new List<VisualElement>();
