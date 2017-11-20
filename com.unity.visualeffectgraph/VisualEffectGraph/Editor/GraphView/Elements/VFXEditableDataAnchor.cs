@@ -93,7 +93,6 @@ namespace UnityEditor.VFX.UI
 
     partial class VFXEditableDataAnchor : VFXDataAnchor
     {
-        VFXPropertyIM   m_PropertyIM;
         IMGUIContainer  m_Container;
 
 
@@ -103,7 +102,7 @@ namespace UnityEditor.VFX.UI
         // TODO This is a workaround to avoid having a generic type for the anchor as generic types mess with USS.
         public static new VFXEditableDataAnchor Create(VFXDataAnchorPresenter presenter)
         {
-            var anchor = new VFXEditableDataAnchor(presenter.orientation, presenter.direction, presenter.anchorType);
+            var anchor = new VFXEditableDataAnchor(presenter.orientation, presenter.direction, presenter.portType);
 
             anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
             anchor.presenter = presenter;
@@ -113,6 +112,23 @@ namespace UnityEditor.VFX.UI
 
         protected VFXEditableDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type) : base(anchorOrientation, anchorDirection, type)
         {
+        }
+
+        public float GetPreferredLabelWidth()
+        {
+            if (m_PropertyRM == null) return 0;
+            return m_PropertyRM.GetPreferredLabelWidth();
+        }
+
+        public float GetPreferredControlWidth()
+        {
+            if (m_PropertyRM == null) return 0;
+            return m_PropertyRM.GetPreferredControlWidth();
+        }
+
+        public void SetLabelWidth(float label)
+        {
+            m_PropertyRM.SetLabelWidth(label);
         }
 
         void BuildProperty()
@@ -131,40 +147,6 @@ namespace UnityEditor.VFX.UI
                     Remove(m_Container);
                 m_Container = null;
             }
-            else
-            {
-                m_PropertyIM = VFXPropertyIM.Create(presenter.anchorType, 100);
-
-                m_Container = new IMGUIContainer(OnGUI) { name = "IMGUI" };
-                Add(m_Container);
-            }
-        }
-
-        void OnGUI()
-        {
-            if (m_Container.style.maxWidth.specificity > 0) return;
-            // update the GUISTyle from the element style defined in USS
-
-
-            //try
-            {
-                bool changed = m_PropertyIM.OnGUI(GetPresenter<VFXDataAnchorPresenter>());
-
-                if (changed)
-                {
-                    Dirty(ChangeType.Transform | ChangeType.Repaint);
-                }
-
-                if (Event.current.type != EventType.Layout && Event.current.type != EventType.Used)
-                {
-                    /*  Rect r = GUILayoutUtility.GetLastRect();
-                    m_Container.height = r.yMax;*/
-                }
-            }
-            /*catch(System.Exception e)
-            {
-                Debug.LogError(e.Message);
-            }*/
         }
 
         Type m_EditedType;
@@ -175,13 +157,11 @@ namespace UnityEditor.VFX.UI
 
             VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
 
-            if ((m_PropertyIM == null && m_PropertyRM == null) || m_EditedType != presenter.anchorType)
+            if (m_PropertyRM == null || m_EditedType != presenter.portType)
             {
                 BuildProperty();
-                m_EditedType = presenter.anchorType;
+                m_EditedType = presenter.portType;
             }
-            /*if (m_Container != null)
-                m_Container.executionContext = presenter.GetInstanceID();*/
 
             OnRecompile();
         }

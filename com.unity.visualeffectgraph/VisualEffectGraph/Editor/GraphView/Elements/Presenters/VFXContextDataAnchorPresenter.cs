@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.UI
     {
         public override bool expandable
         {
-            get { return VFXContextSlotContainerPresenter.IsTypeExpandable(anchorType); }
+            get { return VFXContextSlotContainerPresenter.IsTypeExpandable(portType); }
         }
 
 

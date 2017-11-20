@@ -94,8 +94,7 @@ public class VFXAssetEditor : Editor
             if (m_ExposedList[i].order != i)
             {
                 var parameter = m_ExposedList[i];
-                Undo.RegisterCompleteObjectUndo(parameter.model, "VFX parameter");
-                parameter.order = i;
+                (parameter.model as IVFXSlotContainer).SetSettingValue("m_order", i); //TODOPAUL Change this code after variant PR merge
                 EditorUtility.SetDirty(parameter.model);
             }
         }
@@ -149,7 +148,7 @@ public class VFXAssetEditor : Editor
         bool orderChange = parameter.order != order;
         if (orderChange)
         {
-            parameter.order = order;
+            (parameter.model as IVFXSlotContainer).SetSettingValue("m_order", order); //TODOPAUL : Change this code after variant PR merge
         }
         ParamInfo infos;
         m_AdvDictionary.TryGetValue(parameter, out infos);
@@ -166,18 +165,16 @@ public class VFXAssetEditor : Editor
         toggleRect.width = labelWidth + toggleWidth;
         toggleRect.height = lineHeight;
 
-        infos.adv = EditorGUI.Foldout(toggleRect, infos.adv, string.Format("{0} : name ({1})", parameter.order + 1, parameter.anchorType.UserFriendlyName()));
+        infos.adv = EditorGUI.Foldout(toggleRect, infos.adv, string.Format("{0} : name ({1})", parameter.order + 1, parameter.portType.UserFriendlyName()));
 
         Rect fieldRect = rect;
 
         fieldRect.xMin += labelWidth + toggleWidth + offsetWidth;
         fieldRect.height = lineHeight;
 
-        parameter.exposedName = EditorGUI.TextField(fieldRect, parameter.exposedName);
-
+        (parameter.model as IVFXSlotContainer).SetSettingValue("m_exposedName", EditorGUI.TextField(fieldRect, parameter.exposedName)); //TODOPAUL : Change this code after variant PR merge
         if (orderChange || EditorGUI.EndChangeCheck())
         {
-            Undo.RegisterCompleteObjectUndo(parameter.model, "VFX parameter");
             EditorUtility.SetDirty(parameter.model);
         }
         GUILayout.EndHorizontal();
@@ -185,7 +182,7 @@ public class VFXAssetEditor : Editor
         {
             if (infos.propertyIM == null)
             {
-                infos.propertyIM = VFXPropertyIM.Create(parameter.anchorType, labelWidth);
+                infos.propertyIM = VFXPropertyIM.Create(parameter.portType, labelWidth);
             }
 
             if (infos.propertyIM != null)
@@ -215,7 +212,7 @@ public class VFXAssetEditor : Editor
                         {
                             object val = parameter.minValue;
                             if (val == null)
-                                val = System.Activator.CreateInstance(parameter.anchorType);
+                                val = System.Activator.CreateInstance(parameter.portType);
 
                             toggleRect.xMin = toggleRect.xMax;
                             toggleRect.xMax = areaRect.xMax;
@@ -236,7 +233,7 @@ public class VFXAssetEditor : Editor
                         {
                             object val = parameter.maxValue;
                             if (val == null)
-                                val = System.Activator.CreateInstance(parameter.anchorType);
+                                val = System.Activator.CreateInstance(parameter.portType);
 
                             toggleRect.xMin = toggleRect.xMax;
                             toggleRect.xMax = areaRect.xMax;
@@ -255,7 +252,7 @@ public class VFXAssetEditor : Editor
                         {
                             object val = parameter.maxValue;
                             if (val == null)
-                                val = System.Activator.CreateInstance(parameter.anchorType);
+                                val = System.Activator.CreateInstance(parameter.portType);
                             val = infos.propertyIM.OnGUI("max", val);
                             if (maxChecked)
                                 parameter.maxValue = val;

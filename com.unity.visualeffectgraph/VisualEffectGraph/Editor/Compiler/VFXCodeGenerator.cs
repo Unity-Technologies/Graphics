@@ -182,7 +182,7 @@ namespace UnityEditor.VFX
 
         static private void GetFunctionName(VFXBlock block, out string functionName, out string comment)
         {
-            var settings = block.activeSettings.ToArray();
+            var settings = block.GetSettings(true).ToArray();
             if (settings.Length > 0)
             {
                 comment = "";
@@ -262,8 +262,10 @@ namespace UnityEditor.VFX
 
                 if (groups.Count > 2 && !String.IsNullOrEmpty(groups[2].Value))
                 {
-                    var neededDefines = groups[2].Value.Split(new char[] {',', ' ', '\t'}, StringSplitOptions.RemoveEmptyEntries);
-                    if (!neededDefines.All(d => defines.Contains(d)))
+                    var allDefines = groups[2].Value.Split(new char[] {',', ' ', '\t'}, StringSplitOptions.RemoveEmptyEntries);
+                    var neededDefines = allDefines.Where(d => d[0] != '!');
+                    var forbiddenDefines = allDefines.Except(neededDefines).Select(d => d.Substring(1));
+                    if (!neededDefines.All(d => defines.Contains(d)) || forbiddenDefines.Any(d => defines.Contains(d)))
                     {
                         ReplaceMultiline(templateContent, groups[0].Value, new StringBuilder());
                         continue;
@@ -303,10 +305,10 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
+                    const string endStr = "${VFXEnd}";
                     var match = beginRegex.Match(source, currentPos, tag.Length);
                     if (match.Success)
                     {
-                        const string endStr = "${VFXEnd}";
                         var macroStartPos = match.Index + match.Length;
                         var macroEndCodePos = source.IndexOf(endStr, macroStartPos);
                         if (macroEndCodePos == -1)
@@ -318,8 +320,10 @@ namespace UnityEditor.VFX
                         // Remove the define in builder
                         builder.Remove(match.Index + builderOffset, macroEndCodePos - match.Index + endStr.Length);
                     }
-                    else
-                        throw new FormatException(string.Format("Invalid VFX tag found (Cannot be substituted): {0}\n{1}", tag, source));
+                    else if (tag == endStr)
+                        throw new FormatException("${VFXEnd} found without ${VFXBegin}");
+                    else // Remove undefined tag
+                        builder.Remove(currentPos + builderOffset, tag.Length);
                 }
 
                 builderOffset += currentPos;
@@ -415,6 +419,7 @@ namespace UnityEditor.VFX
                 globalIncludeContent.WriteLineFormat("#define {0} 1", additionnalDefine);
 
             globalIncludeContent.WriteLine();
+            globalIncludeContent.WriteLine("#include \"Assets/" + context.renderLoopCommonInclude + "\"");
             globalIncludeContent.WriteLine("#include \"Assets/VFXShaders/VFXCommon.cginc\"");
 
             // Per-block includes

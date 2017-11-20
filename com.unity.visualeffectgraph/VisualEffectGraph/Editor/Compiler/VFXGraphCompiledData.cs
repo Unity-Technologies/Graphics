@@ -461,11 +461,12 @@ namespace UnityEditor.VFX
                     if (hasChanged)
                     {
                         System.IO.File.WriteAllText(path, newContent);
+                        Profiler.BeginSample("VFXEditor.SaveShaderFiles.ImportAsset");
+                        AssetDatabase.ImportAsset(path);
+                        Profiler.EndSample();
                     }
 
-                    AssetDatabase.ImportAsset(path);
                     Object imported = AssetDatabase.LoadAssetAtPath<Object>(path);
-
                     var contextData = contextToCompiledData[generated.context];
                     contextData.processor = imported;
                     contextToCompiledData[generated.context] = contextData;

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -9,11 +10,6 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-    interface IEdgeDrawerOwner
-    {
-        void DirtyDrawer();
-    }
-
     class Collapser : Manipulator
     {
         public Collapser()
@@ -40,27 +36,29 @@ namespace UnityEditor.VFX.UI
             }
         }
     }
-    class VFXStandaloneSlotContainerUI : VFXSlotContainerUI, IEdgeDrawerOwner
+    class VFXStandaloneSlotContainerUI : VFXSlotContainerUI
     {
         public VFXStandaloneSlotContainerUI()
         {
             this.AddManipulator(new Collapser());
-
-            m_EdgeDrawer = new VFXEdgeDrawer();
-            m_EdgeDrawer.style.positionType = PositionType.Absolute;
-            m_EdgeDrawer.style.positionLeft = 0;
-            m_EdgeDrawer.style.positionRight = 0;
-            m_EdgeDrawer.style.positionBottom = 0;
-            m_EdgeDrawer.style.positionTop = 0;
-            m_EdgeDrawer.element = this;
-            Add(m_EdgeDrawer);
         }
 
-        VFXEdgeDrawer m_EdgeDrawer;
-
-        public void DirtyDrawer()
+        protected override void OnStyleResolved(ICustomStyle style)
         {
-            m_EdgeDrawer.Dirty(ChangeType.Repaint);
+            base.OnStyleResolved(style);
+
+            float labelWidth = 30;
+            float controlWidth = 110;
+
+            GetPreferedWidths(ref labelWidth, ref controlWidth);
+
+            ApplyWidths(labelWidth, controlWidth);
+        }
+
+        public override void ApplyWidths(float labelWidth, float controlWidth)
+        {
+            base.ApplyWidths(labelWidth, controlWidth);
+            leftContainer.style.width = labelWidth + controlWidth + 20;
         }
     }
 
@@ -69,6 +67,9 @@ namespace UnityEditor.VFX.UI
     {
         public VFXOperatorUI()
         {
+            VisualElement element = new VisualElement();
+            element.name = "middle";
+            leftContainer.parent.Insert(1, element);
         }
 
         public override void OnDataChanged()
@@ -77,6 +78,36 @@ namespace UnityEditor.VFX.UI
             var presenter = GetPresenter<VFXOperatorPresenter>();
             if (presenter == null || presenter.Operator == null)
                 return;
+        }
+
+        public override void GetPreferedWidths(ref float labelWidth, ref float controlWidth)
+        {
+            base.GetPreferedWidths(ref labelWidth, ref controlWidth);
+
+            foreach (var port in GetPorts(true, false).Cast<VFXEditableDataAnchor>())
+            {
+                port.OnDataChanged();
+                float portLabelWidth = port.GetPreferredLabelWidth();
+                float portControlWidth = port.GetPreferredControlWidth();
+
+                if (labelWidth < portLabelWidth)
+                {
+                    labelWidth = portLabelWidth;
+                }
+                if (controlWidth < portControlWidth)
+                {
+                    controlWidth = portControlWidth;
+                }
+            }
+        }
+
+        public override void ApplyWidths(float labelWidth, float controlWidth)
+        {
+            base.ApplyWidths(labelWidth, controlWidth);
+            foreach (var port in GetPorts(true, false).Cast<VFXEditableDataAnchor>())
+            {
+                port.SetLabelWidth(labelWidth);
+            }
         }
     }
 }

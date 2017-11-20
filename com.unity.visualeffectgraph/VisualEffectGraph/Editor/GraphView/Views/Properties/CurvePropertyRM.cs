@@ -17,35 +17,38 @@ namespace UnityEditor.VFX.UI
     {
         public CurvePropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
-            VisualElement mainContainer = new VisualElement();
+            m_CurveField = new CurveField(m_Label);
+            m_CurveField.RegisterCallback<ChangeEvent<AnimationCurve>>(OnValueChanged);
 
-            m_GradientField = new CurveField(m_Label);
-            m_GradientField.RegisterCallback<ChangeEvent<AnimationCurve>>(OnValueChanged);
+            m_CurveField.style.flexDirection = FlexDirection.Column;
+            m_CurveField.style.alignItems = Align.Stretch;
+            m_CurveField.style.flex = 1;
 
-            m_GradientField.style.flexDirection = FlexDirection.Column;
-            m_GradientField.style.alignItems = Align.Stretch;
-            m_GradientField.style.flex = 1;
+            Add(m_CurveField);
+        }
 
-            Add(m_GradientField);
+        public override float GetPreferredControlWidth()
+        {
+            return 160;
         }
 
         public void OnValueChanged(ChangeEvent<AnimationCurve> e)
         {
-            AnimationCurve newValue = m_GradientField.value;
+            AnimationCurve newValue = m_CurveField.value;
             m_Value = newValue;
             NotifyValueChanged();
         }
 
-        CurveField m_GradientField;
+        CurveField m_CurveField;
 
         protected override void UpdateEnabled()
         {
-            m_GradientField.SetEnabled(propertyEnabled);
+            m_CurveField.SetEnabled(propertyEnabled);
         }
 
         public override void UpdateGUI()
         {
-            m_GradientField.value = m_Value;
+            m_CurveField.value = m_Value;
         }
 
         public override bool showsEverything { get { return true; } }

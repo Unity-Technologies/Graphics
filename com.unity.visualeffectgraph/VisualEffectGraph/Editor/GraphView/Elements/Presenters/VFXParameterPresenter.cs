@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.UI
         {
             var anchor = VFXParameterOutputDataAnchorPresenter.CreateInstance<VFXParameterOutputDataAnchorPresenter>();
             anchor.Init(slot, this);
-            anchor.anchorType = slot.property.type;
+            anchor.portType = slot.property.type;
             if (slot.IsMasterSlot())
                 anchor.name = slot.property.type.UserFriendlyName();
             return anchor;
@@ -36,7 +36,7 @@ namespace UnityEditor.VFX.UI
             m_Parameter = parameter;
             //m_Field = field;
 
-            System.Type type = m_Parameter.anchorType;
+            System.Type type = m_Parameter.portType;
             m_FieldInfo = type.GetFields()[field];
         }
 
@@ -75,7 +75,7 @@ namespace UnityEditor.VFX.UI
             throw new NotImplementedException();
         }
 
-        public Type anchorType
+        public Type portType
         {
             get
             {
@@ -105,9 +105,6 @@ namespace UnityEditor.VFX.UI
         {
             base.Init(model, viewPresenter);
 
-            exposed = parameter.exposed;
-            exposedName = parameter.exposedName;
-
             m_CachedMinValue = parameter.m_Min != null ? parameter.m_Min.Get() : null;
             m_CachedMaxValue = parameter.m_Max != null ? parameter.m_Max.Get() : null;
         }
@@ -121,7 +118,7 @@ namespace UnityEditor.VFX.UI
         {
             if (m_SubPresenters == null)
             {
-                System.Type type = anchorType;
+                System.Type type = portType;
 
                 FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
 
@@ -154,36 +151,15 @@ namespace UnityEditor.VFX.UI
         public string exposedName
         {
             get { return parameter.exposedName; }
-            set
-            {
-                if (parameter.exposedName != value)
-                {
-                    parameter.exposedName = value;
-                }
-            }
         }
         public bool exposed
         {
             get { return parameter.exposed; }
-            set
-            {
-                if (parameter.exposed != value)
-                {
-                    parameter.exposed = value;
-                }
-            }
         }
 
         public int order
         {
             get { return parameter.order; }
-            set
-            {
-                if (parameter.order != value)
-                {
-                    parameter.order = value;
-                }
-            }
         }
 
         private VFXParameter parameter { get { return model as VFXParameter; } }
@@ -210,7 +186,7 @@ namespace UnityEditor.VFX.UI
                 if (value != null)
                 {
                     if (parameter.m_Min == null)
-                        parameter.m_Min = new VFXSerializableObject(anchorType, value);
+                        parameter.m_Min = new VFXSerializableObject(portType, value);
                     else
                         parameter.m_Min.Set(value);
                 }
@@ -227,7 +203,7 @@ namespace UnityEditor.VFX.UI
                 if (value != null)
                 {
                     if (parameter.m_Max == null)
-                        parameter.m_Max = new VFXSerializableObject(anchorType, value);
+                        parameter.m_Max = new VFXSerializableObject(portType, value);
                     else
                         parameter.m_Max.Set(value);
                 }
@@ -265,7 +241,7 @@ namespace UnityEditor.VFX.UI
 
         VFXPropertyAttribute[] IPropertyRMProvider.attributes { get { return new VFXPropertyAttribute[] {}; }}
 
-        public Type anchorType
+        public Type portType
         {
             get
             {

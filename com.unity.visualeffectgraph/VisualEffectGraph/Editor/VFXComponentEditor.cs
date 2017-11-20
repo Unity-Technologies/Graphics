@@ -342,11 +342,11 @@ public class VFXComponentEditor : Editor
 
     Dictionary<VFXParameterPresenter, Infos> m_Infos = new Dictionary<VFXParameterPresenter, Infos>();
 
-    void OnParamGUI(VFXParameterPresenter parameter)
+    void OnParamGUI(VFXParameter parameter)
     {
         VFXComponent comp = (VFXComponent)target;
 
-        string fieldName = VFXComponentUtility.GetTypeField(parameter.anchorType);
+        string fieldName = VFXComponentUtility.GetTypeField(parameter.type);
 
 
         var vfxField = m_VFXPropertySheet.FindPropertyRelative(fieldName + ".m_Array");
@@ -377,11 +377,10 @@ public class VFXComponentEditor : Editor
                 GUI.color = AnimationMode.animatedPropertyColor;
             }
 
-
             EditorGUIUtility.SetBoldDefaultFont(overrideProperty.boolValue);
 
             EditorGUI.BeginChangeCheck();
-            if (parameter.anchorType == typeof(Color))
+            if (parameter.type == typeof(Color))
             {
                 Vector4 vVal = property.vector4Value;
                 Color c = new Color(vVal.x, vVal.y, vVal.z, vVal.w);
@@ -576,6 +575,9 @@ public class VFXComponentEditor : Editor
             Event.current.Use();
     }*/
 
+    private VFXAsset m_asset;
+    private VFXGraph m_graph;
+
     public override void OnInspectorGUI()
     {
         InitializeGUI();
@@ -618,13 +620,24 @@ public class VFXComponentEditor : Editor
         //Field
         GUILayout.Label(m_Contents.HeaderParameters, m_Styles.InspectorHeader);
 
-        /*var newList = m_Presenter.allChildren.OfType<VFXParameterPresenter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
-
-        foreach (var parameter in newList)
+        if (m_graph == null || m_asset != component.vfxAsset)
         {
-            OnParamGUI(parameter);
+            m_asset = component.vfxAsset;
+            if (m_asset != null)
+            {
+                m_graph = m_asset.GetOrCreateGraph();
+            }
         }
-        */
+
+        if (m_graph != null)
+        {
+            var newList = m_graph.children.OfType<VFXParameter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
+            foreach (var parameter in newList)
+            {
+                OnParamGUI(parameter);
+            }
+        }
+
         serializedObject.ApplyModifiedProperties();
         if (reinit)
         {

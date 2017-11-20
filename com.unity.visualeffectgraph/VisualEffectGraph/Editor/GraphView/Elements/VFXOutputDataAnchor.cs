@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.UI
         // TODO This is a workaround to avoid having a generic type for the anchor as generic types mess with USS.
         public static new VFXOutputDataAnchor Create(VFXDataAnchorPresenter presenter)
         {
-            var anchor = new VFXOutputDataAnchor(presenter.orientation, presenter.direction, presenter.anchorType);
+            var anchor = new VFXOutputDataAnchor(presenter.orientation, presenter.direction, presenter.portType);
 
             anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
             anchor.presenter = presenter;
@@ -78,8 +78,8 @@ namespace UnityEditor.VFX.UI
                 if (m_Icons == null)
                     m_Icons = new Texture2D[2];
 
-                m_Icons[0] = GetTypeIcon(presenter.anchorType, IconType.plus);
-                m_Icons[1] = GetTypeIcon(presenter.anchorType, IconType.minus);
+                m_Icons[0] = GetTypeIcon(presenter.portType, IconType.plus);
+                m_Icons[1] = GetTypeIcon(presenter.portType, IconType.minus);
 
                 m_Icon.style.backgroundImage = presenter.expanded ? m_Icons[1] : m_Icons[0];
 
@@ -87,7 +87,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                m_Icon.style.backgroundImage = GetTypeIcon(presenter.anchorType, IconType.simple);
+                m_Icon.style.backgroundImage = GetTypeIcon(presenter.portType, IconType.simple);
             }
 
             if (presenter.expandable)
