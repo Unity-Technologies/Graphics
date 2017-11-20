@@ -192,16 +192,15 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
                     // TODO...
                     if (lightType != GPULIGHTTYPE_POINT) continue;
 
-                    float t, rcpPdf;
+                    float t, distSq, rcpPdf;
                     ImportanceSamplePunctualLight(rndVal, lightData.positionWS,
                                                   ray.originWS, ray.directionWS,
-                                                  tMin, tMax, t, rcpPdf);
+                                                  tMin, tMax, t, distSq, rcpPdf);
 
                     float3 positionWS = GetPointAtDistance(ray, t);
 
                     // TODO: we could compute this data in ImportanceSamplePunctualLight().
                     float3 lightToSample = positionWS - lightData.positionWS;
-                    float  distSq        = dot(lightToSample, lightToSample);
                     float  dist          = sqrt(distSq);
                     float3 L             = lightToSample * -rsqrt(distSq);
                     float  intensity     = GetPunctualShapeAttenuation(lightData, L, distSq);
