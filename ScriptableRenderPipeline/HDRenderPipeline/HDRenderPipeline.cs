@@ -91,16 +91,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         static readonly string[] k_ForwardPassDebugName =
         {
-            "Forward Opaque Debug Display",
-            "Forward PreRefraction Debug Display",
-            "Forward Transparent Debug Display"
+            "Forward Opaque Debug",
+            "Forward PreRefraction Debug",
+            "Forward Transparent Debug"
         };
 
         static readonly string[] k_ForwardPassName =
         {
-            "Forward Opaque Display",
-            "Forward PreRefraction Display",
-            "Forward Transparent Display"
+            "Forward Opaque",
+            "Forward PreRefraction",
+            "Forward Transparent"
         };
 
         static readonly RenderQueueRange k_RenderQueue_PreRefraction = new RenderQueueRange { min = (int)HDRenderQueue.PreRefraction, max = (int)HDRenderQueue.Transparent - 1 };
@@ -353,7 +353,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_MaterialList.ForEach(material => material.Build(asset.renderPipelineResources));
 
-            m_LightLoop.Build(asset.renderPipelineResources, asset.tileSettings, asset.textureSettings, asset.shadowInitParams, m_ShadowSettings);
+            m_LightLoop.Build(asset.renderPipelineResources, asset.renderingSettings, asset.tileSettings, asset.textureSettings, asset.shadowInitParams, m_ShadowSettings);
 
             m_SkyManager.Build(asset.renderPipelineResources);
             m_SkyManager.skySettings = skySettingsToUse;
@@ -385,7 +385,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Tile/Cluster", () => m_Asset.tileSettings.enableTileAndCluster, (value) => m_Asset.tileSettings.enableTileAndCluster = (bool)value, DebugItemFlag.RuntimeOnly);
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Big Tile", () => m_Asset.tileSettings.enableBigTilePrepass, (value) => m_Asset.tileSettings.enableBigTilePrepass = (bool)value, DebugItemFlag.RuntimeOnly);
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Cluster", () => m_Asset.tileSettings.enableClustered, (value) => m_Asset.tileSettings.enableClustered = (bool)value, DebugItemFlag.RuntimeOnly);
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Compute Lighting", () => m_Asset.tileSettings.enableComputeLightEvaluation, (value) => m_Asset.tileSettings.enableComputeLightEvaluation = (bool)value, DebugItemFlag.RuntimeOnly);
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Light Classification", () => m_Asset.tileSettings.enableComputeLightVariants, (value) => m_Asset.tileSettings.enableComputeLightVariants = (bool)value, DebugItemFlag.RuntimeOnly);
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Material Classification", () => m_Asset.tileSettings.enableComputeMaterialVariants, (value) => m_Asset.tileSettings.enableComputeMaterialVariants = (bool)value, DebugItemFlag.RuntimeOnly);
@@ -594,7 +593,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Currently, Unity does not offer a way to bind the stencil buffer as a texture in a compute shader.
             // Therefore, it's manually copied using a pixel shader.
-            return m_CurrentDebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission || LightLoop.GetFeatureVariantsEnabled(m_Asset.tileSettings);
+            return m_CurrentDebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission || m_LightLoop.GetFeatureVariantsEnabled();
         }
 
         bool NeedHTileCopy()
@@ -879,8 +878,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 RenderForward(m_CullResults, camera, renderContext, cmd, ForwardPass.Opaque);
                 RenderForwardError(m_CullResults, camera, renderContext, cmd, ForwardPass.Opaque);
 
-                RenderLightingDebug(hdCamera, cmd, m_CameraColorBufferRT, m_CurrentDebugDisplaySettings);
-
                 RenderSky(hdCamera, cmd);
 
                 // Do a depth pre-pass for transparent objects that want it that will fill the depth buffer to reduce the overdraw (typical usage is hair rendering)
@@ -924,7 +921,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            RenderDebug(hdCamera, cmd);
+            RenderDebug(hdCamera, cmd);                
 
 #if UNITY_EDITOR
             // bind depth surface for editor grid/gizmo/selection rendering
@@ -1345,11 +1342,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_SkyManager.ExportSkyToTexture();
         }
 
-        void RenderLightingDebug(HDCamera camera, CommandBuffer cmd, RenderTargetIdentifier colorBuffer, DebugDisplaySettings debugDisplaySettings)
-        {
-            m_LightLoop.RenderLightingDebug(camera, cmd, colorBuffer, debugDisplaySettings);
-        }
-
         // Render forward is use for both transparent and opaque objects. In case of deferred we can still render opaque object in forward.
         void RenderForward(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, ForwardPass pass)
         {
@@ -1676,7 +1668,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, camera.camera.pixelWidth);
                 }
 
-                m_LightLoop.RenderDebugOverlay(camera.camera, cmd, m_CurrentDebugDisplaySettings, ref x, ref y, overlaySize, camera.camera.pixelWidth);
+                m_LightLoop.RenderDebugOverlay(camera, cmd, m_CurrentDebugDisplaySettings, ref x, ref y, overlaySize, camera.camera.pixelWidth);
             }
         }
 
