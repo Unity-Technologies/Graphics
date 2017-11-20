@@ -213,7 +213,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     continue;
 
                 var port = InstantiatePort(Orientation.Horizontal, slot.isInputSlot ? Direction.Input : Direction.Output, null);
-                port.capabilities &= ~Capabilities.Movable;
                 port.portName = slot.displayName;
                 port.userData = slot;
                 port.visualClass = slot.concreteValueType.ToClassName();
