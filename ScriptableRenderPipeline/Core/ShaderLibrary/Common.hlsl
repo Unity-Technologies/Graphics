@@ -119,25 +119,7 @@ bool IsBitSet(uint data, uint bitPos)
     TEMPLATE_3_INT(Max3, a, b, c, return max(max(a, b), c))
 #endif // INTRINSIC_MINMAX3
 
-void Swap(inout float a, inout float b)
-{
-    float  t = a; a = b; b = t;
-}
-
-void Swap(inout float2 a, inout float2 b)
-{
-    float2 t = a; a = b; b = t;
-}
-
-void Swap(inout float3 a, inout float3 b)
-{
-    float3 t = a; a = b; b = t;
-}
-
-void Swap(inout float4 a, inout float4 b)
-{
-    float4 t = a; a = b; b = t;
-}
+TEMPLATE_SWAP(Swap) // Define a Swap(a, b) function for all types
 
 #define CUBEMAPFACE_POSITIVE_X 0
 #define CUBEMAPFACE_NEGATIVE_X 1
