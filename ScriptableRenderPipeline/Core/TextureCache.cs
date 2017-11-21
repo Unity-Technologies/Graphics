@@ -21,7 +21,7 @@ namespace UnityEngine.Experimental.Rendering
 
             if (mismatch)
             {
-                if (!Graphics.ConvertTexture(texture, 0, m_Cache, sliceIndex))
+                if (!UnityEngine.Graphics.ConvertTexture(texture, 0, m_Cache, sliceIndex))
                 {
                     Debug.LogErrorFormat(texture, "Unable to convert texture \"{0}\" to match renderloop settings ({1}x{2} {3})",
                         texture.name, m_Cache.width, m_Cache.height, m_Cache.format);
@@ -29,7 +29,7 @@ namespace UnityEngine.Experimental.Rendering
             }
             else
             {
-                Graphics.CopyTexture(texture, 0, m_Cache, sliceIndex);
+                UnityEngine.Graphics.CopyTexture(texture, 0, m_Cache, sliceIndex);
             }
         }
 
@@ -89,7 +89,7 @@ namespace UnityEngine.Experimental.Rendering
 
                     for (int f = 0; f < 6; f++)
                     {
-                        if (!Graphics.ConvertTexture(texture, f, m_Cache, 6 * sliceIndex + f))
+                        if (!UnityEngine.Graphics.ConvertTexture(texture, f, m_Cache, 6 * sliceIndex + f))
                         {
                             failed = true;
                             break;
@@ -105,7 +105,7 @@ namespace UnityEngine.Experimental.Rendering
                 else
                 {
                     for (int f = 0; f < 6; f++)
-                        Graphics.CopyTexture(texture, f, m_Cache, 6 * sliceIndex + f);
+                        UnityEngine.Graphics.CopyTexture(texture, f, m_Cache, 6 * sliceIndex + f);
                 }
             }
         }
@@ -187,12 +187,12 @@ namespace UnityEngine.Experimental.Rendering
             for (int m = 0; m < m_NumPanoMipLevels; m++)
             {
                 m_CubeBlitMaterial.SetInt(m_CubeMipLevelPropName, Mathf.Min(m_NumMipLevels - 1, m));
-                Graphics.SetRenderTarget(m_StagingRTs[m]);
-                Graphics.Blit(null, m_CubeBlitMaterial, 0);
+                UnityEngine.Graphics.SetRenderTarget(m_StagingRTs[m]);
+                UnityEngine.Graphics.Blit(null, m_CubeBlitMaterial, 0);
             }
 
             for (int m = 0; m < m_NumPanoMipLevels; m++)
-                Graphics.CopyTexture(m_StagingRTs[m], 0, 0, m_CacheNoCubeArray, sliceIndex, m);
+                UnityEngine.Graphics.CopyTexture(m_StagingRTs[m], 0, 0, m_CacheNoCubeArray, sliceIndex, m);
         }
     }
 
