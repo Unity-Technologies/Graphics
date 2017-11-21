@@ -62,7 +62,6 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             // variable declaration
             //-------------------------------------------------------------------------------------
 
-            DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
             #ifdef SHADOWS_SHADOWMASK
             TEXTURE2D(_ShadowMaskTexture);
             #endif
@@ -104,10 +103,9 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                 UpdatePositionInput(depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, posInput);
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
-                FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
                 BSDFData bsdfData;
                 BakeLightingData bakeLightingData;
-                DECODE_FROM_GBUFFER(gbuffer, MATERIAL_FEATURE_MASK_FLAGS, bsdfData, bakeLightingData.bakeDiffuseLighting);
+                DECODE_FROM_GBUFFER(posInput.unPositionSS, MATERIAL_FEATURE_MASK_FLAGS, bsdfData, bakeLightingData.bakeDiffuseLighting);
                 #ifdef SHADOWS_SHADOWMASK
                 DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.unPositionSS), bakeLightingData.bakeShadowMask);
                 #endif
