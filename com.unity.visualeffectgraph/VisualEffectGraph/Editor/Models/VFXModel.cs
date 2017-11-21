@@ -242,7 +242,7 @@ namespace UnityEditor.VFX
                 m_Parent.Invalidate(model, cause);
         }
 
-        public IEnumerable<FieldInfo> GetSettings(bool listHidden, VFXSettingAttribute.VisibleFlags flags = VFXSettingAttribute.VisibleFlags.Any)
+        public IEnumerable<FieldInfo> GetSettings(bool listHidden, VFXSettingAttribute.VisibleFlags flags = VFXSettingAttribute.VisibleFlags.All)
         {
             return GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(f =>
                 {
@@ -250,7 +250,7 @@ namespace UnityEditor.VFX
                     if (attrArray.Length == 1)
                     {
                         var attr = attrArray[0] as VFXSettingAttribute;
-                        if (flags != VFXSettingAttribute.VisibleFlags.Any && (attr.visibleFlags & flags) == 0)
+                        if ((attr.visibleFlags & flags) == 0)
                         {
                             return false;
                         }

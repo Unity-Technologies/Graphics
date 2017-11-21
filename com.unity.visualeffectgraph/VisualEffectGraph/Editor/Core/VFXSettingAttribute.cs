@@ -14,7 +14,8 @@ namespace UnityEditor.VFX
             InInspector = 1 << 0,
             InGraph = 1 << 1,
             Default = InGraph | InInspector,
-            Any = 0
+            All = 0xFFFF,
+            None = 0
         }
 
         public VFXSettingAttribute(VisibleFlags flags = VisibleFlags.Default)
