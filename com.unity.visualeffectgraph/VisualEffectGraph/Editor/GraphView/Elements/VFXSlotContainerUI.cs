@@ -58,7 +58,7 @@ namespace UnityEditor.VFX.UI
             }
             if (m_SettingsContainer != null)
             {
-                var activeSettings = presenter.model.GetSettings(false);
+                var activeSettings = presenter.model.GetSettings(false, VFXSettingAttribute.VisibleFlags.InGraph);
                 for (int i = 0; i < m_Settings.Count; ++i)
                     m_Settings[i].RemoveFromHierarchy();
 
