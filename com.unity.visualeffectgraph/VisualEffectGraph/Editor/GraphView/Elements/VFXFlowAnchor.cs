@@ -123,7 +123,7 @@ namespace UnityEditor.VFX.UI
                 //TODO create the most obvious context and link
                 if (presenter.direction == Direction.Input)
                 {
-                    switch (presenter.Owner.contextType)
+                    switch (presenter.owner.contextType)
                     {
                         case VFXContextType.kInit:
                             targetContextType = VFXContextType.kSpawner;
@@ -138,7 +138,7 @@ namespace UnityEditor.VFX.UI
                 }
                 else
                 {
-                    switch (presenter.Owner.contextType)
+                    switch (presenter.owner.contextType)
                     {
                         case VFXContextType.kUpdate:
                             targetContextType = VFXContextType.kOutput;

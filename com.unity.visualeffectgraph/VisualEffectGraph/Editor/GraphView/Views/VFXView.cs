@@ -141,6 +141,7 @@ namespace UnityEditor.VFX.UI
                     }
                     else if (d.modelDescriptor == null)
                     {
+                        /*
                         VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
                         if (presenter != null)
                         {
@@ -154,7 +155,19 @@ namespace UnityEditor.VFX.UI
                             spawner.LinkTo(initialize);
                             initialize.LinkTo(update);
                             update.LinkTo(output);
-                        }
+                        }*/
+
+
+                        VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>("Assets/VFXEditor/Editor/Templates/DefaultParticleSystem.asset");
+
+                        VFXViewPresenter presenter = VFXViewPresenter.Manager.GetPresenter(asset);
+                        presenter.useCount++;
+
+                        object data = VFXCopyPaste.CreateCopy(presenter.allChildren);
+
+                        VFXCopyPaste.PasteCopy(this, tPos, data);
+
+                        presenter.useCount--;
                     }
                     else
                     {
@@ -197,7 +210,7 @@ namespace UnityEditor.VFX.UI
             Add(toolbar);
 
 
-            Button button = new Button(() => {Resync(); });
+            Button button = new Button(() => { Resync(); });
             button.text = "Refresh";
             button.AddToClassList("toolbarItem");
             toolbar.Add(button);
@@ -248,6 +261,9 @@ namespace UnityEditor.VFX.UI
             m_NoAssetLabel.style.textColor = Color.white * 0.75f;
 
             Add(m_NoAssetLabel);
+
+            this.serializeGraphElements = SerializeElements;
+            this.unserializeAndPaste = UnserializeAndPasteElements;
         }
 
         VFXRendererSettings GetRendererSettings()
@@ -479,9 +495,11 @@ namespace UnityEditor.VFX.UI
                 BaseVisualElementPanel panel = this.panel as BaseVisualElementPanel;
 
 
-                panel.scheduler.ScheduleOnce(t => { panel.ValidateLayout(); FrameAll(); } , 100);
+                panel.scheduler.ScheduleOnce(t => { panel.ValidateLayout(); FrameAll(); }, 100);
 
                 m_OldPresenter = presenter;
+
+                pasteOffset = Vector2.zero; // if we change asset we want to paste exactly at the same place as the original asset the first time.
             }
         }
 
@@ -650,5 +668,21 @@ namespace UnityEditor.VFX.UI
 
         private Toggle m_ToggleCastShadows;
         private Toggle m_ToggleMotionVectors;
+
+        public readonly Vector2 defaultPasteOffset = new Vector2(100, 100);
+        public Vector2 pasteOffset = Vector2.zero;
+
+        string SerializeElements(IEnumerable<GraphElement> elements)
+        {
+            pasteOffset = defaultPasteOffset;
+            return VFXCopyPaste.SerializeElements(elements.Select(t => t.presenter));
+        }
+
+        void UnserializeAndPasteElements(string operationName, string data)
+        {
+            VFXCopyPaste.UnserializeAndPasteElements(this, pasteOffset, data);
+
+            pasteOffset += defaultPasteOffset;
+        }
     }
 }
