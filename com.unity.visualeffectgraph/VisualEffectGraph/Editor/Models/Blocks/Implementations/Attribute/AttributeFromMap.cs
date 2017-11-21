@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Attribute")]
+    [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeVariantWritable))]
     class AttributeFromMap : VFXBlock
     {
         // TODO: Let's factorize this this into a utility class
@@ -22,9 +22,9 @@ namespace UnityEditor.VFX.Block
         }
 
         [VFXSetting]
-        [StringProvider(typeof(AttributeProvider))]
+        [StringProvider(typeof(WritableAttributeProvider))]
         [Tooltip("Target Attribute")]
-        public string attribute = VFXAttribute.All.First();
+        public string attribute = VFXAttribute.AllWritable.First();
 
         [VFXSetting]
         [Tooltip("How to compose the attribute with its previous value")]
@@ -34,7 +34,7 @@ namespace UnityEditor.VFX.Block
         [Tooltip("How to sample inside the AttributeMap")]
         public AttributeMapSampleMode SampleMode = AttributeMapSampleMode.RandomUniformPerParticle;
 
-        public override string name { get { return "Attribute from Map"; } }
+        public override string name { get { return string.Format("Attribute {0} from Map", attribute); } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
         public override IEnumerable<VFXAttributeInfo> attributes
@@ -52,44 +52,38 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
+                // Texture Property (2D/3D)
                 string textureInputPropertiesType = "InputProperties2DTexture";
 
                 if (SampleMode == AttributeMapSampleMode.Sample3DLOD)
                     textureInputPropertiesType = "InputProperties3DTexture";
 
-                foreach (var prop in PropertiesFromType(textureInputPropertiesType))
-                    yield return prop;
+                var properties = PropertiesFromType(textureInputPropertiesType);
 
-
-                if (SampleMode == AttributeMapSampleMode.IndexRelative)
+                // Sample Mode
+                switch (SampleMode)
                 {
-                    foreach (var prop in PropertiesFromType("InputPropertiesRelative"))
-                        yield return prop;
+                    case AttributeMapSampleMode.IndexRelative:
+                        properties = properties.Concat(PropertiesFromType("InputPropertiesRelative"));
+                        break;
+                    case AttributeMapSampleMode.Index:
+                        properties = properties.Concat(PropertiesFromType("InputPropertiesIndex"));
+                        break;
+                    case AttributeMapSampleMode.Sample2DLOD:
+                        properties = properties.Concat(PropertiesFromType("InputPropertiesSample2DLOD"));
+                        break;
+                    case AttributeMapSampleMode.Sample3DLOD:
+                        properties = properties.Concat(PropertiesFromType("InputPropertiesSample3DLOD"));
+                        break;
                 }
 
-                if (SampleMode == AttributeMapSampleMode.Index)
-                {
-                    foreach (var prop in PropertiesFromType("InputPropertiesIndex"))
-                        yield return prop;
-                }
-
-                if (SampleMode == AttributeMapSampleMode.Sample2DLOD)
-                {
-                    foreach (var prop in PropertiesFromType("InputPropertiesSample2DLOD"))
-                        yield return prop;
-                }
-
-                if (SampleMode == AttributeMapSampleMode.Sample3DLOD)
-                {
-                    foreach (var prop in PropertiesFromType("InputPropertiesSample3DLOD"))
-                        yield return prop;
-                }
+                // Need Composition Input Properties?
                 if (Composition == AttributeCompositionMode.Blend)
                 {
-                    foreach (var prop in PropertiesFromType("InputPropertiesBlend"))
-                        yield return prop;
+                    properties = properties.Concat(PropertiesFromType("InputPropertiesBlend"));
                 }
 
+                // Scale and Bias for the values, depending on the property type
                 if (VFXExpression.IsUniform(currentAttribute.type))
                 {
                     string scaleInputPropertiesType = "InputPropertiesScaleFloat";
@@ -101,9 +95,10 @@ namespace UnityEditor.VFX.Block
                         case 4: scaleInputPropertiesType = "InputPropertiesScaleFloat4"; break;
                     }
 
-                    foreach (var prop in PropertiesFromType(scaleInputPropertiesType))
-                        yield return prop;
+                    properties = properties.Concat(PropertiesFromType(scaleInputPropertiesType));
                 }
+
+                return properties;
             }
         }
 
