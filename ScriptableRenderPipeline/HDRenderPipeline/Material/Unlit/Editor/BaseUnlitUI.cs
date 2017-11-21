@@ -56,7 +56,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             Alpha = 0,
             Additive = 1,
-            Multiplicative = 3,
             PremultipliedAlpha = 4
         }
 
@@ -107,7 +106,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kEnableFogOnTransparent = "_EnableFogOnTransparent";
         protected MaterialProperty enableBlendModePreserveSpecularLighting = null;
         protected const string kEnableBlendModePreserveSpecularLighting = "_EnableBlendModePreserveSpecularLighting";
-        
+
 
         // See comment in LitProperties.hlsl
         const string kEmissionColor = "_EmissionColor";
@@ -153,7 +152,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             preRefractionPass = FindProperty(kPreRefractionPass, props, false);
 
             enableFogOnTransparent = FindProperty(kEnableFogOnTransparent, props, false);
-            enableBlendModePreserveSpecularLighting = FindProperty(kEnableBlendModePreserveSpecularLighting, props, false);            
+            enableBlendModePreserveSpecularLighting = FindProperty(kEnableBlendModePreserveSpecularLighting, props, false);
         }
 
         void SurfaceTypePopup()
@@ -307,7 +306,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // These need to always been set either with opaque or transparent! So a users can switch to opaque and remove the keyword correctly
             SetKeyword(material, "_BLENDMODE_ALPHA", false);
             SetKeyword(material, "_BLENDMODE_ADD", false);
-            SetKeyword(material, "_BLENDMODE_MULTIPLY", false);
             SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", false);
 
             if (surfaceType == SurfaceType.Opaque)
@@ -331,7 +329,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                     SetKeyword(material, "_BLENDMODE_ALPHA", BlendMode.Alpha == blendMode);
                     SetKeyword(material, "_BLENDMODE_ADD", BlendMode.Additive == blendMode);
-                    SetKeyword(material, "_BLENDMODE_MULTIPLY", BlendMode.Multiplicative == blendMode);
                     SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", BlendMode.PremultipliedAlpha == blendMode);
 
                     switch (blendMode)
