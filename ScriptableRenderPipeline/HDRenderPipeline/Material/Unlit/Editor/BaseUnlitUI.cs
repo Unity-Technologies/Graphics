@@ -349,13 +349,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.One);
                             break;
 
-                        // Multiplicative
-                        // color: src * dst
-                        case BlendMode.Multiplicative:
-                            material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.DstColor);
-                            material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
-                            break;
-
                         // PremultipliedAlpha
                         // color: src * src_a + dst * (1 - src_a)
                         // src is supposed to have been multiplied by alpha in the texture on artists side.
