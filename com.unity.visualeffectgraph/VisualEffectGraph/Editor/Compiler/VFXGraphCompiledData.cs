@@ -330,9 +330,10 @@ namespace UnityEditor.VFX
                             return new VFXTaskDesc
                             {
                                 type = spawnerBlock.spawnerType,
-                                buffers = Enumerable.Empty<VFXMapping>().ToArray(),
+                                buffers = new VFXMapping[0],
+                                values = cpuExpression.ToArray(),
+                                parameters = new VFXMapping[0],
                                 processor = processor,
-                                values = cpuExpression.ToArray()
                             };
                         }).ToArray()
                 });

@@ -343,7 +343,7 @@ namespace UnityEditor.VFX
 
                 taskDesc.buffers = bufferMappings.ToArray();
                 taskDesc.values = uniformMappings.ToArray();
-
+                taskDesc.parameters = new VFXMapping[0];
                 taskDesc.processor = contextToCompiledData[context].processor;
 
                 taskDescs.Add(taskDesc);

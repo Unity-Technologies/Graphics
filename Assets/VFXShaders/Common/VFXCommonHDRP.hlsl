@@ -46,5 +46,5 @@ float4 VFXGetPOSSS(float4 posCS)
 
 float VFXLinearEyeDepth(float4 posSS)
 {
-    return LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_MainDepthTexture, UNITY_PROJ_COORD(posSS)),_zBufferParams);
+    return LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_MainDepthTexture, UNITY_PROJ_COORD(posSS)),_ZBufferParams);
 }
