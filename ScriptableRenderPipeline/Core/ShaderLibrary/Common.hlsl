@@ -204,8 +204,8 @@ float RadToDeg(float rad)
 }
 
 // Square functions for cleaner code
-TEMPLATE_1_FLT(Sqr, x, return x * x)
-TEMPLATE_1_INT(Sqr, x, return x * x)
+TEMPLATE_1_FLT(Sq, x, return x * x)
+TEMPLATE_1_INT(Sq, x, return x * x)
 
 // Input [0, 1] and output [0, PI/2]
 // 9 VALU
