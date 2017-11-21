@@ -7,8 +7,6 @@
 #define PI 3.14159265359f
 #define kDieletricSpec half4(0.04, 0.04, 0.04, 1.0 - 0.04) // standard dielectric reflectivity coef at incident angle (= 4%)
 
-#define MAX_VISIBLE_LIGHTS 16
-
 #ifndef UNITY_SPECCUBE_LOD_STEPS
 #define UNITY_SPECCUBE_LOD_STEPS 6
 #endif
@@ -29,74 +27,9 @@
     #endif
 #endif
 
-// Main light initialized without indexing
-#define INITIALIZE_MAIN_LIGHT(light) \
-    light.pos = _MainLightPosition; \
-    light.color = _MainLightColor; \
-    light.distanceAttenuation = _MainLightDistanceAttenuation; \
-    light.spotDirection = _MainLightSpotDir; \
-    light.spotAttenuation = _MainLightSpotAttenuation
-
-// Indexing might have a performance hit for old mobile hardware
-#define INITIALIZE_LIGHT(light, i) \
-    half4 indices = (i < 4) ? unity_4LightIndices0 : unity_4LightIndices1; \
-    int index = (i < 4) ? i : i - 4; \
-    int lightIndex = indices[index]; \
-    light.pos = _AdditionalLightPosition[lightIndex]; \
-    light.color = _AdditionalLightColor[lightIndex]; \
-    light.distanceAttenuation = _AdditionalLightDistanceAttenuation[lightIndex]; \
-    light.spotDirection = _AdditionalLightSpotDir[lightIndex]; \
-    light.spotAttenuation = _AdditionalLightSpotAttenuation[lightIndex]
-
-CBUFFER_START(_PerObject)
-half4 unity_LightIndicesOffsetAndCount;
-half4 unity_4LightIndices0;
-half4 unity_4LightIndices1;
-CBUFFER_END
-
-CBUFFER_START(_PerCamera)
-sampler2D _MainLightCookie;
-float4 _MainLightPosition;
-half4 _MainLightColor;
-half4 _MainLightDistanceAttenuation;
-half4 _MainLightSpotDir;
-half4 _MainLightSpotAttenuation;
-float4x4 _WorldToLight;
-
-half4 _AdditionalLightCount;
-float4 _AdditionalLightPosition[MAX_VISIBLE_LIGHTS];
-half4 _AdditionalLightColor[MAX_VISIBLE_LIGHTS];
-half4 _AdditionalLightDistanceAttenuation[MAX_VISIBLE_LIGHTS];
-half4 _AdditionalLightSpotDir[MAX_VISIBLE_LIGHTS];
-half4 _AdditionalLightSpotAttenuation[MAX_VISIBLE_LIGHTS];
-CBUFFER_END
-
-CBUFFER_START(_PerFrame)
-half4 _GlossyEnvironmentColor;
-CBUFFER_END
-
-// Must match Lightweigth ShaderGraph master node
-struct SurfaceData
-{
-    half3 albedo;
-    half3 specular;
-    half  metallic;
-    half  smoothness;
-    half3 normal;
-    half3 emission;
-    half  occlusion;
-    half  alpha;
-};
-
-struct LightInput
-{
-    float4 pos;
-    half4 color;
-    half4 distanceAttenuation;
-    half4 spotDirection;
-    half4 spotAttenuation;
-};
-
+///////////////////////////////////////////////////////////////////////////////
+//                         BRDF Functions                                    //
+///////////////////////////////////////////////////////////////////////////////
 struct BRDFData
 {
     half3 diffuse;
@@ -154,18 +87,6 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
 #endif
 }
 
-half3 GlossyEnvironment(half3 reflectVector, half perceptualRoughness)
-{
-#if !defined(_GLOSSYREFLECTIONS_OFF)
-    half roughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
-    half mip = roughness * UNITY_SPECCUBE_LOD_STEPS;
-    half4 rgbm = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectVector, mip);
-    return DecodeHDR(rgbm, unity_SpecCube0_HDR);
-#endif
-
-    return _GlossyEnvironmentColor;
-}
-
 half3 LightweightEnvironmentBRDF(BRDFData brdfData, half3 indirectDiffuse, half3 indirectSpecular, half roughness2, half fresnelTerm)
 {
     half3 c = indirectDiffuse * brdfData.diffuse;
@@ -180,7 +101,7 @@ half3 LightweightEnvironmentBRDF(BRDFData brdfData, half3 indirectDiffuse, half3
 // * NDF [Modified] GGX
 // * Modified Kelemen and Szirmay-​Kalos for Visibility term
 // * Fresnel approximated with 1/LdotH
-half3 LightweightBDRF(BRDFData brdfData, half roughness2, half3 normal, half3 lightDirection, half3 viewDir)
+half3 LightweightDirectBDRF(BRDFData brdfData, half roughness2, half3 normal, half3 lightDirection, half3 viewDir)
 {
 #ifndef _SPECULARHIGHLIGHTS_OFF
     half3 halfDir = SafeNormalize(lightDirection + viewDir);
@@ -214,37 +135,27 @@ half3 LightweightBDRF(BRDFData brdfData, half roughness2, half3 normal, half3 li
 #endif
 }
 
-half3 LightingLambert(half3 lightColor, half3 lightDir, half3 normal)
-{
-    half NdotL = saturate(dot(normal, lightDir));
-    return lightColor * NdotL;
-}
-
-half3 LightingSpecular(half3 lightColor, half3 lightDir, half3 normal, half3 viewDir, half4 specularGloss, half shininess)
-{
-    half3 halfVec = SafeNormalize(lightDir + viewDir);
-    half NdotH = saturate(dot(normal, halfVec));
-    half3 specularReflection = specularGloss.rgb * pow(NdotH, shininess) * specularGloss.a;
-    return lightColor * specularReflection;
-}
-
+///////////////////////////////////////////////////////////////////////////////
+//                        Attenuation Functions                               /
+///////////////////////////////////////////////////////////////////////////////
 half CookieAttenuation(float3 worldPos)
 {
 #ifdef _MAIN_LIGHT_COOKIE
-    #ifdef _MAIN_DIRECTIONAL_LIGHT
-        float2 cookieUV = mul(_WorldToLight, float4(worldPos, 1.0)).xy;
-        return tex2D(_MainLightCookie, cookieUV).a;
-    #elif defined(_MAIN_SPOT_LIGHT)
-        float4 projPos = mul(_WorldToLight, float4(worldPos, 1.0));
-        float2 cookieUV = projPos.xy / projPos.w + 0.5;
-        return tex2D(_MainLightCookie, cookieUV).a;
-    #endif // POINT LIGHT cookie not supported
+#ifdef _MAIN_DIRECTIONAL_LIGHT
+    float2 cookieUV = mul(_WorldToLight, float4(worldPos, 1.0)).xy;
+    return tex2D(_MainLightCookie, cookieUV).a;
+#elif defined(_MAIN_SPOT_LIGHT)
+    float4 projPos = mul(_WorldToLight, float4(worldPos, 1.0));
+    float2 cookieUV = projPos.xy / projPos.w + 0.5;
+    return tex2D(_MainLightCookie, cookieUV).a;
+#endif // POINT LIGHT cookie not supported
 #endif
 
     return 1;
 }
 
 // Matches Unity Vanila attenuation
+// Attenuation smoothly decreases to light range.
 half DistanceAttenuation(half3 distanceSqr, half4 distanceAttenuation)
 {
     // We use a shared distance attenuation for additional directional and puctual lights
@@ -278,8 +189,7 @@ half SpotAttenuation(half3 spotDirection, half3 lightDirection, half4 spotAttenu
     return saturate(SdotL * spotAttenuation.x + spotAttenuation.y);
 }
 
-// Attenuation smoothly decreases to light range.
-inline half ComputeLightAttenuation(LightInput lightInput, half3 normal, float3 worldPos, out half3 lightDirection)
+inline half GetLightDirectionAndRealtimeAttenuation(LightInput lightInput, half3 normal, float3 worldPos, out half3 lightDirection)
 {
     float3 posToLightVec = lightInput.pos.xyz - worldPos * lightInput.pos.w;
     float distanceSqr = max(dot(posToLightVec, posToLightVec), 0.001);
@@ -291,20 +201,38 @@ inline half ComputeLightAttenuation(LightInput lightInput, half3 normal, float3 
     return lightAtten;
 }
 
-inline half ComputeMainLightAttenuation(LightInput lightInput, half3 normalWS, float3 positionWS, out half3 lightDirection)
+inline half GetMainLightDirectionAndRealtimeAttenuation(LightInput lightInput, half3 normalWS, float3 positionWS, out half3 lightDirection)
 {
 #ifdef _MAIN_DIRECTIONAL_LIGHT
     // Light pos holds normalized light dir
     lightDirection = lightInput.pos;
     half attenuation = 1.0;
 #else
-    half attenuation = ComputeLightAttenuation(lightInput, normalWS, positionWS, lightDirection);
+    half attenuation = GetLightDirectionAndRealtimeAttenuation(lightInput, normalWS, positionWS, lightDirection);
 #endif
 
     // Cookies and shadows are only computed for main light
     attenuation *= CookieAttenuation(positionWS);
     attenuation *= LIGHTWEIGHT_SHADOW_ATTENUATION(positionWS, normalWS, lightDirection);
+
     return attenuation;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//                      Lighting Functions                                   //
+///////////////////////////////////////////////////////////////////////////////
+half3 LightingLambert(half3 lightColor, half3 lightDir, half3 normal)
+{
+    half NdotL = saturate(dot(normal, lightDir));
+    return lightColor * NdotL;
+}
+
+half3 LightingSpecular(half3 lightColor, half3 lightDir, half3 normal, half3 viewDir, half4 specularGloss, half shininess)
+{
+    half3 halfVec = SafeNormalize(lightDir + viewDir);
+    half NdotH = saturate(dot(normal, halfVec));
+    half3 specularReflection = specularGloss.rgb * pow(NdotH, shininess) * specularGloss.a;
+    return lightColor * specularReflection;
 }
 
 half3 VertexLighting(float3 positionWS, half3 normalWS)
@@ -320,7 +248,7 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
         INITIALIZE_LIGHT(light, lightIter);
 
         half3 lightDirection;
-        half atten = ComputeLightAttenuation(light, normalWS, positionWS, lightDirection);
+        half atten = GetLightDirectionAndRealtimeAttenuation(light, normalWS, positionWS, lightDirection);
         half3 lightColor = light.color * atten;
         vertexLightColor += LightingLambert(lightColor, lightDirection, normalWS);
     }
@@ -329,27 +257,68 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
     return vertexLightColor;
 }
 
-half4 LightweightFragmentPBR(float3 positionWS, half3 normalWS, half3 viewDirectionWS, half3 indirectDiffuse, half3 vertexLighting, half3 albedo, half metallic, half3 specular, half smoothness, half occlusion, half3 emission, half alpha)
+///////////////////////////////////////////////////////////////////////////////
+//                      Global Illumination                                  //
+///////////////////////////////////////////////////////////////////////////////
+half3 DiffuseGI(half3 indirectDiffuse, half3 lambert, half mainLightRealtimeAttenuation, half occlusion)
 {
+    // If shadows and mixed subtractive mode is enabled we need to remove direct
+    // light contribution from lightmap from occluded pixels so we can have dynamic objects
+    // casting shadows onto static correctly.
+#if defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_ON) && defined(_SHADOWS)
+    indirectDiffuse = SubtractDirectMainLightFromLightmap(indirectDiffuse, mainLightRealtimeAttenuation, lambert);
+#endif
+
+    return indirectDiffuse * occlusion;
+}
+
+half3 GlossyEnvironmentReflection(half3 viewDirectionWS, half3 normalWS, half perceptualRoughness, half occlusion)
+{
+    half3 reflectVector = reflect(-viewDirectionWS, normalWS);
+
+#if !defined(_GLOSSYREFLECTIONS_OFF)
+    half roughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
+    half mip = roughness * UNITY_SPECCUBE_LOD_STEPS;
+    half4 rgbm = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectVector, mip);
+    return DecodeHDR(rgbm, unity_SpecCube0_HDR) * occlusion;
+#endif
+
+    return _GlossyEnvironmentColor * occlusion;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//                      Fragment Functions                                   //
+//       Used by ShaderGraph and others builtin renderers                    //
+///////////////////////////////////////////////////////////////////////////////
+half4 LightweightFragmentPBR(float3 positionWS, half3 normalWS, half3 viewDirectionWS,
+    half3 bakedGI, half3 vertexLighting, half3 albedo, half metallic, half3 specular,
+    half smoothness, half occlusion, half3 emission, half alpha)
+{
+    half4 bakedOcclusion = half4(0, 0, 0, 0);
     BRDFData brdfData;
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
 
-    half3 reflectVec = reflect(-viewDirectionWS, normalWS);
-    half roughness2 = brdfData.roughness * brdfData.roughness;
-    indirectDiffuse *= occlusion;
-    half3 indirectSpecular = GlossyEnvironment(reflectVec, brdfData.perceptualRoughness) * occlusion;
-
-    // PBS
-    half fresnelTerm = _Pow4(1.0 - saturate(dot(normalWS, viewDirectionWS)));
-    half3 color = LightweightEnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, roughness2, fresnelTerm);
     half3 lightDirectionWS;
 
-    LightInput light;
-    INITIALIZE_MAIN_LIGHT(light);
-    half lightAtten = ComputeMainLightAttenuation(light, normalWS, positionWS, lightDirectionWS);
+    LightInput mainLight;
+    INITIALIZE_MAIN_LIGHT(mainLight);
+
+    // No distance fade.
+    half realtimeMainLightAtten = GetMainLightDirectionAndRealtimeAttenuation(mainLight, normalWS, positionWS, lightDirectionWS);
     half NdotL = saturate(dot(normalWS, lightDirectionWS));
-    half3 radiance = light.color * (lightAtten * NdotL);
-    color += LightweightBDRF(brdfData, roughness2, normalWS, lightDirectionWS, viewDirectionWS) * radiance;
+    half3 radiance = mainLight.color * NdotL;
+
+    half3 indirectDiffuse = DiffuseGI(bakedGI, radiance, realtimeMainLightAtten, occlusion);
+    half3 indirectSpecular = GlossyEnvironmentReflection(viewDirectionWS, normalWS, brdfData.perceptualRoughness, occlusion);
+
+    half roughness2 = brdfData.roughness * brdfData.roughness;
+    half fresnelTerm = _Pow4(1.0 - saturate(dot(normalWS, viewDirectionWS)));
+    half3 color = LightweightEnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, roughness2, fresnelTerm);
+
+    half mainLightAtten = MixRealtimeAndBakedOcclusion(realtimeMainLightAtten, bakedOcclusion, mainLight.distanceAttenuation);
+    radiance *= mainLightAtten;
+
+    color += LightweightDirectBDRF(brdfData, roughness2, normalWS, lightDirectionWS, viewDirectionWS) * radiance;
     color += vertexLighting * brdfData.diffuse;
 
 #ifdef _ADDITIONAL_LIGHTS
@@ -358,11 +327,13 @@ half4 LightweightFragmentPBR(float3 positionWS, half3 normalWS, half3 viewDirect
     {
         LightInput light;
         INITIALIZE_LIGHT(light, lightIter);
-        half lightAtten = ComputeLightAttenuation(light, normalWS, positionWS, lightDirectionWS);
+
+        half lightAttenuation = GetLightDirectionAndRealtimeAttenuation(light, normalWS, positionWS, lightDirectionWS);
+        lightAttenuation = MixRealtimeAndBakedOcclusion(lightAttenuation, bakedOcclusion, light.distanceAttenuation);
 
         half NdotL = saturate(dot(normalWS, lightDirectionWS));
-        half3 radiance = light.color * (lightAtten * NdotL);
-        color += LightweightBDRF(brdfData, roughness2, normalWS, lightDirectionWS, viewDirectionWS) * radiance;
+        half3 radiance = light.color * (lightAttenuation * NdotL);
+        color += LightweightDirectBDRF(brdfData, roughness2, normalWS, lightDirectionWS, viewDirectionWS) * radiance;
     }
 #endif
 
@@ -370,29 +341,37 @@ half4 LightweightFragmentPBR(float3 positionWS, half3 normalWS, half3 viewDirect
     return half4(color, alpha);
 }
 
-half4 LightweightFragmentLambert(float3 positionWS, half3 normalWS, half3 viewDirectionWS, half fogFactor, half3 diffuseGI, half3 diffuse, half3 emission, half alpha)
+half4 LightweightFragmentLambert(float3 positionWS, half3 normalWS, half3 viewDirectionWS,
+    half fogFactor, half3 diffuseGI, half3 diffuse, half3 emission, half alpha)
 {
+    half4 bakedOcclusion = half4(0, 0, 0, 0);
     half3 lightDirection;
-    half3 diffuseColor = diffuseGI;
 
     LightInput mainLight;
     INITIALIZE_MAIN_LIGHT(mainLight);
-    half lightAtten = ComputeMainLightAttenuation(mainLight, normalWS, positionWS, lightDirection);
-    half3 lightColor = mainLight.color * lightAtten;
-    diffuseColor += LightingLambert(lightColor, lightDirection, normalWS);
+    half realtimeMainLightAtten = GetMainLightDirectionAndRealtimeAttenuation(mainLight, normalWS, positionWS, lightDirection);
+    half3 NdotL = saturate(dot(normalWS, lightDirection));
+    half3 lambert = mainLight.color * NdotL;
+
+    half3 indirectDiffuse = DiffuseGI(diffuseGI, lambert, realtimeMainLightAtten, 1.0);
+    half mainLightAtten = MixRealtimeAndBakedOcclusion(realtimeMainLightAtten, bakedOcclusion, mainLight.distanceAttenuation);
+
+    half3 diffuseColor = lambert * mainLightAtten + indirectDiffuse;
 
 #ifdef _ADDITIONAL_LIGHTS
     int pixelLightCount = min(_AdditionalLightCount.x, unity_LightIndicesOffsetAndCount.y);
     for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
     {
-        LightInput lightData;
-        INITIALIZE_LIGHT(lightData, lightIter);
-        lightAtten = ComputeLightAttenuation(lightData, normalWS, positionWS, lightDirection);
-        lightColor = lightData.color * lightAtten;
+        LightInput light;
+        INITIALIZE_LIGHT(light, lightIter);
 
-        diffuseColor += LightingLambert(lightColor, lightDirection, normalWS);
+        half lightAttenuation = GetLightDirectionAndRealtimeAttenuation(light, normalWS, positionWS, lightDirection);
+        lightAttenuation = MixRealtimeAndBakedOcclusion(lightAttenuation, bakedOcclusion, light.distanceAttenuation);
+
+        half3 attenuatedLightColor = light.color * lightAttenuation;
+        diffuseColor += LightingLambert(attenuatedLightColor, lightDirection, normalWS);
     }
-#endif // _ADDITIONAL_LIGHTS
+#endif
 
     half3 finalColor = diffuseColor * diffuse + emission;
 
@@ -402,33 +381,38 @@ half4 LightweightFragmentLambert(float3 positionWS, half3 normalWS, half3 viewDi
     return OUTPUT_COLOR(color);
 }
 
-half4 LightweightFragmentBlinnPhong(float3 positionWS, half3 normalWS, half3 viewDirectionWS, half fogFactor, half3 diffuseGI, half3 diffuse, half4 specularGloss, half shininess, half3 emission, half alpha)
+half4 LightweightFragmentBlinnPhong(float3 positionWS, half3 normalWS, half3 viewDirectionWS,
+    half fogFactor, half3 diffuseGI, half3 diffuse, half4 specularGloss, half shininess, half3 emission, half alpha)
 {
+    half4 bakedOcclusion = half4(0, 0, 0, 0);
     half3 lightDirection;
-    half3 diffuseColor = diffuseGI;
-    half3 specularColor;
 
     LightInput mainLight;
     INITIALIZE_MAIN_LIGHT(mainLight);
-    half lightAtten = ComputeMainLightAttenuation(mainLight, normalWS, positionWS, lightDirection);
+    half realtimeMainLightAtten = GetMainLightDirectionAndRealtimeAttenuation(mainLight, normalWS, positionWS, lightDirection);
+    half3 NdotL = saturate(dot(normalWS, lightDirection));
+    half3 lambert = mainLight.color * NdotL;
 
-    half3 lightColor = mainLight.color * lightAtten;
-    diffuseColor += LightingLambert(lightColor, lightDirection, normalWS);
-    specularColor = LightingSpecular(lightColor, lightDirection, normalWS, viewDirectionWS, specularGloss, shininess);
+    half3 indirectDiffuse = DiffuseGI(diffuseGI, lambert, realtimeMainLightAtten, 1.0);
+    half mainLightAtten = MixRealtimeAndBakedOcclusion(realtimeMainLightAtten, bakedOcclusion, mainLight.distanceAttenuation);
+
+    half3 diffuseColor = lambert * mainLightAtten + indirectDiffuse;
+    half3 specularColor = LightingSpecular(mainLight.color * mainLightAtten, lightDirection, normalWS, viewDirectionWS, specularGloss, shininess);
 
 #ifdef _ADDITIONAL_LIGHTS
     int pixelLightCount = min(_AdditionalLightCount.x, unity_LightIndicesOffsetAndCount.y);
     for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
     {
-        LightInput lightData;
-        INITIALIZE_LIGHT(lightData, lightIter);
-        lightAtten = ComputeLightAttenuation(lightData, normalWS, positionWS, lightDirection);
-        lightColor = lightData.color * lightAtten;
+        LightInput light;
+        INITIALIZE_LIGHT(light, lightIter);
+        half lightAttenuation = GetLightDirectionAndRealtimeAttenuation(light, normalWS, positionWS, lightDirection);
+        lightAttenuation = MixRealtimeAndBakedOcclusion(lightAttenuation, bakedOcclusion, light.distanceAttenuation);
 
-        diffuseColor += LightingLambert(lightColor, lightDirection, normalWS);
-        specularColor += LightingSpecular(lightColor, lightDirection, normalWS, viewDirectionWS, specularGloss, shininess);
+        half3 attenuatedLightColor = light.color * lightAttenuation;
+        diffuseColor += LightingLambert(attenuatedLightColor, lightDirection, normalWS);
+        specularColor += LightingSpecular(attenuatedLightColor, lightDirection, normalWS, viewDirectionWS, specularGloss, shininess);
     }
-#endif // _ADDITIONAL_LIGHTS
+#endif
 
     half3 finalColor = diffuseColor * diffuse + emission;
     finalColor += specularColor;

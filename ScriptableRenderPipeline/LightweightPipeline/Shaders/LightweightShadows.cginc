@@ -1,5 +1,8 @@
 #ifndef LIGHTWEIGHT_SHADOWS_INCLUDED
 #define LIGHTWEIGHT_SHADOWS_INCLUDED
+
+#include "LightweightInput.cginc"
+
 #define MAX_SHADOW_CASCADES 4
 
 #if defined(_HARD_SHADOWS) || defined(_SOFT_SHADOWS) || defined(_HARD_SHADOWS_CASCADES) || defined(_SOFT_SHADOWS_CASCADES)
@@ -87,6 +90,49 @@ inline half ComputeShadowAttenuation(float3 posWorld, half3 vertexNormal, half3 
 #else
     return ShadowAttenuation(shadowCoord.xyz);
 #endif
+}
+
+half MixRealtimeAndBakedOcclusion(half realtimeAttenuation, half4 bakedOcclusion, half4 distanceAttenuation)
+{
+#if defined(LIGHTMAP_ON)
+#if defined(_MIXED_LIGHTING_SHADOWMASK)
+    // TODO:
+#elif defined(_MIXED_LIGHTING_SUBTRACTIVE)
+    // Subtractive Light mode has direct light contribution baked into lightmap for mixed lights.
+    // We need to remove direct realtime contribution from mixed lights
+    // distanceAttenuation.w is set 0.0 if this light is mixed, 1.0 otherwise.
+    return realtimeAttenuation * distanceAttenuation.w;
+#endif
+#endif
+
+    return realtimeAttenuation;
+}
+
+inline half3 SubtractDirectMainLightFromLightmap(half3 lightmap, half attenuation, half3 lambert)
+{
+    // Let's try to make realtime shadows work on a surface, which already contains
+    // baked lighting and shadowing from the main sun light.
+    // Summary:
+    // 1) Calculate possible value in the shadow by subtracting estimated light contribution from the places occluded by realtime shadow:
+    //      a) preserves other baked lights and light bounces
+    //      b) eliminates shadows on the geometry facing away from the light
+    // 2) Clamp against user defined ShadowColor.
+    // 3) Pick original lightmap value, if it is the darkest one.
+
+
+    // 1) Gives good estimate of illumination as if light would've been shadowed during the bake.
+    //    Preserves bounce and other baked lights
+    //    No shadows on the geometry facing away from the light
+    half shadowStrength = _ShadowData.x;
+    half3 estimatedLightContributionMaskedByInverseOfShadow = lambert * (1.0 - attenuation);
+    half3 subtractedLightmap = lightmap - estimatedLightContributionMaskedByInverseOfShadow;
+
+    // 2) Allows user to define overall ambient of the scene and control situation when realtime shadow becomes too dark.
+    half3 realtimeShadow = max(subtractedLightmap, _SubtractiveShadowColor);
+    realtimeShadow = lerp(realtimeShadow, lightmap, shadowStrength);
+
+    // 3) Pick darkest color
+    return min(lightmap, realtimeShadow);
 }
 
 #endif
