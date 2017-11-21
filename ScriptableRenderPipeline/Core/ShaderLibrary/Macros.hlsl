@@ -69,4 +69,22 @@ uint2  FunctionName(uint2  Parameter1, uint2  Parameter2, uint2  Parameter3) { F
 uint3  FunctionName(uint3  Parameter1, uint3  Parameter2, uint3  Parameter3) { FunctionBody; } \
 uint4  FunctionName(uint4  Parameter1, uint4  Parameter2, uint4  Parameter3) { FunctionBody; }
 
+#define TEMPLATE_SWAP(FunctionName) \
+void FunctionName(inout float  a, inout float  b) { float  t = a; a = b; b = t; } \
+void FunctionName(inout float2 a, inout float2 b) { float2 t = a; a = b; b = t; } \
+void FunctionName(inout float3 a, inout float3 b) { float3 t = a; a = b; b = t; } \
+void FunctionName(inout float4 a, inout float4 b) { float4 t = a; a = b; b = t; } \
+void FunctionName(inout int    a, inout int    b) { int    t = a; a = b; b = t; } \
+void FunctionName(inout int2   a, inout int2   b) { int2   t = a; a = b; b = t; } \
+void FunctionName(inout int3   a, inout int3   b) { int3   t = a; a = b; b = t; } \
+void FunctionName(inout int4   a, inout int4   b) { int4   t = a; a = b; b = t; } \
+void FunctionName(inout uint   a, inout uint   b) { uint   t = a; a = b; b = t; } \
+void FunctionName(inout uint2  a, inout uint2  b) { uint2  t = a; a = b; b = t; } \
+void FunctionName(inout uint3  a, inout uint3  b) { uint3  t = a; a = b; b = t; } \
+void FunctionName(inout uint4  a, inout uint4  b) { uint4  t = a; a = b; b = t; } \
+void FunctionName(inout bool   a, inout bool   b) { bool   t = a; a = b; b = t; } \
+void FunctionName(inout bool2  a, inout bool2  b) { bool2  t = a; a = b; b = t; } \
+void FunctionName(inout bool3  a, inout bool3  b) { bool3  t = a; a = b; b = t; } \
+void FunctionName(inout bool4  a, inout bool4  b) { bool4  t = a; a = b; b = t; }
+
 #endif // UNITY_MACROS_INCLUDED
