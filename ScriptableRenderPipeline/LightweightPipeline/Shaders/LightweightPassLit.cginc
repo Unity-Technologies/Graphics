@@ -9,23 +9,27 @@
 #define SAMPLE_METALLICSPECULAR(uv) tex2D(_MetallicGlossMap, uv)
 #endif
 
+CBUFFER_START(MaterialProperties)
+half4 _MainTex_ST;
 half4 _Color;
-sampler2D _MainTex; half4 _MainTex_ST;
 half _Cutoff;
 half _Glossiness;
 half _GlossMapScale;
 half _SmoothnessTextureChannel;
 half _Metallic;
-sampler2D _MetallicGlossMap;
 half4 _SpecColor;
-sampler2D _SpecGlossMap;
 half _BumpScale;
-sampler2D _BumpMap;
 half _OcclusionStrength;
-sampler2D _OcclusionMap;
 half4 _EmissionColor;
-sampler2D _EmissionMap;
 half _Shininess;
+CBUFFER_END
+
+sampler2D _MainTex;
+sampler2D _MetallicGlossMap;
+sampler2D _SpecGlossMap;
+sampler2D _BumpMap;
+sampler2D _OcclusionMap;
+sampler2D _EmissionMap;
 
 struct LightweightVertexInput
 {
@@ -41,6 +45,7 @@ struct LightweightVertexOutput
 {
     float4 uv01                     : TEXCOORD0; // xy: main UV, zw: lightmap UV (directional / non-directional)
     float3 posWS                    : TEXCOORD1;
+
 #if _NORMALMAP
     half3 tangent                   : TEXCOORD2;
     half3 binormal                  : TEXCOORD3;
@@ -48,15 +53,21 @@ struct LightweightVertexOutput
 #else
     half3 normal                    : TEXCOORD2;
 #endif
+
     half3 viewDir                   : TEXCOORD5;
     half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
-#if defined(EVALUATE_SH_VERTEX) || defined(EVALUATE_SH_MIXED)
+
+#ifndef LIGHTMAP_ON
     half4 vertexSH                  : TEXCOORD7;
 #endif
+
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
+///////////////////////////////////////////////////////////////////////////////
+//                      Material Property Helpers                            //
+///////////////////////////////////////////////////////////////////////////////
 inline half Alpha(half albedoAlpha)
 {
 #if defined(_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A)
@@ -81,7 +92,7 @@ half3 Normal(float2 uv)
 #endif
 }
 
-half SpecularGloss(half2 uv, half alpha)
+half4 SpecularGloss(half2 uv, half alpha)
 {
     half4 specularGloss = half4(0, 0, 0, 1);
 #ifdef _SPECGLOSSMAP
@@ -174,6 +185,11 @@ inline void InitializeStandardLitSurfaceData(LightweightVertexOutput IN, out Sur
     outSurfaceData.alpha = Alpha(albedoAlpha.a);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+//                  Vertex and Fragment functions                            //
+///////////////////////////////////////////////////////////////////////////////
+
+// Vertex: Used for Standard and StandardSimpleLighting shaders
 LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
 {
     LightweightVertexOutput o = (LightweightVertexOutput)0;
@@ -186,8 +202,8 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     o.uv01.zw = v.lightmapUV * unity_LightmapST.xy + unity_LightmapST.zw;
 #endif
 
-    float3 positionWS = mul(unity_ObjectToWorld, v.vertex).xyz;
-    half3 viewDirectionWS = SafeNormalize(_WorldSpaceCameraPos - positionWS);
+    float4 positionWS = mul(unity_ObjectToWorld, v.vertex);
+    half3 viewDirectionWS = SafeNormalize(_WorldSpaceCameraPos - positionWS.xyz);
 
 #if _NORMALMAP
     OutputTangentToWorld(v.tangent, v.normal, o.tangent, o.binormal, o.normal);
@@ -195,21 +211,22 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     o.normal = UnityObjectToWorldNormal(v.normal);
 #endif
 
-    float4 clipPos = UnityObjectToClipPos(v.vertex);
+    float4 clipPos = mul(UNITY_MATRIX_VP, positionWS);
 
-#if defined(EVALUATE_SH_VERTEX) || defined(EVALUATE_SH_MIXED)
+#ifndef LIGHTMAP_ON
     o.vertexSH = half4(EvaluateSHPerVertex(o.normal), 0.0);
 #endif
 
     o.posWS = positionWS;
     o.viewDir = viewDirectionWS;
-    o.fogFactorAndVertexLight.yzw = VertexLighting(positionWS, o.normal);
+    o.fogFactorAndVertexLight.yzw = VertexLighting(positionWS.xyz, o.normal);
     o.fogFactorAndVertexLight.x = ComputeFogFactor(clipPos.z);
     o.clipPos = clipPos;
 
     return o;
 }
 
+// Used for Standard shader
 half4 LitPassFragment(LightweightVertexOutput IN) : SV_Target
 {
     SurfaceData surfaceData;
@@ -235,6 +252,7 @@ half4 LitPassFragment(LightweightVertexOutput IN) : SV_Target
     return OUTPUT_COLOR(color);
 }
 
+// Used for StandardSimpleLighting shader
 half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
 {
     float2 uv = IN.uv01.xy;
@@ -279,7 +297,7 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
     half fogFactor = IN.fogFactorAndVertexLight.x;
 
 #if defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
-    half4 specularGloss = SpecularGloss(uv, alpha);
+    half4 specularGloss = SpecularGloss(uv, diffuseAlpha.a);
     return LightweightFragmentBlinnPhong(positionWS, normalWS, viewDirectionWS, fogFactor, diffuseGI, diffuse, specularGloss, shininess, emission, alpha);
 #else
     return LightweightFragmentLambert(positionWS, normalWS, viewDirectionWS, fogFactor, diffuseGI, diffuse, emission, alpha);

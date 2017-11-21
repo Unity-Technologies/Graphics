@@ -1541,7 +1541,7 @@ RectTransform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1177504217}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 163, y: 47.8, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1084503480}
@@ -1864,7 +1864,6 @@ AudioListener:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1447851825}
   m_Enabled: 1
-  m_ExtensionPropertyValues: []
 --- !u!124 &1447851827
 Behaviour:
   m_ObjectHideFlags: 0
@@ -1910,11 +1909,11 @@ Camera:
   m_TargetEye: 3
   m_HDR: 1
   m_AllowMSAA: 1
+  m_AllowDynamicResolution: 0
   m_ForceIntoRT: 0
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
-  m_StereoMirrorMode: 0
 --- !u!4 &1447851830
 Transform:
   m_ObjectHideFlags: 0
@@ -1955,6 +1954,7 @@ MonoBehaviour:
   renderPipeline: {fileID: 11400000, guid: e6987eea1dd29074597d54ed91a54a26, type: 2}
   cameraToUse: {fileID: 1447851829}
   hdr: 0
+  msaaSamples: 4
   width: 1280
   height: 720
 --- !u!1 &1449522778

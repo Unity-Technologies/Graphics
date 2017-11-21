@@ -244,7 +244,7 @@ MonoBehaviour:
   renderPipeline: {fileID: 11400000, guid: e6987eea1dd29074597d54ed91a54a26, type: 2}
   cameraToUse: {fileID: 64132551}
   hdr: 0
-  msaaSamples: 1
+  msaaSamples: 4
   width: 1280
   height: 720
 --- !u!20 &64132551
