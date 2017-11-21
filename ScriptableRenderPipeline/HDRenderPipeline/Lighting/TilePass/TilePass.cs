@@ -304,6 +304,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             static ComputeBuffer s_shadowDatas = null;
 
             static Texture2DArray m_DefaultTexture2DArray;
+            static Cubemap m_DefaultTextureCube;
 
             TextureCacheCubemap m_CubeReflTexArray;
             int m_CubeReflTexArraySize = 128;
@@ -596,6 +597,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DefaultTexture2DArray = new Texture2DArray(1, 1, 1, TextureFormat.ARGB32, false);
                 m_DefaultTexture2DArray.SetPixels32(new Color32[1] { new Color32(128, 128, 128, 128) }, 0);
                 m_DefaultTexture2DArray.Apply();
+
+                m_DefaultTextureCube = new Cubemap(16, TextureFormat.ARGB32, false);
+                m_DefaultTextureCube.Apply();
 
 #if UNITY_EDITOR
                 UnityEditor.SceneView.onSceneGUIDelegate -= OnSceneGUI;
@@ -1993,7 +1997,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.diffuseLightingUAV,  colorBuffers[1]);
 
                             // TODO: Check if we can remove this, when I test I can't
-                            cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._SkyTexture, skyTexture);
+                            cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._SkyTexture, skyTexture ? skyTexture : m_DefaultTextureCube);
                             cmd.SetComputeFloatParam(deferredComputeShader, HDShaderIDs._SkyTextureMipCount, skyTextureMipCount);
 
                             // always do deferred lighting in blocks of 16x16 (not same as tiled light size)
