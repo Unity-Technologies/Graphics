@@ -19,7 +19,8 @@ namespace UnityEditor.VFX.Test
 
         private int m_StartUndoGroupId;
 
-        void CreateTestAsset()
+        [SetUp]
+        public void CreateTestAsset()
         {
             VFXAsset asset = new VFXAsset();
 
@@ -36,7 +37,8 @@ namespace UnityEditor.VFX.Test
             m_StartUndoGroupId = Undo.GetCurrentGroup();
         }
 
-        void DestroyTestAsset()
+        [TearDown]
+        public void DestroyTestAsset()
         {
             Undo.RevertAllDownToGroup(m_StartUndoGroupId);
             AssetDatabase.DeleteAsset(testAssetName);
@@ -45,9 +47,6 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CreateAllInitializeBlocks()
         {
-            CreateTestAsset();
-
-
             var initContextDesc = VFXLibrary.GetContexts().Where(t => t.name == "Initialize").First();
 
             var newContext = m_ViewPresenter.AddVFXContext(new Vector2(100, 100), initContextDesc);
@@ -70,15 +69,11 @@ namespace UnityEditor.VFX.Test
 
                 Assert.NotNull(blockPresenter);
             }
-
-            DestroyTestAsset();
         }
 
         [Test]
         public void CreateAllUpdateBlocks()
         {
-            CreateTestAsset();
-
             var initContextDesc = VFXLibrary.GetContexts().Where(t => t.name == "Update").First();
 
             var newContext = m_ViewPresenter.AddVFXContext(new Vector2(100, 100), initContextDesc);
@@ -101,15 +96,11 @@ namespace UnityEditor.VFX.Test
 
                 Assert.NotNull(blockPresenter);
             }
-
-            DestroyTestAsset();
         }
 
         [Test]
         public void CreateAllOutputBlocks()
         {
-            CreateTestAsset();
-
             var initContextDesc = VFXLibrary.GetContexts().Where(t => t.name.Contains("Output")).First();
 
             var newContext = m_ViewPresenter.AddVFXContext(new Vector2(100, 100), initContextDesc);
@@ -132,15 +123,11 @@ namespace UnityEditor.VFX.Test
 
                 Assert.NotNull(blockPresenter);
             }
-
-            DestroyTestAsset();
         }
 
         [Test]
         public void ExpandRetractAndSetPropertyValue()
         {
-            CreateTestAsset();
-
             var initContextDesc = VFXLibrary.GetContexts().Where(t => t.name == "Initialize").First();
 
             var newContext = m_ViewPresenter.AddVFXContext(new Vector2(100, 100), initContextDesc);
@@ -202,15 +189,11 @@ namespace UnityEditor.VFX.Test
             vector3yPresenter.SetPropertyValue(7.8f);
 
             Assert.AreEqual(slot.value, new Vector3(1.2f, 7.8f, 5.6f));
-
-            DestroyTestAsset();
         }
 
         [Test]
         public void CascadedOperatorAdd()
         {
-            CreateTestAsset();
-
             Func<IVFXSlotContainer, VFXSlotContainerPresenter> fnFindPresenter = delegate(IVFXSlotContainer slotContainer)
                 {
                     var allPresenter = m_ViewPresenter.allChildren.OfType<VFXSlotContainerPresenter>();
@@ -249,15 +232,11 @@ namespace UnityEditor.VFX.Test
 
             m_ViewPresenter.RemoveElement(addPresenter);
             Assert.AreEqual(VFXValueType.kFloat, abs.outputSlots[0].GetExpression().valueType);
-
-            DestroyTestAsset();
         }
 
         [Test]
         public void AppendOperator()
         {
-            CreateTestAsset();
-
             Action fnResync = delegate()
                 {
                     m_ViewPresenter.SetVFXAsset(m_ViewPresenter.GetVFXAsset(), true);
@@ -302,15 +281,11 @@ namespace UnityEditor.VFX.Test
             edgePresenterAppend_D.input = fnFindPresenter(abs).outputPorts[0];
             edgePresenterAppend_D.output = fnFindPresenter(append).inputPorts[3];
             m_ViewPresenter.AddElement(edgePresenterAppend_D); fnResync();
-
-            DestroyTestAsset();
         }
 
         [Test]
         public void UndoRedoCollapseSlot()
         {
-            CreateTestAsset();
-
             Undo.IncrementCurrentGroup();
             var crossDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name.Contains("Cross"));
             var cross = m_ViewPresenter.AddVFXOperator(new Vector2(0, 0), crossDesc);
@@ -350,15 +325,11 @@ namespace UnityEditor.VFX.Test
                     Assert.AreEqual(i > step, slot.collapsed);
                 }
             }
-
-            DestroyTestAsset();
         }
 
         [Test]
         public void UndoRedoMoveOperator()
         {
-            CreateTestAsset();
-
             Undo.IncrementCurrentGroup();
             var absDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Absolute");
             var abs = m_ViewPresenter.AddVFXOperator(new Vector2(0, 0), absDesc);
@@ -393,14 +364,11 @@ namespace UnityEditor.VFX.Test
                 Assert.AreEqual(positions[i].x, currentAbs.model.position.x);
                 Assert.AreEqual(positions[i].y, currentAbs.model.position.y);
             }
-
-            DestroyTestAsset();
         }
 
         [Test]
         public void UndoRedoAddOperator()
         {
-            CreateTestAsset();
             Func<VFXSlotContainerPresenter[]> fnAllOperatorPresenter = delegate()
                 {
                     var allPresenter = m_ViewPresenter.allChildren.OfType<VFXSlotContainerPresenter>();
@@ -438,15 +406,11 @@ namespace UnityEditor.VFX.Test
             fnTestShouldExist();
             Undo.PerformRedo();
             fnTestShouldNotExist();
-
-            DestroyTestAsset();
         }
 
         [Test]
         public void UndoRedoOperatorLinkSimple()
         {
-            CreateTestAsset();
-
             Func<Type, VFXSlotContainerPresenter> fnFindPresenter = delegate(Type type)
                 {
                     var allPresenter = m_ViewPresenter.allChildren.OfType<VFXSlotContainerPresenter>();
@@ -480,15 +444,11 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(0, fnCountEdge());
             Assert.NotNull(fnFindPresenter(typeof(VFXOperatorCosine)));
             Assert.NotNull(fnFindPresenter(typeof(VFXOperatorSine)));
-
-            DestroyTestAsset();
         }
 
         [Test]
         public void UndoRedoOperatorLinkToBlock()
         {
-            CreateTestAsset();
-
             Func<VFXContextPresenter> fnFirstContextPresenter = delegate()
                 {
                     return m_ViewPresenter.allChildren.OfType<VFXContextPresenter>().FirstOrDefault();
@@ -536,8 +496,6 @@ namespace UnityEditor.VFX.Test
 
             Undo.PerformRedo();
             Assert.IsNull(fnFirstEdgePresenter());
-
-            DestroyTestAsset();
         }
 
         [Test]
@@ -554,7 +512,6 @@ namespace UnityEditor.VFX.Test
                     return m_ViewPresenter.allChildren.OfType<VFXDataEdgePresenter>().Count();
                 };
 
-            CreateTestAsset();
 
             var absDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Absolute");
             var appendDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "AppendVector");
@@ -631,15 +588,11 @@ namespace UnityEditor.VFX.Test
 
             m_ViewPresenter.RemoveElement(fnFindPresenter(typeof(VFXOperatorAppendVector)));
             Assert.AreEqual(0, fnCountEdge());
-
-            DestroyTestAsset();
         }
 
         [Test]
         public void UndoRedoOperatorSettings()
         {
-            CreateTestAsset();
-
             Func<VFXOperatorPresenter> fnFirstOperatorPresenter = delegate()
                 {
                     return m_ViewPresenter.allChildren.OfType<VFXOperatorPresenter>().FirstOrDefault();
@@ -710,15 +663,11 @@ namespace UnityEditor.VFX.Test
                 var componentMaskPresenter = fnFirstOperatorPresenter();
                 Assert.AreEqual(maskList[i + 1], fnGetSetting(componentMaskPresenter.model as VFXOperatorComponentMask));
             }
-
-            DestroyTestAsset();
         }
 
         [Test]
         public void UndoRedoAddBlockContext()
         {
-            CreateTestAsset();
-
             var contextUpdateDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Update"));
             var blockDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.modelType == typeof(AllType));
 
@@ -748,15 +697,11 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotNull(fnContextPresenter());
             Assert.AreEqual(1, fnContextPresenter().context.children.Count());
             Assert.IsInstanceOf(typeof(AllType), fnContextPresenter().context.children.First());
-
-            DestroyTestAsset();
         }
 
         [Test]
         public void UndoRedoContext()
         {
-            CreateTestAsset();
-
             Func<VFXContextPresenter> fnFirstContextPresenter = delegate()
                 {
                     return m_ViewPresenter.allChildren.OfType<VFXContextPresenter>().FirstOrDefault() as VFXContextPresenter;
@@ -780,14 +725,11 @@ namespace UnityEditor.VFX.Test
 
             Undo.PerformUndo();
             Assert.NotNull(fnFirstContextPresenter(), "Fail Undo Delete");
-
-            DestroyTestAsset();
         }
 
         [Test]
         public void UndoRedoContextLinkMultiSlot()
         {
-            CreateTestAsset();
             Func<VFXContextPresenter[]> fnContextPresenter = delegate()
                 {
                     return m_ViewPresenter.allChildren.OfType<VFXContextPresenter>().Cast<VFXContextPresenter>().ToArray();
@@ -880,15 +822,11 @@ namespace UnityEditor.VFX.Test
 
             Undo.PerformUndo();
             Assert.AreEqual(0, fnFlowEdgeCount());
-
-            DestroyTestAsset();
         }
 
         [Test]
         public void UndoRedoContextLink()
         {
-            CreateTestAsset();
-
             Func<VFXContextPresenter[]> fnContextPresenter = delegate()
                 {
                     return m_ViewPresenter.allChildren.OfType<VFXContextPresenter>().Cast<VFXContextPresenter>().ToArray();
@@ -942,15 +880,11 @@ namespace UnityEditor.VFX.Test
 
             Undo.PerformUndo();
             Assert.AreEqual(1, fnFlowEdgeCount(), "Fail undo Delete");
-
-            DestroyTestAsset();
         }
 
         [Test]
         public void DeleteSubSlotWithLink()
         {
-            CreateTestAsset();
-
             var crossProductDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name.Contains("Cross"));
             var sinDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name.Contains("Sin"));
             var cosDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name.Contains("Cos"));
@@ -967,8 +901,6 @@ namespace UnityEditor.VFX.Test
 
             Assert.IsFalse(cos.inputSlots[0].HasLink(true));
             Assert.IsFalse(sin.inputSlots[0].HasLink(true));
-
-            DestroyTestAsset();
         }
     }
 }

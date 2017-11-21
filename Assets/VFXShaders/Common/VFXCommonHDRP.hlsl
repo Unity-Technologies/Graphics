@@ -1,5 +1,8 @@
 #include "Assets/ScriptableRenderPipeline/ScriptableRenderPipeline/Core/ShaderLibrary/common.hlsl"
 #include "Assets/ScriptableRenderPipeline/ScriptableRenderPipeline/HDRenderPipeline/ShaderVariables.hlsl"
+#include "Assets/ScriptableRenderPipeline/ScriptableRenderPipeline/HDRenderPipeline/Sky/AtmosphericScattering/AtmosphericScattering.hlsl"
+
+#define VFX_DEPTH_TEXTURE _MainDepthTexture
 
 float4 VFXTransformPositionWorldToClip(float3 posWS)
 {
@@ -9,8 +12,8 @@ float4 VFXTransformPositionWorldToClip(float3 posWS)
 
 float4 VFXTransformPositionObjectToClip(float3 posOS)
 {
-    float posWS = TransformObjectToWorld(posOS)
-    return VFXTransformWorldToClipSpace(posWS);
+    float3 posWS = TransformObjectToWorld(posOS);
+    return VFXTransformPositionWorldToClip(posWS);
 }
 
 float4x4 VFXGetObjectToWorldMatrix()
@@ -31,4 +34,17 @@ float3x3 VFXGetWorldToViewRotMatrix()
 float3 VFXGetViewWorldPosition()
 {
     return GetCurrentViewPosition();
+}
+
+float4 VFXGetPOSSS(float4 posCS)
+{
+    float4 posSS = posCS * 0.5f;
+    posSS.xy = float2(posSS.x, posSS.y*_ProjectionParams.x) + posSS.w;
+    posSS.zw = posCS.zw;
+    return posSS;
+}
+
+float VFXLinearEyeDepth(float4 posSS)
+{
+    return LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_MainDepthTexture, UNITY_PROJ_COORD(posSS)),_zBufferParams);
 }

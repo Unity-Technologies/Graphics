@@ -5,14 +5,4 @@
 ${VFXInclude("Assets/VFXShaders/ParticleQuads/PassVS.template"),!USE_GEOMETRY_SHADER}
 ${VFXInclude("Assets/VFXShaders/ParticleQuads/PassGS.template"),USE_GEOMETRY_SHADER}
 
-float4 VFXGetTextureColor(VFX_VARYING_PS_INPUTS i)
-{
-	float4 texColor = texture_texture.Sample(samplertexture_texture,i.VFX_VARYING_UV.xy);			
-	#if USE_FLIPBOOK_INTERPOLATION
-	float4 texColor2 = texture_texture.Sample(samplertexture_texture,i.VFX_VARYING_UV.zw);	
-	texColor = lerp(texColor,texColor2,i.VFX_VARYING_FRAMEBLEND);
-	#endif
-	return texColor;
-}
-
 ${VFXFragmentCommonFunctions}

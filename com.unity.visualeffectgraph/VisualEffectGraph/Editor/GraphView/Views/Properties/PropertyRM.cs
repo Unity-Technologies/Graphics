@@ -88,7 +88,7 @@ namespace UnityEditor.VFX.UI
             m_Icon.style.backgroundImage = m_IconStates[m_Provider.expanded && m_Provider.expandable ? 1 : 0];
             SetValue(m_Provider.value);
 
-            string text = m_Provider.name;
+            string text = ObjectNames.NicifyVariableName(m_Provider.name);
             string tooltip = null;
             VFXPropertyAttribute.ApplyToGUI(m_Provider.attributes, ref text, ref tooltip);
             m_Label.text = text;
@@ -340,13 +340,6 @@ namespace UnityEditor.VFX.UI
             m_Field.SetValue(m_Value);
         }
 
-        /*
-        public override void SetEnabled(bool value)
-        {
-            base.SetEnabled(value);
-            if (m_Field != null)
-                m_Field.SetEnabled(value);
-        }*/
         public override bool showsEverything { get { return true; } }
 
         public override void SetMultiplier(object obj)

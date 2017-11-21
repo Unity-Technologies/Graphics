@@ -11,18 +11,6 @@ namespace UnityEditor.VFX.UI
         public override Direction direction
         { get { return Direction.Output; } }
     }
-    class VFXParameterSlotContainerPresenter : VFXSlotContainerPresenter
-    {
-        protected override VFXDataAnchorPresenter AddDataAnchor(VFXSlot slot, bool input)
-        {
-            var anchor = VFXParameterOutputDataAnchorPresenter.CreateInstance<VFXParameterOutputDataAnchorPresenter>();
-            anchor.Init(slot, this);
-            anchor.portType = slot.property.type;
-            if (slot.IsMasterSlot())
-                anchor.name = slot.property.type.UserFriendlyName();
-            return anchor;
-        }
-    }
 
     class VFXSubParameterPresenter : IPropertyRMProvider, IValuePresenter
     {
@@ -98,7 +86,7 @@ namespace UnityEditor.VFX.UI
             }
         }
     }
-    class VFXParameterPresenter : VFXParameterSlotContainerPresenter, IPropertyRMProvider, IValuePresenter
+    class VFXParameterPresenter : VFXSlotContainerPresenter, IPropertyRMProvider, IValuePresenter
     {
         VFXSubParameterPresenter[] m_SubPresenters;
         public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
@@ -107,6 +95,16 @@ namespace UnityEditor.VFX.UI
 
             m_CachedMinValue = parameter.m_Min != null ? parameter.m_Min.Get() : null;
             m_CachedMaxValue = parameter.m_Max != null ? parameter.m_Max.Get() : null;
+        }
+
+        protected override VFXDataAnchorPresenter AddDataAnchor(VFXSlot slot, bool input)
+        {
+            var anchor = VFXParameterOutputDataAnchorPresenter.CreateInstance<VFXParameterOutputDataAnchorPresenter>();
+            anchor.Init(slot, this);
+            anchor.portType = slot.property.type;
+            if (slot.IsMasterSlot())
+                anchor.name = slot.property.type.UserFriendlyName();
+            return anchor;
         }
 
         public override void UpdateTitle()

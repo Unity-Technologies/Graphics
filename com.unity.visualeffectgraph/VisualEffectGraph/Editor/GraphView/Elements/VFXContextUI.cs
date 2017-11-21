@@ -469,7 +469,6 @@ namespace UnityEditor.VFX.UI
         void AddBlock(Vector2 position, VFXModelDescriptor<VFXBlock> descriptor)
         {
             int blockIndex = -1;
-            VFXBlockUI clickedBlock = null;
 
             var blocks = m_BlockContainer.Query().OfType<VFXBlockUI>().ToList();
             for (int i = 0; i < blocks.Count; ++i)
