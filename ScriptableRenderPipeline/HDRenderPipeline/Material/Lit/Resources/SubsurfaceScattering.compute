@@ -36,8 +36,8 @@
 // Included headers
 //--------------------------------------------------------------------------------------------------
 
-#include "../../../../Core/ShaderLibrary/Packing.hlsl"
-#include "../../../../Core/ShaderLibrary/SpaceFillingCurves.hlsl"
+#include "ShaderLibrary/Packing.hlsl"
+#include "ShaderLibrary/SpaceFillingCurves.hlsl"
 #include "../../../ShaderVariables.hlsl"
 #define UNITY_MATERIAL_LIT
 #include "../../../Material/Material.hlsl"

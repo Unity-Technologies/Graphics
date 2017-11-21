@@ -1,7 +1,7 @@
 ﻿// Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel DeferredDirectionalShadow
 
-#include "../../../Core/ShaderLibrary/Common.hlsl"
+#include "ShaderLibrary/Common.hlsl"
 #include "../../ShaderVariables.hlsl"
 #include "../../Lighting/Lighting.hlsl" 
 

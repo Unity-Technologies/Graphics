@@ -16,7 +16,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #include "../../Core/ShaderLibrary/Common.hlsl"
+            #include "ShaderLibrary/Common.hlsl"
             #include "../Debug/DebugDisplay.cs.hlsl"
             #include "../ShaderVariables.hlsl"
 

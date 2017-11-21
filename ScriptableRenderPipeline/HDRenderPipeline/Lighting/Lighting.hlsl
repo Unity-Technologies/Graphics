@@ -1,11 +1,11 @@
 #ifndef UNITY_LIGHTING_INCLUDED
 #define UNITY_LIGHTING_INCLUDED
 
-#include "../../Core/ShaderLibrary/CommonLighting.hlsl"
-#include "../../Core/ShaderLibrary/CommonShadow.hlsl"
-#include "../../Core/ShaderLibrary/Sampling.hlsl"
-#include "../../Core/ShaderLibrary/AreaLighting.hlsl"
-#include "../../Core/ShaderLibrary/ImageBasedLighting.hlsl"
+#include "ShaderLibrary/CommonLighting.hlsl"
+#include "ShaderLibrary/CommonShadow.hlsl"
+#include "ShaderLibrary/Sampling.hlsl"
+#include "ShaderLibrary/AreaLighting.hlsl"
+#include "ShaderLibrary/ImageBasedLighting.hlsl"
 
 // The light loop (or lighting architecture) is in charge to:
 // - Define light list

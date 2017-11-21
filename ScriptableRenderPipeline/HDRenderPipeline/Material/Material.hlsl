@@ -1,14 +1,14 @@
 #ifndef UNITY_MATERIAL_INCLUDED
 #define UNITY_MATERIAL_INCLUDED
 
-#include "../../Core/ShaderLibrary/Color.hlsl"
-#include "../../Core/ShaderLibrary/Packing.hlsl"
-#include "../../Core/ShaderLibrary/BSDF.hlsl"
-#include "../../Core/ShaderLibrary/Debug.hlsl"
-#include "../../Core/ShaderLibrary/GeometricTools.hlsl"
-#include "../../Core/ShaderLibrary/CommonMaterial.hlsl"
-#include "../../Core/ShaderLibrary/EntityLighting.hlsl"
-#include "../../Core/ShaderLibrary/ImageBasedLighting.hlsl"
+#include "ShaderLibrary/Color.hlsl"
+#include "ShaderLibrary/Packing.hlsl"
+#include "ShaderLibrary/BSDF.hlsl"
+#include "ShaderLibrary/Debug.hlsl"
+#include "ShaderLibrary/GeometricTools.hlsl"
+#include "ShaderLibrary/CommonMaterial.hlsl"
+#include "ShaderLibrary/EntityLighting.hlsl"
+#include "ShaderLibrary/ImageBasedLighting.hlsl"
 #include "../Sky/AtmosphericScattering/AtmosphericScattering.hlsl"
 
 // Guidelines for Material Keyword.

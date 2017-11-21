@@ -18,7 +18,7 @@
 
             #pragma enable_d3d11_debug_symbols
 
-            #include "../../Core/ShaderLibrary/Common.hlsl"
+            #include "ShaderLibrary/Common.hlsl"
             #include "../ShaderVariables.hlsl"
             #include "AtmosphericScattering/AtmosphericScattering.hlsl"
 
