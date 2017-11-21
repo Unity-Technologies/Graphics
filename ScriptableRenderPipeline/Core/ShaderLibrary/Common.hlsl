@@ -185,7 +185,6 @@ void GetCubeFaceID(float3 dir, out int faceIndex)
 #define HALF_PI     1.57079632679
 #define INV_HALF_PI 0.636619772367
 #define INFINITY    asfloat(0x7F800000)
-#define FLT_SMALL   0.0001
 #define LOG2_E      1.44269504089
 
 #define FLT_EPSILON 1.192092896e-07 // Smallest positive number, such that 1.0 + FLT_EPSILON != 1.0
