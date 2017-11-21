@@ -994,7 +994,7 @@ MonoBehaviour:
   - {fileID: 114537105779611658}
   m_exposedName: NbSlices
   m_exposed: 0
-  order: 0
+  m_order: 0
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -1226,7 +1226,7 @@ MonoBehaviour:
   - {fileID: 114287871694759918}
   m_exposedName: Count
   m_exposed: 0
-  order: 0
+  m_order: 0
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -3454,6 +3454,7 @@ MonoBehaviour:
   - link: []
   blendMode: 1
   useSoftParticle: 0
+  sortPriority: 0
 --- !u!2058629509 &8926484042661614526
 VFXAsset:
   m_ObjectHideFlags: 0
@@ -3993,6 +3994,7 @@ VFXAsset:
         nameId: Count
       - index: 46
         nameId: Delay
+      params: []
       processor: {fileID: 0}
   - type: 1
     flags: 0
@@ -4035,12 +4037,14 @@ VFXAsset:
         nameId: uniform_Sphere_radius_c
       - index: 51
         nameId: uniform_Sphere_arc_c
+      params: []
       processor: {fileID: 7200000, guid: 9983445f7a3bc4a4abbcca47a9351f94, type: 3}
     - type: 805306368
       buffers:
       - index: 0
         nameId: attributeBuffer
       values: []
+      params: []
       processor: {fileID: 7200000, guid: 834b3f6aa316ed943a2a272dd2773cb3, type: 3}
     - type: 1073741828
       buffers:
@@ -4057,6 +4061,9 @@ VFXAsset:
         nameId: uniform_Position_position_e
       - index: 41
         nameId: uniform_targetOffset
+      params:
+      - index: 0
+        nameId: sortPriority
       processor: {fileID: 4800000, guid: 1f53a7b5540775b49bd8b80bd81766de, type: 3}
   m_Events:
   - name: OnStart

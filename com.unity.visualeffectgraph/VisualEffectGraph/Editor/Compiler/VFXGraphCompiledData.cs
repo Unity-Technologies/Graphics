@@ -15,6 +15,7 @@ namespace UnityEditor.VFX
         public VFXExpressionMapper cpuMapper;
         public VFXExpressionMapper gpuMapper;
         public VFXUniformMapper uniformMapper;
+        public VFXMapping[] parameters;
         public Object processor;
     }
 
@@ -332,7 +333,7 @@ namespace UnityEditor.VFX
                                 type = spawnerBlock.spawnerType,
                                 buffers = new VFXMapping[0],
                                 values = cpuExpression.ToArray(),
-                                parameters = new VFXMapping[0],
+                                parameters = contextData.parameters,
                                 processor = processor,
                             };
                         }).ToArray()
@@ -515,6 +516,7 @@ namespace UnityEditor.VFX
                     var cpuMapper = m_ExpressionGraph.BuildCPUMapper(context);
                     var contextData = contextToCompiledData[context];
                     contextData.cpuMapper = cpuMapper;
+                    contextData.parameters = context.additionalMappings.ToArray();
                     contextToCompiledData[context] = contextData;
                 }
 

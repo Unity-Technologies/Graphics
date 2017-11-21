@@ -549,6 +549,7 @@ MonoBehaviour:
   - link: []
   blendMode: 1
   useSoftParticle: 0
+  sortPriority: 0
 --- !u!114 &114149745243873572
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1753,6 +1754,7 @@ MonoBehaviour:
   - link: []
   blendMode: 1
   useSoftParticle: 0
+  sortPriority: 0
 --- !u!114 &114445986921503696
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3538,6 +3540,7 @@ MonoBehaviour:
   - link: []
   blendMode: 2
   useSoftParticle: 0
+  sortPriority: 0
   flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114788945439143174
@@ -5073,7 +5076,9 @@ VFXAsset:
         nameId: uniform_alphaThreshold
       - index: 64
         nameId: texture_texture
-      params: []
+      params:
+      - index: 0
+        nameId: sortPriority
       processor: {fileID: 4800000, guid: 0ae49485a705e8d4db7e748c2bb77a4f, type: 3}
     - type: 1073741825
       buffers:
@@ -5088,7 +5093,9 @@ VFXAsset:
         nameId: uniform_d
       - index: 33
         nameId: uniform_e
-      params: []
+      params:
+      - index: 0
+        nameId: sortPriority
       processor: {fileID: 4800000, guid: 1c5d12d491e69a54982def4e0edd2591, type: 3}
     - type: 1073741828
       buffers:
@@ -5105,7 +5112,9 @@ VFXAsset:
         nameId: uniform_e
       - index: 66
         nameId: uniform_targetOffset
-      params: []
+      params:
+      - index: 0
+        nameId: sortPriority
       processor: {fileID: 4800000, guid: f8802474814919249a6cf873507cd127, type: 3}
   m_Events:
   - name: OnStart

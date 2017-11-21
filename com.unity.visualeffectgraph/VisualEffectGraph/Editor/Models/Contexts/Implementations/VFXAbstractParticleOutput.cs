@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -23,6 +24,9 @@ namespace UnityEditor.VFX
 
         [VFXSetting, SerializeField]
         protected bool useSoftParticle = false;
+
+        [VFXSetting, SerializeField]
+        protected int sortPriority = 0;
 
         protected VFXAbstractParticleOutput() : base(VFXContextType.kOutput, VFXDataType.kParticle, VFXDataType.kNone) {}
 
@@ -114,6 +118,14 @@ namespace UnityEditor.VFX
                     shaderTags.Write("Tags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\" }");
 
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXShaderTags}", shaderTags);
+            }
+        }
+
+        public override IEnumerable<VFXMapping> additionalMappings
+        {
+            get
+            {
+                yield return new VFXMapping(sortPriority, "sortPriority");
             }
         }
     }

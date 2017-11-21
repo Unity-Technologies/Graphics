@@ -563,6 +563,7 @@ MonoBehaviour:
   - link: []
   blendMode: 1
   useSoftParticle: 0
+  sortPriority: 0
 --- !u!114 &114492092971132050
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -774,6 +775,7 @@ MonoBehaviour:
   - link: []
   blendMode: 1
   useSoftParticle: 0
+  sortPriority: 0
 --- !u!114 &114734629157382162
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1117,14 +1119,19 @@ VFXAsset:
     - type: 536870912
       buffers: []
       values: []
+      params: []
       processor: {fileID: 7200000, guid: 34630fa5f453c4c48a722d160ec8e2a0, type: 3}
     - type: 805306368
       buffers: []
       values: []
+      params: []
       processor: {fileID: 7200000, guid: ca8d18d09c4182e4796e0b05ac42e094, type: 3}
     - type: 1073741825
       buffers: []
       values: []
+      params:
+      - index: 0
+        nameId: sortPriority
       processor: {fileID: 4800000, guid: d5cd5ffefb045024aa747d04bcbcbdaf, type: 3}
   - type: 1
     flags: 0
@@ -1139,10 +1146,14 @@ VFXAsset:
     - type: 536870912
       buffers: []
       values: []
+      params: []
       processor: {fileID: 7200000, guid: 343c8c460852d0e4a9ca5de76690deb4, type: 3}
     - type: 1073741825
       buffers: []
       values: []
+      params:
+      - index: 0
+        nameId: sortPriority
       processor: {fileID: 4800000, guid: 390ca5eee0be0d341850efc1f7e7c9d1, type: 3}
   m_Events:
   - name: OnStart
