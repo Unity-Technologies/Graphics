@@ -24,21 +24,22 @@ public class VFXContextEditor : Editor
     {
         spaceProperty = serializedObject.FindProperty("m_Space");
 
-        Type type = targets[0].GetType();
+        ComputeSettings();
+    }
+
+    void ComputeSettings()
+    {
+        VFXContext context = targets[0] as VFXContext;
+        IEnumerable<FieldInfo> settingFields = context.GetSettings(false, VFXSettingAttribute.VisibleFlags.InInspector);
+
         for (int i = 1; i < targets.Length; ++i)
         {
-            while (!type.IsAssignableFrom(targets[i].GetType()))
-            {
-                type = type.BaseType;
-            }
+            IEnumerable<FieldInfo> otherSettingFields = (targets[i] as VFXContext).GetSettings(false, VFXSettingAttribute.VisibleFlags.InInspector);
+
+            settingFields = settingFields.Intersect(otherSettingFields);
         }
 
-
-        settingsProperty = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(f =>
-            {
-                return f.GetCustomAttributes(typeof(VFXSettingAttribute), true).Length == 1 &&
-                VFXSettingAttribute.IsTypeSupported(f.FieldType);
-            }).Select(t => serializedObject.FindProperty(t.Name)).ToArray();
+        settingsProperty = settingFields.Select(t => serializedObject.FindProperty(t.Name)).Where(t => t != null).ToArray();
     }
 
     void OnDisable()
@@ -53,10 +54,17 @@ public class VFXContextEditor : Editor
     {
         EditorGUILayout.PropertyField(spaceProperty);
 
-
         foreach (var prop in settingsProperty)
         {
-            EditorGUILayout.PropertyField(prop);
+            bool visibleChildren = EditorGUILayout.PropertyField(prop);
+            if (visibleChildren)
+            {
+                SerializedProperty childProp = serializedObject.FindProperty(prop.propertyPath);
+                while (childProp.NextVisible(visibleChildren) && childProp.propertyPath.StartsWith(prop.propertyPath + "."))
+                {
+                    visibleChildren = EditorGUILayout.PropertyField(childProp);
+                }
+            }
         }
 
         if (serializedObject.ApplyModifiedProperties())
@@ -66,6 +74,8 @@ public class VFXContextEditor : Editor
                 // notify that something changed.
                 context.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
             }
+
+            ComputeSettings(); // need to recompute settings because some might show/hide
         }
     }
 }
