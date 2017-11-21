@@ -856,7 +856,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             int mainLightIndex = lightData.mainLightIndex;
 
-            // Currently only directional light cookie is supported
             CoreUtils.SetKeyword(cmd, "_MAIN_LIGHT_COOKIE", mainLightIndex != -1 && LightweightUtils.IsSupportedCookieType(visibleLights[mainLightIndex].lightType) && visibleLights[mainLightIndex].light.cookie != null);
             CoreUtils.SetKeyword(cmd, "_MAIN_DIRECTIONAL_LIGHT", mainLightIndex == -1 || visibleLights[mainLightIndex].lightType == LightType.Directional);
             CoreUtils.SetKeyword(cmd, "_MAIN_SPOT_LIGHT", mainLightIndex != -1 && visibleLights[mainLightIndex].lightType == LightType.Spot);
