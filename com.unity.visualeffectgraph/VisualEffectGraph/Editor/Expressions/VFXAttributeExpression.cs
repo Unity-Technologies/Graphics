@@ -44,6 +44,7 @@ namespace UnityEditor.VFX
 
         public static readonly VFXAttribute[] AllAttribute = VFXReflectionHelper.CollectStaticReadOnlyExpression<VFXAttribute>(typeof(VFXAttribute));
         public static readonly string[] All = AllAttribute.Select(e => e.name).ToArray();
+        public static readonly string[] AllWritable = All.Except(AllReadOnly).ToArray();
 
         static private VFXValue GetValueFromType(VFXValueType type)
         {
