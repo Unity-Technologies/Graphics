@@ -207,7 +207,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
-    #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
+    #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
     #pragma shader_feature _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
     #pragma shader_feature _ENABLE_FOG_ON_TRANSPARENT
 
