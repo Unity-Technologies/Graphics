@@ -994,7 +994,7 @@ MonoBehaviour:
   - {fileID: 114537105779611658}
   m_exposedName: NbSlices
   m_exposed: 0
-  order: 0
+  m_order: 0
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -1226,7 +1226,7 @@ MonoBehaviour:
   - {fileID: 114287871694759918}
   m_exposedName: Count
   m_exposed: 0
-  order: 0
+  m_order: 0
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -4035,13 +4035,13 @@ VFXAsset:
         nameId: uniform_Sphere_radius_c
       - index: 51
         nameId: uniform_Sphere_arc_c
-      processor: {fileID: 7200000, guid: 9983445f7a3bc4a4abbcca47a9351f94, type: 3}
+      processor: {fileID: 7200000, guid: 711806d122c47974a98e0bc6c7c36a40, type: 3}
     - type: 805306368
       buffers:
       - index: 0
         nameId: attributeBuffer
       values: []
-      processor: {fileID: 7200000, guid: 834b3f6aa316ed943a2a272dd2773cb3, type: 3}
+      processor: {fileID: 7200000, guid: bd181e0b85f8bb449b2468c964ba5ab4, type: 3}
     - type: 1073741828
       buffers:
       - index: 0
@@ -4057,7 +4057,7 @@ VFXAsset:
         nameId: uniform_Position_position_e
       - index: 41
         nameId: uniform_targetOffset
-      processor: {fileID: 4800000, guid: 1f53a7b5540775b49bd8b80bd81766de, type: 3}
+      processor: {fileID: 4800000, guid: c9a5c6c1c01d4a94bb5489fca096a7d0, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000

@@ -1731,7 +1731,7 @@ VFXAsset:
       values:
       - index: 31
         nameId: uniform_deltaTime_b
-      processor: {fileID: 7200000, guid: 3cf503472d0d35a4b869e6096691ad42, type: 3}
+      processor: {fileID: 7200000, guid: b34989d1a6d49254b974bf1ad477e0e3, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -1745,7 +1745,7 @@ VFXAsset:
         nameId: uniform_DirectionBlend_b
       - index: 32
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: fb9098de7d0c5c545a284cdea048ece5, type: 3}
+      processor: {fileID: 4800000, guid: ef71549d423f79744bbaed5385a8bfbd, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 
