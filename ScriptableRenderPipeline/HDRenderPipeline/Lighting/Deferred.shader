@@ -36,12 +36,13 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
             // Chose supported lighting architecture in case of deferred rendering
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
-            #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
             // Split lighting is utilized during the SSS pass.
             #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile _ DEBUG_DISPLAY
+
+            #define USE_FPTL_LIGHTLIST // deferred opaque always use FPTL
 
             //-------------------------------------------------------------------------------------
             // Include
@@ -61,12 +62,11 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             // variable declaration
             //-------------------------------------------------------------------------------------
 
-            DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
-        #ifdef VOLUMETRIC_LIGHTING_ENABLED
-            TEXTURE3D(_VBufferLighting);
-        #endif
         #ifdef SHADOWS_SHADOWMASK
             TEXTURE2D(_ShadowMaskTexture);
+        #endif
+        #ifdef VOLUMETRIC_LIGHTING_ENABLED
+            TEXTURE3D(_VBufferLighting);
         #endif
 
             struct Attributes
@@ -106,10 +106,9 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                 UpdatePositionInput(depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, posInput);
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
-                FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
                 BSDFData bsdfData;
                 BakeLightingData bakeLightingData;
-                DECODE_FROM_GBUFFER(gbuffer, MATERIAL_FEATURE_MASK_FLAGS, bsdfData, bakeLightingData.bakeDiffuseLighting);
+                DECODE_FROM_GBUFFER(posInput.unPositionSS, MATERIAL_FEATURE_MASK_FLAGS, bsdfData, bakeLightingData.bakeDiffuseLighting);
                 #ifdef SHADOWS_SHADOWMASK
                 DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.unPositionSS), bakeLightingData.bakeShadowMask);
                 #endif

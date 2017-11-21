@@ -59,7 +59,7 @@
             #pragma vertex ParticlesLitVertex
             #pragma fragment ParticlesLitFragment
             #pragma multi_compile __ SOFTPARTICLES_ON
-            #pragma multi_compile _MAIN_DIRECTIONAL_LIGHT _MAIN_SPOT_LIGHT _MAIN_POINT_LIGHT
+            #pragma multi_compile _MAIN_DIRECTIONAL_LIGHT _MAIN_SPOT_LIGHT
             #pragma target 3.5
 
             #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON

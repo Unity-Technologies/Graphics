@@ -284,7 +284,7 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
     uint2 voxelCoord = groupCoord + localCoord;
     uint2 tileCoord  = voxelCoord * VBUFFER_TILE_SIZE / TILE_SIZE_CLUSTERED;
 
-    uint voxelsPerClusterTile = Sq(TILE_SIZE_CLUSTERED / VBUFFER_TILE_SIZE);
+    uint voxelsPerClusterTile = Sq((uint)(TILE_SIZE_CLUSTERED / VBUFFER_TILE_SIZE));
 
     if (voxelsPerClusterTile >= 64)
     {

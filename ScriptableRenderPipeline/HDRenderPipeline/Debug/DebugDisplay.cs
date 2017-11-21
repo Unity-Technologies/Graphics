@@ -34,7 +34,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static string kFullScreenDebugMip = "Fullscreen Debug Mip";
         public static string kDisplaySkyReflectionDebug = "Display Sky Reflection";
         public static string kSkyReflectionMipmapDebug = "Sky Reflection Mipmap";
-        public static string kTileDebug = "Tile Debug By Category";
+        public static string kTileClusterCategoryDebug = "Tile/Cluster Debug By Category";
+        public static string kTileClusterDebug = "Tile/Cluster Debug";
 
 
         public float debugOverlayRatio = 0.33f;
@@ -156,7 +157,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, Color>(kDebugLightingAlbedo, () => lightingDebugSettings.debugLightingAlbedo, (value) => lightingDebugSettings.debugLightingAlbedo = (Color)value);
             DebugMenuManager.instance.AddDebugItem<bool>("Lighting", kDisplaySkyReflectionDebug, () => lightingDebugSettings.displaySkyReflection, (value) => lightingDebugSettings.displaySkyReflection = (bool)value);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kSkyReflectionMipmapDebug, () => lightingDebugSettings.skyReflectionMipmap, (value) => lightingDebugSettings.skyReflectionMipmap = (float)value, DebugItemFlag.None, new DebugItemHandlerFloatMinMax(0.0f, 1.0f));
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, TilePass.TileSettings.TileDebug>(kTileDebug,() => lightingDebugSettings.tileDebugByCategory, (value) => lightingDebugSettings.tileDebugByCategory = (TilePass.TileSettings.TileDebug)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, TilePass.TileSettings.TileClusterDebug>(kTileClusterDebug,() => lightingDebugSettings.tileClusterDebug, (value) => lightingDebugSettings.tileClusterDebug = (TilePass.TileSettings.TileClusterDebug)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, TilePass.TileSettings.TileClusterCategoryDebug>(kTileClusterCategoryDebug,() => lightingDebugSettings.tileClusterDebugByCategory, (value) => lightingDebugSettings.tileClusterDebugByCategory = (TilePass.TileSettings.TileClusterCategoryDebug)value);
 
             DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Display Opaque",() => renderingDebugSettings.displayOpaqueObjects, (value) => renderingDebugSettings.displayOpaqueObjects = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Display Transparency",() => renderingDebugSettings.displayTransparentObjects, (value) => renderingDebugSettings.displayTransparentObjects = (bool)value);
@@ -537,7 +539,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool                 displaySkyReflection = false;
         public float                skyReflectionMipmap = 0.0f;
 
-        public TilePass.TileSettings.TileDebug  tileDebugByCategory = TilePass.TileSettings.TileDebug.None;
+        public TilePass.TileSettings.TileClusterDebug tileClusterDebug = TilePass.TileSettings.TileClusterDebug.None;
+        public TilePass.TileSettings.TileClusterCategoryDebug tileClusterDebugByCategory = TilePass.TileSettings.TileClusterCategoryDebug.Punctual;   
 
         public void OnValidate()
         {

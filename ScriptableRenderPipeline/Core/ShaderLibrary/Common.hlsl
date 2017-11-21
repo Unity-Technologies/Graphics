@@ -77,27 +77,8 @@
 #endif
 #include "API/Validate.hlsl"
 
+#include "Macros.hlsl"
 #include "Random.hlsl"
-
-// Some shader compiler don't support to do multiple ## for concatenation inside the same macro, it require an indirection.
-// This is the purpose of this macro
-#define MERGE_NAME(X, Y) X##Y
-
-// These define are use to abstract the way we sample into a cubemap array.
-// Some platform don't support cubemap array so we fallback on 2D latlong
-#ifdef UNITY_NO_CUBEMAP_ARRAY
-#define TEXTURECUBE_ARRAY_ABSTRACT TEXTURE2D_ARRAY
-#define SAMPLERCUBE_ABSTRACT SAMPLER2D
-#define TEXTURECUBE_ARRAY_ARGS_ABSTRACT TEXTURE2D_ARRAY_ARGS
-#define TEXTURECUBE_ARRAY_PARAM_ABSTRACT TEXTURE2D_ARRAY_PARAM
-#define SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(textureName, samplerName, coord3, index, lod) SAMPLE_TEXTURE2D_ARRAY_LOD(textureName, samplerName, DirectionToLatLongCoordinate(coord3), index, lod)
-#else
-#define TEXTURECUBE_ARRAY_ABSTRACT TEXTURECUBE_ARRAY
-#define SAMPLERCUBE_ABSTRACT SAMPLERCUBE
-#define TEXTURECUBE_ARRAY_ARGS_ABSTRACT TEXTURECUBE_ARRAY_ARGS
-#define TEXTURECUBE_ARRAY_PARAM_ABSTRACT TEXTURECUBE_ARRAY_PARAM
-#define SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(textureName, samplerName, coord3, index, lod) SAMPLE_TEXTURECUBE_ARRAY_LOD(textureName, samplerName, coord3, index, lod)
-#endif
 
 // ----------------------------------------------------------------------------
 // Common intrinsic (general implementation of intrinsic available on some platform)
@@ -118,103 +99,27 @@ bool IsBitSet(uint data, uint bitPos)
 }
 
 #ifndef INTRINSIC_WAVEREADFIRSTLANE
-// Warning: for correctness, the value you pass to the function must be constant across the wave!
-uint WaveReadFirstLane(uint scalarValue)
-{
-    return scalarValue;
-}
-
-uint2 WaveReadFirstLane(uint2 scalarValue)
-{
-    return scalarValue;
-}
+    // Warning: for correctness, the argument must have the same value across the wave!
+    TEMPLATE_1_FLT(WaveReadFirstLane, scalarValue, return scalarValue)
+    TEMPLATE_1_INT(WaveReadFirstLane, scalarValue, return scalarValue)
 #endif
 
 #ifndef INTRINSIC_MUL24
-int Mul24(int a, int b)
-{
-    return a * b;
-}
-
-uint Mul24(uint a, uint b)
-{
-    return a * b;
-}
+    TEMPLATE_2_INT(Mul24, a, b, return a * b)
 #endif // INTRINSIC_MUL24
 
 #ifndef INTRINSIC_MAD24
-int Mad24(int a, int b, int c)
-{
-    return a * b + c;
-}
-
-uint Mad24(uint a, uint b, uint c)
-{
-    return a * b + c;
-}
+    TEMPLATE_3_INT(Mad24, a, b, c, return a * b + c)
 #endif // INTRINSIC_MAD24
 
 #ifndef INTRINSIC_MINMAX3
-float Min3(float a, float b, float c)
-{
-    return min(min(a, b), c);
-}
-
-float2 Min3(float2 a, float2 b, float2 c)
-{
-    return min(min(a, b), c);
-}
-
-float3 Min3(float3 a, float3 b, float3 c)
-{
-    return min(min(a, b), c);
-}
-
-float4 Min3(float4 a, float4 b, float4 c)
-{
-    return min(min(a, b), c);
-}
-
-float Max3(float a, float b, float c)
-{
-    return max(max(a, b), c);
-}
-
-float2 Max3(float2 a, float2 b, float2 c)
-{
-    return max(max(a, b), c);
-}
-
-float3 Max3(float3 a, float3 b, float3 c)
-{
-    return max(max(a, b), c);
-}
-
-float4 Max3(float4 a, float4 b, float4 c)
-{
-    return max(max(a, b), c);
-}
+    TEMPLATE_3_FLT(Min3, a, b, c, return min(min(a, b), c))
+    TEMPLATE_3_INT(Min3, a, b, c, return min(min(a, b), c))
+    TEMPLATE_3_FLT(Max3, a, b, c, return max(max(a, b), c))
+    TEMPLATE_3_INT(Max3, a, b, c, return max(max(a, b), c))
 #endif // INTRINSIC_MINMAX3
 
-void Swap(inout float a, inout float b)
-{
-    float  t = a; a = b; b = t;
-}
-
-void Swap(inout float2 a, inout float2 b)
-{
-    float2 t = a; a = b; b = t;
-}
-
-void Swap(inout float3 a, inout float3 b)
-{
-    float3 t = a; a = b; b = t;
-}
-
-void Swap(inout float4 a, inout float4 b)
-{
-    float4 t = a; a = b; b = t;
-}
+TEMPLATE_SWAP(Swap) // Define a Swap(a, b) function for all types
 
 #define CUBEMAPFACE_POSITIVE_X 0
 #define CUBEMAPFACE_NEGATIVE_X 1
@@ -280,7 +185,6 @@ void GetCubeFaceID(float3 dir, out int faceIndex)
 #define HALF_PI     1.57079632679
 #define INV_HALF_PI 0.636619772367
 #define INFINITY    asfloat(0x7F800000)
-#define FLT_SMALL   1e-8
 #define LOG2_E      1.44269504089
 
 #define FLT_EPSILON 1.192092896e-07 // Smallest positive number, such that 1.0 + FLT_EPSILON != 1.0
@@ -299,16 +203,9 @@ float RadToDeg(float rad)
     return rad * (180.0 / PI);
 }
 
-// Square functions for cleaner code (SQ = SQuare. SQRT = SQuareRooT).
-float Sq(float x)
-{
-    return x * x;
-}
-
-float3 Sq(float3 x)
-{
-    return x * x;
-}
+// Square functions for cleaner code
+TEMPLATE_1_FLT(Sq, x, return x * x)
+TEMPLATE_1_INT(Sq, x, return x * x)
 
 bool IsPower2(uint x)
 {
@@ -385,31 +282,13 @@ static const float4x4 k_identity4x4 = {1.0, 0.0, 0.0, 0.0,
 // Using pow often result to a warning like this
 // "pow(f, e) will not work for negative f, use abs(f) or conditionally handle negative values if you expect them"
 // PositivePow remove this warning when you know the value is positive and avoid inf/NAN.
-float PositivePow(float base, float power)
-{
-    return pow(max(abs(base), float(FLT_EPSILON)), power);
-}
-
-float2 PositivePow(float2 base, float2 power)
-{
-    return pow(max(abs(base), float2(FLT_EPSILON, FLT_EPSILON)), power);
-}
-
-float3 PositivePow(float3 base, float3 power)
-{
-    return pow(max(abs(base), float3(FLT_EPSILON, FLT_EPSILON, FLT_EPSILON)), power);
-}
-
-float4 PositivePow(float4 base, float4 power)
-{
-    return pow(max(abs(base), float4(FLT_EPSILON, FLT_EPSILON, FLT_EPSILON, FLT_EPSILON)), power);
-}
+TEMPLATE_2_FLT(PositivePow, base, power, return pow(max(abs(base), FLT_EPSILON), power))
 
 // Ref: https://twitter.com/SebAaltonen/status/878250919879639040
 // 2 mads (mad_sat and mad), faster than regular sign
-float3 FastSign(float x)
+float FastSign(float x)
 {
-    return  saturate(x * FLT_MAX) * 2.0 - 1.0;
+    return saturate(x * FLT_MAX) * 2.0 - 1.0;
 }
 
 // Orthonormalizes the tangent frame using the Gram-Schmidt process.

@@ -33,14 +33,14 @@ void ComputeGgxIblSampleData(uint3 groupThreadId : SV_GroupThreadID)
     float3 localL;
     float  NdotL, NdotH, LdotH;
 
-    const int validSampleCount = sampleCount;
+    const uint validSampleCount = sampleCount;
 
     while (true)
     {
-        int acceptedSampleCount = 0;
-        int shiftedSampleIndex  = 0;
+        uint acceptedSampleCount = 0;
+        uint shiftedSampleIndex  = 0;
 
-        for (int i = 0; i < sampleCount; i++)
+        for (uint i = 0; i < sampleCount; i++)
         {
             // We switch to the Golden sequence instead of the Fibonacci sequence
             // since the sample count is not guaranteed to be a Fibonacci number.
