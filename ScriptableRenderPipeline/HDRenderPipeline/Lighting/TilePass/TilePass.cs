@@ -1844,7 +1844,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     cmd.SetGlobalTexture(HDShaderIDs._CookieTextures, m_CookieTexArray.GetTexCache());
                     cmd.SetGlobalTexture(HDShaderIDs._CookieCubeTextures, m_CubeCookieTexArray.GetTexCache());
-                    cmd.SetGlobalTexture(HDShaderIDs._EnvTextures, m_CubeReflTexArray.GetTexCache());
+                    cmd.SetGlobalTexture(HDShaderIDs._EnvTextures, m_ReflectionProbeCache.GetTexCache());
 
                     cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, s_DirectionalLightDatas);
                     cmd.SetGlobalInt(HDShaderIDs._DirectionalLightCount, m_lightList.directionalLights.Count);
