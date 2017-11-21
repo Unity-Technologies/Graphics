@@ -15,8 +15,8 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
 
             #pragma multi_compile _ SHADOWS_SHADOWMASK
 
-            #include "../../Core/ShaderLibrary/Common.hlsl"
-            #include "../../Core/ShaderLibrary/Color.hlsl"
+            #include "ShaderLibrary/Common.hlsl"
+            #include "ShaderLibrary/Color.hlsl"
 
             // CAUTION: In case deferred lighting need to support various lighting model statically, we will require to do multicompile with different define like UNITY_MATERIAL_LIT
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl

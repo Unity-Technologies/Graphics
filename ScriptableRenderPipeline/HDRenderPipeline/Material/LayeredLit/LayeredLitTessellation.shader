@@ -420,10 +420,10 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
     // Include
     //-------------------------------------------------------------------------------------
 
-    #include "../../../Core/ShaderLibrary/common.hlsl"
-    #include "../../../Core/ShaderLibrary/Wind.hlsl"
-    #include "../../../Core/ShaderLibrary/GeometricTools.hlsl"
-    #include "../../../Core/ShaderLibrary/tessellation.hlsl"
+    #include "ShaderLibrary/common.hlsl"
+    #include "ShaderLibrary/Wind.hlsl"
+    #include "ShaderLibrary/GeometricTools.hlsl"
+    #include "ShaderLibrary/tessellation.hlsl"
     #include "../../ShaderPass/FragInputs.hlsl"
     #include "../../ShaderPass/ShaderPass.cs.hlsl"
 

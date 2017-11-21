@@ -41,7 +41,7 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
             // Include
             //-------------------------------------------------------------------------------------
 
-            #include "../../../../Core/ShaderLibrary/Common.hlsl"
+            #include "ShaderLibrary/Common.hlsl"
             #include "../../../ShaderVariables.hlsl"
             #define UNITY_MATERIAL_LIT // Needs to be defined before including Material.hlsl
             #include "../../../Material/Material.hlsl"

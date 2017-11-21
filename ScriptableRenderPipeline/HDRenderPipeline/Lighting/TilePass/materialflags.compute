@@ -3,7 +3,7 @@
 
 // #pragma enable_d3d11_debug_symbols
 
-#include "../../../Core/ShaderLibrary/common.hlsl"
+#include "ShaderLibrary/common.hlsl"
 #include "ShaderBase.hlsl"
 #include "TilePass.cs.hlsl"
 
