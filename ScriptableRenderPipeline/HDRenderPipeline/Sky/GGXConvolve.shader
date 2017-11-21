@@ -11,7 +11,7 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 vulkan metal  // TEMP: until we go further in dev
+            #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
 
             #pragma multi_compile _ USE_MIS
 
