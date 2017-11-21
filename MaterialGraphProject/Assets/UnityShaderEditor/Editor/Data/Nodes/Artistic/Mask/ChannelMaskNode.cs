@@ -14,11 +14,34 @@ namespace UnityEditor.ShaderGraph
     }
 
     [Title("Artistic/Mask/Channel Mask")]
-    public class ChannelMaskNode : CodeFunctionNode
+    public class ChannelMaskNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
         public ChannelMaskNode()
         {
             name = "Channel Mask";
+            UpdateNodeAfterDeserialization();
+        }
+
+        const int InputSlotId = 0;
+        const int OutputSlotId = 1;
+        const string kInputSlotName = "In";
+        const string kOutputSlotName = "Out";
+
+        public override bool hasPreview
+        {
+            get { return true; }
+        }
+
+        string GetFunctionName()
+        {
+            return string.Format("Unity_ChannelMask_{0}_{1}", channel, precision);
+        }
+
+        public sealed override void UpdateNodeAfterDeserialization()
+        {
+            AddSlot(new DynamicVectorMaterialSlot(InputSlotId, kInputSlotName, kInputSlotName, SlotType.Input, Vector3.zero));
+            AddSlot(new DynamicVectorMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector3.zero));
+            RemoveSlotsNameNotMatching(new[] { InputSlotId, OutputSlotId });
         }
 
         [SerializeField]
@@ -41,67 +64,61 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        protected override MethodInfo GetFunctionToConvert()
+        void ValidateChannelCount()
         {
-            switch (m_Channel)
+            int channelCount = (int)SlotValueHelper.GetChannelCount(FindSlot<MaterialSlot>(InputSlotId).concreteValueType);
+            if ((int)channel >= channelCount)
+                channel = TextureChannel.Red;
+        }
+
+        string GetFunctionPrototype(string argIn, string argOut)
+        {
+            return string.Format("void {0} ({1} {2}, out {3} {4})", GetFunctionName(),
+                ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<DynamicVectorMaterialSlot>(InputSlotId).concreteValueType), argIn,
+                ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<DynamicVectorMaterialSlot>(OutputSlotId).concreteValueType), argOut);
+        }
+
+        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        {
+            ValidateChannelCount();
+            string inputValue = GetSlotValue(InputSlotId, generationMode);
+            string outputValue = GetSlotValue(OutputSlotId, generationMode);
+            visitor.AddShaderChunk(string.Format("{0} {1};", ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType), GetVariableNameForSlot(OutputSlotId)), true);
+            visitor.AddShaderChunk(GetFunctionCallBody(inputValue, outputValue), true);
+        }
+
+        string GetFunctionCallBody(string inputValue, string outputValue)
+        {
+            return GetFunctionName() + " (" + inputValue + ", " + outputValue + ");";
+        }
+
+        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
+        {
+            ValidateChannelCount();
+            var outputString = new ShaderGenerator();
+            outputString.AddShaderChunk(GetFunctionPrototype("In", "Out"), false);
+            outputString.AddShaderChunk("{", false);
+            outputString.Indent();
+
+            switch(channel)
             {
                 case TextureChannel.Green:
-                    return GetType().GetMethod("Unity_ChannelMask_Green", BindingFlags.Static | BindingFlags.NonPublic);
+                    outputString.AddShaderChunk("Out = In.yyyy;", false);
+                    break;
                 case TextureChannel.Blue:
-                    return GetType().GetMethod("Unity_ChannelMask_Blue", BindingFlags.Static | BindingFlags.NonPublic);
+                    outputString.AddShaderChunk("Out = In.zzzz;", false);
+                    break;
                 case TextureChannel.Alpha:
-                    return GetType().GetMethod("Unity_ChannelMask_Alpha", BindingFlags.Static | BindingFlags.NonPublic);
+                    outputString.AddShaderChunk("Out = In.wwww;", false);
+                    break;
                 default:
-                    return GetType().GetMethod("Unity_ChannelMask_Red", BindingFlags.Static | BindingFlags.NonPublic);
+                    outputString.AddShaderChunk("Out = In.xxxx;", false);
+                    break;
             }
-        }
 
-        static string Unity_ChannelMask_Red(
-            [Slot(0, Binding.None)] DynamicDimensionVector In,
-            [Slot(1, Binding.None)] out Vector4 Out)
-        {
-            Out = Vector4.zero;
-            return
-                @"
-{
-    Out = In.xxxx;
-}";
-        }
-
-        static string Unity_ChannelMask_Green(
-            [Slot(0, Binding.None)] DynamicDimensionVector In,
-            [Slot(1, Binding.None)] out Vector4 Out)
-        {
-            Out = Vector4.zero;
-            return
-                @"
-{
-    Out = In.yyyy;
-}";
-        }
-
-        static string Unity_ChannelMask_Blue(
-            [Slot(0, Binding.None)] DynamicDimensionVector In,
-            [Slot(1, Binding.None)] out Vector4 Out)
-        {
-            Out = Vector4.zero;
-            return
-                @"
-{
-    Out = In.zzzz;
-}";
-        }
-
-        static string Unity_ChannelMask_Alpha(
-            [Slot(0, Binding.None)] DynamicDimensionVector In,
-            [Slot(1, Binding.None)] out Vector4 Out)
-        {
-            Out = Vector4.zero;
-            return
-                @"
-{
-    Out = In.wwww;
-}";
+            outputString.Deindent();
+            outputString.AddShaderChunk("}", false);
+            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
         }
     }
 }
