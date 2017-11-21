@@ -137,7 +137,7 @@ namespace UnityEditor.Experimental.Rendering
 			// Readback the rendered texture
 			var oldActive = RenderTexture.active;
 			RenderTexture.active = tempTarget;
-			var captured = new Texture2D(tempTarget.width, tempTarget.height, TextureFormat.ARGB32, false);
+			var captured = new Texture2D(tempTarget.width, tempTarget.height, TextureFormat.RGB24, false);
 			captured.ReadPixels(new Rect(0, 0, testSetup.width, testSetup.height), 0, 0);
 			RenderTexture.active = oldActive;
 
