@@ -65,7 +65,7 @@ namespace UnityEditor.VFX.UIElements
             style.flexDirection = FlexDirection.Row;
         }
 
-        public CurveField(VisualElement existingLabel) : base(existingLabel)
+        public CurveField(Label existingLabel) : base(existingLabel)
         {
             SetupCurve();
         }

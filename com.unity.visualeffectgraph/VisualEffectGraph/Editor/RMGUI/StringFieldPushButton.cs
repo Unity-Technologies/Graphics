@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.UIElements
             Add(new Button(() => m_fnOnClicked(m_TextField.text)));
         }
 
-        public StringFieldPushButton(VisualElement existingLabel, Action<string> fnClicked) : base(existingLabel)
+        public StringFieldPushButton(Label existingLabel, Action<string> fnClicked) : base(existingLabel)
         {
             m_fnOnClicked = fnClicked;
             Add(new Button(() => m_fnOnClicked(m_TextField.text)));
