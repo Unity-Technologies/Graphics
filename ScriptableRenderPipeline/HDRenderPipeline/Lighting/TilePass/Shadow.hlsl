@@ -1,9 +1,10 @@
-// This file is empty by default.
-// Project specific file to override the default shadow sampling routines.
-// We need to define which dispatchers we're overriding, otherwise the compiler will pick default implementations which will lead to compilation errors.
-// Check Shadow.hlsl right below where this header is included for the individual defines.
+#ifndef TILEPASS_SHADOW_HLSL
+#define TILEPASS_SHADOW_HLSL
 
+#define SHADOW_DISPATCH_USE_CUSTOM_DIRECTIONAL
+#define SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL
 
+#include "ShadowContext.hlsl"
 
 // This is an example of how to override the default dynamic resource dispatcher
 // by hardcoding the resources used and calling the shadow sampling routines that take an explicit texture and sampler.
@@ -11,8 +12,6 @@
 // and that on the C# side the shadowContext bindDelegate binds the correct resource to the correct texture id.
 
 
-#define SHADOW_DISPATCH_USE_CUSTOM_DIRECTIONAL	    // enables hardcoded resources and algorithm for directional lights
-#define SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL		    // enables hardcoded resources and algorithm for punctual lights
 //#define SHADOW_DISPATCH_USE_SEPARATE_CASCADE_ALGOS  // enables separate cascade sampling variants for each cascade
 //#define SHADOW_DISPATCH_USE_SEPARATE_PUNC_ALGOS	    // enables separate resources and algorithms for spot and point lights
 
@@ -56,6 +55,8 @@ float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 posit
 {
 	return GetDirectionalShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L );
 }
+#else
+#include "ShaderLibrary/Shadow/DirectionalShadowAttenuation.hlsl"
 #endif
 
 
@@ -85,7 +86,7 @@ float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 position
 		return EvalShadow_SpotDepth( shadowContext, algo, tex, compSamp, positionWS, normalWS, shadowDataIndex, L );
 	}
 #else
-	// example for choosing the same algo 
+	// example for choosing the same algo
 	Texture2DArray			tex      = shadowContext.tex2DArray[SHADOW_DISPATCH_PUNC_TEX];
 	SamplerComparisonState	compSamp = shadowContext.compSamplers[SHADOW_DISPATCH_PUNC_SMP];
 	uint					algo     = SHADOW_DISPATCH_PUNC_ALG;
@@ -96,6 +97,8 @@ float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 position
 {
 	return GetPunctualShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L );
 }
+#else
+#include "ShaderLibrary/Shadow/PunctualShadowAttenuation.hlsl"
 #endif
 
 // cleanup the defines
@@ -118,3 +121,7 @@ float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 position
 #ifdef SHADOW_DISPATCH_USE_SEPARATE_PUNC_ALGOS
 #undef SHADOW_DISPATCH_USE_SEPARATE_PUNC_ALGOS
 #endif
+
+
+
+#endif // TILEPASS_SHADOW_HLSL
