@@ -24,7 +24,7 @@ namespace UnityEditor.VFX.UI
 
         public override float GetPreferredControlWidth()
         {
-            return 120;
+            return 40;
         }
 
         void OnButtonClick()
@@ -72,6 +72,11 @@ namespace UnityEditor.VFX.UI
             m_VectorField.AddToClassList("fieldContainer");
 
             Add(m_VectorField);
+        }
+
+        public override float GetPreferredControlWidth()
+        {
+            return 195;
         }
 
         public abstract void OnValueChanged(ChangeEvent<Vector3> e);

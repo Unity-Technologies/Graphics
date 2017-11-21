@@ -96,7 +96,6 @@ namespace UnityEditor.VFX.UIElements
         }
 
         IScheduledItem m_EyeDroppperScheduler;
-        bool m_FirstUpAfterEyeDropper = false;
         void OnEyeDropperStart(MouseDownEvent e)
         {
             EyeDropper.Start(OnColorChanged);

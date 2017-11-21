@@ -517,9 +517,9 @@ namespace UnityEditor.VFX.UI
             Plane plane = (Plane)anchor.value;
 
             Quaternion normalQuat = Quaternion.FromToRotation(Vector3.forward, plane.normal);
-            Handles.DrawRectangle(0, plane.position, normalQuat, 10);
+            Handles.RectangleHandleCap(0, plane.position, normalQuat, 10, Event.current.type);
 
-            Handles.DrawArrow(0, plane.position, normalQuat, 5);
+            Handles.ArrowHandleCap(0, plane.position, normalQuat, 5, Event.current.type);
 
             if (PositionGizmo(component, plane.space, ref plane.position))
             {

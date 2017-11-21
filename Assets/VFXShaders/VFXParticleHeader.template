@@ -17,9 +17,6 @@ ${VFXGeneratedBlockFunction}
 ByteAddressBuffer attributeBuffer;		
 float nbMax;	
 
-#if USE_SOFT_PARTICLE
-sampler2D_float _CameraDepthTexture;
-#endif	
 ENDHLSL
 
 

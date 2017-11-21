@@ -56,7 +56,7 @@ namespace UnityEditor.VFX.UI
             {typeof(Vector2), typeof(VFXVector2PropertyIM) },
             {typeof(Vector3), typeof(VFXVector3PropertyIM) },
             {typeof(Vector4), typeof(VFXVector4PropertyIM) },
-            {typeof(Color), typeof(VFXColorPropertyIM) },
+            //{typeof(Color), typeof(VFXColorPropertyIM) },
             {typeof(Texture2D), typeof(VFXObjectPropertyIM<Texture2D>) },
             {typeof(Texture3D), typeof(VFXObjectPropertyIM<Texture3D>) },
             {typeof(Mesh), typeof(VFXObjectPropertyIM<Mesh>) },

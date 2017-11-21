@@ -38,14 +38,18 @@ struct VFXSampler3D
 #define VFX_DATA_NB_FREE                11
 
 #ifdef VFX_WORLD_SPACE
+float3 TransformPositionVFXToWorld(float3 pos)  { return pos; }
 float4 TransformPositionVFXToClip(float3 pos)   { return VFXTransformPositionWorldToClip(pos); }
 float3x3 GetVFXToViewRotMatrix()                { return VFXGetWorldToViewRotMatrix(); }
 float3 GetViewVFXPosition()                     { return VFXGetViewWorldPosition(); }
 #else
+float3 TransformPositionVFXToWorld(float3 pos)  { return mul(VFXGetObjectToWorldMatrix(),float4(pos,1.0f)).xyz; }
 float4 TransformPositionVFXToClip(float3 pos)   { return VFXTransformPositionObjectToClip(pos); }
 float3x3 GetVFXToViewRotMatrix()                { return mul(VFXGetWorldToViewRotMatrix(),(float3x3)VFXGetObjectToWorldMatrix()); }
 float3 GetViewVFXPosition()                     { return mul(VFXGetWorldToObjectMatrix(),float4(VFXGetViewWorldPosition(),1.0f)).xyz; }
 #endif
+
+#define VFX_SAMPLER(name) GetVFXSampler(texture_##name,samplertexture_##name)
 
 float4 SampleTexture(VFXSampler2D s,float2 coords)
 {
