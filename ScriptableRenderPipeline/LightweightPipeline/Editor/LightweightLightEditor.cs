@@ -398,10 +398,11 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
                 if (group.visible) DrawRuntimeShadow();
             EditorGUI.indentLevel -= 1;
 
-            if (RealtimeShadowsWarningValue || BakingWarningValue)
-            {
+            if (BakingWarningValue)
+                EditorGUILayout.HelpBox(s_Styles.BakingWarning.text, MessageType.Warning);
+
+            if (RealtimeShadowsWarningValue)
                 EditorGUILayout.HelpBox(s_Styles.ShadowsNotSupportedWarning.text, MessageType.Warning);
-            }
 
             EditorGUILayout.Space();
         }

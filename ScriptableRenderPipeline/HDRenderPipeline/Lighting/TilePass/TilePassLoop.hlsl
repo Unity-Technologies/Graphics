@@ -84,10 +84,7 @@ uint FetchIndex(uint tileOffset, uint lightIndex)
 
 uint GetTileSize()
 {
-    if (_UseTileLightList)
-        return TILE_SIZE_FPTL;
-    else
-        return TILE_SIZE_CLUSTERED;
+    return TILE_SIZE_CLUSTERED;
 }
 
 float GetLightClusterMinDepthVS(uint2 tileIndex, uint clusterIndex)
@@ -131,26 +128,12 @@ void GetCountAndStartCluster(PositionInputs posInput, uint lightCategory, out ui
 
 void GetCountAndStart(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
 {
-    if (_UseTileLightList)
-        GetCountAndStartTile(posInput, lightCategory, start, lightCount);
-    else
-        GetCountAndStartCluster(posInput, lightCategory, start, lightCount);
+    GetCountAndStartCluster(posInput, lightCategory, start, lightCount);
 }
 
 uint FetchIndex(uint tileOffset, uint lightIndex)
 {
-    uint offset = tileOffset + lightIndex;
-    const uint lightIndexPlusOne = lightIndex + 1; // Add +1 as first slot is reserved to store number of light
-
-    if (_UseTileLightList)
-        offset = DWORD_PER_TILE * tileOffset + (lightIndexPlusOne >> 1);
-
-    // Avoid generated HLSL bytecode to always access g_vLightListGlobal with
-    // two different offsets, fixes out of bounds issue
-    uint value = g_vLightListGlobal[offset];
-
-    // Light index are store on 16bit
-    return (_UseTileLightList ? ((value >> ((lightIndexPlusOne & 1) * DWORD_PER_TILE)) & 0xffff) : value);
+    return g_vLightListGlobal[tileOffset + lightIndex];
 }
 
 #endif // USE_FPTL_LIGHTLIST

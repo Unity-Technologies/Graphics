@@ -103,7 +103,7 @@ void ImportanceSamplePunctualLight(float rndVal, float3 lightPosition,
     float3 originToLight       = lightPosition - rayOrigin;
     float  originToLightProj   = dot(originToLight, rayDirection);
     float  originToLightDistSq = dot(originToLight, originToLight);
-    float  rayToLightDistSq    = max(originToLightDistSq - originToLightProj * originToLightProj, FLT_SMALL);
+    float  rayToLightDistSq    = max(originToLightDistSq - originToLightProj * originToLightProj, FLT_EPSILON);
 
     float a    = tMin - originToLightProj;
     float b    = tMax - originToLightProj;
@@ -126,7 +126,7 @@ void ImportanceSamplePunctualLight(float rndVal, float3 lightPosition,
 // Absorption coefficient from Disney: http://blog.selfshadow.com/publications/s2015-shading-course/burley/s2015_pbs_disney_bsdf_notes.pdf
 float3 TransmittanceColorAtDistanceToAbsorption(float3 transmittanceColor, float atDistance)
 {
-    return -log(transmittanceColor + FLT_SMALL) / max(atDistance, FLT_SMALL);
+    return -log(transmittanceColor + FLT_EPSILON) / max(atDistance, FLT_EPSILON);
 }
 
 #ifndef USE_LEGACY_UNITY_SHADER_VARIABLES

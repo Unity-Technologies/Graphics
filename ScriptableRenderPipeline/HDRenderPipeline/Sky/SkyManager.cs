@@ -520,7 +520,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int offset = 0;
             for (int i = 0; i < 6; ++i)
             {
-                Graphics.SetRenderTarget(m_SkyboxCubemapRT, 0, (CubemapFace)i);
+                UnityEngine.Graphics.SetRenderTarget(m_SkyboxCubemapRT, 0, (CubemapFace)i);
                 temp.ReadPixels(new Rect(0, 0, resolution, resolution), offset, 0);
                 temp.Apply();
                 offset += resolution;
@@ -528,12 +528,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Flip texture.
             // Temporarily disabled until proper API reaches trunk
-            Graphics.Blit(temp, tempRT, new Vector2(1.0f, -1.0f), new Vector2(0.0f, 0.0f));
+            UnityEngine.Graphics.Blit(temp, tempRT, new Vector2(1.0f, -1.0f), new Vector2(0.0f, 0.0f));
 
             result.ReadPixels(new Rect(0, 0, resolution * 6, resolution), 0, 0);
             result.Apply();
 
-            Graphics.SetRenderTarget(null);
+            UnityEngine.Graphics.SetRenderTarget(null);
             Object.DestroyImmediate(temp);
             Object.DestroyImmediate(tempRT);
 

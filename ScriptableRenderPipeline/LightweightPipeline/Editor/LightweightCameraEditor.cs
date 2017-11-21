@@ -13,35 +13,18 @@ namespace UnityEditor
     [CanEditMultipleObjects]
     public class LightweightameraEditor : Editor
     {
-        // Manually entered rendering path names/values, since we want to show them
-        // in different order than they appear in the enum.
-        private static readonly GUIContent[] kCameraRenderPaths =
-        {
-            new GUIContent("Use Graphics Settings"),
-            new GUIContent("Forward"),
-            new GUIContent("Deferred"),
-            new GUIContent("Legacy Vertex Lit"),
-            new GUIContent("Legacy Deferred (light prepass)")
-        };
-
-        private static readonly int[] kCameraRenderPathValues =
-        {
-            (int) RenderingPath.UsePlayerSettings,
-            (int) RenderingPath.Forward,
-            (int) RenderingPath.DeferredShading,
-            (int) RenderingPath.VertexLit,
-            (int) RenderingPath.DeferredLighting
-        };
-
         public class Styles
         {
-            public readonly GUIContent renderingPathWarning = new GUIContent("Lightweight Pipeline only supports Forward rendering path.");
+            public readonly GUIContent renderingPathLabel = new GUIContent("Rendering Path");
+            public readonly GUIContent[] renderingPathOptions = { new GUIContent("Forward") };
+            public readonly GUIContent renderingPathInfo = new GUIContent("Lightweight Pipeline only supports Forward rendering path.");
             public readonly GUIContent clipingPlanesLabel = new GUIContent("Clipping Planes", "Distances from the camera to start and stop rendering.");
             public readonly GUIContent nearPlaneLabel = new GUIContent("Near", "The closest point relative to the camera that drawing will occur.");
             public readonly GUIContent farPlaneLabel = new GUIContent("Far", "The furthest point relative to the camera that drawing will occur.");
             public readonly GUIContent fixNow = new GUIContent("Fix now");
         };
 
+        private static readonly int[] kRenderingPathValues = {0};
         private static Styles s_Styles;
         private LightweightPipelineAsset lightweightPipeline;
 
@@ -76,9 +59,6 @@ namespace UnityEditor
         // Animation Properties
         private bool IsSameClearFlags { get { return !clearFlags.hasMultipleDifferentValues; } }
         private bool IsSameOrthographic { get { return !orthographic.hasMultipleDifferentValues; } }
-        private bool IsSameRenderingPath { get { return !renderingPath.hasMultipleDifferentValues; } }
-
-        private bool ShowRenderingPathWarning { get { return IsSameRenderingPath && renderingPath.intValue != (int)RenderingPath.Forward; } }
 
         readonly AnimBool showBGColorAnim = new AnimBool();
         readonly AnimBool showOrthoAnim = new AnimBool();
@@ -132,7 +112,6 @@ namespace UnityEditor
             orthographicSize = serializedObject.FindProperty("orthographic size");
             depth = serializedObject.FindProperty("m_Depth");
             cullingMask = serializedObject.FindProperty("m_CullingMask");
-            renderingPath = serializedObject.FindProperty("m_RenderingPath");
             occlusionCulling = serializedObject.FindProperty("m_OcclusionCulling");
             targetTexture = serializedObject.FindProperty("m_TargetTexture");
             HDR = serializedObject.FindProperty("m_HDR");
@@ -228,17 +207,12 @@ namespace UnityEditor
 
         public void DrawRenderingPath()
         {
-            EditorGUILayout.IntPopup(renderingPath, kCameraRenderPaths, kCameraRenderPathValues,
-                new GUIContent("Rendering Path"));
-
-            if (ShowRenderingPathWarning)
+            using (new EditorGUI.DisabledScope(true))
             {
-                EditorGUILayout.HelpBox(s_Styles.renderingPathWarning.text, MessageType.Warning);
-
-                // Button (align lower right)
-                if (GUI.Button(new Rect(0.0f, 0.0f, 60.0f, 20.0f), s_Styles.fixNow))
-                    renderingPath.intValue = (int) RenderingPath.Forward;
+                EditorGUILayout.IntPopup(s_Styles.renderingPathLabel, 0, s_Styles.renderingPathOptions, kRenderingPathValues);
             }
+
+            EditorGUILayout.HelpBox(s_Styles.renderingPathInfo.text, MessageType.Info);
         }
 
         public void DrawTargetTexture()

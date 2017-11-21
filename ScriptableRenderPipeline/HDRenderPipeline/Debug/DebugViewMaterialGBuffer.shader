@@ -24,8 +24,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
             #define DEBUG_DISPLAY
             #include "../Debug/DebugDisplay.hlsl"
             #include "../Material/Material.hlsl"
-
-            DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
+            
             #ifdef SHADOWS_SHADOWMASK
             TEXTURE2D(_ShadowMaskTexture);
             #endif
@@ -54,10 +53,9 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
                 float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
                 UpdatePositionInput(depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, posInput);
 
-                FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
                 BSDFData bsdfData;
                 BakeLightingData bakeLightingData;
-                DECODE_FROM_GBUFFER(gbuffer, 0xFFFFFFFF, bsdfData, bakeLightingData.bakeDiffuseLighting);
+                DECODE_FROM_GBUFFER(posInput.unPositionSS, 0xFFFFFFFF, bsdfData, bakeLightingData.bakeDiffuseLighting);
                 #ifdef SHADOWS_SHADOWMASK
                 DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.unPositionSS), bakeLightingData.bakeShadowMask);
                 #endif
