@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
@@ -14,132 +15,160 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        private const int InputSlotId = 0;
-        private const int OutputSlotId = 1;
-        private const string kInputSlotName = "In";
-        private const string kOutputSlotName = "Out";
+        const int InputSlotId = 0;
+        const int OutputSlotId = 1;
+        const string kInputSlotName = "In";
+        const string kOutputSlotName = "Out";
 
         public override bool hasPreview
         {
             get { return true; }
         }
 
-        protected string GetFunctionName()
+        string GetFunctionName()
         {
             return "Unity_ChannelMixer_" + precision;
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(GetInputSlot());
-            AddSlot(GetOutputSlot());
-            RemoveSlotsNameNotMatching(validSlots);
-        }
-
-        protected int[] validSlots
-        {
-            get { return new[] { InputSlotId, OutputSlotId }; }
-        }
-
-        protected virtual MaterialSlot GetInputSlot()
-        {
-            return new Vector3MaterialSlot(InputSlotId, kInputSlotName, kInputSlotName, SlotType.Input, Vector3.zero);
-        }
-
-        protected virtual MaterialSlot GetOutputSlot()
-        {
-            return new Vector3MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector3.zero);
-        }
-        
-        [Serializable]
-        public class ChannelMixer
-        {
-            public OutChannel[] outChannels;
-            public ChannelMixer(OutChannel[] c)
-            {
-                outChannels = c;
-            }
-        }
-
-        [Serializable]
-        public class OutChannel
-        {
-            public float[] inChannels;
-            public OutChannel(float[] c)
-            {
-                inChannels = c;
-            }
+            AddSlot(new Vector3MaterialSlot(InputSlotId, kInputSlotName, kInputSlotName, SlotType.Input, Vector3.zero));
+            AddSlot(new Vector3MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector3.zero));
+            RemoveSlotsNameNotMatching(new[] { InputSlotId, OutputSlotId });
         }
 
         [SerializeField]
-        private ChannelMixer m_ChannelMixer;
+        ChannelMixer m_ChannelMixer = new ChannelMixer( new Vector3(1, 0, 0), new Vector3(0, 1, 0), new Vector3(0, 0, 1));
+
+        [Serializable]
+        public struct ChannelMixer
+        {
+            public Vector3 outRed;
+            public Vector3 outGreen;
+            public Vector3 outBlue;
+
+            public ChannelMixer(Vector3 red, Vector3 green, Vector3 blue)
+            {
+                outRed = red;
+                outGreen = green;
+                outBlue = blue;
+            }
+        }
 
         [ChannelMixerControl("")]
         public ChannelMixer channelMixer
         {
-            get
-            {
-                if(m_ChannelMixer == null)
-                {
-                    m_ChannelMixer = new ChannelMixer(
-                    new OutChannel[3]
-                    {
-                        new OutChannel( new float[3] { 1, 0, 0 } ),
-                        new OutChannel( new float[3] { 0, 1, 0 } ),
-                        new OutChannel( new float[3] { 0, 0, 1 } )
-                    });
-                }
-                return m_ChannelMixer;
-            }
+            get { return m_ChannelMixer; }
             set
             {
-                /*if (m_ChannelMixer == value) // This is always true with nested arrays in a class
-                    return;*/
-
+                if (Equals(value))
+                    return;
                 m_ChannelMixer = value;
                 if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Graph);
-                }
+                    onModified(this, ModificationScope.Node);
             }
         }
 
-        protected string GetFunctionPrototype(string arg1Name, string arg2Name)
+        bool Equals(ChannelMixer c)
         {
-            return string.Format("void {0} ({1} {2}, out {3} {4})", GetFunctionName(), ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType), arg1Name, ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), arg2Name);
+            if (ReferenceEquals(c, null))
+                return false;
+            if (ReferenceEquals(c, m_ChannelMixer))
+                return true;
+            return (c.outRed == m_ChannelMixer.outRed) && (c.outGreen == m_ChannelMixer.outGreen) && (c.outBlue == m_ChannelMixer.outBlue);
+        }
+
+        string GetFunctionPrototype(string argIn, string argRed, string argGreen, string argBlue, string argOut)
+        {
+            return string.Format("void {0} ({1} {2}, {3} {4}, {3} {5}, {3} {6}, out {7} {8})", GetFunctionName(), 
+                ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType), argIn, 
+                precision+"3", argRed, argGreen, argBlue, 
+                ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), argOut);
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            NodeUtils.SlotConfigurationExceptionIfBadConfiguration(this, new[] { InputSlotId }, new[] { OutputSlotId });
             string inputValue = GetSlotValue(InputSlotId, generationMode);
             string outputValue = GetSlotValue(OutputSlotId, generationMode);
             visitor.AddShaderChunk(string.Format("{0} {1};", ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType), GetVariableNameForSlot(OutputSlotId)), true);
-            visitor.AddShaderChunk(GetFunctionCallBody(inputValue, outputValue), true);
+
+            if(!generationMode.IsPreview())
+            {
+                visitor.AddShaderChunk(string.Format("{0}3 _{1}_Red = {0}3 ({2}, {3}, {4});", precision, GetVariableNameForNode(), channelMixer.outRed[0], channelMixer.outRed[1], channelMixer.outRed[2]), true);
+                visitor.AddShaderChunk(string.Format("{0}3 _{1}_Green = {0}3 ({2}, {3}, {4});", precision, GetVariableNameForNode(), channelMixer.outGreen[0], channelMixer.outGreen[1], channelMixer.outGreen[2]), true);
+                visitor.AddShaderChunk(string.Format("{0}3 _{1}_Blue = {0}3 ({2}, {3}, {4});", precision, GetVariableNameForNode(), channelMixer.outBlue[0], channelMixer.outBlue[1], channelMixer.outBlue[2]), true);
+            }
+
+            visitor.AddShaderChunk(GetFunctionCallBody(inputValue, string.Format("_{0}_Red", GetVariableNameForNode()), string.Format("_{0}_Green", GetVariableNameForNode()), string.Format("_{0}_Blue", GetVariableNameForNode()), outputValue), true);
         }
 
-        protected string GetFunctionCallBody(string inputValue, string outputValue)
+        string GetFunctionCallBody(string inputValue, string red, string green, string blue, string outputValue)
         {
-            return GetFunctionName() + " (" + inputValue + ", " + outputValue + ");";
+            return GetFunctionName() + " (" + inputValue + ", " + red + ", " + green + ", " + blue + ", " + outputValue + ");";
+        }
+
+        public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
+        {
+            base.CollectPreviewMaterialProperties(properties);
+
+            properties.Add(new PreviewProperty()
+            {
+                m_Name = string.Format("_{0}_Red", GetVariableNameForNode()),
+                m_PropType = PropertyType.Vector3,
+                m_Vector4 = channelMixer.outRed
+            });
+
+            properties.Add(new PreviewProperty()
+            {
+                m_Name = string.Format("_{0}_Green", GetVariableNameForNode()),
+                m_PropType = PropertyType.Vector3,
+                m_Vector4 = channelMixer.outGreen
+            });
+
+            properties.Add(new PreviewProperty()
+            {
+                m_Name = string.Format("_{0}_Blue", GetVariableNameForNode()),
+                m_PropType = PropertyType.Vector3,
+                m_Vector4 = channelMixer.outBlue
+            });
+        }
+
+        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
+        {
+            if (!generationMode.IsPreview())
+                return;
+
+            base.CollectShaderProperties(properties, generationMode);
+
+            properties.AddShaderProperty(new Vector4ShaderProperty()
+            {
+                overrideReferenceName = string.Format("_{0}_Red", GetVariableNameForNode()),
+                generatePropertyBlock = false
+            });
+
+            properties.AddShaderProperty(new Vector4ShaderProperty()
+            {
+                overrideReferenceName = string.Format("_{0}_Green", GetVariableNameForNode()),
+                generatePropertyBlock = false
+            });
+
+            properties.AddShaderProperty(new Vector4ShaderProperty()
+            {
+                overrideReferenceName = string.Format("_{0}_Blue", GetVariableNameForNode()),
+                generatePropertyBlock = false
+            });
         }
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
             var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("In", "Out"), false);
+            outputString.AddShaderChunk(GetFunctionPrototype("In", "Red", "Green", "Blue", "Out"), false);
             outputString.AddShaderChunk("{", false);
             outputString.Indent();
 
-            outputString.AddShaderChunk(string.Format("{0}3 red = {0}3 ({1}, {2}, {3});",
-                precision, channelMixer.outChannels[0].inChannels[0], channelMixer.outChannels[0].inChannels[1], channelMixer.outChannels[0].inChannels[2]), true);
-            outputString.AddShaderChunk(string.Format("{0}3 green = {0}3 ({1}, {2}, {3});",
-                precision, channelMixer.outChannels[1].inChannels[0], channelMixer.outChannels[1].inChannels[1], channelMixer.outChannels[1].inChannels[2]), true);
-            outputString.AddShaderChunk(string.Format("{0}3 blue = {0}3 ({1}, {2}, {3});",
-                precision, channelMixer.outChannels[2].inChannels[0], channelMixer.outChannels[2].inChannels[1], channelMixer.outChannels[2].inChannels[2]), true);
-
             outputString.AddShaderChunk(string.Format("Out = {0} {1};",
                 ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType),
-                "(dot(In, red), dot(In, green), dot(In, blue))"), true);
+                "(dot(In, Red), dot(In, Green), dot(In, Blue))"), true);
 
             outputString.Deindent();
             outputString.AddShaderChunk("}", false);
