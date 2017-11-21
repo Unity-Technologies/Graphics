@@ -268,23 +268,24 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
         uint2 quadCoord;
 
         // The traversal order is such that the quad's X coordinate is monotonically increasing.
+        // The corner is always the near the block of the corresponding wavefront.
         // Note: the compiler can heavily optimize the code below, as the switch is scalar,
         // and there are very few unique values due to the symmetry.
         switch (waveIndex)
         {
-            case 0:
+            case 0:  // Bottom left
                 quadCoord.x = max(0, (int)(quadIndex - (halfCacheWidthInQuads - 1)));
                 quadCoord.y = max(0, (int)((halfCacheWidthInQuads - 1) - quadIndex));
                 break;
-            case 1:
+            case 1:  // Bottom right
                 quadCoord.x = min(quadIndex, halfCacheWidthInQuads - 1);
                 quadCoord.y = max(0, (int)(quadIndex - (halfCacheWidthInQuads - 1)));
                 break;
-            case 2:
+            case 2:  // Top left
                 quadCoord.x = max(0, (int)(quadIndex - (halfCacheWidthInQuads - 1)));
                 quadCoord.y = min(quadIndex, halfCacheWidthInQuads - 1);
                 break;
-            default: // 3
+            default: // Top right
                 quadCoord.x = min(quadIndex, halfCacheWidthInQuads - 1);
                 quadCoord.y = min(halfCacheWidthInQuads - 1, 2 * (halfCacheWidthInQuads - 1) - quadIndex);
                 break;
