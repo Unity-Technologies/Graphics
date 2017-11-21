@@ -126,6 +126,7 @@ GameObject:
   - component: {fileID: 127406270}
   - component: {fileID: 127406275}
   - component: {fileID: 127406272}
+  - component: {fileID: 127406276}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -271,6 +272,23 @@ MonoBehaviour:
   - assemblyQualifiedName: HalfToneOpaque, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
       PublicKeyToken=null
   m_AfterStackBundles: []
+--- !u!114 &127406276
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 127406269}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c20dfc007a9a74ad8a2bfd0d59abe398, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  renderPipeline: {fileID: 11400000, guid: e6987eea1dd29074597d54ed91a54a26, type: 2}
+  cameraToUse: {fileID: 127406273}
+  hdr: 0
+  msaaSamples: 1
+  width: 1280
+  height: 720
 --- !u!1 &203150636
 GameObject:
   m_ObjectHideFlags: 0
