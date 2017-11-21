@@ -797,7 +797,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 
         float ieta = 1.0 / bsdfData.coatIOR; // inverse eta
         preLightData.ieta = ieta;
-        preLightData.coatFresnel0 = Sqr(bsdfData.coatIOR - 1.0) / Sqr(bsdfData.coatIOR + 1.0);
+        preLightData.coatFresnel0 = Sq(bsdfData.coatIOR - 1.0) / Sq(bsdfData.coatIOR + 1.0);
 
         // Clear coat IBL
         preLightData.coatIblDirWS = reflect(-V, N);
@@ -871,7 +871,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
         // Update the roughness and the IBL miplevel
         // Bottom layer is affected by upper layer BRDF, result can't be more sharp than input (it is to mimic what a path tracer will do)
         float roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
-        float shininess = Sqr(preLightData.ieta) * (2.0 / Sqr(roughness) - 2.0);
+        float shininess = Sq(preLightData.ieta) * (2.0 / Sq(roughness) - 2.0);
         roughness = sqrt(2.0 / (shininess + 2.0));
         preLightData.iblDirWS = GetSpecularDominantDir(N, iblR, roughness, NdotV);
         preLightData.iblMipLevel = PerceptualRoughnessToMipmapLevel(RoughnessToPerceptualRoughness(roughness));
@@ -953,7 +953,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     {
         // Change the Fresnel term to account for transmission through Clear Coat and reflection on the base layer
         float F = F_Schlick(preLightData.coatFresnel0, preLightData.coatNdotV);
-        F = Sqr(-F * bsdfData.coatCoverage + 1.0);
+        F = Sq(-F * bsdfData.coatCoverage + 1.0);
         F /= preLightData.ieta; //TODO: LaurentB why / ieta here and not for other lights ?
 
         preLightData.ltcMagnitudeFresnel = F * bsdfData.fresnel0 * ltcGGXFresnelMagnitudeDiff + (float3)ltcGGXFresnelMagnitude;
@@ -1083,7 +1083,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
         specularLighting += F * D_GGX(NdotH, 0.01) * NdotL * bsdfData.coatCoverage;
 
         // Change the Fresnel term to account for transmission through Clear Coat and reflection on the base layer
-        F = Sqr(-F * bsdfData.coatCoverage + 1.0);
+        F = Sq(-F * bsdfData.coatCoverage + 1.0);
 
         // Change the Light and View direction to account for IOR change.
         // Update the half vector accordingly
@@ -1912,7 +1912,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         envLighting += F * preLD.rgb * bsdfData.coatCoverage;
 
         // Change the Fresnel term to account for transmission through Clear Coat and reflection on the base layer.
-        F = Sqr(-F * bsdfData.coatCoverage + 1.0);
+        F = Sq(-F * bsdfData.coatCoverage + 1.0);
     }
 
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, preLightData.iblMipLevel);
