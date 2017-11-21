@@ -84,7 +84,6 @@
 // variable declaration
 //-------------------------------------------------------------------------------------
 
-DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
 #ifdef SHADOWS_SHADOWMASK
 TEXTURE2D(_ShadowMaskTexture);
 #endif
@@ -137,10 +136,9 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     UpdatePositionInput(depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, posInput);
     float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
-    FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
     BSDFData bsdfData;
     BakeLightingData bakeLightingData;
-    DECODE_FROM_GBUFFER(gbuffer, featureFlags, bsdfData, bakeLightingData.bakeDiffuseLighting);
+    DECODE_FROM_GBUFFER(posInput.unPositionSS, featureFlags, bsdfData, bakeLightingData.bakeDiffuseLighting);
     #ifdef SHADOWS_SHADOWMASK
     DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.unPositionSS), bakeLightingData.bakeShadowMask);
     #endif

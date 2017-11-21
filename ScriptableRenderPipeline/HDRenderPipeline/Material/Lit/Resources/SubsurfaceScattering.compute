@@ -50,7 +50,6 @@
 float4 _WorldScales[SSS_N_PROFILES];                             // Size of the world unit in meters (only the X component is used)
 float4 _FilterKernels[SSS_N_PROFILES][SSS_N_SAMPLES_NEAR_FIELD]; // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
 
-DECLARE_GBUFFER_TEXTURE(_GBufferTexture);           // Contains the albedo and SSS parameters
 TEXTURE2D(_DepthTexture);                           // Z-buffer
 TEXTURE2D(_HTile);                                  // DXGI_FORMAT_R8_UINT is not supported by Unity
 TEXTURE2D(_IrradianceSource);                       // Includes transmitted light
@@ -346,14 +345,12 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
 
     [branch] if (!passedStencilTest || isOffScreen) { return; }
 
-    PositionInputs posInput = GetPositionInput(pixelCoord, _ScreenSize.zw);
-
-    float3 unused;
+    PositionInputs posInput = GetPositionInput(pixelCoord, _ScreenSize.zw);    
 
     // The result of the stencil test allows us to statically determine the material type (SSS).
     BSDFData bsdfData;
-    FETCH_GBUFFER(gbuffer, _GBufferTexture, pixelCoord);
-    DECODE_FROM_GBUFFER(gbuffer, MATERIALFEATUREFLAGS_LIT_SSS, bsdfData, unused);
+    float3 unused;
+    DECODE_FROM_GBUFFER(pixelCoord, MATERIALFEATUREFLAGS_LIT_SSS, bsdfData, unused);
 
     int    profileID   = bsdfData.subsurfaceProfile;
     float  distScale   = bsdfData.subsurfaceRadius;
