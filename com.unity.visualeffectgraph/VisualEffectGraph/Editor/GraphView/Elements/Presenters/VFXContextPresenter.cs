@@ -78,7 +78,7 @@ namespace UnityEditor.VFX.UI
                 for (int slot = 0; slot < context.inputFlowSlot.Length; ++slot)
                 {
                     var inAnchor = CreateInstance<VFXFlowInputAnchorPresenter>();
-                    inAnchor.Init(context, slot);
+                    inAnchor.Init(this, slot);
                     m_FlowInputAnchors.Add(inAnchor);
                     viewPresenter.RegisterFlowAnchorPresenter(inAnchor);
                 }
@@ -89,7 +89,7 @@ namespace UnityEditor.VFX.UI
                 for (int slot = 0; slot < context.outputFlowSlot.Length; ++slot)
                 {
                     var outAnchor = CreateInstance<VFXFlowOutputAnchorPresenter>();
-                    outAnchor.Init(context, slot);
+                    outAnchor.Init(this, slot);
                     m_FlowOutputAnchors.Add(outAnchor);
                     viewPresenter.RegisterFlowAnchorPresenter(outAnchor);
                 }
