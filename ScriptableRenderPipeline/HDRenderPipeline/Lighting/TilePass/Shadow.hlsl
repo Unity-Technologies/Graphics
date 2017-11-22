@@ -55,8 +55,6 @@ float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 posit
 {
 	return GetDirectionalShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L );
 }
-#else
-#include "ShaderLibrary/Shadow/DirectionalShadowAttenuation.hlsl"
 #endif
 
 
@@ -97,8 +95,6 @@ float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 position
 {
 	return GetPunctualShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L );
 }
-#else
-#include "ShaderLibrary/Shadow/PunctualShadowAttenuation.hlsl"
 #endif
 
 // cleanup the defines
