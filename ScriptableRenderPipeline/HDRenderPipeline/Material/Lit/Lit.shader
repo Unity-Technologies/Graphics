@@ -158,7 +158,7 @@ Shader "HDRenderPipeline/Lit"
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go futher in dev
+    #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
     //#pragma enable_d3d11_debug_symbols
 
     //-------------------------------------------------------------------------------------
@@ -376,6 +376,9 @@ Shader "HDRenderPipeline/Lit"
             ZWrite On
             ZTest LEqual
 
+            // When alpha test is enabled, we should not write into the color buffer
+            ColorMask 0
+
             HLSLPROGRAM
 
             #define SHADERPASS SHADERPASS_SHADOWS
@@ -397,6 +400,9 @@ Shader "HDRenderPipeline/Lit"
             Cull[_CullMode]
 
             ZWrite On
+
+            // When alpha test is enabled, we should not write into the color buffer
+            ColorMask 0
 
             HLSLPROGRAM
 
