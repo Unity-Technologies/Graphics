@@ -169,7 +169,7 @@ Shader "HDRenderPipeline/LitTessellation"
     HLSLINCLUDE
 
     #pragma target 5.0
-    #pragma only_renderers d3d11 ps4 vulkan// TEMP: until we go futher in dev
+    #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
     // #pragma enable_d3d11_debug_symbols
 
     //-------------------------------------------------------------------------------------
@@ -403,6 +403,9 @@ Shader "HDRenderPipeline/LitTessellation"
             ZWrite On
             ZTest LEqual
 
+            // When alpha test is enabled, we should not write into the color buffer
+            ColorMask 0
+
             HLSLPROGRAM
 
             #pragma hull Hull
@@ -427,6 +430,9 @@ Shader "HDRenderPipeline/LitTessellation"
             Cull[_CullMode]
 
             ZWrite On
+
+            // When alpha test is enabled, we should not write into the color buffer
+            ColorMask 0
 
             HLSLPROGRAM
 
