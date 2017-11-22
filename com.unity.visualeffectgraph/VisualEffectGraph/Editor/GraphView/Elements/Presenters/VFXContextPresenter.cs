@@ -185,6 +185,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public override UnityEngine.Object[] GetObjectsToWatch()
+        {
+            return new UnityEngine.Object[] { this, model, context.GetData() };
+        }
+
         public override IEnumerable<GraphElementPresenter> allElements
         {
             get
