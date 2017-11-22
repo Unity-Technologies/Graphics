@@ -12,36 +12,24 @@ using UnityEditor.VFX.UI;
 
 using Object = UnityEngine.Object;
 using UnityEditorInternal;
+using System.Reflection;
 
 [CustomEditor(typeof(VFXContext), true)]
 [CanEditMultipleObjects]
-public class VFXContextEditor : Editor
+public class VFXContextEditor : VFXSlotContainerEditor
 {
     SerializedProperty spaceProperty;
-    void OnEnable()
+    protected new void OnEnable()
     {
         spaceProperty = serializedObject.FindProperty("m_Space");
+
+        base.OnEnable();
     }
 
-    void OnDisable()
-    {
-    }
-
-    public void OnSceneGUI()
-    {
-    }
-
-    public override void OnInspectorGUI()
+    public override void DoInspectorGUI()
     {
         EditorGUILayout.PropertyField(spaceProperty);
 
-        if (serializedObject.ApplyModifiedProperties())
-        {
-            foreach (VFXContext context in targets.OfType<VFXContext>())
-            {
-                // notify that something changed.
-                context.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
-            }
-        }
+        base.DoInspectorGUI();
     }
 }

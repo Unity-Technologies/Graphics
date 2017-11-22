@@ -542,7 +542,7 @@ MonoBehaviour:
   - {fileID: 114792356619344480}
   - {fileID: 114784972449069996}
   - {fileID: 114851485573060168}
-  m_UIPosition: {x: 126.739845, y: -955.8863}
+  m_UIPosition: {x: -289.26016, y: -955.8863}
   m_UICollapsed: 0
   m_InputSlots:
   - {fileID: 114477739237832484}
@@ -662,7 +662,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114414263575358230}
   m_Children: []
-  m_UIPosition: {x: -209.72122, y: -105.587845}
+  m_UIPosition: {x: -286.72253, y: -98.35186}
   m_UICollapsed: 0
   m_InputSlots: []
   m_OutputSlots: []
@@ -1885,7 +1885,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 114907525970966856}
   - {fileID: 114681695356396342}
-  m_UIPosition: {x: -370.00253, y: 171.31404}
+  m_UIPosition: {x: -440.00253, y: 150.31404}
   m_UICollapsed: 0
   m_InputSlots:
   - {fileID: 114353160091965562}
@@ -1901,6 +1901,7 @@ MonoBehaviour:
   - link: []
   blendMode: 2
   useSoftParticle: 0
+  sortPriority: 0
   flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114364075504055620
@@ -2117,6 +2118,7 @@ MonoBehaviour:
   - link: []
   blendMode: 2
   useSoftParticle: 0
+  sortPriority: 0
   flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114401068537687094
@@ -5894,6 +5896,7 @@ VFXAsset:
       values:
       - index: 58
         nameId: Rate
+      params: []
       processor: {fileID: 0}
   - type: 1
     flags: 1
@@ -5936,7 +5939,8 @@ VFXAsset:
         nameId: uniform_e
       - index: 57
         nameId: uniform_Lifetime_e
-      processor: {fileID: 7200000, guid: e17bb5f2871d46942a6b596187ab7e46, type: 3}
+      params: []
+      processor: {fileID: 7200000, guid: 52e45f16c71c9614aa116b84235314ea, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5946,7 +5950,8 @@ VFXAsset:
       values:
       - index: 66
         nameId: uniform_deltaTime_b
-      processor: {fileID: 7200000, guid: adcba99bfb60ef24fb50b14b7363543f, type: 3}
+      params: []
+      processor: {fileID: 7200000, guid: 2ba1545288fdb1b49a812d591c51f366, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -5976,7 +5981,10 @@ VFXAsset:
         nameId: uniform_alphaThreshold
       - index: 60
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: ec0ebec7c77d7614d9cf533935a7ada4, type: 3}
+      params:
+      - index: 0
+        nameId: sortPriority
+      processor: {fileID: 4800000, guid: c75d0e106a6ff484881189745950d5f7, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -6006,7 +6014,10 @@ VFXAsset:
         nameId: uniform_alphaThreshold
       - index: 60
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: fde97ad691d313543a48cfa3772cece2, type: 3}
+      params:
+      - index: 0
+        nameId: sortPriority
+      processor: {fileID: 4800000, guid: 964006da991aa1948beb35c7c815db98, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000

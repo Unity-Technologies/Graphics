@@ -221,6 +221,16 @@ namespace UnityEditor.VFX.UI
             return accept;
         }
 
+        public override bool HitTest(Vector2 localPoint)
+        {
+            // needed so that if we click on a block we won't select the context as well.
+            if (m_BlockContainer.ContainsPoint(this.ChangeCoordinatesTo(m_BlockContainer, localPoint)))
+            {
+                return false;
+            }
+            return ContainsPoint(localPoint);
+        }
+
         public void DraggingBlocks(IEnumerable<VFXBlockUI> blocks, VFXBlockUI target, bool after)
         {
             m_DragDisplay.RemoveFromHierarchy();
@@ -329,14 +339,6 @@ namespace UnityEditor.VFX.UI
             m_DragStarted = false;
 
             return EventPropagation.Stop;
-        }
-
-        public override void OnSelected()
-        {
-            base.OnSelected();
-
-            if (!VFXComponentEditor.s_IsEditingAsset)
-                Selection.activeObject = GetPresenter<VFXContextPresenter>().model;
         }
 
         public EventPropagation DeleteSelection()

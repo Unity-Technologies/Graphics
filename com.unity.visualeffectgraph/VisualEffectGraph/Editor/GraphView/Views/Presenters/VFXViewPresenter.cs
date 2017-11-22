@@ -233,8 +233,8 @@ namespace UnityEditor.VFX.UI
                 var outputFlowAnchor = flowEdge.output as VFXFlowAnchorPresenter;
                 var inputFlowAnchor = flowEdge.input as VFXFlowAnchorPresenter;
 
-                var contextOutput = outputFlowAnchor.Owner;
-                var contextInput = inputFlowAnchor.Owner;
+                var contextOutput = outputFlowAnchor.owner;
+                var contextInput = inputFlowAnchor.owner;
 
                 contextOutput.LinkTo(contextInput, outputFlowAnchor.slotIndex, inputFlowAnchor.slotIndex);
 
@@ -322,14 +322,17 @@ namespace UnityEditor.VFX.UI
             {
                 var flowEdge = element as VFXFlowEdgePresenter;
 
+
                 var inputAnchor = flowEdge.input as VFXFlowAnchorPresenter;
                 var outputAnchor = flowEdge.output as VFXFlowAnchorPresenter;
+
                 if (inputAnchor != null && outputAnchor != null)
                 {
-                    var contextInput = inputAnchor.Owner as VFXContext;
-                    var contextOutput = outputAnchor.Owner as VFXContext;
+                    var contextInput = inputAnchor.owner as VFXContext;
+                    var contextOutput = outputAnchor.owner as VFXContext;
 
-                    contextInput.UnlinkFrom(contextOutput, outputAnchor.slotIndex, inputAnchor.slotIndex);
+                    if (contextInput != null && contextOutput != null)
+                        contextInput.UnlinkFrom(contextOutput, outputAnchor.slotIndex, inputAnchor.slotIndex);
                 }
             }
             else if (element is VFXDataEdgePresenter)
@@ -491,20 +494,20 @@ namespace UnityEditor.VFX.UI
                 var startFlowAnchorPresenter = (VFXFlowAnchorPresenter)startAnchorPresenter;
                 foreach (var anchorPresenter in m_FlowAnchorPresenters)
                 {
-                    VFXContext owner = anchorPresenter.Owner;
+                    VFXContext owner = anchorPresenter.owner;
                     if (owner == null ||
                         startAnchorPresenter == anchorPresenter ||
                         !anchorPresenter.IsConnectable() ||
                         startAnchorPresenter.direction == anchorPresenter.direction ||
-                        owner == startFlowAnchorPresenter.Owner)
+                        owner == startFlowAnchorPresenter.owner)
                         continue;
 
-                    var from = startFlowAnchorPresenter.Owner;
+                    var from = startFlowAnchorPresenter.owner;
                     var to = owner;
                     if (startAnchorPresenter.direction == Direction.Input)
                     {
                         from = owner;
-                        to = startFlowAnchorPresenter.Owner;
+                        to = startFlowAnchorPresenter.owner;
                     }
 
                     if (VFXContext.CanLink(from, to))

@@ -182,7 +182,7 @@ MonoBehaviour:
   - {fileID: 114633874623567686}
   m_exposedName: exposedName
   m_exposed: 0
-  order: 0
+  m_order: 0
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -2167,7 +2167,7 @@ MonoBehaviour:
   - {fileID: 114178220306332140}
   m_exposedName: exposedName
   m_exposed: 0
-  order: 0
+  m_order: 0
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -3661,7 +3661,7 @@ MonoBehaviour:
   - {fileID: 114117949157950100}
   m_exposedName: exposedName
   m_exposed: 0
-  order: 0
+  m_order: 0
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -3699,6 +3699,7 @@ MonoBehaviour:
   - link: []
   blendMode: 2
   useSoftParticle: 0
+  sortPriority: 0
 --- !u!114 &114898393254782138
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4987,6 +4988,7 @@ VFXAsset:
       values:
       - index: 73
         nameId: Rate
+      params: []
       processor: {fileID: 0}
   - type: 1
     flags: 1
@@ -5043,6 +5045,7 @@ VFXAsset:
         nameId: uniform_Sphere_center_f
       - index: 79
         nameId: uniform_Sphere_radius_f
+      params: []
       processor: {fileID: 7200000, guid: d097d10e900b5924aaabed4568e65465, type: 3}
     - type: 805306368
       buffers:
@@ -5075,6 +5078,7 @@ VFXAsset:
         nameId: uniform_LifetimeLoss_c
       - index: 63
         nameId: uniform_Force_d
+      params: []
       processor: {fileID: 7200000, guid: b6f714c68d790784089f95a62cb3ebf1, type: 3}
     - type: 1073741825
       buffers:
@@ -5085,6 +5089,9 @@ VFXAsset:
         nameId: uniform_gradient_b
       - index: 59
         nameId: uniform_alphaThreshold
+      params:
+      - index: 0
+        nameId: sortPriority
       processor: {fileID: 4800000, guid: 0799e2b5725df924cb0b9c2766e5ce2c, type: 3}
   m_Events:
   - name: OnStart
