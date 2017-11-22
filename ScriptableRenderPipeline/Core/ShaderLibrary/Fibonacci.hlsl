@@ -1,6 +1,8 @@
 #ifndef UNITY_FIBONACCI_INCLUDED
 #define UNITY_FIBONACCI_INCLUDED
 
+#include "Common.hlsl"
+
 // Computes a point using the Fibonacci sequence of length N.
 // Input: Fib[N - 1], Fib[N - 2], and the index 'i' of the point.
 // Ref: Efficient Quadrature Rules for Illumination Integrals
