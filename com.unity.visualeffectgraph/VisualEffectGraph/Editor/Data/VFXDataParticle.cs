@@ -189,6 +189,11 @@ namespace UnityEditor.VFX
             set { m_WorldSpace = value; }
         }
 
+        public override bool CanBeCompiled()
+        {
+            return m_Owners.Count > 1 && m_Owners[0].contextType == VFXContextType.kInit && m_Owners[0].inputContexts.Count() > 0;
+        }
+
         public override void GenerateAttributeLayout()
         {
             m_layoutAttributeCurrent.GenerateAttributeLayout(m_Capacity, m_StoredCurrentAttributes);

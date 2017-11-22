@@ -109,6 +109,11 @@ namespace UnityEditor.VFX
         public virtual string renderLoopCommonInclude                   { get { throw new NotImplementedException(); } }
         public virtual IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionnalReplacements { get { return Enumerable.Empty<KeyValuePair<string, VFXShaderWriter>>(); } }
 
+        public virtual bool CanBeCompiled()
+        {
+            return m_Data != null && m_Data.CanBeCompiled();
+        }
+
         public override void CollectDependencies(HashSet<Object> objs)
         {
             base.CollectDependencies(objs);
@@ -128,7 +133,8 @@ namespace UnityEditor.VFX
                 cause == InvalidationCause.kExpressionInvalidated ||
                 cause == InvalidationCause.kSettingChanged)
             {
-                Invalidate(InvalidationCause.kExpressionGraphChanged);
+                if (CanBeCompiled())
+                    Invalidate(InvalidationCause.kExpressionGraphChanged);
             }
         }
 
@@ -150,13 +156,15 @@ namespace UnityEditor.VFX
         protected override void OnAdded()
         {
             base.OnAdded();
-            Invalidate(InvalidationCause.kExpressionGraphChanged);
+            if (CanBeCompiled())
+                Invalidate(InvalidationCause.kExpressionGraphChanged);
         }
 
         protected override void OnRemoved()
         {
             base.OnRemoved();
-            Invalidate(InvalidationCause.kExpressionGraphChanged);
+            if (CanBeCompiled())
+                Invalidate(InvalidationCause.kExpressionGraphChanged);
         }
 
         public static bool CanLink(VFXContext from, VFXContext to, int fromIndex = 0, int toIndex = 0)
@@ -237,7 +245,7 @@ namespace UnityEditor.VFX
             {
                 if (!link.context.CanLinkToMany() || link.context.contextType != to.contextType)
                 {
-                    InnerUnlink(from, link.context, fromIndex, toIndex);
+                    InnerUnlink(from, link.context, fromIndex, toIndex, notify);
                 }
             }
 
@@ -245,7 +253,7 @@ namespace UnityEditor.VFX
             {
                 if (!link.context.CanLinkFromMany() || link.context.contextType != from.contextType)
                 {
-                    InnerUnlink(link.context, to, fromIndex, toIndex);
+                    InnerUnlink(link.context, to, fromIndex, toIndex, notify);
                 }
             }
 
@@ -263,8 +271,14 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void InnerUnlink(VFXContext from, VFXContext to, int fromIndex = 0, int toIndex = 0)
+        private static void InnerUnlink(VFXContext from, VFXContext to, int fromIndex = 0, int toIndex = 0, bool notify = true)
         {
+            // We need to force recompilation of contexts that where compilable before unlink and might not be after
+            if (from.CanBeCompiled())
+                from.Invalidate(InvalidationCause.kExpressionGraphChanged);
+            if (to.CanBeCompiled())
+                to.Invalidate(InvalidationCause.kExpressionGraphChanged);
+
             if (from.ownedType == to.ownedType)
                 to.SetDefaultData(false);
 
@@ -272,8 +286,11 @@ namespace UnityEditor.VFX
             to.m_InputFlowSlot[toIndex].link.RemoveAll(o => o.context == from && o.slotIndex == fromIndex);
 
             // TODO Might need a specific event ?
-            from.Invalidate(InvalidationCause.kStructureChanged);
-            to.Invalidate(InvalidationCause.kStructureChanged);
+            if (notify)
+            {
+                from.Invalidate(InvalidationCause.kStructureChanged);
+                to.Invalidate(InvalidationCause.kStructureChanged);
+            }
         }
 
         public VFXContextSlot[] inputFlowSlot { get { return m_InputFlowSlot == null ? new VFXContextSlot[] {} : m_InputFlowSlot; } }
@@ -401,6 +418,9 @@ namespace UnityEditor.VFX
         private VFXContextSlot[] m_InputFlowSlot;
         [SerializeField]
         private VFXContextSlot[] m_OutputFlowSlot;
+
+        [NonSerialized]
+        private bool m_Compiled = false;
 
         public CoordinateSpace space
         {
