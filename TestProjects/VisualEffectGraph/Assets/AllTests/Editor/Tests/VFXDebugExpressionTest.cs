@@ -23,6 +23,12 @@ namespace UnityEditor.VFX.Test
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
             var constantRate = ScriptableObject.CreateInstance<VFXSpawnerConstantRate>();
 
+            // Attach to a valid particle system so that spawner is compiled
+            var initContext = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var outputContext = ScriptableObject.CreateInstance<VFXPointOutput>();
+            spawnerContext.LinkTo(initContext);
+            initContext.LinkTo(outputContext);
+
             var slotRate = constantRate.GetInputSlot(0);
             var totalTime = VFXLibrary.GetOperators().First(o => o.name == VFXExpressionOp.kVFXTotalTimeOp.ToString()).CreateInstance();
             slotRate.Link(totalTime.GetOutputSlot(0));

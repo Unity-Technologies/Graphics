@@ -28,7 +28,6 @@ namespace UnityEditor.VFX
             switch (type)
             {
                 case VFXDataType.kParticle:     return ScriptableObject.CreateInstance<VFXDataParticle>();
-                case VFXDataType.kSpawnEvent:   return ScriptableObject.CreateInstance<VFXDataSpawnEvent>();
                 default:                        return null;
             }
         }
@@ -39,6 +38,11 @@ namespace UnityEditor.VFX
 
             if (m_Owners == null)
                 m_Owners = new List<VFXContext>();
+        }
+
+        public virtual bool CanBeCompiled()
+        {
+            return true;
         }
 
         // Never call this directly ! Only context must call this through SetData
