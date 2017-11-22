@@ -68,7 +68,7 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
     float3 totalRadiance = 0;
     float  opticalDepth  = 0;
 
-    uint sliceCountHack = max(VBUFFER_SLICE_COUNT, (uint)z0); // Prevent unrolling...
+    uint sliceCountHack = max(VBUFFER_SLICE_COUNT, (uint)depthParams.x); // Prevent unrolling...
 
 #ifdef LIGHTLOOP_TILE_PASS
     // Our voxel is not necessarily completely inside a single light cluster.
