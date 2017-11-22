@@ -5848,6 +5848,7 @@ MonoBehaviour:
   - link: []
   blendMode: 0
   useSoftParticle: 0
+  sortPriority: 0
   flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114900569650712614
@@ -7554,16 +7555,16 @@ VFXAsset:
           key2: {r: 0.56223917, g: 0.111916095, b: 0.8455882, a: 0}
           key3: {r: 0.9632353, g: 0.035413038, b: 0.32335776, a: 0}
           key4: {r: 0, g: 0, b: 0, a: 0}
-          key5: {r: 0.5514706, g: 2.392089, b: 3, a: 0}
-          key6: {r: 0.786744, g: 0.22229022, b: 0.81970483, a: 0}
+          key5: {r: 0, g: 0, b: 0, a: 0}
+          key6: {r: 0, g: 0, b: 0, a: 0}
           key7: {r: 0, g: 0, b: 0, a: 0}
           ctime0: 0
           ctime1: 11984
           ctime2: 40561
           ctime3: 53970
           ctime4: 65535
-          ctime5: 65535
-          ctime6: 65535
+          ctime5: 0
+          ctime6: 0
           ctime7: 0
           atime0: 0
           atime1: 65535
@@ -7718,6 +7719,7 @@ VFXAsset:
       values:
       - index: 98
         nameId: Rate
+      params: []
       processor: {fileID: 0}
   - type: 1
     flags: 1
@@ -7772,7 +7774,8 @@ VFXAsset:
         nameId: uniform_Sphere_radius_d
       - index: 105
         nameId: uniform_Sphere_arc_d
-      processor: {fileID: 7200000, guid: 04fea7073e184784c90518f1dbbf8fee, type: 3}
+      params: []
+      processor: {fileID: 7200000, guid: 327e920b09ec099468906c436f416136, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -7828,7 +7831,8 @@ VFXAsset:
         nameId: texture_VectorField_d
       - index: 93
         nameId: texture_VectorField_e
-      processor: {fileID: 7200000, guid: b14ae4bc6b36bba418409eef2bfec41a, type: 3}
+      params: []
+      processor: {fileID: 7200000, guid: b988d5ba15a53844793503d40208afd8, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -7862,7 +7866,10 @@ VFXAsset:
         nameId: uniform_n
       - index: 99
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: f618ddab99b32e1479b0d96cdb5bad89, type: 3}
+      params:
+      - index: 0
+        nameId: sortPriority
+      processor: {fileID: 4800000, guid: 02a7b0a64b3f9a44f992cf3a37ab1c30, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000
