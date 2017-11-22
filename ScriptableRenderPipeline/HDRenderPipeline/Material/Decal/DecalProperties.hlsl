@@ -4,5 +4,7 @@
 
 TEXTURE2D(_BaseColorMap);
 SAMPLER2D(sampler_BaseColorMap);
+TEXTURE2D(_CameraDepthTexture);
+SAMPLER2D(sampler_CameraDepthTexture);
 
 #endif 
