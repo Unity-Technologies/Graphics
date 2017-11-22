@@ -48,14 +48,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private float m_Cascade2Split = 0.25f;
         [SerializeField] private Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
 
-        [SerializeField] private Material m_DefaultMaterial;
-        [SerializeField] private Material m_DefaultParticleMaterial;
-        [SerializeField] private Material m_DefaultTerrainMaterial;
-
         // Resources
         [SerializeField] private Shader m_DefaultShader;
         [SerializeField] private Shader m_BlitShader;
         [SerializeField] private Shader m_CopyDepthShader;
+
+        [SerializeField] private Material m_DefaultMaterial;
+        [SerializeField] private Material m_DefaultParticleMaterial;
+        [SerializeField] private Material m_DefaultTerrainMaterial;
 
 #if UNITY_EDITOR
         [UnityEditor.MenuItem("Assets/Create/Render Pipeline/Lightweight/Render Pipeline", priority = CoreUtils.assetCreateMenuPriority1)]
@@ -63,27 +63,21 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             var instance = CreateInstance<LightweightPipelineAsset>();
 
-            string[] guids = AssetDatabase.FindAssets("Lightweight-Default t:material");
-            string[] paths = new string[guids.Length];
-            for (int i = 0; i < guids.Length; ++i)
+            string[] guids = UnityEditor.AssetDatabase.FindAssets("LightweightPipelineResource t:scriptableobject");
+            LightweightPipelineResource resourceAsset = null;
+            foreach (string guid in guids)
             {
-                string guid = guids[i];
-                paths[i] = AssetDatabase.GUIDToAssetPath(guid);
+                string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+                resourceAsset = UnityEditor.AssetDatabase.LoadAssetAtPath<LightweightPipelineResource>(path);
+                if (resourceAsset != null)
+                    break;
             }
 
-            foreach (string path in paths)
+            if (resourceAsset != null)
             {
-                Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
-
-                if (path.Length == 0)
-                    continue;
-
-                if (path.Contains("Terrain"))
-                    instance.m_DefaultTerrainMaterial = material;
-                else if (path.Contains("Particle"))
-                    instance.m_DefaultParticleMaterial = material;
-                else
-                    instance.m_DefaultMaterial = material;
+                instance.m_DefaultMaterial = resourceAsset.DefaultMaterial;
+                instance.m_DefaultParticleMaterial = resourceAsset.DefaultParticleMaterial;
+                instance.m_DefaultTerrainMaterial = resourceAsset.DefaultTerrainMaterial;
             }
 
             instance.m_DefaultShader = Shader.Find(m_StandardShaderPath);
