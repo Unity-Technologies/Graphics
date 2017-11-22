@@ -58,8 +58,7 @@ namespace UnityEditor.VFX.UI
             }
             if (m_SettingsContainer != null)
             {
-                var activeSettings = presenter.model.activeSettings;
-
+                var activeSettings = presenter.model.GetSettings(false, VFXSettingAttribute.VisibleFlags.InGraph);
                 for (int i = 0; i < m_Settings.Count; ++i)
                     m_Settings[i].RemoveFromHierarchy();
 
@@ -79,7 +78,7 @@ namespace UnityEditor.VFX.UI
             {
                 var allEdges = graphView.Query<Edge>().ToList();
 
-                foreach (NodeAnchor anchor in this.Query<NodeAnchor>().Where(t => true).ToList())
+                foreach (Port anchor in this.Query<Port>().Where(t => true).ToList())
                 {
                     foreach (var edge in allEdges.Where(t =>
                         {
@@ -100,6 +99,32 @@ namespace UnityEditor.VFX.UI
             else
             {
                 RemoveFromClassList("collapsed");
+            }
+        }
+
+        public virtual void GetPreferedWidths(ref float labelWidth, ref float controlWidth)
+        {
+            foreach (var setting in m_Settings)
+            {
+                float portLabelWidth = setting.GetPreferredLabelWidth();
+                float portControlWidth = setting.GetPreferredControlWidth();
+
+                if (labelWidth < portLabelWidth)
+                {
+                    labelWidth = portLabelWidth;
+                }
+                if (controlWidth < portControlWidth)
+                {
+                    controlWidth = portControlWidth;
+                }
+            }
+        }
+
+        public virtual void ApplyWidths(float labelWidth, float controlWidth)
+        {
+            foreach (var setting in m_Settings)
+            {
+                setting.SetLabelWidth(labelWidth);
             }
         }
 

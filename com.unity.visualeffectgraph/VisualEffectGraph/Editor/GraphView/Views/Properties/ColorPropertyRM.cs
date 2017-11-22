@@ -10,6 +10,7 @@ using UnityEditor.VFX;
 using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
+using FloatField = UnityEditor.VFX.UIElements.OldFloatField;
 
 
 namespace UnityEditor.VFX.UI
@@ -60,6 +61,11 @@ namespace UnityEditor.VFX.UI
             m_MainContainer.style.flexDirection = FlexDirection.Column;
             m_MainContainer.style.alignItems = Align.Stretch;
             Add(m_MainContainer);
+        }
+
+        public override float GetPreferredControlWidth()
+        {
+            return 200;
         }
 
         protected override void UpdateEnabled()

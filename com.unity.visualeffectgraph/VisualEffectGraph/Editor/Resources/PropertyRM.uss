@@ -24,7 +24,7 @@
 
 .spaceablepropertyrm.propertyrm #label
 {
-	margin-right:12px;
+	-margin-right:12px;
 }
 
 .spaceCamera
@@ -49,7 +49,7 @@
 {
     flex:1;
 	margin-bottom:3;
-	margin-left:6;
+	margin-left:2;
 }
 .propertyrm .textfieldd
 {
@@ -91,8 +91,17 @@
 {
     text-color:#888;
     width:12;
+	flex:0;
     padding-left:2;
     text-alignment:middle-center;
+}
+
+.propertyrm .fieldContainer TextField
+{
+	margin-top:0;
+	margin-bottom:0;
+	margin-left:2;
+	margin-right:2;
 }
 .propertyrm .fieldContainer
 {
@@ -147,6 +156,10 @@ ColorField
 {
     flex:1;
     flex-direction:row;
+}
+ColorPropertyRM OldFloatField TextField
+{
+	flex:1;
 }
 
 FloatField TextField
@@ -236,4 +249,18 @@ CurvePropertyRM
 {
     flex:1;
     min-width:100;
+}
+
+.sliderField
+{
+	flex-direction:row;
+}
+.sliderField Slider
+{
+	flex:1;
+}
+.sliderField #Field
+{
+	width:40;
+	flex:0;
 }

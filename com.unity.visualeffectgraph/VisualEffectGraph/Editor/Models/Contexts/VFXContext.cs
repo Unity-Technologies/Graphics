@@ -104,7 +104,9 @@ namespace UnityEditor.VFX
         public virtual VFXTaskType taskType                             { get { return VFXTaskType.kNone; } }
         public virtual IEnumerable<VFXAttributeInfo> attributes         { get { return Enumerable.Empty<VFXAttributeInfo>(); } }
         public virtual IEnumerable<VFXAttributeInfo> optionalAttributes { get { return Enumerable.Empty<VFXAttributeInfo>(); } }
+        public virtual IEnumerable<VFXMapping> additionalMappings       { get { return Enumerable.Empty<VFXMapping>(); } }
         public virtual IEnumerable<string> additionalDefines            { get { return Enumerable.Empty<string>(); } }
+        public virtual string renderLoopCommonInclude                   { get { throw new NotImplementedException(); } }
         public virtual IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionnalReplacements { get { return Enumerable.Empty<KeyValuePair<string, VFXShaderWriter>>(); } }
 
         public bool CanBeCompiled()
@@ -207,7 +209,6 @@ namespace UnityEditor.VFX
         {
             for (int slot = 0; slot < m_OutputFlowSlot.Length; slot++)
             {
-                var slotsList = m_OutputFlowSlot[slot].link;
                 while (m_OutputFlowSlot[slot].link.Count > 0)
                 {
                     var clean = m_OutputFlowSlot[slot].link.Last();
@@ -217,7 +218,6 @@ namespace UnityEditor.VFX
 
             for (int slot = 0; slot < m_InputFlowSlot.Length; slot++)
             {
-                var slotsList = m_InputFlowSlot[slot].link;
                 while (m_InputFlowSlot[slot].link.Count > 0)
                 {
                     var clean = m_InputFlowSlot[slot].link.Last();

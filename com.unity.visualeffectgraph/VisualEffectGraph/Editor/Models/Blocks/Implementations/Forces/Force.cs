@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEditor.VFX.BlockLibrary
+namespace UnityEditor.VFX.Block
 {
     [VFXInfo(category = "Force")]
     class Force : VFXBlock
@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.BlockLibrary
         public ForceMode Mode = ForceMode.Absolute;
 
         public override string name { get { return "Force"; } }
-        public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdateAndOutput; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdate; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
 
         public override IEnumerable<VFXNamedExpression> parameters
@@ -37,12 +37,14 @@ namespace UnityEditor.VFX.BlockLibrary
             get
             {
                 yield return new VFXAttributeInfo(VFXAttribute.Velocity, VFXAttributeMode.ReadWrite);
+                yield return new VFXAttributeInfo(VFXAttribute.Mass, VFXAttributeMode.Read);
             }
         }
 
         public class InputProperties
         {
-            public Vector Force = new Vector(0.0f, -9.81f, 0.0f);
+            [Tooltip("Force vector applied to particles (in units per squared second), in Relative mode the flow speed of the medium (eg: wind)")]
+            public Vector3 Force = new Vector3(1.0f, 0.0f, 0.0f);
         }
 
         public override string source
@@ -50,14 +52,13 @@ namespace UnityEditor.VFX.BlockLibrary
             get
             {
                 string forceVector = "0.0";
-
                 switch (Mode)
                 {
-                    case ForceMode.Absolute: forceVector = "Force_vector"; break;
-                    case ForceMode.Relative: forceVector = "(Force_vector - velocity)"; break;
+                    case ForceMode.Absolute: forceVector = "(Force / mass) * deltaTime"; break;
+                    case ForceMode.Relative: forceVector = "(Force - velocity) * min(1.0f,deltaTime / mass)"; break;
                 }
 
-                return "velocity += " + forceVector + " * deltaTime;";
+                return "velocity += " + forceVector + ";";
             }
         }
     }

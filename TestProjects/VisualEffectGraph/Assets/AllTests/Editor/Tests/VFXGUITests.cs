@@ -79,15 +79,15 @@ namespace UnityEditor.VFX.Test
             {
                 VFXParameterPresenter paramPresenter = m_ViewPresenter.allChildren.OfType<VFXParameterPresenter>().First(t => t.model == param);
 
-                VFXDataAnchorPresenter outputAnchor = paramPresenter.outputAnchors.First() as VFXDataAnchorPresenter;
-                System.Type type = outputAnchor.anchorType;
+                VFXDataAnchorPresenter outputAnchor = paramPresenter.outputPorts.First() as VFXDataAnchorPresenter;
+                System.Type type = outputAnchor.portType;
 
                 bool found = false;
                 foreach (var block in updateContext.blockPresenters)
                 {
-                    foreach (var anchor in block.inputAnchors)
+                    foreach (var anchor in block.inputPorts)
                     {
-                        if (anchor.anchorType == type)
+                        if (anchor.portType == type)
                         {
                             found = true;
 
@@ -102,9 +102,11 @@ namespace UnityEditor.VFX.Test
             }
         }
 
+        public VFXAsset m_Asset;
+
         public void CreateTestAsset(string name)
         {
-            VFXAsset asset = new VFXAsset();
+            m_Asset = new VFXAsset();
 
             var filePath = string.Format(testAssetName, name);
             var directoryPath = Path.GetDirectoryName(filePath);
@@ -113,13 +115,11 @@ namespace UnityEditor.VFX.Test
                 Directory.CreateDirectory(directoryPath);
             }
 
-            AssetDatabase.CreateAsset(asset, filePath);
-
-            Selection.activeObject = AssetDatabase.LoadAssetAtPath<VFXAsset>(filePath);
-
+            AssetDatabase.CreateAsset(m_Asset, filePath);
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
             window.Close();
             window = EditorWindow.GetWindow<VFXViewWindow>();
+            window.LoadAsset(m_Asset);
             m_ViewPresenter = window.GetPresenter<VFXViewPresenter>();
             //m_View = m_ViewPresenter.View;
         }
@@ -128,7 +128,7 @@ namespace UnityEditor.VFX.Test
         {
             var filePath = string.Format(testAssetName, name);
             AssetDatabase.DeleteAsset(filePath);
-            UnityEngine.Object.DestroyImmediate(Selection.activeObject);
+            UnityEngine.Object.DestroyImmediate(m_Asset);
 
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
             window.Close();

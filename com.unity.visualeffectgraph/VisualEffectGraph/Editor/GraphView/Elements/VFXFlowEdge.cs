@@ -64,9 +64,9 @@ namespace UnityEditor.VFX.UI
             shapesMat.SetPass(0);
             GL.Begin(GL.TRIANGLES);
             GL.Color(color);
-            GL.Vertex3(to.x - arrowHeight * .5f, to.y, 0);
-            GL.Vertex3(to.x + arrowHeight * .5f, to.y, 0);
-            GL.Vertex3(to.x, to.y + arrowHeight, 0);
+            GL.Vertex3(to.x - arrowHeight * .5f, to.y - arrowHeight * .5f, 0);
+            GL.Vertex3(to.x + arrowHeight * .5f, to.y - arrowHeight * .5f, 0);
+            GL.Vertex3(to.x, to.y + arrowHeight * 0.5f, 0);
             GL.End();
         }
 
@@ -169,16 +169,18 @@ namespace UnityEditor.VFX.UI
             orientation = Orientation.Vertical;
         }
 
-        protected override void DrawEndpoint(Vector2 pos, bool start)
+        protected override void DrawEdge()
         {
-            VFXFlowEdgePresenter edgePresenter = this.GetFirstAncestorOfType<Edge>().GetPresenter<VFXFlowEdgePresenter>();
+            base.DrawEdge();
+            DrawEndpoint(parent.ChangeCoordinatesTo(this, from), true);
+            DrawEndpoint(parent.ChangeCoordinatesTo(this, to), false);
+        }
 
-
-            Color edgeColor = (edgePresenter != null && edgePresenter.selected) ? new Color(240 / 255f, 240 / 255f, 240 / 255f) : new Color(146 / 255f, 146 / 255f, 146 / 255f);
-
+        protected void DrawEndpoint(Vector2 pos, bool start)
+        {
             if (start)
             {
-                VFXEdgeUtils.RenderDisc(pos, 4, edgeColor);
+                VFXEdgeUtils.RenderDisc(pos - new Vector2(0, 6), 6, edgeColor);
             }
             else
             {
@@ -192,7 +194,6 @@ namespace UnityEditor.VFX.UI
     {
         public VFXFlowEdge()
         {
-            layer = 1;
         }
 
         protected override EdgeControl CreateEdgeControl()
@@ -213,71 +214,5 @@ namespace UnityEditor.VFX.UI
 
             edgeControl.outputColor = edgeControl.inputColor = GetPresenter<EdgePresenter>().selected ? selectedColor : defaultColor;
         }
-
-#if false
-        protected override void DrawEdge()
-        {
-            var edgePresenter = GetPresenter<EdgePresenter>();
-
-            NodeAnchorPresenter outputPresenter = edgePresenter.output;
-            NodeAnchorPresenter inputPresenter = edgePresenter.input;
-
-            if (outputPresenter == null && inputPresenter == null)
-                return;
-
-            Vector2 from = Vector2.zero;
-            Vector2 to = Vector2.zero;
-            GetFromToPoints(ref from, ref to);
-
-
-            float arrowHeight = 12;
-            to -= Vector2.up * arrowHeight;
-
-            Color edgeColor = edgePresenter.selected ? new Color(240 / 255f, 240 / 255f, 240 / 255f) : new Color(146 / 255f, 146 / 255f, 146 / 255f);
-
-            Orientation orientation = outputPresenter != null ? outputPresenter.orientation : inputPresenter.orientation;
-
-            Vector3[] points, tangents;
-            GetTangents(orientation, from, to, out points, out tangents);
-
-            RenderBezier(points[0], points[1], tangents[0], tangents[1], edgeColor, edgeWidth);
-            RenderDisc(points[1], 4, edgeColor);
-
-            VCircleMat.SetPass(0);
-            GL.Begin(GL.TRIANGLES);
-            GL.Color(edgeColor);
-            GL.Vertex3(to.x - arrowHeight * .5f, to.y, 0);
-            GL.Vertex3(to.x + arrowHeight * .5f, to.y, 0);
-            GL.Vertex3(to.x, to.y + arrowHeight, 0);
-            GL.End();
-        }
-
-#endif
-
-
-        /*
-        protected override void DrawEdge(IStylePainter painter)
-        {
-            var edgePresenter = GetPresenter<EdgePresenter>();
-
-            NodeAnchorPresenter outputPresenter = edgePresenter.output;
-            NodeAnchorPresenter inputPresenter = edgePresenter.input;
-
-            if (outputPresenter == null && inputPresenter == null)
-                return;
-
-            Vector2 from = Vector2.zero;
-            Vector2 to = Vector2.zero;
-            GetFromToPoints(ref from, ref to);
-
-            Color edgeColor = edgePresenter.selected ? new Color(240/255f,240/255f,240/255f) : new Color(146/255f,146/255f,146/255f);
-
-            Orientation orientation = Orientation.Vertical;
-            Vector3[] points, tangents;
-            GetTangents(orientation, from, to, out points, out tangents);
-            Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], edgeColor, null, 15f);
-
-        }
-        */
     }
 }

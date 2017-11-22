@@ -43,6 +43,7 @@ namespace UnityEditor.VFX
     {
         static string[] OnWillSaveAssets(string[] paths)
         {
+            Profiler.BeginSample("VFXAssetModicationProcessor.OnWillSaveAssets");
             foreach (string path in paths)
             {
                 var vfxAsset = AssetDatabase.LoadAssetAtPath<VFXAsset>(path);
@@ -52,6 +53,7 @@ namespace UnityEditor.VFX
                     graph.OnSaved();
                 }
             }
+            Profiler.EndSample();
             return paths;
         }
     }
@@ -189,6 +191,13 @@ namespace UnityEditor.VFX
         public bool UpdateSubAssets()
         {
             bool modified = false;
+
+            if (!EditorUtility.IsPersistent(this) && (this.vfxAsset != null && EditorUtility.IsPersistent(this.vfxAsset)))
+            {
+                string assetPath = AssetDatabase.GetAssetPath(this.vfxAsset);
+                AssetDatabase.AddObjectToAsset(this, assetPath);
+            }
+
             if (EditorUtility.IsPersistent(this))
             {
                 Profiler.BeginSample("VFXEditor.UpdateSubAssets");

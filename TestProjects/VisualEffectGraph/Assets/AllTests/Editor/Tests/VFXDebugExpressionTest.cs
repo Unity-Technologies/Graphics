@@ -30,7 +30,7 @@ namespace UnityEditor.VFX.Test
             initContext.LinkTo(outputContext);
 
             var slotRate = constantRate.GetInputSlot(0);
-            var totalTime = VFXLibrary.GetBuiltInParameters().First(o => o.name == VFXExpressionOp.kVFXTotalTimeOp.ToString()).CreateInstance();
+            var totalTime = VFXLibrary.GetOperators().First(o => o.name == VFXExpressionOp.kVFXTotalTimeOp.ToString()).CreateInstance();
             slotRate.Link(totalTime.GetOutputSlot(0));
 
             spawnerContext.AddChild(constantRate);
@@ -39,7 +39,6 @@ namespace UnityEditor.VFX.Test
             graph.vfxAsset = new VFXAsset();
             graph.RecompileIfNeeded();
             var expressionIndex = graph.FindReducedExpressionIndexFromSlotCPU(slotRate);
-            graph.vfxAsset.bounds = new Bounds(Vector3.zero, Vector3.positiveInfinity);
 
             var gameObj = new GameObject("CreateAssetAndComponentDebugExpressionTest");
             var vfxComponent = gameObj.AddComponent<VFXComponent>();

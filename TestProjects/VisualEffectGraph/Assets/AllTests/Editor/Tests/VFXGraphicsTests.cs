@@ -159,7 +159,7 @@ namespace UnityEditor.VFX.Test
                 Color p2 = pixels2[i];
                 Color diff = p1 - p2;
                 diff = diff * diff;
-                sumOfSquaredColorDistances += (diff.r + diff.g + diff.b) / 3.0f;
+                sumOfSquaredColorDistances += (diff.r + diff.g + diff.b + diff.a) / 4.0f;
             }
             float rmse = Mathf.Sqrt(sumOfSquaredColorDistances / numberOfPixels);
             return rmse;
@@ -193,7 +193,7 @@ namespace UnityEditor.VFX.Test
         [Timeout(1000 * 10)]
         public IEnumerator RenderSceneAndCompareExpectedCapture([ValueSource("scenes")] SceneTest sceneTest)
         {
-            uint waitFrameCount = 4;
+            uint waitFrameCount = 16;
 
             var scenePath = sceneTest.path;
             var treshold = 0.051f;
@@ -204,6 +204,9 @@ namespace UnityEditor.VFX.Test
             if (!File.Exists(refCapturePath))
             {
                 var scene = InitScene(scenePath);
+                while (!scene.scene.isLoaded)
+                    yield return null;
+
                 for (int i = 0; i < waitFrameCount; ++i)
                 {
                     scene.camera.Render();
@@ -215,6 +218,9 @@ namespace UnityEditor.VFX.Test
             //Actual capture test
             {
                 var scene = InitScene(scenePath);
+                while (!scene.scene.isLoaded)
+                    yield return null;
+
                 for (int i = 0; i < waitFrameCount; ++i)
                 {
                     scene.camera.Render();

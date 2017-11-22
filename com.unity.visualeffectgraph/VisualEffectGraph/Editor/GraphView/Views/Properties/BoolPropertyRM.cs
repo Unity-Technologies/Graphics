@@ -25,6 +25,11 @@ namespace UnityEditor.VFX.UI
             NotifyValueChanged();
         }
 
+        public override float GetPreferredControlWidth()
+        {
+            return 20;
+        }
+
         public override void UpdateGUI()
         {
             m_Toggle.on = m_Value;

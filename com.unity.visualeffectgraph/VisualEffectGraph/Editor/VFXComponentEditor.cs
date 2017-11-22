@@ -293,6 +293,7 @@ public class VFXComponentEditor : Editor
     public static bool CanSetOverride = false;
 
     SerializedProperty m_VFXAsset;
+    SerializedProperty m_ReseedOnStart;
     SerializedProperty m_RandomSeed;
     SerializedProperty m_VFXPropertySheet;
     bool m_useNewSerializedField = false;
@@ -317,6 +318,7 @@ public class VFXComponentEditor : Editor
     void OnEnable()
     {
         m_RandomSeed = serializedObject.FindProperty("m_StartSeed");
+        m_ReseedOnStart = serializedObject.FindProperty("m_ResetSeedOnStart");
         m_VFXAsset = serializedObject.FindProperty("m_Asset");
         m_VFXPropertySheet = serializedObject.FindProperty("m_PropertySheet");
 
@@ -340,11 +342,11 @@ public class VFXComponentEditor : Editor
 
     Dictionary<VFXParameterPresenter, Infos> m_Infos = new Dictionary<VFXParameterPresenter, Infos>();
 
-    void OnParamGUI(VFXParameterPresenter parameter)
+    void OnParamGUI(VFXParameter parameter)
     {
         VFXComponent comp = (VFXComponent)target;
 
-        string fieldName = VFXComponentUtility.GetTypeField(parameter.anchorType);
+        string fieldName = VFXComponentUtility.GetTypeField(parameter.type);
 
 
         var vfxField = m_VFXPropertySheet.FindPropertyRelative(fieldName + ".m_Array");
@@ -375,11 +377,10 @@ public class VFXComponentEditor : Editor
                 GUI.color = AnimationMode.animatedPropertyColor;
             }
 
-
             EditorGUIUtility.SetBoldDefaultFont(overrideProperty.boolValue);
 
             EditorGUI.BeginChangeCheck();
-            if (parameter.anchorType == typeof(Color))
+            if (parameter.type == typeof(Color))
             {
                 Vector4 vVal = property.vector4Value;
                 Color c = new Color(vVal.x, vVal.y, vVal.z, vVal.w);
@@ -417,8 +418,6 @@ public class VFXComponentEditor : Editor
         if (asset == null)
             return;
 
-        VFXViewPresenter.viewPresenter.SetVFXAsset(asset, false);
-
 
         /*
         int nbDescs = asset.GetNbEditorExposedDesc();
@@ -428,7 +427,7 @@ public class VFXComponentEditor : Editor
             string exposedName = asset.GetEditorExposedDescName(i);
             bool worldSpace = asset.GetEditorExposedDescWorldSpace(i);
 
-            var dataBlock = VFXEditor.BlockLibrary.GetDataBlock(semanticType);
+            var dataBlock = VFXEditor.Block.GetDataBlock(semanticType);
             if (dataBlock != null)
             {
                 var property = new VFXProperty(dataBlock.Semantics, exposedName);
@@ -576,6 +575,9 @@ public class VFXComponentEditor : Editor
             Event.current.Use();
     }*/
 
+    private VFXAsset m_asset;
+    private VFXGraph m_graph;
+
     public override void OnInspectorGUI()
     {
         InitializeGUI();
@@ -592,35 +594,55 @@ public class VFXComponentEditor : Editor
             GUI.enabled = component.vfxAsset != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
             if (GUILayout.Button(m_Contents.OpenEditor, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
             {
-                EditorWindow.GetWindow<VFXViewWindow>();
+                VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
 
-                VFXViewPresenter.viewPresenter.SetVFXAsset(component.vfxAsset, false);
+                window.LoadAsset(component.vfxAsset);
             }
         }
 
         //Seed
+        EditorGUI.BeginChangeCheck();
         using (new GUILayout.HorizontalScope())
         {
-            EditorGUILayout.PropertyField(m_RandomSeed, m_Contents.RandomSeed);
-            if (GUILayout.Button(m_Contents.SetRandomSeed, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
+            using (new EditorGUI.DisabledGroupScope(m_ReseedOnStart.boolValue))
             {
-                m_RandomSeed.intValue = UnityEngine.Random.Range(0, int.MaxValue);
-                component.startSeed = (uint)m_RandomSeed.intValue; // As accessors are bypassed with serialized properties...
-                component.Reinit();
+                EditorGUILayout.PropertyField(m_RandomSeed, m_Contents.RandomSeed);
+                if (GUILayout.Button(m_Contents.SetRandomSeed, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
+                {
+                    m_RandomSeed.intValue = UnityEngine.Random.Range(0, int.MaxValue);
+                    component.startSeed = (uint)m_RandomSeed.intValue; // As accessors are bypassed with serialized properties...
+                }
             }
         }
+        EditorGUILayout.PropertyField(m_ReseedOnStart, m_Contents.ReseedOnStart);
+        bool reinit = EditorGUI.EndChangeCheck();
 
         //Field
         GUILayout.Label(m_Contents.HeaderParameters, m_Styles.InspectorHeader);
 
-        var newList = VFXViewPresenter.viewPresenter.allChildren.OfType<VFXParameterPresenter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
-
-        foreach (var parameter in newList)
+        if (m_graph == null || m_asset != component.vfxAsset)
         {
-            OnParamGUI(parameter);
+            m_asset = component.vfxAsset;
+            if (m_asset != null)
+            {
+                m_graph = m_asset.GetOrCreateGraph();
+            }
+        }
+
+        if (m_graph != null)
+        {
+            var newList = m_graph.children.OfType<VFXParameter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
+            foreach (var parameter in newList)
+            {
+                OnParamGUI(parameter);
+            }
         }
 
         serializedObject.ApplyModifiedProperties();
+        if (reinit)
+        {
+            component.Reinit();
+        }
 
         EditMode.DoEditModeInspectorModeButton(
             EditMode.SceneViewEditMode.Collider,
@@ -681,6 +703,7 @@ public class VFXComponentEditor : Editor
 
         public GUIContent AssetPath = new GUIContent("Asset Template");
         public GUIContent RandomSeed = new GUIContent("Random Seed");
+        public GUIContent ReseedOnStart = new GUIContent("Reseed on start");
         public GUIContent OpenEditor = new GUIContent("Edit");
         public GUIContent SetRandomSeed = new GUIContent("Reseed");
         public GUIContent SetPlayRate = new GUIContent("Set");

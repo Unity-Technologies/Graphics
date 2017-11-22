@@ -7,11 +7,11 @@ using Type = System.Type;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXFlowAnchor : NodeAnchor, IEdgeConnectorListener
+    class VFXFlowAnchor : Port, IEdgeConnectorListener
     {
         public static VFXFlowAnchor Create(VFXFlowAnchorPresenter presenter)
         {
-            var anchor = new VFXFlowAnchor(presenter.orientation, presenter.direction, presenter.anchorType);
+            var anchor = new VFXFlowAnchor(presenter.orientation, presenter.direction, presenter.portType);
             anchor.m_EdgeConnector = new EdgeConnector<VFXFlowEdge>(anchor);
             anchor.AddManipulator(anchor.m_EdgeConnector);
             anchor.presenter = presenter;
@@ -48,6 +48,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public override Vector3 GetGlobalCenter()
+        {
+            return this.LocalToWorld(new Vector3(this.contentRect.center.x, direction == Direction.Output ? this.contentRect.yMax : this.contentRect.yMin, 0));
+        }
+
         void IEdgeConnectorListener.OnDrop(GraphView graphView, Edge edge)
         {
             VFXFlowEdgePresenter edgePresenter = VFXFlowEdgePresenter.CreateInstance<VFXFlowEdgePresenter>();
@@ -58,7 +63,7 @@ namespace UnityEditor.VFX.UI
             graphView.GetPresenter<VFXViewPresenter>().AddElement(edgePresenter);
         }
 
-        void IEdgeConnectorListener.OnDropOutsideAnchor(Edge edge, Vector2 position)
+        void IEdgeConnectorListener.OnDropOutsidePort(Edge edge, Vector2 position)
         {
             VFXFlowAnchorPresenter presenter = GetPresenter<VFXFlowAnchorPresenter>();
 
@@ -79,7 +84,7 @@ namespace UnityEditor.VFX.UI
             {
                 VFXContextPresenter nodePresenter = endContext.GetPresenter<VFXContextPresenter>();
 
-                var compatibleAnchors = viewPresenter.GetCompatibleAnchors(presenter, null);
+                var compatibleAnchors = viewPresenter.GetCompatiblePorts(presenter, null);
 
                 if (presenter.direction == Direction.Input)
                 {
@@ -118,7 +123,7 @@ namespace UnityEditor.VFX.UI
                 //TODO create the most obvious context and link
                 if (presenter.direction == Direction.Input)
                 {
-                    switch (presenter.Owner.contextType)
+                    switch (presenter.owner.contextType)
                     {
                         case VFXContextType.kInit:
                             targetContextType = VFXContextType.kSpawner;
@@ -133,7 +138,7 @@ namespace UnityEditor.VFX.UI
                 }
                 else
                 {
-                    switch (presenter.Owner.contextType)
+                    switch (presenter.owner.contextType)
                     {
                         case VFXContextType.kUpdate:
                             targetContextType = VFXContextType.kOutput;

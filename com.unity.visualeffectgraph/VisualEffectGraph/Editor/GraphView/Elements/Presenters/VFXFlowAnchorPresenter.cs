@@ -5,21 +5,22 @@ using UnityEditor.Experimental.UIElements.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
-    abstract class VFXFlowAnchorPresenter : NodeAnchorPresenter
+    abstract class VFXFlowAnchorPresenter : PortPresenter
     {
         [SerializeField]
-        private VFXContext m_Owner;
-        public VFXContext Owner { get { return m_Owner; } }
+        VFXContextPresenter m_Context;
+        public VFXContext owner { get { return m_Context.context; } }
+        public VFXContextPresenter context { get { return m_Context; } }
 
         [SerializeField]
         private int m_SlotIndex;
         public int slotIndex { get { return m_SlotIndex; } }
 
-        public void Init(VFXContext owner, int slotIndex)
+        public void Init(VFXContextPresenter context, int slotIndex)
         {
-            m_Owner = owner;
+            m_Context = context;
             m_SlotIndex = slotIndex;
-            anchorType = typeof(int); // We dont care about that atm!
+            portType = typeof(int); // We dont care about that atm!
             orientation = Orientation.Vertical;
         }
     }

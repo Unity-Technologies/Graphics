@@ -10,20 +10,21 @@ namespace UnityEditor.VFX
     class VFXQuadOutput : VFXAbstractParticleOutput
     {
         [VFXSetting, SerializeField]
-        private bool flipBook;
+        protected FlipbookMode flipBook;
 
-        public enum FrameInterpolationMode
+        //[VFXSetting] // tmp dont expose as settings atm
+        public bool useGeometryShader = false;
+
+        public enum FlipbookMode
         {
-            NoInterpolation,
-            LinearInterpolation,
+            Off,
+            Flipbook,
+            FlipbookBlend,
         }
-
-        [VFXSetting, SerializeField]
-        private FrameInterpolationMode frameInterpolationMode;
 
         public override string name { get { return "Quad Output"; } }
         public override string codeGeneratorTemplate { get { return "VFXShaders/VFXParticleQuad"; } }
-        public override VFXTaskType taskType { get { return VFXTaskType.kParticleQuadOutput; } }
+        public override VFXTaskType taskType { get { return useGeometryShader ? VFXTaskType.kParticlePointOutput : VFXTaskType.kParticleQuadOutput; } }
 
         public override IEnumerable<string> additionalDefines
         {
@@ -32,12 +33,15 @@ namespace UnityEditor.VFX
                 foreach (var def in base.additionalDefines)
                     yield return def;
 
-                if (flipBook)
+                if (flipBook != FlipbookMode.Off)
                 {
                     yield return "USE_FLIPBOOK";
-                    if (frameInterpolationMode == FrameInterpolationMode.LinearInterpolation)
+                    if (flipBook == FlipbookMode.FlipbookBlend)
                         yield return "USE_FLIPBOOK_INTERPOLATION";
                 }
+
+                if (useGeometryShader)
+                    yield return "USE_GEOMETRY_SHADER";
             }
         }
 
@@ -56,17 +60,19 @@ namespace UnityEditor.VFX
                 yield return new VFXAttributeInfo(VFXAttribute.Angle, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Pivot, VFXAttributeMode.Read);
 
-                if (flipBook)
+                if (flipBook != FlipbookMode.Off)
                     yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Read);
             }
         }
 
         protected override IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
         {
-            foreach (var exp in base.CollectGPUExpressions(slotExpressions).Concat(slotExpressions.Where(o => o.name == "texture")))
+            foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
 
-            if (flipBook)
+            yield return slotExpressions.First(o => o.name == "texture");
+
+            if (flipBook != FlipbookMode.Off)
             {
                 var flipBookSizeExp = slotExpressions.First(o => o.name == "flipBookSize");
                 yield return flipBookSizeExp;
@@ -78,11 +84,11 @@ namespace UnityEditor.VFX
         {
             get
             {
-                foreach (var property in PropertiesFromType(GetInputPropertiesTypeName()))
-                    yield return property;
+                string inputPropertiesType = "InputProperties";
+                if (flipBook != FlipbookMode.Off) inputPropertiesType = "InputPropertiesFlipbook";
 
-                if (flipBook)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "flipBookSize"), Vector2.one);
+                foreach (var property in PropertiesFromType(inputPropertiesType))
+                    yield return property;
 
                 foreach (var property in base.inputProperties)
                     yield return property;
@@ -93,7 +99,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if (!flipBook)
+                if (flipBook == FlipbookMode.Off)
                     yield return "frameInterpolationMode";
             }
         }
@@ -101,6 +107,12 @@ namespace UnityEditor.VFX
         public class InputProperties
         {
             public Texture2D texture;
+        }
+
+        public class InputPropertiesFlipbook
+        {
+            public Texture2D texture;
+            public Vector2 flipBookSize = new Vector2(5, 5);
         }
     }
 }

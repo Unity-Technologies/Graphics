@@ -3,7 +3,10 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.VFX;
 using UnityEngine.Experimental.UIElements;
+using UnityEngine.Experimental.UIElements.StyleEnums;
 
 
 namespace UnityEditor.VFX.UI
@@ -94,41 +97,8 @@ namespace UnityEditor.VFX.UI
                     };
                 }).OrderBy(o => o.category + o.name);
 
-            var descriptorBuiltInParameter = VFXLibrary.GetBuiltInParameters().Select(o =>
-                {
-                    return new Descriptor()
-                    {
-                        modelDescriptor = o,
-                        category = "BuiltIn/",
-                        name = o.name
-                    };
-                }).OrderBy(o => o.category + o.name);
-
-            var descriptorSourceAttributeParameter = VFXLibrary.GetSourceAttributeParameters().Select(o =>
-                {
-                    return new Descriptor()
-                    {
-                        modelDescriptor = o,
-                        category = "SourceAttribute/",
-                        name = o.name
-                    };
-                }).OrderBy(o => o.name);
-
-            var descriptorCurrentAttributeParameter = VFXLibrary.GetCurrentAttributeParameters().Select(o =>
-                {
-                    return new Descriptor()
-                    {
-                        modelDescriptor = o,
-                        category = "CurrentAttribute/",
-                        name = o.name
-                    };
-                }).OrderBy(o => o.category + o.name);
-
             return descriptorsContext.Concat(descriptorsOperator)
                 .Concat(descriptorParameter)
-                .Concat(descriptorBuiltInParameter)
-                .Concat(descriptorSourceAttributeParameter)
-                .Concat(descriptorCurrentAttributeParameter)
                 .Concat(Enumerable.Repeat(systemDesc, 1));
         }
     }
@@ -136,6 +106,8 @@ namespace UnityEditor.VFX.UI
     //[StyleSheet("Assets/VFXEditor/Editor/GraphView/Views/")]
     class VFXView : GraphView, IParameterDropTarget
     {
+        VisualElement m_NoAssetLabel;
+
         public VFXView()
         {
             forceNotififcationOnAdd = true;
@@ -167,28 +139,35 @@ namespace UnityEditor.VFX.UI
                     {
                         AddVFXParameter(tPos, d.modelDescriptor as VFXModelDescriptorParameters);
                     }
-                    else if (d.modelDescriptor is VFXModelDescriptorBuiltInParameters)
-                    {
-                        AddVFXBuiltInParameter(tPos, d.modelDescriptor as VFXModelDescriptorBuiltInParameters);
-                    }
-                    else if (d.modelDescriptor is VFXModelDescriptorCurrentAttributeParameters)
-                    {
-                        AddVFXCurrentAttributeParameter(tPos, d.modelDescriptor as VFXModelDescriptorCurrentAttributeParameters);
-                    }
-                    else if (d.modelDescriptor is VFXModelDescriptorSourceAttributeParameters)
-                    {
-                        AddVFXSourceAttributeParameter(tPos, d.modelDescriptor as VFXModelDescriptorSourceAttributeParameters);
-                    }
                     else if (d.modelDescriptor == null)
                     {
-                        var spawner = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos, VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Spawner"));
-                        var initialize = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos + new Vector2(0, 200), VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Initialize"));
-                        var update = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos + new Vector2(0, 400), VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Update"));
-                        var output = GetPresenter<VFXViewPresenter>().AddVFXContext(tPos + new Vector2(0, 600), VFXLibrary.GetContexts().FirstOrDefault(t => t.name == "Point Output"));
+                        /*
+                        VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
+                        if (presenter != null)
+                        {
+                            var contexts = VFXLibrary.GetContexts().ToArray();
+                            var spawnerDesc = contexts.FirstOrDefault(t => t.name == "Spawner");
+                            var spawner = presenter.AddVFXContext(tPos, spawnerDesc);
+                            var initialize = presenter.AddVFXContext(tPos + new Vector2(0, 200), contexts.FirstOrDefault(t => t.name == "Initialize"));
+                            var update = presenter.AddVFXContext(tPos + new Vector2(0, 400), contexts.FirstOrDefault(t => t.name == "Update"));
+                            var output = presenter.AddVFXContext(tPos + new Vector2(0, 600), contexts.FirstOrDefault(t => t.name == "Point Output"));
 
-                        spawner.LinkTo(initialize);
-                        initialize.LinkTo(update);
-                        update.LinkTo(output);
+                            spawner.LinkTo(initialize);
+                            initialize.LinkTo(update);
+                            update.LinkTo(output);
+                        }*/
+
+
+                        VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>("Assets/VFXEditor/Editor/Templates/DefaultParticleSystem.asset");
+
+                        VFXViewPresenter presenter = VFXViewPresenter.Manager.GetPresenter(asset);
+                        presenter.useCount++;
+
+                        object data = VFXCopyPaste.CreateCopy(presenter.allChildren);
+
+                        VFXCopyPaste.PasteCopy(this, tPos, data);
+
+                        presenter.useCount--;
                     }
                     else
                     {
@@ -196,8 +175,6 @@ namespace UnityEditor.VFX.UI
                     }
                 }), null));
 
-            typeFactory[typeof(VFXAttributeParameterPresenter)] = typeof(VFXAttributeParameterUI);
-            typeFactory[typeof(VFXBuiltInParameterPresenter)] = typeof(VFXBuiltInParameterUI);
             typeFactory[typeof(VFXParameterPresenter)] = typeof(VFXParameterUI);
             typeFactory[typeof(VFXOperatorPresenter)] = typeof(VFXOperatorUI);
             typeFactory[typeof(VFXContextPresenter)] = typeof(VFXContextUI);
@@ -212,6 +189,12 @@ namespace UnityEditor.VFX.UI
             typeFactory[typeof(Preview3DPresenter)] = typeof(Preview3D);
 
             AddStyleSheetPath("PropertyRM");
+            AddStyleSheetPath("VFXContext");
+            AddStyleSheetPath("VFXFlow");
+            AddStyleSheetPath("VFXBlock");
+            AddStyleSheetPath("VFXNode");
+            AddStyleSheetPath("VFXDataAnchor");
+            AddStyleSheetPath("VFXTypeColor");
             AddStyleSheetPath("VFXView");
 
             Dirty(ChangeType.Transform);
@@ -227,7 +210,7 @@ namespace UnityEditor.VFX.UI
             Add(toolbar);
 
 
-            Button button = new Button(() => {Resync(); });
+            Button button = new Button(() => { Resync(); });
             button.text = "Refresh";
             button.AddToClassList("toolbarItem");
             toolbar.Add(button);
@@ -237,18 +220,102 @@ namespace UnityEditor.VFX.UI
             spacer.style.flex = 1;
             toolbar.Add(spacer);
 
+            m_ToggleCastShadows = new Toggle(OnToggleCastShadows);
+            m_ToggleCastShadows.text = "Cast Shadows";
+            m_ToggleCastShadows.on = GetRendererSettings().shadowCastingMode != ShadowCastingMode.Off;
+            toolbar.Add(m_ToggleCastShadows);
+            m_ToggleCastShadows.AddToClassList("toolbarItem");
 
-            Toggle toggle = new Toggle(OnToggleCompile);
-            //toggle.AddToClassList("toolbarButton");
-            toggle.text = "AutoCompile";
-            toggle.on = true;
-            toggle.AddToClassList("toolbarItem");
-            toolbar.Add(toggle);
+            m_ToggleMotionVectors = new Toggle(OnToggleMotionVectors);
+            m_ToggleMotionVectors.text = "Use Motion Vectors";
+            m_ToggleMotionVectors.on = GetRendererSettings().motionVectorGenerationMode == MotionVectorGenerationMode.Object;
+            toolbar.Add(m_ToggleMotionVectors);
+            m_ToggleMotionVectors.AddToClassList("toolbarItem");
+
+            Toggle toggleRenderBounds = new Toggle(OnShowBounds);
+            toggleRenderBounds.text = "Show Bounds";
+            toggleRenderBounds.on = VFXComponent.renderBounds;
+            toolbar.Add(toggleRenderBounds);
+            toggleRenderBounds.AddToClassList("toolbarItem");
+
+            Toggle toggleAutoCompile = new Toggle(OnToggleCompile);
+            toggleAutoCompile.text = "Auto Compile";
+            toggleAutoCompile.on = true;
+            toolbar.Add(toggleAutoCompile);
+            toggleAutoCompile.AddToClassList("toolbarItem");
 
             button = new Button(OnCompile);
             button.text = "Compile";
             button.AddToClassList("toolbarItem");
             toolbar.Add(button);
+
+
+            m_NoAssetLabel = new Label("Please Select An Asset");
+            m_NoAssetLabel.style.positionType = PositionType.Absolute;
+            m_NoAssetLabel.style.positionLeft = 0;
+            m_NoAssetLabel.style.positionRight = 0;
+            m_NoAssetLabel.style.positionTop = 0;
+            m_NoAssetLabel.style.positionBottom = 0;
+            m_NoAssetLabel.style.textAlignment = TextAnchor.MiddleCenter;
+            m_NoAssetLabel.style.fontSize = 72;
+            m_NoAssetLabel.style.textColor = Color.white * 0.75f;
+
+            Add(m_NoAssetLabel);
+
+            this.serializeGraphElements = SerializeElements;
+            this.unserializeAndPaste = UnserializeAndPasteElements;
+        }
+
+        VFXRendererSettings GetRendererSettings()
+        {
+            var presenter = GetPresenter<VFXViewPresenter>();
+            if (presenter != null)
+            {
+                var asset = presenter.GetVFXAsset();
+                if (asset != null)
+                    return asset.rendererSettings;
+            }
+
+            return new VFXRendererSettings();
+        }
+
+        void SetRendererSettings(VFXRendererSettings settings)
+        {
+            var presenter = GetPresenter<VFXViewPresenter>();
+            if (presenter != null)
+            {
+                var asset = presenter.GetVFXAsset();
+                if (asset != null)
+                {
+                    asset.rendererSettings = settings;
+                    presenter.GetGraph().SetExpressionGraphDirty();
+                }
+            }
+        }
+
+        void OnToggleCastShadows()
+        {
+            var settings = GetRendererSettings();
+            if (settings.shadowCastingMode != ShadowCastingMode.Off)
+                settings.shadowCastingMode = ShadowCastingMode.Off;
+            else
+                settings.shadowCastingMode = ShadowCastingMode.On;
+            SetRendererSettings(settings);
+        }
+
+        void OnToggleMotionVectors()
+        {
+            var settings = GetRendererSettings();
+            if (settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object)
+                settings.motionVectorGenerationMode = MotionVectorGenerationMode.Camera;
+            else
+                settings.motionVectorGenerationMode = MotionVectorGenerationMode.Object;
+            SetRendererSettings(settings);
+        }
+
+        void OnShowBounds()
+        {
+            VFXComponent.renderBounds = !VFXComponent.renderBounds;
         }
 
         void OnToggleCompile()
@@ -258,39 +325,27 @@ namespace UnityEditor.VFX.UI
 
         void OnCompile()
         {
-            var graph = VFXViewPresenter.viewPresenter.GetGraph();
+            var graph = GetPresenter<VFXViewPresenter>().GetGraph();
             graph.SetExpressionGraphDirty();
             graph.RecompileIfNeeded();
         }
 
         void AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
         {
+            if (presenter == null) return;
             GetPresenter<VFXViewPresenter>().AddVFXContext(pos, desc);
         }
 
         void AddVFXOperator(Vector2 pos, VFXModelDescriptor<VFXOperator> desc)
         {
+            if (presenter == null) return;
             GetPresenter<VFXViewPresenter>().AddVFXOperator(pos, desc);
         }
 
         void AddVFXParameter(Vector2 pos, VFXModelDescriptorParameters desc)
         {
+            if (presenter == null) return;
             GetPresenter<VFXViewPresenter>().AddVFXParameter(pos, desc);
-        }
-
-        void AddVFXBuiltInParameter(Vector2 pos, VFXModelDescriptorBuiltInParameters desc)
-        {
-            GetPresenter<VFXViewPresenter>().AddVFXBuiltInParameter(pos, desc);
-        }
-
-        void AddVFXCurrentAttributeParameter(Vector2 pos, VFXModelDescriptorCurrentAttributeParameters desc)
-        {
-            GetPresenter<VFXViewPresenter>().AddVFXCurrentAttributeParameter(pos, desc);
-        }
-
-        void AddVFXSourceAttributeParameter(Vector2 pos, VFXModelDescriptorSourceAttributeParameters desc)
-        {
-            GetPresenter<VFXViewPresenter>().AddVFXSourceAttributeParameter(pos, desc);
         }
 
         public EventPropagation CloneModels() // TEST clean that
@@ -314,24 +369,28 @@ namespace UnityEditor.VFX.UI
         public EventPropagation Resync()
         {
             var presenter = GetPresenter<VFXViewPresenter>();
-            presenter.SetVFXAsset(presenter.GetVFXAsset(), true);
+            if (presenter != null)
+                presenter.ForceReload();
             return EventPropagation.Stop;
         }
 
         public EventPropagation OutputToDot()
         {
+            if (presenter == null) return EventPropagation.Stop;
             DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraph(), VFXExpressionContextOption.None);
             return EventPropagation.Stop;
         }
 
         public EventPropagation OutputToDotReduced()
         {
+            if (presenter == null) return EventPropagation.Stop;
             DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraph(), VFXExpressionContextOption.Reduction);
             return EventPropagation.Stop;
         }
 
         public EventPropagation OutputToDotConstantFolding()
         {
+            if (presenter == null) return EventPropagation.Stop;
             DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraph(), VFXExpressionContextOption.ConstantFolding);
             return EventPropagation.Stop;
         }
@@ -357,19 +416,20 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override List<NodeAnchor> GetCompatibleAnchors(NodeAnchor startAnchor, NodeAdapter nodeAdapter)
+        public override List<Port> GetCompatiblePorts(Port startAnchor, NodeAdapter nodeAdapter)
         {
             VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
+            if (presenter == null) return null;
 
-            var presenters = presenter.GetCompatibleAnchors(startAnchor.GetPresenter<NodeAnchorPresenter>(), nodeAdapter);
+            var presenters = presenter.GetCompatiblePorts(startAnchor.GetPresenter<PortPresenter>(), nodeAdapter);
 
             if (startAnchor is VFXDataAnchor)
             {
-                return presenters.Select(t => (NodeAnchor)GetDataAnchorByPresenter(t as VFXDataAnchorPresenter)).ToList();
+                return presenters.Select(t => (Port)GetDataAnchorByPresenter(t as VFXDataAnchorPresenter)).ToList();
             }
             else
             {
-                return presenters.Select(t => (NodeAnchor)GetFlowAnchorByPresenter(t as VFXFlowAnchorPresenter)).ToList();
+                return presenters.Select(t => (Port)GetFlowAnchorByPresenter(t as VFXFlowAnchorPresenter)).ToList();
             }
         }
 
@@ -381,6 +441,65 @@ namespace UnityEditor.VFX.UI
                 {
                     yield return anchor;
                 }
+            }
+        }
+
+        VFXViewPresenter m_OldPresenter;
+
+        public override void OnDataChanged()
+        {
+            base.OnDataChanged();
+            VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
+
+            if (presenter != null)
+            {
+                var settings = GetRendererSettings();
+
+                m_ToggleCastShadows.on = settings.shadowCastingMode != ShadowCastingMode.Off;
+                m_ToggleCastShadows.SetEnabled(true);
+
+                m_ToggleMotionVectors.on = settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object;
+                m_ToggleMotionVectors.SetEnabled(true);
+
+                // if the asset dis destroy somehow, fox example if the user delete the asset, delete the presenter and update the window.
+                VFXAsset asset = presenter.GetVFXAsset();
+                if (asset == null)
+                {
+                    VFXViewPresenter.Manager.RemovePresenter(presenter);
+
+                    VFXViewWindow.currentWindow.presenter = null;
+                    this.presenter = null; // this recall OnDataChanged recursively;
+                    return;
+                }
+            }
+            else
+            {
+                m_ToggleCastShadows.SetEnabled(false);
+                m_ToggleMotionVectors.SetEnabled(false);
+            }
+
+            if (presenter != null)
+            {
+                m_NoAssetLabel.RemoveFromHierarchy();
+            }
+            else
+            {
+                if (m_NoAssetLabel.parent == null)
+                {
+                    Add(m_NoAssetLabel);
+                }
+            }
+
+            if (m_OldPresenter != presenter && panel != null)
+            {
+                BaseVisualElementPanel panel = this.panel as BaseVisualElementPanel;
+
+
+                panel.scheduler.ScheduleOnce(t => { panel.ValidateLayout(); FrameAll(); }, 100);
+
+                m_OldPresenter = presenter;
+
+                pasteOffset = Vector2.zero; // if we change asset we want to paste exactly at the same place as the original asset the first time.
             }
         }
 
@@ -409,19 +528,19 @@ namespace UnityEditor.VFX.UI
                         var context = element as VFXContextUI;
 
 
-                        foreach (VFXDataAnchor anchor in context.ownData.GetAnchors(input, output))
+                        foreach (VFXDataAnchor anchor in context.ownData.GetPorts(input, output))
                             yield return anchor;
 
                         foreach (VFXBlockUI block in context.GetAllBlocks())
                         {
-                            foreach (VFXDataAnchor anchor in block.GetAnchors(input, output))
+                            foreach (VFXDataAnchor anchor in block.GetPorts(input, output))
                                 yield return anchor;
                         }
                     }
                     else if (element is VFXNodeUI)
                     {
                         var ope = element as VFXNodeUI;
-                        foreach (VFXDataAnchor anchor in ope.GetAnchors(input, output))
+                        foreach (VFXDataAnchor anchor in ope.GetPorts(input, output))
                             yield return anchor;
                     }
                 }
@@ -459,7 +578,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override IEnumerable<NodeAnchor> GetAllAnchors(bool input, bool output)
+        public override IEnumerable<Port> GetAllPorts(bool input, bool output)
         {
             foreach (var anchor in GetAllDataAnchors(input, output))
             {
@@ -504,11 +623,8 @@ namespace UnityEditor.VFX.UI
         void IParameterDropTarget.OnDragPerform(IMGUIEvent evt, VFXParameterPresenter parameter)
         {
             VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
-
-            VFXParameter newParameter = presenter.AddVFXParameter(contentViewContainer.GlobalToBound(evt.imguiEvent.mousePosition), VFXLibrary.GetParameters().FirstOrDefault(t => t.name == parameter.anchorType.UserFriendlyName()));
-
-            newParameter.exposedName = parameter.exposedName;
-            newParameter.exposed = true;
+            if (presenter == null) return;
+            presenter.AddVFXParameter(contentViewContainer.GlobalToBound(evt.imguiEvent.mousePosition), VFXLibrary.GetParameters().FirstOrDefault(t => t.name == parameter.portType.UserFriendlyName()));
         }
 
         void SelectionUpdated()
@@ -516,6 +632,8 @@ namespace UnityEditor.VFX.UI
             if (!VFXComponentEditor.s_IsEditingAsset)
             {
                 var contextSelected = selection.OfType<VFXContextUI>();
+
+                if (presenter == null) return;
 
                 if (contextSelected.Count() > 0)
                 {
@@ -546,6 +664,25 @@ namespace UnityEditor.VFX.UI
             base.ClearSelection();
             if (!selectionEmpty)
                 SelectionUpdated();
+        }
+
+        private Toggle m_ToggleCastShadows;
+        private Toggle m_ToggleMotionVectors;
+
+        public readonly Vector2 defaultPasteOffset = new Vector2(100, 100);
+        public Vector2 pasteOffset = Vector2.zero;
+
+        string SerializeElements(IEnumerable<GraphElement> elements)
+        {
+            pasteOffset = defaultPasteOffset;
+            return VFXCopyPaste.SerializeElements(elements.Select(t => t.presenter));
+        }
+
+        void UnserializeAndPasteElements(string operationName, string data)
+        {
+            VFXCopyPaste.UnserializeAndPasteElements(this, pasteOffset, data);
+
+            pasteOffset += defaultPasteOffset;
         }
     }
 }

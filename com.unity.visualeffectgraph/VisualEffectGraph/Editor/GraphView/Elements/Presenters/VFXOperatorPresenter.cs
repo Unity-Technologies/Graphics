@@ -6,7 +6,7 @@ using System;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXOperatorSlotContainerPresenter : VFXSlotContainerPresenter
+    class VFXOperatorPresenter : VFXSlotContainerPresenter
     {
         protected override VFXDataAnchorPresenter AddDataAnchor(VFXSlot slot, bool input)
         {
@@ -21,7 +21,7 @@ namespace UnityEditor.VFX.UI
             }
             anchor.Init(slot, this);
 
-            anchor.anchorType = VFXOperatorAnchorPresenter.GetDisplayAnchorType(slot);
+            anchor.portType = VFXOperatorAnchorPresenter.GetDisplayAnchorType(slot);
 
             if (slot.GetExpression() == null)
             {
@@ -29,11 +29,7 @@ namespace UnityEditor.VFX.UI
             }
             return anchor;
         }
-    }
 
-
-    class VFXOperatorPresenter : VFXOperatorSlotContainerPresenter
-    {
         public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
             base.Init(model, viewPresenter);

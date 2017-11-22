@@ -5,78 +5,79 @@ using UnityEditor.Experimental.UIElements;
 
 namespace UnityEditor.VFX.UIElements
 {
-    class Vector3Field : ValueControl<Vector3>
+    class Vector3Field : VFXControl<Vector3>
     {
-        FloatField m_X;
-        FloatField m_Y;
-        FloatField m_Z;
+        LabeledField<FloatField, float> m_X;
+        LabeledField<FloatField, float> m_Y;
+        LabeledField<FloatField, float> m_Z;
 
-
+        public bool dynamicUpdate
+        {
+            get
+            {
+                return m_X.control.dynamicUpdate;
+            }
+            set
+            {
+                m_X.control.dynamicUpdate = value;
+                m_Y.control.dynamicUpdate = value;
+                m_Z.control.dynamicUpdate = value;
+            }
+        }
         void CreateTextField()
         {
-            m_X = new FloatField("X");
-            m_Y = new FloatField("Y");
-            m_Z = new FloatField("Z");
+            m_X = new LabeledField<FloatField, float>("X");
+            m_Y = new LabeledField<FloatField, float>("Y");
+            m_Z = new LabeledField<FloatField, float>("Z");
 
-            m_X.OnValueChanged = OnXValueChanged;
-            m_Y.OnValueChanged = OnYValueChanged;
-            m_Z.OnValueChanged = OnZValueChanged;
+            m_X.control.AddToClassList("fieldContainer");
+            m_Y.control.AddToClassList("fieldContainer");
+            m_Z.control.AddToClassList("fieldContainer");
+            m_X.AddToClassList("fieldContainer");
+            m_Y.AddToClassList("fieldContainer");
+            m_Z.AddToClassList("fieldContainer");
+
+            m_X.RegisterCallback<ChangeEvent<float>>(OnXValueChanged);
+            m_Y.RegisterCallback<ChangeEvent<float>>(OnYValueChanged);
+            m_Z.RegisterCallback<ChangeEvent<float>>(OnZValueChanged);
         }
 
-        void OnXValueChanged()
+        void OnXValueChanged(ChangeEvent<float> e)
         {
-            m_Value.x = m_X.GetValue();
-            if (OnValueChanged != null)
-            {
-                OnValueChanged();
-            }
+            Vector3 newValue = value;
+            newValue.x = (float)m_X.value;
+            SetValueAndNotify(newValue);
         }
 
-        void OnYValueChanged()
+        void OnYValueChanged(ChangeEvent<float> e)
         {
-            m_Value.y = m_Y.GetValue();
-            if (OnValueChanged != null)
-            {
-                OnValueChanged();
-            }
+            Vector3 newValue = value;
+            newValue.y = (float)m_Y.value;
+            SetValueAndNotify(newValue);
         }
 
-        void OnZValueChanged()
+        void OnZValueChanged(ChangeEvent<float> e)
         {
-            m_Value.z = m_Z.GetValue();
-            if (OnValueChanged != null)
-            {
-                OnValueChanged();
-            }
+            Vector3 newValue = value;
+            newValue.z = (float)m_Z.value;
+            SetValueAndNotify(newValue);
         }
 
-        public Vector3Field(string label) : base(label)
+        public Vector3Field()
         {
             CreateTextField();
 
             style.flexDirection = FlexDirection.Row;
-            m_Label = new VisualElement { text = label };
-            Add(m_Label);
             Add(m_X);
             Add(m_Y);
             Add(m_Z);
-        }
-
-        public Vector3Field(VisualElement existingLabel) : base(existingLabel)
-        {
-            CreateTextField();
-            Add(m_X);
-            Add(m_Y);
-            Add(m_Z);
-
-            m_Label = existingLabel;
         }
 
         protected override void ValueToGUI()
         {
-            m_X.SetValue(m_Value.x);
-            m_Y.SetValue(m_Value.y);
-            m_Z.SetValue(m_Value.z);
+            m_X.value = value.x;
+            m_Y.value = value.y;
+            m_Z.value = value.z;
         }
     }
 }

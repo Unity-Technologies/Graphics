@@ -10,6 +10,14 @@ namespace UnityEditor.VFX
     {
         public abstract VFXDataType type { get; }
 
+        public virtual uint sourceCount
+        {
+            get
+            {
+                return 0u;
+            }
+        }
+
         public IEnumerable<VFXContext> owners
         {
             get { return m_Owners; }
@@ -62,6 +70,7 @@ namespace UnityEditor.VFX
         public bool IsCurrentAttributeUsed(VFXAttribute attrib)                         { return (GetAttributeMode(attrib) & VFXAttributeMode.ReadWrite) != 0; }
 
         public bool IsSourceAttributeUsed(VFXAttribute attrib)                          { return (GetAttributeMode(attrib) & VFXAttributeMode.ReadSource) != 0; }
+        public bool IsSourceAttributeUsed(VFXAttribute attrib, VFXContext context)      { return (GetAttributeMode(attrib, context) & VFXAttributeMode.ReadSource) != 0; }
 
         public bool IsAttributeLocal(VFXAttribute attrib)                               { return m_LocalCurrentAttributes.Contains(attrib); }
         public bool IsAttributeStored(VFXAttribute attrib)                              { return m_StoredCurrentAttributes.ContainsKey(attrib); }
@@ -184,6 +193,11 @@ namespace UnityEditor.VFX
         {
             m_StoredCurrentAttributes.Clear();
             m_LocalCurrentAttributes.Clear();
+            m_ReadSourceAttributes.Clear();
+            if (type == VFXDataType.kParticle)
+            {
+                m_ReadSourceAttributes.Add(new VFXAttribute("spawnCount", UnityEngine.VFX.VFXValueType.kFloat));
+            }
 
             int nbOwners = m_Owners.Count;
             if (nbOwners > 16)
@@ -201,9 +215,17 @@ namespace UnityEditor.VFX
                 bool onlyUpdateWrite = true;
                 bool needsSpecialInit = HasImplicitInit(attribute);
                 bool writtenInInit = needsSpecialInit;
+                bool readSourceInInit = false;
 
                 foreach (var kvp2 in kvp.Value)
                 {
+                    var context = kvp2.Key;
+                    if (context.contextType == VFXContextType.kInit
+                        &&  (kvp2.Value & VFXAttributeMode.ReadSource) != 0)
+                    {
+                        readSourceInInit = true;
+                    }
+
                     if (kvp2.Value == VFXAttributeMode.None)
                     {
                         throw new InvalidOperationException("Unexpected attribute mode : " + attribute);
@@ -214,7 +236,6 @@ namespace UnityEditor.VFX
                         continue;
                     }
 
-                    var context = kvp2.Key;
                     if (context.contextType != VFXContextType.kInit)
                         onlyInit = false;
                     if (context.contextType != VFXContextType.kOutput)
@@ -257,13 +278,16 @@ namespace UnityEditor.VFX
                     m_LocalCurrentAttributes.Add(attribute);
                 else
                     m_StoredCurrentAttributes.Add(attribute, key);
+
+                if (readSourceInInit)
+                    m_ReadSourceAttributes.Add(attribute);
             }
         }
 
-        public virtual void GenerateAttributeLayout()                                   {}
+        public virtual void GenerateAttributeLayout() {}
 
-        public virtual string GetAttributeDataDeclaration(VFXAttributeMode mode)        { throw new NotImplementedException(); }
-        public virtual string GetLoadAttributeCode(VFXAttribute attrib)                 { throw new NotImplementedException(); }
+        public virtual string GetAttributeDataDeclaration(VFXAttributeMode mode) { throw new NotImplementedException(); }
+        public virtual string GetLoadAttributeCode(VFXAttribute attrib, VFXAttributeLocation location) { throw new NotImplementedException(); }
         public virtual string GetStoreAttributeCode(VFXAttribute attrib, string value)  { throw new NotImplementedException(); }
 
         private bool AddAttribute(VFXContext context, VFXAttributeInfo attribInfo)
@@ -376,5 +400,8 @@ namespace UnityEditor.VFX
         protected Dictionary<VFXAttribute, int> m_StoredCurrentAttributes = new Dictionary<VFXAttribute, int>();
         [NonSerialized]
         protected HashSet<VFXAttribute> m_LocalCurrentAttributes = new HashSet<VFXAttribute>();
+
+        [NonSerialized]
+        protected HashSet<VFXAttribute> m_ReadSourceAttributes = new HashSet<VFXAttribute>();
     }
 }

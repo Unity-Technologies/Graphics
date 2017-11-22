@@ -1,55 +1,47 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    class VFXBuiltInParameter : VFXSlotContainerModel<VFXModel, VFXModel>
+    class BuiltInVariant : IVariantProvider
     {
-        [SerializeField]
-        private VFXExpressionOp m_expressionOp;
-
-        public override T Clone<T>()
-        {
-            var copy = base.Clone<T>() as VFXBuiltInParameter;
-            copy.Init(m_expressionOp);
-            return copy as T;
-        }
-
-        protected override IEnumerable<VFXPropertyWithValue> outputProperties { get { return PropertiesFromSlotsOrDefaultFromClass(VFXSlot.Direction.kOutput); } }
-
-        public VFXExpressionOp expressionOp
+        public Dictionary<string, object[]> variants
         {
             get
             {
-                return m_expressionOp;
+                return new Dictionary<string, object[]>
+                {
+                    { "m_expressionOp", VFXBuiltInExpression.All.Cast<object>().ToArray() }
+                };
             }
         }
+    }
 
-        public VFXBuiltInParameter()
-        {
-            m_expressionOp = VFXExpressionOp.kVFXNoneOp;
-        }
+    [VFXInfo(category = "BuiltIn", variantProvider = typeof(BuiltInVariant))]
+    class VFXBuiltInParameter : VFXOperator
+    {
+        [SerializeField, VFXSetting]
+        protected VFXExpressionOp m_expressionOp;
 
-        public override void OnEnable()
+        protected sealed override IEnumerable<string> filteredOutSettings
         {
-            base.OnEnable();
-            if (m_expressionOp != VFXExpressionOp.kVFXNoneOp)
+            get
             {
-                Init(m_expressionOp);
+                yield return "m_expressionOp";
             }
         }
 
-        public void Init(VFXExpressionOp op)
+        override public string name { get { return m_expressionOp.ToString(); } }
+
+        protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            m_expressionOp = op;
-            var exp = VFXBuiltInExpression.Find(m_expressionOp);
-            if (outputSlots.Count == 0)
-            {
-                AddSlot(VFXSlot.Create(new VFXProperty(VFXExpression.TypeToType(exp.valueType), "o"), VFXSlot.Direction.kOutput));
-            }
-            outputSlots[0].SetExpression(exp);
+            var expression = VFXBuiltInExpression.Find(m_expressionOp);
+            if (expression == null)
+                return new VFXExpression[] {};
+            return new VFXExpression[] { expression };
         }
     }
 }

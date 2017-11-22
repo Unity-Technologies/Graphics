@@ -133,8 +133,8 @@ namespace UnityEditor.VFX.Test
                 VFXValueType type = types.FirstOrDefault(e => newInstance.type == VFXExpression.TypeToType(e));
                 if (type != VFXValueType.kNone)
                 {
-                    newInstance.exposedName = commonBaseName + type.ToString();
-                    newInstance.exposed = true;
+                    newInstance.SetSettingValue("m_exposedName", commonBaseName + type.ToString());
+                    newInstance.SetSettingValue("m_exposed", true);
                     var value = GetValue_A(type);
                     Assert.IsNotNull(value);
                     newInstance.value = value;
@@ -175,7 +175,6 @@ namespace UnityEditor.VFX.Test
 
             graph.vfxAsset = new VFXAsset();
             graph.RecompileIfNeeded();
-            graph.vfxAsset.bounds = new Bounds(Vector3.zero, Vector3.positiveInfinity);
 
             while (m_mainObject.GetComponent<VFXComponent>() != null)
             {

@@ -9,12 +9,5 @@ namespace UnityEditor.VFX.UI
 {
     internal class VFXEdgeControl : EdgeControl
     {
-        protected override void PointsChanged()
-        {
-            base.PointsChanged();
-            VFXEdge edge = this.GetFirstAncestorOfType<VFXEdge>();
-            if (edge != null)
-                edge.OnDisplayChanged();
-        }
     }
 }

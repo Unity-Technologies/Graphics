@@ -1,0 +1,24 @@
+${VFXBegin:VFXVertexCommonProcess}
+#if VFX_USE_COLOR_CURRENT && defined(VFX_VARYING_COLOR)
+o.VFX_VARYING_COLOR = color;
+#endif
+#if VFX_USE_ALPHA_CURRENT && defined(VFX_VARYING_ALPHA) 
+o.VFX_VARYING_ALPHA = alpha;
+#endif
+
+#if USE_SOFT_PARTICLE	
+#ifdef VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE
+${VFXLoadParameter:{invSoftParticlesFadeDistance}}
+o.VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE = invSoftParticlesFadeDistance;
+#endif
+#ifdef VFX_VARYING_POSSS
+o.VFX_VARYING_POSSS = VFXGetPOSSS(o.pos);
+#endif
+#endif
+#if USE_ALPHA_TEST && defined(VFX_VARYING_ALPHATHRESHOLD)
+${VFXLoadParameter:{alphaThreshold}}
+o.VFX_VARYING_ALPHATHRESHOLD = alphaThreshold;
+#endif
+${VFXEnd}
+
+${VFXBegin:VFXFragmentCommonFunctions}#include "Assets/VFXShaders/VFXCommonOutput.cginc"${VFXEnd}

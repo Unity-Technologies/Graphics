@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.UI
     {
         object value { get; set; }
 
-        System.Type anchorType { get; }
+        System.Type portType { get; }
     }
 
 
@@ -73,7 +73,7 @@ namespace UnityEditor.VFX.UI
         static internal void Draw(IValuePresenter anchor, VFXComponent component)
         {
             System.Action<IValuePresenter, VFXComponent> func;
-            if (s_DrawFunctions.TryGetValue(anchor.anchorType, out func))
+            if (s_DrawFunctions.TryGetValue(anchor.portType, out func))
             {
                 func(anchor, component);
             }
@@ -517,9 +517,9 @@ namespace UnityEditor.VFX.UI
             Plane plane = (Plane)anchor.value;
 
             Quaternion normalQuat = Quaternion.FromToRotation(Vector3.forward, plane.normal);
-            Handles.DrawRectangle(0, plane.position, normalQuat, 10);
+            Handles.RectangleHandleCap(0, plane.position, normalQuat, 10, Event.current.type);
 
-            Handles.DrawArrow(0, plane.position, normalQuat, 5);
+            Handles.ArrowHandleCap(0, plane.position, normalQuat, 5, Event.current.type);
 
             if (PositionGizmo(component, plane.space, ref plane.position))
             {
@@ -549,7 +549,7 @@ namespace UnityEditor.VFX.UI
         {
             Cylinder cylinder = (Cylinder)anchor.value;
 
-            Vector3 center = cylinder.position;
+            Vector3 center = cylinder.center;
             Vector3 normal = Vector3.up;
 
             Vector3 worldNormal = normal;
@@ -615,7 +615,7 @@ namespace UnityEditor.VFX.UI
                 Handles.DrawLine(extremities[i], extremities[i + extremities.Length / 2]);
             }
 
-            if (PositionGizmo(component, cylinder.space, ref cylinder.position))
+            if (PositionGizmo(component, cylinder.space, ref cylinder.center))
             {
                 anchor.value = cylinder;
             }

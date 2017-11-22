@@ -24,6 +24,19 @@ namespace UnityEditor.VFX
         public override string codeGeneratorTemplate { get { return "VFXShaders/VFXUpdate"; } }
         public override bool codeGeneratorCompute { get { return true; } }
         public override VFXTaskType taskType { get { return VFXTaskType.kUpdate; } }
+        public override string renderLoopCommonInclude { get { return "VFXShaders/Common/VFXCommonCompute.cginc"; } }
+
+        public override IEnumerable<VFXAttributeInfo> attributes
+        {
+            get
+            {
+                if (GetData().IsCurrentAttributeRead(VFXAttribute.OldPosition))
+                {
+                    yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.OldPosition, VFXAttributeMode.Write);
+                }
+            }
+        }
 
         protected override IEnumerable<VFXBlock> implicitPostBlock
         {

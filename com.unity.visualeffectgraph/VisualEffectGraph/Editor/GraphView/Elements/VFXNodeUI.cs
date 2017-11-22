@@ -21,7 +21,7 @@ namespace UnityEditor.VFX.UI
             AddToClassList("VFXNodeUI");
         }
 
-        public override NodeAnchor InstantiateNodeAnchor(NodeAnchorPresenter presenter)
+        public override Port InstantiatePort(PortPresenter presenter)
         {
             if (presenter.direction == Direction.Input)
             {
@@ -37,7 +37,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        protected override void OnAnchorRemoved(NodeAnchor anchor)
+        protected override void OnPortRemoved(Port anchor)
         {
             if (anchor is VFXEditableDataAnchor)
             {

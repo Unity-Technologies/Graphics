@@ -28,17 +28,9 @@ namespace UnityEditor.VFX.UI
             m_undoStack.Add(0, initialState.Clone<VFXGraph>());
         }
 
-        public void ClearUndoStack()
-        {
-            Undo.ClearUndo(m_graphUndoCursor);
-            m_graphUndoCursor.index = 0;
-            m_lastGraphUndoCursor = 0;
-            m_undoStack.Clear();
-        }
-
         public void IncrementGraphState()
         {
-            Undo.RecordObject(m_graphUndoCursor, "VFXGraph");
+            Undo.RecordObject(m_graphUndoCursor, string.Format("VFXGraph ({0})", m_graphUndoCursor.index + 1));
             m_graphUndoCursor.index = m_graphUndoCursor.index + 1;
         }
 
@@ -136,14 +128,13 @@ namespace UnityEditor.VFX.UI
 
         private void WillFlushUndoRecord()
         {
+            if (m_graphUndoStack == null)
+            {
+                return;
+            }
+
             if (!m_InLiveModification)
             {
-                if (m_graphUndoStack == null)
-                {
-                    Debug.LogError("Unexpected WillFlushUndoRecord (not initialize)");
-                    return;
-                }
-
                 if (m_graphUndoStack.IsDirtyState())
                 {
                     m_graphUndoStack.FlushAndPushGraphState(m_Graph);
@@ -156,7 +147,6 @@ namespace UnityEditor.VFX.UI
         {
             if (m_graphUndoStack == null)
             {
-                Debug.LogError("Unexpected SynchronizeUndoRedoState (not yet initialize)");
                 return;
             }
 
@@ -167,14 +157,16 @@ namespace UnityEditor.VFX.UI
                     var cloneGraph = m_graphUndoStack.GetCopyCurrentGraphState();
                     m_VFXAsset.graph = cloneGraph;
                     m_reentrant = true;
-                    SetVFXAsset(m_VFXAsset, true);
+                    ExpressionGraphDirty = true;
+                    ForceReload();
                     m_reentrant = false;
                     m_graphUndoStack.CleanDirtyState();
                 }
                 catch (Exception e)
                 {
                     Debug.LogError(e);
-                    m_graphUndoStack.ClearUndoStack();
+                    Undo.ClearAll();
+                    m_graphUndoStack = new VFXGraphUndoStack(m_Graph);
                 }
             }
         }

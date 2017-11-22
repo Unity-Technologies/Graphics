@@ -21,7 +21,6 @@ namespace UnityEditor.VFX.UIElements
             target.UnregisterCallback<IMGUIEvent>(OnIMGUIEvent);
         }
 
-        public IDropTarget prevDropTarget;
         protected void OnIMGUIEvent(IMGUIEvent e)
         {
             Event evt = e.imguiEvent;

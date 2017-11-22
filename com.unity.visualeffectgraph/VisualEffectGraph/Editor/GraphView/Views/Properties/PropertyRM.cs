@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.UI
         string name { get; }
         VFXPropertyAttribute[] attributes { get; }
         object[] customAttributes { get; }
-        Type anchorType { get; }
+        Type portType { get; }
         int depth {get; }
         bool editable { get; }
         void RetractPath();
@@ -53,6 +53,30 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public float GetPreferredLabelWidth()
+        {
+            if (m_Label.panel == null) return 40;
+
+            VisualElement element = this;
+            while (element != null && element.style.font.value == null)
+            {
+                element = element.parent;
+            }
+            if (element != null)
+            {
+                m_Label.style.font = element.style.font;
+                return m_Label.MeasureTextSize(m_Label.text, -1, MeasureMode.Undefined, m_Label.style.height, MeasureMode.Exactly).x + m_Provider.depth * VFXPropertyIM.depthOffset;
+            }
+            return 40 + m_Provider.depth * VFXPropertyIM.depthOffset;
+        }
+
+        public abstract float GetPreferredControlWidth();
+
+        public void SetLabelWidth(float label)
+        {
+            m_labelWidth = label;
+            m_Label.style.width = effectiveLabelWidth - m_Provider.depth * VFXPropertyIM.depthOffset;
+        }
 
         protected abstract void UpdateEnabled();
 
@@ -64,7 +88,7 @@ namespace UnityEditor.VFX.UI
             m_Icon.style.backgroundImage = m_IconStates[m_Provider.expanded && m_Provider.expandable ? 1 : 0];
             SetValue(m_Provider.value);
 
-            string text = m_Provider.name;
+            string text = ObjectNames.NicifyVariableName(m_Provider.name);
             string tooltip = null;
             VFXPropertyAttribute.ApplyToGUI(m_Provider.attributes, ref text, ref tooltip);
             m_Label.text = text;
@@ -78,14 +102,14 @@ namespace UnityEditor.VFX.UI
             m_Provider = provider;
             m_labelWidth = labelWidth;
 
-            m_Icon =  new VisualElement() {name = "icon"};
+            m_Icon = new VisualElement() { name = "icon" };
             Add(m_Icon);
 
             if (provider.expandable)
             {
                 m_IconStates = new Texture2D[] {
-                    Resources.Load<Texture2D>("VFX/" + provider.anchorType.Name + "_plus"),
-                    Resources.Load<Texture2D>("VFX/" + provider.anchorType.Name + "_minus")
+                    Resources.Load<Texture2D>("VFX/" + provider.portType.Name + "_plus"),
+                    Resources.Load<Texture2D>("VFX/" + provider.portType.Name + "_minus")
                 };
 
                 if (m_IconStates[0] == null)
@@ -98,7 +122,7 @@ namespace UnityEditor.VFX.UI
             else
             {
                 m_IconStates = new Texture2D[] {
-                    Resources.Load<Texture2D>("VFX/" + provider.anchorType.Name)
+                    Resources.Load<Texture2D>("VFX/" + provider.portType.Name)
                 };
 
                 if (m_IconStates[0] == null)
@@ -136,6 +160,13 @@ namespace UnityEditor.VFX.UI
             Add(m_Label);
 
             AddToClassList("propertyrm");
+
+
+            RegisterCallback<MouseDownEvent>(OnCatchMouse);
+        }
+
+        void OnCatchMouse(MouseDownEvent e)
+        {
         }
 
         protected float m_labelWidth = 100;
@@ -158,6 +189,7 @@ namespace UnityEditor.VFX.UI
             {typeof(float), typeof(FloatPropertyRM)},
             {typeof(int), typeof(IntPropertyRM)},
             {typeof(uint), typeof(UintPropertyRM)},
+            {typeof(FlipBook), typeof(FlipBookPropertyRM)},
             {typeof(Vector2), typeof(Vector2PropertyRM)},
             {typeof(Vector3), typeof(Vector3PropertyRM)},
             {typeof(Vector4), typeof(Vector4PropertyRM)},
@@ -172,7 +204,7 @@ namespace UnityEditor.VFX.UI
         {
             Type propertyType = null;
 
-            Type type = presenter.anchorType;
+            Type type = presenter.portType;
 
             if (type.IsEnum)
             {
@@ -199,8 +231,12 @@ namespace UnityEditor.VFX.UI
                     type = type.BaseType;
                 }
             }
+            if (propertyType == null)
+            {
+                propertyType = typeof(EmptyPropertyRM);
+            }
 
-            return (propertyType != null) ? System.Activator.CreateInstance(propertyType, new object[] { presenter, labelWidth }) as PropertyRM : null;
+            return System.Activator.CreateInstance(propertyType, new object[] { presenter, labelWidth }) as PropertyRM;
         }
 
         protected void NotifyValueChanged()
@@ -304,13 +340,6 @@ namespace UnityEditor.VFX.UI
             m_Field.SetValue(m_Value);
         }
 
-        /*
-        public override void SetEnabled(bool value)
-        {
-            base.SetEnabled(value);
-            if (m_Field != null)
-                m_Field.SetEnabled(value);
-        }*/
         public override bool showsEverything { get { return true; } }
 
         public override void SetMultiplier(object obj)
@@ -359,6 +388,34 @@ namespace UnityEditor.VFX.UI
         public override void UpdateGUI()
         {
             m_Field.value = (U)System.Convert.ChangeType(m_Value, typeof(U));
+        }
+
+        public override bool showsEverything { get { return true; } }
+    }
+
+
+    class EmptyPropertyRM : PropertyRM
+    {
+        public override float GetPreferredControlWidth()
+        {
+            return 0;
+        }
+
+        public override void SetValue(object obj)
+        {
+        }
+
+        public override object GetValue()
+        {
+            return null;
+        }
+
+        protected override void UpdateEnabled()
+        {
+        }
+
+        public EmptyPropertyRM(IPropertyRMProvider provider, float labelWidth) : base(provider, labelWidth)
+        {
         }
 
         public override bool showsEverything { get { return true; } }

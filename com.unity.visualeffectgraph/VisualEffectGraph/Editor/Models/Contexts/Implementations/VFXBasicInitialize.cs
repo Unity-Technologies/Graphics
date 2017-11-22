@@ -1,3 +1,4 @@
+using UnityEngine;
 using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
@@ -10,6 +11,12 @@ namespace UnityEditor.VFX
         public override string codeGeneratorTemplate { get { return "VFXShaders/VFXInit"; } }
         public override bool codeGeneratorCompute { get { return true; } }
         public override VFXTaskType taskType { get { return VFXTaskType.kInitialize; } }
+        public override string renderLoopCommonInclude { get { return "VFXShaders/Common/VFXCommonCompute.cginc"; } }
+
+        public class InputProperties
+        {
+            public AABox bounds = new AABox() { size = Vector3.one };
+        }
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {

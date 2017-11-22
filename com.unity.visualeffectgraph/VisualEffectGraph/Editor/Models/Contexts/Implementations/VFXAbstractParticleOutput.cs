@@ -2,18 +2,21 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-
+using UnityEngine.Rendering;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
     abstract class VFXAbstractParticleOutput : VFXContext
     {
+        private readonly static bool HDRP = false;
+
         public enum BlendMode
         {
             Additive,
             Alpha,
             Masked,
-            //Dithered
+            AlphaPremultiplied,
         }
 
         [VFXSetting, SerializeField]
@@ -22,9 +25,13 @@ namespace UnityEditor.VFX
         [VFXSetting, SerializeField]
         protected bool useSoftParticle = false;
 
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected int sortPriority = 0;
+
         protected VFXAbstractParticleOutput() : base(VFXContextType.kOutput, VFXDataType.kParticle, VFXDataType.kNone) {}
 
         public override bool codeGeneratorCompute { get { return false; } }
+        public override string renderLoopCommonInclude { get { return !HDRP ? "VFXShaders/Common/VFXCommonLegacy.cginc" : "VFXShaders/Common/VFXCommonHDRP.hlsl"; } }
 
         protected virtual IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
         {
@@ -69,6 +76,16 @@ namespace UnityEditor.VFX
                     yield return "USE_ALPHA_TEST";
                 if (useSoftParticle)
                     yield return "USE_SOFT_PARTICLE";
+
+                VFXAsset asset = GetAsset();
+                if (asset != null)
+                {
+                    var settings = asset.rendererSettings;
+                    if (settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object)
+                        yield return "USE_MOTION_VECTORS_PASS";
+                    if (settings.shadowCastingMode != ShadowCastingMode.Off)
+                        yield return "USE_CAST_SHADOWS_PASS";
+                }
             }
         }
 
@@ -82,13 +99,33 @@ namespace UnityEditor.VFX
                     renderState.WriteLine("Blend SrcAlpha One");
                 else if (blendMode == BlendMode.Alpha)
                     renderState.WriteLine("Blend SrcAlpha OneMinusSrcAlpha");
+                else if (blendMode == BlendMode.AlphaPremultiplied)
+                    renderState.WriteLine("Blend One OneMinusSrcAlpha");
+
                 renderState.WriteLine("ZTest LEqual");
-                if (blendMode == BlendMode.Masked /*|| blendMode == BlendMode.Dithered*/)
+
+                if (blendMode == BlendMode.Masked)
                     renderState.WriteLine("ZWrite On");
                 else
                     renderState.WriteLine("ZWrite Off");
 
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXOutputRenderState}", renderState);
+
+                var shaderTags = new VFXShaderWriter();
+                if (blendMode == BlendMode.Masked)
+                    shaderTags.Write("Tags { \"Queue\"=\"Geometry\" \"IgnoreProjector\"=\"False\" \"RenderType\"=\"Opaque\" }");
+                else
+                    shaderTags.Write("Tags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\" }");
+
+                yield return new KeyValuePair<string, VFXShaderWriter>("${VFXShaderTags}", shaderTags);
+            }
+        }
+
+        public override IEnumerable<VFXMapping> additionalMappings
+        {
+            get
+            {
+                yield return new VFXMapping(sortPriority, "sortPriority");
             }
         }
     }

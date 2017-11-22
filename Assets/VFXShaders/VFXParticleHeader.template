@@ -1,0 +1,22 @@
+${VFXShaderTags}
+
+${VFXInclude("Assets/VFXShaders/VFXParticleCommon.template")}
+${VFXOutputRenderState}	
+	
+HLSLINCLUDE
+#if !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)
+#define VFX_LOCAL_SPACE 1
+#endif
+
+${VFXGlobalInclude}
+${VFXGlobalDeclaration}
+${VFXGeneratedBlockFunction}
+
+#define VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)
+
+ByteAddressBuffer attributeBuffer;		
+float nbMax;	
+
+ENDHLSL
+
+

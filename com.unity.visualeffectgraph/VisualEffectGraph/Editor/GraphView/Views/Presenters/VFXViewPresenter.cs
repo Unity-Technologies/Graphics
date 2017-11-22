@@ -12,14 +12,29 @@ namespace UnityEditor.VFX.UI
     [Serializable]
     internal partial class VFXViewPresenter : GraphViewPresenter
     {
+        public int m_UseCount;
+        public int useCount
+        {
+            get { return m_UseCount; }
+            set
+            {
+                m_UseCount = value;
+                if (m_UseCount == 0)
+                {
+                    Manager.RemovePresenter(this);
+                    Object.DestroyImmediate(this);
+                }
+            }
+        }
+
         [SerializeField]
         public List<VFXFlowAnchorPresenter> m_FlowAnchorPresenters;
 
         [SerializeField]
-        public Dictionary<Type, List<NodeAnchorPresenter>> m_DataInputAnchorPresenters = new Dictionary<Type, List<NodeAnchorPresenter>>();
+        public Dictionary<Type, List<PortPresenter>> m_DataInputAnchorPresenters = new Dictionary<Type, List<PortPresenter>>();
 
         [SerializeField]
-        public Dictionary<Type, List<NodeAnchorPresenter>> m_DataOutputAnchorPresenters = new Dictionary<Type, List<NodeAnchorPresenter>>();
+        public Dictionary<Type, List<PortPresenter>> m_DataOutputAnchorPresenters = new Dictionary<Type, List<PortPresenter>>();
 
         // Model / Presenters synchronization
         private Dictionary<VFXModel, VFXNodePresenter> m_SyncedModels = new Dictionary<VFXModel, VFXNodePresenter>();
@@ -39,35 +54,7 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        static public VFXViewPresenter viewPresenter
-        {
-            get
-            {
-                if (s_ViewPresenter == null)
-                {
-                    VFXViewPresenter[] objects = FindObjectsOfType<VFXViewPresenter>();
-                    if (objects.Length == 0)
-                    {
-                        Debug.Log("Before CreateInstance<VFXViewPresenter> ");
-                        s_ViewPresenter = CreateInstance<VFXViewPresenter>();
-                        Debug.Log("After CreateInstance<VFXViewPresenter>");
-                    }
-                    else
-                    {
-                        if (objects.Length != 1)
-                        {
-                            Debug.LogError("Only one instance of VFXViewPresenter should exist");
-                        }
-                        s_ViewPresenter = objects[0];
-                    }
-                }
-                return s_ViewPresenter;
-            }
-        }
-
-        static VFXViewPresenter s_ViewPresenter;
-
-        protected void OnEnable()
+        protected new void OnEnable()
         {
             Debug.Log("OnEnable of VFXViewPresenter with instanceID:" + this.GetInstanceID());
 
@@ -75,21 +62,21 @@ namespace UnityEditor.VFX.UI
 
             m_PresenterFactory[typeof(VFXContext)] = typeof(VFXContextPresenter);
             m_PresenterFactory[typeof(VFXOperator)] = typeof(VFXOperatorPresenter);
-            m_PresenterFactory[typeof(VFXBuiltInParameter)] = typeof(VFXBuiltInParameterPresenter);
-            m_PresenterFactory[typeof(VFXAttributeParameter)] = typeof(VFXAttributeParameterPresenter);
             m_PresenterFactory[typeof(VFXParameter)] = typeof(VFXParameterPresenter);
 
             if (m_FlowAnchorPresenters == null)
                 m_FlowAnchorPresenters = new List<VFXFlowAnchorPresenter>();
 
             if (m_DataOutputAnchorPresenters == null)
-                m_DataOutputAnchorPresenters = new Dictionary<Type, List<NodeAnchorPresenter>>();
+                m_DataOutputAnchorPresenters = new Dictionary<Type, List<PortPresenter>>();
 
             if (m_DataInputAnchorPresenters == null)
-                m_DataInputAnchorPresenters = new Dictionary<Type, List<NodeAnchorPresenter>>();
+                m_DataInputAnchorPresenters = new Dictionary<Type, List<PortPresenter>>();
 
-            SetVFXAsset(m_VFXAsset, true);
-            InitializeUndoStack();
+            if (m_VFXAsset)
+            {
+                InitializeUndoStack();
+            }
             Undo.undoRedoPerformed += SynchronizeUndoRedoState;
             Undo.willFlushUndoRecord += WillFlushUndoRecord;
         }
@@ -100,21 +87,6 @@ namespace UnityEditor.VFX.UI
             ReleaseUndoStack();
             Undo.undoRedoPerformed -= SynchronizeUndoRedoState;
             Undo.willFlushUndoRecord -= WillFlushUndoRecord;
-            SetVFXAsset(null, true);
-
-            if (s_ViewPresenter == this)
-                s_ViewPresenter = null;
-        }
-
-        public VFXView View
-        {
-            get
-            {
-                // TODO Is that good design?
-                if (m_View == null)
-                    m_View = new VFXView();
-                return m_View;
-            }
         }
 
         IEnumerable<VFXSlotContainerPresenter> AllSlotContainerPresenters
@@ -164,8 +136,8 @@ namespace UnityEditor.VFX.UI
 
                 if (operatorPresenterFrom != null && operatorPresenterTo != null)
                 {
-                    var anchorFrom = operatorPresenterFrom.outputAnchors.FirstOrDefault(o => (o as VFXDataAnchorPresenter).model == input.refSlot);
-                    var anchorTo = operatorPresenterTo.inputAnchors.FirstOrDefault(o => (o as VFXDataAnchorPresenter).model == input);
+                    var anchorFrom = operatorPresenterFrom.outputPorts.FirstOrDefault(o => (o as VFXDataAnchorPresenter).model == input.refSlot);
+                    var anchorTo = operatorPresenterTo.inputPorts.FirstOrDefault(o => (o as VFXDataAnchorPresenter).model == input);
 
                     var edgePresenter = m_Elements.OfType<VFXDataEdgePresenter>().FirstOrDefault(t => t.input == anchorTo && t.output == anchorFrom);
 
@@ -261,8 +233,8 @@ namespace UnityEditor.VFX.UI
                 var outputFlowAnchor = flowEdge.output as VFXFlowAnchorPresenter;
                 var inputFlowAnchor = flowEdge.input as VFXFlowAnchorPresenter;
 
-                var contextOutput = outputFlowAnchor.Owner;
-                var contextInput = inputFlowAnchor.Owner;
+                var contextOutput = outputFlowAnchor.owner;
+                var contextInput = inputFlowAnchor.owner;
 
                 contextOutput.LinkTo(contextInput, outputFlowAnchor.slotIndex, inputFlowAnchor.slotIndex);
 
@@ -350,13 +322,18 @@ namespace UnityEditor.VFX.UI
             {
                 var flowEdge = element as VFXFlowEdgePresenter;
 
+
                 var inputAnchor = flowEdge.input as VFXFlowAnchorPresenter;
                 var outputAnchor = flowEdge.output as VFXFlowAnchorPresenter;
 
-                var contextInput = inputAnchor.Owner as VFXContext;
-                var contextOutput = outputAnchor.Owner as VFXContext;
+                if (inputAnchor != null && outputAnchor != null)
+                {
+                    var contextInput = inputAnchor.owner as VFXContext;
+                    var contextOutput = outputAnchor.owner as VFXContext;
 
-                contextInput.UnlinkFrom(contextOutput, outputAnchor.slotIndex, inputAnchor.slotIndex);
+                    if (contextInput != null && contextOutput != null)
+                        contextInput.UnlinkFrom(contextOutput, outputAnchor.slotIndex, inputAnchor.slotIndex);
+                }
             }
             else if (element is VFXDataEdgePresenter)
             {
@@ -395,14 +372,14 @@ namespace UnityEditor.VFX.UI
 
         public void RegisterDataAnchorPresenter(VFXDataAnchorPresenter presenter)
         {
-            List<NodeAnchorPresenter> list;
+            List<PortPresenter> list;
 
-            Dictionary<Type, List<NodeAnchorPresenter>> dict = presenter.direction == Direction.Input ? m_DataInputAnchorPresenters : m_DataOutputAnchorPresenters;
+            Dictionary<Type, List<PortPresenter>> dict = presenter.direction == Direction.Input ? m_DataInputAnchorPresenters : m_DataOutputAnchorPresenters;
 
-            if (!dict.TryGetValue(presenter.anchorType, out list))
+            if (!dict.TryGetValue(presenter.portType, out list))
             {
-                list = new List<NodeAnchorPresenter>();
-                dict[presenter.anchorType] = list;
+                list = new List<PortPresenter>();
+                dict[presenter.portType] = list;
             }
             if (!list.Contains(presenter))
                 list.Add(presenter);
@@ -410,10 +387,10 @@ namespace UnityEditor.VFX.UI
 
         public void UnregisterDataAnchorPresenter(VFXDataAnchorPresenter presenter)
         {
-            Dictionary<Type, List<NodeAnchorPresenter>> dict = presenter.direction == Direction.Input ? m_DataInputAnchorPresenters : m_DataOutputAnchorPresenters;
+            Dictionary<Type, List<PortPresenter>> dict = presenter.direction == Direction.Input ? m_DataInputAnchorPresenters : m_DataOutputAnchorPresenters;
 
-            List<NodeAnchorPresenter> result;
-            if (dict.TryGetValue(presenter.anchorType, out result))
+            List<PortPresenter> result;
+            if (dict.TryGetValue(presenter.portType, out result))
             {
                 result.Remove(presenter);
             }
@@ -445,14 +422,14 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchorPresenter, NodeAdapter nodeAdapter)
+        public override List<PortPresenter> GetCompatiblePorts(PortPresenter startAnchorPresenter, NodeAdapter nodeAdapter)
         {
             if (startAnchorPresenter is VFXDataAnchorPresenter)
             {
                 var allSlotContainerPresenters = AllSlotContainerPresenters;
 
 
-                IEnumerable<NodeAnchorPresenter> allCandidates = Enumerable.Empty<NodeAnchorPresenter>();
+                IEnumerable<PortPresenter> allCandidates = Enumerable.Empty<PortPresenter>();
 
                 if (startAnchorPresenter.direction == Direction.Input)
                 {
@@ -464,7 +441,7 @@ namespace UnityEditor.VFX.UI
                         CollectChildOperator(currentOperator, childrenOperators);
                         allSlotContainerPresenters = allSlotContainerPresenters.Where(o => !childrenOperators.Contains(o.slotContainer));
                         var toSlot = startAnchorOperatorPresenter.model;
-                        allCandidates = allSlotContainerPresenters.SelectMany(o => o.outputAnchors).Where(o =>
+                        allCandidates = allSlotContainerPresenters.SelectMany(o => o.outputPorts).Where(o =>
                             {
                                 var candidate = o as VFXDataAnchorPresenter;
                                 return toSlot.CanLink(candidate.model) && candidate.model.CanLink(toSlot);
@@ -481,7 +458,7 @@ namespace UnityEditor.VFX.UI
                     var parentOperators = new HashSet<IVFXSlotContainer>();
                     CollectParentOperator(currentOperator, parentOperators);
                     allSlotContainerPresenters = allSlotContainerPresenters.Where(o => !parentOperators.Contains(o.slotContainer));
-                    allCandidates = allSlotContainerPresenters.SelectMany(o => o.inputAnchors).Where(o =>
+                    allCandidates = allSlotContainerPresenters.SelectMany(o => o.inputPorts).Where(o =>
                         {
                             var candidate = o as VFXDataAnchorPresenter;
                             var toSlot = candidate.model;
@@ -489,18 +466,18 @@ namespace UnityEditor.VFX.UI
                         }).ToList();
 
                     // For edge starting with an output, we must add all data anchors from all blocks
-                    List<NodeAnchorPresenter> presenters;
-                    /*if (!m_DataInputAnchorPresenters.TryGetValue(startAnchorPresenter.anchorType, out presenters))
+                    List<PortPresenter> presenters;
+                    /*if (!m_DataInputAnchorPresenters.TryGetValue(startAnchorPresenter.portType, out presenters))
                     {
-                        presenters = new List<NodeAnchorPresenter>();
-                        m_DataInputAnchorPresenters[startAnchorPresenter.anchorType] = presenters;
+                        presenters = new List<PortPresenter>();
+                        m_DataInputAnchorPresenters[startAnchorPresenter.portType] = presenters;
                     }
                     else
                     {
-                        presenters = m_DataInputAnchorPresenters[startAnchorPresenter.anchorType];
+                        presenters = m_DataInputAnchorPresenters[startAnchorPresenter.portType];
                     }
                     */
-                    presenters = new List<NodeAnchorPresenter>();
+                    presenters = new List<PortPresenter>();
 
                     allCandidates = allCandidates.Concat(presenters);
                 }
@@ -509,7 +486,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                var res = new List<NodeAnchorPresenter>();
+                var res = new List<PortPresenter>();
 
                 if (!(startAnchorPresenter is VFXFlowAnchorPresenter))
                     return res;
@@ -517,20 +494,20 @@ namespace UnityEditor.VFX.UI
                 var startFlowAnchorPresenter = (VFXFlowAnchorPresenter)startAnchorPresenter;
                 foreach (var anchorPresenter in m_FlowAnchorPresenters)
                 {
-                    VFXContext owner = anchorPresenter.Owner;
+                    VFXContext owner = anchorPresenter.owner;
                     if (owner == null ||
                         startAnchorPresenter == anchorPresenter ||
                         !anchorPresenter.IsConnectable() ||
                         startAnchorPresenter.direction == anchorPresenter.direction ||
-                        owner == startFlowAnchorPresenter.Owner)
+                        owner == startFlowAnchorPresenter.owner)
                         continue;
 
-                    var from = startFlowAnchorPresenter.Owner;
+                    var from = startFlowAnchorPresenter.owner;
                     var to = owner;
                     if (startAnchorPresenter.direction == Direction.Input)
                     {
                         from = owner;
-                        to = startFlowAnchorPresenter.Owner;
+                        to = startFlowAnchorPresenter.owner;
                     }
 
                     if (VFXContext.CanLink(from, to))
@@ -554,34 +531,6 @@ namespace UnityEditor.VFX.UI
         }
 
         public VFXOperator AddVFXOperator(Vector2 pos, VFXModelDescriptor<VFXOperator> desc)
-        {
-            var model = desc.CreateInstance();
-            AddVFXModel(pos, model);
-            return model;
-        }
-
-        public VFXBuiltInParameter AddVFXBuiltInParameter(Vector2 pos, VFXModelDescriptorBuiltInParameters desc)
-        {
-            var model = desc.CreateInstance();
-            AddVFXModel(pos, model);
-            return model;
-        }
-
-        public VFXCurrentAttributeParameter AddVFXCurrentAttributeParameter(Vector2 pos, VFXModelDescriptorCurrentAttributeParameters desc)
-        {
-            var model = desc.CreateInstance();
-            AddVFXModel(pos, model);
-            return model;
-        }
-
-        public VFXSourceAttributeParameter AddVFXSourceAttributeParameter(Vector2 pos, VFXModelDescriptorSourceAttributeParameters desc)
-        {
-            var model = desc.CreateInstance();
-            AddVFXModel(pos, model);
-            return model;
-        }
-
-        public VFXSourceAttributeParameter AddVFXAttributeParameter(Vector2 pos, VFXModelDescriptorSourceAttributeParameters desc)
         {
             var model = desc.CreateInstance();
             AddVFXModel(pos, model);
@@ -641,7 +590,7 @@ namespace UnityEditor.VFX.UI
         public void RemoveInvalidateDelegate(VFXModel model, VFXModel.InvalidateEvent evt)
         {
             List<VFXModel.InvalidateEvent> evtList;
-            if (m_registeredEvent.TryGetValue(model, out evtList))
+            if (model != null && m_registeredEvent.TryGetValue(model, out evtList))
             {
                 model.onInvalidateDelegate -= evt;
                 evtList.Remove(evt);
@@ -655,6 +604,73 @@ namespace UnityEditor.VFX.UI
         public bool HasVFXAsset()
         {
             return m_VFXAsset != null;
+        }
+
+        public static class Manager
+        {
+            static Dictionary<VFXAsset, VFXViewPresenter> s_Presenters = new Dictionary<VFXAsset, VFXViewPresenter>();
+
+            public static VFXViewPresenter GetPresenter(VFXAsset asset, bool forceUpdate = false)
+            {
+                VFXViewPresenter presenter;
+                if (!s_Presenters.TryGetValue(asset, out presenter))
+                {
+                    presenter = CreateInstance<VFXViewPresenter>();
+                    presenter.SetVFXAsset(asset, false);
+                    s_Presenters[asset] = presenter;
+                }
+                else
+                {
+                    if (forceUpdate)
+                    {
+                        presenter.SetVFXAsset(asset, true);
+                    }
+                }
+
+                return presenter;
+            }
+
+            static public void RemovePresenter(VFXViewPresenter presenter)
+            {
+                s_Presenters.Remove(presenter.GetVFXAsset());
+            }
+        }
+
+
+        public void ForceReload()
+        {
+            // Do we have a leak without this line ?
+            /*if (m_VFXAsset != null && !EditorUtility.IsPersistent(m_VFXAsset))
+                DestroyImmediate(m_VFXAsset);*/
+
+            Clear();
+            //Debug.Log(string.Format("SET GRAPH ASSET new:{0} old:{1} force:{2}", vfx, m_VFXAsset, force));
+
+            if (m_Graph != null)
+            {
+                RemoveInvalidateDelegate(m_Graph, SyncPresentersFromModel);
+                RemoveInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
+            }
+
+            m_Graph = m_VFXAsset.GetOrCreateGraph();
+
+            AddInvalidateDelegate(m_Graph, SyncPresentersFromModel);
+            AddInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
+
+            // First trigger
+            RecompileExpressionGraphIfNeeded();
+
+
+            // Doesn't work for some reason
+            //View.FrameAll();
+
+#if ENABLE_VIEW_3D_PRESENTER
+            if (presenter != null)
+                RemoveElement(presenter);
+            presenter = CreateInstance<Preview3DPresenter>();
+            AddElement(presenter);
+#endif
+            SyncPresentersFromModel(m_Graph, VFXModel.InvalidationCause.kStructureChanged);
         }
 
         public void SetVFXAsset(VFXAsset vfx, bool force)
@@ -676,6 +692,7 @@ namespace UnityEditor.VFX.UI
 
                 m_VFXAsset = vfx == null ? new VFXAsset() : vfx;
                 m_Graph = m_VFXAsset.GetOrCreateGraph();
+                InitializeUndoStack();
 
                 AddInvalidateDelegate(m_Graph, SyncPresentersFromModel);
                 AddInvalidateDelegate(m_Graph, InvalidateExpressionGraph);

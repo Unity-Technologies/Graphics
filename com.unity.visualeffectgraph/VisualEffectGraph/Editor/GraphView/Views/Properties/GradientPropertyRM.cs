@@ -17,8 +17,6 @@ namespace UnityEditor.VFX.UI
     {
         public GradientPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
-            VisualElement mainContainer = new VisualElement();
-
             m_GradientField = new GradientField(m_Label);
             m_GradientField.RegisterCallback<ChangeEvent<Gradient>>(OnValueChanged);
 
@@ -27,6 +25,11 @@ namespace UnityEditor.VFX.UI
             m_GradientField.style.flex = 1;
 
             Add(m_GradientField);
+        }
+
+        public override float GetPreferredControlWidth()
+        {
+            return 120;
         }
 
         public void OnValueChanged(ChangeEvent<Gradient> e)
