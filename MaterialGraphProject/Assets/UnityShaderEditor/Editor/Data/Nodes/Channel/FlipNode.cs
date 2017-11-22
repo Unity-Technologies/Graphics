@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionName()
         {
-            return "Unity_Flip_" + precision + "_" + GuidEncoder.Encode(guid);
+            return "Unity_Flip_" + ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType);
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -54,7 +54,7 @@ namespace UnityEditor.ShaderGraph
                 m_RedChannel = isOn;
                 if (onModified != null)
                 {
-                    onModified(this, ModificationScope.Graph);
+                    onModified(this, ModificationScope.Node);
                 }
             }
         }
@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph
                 m_GreenChannel = isOn;
                 if (onModified != null)
                 {
-                    onModified(this, ModificationScope.Graph);
+                    onModified(this, ModificationScope.Node);
                 }
             }
         }
@@ -94,7 +94,7 @@ namespace UnityEditor.ShaderGraph
                 m_BlueChannel = isOn;
                 if (onModified != null)
                 {
-                    onModified(this, ModificationScope.Graph);
+                    onModified(this, ModificationScope.Node);
                 }
             }
         }
@@ -113,15 +113,16 @@ namespace UnityEditor.ShaderGraph
                 m_AlphaChannel = isOn;
                 if (onModified != null)
                 {
-                    onModified(this, ModificationScope.Graph);
+                    onModified(this, ModificationScope.Node);
                 }
             }
         }
 
-        string GetFunctionPrototype(string inArg, string outArg)
+        string GetFunctionPrototype(string inArg, string flipArg, string outArg)
         {
-            return string.Format("void {0} ({1} {2}, out {3} {4})", GetFunctionName(), 
-                ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType), inArg, 
+            return string.Format("void {0} ({1} {2}, {3} {4}, out {5} {6})", GetFunctionName(), 
+                ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType), inArg,
+                ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType), flipArg, 
                 ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), outArg);
         }
 
@@ -130,50 +131,59 @@ namespace UnityEditor.ShaderGraph
             string inputValue = GetSlotValue(InputSlotId, generationMode);
             string outputValue = GetSlotValue(OutputSlotId, generationMode);
             visitor.AddShaderChunk(string.Format("{0} {1};", ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), GetVariableNameForSlot(OutputSlotId)), true);
-            visitor.AddShaderChunk(GetFunctionCallBody(inputValue, outputValue), true);
+
+            if(!generationMode.IsPreview())
+            {
+                visitor.AddShaderChunk(string.Format("{0} _{1}_Flip = {0} ({2}{3}{4}{5});",
+                    ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType),
+                    GetVariableNameForNode(),
+                    string.Format("{0}", (Convert.ToInt32(m_RedChannel)).ToString()),
+                    channelCount > 1 ? string.Format(", {0}", (Convert.ToInt32(m_GreenChannel)).ToString()) : "",
+                    channelCount > 2 ? string.Format(", {0}", (Convert.ToInt32(m_BlueChannel)).ToString()) : "",
+                    channelCount > 3 ? string.Format(", {0}", (Convert.ToInt32(m_AlphaChannel)).ToString()) : ""), true);
+            }
+
+            visitor.AddShaderChunk(GetFunctionCallBody(inputValue, string.Format("_{0}_Flip", GetVariableNameForNode()), outputValue), true);
         }
 
-        string GetFunctionCallBody(string inputValue, string outputValue)
+        string GetFunctionCallBody(string inputValue, string flipValue, string outputValue)
         {
-            return GetFunctionName() + " (" + inputValue + ", " + outputValue + ");";
+            return GetFunctionName() + " (" + inputValue + ", " + flipValue + ", " + outputValue + ");";
+        }
+        
+        public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
+        {
+            base.CollectPreviewMaterialProperties(properties);
+
+            properties.Add(new PreviewProperty()
+            {
+                m_Name = string.Format("_{0}_Flip", GetVariableNameForNode()),
+                m_PropType = PropertyType.Vector4,
+                m_Vector4 = new Vector4(Convert.ToInt32(m_RedChannel), Convert.ToInt32(m_GreenChannel), Convert.ToInt32(m_BlueChannel), Convert.ToInt32(m_AlphaChannel)),
+            });
         }
 
+        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
+        {
+            if (!generationMode.IsPreview())
+                return;
+
+            base.CollectShaderProperties(properties, generationMode);
+
+            properties.AddShaderProperty(new Vector4ShaderProperty
+            {
+                overrideReferenceName = string.Format("_{0}_Flip", GetVariableNameForNode()),
+                generatePropertyBlock = false
+            });
+        }
+        
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
             var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("In", "Out"), true);
+            outputString.AddShaderChunk(GetFunctionPrototype("In", "Flip", "Out"), true);
             outputString.AddShaderChunk("{", true);
             outputString.Indent();
-
-            int channelCount = (int)SlotValueHelper.GetChannelCount(FindSlot<MaterialSlot>(InputSlotId).concreteValueType);
-            switch(channelCount)
-            {
-                case 2:
-                    outputString.AddShaderChunk(string.Format("Out = {0} ({1}, {2});",
-                    ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType),
-                    string.Format("{0}{1}{2}", m_RedChannel ? "1 - " : "", kInputSlotName, ".r"),
-                    string.Format("{0}{1}{2}", m_GreenChannel ? "1 - " : "", kInputSlotName, ".g")), true);
-                    break;
-                case 3:
-                    outputString.AddShaderChunk(string.Format("Out = {0} ({1}, {2}, {3});",
-                    ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType),
-                    string.Format("{0}{1}{2}", m_RedChannel ? "1 - " : "", kInputSlotName, ".r"),
-                    string.Format("{0}{1}{2}", m_GreenChannel ? "1 - " : "", kInputSlotName, ".g"),
-                    string.Format("{0}{1}{2}", m_BlueChannel ? "1 - " : "", kInputSlotName, ".b")), true);
-                    break;
-                case 4:
-                    outputString.AddShaderChunk(string.Format("Out = {0} ({1}, {2}, {3}, {4});",
-                    ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType),
-                    string.Format("{0}{1}{2}", m_RedChannel ? "1 - " : "", kInputSlotName, ".r"),
-                    string.Format("{0}{1}{2}", m_GreenChannel ? "1 - " : "", kInputSlotName, ".g"),
-                    string.Format("{0}{1}{2}", m_BlueChannel ? "1 - " : "", kInputSlotName, ".b"),
-                    string.Format("{0}{1}{2}", m_AlphaChannel ? "1 - " : "", kInputSlotName, ".a")), true);
-                    break;
-                default:
-                    outputString.AddShaderChunk(string.Format("Out = {0};",
-                    string.Format("{0}{1}{2}", m_RedChannel ? "1 - " : "", kInputSlotName, ".r")), true);
-                    break;
-            }
+            outputString.AddShaderChunk("Out = abs(Flip - In);", true);
             outputString.Deindent();
             outputString.AddShaderChunk("}", true);
             visitor.AddShaderChunk(outputString.GetShaderString(0), true);
