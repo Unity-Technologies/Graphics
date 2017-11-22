@@ -64,12 +64,10 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CheckDataType()
         {
-            var spawn = ScriptableObject.CreateInstance<ContextTestSpawn>();
             var init = ScriptableObject.CreateInstance<ContextTestInit>();
             var update = ScriptableObject.CreateInstance<ContextTestUpdate>();
             var output = ScriptableObject.CreateInstance<ContextTestOutput>();
 
-            Assert.IsInstanceOf<VFXDataSpawnEvent>(spawn.GetData());
             Assert.IsInstanceOf<VFXDataParticle>(init.GetData());
             Assert.IsInstanceOf<VFXDataParticle>(update.GetData());
             Assert.IsInstanceOf<VFXDataParticle>(output.GetData());

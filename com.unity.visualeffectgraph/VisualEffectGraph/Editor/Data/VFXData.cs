@@ -28,7 +28,6 @@ namespace UnityEditor.VFX
             switch (type)
             {
                 case VFXDataType.kParticle:     return ScriptableObject.CreateInstance<VFXDataParticle>();
-                case VFXDataType.kSpawnEvent:   return ScriptableObject.CreateInstance<VFXDataSpawnEvent>();
                 default:                        return null;
             }
         }

@@ -133,8 +133,7 @@ namespace UnityEditor.VFX
                 cause == InvalidationCause.kExpressionInvalidated ||
                 cause == InvalidationCause.kSettingChanged)
             {
-                var data = GetData();
-                if (data != null && data.CanBeCompiled())
+                if (CanBeCompiled())
                     Invalidate(InvalidationCause.kExpressionGraphChanged);
             }
         }
@@ -158,9 +157,7 @@ namespace UnityEditor.VFX
         {
             base.OnAdded();
             if (CanBeCompiled())
-            {
                 Invalidate(InvalidationCause.kExpressionGraphChanged);
-            }
         }
 
         protected override void OnRemoved()

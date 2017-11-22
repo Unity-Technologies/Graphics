@@ -192,7 +192,7 @@ namespace UnityEditor.VFX
 
         private static VFXContext[] CollectSpawnersHierarchy(IEnumerable<VFXContext> vfxContext)
         {
-            var initContext = vfxContext.Where(o => o.contextType == VFXContextType.kInit && o.CanBeCompiled()).ToList();
+            var initContext = vfxContext.Where(o => o.contextType == VFXContextType.kInit).ToList();
             var spawnerList = CollectContextParentRecursively(initContext);
             return spawnerList.Where(o => o.contextType == VFXContextType.kSpawner).Reverse().ToArray();
         }

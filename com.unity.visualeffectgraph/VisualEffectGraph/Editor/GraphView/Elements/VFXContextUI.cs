@@ -518,8 +518,8 @@ namespace UnityEditor.VFX.UI
                 m_HeaderTitle.text = presenter.context.name;
 
             // Debug only to display not compiled contexts
-            if (!presenter.context.CanBeCompiled())
-                m_HeaderTitle.text += " (X)";
+            //if (!presenter.context.CanBeCompiled())
+            //    m_HeaderTitle.text += " (X)";
 
             m_HeaderIcon.style.backgroundImage = GetIconForVFXType(presenter.context.inputType);
 
