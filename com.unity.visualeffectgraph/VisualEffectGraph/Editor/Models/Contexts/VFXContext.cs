@@ -413,7 +413,7 @@ namespace UnityEditor.VFX
                 if (m_Data is VFXDataParticle)
                 {
                     (m_Data as VFXDataParticle).space = value;
-                    Invalidate(InvalidationCause.kStructureChanged);
+                    Invalidate(InvalidationCause.kSettingChanged);
                 }
             }
         }
