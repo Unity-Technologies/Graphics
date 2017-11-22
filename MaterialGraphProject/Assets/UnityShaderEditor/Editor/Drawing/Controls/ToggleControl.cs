@@ -79,11 +79,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         {
             var value = (ToggleState) m_PropertyInfo.GetValue(m_Node, null);
 
-            bool isEnabled = (int)value < 2; 
-            m_Container.SetEnabled(isEnabled);
-
             using (var changeCheckScope = new EditorGUI.ChangeCheckScope())
             {
+                bool isEnabled = (int)value < 2;
+                m_Container.SetEnabled(isEnabled);
+
                 bool isOn = EditorGUILayout.Toggle(m_Label, (int)value == 1 || (int)value == 3);
                 value = (ToggleState)(Convert.ToInt32(!isEnabled) + Convert.ToInt32(isOn));
                 if (changeCheckScope.changed)
