@@ -12,6 +12,12 @@ namespace UnityEditor.VFX.Block
         Blend
     }
 
+    enum TextureDataEncoding
+    {
+        UnsignedNormalized,
+        Signed
+    }
+
     enum ColorApplicationMode
     {
         Color = 1 << 0,
