@@ -1013,7 +1013,6 @@ MonoBehaviour:
   - link: []
   blendMode: 0
   useSoftParticle: 0
-  sortPriority: 0
   flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114799785256960774
@@ -1181,7 +1180,7 @@ MonoBehaviour:
   - {fileID: 114370700669197398}
   m_exposedName: velocity
   m_exposed: 1
-  m_order: 1
+  m_order: 0
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -1655,7 +1654,6 @@ VFXAsset:
       values:
       - index: 21
         nameId: Rate
-      params: []
       processor: {fileID: 0}
   - type: 1
     flags: 1
@@ -1694,8 +1692,7 @@ VFXAsset:
         nameId: uniform_Color_c
       - index: 23
         nameId: uniform_Lifetime_d
-      params: []
-      processor: {fileID: 7200000, guid: 4c6cb0db267755b41949be5b7f90bbb2, type: 3}
+      processor: {fileID: 7200000, guid: 8b311d30d24aaa94d9b06aefd874c4dc, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -1705,8 +1702,7 @@ VFXAsset:
       values:
       - index: 20
         nameId: uniform_deltaTime_b
-      params: []
-      processor: {fileID: 7200000, guid: abcb2f264f25ee0498200a4f77a534b3, type: 3}
+      processor: {fileID: 7200000, guid: 4e951e695d0c3464d8f336d0a2011aa5, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -1716,10 +1712,7 @@ VFXAsset:
         nameId: uniform_Size_b
       - index: 18
         nameId: texture_texture
-      params:
-      - index: 0
-        nameId: sortPriority
-      processor: {fileID: 4800000, guid: 7b29fbdc4bb568e448b2fe0986316a30, type: 3}
+      processor: {fileID: 4800000, guid: 09c4312636dc7ad4da98c8cb4e8c7d75, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000
