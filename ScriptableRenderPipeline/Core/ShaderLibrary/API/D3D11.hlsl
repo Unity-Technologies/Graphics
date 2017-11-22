@@ -90,3 +90,5 @@
 #define GATHER_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index) textureName.Gather(samplerName, float3(coord2, index))
 #define GATHER_TEXTURECUBE(textureName, samplerName, coord3) textureName.Gather(samplerName, coord3)
 #define GATHER_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index) textureName.Gather(samplerName, float4(coord3, index))
+
+#define SAMPLE_DEPTH_TEXTURE(textureName, samplerName, coord2) SAMPLE_TEXTURE2D(textureName, samplerName, coord2).r

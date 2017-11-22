@@ -78,10 +78,9 @@
 
 
     #include "../../../Core/ShaderLibrary/Common.hlsl"
-
-//    #include "../../../Core/ShaderLibrary/Wind.hlsl"
+    #include "../../../Core/ShaderLibrary/Wind.hlsl"
     #include "../../ShaderPass/FragInputs.hlsl"
-//    #include "../../ShaderPass/ShaderPass.cs.hlsl"
+    #include "../../ShaderPass/ShaderPass.cs.hlsl"
 
 
     //-------------------------------------------------------------------------------------
@@ -101,27 +100,29 @@
         Pass
         {
             Name "DBuffer"  // Name is not used
-            Tags { "LightMode" = "GBuffer" } // This will be only for opaque object based on the RenderQueue index
+            Tags { "LightMode" = "dBuffer" } // This will be only for opaque object based on the RenderQueue index
 
             Cull [_CullMode]
+			ZWrite Off
+			ZTest [_ZTestMode]
 
             Stencil
             {
                 Ref  [_StencilRef]
                 Comp Always
-                Pass Replace
+                Pass Replace				
             }
 
             HLSLPROGRAM
-			#define SHADERPASS_DBUFFER
 
             #include "../../ShaderVariables.hlsl"
 			#include "OutputBuffers.hlsl"
+			#include "Decal.hlsl"
 //            #include "../../Material/Material.hlsl"
 //            #include "ShaderPass/LitSharePass.hlsl"
 //            #include "LitData.hlsl"
 			#include "../../ShaderPass/VaryingMesh.hlsl"
-            #include "ShaderPass/ShaderPassDBuffer.hlsl"
+			#include "../../ShaderPass/ShaderPassDBuffer.hlsl"
 
             ENDHLSL
         }

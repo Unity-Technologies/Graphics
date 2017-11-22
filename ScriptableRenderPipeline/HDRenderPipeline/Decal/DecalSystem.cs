@@ -22,7 +22,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Decal
         internal HashSet<Decal> m_DecalsBoth = new HashSet<Decal>();
         Mesh m_CubeMesh;
 
+        private readonly static int m_WorldToDecal = Shader.PropertyToID("_WorldToDecal");
+
         public DecalSystem()
+        {
+            CreateCubeMesh();       
+        }
+
+        void CreateCubeMesh()
         {
             m_CubeMesh = new Mesh();
 
@@ -41,11 +48,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Decal
 
             int[] triangles = new int[36];
 
-            triangles[0]  = 0; triangles[1]  = 1;  triangles[2] = 2;
-            triangles[3]  = 0; triangles[4]  = 2;  triangles[5] = 3;
-            triangles[6]  = 1; triangles[7]  = 5;  triangles[8] = 6;
-            triangles[9]  = 1; triangles[10] = 6; triangles[11] = 2;
-            triangles[12] = 5; triangles[13] = 3; triangles[14] = 7;
+            triangles[0] = 0; triangles[1] = 1; triangles[2] = 2;
+            triangles[3] = 0; triangles[4] = 2; triangles[5] = 3;
+            triangles[6] = 1; triangles[7] = 5; triangles[8] = 6;
+            triangles[9] = 1; triangles[10] = 6; triangles[11] = 2;
+            triangles[12] = 5; triangles[13] = 4; triangles[14] = 7;
             triangles[15] = 5; triangles[16] = 7; triangles[17] = 6;
             triangles[18] = 4; triangles[19] = 0; triangles[20] = 3;
             triangles[21] = 4; triangles[22] = 3; triangles[23] = 7;
@@ -55,7 +62,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Decal
             triangles[33] = 4; triangles[34] = 1; triangles[35] = 0;
 
             m_CubeMesh.triangles = triangles;
-       
         }
 
         public void AddDecal(Decal d)
@@ -77,11 +83,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Decal
 
         public void Render(ScriptableRenderContext renderContext, Camera camera, CommandBuffer cmd)
         {
+            if (m_CubeMesh == null)
+                CreateCubeMesh();
             foreach (var decal in m_DecalsDiffuse)
             {
                 Matrix4x4 offset = Matrix4x4.Translate(new Vector3(0.0f, -0.5f, 0.0f));
+                Matrix4x4 final = decal.transform.localToWorldMatrix * offset;                
+                Vector4 positionWS = new Vector4(0,5,0,1);
+                Vector4 positionDS = final.inverse * positionWS;
+                cmd.SetGlobalMatrix(m_WorldToDecal, final.inverse);
                 //DrawMesh(Mesh mesh, Matrix4x4 matrix, Material material, int submeshIndex, int shaderPass);
-                cmd.DrawMesh(m_CubeMesh, decal.transform.localToWorldMatrix * offset, decal.m_Material, 0, 0);
+                cmd.DrawMesh(m_CubeMesh, final, decal.m_Material, 0, 0);
             }
         }
     }
