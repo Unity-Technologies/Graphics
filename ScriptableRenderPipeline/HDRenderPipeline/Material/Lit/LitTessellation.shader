@@ -403,6 +403,9 @@ Shader "HDRenderPipeline/LitTessellation"
             ZWrite On
             ZTest LEqual
 
+            // When alpha test is enabled, we should not write into the color buffer
+            ColorMask 0
+
             HLSLPROGRAM
 
             #pragma hull Hull
@@ -427,6 +430,9 @@ Shader "HDRenderPipeline/LitTessellation"
             Cull[_CullMode]
 
             ZWrite On
+
+            // When alpha test is enabled, we should not write into the color buffer
+            ColorMask 0
 
             HLSLPROGRAM
 
