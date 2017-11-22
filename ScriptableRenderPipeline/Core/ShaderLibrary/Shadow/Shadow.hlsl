@@ -70,7 +70,6 @@ void UnpackShadowType( uint packedShadowType, out uint shadowType )
 	shadowType = packedShadowType >> 10;
 }
 
-
 // shadow sampling prototypes
 float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float4 L );
 float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float4 L, float2 unPositionSS );
@@ -78,6 +77,10 @@ float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 position
 // shadow sampling prototypes with screenspace info
 float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L );
 float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float2 unPositionSS );
+
+#include "ShadowSampling.hlsl"			// sampling patterns (don't modify)
+#include "ShadowAlgorithms.hlsl"		// engine default algorithms (don't modify)
+#include "ShadowAlgorithmsCustom.hlsl"	// project specific custom algorithms (project can modify this)
 
 #ifndef SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL
 float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float4 L )
@@ -102,9 +105,5 @@ float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 posit
     return GetDirectionalShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L );
 }
 #endif
-
-#include "ShadowSampling.hlsl"			// sampling patterns (don't modify)
-#include "ShadowAlgorithms.hlsl"		// engine default algorithms (don't modify)
-#include "ShadowAlgorithmsCustom.hlsl"	// project specific custom algorithms (project can modify this)
 
 #endif // SHADOW_HLSL
