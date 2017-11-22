@@ -8,7 +8,6 @@ using UnityEngine.VFX;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 
-
 namespace UnityEditor.VFX.UI
 {
     class VFXCopyPaste
@@ -49,15 +48,14 @@ namespace UnityEditor.VFX.UI
         {
             public VFXContext[] contexts;
             public VFXModel[] slotContainers;
+            public VFXBlock[] blocks;
             public DataEdge[] dataEdges;
             public FlowEdge[] flowEdges;
         }
 
-        public static object CreateCopy(IEnumerable<GraphElementPresenter> elements)
-        {
-            IEnumerable<VFXContextPresenter> contexts = elements.OfType<VFXContextPresenter>().ToArray();
-            IEnumerable<VFXSlotContainerPresenter> slotContainers = elements.Where(t => t is VFXOperatorPresenter || t is VFXParameterPresenter).Cast<VFXSlotContainerPresenter>().ToArray();
 
+        static void CopyNodes(Data copyData, IEnumerable<GraphElementPresenter> elements, IEnumerable<VFXContextPresenter> contexts, IEnumerable<VFXSlotContainerPresenter> slotContainers)
+        {
             IEnumerable<VFXSlotContainerPresenter> dataEdgeTargets = slotContainers.Concat(contexts.Select(t => t.slotPresenter as VFXSlotContainerPresenter)).Concat(contexts.SelectMany(t => t.blockPresenters).Cast<VFXSlotContainerPresenter>()).ToArray();
 
             // consider only edges contained in the selection
@@ -67,14 +65,12 @@ namespace UnityEditor.VFX.UI
                     contexts.Contains((t.input as VFXFlowAnchorPresenter).context) &&
                     contexts.Contains((t.output as VFXFlowAnchorPresenter).context)
                     ).ToArray();
-            Data copyData = new Data();
 
 
             VFXContext[] copiedContexts = contexts.Select(t => t.context).ToArray();
             copyData.contexts = copiedContexts.Select(t => t.Clone<VFXContext>()).ToArray();
             VFXModel[] copiedSlotContainers = slotContainers.Select(t => t.model).ToArray();
             copyData.slotContainers = copiedSlotContainers.Select(t => t.Clone<VFXModel>()).ToArray();
-
 
             copyData.dataEdges = new DataEdge[dataEdges.Count()];
             int cpt = 0;
@@ -84,7 +80,6 @@ namespace UnityEditor.VFX.UI
 
                 var inputPresenter = edge.input as VFXDataAnchorPresenter;
                 var outputPresenter = edge.output as VFXDataAnchorPresenter;
-
 
                 copyPasteEdge.input.slotPath = MakeSlotPath(inputPresenter.model, true);
 
@@ -132,6 +127,25 @@ namespace UnityEditor.VFX.UI
                 copyPasteEdge.output.flowIndex = outputPresenter.slotIndex;
 
                 copyData.flowEdges[cpt++] = copyPasteEdge;
+            }
+        }
+
+        public static object CreateCopy(IEnumerable<GraphElementPresenter> elements)
+        {
+            IEnumerable<VFXContextPresenter> contexts = elements.OfType<VFXContextPresenter>();
+            IEnumerable<VFXSlotContainerPresenter> slotContainers = elements.Where(t => t is VFXOperatorPresenter || t is VFXParameterPresenter).Cast<VFXSlotContainerPresenter>();
+            IEnumerable<VFXBlockPresenter> blocks = elements.OfType<VFXBlockPresenter>();
+
+            Data copyData = new Data();
+
+            if (contexts.Count() == 0 && slotContainers.Count() == 0 && blocks.Count() > 0)
+            {
+                VFXBlock[] copiedBlocks = blocks.Select(t => t.block).ToArray();
+                copyData.blocks = copiedBlocks.Select(t => t.Clone<VFXBlock>()).ToArray();
+            }
+            else
+            {
+                CopyNodes(copyData, elements, contexts, slotContainers);
             }
 
             return copyData;
@@ -204,6 +218,75 @@ namespace UnityEditor.VFX.UI
         public static void PasteCopy(VFXView view, Vector2 pasteOffset, object data)
         {
             Data copyData = (Data)data;
+
+            if (copyData.blocks.Length > 0)
+            {
+                PasteBlocks(view, copyData);
+            }
+            else
+            {
+                PasteNodes(view, pasteOffset, copyData);
+            }
+        }
+
+        static readonly GUIContent m_BlockPasteError = EditorGUIUtility.TextContent("To paste blocks, please select one target block or one target context.");
+
+        static void PasteBlocks(VFXView view, Data copyData)
+        {
+            var selectedContexts = view.selection.OfType<VFXContextUI>();
+            var selectedBlocks = view.selection.OfType<VFXBlockUI>();
+
+            VFXBlockUI targetBlock = null;
+            VFXContextUI targetContext = null;
+
+            if (selectedBlocks.Count() > 0)
+            {
+                targetBlock = selectedBlocks.OrderByDescending(t => t.context.GetPresenter<VFXContextPresenter>().context.GetIndex(t.GetPresenter<VFXBlockPresenter>().block)).First();
+                targetContext = targetBlock.context;
+            }
+            else if (selectedContexts.Count() == 1)
+            {
+                targetContext = selectedContexts.First();
+            }
+            else
+            {
+                Debug.LogError(m_BlockPasteError.text);
+                return;
+            }
+
+            VFXContext targetModelContext = targetContext.GetPresenter<VFXContextPresenter>().context;
+
+            int targetIndex = -1;
+            if (targetBlock != null)
+            {
+                targetIndex = targetModelContext.GetIndex(targetBlock.GetPresenter<VFXBlockPresenter>().block) + 1;
+            }
+
+            var newBlocks = new HashSet<VFXBlock>();
+
+            foreach (var block in copyData.blocks)
+            {
+                var newBlock = block.Clone<VFXBlock>();
+                newBlocks.Add(newBlock);
+
+                targetModelContext.AddChild(newBlock, targetIndex, false); // only notify once after all blocks have been added
+            }
+
+            targetModelContext.Invalidate(VFXModel.InvalidationCause.kStructureChanged);
+
+            // Create all ui based on model
+            targetContext.OnDataChanged();
+
+            view.ClearSelection();
+
+            foreach (var uiBlock in targetContext.Query().OfType<VFXBlockUI>().Where(t => newBlocks.Contains(t.GetPresenter<VFXBlockPresenter>().block)).ToList())
+            {
+                view.AddToSelection(uiBlock);
+            }
+        }
+
+        static void PasteNodes(VFXView view, Vector2 pasteOffset, Data copyData)
+        {
             var graph = view.GetPresenter<VFXViewPresenter>().GetGraph();
 
             List<VFXContext> newContexts = new List<VFXContext>(copyData.contexts.Length);
