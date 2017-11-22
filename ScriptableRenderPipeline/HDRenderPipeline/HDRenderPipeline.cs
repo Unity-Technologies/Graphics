@@ -923,14 +923,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             RenderDebug(hdCamera, cmd);
 
+            // Make sure to unbind every render texture here because in the next iteration of the loop we might have to reallocate render texture (if the camera size is different)
+            cmd.SetRenderTarget(new RenderTargetIdentifier(-1), new RenderTargetIdentifier(-1));
+
 #if UNITY_EDITOR
+            // We still need to bind correctly default camera target with our depth buffer in case we are currently rendering scene view. It should be the last camera here
+
             // bind depth surface for editor grid/gizmo/selection rendering
             if (camera.cameraType == CameraType.SceneView)
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, m_CameraDepthStencilBufferRT);
 #endif
-
-            // Make sure to unbind every render texture here because in the next iteration of the loop we might have to reallocate render texture (if the camera size is different)
-            cmd.SetRenderTarget(new RenderTargetIdentifier(-1), new RenderTargetIdentifier(-1));
 
             renderContext.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
