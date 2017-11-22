@@ -6,13 +6,12 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: ComplexMaterial
+  m_Name: Lit_Displacement_Vertex
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _ALBEDOAFFECTEMISSIVE_OFF _ALPHACUTOFFENABLE_OFF _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
-    _DEPTHOFFSET_ON _DISPLACEMENT_LOCK_TILING_SCALE _DISTORTIONENABLE_OFF _DISTORTIONONLY_OFF
-    _DOUBLESIDEDENABLE_OFF _ENABLESPECULAROCCLUSION_OFF _ENABLEWIND_OFF _HEIGHTMAP
-    _MASKMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE _PIXEL_DISPLACEMENT _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
-    _PREREFRACTIONPASS_OFF _TESSELLATION_PHONG
+    _DEPTHOFFSETENABLE_OFF _DISPLACEMENT_LOCK_TILING_SCALE _DISTORTIONENABLE_OFF _DOUBLESIDEDENABLE_OFF
+    _ENABLESPECULAROCCLUSION_OFF _ENABLEWIND_OFF _HEIGHTMAP _MASKMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE
+    _PREREFRACTIONPASS_OFF _VERTEX_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -108,13 +107,13 @@ Material:
     - _CoatIOR: 0.5
     - _CullMode: 2
     - _Cutoff: 0.5
-    - _DepthOffsetEnable: 1
+    - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
-    - _DisplacementMode: 2
+    - _DisplacementMode: 1
     - _DistortionBlendMode: 0
     - _DistortionBlurBlendMode: 0
     - _DistortionBlurDstBlend: 1
@@ -125,7 +124,6 @@ Material:
     - _DistortionDepthTest: 1
     - _DistortionDstBlend: 1
     - _DistortionEnable: 0
-    - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
     - _DistortionVectorBias: -1
@@ -153,16 +151,16 @@ Material:
     - _NormalMapSpace: 0
     - _NormalScale: 1
     - _PPDLodThreshold: 5
-    - _PPDMaxSamples: 64
-    - _PPDMinSamples: 6
+    - _PPDMaxSamples: 15
+    - _PPDMinSamples: 5
     - _PPDPrimitiveLength: 1
     - _PPDPrimitiveWidth: 1
     - _PreRefractionPass: 0
     - _RefractionMode: 0
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
-    - _Smoothness: 1
-    - _SmoothnessRemapMax: 0.99999994
+    - _Smoothness: 0.373
+    - _SmoothnessRemapMax: 1
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
@@ -170,13 +168,6 @@ Material:
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
     - _SurfaceType: 0
-    - _TessellationBackFaceCullEpsilon: -0.675
-    - _TessellationFactor: 15
-    - _TessellationFactorMaxDistance: 50
-    - _TessellationFactorMinDistance: 20
-    - _TessellationFactorTriangleSize: 2
-    - _TessellationMode: 1
-    - _TessellationShapeFactor: 0.5
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
@@ -189,7 +180,7 @@ Material:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
-    - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColor: {r: 1, g: 1, b: 1, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
     - _ThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
