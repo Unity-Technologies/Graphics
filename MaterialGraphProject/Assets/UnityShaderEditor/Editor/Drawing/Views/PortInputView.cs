@@ -56,8 +56,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             Add(m_EdgeControl);
 
             m_Container.visible = m_EdgeControl.visible = m_Control != null;
-
-            clippingOptions = ClippingOptions.NoClipping;
         }
 
         protected override void OnStyleResolved(ICustomStyle styles)
