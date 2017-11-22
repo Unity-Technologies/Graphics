@@ -9,6 +9,10 @@ namespace UnityEditor.VFX
     public class VFXTypeAttribute : Attribute
     {}
 
+
+    public class ShowAsColorAttribute : Attribute
+    {}
+
     enum CoordinateSpace
     {
         Local,
