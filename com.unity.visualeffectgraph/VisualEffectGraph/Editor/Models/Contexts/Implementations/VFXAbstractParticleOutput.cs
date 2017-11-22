@@ -25,7 +25,7 @@ namespace UnityEditor.VFX
         [VFXSetting, SerializeField]
         protected bool useSoftParticle = false;
 
-        [VFXSetting, SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected int sortPriority = 0;
 
         protected VFXAbstractParticleOutput() : base(VFXContextType.kOutput, VFXDataType.kParticle, VFXDataType.kNone) {}

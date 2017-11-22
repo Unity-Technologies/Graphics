@@ -145,6 +145,7 @@ MonoBehaviour:
   - link: []
   blendMode: 1
   useSoftParticle: 0
+  sortPriority: 0
   flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114033604711334270
@@ -222,6 +223,7 @@ MonoBehaviour:
   - link: []
   blendMode: 1
   useSoftParticle: 0
+  sortPriority: 0
   flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114069458236294264
@@ -1595,6 +1597,7 @@ MonoBehaviour:
   - link: []
   blendMode: 1
   useSoftParticle: 0
+  sortPriority: 0
   flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114809451265799136
@@ -2552,6 +2555,7 @@ VFXAsset:
       values:
       - index: 21
         nameId: Rate
+      params: []
       processor: {fileID: 0}
   - type: 1
     flags: 1
@@ -2588,7 +2592,8 @@ VFXAsset:
         nameId: uniform_Lifetime_b
       - index: 23
         nameId: uniform_Velocity_c
-      processor: {fileID: 7200000, guid: dbc53281273288f4e98d71453eb42228, type: 3}
+      params: []
+      processor: {fileID: 7200000, guid: 52439d2a8a2476b4a9192436e50aeb51, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -2602,7 +2607,8 @@ VFXAsset:
         nameId: uniform_c
       - index: 26
         nameId: uniform_deltaTime_c
-      processor: {fileID: 7200000, guid: 6d1a250a66654e84b93c7b03f9f8bd0c, type: 3}
+      params: []
+      processor: {fileID: 7200000, guid: 1b9477a5212728d4ebc89e99aeb6839d, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -2610,7 +2616,10 @@ VFXAsset:
       values:
       - index: 25
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: 5a9b678d8bc25ab438711958557ceecb, type: 3}
+      params:
+      - index: 0
+        nameId: sortPriority
+      processor: {fileID: 4800000, guid: 86ed34001435b48448e84b9a1564e903, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -2620,7 +2629,10 @@ VFXAsset:
         nameId: uniform_b
       - index: 20
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: 62bb0406285a24f43a311a9d553a0f4d, type: 3}
+      params:
+      - index: 0
+        nameId: sortPriority
+      processor: {fileID: 4800000, guid: d6124f4ec9b8cdd4495689d54df10235, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -2632,7 +2644,10 @@ VFXAsset:
         nameId: uniform_c
       - index: 18
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: c7d6d4188de01a2488f6554f71d1b19c, type: 3}
+      params:
+      - index: 0
+        nameId: sortPriority
+      processor: {fileID: 4800000, guid: ab378cd9b49623647ab534e4ff07ca61, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000
