@@ -186,6 +186,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // The pass "SRPDefaultUnlit" is a fall back to legacy unlit rendering and is required to support unity 2d + unity UI that render in the scene.
         ShaderPassName[] m_ForwardAndForwardOnlyPassNames = { new ShaderPassName(), new ShaderPassName(), HDShaderPassNames.s_SRPDefaultUnlitName};
+        ShaderPassName[] m_ForwardOnlyPassNames = { new ShaderPassName(), HDShaderPassNames.s_SRPDefaultUnlitName };
 
         ShaderPassName[] m_AllTransparentPassNames = {  HDShaderPassNames.s_TransparentDepthPrepassName,
                                                         HDShaderPassNames.s_TransparentBackfaceName,
@@ -201,7 +202,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                                                     HDShaderPassNames.s_TransparentDepthPostpassName,
                                                                     HDShaderPassNames.s_SRPDefaultUnlitName };
 
-        ShaderPassName[] m_ForwardOnlyPassNames = { new ShaderPassName(), HDShaderPassNames.s_SRPDefaultUnlitName};
+        ShaderPassName[] m_AllForwardDebugDisplayPassNames = {  HDShaderPassNames.s_TransparentBackfaceDebugDisplayName,
+                                                                HDShaderPassNames.s_ForwardOnlyDebugDisplayName,
+                                                                HDShaderPassNames.s_ForwardDebugDisplayName };
+
         ShaderPassName[] m_DepthOnlyAndDepthForwardOnlyPassNames = { HDShaderPassNames.s_DepthForwardOnlyName, HDShaderPassNames.s_DepthOnlyName };
         ShaderPassName[] m_DepthForwardOnlyPassNames = { HDShaderPassNames.s_DepthForwardOnlyName };
         ShaderPassName[] m_DepthOnlyPassNames = { HDShaderPassNames.s_DepthOnlyName };
@@ -1198,10 +1202,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.All, CoreUtils.clearColorAllBlack);
                     // Render Opaque forward
-                    RenderOpaqueRenderList(cull, hdCamera.camera, renderContext, cmd, HDShaderPassNames.s_ForwardDebugDisplayName, m_currentRendererConfigurationBakedLighting);
+                    RenderOpaqueRenderList(cull, hdCamera.camera, renderContext, cmd, m_AllForwardDebugDisplayPassNames, m_currentRendererConfigurationBakedLighting);
 
                     // Render forward transparent
-                    RenderTransparentRenderList(cull, hdCamera.camera, renderContext, cmd, HDShaderPassNames.s_ForwardDebugDisplayName, m_currentRendererConfigurationBakedLighting);
+                    RenderTransparentRenderList(cull, hdCamera.camera, renderContext, cmd, m_AllForwardDebugDisplayPassNames, m_currentRendererConfigurationBakedLighting);
                 }
             }
 
