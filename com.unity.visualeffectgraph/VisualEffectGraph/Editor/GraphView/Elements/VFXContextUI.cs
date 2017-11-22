@@ -320,12 +320,9 @@ namespace UnityEditor.VFX.UI
 
             VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
 
-            int cpt = 0;
-            foreach (var blockui in blocksUI)
-            {
-                VFXBlockPresenter blockPres = blockui.GetPresenter<VFXBlockPresenter>();
-                presenter.AddBlock(after ? -1 : cpt++, blockPres.block);
-            }
+            presenter.BlocksDropped(null, after, blocksUI.Select(t => t.GetPresenter<VFXBlockPresenter>()), evt.imguiEvent.control);
+
+            DragAndDrop.AcceptDrag();
 
             m_DragStarted = false;
             RemoveFromClassList("dropping");
