@@ -43,7 +43,24 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Only use mode11 of BC6H encoding
-        public void EncodeFastCubemap(CommandBuffer cmb, RenderTargetIdentifier source, int sourceSize, RenderTargetIdentifier target, int fromMip, int toMip)
+        /// <summary>
+        /// Encode a Cubemap in BC6H.
+        /// 
+        /// It will encode all faces and selected mips of the Cubemap.
+        /// 
+        /// It uses only mode 11 of BC6H.
+        /// </summary>
+        /// <param name="cmb">Command buffer for execution</param>
+        /// <param name="source">The source Cubemap</param>
+        /// <param name="sourceSize">The size of the source Cubemap</param>
+        /// <param name="target">The compressed texture.
+        /// It must be a BC6H Cubemap or Cubemap array with the same size as the source Cubemap</param>
+        /// <param name="fromMip">Starting mip to encode</param>
+        /// <param name="toMip">Last mip to encode</param>
+        /// <param name="targetArrayIndex">The index of the cubemap to store the compressed texture.
+        /// 
+        /// Only relevant when target is a CubemapArray</param>
+        public void EncodeFastCubemap(CommandBuffer cmb, RenderTargetIdentifier source, int sourceSize, RenderTargetIdentifier target, int fromMip, int toMip, int targetArrayIndex = 0)
         {
             var maxMip = Mathf.Max(0, (int)(Mathf.Log(sourceSize) / Mathf.Log(2)) - 2);
             var actualFromMip = (int)Mathf.Clamp(fromMip, 0, maxMip);
@@ -82,11 +99,12 @@ namespace UnityEngine.Experimental.Rendering
                 cmb.DispatchCompute(m_Shader, m_KEncodeFastCubemapMip, size, size, 6);
             }
 
+            var startSlice = 6 * targetArrayIndex;
             for (var mip = fromMip; mip <= toMip; ++mip)
             {
                 var rtMip = Mathf.Clamp(mip, actualFromMip, actualToMip);
                 for (var faceId = 0; faceId < 6; ++faceId)
-                    cmb.CopyTexture(__Tmp_RT[rtMip], faceId, 0, target, faceId, mip);
+                    cmb.CopyTexture(__Tmp_RT[rtMip], faceId, 0, target, startSlice + faceId, mip);
             }
 
             for (var mip = actualFromMip; mip <= actualToMip; ++mip)
@@ -96,9 +114,9 @@ namespace UnityEngine.Experimental.Rendering
 
     public static class BC6HExtensions
     {
-        public static void BC6HEncodeFastCubemap(this CommandBuffer cmb, RenderTargetIdentifier source, int sourceSize, RenderTargetIdentifier target, int fromMip, int toMip)
+        public static void BC6HEncodeFastCubemap(this CommandBuffer cmb, RenderTargetIdentifier source, int sourceSize, RenderTargetIdentifier target, int fromMip, int toMip, int targetArrayIndex = 0)
         {
-            BC6H.DefaultInstance.EncodeFastCubemap(cmb, source, sourceSize, target, fromMip, toMip);
+            BC6H.DefaultInstance.EncodeFastCubemap(cmb, source, sourceSize, target, fromMip, toMip, targetArrayIndex);
         }
     }
 }
