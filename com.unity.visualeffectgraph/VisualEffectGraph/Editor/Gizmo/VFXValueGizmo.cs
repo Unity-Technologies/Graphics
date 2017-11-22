@@ -83,24 +83,25 @@ namespace UnityEditor.VFX.UI
         {
             EditorGUI.BeginChangeCheck();
 
-            Vector3 worldPosition = position;
+            var saveMatrix = Handles.matrix;
+
             if (space == CoordinateSpace.Local)
             {
-                worldPosition = component.transform.localToWorldMatrix.MultiplyPoint(position);
+                Handles.matrix = component.transform.localToWorldMatrix;
             }
 
-            Vector3 modifiedPosition = Handles.PositionHandle(worldPosition, space == CoordinateSpace.Local ? component.transform.rotation : Quaternion.identity);
-            if (space == CoordinateSpace.Local)
-            {
-                modifiedPosition = component.transform.worldToLocalMatrix.MultiplyPoint(modifiedPosition);
-            }
+            Vector3 modifiedPosition = Handles.PositionHandle(position, Quaternion.identity);
+
             bool changed = GUI.changed;
             EditorGUI.EndChangeCheck();
+
+            Handles.matrix = saveMatrix;
             if (changed)
             {
                 position = modifiedPosition;
                 return true;
             }
+
             return false;
         }
 
@@ -126,16 +127,21 @@ namespace UnityEditor.VFX.UI
 
         static bool RotationGizmo(VFXComponent component, CoordinateSpace space, Vector3 position, ref Quaternion rotation)
         {
+            var saveMatrix = Handles.matrix;
+
             EditorGUI.BeginChangeCheck();
             if (space == CoordinateSpace.Local)
             {
-                position = component.transform.worldToLocalMatrix.MultiplyPoint(position);
+                Handles.matrix = component.transform.localToWorldMatrix;
             }
 
             Quaternion modifiedRotation = Handles.RotationHandle(rotation, position);
 
             bool changed = GUI.changed;
             EditorGUI.EndChangeCheck();
+
+            Handles.matrix = saveMatrix;
+
             if (changed)
             {
                 rotation = modifiedRotation;
@@ -664,39 +670,31 @@ namespace UnityEditor.VFX.UI
 
         static bool OnDrawBoxDataAnchorGizmo(IValuePresenter anchor, VFXComponent component, CoordinateSpace space, ref Vector3 center, ref Vector3 size, Vector3 additionnalRotation)
         {
-            Vector3 worldCenter = center;
+            var saveMatrix = Handles.matrix;
             if (space == CoordinateSpace.Local)
             {
-                worldCenter = component.transform.localToWorldMatrix.MultiplyPoint(center);
+                Matrix4x4 addMat = Matrix4x4.Rotate(Quaternion.Euler(additionnalRotation));
+
+                addMat *= component.transform.localToWorldMatrix;
+                Handles.matrix = addMat;
             }
             Vector3[] points = new Vector3[8];
 
-            Matrix4x4 addMat = Matrix4x4.Rotate(Quaternion.Euler(additionnalRotation));
 
-            points[0] = center + addMat.MultiplyPoint(new Vector3(size.x * 0.5f, size.y * 0.5f, size.z * 0.5f));
-            points[1] = center + addMat.MultiplyPoint(new Vector3(size.x * 0.5f, -size.y * 0.5f, size.z * 0.5f));
+            points[0] = center + new Vector3(size.x * 0.5f, size.y * 0.5f, size.z * 0.5f);
+            points[1] = center + new Vector3(size.x * 0.5f, -size.y * 0.5f, size.z * 0.5f);
 
-            points[2] = center + addMat.MultiplyPoint(new Vector3(-size.x * 0.5f, size.y * 0.5f, size.z * 0.5f));
-            points[3] = center + addMat.MultiplyPoint(new Vector3(-size.x * 0.5f, -size.y * 0.5f, size.z * 0.5f));
+            points[2] = center + new Vector3(-size.x * 0.5f, size.y * 0.5f, size.z * 0.5f);
+            points[3] = center + new Vector3(-size.x * 0.5f, -size.y * 0.5f, size.z * 0.5f);
 
-            points[4] = center + addMat.MultiplyPoint(new Vector3(size.x * 0.5f, size.y * 0.5f, -size.z * 0.5f));
-            points[5] = center + addMat.MultiplyPoint(new Vector3(size.x * 0.5f, -size.y * 0.5f, -size.z * 0.5f));
+            points[4] = center + new Vector3(size.x * 0.5f, size.y * 0.5f, -size.z * 0.5f);
+            points[5] = center + new Vector3(size.x * 0.5f, -size.y * 0.5f, -size.z * 0.5f);
 
-            points[6] = center + addMat.MultiplyPoint(new Vector3(-size.x * 0.5f, size.y * 0.5f, -size.z * 0.5f));
-            points[7] = center + addMat.MultiplyPoint(new Vector3(-size.x * 0.5f, -size.y * 0.5f, -size.z * 0.5f));
+            points[6] = center + new Vector3(-size.x * 0.5f, size.y * 0.5f, -size.z * 0.5f);
+            points[7] = center + new Vector3(-size.x * 0.5f, -size.y * 0.5f, -size.z * 0.5f);
 
 
             Matrix4x4 mat = Matrix4x4.identity;
-
-            if (space == CoordinateSpace.Local)
-            {
-                mat = component.transform.localToWorldMatrix;
-                for (int i = 0; i < points.Length; ++i)
-                {
-                    points[i] = mat.MultiplyPoint(points[i]);
-                }
-            }
-
 
             Handles.DrawLine(points[0], points[1]);
             Handles.DrawLine(points[2], points[3]);
@@ -717,14 +715,17 @@ namespace UnityEditor.VFX.UI
 
             EditorGUI.BeginChangeCheck();
 
+            Handles.color = Color.blue;
             {
                 // axis +Z
                 Vector3 middle = (points[0] + points[1] + points[2] + points[3]) * 0.25f;
+                Vector3 othermiddle = (points[4] + points[5] + points[6] + points[7]) * 0.25f;
                 Vector3 middleResult = Handles.Slider(middle, (middle - center), handleSize * HandleUtility.GetHandleSize(middle), Handles.CubeHandleCap, 0);
 
                 if (GUI.changed)
                 {
-                    size.z = (middleResult - worldCenter).magnitude * 2;
+                    size.z = (middleResult - othermiddle).magnitude;
+                    center = (middleResult + othermiddle) * 0.5f;
                     changed = true;
                 }
             }
@@ -733,24 +734,31 @@ namespace UnityEditor.VFX.UI
             {
                 // axis -Z
                 Vector3 middle = (points[4] + points[5] + points[6] + points[7]) * 0.25f;
+                Vector3 othermiddle = (points[0] + points[1] + points[2] + points[3]) * 0.25f;
                 Vector3 middleResult = Handles.Slider(middle, (middle - center), handleSize * HandleUtility.GetHandleSize(middle), Handles.CubeHandleCap, 0);
 
                 if (GUI.changed)
                 {
-                    size.z = (middleResult - worldCenter).magnitude * 2;
+                    size.z = (middleResult - othermiddle).magnitude;
+                    center = (middleResult + othermiddle) * 0.5f;
                     changed = true;
                 }
             }
             EditorGUI.EndChangeCheck();
+
+
+            Handles.color = Color.red;
             EditorGUI.BeginChangeCheck();
             {
                 // axis +X
                 Vector3 middle = (points[0] + points[1] + points[4] + points[5]) * 0.25f;
+                Vector3 othermiddle = (points[2] + points[3] + points[6] + points[7]) * 0.25f;
                 Vector3 middleResult = Handles.Slider(middle, (middle - center), handleSize * HandleUtility.GetHandleSize(middle), Handles.CubeHandleCap, 0);
 
                 if (GUI.changed)
                 {
-                    size.x = (middleResult - worldCenter).magnitude * 2;
+                    size.x = (middleResult - othermiddle).magnitude;
+                    center = (middleResult + othermiddle) * 0.5f;
                     changed = true;
                 }
             }
@@ -759,24 +767,31 @@ namespace UnityEditor.VFX.UI
             {
                 // axis -X
                 Vector3 middle = (points[2] + points[3] + points[6] + points[7]) * 0.25f;
+                Vector3 othermiddle = (points[0] + points[1] + points[4] + points[5]) * 0.25f;
                 Vector3 middleResult = Handles.Slider(middle, (middle - center), handleSize * HandleUtility.GetHandleSize(middle), Handles.CubeHandleCap, 0);
 
                 if (GUI.changed)
                 {
-                    size.x = (middleResult - worldCenter).magnitude * 2;
+                    size.x = (middleResult - othermiddle).magnitude;
+                    center = (middleResult + othermiddle) * 0.5f;
                     changed = true;
                 }
             }
+
             EditorGUI.EndChangeCheck();
+
+            Handles.color = Color.green;
             EditorGUI.BeginChangeCheck();
             {
                 // axis +Y
                 Vector3 middle = (points[0] + points[2] + points[4] + points[6]) * 0.25f;
+                Vector3 othermiddle = (points[1] + points[3] + points[5] + points[7]) * 0.25f;
                 Vector3 middleResult = Handles.Slider(middle, (middle - center), handleSize * HandleUtility.GetHandleSize(middle), Handles.CubeHandleCap, 0);
 
                 if (GUI.changed)
                 {
-                    size.y = (middleResult - worldCenter).magnitude * 2;
+                    size.y = (middleResult - othermiddle).magnitude;
+                    center = (middleResult + othermiddle) * 0.5f;
                     changed = true;
                 }
             }
@@ -785,11 +800,13 @@ namespace UnityEditor.VFX.UI
             {
                 // axis -Y
                 Vector3 middle = (points[1] + points[3] + points[5] + points[7]) * 0.25f;
+                Vector3 othermiddle = (points[0] + points[2] + points[4] + points[6]) * 0.25f;
                 Vector3 middleResult = Handles.Slider(middle, (middle - center), handleSize * HandleUtility.GetHandleSize(middle), Handles.CubeHandleCap, 0);
 
                 if (GUI.changed)
                 {
-                    size.y = (middleResult - worldCenter).magnitude * 2;
+                    size.y = (middleResult - othermiddle).magnitude;
+                    center = (middleResult + othermiddle) * 0.5f;
                     changed = true;
                 }
             }
@@ -802,6 +819,7 @@ namespace UnityEditor.VFX.UI
             }
 
 
+            Handles.matrix = saveMatrix;
             return changed;
         }
 

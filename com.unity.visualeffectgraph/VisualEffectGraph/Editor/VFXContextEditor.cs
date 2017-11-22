@@ -59,7 +59,7 @@ public class VFXContextEditor : Editor
             bool visibleChildren = EditorGUILayout.PropertyField(prop);
             if (visibleChildren)
             {
-                SerializedProperty childProp = serializedObject.FindProperty(prop.propertyPath);
+                SerializedProperty childProp = prop.Copy();
                 while (childProp.NextVisible(visibleChildren) && childProp.propertyPath.StartsWith(prop.propertyPath + "."))
                 {
                     visibleChildren = EditorGUILayout.PropertyField(childProp);
