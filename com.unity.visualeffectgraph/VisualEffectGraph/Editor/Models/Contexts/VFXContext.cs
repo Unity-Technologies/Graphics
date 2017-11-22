@@ -109,7 +109,7 @@ namespace UnityEditor.VFX
         public virtual string renderLoopCommonInclude                   { get { throw new NotImplementedException(); } }
         public virtual IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionnalReplacements { get { return Enumerable.Empty<KeyValuePair<string, VFXShaderWriter>>(); } }
 
-        public bool CanBeCompiled()
+        public virtual bool CanBeCompiled()
         {
             return m_Data != null && m_Data.CanBeCompiled();
         }
@@ -158,7 +158,9 @@ namespace UnityEditor.VFX
         {
             base.OnAdded();
             if (CanBeCompiled())
+            {
                 Invalidate(InvalidationCause.kExpressionGraphChanged);
+            }
         }
 
         protected override void OnRemoved()

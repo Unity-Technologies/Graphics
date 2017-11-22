@@ -64,11 +64,6 @@ namespace UnityEditor.VFX
             return (currentOffset + minAlignment - 1) & ~(minAlignment - 1);
         }
 
-        public override bool CanBeCompiled()
-        {
-            return m_Owners.Count > 1 && m_Owners[0].contextType == VFXContextType.kInit && m_Owners[0].inputContexts.Count() > 0;
-        }
-
         public void GenerateAttributeLayout(uint capacity, Dictionary<VFXAttribute, int> storedAttribute)
         {
             m_BucketSizes.Clear();
@@ -192,6 +187,11 @@ namespace UnityEditor.VFX
         {
             get { return m_WorldSpace; }
             set { m_WorldSpace = value; }
+        }
+
+        public override bool CanBeCompiled()
+        {
+            return m_Owners.Count > 1 && m_Owners[0].contextType == VFXContextType.kInit && m_Owners[0].inputContexts.Count() > 0;
         }
 
         public override void GenerateAttributeLayout()
