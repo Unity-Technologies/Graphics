@@ -186,6 +186,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // The pass "SRPDefaultUnlit" is a fall back to legacy unlit rendering and is required to support unity 2d + unity UI that render in the scene.
         ShaderPassName[] m_ForwardAndForwardOnlyPassNames = { new ShaderPassName(), new ShaderPassName(), HDShaderPassNames.s_SRPDefaultUnlitName};
+
+        ShaderPassName[] m_AllTransparentPassNames = {  HDShaderPassNames.s_TransparentDepthPrepassName,
+                                                        HDShaderPassNames.s_TransparentBackfaceName,
+                                                        HDShaderPassNames.s_ForwardOnlyName,
+                                                        HDShaderPassNames.s_ForwardName,
+                                                        HDShaderPassNames.s_TransparentDepthPostpassName,
+                                                        HDShaderPassNames.s_SRPDefaultUnlitName };
+
+        ShaderPassName[] m_AllTransparentDebugDisplayPassNames = {  HDShaderPassNames.s_TransparentDepthPrepassName,
+                                                                    HDShaderPassNames.s_TransparentBackfaceDebugDisplayName,
+                                                                    HDShaderPassNames.s_ForwardOnlyDebugDisplayName,
+                                                                    HDShaderPassNames.s_ForwardDebugDisplayName,
+                                                                    HDShaderPassNames.s_TransparentDepthPostpassName,
+                                                                    HDShaderPassNames.s_SRPDefaultUnlitName };
+
         ShaderPassName[] m_ForwardOnlyPassNames = { new ShaderPassName(), HDShaderPassNames.s_SRPDefaultUnlitName};
         ShaderPassName[] m_DepthOnlyAndDepthForwardOnlyPassNames = { HDShaderPassNames.s_DepthForwardOnlyName, HDShaderPassNames.s_DepthOnlyName };
         ShaderPassName[] m_DepthForwardOnlyPassNames = { HDShaderPassNames.s_DepthForwardOnlyName };
@@ -880,9 +895,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 RenderSky(hdCamera, cmd);
 
-                // Do a depth pre-pass for transparent objects that want it that will fill the depth buffer to reduce the overdraw (typical usage is hair rendering)
-                RenderTransparentDepthPrepass(m_CullResults, camera, renderContext, cmd);
-
                 // Render pre refraction objects
                 RenderForward(m_CullResults, camera, renderContext, cmd, ForwardPass.PreRefraction);
                 RenderForwardError(m_CullResults, camera, renderContext, cmd, ForwardPass.PreRefraction);
@@ -921,7 +933,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            RenderDebug(hdCamera, cmd);                
+            RenderDebug(hdCamera, cmd);
 
 #if UNITY_EDITOR
             // bind depth surface for editor grid/gizmo/selection rendering
@@ -1368,37 +1380,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_LightLoop.RenderForward(camera, cmd, pass == ForwardPass.Opaque);
 
-                if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
-                {
-                    m_ForwardAndForwardOnlyPassNames[0] = m_ForwardOnlyPassNames[0] = HDShaderPassNames.s_ForwardOnlyDebugDisplayName;
-                    m_ForwardAndForwardOnlyPassNames[1] = HDShaderPassNames.s_ForwardDebugDisplayName;
-                }
-                else
-                {
-                    m_ForwardAndForwardOnlyPassNames[0] = m_ForwardOnlyPassNames[0] = HDShaderPassNames.s_ForwardOnlyName;
-                    m_ForwardAndForwardOnlyPassNames[1] = HDShaderPassNames.s_ForwardName;
-                }
-
                 if (pass == ForwardPass.Opaque)
                 {
+                    if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
+                    {
+                        m_ForwardAndForwardOnlyPassNames[0] = m_ForwardOnlyPassNames[0] = HDShaderPassNames.s_ForwardOnlyDebugDisplayName;
+                        m_ForwardAndForwardOnlyPassNames[1] = HDShaderPassNames.s_ForwardDebugDisplayName;
+                    }
+                    else
+                    {
+                        m_ForwardAndForwardOnlyPassNames[0] = m_ForwardOnlyPassNames[0] = HDShaderPassNames.s_ForwardOnlyName;
+                        m_ForwardAndForwardOnlyPassNames[1] = HDShaderPassNames.s_ForwardName;
+                    }
+
                     var passNames = m_Asset.renderingSettings.ShouldUseForwardRenderingOnly() ? m_ForwardAndForwardOnlyPassNames : m_ForwardOnlyPassNames;
                     // Forward opaque material always have a prepass (whether or not we use deferred, whether or not there is option like alpha test only) so we pass the right depth state here.
                     RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, passNames, m_currentRendererConfigurationBakedLighting, null, m_DepthStateOpaqueWithPrepass);
                 }
                 else
                 {
-                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_ForwardAndForwardOnlyPassNames, m_currentRendererConfigurationBakedLighting, preRefractionQueue: pass == ForwardPass.PreRefraction);
+                    var passNames = m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() ? m_AllTransparentDebugDisplayPassNames : m_AllTransparentPassNames;
+                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, passNames, m_currentRendererConfigurationBakedLighting, preRefractionQueue: pass == ForwardPass.PreRefraction);
                 }
-            }
-        }
-
-        void RenderTransparentDepthPrepass(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
-        {
-            using (new ProfilingSample(cmd,"Forward Transparent Depth Prepass", GetSampler(CustomSamplerId.ForwardTransparentDepthPrepass)))
-            {
-                CoreUtils.SetRenderTarget(cmd, m_CameraDepthStencilBufferRT);
-                RenderTransparentRenderList(cullResults, camera, renderContext, cmd, HDShaderPassNames.s_TransparentDepthPrepassName, preRefractionQueue: true);
-                RenderTransparentRenderList(cullResults, camera, renderContext, cmd, HDShaderPassNames.s_TransparentDepthPrepassName);
             }
         }
 
@@ -1558,7 +1561,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (CoreUtils.IsPostProcessingActive(layer))
                 {
-                    cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, GetDepthTexture());
+                    // Note: Here we don't use GetDepthTexture() to get the depth texture but m_CameraDepthStencilBuffer as the Forward transparent pass can
+                    // write extra data to deal with DOF/MB
+                    cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, m_CameraDepthStencilBuffer);
                     cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, m_VelocityBufferRT);
 
                     var context = m_PostProcessContext;
