@@ -338,14 +338,6 @@ namespace UnityEditor.VFX.UI
             return EventPropagation.Stop;
         }
 
-        public override void OnSelected()
-        {
-            base.OnSelected();
-
-            if (!VFXComponentEditor.s_IsEditingAsset)
-                Selection.activeObject = GetPresenter<VFXContextPresenter>().model;
-        }
-
         public EventPropagation DeleteSelection()
         {
             var elementsToRemove = m_BlockContainer.selection.OfType<VFXBlockUI>().ToList();

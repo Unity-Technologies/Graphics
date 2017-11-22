@@ -629,15 +629,15 @@ namespace UnityEditor.VFX.UI
 
         void SelectionUpdated()
         {
+            if (presenter == null) return;
+
             if (!VFXComponentEditor.s_IsEditingAsset)
             {
-                var contextSelected = selection.OfType<VFXContextUI>();
+                var objectSelected = selection.OfType<GraphElement>().Select(t => t.GetPresenter<VFXNodePresenter>()).Where(t => t != null);
 
-                if (presenter == null) return;
-
-                if (contextSelected.Count() > 0)
+                if (objectSelected.Count() > 0)
                 {
-                    Selection.objects = contextSelected.Select(t => t.GetPresenter<VFXContextPresenter>().model).ToArray();
+                    Selection.objects = objectSelected.Select(t => t.model).ToArray();
                 }
                 else if (Selection.activeObject != GetPresenter<VFXViewPresenter>().GetVFXAsset())
                 {
