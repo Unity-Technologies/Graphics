@@ -73,7 +73,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector3 right;   // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeLenght)
         public float specularScale;
 
-        public Vector3 up;      // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by * (2 / shapeWidth)
+        public Vector3 up;      // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeWidth)
         public float diffuseScale;
 
         public float angleScale;  // Spot light
@@ -81,7 +81,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float shadowDimmer;
         public bool dynamicShadowCasterOnly; // Use with ShadowMask feature
 
-        public Vector2 size;      // Used by area, frustum projector and spot lights (x = cot(outerHalfAngle))
+        public Vector2 size;      // Used by area and pyramid projector lights
         public GPULightType lightType;
         public float minRoughness;  // This is use to give a small "area" to punctual light, as if we have a light with a radius.
 

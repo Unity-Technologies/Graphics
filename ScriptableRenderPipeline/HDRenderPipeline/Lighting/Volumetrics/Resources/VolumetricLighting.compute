@@ -189,12 +189,30 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
                     int       lightType = lightData.lightType;
 
                     // TODO...
-                    if (lightType != GPULIGHTTYPE_POINT) continue;
+                    if (lightType != GPULIGHTTYPE_POINT && lightType != GPULIGHTTYPE_SPOT) continue;
+
+                    float tEntr, tExit;
+
+                    if (lightType == GPULIGHTTYPE_SPOT)
+                    {
+                        if (!ConeRayIntersect(ray.originWS, ray.directionWS,
+                                              lightData.positionWS, lightData.forward,
+                                              lightData.right, lightData.up,
+                                              tMin, tMax, tEntr, tExit))
+                        {
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        tEntr = tMin;
+                        tExit = tMax;
+                    }
 
                     float t, distSq, rcpPdf;
                     ImportanceSamplePunctualLight(rndVal, lightData.positionWS,
                                                   ray.originWS, ray.directionWS,
-                                                  tMin, tMax, t, distSq, rcpPdf);
+                                                  tEntr, tExit, t, distSq, rcpPdf);
 
                     float3 positionWS = GetPointAtDistance(ray, t);
 

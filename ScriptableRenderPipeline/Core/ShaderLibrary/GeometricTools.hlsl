@@ -88,6 +88,65 @@ float3 RayPlaneIntersect(in float3 rayOrigin, in float3 rayDirection, in float3 
     return rayOrigin + rayDirection * dist;
 }
 
+// Solves the quadratic equation of the form: a*t^2 + b*t + c = 0.
+// Returns 'false' if there are no real roots, 'true' otherwise.
+// Ref: Numerical Recipes in C++ (3rd Edition)
+bool SolveQuadraticEquation(float a, float b, float c, out float2 roots)
+{
+    float d = b * b - 4 * a * c;
+    float q = -0.5 * (b + FastSign(b) * sqrt(d));
+    roots   = float2(q / a, c / q);
+
+    return (d >= 0);
+}
+
+// 'coneAxisX' and 'coneAxisY' should be pre-scaled by by cot(halfAngle).
+// Returns parametric distances 'tEntr' and 'tExit' along the ray,
+// subject to constraints 'tMin' and 'tMax'.
+bool ConeRayIntersect(float3 rayOrigin,  float3 rayDirection,
+                      float3 coneOrigin, float3 coneDirection,
+                      float3 coneAxisX,  float3 coneAxisY,
+                      float tMin, float tMax,
+                      inout float tEntr, inout float tExit)
+{
+    // Inverse transform the ray into a coordinate system with the cone at the origin facing along the Z axis.
+    float3x3 rotMat = float3x3(coneAxisX, coneAxisY, coneDirection);
+
+    float3 o = mul(rotMat, rayOrigin - coneOrigin);
+    float3 d = mul(rotMat, rayDirection);
+
+    // Cone equation (facing along Z): (h/r*x)^2 + (h/r*y)^2 - z^2 = 0.
+    // Cone axes are premultiplied with (h/r).
+    // Set up the quadratic equation: a*t^2 + b*t + c = 0.
+    float a = d.x * d.x + d.y * d.y - d.z * d.z;
+    float b = o.x * d.x + o.y * d.y - o.z * d.z;
+    float c = o.x * o.x + o.y * o.y - o.z * o.z;
+
+    float2 roots;
+
+    // Check whether we have at least 1 root.
+    bool hit = SolveQuadraticEquation(a, 2 * b, c, roots);
+
+    tEntr = min(roots.x, roots.y);
+    tExit = max(roots.x, roots.y);
+    float3 pEntr = o + tEntr * d;
+    float3 pExit = o + tExit * d;
+
+    // Clip the negative cone.
+    if (max(pEntr.z, pExit.z) < 0) { hit = false; }
+    if (pEntr.z < 0) { tEntr = tExit; tExit = tMax; }
+    if (pExit.z < 0) { tExit = tEntr; tEntr = tMin; }
+
+    // Clamp using the values passed into the function.
+    tEntr = clamp(tEntr, tMin, tMax);
+    tExit = clamp(tExit, tMin, tMax);
+
+    // Check for grazing intersections.
+    if (tEntr == tExit) { hit = false; }
+
+    return hit;
+}
+
 //-----------------------------------------------------------------------------
 // Miscellaneous functions
 //-----------------------------------------------------------------------------
