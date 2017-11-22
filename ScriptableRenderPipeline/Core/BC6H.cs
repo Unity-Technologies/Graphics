@@ -46,8 +46,8 @@ namespace UnityEngine.Experimental.Rendering
         public void EncodeFastCubemap(CommandBuffer cmb, RenderTargetIdentifier source, int sourceSize, RenderTargetIdentifier target, int fromMip, int toMip)
         {
             var maxMip = Mathf.Max(0, (int)(Mathf.Log(sourceSize) / Mathf.Log(2)) - 2);
-            fromMip = (int)Mathf.Clamp(fromMip, 0, maxMip);
-            toMip = (int)Mathf.Min(maxMip, Mathf.Max(toMip, fromMip));
+            var actualFromMip = (int)Mathf.Clamp(fromMip, 0, maxMip);
+            var actualToMip = (int)Mathf.Min(maxMip, Mathf.Max(toMip, actualFromMip));
 
             // Convert TextureCube source to Texture2DArray
             var d = new RenderTextureDescriptor
@@ -66,7 +66,7 @@ namespace UnityEngine.Experimental.Rendering
 
             cmb.SetComputeTextureParam(m_Shader, m_KEncodeFastCubemapMip, _Source, source); 
 
-            for (var mip = fromMip; mip <= toMip; ++mip)
+            for (var mip = actualFromMip; mip <= actualToMip; ++mip)
             {
                 var size = (sourceSize >> mip) >> 2;
                 d.width = size;
@@ -74,7 +74,7 @@ namespace UnityEngine.Experimental.Rendering
                 cmb.GetTemporaryRT(__Tmp_RT[mip], d);
             }
 
-            for (var mip = fromMip; mip <= toMip; ++mip)
+            for (var mip = actualFromMip; mip <= actualToMip; ++mip)
             {
                 var size = (sourceSize >> mip) >> 2;
                 cmb.SetComputeTextureParam(m_Shader, m_KEncodeFastCubemapMip, _Target, __Tmp_RT[mip]);
@@ -84,11 +84,12 @@ namespace UnityEngine.Experimental.Rendering
 
             for (var mip = fromMip; mip <= toMip; ++mip)
             {
+                var rtMip = Mathf.Clamp(mip, actualFromMip, actualToMip);
                 for (var faceId = 0; faceId < 6; ++faceId)
-                    cmb.CopyTexture(__Tmp_RT[mip], faceId, 0, target, faceId, mip);
+                    cmb.CopyTexture(__Tmp_RT[rtMip], faceId, 0, target, faceId, mip);
             }
 
-            for (var mip = fromMip; mip <= toMip; ++mip)
+            for (var mip = actualFromMip; mip <= actualToMip; ++mip)
                 cmb.ReleaseTemporaryRT(__Tmp_RT[mip]);
         }
     }
