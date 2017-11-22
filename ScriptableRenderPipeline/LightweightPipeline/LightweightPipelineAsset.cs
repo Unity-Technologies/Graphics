@@ -62,15 +62,39 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         static void CreateLightweightPipeline()
         {
             var instance = CreateInstance<LightweightPipelineAsset>();
+
+            string[] guids = AssetDatabase.FindAssets("Lightweight-Default t:material");
+            string[] paths = new string[guids.Length];
+            for (int i = 0; i < guids.Length; ++i)
+            {
+                string guid = guids[i];
+                paths[i] = AssetDatabase.GUIDToAssetPath(guid);
+            }
+
+            foreach (string path in paths)
+            {
+                Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+
+                if (path.Length == 0)
+                    continue;
+
+                if (path.Contains("Terrain"))
+                    instance.m_DefaultTerrainMaterial = material;
+                else if (path.Contains("Particle"))
+                    instance.m_DefaultParticleMaterial = material;
+                else
+                    instance.m_DefaultMaterial = material;
+            }
+
             instance.m_DefaultShader = Shader.Find(m_StandardShaderPath);
             instance.m_BlitShader = Shader.Find("Hidden/LightweightPipeline/Blit");
             instance.m_CopyDepthShader = Shader.Find("Hidden/LightweightPipeline/CopyDepth");
 
-            string path = UnityEditor.EditorUtility.SaveFilePanelInProject("Save Lightweight Asset", "LightweightAsset", "asset",
+            string assetPath = UnityEditor.EditorUtility.SaveFilePanelInProject("Save Lightweight Asset", "LightweightAsset", "asset",
                 "Please enter a file name to save the asset to");
 
-            if (path.Length > 0)
-                UnityEditor.AssetDatabase.CreateAsset(instance, path);
+            if (assetPath.Length > 0)
+                UnityEditor.AssetDatabase.CreateAsset(instance, assetPath);
         }
 #endif
 
