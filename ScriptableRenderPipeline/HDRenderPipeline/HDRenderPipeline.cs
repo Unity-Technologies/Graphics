@@ -882,6 +882,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     UpdateSkyEnvironment(hdCamera, cmd);
                 }
 
+                // Render volumetric lighting
+                VolumetricLightingPass(hdCamera, cmd);
+
                 RenderDeferredLighting(hdCamera, cmd);
 
                 // We compute subsurface scattering here. Therefore, no objects rendered afterwards will exhibit SSS.
@@ -906,9 +909,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                 RenderForward(m_CullResults, camera, renderContext, cmd, ForwardPass.Transparent);
                 RenderForwardError(m_CullResults, camera, renderContext, cmd, ForwardPass.Transparent);
-
-                // Render volumetric lighting
-                VolumetricLightingPass(hdCamera, cmd);
 
                 PushFullScreenDebugTexture(cmd, m_CameraColorBuffer, camera, renderContext, FullScreenDebugMode.NanTracker);
 
