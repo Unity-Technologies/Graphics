@@ -2405,30 +2405,42 @@ VFXAsset:
         m_Value:
           serializedVersion: 2
           m_Curve:
-          - serializedVersion: 2
+          - serializedVersion: 3
             time: -0.0016937256
             value: 0
             inSlope: 1.4626307
             outSlope: 1.4626307
             tangentMode: 0
-          - serializedVersion: 2
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
             time: 0.08659321
             value: 0.09507206
             inSlope: 0.0774731
             outSlope: 0.0774731
             tangentMode: 0
-          - serializedVersion: 2
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
             time: 0.9144851
             value: 0.097815424
             inSlope: 0.12606382
             outSlope: 0.12606382
             tangentMode: 0
-          - serializedVersion: 2
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
             time: 0.9957597
             value: -0.004668832
             inSlope: 0.015929732
             outSlope: 0.015929732
             tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
           m_PreInfinity: 2
           m_PostInfinity: 2
           m_RotationOrder: 4
@@ -2576,7 +2588,7 @@ VFXAsset:
         nameId: uniform_Lifetime_b
       - index: 23
         nameId: uniform_Velocity_c
-      processor: {fileID: 7200000, guid: 52439d2a8a2476b4a9192436e50aeb51, type: 3}
+      processor: {fileID: 7200000, guid: dbc53281273288f4e98d71453eb42228, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -2590,7 +2602,7 @@ VFXAsset:
         nameId: uniform_c
       - index: 26
         nameId: uniform_deltaTime_c
-      processor: {fileID: 7200000, guid: 1b9477a5212728d4ebc89e99aeb6839d, type: 3}
+      processor: {fileID: 7200000, guid: 6d1a250a66654e84b93c7b03f9f8bd0c, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -2598,7 +2610,7 @@ VFXAsset:
       values:
       - index: 25
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: 86ed34001435b48448e84b9a1564e903, type: 3}
+      processor: {fileID: 4800000, guid: 5a9b678d8bc25ab438711958557ceecb, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -2608,7 +2620,7 @@ VFXAsset:
         nameId: uniform_b
       - index: 20
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: d6124f4ec9b8cdd4495689d54df10235, type: 3}
+      processor: {fileID: 4800000, guid: 62bb0406285a24f43a311a9d553a0f4d, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -2620,7 +2632,7 @@ VFXAsset:
         nameId: uniform_c
       - index: 18
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: ab378cd9b49623647ab534e4ff07ca61, type: 3}
+      processor: {fileID: 4800000, guid: c7d6d4188de01a2488f6554f71d1b19c, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000

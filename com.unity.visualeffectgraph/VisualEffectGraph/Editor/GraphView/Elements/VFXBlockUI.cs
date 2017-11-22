@@ -114,7 +114,8 @@ namespace UnityEditor.VFX.UI
 
             if (context.CanDrop(draggedBlocksUI, this))
             {
-                contextPresenter.BlocksDropped(blockPresenter, pos.y > layout.height / 2, draggedBlocks);
+                contextPresenter.BlocksDropped(blockPresenter, pos.y > layout.height / 2, draggedBlocks, evt.imguiEvent.control);
+                DragAndDrop.AcceptDrag();
             }
             else
             {

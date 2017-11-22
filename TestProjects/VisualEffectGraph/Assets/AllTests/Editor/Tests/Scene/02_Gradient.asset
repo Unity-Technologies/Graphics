@@ -293,7 +293,7 @@ MonoBehaviour:
   - {fileID: 114879092719112468}
   m_exposedName: gradient
   m_exposed: 1
-  order: 0
+  m_order: 0
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -1643,7 +1643,7 @@ MonoBehaviour:
   - {fileID: 114597739427807632}
   m_exposedName: initialGradient
   m_exposed: 1
-  order: 1
+  m_order: 0
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -3354,7 +3354,7 @@ VFXAsset:
         nameId: uniform_Color_d
       - index: 34
         nameId: uniform_Alpha_e
-      processor: {fileID: 7200000, guid: 9df379138d979824c9e7cc59c49ef641, type: 3}
+      processor: {fileID: 7200000, guid: e6a97986001f10f43bef5762c683cdec, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -3364,7 +3364,7 @@ VFXAsset:
       values:
       - index: 33
         nameId: uniform_deltaTime_b
-      processor: {fileID: 7200000, guid: e73ae00d8b9ac6a4fa65f243db711ea6, type: 3}
+      processor: {fileID: 7200000, guid: a1d8ee44fc84e664b83aaae25dd3139e, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -3380,7 +3380,7 @@ VFXAsset:
         nameId: uniform_e
       - index: 26
         nameId: texture_texture
-      processor: {fileID: 4800000, guid: 83299017e214e1b4fbd38475c22e2857, type: 3}
+      processor: {fileID: 4800000, guid: 674e415705320cc4cafbb614a4f2af09, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000
