@@ -599,6 +599,9 @@ Shader "HDRenderPipeline/LayeredLit"
             ZWrite On
             ZTest LEqual
 
+            // When alpha test is enabled, we should not write into the color buffer
+            ColorMask 0
+
             HLSLPROGRAM
 
             #define SHADERPASS SHADERPASS_SHADOWS
@@ -620,6 +623,9 @@ Shader "HDRenderPipeline/LayeredLit"
             Cull[_CullMode]
 
             ZWrite On
+
+            // When alpha test is enabled, we should not write into the color buffer
+            ColorMask 0
 
             HLSLPROGRAM
 
