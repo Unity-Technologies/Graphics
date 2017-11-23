@@ -629,7 +629,6 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             ZWrite On
             ZTest LEqual
 
-            // When alpha test is enabled, we should not write into the color buffer
             ColorMask 0
 
             HLSLPROGRAM
@@ -657,7 +656,6 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
             ZWrite On
 
-            // When alpha test is enabled, we should not write into the color buffer
             ColorMask 0
 
             HLSLPROGRAM
