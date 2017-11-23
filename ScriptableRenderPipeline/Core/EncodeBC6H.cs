@@ -3,9 +3,9 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    public class BC6H
+    public class EncodeBC6H
     {
-        public static BC6H DefaultInstance;
+        public static EncodeBC6H DefaultInstance;
 
         static readonly int _Source = Shader.PropertyToID("_Source");
         static readonly int _Target = Shader.PropertyToID("_Target");
@@ -31,7 +31,7 @@ namespace UnityEngine.Experimental.Rendering
         readonly ComputeShader m_Shader;
         readonly int m_KEncodeFastCubemapMip;
 
-        public BC6H(ComputeShader shader)
+        public EncodeBC6H(ComputeShader shader)
         {
             Assert.IsNotNull(shader);
 
@@ -116,7 +116,7 @@ namespace UnityEngine.Experimental.Rendering
     {
         public static void BC6HEncodeFastCubemap(this CommandBuffer cmb, RenderTargetIdentifier source, int sourceSize, RenderTargetIdentifier target, int fromMip, int toMip, int targetArrayIndex = 0)
         {
-            BC6H.DefaultInstance.EncodeFastCubemap(cmb, source, sourceSize, target, fromMip, toMip, targetArrayIndex);
+            EncodeBC6H.DefaultInstance.EncodeFastCubemap(cmb, source, sourceSize, target, fromMip, toMip, targetArrayIndex);
         }
     }
 }

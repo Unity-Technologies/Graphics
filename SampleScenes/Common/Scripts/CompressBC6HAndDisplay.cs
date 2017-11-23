@@ -22,7 +22,7 @@ public class CompressBC6HAndDisplay : MonoBehaviour
     int m_MipCount = 0;
     Renderer m_Renderer;
     Material m_Material;
-    BC6H m_BC6H;
+    EncodeBC6H m_EncodeBC6H;
 
     void OnEnable()
     {
@@ -33,7 +33,7 @@ public class CompressBC6HAndDisplay : MonoBehaviour
         var renderer = m_Renderer ?? (m_Renderer = GetComponent<Renderer>());
         renderer.material = m_Material;
 
-        m_BC6H = new BC6H(m_BC6HShader);
+        m_EncodeBC6H = new EncodeBC6H(m_BC6HShader);
     }
 
     void OnPreRender(CommandBuffer cmb)
@@ -46,7 +46,7 @@ public class CompressBC6HAndDisplay : MonoBehaviour
             return;
         }
 
-        using (new ProfilingSample(cmb, "BC6H Test"))
+        using (new ProfilingSample(cmb, "EncodeBC6H Test"))
         {
             var hash = CalculateHash(m_SourceTexture);
             if (m_Hash != hash)
@@ -56,7 +56,7 @@ public class CompressBC6HAndDisplay : MonoBehaviour
                 CreateTargetInstance();
             }
 
-            m_BC6H.EncodeFastCubemap(cmb, m_SourceId, m_SourceTexture.width, m_TargetId, 0, m_MipCount - 1);
+            m_EncodeBC6H.EncodeFastCubemap(cmb, m_SourceId, m_SourceTexture.width, m_TargetId, 0, m_MipCount - 1);
         }
 
         m_Material.SetTexture(m_TextureName, m_Target);
@@ -64,7 +64,7 @@ public class CompressBC6HAndDisplay : MonoBehaviour
 
     void Update()
     {
-        var cmd = new CommandBuffer { name = "BC6H Compress" };
+        var cmd = new CommandBuffer { name = "EncodeBC6H Compress" };
         OnPreRender(cmd);
         Graphics.ExecuteCommandBuffer(cmd);
     }
