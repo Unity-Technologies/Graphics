@@ -385,7 +385,7 @@ namespace UnityEditor.VFX.UI
 
             var ui = m_VFXAsset.GetOrCreateGraph().UIInfos;
 
-            var newGroupInfo = new VFXUI.GroupInfo { position = new Rect(pos, Vector2.one * 100) };
+            var newGroupInfo = new VFXUI.GroupInfo { title = "New Group Node", position = new Rect(pos, Vector2.one * 100) };
 
             if (ui.groupInfos != null)
                 ui.groupInfos = ui.groupInfos.Concat(Enumerable.Repeat(newGroupInfo, 1)).ToArray();

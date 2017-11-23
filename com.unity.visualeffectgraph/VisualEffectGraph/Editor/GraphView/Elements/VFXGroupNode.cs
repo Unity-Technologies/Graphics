@@ -61,6 +61,8 @@ namespace UnityEditor.VFX.UI
                 VFXGroupNodePresenter presenter = GetPresenter<VFXGroupNodePresenter>();
 
                 presenter.AddNode(element.presenter as VFXNodePresenter);
+
+                UpdatePresenterPosition();
             }
         }
 
@@ -71,6 +73,8 @@ namespace UnityEditor.VFX.UI
                 VFXGroupNodePresenter presenter = GetPresenter<VFXGroupNodePresenter>();
 
                 presenter.RemoveNode(element.presenter as VFXNodePresenter);
+
+                UpdatePresenterPosition();
             }
         }
 

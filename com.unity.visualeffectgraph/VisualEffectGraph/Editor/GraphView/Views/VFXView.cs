@@ -151,6 +151,11 @@ namespace UnityEditor.VFX.UI
                     {
                         AddVFXParameter(tPos, d.modelDescriptor as VFXModelDescriptorParameters);
                     }
+                    else if (d.modelDescriptor is GroupNodeAdder)
+                    {
+                        VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
+                        presenter.AddGroupNode(tPos);
+                    }
                     else if (d.modelDescriptor == null)
                     {
                         /*
@@ -470,6 +475,36 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        GraphViewChange VFXGraphViewChanged(GraphViewChange change)
+        {
+            if (change.movedElements.Count > 0)
+            {
+                foreach (var groupNode in vfxGroupNodes.ToList())
+                {
+                    var containedElements = groupNode.containedElements;
+
+                    if (containedElements != null && containedElements.Intersect(change.movedElements).Count() > 0)
+                    {
+                        groupNode.UpdateGeometryFromContent();
+                        groupNode.UpdatePresenterPosition();
+                    }
+                }
+
+                foreach (var groupNode in change.movedElements.OfType<VFXGroupNode>())
+                {
+                    var containedElements = groupNode.containedElements;
+                    if (containedElements != null)
+                    {
+                        foreach (var node in containedElements)
+                        {
+                            node.UpdatePresenterPosition();
+                        }
+                    }
+                }
+            }
+            return change;
+        }
+
         VFXViewPresenter m_OldPresenter;
 
         public override void OnDataChanged()
@@ -731,36 +766,6 @@ namespace UnityEditor.VFX.UI
             VFXCopyPaste.UnserializeAndPasteElements(this, pasteOffset, data);
 
             pasteOffset += defaultPasteOffset;
-        }
-
-        GraphViewChange VFXGraphViewChanged(GraphViewChange change)
-        {
-            if (change.movedElements.Count > 0)
-            {
-                foreach (var groupNode in vfxGroupNodes.ToList())
-                {
-                    var containedElements = groupNode.containedElements;
-
-                    if (containedElements != null && containedElements.Intersect(change.movedElements).Count() > 0)
-                    {
-                        groupNode.UpdateGeometryFromContent();
-                        groupNode.UpdatePresenterPosition();
-                    }
-                }
-
-                foreach (var groupNode in change.movedElements.OfType<VFXGroupNode>())
-                {
-                    var containedElements = groupNode.containedElements;
-                    if (containedElements != null)
-                    {
-                        foreach (var node in containedElements)
-                        {
-                            node.UpdatePresenterPosition();
-                        }
-                    }
-                }
-            }
-            return change;
         }
     }
 }
