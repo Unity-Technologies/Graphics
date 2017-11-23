@@ -133,9 +133,11 @@ bool ConeRayIntersect(float3 rayOrigin,  float3 rayDirection,
     float3 pExit = o + tExit * d;
 
     // Clip the negative cone.
-    if (max(pEntr.z, pExit.z) < 0) { hit = false; }
-    if (pEntr.z < 0) { tEntr = tExit; tExit = tMax; }
-    if (pExit.z < 0) { tExit = tEntr; tEntr = tMin; }
+    bool pEntrNeg = pEntr.z < 0;
+    bool pExitNeg = pExit.z < 0;
+    if (pEntrNeg && pExitNeg) { hit = false; }
+    if (pEntrNeg) { tEntr = tExit; tExit = tMax; }
+    if (pExitNeg) { tExit = tEntr; tEntr = tMin; }
 
     // Clamp using the values passed into the function.
     tEntr = clamp(tEntr, tMin, tMax);
