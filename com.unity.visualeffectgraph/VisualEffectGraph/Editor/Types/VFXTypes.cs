@@ -10,6 +10,10 @@ namespace UnityEditor.VFX
     public class VFXTypeAttribute : Attribute
     {}
 
+
+    public class ShowAsColorAttribute : Attribute
+    {}
+
     class CoordinateSpaceInfo
     {
         public static readonly int SpaceCount = Enum.GetValues(typeof(CoordinateSpace)).Length;
