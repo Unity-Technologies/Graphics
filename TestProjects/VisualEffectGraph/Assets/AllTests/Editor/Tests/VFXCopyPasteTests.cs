@@ -316,5 +316,18 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual((float)copyMinSlot.value, originalMinValue);
         }
+
+        [Test]
+        public void CreateTemplate()
+        {
+            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+
+            window.presenter = m_ViewPresenter;
+
+            VFXView view = window.graphView as VFXView;
+            view.presenter = m_ViewPresenter;
+
+            view.CreateTemplateSystem(Vector2.zero);
+        }
     }
 }
