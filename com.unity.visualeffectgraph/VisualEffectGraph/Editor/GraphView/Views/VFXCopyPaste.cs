@@ -219,7 +219,7 @@ namespace UnityEditor.VFX.UI
         {
             Data copyData = (Data)data;
 
-            if (copyData.blocks.Length > 0)
+            if (copyData.blocks != null && copyData.blocks.Length > 0)
             {
                 PasteBlocks(view, copyData);
             }
