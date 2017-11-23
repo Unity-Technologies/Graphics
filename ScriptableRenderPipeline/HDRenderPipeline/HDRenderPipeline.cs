@@ -945,9 +945,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
 
             renderContext.ExecuteCommandBuffer(cmd);
+            }
+
             CommandBufferPool.Release(cmd);
             renderContext.Submit();
-            }
         }
 
         void RenderOpaqueRenderList(CullResults             cull,
