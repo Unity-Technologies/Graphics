@@ -61,9 +61,9 @@ float3 ConvertEquiarealToCubemap(float u, float v)
 }
 
 // Convert a texel position into normalized position [-1..1]x[-1..1]
-float2 CubemapTexelToNVC(uint2 unPositionTS, uint cubemapSize)
+float2 CubemapTexelToNVC(uint2 unPositionTXS, uint cubemapSize)
 {
-    return 2.0 * float2(unPositionTS) / float(max(cubemapSize - 1, 1)) - 1.0;
+    return 2.0 * float2(unPositionTXS) / float(max(cubemapSize - 1, 1)) - 1.0;
 }
 
 // Map cubemap face to world vector basis
@@ -108,10 +108,10 @@ static const float3 CUBEMAP_FACE_BASIS_MAPPING[6][3] =
 };
 
 // Convert a normalized cubemap face position into a direction
-float3 CubemapTexelToDirection(float2 positionTS, uint faceId)
+float3 CubemapTexelToDirection(float2 positionNVC, uint faceId)
 {
-    float3 dir = CUBEMAP_FACE_BASIS_MAPPING[faceId][0] * positionTS.x
-               + CUBEMAP_FACE_BASIS_MAPPING[faceId][1] * positionTS.y
+    float3 dir = CUBEMAP_FACE_BASIS_MAPPING[faceId][0] * positionNVC.x
+               + CUBEMAP_FACE_BASIS_MAPPING[faceId][1] * positionNVC.y
                + CUBEMAP_FACE_BASIS_MAPPING[faceId][2];
 
     return normalize(dir);
