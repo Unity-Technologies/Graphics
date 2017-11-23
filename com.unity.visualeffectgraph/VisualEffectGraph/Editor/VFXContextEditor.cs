@@ -19,17 +19,39 @@ using System.Reflection;
 public class VFXContextEditor : VFXSlotContainerEditor
 {
     SerializedProperty spaceProperty;
+    SerializedObject dataObject;
     protected new void OnEnable()
     {
-        spaceProperty = serializedObject.FindProperty("m_Space");
+        UnityEngine.Object[] allData = targets.Cast<VFXContext>().Select(t => t.GetData()).Distinct().Where(t => t != null).Cast<UnityEngine.Object>().ToArray();
+        if (allData.Length > 0)
+        {
+            dataObject = new SerializedObject(allData);
+
+            spaceProperty = dataObject.FindProperty("m_Space");
+        }
+        else
+        {
+            dataObject = null;
+            spaceProperty = null;
+        }
+
 
         base.OnEnable();
     }
 
     public override void DoInspectorGUI()
     {
-        EditorGUILayout.PropertyField(spaceProperty);
+        if (spaceProperty != null)
+            EditorGUILayout.PropertyField(spaceProperty);
 
         base.DoInspectorGUI();
+    }
+
+    public override void OnInspectorGUI()
+    {
+        base.OnInspectorGUI();
+
+        if (dataObject != null)
+            dataObject.ApplyModifiedProperties();
     }
 }

@@ -263,5 +263,71 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(flowEdge.output.GetFirstAncestorOfType<VFXContextUI>(), contexts[1]);
             Assert.AreEqual(flowEdge.input.GetFirstAncestorOfType<VFXContextUI>(), contexts[0]);
         }
+
+        [Test]
+        public void CopyPasteBlock()
+        {
+            var initContextDesc = VFXLibrary.GetContexts().Where(t => t.name == "Initialize").First();
+
+            var newContext = m_ViewPresenter.AddVFXContext(new Vector2(100, 100), initContextDesc);
+
+            Assert.AreEqual(m_ViewPresenter.allChildren.Where(t => t is VFXContextPresenter).Count(), 1);
+
+            var contextPresenter = m_ViewPresenter.allChildren.OfType<VFXContextPresenter>().First();
+
+            Assert.AreEqual(contextPresenter.model, newContext);
+
+            var flipBookBlockDesc = VFXLibrary.GetBlocks().First(t => t.name == "Flipbook Set TexIndex");
+
+            contextPresenter.AddBlock(0, flipBookBlockDesc.CreateInstance());
+
+            var newBlock = contextPresenter.context.children.First();
+
+            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+
+            window.presenter = m_ViewPresenter;
+
+            VFXView view = window.graphView as VFXView;
+            view.presenter = m_ViewPresenter;
+
+            view.ClearSelection();
+            foreach (var element in view.Query().OfType<VFXBlockUI>().ToList().OfType<ISelectable>())
+            {
+                view.AddToSelection(element);
+            }
+
+            VFXBlock flipBookBlock = m_ViewPresenter.elements.OfType<VFXContextPresenter>().First().blockPresenters.First().block;
+            VFXSlot minValueSlot = flipBookBlock.GetInputSlot(0);
+
+            float originalMinValue = 123.456f;
+            minValueSlot.value = originalMinValue;
+
+            view.CopySelectionCallback();
+
+            minValueSlot.value = 789f;
+
+            view.PasteCallback();
+
+            var elements = view.Query().OfType<VFXBlockUI>().ToList();
+
+            var copyBlock = elements.Select(t => t.GetPresenter<VFXBlockPresenter>()).First(t => t.block != newBlock).block;
+
+            var copyMinSlot = copyBlock.GetInputSlot(0);
+
+            Assert.AreEqual((float)copyMinSlot.value, originalMinValue);
+        }
+
+        [Test]
+        public void CreateTemplate()
+        {
+            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+
+            window.presenter = m_ViewPresenter;
+
+            VFXView view = window.graphView as VFXView;
+            view.presenter = m_ViewPresenter;
+
+            view.CreateTemplateSystem(Vector2.zero);
+        }
     }
 }

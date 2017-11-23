@@ -157,17 +157,7 @@ namespace UnityEditor.VFX.UI
                             update.LinkTo(output);
                         }*/
 
-
-                        VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>("Assets/VFXEditor/Editor/Templates/DefaultParticleSystem.asset");
-
-                        VFXViewPresenter presenter = VFXViewPresenter.Manager.GetPresenter(asset);
-                        presenter.useCount++;
-
-                        object data = VFXCopyPaste.CreateCopy(presenter.allChildren);
-
-                        VFXCopyPaste.PasteCopy(this, tPos, data);
-
-                        presenter.useCount--;
+                        CreateTemplateSystem(tPos);
                     }
                     else
                     {
@@ -277,6 +267,20 @@ namespace UnityEditor.VFX.UI
             }
 
             return new VFXRendererSettings();
+        }
+
+        public void CreateTemplateSystem(Vector2 tPos)
+        {
+            VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>("Assets/VFXEditor/Editor/Templates/DefaultParticleSystem.asset");
+
+            VFXViewPresenter presenter = VFXViewPresenter.Manager.GetPresenter(asset);
+            presenter.useCount++;
+
+            object data = VFXCopyPaste.CreateCopy(presenter.allChildren);
+
+            VFXCopyPaste.PasteCopy(this, tPos, data);
+
+            presenter.useCount--;
         }
 
         void SetRendererSettings(VFXRendererSettings settings)

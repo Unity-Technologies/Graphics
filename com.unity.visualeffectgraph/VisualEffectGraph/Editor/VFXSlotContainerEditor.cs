@@ -47,7 +47,7 @@ public class VFXSlotContainerEditor : Editor
             if (visibleChildren)
             {
                 SerializedProperty childProp = prop.Copy();
-                while (childProp.NextVisible(visibleChildren) && childProp.propertyPath.StartsWith(prop.propertyPath + "."))
+                while (childProp != null && childProp.NextVisible(visibleChildren) && childProp.propertyPath.StartsWith(prop.propertyPath + "."))
                 {
                     visibleChildren = EditorGUILayout.PropertyField(childProp);
                 }
