@@ -7,6 +7,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     [CustomEditor(typeof(HDRenderPipelineAsset))]
     public sealed partial class HDRenderPipelineInspector : HDBaseEditor<HDRenderPipelineAsset>
     {
+        SerializedProperty m_RenderPipelineResources;
         SerializedProperty m_DefaultDiffuseMaterial;
         SerializedProperty m_DefaultShader;
 
@@ -38,6 +39,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         void InitializeProperties()
         {
+            m_RenderPipelineResources = properties.Find("m_RenderPipelineResources");
             m_DefaultDiffuseMaterial = properties.Find("m_DefaultDiffuseMaterial");
             m_DefaultShader = properties.Find("m_DefaultShader");
 
@@ -205,6 +207,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUILayout.LabelField(s_Styles.defaults, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(m_RenderPipelineResources, s_Styles.renderPipelineResources);            
             EditorGUILayout.PropertyField(m_DefaultDiffuseMaterial, s_Styles.defaultDiffuseMaterial);
             EditorGUILayout.PropertyField(m_DefaultShader, s_Styles.defaultShader);
             EditorGUI.indentLevel--;
