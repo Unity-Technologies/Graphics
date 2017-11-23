@@ -12,36 +12,46 @@ using UnityEditor.VFX.UI;
 
 using Object = UnityEngine.Object;
 using UnityEditorInternal;
+using System.Reflection;
 
 [CustomEditor(typeof(VFXContext), true)]
 [CanEditMultipleObjects]
-public class VFXContextEditor : Editor
+public class VFXContextEditor : VFXSlotContainerEditor
 {
     SerializedProperty spaceProperty;
-    void OnEnable()
+    SerializedObject dataObject;
+    protected new void OnEnable()
     {
-        spaceProperty = serializedObject.FindProperty("m_Space");
+        UnityEngine.Object[] allData = targets.Cast<VFXContext>().Select(t => t.GetData()).Distinct().Where(t => t != null).Cast<UnityEngine.Object>().ToArray();
+        if (allData.Length > 0)
+        {
+            dataObject = new SerializedObject(allData);
+
+            spaceProperty = dataObject.FindProperty("m_Space");
+        }
+        else
+        {
+            dataObject = null;
+            spaceProperty = null;
+        }
+
+
+        base.OnEnable();
     }
 
-    void OnDisable()
+    public override void DoInspectorGUI()
     {
-    }
+        if (spaceProperty != null)
+            EditorGUILayout.PropertyField(spaceProperty);
 
-    public void OnSceneGUI()
-    {
+        base.DoInspectorGUI();
     }
 
     public override void OnInspectorGUI()
     {
-        EditorGUILayout.PropertyField(spaceProperty);
+        base.OnInspectorGUI();
 
-        if (serializedObject.ApplyModifiedProperties())
-        {
-            foreach (VFXContext context in targets.OfType<VFXContext>())
-            {
-                // notify that something changed.
-                context.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
-            }
-        }
+        if (dataObject != null)
+            dataObject.ApplyModifiedProperties();
     }
 }

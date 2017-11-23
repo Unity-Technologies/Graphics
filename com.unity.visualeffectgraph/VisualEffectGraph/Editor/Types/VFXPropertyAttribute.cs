@@ -27,6 +27,7 @@ namespace UnityEditor.VFX
             { typeof(NormalizeAttribute), o => new VFXPropertyAttribute(Type.kNormalize) },
             { typeof(TooltipAttribute), o => new VFXPropertyAttribute((o as TooltipAttribute).tooltip) },
             { typeof(AngleAttribute), o => new VFXPropertyAttribute(Type.kAngle) },
+            { typeof(ShowAsColorAttribute), o => new VFXPropertyAttribute(Type.kColor) },
         };
 
         public static VFXPropertyAttribute[] Create(params object[] attributes)
@@ -54,6 +55,7 @@ namespace UnityEditor.VFX
                             break;
                         case Type.kTooltip:
                         case Type.kAngle:
+                        case Type.kColor:
                             break;
                         default:
                             throw new NotImplementedException();
@@ -86,6 +88,8 @@ namespace UnityEditor.VFX
                         case Type.kAngle:
                             label += " (Angle)";
                             break;
+                        case Type.kColor:
+                            break;
                         default:
                             throw new NotImplementedException();
                     }
@@ -112,13 +116,21 @@ namespace UnityEditor.VFX
             return false;
         }
 
+        public static bool IsColor(VFXPropertyAttribute[] attributes)
+        {
+            if (attributes != null)
+                return attributes.Any(o => o.m_Type == Type.kColor);
+            return false;
+        }
+
         private enum Type
         {
             kRange,
             kMin,
             kNormalize,
             kTooltip,
-            kAngle
+            kAngle,
+            kColor
         }
 
         private VFXPropertyAttribute(Type type, float min = -Mathf.Infinity, float max = Mathf.Infinity)

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.VFX
@@ -27,6 +28,11 @@ namespace UnityEditor.VFX
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
             return null;
+        }
+
+        public override bool CanBeCompiled()
+        {
+            return outputContexts.Any(c => c.CanBeCompiled());
         }
     }
 }

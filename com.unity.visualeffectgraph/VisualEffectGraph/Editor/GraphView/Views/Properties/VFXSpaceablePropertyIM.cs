@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
-
-using Object = UnityEngine.Object;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.UI
 {

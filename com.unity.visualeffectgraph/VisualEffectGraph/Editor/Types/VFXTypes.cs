@@ -3,22 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
     public class VFXTypeAttribute : Attribute
     {}
 
-    enum CoordinateSpace
-    {
-        Local,
-        Global,
-        Camera
-    }
+
+    public class ShowAsColorAttribute : Attribute
+    {}
 
     class CoordinateSpaceInfo
     {
-        public const int SpaceCount = 3;
+        public static readonly int SpaceCount = Enum.GetValues(typeof(CoordinateSpace)).Length;
     }
 
     interface ISpaceable

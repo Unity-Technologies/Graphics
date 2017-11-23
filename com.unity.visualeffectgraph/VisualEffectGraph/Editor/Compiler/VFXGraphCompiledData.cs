@@ -15,6 +15,7 @@ namespace UnityEditor.VFX
         public VFXExpressionMapper cpuMapper;
         public VFXExpressionMapper gpuMapper;
         public VFXUniformMapper uniformMapper;
+        public VFXMapping[] parameters;
         public Object processor;
     }
 
@@ -118,9 +119,9 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void FillExposedDescs(List<VFXExposedDesc> outExposedParameters, VFXExpressionGraph graph, HashSet<Object> models)
+        private static void FillExposedDescs(List<VFXExposedDesc> outExposedParameters, VFXExpressionGraph graph, IEnumerable<VFXParameter> parameters)
         {
-            foreach (var parameter in models.OfType<VFXParameter>())
+            foreach (var parameter in parameters)
             {
                 if (parameter.exposed)
                 {
@@ -137,9 +138,9 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void FillEventAttributeDescs(List<VFXLayoutElementDesc> eventAttributeDescs, VFXExpressionGraph graph, HashSet<Object> models)
+        private static void FillEventAttributeDescs(List<VFXLayoutElementDesc> eventAttributeDescs, VFXExpressionGraph graph, IEnumerable<VFXContext> contexts)
         {
-            foreach (var context in models.OfType<VFXContext>().Where(o => o.contextType == VFXContextType.kSpawner))
+            foreach (var context in contexts.Where(o => o.contextType == VFXContextType.kSpawner))
             {
                 foreach (var linked in context.outputContexts)
                 {
@@ -258,9 +259,9 @@ namespace UnityEditor.VFX
             return data;
         }
 
-        private static void FillSpawner(Dictionary<VFXContext, SpawnInfo> outContextSpawnToSpawnInfo, List<VFXCPUBufferDesc> outCpuBufferDescs, List<VFXSystemDesc> outSystemDescs, HashSet<Object> models, VFXExpressionGraph graph, List<VFXLayoutElementDesc> globalEventAttributeDescs, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
+        private static void FillSpawner(Dictionary<VFXContext, SpawnInfo> outContextSpawnToSpawnInfo, List<VFXCPUBufferDesc> outCpuBufferDescs, List<VFXSystemDesc> outSystemDescs, IEnumerable<VFXContext> contexts, VFXExpressionGraph graph, List<VFXLayoutElementDesc> globalEventAttributeDescs, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
         {
-            var spawners = CollectSpawnersHierarchy(models.OfType<VFXContext>());
+            var spawners = CollectSpawnersHierarchy(contexts);
             foreach (var it in spawners.Select((spawner, index) => new { spawner, index }))
             {
                 outContextSpawnToSpawnInfo.Add(it.spawner, new SpawnInfo() { bufferIndex = outCpuBufferDescs.Count, systemIndex = it.index });
@@ -330,16 +331,17 @@ namespace UnityEditor.VFX
                             return new VFXTaskDesc
                             {
                                 type = spawnerBlock.spawnerType,
-                                buffers = Enumerable.Empty<VFXMapping>().ToArray(),
+                                buffers = new VFXMapping[0],
+                                values = cpuExpression.ToArray(),
+                                parameters = contextData.parameters,
                                 processor = processor,
-                                values = cpuExpression.ToArray()
                             };
                         }).ToArray()
                 });
             }
         }
 
-        private static void FillEvent(List<VFXEventDesc> outEventDesc, Dictionary<VFXContext, SpawnInfo> contextSpawnToSpawnInfo, HashSet<Object> models)
+        private static void FillEvent(List<VFXEventDesc> outEventDesc, Dictionary<VFXContext, SpawnInfo> contextSpawnToSpawnInfo, IEnumerable<VFXContext> contexts)
         {
             var allStartNotLinked = contextSpawnToSpawnInfo.Where(o => !o.Key.inputFlowSlot[0].link.Any()).Select(o => (uint)o.Value.systemIndex).ToList();
             var allStopNotLinked = contextSpawnToSpawnInfo.Where(o => !o.Key.inputFlowSlot[1].link.Any()).Select(o => (uint)o.Value.systemIndex).ToList();
@@ -350,7 +352,7 @@ namespace UnityEditor.VFX
                 new { eventName = "OnStop", startSystems = new List<uint>(), stopSystems = allStopNotLinked },
             }.ToList();
 
-            var events = models.OfType<VFXContext>().Where(o => o.contextType == VFXContextType.kEvent);
+            var events = contexts.Where(o => o.contextType == VFXContextType.kEvent);
             foreach (var evt in events)
             {
                 var eventName = (evt as VFXBasicEvent).eventName;
@@ -387,14 +389,14 @@ namespace UnityEditor.VFX
             outEventDesc.AddRange(eventDescTemp.Select(o => new VFXEventDesc() { name = o.eventName, startSystems = o.startSystems.ToArray(), stopSystems = o.stopSystems.ToArray() }));
         }
 
-        private static void GenerateShaders(List<GeneratedCodeData> outGeneratedCodeData, VFXExpressionGraph graph, HashSet<Object> models, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
+        private static void GenerateShaders(List<GeneratedCodeData> outGeneratedCodeData, VFXExpressionGraph graph, IEnumerable<VFXContext> contexts, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
         {
             Profiler.BeginSample("VFXEditor.GenerateShaders");
             try
             {
                 var compilMode = new[] { /* VFXCodeGenerator.CompilationMode.Debug,*/ VFXCodeGenerator.CompilationMode.Runtime };
 
-                foreach (var context in models.OfType<VFXContext>().Where(model => model.contextType != VFXContextType.kSpawner))
+                foreach (var context in contexts.Where(model => model.contextType != VFXContextType.kSpawner))
                 {
                     var codeGeneratorTemplate = context.codeGeneratorTemplate;
                     if (codeGeneratorTemplate != null)
@@ -489,14 +491,16 @@ namespace UnityEditor.VFX
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Collect dependencies", 0 / nbSteps);
                 var models = new HashSet<Object>();
                 m_Graph.CollectDependencies(models);
+                var compilableContexts = models.OfType<VFXContext>().Where(c => c.CanBeCompiled());
+                var compilableData = models.OfType<VFXData>().Where(d => d.CanBeCompiled());
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Collect attributes", 1 / nbSteps);
-                foreach (var data in models.OfType<VFXData>())
+                foreach (var data in compilableData)
                     data.CollectAttributes();
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Compile expression Graph", 2 / nbSteps);
                 m_ExpressionGraph = new VFXExpressionGraph();
-                m_ExpressionGraph.CompileExpressions(m_Graph, VFXExpressionContextOption.Reduction);
+                m_ExpressionGraph.CompileExpressions(m_Graph, VFXExpressionContextOption.Reduction, true);
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generate bytecode", 3 / nbSteps);
                 var expressionDescs = new List<VFXExpressionDesc>();
@@ -504,26 +508,27 @@ namespace UnityEditor.VFX
                 FillExpressionDescs(expressionDescs, valueDescs, m_ExpressionGraph);
 
                 Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData = new Dictionary<VFXContext, VFXContextCompiledData>();
-                foreach (var context in models.OfType<VFXContext>())
+                foreach (var context in compilableContexts)
                     contextToCompiledData.Add(context, new VFXContextCompiledData());
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generate mappings", 4 / nbSteps);
-                foreach (var context in models.OfType<VFXContext>())
+                foreach (var context in compilableContexts)
                 {
                     uint contextId = (uint)context.GetParent().GetIndex(context);
                     var cpuMapper = m_ExpressionGraph.BuildCPUMapper(context);
                     var contextData = contextToCompiledData[context];
                     contextData.cpuMapper = cpuMapper;
+                    contextData.parameters = context.additionalMappings.ToArray();
                     contextToCompiledData[context] = contextData;
                 }
 
                 var exposedParameterDescs = new List<VFXExposedDesc>();
-                FillExposedDescs(exposedParameterDescs, m_ExpressionGraph, models);
+                FillExposedDescs(exposedParameterDescs, m_ExpressionGraph, models.OfType<VFXParameter>());
                 var globalEventAttributeDescs = new List<VFXLayoutElementDesc>() { new VFXLayoutElementDesc() { name = "spawnCount", type = VFXValueType.kFloat } };
-                FillEventAttributeDescs(globalEventAttributeDescs, m_ExpressionGraph, models);
+                FillEventAttributeDescs(globalEventAttributeDescs, m_ExpressionGraph, compilableContexts);
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generate Attribute layouts", 5 / nbSteps);
-                foreach (var data in models.OfType<VFXData>())
+                foreach (var data in compilableData)
                     data.GenerateAttributeLayout();
 
                 var expressionSheet = new VFXExpressionSheet();
@@ -537,7 +542,7 @@ namespace UnityEditor.VFX
                 var generatedCodeData = new List<GeneratedCodeData>();
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generate shaders", 6 / nbSteps);
-                GenerateShaders(generatedCodeData, m_ExpressionGraph, models, contextToCompiledData);
+                GenerateShaders(generatedCodeData, m_ExpressionGraph, compilableContexts, contextToCompiledData);
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Write shader files", 7 / nbSteps);
                 SaveShaderFiles(m_Graph.vfxAsset, generatedCodeData, contextToCompiledData);
 
@@ -554,13 +559,13 @@ namespace UnityEditor.VFX
                     initialData = ComputeArrayOfStructureInitialData(globalEventAttributeDescs)
                 });
                 var contextSpawnToSpawnInfo = new Dictionary<VFXContext, SpawnInfo>();
-                FillSpawner(contextSpawnToSpawnInfo, cpuBufferDescs, systemDescs, models, m_ExpressionGraph, globalEventAttributeDescs, contextToCompiledData);
+                FillSpawner(contextSpawnToSpawnInfo, cpuBufferDescs, systemDescs, compilableContexts, m_ExpressionGraph, globalEventAttributeDescs, contextToCompiledData);
 
                 var eventDescs = new List<VFXEventDesc>();
-                FillEvent(eventDescs, contextSpawnToSpawnInfo, models);
+                FillEvent(eventDescs, contextSpawnToSpawnInfo, compilableContexts);
 
                 var contextSpawnToBufferIndex = contextSpawnToSpawnInfo.Select(o => new { o.Key, o.Value.bufferIndex }).ToDictionary(o => o.Key, o => o.bufferIndex);
-                foreach (var data in models.OfType<VFXDataParticle>())
+                foreach (var data in compilableData.OfType<VFXDataParticle>())
                     data.FillDescs(bufferDescs, systemDescs, m_ExpressionGraph, contextToCompiledData, contextSpawnToBufferIndex);
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Setting up systems", 9 / nbSteps);
