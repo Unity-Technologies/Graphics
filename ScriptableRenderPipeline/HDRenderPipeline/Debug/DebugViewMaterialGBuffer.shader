@@ -66,7 +66,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
 
                 if (_DebugViewMaterial == DEBUGVIEWGBUFFER_DEPTH)
                 {
-                    float linearDepth = frac(posInput.depthVS * 0.1);
+                    float linearDepth = frac(posInput.linearDepth * 0.1);
                     result = linearDepth.xxx;
                 }
                 // Caution: This value is not the same than the builtin data bakeDiffuseLighting. It also include emissive and multiply by the albedo

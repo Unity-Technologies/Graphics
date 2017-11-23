@@ -370,9 +370,9 @@ float LinearEyeDepth(float depth, float4 zBufferParam)
 // Z buffer to linear depth.
 // Correctly handles oblique view frustums. Only valid for projection matrices!
 // Ref: An Efficient Depth Linearization Method for Oblique View Frustums, Eq. 6.
-float LinearEyeDepth(float2 positionSS, float depthRaw, float4 invProjParam)
+float LinearEyeDepth(float2 positionSS, float deviceDepth, float4 invProjParam)
 {
-    float4 positionCS = float4(positionSS * 2.0 - 1.0, depthRaw, 1.0);
+    float4 positionCS = float4(positionSS * 2.0 - 1.0, deviceDepth, 1.0);
     float  viewSpaceZ = rcp(dot(positionCS, invProjParam));
     // The view space uses a right-handed coordinate system.
     return -viewSpaceZ;
@@ -396,26 +396,26 @@ float2 ComputeScreenSpacePosition(float3 position, float4x4 clipSpaceTransform =
     return positionSS;
 }
 
-float4 ComputeClipSpacePosition(float2 positionSS, float depthRaw)
+float4 ComputeClipSpacePosition(float2 positionSS, float deviceDepth)
 {
 #if UNITY_UV_STARTS_AT_TOP
     positionSS.y = 1.0 - positionSS.y;
 #endif
-    return float4(positionSS * 2.0 - 1.0, depthRaw, 1.0);
+    return float4(positionSS * 2.0 - 1.0, deviceDepth, 1.0);
 }
 
-float3 ComputeViewSpacePosition(float2 positionSS, float depthRaw, float4x4 invProjMatrix)
+float3 ComputeViewSpacePosition(float2 positionSS, float deviceDepth, float4x4 invProjMatrix)
 {
-    float4 positionCS = ComputeClipSpacePosition(positionSS, depthRaw);
+    float4 positionCS = ComputeClipSpacePosition(positionSS, deviceDepth);
     float4 positionVS = mul(invProjMatrix, positionCS);
     // The view space uses a right-handed coordinate system.
     positionVS.z = -positionVS.z;
     return positionVS.xyz / positionVS.w;
 }
 
-float3 ComputeWorldSpacePosition(float2 positionSS, float depthRaw, float4x4 invViewProjMatrix)
+float3 ComputeWorldSpacePosition(float2 positionSS, float deviceDepth, float4x4 invViewProjMatrix)
 {
-    float4 positionCS  = ComputeClipSpacePosition(positionSS, depthRaw);
+    float4 positionCS  = ComputeClipSpacePosition(positionSS, deviceDepth);
     float4 hpositionWS = mul(invViewProjMatrix, positionCS);
     return hpositionWS.xyz / hpositionWS.w;
 }
@@ -432,8 +432,8 @@ struct PositionInputs
     uint2 unPositionSS;
     uint2 unTileCoord;
 
-    float depthRaw; // raw depth from depth buffer
-    float depthVS;
+    float deviceDepth; // raw depth from depth buffer
+    float linearDepth;
 
     float3 positionWS;
 };
@@ -466,25 +466,24 @@ PositionInputs GetPositionInput(float2 unPositionSS, float2 invScreenSize)
 }
 
 // From forward
-// depthRaw and depthVS come directly form .zw of SV_Position
-void UpdatePositionInput(float depthRaw, float depthVS, float3 positionWS, inout PositionInputs posInput)
+// deviceDepth and linearDepth come directly from .zw of SV_Position
+void UpdatePositionInput(float deviceDepth, float linearDepth, float3 positionWS, inout PositionInputs posInput)
 {
-    posInput.depthRaw   = depthRaw;
-    posInput.depthVS    = depthVS;
-    posInput.positionWS = positionWS;
+    posInput.deviceDepth = deviceDepth;
+    posInput.linearDepth = linearDepth;
+    posInput.positionWS  = positionWS;
 }
 
 // From deferred or compute shader
 // depth must be the depth from the raw depth buffer. This allow to handle all kind of depth automatically with the inverse view projection matrix.
 // For information. In Unity Depth is always in range 0..1 (even on OpenGL) but can be reversed.
-void UpdatePositionInput(float depthRaw, float4x4 invViewProjMatrix, float4x4 viewProjMatrix, inout PositionInputs posInput)
+void UpdatePositionInput(float deviceDepth, float4x4 invViewProjMatrix, float4x4 viewProjMatrix, inout PositionInputs posInput)
 {
-    posInput.depthRaw = depthRaw;
-
-    posInput.positionWS = ComputeWorldSpacePosition(posInput.positionSS, depthRaw, invViewProjMatrix);
+    posInput.deviceDepth = deviceDepth;
+    posInput.positionWS  = ComputeWorldSpacePosition(posInput.positionSS, deviceDepth, invViewProjMatrix);
 
     // The compiler should optimize this (less expensive than reconstruct depth VS from depth buffer)
-    posInput.depthVS = mul(viewProjMatrix, float4(posInput.positionWS, 1.0)).w;
+    posInput.linearDepth = mul(viewProjMatrix, float4(posInput.positionWS, 1.0)).w;
 }
 
 // The view direction 'V' points towards the camera.
@@ -493,9 +492,9 @@ void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float4x4 viewP
 {
     posInput.positionWS += depthOffsetVS * (-V);
 
-    float4 positionCS = mul(viewProjMatrix, float4(posInput.positionWS, 1.0));
-    posInput.depthVS  = positionCS.w;
-    posInput.depthRaw = positionCS.z / positionCS.w;
+    float4 positionCS    = mul(viewProjMatrix, float4(posInput.positionWS, 1.0));
+    posInput.linearDepth = positionCS.w;
+    posInput.deviceDepth = positionCS.z / positionCS.w;
 }
 
 // ----------------------------------------------------------------------------
