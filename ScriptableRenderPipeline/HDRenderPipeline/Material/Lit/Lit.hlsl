@@ -38,6 +38,12 @@
 #define GBufferType3 float4
 #endif
 
+// GBuffer texture declaration
+TEXTURE2D(_GBufferTexture0);
+TEXTURE2D(_GBufferTexture1);
+TEXTURE2D(_GBufferTexture2);
+TEXTURE2D(_GBufferTexture3);
+
 // Reference Lambert diffuse / GGX Specular for IBL and area lights
 #ifdef HAS_LIGHTLOOP // Both reference define below need to be define only if LightLoop is present, else we get a compile error
 // #define LIT_DISPLAY_REFERENCE_AREA
@@ -441,6 +447,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 // Must be in sync with RT declared in HDRenderPipeline.cs ::Rebuild
 void EncodeIntoGBuffer( SurfaceData surfaceData,
                         float3 bakeDiffuseLighting,
+                        uint2 unPositionSS,
                         #if SHADEROPTIONS_PACK_GBUFFER_IN_U16
                         out GBufferType0 outGBufferU0,
                         out GBufferType1 outGBufferU1
@@ -545,19 +552,21 @@ float4 DecodeGBuffer0(GBufferType0 encodedGBuffer0)
 }
 
 void DecodeFromGBuffer(
-#if SHADEROPTIONS_PACK_GBUFFER_IN_U16
-    GBufferType0 inGBufferU0,
-    GBufferType1 inGBufferU1,
-#else
-    GBufferType0 inGBuffer0,
-    GBufferType1 inGBuffer1,
-    GBufferType2 inGBuffer2,
-    GBufferType3 inGBuffer3,
-#endif
+    uint2 unPositionSS,
     uint featureFlags,
     out BSDFData bsdfData,
     out float3 bakeDiffuseLighting)
 {
+#if SHADEROPTIONS_PACK_GBUFFER_IN_U16
+    GBufferType0 inGBufferU0 = LOAD_TEXTURE2D(_GBufferTexture0, unPositionSS);
+    GBufferType1 inGBufferU1 = LOAD_TEXTURE2D(_GBufferTexture1, unPositionSS);
+#else
+    GBufferType0 inGBuffer0 = LOAD_TEXTURE2D(_GBufferTexture0, unPositionSS);
+    GBufferType1 inGBuffer1 = LOAD_TEXTURE2D(_GBufferTexture1, unPositionSS);
+    GBufferType2 inGBuffer2 = LOAD_TEXTURE2D(_GBufferTexture2, unPositionSS);
+    GBufferType3 inGBuffer3 = LOAD_TEXTURE2D(_GBufferTexture3, unPositionSS);
+#endif
+
     ZERO_INITIALIZE(BSDFData, bsdfData);
 
     g_FeatureFlags = featureFlags;
@@ -679,27 +688,13 @@ void DecodeFromGBuffer(
 
 // Function call from the material classification compute shader
 // Note that as we store materialId on two buffer (for anisotropy case), the code need to load 2 RGBA8 buffer
-uint MaterialFeatureFlagsFromGBuffer(
-#if SHADEROPTIONS_PACK_GBUFFER_IN_U16
-    GBufferType0 inGBufferU0,
-    GBufferType1 inGBufferU1
-#else
-    GBufferType0 inGBuffer0,
-    GBufferType1 inGBuffer1,
-    GBufferType2 inGBuffer2,
-    GBufferType3 inGBuffer3
-#endif
-)
+uint MaterialFeatureFlagsFromGBuffer(uint2 unPositionSS)
 {
     BSDFData bsdfData;
     float3 unused;
 
     DecodeFromGBuffer(
-#if SHADEROPTIONS_PACK_GBUFFER_IN_U16
-        inGBufferU0, inGBufferU1,
-#else
-        inGBuffer0, inGBuffer1, inGBuffer2, inGBuffer3,
-#endif
+        unPositionSS,
         0xFFFFFFFF,
         bsdfData,
         unused
@@ -797,7 +792,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 
         float ieta = 1.0 / bsdfData.coatIOR; // inverse eta
         preLightData.ieta = ieta;
-        preLightData.coatFresnel0 = Sqr(bsdfData.coatIOR - 1.0) / Sqr(bsdfData.coatIOR + 1.0);
+        preLightData.coatFresnel0 = Sq(bsdfData.coatIOR - 1.0) / Sq(bsdfData.coatIOR + 1.0);
 
         // Clear coat IBL
         preLightData.coatIblDirWS = reflect(-V, N);
@@ -871,7 +866,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
         // Update the roughness and the IBL miplevel
         // Bottom layer is affected by upper layer BRDF, result can't be more sharp than input (it is to mimic what a path tracer will do)
         float roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
-        float shininess = Sqr(preLightData.ieta) * (2.0 / Sqr(roughness) - 2.0);
+        float shininess = Sq(preLightData.ieta) * (2.0 / Sq(roughness) - 2.0);
         roughness = sqrt(2.0 / (shininess + 2.0));
         preLightData.iblDirWS = GetSpecularDominantDir(N, iblR, roughness, NdotV);
         preLightData.iblMipLevel = PerceptualRoughnessToMipmapLevel(RoughnessToPerceptualRoughness(roughness));
@@ -953,7 +948,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     {
         // Change the Fresnel term to account for transmission through Clear Coat and reflection on the base layer
         float F = F_Schlick(preLightData.coatFresnel0, preLightData.coatNdotV);
-        F = Sqr(-F * bsdfData.coatCoverage + 1.0);
+        F = Sq(-F * bsdfData.coatCoverage + 1.0);
         F /= preLightData.ieta; //TODO: LaurentB why / ieta here and not for other lights ?
 
         preLightData.ltcMagnitudeFresnel = F * bsdfData.fresnel0 * ltcGGXFresnelMagnitudeDiff + (float3)ltcGGXFresnelMagnitude;
@@ -1073,7 +1068,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
         float NdotL = saturate(dot(bsdfData.coatNormalWS, L));
         float NdotV = preLightData.coatNdotV;
         float LdotV = dot(L, V);
-        float invLenLV = rsqrt(max(2 * LdotV + 2, FLT_SMALL));
+        float invLenLV = rsqrt(max(2 * LdotV + 2, FLT_EPSILON));
         float NdotH = saturate((NdotL + NdotV) * invLenLV);
         float LdotH = saturate(invLenLV * LdotV + invLenLV);
 
@@ -1083,7 +1078,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
         specularLighting += F * D_GGX(NdotH, 0.01) * NdotL * bsdfData.coatCoverage;
 
         // Change the Fresnel term to account for transmission through Clear Coat and reflection on the base layer
-        F = Sqr(-F * bsdfData.coatCoverage + 1.0);
+        F = Sq(-F * bsdfData.coatCoverage + 1.0);
 
         // Change the Light and View direction to account for IOR change.
         // Update the half vector accordingly
@@ -1095,7 +1090,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     float NdotL    = saturate(dot(bsdfData.normalWS, L)); // Must have the same value without the clamp
     float NdotV    = preLightData.NdotV;                  // Get the unaltered (geometric) version
     float LdotV    = dot(L, V);
-    float invLenLV = rsqrt(max(2 * LdotV + 2, FLT_SMALL)); // invLenLV = rcp(length(L + V)) - caution about the case where V and L are opposite, it can happen, use max to avoid this
+    float invLenLV = rsqrt(max(2 * LdotV + 2, FLT_EPSILON)); // invLenLV = rcp(length(L + V)) - caution about the case where V and L are opposite, it can happen, use max to avoid this
     float NdotH    = saturate((NdotL + NdotV) * invLenLV);
     float LdotH    = saturate(invLenLV * LdotV + invLenLV);
 
@@ -1911,7 +1906,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         envLighting += F * preLD.rgb * bsdfData.coatCoverage;
 
         // Change the Fresnel term to account for transmission through Clear Coat and reflection on the base layer.
-        F = Sqr(-F * bsdfData.coatCoverage + 1.0);
+        F = Sq(-F * bsdfData.coatCoverage + 1.0);
     }
 
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, preLightData.iblMipLevel);

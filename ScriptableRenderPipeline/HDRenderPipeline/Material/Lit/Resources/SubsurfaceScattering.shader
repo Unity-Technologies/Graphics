@@ -55,7 +55,6 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
             float4 _HalfRcpWeightedVariances[SSS_BASIC_N_SAMPLES];           // RGB for chromatic, A for achromatic
 
             TEXTURE2D(_IrradianceSource);             // Includes transmitted light
-            DECLARE_GBUFFER_TEXTURE(_GBufferTexture); // Contains the albedo and SSS parameters
 
             //-------------------------------------------------------------------------------------
             // Implementation
@@ -80,17 +79,15 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
-
-                float3 unused;
+                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);                
 
                 // Note: When we are in this SubsurfaceScattering shader we know that we are a SSS material. This shader is strongly coupled with the deferred Lit.shader.
                 // We can use the material classification facility to help the compiler to know we use SSS material and optimize the code (and don't require to read gbuffer with materialId).
                 uint featureFlags = MATERIALFEATUREFLAGS_LIT_SSS;
 
                 BSDFData bsdfData;
-                FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
-                DECODE_FROM_GBUFFER(gbuffer, featureFlags, bsdfData, unused);
+                float3 unused;
+                DECODE_FROM_GBUFFER(posInput.unPositionSS, featureFlags, bsdfData, unused);
 
                 int    profileID   = bsdfData.subsurfaceProfile;
                 float  distScale   = bsdfData.subsurfaceRadius;
