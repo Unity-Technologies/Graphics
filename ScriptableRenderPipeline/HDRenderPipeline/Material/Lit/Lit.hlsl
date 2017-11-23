@@ -752,6 +752,7 @@ struct PreLightData
     float diffuseFGD;
 
     // Area lights (17 VGPRs)
+    // TODO: 'orthoBasisViewNormal' is just a rotation around the normal and should thus be just 1x VGPR.
     float3x3 orthoBasisViewNormal; // Right-handed view-dependent orthogonal basis around the normal (6x VGPRs)
     float3x3 ltcTransformDiffuse;  // Inverse transformation for Lambertian or Disney Diffuse        (4x VGPRs)
     float3x3 ltcTransformSpecular; // Inverse transformation for GGX                                 (4x VGPRs)
