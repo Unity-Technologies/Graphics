@@ -194,6 +194,6 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             ENDCG
         }
     }
-    Fallback "Standard (Specular setup)"
+    Fallback "Hidden/InternalErrorShader"
     CustomEditor "LightweightStandardSimpleLightingGUI"
 }

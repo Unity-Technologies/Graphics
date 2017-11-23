@@ -140,7 +140,7 @@
             ENDCG
         }
     }
-    FallBack "Standard"
+    FallBack "Hidden/InternalErrorShader"
     CustomEditor "LightweightStandardGUI"
 }
 
