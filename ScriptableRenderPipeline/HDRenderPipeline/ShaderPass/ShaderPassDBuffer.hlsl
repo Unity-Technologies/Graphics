@@ -37,31 +37,11 @@ void Frag(  PackedVaryingsToPS packedInput,
     ENCODE_INTO_GBUFFER(surfaceData, bakeDiffuseLighting, outGBuffer);
     ENCODE_VELOCITY_INTO_GBUFFER(builtinData.velocity, outVelocityBuffer);
 */
-//	float d = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, posInput.positionSS.xy), _ZBufferParams);
 	float d = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, posInput.positionSS.xy);
 	UpdatePositionInput(d, _InvViewProjMatrix, _ViewProjMatrix, posInput);
-	posInput.positionWS.xyz += _WorldSpaceCameraPos;
-
-	clip(posInput.positionWS.y < 0 ? -1 : 1);
-	//clip(posInput.positionWS.y > 0.0001 ? -1 : 1);
-	outDBuffer0.xyzw = float4(posInput.positionWS.xyz + float3(0.5, 0.0, 0.5), 1.0f);
-/*
-//	float d = Linear01Depth(SAMPLE_TEXTURE_2D(_CameraDepthTexture, sampler_CameraDepthTexture, posInput.positionSS.xy).z);
-	float4 res;
-	res = float4(posInput.positionSS.x,posInput.positionSS.y,0,0);
-	res = float4(0,0,posInput.depthRaw,0);
-	res = float4(0,0,d,0);
-	res = float4(posInput.positionWS.xyz,1);
-	res = mul(_WorldToDecal, res); 
-	clip(res.y < 0.5 ? -1 : 1);
-	clip(res.x < 0.5 ? -1 : 1);
-	clip(res.z < 0.5 ? -1 : 1);
-	clip(res.y > 0.5 ? -1 : 1);
-	clip(res.x > 0.5 ? -1 : 1);
-	clip(res.z > 0.5 ? -1 : 1);
-
-//	clip(float3(1.0f, 1.0f, 1.0f) - res.xyz);
-//	float4 res = packedInput.vmesh.positionCS;
-	outDBuffer0.xyzw = float4(res.xyz, 1.0f);
-*/
+	float3 positionWS = posInput.positionWS;
+	float3 positionDS = mul(_WorldToDecal, float4(positionWS, 1.0f)).xyz;
+	clip(positionDS < 0 ? -1 : 1);
+	clip(positionDS > 1 ? -1 : 1);
+	outDBuffer0.xyzw = float4(positionDS, 1.0f);
 }

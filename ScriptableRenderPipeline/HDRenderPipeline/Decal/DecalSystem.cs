@@ -22,7 +22,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Decal
         internal HashSet<Decal> m_DecalsBoth = new HashSet<Decal>();
         Mesh m_CubeMesh;
 
-        private readonly static int m_WorldToDecal = Shader.PropertyToID("_WorldToDecal");
+        private static readonly int m_WorldToDecal = Shader.PropertyToID("_WorldToDecal");
 
         public DecalSystem()
         {
@@ -35,14 +35,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Decal
 
             Vector3[] vertices = new Vector3[8];
 
-            vertices[0] = new Vector3(-0.5f, -0.5f, -0.5f);
-            vertices[1] = new Vector3(0.5f, -0.5f, -0.5f);
-            vertices[2] = new Vector3(0.5f, 0.5f, -0.5f);
-            vertices[3] = new Vector3(-0.5f, 0.5f, -0.5f);
-            vertices[4] = new Vector3(-0.5f, -0.5f, 0.5f);
-            vertices[5] = new Vector3(0.5f, -0.5f, 0.5f);
-            vertices[6] = new Vector3(0.5f, 0.5f, 0.5f);
-            vertices[7] = new Vector3(-0.5f, 0.5f, 0.5f);
+            vertices[0] = new Vector3(-0.5f, -1.0f, -0.5f);
+            vertices[1] = new Vector3( 0.5f, -1.0f, -0.5f);
+            vertices[2] = new Vector3( 0.5f, 0.0f, -0.5f);
+            vertices[3] = new Vector3(-0.5f, 0.0f, -0.5f);
+            vertices[4] = new Vector3(-0.5f, -1.0f,  0.5f);
+            vertices[5] = new Vector3( 0.5f, -1.0f,  0.5f);
+            vertices[6] = new Vector3( 0.5f, 0.0f,  0.5f);
+            vertices[7] = new Vector3(-0.5f, 0.0f,  0.5f);
 
             m_CubeMesh.vertices = vertices;
 
@@ -85,13 +85,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Decal
         {
             if (m_CubeMesh == null)
                 CreateCubeMesh();
+			Matrix4x4 CRWStoAWS = new Matrix4x4();
+			if (ShaderConfig.s_CameraRelativeRendering == 1)
+			{
+				Vector4 worldSpaceCameraPos = Shader.GetGlobalVector(HDShaderIDs._WorldSpaceCameraPos);
+				CRWStoAWS = Matrix4x4.Translate(worldSpaceCameraPos);
+			}
+			else
+			{
+				CRWStoAWS = Matrix4x4.identity;
+			}
             foreach (var decal in m_DecalsDiffuse)
-            {
-                Matrix4x4 offset = Matrix4x4.Translate(new Vector3(0.0f, -0.5f, 0.0f));
-                Matrix4x4 final = decal.transform.localToWorldMatrix * offset;                
-                Vector4 positionWS = new Vector4(0,5,0,1);
-                Vector4 positionDS = final.inverse * positionWS;
-                cmd.SetGlobalMatrix(m_WorldToDecal, final.inverse);
+            {              
+                Matrix4x4 final = decal.transform.localToWorldMatrix;   
+                Matrix4x4 worldToDecal = Matrix4x4.Translate(new Vector3(0.5f, 0.0f, 0.5f)) * Matrix4x4.Scale(new Vector3(1.0f, -1.0f, 1.0f)) * final.inverse;           
+                cmd.SetGlobalMatrix(m_WorldToDecal, worldToDecal * CRWStoAWS);
                 //DrawMesh(Mesh mesh, Matrix4x4 matrix, Material material, int submeshIndex, int shaderPass);
                 cmd.DrawMesh(m_CubeMesh, final, decal.m_Material, 0, 0);
             }
