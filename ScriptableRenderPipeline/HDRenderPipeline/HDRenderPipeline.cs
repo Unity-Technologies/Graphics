@@ -115,11 +115,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Renderer Bake configuration can vary depends on if shadow mask is enabled or no
         RendererConfiguration m_currentRendererConfigurationBakedLighting = HDUtils.k_RendererConfigurationBakedLighting;
+
+        // Various set of material use in render loop
         Material m_CopyStencilForSplitLighting;
         Material m_CopyStencilForRegularLighting;
         GPUCopy m_GPUCopy;
-
-        // Various set of material use in render loop
+        
         ComputeShader m_SubsurfaceScatteringCS { get { return m_Asset.renderPipelineResources.subsurfaceScatteringCS; } }
         int m_SubsurfaceScatteringKernel;
         Material m_CombineLightingPass;
@@ -132,6 +133,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_GaussianPyramidKernel;
         ComputeShader m_DepthPyramidCS { get { return m_Asset.renderPipelineResources.depthPyramidCS; } }
         int m_DepthPyramidKernel;
+
+        ComputeShader m_applyDistortionCS { get { return m_Asset.renderPipelineResources.applyDistortionCS; } }
+        int m_applyDistortionKernel;
 
         Material m_CameraMotionVectorsMaterial;
 
@@ -332,6 +336,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             CreateSssMaterials();
 
+            // Initialize various compute shader resources
+            m_applyDistortionKernel = m_applyDistortionCS.FindKernel("KMain");
+            
             m_CopyStencilForSplitLighting   = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/CopyStencilBuffer");
             m_CopyStencilForSplitLighting.EnableKeyword("EXPORT_HTILE");
             m_CopyStencilForSplitLighting.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.SplitLighting);
@@ -1095,16 +1102,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 var size = new Vector4(m_CurrentWidth, m_CurrentHeight, 1f / m_CurrentWidth, 1f / m_CurrentHeight);
                 uint x, y, z;
-                resources.applyDistortionCS.GetKernelThreadGroupSizes(resources.applyDistortionKernel, out x, out y, out z);
-                cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._DistortionTexture, m_DistortionBufferRT);
-                cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._GaussianPyramidColorTexture, m_GaussianPyramidColorBufferRT);
-                cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._CameraColorTexture, m_CameraColorBufferRT);
-                cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._DepthTexture, GetDepthTexture());
-                cmd.SetComputeVectorParam(resources.applyDistortionCS, HDShaderIDs._Size, size);
-                cmd.SetComputeVectorParam(resources.applyDistortionCS, HDShaderIDs._ZBufferParams, Shader.GetGlobalVector(HDShaderIDs._ZBufferParams));
-                cmd.SetComputeVectorParam(resources.applyDistortionCS, HDShaderIDs._GaussianPyramidColorMipSize, Shader.GetGlobalVector(HDShaderIDs._GaussianPyramidColorMipSize));
+                m_applyDistortionCS.GetKernelThreadGroupSizes(m_applyDistortionKernel, out x, out y, out z);
+                cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._DistortionTexture, m_DistortionBufferRT);
+                cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._GaussianPyramidColorTexture, m_GaussianPyramidColorBufferRT);
+                cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._CameraColorTexture, m_CameraColorBufferRT);
+                cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._DepthTexture, GetDepthTexture());
+                cmd.SetComputeVectorParam(m_applyDistortionCS, HDShaderIDs._Size, size);
+                cmd.SetComputeVectorParam(m_applyDistortionCS, HDShaderIDs._ZBufferParams, Shader.GetGlobalVector(HDShaderIDs._ZBufferParams));
+                cmd.SetComputeVectorParam(m_applyDistortionCS, HDShaderIDs._GaussianPyramidColorMipSize, Shader.GetGlobalVector(HDShaderIDs._GaussianPyramidColorMipSize));
 
-                cmd.DispatchCompute(resources.applyDistortionCS, resources.applyDistortionKernel, Mathf.CeilToInt(size.x / x), Mathf.CeilToInt(size.y / y), 1);
+                cmd.DispatchCompute(m_applyDistortionCS, m_applyDistortionKernel, Mathf.CeilToInt(size.x / x), Mathf.CeilToInt(size.y / y), 1);
             }
         }
 
