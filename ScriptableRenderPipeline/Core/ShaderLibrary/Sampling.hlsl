@@ -60,6 +60,63 @@ float3 ConvertEquiarealToCubemap(float u, float v)
     return TransformGLtoDX(SphericalToCartesian(phi, cosTheta));
 }
 
+// Convert a texel position into normalized position [-1..1]x[-1..1]
+float2 CubemapTexelToNVC(uint2 unPositionTXS, uint cubemapSize)
+{
+    return 2.0 * float2(unPositionTXS) / float(max(cubemapSize - 1, 1)) - 1.0;
+}
+
+// Map cubemap face to world vector basis
+static const float3 CUBEMAP_FACE_BASIS_MAPPING[6][3] =
+{
+    //XPOS face
+    {
+        float3(0.0, 0.0, -1.0),
+        float3(0.0, -1.0, 0.0),
+        float3(1.0, 0.0, 0.0)
+    },
+    //XNEG face
+    {
+        float3(0.0, 0.0, 1.0),
+        float3(0.0, -1.0, 0.0),
+        float3(-1.0, 0.0, 0.0)
+    },
+    //YPOS face
+    {
+        float3(1.0, 0.0, 0.0),
+        float3(0.0, 0.0, 1.0),
+        float3(0.0, 1.0, 0.0)
+    },
+    //YNEG face
+    {
+        float3(1.0, 0.0, 0.0),
+        float3(0.0, 0.0, -1.0),
+        float3(0.0, -1.0, 0.0)
+    },
+    //ZPOS face
+    {
+        float3(1.0, 0.0, 0.0),
+        float3(0.0, -1.0, 0.0),
+        float3(0.0, 0.0, 1.0)
+    },
+    //ZNEG face
+    {
+        float3(-1.0, 0.0, 0.0),
+        float3(0.0, -1.0, 0.0),
+        float3(0.0, 0.0, -1.0)
+    }
+};
+
+// Convert a normalized cubemap face position into a direction
+float3 CubemapTexelToDirection(float2 positionNVC, uint faceId)
+{
+    float3 dir = CUBEMAP_FACE_BASIS_MAPPING[faceId][0] * positionNVC.x
+               + CUBEMAP_FACE_BASIS_MAPPING[faceId][1] * positionNVC.y
+               + CUBEMAP_FACE_BASIS_MAPPING[faceId][2];
+
+    return normalize(dir);
+}
+
 //-----------------------------------------------------------------------------
 // Sampling function
 // Reference : http://www.cs.virginia.edu/~jdl/bib/globillum/mis/shirley96.pdf + PBRT
