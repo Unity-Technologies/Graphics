@@ -46,13 +46,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Material defaultDiffuseMaterial
         {
             get { return m_DefaultDiffuseMaterial; }
-            private set { m_DefaultDiffuseMaterial = value; }
+            set { m_DefaultDiffuseMaterial = value; }
         }
 
         public Shader defaultShader
         {
             get { return m_DefaultShader; }
-            private set { m_DefaultShader = value; }
+            set { m_DefaultShader = value; }
         }
 
         public override Shader GetDefaultShader()
