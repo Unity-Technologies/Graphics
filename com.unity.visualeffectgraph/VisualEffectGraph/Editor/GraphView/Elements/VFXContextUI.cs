@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
+using UnityEngine.VFX;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEngine.Experimental.UIElements.StyleSheets;
@@ -196,9 +197,7 @@ namespace UnityEditor.VFX.UI
 
         void OnSpace()
         {
-            VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
-            int result = (int)presenter.context.space;
-
+            var presenter = GetPresenter<VFXContextPresenter>();
             presenter.context.space = (CoordinateSpace)(((int)presenter.context.space + 1) % (CoordinateSpaceInfo.SpaceCount));
         }
 

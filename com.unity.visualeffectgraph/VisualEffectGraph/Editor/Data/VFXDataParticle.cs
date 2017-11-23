@@ -144,7 +144,7 @@ namespace UnityEditor.VFX
         private List<int> m_BucketOffsets = new List<int>();
     }
 
-    class VFXDataParticle : VFXData
+    class VFXDataParticle : VFXData, ISpaceable
     {
         public override VFXDataType type { get { return VFXDataType.kParticle; } }
 
@@ -177,16 +177,10 @@ namespace UnityEditor.VFX
             }
         }
 
-        public Bounds bbox
+        public CoordinateSpace space
         {
-            get { return m_Bounds; }
-            set { m_Bounds = value; }
-        }
-
-        public bool worldSpace
-        {
-            get { return m_WorldSpace; }
-            set { m_WorldSpace = value; }
+            get { return m_Space; }
+            set { m_Space = value; }
         }
 
         public override bool CanBeCompiled()
@@ -370,7 +364,7 @@ namespace UnityEditor.VFX
         [SerializeField]
         private Bounds m_Bounds;
         [SerializeField]
-        private bool m_WorldSpace;
+        private CoordinateSpace m_Space;
         [NonSerialized]
         private StructureOfArrayProvider m_layoutAttributeCurrent = new StructureOfArrayProvider();
         [NonSerialized]

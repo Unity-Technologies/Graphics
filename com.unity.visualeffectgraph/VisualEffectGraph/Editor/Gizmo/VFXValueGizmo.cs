@@ -1,11 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 using System.Linq;
 using System.Reflection;
 using Type = System.Type;
 using Delegate = System.Delegate;
-using Action = System.Action;
 
 namespace UnityEditor.VFX.UI
 {

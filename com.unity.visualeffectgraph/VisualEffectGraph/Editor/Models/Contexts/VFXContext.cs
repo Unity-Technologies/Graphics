@@ -412,9 +412,6 @@ namespace UnityEditor.VFX
         private VFXData m_Data;
 
         [SerializeField]
-        private CoordinateSpace m_Space;
-
-        [SerializeField]
         private VFXContextSlot[] m_InputFlowSlot;
         [SerializeField]
         private VFXContextSlot[] m_OutputFlowSlot;
@@ -426,12 +423,19 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return m_Space;
+                if (m_Data is ISpaceable)
+                {
+                    return (m_Data as ISpaceable).space;
+                }
+                return CoordinateSpace.Local;
             }
             set
             {
-                m_Space = value;
-                Invalidate(InvalidationCause.kStructureChanged); // TODO This does not seem correct
+                if (m_Data is ISpaceable)
+                {
+                    (m_Data as ISpaceable).space = value;
+                    Invalidate(InvalidationCause.kSettingChanged);
+                }
             }
         }
     }
