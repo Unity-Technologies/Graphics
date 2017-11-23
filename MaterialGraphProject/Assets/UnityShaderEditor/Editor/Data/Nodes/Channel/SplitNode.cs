@@ -34,15 +34,13 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector1MaterialSlot(OutputSlotGId, kOutputSlotGName, kOutputSlotGName, SlotType.Output, 0));
             AddSlot(new Vector1MaterialSlot(OutputSlotBId, kOutputSlotBName, kOutputSlotBName, SlotType.Output, 0));
             AddSlot(new Vector1MaterialSlot(OutputSlotAId, kOutputSlotAName, kOutputSlotAName, SlotType.Output, 0));
-            RemoveSlotsNameNotMatching(s_ValidSlots);
+            RemoveSlotsNameNotMatching(new int[] { InputSlotId, OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId });
         }
 
-        static int[] s_ValidSlots = { InputSlotId, OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId };
         static int[] s_OutputSlots = {OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId};
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            NodeUtils.SlotConfigurationExceptionIfBadConfiguration(this, new[] { InputSlotId }, new[] { OutputSlotRId, OutputSlotGId, OutputSlotBId });
             var inputValue = GetSlotValue(InputSlotId, generationMode);
 
             var inputSlot = FindInputSlot<MaterialSlot>(InputSlotId);
@@ -59,7 +57,8 @@ namespace UnityEditor.ShaderGraph
 
             for (var i = 0; i < 4; i++)
             {
-                var outputValue = i >= numInputChannels ? "1.0" : string.Format("{0}[{1}]", inputValue, i);
+                var outputFormat = numInputChannels == 1 ? inputValue : string.Format("{0}[{1}]", inputValue, i);
+                var outputValue = i >= numInputChannels ? "0" : outputFormat;
                 visitor.AddShaderChunk(string.Format("{0} {1} = {2};", precision, GetVariableNameForSlot(s_OutputSlots[i]), outputValue), true);
             }
         }
