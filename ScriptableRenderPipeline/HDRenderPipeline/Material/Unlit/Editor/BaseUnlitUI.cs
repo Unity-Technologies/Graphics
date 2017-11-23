@@ -54,7 +54,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Transparent
         }
 
-        // Enum values are hardcoded for retrocompatibility. Don't change them.
+        // Enum values are hardcoded for retro-compatibility. Don't change them.
         public enum BlendMode
         {
             Alpha = 0,
@@ -269,13 +269,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // This function must finish with double sided option (see LitUI.cs)
             if (doubleSidedEnable != null)
             {
-                // Grey the option is backface rendering is enabled
-                bool disabledScope = transparentBackfaceEnable != null && transparentBackfaceEnable.floatValue > 0.0f && ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent);
-
-                using (new EditorGUI.DisabledScope(disabledScope))
-                {
-                    m_MaterialEditor.ShaderProperty(doubleSidedEnable, StylesBaseUnlit.doubleSidedEnableText);
-                }
+                m_MaterialEditor.ShaderProperty(doubleSidedEnable, StylesBaseUnlit.doubleSidedEnableText);
             }
 
             EditorGUI.indentLevel--;
@@ -434,11 +428,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
-            // Can't enable double sided and backface rendering at the same time, give priority to backface rendering
             bool isBackFaceEnable = material.HasProperty(kTransparentBackfaceEnable) && material.GetFloat(kTransparentBackfaceEnable) > 0.0f && surfaceType == SurfaceType.Transparent;
-            bool doubleSidedEnable = material.HasProperty(kDoubleSidedEnable) && material.GetFloat(kDoubleSidedEnable) > 0.0f && !isBackFaceEnable;
+            bool doubleSidedEnable = material.HasProperty(kDoubleSidedEnable) && material.GetFloat(kDoubleSidedEnable) > 0.0f;
 
-            if (doubleSidedEnable)
+            if (doubleSidedEnable && !isBackFaceEnable) // When backface is enable no need to disable cullmode as we render both side.
             {
                 material.SetInt("_CullMode", (int)UnityEngine.Rendering.CullMode.Off);
             }
