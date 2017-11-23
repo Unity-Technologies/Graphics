@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.36577082, g: 0.3843547, b: 0.42493677, a: 1}
+  m_IndirectSpecularColor: {r: 0.36615324, g: 0.38474482, b: 0.42534763, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -695,7 +695,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -728,6 +734,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedNormalMode: 1
@@ -924,7 +932,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -957,6 +971,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedNormalMode: 1
@@ -1351,7 +1367,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -1381,6 +1403,8 @@ Material:
     - _DistortionEnable: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1
     - _Drag: 1
@@ -1598,7 +1622,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -1628,6 +1658,8 @@ Material:
     - _DistortionEnable: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1
     - _Drag: 1
@@ -1774,7 +1806,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -1804,6 +1842,8 @@ Material:
     - _DistortionEnable: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1
     - _Drag: 1
@@ -1986,7 +2026,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -2019,6 +2065,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedNormalMode: 1
@@ -2264,7 +2312,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -2294,6 +2348,8 @@ Material:
     - _DistortionEnable: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1
     - _Drag: 1
@@ -2440,7 +2496,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -2470,6 +2532,8 @@ Material:
     - _DistortionEnable: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1
     - _Drag: 1
@@ -2616,7 +2680,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -2646,6 +2716,8 @@ Material:
     - _DistortionEnable: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1
     - _Drag: 1
@@ -2879,7 +2951,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -2909,6 +2987,8 @@ Material:
     - _DistortionEnable: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1
     - _Drag: 1
@@ -3403,7 +3483,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -3436,6 +3522,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedNormalMode: 1
@@ -3703,7 +3791,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -3736,6 +3830,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedNormalMode: 1
@@ -4559,7 +4655,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -4592,6 +4694,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedNormalMode: 1
@@ -4788,7 +4892,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -4821,6 +4931,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedNormalMode: 1
@@ -5103,7 +5215,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -5136,6 +5254,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedNormalMode: 1
@@ -5332,7 +5452,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -5365,6 +5491,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedNormalMode: 1
@@ -5597,7 +5725,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -5627,6 +5761,8 @@ Material:
     - _DistortionEnable: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1
     - _Drag: 1
@@ -5982,7 +6118,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -6012,6 +6154,8 @@ Material:
     - _DistortionEnable: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1
     - _Drag: 1
@@ -6158,7 +6302,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -6188,6 +6338,8 @@ Material:
     - _DistortionEnable: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1
     - _Drag: 1
@@ -6370,7 +6522,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -6403,6 +6561,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedNormalMode: 1
@@ -6600,7 +6760,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.75
@@ -6633,6 +6799,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedNormalMode: 1
@@ -7340,7 +7508,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -7373,6 +7547,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedNormalMode: 1
@@ -7726,7 +7902,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.25
@@ -7759,6 +7941,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedNormalMode: 1
@@ -8111,7 +8295,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -8144,6 +8334,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedNormalMode: 1
@@ -8334,7 +8526,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -8365,6 +8563,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 1
     - _DoubleSidedNormalMode: 1
     - _Drag: 1
@@ -8774,7 +8974,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -8807,6 +9013,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedNormalMode: 1
@@ -9003,7 +9211,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -9036,6 +9250,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedNormalMode: 1
@@ -9459,7 +9675,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -9492,6 +9714,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedNormalMode: 1
@@ -9773,7 +9997,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -9806,6 +10036,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedNormalMode: 1
@@ -10386,7 +10618,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -10419,6 +10657,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedNormalMode: 1
@@ -10650,7 +10890,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -10680,6 +10926,8 @@ Material:
     - _DistortionEnable: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1
     - _Drag: 1
@@ -11174,7 +11422,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -11207,6 +11461,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedNormalMode: 1
@@ -11347,6 +11603,10 @@ Prefab:
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 1144cd2ebfe76eb4aaab8a44c2e6da6f, type: 2}
+    - target: {fileID: 100000, guid: 6b00bf6acfbd6e94b8c26f6e1e69a09e, type: 3}
+      propertyPath: m_Name
+      value: Complex_Material
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 6b00bf6acfbd6e94b8c26f6e1e69a09e, type: 3}
   m_IsPrefabParent: 0
@@ -11629,7 +11889,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -11662,6 +11928,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedNormalMode: 1
@@ -12049,7 +12317,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -12079,6 +12353,8 @@ Material:
     - _DistortionEnable: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1
     - _Drag: 1
@@ -12409,7 +12685,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -12439,6 +12721,8 @@ Material:
     - _DistortionEnable: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1
     - _Drag: 1
@@ -12947,7 +13231,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -12980,6 +13270,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedNormalMode: 1
@@ -13140,7 +13432,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -13170,6 +13468,8 @@ Material:
     - _DistortionEnable: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1
     - _Drag: 1
@@ -13650,7 +13950,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -13683,6 +13989,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedNormalMode: 1
@@ -14071,7 +14379,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -14101,6 +14415,8 @@ Material:
     - _DistortionEnable: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1
     - _Drag: 1
@@ -14604,7 +14920,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -14637,6 +14959,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedNormalMode: 1
@@ -14939,7 +15263,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -14969,6 +15299,8 @@ Material:
     - _DistortionEnable: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1
     - _Drag: 1
@@ -15151,7 +15483,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -15184,6 +15522,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedNormalMode: 1
@@ -15676,7 +16016,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -15707,6 +16053,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1
     - _Drag: 1

@@ -169,7 +169,7 @@ Shader "HDRenderPipeline/LitTessellation"
     HLSLINCLUDE
 
     #pragma target 5.0
-    #pragma only_renderers d3d11 ps4 vulkan// TEMP: until we go futher in dev
+    #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
     // #pragma enable_d3d11_debug_symbols
 
     //-------------------------------------------------------------------------------------
@@ -207,7 +207,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
-    #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
+    #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
     #pragma shader_feature _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
     #pragma shader_feature _ENABLE_FOG_ON_TRANSPARENT
 
@@ -403,6 +403,9 @@ Shader "HDRenderPipeline/LitTessellation"
             ZWrite On
             ZTest LEqual
 
+            // When alpha test is enabled, we should not write into the color buffer
+            ColorMask 0
+
             HLSLPROGRAM
 
             #pragma hull Hull
@@ -427,6 +430,9 @@ Shader "HDRenderPipeline/LitTessellation"
             Cull[_CullMode]
 
             ZWrite On
+
+            // When alpha test is enabled, we should not write into the color buffer
+            ColorMask 0
 
             HLSLPROGRAM
 
