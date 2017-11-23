@@ -505,223 +505,221 @@ namespace UnityEditor.VFX.UI
                     Add(m_NoAssetLabel);
                 }
             }
-        }
-
-        //Update groupnode content after all the view has been updated.
-        foreach (VFXGroupNode node in this.Query().Children<VisualElement>().Children<VFXGroupNode>().ToList())
-        {
-            node.OnViewDataChanged();
-        }
-    }
-
-    public UQuery.QueryState<VFXGroupNode> vfxGroupNodes;
-
-    public VFXDataAnchor GetDataAnchorByPresenter(VFXDataAnchorPresenter presenter)
-    {
-        if (presenter == null)
-            return null;
-        return GetAllDataAnchors(presenter.direction == Direction.Input, presenter.direction == Direction.Output).Where(t => t.presenter == presenter).FirstOrDefault();
-    }
-
-    public VFXFlowAnchor GetFlowAnchorByPresenter(VFXFlowAnchorPresenter presenter)
-    {
-        if (presenter == null)
-            return null;
-        return GetAllFlowAnchors(presenter.direction == Direction.Input, presenter.direction == Direction.Output).Where(t => t.presenter == presenter).FirstOrDefault();
-    }
-
-    public IEnumerable<VFXDataAnchor> GetAllDataAnchors(bool input, bool output)
-    {
-        foreach (var layer in GetAllLayers())
-        {
-            foreach (var element in layer)
+            //Update groupnode content after all the view has been updated.
+            foreach (VFXGroupNode node in this.Query().Children<VisualElement>().Children<VFXGroupNode>().ToList())
             {
-                if (element is VFXContextUI)
+                node.OnViewDataChanged();
+            }
+        }
+
+        public UQuery.QueryState<VFXGroupNode> vfxGroupNodes;
+
+        public VFXDataAnchor GetDataAnchorByPresenter(VFXDataAnchorPresenter presenter)
+        {
+            if (presenter == null)
+                return null;
+            return GetAllDataAnchors(presenter.direction == Direction.Input, presenter.direction == Direction.Output).Where(t => t.presenter == presenter).FirstOrDefault();
+        }
+
+        public VFXFlowAnchor GetFlowAnchorByPresenter(VFXFlowAnchorPresenter presenter)
+        {
+            if (presenter == null)
+                return null;
+            return GetAllFlowAnchors(presenter.direction == Direction.Input, presenter.direction == Direction.Output).Where(t => t.presenter == presenter).FirstOrDefault();
+        }
+
+        public IEnumerable<VFXDataAnchor> GetAllDataAnchors(bool input, bool output)
+        {
+            foreach (var layer in GetAllLayers())
+            {
+                foreach (var element in layer)
                 {
-                    var context = element as VFXContextUI;
-
-
-                    foreach (VFXDataAnchor anchor in context.ownData.GetPorts(input, output))
-                        yield return anchor;
-
-                    foreach (VFXBlockUI block in context.GetAllBlocks())
+                    if (element is VFXContextUI)
                     {
-                        foreach (VFXDataAnchor anchor in block.GetPorts(input, output))
+                        var context = element as VFXContextUI;
+
+
+                        foreach (VFXDataAnchor anchor in context.ownData.GetPorts(input, output))
+                            yield return anchor;
+
+                        foreach (VFXBlockUI block in context.GetAllBlocks())
+                        {
+                            foreach (VFXDataAnchor anchor in block.GetPorts(input, output))
+                                yield return anchor;
+                        }
+                    }
+                    else if (element is VFXNodeUI)
+                    {
+                        var ope = element as VFXNodeUI;
+                        foreach (VFXDataAnchor anchor in ope.GetPorts(input, output))
                             yield return anchor;
                     }
                 }
-                else if (element is VFXNodeUI)
-                {
-                    var ope = element as VFXNodeUI;
-                    foreach (VFXDataAnchor anchor in ope.GetPorts(input, output))
-                        yield return anchor;
-                }
             }
         }
-    }
 
-    public VFXDataEdge GetDataEdgeByPresenter(VFXDataEdgePresenter presenter)
-    {
-        foreach (var layer in GetAllLayers())
+        public VFXDataEdge GetDataEdgeByPresenter(VFXDataEdgePresenter presenter)
         {
-            foreach (var element in layer)
+            foreach (var layer in GetAllLayers())
             {
-                if (element is VFXDataEdge)
+                foreach (var element in layer)
                 {
-                    VFXDataEdge candidate = element as VFXDataEdge;
-                    if (candidate.presenter == presenter)
-                        return candidate;
-                }
-            }
-        }
-        return null;
-    }
-
-    public IEnumerable<VFXDataEdge> GetAllDataEdges()
-    {
-        foreach (var layer in GetAllLayers())
-        {
-            foreach (var element in layer)
-            {
-                if (element is VFXDataEdge)
-                {
-                    yield return element as VFXDataEdge;
-                }
-            }
-        }
-    }
-
-    public override IEnumerable<Port> GetAllPorts(bool input, bool output)
-    {
-        foreach (var anchor in GetAllDataAnchors(input, output))
-        {
-            yield return anchor;
-        }
-        foreach (var anchor in GetAllFlowAnchors(input, output))
-        {
-            yield return anchor;
-        }
-    }
-
-    public override IEnumerable<Node> GetAllNodes()
-    {
-        foreach (var node in base.GetAllNodes())
-        {
-            yield return node;
-        }
-
-        foreach (var layer in GetAllLayers())
-        {
-            foreach (var element in layer)
-            {
-                if (element is VFXContextUI)
-                {
-                    var context = element as VFXContextUI;
-
-                    foreach (var block in context.GetAllBlocks())
+                    if (element is VFXDataEdge)
                     {
-                        yield return block;
+                        VFXDataEdge candidate = element as VFXDataEdge;
+                        if (candidate.presenter == presenter)
+                            return candidate;
+                    }
+                }
+            }
+            return null;
+        }
+
+        public IEnumerable<VFXDataEdge> GetAllDataEdges()
+        {
+            foreach (var layer in GetAllLayers())
+            {
+                foreach (var element in layer)
+                {
+                    if (element is VFXDataEdge)
+                    {
+                        yield return element as VFXDataEdge;
                     }
                 }
             }
         }
-    }
 
-    void IParameterDropTarget.OnDragUpdated(IMGUIEvent evt, VFXParameterPresenter parameter)
-    {
-        //TODO : show that we accept the drag
-        DragAndDrop.visualMode = DragAndDropVisualMode.Link;
-    }
-
-    void IParameterDropTarget.OnDragPerform(IMGUIEvent evt, VFXParameterPresenter parameter)
-    {
-        VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
-        if (presenter == null)
-            return;
-
-        VFXParameter newParameter = presenter.AddVFXParameter(contentViewContainer.GlobalToBound(evt.imguiEvent.mousePosition), VFXLibrary.GetParameters().FirstOrDefault(t => t.name == parameter.anchorType.UserFriendlyName()));
-
-        newParameter.exposedName = parameter.exposedName;
-        newParameter.exposed = true;
-    }
-
-    void SelectionUpdated()
-    {
-        if (!VFXComponentEditor.s_IsEditingAsset)
+        public override IEnumerable<Port> GetAllPorts(bool input, bool output)
         {
-            var contextSelected = selection.OfType<VFXContextUI>();
+            foreach (var anchor in GetAllDataAnchors(input, output))
+            {
+                yield return anchor;
+            }
+            foreach (var anchor in GetAllFlowAnchors(input, output))
+            {
+                yield return anchor;
+            }
+        }
 
+        public override IEnumerable<Node> GetAllNodes()
+        {
+            foreach (var node in base.GetAllNodes())
+            {
+                yield return node;
+            }
+
+            foreach (var layer in GetAllLayers())
+            {
+                foreach (var element in layer)
+                {
+                    if (element is VFXContextUI)
+                    {
+                        var context = element as VFXContextUI;
+
+                        foreach (var block in context.GetAllBlocks())
+                        {
+                            yield return block;
+                        }
+                    }
+                }
+            }
+        }
+
+        void IParameterDropTarget.OnDragUpdated(IMGUIEvent evt, VFXParameterPresenter parameter)
+        {
+            //TODO : show that we accept the drag
+            DragAndDrop.visualMode = DragAndDropVisualMode.Link;
+        }
+
+        void IParameterDropTarget.OnDragPerform(IMGUIEvent evt, VFXParameterPresenter parameter)
+        {
+            VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
             if (presenter == null)
                 return;
 
-            if (contextSelected.Count() > 0)
-            {
-                Selection.objects = contextSelected.Select(t => t.GetPresenter<VFXContextPresenter>().model).ToArray();
-            }
-            else if (Selection.activeObject != GetPresenter<VFXViewPresenter>().GetVFXAsset())
-            {
-                Selection.activeObject = GetPresenter<VFXViewPresenter>().GetVFXAsset();
-            }
+            VFXParameter newParameter = presenter.AddVFXParameter(contentViewContainer.GlobalToBound(evt.imguiEvent.mousePosition), VFXLibrary.GetParameters().FirstOrDefault(t => t.name == parameter.anchorType.UserFriendlyName()));
+
+            newParameter.exposedName = parameter.exposedName;
+            newParameter.exposed = true;
         }
-    }
 
-    void ElementAddedToGroupNode(GroupNode groupNode, GraphElement element)
-    {
-        (groupNode as VFXGroupNode).ElementAddedToGroupNode(element);
-    }
-
-    void ElementRemovedFromGroupNode(GroupNode groupNode, GraphElement element)
-    {
-        (groupNode as VFXGroupNode).ElementRemovedFromGroupNode(element);
-    }
-
-    void GroupNodeTitleChanged(GroupNode groupNode, string title)
-    {
-        (groupNode as VFXGroupNode).GroupNodeTitleChanged(title);
-    }
-
-    public override void AddToSelection(ISelectable selectable)
-    {
-        base.AddToSelection(selectable);
-        SelectionUpdated();
-    }
-
-    public override void RemoveFromSelection(ISelectable selectable)
-    {
-        base.RemoveFromSelection(selectable);
-        SelectionUpdated();
-    }
-
-    public override void ClearSelection()
-    {
-        bool selectionEmpty = selection.Count() == 0;
-        base.ClearSelection();
-        if (!selectionEmpty)
-            SelectionUpdated();
-    }
-
-    protected override UnityEngine.Object[] toWatch
-    {
-        get
+        void SelectionUpdated()
         {
-            List<UnityEngine.Object> result = new List<UnityEngine.Object>();
-            if (presenter != null)
+            if (!VFXComponentEditor.s_IsEditingAsset)
             {
-                VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
-                result.Add(presenter);
-                result.Add(presenter.GetVFXAsset());
-                if (presenter.GetVFXAsset().graph)
+                var contextSelected = selection.OfType<VFXContextUI>();
+
+                if (presenter == null)
+                    return;
+
+                if (contextSelected.Count() > 0)
                 {
-                    result.Add(presenter.GetVFXAsset().graph);
-                    VFXGraph graph = presenter.GetVFXAsset().GetOrCreateGraph();
-                    result.Add(graph.UIInfos);
+                    Selection.objects = contextSelected.Select(t => t.GetPresenter<VFXContextPresenter>().model).ToArray();
+                }
+                else if (Selection.activeObject != GetPresenter<VFXViewPresenter>().GetVFXAsset())
+                {
+                    Selection.activeObject = GetPresenter<VFXViewPresenter>().GetVFXAsset();
                 }
             }
-            return result.ToArray();
         }
-    }
 
-    private Toggle m_ToggleCastShadows;
-    private Toggle m_ToggleMotionVectors;
-}
+        void ElementAddedToGroupNode(GroupNode groupNode, GraphElement element)
+        {
+            (groupNode as VFXGroupNode).ElementAddedToGroupNode(element);
+        }
+
+        void ElementRemovedFromGroupNode(GroupNode groupNode, GraphElement element)
+        {
+            (groupNode as VFXGroupNode).ElementRemovedFromGroupNode(element);
+        }
+
+        void GroupNodeTitleChanged(GroupNode groupNode, string title)
+        {
+            (groupNode as VFXGroupNode).GroupNodeTitleChanged(title);
+        }
+
+        public override void AddToSelection(ISelectable selectable)
+        {
+            base.AddToSelection(selectable);
+            SelectionUpdated();
+        }
+
+        public override void RemoveFromSelection(ISelectable selectable)
+        {
+            base.RemoveFromSelection(selectable);
+            SelectionUpdated();
+        }
+
+        public override void ClearSelection()
+        {
+            bool selectionEmpty = selection.Count() == 0;
+            base.ClearSelection();
+            if (!selectionEmpty)
+                SelectionUpdated();
+        }
+
+        protected override UnityEngine.Object[] toWatch
+        {
+            get
+            {
+                List<UnityEngine.Object> result = new List<UnityEngine.Object>();
+                if (presenter != null)
+                {
+                    VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
+                    result.Add(presenter);
+                    result.Add(presenter.GetVFXAsset());
+                    if (presenter.GetVFXAsset().graph)
+                    {
+                        result.Add(presenter.GetVFXAsset().graph);
+                        VFXGraph graph = presenter.GetVFXAsset().GetOrCreateGraph();
+                        result.Add(graph.UIInfos);
+                    }
+                }
+                return result.ToArray();
+            }
+        }
+
+        private Toggle m_ToggleCastShadows;
+        private Toggle m_ToggleMotionVectors;
+    }
 }
