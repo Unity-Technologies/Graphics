@@ -19,7 +19,7 @@ namespace UnityEditor.VFX.UI
             position = new Rect(100, 100, 300, 300);
         }
 
-        public void OnEnable()
+        public new void OnEnable()
         {
             base.OnEnable();
             capabilities |= Capabilities.Movable | Capabilities.Resizable;

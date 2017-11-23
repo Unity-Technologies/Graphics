@@ -78,7 +78,7 @@ namespace UnityEditor.VFX.UI
                 for (int slot = 0; slot < context.inputFlowSlot.Length; ++slot)
                 {
                     var inAnchor = CreateInstance<VFXFlowInputAnchorPresenter>();
-                    inAnchor.Init(context, slot);
+                    inAnchor.Init(this, slot);
                     m_FlowInputAnchors.Add(inAnchor);
                     viewPresenter.RegisterFlowAnchorPresenter(inAnchor);
                 }
@@ -89,7 +89,7 @@ namespace UnityEditor.VFX.UI
                 for (int slot = 0; slot < context.outputFlowSlot.Length; ++slot)
                 {
                     var outAnchor = CreateInstance<VFXFlowOutputAnchorPresenter>();
-                    outAnchor.Init(context, slot);
+                    outAnchor.Init(this, slot);
                     m_FlowOutputAnchors.Add(outAnchor);
                     viewPresenter.RegisterFlowAnchorPresenter(outAnchor);
                 }
@@ -170,19 +170,44 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        internal void BlocksDropped(VFXBlockPresenter blockPresenter, bool after, IEnumerable<VFXBlockPresenter> draggedBlocks)
+        internal void BlocksDropped(VFXBlockPresenter blockPresenter, bool after, IEnumerable<VFXBlockPresenter> draggedBlocks, bool copy)
         {
             //Sort draggedBlock in the order we want them to appear and not the selected order ( blocks in the same context should appear in the same order as they where relative to each other).
 
             draggedBlocks = draggedBlocks.OrderBy(t => t.index).GroupBy(t => t.contextPresenter).SelectMany<IGrouping<VFXContextPresenter, VFXBlockPresenter>, VFXBlockPresenter>(t => t.Select(u => u));
 
-            int insertIndex = blockPresenter.index;
-            if (after) insertIndex++;
+            int insertIndex;
+
+            if (blockPresenter != null)
+            {
+                insertIndex = blockPresenter.index;
+                if (after) insertIndex++;
+            }
+            else if (after)
+            {
+                insertIndex = blockPresenters.Count();
+            }
+            else
+            {
+                insertIndex = 0;
+            }
 
             foreach (VFXBlockPresenter draggedBlock in draggedBlocks)
             {
-                this.ReorderBlock(insertIndex++, draggedBlock.block);
+                if (copy)
+                {
+                    this.AddBlock(insertIndex++, draggedBlock.block.Clone<VFXBlock>());
+                }
+                else
+                {
+                    this.ReorderBlock(insertIndex++, draggedBlock.block);
+                }
             }
+        }
+
+        public override UnityEngine.Object[] GetObjectsToWatch()
+        {
+            return new UnityEngine.Object[] { this, model, context.GetData() };
         }
 
         public override IEnumerable<GraphElementPresenter> allElements

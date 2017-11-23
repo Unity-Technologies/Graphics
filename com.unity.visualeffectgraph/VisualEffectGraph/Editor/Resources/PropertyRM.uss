@@ -128,11 +128,13 @@ ColorPropertyRM
 	flex-direction:row;
 }
 
-ColorPropertyRM .maincontainer
+.propertyrm  .maincontainer
 {
 	flex:1;
+    flex-direction:column;
+    align-items:stretch;
 }
-ColorPropertyRM .colordisplay
+.propertyrm .colordisplay
 {
 	flex:1;
 }

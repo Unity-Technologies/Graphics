@@ -37,7 +37,7 @@ namespace UnityEditor.VFX.UI
 
         Texture2D[] m_IconStates;
 
-        public VisualElement m_Label;
+        public Label m_Label;
 
 
         public bool m_PropertyEnabled;
@@ -65,7 +65,7 @@ namespace UnityEditor.VFX.UI
             if (element != null)
             {
                 m_Label.style.font = element.style.font;
-                return m_Label.MeasureTextSize(m_Label.text, -1, MeasureMode.Undefined, m_Label.style.height, MeasureMode.Exactly).x + m_Provider.depth * VFXPropertyIM.depthOffset;
+                return m_Label.DoMeasure(-1, MeasureMode.Undefined, m_Label.style.height, MeasureMode.Exactly).x + m_Provider.depth * VFXPropertyIM.depthOffset;
             }
             return 40 + m_Provider.depth * VFXPropertyIM.depthOffset;
         }
@@ -88,7 +88,7 @@ namespace UnityEditor.VFX.UI
             m_Icon.style.backgroundImage = m_IconStates[m_Provider.expanded && m_Provider.expandable ? 1 : 0];
             SetValue(m_Provider.value);
 
-            string text = m_Provider.name;
+            string text = ObjectNames.NicifyVariableName(m_Provider.name);
             string tooltip = null;
             VFXPropertyAttribute.ApplyToGUI(m_Provider.attributes, ref text, ref tooltip);
             m_Label.text = text;
@@ -139,7 +139,7 @@ namespace UnityEditor.VFX.UI
             string labelText = provider.name;
             string labelTooltip = null;
             VFXPropertyAttribute.ApplyToGUI(provider.attributes, ref labelText, ref labelTooltip);
-            m_Label = new VisualElement() { name = "label", text = labelText };
+            m_Label = new Label() { name = "label", text = labelText };
             m_Label.AddTooltip(labelTooltip);
 
             if (provider.depth != 0)
@@ -340,13 +340,6 @@ namespace UnityEditor.VFX.UI
             m_Field.SetValue(m_Value);
         }
 
-        /*
-        public override void SetEnabled(bool value)
-        {
-            base.SetEnabled(value);
-            if (m_Field != null)
-                m_Field.SetEnabled(value);
-        }*/
         public override bool showsEverything { get { return true; } }
 
         public override void SetMultiplier(object obj)

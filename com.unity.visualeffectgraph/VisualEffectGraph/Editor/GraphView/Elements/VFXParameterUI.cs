@@ -18,12 +18,12 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        protected override void OnStyleResolved(ICustomStyle style)
+        public override void GetPreferedWidths(ref float labelWidth, ref float controlWidth)
         {
-            base.OnStyleResolved(style);
+            base.GetPreferedWidths(ref labelWidth, ref controlWidth);
 
-            float labelWidth = 70;
-            float controlWidth = 120;
+            if (labelWidth < 70)
+                labelWidth = 70;
 
             var properties = inputContainer.Query().OfType<PropertyRM>().ToList();
 
@@ -41,13 +41,17 @@ namespace UnityEditor.VFX.UI
                     controlWidth = portControlWidth;
                 }
             }
+        }
 
+        public override void ApplyWidths(float labelWidth, float controlWidth)
+        {
+            base.ApplyWidths(labelWidth, controlWidth);
+
+            var properties = inputContainer.Query().OfType<PropertyRM>().ToList();
             foreach (var port in properties)
             {
                 port.SetLabelWidth(labelWidth);
             }
-
-            inputContainer.style.width = labelWidth + controlWidth;
         }
 
         public override void OnDataChanged()

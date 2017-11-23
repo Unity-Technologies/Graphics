@@ -58,8 +58,6 @@ namespace UnityEditor.VFX.UI
 
             m_MainContainer.Add(fieldContainer);
 
-            m_MainContainer.style.flexDirection = FlexDirection.Column;
-            m_MainContainer.style.alignItems = Align.Stretch;
             Add(m_MainContainer);
         }
 

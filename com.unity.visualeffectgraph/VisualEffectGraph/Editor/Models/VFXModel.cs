@@ -242,7 +242,7 @@ namespace UnityEditor.VFX
                 m_Parent.Invalidate(model, cause);
         }
 
-        public IEnumerable<FieldInfo> GetSettings(bool listHidden)
+        public IEnumerable<FieldInfo> GetSettings(bool listHidden, VFXSettingAttribute.VisibleFlags flags = VFXSettingAttribute.VisibleFlags.All)
         {
             return GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(f =>
                 {
@@ -250,6 +250,16 @@ namespace UnityEditor.VFX
                     if (attrArray.Length == 1)
                     {
                         var attr = attrArray[0] as VFXSettingAttribute;
+                        if ((attr.visibleFlags & flags) == 0)
+                        {
+                            return false;
+                        }
+                        // Don't give StringProvider backed attributes to the inspector as we don't know how to show them yet.
+                        if (flags == VFXSettingAttribute.VisibleFlags.InInspector && f.GetCustomAttributes(typeof(StringProviderAttribute), true).Length > 0)
+                        {
+                            return false;
+                        }
+
                         if (!filteredOutSettings.Contains(f.Name) || listHidden)
                         {
                             return true;

@@ -17,26 +17,22 @@ Pass
 		#else
 		float2 uv : TEXCOORD0;	
 		#endif
-		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || VFX_USE_ALPHA_CURRENT
-		// x: inverse soft particles fade distance
-		// y: alpha threshold
-		// z: frame blending factor
-		// w: alpha
-		nointerpolation float4 builtInInterpolants : TEXCOORD1;
-		#endif
-		#if USE_SOFT_PARTICLE
-		float4 projPos : TEXCOORD2;		
+		#if USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || VFX_USE_ALPHA_CURRENT
+		// x: alpha threshold
+		// y: frame blending factor
+		// z: alpha
+		nointerpolation float3 builtInInterpolants : TEXCOORD1;
 		#endif
 	};
 
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
-#define VFX_VARYING_POSSS projPos
+#undef VFX_VARYING_POSSS
 #undef VFX_VARYING_COLOR // not used
-#define VFX_VARYING_ALPHA builtInInterpolants.w
-#define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
-#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
-#define VFX_VARYING_FRAMEBLEND builtInInterpolants.z
+#define VFX_VARYING_ALPHA builtInInterpolants.z
+#undef VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE
+#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
+#define VFX_VARYING_FRAMEBLEND builtInInterpolants.y
 #define VFX_VARYING_UV uv
 		
 	${VFXBegin:VFXVertexAdditionalProcess}
@@ -48,8 +44,8 @@ Pass
 	#pragma fragment frag
 	float frag(ps_input i) : SV_TARGET
 	{
-		float alpha = VFXGetFragmentColor(i);
-		alpha *= VFXGetTextureColor(i);		
+		float alpha = VFXGetFragmentColor(i).a;
+		alpha *= VFXGetTextureColor(VFX_SAMPLER(texture),i).a;		
 		VFXClipFragmentColor(alpha,i);
 		return 0;
 	}

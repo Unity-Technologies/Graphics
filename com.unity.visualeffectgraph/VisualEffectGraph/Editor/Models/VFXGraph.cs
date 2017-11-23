@@ -14,10 +14,15 @@ namespace UnityEditor.VFX
 #if !USE_SHADER_AS_SUBASSET
     public class VFXCacheManager : EditorWindow
     {
-        [MenuItem("VFX Editor/Rebuild VFXCache")]
-        public static void Rebuild()
+        [MenuItem("VFX Editor/Clear VFXCache")]
+        public static void Clear()
         {
             FileUtil.DeleteFileOrDirectory(VFXGraphCompiledData.baseCacheFolder);
+        }
+
+        [MenuItem("VFX Editor/Build VFXCache")]
+        public static void Build()
+        {
             var vfxAssets = new List<VFXAsset>();
             var vfxAssetsGuid = AssetDatabase.FindAssets("t:VFXAsset");
             foreach (var guid in vfxAssetsGuid)

@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace UnityEditor.VFX
 {
@@ -56,7 +57,10 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), GenerateLocalAttributeName(currentAttribute.name)), currentAttribute.value.GetContent());
+                if (currentAttribute.type == UnityEngine.VFX.VFXValueType.kFloat3 && currentAttribute.name == "color")
+                    yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), GenerateLocalAttributeName(currentAttribute.name)) { attributes = VFXPropertyAttribute.Create(new ShowAsColorAttribute()) }, currentAttribute.value.GetContent());
+                else
+                    yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), GenerateLocalAttributeName(currentAttribute.name)), currentAttribute.value.GetContent());
             }
         }
 

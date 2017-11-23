@@ -165,6 +165,7 @@ namespace UnityEditor.VFX.UI
                     }
                     else if (d.modelDescriptor == null)
                     {
+                        /*
                         VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
                         if (presenter != null)
                         {
@@ -178,7 +179,9 @@ namespace UnityEditor.VFX.UI
                             spawner.LinkTo(initialize);
                             initialize.LinkTo(update);
                             update.LinkTo(output);
-                        }
+                        }*/
+
+                        CreateTemplateSystem(tPos);
                     }
                     else
                     {
@@ -222,7 +225,7 @@ namespace UnityEditor.VFX.UI
             Add(toolbar);
 
 
-            Button button = new Button(() => {Resync(); });
+            Button button = new Button(() => { Resync(); });
             button.text = "Refresh";
             button.AddToClassList("toolbarItem");
             toolbar.Add(button);
@@ -282,6 +285,9 @@ namespace UnityEditor.VFX.UI
             vfxGroupNodes = this.Query<VisualElement>().Children<VFXGroupNode>().Build();
 
             Add(m_NoAssetLabel);
+
+            this.serializeGraphElements = SerializeElements;
+            this.unserializeAndPaste = UnserializeAndPasteElements;
         }
 
         VFXRendererSettings GetRendererSettings()
@@ -295,6 +301,20 @@ namespace UnityEditor.VFX.UI
             }
 
             return new VFXRendererSettings();
+        }
+
+        public void CreateTemplateSystem(Vector2 tPos)
+        {
+            VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>("Assets/VFXEditor/Editor/Templates/DefaultParticleSystem.asset");
+
+            VFXViewPresenter presenter = VFXViewPresenter.Manager.GetPresenter(asset);
+            presenter.useCount++;
+
+            object data = VFXCopyPaste.CreateCopy(presenter.allChildren);
+
+            VFXCopyPaste.PasteCopy(this, tPos, data);
+
+            presenter.useCount--;
         }
 
         void SetRendererSettings(VFXRendererSettings settings)
@@ -505,6 +525,18 @@ namespace UnityEditor.VFX.UI
                     Add(m_NoAssetLabel);
                 }
             }
+
+            if (m_OldPresenter != presenter && panel != null)
+            {
+                BaseVisualElementPanel panel = this.panel as BaseVisualElementPanel;
+
+
+                panel.scheduler.ScheduleOnce(t => { panel.ValidateLayout(); FrameAll(); }, 100);
+
+                m_OldPresenter = presenter;
+
+                pasteOffset = Vector2.zero; // if we change asset we want to paste exactly at the same place as the original asset the first time.
+            }
             //Update groupnode content after all the view has been updated.
             foreach (VFXGroupNode node in this.Query().Children<VisualElement>().Children<VFXGroupNode>().ToList())
             {
@@ -645,16 +677,15 @@ namespace UnityEditor.VFX.UI
 
         void SelectionUpdated()
         {
+            if (presenter == null) return;
+
             if (!VFXComponentEditor.s_IsEditingAsset)
             {
-                var contextSelected = selection.OfType<VFXContextUI>();
+                var objectSelected = selection.OfType<GraphElement>().Select(t => t.GetPresenter<VFXNodePresenter>()).Where(t => t != null);
 
-                if (presenter == null)
-                    return;
-
-                if (contextSelected.Count() > 0)
+                if (objectSelected.Count() > 0)
                 {
-                    Selection.objects = contextSelected.Select(t => t.GetPresenter<VFXContextPresenter>().model).ToArray();
+                    Selection.objects = objectSelected.Select(t => t.model).ToArray();
                 }
                 else if (Selection.activeObject != GetPresenter<VFXViewPresenter>().GetVFXAsset())
                 {
@@ -721,5 +752,21 @@ namespace UnityEditor.VFX.UI
 
         private Toggle m_ToggleCastShadows;
         private Toggle m_ToggleMotionVectors;
+
+        public readonly Vector2 defaultPasteOffset = new Vector2(100, 100);
+        public Vector2 pasteOffset = Vector2.zero;
+
+        string SerializeElements(IEnumerable<GraphElement> elements)
+        {
+            pasteOffset = defaultPasteOffset;
+            return VFXCopyPaste.SerializeElements(elements.Select(t => t.presenter));
+        }
+
+        void UnserializeAndPasteElements(string operationName, string data)
+        {
+            VFXCopyPaste.UnserializeAndPasteElements(this, pasteOffset, data);
+
+            pasteOffset += defaultPasteOffset;
+        }
     }
 }

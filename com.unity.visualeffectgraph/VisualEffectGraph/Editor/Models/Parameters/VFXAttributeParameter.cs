@@ -13,6 +13,22 @@ namespace UnityEditor.VFX
         }
     }
 
+    class WritableAttributeProvider : IStringProvider
+    {
+        public string[] GetAvailableString()
+        {
+            return VFXAttribute.AllWritable;
+        }
+    }
+
+    class ReadOnlyAttributeProvider : IStringProvider
+    {
+        public string[] GetAvailableString()
+        {
+            return VFXAttribute.AllReadOnly;
+        }
+    }
+
     class AttributeVariant : IVariantProvider
     {
         public Dictionary<string, object[]> variants

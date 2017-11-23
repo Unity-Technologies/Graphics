@@ -29,7 +29,7 @@ namespace UnityEditor.VFX
         public static void DebugExpressionGraph(VFXGraph graph, VFXExpressionContextOption option)
         {
             var expressionGraph = new VFXExpressionGraph();
-            expressionGraph.CompileExpressions(graph, option);
+            expressionGraph.CompileExpressions(graph, option, true);
 
             var mainExpressions = new Dictionary<VFXExpression, List<string>>();
             FillMainExpressions(mainExpressions, expressionGraph.GPUExpressionsToReduced, expressionGraph);

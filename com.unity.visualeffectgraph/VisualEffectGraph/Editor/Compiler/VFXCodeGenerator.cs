@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 
 using Object = UnityEngine.Object;
 using System.Text.RegularExpressions;
@@ -420,6 +421,13 @@ namespace UnityEditor.VFX
 
             globalIncludeContent.WriteLine();
             globalIncludeContent.WriteLine("#include \"Assets/" + context.renderLoopCommonInclude + "\"");
+
+            if (context.GetData() is ISpaceable)
+            {
+                var spaceable = context.GetData() as ISpaceable;
+                globalIncludeContent.WriteLineFormat("#define {0} 1", spaceable.space == CoordinateSpace.Global ? "VFX_WORLD_SPACE" : "VFX_LOCAL_SPACE");
+            }
+
             globalIncludeContent.WriteLine("#include \"Assets/VFXShaders/VFXCommon.cginc\"");
 
             // Per-block includes

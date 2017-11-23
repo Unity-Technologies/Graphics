@@ -42,6 +42,24 @@ namespace UnityEditor.VFX.UI
         {
             this.AddManipulator(new Collapser());
         }
+
+        protected override void OnStyleResolved(ICustomStyle style)
+        {
+            base.OnStyleResolved(style);
+
+            float labelWidth = 30;
+            float controlWidth = 110;
+
+            GetPreferedWidths(ref labelWidth, ref controlWidth);
+
+            ApplyWidths(labelWidth, controlWidth);
+        }
+
+        public override void ApplyWidths(float labelWidth, float controlWidth)
+        {
+            base.ApplyWidths(labelWidth, controlWidth);
+            leftContainer.style.width = labelWidth + controlWidth + 20;
+        }
     }
 
 
@@ -62,12 +80,9 @@ namespace UnityEditor.VFX.UI
                 return;
         }
 
-        protected override void OnStyleResolved(ICustomStyle style)
+        public override void GetPreferedWidths(ref float labelWidth, ref float controlWidth)
         {
-            base.OnStyleResolved(style);
-
-            float labelWidth = 30;
-            float controlWidth = 110;
+            base.GetPreferedWidths(ref labelWidth, ref controlWidth);
 
             foreach (var port in GetPorts(true, false).Cast<VFXEditableDataAnchor>())
             {
@@ -84,13 +99,15 @@ namespace UnityEditor.VFX.UI
                     controlWidth = portControlWidth;
                 }
             }
+        }
 
+        public override void ApplyWidths(float labelWidth, float controlWidth)
+        {
+            base.ApplyWidths(labelWidth, controlWidth);
             foreach (var port in GetPorts(true, false).Cast<VFXEditableDataAnchor>())
             {
                 port.SetLabelWidth(labelWidth);
             }
-
-            leftContainer.style.width = labelWidth + controlWidth + 20;
         }
     }
 }

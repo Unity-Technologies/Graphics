@@ -189,27 +189,6 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class Vector3PropertyRM : SimpleUIPropertyRM<Vector3, Vector3>
-    {
-        public Vector3PropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
-        {
-        }
-
-        public override INotifyValueChanged<Vector3> CreateField()
-        {
-            var field = new LabeledField<Vector3Field, Vector3>(m_Label);
-
-            field.control.dynamicUpdate = true;
-
-            return field;
-        }
-
-        public override float GetPreferredControlWidth()
-        {
-            return 195;
-        }
-    }
-
     class Vector2PropertyRM : SimpleUIPropertyRM<Vector2, Vector2>
     {
         public Vector2PropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
@@ -260,7 +239,7 @@ namespace UnityEditor.VFX.UI
 
         public override float GetPreferredControlWidth()
         {
-            return 100;
+            return 140;
         }
 
         public static Func<string[]> FindStringProvider(object[] customAttributes)

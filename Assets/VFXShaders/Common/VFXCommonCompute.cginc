@@ -40,3 +40,13 @@ float3 VFXGetViewWorldPosition()
 {
     return (float3)0.0f;
 }
+
+float4 VFXGetPOSSS(float4 posCS)
+{
+    return (float4)0.0f;
+}
+
+float VFXLinearEyeDepth(float4 posSS)
+{
+    return 0.0f;
+}
