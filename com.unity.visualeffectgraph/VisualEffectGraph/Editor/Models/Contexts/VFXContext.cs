@@ -403,17 +403,17 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if (m_Data is VFXDataParticle)
+                if (m_Data is ISpaceable)
                 {
-                    return (m_Data as VFXDataParticle).space;
+                    return (m_Data as ISpaceable).space;
                 }
                 return CoordinateSpace.Local;
             }
             set
             {
-                if (m_Data is VFXDataParticle)
+                if (m_Data is ISpaceable)
                 {
-                    (m_Data as VFXDataParticle).space = value;
+                    (m_Data as ISpaceable).space = value;
                     Invalidate(InvalidationCause.kSettingChanged);
                 }
             }
