@@ -126,7 +126,7 @@ float3 EstimateRaycast(float3 V, PositionInputs posInputs, float3 positionWS, fl
     float depth = LinearEyeDepth(pyramidDepth, _ZBufferParams);
 
     // Distance from point to the back plane
-    float depthFromPositionInput = depth - posInputs.depthVS;
+    float depthFromPositionInput = depth - posInputs.linearDepth;
 
     float offset = dot(-V, positionWS - posInputs.positionWS);
     float depthFromPosition = depthFromPositionInput - offset;
@@ -1243,7 +1243,7 @@ DirectLighting EvaluateBSDF_Directional(    LightLoopContext lightLoopContext,
 #endif
 
 #ifdef SHADOWS_SHADOWMASK
-        float fade = saturate(posInput.depthVS * lightData.fadeDistanceScaleAndBias.x + lightData.fadeDistanceScaleAndBias.y);
+        float fade = saturate(posInput.linearDepth * lightData.fadeDistanceScaleAndBias.x + lightData.fadeDistanceScaleAndBias.y);
 
         // See comment in EvaluateBSDF_Punctual
         shadow = lightData.dynamicShadowCasterOnly ? min(shadowMask, shadow) : shadow;
@@ -1750,7 +1750,7 @@ IndirectLighting EvaluateBSDF_SSRefraction(LightLoopContext lightLoopContext,
 
     // Exit if texel is out of color buffer
     // Or if the texel is from an object in front of the object
-    if (refractedBackPointDepth < posInput.depthVS
+    if (refractedBackPointDepth < posInput.linearDepth
         || any(refractedBackPointSS < 0.0)
         || any(refractedBackPointSS > 1.0))
     {
