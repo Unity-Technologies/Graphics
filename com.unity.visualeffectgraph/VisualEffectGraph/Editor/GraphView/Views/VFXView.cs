@@ -151,18 +151,6 @@ namespace UnityEditor.VFX.UI
                     {
                         AddVFXParameter(tPos, d.modelDescriptor as VFXModelDescriptorParameters);
                     }
-                    else if (d.modelDescriptor is VFXModelDescriptorBuiltInParameters)
-                    {
-                        AddVFXBuiltInParameter(tPos, d.modelDescriptor as VFXModelDescriptorBuiltInParameters);
-                    }
-                    else if (d.modelDescriptor is VFXModelDescriptorCurrentAttributeParameters)
-                    {
-                        AddVFXCurrentAttributeParameter(tPos, d.modelDescriptor as VFXModelDescriptorCurrentAttributeParameters);
-                    }
-                    else if (d.modelDescriptor is VFXModelDescriptorSourceAttributeParameters)
-                    {
-                        AddVFXSourceAttributeParameter(tPos, d.modelDescriptor as VFXModelDescriptorSourceAttributeParameters);
-                    }
                     else if (d.modelDescriptor == null)
                     {
                         /*
@@ -482,6 +470,8 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        VFXViewPresenter m_OldPresenter;
+
         public override void OnDataChanged()
         {
             base.OnDataChanged();
@@ -666,13 +656,8 @@ namespace UnityEditor.VFX.UI
         void IParameterDropTarget.OnDragPerform(IMGUIEvent evt, VFXParameterPresenter parameter)
         {
             VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
-            if (presenter == null)
-                return;
-
-            VFXParameter newParameter = presenter.AddVFXParameter(contentViewContainer.GlobalToBound(evt.imguiEvent.mousePosition), VFXLibrary.GetParameters().FirstOrDefault(t => t.name == parameter.anchorType.UserFriendlyName()));
-
-            newParameter.exposedName = parameter.exposedName;
-            newParameter.exposed = true;
+            if (presenter == null) return;
+            presenter.AddVFXParameter(contentViewContainer.GlobalToBound(evt.imguiEvent.mousePosition), VFXLibrary.GetParameters().FirstOrDefault(t => t.name == parameter.portType.UserFriendlyName()));
         }
 
         void SelectionUpdated()
@@ -729,27 +714,6 @@ namespace UnityEditor.VFX.UI
                 SelectionUpdated();
         }
 
-        protected override UnityEngine.Object[] toWatch
-        {
-            get
-            {
-                List<UnityEngine.Object> result = new List<UnityEngine.Object>();
-                if (presenter != null)
-                {
-                    VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
-                    result.Add(presenter);
-                    result.Add(presenter.GetVFXAsset());
-                    if (presenter.GetVFXAsset().graph)
-                    {
-                        result.Add(presenter.GetVFXAsset().graph);
-                        VFXGraph graph = presenter.GetVFXAsset().GetOrCreateGraph();
-                        result.Add(graph.UIInfos);
-                    }
-                }
-                return result.ToArray();
-            }
-        }
-
         private Toggle m_ToggleCastShadows;
         private Toggle m_ToggleMotionVectors;
 
@@ -767,6 +731,36 @@ namespace UnityEditor.VFX.UI
             VFXCopyPaste.UnserializeAndPasteElements(this, pasteOffset, data);
 
             pasteOffset += defaultPasteOffset;
+        }
+
+        GraphViewChange VFXGraphViewChanged(GraphViewChange change)
+        {
+            if (change.movedElements.Count > 0)
+            {
+                foreach (var groupNode in vfxGroupNodes.ToList())
+                {
+                    var containedElements = groupNode.containedElements;
+
+                    if (containedElements != null && containedElements.Intersect(change.movedElements).Count() > 0)
+                    {
+                        groupNode.UpdateGeometryFromContent();
+                        groupNode.UpdatePresenterPosition();
+                    }
+                }
+
+                foreach (var groupNode in change.movedElements.OfType<VFXGroupNode>())
+                {
+                    var containedElements = groupNode.containedElements;
+                    if (containedElements != null)
+                    {
+                        foreach (var node in containedElements)
+                        {
+                            node.UpdatePresenterPosition();
+                        }
+                    }
+                }
+            }
+            return change;
         }
     }
 }
