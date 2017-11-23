@@ -15,7 +15,7 @@
 // There is a set of Material Keyword that a HD shaders must define (or not define). We call them system KeyWord.
 // .Shader need to define:
 // - _SURFACE_TYPE_TRANSPARENT if they use a transparent material
-// - _BLENDMODE_ALPHA, _BLENDMODE_ADD, _BLENDMODE_MULTIPLY, _BLENDMODE_PRE_MULTIPLY for blend mode
+// - _BLENDMODE_ALPHA, _BLENDMODE_ADD, _BLENDMODE_PRE_MULTIPLY for blend mode
 // - _BLENDMODE_PRESERVE_SPECULAR_LIGHTING for correct lighting when blend mode are use with a Lit material
 // - _ENABLE_FOG_ON_TRANSPARENT if fog is enable on transparent surface
 
@@ -35,13 +35,13 @@ float4 ApplyBlendMode(float3 diffuseLighting, float3 specularLighting, float opa
     // However this have precision issue when reaching 0, so we change the blend mode and apply src * src_a inside the shader instead
     #if defined(_BLENDMODE_ADD) || defined(_BLENDMODE_ALPHA)
     return float4(diffuseLighting * opacity + specularLighting, opacity);
-    #else // defined(_BLENDMODE_MULTIPLY) || defined(_BLENDMODE_PRE_MULTIPLY)
+    #else // defined(_BLENDMODE_PRE_MULTIPLY)
     return float4(diffuseLighting + specularLighting, opacity);
     #endif
 #else
     #if defined(_BLENDMODE_ADD) || defined(_BLENDMODE_ALPHA)
     return float4((diffuseLighting + specularLighting) * opacity, opacity);
-    #else // defined(_BLENDMODE_MULTIPLY) || defined(_BLENDMODE_PRE_MULTIPLY)
+    #else // defined(_BLENDMODE_PRE_MULTIPLY)
     return float4(diffuseLighting + specularLighting, opacity);
     #endif
 #endif
@@ -71,9 +71,6 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float4 inputColor)
     #elif defined(_BLENDMODE_ADD)
     // For additive, we just need to fade to black with fog density (black + background == background color == fog color)
     result.rgb = result.rgb * (1.0 - fog.a);
-    #elif defined(_BLENDMODE_MULTIPLY)
-    // For multiplicative, we just need to fade to white with fog density (white * background == background color == fog color)
-    result.rgb = lerp(result.rgb, float3(1.0, 1.0, 1.0), fog.a);
     #elif defined(_BLENDMODE_PRE_MULTIPLY)
     // For Pre-Multiplied Alpha Blend, we need to multiply fog color by src alpha to match regular alpha blending formula.
     result.rgb = lerp(result.rgb, fog.rgb * result.a, fog.a);

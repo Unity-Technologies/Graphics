@@ -119,6 +119,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             m_Shadowmap = new RenderTexture( (int) m_Width, (int) m_Height, (int) m_ShadowmapBits, m_ShadowmapFormat, RenderTextureReadWrite.Linear );
             CreateShadowmap( m_Shadowmap );
+            m_Shadowmap.Create();
         }
 
         virtual protected void CreateShadowmap( RenderTexture shadowmap )
