@@ -378,6 +378,14 @@ float LinearEyeDepth(float2 positionSS, float deviceDepth, float4 invProjParam)
     return -viewSpaceZ;
 }
 
+// Z buffer to linear depth.
+// Correctly handles oblique view frustums.
+// Typically, this is the cheapest variant, provided you've already computed 'positionWS'.
+float LinearEyeDepth(float3 positionWS, float3x3 viewProjMatrix)
+{
+    return mul(viewProjMatrix, float4(positionWS, 1.0)).w;
+}
+
 // ----------------------------------------------------------------------------
 // Space transformations
 // ----------------------------------------------------------------------------
@@ -426,16 +434,17 @@ float3 ComputeWorldSpacePosition(float2 positionSS, float deviceDepth, float4x4 
 
 struct PositionInputs
 {
-    // Normalize screen position (offset by 0.5)
-    float2 positionSS;
-    // Unormalize screen position (offset by 0.5)
-    uint2 unPositionSS;
-    uint2 unTileCoord;
-
-    float deviceDepth; // raw depth from depth buffer
-    float linearDepth;
-
-    float3 positionWS;
+    // TODO: improve the naming convention.
+    // Some options:
+    // positionNDC,   positionSS,   tileCoordSS
+    // pixelCoordUV,  pixelCoordSS, tileCoordSS
+    // pixelCoordSS,  pixelIndexSS, tileIndexSS
+    float3 positionWS;   // World space position (could be camera-relative)
+    float2 positionSS;   // Screen space pixel position : [0, 1) (with the half-pixel offset)
+    uint2  unPositionSS; // Screen space pixel index    : [0, NumPixels)
+    uint2  unTileCoord;  // Screen space tile  index    : [0, NumTiles)
+    float  deviceDepth;  // Depth from the depth buffer : [0, 1]
+    float  linearDepth;  // View space Z coordinate     : [Near, Far]
 };
 
 // This function is use to provide an easy way to sample into a screen texture, either from a pixel or a compute shaders.
