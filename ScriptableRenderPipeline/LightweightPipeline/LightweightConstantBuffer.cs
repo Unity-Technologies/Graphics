@@ -5,6 +5,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     public static class PerFrameBuffer
     {
         public static int _GlossyEnvironmentColor;
+        public static int _SubtractiveShadowColor;
     }
 
     public static class PerCameraBuffer
