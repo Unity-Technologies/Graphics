@@ -134,7 +134,7 @@ ColorPropertyRM
     flex-direction:column;
     align-items:stretch;
 }
-ColorPropertyRM .colordisplay
+.propertyrm .colordisplay
 {
 	flex:1;
 }

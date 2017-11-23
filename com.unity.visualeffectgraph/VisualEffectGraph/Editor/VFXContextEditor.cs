@@ -28,7 +28,8 @@ public class VFXContextEditor : VFXSlotContainerEditor
 
     public override void DoInspectorGUI()
     {
-        EditorGUILayout.PropertyField(spaceProperty);
+        if (spaceProperty != null)
+            EditorGUILayout.PropertyField(spaceProperty);
 
         base.DoInspectorGUI();
     }

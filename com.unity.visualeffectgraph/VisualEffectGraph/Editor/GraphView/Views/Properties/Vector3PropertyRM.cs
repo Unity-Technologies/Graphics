@@ -30,6 +30,7 @@ namespace UnityEditor.VFX.UI
             {
                 m_ColorField = new ColorField(m_Label);
                 m_ColorField.OnValueChanged = OnColorValueChanged;
+                m_ColorField.showAlpha = false;
                 m_VectorField = new Vector3Field();
                 m_VectorField.RegisterCallback<ChangeEvent<Vector3>>(OnValueChanged);
 
