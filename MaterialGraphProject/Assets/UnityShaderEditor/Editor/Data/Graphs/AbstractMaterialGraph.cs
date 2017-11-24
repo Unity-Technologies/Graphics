@@ -280,36 +280,21 @@ namespace UnityEditor.ShaderGraph
             if (isMaster)
             {
                 foreach (var slot in slots)
-                {
-                    if (slot.isInputSlot)
-                        surfaceDescriptionStruct.AddShaderChunk(string.Format("{0} {1};", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType), slot.shaderOutputName), false);
-                    else
-                        surfaceDescriptionStruct.AddShaderChunk(string.Format("{0} {1};", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType), ((AbstractMaterialNode) slot.owner).GetVariableNameForSlot(slot.id)), false);
-                }
+                    surfaceDescriptionStruct.AddShaderChunk(string.Format("{0} {1};", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType), AbstractMaterialNode.GetHLSLSafeName(slot.shaderOutputName)), false);
                 surfaceDescriptionStruct.Deindent();
                 surfaceDescriptionStruct.AddShaderChunk("};", false);
 
                 surfaceDescriptionStruct.AddShaderChunk("void ScaleSurfaceDescription(inout SurfaceDescription surface, float scale){", false);
                 surfaceDescriptionStruct.Indent();
                 foreach (var slot in slots)
-                {
-                    if (slot.isInputSlot)
-                        surfaceDescriptionStruct.AddShaderChunk(string.Format("surface.{0} = scale * surface.{0};", slot.shaderOutputName), false);
-                    else
-                        surfaceDescriptionStruct.AddShaderChunk(string.Format("surface.{0} = scale * surface.{0};", ((AbstractMaterialNode) slot.owner).GetVariableNameForSlot(slot.id)), false);
-                }
+                    surfaceDescriptionStruct.AddShaderChunk(string.Format("surface.{0} = scale * surface.{0};", AbstractMaterialNode.GetHLSLSafeName(slot.shaderOutputName)), false);
                 surfaceDescriptionStruct.Deindent();
                 surfaceDescriptionStruct.AddShaderChunk("};", false);
 
                 surfaceDescriptionStruct.AddShaderChunk("void AddSurfaceDescription(inout SurfaceDescription base, in SurfaceDescription add){", false);
                 surfaceDescriptionStruct.Indent();
                 foreach (var slot in slots)
-                {
-                    if (slot.isInputSlot)
-                        surfaceDescriptionStruct.AddShaderChunk(string.Format("base.{0} = base.{0} + add.{0};", slot.shaderOutputName), false);
-                    else
-                        surfaceDescriptionStruct.AddShaderChunk(string.Format("base.{0} = base.{0} + add.{0};", ((AbstractMaterialNode) slot.owner).GetVariableNameForSlot(slot.id)), false);
-                }
+                    surfaceDescriptionStruct.AddShaderChunk(string.Format("base.{0} = base.{0} + add.{0};", AbstractMaterialNode.GetHLSLSafeName(slot.shaderOutputName)), false);
             }
             else
             {
@@ -398,18 +383,18 @@ namespace UnityEditor.ShaderGraph
                         {
                             var outputRef = foundEdges[0].outputSlot;
                             var fromNode = graph.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
-                            surfaceDescriptionFunction.AddShaderChunk(string.Format("surface.{0} = {1};", input.shaderOutputName, fromNode.GetVariableNameForSlot(outputRef.slotId)), true);
+                            surfaceDescriptionFunction.AddShaderChunk(string.Format("surface.{0} = {1};", AbstractMaterialNode.GetHLSLSafeName(input.shaderOutputName), fromNode.GetVariableNameForSlot(outputRef.slotId)), true);
                         }
                         else
                         {
-                            surfaceDescriptionFunction.AddShaderChunk(string.Format("surface.{0} = {1};", input.shaderOutputName, input.GetDefaultValue(mode)), true);
+                            surfaceDescriptionFunction.AddShaderChunk(string.Format("surface.{0} = {1};", AbstractMaterialNode.GetHLSLSafeName(input.shaderOutputName), input.GetDefaultValue(mode)), true);
                         }
                     }
                 }
                 else if (masterNode.hasPreview)
                 {
                     foreach (var slot in masterNode.GetOutputSlots<MaterialSlot>())
-                        surfaceDescriptionFunction.AddShaderChunk(string.Format("surface.{0} = {0};", masterNode.GetVariableNameForSlot(slot.id)), true);
+                        surfaceDescriptionFunction.AddShaderChunk(string.Format("surface.{0} = {1};", AbstractMaterialNode.GetHLSLSafeName(slot.shaderOutputName), masterNode.GetVariableNameForSlot(slot.id)), true);
                 }
             }
 
