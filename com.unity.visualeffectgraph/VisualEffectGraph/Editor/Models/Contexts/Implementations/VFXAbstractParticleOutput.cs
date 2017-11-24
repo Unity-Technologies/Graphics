@@ -91,6 +91,9 @@ namespace UnityEditor.VFX
                     if (settings.shadowCastingMode != ShadowCastingMode.Off)
                         yield return "USE_CAST_SHADOWS_PASS";
                 }
+
+                if (HasIndirectDraw())
+                    yield return "VFX_HAS_INDIRECT_DRAW";
             }
         }
 

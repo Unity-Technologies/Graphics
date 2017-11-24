@@ -246,6 +246,14 @@ namespace UnityEditor.VFX
             return string.Format("attributeBuffer.Store{0}({1},{3}({2}))", GetByteAddressBufferMethodSuffix(attrib), m_layoutAttributeCurrent.GetCodeOffset(attrib, "index"), value, attrib.type == UnityEngine.VFX.VFXValueType.kBool ? "uint" : "asuint");
         }
 
+        public bool NeedsIndirectBuffer()
+        {
+            foreach (var output in owners.OfType<VFXAbstractParticleOutput>())
+                if (output.HasIndirectDraw())
+                    return true;
+            return false;
+        }
+
         public void FillDescs(
             List<VFXGPUBufferDesc> outBufferDescs,
             List<VFXSystemDesc> outSystemDescs,
@@ -312,6 +320,16 @@ namespace UnityEditor.VFX
                 }
             }
 
+            int indirectBufferIndex = -1;
+            bool needsIndirectBuffer = NeedsIndirectBuffer();
+            if (needsIndirectBuffer)
+            {
+                systemFlag |= VFXSystemFlag.kVFXSystemHasIndirectBuffer;
+                indirectBufferIndex = outBufferDescs.Count;
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = capacity });
+                systemBufferMappings.Add(new VFXMapping(indirectBufferIndex, "indirectBuffer"));
+            }
+
             var taskDescs = new List<VFXTaskDesc>();
             var bufferMappings = new List<VFXMapping>();
             var uniformMappings = new List<VFXMapping>();
@@ -335,6 +353,8 @@ namespace UnityEditor.VFX
                     bufferMappings.Add(new VFXMapping(deadListCountIndex, "deadListCount"));
                 if (attributeSourceBufferIndex != -1 && context.contextType == VFXContextType.kInit)
                     bufferMappings.Add(new VFXMapping(attributeSourceBufferIndex, "sourceAttributeBuffer"));
+                if (indirectBufferIndex != -1 && (context.contextType == VFXContextType.kUpdate || (context.contextType == VFXContextType.kOutput && (context as VFXAbstractParticleOutput).HasIndirectDraw())))
+                    bufferMappings.Add(new VFXMapping(indirectBufferIndex, "indirectBuffer"));
 
                 uniformMappings.Clear();
                 foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.textures))

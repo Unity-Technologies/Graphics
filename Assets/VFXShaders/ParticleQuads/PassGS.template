@@ -13,6 +13,9 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_P
 	uint index = intStream[0];
 	if (index < asuint(nbMax))
 	{
+		#if VFX_HAS_INDIRECT_DRAW
+		index = indirectBuffer[index];
+		#endif
 		${VFXLoadAttributes:{alive}}
 		if (alive)
 		{

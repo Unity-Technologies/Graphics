@@ -51,5 +51,14 @@ namespace UnityEditor.VFX
                     yield return CreateInstance<AgeAndDie>();
             }
         }
+
+        public override IEnumerable<string> additionalDefines
+        {
+            get
+            {
+                if ((GetData() as VFXDataParticle).NeedsIndirectBuffer())
+                    yield return "VFX_HAS_INDIRECT_DRAW";
+            }
+        }
     }
 }

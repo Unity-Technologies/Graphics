@@ -40,8 +40,15 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 				instanceCount = 1;
 				break;
 			}
+
+			case 1: // lines
+			{
+				indexCount = elementCount * 2;
+				instanceCount = 1;
+				break;
+			}
 			
-			case 1: // quads
+			case 2: // quads
 			{
 				if (elementCount > 16384) // Due to 16bits indices (4 vertices per element)
 				{
@@ -56,14 +63,14 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 				break;
 			}
 
-			case 2: // meshes
+			case 3: // meshes
 			{
 				indexCount = data.indexCount;
 				instanceCount = elementCount;
 				break;
 			}
 
-			case 3: // hexahedron
+			case 4: // hexahedron
 			{
 				// Version with hexahedron batched in index buffer
 				if (elementCount > 8192) // Due to 16bits indices (8 vertices per element)

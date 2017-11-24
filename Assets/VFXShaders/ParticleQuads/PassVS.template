@@ -5,6 +5,9 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
 	if (index < asuint(nbMax))
 	{
+		#if VFX_HAS_INDIRECT_DRAW
+		index = indirectBuffer[index];
+		#endif
 		${VFXLoadAttributes:{alive}}
 		if (alive)
 		{
