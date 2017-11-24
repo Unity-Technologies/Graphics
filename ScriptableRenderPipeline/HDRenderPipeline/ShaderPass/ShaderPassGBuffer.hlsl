@@ -55,6 +55,6 @@ void Frag(  PackedVaryingsToPS packedInput,
     ENCODE_VELOCITY_INTO_GBUFFER(builtinData.velocity, outVelocityBuffer);
 
 #ifdef _DEPTHOFFSET_ON
-    outputDepth = posInput.deviceDepth;
+    outputDepth = posInput.depthRaw;
 #endif
 }

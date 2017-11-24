@@ -126,7 +126,7 @@ float3 EstimateRaycast(float3 V, PositionInputs posInputs, float3 positionWS, fl
     float depth = LinearEyeDepth(pyramidDepth, _ZBufferParams);
 
     // Distance from point to the back plane
-    float depthFromPositionInput = depth - posInputs.linearDepth;
+    float depthFromPositionInput = depth - posInputs.depthVS;
 
     float offset = dot(-V, positionWS - posInputs.positionWS);
     float depthFromPosition = depthFromPositionInput - offset;
@@ -147,11 +147,11 @@ float3 EstimateRaycast(float3 V, PositionInputs posInputs, float3 positionWS, fl
 // If a user do a lighting architecture without material classification, this can be remove
 #include "../../Lighting/TilePass/TilePass.cs.hlsl"
 
-static uint g_FeatureFlags = UINT_MAX;
+static int g_FeatureFlags = 0xFFFFFFFF;
 
 // This method allows us to know at compile time what shader features should be removed from the code when the materialID cannot be known on the whole tile (any combination of 2 or more differnet materials in the same tile)
 // This is only useful for classification during lighting, so it's not needed in EncodeIntoGBuffer and ConvertSurfaceDataToBSDFData (where we always know exactly what the MaterialID is)
-bool HasMaterialFeatureFlag(uint flag)
+bool HasMaterialFeatureFlag(int flag)
 {
     return ((g_FeatureFlags & flag) != 0);
 }
@@ -603,7 +603,7 @@ void DecodeFromGBuffer(
 
     // The material features system for material classification must allow compile time optimization (i.e everything should be static)
     // Note that as we store materialId for Aniso based on content of RT2 we need to add few extra condition.
-    // The code is also call from MaterialFeatureFlagsFromGBuffer, so must work fully dynamic if featureFlags is UINT_MAX
+    // The code is also call from MaterialFeatureFlagsFromGBuffer, so must work fully dynamic if featureFlags is 0xFFFFFFFF
     int supportsStandard = HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_STANDARD);
     int supportsSSS = HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_SSS);
     int supportsAniso = HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO);
@@ -695,7 +695,7 @@ uint MaterialFeatureFlagsFromGBuffer(uint2 unPositionSS)
 
     DecodeFromGBuffer(
         unPositionSS,
-        UINT_MAX,
+        0xFFFFFFFF,
         bsdfData,
         unused
     );
@@ -752,7 +752,6 @@ struct PreLightData
     float diffuseFGD;
 
     // Area lights (17 VGPRs)
-    // TODO: 'orthoBasisViewNormal' is just a rotation around the normal and should thus be just 1x VGPR.
     float3x3 orthoBasisViewNormal; // Right-handed view-dependent orthogonal basis around the normal (6x VGPRs)
     float3x3 ltcTransformDiffuse;  // Inverse transformation for Lambertian or Disney Diffuse        (4x VGPRs)
     float3x3 ltcTransformSpecular; // Inverse transformation for GGX                                 (4x VGPRs)
@@ -1069,7 +1068,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
         float NdotL = saturate(dot(bsdfData.coatNormalWS, L));
         float NdotV = preLightData.coatNdotV;
         float LdotV = dot(L, V);
-        float invLenLV = rsqrt(max(2 * LdotV + 2, FLT_EPS));
+        float invLenLV = rsqrt(max(2 * LdotV + 2, FLT_EPSILON));
         float NdotH = saturate((NdotL + NdotV) * invLenLV);
         float LdotH = saturate(invLenLV * LdotV + invLenLV);
 
@@ -1091,7 +1090,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     float NdotL    = saturate(dot(bsdfData.normalWS, L)); // Must have the same value without the clamp
     float NdotV    = preLightData.NdotV;                  // Get the unaltered (geometric) version
     float LdotV    = dot(L, V);
-    float invLenLV = rsqrt(max(2 * LdotV + 2, FLT_EPS));  // invLenLV = rcp(length(L + V)) - caution about the case where V and L are opposite, it can happen, use max to avoid this
+    float invLenLV = rsqrt(max(2 * LdotV + 2, FLT_EPSILON)); // invLenLV = rcp(length(L + V)) - caution about the case where V and L are opposite, it can happen, use max to avoid this
     float NdotH    = saturate((NdotL + NdotV) * invLenLV);
     float LdotH    = saturate(invLenLV * LdotV + invLenLV);
 
@@ -1243,7 +1242,7 @@ DirectLighting EvaluateBSDF_Directional(    LightLoopContext lightLoopContext,
 #endif
 
 #ifdef SHADOWS_SHADOWMASK
-        float fade = saturate(posInput.linearDepth * lightData.fadeDistanceScaleAndBias.x + lightData.fadeDistanceScaleAndBias.y);
+        float fade = saturate(posInput.depthVS * lightData.fadeDistanceScaleAndBias.x + lightData.fadeDistanceScaleAndBias.y);
 
         // See comment in EvaluateBSDF_Punctual
         shadow = lightData.dynamicShadowCasterOnly ? min(shadowMask, shadow) : shadow;
@@ -1750,7 +1749,7 @@ IndirectLighting EvaluateBSDF_SSRefraction(LightLoopContext lightLoopContext,
 
     // Exit if texel is out of color buffer
     // Or if the texel is from an object in front of the object
-    if (refractedBackPointDepth < posInput.linearDepth
+    if (refractedBackPointDepth < posInput.depthVS
         || any(refractedBackPointSS < 0.0)
         || any(refractedBackPointSS > 1.0))
     {
