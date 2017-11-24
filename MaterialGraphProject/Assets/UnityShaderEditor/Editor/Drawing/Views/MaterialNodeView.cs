@@ -54,7 +54,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     UpdatePreviewTexture();
                     m_PreviewContainer.Add(m_PreviewTextureView);
 
-                    var collapsePreviewButton = new VisualElement { name = "collapse", text = "▲" };
+                    var collapsePreviewButton = new Label { name = "collapse", text = "▲" };
                     collapsePreviewButton.AddManipulator(new Clickable(() =>
                     {
                         node.owner.owner.RegisterCompleteObjectUndo("Collapse Preview");
@@ -63,7 +63,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     UpdatePreviewExpandedState(node.previewExpanded);
                     m_PreviewContainer.Add(collapsePreviewButton);
 
-                    var expandPreviewButton = new VisualElement { name = "expand", text = "▼" };
+                    var expandPreviewButton = new Label { name = "expand", text = "▼" };
                     expandPreviewButton.AddManipulator(new Clickable(() =>
                     {
                         node.owner.owner.RegisterCompleteObjectUndo("Expand Preview");
@@ -90,14 +90,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (node is PreviewNode)
             {
-                var resizeHandle = new VisualElement { name = "resize", text = "" };
+                var resizeHandle = new Label { name = "resize", text = "" };
                 resizeHandle.AddManipulator(new Draggable(OnResize));
                 Add(resizeHandle);
 
                 UpdateSize();
             }
-
-            mainContainer.clippingOptions = ClippingOptions.ClipContents;
         }
 
         public AbstractMaterialNode node { get; private set; }
@@ -198,6 +196,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             UpdatePortInputVisibilities();
+
+            foreach (var control in m_ControlViews)
+            {
+                var listener = control as INodeModificationListener;
+                if (listener != null)
+                    listener.OnNodeModified(scope);
+            }
         }
 
         void AddSlots(IEnumerable<MaterialSlot> slots)
@@ -207,10 +212,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (slot.hidden)
                     continue;
 
-                var port = InstantiatePort(Orientation.Horizontal, slot.isInputSlot ? Direction.Input : Direction.Output, typeof(Vector4));
-                port.capabilities &= ~Capabilities.Movable;
+                var port = InstantiatePort(Orientation.Horizontal, slot.isInputSlot ? Direction.Input : Direction.Output, null);
                 port.portName = slot.displayName;
                 port.userData = slot;
+                port.visualClass = slot.concreteValueType.ToClassName();
 
                 if (slot.isOutputSlot)
                 {
@@ -241,6 +246,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var slot = (MaterialSlot) anchor.userData;
                 anchor.portName = slot.displayName;
+                anchor.visualClass = slot.concreteValueType.ToClassName();
             }
 
             foreach (var attacher in m_Attachers)

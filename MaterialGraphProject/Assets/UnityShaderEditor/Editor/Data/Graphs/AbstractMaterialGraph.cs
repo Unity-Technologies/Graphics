@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.Graphing.Util;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -209,27 +210,21 @@ namespace UnityEditor.ShaderGraph
             base.OnAfterDeserialize();
         }
 
-        protected static ShaderGraphRequirements GetRequierments(AbstractMaterialNode nodeForRequirements)
+        protected static ShaderGraphRequirements GetRequirements(List<INode> nodes)
         {
-            if (nodeForRequirements == null)
-                return ShaderGraphRequirements.none;
-
-            var activeNodeList = ListPool<INode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, nodeForRequirements);
-
-            NeededCoordinateSpace requiresNormal = activeNodeList.OfType<IMayRequireNormal>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresNormal());
-            NeededCoordinateSpace requiresBitangent = activeNodeList.OfType<IMayRequireBitangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresBitangent());
-            NeededCoordinateSpace requiresTangent = activeNodeList.OfType<IMayRequireTangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresTangent());
-            NeededCoordinateSpace requiresViewDir = activeNodeList.OfType<IMayRequireViewDirection>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresViewDirection());
-            NeededCoordinateSpace requiresPosition = activeNodeList.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition());
-            bool requiresScreenPosition = activeNodeList.OfType<IMayRequireScreenPosition>().Any(x => x.RequiresScreenPosition());
-            bool requiresVertexColor = activeNodeList.OfType<IMayRequireVertexColor>().Any(x => x.RequiresVertexColor());
+            NeededCoordinateSpace requiresNormal = nodes.OfType<IMayRequireNormal>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresNormal());
+            NeededCoordinateSpace requiresBitangent = nodes.OfType<IMayRequireBitangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresBitangent());
+            NeededCoordinateSpace requiresTangent = nodes.OfType<IMayRequireTangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresTangent());
+            NeededCoordinateSpace requiresViewDir = nodes.OfType<IMayRequireViewDirection>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresViewDirection());
+            NeededCoordinateSpace requiresPosition = nodes.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition());
+            bool requiresScreenPosition = nodes.OfType<IMayRequireScreenPosition>().Any(x => x.RequiresScreenPosition());
+            bool requiresVertexColor = nodes.OfType<IMayRequireVertexColor>().Any(x => x.RequiresVertexColor());
 
             var meshUV = new List<UVChannel>();
             for (int uvIndex = 0; uvIndex < ShaderGeneratorNames.UVCount; ++uvIndex)
             {
                 var channel = (UVChannel)uvIndex;
-                if (activeNodeList.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV(channel)))
+                if (nodes.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV(channel)))
                     meshUV.Add(channel);
             }
 
@@ -259,7 +254,6 @@ namespace UnityEditor.ShaderGraph
                 requiresMeshUVs = meshUV
             };
 
-            ListPool<INode>.Release(activeNodeList);
             return reqs;
         }
 
@@ -267,125 +261,84 @@ namespace UnityEditor.ShaderGraph
         public string GetPreviewShader(AbstractMaterialNode node, out PreviewMode previewMode)
         {
             List<PropertyCollector.TextureInfo> configuredTextures;
-            return GetShader(node, GenerationMode.Preview, string.Format("hidden/preview/{0}", node.GetVariableNameForNode()), out configuredTextures, out previewMode);
+            FloatShaderProperty outputIdProperty;
+            return GetShader(node, GenerationMode.Preview, string.Format("hidden/preview/{0}", node.GetVariableNameForNode()), out configuredTextures, out previewMode, out outputIdProperty);
         }
 
-        protected static void GenerateSurfaceDescriptionStruct(ShaderGenerator surfaceDescriptionStruct, AbstractMaterialNode node, bool isMasterNode)
+
+        public string GetUberPreviewShader(Dictionary<Guid, int> ids, out FloatShaderProperty outputIdProperty)
+        {
+            List<PropertyCollector.TextureInfo> configuredTextures;
+            PreviewMode previewMode;
+            return GetShader(null, GenerationMode.Preview, "hidden/preview", out configuredTextures, out previewMode, out outputIdProperty, ids);
+        }
+
+        protected static void GenerateSurfaceDescriptionStruct(ShaderGenerator surfaceDescriptionStruct, List<MaterialSlot> slots, bool isMaster)
         {
             surfaceDescriptionStruct.AddShaderChunk("struct SurfaceDescription{", false);
             surfaceDescriptionStruct.Indent();
-            if (isMasterNode)
+            if (isMaster)
             {
-                foreach (var slot in node.GetInputSlots<MaterialSlot>())
-                    surfaceDescriptionStruct.AddShaderChunk(string.Format("{0} {1};", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType), slot.shaderOutputName), false);
-            }
-            else
-            {
-                foreach (var slot in node.GetOutputSlots<MaterialSlot>())
-                    surfaceDescriptionStruct.AddShaderChunk(string.Format("{0} {1};", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType), node.GetVariableNameForSlot(slot.id)), false);
-            }
-            surfaceDescriptionStruct.Deindent();
-            surfaceDescriptionStruct.AddShaderChunk("};", false);
+                foreach (var slot in slots)
+                    surfaceDescriptionStruct.AddShaderChunk(string.Format("{0} {1};", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType), AbstractMaterialNode.GetHLSLSafeName(slot.shaderOutputName)), false);
+                surfaceDescriptionStruct.Deindent();
+                surfaceDescriptionStruct.AddShaderChunk("};", false);
 
-            surfaceDescriptionStruct.AddShaderChunk("void ScaleSurfaceDescription(inout SurfaceDescription surface, float scale){", false);
-            surfaceDescriptionStruct.Indent();
-            if (isMasterNode)
-            {
-                foreach (var slot in node.GetInputSlots<MaterialSlot>())
-                    surfaceDescriptionStruct.AddShaderChunk( string.Format("surface.{0} = scale * surface.{0};", slot.shaderOutputName), false);
-            }
-            else
-            {
-                foreach (var slot in node.GetOutputSlots<MaterialSlot>())
-                    surfaceDescriptionStruct.AddShaderChunk(string.Format("surface.{0} = scale * surface.{0};", node.GetVariableNameForSlot(slot.id)), false);
-            }
-            surfaceDescriptionStruct.Deindent();
-            surfaceDescriptionStruct.AddShaderChunk("};", false);
+                surfaceDescriptionStruct.AddShaderChunk("void ScaleSurfaceDescription(inout SurfaceDescription surface, float scale){", false);
+                surfaceDescriptionStruct.Indent();
+                foreach (var slot in slots)
+                    surfaceDescriptionStruct.AddShaderChunk(string.Format("surface.{0} = scale * surface.{0};", AbstractMaterialNode.GetHLSLSafeName(slot.shaderOutputName)), false);
+                surfaceDescriptionStruct.Deindent();
+                surfaceDescriptionStruct.AddShaderChunk("};", false);
 
-            surfaceDescriptionStruct.AddShaderChunk("void AddSurfaceDescription(inout SurfaceDescription base, in SurfaceDescription add){", false);
-            surfaceDescriptionStruct.Indent();
-            if (isMasterNode)
-            {
-                foreach (var slot in node.GetInputSlots<MaterialSlot>())
-                {
-                    var str = string.Format("base.{0} = base.{0} + add.{0};", slot.shaderOutputName);
-                    surfaceDescriptionStruct.AddShaderChunk(str, false);
-                }
+                surfaceDescriptionStruct.AddShaderChunk("void AddSurfaceDescription(inout SurfaceDescription base, in SurfaceDescription add){", false);
+                surfaceDescriptionStruct.Indent();
+                foreach (var slot in slots)
+                    surfaceDescriptionStruct.AddShaderChunk(string.Format("base.{0} = base.{0} + add.{0};", AbstractMaterialNode.GetHLSLSafeName(slot.shaderOutputName)), false);
             }
             else
             {
-                foreach (var slot in node.GetOutputSlots<MaterialSlot>())
-                {
-                    var str = string.Format("base.{0} = base.{0} + add.{0};", node.GetVariableNameForSlot(slot.id));
-                    surfaceDescriptionStruct.AddShaderChunk(str, false);
-                }
+                surfaceDescriptionStruct.AddShaderChunk("float4 PreviewOutput;", false);
             }
             surfaceDescriptionStruct.Deindent();
             surfaceDescriptionStruct.AddShaderChunk("};", false);
         }
 
         protected static void GenerateSurfaceDescription(
-            AbstractMaterialNode node,
+            List<INode> activeNodeList,
+            AbstractMaterialNode masterNode,
+            AbstractMaterialGraph graph,
             ShaderGenerator surfaceDescriptionFunction,
             ShaderGenerator shaderFunctionVisitor,
             PropertyCollector shaderProperties,
             ShaderGraphRequirements requirements,
             GenerationMode mode,
-            bool isMasterNode,
             string functionName = "PopulateSurfaceData",
-            string surfaceDescriptionName = "SurfaceDescription")
+            string surfaceDescriptionName = "SurfaceDescription",
+            FloatShaderProperty outputIdProperty = null,
+            Dictionary<Guid, int> ids = null)
         {
-            var graph = node.owner as AbstractMaterialGraph;
             if (graph == null)
                 return;
 
             surfaceDescriptionFunction.AddShaderChunk(string.Format("{0} {1}(SurfaceInputs IN) {{", surfaceDescriptionName, functionName), false);
             surfaceDescriptionFunction.Indent();
+            surfaceDescriptionFunction.AddShaderChunk(string.Format("{0} surface = ({0})0;", surfaceDescriptionName), false);
 
-            if ((requirements.requiresNormal & NeededCoordinateSpace.Object) > 0)
-                surfaceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", CoordinateSpace.Object.ToVariableName(InterpolatorType.Normal)), false);
-            if ((requirements.requiresNormal & NeededCoordinateSpace.View) > 0)
-                surfaceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", CoordinateSpace.View.ToVariableName(InterpolatorType.Normal)), false);
-            if ((requirements.requiresNormal & NeededCoordinateSpace.World) > 0)
-                surfaceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", CoordinateSpace.World.ToVariableName(InterpolatorType.Normal)), false);
-            if ((requirements.requiresNormal & NeededCoordinateSpace.Tangent) > 0)
-                surfaceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", CoordinateSpace.Tangent.ToVariableName(InterpolatorType.Normal)), false);
-
-            if ((requirements.requiresTangent & NeededCoordinateSpace.Object) > 0)
-                surfaceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", CoordinateSpace.Object.ToVariableName(InterpolatorType.Tangent)), false);
-            if ((requirements.requiresTangent & NeededCoordinateSpace.View) > 0)
-                surfaceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", CoordinateSpace.View.ToVariableName(InterpolatorType.Tangent)), false);
-            if ((requirements.requiresTangent & NeededCoordinateSpace.World) > 0)
-                surfaceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", CoordinateSpace.World.ToVariableName(InterpolatorType.Tangent)), false);
-            if ((requirements.requiresTangent & NeededCoordinateSpace.Tangent) > 0)
-                surfaceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", CoordinateSpace.Tangent.ToVariableName(InterpolatorType.Tangent)), false);
-
-            if ((requirements.requiresBitangent & NeededCoordinateSpace.Object) > 0)
-                surfaceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", CoordinateSpace.Object.ToVariableName(InterpolatorType.BiTangent)), false);
-            if ((requirements.requiresBitangent & NeededCoordinateSpace.View) > 0)
-                surfaceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", CoordinateSpace.View.ToVariableName(InterpolatorType.BiTangent)), false);
-            if ((requirements.requiresBitangent & NeededCoordinateSpace.World) > 0)
-                surfaceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", CoordinateSpace.World.ToVariableName(InterpolatorType.BiTangent)), false);
-            if ((requirements.requiresBitangent & NeededCoordinateSpace.Tangent) > 0)
-                surfaceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", CoordinateSpace.Tangent.ToVariableName(InterpolatorType.BiTangent)), false);
-
-            if ((requirements.requiresViewDir & NeededCoordinateSpace.Object) > 0)
-                surfaceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", CoordinateSpace.Object.ToVariableName(InterpolatorType.ViewDirection)), false);
-            if ((requirements.requiresViewDir & NeededCoordinateSpace.View) > 0)
-                surfaceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", CoordinateSpace.View.ToVariableName(InterpolatorType.ViewDirection)), false);
-            if ((requirements.requiresViewDir & NeededCoordinateSpace.World) > 0)
-                surfaceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", CoordinateSpace.World.ToVariableName(InterpolatorType.ViewDirection)), false);
-            if ((requirements.requiresViewDir & NeededCoordinateSpace.Tangent) > 0)
-                surfaceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", CoordinateSpace.Tangent.ToVariableName(InterpolatorType.ViewDirection)), false);
-
-            if ((requirements.requiresPosition & NeededCoordinateSpace.Object) > 0)
-                surfaceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", CoordinateSpace.Object.ToVariableName(InterpolatorType.Position)), false);
-            if ((requirements.requiresPosition & NeededCoordinateSpace.View) > 0)
-                surfaceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", CoordinateSpace.View.ToVariableName(InterpolatorType.Position)), false);
-            if ((requirements.requiresPosition & NeededCoordinateSpace.World) > 0)
-                surfaceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", CoordinateSpace.World.ToVariableName(InterpolatorType.Position)), false);
-            if ((requirements.requiresPosition & NeededCoordinateSpace.Tangent) > 0)
-                surfaceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", CoordinateSpace.Tangent.ToVariableName(InterpolatorType.Position)), false);
+            foreach (CoordinateSpace space in Enum.GetValues(typeof(CoordinateSpace)))
+            {
+                var neededCoordinateSpace = space.ToNeededCoordinateSpace();
+                if ((requirements.requiresNormal & neededCoordinateSpace) > 0)
+                    surfaceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", space.ToVariableName(InterpolatorType.Normal)), false);
+                if ((requirements.requiresTangent & neededCoordinateSpace) > 0)
+                    surfaceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", space.ToVariableName(InterpolatorType.Tangent)), false);
+                if ((requirements.requiresBitangent & neededCoordinateSpace) > 0)
+                    surfaceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", space.ToVariableName(InterpolatorType.BiTangent)), false);
+                if ((requirements.requiresViewDir & neededCoordinateSpace) > 0)
+                    surfaceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", space.ToVariableName(InterpolatorType.ViewDirection)), false);
+                if ((requirements.requiresPosition & neededCoordinateSpace) > 0)
+                    surfaceDescriptionFunction.AddShaderChunk(string.Format("float3 {0} = IN.{0};", space.ToVariableName(InterpolatorType.Position)), false);
+            }
 
             if (requirements.requiresScreenPosition)
                 surfaceDescriptionFunction.AddShaderChunk(string.Format("float4 {0} = IN.{0};", ShaderGeneratorNames.ScreenPosition), false);
@@ -397,52 +350,78 @@ namespace UnityEditor.ShaderGraph
 
             graph.CollectShaderProperties(shaderProperties, mode);
 
-            var activeNodeList = ListPool<INode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, node);
+            var currentId = -1;
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
             {
                 if (activeNode is IGeneratesFunction)
                     (activeNode as IGeneratesFunction).GenerateNodeFunction(shaderFunctionVisitor, mode);
                 if (activeNode is IGeneratesBodyCode)
                     (activeNode as IGeneratesBodyCode).GenerateNodeCode(surfaceDescriptionFunction, mode);
+                if (masterNode == null && activeNode.hasPreview)
+                {
+                    var outputSlot = activeNode.GetOutputSlots<MaterialSlot>().FirstOrDefault();
+                    if (outputSlot != null)
+                    {
+                        currentId++;
+                        ids[activeNode.guid] = currentId;
+                        surfaceDescriptionFunction.AddShaderChunk(string.Format("if ({0} == {1}) {{ surface.PreviewOutput = {2}; return surface; }}", outputIdProperty.referenceName, currentId, ShaderGenerator.AdaptNodeOutputForPreview(activeNode, outputSlot.id, activeNode.GetVariableNameForSlot(outputSlot.id))), false);
+                    }
+
+                }
 
                 activeNode.CollectShaderProperties(shaderProperties, mode);
             }
 
-            surfaceDescriptionFunction.AddShaderChunk(string.Format("{0} surface = ({0})0;", surfaceDescriptionName), false);
-            if (isMasterNode)
+            if (masterNode != null)
             {
-                foreach (var input in node.GetInputSlots<MaterialSlot>())
+                if (masterNode is IMasterNode)
                 {
-                    var foundEdges = graph.GetEdges(input.slotReference).ToArray();
-                    if (foundEdges.Any())
+                    foreach (var input in masterNode.GetInputSlots<MaterialSlot>())
                     {
-                        var outputRef = foundEdges[0].outputSlot;
-                        var fromNode = graph.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
-                        surfaceDescriptionFunction.AddShaderChunk(string.Format("surface.{0} = {1};", input.shaderOutputName, fromNode.GetVariableNameForSlot(outputRef.slotId)), true);
-                    }
-                    else
-                    {
-                        surfaceDescriptionFunction.AddShaderChunk(string.Format("surface.{0} = {1};", input.shaderOutputName, input.GetDefaultValue(mode)), true);
+                        var foundEdges = graph.GetEdges(input.slotReference).ToArray();
+                        if (foundEdges.Any())
+                        {
+                            var outputRef = foundEdges[0].outputSlot;
+                            var fromNode = graph.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
+                            surfaceDescriptionFunction.AddShaderChunk(string.Format("surface.{0} = {1};", AbstractMaterialNode.GetHLSLSafeName(input.shaderOutputName), fromNode.GetVariableNameForSlot(outputRef.slotId)), true);
+                        }
+                        else
+                        {
+                            surfaceDescriptionFunction.AddShaderChunk(string.Format("surface.{0} = {1};", AbstractMaterialNode.GetHLSLSafeName(input.shaderOutputName), input.GetDefaultValue(mode)), true);
+                        }
                     }
                 }
-            }
-            else
-            {
-                foreach (var slot in node.GetOutputSlots<MaterialSlot>())
-                    surfaceDescriptionFunction.AddShaderChunk(string.Format("surface.{0} = {0};", node.GetVariableNameForSlot(slot.id)), true);
+                else if (masterNode.hasPreview)
+                {
+                    foreach (var slot in masterNode.GetOutputSlots<MaterialSlot>())
+                        surfaceDescriptionFunction.AddShaderChunk(string.Format("surface.{0} = {1};", AbstractMaterialNode.GetHLSLSafeName(slot.shaderOutputName), masterNode.GetVariableNameForSlot(slot.id)), true);
+                }
             }
 
             surfaceDescriptionFunction.AddShaderChunk("return surface;", false);
             surfaceDescriptionFunction.Deindent();
             surfaceDescriptionFunction.AddShaderChunk("}", false);
-            ListPool<INode>.Release(activeNodeList);
         }
 
-        public string GetShader(AbstractMaterialNode node, GenerationMode mode, string name, out List<PropertyCollector.TextureInfo> configuredTextures, out PreviewMode previewMode)
+        static void Visit(List<INode> outputList, Dictionary<Guid, INode> unmarkedNodes, INode node)
         {
-            if (node == null)
-                throw new ArgumentNullException("node");
+            if (!unmarkedNodes.ContainsKey(node.guid))
+                return;
+            foreach (var slot in node.GetInputSlots<ISlot>())
+            {
+                foreach (var edge in node.owner.GetEdges(slot.slotReference))
+                {
+                    var inputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                    Visit(outputList, unmarkedNodes, inputNode);
+                }
+            }
+            unmarkedNodes.Remove(node.guid);
+            outputList.Add(node);
+        }
+
+        public string GetShader(AbstractMaterialNode node, GenerationMode mode, string name, out List<PropertyCollector.TextureInfo> configuredTextures, out PreviewMode previewMode, out FloatShaderProperty outputIdProperty, Dictionary<Guid, int> ids = null)
+        {
+            bool isUber = node == null;
 
             var vertexShader = new ShaderGenerator();
             var surfaceDescriptionFunction = new ShaderGenerator();
@@ -464,7 +443,23 @@ struct GraphVertexInput
 
             surfaceInputs.AddShaderChunk("struct SurfaceInputs{", false);
             surfaceInputs.Indent();
-            var requirements = GetRequierments(node);
+
+            var activeNodeList = ListPool<INode>.Get();
+            if (isUber)
+            {
+                var unmarkedNodes = GetNodes<INode>().Where(x => !(x is IMasterNode)).ToDictionary(x => x.guid);
+                while (unmarkedNodes.Any())
+                {
+                    var unmarkedNode = unmarkedNodes.FirstOrDefault();
+                    Visit(activeNodeList, unmarkedNodes, unmarkedNode.Value);
+                }
+            }
+            else
+            {
+                NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, node);
+            }
+
+            var requirements = GetRequirements(activeNodeList);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, surfaceInputs);
@@ -477,18 +472,18 @@ struct GraphVertexInput
             if (requirements.requiresScreenPosition)
                 surfaceInputs.AddShaderChunk(string.Format("float4 {0};", ShaderGeneratorNames.ScreenPosition), false);
 
-            var activeNodeList = ListPool<INode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, node);
-            previewMode = PreviewMode.Preview2D;
-            foreach (var pNode in activeNodeList.OfType<AbstractMaterialNode>())
+            previewMode = PreviewMode.Preview3D;
+            if (!isUber)
             {
-                if (pNode.previewMode == PreviewMode.Preview3D)
+                foreach (var pNode in activeNodeList.OfType<AbstractMaterialNode>())
                 {
-                    previewMode = PreviewMode.Preview3D;
-                    break;
+                    if (pNode.previewMode == PreviewMode.Preview3D)
+                    {
+                        previewMode = PreviewMode.Preview3D;
+                        break;
+                    }
                 }
             }
-            ListPool<INode>.Release(activeNodeList);
 
             foreach (var channel in requirements.requiresMeshUVs.Distinct())
                 surfaceInputs.AddShaderChunk(string.Format("half4 {0};", channel.GetUVName()), false);
@@ -502,17 +497,36 @@ struct GraphVertexInput
             vertexShader.Deindent();
             vertexShader.AddShaderChunk("}", false);
 
-            GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, node, node is IMasterNode);
+            var slots = new List<MaterialSlot>();
+            foreach (var activeNode in isUber ? activeNodeList.Where(n => ((AbstractMaterialNode)n).hasPreview) : ((INode)node).ToEnumerable())
+            {
+                if (activeNode is IMasterNode)
+                    slots.AddRange(activeNode.GetInputSlots<MaterialSlot>());
+                else
+                    slots.AddRange(activeNode.GetOutputSlots<MaterialSlot>());
+            }
+            GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, slots, !isUber);
 
             var shaderProperties = new PropertyCollector();
+            outputIdProperty = new FloatShaderProperty
+            {
+                displayName = "OutputId",
+                generatePropertyBlock = false,
+                value = -1
+            };
+            if (isUber)
+                shaderProperties.AddShaderProperty(outputIdProperty);
             GenerateSurfaceDescription(
+                activeNodeList,
                 node,
+                this,
                 surfaceDescriptionFunction,
                 shaderFunctionVisitor,
                 shaderProperties,
                 requirements,
                 mode,
-                node is IMasterNode);
+                outputIdProperty: outputIdProperty,
+                ids: ids);
 
             var finalShader = new ShaderGenerator();
             finalShader.AddShaderChunk(string.Format(@"Shader ""{0}""", name), false);
@@ -538,7 +552,7 @@ struct GraphVertexInput
             finalShader.AddShaderChunk("ENDCG", false);
 
             var masterNode = node as IMasterNode;
-            if (masterNode != null)
+            if (node != null && masterNode != null)
             {
                 var subShaders = masterNode.GetSubshader(requirements, null);
                 foreach (var ss in subShaders)
@@ -548,6 +562,7 @@ struct GraphVertexInput
             {
                 finalShader.AddShaderChunk(ShaderGenerator.GetPreviewSubShader(node, requirements), false);
             }
+            ListPool<INode>.Release(activeNodeList);
 
             finalShader.Deindent();
             finalShader.AddShaderChunk("}", false);

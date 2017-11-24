@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph
     {
         private static string[] UV = {"uv0", "uv1", "uv2", "uv3"};
         public static int UVCount = 4;
-        
+
         public const string ScreenPosition = "screenPosition";
         public const string VertexColor = "vertexColor";
 
@@ -612,9 +612,6 @@ namespace UnityEditor.ShaderGraph
 
         public static string GetPreviewSubShader(AbstractMaterialNode node, ShaderGraphRequirements shaderGraphRequirements)
         {
-            var activeNodeList = ListPool<INode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, node);
-
             var interpolators = new ShaderGenerator();
             var vertexShader = new ShaderGenerator();
             var pixelShader = new ShaderGenerator();
@@ -632,14 +629,21 @@ namespace UnityEditor.ShaderGraph
                 CoordinateSpace.World);
 
             var outputs = new ShaderGenerator();
-            var outputSlot = node.GetOutputSlots<MaterialSlot>().FirstOrDefault();
-            if (outputSlot != null)
+            if (node != null)
             {
-                var result = string.Format("surf.{0}", node.GetVariableNameForSlot(outputSlot.id));
-                outputs.AddShaderChunk(string.Format("return {0};", AdaptNodeOutputForPreview(node, outputSlot.id, result)), true);
+                var outputSlot = node.GetOutputSlots<MaterialSlot>().FirstOrDefault();
+                if (outputSlot != null)
+                {
+                    var result = string.Format("surf.{0}", node.GetVariableNameForSlot(outputSlot.id));
+                    outputs.AddShaderChunk(string.Format("return {0};", AdaptNodeOutputForPreview(node, outputSlot.id, result)), true);
+                }
+                else
+                    outputs.AddShaderChunk("return 0;", true);
             }
             else
-                outputs.AddShaderChunk("return 0;", true);
+            {
+                outputs.AddShaderChunk("return surf.PreviewOutput;", false);
+            }
 
             var res = subShaderTemplate.Replace("${Interpolators}", interpolators.GetShaderString(0));
             res = res.Replace("${VertexShader}", vertexShader.GetShaderString(0));
