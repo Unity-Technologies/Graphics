@@ -262,11 +262,21 @@ static const float4x4 k_identity4x4 = {1.0, 0.0, 0.0, 0.0,
 // PositivePow remove this warning when you know the value is positive and avoid inf/NAN.
 TEMPLATE_2_FLT(PositivePow, base, power, return pow(max(abs(base), FLT_EPS), power))
 
-// Ref: https://twitter.com/SebAaltonen/status/878250919879639040
-// 2 mads (mad_sat and mad), faster than regular sign
-float FastSign(float x)
+// Returns -1 for negative numbers and -0, 1 for positive numbers and +0.
+// This behavior is different from the Signum function sign(), which returns 0 for 0.
+// 2x VALU.
+float FastSign(float s)
 {
-    return saturate(x * FLT_MAX) * 2.0 - 1.0;
+    uint negZero = 0x80000000u;
+    uint signBit = negZero & asuint(s);
+    return asfloat(signBit | asuint(1.0));
+}
+
+// Multiplies 'x' by the sign of 's'. Treats -0 as 0.
+// 2x VALU compared to 3x VALU of (x * FastSign(s)).
+float FastMulBySignOf(float x, float s)
+{
+    return (s >= 0) ? x : -x;
 }
 
 // Orthonormalizes the tangent frame using the Gram-Schmidt process.
@@ -364,7 +374,7 @@ float LinearEyeDepth(float2 positionSS, float deviceDepth, float4 invProjParam)
 // Z buffer to linear depth.
 // Correctly handles oblique view frustums.
 // Typically, this is the cheapest variant, provided you've already computed 'positionWS'.
-float LinearEyeDepth(float3 positionWS, float3x3 viewProjMatrix)
+float LinearEyeDepth(float3 positionWS, float4x4 viewProjMatrix)
 {
     return mul(viewProjMatrix, float4(positionWS, 1.0)).w;
 }

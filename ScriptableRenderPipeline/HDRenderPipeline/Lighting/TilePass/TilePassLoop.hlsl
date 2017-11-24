@@ -164,7 +164,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         for (i = 0; i < punctualLightCount; ++i)
         {
             int punctualIndex = FetchIndex(punctualLightStart, i);
-            DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, _LightDatas[punctualIndex], bsdfData, bakeLightingData, _LightDatas[punctualIndex].lightType);
+            DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, _LightDatas[punctualIndex], bsdfData, bakeLightingData);
             AccumulateDirectLighting(lighting, aggregateLighting);
         }
 
@@ -172,7 +172,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
         for (i = 0; i < _PunctualLightCount; ++i)
         {
-            DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, _LightDatas[i], bsdfData, bakeLightingData, _LightDatas[i].lightType);
+            DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, _LightDatas[i], bsdfData, bakeLightingData);
             AccumulateDirectLighting(lighting, aggregateLighting);
         }
 
