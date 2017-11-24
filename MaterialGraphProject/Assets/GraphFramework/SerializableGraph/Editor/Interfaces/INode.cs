@@ -12,7 +12,6 @@ namespace UnityEditor.Graphing
     }
 
     public delegate void OnNodeModified(INode node, ModificationScope scope);
-    public delegate void OnNodeReplaced(INode previous, INode current);
 
     public interface INode
     {

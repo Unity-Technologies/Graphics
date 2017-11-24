@@ -127,7 +127,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                         var textureInfo = new List<PropertyCollector.TextureInfo>();
                         PreviewMode previewMode;
-                        string shader = graph.GetShader(copyFromNode, GenerationMode.ForReals, assetName, out textureInfo, out previewMode);
+                        FloatShaderProperty outputIdProperty;
+                        string shader = graph.GetShader(copyFromNode, GenerationMode.ForReals, assetName, out textureInfo, out previewMode, out outputIdProperty);
                         GUIUtility.systemCopyBuffer = shader;
                     }
                 ));
@@ -204,7 +205,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (m_GraphView == null)
                 return;
-            
+
             var dependentNodes = new List<INode>();
             NodeUtils.CollectNodesNodeFeedsInto(dependentNodes, inNode);
             foreach (var node in dependentNodes)
@@ -301,13 +302,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var targetNodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(x => x.node == targetNode);
                 var targetAnchor = targetNodeView.inputContainer.Children().OfType<Port>().FirstOrDefault(x => x.userData is ISlot && (x.userData as ISlot).Equals(targetSlot));
 
-                var edgeView = new GradientEdge
+                var edgeView = new Edge
                 {
                     userData = edge,
                     output = sourceAnchor,
                     input = targetAnchor
                 };
-                edgeView.UpdateClasses(sourceSlot.concreteValueType, targetSlot.concreteValueType);
+//                edgeView.UpdateClasses(sourceSlot.concreteValueType, targetSlot.concreteValueType);
                 edgeView.output.Connect(edgeView);
                 edgeView.input.Connect(edgeView);
                 m_GraphView.AddElement(edgeView);
@@ -337,12 +338,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 foreach (var anchorView in nodeView.outputContainer.Children().OfType<Port>())
                 {
                     var sourceSlot = (MaterialSlot)anchorView.userData;
-                    foreach (var edgeView in anchorView.connections.OfType<GradientEdge>())
+                    foreach (var edgeView in anchorView.connections.OfType<Edge>())
                     {
                         var targetSlot = (MaterialSlot)edgeView.input.userData;
                         if (targetSlot.valueType == SlotValueType.Dynamic)
                         {
-                            edgeView.UpdateClasses(sourceSlot.concreteValueType, targetSlot.concreteValueType);
+//                            edgeView.UpdateClasses(sourceSlot.concreteValueType, targetSlot.concreteValueType);
                             var connectedNodeView = edgeView.input.node as MaterialNodeView;
                             if (connectedNodeView != null && !nodeViews.Contains(connectedNodeView))
                             {
@@ -357,10 +358,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var targetSlot = (MaterialSlot)anchorView.userData;
                     if (targetSlot.valueType != SlotValueType.Dynamic)
                         continue;
-                    foreach (var edgeView in anchorView.connections.OfType<GradientEdge>())
+                    foreach (var edgeView in anchorView.connections.OfType<Edge>())
                     {
                         var sourceSlot = (MaterialSlot)edgeView.output.userData;
-                        edgeView.UpdateClasses(sourceSlot.concreteValueType, targetSlot.concreteValueType);
+//                        edgeView.UpdateClasses(sourceSlot.concreteValueType, targetSlot.concreteValueType);
                         var connectedNodeView = edgeView.output.node as MaterialNodeView;
                         if (connectedNodeView != null && !nodeViews.Contains(connectedNodeView))
                         {

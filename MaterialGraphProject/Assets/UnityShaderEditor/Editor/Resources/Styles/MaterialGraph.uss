@@ -40,9 +40,6 @@ MaterialNodeView > .mainContainer > #left > #previewContainer.collapsed > #colla
 }
 
 MaterialNodeView > .mainContainer > #left > #previewContainer.expanded > #collapse {
-    background-color: rgba(0, 0, 0, 0.5);
-    text-color: rgba(255, 255, 255, 0.75);
-    border-color: rgba(255, 255, 255, 0.75);
     border-radius: 2;
     text-alignment: middle-center;
     position-left: 87;
@@ -57,6 +54,9 @@ MaterialNodeView > .mainContainer > #left > #previewContainer.expanded > #collap
 }
 
 MaterialNodeView > .mainContainer > #left > #previewContainer.expanded:hover > #collapse {
+    background-color: rgba(0, 0, 0, 0.5);
+    text-color: rgba(255, 255, 255, 0.75);
+    border-color: rgba(255, 255, 255, 0.75);
     border-top-width: 1;
     border-bottom-width: 1;
     border-left-width: 1;

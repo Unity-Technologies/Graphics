@@ -46,8 +46,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             edgeControl.edgeWidth = edgeWidth;
             edgeControl.inputColor = isGhostEdge ? ghostColor : (selected ? selectedColor : inputColor);
             edgeControl.outputColor = isGhostEdge ? ghostColor : (selected ? selectedColor : outputColor);
-            edgeControl.startCapColor = edgeControl.outputColor;
-            edgeControl.endCapColor = edgeControl.inputColor;
+//            edgeControl.startCapColor = edgeControl.outputColor;
+//            edgeControl.endCapColor = edgeControl.inputColor;
         }
     }
 }
