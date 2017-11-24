@@ -124,5 +124,20 @@ namespace UnityEditor.VFX.Test
             var copy = builtIn.Clone<VFXBuiltInParameter>();
             Assert.AreEqual(UnityEngine.VFX.VFXExpressionOp.kVFXTotalTimeOp, copy.outputSlots[0].GetExpression().operation);
         }
+
+        [Test]
+        public void CloneContextWithData()
+        {
+            var graphA = ScriptableObject.CreateInstance<VFXGraph>();
+            var contextA = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            contextA.space = UnityEngine.VFX.CoordinateSpace.Global;
+            (contextA.GetData() as VFXDataParticle).capacity = 256;
+            graphA.AddChild(contextA);
+
+            var graphB = graphA.Clone<VFXGraph>();
+            var contextB = graphB.children.First() as VFXContext;
+            Assert.AreEqual(contextA.space, contextB.space);
+            Assert.AreEqual((contextA.GetData() as VFXDataParticle).capacity, (contextB.GetData() as VFXDataParticle).capacity);
+        }
     }
 }

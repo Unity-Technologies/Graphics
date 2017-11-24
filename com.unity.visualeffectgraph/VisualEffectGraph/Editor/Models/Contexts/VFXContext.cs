@@ -91,7 +91,7 @@ namespace UnityEditor.VFX
             var clone = base.Clone<T>() as VFXContext;
             clone.m_InputFlowSlot = Enumerable.Range(0, m_InputFlowSlot.Count()).Select(_ => new VFXContextSlot()).ToArray();
             clone.m_OutputFlowSlot = Enumerable.Range(0, m_OutputFlowSlot.Count()).Select(_ => new VFXContextSlot()).ToArray();
-            clone.SetDefaultData(false);
+            clone.m_Data = null;
             return clone as T;
         }
 
@@ -370,7 +370,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public static void ReproduceLinkedFlowFromHiearchy(VFXModel[] fromArray, VFXModel[] toArray)
+        public static List<KeyValuePair<VFXContext, VFXContext>> BuildAssociativeContext(VFXModel[] fromArray, VFXModel[] toArray)
         {
             var associativeContext = new List<KeyValuePair<VFXContext, VFXContext>>();
             for (int i = 0; i < fromArray.Length; ++i)
@@ -384,7 +384,35 @@ namespace UnityEditor.VFX
                     associativeContext.Add(new KeyValuePair<VFXContext, VFXContext>(from, to));
                 }
             }
+            return associativeContext;
+        }
 
+        public static void ReproduceData(VFXModel[] fromArray, VFXModel[] toArray, List<KeyValuePair<VFXContext, VFXContext>> associativeContext)
+        {
+            var allData = fromArray.OfType<VFXContext>().Select(o => o.GetData()).Where(o => o != null).Distinct();
+            var associativeData = allData.Select(o => new KeyValuePair<VFXData, VFXData>(o, o.Clone<VFXData>()));
+
+            foreach (var data in associativeData)
+            {
+                VFXData.ReproduceOwner(data.Key, data.Value, associativeContext);
+            }
+
+            for (int i = 0; i < fromArray.Length; ++i)
+            {
+                var from = fromArray[i] as VFXContext;
+                var to = toArray[i] as VFXContext;
+                if (from != null)
+                {
+                    var refData = associativeData.FirstOrDefault(o => o.Key == from.m_Data);
+                    if (refData.Value == null)
+                        throw new NullReferenceException("ReproduceData : Unable to retrieve data for " + from);
+                    to.m_Data = refData.Value;
+                }
+            }
+        }
+
+        public static void ReproduceLinkedFlowFromHiearchy(VFXModel[] fromArray, VFXModel[] toArray, List<KeyValuePair<VFXContext, VFXContext>> associativeContext)
+        {
             for (int i = 0; i < fromArray.Length; ++i)
             {
                 var from = fromArray[i] as VFXContext;
