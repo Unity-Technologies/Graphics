@@ -1945,9 +1945,14 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     // We store inverse AO so neutral is black. So either we sample inside or outside the texture it return 0 in case of neutral
 
     // Ambient occlusion use for indirect lighting (reflection probe, baked diffuse lighting)
+#ifndef _SURFACE_TYPE_TRANSPARENT
     float indirectAmbientOcclusion = 1.0 - LOAD_TEXTURE2D(_AmbientOcclusionTexture, posInput.unPositionSS).x;
     // Ambient occlusion use for direct lighting (directional, punctual, area)
     float directAmbientOcclusion = lerp(1.0, indirectAmbientOcclusion, _AmbientOcclusionParam.w);
+#else
+    float indirectAmbientOcclusion = 1.0;
+    float directAmbientOcclusion = 1.0;
+#endif
 
     // Add indirect diffuse + emissive (if any) - Ambient occlusion is multiply by emissive which is wrong but not a big deal
 #if GTAO_MULTIBOUNCE_APPROX
