@@ -217,9 +217,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         RenderTargetIdentifier[] m_MRTCache2 = new RenderTargetIdentifier[2];
 
-        // Post-processing context and screen-space effects (recycled on every frame to avoid GC alloc)
-        readonly PostProcessRenderContext m_PostProcessContext;
-
         // Stencil usage in HDRenderPipeline.
         // Currently we use only 2 bits to identify the kind of lighting that is expected from the render pipeline
         // Usage is define in LightDefinitions.cs
@@ -382,8 +379,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_SkyManager.Build(asset.renderPipelineResources);
             m_SkyManager.skySettings = skySettingsToUse;
-
-            m_PostProcessContext = new PostProcessRenderContext();
 
             m_DebugDisplaySettings.RegisterDebug();
             m_DebugFullScreenTempRT = HDShaderIDs._DebugFullScreenTexture;
@@ -939,7 +934,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         AccumulateDistortion(m_CullResults, camera, renderContext, cmd);
                         RenderDistortion(cmd, m_Asset.renderPipelineResources);
 
-                        RenderPostProcesses(camera, cmd, postProcessLayer);
+                        RenderPostProcesses(hdCamera, cmd, postProcessLayer);
                     }
                 }
 
@@ -1571,7 +1566,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderPostProcesses(Camera camera, CommandBuffer cmd, PostProcessLayer layer)
+        void RenderPostProcesses(HDCamera hdcamera, CommandBuffer cmd, PostProcessLayer layer)
         {
             using (new ProfilingSample(cmd, "Post-processing", GetSampler(CustomSamplerId.PostProcessing)))
             {
@@ -1582,12 +1577,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, m_CameraDepthStencilBuffer);
                     cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, m_VelocityBufferRT);
 
-                    var context = m_PostProcessContext;
+                    var context = hdcamera.postprocessRenderContext;
                     context.Reset();
                     context.source = m_CameraColorBufferRT;
                     context.destination = BuiltinRenderTextureType.CameraTarget;
                     context.command = cmd;
-                    context.camera = camera;
+                    context.camera = hdcamera.camera;
                     context.sourceFormat = RenderTextureFormat.ARGBHalf;
                     context.flip = true;
 
