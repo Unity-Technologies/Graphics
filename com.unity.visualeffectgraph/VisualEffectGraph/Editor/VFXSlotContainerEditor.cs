@@ -18,13 +18,11 @@ using System.Reflection;
 [CanEditMultipleObjects]
 public class VFXSlotContainerEditor : Editor
 {
-    SerializedProperty[] settingsProperty;
     protected void OnEnable()
     {
-        ComputeSettings();
     }
 
-    void ComputeSettings()
+    public virtual void DoInspectorGUI()
     {
         var slotContainer = targets[0] as VFXModel;
         IEnumerable<FieldInfo> settingFields = slotContainer.GetSettings(false, VFXSettingAttribute.VisibleFlags.InInspector);
@@ -36,12 +34,7 @@ public class VFXSlotContainerEditor : Editor
             settingFields = settingFields.Intersect(otherSettingFields);
         }
 
-        settingsProperty = settingFields.Select(t => serializedObject.FindProperty(t.Name)).Where(t => t != null).ToArray();
-    }
-
-    public virtual void DoInspectorGUI()
-    {
-        foreach (var prop in settingsProperty)
+        foreach (var prop in settingFields.Select(t => serializedObject.FindProperty(t.Name)).Where(t => t != null))
         {
             bool visibleChildren = EditorGUILayout.PropertyField(prop);
             if (visibleChildren)
@@ -57,6 +50,7 @@ public class VFXSlotContainerEditor : Editor
 
     public override void OnInspectorGUI()
     {
+        serializedObject.Update();
         DoInspectorGUI();
 
         if (serializedObject.ApplyModifiedProperties())
@@ -66,8 +60,6 @@ public class VFXSlotContainerEditor : Editor
                 // notify that something changed.
                 context.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
             }
-
-            ComputeSettings(); // need to recompute settings because some might show/hide
         }
     }
 }

@@ -49,9 +49,19 @@ public class VFXContextEditor : VFXSlotContainerEditor
 
     public override void OnInspectorGUI()
     {
+        if (dataObject != null)
+            dataObject.Update();
+
         base.OnInspectorGUI();
 
         if (dataObject != null)
-            dataObject.ApplyModifiedProperties();
+            if (dataObject.ApplyModifiedProperties())
+            {
+                foreach (VFXContext context in targets.OfType<VFXContext>())
+                {
+                    // notify that something changed.
+                    context.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
+                }
+            }
     }
 }
