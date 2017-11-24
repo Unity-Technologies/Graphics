@@ -225,14 +225,17 @@ namespace UnityEditor.VFX
             }
         }
 
-        private bool CanLinkFromMany()
-        {
-            return contextType == VFXContextType.kSpawner || contextType == VFXContextType.kEvent;
-        }
-
         private bool CanLinkToMany()
         {
-            return contextType == VFXContextType.kOutput || contextType == VFXContextType.kInit;
+            return contextType == VFXContextType.kSpawner
+                || contextType == VFXContextType.kEvent;
+        }
+
+        private bool CanLinkFromMany()
+        {
+            return contextType == VFXContextType.kOutput
+                ||  contextType == VFXContextType.kSpawner
+                ||  contextType == VFXContextType.kInit;
         }
 
         private static void InnerLink(VFXContext from, VFXContext to, int fromIndex, int toIndex, bool notify = true)
@@ -243,7 +246,7 @@ namespace UnityEditor.VFX
             // Handle constraints on connections
             foreach (var link in from.m_OutputFlowSlot[fromIndex].link.ToArray())
             {
-                if (!link.context.CanLinkToMany() || link.context.contextType != to.contextType)
+                if (!link.context.CanLinkFromMany() || link.context.contextType != to.contextType)
                 {
                     InnerUnlink(from, link.context, fromIndex, toIndex, notify);
                 }
@@ -251,7 +254,7 @@ namespace UnityEditor.VFX
 
             foreach (var link in to.m_InputFlowSlot[toIndex].link.ToArray())
             {
-                if (!link.context.CanLinkFromMany() || link.context.contextType != from.contextType)
+                if (!link.context.CanLinkToMany() || link.context.contextType != from.contextType)
                 {
                     InnerUnlink(link.context, to, fromIndex, toIndex, notify);
                 }
