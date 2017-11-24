@@ -73,10 +73,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Release()
         {
-            m_TextureCache.Release();
-            m_TextureCache = null;
-            m_TempRenderTexture.Release();
-            m_TempRenderTexture = null;
+            if(m_TextureCache != null)
+            {
+                m_TextureCache.Release();
+                m_TextureCache = null;
+            }
+            if(m_TempRenderTexture != null)
+            {
+                m_TempRenderTexture.Release();
+                m_TempRenderTexture = null;
+            }
             m_ProbeBakingState = null;
         }
 

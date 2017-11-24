@@ -101,7 +101,7 @@ namespace UnityEngine.Experimental.Rendering
         public static void ClearCubemap(CommandBuffer cmd, RenderTargetIdentifier buffer, Color clearColor)
         {
             for(int i = 0; i < 6; ++i)
-                SetRenderTarget(cmd, buffer, ClearFlag.Color, clearColorAllBlack, 0, (CubemapFace)i);
+                SetRenderTarget(cmd, buffer, ClearFlag.Color, clearColor, 0, (CubemapFace)i);
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full screen quad.
