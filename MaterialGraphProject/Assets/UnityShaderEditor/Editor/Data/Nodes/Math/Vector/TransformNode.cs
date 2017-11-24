@@ -88,6 +88,7 @@ namespace UnityEditor.ShaderGraph
         {
             NodeUtils.SlotConfigurationExceptionIfBadConfiguration(this, new[] { InputSlotId }, new[] { OutputSlotId });
             string inputValue = GetSlotValue(InputSlotId, generationMode);
+            string targetTransformString = "tangentTransform_"+ spaceFrom.ToString();
             string transformString = "";
             bool requiresTangentTransform = false;
 
@@ -104,7 +105,7 @@ namespace UnityEditor.ShaderGraph
                 else if (spaceTo == CoordinateSpace.Tangent)
                 {
                     requiresTangentTransform = true;
-                    transformString = "mul(tangentTransform, " + inputValue + ").xyz";
+                    transformString = "mul("+ targetTransformString +", " + inputValue + ").xyz";
                 }
                 else if (spaceTo == CoordinateSpace.View)
                 {
@@ -124,7 +125,7 @@ namespace UnityEditor.ShaderGraph
                 else if (spaceTo == CoordinateSpace.Tangent)
                 {
                     requiresTangentTransform = true;
-                    transformString = "mul( tangentTransform, mul( unity_ObjectToWorld, float4(" + inputValue + ", 0) ).xyz).xyz";
+                    transformString = "mul( "+ targetTransformString +", mul( unity_ObjectToWorld, float4(" + inputValue + ", 0) ).xyz).xyz";
                 }
                 else if (spaceTo == CoordinateSpace.View)
                 {
@@ -136,11 +137,11 @@ namespace UnityEditor.ShaderGraph
                 requiresTangentTransform = true;
                 if (spaceTo == CoordinateSpace.World)
                 {
-                    transformString = "mul( " + inputValue + ", tangentTransform ).xyz";
+                    transformString = "mul( " + inputValue + ", "+ targetTransformString+ " ).xyz";
                 }
                 else if (spaceTo == CoordinateSpace.Object)
                 {
-                    transformString = "mul( unity_WorldToObject, float4(mul(" + inputValue + ", tangentTransform ),0) ).xyz";
+                    transformString = "mul( unity_WorldToObject, float4(mul(" + inputValue + ", " + targetTransformString + " ),0) ).xyz";
                 }
                 else if (spaceTo == CoordinateSpace.Tangent)
                 {
@@ -148,7 +149,7 @@ namespace UnityEditor.ShaderGraph
                 }
                 else if (spaceTo == CoordinateSpace.View)
                 {
-                    transformString = "mul( UNITY_MATRIX_V, float4(mul(" + inputValue + ", tangentTransform ),0) ).xyz";
+                    transformString = "mul( UNITY_MATRIX_V, float4(mul(" + inputValue + ", " + targetTransformString + " ),0) ).xyz";
                 }
             }
             else if (spaceFrom == CoordinateSpace.View)
@@ -164,7 +165,7 @@ namespace UnityEditor.ShaderGraph
                 else if (spaceTo == CoordinateSpace.Tangent)
                 {
                     requiresTangentTransform = true;
-                    transformString = "mul( tangentTransform, mul( float4(" + inputValue + ", 0), UNITY_MATRIX_V ).xyz ).xyz";
+                    transformString = "mul( " + targetTransformString + ", mul( float4(" + inputValue + ", 0), UNITY_MATRIX_V ).xyz ).xyz";
                 }
                 else if (spaceTo == CoordinateSpace.View)
                 {
@@ -173,7 +174,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             if (requiresTangentTransform)
-                visitor.AddShaderChunk("float3x3 tangentTransform = float3x3("+ spaceFrom.ToString() + "SpaceTangent, "+ spaceFrom.ToString() + "SpaceBiTangent, "+ spaceFrom.ToString() + "SpaceNormal);", false);
+                visitor.AddShaderChunk("float3x3 " + targetTransformString + " = float3x3("+ spaceFrom.ToString() + "SpaceTangent, "+ spaceFrom.ToString() + "SpaceBiTangent, "+ spaceFrom.ToString() + "SpaceNormal);", true);
 
             visitor.AddShaderChunk(string.Format("{0} {1} = {2};",
                 ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), 
