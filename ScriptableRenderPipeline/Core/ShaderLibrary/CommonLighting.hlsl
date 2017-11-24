@@ -4,22 +4,22 @@
 // These clamping function to max of floating point 16 bit are use to prevent INF in code in case of extreme value
 float ClampToFloat16Max(float value)
 {
-    return min(value, HALF_MAX);
+    return min(value, 65504.0);
 }
 
 float2 ClampToFloat16Max(float2 value)
 {
-    return min(value, HALF_MAX);
+    return min(value, 65504.0);
 }
 
 float3 ClampToFloat16Max(float3 value)
 {
-    return min(value, HALF_MAX);
+    return min(value, 65504.0);
 }
 
 float4 ClampToFloat16Max(float4 value)
 {
-    return min(value, HALF_MAX);
+    return min(value, 65504.0);
 }
 
 // Ligthing convention
