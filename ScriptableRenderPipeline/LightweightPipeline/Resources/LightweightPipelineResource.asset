@@ -11,6 +11,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb91b173ce266e040aa972ca9a561308, type: 3}
   m_Name: LightweightPipelineResource
   m_EditorClassIdentifier: 
-  DefaultMaterial: {fileID: 0}
-  DefaultParticleMaterial: {fileID: 0}
-  DefaultTerrainMaterial: {fileID: 0}
+  DefaultMaterial: {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  DefaultParticleMaterial: {fileID: 2100000, guid: e823cd5b5d27c0f4b8256e7c12ee3e6d,
+    type: 2}
+  DefaultTerrainMaterial: {fileID: 2100000, guid: 594ea882c5a793440b60ff72d896021e,
+    type: 2}
