@@ -59,11 +59,6 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        /*public override string GetVariableNameForSlot(int slotId)
-        {
-            return "";
-        }*/
-
         string GetFunctionPrototype(string argIn, string argOut)
         {
             return string.Format("void {0} ({1}4 {2}, out {3} {4})", GetFunctionName(),
@@ -100,7 +95,6 @@ namespace UnityEditor.ShaderGraph
             string uvValue = GetSlotValue(UVSlotId, generationMode);
             string outputValue = GetSlotValue(OutputSlotId, generationMode);
             visitor.AddShaderChunk(string.Format("{0}4 _DepthNormalsTexture = tex2D(_CameraDepthNormalsTexture, {1});", precision, uvValue), true);
-            //visitor.AddShaderChunk(string.Format("{0}4 _DepthNormalsTexture = UNITY_SAMPLE_TEX2D(_CameraDepthNormalsTexture, {1});", precision, uvValue), true);
             visitor.AddShaderChunk(string.Format("{0} {1};", ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), GetVariableNameForSlot(OutputSlotId)), true);
             visitor.AddShaderChunk(GetFunctionCallBody("_DepthNormalsTexture", outputValue), true);
             visitor.AddShaderChunk(string.Format("{1} = {1} * {0}3(1.0, 1.0, -1.0);", precision, GetVariableNameForSlot(OutputSlotId)), true);

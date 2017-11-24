@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph
     };
 
     [Title("Input/Scene/Depth Texture")]
-    public class DepthTextureNode : AbstractMaterialNode, IGenerateProperties, IMayRequireScreenPosition
+    public class DepthTextureNode : AbstractMaterialNode, IGenerateProperties, IGeneratesBodyCode, IMayRequireScreenPosition
     {
         const string kUVSlotName = "UV";
         const string kOutputSlotName = "Out";
@@ -80,15 +80,22 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public override string GetVariableNameForSlot(int slotId)
+        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
+            string uvValue = GetSlotValue(UVSlotId, generationMode);
+            string outputValue = GetSlotValue(OutputSlotId, generationMode);
+            string methodName = "";
             switch (depthTextureMode)
             {
                 case DepthTextureMode.Normalized:
-                    return "Linear01Depth(tex2Dproj(_CameraDepthTexture, UNITY_PROJ_COORD(" + GetSlotValue(UVSlotId, GenerationMode.Preview) + ")).r)";
+                    methodName = "Linear01Depth";
+                    break;
                 default:
-                    return "LinearEyeDepth(tex2Dproj(_CameraDepthTexture, UNITY_PROJ_COORD(" + GetSlotValue(UVSlotId, GenerationMode.Preview) + ")).r)";
+                    methodName = "LinearEyeDepth";
+                    break;
             }
+            visitor.AddShaderChunk(string.Format("{0} _DepthTexture = {1}(tex2Dproj(_CameraDepthTexture, UNITY_PROJ_COORD({2})).r);", precision, methodName, uvValue), true);
+            visitor.AddShaderChunk(string.Format("{0} {1} = _DepthTexture;", ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), GetVariableNameForSlot(OutputSlotId)), true);
         }
 
         public bool RequiresScreenPosition()
