@@ -110,7 +110,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             scInit.resourceBinder                    = binder;
 
             m_ShadowMgr = new ShadowManager(shadowSettings, ref scInit, m_Shadowmaps);
-            // set global overrides - these need to match the override specified in ShadowDispatch.hlsl
+            // set global overrides - these need to match the override specified in TilePass/Shadow.hlsl
             bool useGlobalOverrides = true;
             m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Point        , ShadowAlgorithm.PCF, ShadowVariant.V4, ShadowPrecision.High, useGlobalOverrides );
             m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Spot         , ShadowAlgorithm.PCF, ShadowVariant.V4, ShadowPrecision.High, useGlobalOverrides );

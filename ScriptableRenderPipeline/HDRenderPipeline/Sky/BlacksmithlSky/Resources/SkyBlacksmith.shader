@@ -19,9 +19,9 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyBlacksmith"
             #pragma multi_compile _ ATMOSPHERICS_DEBUG
             #pragma multi_compile _ PERFORM_SKY_OCCLUSION_TEST
 
-            #include "../../../../Core/ShaderLibrary/Color.hlsl"
-            #include "../../../../Core/ShaderLibrary/Common.hlsl"
-            #include "../../../../Core/ShaderLibrary/CommonLighting.hlsl"
+            #include "ShaderLibrary/Color.hlsl"
+            #include "ShaderLibrary/Common.hlsl"
+            #include "ShaderLibrary/CommonLighting.hlsl"
             #include "../../../ShaderVariables.hlsl"
 
             TEXTURECUBE(_Cubemap);
