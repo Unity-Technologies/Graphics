@@ -1296,7 +1296,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             m_TmpSortKeys.Sort( new SortReverter() );
-            m_TmpSortKeys.ExtractTo( shadowRequests, 0, out shadowRequestsCount, delegate(long key) { return (int) (key & UINT_MAX); } );
+            m_TmpSortKeys.ExtractTo( shadowRequests, 0, out shadowRequestsCount, delegate(long key) { return (int) (key & 0xffffffff); } );
         }
 
         protected override void PruneShadowCasters( Camera camera, List<VisibleLight> lights, ref VectorArray<int> shadowRequests, ref ShadowRequestVector requestsGranted, out uint totalRequestCount )
