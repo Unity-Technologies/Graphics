@@ -1,4 +1,4 @@
-﻿#include "../../Core/ShaderLibrary/Common.hlsl"
+﻿#include "ShaderLibrary/Common.hlsl"
 #include "../Material/Builtin/BuiltinData.hlsl"
 
 TEXTURE2D(_DistortionTexture);

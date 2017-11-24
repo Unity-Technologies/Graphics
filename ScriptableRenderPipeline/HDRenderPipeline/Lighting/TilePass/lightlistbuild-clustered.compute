@@ -6,7 +6,7 @@
 #pragma kernel TileLightListGen_DepthRT_MSAA_SrcBigTile		LIGHTLISTGEN=TileLightListGen_DepthRT_MSAA_SrcBigTile		ENABLE_DEPTH_TEXTURE_BACKPLANE		MSAA_ENABLED		USE_TWO_PASS_TILED_LIGHTING
 #pragma kernel ClearAtomic
 
-#include "../../../Core/ShaderLibrary/common.hlsl"
+#include "ShaderLibrary/common.hlsl"
 #include "ShaderBase.hlsl"
 #include "TilePass.cs.hlsl"
 #include "LightingConvexHullUtils.hlsl"

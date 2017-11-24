@@ -3,7 +3,7 @@
 
 #pragma kernel ScreenBoundsAABB
 
-#include "../../../Core/ShaderLibrary/common.hlsl"
+#include "ShaderLibrary/common.hlsl"
 #include "TilePass.cs.hlsl"
 
 uniform int g_isOrthographic;
