@@ -374,7 +374,7 @@ float LinearEyeDepth(float2 positionSS, float deviceDepth, float4 invProjParam)
 // Z buffer to linear depth.
 // Correctly handles oblique view frustums.
 // Typically, this is the cheapest variant, provided you've already computed 'positionWS'.
-float LinearEyeDepth(float3 positionWS, float3x3 viewProjMatrix)
+float LinearEyeDepth(float3 positionWS, float4x4 viewProjMatrix)
 {
     return mul(viewProjMatrix, float4(positionWS, 1.0)).w;
 }
