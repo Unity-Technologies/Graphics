@@ -167,7 +167,7 @@ float ComputeWrappedDiffuseLighting(float NdotL, float w)
 // all pixels which belong to an SSS material are not black (those that don't always are).
 float3 TagLightingForSSS(float3 subsurfaceLighting)
 {
-    subsurfaceLighting.r = max(subsurfaceLighting.r, HALF_MIN);
+    subsurfaceLighting.r = max(subsurfaceLighting.r, HFLT_MIN);
     return subsurfaceLighting;
 }
 

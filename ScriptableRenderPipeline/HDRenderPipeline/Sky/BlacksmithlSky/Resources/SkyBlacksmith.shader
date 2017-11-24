@@ -74,21 +74,21 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyBlacksmith"
                 #ifdef PERFORM_SKY_OCCLUSION_TEST
                     // Determine whether the sky is occluded by the scene geometry.
                     // Do not perform blending with the environment map if the sky is occluded.
-                    float deviceDepth  = max(_SkyDepth, LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).r);
-                    float skyTexWeight = (deviceDepth > _SkyDepth) ? 0.0 : 1.0;
+                    float depthRaw     = max(_SkyDepth, LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).r);
+                    float skyTexWeight = (depthRaw > _SkyDepth) ? 0.0 : 1.0;
                 #else
-                    float deviceDepth  = _SkyDepth;
+                    float depthRaw     = _SkyDepth;
                     float skyTexWeight = 1.0;
                 #endif
 
                 if (_DisableSkyOcclusionTest != 0.0)
                 {
-                    deviceDepth  = _SkyDepth;
+                    depthRaw     = _SkyDepth;
                     skyTexWeight = 1.0;
                 }
 
                 // Since we only need the world space position, so we don't pass the view-projection matrix.
-                UpdatePositionInput(deviceDepth, UNITY_MATRIX_I_VP, k_identity4x4, posInput);
+                UpdatePositionInput(depthRaw, UNITY_MATRIX_I_VP, k_identity4x4, posInput);
 
                 float4 c1, c2, c3;
                 VolundTransferScatter(GetAbsolutePositionWS(posInput.positionWS), c1, c2, c3);
