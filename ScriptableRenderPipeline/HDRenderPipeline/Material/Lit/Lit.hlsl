@@ -147,11 +147,11 @@ float3 EstimateRaycast(float3 V, PositionInputs posInputs, float3 positionWS, fl
 // If a user do a lighting architecture without material classification, this can be remove
 #include "../../Lighting/TilePass/TilePass.cs.hlsl"
 
-static int g_FeatureFlags = 0xFFFFFFFF;
+static uint g_FeatureFlags = UINT_MAX;
 
 // This method allows us to know at compile time what shader features should be removed from the code when the materialID cannot be known on the whole tile (any combination of 2 or more differnet materials in the same tile)
 // This is only useful for classification during lighting, so it's not needed in EncodeIntoGBuffer and ConvertSurfaceDataToBSDFData (where we always know exactly what the MaterialID is)
-bool HasMaterialFeatureFlag(int flag)
+bool HasMaterialFeatureFlag(uint flag)
 {
     return ((g_FeatureFlags & flag) != 0);
 }
@@ -603,7 +603,7 @@ void DecodeFromGBuffer(
 
     // The material features system for material classification must allow compile time optimization (i.e everything should be static)
     // Note that as we store materialId for Aniso based on content of RT2 we need to add few extra condition.
-    // The code is also call from MaterialFeatureFlagsFromGBuffer, so must work fully dynamic if featureFlags is 0xFFFFFFFF
+    // The code is also call from MaterialFeatureFlagsFromGBuffer, so must work fully dynamic if featureFlags is UINT_MAX
     int supportsStandard = HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_STANDARD);
     int supportsSSS = HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_SSS);
     int supportsAniso = HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO);
@@ -695,7 +695,7 @@ uint MaterialFeatureFlagsFromGBuffer(uint2 unPositionSS)
 
     DecodeFromGBuffer(
         unPositionSS,
-        0xFFFFFFFF,
+        UINT_MAX,
         bsdfData,
         unused
     );
@@ -1069,7 +1069,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
         float NdotL = saturate(dot(bsdfData.coatNormalWS, L));
         float NdotV = preLightData.coatNdotV;
         float LdotV = dot(L, V);
-        float invLenLV = rsqrt(max(2 * LdotV + 2, FLT_EPSILON));
+        float invLenLV = rsqrt(max(2 * LdotV + 2, FLT_EPS));
         float NdotH = saturate((NdotL + NdotV) * invLenLV);
         float LdotH = saturate(invLenLV * LdotV + invLenLV);
 
@@ -1091,7 +1091,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     float NdotL    = saturate(dot(bsdfData.normalWS, L)); // Must have the same value without the clamp
     float NdotV    = preLightData.NdotV;                  // Get the unaltered (geometric) version
     float LdotV    = dot(L, V);
-    float invLenLV = rsqrt(max(2 * LdotV + 2, FLT_EPSILON)); // invLenLV = rcp(length(L + V)) - caution about the case where V and L are opposite, it can happen, use max to avoid this
+    float invLenLV = rsqrt(max(2 * LdotV + 2, FLT_EPS));  // invLenLV = rcp(length(L + V)) - caution about the case where V and L are opposite, it can happen, use max to avoid this
     float NdotH    = saturate((NdotL + NdotV) * invLenLV);
     float LdotH    = saturate(invLenLV * LdotV + invLenLV);
 
