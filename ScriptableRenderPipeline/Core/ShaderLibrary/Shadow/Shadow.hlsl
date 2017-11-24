@@ -80,7 +80,6 @@ float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 posit
 
 #include "ShadowSampling.hlsl"			// sampling patterns (don't modify)
 #include "ShadowAlgorithms.hlsl"		// engine default algorithms (don't modify)
-#include "ShadowAlgorithmsCustom.hlsl"	// project specific custom algorithms (project can modify this)
 
 #ifndef SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL
 float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float4 L )
