@@ -781,7 +781,6 @@ float3 ClearCoatTransform(float3 X, float3 N, float ieta)
 PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfData)
 {
     PreLightData preLightData;
-    ZERO_INITIALIZE(PreLightData, preLightData);
 
     float3 N;
     float  NdotV;
