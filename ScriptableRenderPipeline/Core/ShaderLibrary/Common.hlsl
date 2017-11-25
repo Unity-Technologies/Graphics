@@ -262,21 +262,32 @@ static const float4x4 k_identity4x4 = {1.0, 0.0, 0.0, 0.0,
 // PositivePow remove this warning when you know the value is positive and avoid inf/NAN.
 TEMPLATE_2_FLT(PositivePow, base, power, return pow(max(abs(base), FLT_EPS), power))
 
-// Returns -1 for negative numbers and -0, 1 for positive numbers and +0.
-// This behavior is different from the Signum function sign(), which returns 0 for 0.
-// 2x VALU.
-float FastSign(float s)
+// Computes (FastSign(s) * x) using 2x VALU.
+// See the comment about FastSign() below.
+float FastMulBySignOf(float s, float x, bool ignoreNegZero = true)
 {
-    uint negZero = 0x80000000u;
-    uint signBit = negZero & asuint(s);
-    return asfloat(signBit | asuint(1.0));
+    if (ignoreNegZero)
+    {
+        return (s >= 0) ? x : -x;
+    }
+    else
+    {
+        uint negZero = 0x80000000u;
+        uint signBit = negZero & asuint(s);
+        return asfloat(signBit ^ asuint(x));
+    }
 }
 
-// Multiplies 'x' by the sign of 's'. Treats -0 as 0.
-// 2x VALU compared to 3x VALU of (x * FastSign(s)).
-float FastMulBySignOf(float x, float s)
+// Returns -1 for negative numbers and 1 for positive numbers.
+// 0 can be handled in 2 different ways.
+// The IEEE floating point standard defines 0 as signed: +0 and -0.
+// However, mathematics typically treats 0 as unsigned.
+// Therefore, we treat -0 as +0 by default: FastSign(+0) = FastSign(-0) = 1.
+// If (ignoreNegZero = false), FastSign(-0, false) = -1.
+// Note that the sign() function in HLSL implements signum, which returns 0 for 0.
+float FastSign(float s, bool ignoreNegZero = true)
 {
-    return (s >= 0) ? x : -x;
+    return FastMulBySignOf(s, 1.0, ignoreNegZero);
 }
 
 // Orthonormalizes the tangent frame using the Gram-Schmidt process.
