@@ -1140,7 +1140,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 #elif LIT_DIFFUSE_GGX_BRDF
     float3 diffuseTerm = DiffuseGGX(bsdfData.diffuseColor, NdotV, NdotL, NdotH, LdotV, bsdfData.roughness);
 #else
-    // A note on subsurface scattering.
+    // A note on subsurface scattering: [SSS-NOTE-TRSM]
     // The correct way to handle SSS is to transmit light inside the surface, perform SSS,
     // and then transmit it outside towards the viewer.
     // Transmit(X) = F_Transm_Schlick(F0, F90, NdotX), where F0 = 0, F90 = 1.
@@ -1213,18 +1213,18 @@ float4 EvaluateCookie_Directional(LightLoopContext lightLoopContext, Directional
     return cookie;
 }
 
-// 'intensity' is already premultiplied with 'shadow', 'color' is NOT premultiplied with anything.
-void EvaluateLight_Directional(LightLoopContext lightLoopContext,
-                               float3 N, float3 L, float NdotL, PositionInputs posInput,
+// None of the outputs are premultiplied.
+void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs posInput,
                                DirectionalLightData lightData, BakeLightingData bakeLightingData,
-                               out float3 color, out float intensity, out float shadow)
+                               float3 N, float3 L,
+                               out float3 color, out float attenuation, out float shadow)
 {
     float3 positionWS = posInput.positionWS;
     float  shadowMask = 1.0;
 
-    color     = lightData.color;
-    intensity = saturate(NdotL);
-    shadow    = 1.0;
+    color       = lightData.color;
+    attenuation = 1.0;
+    shadow      = 1.0;
 
 #ifdef SHADOWS_SHADOWMASK
     // shadowMaskSelector.x is -1 if there is no shadow mask
@@ -1251,15 +1251,13 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext,
 #endif
     }
 
-    intensity *= shadow;
-
     [branch] if (lightData.cookieIndex >= 0)
     {
         float3 lightToSample = positionWS - lightData.positionWS;
         float4 cookie = EvaluateCookie_Directional(lightLoopContext, lightData, lightToSample);
 
-        color     *= cookie.rgb;
-        intensity *= cookie.a;
+        color       *= cookie.rgb;
+        attenuation *= cookie.a;
     }
 }
 
@@ -1275,11 +1273,13 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     float3 N     = bsdfData.normalWS;
     float3 L     = -lightData.forward; // Lights point backward in Unity
-    float  NdotL = dot(bsdfData.normalWS, L);
+    float  NdotL = dot(N, L);
 
-    float3 color; float intensity, shadow;
-    EvaluateLight_Directional(lightLoopContext, N, L, NdotL, posInput, lightData, bakeLightingData,
-                              color, intensity, shadow);
+    float3 color; float attenuation, shadow;
+    EvaluateLight_Directional(lightLoopContext, posInput, lightData, bakeLightingData, N, L,
+                              color, attenuation, shadow);
+
+    float intensity = shadow * attenuation * saturate(NdotL);
 
     [branch] if (intensity > 0.0)
     {
@@ -1294,13 +1294,17 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
         // Apply wrapped lighting to better handle thin objects (cards) at grazing angles.
         float wrappedNdotL = ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
 
+        // Apply the BSDF to attenuation. See also: [SSS-NOTE-TRSM]
     #ifdef LIT_DIFFUSE_LAMBERT_BRDF
-        intensity    = Lambert() * wrappedNdotL;
+        attenuation *= Lambert();
     #else
         float tNdotL = saturate(-NdotL);
         float  NdotV = preLightData.NdotV;
-        intensity    = INV_PI * F_Transm_Schlick(0, 0.5, NdotV) * F_Transm_Schlick(0, 0.5, tNdotL) * wrappedNdotL;
+        attenuation *= INV_PI * F_Transm_Schlick(0, 0.5, NdotV) * F_Transm_Schlick(0, 0.5, tNdotL);
     #endif
+
+        // Shadowing is applied inside EvaluateTransmission().
+        intensity = attenuation * wrappedNdotL;
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
@@ -1361,18 +1365,18 @@ float GetPunctualShapeAttenuation(LightData lightData, float3 L, float distSq)
     return attenuation * GetAngleAttenuation(L, -lightData.forward, lightData.angleScale, lightData.angleOffset);
 }
 
-// 'intensity' is already premultiplied with 'shadow', 'color' is NOT premultiplied with anything.
-void EvaluateLight_Punctual(LightLoopContext lightLoopContext,
-                            float3 N, float3 L, float NdotL, float distSq, PositionInputs posInput,
+// None of the outputs are premultiplied.
+void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs posInput,
                             LightData lightData, BakeLightingData bakeLightingData,
-                            out float3 color, out float intensity, out float shadow)
+                            float3 N, float3 L, float distSq,
+                            out float3 color, out float attenuation, out float shadow)
 {
     float3 positionWS = posInput.positionWS;
     float  shadowMask = 1.0;
 
-    color     = lightData.color;
-    intensity = GetPunctualShapeAttenuation(lightData, L, distSq) * saturate(NdotL);
-    shadow    = 1.0;
+    color       = lightData.color;
+    attenuation = GetPunctualShapeAttenuation(lightData, L, distSq);
+    shadow      = 1.0;
 
 #ifdef SHADOWS_SHADOWMASK
     // shadowMaskSelector.x is -1 if there is no shadow mask
@@ -1401,16 +1405,14 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext,
 #endif
     }
 
-    intensity *= shadow;
-
     // Projector lights always have a cookies, so we can perform clipping inside the if().
     [branch] if (lightData.cookieIndex >= 0)
     {
         float3 lightToSample = positionWS - lightData.positionWS;
         float4 cookie = EvaluateCookie_Punctual(lightLoopContext, lightData, lightToSample);
 
-        color     *= cookie.rgb;
-        intensity *= cookie.a;
+        color       *= cookie.rgb;
+        attenuation *= cookie.a;
     }
 }
 
@@ -1429,11 +1431,13 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     float  distSq = dot(unL, unL);
     float3 N      = bsdfData.normalWS;
     float3 L      = unL * rsqrt(distSq);
-    float  NdotL  = dot(bsdfData.normalWS, L);
+    float  NdotL  = dot(N, L);
 
-    float3 color; float intensity, shadow;
-    EvaluateLight_Punctual(lightLoopContext, N, L, NdotL, distSq, posInput, lightData, bakeLightingData,
-                           color, intensity, shadow);
+    float3 color; float attenuation, shadow;
+    EvaluateLight_Punctual(lightLoopContext, posInput, lightData, bakeLightingData, N, L, distSq,
+                           color, attenuation, shadow);
+
+    float intensity = shadow * attenuation * saturate(NdotL);
 
     [branch] if (intensity > 0.0)
     {
@@ -1449,13 +1453,17 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
         // Apply wrapped lighting to better handle thin objects (cards) at grazing angles.
         float wrappedNdotL = ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
 
+        // Apply the BSDF to attenuation. See also: [SSS-NOTE-TRSM]
     #ifdef LIT_DIFFUSE_LAMBERT_BRDF
-        intensity    = Lambert() * wrappedNdotL;
+        attenuation *= Lambert();
     #else
         float tNdotL = saturate(-NdotL);
         float  NdotV = preLightData.NdotV;
-        intensity    = INV_PI * F_Transm_Schlick(0, 0.5, NdotV) * F_Transm_Schlick(0, 0.5, tNdotL) * wrappedNdotL;
+        attenuation *= INV_PI * F_Transm_Schlick(0, 0.5, NdotV) * F_Transm_Schlick(0, 0.5, tNdotL);
     #endif
+
+        // Shadowing is applied inside EvaluateTransmission().
+        intensity = attenuation * wrappedNdotL;
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
