@@ -1405,7 +1405,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 #endif
     }
 
-    // Projector lights always have a cookies, so we can perform clipping inside the if().
+    // Projector lights always have cookies, so we can perform clipping inside the if().
     [branch] if (lightData.cookieIndex >= 0)
     {
         float3 lightToSample = positionWS - lightData.positionWS;
