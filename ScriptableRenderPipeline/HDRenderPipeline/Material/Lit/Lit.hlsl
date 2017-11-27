@@ -1719,20 +1719,6 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     return lighting;
 }
 
-DirectLighting EvaluateBSDF_Area(   LightLoopContext lightLoopContext,
-                                    float3 V, PositionInputs posInput,
-                                    PreLightData preLightData, LightData lightData, BSDFData bsdfData, BakeLightingData bakeLightingData, int GPULightType)
-{
-    if (GPULightType == GPULIGHTTYPE_LINE)
-    {
-        return EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, bakeLightingData);
-    }
-    else
-    {
-        return EvaluateBSDF_Rect(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, bakeLightingData);
-    }
-}
-
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_SSLighting for screen space lighting
 // ----------------------------------------------------------------------------
