@@ -379,11 +379,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 using (new ProfilingSample(cmd, "DynamicGI.UpdateEnvironment"))
                 {
                     // TODO: Properly send the cubemap to Enlighten. Currently workaround is to set the cubemap in a Skybox/cubemap material
+                    float intensity = IsSkyValid() ? 1.0f : 0.0f; // Eliminate all diffuse if we don't have a skybox (meaning for now the background is black in HDRP)
                     m_StandardSkyboxMaterial.SetTexture("_Tex", m_SkyboxCubemapRT);
-                    RenderSettings.skybox = IsSkyValid() ? m_StandardSkyboxMaterial : null; // Setup this material as the default to be use in RenderSettings
-                    RenderSettings.ambientIntensity = 1.0f; // fix this to 1, this parameter should not exist!
+                    RenderSettings.skybox = m_StandardSkyboxMaterial; // Setup this material as the default to be use in RenderSettings
+                    RenderSettings.ambientIntensity = intensity;
                     RenderSettings.ambientMode = AmbientMode.Skybox; // Force skybox for our HDRI
-                    RenderSettings.reflectionIntensity = 1.0f;
+                    RenderSettings.reflectionIntensity = intensity;
                     RenderSettings.customReflection = null;
                     DynamicGI.UpdateEnvironment();
 

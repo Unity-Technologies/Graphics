@@ -218,4 +218,6 @@
             ENDCG
         }
     }
+
+    Fallback "Hidden/InternalErrorShader"
 }

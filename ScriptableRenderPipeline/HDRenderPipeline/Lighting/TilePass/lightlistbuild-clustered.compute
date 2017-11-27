@@ -6,7 +6,7 @@
 #pragma kernel TileLightListGen_DepthRT_MSAA_SrcBigTile		LIGHTLISTGEN=TileLightListGen_DepthRT_MSAA_SrcBigTile		ENABLE_DEPTH_TEXTURE_BACKPLANE		MSAA_ENABLED		USE_TWO_PASS_TILED_LIGHTING
 #pragma kernel ClearAtomic
 
-#include "../../../Core/ShaderLibrary/common.hlsl"
+#include "ShaderLibrary/common.hlsl"
 #include "ShaderBase.hlsl"
 #include "TilePass.cs.hlsl"
 #include "LightingConvexHullUtils.hlsl"
@@ -436,7 +436,7 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 		SFiniteLightBound lgtDat = g_data[coarseList[l]];
 
 		if( !DoesSphereOverlapTile(V, halfTileSizeAtZDistOne, lgtDat.center.xyz, lgtDat.radius, g_isOrthographic!=0) )
-			coarseList[l]=0xffffffff;
+			coarseList[l]=UINT_MAX;
 	}
 
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
@@ -449,7 +449,7 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 		int offs = 0;
 		for(int l=0; l<iNrCoarseLights; l++)
 		{
-			if(coarseList[l]!=0xffffffff)
+			if(coarseList[l]!=UINT_MAX)
 				coarseList[offs++] = coarseList[l];
 		}
 		lightOffsSph = offs;

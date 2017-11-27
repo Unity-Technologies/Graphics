@@ -15,8 +15,8 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
 
             #pragma multi_compile _ SHADOWS_SHADOWMASK
 
-            #include "../../Core/ShaderLibrary/Common.hlsl"
-            #include "../../Core/ShaderLibrary/Color.hlsl"
+            #include "ShaderLibrary/Common.hlsl"
+            #include "ShaderLibrary/Color.hlsl"
 
             // CAUTION: In case deferred lighting need to support various lighting model statically, we will require to do multicompile with different define like UNITY_MATERIAL_LIT
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
@@ -55,7 +55,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
 
                 BSDFData bsdfData;
                 BakeLightingData bakeLightingData;
-                DECODE_FROM_GBUFFER(posInput.unPositionSS, 0xFFFFFFFF, bsdfData, bakeLightingData.bakeDiffuseLighting);
+                DECODE_FROM_GBUFFER(posInput.unPositionSS, UINT_MAX, bsdfData, bakeLightingData.bakeDiffuseLighting);
                 #ifdef SHADOWS_SHADOWMASK
                 DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.unPositionSS), bakeLightingData.bakeShadowMask);
                 #endif
@@ -66,7 +66,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
 
                 if (_DebugViewMaterial == DEBUGVIEWGBUFFER_DEPTH)
                 {
-                    float linearDepth = frac(posInput.depthVS * 0.1);
+                    float linearDepth = frac(posInput.linearDepth * 0.1);
                     result = linearDepth.xxx;
                 }
                 // Caution: This value is not the same than the builtin data bakeDiffuseLighting. It also include emissive and multiply by the albedo

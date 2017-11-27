@@ -236,10 +236,10 @@ Shader "HDRenderPipeline/LitTessellation"
     // Include
     //-------------------------------------------------------------------------------------
 
-    #include "../../../Core/ShaderLibrary/common.hlsl"
-    #include "../../../Core/ShaderLibrary/Wind.hlsl"
-    #include "../../../Core/ShaderLibrary/GeometricTools.hlsl"
-    #include "../../../Core/ShaderLibrary/tessellation.hlsl"
+    #include "ShaderLibrary/common.hlsl"
+    #include "ShaderLibrary/Wind.hlsl"
+    #include "ShaderLibrary/GeometricTools.hlsl"
+    #include "ShaderLibrary/tessellation.hlsl"
     #include "../../ShaderPass/FragInputs.hlsl"
     #include "../../ShaderPass/ShaderPass.cs.hlsl"
 
@@ -403,7 +403,6 @@ Shader "HDRenderPipeline/LitTessellation"
             ZWrite On
             ZTest LEqual
 
-            // When alpha test is enabled, we should not write into the color buffer
             ColorMask 0
 
             HLSLPROGRAM
@@ -431,7 +430,6 @@ Shader "HDRenderPipeline/LitTessellation"
 
             ZWrite On
 
-            // When alpha test is enabled, we should not write into the color buffer
             ColorMask 0
 
             HLSLPROGRAM

@@ -33,6 +33,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     {
         public static readonly string m_SimpleLightShaderPath = "LightweightPipeline/Standard (Simple Lighting)";
         public static readonly string m_StandardShaderPath = "LightweightPipeline/Standard (Physically Based)";
+        public static readonly string[] m_SearchPaths = {"Assets", "Packages/com.unity.render-pipelines"};
 
         // Default values set when a new LightweightPipeline asset is created
         [SerializeField] private int m_MaxPixelLights = 4;
@@ -63,7 +64,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             var instance = CreateInstance<LightweightPipelineAsset>();
 
-            string[] guids = UnityEditor.AssetDatabase.FindAssets("LightweightPipelineResource t:scriptableobject");
+            string[] guids = UnityEditor.AssetDatabase.FindAssets("LightweightPipelineResource t:scriptableobject", m_SearchPaths);
             LightweightPipelineResource resourceAsset = null;
             foreach (string guid in guids)
             {
@@ -71,6 +72,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 resourceAsset = UnityEditor.AssetDatabase.LoadAssetAtPath<LightweightPipelineResource>(path);
                 if (resourceAsset != null)
                     break;
+            }
+
+            // There's currently an issue that prevents FindAssets from find resources withing the package folder.
+            if (resourceAsset == null)
+            {
+                string path = "Packages/com.unity.render-pipelines.lightweight/Resources/LightweightPipelineResource.asset";
+                resourceAsset = UnityEditor.AssetDatabase.LoadAssetAtPath<LightweightPipelineResource>(path);
             }
 
             if (resourceAsset != null)
