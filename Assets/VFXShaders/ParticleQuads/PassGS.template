@@ -44,7 +44,7 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_P
 				o.VFX_VARYING_UV.y = float(id & 1);
 				
 				float3 vPos = position;
-				vPos += TransformInElementSpace(float3(o.VFX_VARYING_UV.xy - 0.5f,0.0f),side,up,front,rot,pivot,size);
+				vPos += TransformInElementSpace(float3(o.VFX_VARYING_UV.xy - 0.5f,0.0f),side,up,front,rot,pivot,float3(size,1.0f));
 				
 				o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
 
