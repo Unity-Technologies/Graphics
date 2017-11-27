@@ -1,3 +1,5 @@
+//#define NATIVE_CODE_FOR_CMD_CONVERT_TEXTURE
+
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
@@ -22,8 +24,12 @@ namespace UnityEngine.Experimental.Rendering
 
             if (mismatch)
             {
+#if NATIVE_CODE_FOR_CMD_CONVERT_TEXTURE
                 cmd.ConvertTexture(texture, 0, m_Cache, sliceIndex);
-                }
+#else
+                UnityEngine.Graphics.ConvertTexture(texture, 0, m_Cache, sliceIndex);
+#endif
+            }
             else
             {
                 cmd.CopyTexture(texture, 0, m_Cache, sliceIndex);
@@ -84,7 +90,11 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     for (int f = 0; f < 6; f++)
                     {
+#if NATIVE_CODE_FOR_CMD_CONVERT_TEXTURE
                         cmd.ConvertTexture(texture, f, m_Cache, 6 * sliceIndex + f);
+#else
+                        UnityEngine.Graphics.ConvertTexture(texture, f, m_Cache, 6 * sliceIndex + f);
+#endif
                     }
                 }
                 else
