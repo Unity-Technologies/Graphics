@@ -7,7 +7,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility/Heightmap To Normalmap")]
-    public class HeightToNormalNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
+    public class HeightToNormalNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         public const int TextureInput = 0;
         public const int TexCoordInput = 1;
@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Texture2DMaterialSlot(TextureInput, TextureInputName, TextureInputName, SlotType.Input));
-            AddSlot(new Vector2MaterialSlot(TexCoordInput, TexCoordInputName, TexCoordInputName, SlotType.Input, Vector2.zero));
+            AddSlot(new UVMaterialSlot(TexCoordInput, TexCoordInputName, TexCoordInputName, UVChannel.uv0));
             AddSlot(new Vector1MaterialSlot(TexOffsetInput, TexOffsetInputName, TexOffsetInputName, SlotType.Input, 0.005f));
             AddSlot(new Vector1MaterialSlot(StrengthInput, StrengthInputName, StrengthInputName, SlotType.Input, 8f));
             AddSlot(new Vector3MaterialSlot(NormalOutput, NormalOutputName, NormalOutputName, SlotType.Output, Vector3.zero));
@@ -39,9 +39,7 @@ namespace UnityEditor.ShaderGraph
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
             var textureInput = GetSlotValue(TextureInput, generationMode);
-            var texCoordInput = RequiresMeshUV(UVChannel.uv0)
-                ? string.Format("{0}.xy", UVChannel.uv0.GetUVName())
-                : GetSlotValue(TexCoordInput, generationMode);
+            var texCoordInput = GetSlotValue(TexCoordInput, generationMode);
             var texOffsetInput = GetSlotValue(TexOffsetInput, generationMode);
             var strengthInput = GetSlotValue(StrengthInput, generationMode);
             var normalOutput = GetVariableNameForSlot(NormalOutput);
@@ -68,21 +66,6 @@ namespace UnityEditor.ShaderGraph
         public override bool hasPreview
         {
             get { return true; }
-        }
-
-        public bool RequiresMeshUV(UVChannel channel)
-        {
-            if (channel != UVChannel.uv0)
-            {
-                return false;
-            }
-
-            var uvSlot = FindInputSlot<MaterialSlot>(TexCoordInput);
-            if (uvSlot == null)
-                return true;
-
-            var edges = owner.GetEdges(uvSlot.slotReference).ToList();
-            return edges.Count == 0;
         }
     }
 }
