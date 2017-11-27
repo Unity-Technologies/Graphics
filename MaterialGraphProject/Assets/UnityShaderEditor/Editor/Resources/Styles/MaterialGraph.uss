@@ -240,6 +240,7 @@ MultiFloatSlotControlView {
 MultiFloatSlotControlView > Label {
     margin-left: 0;
     margin-right: 0;
+    cursor: slide-arrow;
 }
 
 MultiFloatSlotControlView > DoubleField {
@@ -523,6 +524,7 @@ MultiFloatControlView {
 MultiFloatControlView > Label {
     margin-left: 0;
     margin-right: 0;
+    cursor: slide-arrow;
 }
 
 MultiFloatControlView > DoubleField {
