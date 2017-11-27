@@ -3261,9 +3261,6 @@ MonoBehaviour:
   - {fileID: 114967288652437010}
   - {fileID: 114886110431456336}
   m_Capacity: 2000000
-  m_Bounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
   m_Space: 0
 --- !u!114 &114807987250557806
 MonoBehaviour:
@@ -3698,6 +3695,7 @@ MonoBehaviour:
   blendMode: 2
   useSoftParticle: 0
   sortPriority: 0
+  indirectDraw: 0
 --- !u!114 &114898393254782138
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5042,7 +5040,7 @@ VFXAsset:
       - index: 79
         nameId: uniform_Sphere_radius_f
       params: []
-      processor: {fileID: 7200000, guid: 0d1f5dcbd2f7f3c488c49f9efb126c58, type: 3}
+      processor: {fileID: 7200000, guid: d097d10e900b5924aaabed4568e65465, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5075,8 +5073,8 @@ VFXAsset:
       - index: 63
         nameId: uniform_Force_d
       params: []
-      processor: {fileID: 7200000, guid: 00c17162b06fb984990d108dab058c33, type: 3}
-    - type: 1073741825
+      processor: {fileID: 7200000, guid: b6f714c68d790784089f95a62cb3ebf1, type: 3}
+    - type: 1073741824
       buffers:
       - index: 0
         nameId: attributeBuffer
@@ -5088,7 +5086,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 3993db742c7555444a075ca6a5f1247e, type: 3}
+      processor: {fileID: 4800000, guid: 0799e2b5725df924cb0b9c2766e5ce2c, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000

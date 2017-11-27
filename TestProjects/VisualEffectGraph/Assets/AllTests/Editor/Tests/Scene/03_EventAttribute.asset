@@ -362,6 +362,7 @@ MonoBehaviour:
   blendMode: 1
   useSoftParticle: 0
   sortPriority: 0
+  indirectDraw: 0
   flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114125608592678332
@@ -510,9 +511,6 @@ MonoBehaviour:
   - {fileID: 114558679480665644}
   - {fileID: 114122400231336388}
   m_Capacity: 65536
-  m_Bounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
   m_Space: 0
 --- !u!114 &114155354349454458
 MonoBehaviour:
@@ -4528,7 +4526,7 @@ VFXAsset:
       - index: 51
         nameId: uniform_DirectionBlend_g
       params: []
-      processor: {fileID: 7200000, guid: bbf734296616b8741a20296389c44811, type: 3}
+      processor: {fileID: 7200000, guid: 9ca717810f3a3564f97ce2cc47a76a42, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -4539,7 +4537,7 @@ VFXAsset:
       - index: 50
         nameId: uniform_deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: 96cad465ae688674da3e986e1894cd18, type: 3}
+      processor: {fileID: 7200000, guid: f162a4f9320d38649b050f14ac38f15a, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -4556,7 +4554,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: cae3ee29f68636845bf7f08b0c1d45d7, type: 3}
+      processor: {fileID: 4800000, guid: 53d10a73dcb8fac4fa7b1eef1475768a, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 0000000001000000
