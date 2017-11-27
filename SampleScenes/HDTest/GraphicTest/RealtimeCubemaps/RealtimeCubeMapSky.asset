@@ -9,7 +9,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3df29e7cc05fbec4aa43e06ea875565d, type: 3}
-  m_Name: New ProceduralSkySettings
+  m_Name: RealtimeCubeMapSky
   m_EditorClassIdentifier: 
   rotation: 0
   exposure: 0

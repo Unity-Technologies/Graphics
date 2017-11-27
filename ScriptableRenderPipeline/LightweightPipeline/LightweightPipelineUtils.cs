@@ -126,14 +126,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Remaining light types don't support cookies
         }
 
-        public static void SetKeyword(CommandBuffer cmd, string keyword, bool enable)
-        {
-            if (enable)
-                cmd.EnableShaderKeyword(keyword);
-            else
-                cmd.DisableShaderKeyword(keyword);
-        }
-
         public static bool IsSupportedShadowType(LightType lightType)
         {
             return lightType == LightType.Directional || lightType == LightType.Spot;
