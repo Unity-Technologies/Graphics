@@ -346,8 +346,14 @@ namespace UnityEngine.Experimental.Rendering
         public void UpdateSlice(CommandBuffer cmd, int sliceIndex, Texture content, uint updateCount)
                 {
             // transfer new slice to sliceIndex from source texture
-            m_SliceArray[sliceIndex].updateCount = updateCount;
+            SetSliceHash(sliceIndex, updateCount);
             TransferToSlice(cmd, sliceIndex, content);
+        }
+
+        public void SetSliceHash(int sliceIndex, uint updateCount)
+        {
+            // transfer new slice to sliceIndex from source texture
+            m_SliceArray[sliceIndex].updateCount = updateCount;
         }
 
         public void UpdateSlice(CommandBuffer cmd, int sliceIndex, Texture content)
