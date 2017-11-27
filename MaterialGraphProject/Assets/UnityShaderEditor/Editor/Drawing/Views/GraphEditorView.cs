@@ -221,6 +221,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void HandleGraphChanges()
         {
+            previewManager.HandleGraphChanges();
+            previewManager.RenderPreviews();
+            inspectorView.HandleGraphChanges();
+
             foreach (var node in m_Graph.removedNodes)
             {
                 node.onModified -= OnNodeChanged;

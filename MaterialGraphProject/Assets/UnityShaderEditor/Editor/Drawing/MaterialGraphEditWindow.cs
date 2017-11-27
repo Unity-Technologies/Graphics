@@ -77,10 +77,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphEditorView = new GraphEditorView(materialGraph, asset.name) {persistenceKey = AssetDatabase.AssetPathToGUID(AssetDatabase.GUIDToAssetPath(selectedGuid))};
             }
 
-            graphEditorView.previewManager.HandleGraphChanges();
-            graphEditorView.previewManager.RenderPreviews();
             graphEditorView.HandleGraphChanges();
-            graphEditorView.inspectorView.HandleGraphChanges();
             graphObject.graph.ClearChanges();
         }
 

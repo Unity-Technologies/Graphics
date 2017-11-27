@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     public sealed class MaterialNodeView : Node
     {
         List<VisualElement> m_ControlViews;
-        PreviewData m_PreviewData;
+        PreviewRenderData m_PreviewRenderData;
         PreviewTextureView m_PreviewTextureView;
         VisualElement m_ControlsContainer;
         VisualElement m_PreviewContainer;
@@ -49,8 +49,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                         pickingMode = PickingMode.Ignore,
                         image = Texture2D.whiteTexture
                     };
-                    m_PreviewData = previewManager.GetPreview(inNode);
-                    m_PreviewData.onPreviewChanged += UpdatePreviewTexture;
+                    m_PreviewRenderData = previewManager.GetPreview(inNode);
+                    m_PreviewRenderData.onPreviewChanged += UpdatePreviewTexture;
                     UpdatePreviewTexture();
                     m_PreviewContainer.Add(m_PreviewTextureView);
 
@@ -271,7 +271,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdatePreviewTexture()
         {
-            if (m_PreviewData.texture == null || !node.previewExpanded)
+            if (m_PreviewRenderData.texture == null || !node.previewExpanded)
             {
                 m_PreviewTextureView.visible = false;
                 m_PreviewTextureView.image = Texture2D.blackTexture;
@@ -281,7 +281,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_PreviewTextureView.visible = true;
                 m_PreviewTextureView.AddToClassList("visible");
                 m_PreviewTextureView.RemoveFromClassList("hidden");
-                m_PreviewTextureView.image = m_PreviewData.texture;
+                m_PreviewTextureView.image = m_PreviewRenderData.texture;
             }
             m_PreviewTextureView.Dirty(ChangeType.Repaint);
         }
@@ -325,10 +325,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Attachers.Clear();
 
             node = null;
-            if (m_PreviewData != null)
+            if (m_PreviewRenderData != null)
             {
-                m_PreviewData.onPreviewChanged -= UpdatePreviewTexture;
-                m_PreviewData = null;
+                m_PreviewRenderData.onPreviewChanged -= UpdatePreviewTexture;
+                m_PreviewRenderData = null;
             }
         }
     }
