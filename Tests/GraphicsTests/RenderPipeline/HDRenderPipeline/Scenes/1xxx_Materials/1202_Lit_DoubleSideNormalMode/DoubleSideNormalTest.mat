@@ -9,12 +9,12 @@ Material:
   m_Name: DoubleSideNormalTest
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _ALBEDOAFFECTEMISSIVE_OFF _ALPHACUTOFFENABLE_OFF _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
-    _DEPTHOFFSETENABLE_OFF _DISTORTIONDEPTHTEST_OFF _DISTORTIONENABLE_OFF _DOUBLESIDEDENABLE_OFF
+    _DEPTHOFFSETENABLE_OFF _DISTORTIONDEPTHTEST_OFF _DISTORTIONENABLE_OFF _DOUBLESIDED_ON
     _ENABLESPECULAROCCLUSION_OFF _ENABLEWIND_OFF _NORMALMAP _NORMALMAP_TANGENT_SPACE
     _PREREFRACTIONPASS_OFF
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
+  m_DoubleSidedGI: 1
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses:
@@ -54,6 +54,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _MaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -86,7 +90,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -95,7 +105,8 @@ Material:
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
-    - _CullMode: 2
+    - _CullMode: 0
+    - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
     - _DetailNormalScale: 1
@@ -115,7 +126,9 @@ Material:
     - _DistortionEnable: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
-    - _DoubleSidedEnable: 0
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
+    - _DoubleSidedEnable: 1
     - _DoubleSidedNormalMode: 2
     - _Drag: 1
     - _DstBlend: 0
@@ -164,11 +177,13 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DoubleSidedConstants: {r: -1, g: -1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
+    - _ThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _TransmittanceColor: {r: 1, g: 1, b: 1, a: 1}
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}

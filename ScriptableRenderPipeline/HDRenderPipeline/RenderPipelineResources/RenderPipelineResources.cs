@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class RenderPipelineResources : ScriptableObject
     {
@@ -10,8 +10,8 @@
 
         // Lighting resources
         public Shader deferredShader;
+        public Shader combineLightingPass;
         public ComputeShader subsurfaceScatteringCS;
-        public ComputeShader volumetricLightingCS;
         public ComputeShader gaussianPyramidCS;
         public ComputeShader depthPyramidCS;
         public ComputeShader copyChannelCS;
@@ -43,15 +43,5 @@
         public Shader opaqueAtmosphericScattering;
 
         public Shader skyboxCubemap;
-
-        public int applyDistortionKernel { get; private set; }
-
-        void OnEnable()
-        {
-            applyDistortionKernel = -1;
-
-            if (applyDistortionCS != null)
-                applyDistortionKernel = applyDistortionCS.FindKernel("KMain");
-        }
     }
 }

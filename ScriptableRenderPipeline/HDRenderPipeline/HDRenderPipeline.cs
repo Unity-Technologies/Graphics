@@ -94,16 +94,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         static readonly string[] k_ForwardPassDebugName =
         {
-            "Forward Opaque Debug Display",
-            "Forward PreRefraction Debug Display",
-            "Forward Transparent Debug Display"
+            "Forward Opaque Debug",
+            "Forward PreRefraction Debug",
+            "Forward Transparent Debug"
         };
 
         static readonly string[] k_ForwardPassName =
         {
-            "Forward Opaque Display",
-            "Forward PreRefraction Display",
-            "Forward Transparent Display"
+            "Forward Opaque",
+            "Forward PreRefraction",
+            "Forward Transparent"
         };
 
         static readonly RenderQueueRange k_RenderQueue_PreRefraction = new RenderQueueRange { min = (int)HDRenderQueue.PreRefraction, max = (int)HDRenderQueue.Transparent - 1 };
@@ -137,6 +137,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_GaussianPyramidKernel;
         ComputeShader m_DepthPyramidCS { get { return m_Asset.renderPipelineResources.depthPyramidCS; } }
         int m_DepthPyramidKernel;
+
+        ComputeShader m_applyDistortionCS { get { return m_Asset.renderPipelineResources.applyDistortionCS; } }
+        int m_applyDistortionKernel;
 
         Material m_CameraMotionVectorsMaterial;
 
@@ -191,17 +194,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // The pass "SRPDefaultUnlit" is a fall back to legacy unlit rendering and is required to support unity 2d + unity UI that render in the scene.
         ShaderPassName[] m_ForwardAndForwardOnlyPassNames = { new ShaderPassName(), new ShaderPassName(), HDShaderPassNames.s_SRPDefaultUnlitName};
-        ShaderPassName[] m_ForwardOnlyPassNames = { new ShaderPassName(), HDShaderPassNames.s_SRPDefaultUnlitName};
+        ShaderPassName[] m_ForwardOnlyPassNames = { new ShaderPassName(), HDShaderPassNames.s_SRPDefaultUnlitName };
+
+        ShaderPassName[] m_AllTransparentPassNames = {  HDShaderPassNames.s_TransparentBackfaceName,
+                                                        HDShaderPassNames.s_ForwardOnlyName,
+                                                        HDShaderPassNames.s_ForwardName,
+                                                        HDShaderPassNames.s_TransparentDepthPostpassName,
+                                                        HDShaderPassNames.s_SRPDefaultUnlitName };
+
+        ShaderPassName[] m_AllTransparentDebugDisplayPassNames = {  HDShaderPassNames.s_TransparentBackfaceDebugDisplayName,
+                                                                    HDShaderPassNames.s_ForwardOnlyDebugDisplayName,
+                                                                    HDShaderPassNames.s_ForwardDebugDisplayName,
+                                                                    HDShaderPassNames.s_TransparentDepthPostpassName,
+                                                                    HDShaderPassNames.s_SRPDefaultUnlitName };
+
+        ShaderPassName[] m_AllForwardDebugDisplayPassNames = {  HDShaderPassNames.s_TransparentBackfaceDebugDisplayName,
+                                                                HDShaderPassNames.s_ForwardOnlyDebugDisplayName,
+                                                                HDShaderPassNames.s_ForwardDebugDisplayName };
+
         ShaderPassName[] m_DepthOnlyAndDepthForwardOnlyPassNames = { HDShaderPassNames.s_DepthForwardOnlyName, HDShaderPassNames.s_DepthOnlyName };
         ShaderPassName[] m_DepthForwardOnlyPassNames = { HDShaderPassNames.s_DepthForwardOnlyName };
         ShaderPassName[] m_DepthOnlyPassNames = { HDShaderPassNames.s_DepthOnlyName };
+        ShaderPassName[] m_TransparentDepthOnlyPassNames = { HDShaderPassNames.s_TransparentDepthPrepassName };
         ShaderPassName[] m_ForwardErrorPassNames = { HDShaderPassNames.s_AlwaysName, HDShaderPassNames.s_ForwardBaseName, HDShaderPassNames.s_DeferredName, HDShaderPassNames.s_PrepassBaseName, HDShaderPassNames.s_VertexName, HDShaderPassNames.s_VertexLMRGBMName, HDShaderPassNames.s_VertexLMName };
         ShaderPassName[] m_SinglePassName = new ShaderPassName[1];
 
         RenderTargetIdentifier[] m_MRTCache2 = new RenderTargetIdentifier[2];
-
-        // Post-processing context and screen-space effects (recycled on every frame to avoid GC alloc)
-        readonly PostProcessRenderContext m_PostProcessContext;
 
         // Stencil usage in HDRenderPipeline.
         // Currently we use only 2 bits to identify the kind of lighting that is expected from the render pipeline
@@ -319,6 +337,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             CreateSssMaterials();
 
+            // Initialize various compute shader resources
+            m_applyDistortionKernel = m_applyDistortionCS.FindKernel("KMain");
+            
             m_CopyStencilForSplitLighting   = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/CopyStencilBuffer");
             m_CopyStencilForSplitLighting.EnableKeyword("EXPORT_HTILE");
             m_CopyStencilForSplitLighting.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.SplitLighting);
@@ -360,12 +381,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_IBLFilterGGX = new IBLFilterGGX(asset.renderPipelineResources);
 
-            m_LightLoop.Build(asset.renderPipelineResources, asset.tileSettings, asset.textureSettings, asset.shadowInitParams, m_ShadowSettings, m_IBLFilterGGX);
+            m_LightLoop.Build(asset.renderPipelineResources, asset.renderingSettings, asset.tileSettings, asset.textureSettings, asset.shadowInitParams, m_ShadowSettings, m_IBLFilterGGX);
 
             m_SkyManager.Build(asset.renderPipelineResources, m_IBLFilterGGX);
             m_SkyManager.skySettings = skySettingsToUse;
-
-            m_PostProcessContext = new PostProcessRenderContext();
 
             m_DebugDisplaySettings.RegisterDebug();
             m_DebugFullScreenTempRT = HDShaderIDs._DebugFullScreenTexture;
@@ -392,7 +411,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Tile/Cluster", () => m_Asset.tileSettings.enableTileAndCluster, (value) => m_Asset.tileSettings.enableTileAndCluster = (bool)value, DebugItemFlag.RuntimeOnly);
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Big Tile", () => m_Asset.tileSettings.enableBigTilePrepass, (value) => m_Asset.tileSettings.enableBigTilePrepass = (bool)value, DebugItemFlag.RuntimeOnly);
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Cluster", () => m_Asset.tileSettings.enableClustered, (value) => m_Asset.tileSettings.enableClustered = (bool)value, DebugItemFlag.RuntimeOnly);
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Compute Lighting", () => m_Asset.tileSettings.enableComputeLightEvaluation, (value) => m_Asset.tileSettings.enableComputeLightEvaluation = (bool)value, DebugItemFlag.RuntimeOnly);
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Light Classification", () => m_Asset.tileSettings.enableComputeLightVariants, (value) => m_Asset.tileSettings.enableComputeLightVariants = (bool)value, DebugItemFlag.RuntimeOnly);
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Material Classification", () => m_Asset.tileSettings.enableComputeMaterialVariants, (value) => m_Asset.tileSettings.enableComputeMaterialVariants = (bool)value, DebugItemFlag.RuntimeOnly);
@@ -601,7 +619,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Currently, Unity does not offer a way to bind the stencil buffer as a texture in a compute shader.
             // Therefore, it's manually copied using a pixel shader.
-            return m_CurrentDebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission || LightLoop.GetFeatureVariantsEnabled(m_Asset.tileSettings);
+            return m_CurrentDebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission || m_LightLoop.GetFeatureVariantsEnabled();
         }
 
         bool NeedHTileCopy()
@@ -693,7 +711,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         CullResults m_CullResults;
         public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
-            base.Render(renderContext, cameras);
+                base.Render(renderContext, cameras);
 
 #if UNITY_EDITOR
             SupportedRenderingFeatures.active = s_NeededFeatures;
@@ -793,7 +811,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.Color | ClearFlag.Depth);
                     RenderOpaqueRenderList(m_CullResults, camera, renderContext, cmd, HDShaderPassNames.s_ForwardName);
-                    RenderTransparentRenderList(m_CullResults, camera, renderContext, cmd, HDShaderPassNames.s_ForwardName);
+                        RenderTransparentRenderList(m_CullResults, camera, renderContext, cmd, HDShaderPassNames.s_ForwardName, false);
                 }
 
                 renderContext.ExecuteCommandBuffer(cmd);
@@ -842,7 +860,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 using (new ProfilingSample(cmd, "Render shadows", GetSampler(CustomSamplerId.RenderShadows)))
-                    {
+                {
                     m_LightLoop.RenderShadows(renderContext, cmd, m_CullResults);
                     // TODO: check if statement below still apply
                     renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after RenderShadows as it modify our view/proj matrix
@@ -876,12 +894,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 RenderForward(m_CullResults, camera, renderContext, cmd, ForwardPass.Opaque);
                 RenderForwardError(m_CullResults, camera, renderContext, cmd, ForwardPass.Opaque);
 
-                RenderLightingDebug(hdCamera, cmd, m_CameraColorBufferRT, m_CurrentDebugDisplaySettings);
-
                 RenderSky(hdCamera, cmd);
-
-                // Do a depth pre-pass for transparent objects that want it that will fill the depth buffer to reduce the overdraw (typical usage is hair rendering)
-                RenderTransparentDepthPrepass(m_CullResults, camera, renderContext, cmd);
 
                 // Render pre refraction objects
                 RenderForward(m_CullResults, camera, renderContext, cmd, ForwardPass.PreRefraction);
@@ -917,7 +930,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     AccumulateDistortion(m_CullResults, camera, renderContext, cmd);
                     RenderDistortion(cmd, m_Asset.renderPipelineResources);
 
-                    RenderPostProcesses(camera, cmd, postProcessLayer);
+                        RenderPostProcesses(hdCamera, cmd, postProcessLayer);
                 }
             }
 
@@ -935,11 +948,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
 
             renderContext.ExecuteCommandBuffer(cmd);
+            }
+
             CommandBufferPool.Release(cmd);
             renderContext.Submit();
             } // For each camera
-        }
-        }
+            }
 
         void RenderOpaqueRenderList(CullResults             cull,
                                     Camera                  camera,
@@ -1004,14 +1018,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                          ScriptableRenderContext renderContext,
                                          CommandBuffer           cmd,
                                          ShaderPassName          passName,
+                                         bool                    preRefractionQueue,
                                          RendererConfiguration   rendererConfiguration = 0,
                                          RenderStateBlock?       stateBlock = null,
-                                         Material                overrideMaterial = null,
-                                         bool                    preRefractionQueue = false)
+                                         Material                overrideMaterial = null)
         {
             m_SinglePassName[0] = passName;
-            RenderTransparentRenderList(cull, camera, renderContext, cmd, m_SinglePassName,
-                rendererConfiguration, stateBlock, overrideMaterial, preRefractionQueue);
+            RenderTransparentRenderList(cull, camera, renderContext, cmd, m_SinglePassName, preRefractionQueue,
+                                        rendererConfiguration, stateBlock, overrideMaterial);
         }
 
         void RenderTransparentRenderList(CullResults             cull,
@@ -1019,10 +1033,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                          ScriptableRenderContext renderContext,
                                          CommandBuffer           cmd,
                                          ShaderPassName[]        passNames,
+                                         bool                    preRefractionQueue,
                                          RendererConfiguration   rendererConfiguration = 0,
                                          RenderStateBlock?       stateBlock = null,
-                                         Material                overrideMaterial = null,
-                                         bool                    preRefractionQueue = false)
+                                         Material                overrideMaterial = null
+                                         )
         {
             if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.displayTransparentObjects)
                 return;
@@ -1074,8 +1089,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.ClearRenderTarget(false, true, Color.clear);
 
                 // Only transparent object can render distortion vectors
-                RenderTransparentRenderList(cullResults, camera, renderContext, cmd, HDShaderPassNames.s_DistortionVectorsName, preRefractionQueue:true);
-                RenderTransparentRenderList(cullResults, camera, renderContext, cmd, HDShaderPassNames.s_DistortionVectorsName);
+                RenderTransparentRenderList(cullResults, camera, renderContext, cmd, HDShaderPassNames.s_DistortionVectorsName, true);
+                RenderTransparentRenderList(cullResults, camera, renderContext, cmd, HDShaderPassNames.s_DistortionVectorsName, false);
             }
         }
 
@@ -1085,16 +1100,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 var size = new Vector4(m_CurrentWidth, m_CurrentHeight, 1f / m_CurrentWidth, 1f / m_CurrentHeight);
                 uint x, y, z;
-                resources.applyDistortionCS.GetKernelThreadGroupSizes(resources.applyDistortionKernel, out x, out y, out z);
-                cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._DistortionTexture, m_DistortionBufferRT);
-                cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._GaussianPyramidColorTexture, m_GaussianPyramidColorBufferRT);
-                cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._CameraColorTexture, m_CameraColorBufferRT);
-                cmd.SetComputeTextureParam(resources.applyDistortionCS, resources.applyDistortionKernel, HDShaderIDs._DepthTexture, GetDepthTexture());
-                cmd.SetComputeVectorParam(resources.applyDistortionCS, HDShaderIDs._Size, size);
-                cmd.SetComputeVectorParam(resources.applyDistortionCS, HDShaderIDs._ZBufferParams, Shader.GetGlobalVector(HDShaderIDs._ZBufferParams));
-                cmd.SetComputeVectorParam(resources.applyDistortionCS, HDShaderIDs._GaussianPyramidColorMipSize, Shader.GetGlobalVector(HDShaderIDs._GaussianPyramidColorMipSize));
+                m_applyDistortionCS.GetKernelThreadGroupSizes(m_applyDistortionKernel, out x, out y, out z);
+                cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._DistortionTexture, m_DistortionBufferRT);
+                cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._GaussianPyramidColorTexture, m_GaussianPyramidColorBufferRT);
+                cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._CameraColorTexture, m_CameraColorBufferRT);
+                cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._DepthTexture, GetDepthTexture());
+                cmd.SetComputeVectorParam(m_applyDistortionCS, HDShaderIDs._Size, size);
+                cmd.SetComputeVectorParam(m_applyDistortionCS, HDShaderIDs._ZBufferParams, Shader.GetGlobalVector(HDShaderIDs._ZBufferParams));
+                cmd.SetComputeVectorParam(m_applyDistortionCS, HDShaderIDs._GaussianPyramidColorMipSize, Shader.GetGlobalVector(HDShaderIDs._GaussianPyramidColorMipSize));
 
-                cmd.DispatchCompute(resources.applyDistortionCS, resources.applyDistortionKernel, Mathf.CeilToInt(size.x / x), Mathf.CeilToInt(size.y / y), 1);
+                cmd.DispatchCompute(m_applyDistortionCS, m_applyDistortionKernel, Mathf.CeilToInt(size.x / x), Mathf.CeilToInt(size.y / y), 1);
             }
         }
 
@@ -1136,6 +1151,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         RenderOpaqueRenderList(cull, camera, renderContext, cmd, m_DepthOnlyPassNames, 0, renderQueueRange);
                     }
                 }
+
+                // Render transparent depth prepass after opaque one
+                RenderTransparentRenderList(cull, camera, renderContext, cmd, m_TransparentDepthOnlyPassNames, true);
+                RenderTransparentRenderList(cull, camera, renderContext, cmd, m_TransparentDepthOnlyPassNames, false);
             }
         }
 
@@ -1193,10 +1212,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.All, CoreUtils.clearColorAllBlack);
                     // Render Opaque forward
-                    RenderOpaqueRenderList(cull, hdCamera.camera, renderContext, cmd, HDShaderPassNames.s_ForwardDebugDisplayName, m_currentRendererConfigurationBakedLighting);
+                    RenderOpaqueRenderList(cull, hdCamera.camera, renderContext, cmd, m_AllForwardDebugDisplayPassNames, m_currentRendererConfigurationBakedLighting);
 
                     // Render forward transparent
-                    RenderTransparentRenderList(cull, hdCamera.camera, renderContext, cmd, HDShaderPassNames.s_ForwardDebugDisplayName, m_currentRendererConfigurationBakedLighting);
+                    RenderTransparentRenderList(cull, hdCamera.camera, renderContext, cmd, m_AllForwardDebugDisplayPassNames, true, m_currentRendererConfigurationBakedLighting);
+                    RenderTransparentRenderList(cull, hdCamera.camera, renderContext, cmd, m_AllForwardDebugDisplayPassNames, false, m_currentRendererConfigurationBakedLighting);
                 }
             }
 
@@ -1283,9 +1303,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         cmd.SetComputeFloatParam(m_SubsurfaceScatteringCS, HDShaderIDs._TexturingModeFlags, *(float*)&texturingModeFlags);
                     }
 
-                    cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, HDShaderIDs._WorldScales,        sssParameters.worldScales);
-                    cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, HDShaderIDs._FilterKernels,      sssParameters.filterKernels);
-                    cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, HDShaderIDs._ShapeParams,        sssParameters.shapeParams);
+                    cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, HDShaderIDs._WorldScales,   sssParameters.worldScales);
+                    cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, HDShaderIDs._FilterKernels, sssParameters.filterKernels);
+                    cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, HDShaderIDs._ShapeParams,   sssParameters.shapeParams);
 
                     cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._GBufferTexture0,  m_GbufferManager.GetGBuffers()[0]);
                     cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._GBufferTexture1,  m_GbufferManager.GetGBuffers()[1]);
@@ -1350,11 +1370,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_SkyManager.ExportSkyToTexture();
         }
 
-        void RenderLightingDebug(HDCamera camera, CommandBuffer cmd, RenderTargetIdentifier colorBuffer, DebugDisplaySettings debugDisplaySettings)
-        {
-            m_LightLoop.RenderLightingDebug(camera, cmd, colorBuffer, debugDisplaySettings);
-        }
-
         // Render forward is use for both transparent and opaque objects. In case of deferred we can still render opaque object in forward.
         void RenderForward(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, ForwardPass pass)
         {
@@ -1381,6 +1396,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_LightLoop.RenderForward(camera, cmd, pass == ForwardPass.Opaque);
 
+                if (pass == ForwardPass.Opaque)
+                {
                 if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
                 {
                     m_ForwardAndForwardOnlyPassNames[0] = m_ForwardOnlyPassNames[0] = HDShaderPassNames.s_ForwardOnlyDebugDisplayName;
@@ -1392,27 +1409,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_ForwardAndForwardOnlyPassNames[1] = HDShaderPassNames.s_ForwardName;
                 }
 
-                if (pass == ForwardPass.Opaque)
-                {
                     var passNames = m_Asset.renderingSettings.ShouldUseForwardRenderingOnly() ? m_ForwardAndForwardOnlyPassNames : m_ForwardOnlyPassNames;
                     // Forward opaque material always have a prepass (whether or not we use deferred, whether or not there is option like alpha test only) so we pass the right depth state here.
                     RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, passNames, m_currentRendererConfigurationBakedLighting, null, m_DepthStateOpaqueWithPrepass);
                 }
                 else
                 {
-                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_ForwardAndForwardOnlyPassNames, m_currentRendererConfigurationBakedLighting, preRefractionQueue: pass == ForwardPass.PreRefraction);
-                }
+                    var passNames = m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() ? m_AllTransparentDebugDisplayPassNames : m_AllTransparentPassNames;
+                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, passNames, pass == ForwardPass.PreRefraction, m_currentRendererConfigurationBakedLighting);
             }
         }
-
-        void RenderTransparentDepthPrepass(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
-        {
-            using (new ProfilingSample(cmd,"Forward Transparent Depth Prepass", GetSampler(CustomSamplerId.ForwardTransparentDepthPrepass)))
-            {
-                CoreUtils.SetRenderTarget(cmd, m_CameraDepthStencilBufferRT);
-                RenderTransparentRenderList(cullResults, camera, renderContext, cmd, HDShaderPassNames.s_TransparentDepthPrepassName, preRefractionQueue: true);
-                RenderTransparentRenderList(cullResults, camera, renderContext, cmd, HDShaderPassNames.s_TransparentDepthPrepassName);
-            }
         }
 
         // This is use to Display legacy shader with an error shader
@@ -1429,8 +1435,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
-                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_ForwardErrorPassNames, 0,
-                        null, m_ErrorMaterial, pass == ForwardPass.PreRefraction);
+                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_ForwardErrorPassNames, pass == ForwardPass.PreRefraction, 0, null, m_ErrorMaterial);
                 }
             }
         }
@@ -1569,21 +1574,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderPostProcesses(Camera camera, CommandBuffer cmd, PostProcessLayer layer)
+        void RenderPostProcesses(HDCamera hdcamera, CommandBuffer cmd, PostProcessLayer layer)
         {
             using (new ProfilingSample(cmd, "Post-processing", GetSampler(CustomSamplerId.PostProcessing)))
             {
                 if (CoreUtils.IsPostProcessingActive(layer))
                 {
-                    cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, GetDepthTexture());
+                    // Note: Here we don't use GetDepthTexture() to get the depth texture but m_CameraDepthStencilBuffer as the Forward transparent pass can
+                    // write extra data to deal with DOF/MB
+                    cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, m_CameraDepthStencilBuffer);
                     cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, m_VelocityBufferRT);
 
-                    var context = m_PostProcessContext;
+                    var context = hdcamera.postprocessRenderContext;
                     context.Reset();
                     context.source = m_CameraColorBufferRT;
                     context.destination = BuiltinRenderTextureType.CameraTarget;
                     context.command = cmd;
-                    context.camera = camera;
+                    context.camera = hdcamera.camera;
                     context.sourceFormat = RenderTextureFormat.ARGBHalf;
                     context.flip = true;
 
@@ -1688,7 +1695,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, camera.camera.pixelWidth);
                 }
 
-                m_LightLoop.RenderDebugOverlay(camera.camera, cmd, m_CurrentDebugDisplaySettings, ref x, ref y, overlaySize, camera.camera.pixelWidth);
+                m_LightLoop.RenderDebugOverlay(camera, cmd, m_CurrentDebugDisplaySettings, ref x, ref y, overlaySize, camera.camera.pixelWidth);
             }
         }
 

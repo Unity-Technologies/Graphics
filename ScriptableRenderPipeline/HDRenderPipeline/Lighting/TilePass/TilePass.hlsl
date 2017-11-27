@@ -1,4 +1,4 @@
-﻿#include "TilePass.cs.hlsl"
+#include "TilePass.cs.hlsl"
 #include "../../Sky/SkyVariables.hlsl"
 
 StructuredBuffer<uint> g_vLightListGlobal;      // don't support Buffer yet in unity
@@ -21,7 +21,6 @@ float g_fFarPlane;
 int g_iLog2NumClusters; // We need to always define these to keep constant buffer layouts compatible
 
 uint g_isLogBaseBufferEnabled;
-uint _UseTileLightList;
 //#endif
 
 //#ifdef USE_CLUSTERED_LIGHTLIST

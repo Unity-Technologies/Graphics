@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
@@ -28,7 +28,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return path;
         }
 
-        // TODO: The two following functions depend on HDRP, they should be made generic
+        // TODO: The following functions depend on HDRP, they should be made generic
+        public static string GetScriptableRenderPipelinePath()
+        {
+            var hdrpPath = GetHDRenderPipelinePath();
+            var fullPath = Path.GetFullPath(hdrpPath + "../");
+            var relativePath = fullPath.Substring(fullPath.IndexOf("Assets"));
+            return relativePath.Replace("\\", "/") + "/";
+        }
+
         public static string GetPostProcessingPath()
         {
             var hdrpPath = GetHDRenderPipelinePath();
@@ -50,17 +58,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             MaterialResetter resetter;
             if (k_MaterialResetters.TryGetValue(material.shader.name, out resetter))
             {
-                RemoveMaterialKeywords(material);
+                CoreEditorUtils.RemoveMaterialKeywords(material);
                 resetter(material);
                 EditorUtility.SetDirty(material);
                 return true;
             }
             return false;
-        }
-
-        public static void RemoveMaterialKeywords(Material material)
-        {
-            material.shaderKeywords = null;
         }
     }
 }

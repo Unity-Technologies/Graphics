@@ -84,10 +84,7 @@ uint FetchIndex(uint tileOffset, uint lightIndex)
 
 uint GetTileSize()
 {
-    if (_UseTileLightList)
-        return TILE_SIZE_FPTL;
-    else
-        return TILE_SIZE_CLUSTERED;
+    return TILE_SIZE_CLUSTERED;
 }
 
 void GetCountAndStartCluster(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
@@ -100,7 +97,7 @@ void GetCountAndStartCluster(PositionInputs posInput, uint lightCategory, out ui
         logBase = g_logBaseBuffer[tileIndex.y * _NumTileClusteredX + tileIndex.x];
     }
 
-    int clustIdx = SnapToClusterIdxFlex(posInput.depthVS, logBase, g_isLogBaseBufferEnabled != 0);
+    int clustIdx = SnapToClusterIdxFlex(posInput.linearDepth, logBase, g_isLogBaseBufferEnabled != 0);
 
     int nrClusters = (1 << g_iLog2NumClusters);
     const int idx = ((lightCategory * nrClusters + clustIdx) * _NumTileClusteredY + tileIndex.y) * _NumTileClusteredX + tileIndex.x;
@@ -111,26 +108,12 @@ void GetCountAndStartCluster(PositionInputs posInput, uint lightCategory, out ui
 
 void GetCountAndStart(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
 {
-    if (_UseTileLightList)
-        GetCountAndStartTile(posInput, lightCategory, start, lightCount);
-    else
-        GetCountAndStartCluster(posInput, lightCategory, start, lightCount);
+    GetCountAndStartCluster(posInput, lightCategory, start, lightCount);
 }
 
 uint FetchIndex(uint tileOffset, uint lightIndex)
 {
-    uint offset = tileOffset + lightIndex;
-    const uint lightIndexPlusOne = lightIndex + 1; // Add +1 as first slot is reserved to store number of light
-
-    if (_UseTileLightList)
-        offset = DWORD_PER_TILE * tileOffset + (lightIndexPlusOne >> 1);
-
-    // Avoid generated HLSL bytecode to always access g_vLightListGlobal with
-    // two different offsets, fixes out of bounds issue
-    uint value = g_vLightListGlobal[offset];
-
-    // Light index are store on 16bit
-    return (_UseTileLightList ? ((value >> ((lightIndexPlusOne & 1) * DWORD_PER_TILE)) & 0xffff) : value);
+    return g_vLightListGlobal[tileOffset + lightIndex];
 }
 
 #endif // USE_FPTL_LIGHTLIST
@@ -181,7 +164,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         for (i = 0; i < punctualLightCount; ++i)
         {
             int punctualIndex = FetchIndex(punctualLightStart, i);
-            DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, _LightDatas[punctualIndex], bsdfData, bakeLightingData, _LightDatas[punctualIndex].lightType);
+            DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, _LightDatas[punctualIndex], bsdfData, bakeLightingData);
             AccumulateDirectLighting(lighting, aggregateLighting);
         }
 
@@ -189,7 +172,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
         for (i = 0; i < _PunctualLightCount; ++i)
         {
-            DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, _LightDatas[i], bsdfData, bakeLightingData, _LightDatas[i].lightType);
+            DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, _LightDatas[i], bsdfData, bakeLightingData);
             AccumulateDirectLighting(lighting, aggregateLighting);
         }
 

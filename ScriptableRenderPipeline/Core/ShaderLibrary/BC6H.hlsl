@@ -1,6 +1,8 @@
 ﻿// Ref: https://github.com/knarkowicz/GPURealTimeBC6H/blob/master/bin/compress.hlsl
 // Doc: https://msdn.microsoft.com/en-us/library/windows/desktop/hh308952(v=vs.85).aspx
 
+#include "Common.hlsl"
+
 // Measure compression error
 float CalcMSLE(float3 a, float3 b)
 {
@@ -38,20 +40,6 @@ float3 Unquantize9(float3 x)
 float3 Unquantize10(float3 x)
 {
     return (x * 65536.0f + 0x8000) / 1024.0f;
-}
-// Swap helpers
-void Swap(inout float3 a, inout float3 b)
-{
-    float3 tmp = a;
-    a = b;
-    b = tmp;
-}
-
-void Swap(inout float a, inout float b)
-{
-    float tmp = a;
-    a = b;
-    b = tmp;
 }
 
 // BC6H Helpers
@@ -99,7 +87,7 @@ void EncodeMode11( inout uint4 block, inout float blockMSLE, float3 texels[ 16 ]
     // refine endpoints in log2 RGB space
     float3 refinedBlockMin = blockMax;
     float3 refinedBlockMax = blockMin;
-    for ( uint i = 0; i < 16; ++i )
+    for (i = 0; i < 16; ++i )
     {
         refinedBlockMin = min( refinedBlockMin, texels[ i ] == blockMin ? refinedBlockMin : texels[ i ] );
         refinedBlockMax = max( refinedBlockMax, texels[ i ] == blockMax ? refinedBlockMax : texels[ i ] );
@@ -135,7 +123,7 @@ void EncodeMode11( inout uint4 block, inout float blockMSLE, float3 texels[ 16 ]
 
     // compute indices
     uint indices[ 16 ] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-    for ( uint i = 0; i < 16; ++i )
+    for (i = 0; i < 16; ++i )
     {
         float texelPos = f32tof16( dot( texels[ i ], blockDir ) );
         indices[ i ] = ComputeIndex4( texelPos, endPoint0Pos, endPoint1Pos );
@@ -145,7 +133,7 @@ void EncodeMode11( inout uint4 block, inout float blockMSLE, float3 texels[ 16 ]
     float3 endpoint0Unq = Unquantize10( endpoint0 );
     float3 endpoint1Unq = Unquantize10( endpoint1 );
     float msle = 0.0f;
-    for ( uint i = 0; i < 16; ++i )
+    for (i = 0; i < 16; ++i )
     {
         float weight = floor( ( indices[ i ] * 64.0f ) / 15.0f + 0.5f );
         float3 texelUnc = FinishUnquantize( endpoint0Unq, endpoint1Unq, weight );
