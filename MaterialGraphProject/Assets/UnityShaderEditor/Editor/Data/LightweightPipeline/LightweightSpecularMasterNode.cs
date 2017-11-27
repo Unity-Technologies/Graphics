@@ -16,12 +16,12 @@ namespace UnityEditor.ShaderGraph
 
         public LightweightSpecularMasterNode()
         {
-            name = "LightweightSpecularMasterNode";
             UpdateNodeAfterDeserialization();
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
+            name = "LW Specular Master";
             AddSlot(new Vector3MaterialSlot(AlbedoSlotId, AlbedoSlotName, AlbedoSlotName, SlotType.Input, new Vector3(0.5f, 0.5f, 0.5f), ShaderStage.Fragment));
             AddSlot(new Vector3MaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, SlotType.Input, new Vector3(0,0,1), ShaderStage.Fragment));
             AddSlot(new Vector3MaterialSlot(EmissionSlotId, EmissionSlotName, EmissionSlotName, SlotType.Input, Vector3.zero, ShaderStage.Fragment));

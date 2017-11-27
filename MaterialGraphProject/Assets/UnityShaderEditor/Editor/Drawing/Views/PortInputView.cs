@@ -49,9 +49,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_EdgeControl = new EdgeControl
             {
-                @from = new Vector2(212f - 20f, 11.5f),
+                @from = new Vector2(212f - 21f, 11.5f),
                 to = new Vector2(212f, 11.5f),
-                edgeWidth = 2
+                edgeWidth = 2,
+                pickingMode = PickingMode.Ignore
             };
             Add(m_EdgeControl);
 

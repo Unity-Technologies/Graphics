@@ -19,6 +19,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_PreviewContainer;
         List<Attacher> m_Attachers;
         GraphView m_GraphView;
+        VisualElement m_ControlsDivider;
 
         public void Initialize(GraphView graphView, AbstractMaterialNode inNode, PreviewManager previewManager)
         {
@@ -36,9 +37,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 name = "controls"
             };
-            topContainer.Add(m_ControlsContainer);
-            m_ControlsContainer.SendToBack();
-            inputContainer.PlaceBehind(m_ControlsContainer);
+            extensionContainer.Add(m_ControlsContainer);
+            m_ControlsDivider = new VisualElement {name = "divider"};
+            m_ControlsDivider.AddToClassList("horizontal");
 
             if (node.hasPreview)
             {
@@ -76,7 +77,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
 
                 extensionContainer.Add(m_PreviewContainer);
-                RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
             }
 
             m_ControlViews = new List<VisualElement>();
@@ -84,10 +84,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (IControlAttribute attribute in propertyInfo.GetCustomAttributes(typeof(IControlAttribute), false))
                 m_ControlViews.Add(attribute.InstantiateControl(node, propertyInfo));
             m_Attachers = new List<Attacher>(node.GetInputSlots<MaterialSlot>().Count());
-            expanded = node.drawState.expanded;
-
 
             AddSlots(node.GetSlots<MaterialSlot>());
+            expanded = node.drawState.expanded;
+            RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
             UpdatePortInputVisibilities();
 
             SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
@@ -98,7 +98,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var resizeHandle = new Label { name = "resize", text = "" };
                 resizeHandle.AddManipulator(new Draggable(OnResize));
                 Add(resizeHandle);
-
                 UpdateSize();
             }
         }
@@ -122,6 +121,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 UpdateControls();
                 UpdatePortInputVisibilities();
+                RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
             }
         }
 
@@ -238,8 +238,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     inputContainer.Add(port);
                     var portInputView = new PortInputView(slot);
-                    m_GraphView.AddElement(portInputView);
-                    m_Attachers.Add(new Attacher(portInputView, port, SpriteAlignment.LeftCenter) { distance = 0f });
+                    Add(portInputView);
+                    m_Attachers.Add(new Attacher(portInputView, port, SpriteAlignment.LeftCenter) { distance = -8f });
                 }
             }
         }
@@ -296,7 +296,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_PreviewTextureView.RemoveFromClassList("hidden");
                 m_PreviewTextureView.image = m_PreviewRenderData.texture;
                 m_PreviewTextureView.Dirty(ChangeType.Repaint);
-                m_PreviewTextureView.style.height = m_PreviewTextureView.layout.width;
             }
         }
 
@@ -305,12 +304,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (!expanded)
             {
                 m_ControlsContainer.Clear();
+                m_ControlsDivider.RemoveFromHierarchy();
             }
             else if (m_ControlsContainer.childCount != m_ControlViews.Count)
             {
                 m_ControlsContainer.Clear();
                 foreach (var view in m_ControlViews)
                     m_ControlsContainer.Add(view);
+                extensionContainer.Add(m_ControlsDivider);
+                if (m_PreviewContainer != null)
+                    m_ControlsDivider.PlaceBehind(m_PreviewContainer);
             }
         }
 
