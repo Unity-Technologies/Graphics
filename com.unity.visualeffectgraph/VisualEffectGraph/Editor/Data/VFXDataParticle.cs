@@ -379,10 +379,16 @@ namespace UnityEditor.VFX
             });
         }
 
+        public override T Clone<T>()
+        {
+            var instance = base.Clone<T>() as VFXDataParticle;
+            instance.m_Capacity = m_Capacity;
+            instance.m_Space = m_Space;
+            return instance as T;
+        }
+
         [SerializeField]
         private uint m_Capacity = 65536;
-        [SerializeField]
-        private Bounds m_Bounds;
         [SerializeField]
         private CoordinateSpace m_Space;
         [NonSerialized]

@@ -201,13 +201,6 @@ namespace UnityEditor.VFX.UI
                         }
                     }
                 }
-
-                foreach (var edge in unusedEdges)
-                {
-                    edge.input = null;
-                    edge.output = null;
-                    m_Elements.Remove(edge);
-                }
             }
 
             foreach (var edge in unusedEdges)

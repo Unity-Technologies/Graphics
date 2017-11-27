@@ -387,6 +387,17 @@ namespace UnityEditor.VFX
             Debug.Log(builder.ToString());
         }
 
+        public static void ReproduceOwner(VFXData source, VFXData dest, List<KeyValuePair<VFXContext, VFXContext>> associativeContext)
+        {
+            dest.m_Owners = source.m_Owners.Select(owner =>
+                {
+                    var refContext = associativeContext.FirstOrDefault(o => o.Key == owner);
+                    if (refContext.Value == null)
+                        throw new NullReferenceException("ReproduceOwner : Unable to retrieve reference for " + owner);
+                    return refContext.Value;
+                }).ToList();
+        }
+
         [SerializeField]
         protected List<VFXContext> m_Owners;
 
