@@ -213,16 +213,16 @@ namespace UnityEngine.Experimental.Rendering
             {
                 var format = TextureFormat.RGBAHalf;
 
-//                var probeFormat = TextureFormat.BC6H;
+                var probeFormat = TextureFormat.BC6H;
 
 //                // On editor the texture is uncompressed when operating against mobile build targets
-////#if UNITY_2017_2_OR_NEWER
-//                if (SystemInfo.SupportsTextureFormat(probeFormat) && !UnityEngine.Rendering.GraphicsSettings.HasShaderDefine(UnityEngine.Rendering.BuiltinShaderDefine.UNITY_NO_DXT5nm))
+//#if UNITY_2017_2_OR_NEWER
+                if (SystemInfo.SupportsTextureFormat(probeFormat) && !UnityEngine.Rendering.GraphicsSettings.HasShaderDefine(UnityEngine.Rendering.BuiltinShaderDefine.UNITY_NO_DXT5nm))
+                    format = probeFormat;
+//#else
+//                if (SystemInfo.SupportsTextureFormat(probeFormat) && !TextureCache.isMobileBuildTarget)
 //                    format = probeFormat;
-////#else
-////                if (SystemInfo.SupportsTextureFormat(probeFormat) && !TextureCache.isMobileBuildTarget)
-////                    format = probeFormat;
-////#endif
+//#endif
 
                 return format;
             }

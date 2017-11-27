@@ -247,11 +247,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public bool enableFptlForOpaqueWhenClustered; // still useful on opaques. Should be true by default to force tile on opaque.
             public bool enableBigTilePrepass;
 
-            [Range(0.0f, 1.0f)]
-            public float diffuseGlobalDimmer = 1.0f;
-            [Range(0.0f, 1.0f)]
-            public float specularGlobalDimmer = 1.0f;
-
             public enum TileDebug : int
             {
                 None = 0, Punctual = 1, Area = 2, AreaAndPunctual = 3, Environment = 4, EnvironmentAndPunctual = 5, EnvironmentAndArea = 6, EnvironmentAndAreaAndPunctual = 7,
@@ -268,9 +263,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 enableClustered = true;
                 enableFptlForOpaqueWhenClustered = true;
                 enableBigTilePrepass = true;
-
-                diffuseGlobalDimmer = 1.0f;
-                specularGlobalDimmer = 1.0f;
             }
         }
 
@@ -298,6 +290,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int m_CookieTexArraySize = 16;
             TextureCacheCubemap m_CubeCookieTexArray;
             int m_CubeCookieTexArraySize = 16;
+
+            LightingSettings m_LightingSettings = new LightingSettings();
 
             public class LightList
             {
@@ -476,7 +470,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public LightLoop()
             {}
 
-            public void Build(RenderPipelineResources renderPipelineResources, TileSettings tileSettings, TextureSettings textureSettings, ShadowInitParameters shadowInit, ShadowSettings shadowSettings, IBLFilterGGX iblFilterGGX)
+            public void Build(RenderPipelineResources renderPipelineResources, TileSettings tileSettings, GlobalTextureSettings textureSettings, ShadowInitParameters shadowInit, ShadowSettings shadowSettings, IBLFilterGGX iblFilterGGX)
             {
                 m_Resources = renderPipelineResources;
                 m_TileSettings = tileSettings;
@@ -494,7 +488,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_CubeCookieTexArray = new TextureCacheCubemap();
                 m_CubeCookieTexArray.AllocTextureArray(m_CubeCookieTexArraySize, textureSettings.pointCookieSize, TextureFormat.RGBA32, true);
 
-                m_ReflectionProbeCache = new ReflectionProbeCache(iblFilterGGX, m_ReflectionProbeCacheSize, textureSettings.reflectionCubemapSize, TextureCache.GetPreferredHDRCompressedTextureFormat, true);
+                TextureFormat probeCacheFormat = textureSettings.reflectionCacheCompressed ? TextureFormat.BC6H : TextureFormat.RGBAHalf;
+                m_ReflectionProbeCache = new ReflectionProbeCache(iblFilterGGX, m_ReflectionProbeCacheSize, textureSettings.reflectionCubemapSize, probeCacheFormat, true);
 
                 s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
 
@@ -755,8 +750,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 var directionalLightData = new DirectionalLightData();
 
-                float diffuseDimmer = m_TileSettings.diffuseGlobalDimmer * additionalData.lightDimmer;
-                float specularDimmer = m_TileSettings.specularGlobalDimmer * additionalData.lightDimmer;
+                float diffuseDimmer = m_LightingSettings.diffuseGlobalDimmer * additionalData.lightDimmer;
+                float specularDimmer = m_LightingSettings.specularGlobalDimmer * additionalData.lightDimmer;
                 if (diffuseDimmer  <= 0.0f && specularDimmer <= 0.0f)
                     return false;
 
@@ -906,8 +901,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 float distanceFade = ComputeLinearDistanceFade(distanceToCamera, additionalLightData.fadeDistance);
                 float lightScale = additionalLightData.lightDimmer * distanceFade;
 
-                lightData.diffuseScale = additionalLightData.affectDiffuse ? lightScale * m_TileSettings.diffuseGlobalDimmer : 0.0f;
-                lightData.specularScale = additionalLightData.affectSpecular ? lightScale * m_TileSettings.specularGlobalDimmer : 0.0f;
+                lightData.diffuseScale = additionalLightData.affectDiffuse ? lightScale * m_LightingSettings.diffuseGlobalDimmer : 0.0f;
+                lightData.specularScale = additionalLightData.affectSpecular ? lightScale * m_LightingSettings.specularGlobalDimmer : 0.0f;
 
                 if (lightData.diffuseScale <= 0.0f && lightData.specularScale <= 0.0f)
                     return false;
@@ -1329,11 +1324,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                     }
 
-                    float oldSpecularGlobalDimmer = m_TileSettings.specularGlobalDimmer;
+                    float oldSpecularGlobalDimmer = m_LightingSettings.specularGlobalDimmer;
                     // Change some parameters in case of "special" rendering (can be preview, reflection, etc.)
                     if (camera.cameraType == CameraType.Reflection)
                     {
-                        m_TileSettings.specularGlobalDimmer = 0.0f;
+                        m_LightingSettings.specularGlobalDimmer = 0.0f;
                     }
 
                     // 1. Count the number of lights and sort all lights by category, type and volume - This is required for the fptl/cluster shader code
@@ -1604,7 +1599,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     // Restore values after "special rendering"
-                    m_TileSettings.specularGlobalDimmer = oldSpecularGlobalDimmer;
+                    m_LightingSettings.specularGlobalDimmer = oldSpecularGlobalDimmer;
                 }
 
                 m_lightCount = m_lightList.lights.Count + m_lightList.envLights.Count;
