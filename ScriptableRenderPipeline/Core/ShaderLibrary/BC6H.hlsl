@@ -1,8 +1,6 @@
 ﻿// Ref: https://github.com/knarkowicz/GPURealTimeBC6H/blob/master/bin/compress.hlsl
 // Doc: https://msdn.microsoft.com/en-us/library/windows/desktop/hh308952(v=vs.85).aspx
 
-#include "Common.hlsl"
-
 // Measure compression error
 float CalcMSLE(float3 a, float3 b)
 {
