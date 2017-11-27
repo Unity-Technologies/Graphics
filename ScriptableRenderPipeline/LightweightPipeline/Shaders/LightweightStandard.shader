@@ -80,8 +80,9 @@
             #pragma shader_feature _SPECULAR_SETUP
 
             #pragma multi_compile _ _MAIN_LIGHT_COOKIE
-            #pragma multi_compile _MAIN_DIRECTIONAL_LIGHT _MAIN_SPOT_LIGHT _MAIN_POINT_LIGHT
+            #pragma multi_compile _MAIN_DIRECTIONAL_LIGHT _MAIN_SPOT_LIGHT
             #pragma multi_compile _ _ADDITIONAL_LIGHTS
+            #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
             #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
@@ -138,8 +139,31 @@
             }
             ENDCG
         }
+
+            // This pass it not used during regular rendering, only for lightmap baking.
+            Pass
+            {
+                Tags{"LightMode" = "Meta"}
+
+                Cull Off
+
+                CGPROGRAM
+                #pragma vertex LightweightVertexMeta
+                #pragma fragment LightweightFragmentMeta
+
+                #pragma shader_feature _EMISSION
+                #pragma shader_feature _METALLICSPECGLOSSMAP
+                #pragma shader_feature _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+                #pragma shader_feature EDITOR_VISUALIZATION
+
+                #pragma shader_feature _EMISSION
+                #pragma shader_feature _SPECGLOSSMAP
+
+                #include "LightweightPassMeta.cginc"
+                ENDCG
+            }
     }
-    FallBack "Standard"
+    FallBack "Hidden/InternalErrorShader"
     CustomEditor "LightweightStandardGUI"
 }
 

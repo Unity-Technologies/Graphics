@@ -21,15 +21,14 @@ MonoBehaviour:
     spotCookieSize: 128
     pointCookieSize: 512
     reflectionCubemapSize: 128
-    reflectionCacheCompressed: 1
+    reflectionCacheCompressed: 0
   sssSettings: {fileID: 11400000, guid: 873499ce7a6f749408981f512a9683f7, type: 2}
   tileSettings:
     enableTileAndCluster: 1
     enableComputeLightEvaluation: 1
     enableComputeLightVariants: 1
     enableComputeMaterialVariants: 1
-    enableClustered: 1
-    enableFptlForOpaqueWhenClustered: 1
+    enableFptlForForwardOpaque: 1
     enableBigTilePrepass: 1
   shadowInitParams:
     shadowAtlasWidth: 4096

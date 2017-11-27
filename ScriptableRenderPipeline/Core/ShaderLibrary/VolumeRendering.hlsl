@@ -59,7 +59,7 @@ float HenyeyGreensteinPhaseFunction(float asymmetry, float LdotD)
 // Absorption coefficient from Disney: http://blog.selfshadow.com/publications/s2015-shading-course/burley/s2015_pbs_disney_bsdf_notes.pdf
 float3 TransmittanceColorAtDistanceToAbsorption(float3 transmittanceColor, float atDistance)
 {
-    return -log(transmittanceColor + 0.00001) / max(atDistance, 0.000001);
+    return -log(transmittanceColor + FLT_EPS) / max(atDistance, FLT_EPS);
 }
 
 

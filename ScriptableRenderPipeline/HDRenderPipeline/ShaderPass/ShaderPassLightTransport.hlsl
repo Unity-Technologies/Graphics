@@ -2,7 +2,7 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
-#include "../../Core/ShaderLibrary/Color.hlsl"
+#include "ShaderLibrary/Color.hlsl"
 
 CBUFFER_START(UnityMetaPass)
 // x = use uv1 as raster position
@@ -44,6 +44,12 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
 #ifdef VARYINGS_NEED_POSITION_WS
     float3 positionWS = GetCameraRelativePositionWS(TransformObjectToWorld(inputMesh.positionOS));
     output.vmesh.positionWS = positionWS;
+#endif
+
+    // Not required for meta pass but to silent the shader compiler warning in case it is declare
+#ifdef VARYINGS_NEED_TANGENT_TO_WORLD
+    output.vmesh.normalWS = float3(0.0, 0.0, 0.0);
+    output.vmesh.tangentWS = float4(0.0, 0.0, 0.0, 0.0);
 #endif
 
 #ifdef VARYINGS_NEED_TEXCOORD0
