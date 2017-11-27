@@ -4,7 +4,7 @@ Shader "Hidden/HDRenderPipeline/CameraMotionVectors"
 
         #pragma target 4.5
 
-        #include "../../Core/ShaderLibrary/Common.hlsl"
+        #include "ShaderLibrary/Common.hlsl"
         #include "../ShaderVariables.hlsl"
         #include "../ShaderPass/FragInputs.hlsl"
         #include "../ShaderPass/VaryingMesh.hlsl"

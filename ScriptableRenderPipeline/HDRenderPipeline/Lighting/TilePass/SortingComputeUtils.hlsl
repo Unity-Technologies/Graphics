@@ -20,13 +20,13 @@ unsigned int LimitPow2AndClamp(unsigned int value_in, unsigned int maxValue)
 // have to make this sort routine a macro unfortunately because hlsl doesn't take
 // groupshared memory of unspecified length as an input parameter to a function.
 // maxcapacity_in must be a power of two.
-// all data from length_in and up to closest power of two will be filled with 0xffffffff
+// all data from length_in and up to closest power of two will be filled with UINT_MAX
 #define SORTLIST(data, length_in, maxcapacity_in, localThreadID_in, nrthreads_in)   \
 {   \
     int length=(int) length_in, maxcapacity=(int) maxcapacity_in, localThreadID=(int) localThreadID_in, nrthreads=(int) nrthreads_in;   \
                                                                                             \
     const int N = (const int) LimitPow2AndClamp((unsigned int) length, (uint) maxcapacity); \
-    for(int t=length+localThreadID; t<N; t+=nrthreads) { data[t]=0xffffffff; }              \
+    for(int t=length+localThreadID; t<N; t+=nrthreads) { data[t]=UINT_MAX; }              \
     GroupMemoryBarrierWithGroupSync();                                                      \
                                                                                             \
     for(int k=2; k<=N; k=2*k)                                                               \

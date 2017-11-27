@@ -1,4 +1,4 @@
-#include "../../../Core/ShaderLibrary/SampleUVMapping.hlsl"
+#include "ShaderLibrary/SampleUVMapping.hlsl"
 #include "../MaterialUtilities.hlsl"
 
 //-------------------------------------------------------------------------------------

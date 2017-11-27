@@ -222,8 +222,8 @@ Shader "HDRenderPipeline/Lit"
     // Include
     //-------------------------------------------------------------------------------------
 
-    #include "../../../Core/ShaderLibrary/Common.hlsl"
-    #include "../../../Core/ShaderLibrary/Wind.hlsl"
+    #include "ShaderLibrary/Common.hlsl"
+    #include "ShaderLibrary/Wind.hlsl"
     #include "../../ShaderPass/FragInputs.hlsl"
     #include "../../ShaderPass/ShaderPass.cs.hlsl"
 
@@ -376,7 +376,6 @@ Shader "HDRenderPipeline/Lit"
             ZWrite On
             ZTest LEqual
 
-            // When alpha test is enabled, we should not write into the color buffer
             ColorMask 0
 
             HLSLPROGRAM
@@ -401,7 +400,6 @@ Shader "HDRenderPipeline/Lit"
 
             ZWrite On
 
-            // When alpha test is enabled, we should not write into the color buffer
             ColorMask 0
 
             HLSLPROGRAM
