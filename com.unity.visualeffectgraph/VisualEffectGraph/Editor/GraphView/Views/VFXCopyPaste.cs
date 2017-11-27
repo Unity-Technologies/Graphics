@@ -47,6 +47,7 @@ namespace UnityEditor.VFX.UI
         class Data
         {
             public VFXContext[] contexts;
+            public VFXData[] data;
             public VFXModel[] slotContainers;
             public VFXBlock[] blocks;
             public DataEdge[] dataEdges;
@@ -71,6 +72,8 @@ namespace UnityEditor.VFX.UI
             copyData.contexts = copiedContexts.Select(t => t.Clone<VFXContext>()).ToArray();
             VFXModel[] copiedSlotContainers = slotContainers.Select(t => t.model).ToArray();
             copyData.slotContainers = copiedSlotContainers.Select(t => t.Clone<VFXModel>()).ToArray();
+
+            copyData.data = VFXContext.ReproduceData(copiedContexts, copyData.contexts, copiedContexts.Select((t, i) => new KeyValuePair<VFXContext, VFXContext>(t, copyData.contexts[i])).ToList()).ToArray();
 
             copyData.dataEdges = new DataEdge[dataEdges.Count()];
             int cpt = 0;
@@ -308,6 +311,9 @@ namespace UnityEditor.VFX.UI
                 newSlotContainers.Add(newSlotContainer);
                 graph.AddChild(newSlotContainer);
             }
+
+
+            VFXContext.ReproduceData(copyData.contexts, newContexts.ToArray(), copyData.contexts.Select((t, i) => new KeyValuePair<VFXContext, VFXContext>(t, newContexts[i])).ToList()).ToArray();
 
             foreach (var dataEdge in copyData.dataEdges)
             {
