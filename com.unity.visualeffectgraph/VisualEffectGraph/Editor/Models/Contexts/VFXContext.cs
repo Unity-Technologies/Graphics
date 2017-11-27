@@ -401,7 +401,7 @@ namespace UnityEditor.VFX
             {
                 var from = fromArray[i] as VFXContext;
                 var to = toArray[i] as VFXContext;
-                if (from != null)
+                if (from != null && from.m_Data != null)
                 {
                     var refData = associativeData.FirstOrDefault(o => o.Key == from.m_Data);
                     if (refData.Value == null)
