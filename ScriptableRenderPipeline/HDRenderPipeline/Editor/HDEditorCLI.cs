@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -65,7 +65,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             {
                                 action.operation = (CommandLineOperation)Enum.Parse(typeof(CommandLineOperation), args[i]);
                             }
-                            catch (Exception e) { }
+                            catch (Exception e) { Debug.Log(e.ToString());  }
                         }
                         break;
                     }

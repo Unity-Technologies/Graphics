@@ -68,8 +68,9 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             #pragma shader_feature _EMISSION
 
             #pragma multi_compile _ _MAIN_LIGHT_COOKIE
-            #pragma multi_compile _MAIN_DIRECTIONAL_LIGHT _MAIN_SPOT_LIGHT _MAIN_POINT_LIGHT
+            #pragma multi_compile _MAIN_DIRECTIONAL_LIGHT _MAIN_SPOT_LIGHT
             #pragma multi_compile _ _ADDITIONAL_LIGHTS
+            #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
             #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
@@ -136,63 +137,15 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             CGPROGRAM
             #define UNITY_SETUP_BRDF_INPUT SpecularSetup
             #pragma vertex LightweightVertexMeta
-            #pragma fragment LightweightFragmentMeta
+            #pragma fragment LightweightFragmentMetaSimple
 
             #pragma shader_feature _EMISSION
             #pragma shader_feature _SPECGLOSSMAP
-            #pragma shader_feature _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-            #pragma shader_feature ___ _DETAIL_MULX2
-            #pragma shader_feature EDITOR_VISUALIZATION
 
-            #include "LightweightPassLit.cginc"
-            #include "UnityMetaPass.cginc"
-
-            struct MetaVertexInput
-            {
-                float4 vertex   : POSITION;
-                half3 normal    : NORMAL;
-                float2 uv0      : TEXCOORD0;
-                float2 uv1      : TEXCOORD1;
-                float2 uv2      : TEXCOORD2;
-#ifdef _TANGENT_TO_WORLD
-                half4 tangent   : TANGENT;
-#endif
-                UNITY_VERTEX_INPUT_INSTANCE_ID
-            };
-
-            struct MetaVertexOuput
-            {
-                float4 pos      : SV_POSITION;
-                float2 uv       : TEXCOORD0;
-            };
-
-            MetaVertexOuput LightweightVertexMeta(MetaVertexInput v)
-            {
-                MetaVertexOuput o;
-                o.pos = UnityMetaVertexPosition(v.vertex, v.uv1.xy, v.uv2.xy, unity_LightmapST, unity_DynamicLightmapST);
-                o.uv = TRANSFORM_TEX(v.uv0, _MainTex);
-                return o;
-            }
-
-            fixed4 LightweightFragmentMeta(MetaVertexOuput i) : SV_Target
-            {
-                UnityMetaInput o;
-                UNITY_INITIALIZE_OUTPUT(UnityMetaInput, o);
-
-                o.Albedo = _Color.rgb * tex2D(_MainTex, i.uv).rgb;
-                o.SpecularColor = SpecularGloss(i.uv.xy, 1.0);
-
-#ifdef _EMISSION
-                o.Emission += LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_EmissionMap, i.uv).rgb) * _EmissionColor;
-#else
-                o.Emission += _EmissionColor;
-#endif
-
-                return UnityMetaFragment(o);
-            }
+            #include "LightweightPassMeta.cginc"
             ENDCG
         }
     }
-    Fallback "Standard (Specular setup)"
+    Fallback "Hidden/InternalErrorShader"
     CustomEditor "LightweightStandardSimpleLightingGUI"
 }

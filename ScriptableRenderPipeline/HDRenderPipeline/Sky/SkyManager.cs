@@ -340,11 +340,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 using (new ProfilingSample(cmd, "DynamicGI.UpdateEnvironment"))
                 {
                     // TODO: Properly send the cubemap to Enlighten. Currently workaround is to set the cubemap in a Skybox/cubemap material
+                    float intensity = IsSkyValid() ? 1.0f : 0.0f; // Eliminate all diffuse if we don't have a skybox (meaning for now the background is black in HDRP)
                     m_StandardSkyboxMaterial.SetTexture("_Tex", m_SkyboxCubemapRT);
-                    RenderSettings.skybox = IsSkyValid() ? m_StandardSkyboxMaterial : null; // Setup this material as the default to be use in RenderSettings
-                    RenderSettings.ambientIntensity = 1.0f; // fix this to 1, this parameter should not exist!
+                    RenderSettings.skybox = m_StandardSkyboxMaterial; // Setup this material as the default to be use in RenderSettings
+                    RenderSettings.ambientIntensity = intensity;
                     RenderSettings.ambientMode = AmbientMode.Skybox; // Force skybox for our HDRI
-                    RenderSettings.reflectionIntensity = 1.0f;
+                    RenderSettings.reflectionIntensity = intensity;
                     RenderSettings.customReflection = null;
                     DynamicGI.UpdateEnvironment();
 
@@ -486,7 +487,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int offset = 0;
             for (int i = 0; i < 6; ++i)
             {
-                Graphics.SetRenderTarget(m_SkyboxCubemapRT, 0, (CubemapFace)i);
+                UnityEngine.Graphics.SetRenderTarget(m_SkyboxCubemapRT, 0, (CubemapFace)i);
                 temp.ReadPixels(new Rect(0, 0, resolution, resolution), offset, 0);
                 temp.Apply();
                 offset += resolution;
@@ -494,12 +495,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Flip texture.
             // Temporarily disabled until proper API reaches trunk
-            Graphics.Blit(temp, tempRT, new Vector2(1.0f, -1.0f), new Vector2(0.0f, 0.0f));
+            UnityEngine.Graphics.Blit(temp, tempRT, new Vector2(1.0f, -1.0f), new Vector2(0.0f, 0.0f));
 
             result.ReadPixels(new Rect(0, 0, resolution * 6, resolution), 0, 0);
             result.Apply();
 
-            Graphics.SetRenderTarget(null);
+            UnityEngine.Graphics.SetRenderTarget(null);
             Object.DestroyImmediate(temp);
             Object.DestroyImmediate(tempRT);
 

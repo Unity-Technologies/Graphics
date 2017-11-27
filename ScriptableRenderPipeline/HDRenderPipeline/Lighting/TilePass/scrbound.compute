@@ -3,7 +3,7 @@
 
 #pragma kernel ScreenBoundsAABB
 
-#include "../../../Core/ShaderLibrary/common.hlsl"
+#include "ShaderLibrary/common.hlsl"
 #include "TilePass.cs.hlsl"
 
 uniform int g_isOrthographic;
@@ -87,7 +87,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 				float fW = vPnts[k].w;
 				float fS = fW<0 ? -1 : 1;
 				float fWabs = fW<0 ? (-fW) : fW;
-				fW = fS * (fWabs<FLT_EPSILON ? FLT_EPSILON : fWabs);
+				fW = fS * (fWabs<FLT_EPS ? FLT_EPS : fWabs);
 				float3 vP = float3(vPnts[k].x/fW, vPnts[k].y/fW, vPnts[k].z/fW);
 				if(k==0) { vMin=vP; vMax=vP; }
 

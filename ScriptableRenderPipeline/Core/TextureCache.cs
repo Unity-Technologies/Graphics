@@ -23,7 +23,7 @@ namespace UnityEngine.Experimental.Rendering
             if (mismatch)
             {
                 cmd.ConvertTexture(texture, 0, m_Cache, sliceIndex);
-            }
+                }
             else
             {
                 cmd.CopyTexture(texture, 0, m_Cache, sliceIndex);
@@ -325,7 +325,7 @@ namespace UnityEngine.Experimental.Rendering
 
             if(sliceIndex != -1)
             {
-                m_SliceArray[sliceIndex].countLRU = 0; // mark slice as in use this frame
+                m_SliceArray[sliceIndex].countLRU = 0;      // mark slice as in use this frame
             }
 
             return sliceIndex;
@@ -334,7 +334,7 @@ namespace UnityEngine.Experimental.Rendering
 
         // In case the texture content with which we update the cache is not the input texture, we need to provide the right update count.
         public void UpdateSlice(CommandBuffer cmd, int sliceIndex, Texture content, uint updateCount)
-        {
+                {
             // transfer new slice to sliceIndex from source texture
             m_SliceArray[sliceIndex].updateCount = updateCount;
             TransferToSlice(cmd, sliceIndex, content);
@@ -343,7 +343,7 @@ namespace UnityEngine.Experimental.Rendering
         public void UpdateSlice(CommandBuffer cmd, int sliceIndex, Texture content)
         {
             UpdateSlice(cmd, sliceIndex, content, GetTextureUpdateCount(content));
-        }
+                }
 
         public int FetchSlice(CommandBuffer cmd, Texture texture, bool forceReinject=false)
         {

@@ -4,22 +4,22 @@
 // These clamping function to max of floating point 16 bit are use to prevent INF in code in case of extreme value
 float ClampToFloat16Max(float value)
 {
-    return min(value, 65504.0);
+    return min(value, HALF_MAX);
 }
 
 float2 ClampToFloat16Max(float2 value)
 {
-    return min(value, 65504.0);
+    return min(value, HALF_MAX);
 }
 
 float3 ClampToFloat16Max(float3 value)
 {
-    return min(value, 65504.0);
+    return min(value, HALF_MAX);
 }
 
 float4 ClampToFloat16Max(float4 value)
 {
-    return min(value, 65504.0);
+    return min(value, HALF_MAX);
 }
 
 // Ligthing convention
@@ -269,7 +269,7 @@ float3 GetViewReflectedNormal(float3 N, float3 V, out float NdotV)
 
     NdotV = dot(N, V);
 
-    N = (NdotV >= 0) ? N : (N - 2 * NdotV * V);
+    N = (NdotV >= 0.0) ? N : (N - 2.0 * NdotV * V);
     NdotV = abs(NdotV);
 
     return N;
@@ -282,7 +282,7 @@ float3x3 GetLocalFrame(float3 localZ)
     float x  = localZ.x;
     float y  = localZ.y;
     float z  = localZ.z;
-    float sz = z >= 0 ? 1 : -1;
+    float sz = FastSign(z);
     float a  = 1 / (sz + z);
     float ya = y * a;
     float b  = x * ya;
@@ -297,7 +297,7 @@ float3x3 GetLocalFrame(float3 localZ)
 // ior is a value between 1.0 and 2.5
 float IORToFresnel0(float ior)
 {
-    return Sqr((ior - 1.0) / (ior + 1.0));
+    return Sq((ior - 1.0) / (ior + 1.0));
 }
 
 #endif // UNITY_COMMON_LIGHTING_INCLUDED

@@ -40,10 +40,10 @@ float PerceptualRoughnessToMipmapLevel(float perceptualRoughness, float NdotR)
     float m = PerceptualRoughnessToRoughness(perceptualRoughness);
 
     // Remap to spec power. See eq. 21 in --> https://dl.dropboxusercontent.com/u/55891920/papers/mm_brdf.pdf
-    float n = (2.0 / max(FLT_EPSILON, m * m)) - 2.0;
+    float n = (2.0 / max(FLT_EPS, m * m)) - 2.0;
 
     // Remap from n_dot_h formulation to n_dot_r. See section "Pre-convolved Cube Maps vs Path Tracers" --> https://s3.amazonaws.com/docs.knaldtech.com/knald/1.0.0/lys_power_drops.html
-    n /= (4.0 * max(NdotR, FLT_EPSILON));
+    n /= (4.0 * max(NdotR, FLT_EPS));
 
     // remap back to square root of real roughness (0.25 include both the sqrt root of the conversion and sqrt for going from roughness to perceptualRoughness)
     perceptualRoughness = pow(2.0 / (n + 2.0), 0.25);
