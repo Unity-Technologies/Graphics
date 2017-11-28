@@ -46,7 +46,7 @@ void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout floa
 // Calculate the offset in global light index light for current light category
 int GetTileOffset(PositionInputs posInput, uint lightCategory)
 {
-    uint2 tileIndex = posInput.unTileCoord;
+    uint2 tileIndex = posInput.tileCoord;
     return (tileIndex.y + lightCategory * _NumTileFtplY) * _NumTileFtplX + tileIndex.x;
 }
 
@@ -89,7 +89,7 @@ uint GetTileSize()
 
 void GetCountAndStartCluster(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
 {
-    uint2 tileIndex = posInput.unTileCoord;
+    uint2 tileIndex = posInput.tileCoord;
 
     float logBase = g_fClustBase;
     if (g_isLogBaseBufferEnabled)

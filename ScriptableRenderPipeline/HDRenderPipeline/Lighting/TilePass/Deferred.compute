@@ -123,7 +123,7 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
 
     PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, tileCoord);
 
-    float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
+    float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.positionSS).x;
 
     // For indirect case: we can still overlap inside a tile with the sky/background, reject it
     // Can't rely on stencil as we are in compute shader
@@ -138,9 +138,9 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
 
     BSDFData bsdfData;
     BakeLightingData bakeLightingData;
-    DECODE_FROM_GBUFFER(posInput.unPositionSS, featureFlags, bsdfData, bakeLightingData.bakeDiffuseLighting);
+    DECODE_FROM_GBUFFER(posInput.positionSS, featureFlags, bsdfData, bakeLightingData.bakeDiffuseLighting);
     #ifdef SHADOWS_SHADOWMASK
-    DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.unPositionSS), bakeLightingData.bakeShadowMask);
+    DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.positionSS), bakeLightingData.bakeShadowMask);
     #endif
 
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
