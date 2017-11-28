@@ -478,7 +478,16 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
+            float prevSize = layout.size.y;
+
             GetPresenter<VFXContextPresenter>().AddBlock(blockIndex, descriptor.CreateInstance());
+
+            OnDataChanged();
+            (panel as BaseVisualElementPanel).ValidateLayout();
+
+            float newSize = layout.size.y;
+
+            GetFirstAncestorOfType<VFXView>().PushUnderContext(this, newSize - prevSize);
         }
 
         public override void OnDataChanged()
