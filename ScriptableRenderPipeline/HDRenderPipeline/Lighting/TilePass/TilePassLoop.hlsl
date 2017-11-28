@@ -173,52 +173,12 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         lightStart = 0;
     #endif
 
-        if (lightCount > 0)
+        for (i = 0; i < lightCount; i++)
         {
-            i = 0;
-
-            uint      last      = lightCount - 1;
             LightData lightData = FetchLight(lightStart, i);
 
-            while (i <= last && lightData.lightType == GPULIGHTTYPE_POINT)
-            {
-                lightData.lightType = GPULIGHTTYPE_POINT; // Enforce constant propagation
-
-                DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, lightData, bsdfData, bakeLightingData);
-                AccumulateDirectLighting(lighting, aggregateLighting);
-
-                lightData = FetchLight(lightStart, min(++i, last));
-            }
-
-            while (i <= last && lightData.lightType == GPULIGHTTYPE_SPOT)
-            {
-                lightData.lightType = GPULIGHTTYPE_SPOT; // Enforce constant propagation
-
-                DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, lightData, bsdfData, bakeLightingData);
-                AccumulateDirectLighting(lighting, aggregateLighting);
-
-                lightData = FetchLight(lightStart, min(++i, last));
-            }
-
-            while (i <= last && lightData.lightType == GPULIGHTTYPE_PROJECTOR_PYRAMID)
-            {
-                lightData.lightType = GPULIGHTTYPE_PROJECTOR_PYRAMID; // Enforce constant propagation
-
-                DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, lightData, bsdfData, bakeLightingData);
-                AccumulateDirectLighting(lighting, aggregateLighting);
-
-                lightData = FetchLight(lightStart, min(++i, last));
-            }
-
-            while (i <= last && lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX)
-            {
-                lightData.lightType = GPULIGHTTYPE_PROJECTOR_BOX; // Enforce constant propagation
-
-                DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, lightData, bsdfData, bakeLightingData);
-                AccumulateDirectLighting(lighting, aggregateLighting);
-
-                lightData = FetchLight(lightStart, min(++i, last));
-            }
+            DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, lightData, bsdfData, bakeLightingData);
+            AccumulateDirectLighting(lighting, aggregateLighting);
         }
     }
 
