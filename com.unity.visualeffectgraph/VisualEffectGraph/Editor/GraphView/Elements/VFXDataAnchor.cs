@@ -237,9 +237,6 @@ namespace UnityEditor.VFX.UI
                         }
                     }
                 }
-                else
-                {
-                }
             }
             else if (presenter.direction == Direction.Input && Event.current.modifiers == EventModifiers.Alt)
             {
