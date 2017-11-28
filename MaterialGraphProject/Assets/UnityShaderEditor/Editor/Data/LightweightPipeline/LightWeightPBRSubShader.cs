@@ -102,15 +102,24 @@ struct GraphVertexInput
                 slots.Add(masterNode.FindSlot<MaterialSlot>(id));
             AbstractMaterialGraph.GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, slots, true);
 
+            var usedSlots = new List<MaterialSlot>();
+            foreach (var id in pass.PixelShaderSlots)
+                usedSlots.Add(masterNode.FindSlot<MaterialSlot>(id));
+
             AbstractMaterialGraph.GenerateSurfaceDescription(
+                activeNodeList,
                 masterNode,
-                pass.PixelShaderSlots,
                 masterNode.owner as AbstractMaterialGraph,
                 surfaceDescriptionFunction,
                 shaderFunctionVisitor,
                 shaderProperties,
                 requirements,
-                mode);
+                mode,
+                "PopulateSurfaceData",
+                "SurfaceDescription",
+                null,
+                null,
+                usedSlots);
 
             var graph = new ShaderGenerator();
             graph.AddShaderChunk(shaderFunctionVisitor.GetShaderString(2), false);
@@ -161,11 +170,7 @@ struct GraphVertexInput
             ShaderGenerator defines = new ShaderGenerator();
             var templateLocation = ShaderGenerator.GetTemplatePath(template);
 
-            var usedSlots = new List<MaterialSlot>();
-            foreach (var id in pass.PixelShaderSlots)
-                usedSlots.Add(masterNode.FindSlot<MaterialSlot>(id));
-
-            foreach (var slot in usedSlots)
+           foreach (var slot in usedSlots)
             {
                 surfaceOutputRemap.AddShaderChunk(slot.shaderOutputName
                     + " = surf."
