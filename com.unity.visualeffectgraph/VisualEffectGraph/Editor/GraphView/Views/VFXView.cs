@@ -153,45 +153,30 @@ namespace UnityEditor.VFX.UI
         VisualElement m_NoAssetLabel;
 
 
-        public void AddNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
+        public VFXModel AddNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
         {
             Vector2 tPos = this.ChangeCoordinatesTo(contentViewContainer, mPos);
             if (d.modelDescriptor is VFXModelDescriptor<VFXOperator>)
             {
-                AddVFXOperator(tPos, (d.modelDescriptor as VFXModelDescriptor<VFXOperator>));
+                return AddVFXOperator(tPos, (d.modelDescriptor as VFXModelDescriptor<VFXOperator>));
             }
             else if (d.modelDescriptor is VFXModelDescriptor<VFXContext>)
             {
-                AddVFXContext(tPos, d.modelDescriptor as VFXModelDescriptor<VFXContext>);
+                return AddVFXContext(tPos, d.modelDescriptor as VFXModelDescriptor<VFXContext>);
             }
             else if (d.modelDescriptor is VFXModelDescriptorParameters)
             {
-                AddVFXParameter(tPos, d.modelDescriptor as VFXModelDescriptorParameters);
+                return AddVFXParameter(tPos, d.modelDescriptor as VFXModelDescriptorParameters);
             }
             else if (d.modelDescriptor == null)
             {
-                /*
-                VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
-                if (presenter != null)
-                {
-                    var contexts = VFXLibrary.GetContexts().ToArray();
-                    var spawnerDesc = contexts.FirstOrDefault(t => t.name == "Spawner");
-                    var spawner = presenter.AddVFXContext(tPos, spawnerDesc);
-                    var initialize = presenter.AddVFXContext(tPos + new Vector2(0, 200), contexts.FirstOrDefault(t => t.name == "Initialize"));
-                    var update = presenter.AddVFXContext(tPos + new Vector2(0, 400), contexts.FirstOrDefault(t => t.name == "Update"));
-                    var output = presenter.AddVFXContext(tPos + new Vector2(0, 600), contexts.FirstOrDefault(t => t.name == "Point Output"));
-
-                    spawner.LinkTo(initialize);
-                    initialize.LinkTo(update);
-                    update.LinkTo(output);
-                }*/
-
                 CreateTemplateSystem(tPos);
             }
             else
             {
                 Debug.LogErrorFormat("Add unknown presenter : {0}", d.modelDescriptor.GetType());
             }
+            return null;
         }
 
         public VFXView()
@@ -210,7 +195,7 @@ namespace UnityEditor.VFX.UI
             var bg = new GridBackground() { name = "VFXBackgroundGrid" };
             Insert(0, bg);
 
-            this.AddManipulator(new FilterPopup(new VFXNodeProvider(AddNode), null));
+            this.AddManipulator(new FilterPopup(new VFXNodeProvider((d, mPos) => AddNode(d, mPos)), null));
 
             typeFactory[typeof(VFXParameterPresenter)] = typeof(VFXParameterUI);
             typeFactory[typeof(VFXOperatorPresenter)] = typeof(VFXOperatorUI);
@@ -381,22 +366,22 @@ namespace UnityEditor.VFX.UI
             graph.RecompileIfNeeded();
         }
 
-        void AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
+        VFXContext AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
         {
-            if (presenter == null) return;
-            GetPresenter<VFXViewPresenter>().AddVFXContext(pos, desc);
+            if (presenter == null) return null;
+            return GetPresenter<VFXViewPresenter>().AddVFXContext(pos, desc);
         }
 
-        void AddVFXOperator(Vector2 pos, VFXModelDescriptor<VFXOperator> desc)
+        VFXOperator AddVFXOperator(Vector2 pos, VFXModelDescriptor<VFXOperator> desc)
         {
-            if (presenter == null) return;
-            GetPresenter<VFXViewPresenter>().AddVFXOperator(pos, desc);
+            if (presenter == null) return null;
+            return GetPresenter<VFXViewPresenter>().AddVFXOperator(pos, desc);
         }
 
-        void AddVFXParameter(Vector2 pos, VFXModelDescriptorParameters desc)
+        VFXParameter AddVFXParameter(Vector2 pos, VFXModelDescriptorParameters desc)
         {
-            if (presenter == null) return;
-            GetPresenter<VFXViewPresenter>().AddVFXParameter(pos, desc);
+            if (presenter == null) return null;
+            return GetPresenter<VFXViewPresenter>().AddVFXParameter(pos, desc);
         }
 
         public EventPropagation CloneModels() // TEST clean that

@@ -250,6 +250,75 @@ namespace UnityEditor.VFX.UI
                     startSlot.Link(parameter.outputSlots[0]);
                 }
             }
+            else
+            {
+                VFXFilterWindow.Show(Event.current.mousePosition, new VFXNodeProvider(AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter) }));
+            }
+        }
+
+        bool ProviderFilter(VFXNodeProvider.Descriptor d)
+        {
+            var mySlot = GetPresenter<VFXDataAnchorPresenter>().model;
+
+            VFXModelDescriptor desc = d.modelDescriptor as VFXModelDescriptor;
+            if (desc == null)
+                return false;
+
+            IVFXSlotContainer container = desc.model as IVFXSlotContainer;
+            if (container == null)
+            {
+                return false;
+            }
+
+            var getSlots = direction == Direction.Input ? (System.Func<int, VFXSlot> )container.GetOutputSlot : (System.Func<int, VFXSlot> )container.GetInputSlot;
+
+            int count = direction == Direction.Input ? container.GetNbOutputSlots() : container.GetNbInputSlots();
+
+
+            bool oneFound = false;
+            for (int i = 0; i < count; ++i)
+            {
+                VFXSlot slot = getSlots(i);
+
+                if (slot.CanLink(mySlot))
+                {
+                    oneFound = true;
+                    break;
+                }
+            }
+
+            return oneFound;
+        }
+
+        void AddLinkedNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
+        {
+            var mySlot = GetPresenter<VFXDataAnchorPresenter>().model;
+            VFXView view = GetFirstAncestorOfType<VFXView>();
+            if (view == null) return;
+            Vector2 tPos = view.ChangeCoordinatesTo(view.contentViewContainer, mPos);
+
+            VFXModelDescriptor desc = d.modelDescriptor as VFXModelDescriptor;
+
+            IVFXSlotContainer  result = view.AddNode(d, mPos) as IVFXSlotContainer;
+
+            if (result == null)
+                return;
+
+
+            var getSlots = direction == Direction.Input ? (System.Func<int, VFXSlot>)result.GetOutputSlot : (System.Func<int, VFXSlot>)result.GetInputSlot;
+
+            int count = direction == Direction.Input ? result.GetNbOutputSlots() : result.GetNbInputSlots();
+
+            for (int i = 0; i < count; ++i)
+            {
+                VFXSlot slot = getSlots(i);
+
+                if (slot.CanLink(mySlot))
+                {
+                    slot.Link(mySlot);
+                    return;
+                }
+            }
         }
 
         public override void DoRepaint()

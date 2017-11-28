@@ -53,9 +53,9 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VFXModelDescriptor<T> where T : VFXModel
+    class VFXModelDescriptor
     {
-        public VFXModelDescriptor(T template, IEnumerable<KeyValuePair<string, Object>> variants = null)
+        protected VFXModelDescriptor(VFXModel template, IEnumerable<KeyValuePair<string, Object>> variants = null)
         {
             m_Template = template;
             m_Template.hideFlags = HideFlags.HideAndDontSave;
@@ -63,18 +63,35 @@ namespace UnityEditor.VFX
             ApplyVariant(m_Template);
         }
 
-        virtual public string name { get { return m_Template.name; } }
-        public VFXInfoAttribute info { get { return VFXInfoAttribute.Get(m_Template.GetType()); } }
-        public Type modelType { get { return m_Template.GetType(); } }
-
-        public T model
-        {
-            get { return m_Template; }
-        }
-
         public bool AcceptParent(VFXModel parent, int index = -1)
         {
             return parent.AcceptChild(m_Template, index);
+        }
+
+        protected void ApplyVariant(VFXModel model)
+        {
+            foreach (var variant in m_Variants)
+            {
+                model.SetSettingValue(variant.Key, variant.Value);
+            }
+        }
+
+        private IEnumerable<KeyValuePair<string, object>> m_Variants;
+        protected VFXModel m_Template;
+
+        virtual public string name { get { return m_Template.name; } }
+        public VFXInfoAttribute info { get { return VFXInfoAttribute.Get(m_Template.GetType()); } }
+        public Type modelType { get { return m_Template.GetType(); } }
+        public VFXModel model
+        {
+            get { return m_Template; }
+        }
+    }
+
+    class VFXModelDescriptor<T> : VFXModelDescriptor where T : VFXModel
+    {
+        public VFXModelDescriptor(T template, IEnumerable<KeyValuePair<string, Object>> variants = null) : base(template, variants)
+        {
         }
 
         virtual public T CreateInstance()
@@ -84,16 +101,10 @@ namespace UnityEditor.VFX
             return instance;
         }
 
-        private void ApplyVariant(VFXModel model)
+        public new T model
         {
-            foreach (var variant in m_Variants)
-            {
-                model.SetSettingValue(variant.Key, variant.Value);
-            }
+            get { return (T)m_Template; }
         }
-
-        private IEnumerable<KeyValuePair<string, object>> m_Variants;
-        protected T m_Template;
     }
 
     class VFXModelDescriptorParameters : VFXModelDescriptor<VFXParameter>
@@ -109,14 +120,14 @@ namespace UnityEditor.VFX
 
         public VFXModelDescriptorParameters(Type type) : base(ScriptableObject.CreateInstance<VFXParameter>())
         {
-            m_Template.Init(type);
+            model.Init(type);
             m_name = type.UserFriendlyName();
         }
 
         public override VFXParameter CreateInstance()
         {
             var instance = base.CreateInstance();
-            instance.Init(m_Template.outputSlots[0].property.type);
+            instance.Init(model.outputSlots[0].property.type);
             return instance;
         }
     }
