@@ -546,4 +546,5 @@ void LODDitheringTransition(uint2 unPositionSS, float ditherFactor)
     clip(ditherFactor - p);
 }
 
+
 #endif // UNITY_COMMON_INCLUDED
