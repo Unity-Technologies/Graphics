@@ -89,7 +89,7 @@ namespace UnityEditor.ShaderGraph
                 });
         }
 
-        public override string GetShader(GenerationMode mode, out List<PropertyCollector.TextureInfo> configuredTextures)
+        public override string GetShader(GenerationMode mode, string outputName, out List<PropertyCollector.TextureInfo> configuredTextures)
         {
             var activeNodeList = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this);
@@ -104,7 +104,7 @@ namespace UnityEditor.ShaderGraph
                 activeNode.CollectShaderProperties(shaderProperties, mode);
 
             var finalShader = new ShaderGenerator();
-            finalShader.AddShaderChunk(string.Format(@"Shader ""{0}""", name), false);
+            finalShader.AddShaderChunk(string.Format(@"Shader ""{0}""", outputName), false);
             finalShader.AddShaderChunk("{", false);
             finalShader.Indent();
 

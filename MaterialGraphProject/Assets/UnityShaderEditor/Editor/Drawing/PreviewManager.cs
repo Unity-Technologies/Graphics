@@ -439,7 +439,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (node is IMasterNode)
                 {
                     List<PropertyCollector.TextureInfo> configuredTextures;
-                    shaderData.shaderString = ((IMasterNode)node).GetShader(GenerationMode.Preview, out configuredTextures);  
+                    shaderData.shaderString = ((IMasterNode)node).GetShader(GenerationMode.Preview, node.name, out configuredTextures);
                 }
                 else
                     shaderData.shaderString = m_Graph.GetPreviewShader(node, out mode);
