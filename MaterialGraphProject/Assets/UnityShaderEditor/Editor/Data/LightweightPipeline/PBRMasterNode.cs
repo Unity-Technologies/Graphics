@@ -98,10 +98,10 @@ namespace UnityEditor.ShaderGraph
 
             var abstractMaterialGraph = owner as AbstractMaterialGraph;
             if (abstractMaterialGraph != null)
-                abstractMaterialGraph.CollectShaderProperties(shaderProperties, GenerationMode.ForReals);
+                abstractMaterialGraph.CollectShaderProperties(shaderProperties, mode);
 
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
-                activeNode.CollectShaderProperties(shaderProperties, GenerationMode.ForReals);
+                activeNode.CollectShaderProperties(shaderProperties, mode);
 
             var finalShader = new ShaderGenerator();
             finalShader.AddShaderChunk(string.Format(@"Shader ""{0}""", name), false);
@@ -116,7 +116,7 @@ namespace UnityEditor.ShaderGraph
             finalShader.AddShaderChunk("}", false);
 
             var lwSub = new LightWeightPBRSubShader();
-            foreach (var subshader in lwSub.GetSubshader(this, GenerationMode.ForReals))
+            foreach (var subshader in lwSub.GetSubshader(this, mode))
                 finalShader.AddShaderChunk(subshader, true);
 
             finalShader.Deindent();

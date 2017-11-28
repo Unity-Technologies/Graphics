@@ -264,8 +264,7 @@ namespace UnityEditor.ShaderGraph
             FloatShaderProperty outputIdProperty;
             return GetShader(node, GenerationMode.Preview, string.Format("hidden/preview/{0}", node.GetVariableNameForNode()), out configuredTextures, out previewMode, out outputIdProperty);
         }
-
-
+        
         public string GetUberPreviewShader(Dictionary<Guid, int> ids, out FloatShaderProperty outputIdProperty)
         {
             List<PropertyCollector.TextureInfo> configuredTextures;
@@ -283,17 +282,6 @@ namespace UnityEditor.ShaderGraph
                     surfaceDescriptionStruct.AddShaderChunk(string.Format("{0} {1};", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType), AbstractMaterialNode.GetHLSLSafeName(slot.shaderOutputName)), false);
                 surfaceDescriptionStruct.Deindent();
 
-               /* surfaceDescriptionStruct.AddShaderChunk("void ScaleSurfaceDescription(inout SurfaceDescription surface, float scale){", false);
-                surfaceDescriptionStruct.Indent();
-                foreach (var slot in slots)
-                    surfaceDescriptionStruct.AddShaderChunk(string.Format("surface.{0} = scale * surface.{0};", AbstractMaterialNode.GetHLSLSafeName(slot.shaderOutputName)), false);
-                surfaceDescriptionStruct.Deindent();
-                surfaceDescriptionStruct.AddShaderChunk("};", false);
-
-                surfaceDescriptionStruct.AddShaderChunk("void AddSurfaceDescription(inout SurfaceDescription base, in SurfaceDescription add){", false);
-                surfaceDescriptionStruct.Indent();
-                foreach (var slot in slots)
-                    surfaceDescriptionStruct.AddShaderChunk(string.Format("base.{0} = base.{0} + add.{0};", AbstractMaterialNode.GetHLSLSafeName(slot.shaderOutputName)), false);*/
             }
             else
             {
@@ -304,8 +292,8 @@ namespace UnityEditor.ShaderGraph
         }
 
         internal static void GenerateSurfaceDescription(
+            List<INode> activeNodeList,
             AbstractMaterialNode masterNode,
-            List<int> slots,
             AbstractMaterialGraph graph,
             ShaderGenerator surfaceDescriptionFunction,
             ShaderGenerator shaderFunctionVisitor,
@@ -315,17 +303,11 @@ namespace UnityEditor.ShaderGraph
             string functionName = "PopulateSurfaceData",
             string surfaceDescriptionName = "SurfaceDescription",
             FloatShaderProperty outputIdProperty = null,
-            Dictionary<Guid, int> ids = null)
+            Dictionary<Guid, int> ids = null,
+           IEnumerable<MaterialSlot> slots = null)
         {
             if (graph == null)
                 return;
-
-            var activeNodeList = ListPool<INode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, masterNode, NodeUtils.IncludeSelf.Include, slots);
-
-            var usedSlots = new List<MaterialSlot>();
-            foreach (var id in slots)
-                usedSlots.Add(masterNode.FindSlot<MaterialSlot>(id));
 
             surfaceDescriptionFunction.AddShaderChunk(string.Format("{0} {1}(SurfaceInputs IN) {{", surfaceDescriptionName, functionName), false);
             surfaceDescriptionFunction.Indent();
@@ -382,6 +364,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if (masterNode is IMasterNode)
                 {
+                    var usedSlots = slots ?? masterNode.GetInputSlots<MaterialSlot>();
                     foreach (var input in usedSlots)
                     {
                         var foundEdges = graph.GetEdges(input.slotReference).ToArray();
@@ -407,8 +390,6 @@ namespace UnityEditor.ShaderGraph
             surfaceDescriptionFunction.AddShaderChunk("return surface;", false);
             surfaceDescriptionFunction.Deindent();
             surfaceDescriptionFunction.AddShaderChunk("}", false);
-
-             ListPool<INode>.Release(activeNodeList);
         }
 
         static void Visit(List<INode> outputList, Dictionary<Guid, INode> unmarkedNodes, INode node)
@@ -524,7 +505,9 @@ struct GraphVertexInput
             };
             if (isUber)
                 shaderProperties.AddShaderProperty(outputIdProperty);
-            /*GenerateSurfaceDescription(
+
+            GenerateSurfaceDescription(
+                activeNodeList,
                 node,
                 this,
                 surfaceDescriptionFunction,
@@ -533,7 +516,7 @@ struct GraphVertexInput
                 requirements,
                 mode,
                 outputIdProperty: outputIdProperty,
-                ids: ids);*/
+                ids: ids);
 
             var finalShader = new ShaderGenerator();
             finalShader.AddShaderChunk(string.Format(@"Shader ""{0}""", name), false);
@@ -558,17 +541,8 @@ struct GraphVertexInput
             finalShader.AddShaderChunk(surfaceDescriptionFunction.GetShaderString(2), false);
             finalShader.AddShaderChunk("ENDCG", false);
 
-            var masterNode = node as IMasterNode;
-            if (node != null && masterNode != null)
-            {
-               // var subShaders = masterNode.GetSubshader(requirements, null);
-               // foreach (var ss in subShaders)
-                //    finalShader.AddShaderChunk(ss, false);
-            }
-            else
-            {
-                finalShader.AddShaderChunk(ShaderGenerator.GetPreviewSubShader(node, requirements), false);
-            }
+            finalShader.AddShaderChunk(ShaderGenerator.GetPreviewSubShader(node, requirements), false);
+            
             ListPool<INode>.Release(activeNodeList);
 
             finalShader.Deindent();
