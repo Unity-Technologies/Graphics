@@ -24,9 +24,15 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeVariantWritable))]
     class SetAttribute : VFXBlock
     {
-        [VFXSetting]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         [StringProvider(typeof(AttributeProvider))]
         public string attribute = VFXAttribute.All.First();
+
+        [VFXSetting]
+        public AttributeCompositionMode Composition = AttributeCompositionMode.Overwrite;
+
+        [VFXSetting]
+        public RandomMode Random = RandomMode.Off;
 
         public override string name { get { return "Set Attribute " + attribute; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
@@ -35,7 +41,14 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                return new List<VFXAttributeInfo>() { new VFXAttributeInfo(currentAttribute, VFXAttributeMode.Write) };
+                var attributes = new List<VFXAttributeInfo>();
+                VFXAttributeMode attributeMode = (Composition != AttributeCompositionMode.Overwrite) ? VFXAttributeMode.ReadWrite : VFXAttributeMode.Write;
+                attributes.Add(new VFXAttributeInfo(currentAttribute, attributeMode));
+
+                if (Random != RandomMode.Off)
+                    attributes.Add(new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite));
+
+                return attributes;
             }
         }
         static private string GenerateLocalAttributeName(string name)
@@ -48,7 +61,20 @@ namespace UnityEditor.VFX.Block
             get
             {
                 var attribute = currentAttribute;
-                return string.Format("{0} = {1};", attribute.name, GenerateLocalAttributeName(attribute.name));
+                string source = VFXBlockUtility.GetRandomMacroString(Random, attribute);
+
+                if (Random == RandomMode.Off)
+                    source = string.Format(source, GenerateLocalAttributeName(attribute.name));
+                else
+                    source = string.Format(source, "Min", "Max");
+
+                if (Composition == AttributeCompositionMode.Blend)
+                    source = string.Format(VFXBlockUtility.GetComposeFormatString(Composition), attribute.name, source, "Blend");
+                else
+                    source = string.Format(VFXBlockUtility.GetComposeFormatString(Composition), attribute.name, source);
+
+                return source;
+
             }
         }
 
@@ -56,7 +82,24 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), GenerateLocalAttributeName(currentAttribute.name)), currentAttribute.value.GetContent());
+                var properties = new List<VFXPropertyWithValue>();
+
+                if(Random == RandomMode.Off)
+                {
+                    properties.Add(new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), GenerateLocalAttributeName(currentAttribute.name)), currentAttribute.value.GetContent()));
+                }
+                else
+                {
+                    properties.Add(new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), "Min")));
+                    properties.Add(new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), "Max"), currentAttribute.value.GetContent()));
+                }
+
+                if (Composition == AttributeCompositionMode.Blend)
+                {
+                    properties.Add(new VFXPropertyWithValue(new VFXProperty(typeof(float),"Blend")));
+                }
+
+                return properties;
             }
         }
 
