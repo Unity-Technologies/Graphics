@@ -82,16 +82,29 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
+                bool isColorAttribute = currentAttribute.type == UnityEngine.VFX.VFXValueType.kFloat3 && currentAttribute.name == "color";
+
                 var properties = new List<VFXPropertyWithValue>();
 
                 if (Random == RandomMode.Off)
                 {
-                    properties.Add(new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), GenerateLocalAttributeName(currentAttribute.name)), currentAttribute.value.GetContent()));
+                    if (isColorAttribute)
+                        properties.Add(new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), GenerateLocalAttributeName(currentAttribute.name)) { attributes = VFXPropertyAttribute.Create(new ShowAsColorAttribute()) }, currentAttribute.value.GetContent()));
+                    else
+                        properties.Add(new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), GenerateLocalAttributeName(currentAttribute.name)), currentAttribute.value.GetContent()));
                 }
                 else
                 {
-                    properties.Add(new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), "Min")));
-                    properties.Add(new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), "Max"), currentAttribute.value.GetContent()));
+                    if (isColorAttribute)
+                    {
+                        properties.Add(new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), "Min") { attributes = VFXPropertyAttribute.Create(new ShowAsColorAttribute()) }));
+                        properties.Add(new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), "Max") { attributes = VFXPropertyAttribute.Create(new ShowAsColorAttribute()) }, currentAttribute.value.GetContent()));
+                    }
+                    else
+                    {
+                        properties.Add(new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), "Min")));
+                        properties.Add(new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), "Max"), currentAttribute.value.GetContent()));
+                    }
                 }
 
                 if (Composition == AttributeCompositionMode.Blend)
