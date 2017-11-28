@@ -43,7 +43,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_GraphEditorView.onConvertToSubgraphClick += ToSubGraph;
                     m_GraphEditorView.onShowInProjectClick += PingAsset;
                     this.GetRootVisualContainer().Add(graphEditorView);
-                    this.GetRootVisualContainer().parent.clippingOptions = VisualElement.ClippingOptions.ClipContents;
                 }
             }
         }
@@ -78,10 +77,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphEditorView = new GraphEditorView(materialGraph, asset.name) {persistenceKey = AssetDatabase.AssetPathToGUID(AssetDatabase.GUIDToAssetPath(selectedGuid))};
             }
 
-            graphEditorView.previewManager.HandleGraphChanges();
-            graphEditorView.previewManager.RenderPreviews();
             graphEditorView.HandleGraphChanges();
-            graphEditorView.inspectorView.HandleGraphChanges();
             graphObject.graph.ClearChanges();
         }
 

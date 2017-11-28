@@ -69,8 +69,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
         void AddField(int index, string subLabel)
         {
-            Add(new Label(subLabel));
+            var label = new Label(subLabel);
+            Add(label);
             var doubleField = new DoubleField { userData = index, value = m_Value[index] };
+            var dragger = new FieldMouseDragger<double>(doubleField);
+            dragger.SetDragZone(label);
             doubleField.RegisterCallback<MouseDownEvent>(Repaint);
             doubleField.RegisterCallback<MouseMoveEvent>(Repaint);
             doubleField.OnValueChanged(evt =>
@@ -79,6 +82,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 value[index] = (float)evt.newValue;
                 SetValue(value);
                 m_UndoGroup = -1;
+                Dirty(ChangeType.Repaint);
             });
             doubleField.RegisterCallback<InputEvent>(evt =>
             {
@@ -93,6 +97,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 var value = GetValue();
                 value[index] = newValue;
                 SetValue(value);
+                Dirty(ChangeType.Repaint);
             });
             doubleField.RegisterCallback<KeyDownEvent>(evt =>
             {

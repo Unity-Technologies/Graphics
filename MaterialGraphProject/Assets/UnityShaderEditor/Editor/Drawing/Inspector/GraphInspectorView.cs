@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         AbstractMaterialGraph m_Graph;
         PreviewManager m_PreviewManager;
         MasterNode m_MasterNode;
-        PreviewData m_PreviewHandle;
+        PreviewRenderData m_PreviewRenderHandle;
 
         List<INode> m_SelectedNodes;
 
@@ -118,7 +118,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             }
             Add(bottomContainer);
 
-            masterNode = graph.GetNodes<MasterNode>().FirstOrDefault();
+            m_PreviewRenderHandle = previewManager.masterRenderData;
+            m_PreviewRenderHandle.onPreviewChanged += OnPreviewChanged;
 
             foreach (var property in m_Graph.properties)
                 m_PropertyItems.Add(new ShaderPropertyView(m_Graph, property));
@@ -140,21 +141,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         MasterNode masterNode
         {
-            get { return m_MasterNode; }
-            set
-            {
-                if (value == m_MasterNode)
-                    return;
-                if (m_MasterNode != null)
-                    m_PreviewHandle.onPreviewChanged -= OnPreviewChanged;
-                m_PreviewHandle = null;
-                m_MasterNode = value;
-                if (m_MasterNode != null)
-                {
-                    m_PreviewHandle = m_PreviewManager.GetPreview(m_MasterNode);
-                    m_PreviewHandle.onPreviewChanged += OnPreviewChanged;
-                }
-            }
+            get { return m_PreviewRenderHandle.shaderData.node as MasterNode; }
         }
 
         void OnAddProperty()
@@ -187,7 +174,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         void OnPreviewChanged()
         {
-            m_PreviewTextureView.image = m_PreviewHandle.texture ?? Texture2D.blackTexture;
+            m_PreviewTextureView.image = m_PreviewRenderHandle.texture ?? Texture2D.blackTexture;
             m_PreviewTextureView.Dirty(ChangeType.Repaint);
         }
 
@@ -195,7 +182,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         {
             if (changeEvent.newValue == null)
             {
-                m_PreviewHandle.mesh = null;
+                m_PreviewRenderHandle.mesh = null;
                 m_PersistentMasterNodePreviewMesh.mesh = null;
             }
 
@@ -203,7 +190,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
             if (changedMesh)
             {
-                m_PreviewHandle.mesh = changedMesh;
+                m_PreviewRenderHandle.mesh = changedMesh;
                 m_PersistentMasterNodePreviewMesh.mesh = changedMesh;
             }
 
@@ -277,27 +264,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 foreach (var layer in layerGraph.addedLayers)
                     m_LayerItems.Add(new ShaderLayerView(layerGraph, layer));
             }
-
-            if (masterNode != null)
-            {
-                if (m_Graph.removedNodes.Contains(masterNode))
-                    masterNode = null;
-            }
-
-            if (masterNode == null)
-            {
-                var addedMasterNode = m_Graph.addedNodes.OfType<MasterNode>().FirstOrDefault();
-                if (addedMasterNode != null)
-                    masterNode = addedMasterNode;
-            }
         }
 
         public void Dispose()
         {
-            if (m_PreviewHandle != null)
+            if (m_PreviewRenderHandle != null)
             {
-                m_PreviewHandle.onPreviewChanged -= OnPreviewChanged;
-                m_PreviewHandle = null;
+                m_PreviewRenderHandle.onPreviewChanged -= OnPreviewChanged;
+                m_PreviewRenderHandle = null;
             }
         }
     }

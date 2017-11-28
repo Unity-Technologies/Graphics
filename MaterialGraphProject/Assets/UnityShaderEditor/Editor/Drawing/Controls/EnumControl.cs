@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using UnityEditor.Experimental.UIElements;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 
@@ -34,20 +35,19 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             if (!propertyInfo.PropertyType.IsEnum)
                 throw new ArgumentException("Property must be an enum.", "propertyInfo");
             m_Label = new GUIContent(label ?? ObjectNames.NicifyVariableName(propertyInfo.Name));
-            Add(new IMGUIContainer(OnGUIHandler));
+            Add(new Label(label ?? ObjectNames.NicifyVariableName(propertyInfo.Name)));
+            var enumField = new EnumField((Enum) m_PropertyInfo.GetValue(m_Node, null));
+            enumField.OnValueChanged(OnValueChanged);
+            Add(enumField);
         }
 
-        void OnGUIHandler()
+        void OnValueChanged(ChangeEvent<Enum> evt)
         {
             var value = (Enum) m_PropertyInfo.GetValue(m_Node, null);
-            using (var changeCheckScope = new EditorGUI.ChangeCheckScope())
+            if (evt.newValue.Equals(value))
             {
-                value = EditorGUILayout.EnumPopup(m_Label, value);
-                if (changeCheckScope.changed)
-                {
-                    m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
-                    m_PropertyInfo.SetValue(m_Node, value, null);
-                }
+                m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
+                m_PropertyInfo.SetValue(m_Node, evt.newValue, null);
             }
         }
     }
