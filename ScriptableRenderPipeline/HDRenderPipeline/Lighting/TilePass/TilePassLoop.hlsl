@@ -154,29 +154,83 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
     if (featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
     {
-        #ifdef LIGHTLOOP_TILE_PASS
-
-        // TODO: Convert the for loop below to a while on each type as we know we are sorted and compare performance.
-        uint punctualLightStart;
         uint punctualLightCount;
+
+    #ifdef LIGHTLOOP_TILE_PASS
+        uint punctualLightStart;
         GetCountAndStart(posInput, LIGHTCATEGORY_PUNCTUAL, punctualLightStart, punctualLightCount);
+    #else
+        punctualLightCount = _PunctualLightCount;
+    #endif
 
-        for (i = 0; i < punctualLightCount; ++i)
+        if (punctualLightCount > 0)
         {
-            int punctualIndex = FetchIndex(punctualLightStart, i);
-            DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, _LightDatas[punctualIndex], bsdfData, bakeLightingData);
-            AccumulateDirectLighting(lighting, aggregateLighting);
-        }
+            i = 0;
 
+            uint last      = punctualLightCount - 1;
+        #ifdef LIGHTLOOP_TILE_PASS
+            uint currIndex = FetchIndex(punctualLightStart, i);
         #else
-
-        for (i = 0; i < _PunctualLightCount; ++i)
-        {
-            DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, _LightDatas[i], bsdfData, bakeLightingData);
-            AccumulateDirectLighting(lighting, aggregateLighting);
-        }
-
+            uint currIndex = i;
         #endif
+            LightData lightData = _LightDatas[currIndex];
+
+            while (i <= last && lightData.lightType == GPULIGHTTYPE_POINT)
+            {
+                lightData.lightType = GPULIGHTTYPE_POINT; // Enforce constant propagation
+                DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, lightData, bsdfData, bakeLightingData);
+                AccumulateDirectLighting(lighting, aggregateLighting);
+
+            #ifdef LIGHTLOOP_TILE_PASS
+                currIndex = FetchIndex(punctualLightStart, min(++i, last));
+            #else
+                currIndex = min(++i, last);
+            #endif
+                lightData = _LightDatas[currIndex];
+            }
+
+            while (i <= last && lightData.lightType == GPULIGHTTYPE_SPOT)
+            {
+                lightData.lightType = GPULIGHTTYPE_SPOT; // Enforce constant propagation
+                DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, lightData, bsdfData, bakeLightingData);
+                AccumulateDirectLighting(lighting, aggregateLighting);
+
+            #ifdef LIGHTLOOP_TILE_PASS
+                currIndex = FetchIndex(punctualLightStart, min(++i, last));
+            #else
+                currIndex = min(++i, last);
+            #endif
+                lightData = _LightDatas[currIndex];
+            }
+
+            while (i <= last && lightData.lightType == GPULIGHTTYPE_PROJECTOR_PYRAMID)
+            {
+                lightData.lightType = GPULIGHTTYPE_PROJECTOR_PYRAMID; // Enforce constant propagation
+                DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, lightData, bsdfData, bakeLightingData);
+                AccumulateDirectLighting(lighting, aggregateLighting);
+
+            #ifdef LIGHTLOOP_TILE_PASS
+                currIndex = FetchIndex(punctualLightStart, min(++i, last));
+            #else
+                currIndex = min(++i, last);
+            #endif
+                lightData = _LightDatas[currIndex];
+            }
+
+            while (i <= last && lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX)
+            {
+                lightData.lightType = GPULIGHTTYPE_PROJECTOR_BOX; // Enforce constant propagation
+                DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, lightData, bsdfData, bakeLightingData);
+                AccumulateDirectLighting(lighting, aggregateLighting);
+
+            #ifdef LIGHTLOOP_TILE_PASS
+                currIndex = FetchIndex(punctualLightStart, min(++i, last));
+            #else
+                currIndex = min(++i, last);
+            #endif
+                lightData = _LightDatas[currIndex];
+            }
+        }
     }
 
     if (featureFlags & LIGHTFEATUREFLAGS_AREA)
@@ -192,26 +246,26 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         // By keeping line lights first we avoid this behavior and save substantial register pressure.
         // TODO: This is based on the current Lit.shader and can be different for any other way of implementing area lights, how to be generic and ensure performance ?
 
-        i = 0;
         if (areaLightCount > 0)
         {
-            uint      lastIndex = areaLightCount - 1;
+            uint      last      = areaLightCount - 1;
             LightData lightData = _LightDatas[FetchIndex(areaLightStart, 0)];
 
-            while (i <= lastIndex && lightData.lightType == GPULIGHTTYPE_LINE)
+            i = 0;
+            while (i <= last && lightData.lightType == GPULIGHTTYPE_LINE)
             {
                 DirectLighting lighting = EvaluateBSDF_Line(context, V, posInput, preLightData, lightData, bsdfData, bakeLightingData);
                 AccumulateDirectLighting(lighting, aggregateLighting);
 
-                lightData = _LightDatas[FetchIndex(areaLightStart, min(++i, lastIndex))];
+                lightData = _LightDatas[FetchIndex(areaLightStart, min(++i, last))];
             }
 
-            while (i <= lastIndex && lightData.lightType == GPULIGHTTYPE_RECTANGLE)
+            while (i <= last && lightData.lightType == GPULIGHTTYPE_RECTANGLE)
             {
                 DirectLighting lighting = EvaluateBSDF_Rect(context, V, posInput, preLightData, lightData, bsdfData, bakeLightingData);
                 AccumulateDirectLighting(lighting, aggregateLighting);
 
-                lightData = _LightDatas[FetchIndex(areaLightStart, min(++i, lastIndex))];
+                lightData = _LightDatas[FetchIndex(areaLightStart, min(++i, last))];
             }
         }
 

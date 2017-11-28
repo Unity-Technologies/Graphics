@@ -1359,10 +1359,21 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 
 float GetPunctualShapeAttenuation(LightData lightData, float3 L, float distSq)
 {
-    // Note: lightData.invSqrAttenuationRadius is 0 when applyRangeAttenuation is false
-    float attenuation = GetDistanceAttenuation(distSq, lightData.invSqrAttenuationRadius);
-    // Reminder: lights are oriented backward (-Z)
-    return attenuation * GetAngleAttenuation(L, -lightData.forward, lightData.angleScale, lightData.angleOffset);
+    float attenuation = 1.0;
+
+    if (lightData.lightType != GPULIGHTTYPE_PROJECTOR_BOX)
+    {
+        // Note: lightData.invSqrAttenuationRadius is 0 when applyRangeAttenuation is false
+        attenuation *= GetDistanceAttenuation(distSq, lightData.invSqrAttenuationRadius);
+    }
+
+    if (lightData.lightType == GPULIGHTTYPE_SPOT)
+    {
+        // Reminder: lights are oriented backward (-Z)
+        attenuation *= GetAngleAttenuation(L, -lightData.forward, lightData.angleScale, lightData.angleOffset);
+    }
+
+    return attenuation;
 }
 
 // None of the outputs are premultiplied.
@@ -1427,11 +1438,21 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     float3 lightToSample = positionWS - lightData.positionWS;
     int    lightType     = lightData.lightType;
 
-    float3 unL    = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? -lightToSample : -lightData.forward;
-    float  distSq = dot(unL, unL);
-    float3 N      = bsdfData.normalWS;
-    float3 L      = unL * rsqrt(distSq);
-    float  NdotL  = dot(N, L);
+    float3 L; float distSq;
+
+    if (lightType == GPULIGHTTYPE_PROJECTOR_BOX)
+    {
+        distSq = 1.0;
+        L      = -lightData.forward;
+    }
+    else
+    {
+        distSq = dot(lightToSample, lightToSample);
+        L      = -lightToSample * rsqrt(distSq);
+    }
+
+    float3 N     = bsdfData.normalWS;
+    float  NdotL = dot(N, L);
 
     float3 color; float attenuation, shadow;
     EvaluateLight_Punctual(lightLoopContext, posInput, lightData, bakeLightingData, N, L, distSq,
