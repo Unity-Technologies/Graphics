@@ -360,9 +360,9 @@ struct GraphVertexInput
 
                 if (masterNode != null)
                 {
-                    var subShaders = masterNode.GetSubshader(requirements, null);
-                    foreach (var ss in subShaders)
-                        finalShader.AddShaderChunk(ss, false);
+                    //var subShaders = masterNode.GetSubshader(requirements, null);
+                   // foreach (var ss in subShaders)
+                    //    finalShader.AddShaderChunk(ss, false);
                 }
 
                 finalShader.Deindent();

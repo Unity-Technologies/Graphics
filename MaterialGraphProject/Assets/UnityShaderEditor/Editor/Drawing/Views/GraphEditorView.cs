@@ -128,9 +128,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                         var textureInfo = new List<PropertyCollector.TextureInfo>();
                         PreviewMode previewMode;
                         FloatShaderProperty outputIdProperty;
-                        if (copyFromNode is AbstractLightweightMasterNode)
+                        if (copyFromNode is MasterNode)
                         {
-                            var shader = ((AbstractLightweightMasterNode)copyFromNode).GetShader(GenerationMode.ForReals, out textureInfo);
+                            var shader = ((MasterNode)copyFromNode).GetShader(out textureInfo);
                             GUIUtility.systemCopyBuffer = shader;
                         }
                         else

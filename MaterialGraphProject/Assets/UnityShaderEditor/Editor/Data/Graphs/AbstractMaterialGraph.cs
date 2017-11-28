@@ -561,9 +561,9 @@ struct GraphVertexInput
             var masterNode = node as IMasterNode;
             if (node != null && masterNode != null)
             {
-                var subShaders = masterNode.GetSubshader(requirements, null);
-                foreach (var ss in subShaders)
-                    finalShader.AddShaderChunk(ss, false);
+               // var subShaders = masterNode.GetSubshader(requirements, null);
+               // foreach (var ss in subShaders)
+                //    finalShader.AddShaderChunk(ss, false);
             }
             else
             {

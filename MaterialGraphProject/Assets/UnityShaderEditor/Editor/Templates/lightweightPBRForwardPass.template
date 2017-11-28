@@ -1,0 +1,134 @@
+Pass
+{
+	Tags{"LightMode" = "LightweightForward"}
+	${Tags}
+	${Blending}
+	${Culling}
+	${ZTest}
+	${ZWrite}
+	
+	CGPROGRAM
+	#pragma target 3.0
+	
+    #pragma multi_compile _MAIN_DIRECTIONAL_LIGHT _MAIN_SPOT_LIGHT _MAIN_POINT_LIGHT
+    #pragma multi_compile _ _ADDITIONAL_LIGHTS
+    #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
+    #pragma multi_compile _ LIGHTMAP_ON
+    #pragma multi_compile _ _HARD_SHADOWS _SOFT_SHADOWS _HARD_SHADOWS_CASCADES _SOFT_SHADOWS_CASCADES
+    #pragma multi_compile _ _VERTEX_LIGHTS
+
+    #pragma multi_compile_fog
+    #pragma multi_compile_instancing
+    #pragma vertex vert
+	#pragma fragment frag
+	
+	#pragma glsl
+	#pragma debug
+	
+	${Defines}
+
+	#include "LightweightLighting.cginc"
+
+	${Graph}
+	
+	struct GraphVertexOutput
+    {
+        float4 position : POSITION;
+        float4 lwCustom : TEXCOORD0;
+		float4 fogCoord : TEXCOORD1; // x: fogCoord, yzw: vertexColor
+        ${Interpolators}
+		UNITY_VERTEX_OUTPUT_STEREO
+    };
+	
+    GraphVertexOutput vert (GraphVertexInput v)
+	{
+	    v = PopulateVertexData(v);
+		
+		UNITY_SETUP_INSTANCE_ID(v);
+
+        GraphVertexOutput o = (GraphVertexOutput)0;
+        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+        o.position = UnityObjectToClipPos(v.vertex);
+        ${VertexShader}
+
+	#ifdef LIGHTMAP_ON
+		o.lwCustom.zw = v.lightmapUV * unity_LightmapST.xy + unity_LightmapST.zw;
+	#endif
+
+		float3 lwWNormal = normalize(UnityObjectToWorldNormal(v.normal));
+		float3 lwWorldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
+
+		// TODO: change to only support point lights per vertex. This will greatly simplify shader ALU
+	#if defined(_VERTEX_LIGHTS) && defined(_MULTIPLE_LIGHTS)
+		half3 diffuse = half3(1.0, 1.0, 1.0);
+		// pixel lights shaded = min(pixelLights, perObjectLights)
+		// vertex lights shaded = min(vertexLights, perObjectLights) - pixel lights shaded
+		// Therefore vertexStartIndex = pixelLightCount;  vertexEndIndex = min(vertexLights, perObjectLights)
+		int vertexLightStart = min(globalLightCount.x, unity_LightIndicesOffsetAndCount.y);
+		int vertexLightEnd = min(globalLightCount.y, unity_LightIndicesOffsetAndCount.y);
+		for (int lightIter = vertexLightStart; lightIter < vertexLightEnd; ++lightIter)
+		{
+			int lightIndex = unity_4LightIndices0[lightIter];
+			LightInput lightInput;
+			INITIALIZE_LIGHT(lightInput, lightIndex);
+
+			half3 lightDirection;
+			half atten = ComputeLightAttenuationVertex(lightInput, lwWNormal, lwWorldPos, lightDirection);
+			o.fogCoord.yzw += LightingLambert(diffuse, lightDirection, lwWNormal, atten);
+		}
+	#endif
+
+	#if defined(_LIGHT_PROBES_ON) && !defined(LIGHTMAP_ON)
+		o.fogCoord.yzw += max(half3(0, 0, 0), ShadeSH9(half4(lwWNormal, 1)));
+	#endif
+
+		UNITY_TRANSFER_FOG(o, o.position);
+		return o;
+	}
+
+	fixed4 frag (GraphVertexOutput IN) : SV_Target
+    {
+    	${LocalPixelShader}
+
+        SurfaceInputs surfaceInput = (SurfaceInputs)0;
+        ${SurfaceInputs}
+
+        SurfaceDescription surf = PopulateSurfaceData(surfaceInput);
+
+		float3 Albedo = float3(0.5, 0.5, 0.5);
+		float3 Specular = float3(0, 0, 0);
+		float Metallic = 0;
+		float3 Normal = float3(0, 0, 1);
+		float3 Emission = 0;
+		float Smoothness = 0.5;
+		float Occlusion = 1;
+		float Alpha = 1;
+
+        ${SurfaceOutputRemap}
+
+#if defined(UNITY_COLORSPACE_GAMMA) 
+       	Albedo = Albedo * Albedo;
+       	Emission = Emission * Emission;
+#endif
+
+		return LightweightFragmentPBR(
+			IN.lwCustom,
+			WorldSpacePosition,
+			WorldSpaceNormal,
+			WorldSpaceTangent,
+			WorldSpaceBiTangent,
+			WorldSpaceViewDirection,
+			IN.fogCoord.x, 
+			
+			Albedo,
+			Metallic,
+			Specular,
+			Smoothness,
+			Normal,
+			Occlusion,
+			Emission,
+			Alpha);
+    }
+
+	ENDCG
+}
