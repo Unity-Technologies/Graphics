@@ -34,6 +34,8 @@ SubShader
 		${Defines}
 
 		#include "LightweightLighting.cginc"
+
+		${Graph}
 		
 		struct GraphVertexOutput
         {

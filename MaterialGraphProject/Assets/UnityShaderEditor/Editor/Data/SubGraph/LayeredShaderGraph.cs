@@ -266,7 +266,7 @@ struct GraphVertexInput
                 var masterNode = baseGraph.masterNode;
                 GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, ((AbstractMaterialNode) masterNode).GetInputSlots<MaterialSlot>().ToList(), true);
 
-                foreach (var layer in layerMap)
+              /*  foreach (var layer in layerMap)
                 {
                     activeNodes.Clear();
                     NodeUtils.DepthFirstCollectNodesFromNode(activeNodes, layer.Value.masterNode as AbstractMaterialNode);
@@ -280,7 +280,7 @@ struct GraphVertexInput
                         requirements,
                         mode,
                         LayerToFunctionName(layer.Key));
-                }
+                }*/
 
                 surfaceDescriptionStruct.AddShaderChunk("struct WeightsSurfaceDescription{", false);
                 surfaceDescriptionStruct.Indent();
@@ -293,7 +293,7 @@ struct GraphVertexInput
 
                 activeNodes.Clear();
                 NodeUtils.DepthFirstCollectNodesFromNode(activeNodes, outputNode);
-                GenerateSurfaceDescription(
+                /*GenerateSurfaceDescription(
                     activeNodes,
                     outputNode,
                     this,
@@ -304,6 +304,7 @@ struct GraphVertexInput
                     mode,
                     "PopulateWeightsGraph",
                     "WeightsSurfaceDescription");
+                    */
 
                 string functionName = "PopulateSurfaceData";
                 string surfaceDescriptionName = "SurfaceDescription";
