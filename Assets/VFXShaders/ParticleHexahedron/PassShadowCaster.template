@@ -13,31 +13,33 @@ Pass
 	{
 		float4 pos : SV_POSITION;
 		#if USE_ALPHA_TEST
-		// x: alpha threshold
-		nointerpolation float builtInInterpolants : TEXCOORD1;
+		// x: alpha
+		// y: alpha threshold
+		nointerpolation float2 builtInInterpolants : TEXCOORD1;
 		#endif
 	};
 
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
 #undef VFX_VARYING_POSSS
-#undef VFX_VARYING_COLOR // not used
-#define VFX_VARYING_ALPHA builtInInterpolants.z
+#undef VFX_VARYING_COLOR
+#define VFX_VARYING_ALPHA builtInInterpolants.x
 #undef VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE
-#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
+#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
 #undef VFX_VARYING_OFFSETS
+#undef VFX_VARYING_ROTX
+#undef VFX_VARYING_ROTY
 		
 	${VFXBegin:VFXVertexAdditionalProcess}
-		o.pos = UnityApplyLinearShadowBias(o.pos);
+	o.pos = UnityApplyLinearShadowBias(o.pos);
 	${VFXEnd}
-		
+	
 	${VFXInclude("Assets/VFXShaders/ParticleHexahedron/Pass.template")}	
 		
 	#pragma fragment frag
-	float frag(ps_input i) : SV_TARGET
+	float frag(ps_input i) : SV_TARGET0
 	{
-		float alpha = VFXGetFragmentColor(i).a;
-		alpha *= VFXGetTextureColor(VFX_SAMPLER(texture),i).a;		
+		float alpha = VFXGetFragmentColor(i).a;		
 		VFXClipFragmentColor(alpha,i);
 		return 0;
 	}

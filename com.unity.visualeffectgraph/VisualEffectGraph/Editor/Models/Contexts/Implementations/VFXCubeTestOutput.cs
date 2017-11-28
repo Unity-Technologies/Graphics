@@ -14,6 +14,9 @@ namespace UnityEditor.VFX
         public override VFXTaskType taskType { get { return VFXTaskType.kParticleHexahedronOutput; } }
 
         [VFXSetting, SerializeField]
+        bool useRimLight = false;
+
+        [VFXSetting, SerializeField]
         bool useNormalMap = false;
 
         public override IEnumerable<VFXAttributeInfo> attributes
@@ -38,24 +41,40 @@ namespace UnityEditor.VFX
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
 
-            if (useNormalMap)
-                yield return slotExpressions.First(o => o.name == "normalMap");
+            if (useRimLight)
+            {
+                yield return slotExpressions.First(o => o.name == "rimColor");
+                yield return slotExpressions.First(o => o.name == "rimCoef");
+
+                if (useNormalMap)
+                    yield return slotExpressions.First(o => o.name == "normalMap");
+            }
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
             {
-                if (useNormalMap)
-                    return base.inputProperties.Concat(PropertiesFromType("InputProperties"));
-                else
-                    return base.inputProperties;
+                var properties = base.inputProperties;
+                if (useRimLight)
+                {
+                    properties = properties.Concat(PropertiesFromType("RimLightInputProperties"));
+                    if (useNormalMap)
+                        properties = properties.Concat(PropertiesFromType("NormalInputProperties"));
+                }
+                return properties;
             }
         }
 
-        public class InputProperties
+        public class NormalInputProperties
         {
             public Texture2D normalMap;
+        }
+
+        public class RimLightInputProperties
+        {
+            public Color rimColor;
+            public float rimCoef;
         }
 
         public override IEnumerable<string> additionalDefines
@@ -65,19 +84,23 @@ namespace UnityEditor.VFX
                 foreach (var d in base.additionalDefines)
                     yield return d;
 
-                if (useNormalMap)
-                    yield return "VFX_USE_NORMAL_MAP";
+                if (useRimLight)
+                {
+                    yield return "VFX_USE_RIM_LIGHT";
+                    if (useNormalMap)
+                        yield return "VFX_USE_NORMAL_MAP";
+                }
             }
         }
 
 
-        /*protected override IEnumerable<string> filteredOutSettings
+        protected override IEnumerable<string> filteredOutSettings
         {
             get
             {
-                if (flipBook == FlipbookMode.Off)
-                    yield return "frameInterpolationMode";
+                if (!useRimLight)
+                    yield return "useNormalMap";
             }
-        }*/
+        }
     }
 }
