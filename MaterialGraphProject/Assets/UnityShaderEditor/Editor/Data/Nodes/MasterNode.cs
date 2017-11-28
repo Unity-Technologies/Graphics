@@ -10,12 +10,6 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         protected SurfaceMaterialOptions m_MaterialOptions = new SurfaceMaterialOptions();
 
-        public MasterNode()
-        {
-            name = "MasterNode";
-            UpdateNodeAfterDeserialization();
-        }
-
         public override bool hasPreview
         {
             get { return true; }
@@ -31,17 +25,12 @@ namespace UnityEditor.ShaderGraph
             get { return PreviewMode.Preview3D; }
         }
 
-        public virtual ShaderGraphRequirements GetNodeSpecificRequirements()
-        {
-            return ShaderGraphRequirements.none;
-        }
-
         public SurfaceMaterialOptions options
         {
             get { return m_MaterialOptions; }
 
         }
 
-        public abstract IEnumerable<string> GetSubshader(ShaderGraphRequirements graphRequirements, MasterRemapGraph remapper);
+        public abstract string GetShader(GenerationMode mode, out List<PropertyCollector.TextureInfo> configuredTextures);
     }
 }
