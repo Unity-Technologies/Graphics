@@ -1,0 +1,51 @@
+#if !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))
+#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS must be defined.
+#endif
+
+#pragma vertex vert
+VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
+{
+	uint index = (id >> 3) + instanceID * 1024;
+	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
+	if (index < asuint(nbMax))
+	{
+		#if VFX_HAS_INDIRECT_DRAW
+		index = indirectBuffer[index];
+		#endif
+		${VFXLoadAttributes:{alive}}
+		if (alive)
+		{
+			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
+			${VFXProcessBlocks}
+			
+			if (!alive)
+				return o;
+			
+			float3 offsets = (float3)0;
+			offsets.x = float(id & 1);
+			offsets.y = float((id & 3) >> 1);
+			offsets.z = float((id & 7) >> 2);
+			offsets = offsets * 2.0f - 1.0f;
+			
+			float3 vPos = position;
+			float3x3 rot = GetRotationMatrix(front,radians(angle));
+			vPos += TransformInElementSpace(offsets,side,up,front,rot,pivot,float3(size,min(size.x,size.y)));
+
+#ifdef VFX_VARYING_OFFSETS
+			o.VFX_VARYING_OFFSETS = offsets;
+#endif
+#if defined(VFX_VARYING_ROTX) && defined(VFX_VARYING_ROTY)
+			rot = mul(rot,transpose(float3x3(side,up,front)));
+			o.VFX_VARYING_ROTX = rot[0];
+			o.VFX_VARYING_ROTY = rot[1];
+#endif
+			o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
+
+			${VFXVertexCommonProcess}			
+			${VFXVertexAdditionalProcess}
+		}
+	}
+	return o;
+}
+
+${VFXFragmentCommonFunctions}

@@ -1,0 +1,73 @@
+// Forward pass
+Pass
+{		
+	Tags { "LightMode"="ForwardBase" }
+	
+	HLSLPROGRAM
+	#pragma target 4.5
+	
+	struct ps_input
+	{
+		float4 pos : SV_POSITION;
+		float3 offsets : TEXCOORD0;
+		
+		#if VFX_NEEDS_COLOR_INTERPOLATOR
+		nointerpolation float4 color : COLOR0;
+		#endif
+		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST
+		// x: inverse soft particles fade distance
+		// y: alpha threshold
+		nointerpolation float2 builtInInterpolants : TEXCOORD1;
+		#endif
+		#if USE_SOFT_PARTICLE
+		float4 projPos : TEXCOORD2;		
+		#endif
+		
+		nointerpolation float3 rotX : TEXCOORD3;
+		nointerpolation float3 rotY : TEXCOORD4;
+		nointerpolation float3 front : TEXCOORD5;
+	};
+	
+	struct ps_output
+	{
+		float4 color : SV_Target0;
+	};
+
+#define VFX_VARYING_PS_INPUTS ps_input
+#define VFX_VARYING_POSCS pos
+#define VFX_VARYING_POSSS projPos
+#define VFX_VARYING_COLOR color.rgb
+#define VFX_VARYING_ALPHA color.a
+#define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
+#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
+#define VFX_VARYING_OFFSETS offsets
+#define VFX_VARYING_ROTX rotX
+#define VFX_VARYING_ROTY rotY
+		
+	${VFXInclude("Assets/VFXShaders/ParticleHexahedron/Pass.template")}	
+		
+	#pragma fragment frag
+	ps_output frag(ps_input i)
+	{
+		ps_output o = (ps_output)0;
+		o.color = VFXGetFragmentColor(i);
+		
+		// normal
+		float3 normal = normalize(int3(i.offsets * 1.1f));
+	
+		//if (dot(i.offsets,i.offsets) - 1.0f < 0.5)
+		//	discard;
+		
+		float3x3 rot = float3x3(i.rotX,i.rotY,cross(i.rotY,i.rotX));
+		normal = mul(rot,normal);
+		//o.color.xyz = normal * 0.5f + 0.5f;
+		
+		const float r0 = 0.0f;
+		const float3 fresnel = r0 + (1.0f - r0) * pow(1.0f - saturate(dot(normal,GetVFXToViewRotMatrix()[2])),5.0f);
+		o.color.rgb += fresnel * float3(0.1f,0.1f,0.2f);//lerp(o.color.rgb,float3(0.1f,0.1f,0.2f),saturate(fresnel));
+		
+		VFXClipFragmentColor(o.color.a,i);
+		return o;
+	}
+	ENDHLSL
+}
