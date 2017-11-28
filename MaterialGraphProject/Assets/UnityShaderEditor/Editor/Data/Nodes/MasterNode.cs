@@ -31,6 +31,6 @@ namespace UnityEditor.ShaderGraph
 
         }
 
-        public abstract string GetShader(GenerationMode mode, out List<PropertyCollector.TextureInfo> configuredTextures);
+        public abstract string GetShader(GenerationMode mode, string name, out List<PropertyCollector.TextureInfo> configuredTextures);
     }
 }

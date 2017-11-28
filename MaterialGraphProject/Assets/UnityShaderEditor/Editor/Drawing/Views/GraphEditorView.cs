@@ -130,7 +130,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         FloatShaderProperty outputIdProperty;
                         if (copyFromNode is MasterNode)
                         {
-                            var shader = ((MasterNode)copyFromNode).GetShader(GenerationMode.ForReals, out textureInfo);
+                            var shader = ((MasterNode)copyFromNode).GetShader(GenerationMode.ForReals, copyFromNode.name, out textureInfo);
                             GUIUtility.systemCopyBuffer = shader;
                         }
                         else
