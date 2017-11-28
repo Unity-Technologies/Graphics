@@ -122,7 +122,7 @@ float3 EstimateRaycast(float3 V, PositionInputs posInputs, float3 positionWS, fl
     uint2 depthSize = uint2(_PyramidDepthMipSize.xy);
 
     // Get the depth of the approximated back plane
-    float pyramidDepth = LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, posInputs.positionSS * (depthSize >> 2), 2).r;
+    float pyramidDepth = LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, posInputs.positionNDC * (depthSize >> 2), 2).r;
     float depth = LinearEyeDepth(pyramidDepth, _ZBufferParams);
 
     // Distance from point to the back plane
@@ -447,7 +447,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 // Must be in sync with RT declared in HDRenderPipeline.cs ::Rebuild
 void EncodeIntoGBuffer( SurfaceData surfaceData,
                         float3 bakeDiffuseLighting,
-                        uint2 unPositionSS,
+                        uint2 positionSS,
                         #if SHADEROPTIONS_PACK_GBUFFER_IN_U16
                         out GBufferType0 outGBufferU0,
                         out GBufferType1 outGBufferU1
@@ -552,19 +552,19 @@ float4 DecodeGBuffer0(GBufferType0 encodedGBuffer0)
 }
 
 void DecodeFromGBuffer(
-    uint2 unPositionSS,
+    uint2 positionSS,
     uint featureFlags,
     out BSDFData bsdfData,
     out float3 bakeDiffuseLighting)
 {
 #if SHADEROPTIONS_PACK_GBUFFER_IN_U16
-    GBufferType0 inGBufferU0 = LOAD_TEXTURE2D(_GBufferTexture0, unPositionSS);
-    GBufferType1 inGBufferU1 = LOAD_TEXTURE2D(_GBufferTexture1, unPositionSS);
+    GBufferType0 inGBufferU0 = LOAD_TEXTURE2D(_GBufferTexture0, positionSS);
+    GBufferType1 inGBufferU1 = LOAD_TEXTURE2D(_GBufferTexture1, positionSS);
 #else
-    GBufferType0 inGBuffer0 = LOAD_TEXTURE2D(_GBufferTexture0, unPositionSS);
-    GBufferType1 inGBuffer1 = LOAD_TEXTURE2D(_GBufferTexture1, unPositionSS);
-    GBufferType2 inGBuffer2 = LOAD_TEXTURE2D(_GBufferTexture2, unPositionSS);
-    GBufferType3 inGBuffer3 = LOAD_TEXTURE2D(_GBufferTexture3, unPositionSS);
+    GBufferType0 inGBuffer0 = LOAD_TEXTURE2D(_GBufferTexture0, positionSS);
+    GBufferType1 inGBuffer1 = LOAD_TEXTURE2D(_GBufferTexture1, positionSS);
+    GBufferType2 inGBuffer2 = LOAD_TEXTURE2D(_GBufferTexture2, positionSS);
+    GBufferType3 inGBuffer3 = LOAD_TEXTURE2D(_GBufferTexture3, positionSS);
 #endif
 
     ZERO_INITIALIZE(BSDFData, bsdfData);
@@ -688,13 +688,13 @@ void DecodeFromGBuffer(
 
 // Function call from the material classification compute shader
 // Note that as we store materialId on two buffer (for anisotropy case), the code need to load 2 RGBA8 buffer
-uint MaterialFeatureFlagsFromGBuffer(uint2 unPositionSS)
+uint MaterialFeatureFlagsFromGBuffer(uint2 positionSS)
 {
     BSDFData bsdfData;
     float3 unused;
 
     DecodeFromGBuffer(
-        unPositionSS,
+        positionSS,
         UINT_MAX,
         bsdfData,
         unused
@@ -1235,9 +1235,9 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
     [branch] if (lightData.shadowIndex >= 0)
     {
 #ifdef _SURFACE_TYPE_TRANSPARENT
-        shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, posInput.unPositionSS);
+        shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, posInput.positionSS);
 #else
-        shadow = LOAD_TEXTURE2D(_DeferredShadowTexture, posInput.unPositionSS).x;
+        shadow = LOAD_TEXTURE2D(_DeferredShadowTexture, posInput.positionSS).x;
 #endif
 
 #ifdef SHADOWS_SHADOWMASK
@@ -1389,7 +1389,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
         // TODO: make projector lights cast shadows.
         float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
         float4 L_dist = float4(L, sqrt(distSq));
-        shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS + offset, N, lightData.shadowIndex, L_dist, posInput.unPositionSS);
+        shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS + offset, N, lightData.shadowIndex, L_dist, posInput.positionSS);
 #ifdef SHADOWS_SHADOWMASK
         // Note: Legacy Unity have two shadow mask mode. ShadowMask (ShadowMask contain static objects shadow and ShadowMap contain only dynamic objects shadow, final result is the minimun of both value)
         // and ShadowMask_Distance (ShadowMask contain static objects shadow and ShadowMap contain everything and is blend with ShadowMask based on distance (Global distance setup in QualitySettigns)).
@@ -1756,7 +1756,7 @@ IndirectLighting EvaluateBSDF_SSRefraction(LightLoopContext lightLoopContext,
 
     // Calculate screen space coordinates of refracted point in back plane
     float4 refractedBackPointCS = mul(UNITY_MATRIX_VP, float4(refractedBackPointWS, 1.0));
-    float2 refractedBackPointSS = ComputeScreenSpacePosition(refractedBackPointCS);
+    float2 refractedBackPointSS = ComputeNormalizedDeviceCoordinates(refractedBackPointCS);
     uint2 depthSize = uint2(_PyramidDepthMipSize.xy);
     float refractedBackPointDepth = LinearEyeDepth(LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, refractedBackPointSS * depthSize, 0).r, _ZBufferParams);
 
@@ -1959,7 +1959,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
     // Ambient occlusion use for indirect lighting (reflection probe, baked diffuse lighting)
 #ifndef _SURFACE_TYPE_TRANSPARENT
-    float indirectAmbientOcclusion = 1.0 - LOAD_TEXTURE2D(_AmbientOcclusionTexture, posInput.unPositionSS).x;
+    float indirectAmbientOcclusion = 1.0 - LOAD_TEXTURE2D(_AmbientOcclusionTexture, posInput.positionSS).x;
     // Ambient occlusion use for direct lighting (directional, punctual, area)
     float directAmbientOcclusion = lerp(1.0, indirectAmbientOcclusion, _AmbientOcclusionParam.w);
 #else
