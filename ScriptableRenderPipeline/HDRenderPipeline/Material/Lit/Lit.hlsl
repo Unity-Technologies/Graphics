@@ -1405,7 +1405,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 #endif
     }
 
-    // Projector lights always have a cookies, so we can perform clipping inside the if().
+    // Projector lights always have cookies, so we can perform clipping inside the if().
     [branch] if (lightData.cookieIndex >= 0)
     {
         float3 lightToSample = positionWS - lightData.positionWS;
@@ -1717,20 +1717,6 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 #endif // LIT_DISPLAY_REFERENCE_AREA
 
     return lighting;
-}
-
-DirectLighting EvaluateBSDF_Area(   LightLoopContext lightLoopContext,
-                                    float3 V, PositionInputs posInput,
-                                    PreLightData preLightData, LightData lightData, BSDFData bsdfData, BakeLightingData bakeLightingData, int GPULightType)
-{
-    if (GPULightType == GPULIGHTTYPE_LINE)
-    {
-        return EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, bakeLightingData);
-    }
-    else
-    {
-        return EvaluateBSDF_Rect(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, bakeLightingData);
-    }
 }
 
 //-----------------------------------------------------------------------------
