@@ -1344,7 +1344,17 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
         // Box projector lights require no perspective division.
         float  perspectiveZ = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? positionLS.z : 1.0;
         float2 positionCS   = positionLS.xy / perspectiveZ;
-        bool   isInBounds   = Max3(abs(positionCS.x), abs(positionCS.y), 1.0 - positionLS.z) <= 1.0;
+
+        bool isInBounds;
+
+        if (lightData.lightType == GPULIGHTTYPE_SPOT)
+        {
+            isInBounds = max(abs(positionCS.x), abs(positionCS.y)) <= 1.0;
+        }
+        else
+        {
+            isInBounds = Max3(abs(positionCS.x), abs(positionCS.y), 1.0 - positionLS.z) <= 1.0;
+        }
 
         // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
         float2 positionNDC = positionCS * 0.5 + 0.5;
