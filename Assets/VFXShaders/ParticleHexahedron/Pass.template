@@ -49,3 +49,39 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 }
 
 ${VFXFragmentCommonFunctions}
+
+float3 GetCubeLocalNormal(VFX_VARYING_PS_INPUTS i)
+{
+	//float3 s = i.offsets > 0 ? 1.0f : -1.0f;
+	//return s * (step(1.0f,s * i.offsets + 1e-5));
+	return (int3(i.offsets * 1.00001f)); // cast uses round_z
+}
+
+float3 TransformNormalTS(float3 faceNormal,float3 normal)
+{
+	float3x3 tbn = float3x3(faceNormal.zyx,faceNormal.xzy,faceNormal.xyz);
+	return mul(tbn,normal);
+}
+
+float3 TransformNormalWS(VFX_VARYING_PS_INPUTS i,float3 normal)
+{
+#if defined(VFX_VARYING_ROTX) && defined(VFX_VARYING_ROTY)
+	float3x3 rot = float3x3(i.rotX,i.rotY,cross(i.rotY,i.rotX));
+	return mul(rot,normal);
+#else
+	return normal;
+#endif
+}
+
+float2 GetCubeUV(VFX_VARYING_PS_INPUTS i) 
+{
+	float3 aOffsets = abs(i.offsets);
+	float2 uv;
+	if (aOffsets.x > 1.0f - 1.e-5)
+		uv = i.offsets.yz;
+	else if (aOffsets.y > 1.0f - 1.e-5)
+		uv = i.offsets.xz;
+	else
+		uv = i.offsets.xy;
+	return uv * 0.5f + 0.5f;
+}

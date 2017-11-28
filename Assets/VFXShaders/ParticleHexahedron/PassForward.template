@@ -25,7 +25,6 @@ Pass
 		
 		nointerpolation float3 rotX : TEXCOORD3;
 		nointerpolation float3 rotY : TEXCOORD4;
-		nointerpolation float3 front : TEXCOORD5;
 	};
 	
 	struct ps_output
@@ -53,16 +52,18 @@ Pass
 		o.color = VFXGetFragmentColor(i);
 		
 		// normal
-		float3 normal = normalize(int3(i.offsets * 1.1f));
-	
-		//if (dot(i.offsets,i.offsets) - 1.0f < 0.5)
-		//	discard;
+		float3 normal = GetCubeLocalNormal(i);
 		
-		float3x3 rot = float3x3(i.rotX,i.rotY,cross(i.rotY,i.rotX));
-		normal = mul(rot,normal);
+#if VFX_USE_NORMAL_MAP
+		VFXSampler2D s = VFX_SAMPLER(normalMap);
+		float3 n = s.t.Sample(s.s,GetCubeUV(i)) * 2.0f - 1.0f;
+		normal = TransformNormalTS(normal,n);
+#endif
+
+		normal = TransformNormalWS(i,normal);
 		//o.color.xyz = normal * 0.5f + 0.5f;
 		
-		const float r0 = 0.0f;
+		const float r0 = 0.1f;
 		const float3 fresnel = r0 + (1.0f - r0) * pow(1.0f - saturate(dot(normal,GetVFXToViewRotMatrix()[2])),5.0f);
 		o.color.rgb += fresnel * float3(0.1f,0.1f,0.2f);//lerp(o.color.rgb,float3(0.1f,0.1f,0.2f),saturate(fresnel));
 		

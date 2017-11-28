@@ -13,6 +13,9 @@ namespace UnityEditor.VFX
         public override string codeGeneratorTemplate { get { return "VFXShaders/VFXParticleCube"; } }
         public override VFXTaskType taskType { get { return VFXTaskType.kParticleHexahedronOutput; } }
 
+        [VFXSetting, SerializeField]
+        bool useNormalMap = false;
+
         public override IEnumerable<VFXAttributeInfo> attributes
         {
             get
@@ -30,30 +33,42 @@ namespace UnityEditor.VFX
             }
         }
 
-        /*  protected override IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
-          {
-              foreach (var exp in base.CollectGPUExpressions(slotExpressions))
-                  yield return exp;
+        protected override IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
+        {
+            foreach (var exp in base.CollectGPUExpressions(slotExpressions))
+                yield return exp;
 
-              yield return slotExpressions.First(o => o.name == "fresnelColor");
-              yield return slotExpressions.First(o => o.name == "fresnelFactor");
-          }*/
+            if (useNormalMap)
+                yield return slotExpressions.First(o => o.name == "normalMap");
+        }
 
-
-        /*protected override IEnumerable<VFXPropertyWithValue> inputProperties
+        protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
             {
-                string inputPropertiesType = "InputProperties";
-                if (flipBook != FlipbookMode.Off) inputPropertiesType = "InputPropertiesFlipbook";
-
-                foreach (var property in PropertiesFromType(inputPropertiesType))
-                    yield return property;
-
-                foreach (var property in base.inputProperties)
-                    yield return property;
+                if (useNormalMap)
+                    return base.inputProperties.Concat(PropertiesFromType("InputProperties"));
+                else
+                    return base.inputProperties;
             }
-        }*/
+        }
+
+        public class InputProperties
+        {
+            public Texture2D normalMap;
+        }
+
+        public override IEnumerable<string> additionalDefines
+        {
+            get
+            {
+                foreach (var d in base.additionalDefines)
+                    yield return d;
+
+                if (useNormalMap)
+                    yield return "VFX_USE_NORMAL_MAP";
+            }
+        }
 
 
         /*protected override IEnumerable<string> filteredOutSettings

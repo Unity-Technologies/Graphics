@@ -2,7 +2,7 @@ Shader "Hidden/VFX/ParticleCubes"
 {
 	SubShader
 	{	
-		Cull Off
+		Cull Front
 		
 		${VFXInclude("Assets/VFXShaders/VFXParticleHeader.template")}
 		${VFXInclude("Assets/VFXShaders/ParticleHexahedron/PassForward.template")}
