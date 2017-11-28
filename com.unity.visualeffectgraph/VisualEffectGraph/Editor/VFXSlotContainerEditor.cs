@@ -34,15 +34,30 @@ public class VFXSlotContainerEditor : Editor
             settingFields = settingFields.Intersect(otherSettingFields);
         }
 
-        foreach (var prop in settingFields.Select(t => serializedObject.FindProperty(t.Name)).Where(t => t != null))
+        foreach (var prop in settingFields.Select(t => new KeyValuePair<FieldInfo, SerializedProperty>(t, serializedObject.FindProperty(t.Name))).Where(t => t.Value != null))
         {
-            bool visibleChildren = EditorGUILayout.PropertyField(prop);
-            if (visibleChildren)
+            var attrs = prop.Key.GetCustomAttributes(typeof(StringProviderAttribute), true);
+            if (attrs.Length > 0)
             {
-                SerializedProperty childProp = prop.Copy();
-                while (childProp != null && childProp.NextVisible(visibleChildren) && childProp.propertyPath.StartsWith(prop.propertyPath + "."))
+                var strings = StringPropertyRM.FindStringProvider(attrs)();
+
+                int selected = prop.Value.hasMultipleDifferentValues ? -1 : System.Array.IndexOf(strings, prop.Value.stringValue);
+                int result = EditorGUILayout.Popup(ObjectNames.NicifyVariableName(prop.Value.name), selected, strings);
+                if (result != selected)
                 {
-                    visibleChildren = EditorGUILayout.PropertyField(childProp);
+                    prop.Value.stringValue = strings[result];
+                }
+            }
+            else
+            {
+                bool visibleChildren = EditorGUILayout.PropertyField(prop.Value);
+                if (visibleChildren)
+                {
+                    SerializedProperty childProp = prop.Value.Copy();
+                    while (childProp != null && childProp.NextVisible(visibleChildren) && childProp.propertyPath.StartsWith(prop.Value.propertyPath + "."))
+                    {
+                        visibleChildren = EditorGUILayout.PropertyField(childProp);
+                    }
                 }
             }
         }

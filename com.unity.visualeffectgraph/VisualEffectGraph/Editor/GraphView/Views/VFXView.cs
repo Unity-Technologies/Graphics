@@ -505,6 +505,9 @@ namespace UnityEditor.VFX.UI
 
                 pasteOffset = Vector2.zero; // if we change asset we want to paste exactly at the same place as the original asset the first time.
             }
+
+            // needed if some or all the selection has been deleted, so we no longer show the deleted object in the inspector.
+            SelectionUpdated();
         }
 
         public VFXDataAnchor GetDataAnchorByPresenter(VFXDataAnchorPresenter presenter)
