@@ -67,6 +67,11 @@ namespace UnityEditor.VFX
         public VFXInfoAttribute info { get { return VFXInfoAttribute.Get(m_Template.GetType()); } }
         public Type modelType { get { return m_Template.GetType(); } }
 
+        public T model
+        {
+            get { return m_Template; }
+        }
+
         public bool AcceptParent(VFXModel parent, int index = -1)
         {
             return parent.AcceptChild(m_Template, index);

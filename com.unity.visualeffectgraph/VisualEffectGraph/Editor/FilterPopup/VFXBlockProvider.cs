@@ -43,7 +43,7 @@ namespace UnityEditor.VFX.UI
             var descriptors = GetDescriptors();
 
             string prevCategory = "";
-            int depth = 0;
+            int depth = 1;
 
             foreach (var desc in descriptors)
             {
