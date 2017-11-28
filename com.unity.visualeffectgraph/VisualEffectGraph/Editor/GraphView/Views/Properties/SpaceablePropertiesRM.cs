@@ -1,13 +1,7 @@
-using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
+using UnityEngine.VFX;
 using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleEnums;
-using UnityEditor.Experimental.UIElements;
-using UnityEditor.VFX;
 using UnityEditor.VFX.UIElements;
-using Object = UnityEngine.Object;
-using Type = System.Type;
 using Vector3Field = UnityEditor.VFX.UIElements.Vector3Field;
 
 namespace UnityEditor.VFX.UI

@@ -1174,6 +1174,7 @@ MonoBehaviour:
   - link: []
   blendMode: 1
   useSoftParticle: 0
+  sortPriority: 0
   flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114806364651043532
@@ -1421,255 +1422,13 @@ VFXAsset:
   m_Name: CopyPasteTest
   m_Graph: {fileID: 114504534302082020}
   m_Expressions:
-    m_Expressions:
-    - op: 0
-      valueIndex: 0
-      data[0]: -1
-      data[1]: -1
-      data[2]: -1
-      data[3]: 1
-    - op: 0
-      valueIndex: 1
-      data[0]: -1
-      data[1]: -1
-      data[2]: -1
-      data[3]: 1
-    - op: 0
-      valueIndex: 2
-      data[0]: -1
-      data[1]: -1
-      data[2]: -1
-      data[3]: 1
-    - op: 0
-      valueIndex: 3
-      data[0]: -1
-      data[1]: -1
-      data[2]: -1
-      data[3]: 1
-    - op: 0
-      valueIndex: 4
-      data[0]: -1
-      data[1]: -1
-      data[2]: -1
-      data[3]: 1
-    - op: 0
-      valueIndex: 5
-      data[0]: -1
-      data[1]: -1
-      data[2]: -1
-      data[3]: 1
-    - op: 27
-      valueIndex: 6
-      data[0]: 2
-      data[1]: 4
-      data[2]: -1
-      data[3]: 1
-    - op: 27
-      valueIndex: 7
-      data[0]: 5
-      data[1]: 3
-      data[2]: -1
-      data[3]: 1
-    - op: 27
-      valueIndex: 8
-      data[0]: 0
-      data[1]: 4
-      data[2]: -1
-      data[3]: 1
-    - op: 27
-      valueIndex: 9
-      data[0]: 5
-      data[1]: 1
-      data[2]: -1
-      data[3]: 1
-    - op: 27
-      valueIndex: 10
-      data[0]: 2
-      data[1]: 1
-      data[2]: -1
-      data[3]: 1
-    - op: 27
-      valueIndex: 11
-      data[0]: 0
-      data[1]: 3
-      data[2]: -1
-      data[3]: 1
-    - op: 30
-      valueIndex: 12
-      data[0]: 9
-      data[1]: 8
-      data[2]: -1
-      data[3]: 1
-    - op: 0
-      valueIndex: 13
-      data[0]: -1
-      data[1]: -1
-      data[2]: -1
-      data[3]: 1
-    - op: 0
-      valueIndex: 14
-      data[0]: -1
-      data[1]: -1
-      data[2]: -1
-      data[3]: 1
-    - op: 0
-      valueIndex: 15
-      data[0]: -1
-      data[1]: -1
-      data[2]: -1
-      data[3]: 1
-    - op: 30
-      valueIndex: 16
-      data[0]: 11
-      data[1]: 10
-      data[2]: -1
-      data[3]: 1
-    - op: 30
-      valueIndex: 17
-      data[0]: 6
-      data[1]: 7
-      data[2]: -1
-      data[3]: 1
-    - op: 0
-      valueIndex: 18
-      data[0]: -1
-      data[1]: -1
-      data[2]: -1
-      data[3]: 1
-    - op: 0
-      valueIndex: 19
-      data[0]: -1
-      data[1]: -1
-      data[2]: -1
-      data[3]: 1
-    - op: 27
-      valueIndex: 20
-      data[0]: 16
-      data[1]: 14
-      data[2]: -1
-      data[3]: 1
-    - op: 27
-      valueIndex: 21
-      data[0]: 12
-      data[1]: 13
-      data[2]: -1
-      data[3]: 1
-    - op: 27
-      valueIndex: 22
-      data[0]: 16
-      data[1]: 15
-      data[2]: -1
-      data[3]: 1
-    - op: 27
-      valueIndex: 23
-      data[0]: 17
-      data[1]: 13
-      data[2]: -1
-      data[3]: 1
-    - op: 27
-      valueIndex: 24
-      data[0]: 17
-      data[1]: 14
-      data[2]: -1
-      data[3]: 1
-    - op: 27
-      valueIndex: 25
-      data[0]: 12
-      data[1]: 15
-      data[2]: -1
-      data[3]: 1
-    - op: 0
-      valueIndex: 26
-      data[0]: -1
-      data[1]: -1
-      data[2]: -1
-      data[3]: 1
-    - op: 32
-      valueIndex: 27
-      data[0]: 19
-      data[1]: 18
-      data[2]: -1
-      data[3]: 1
-    - op: 30
-      valueIndex: 28
-      data[0]: 24
-      data[1]: 25
-      data[2]: -1
-      data[3]: 1
-    - op: 30
-      valueIndex: 29
-      data[0]: 22
-      data[1]: 23
-      data[2]: -1
-      data[3]: 1
-    - op: 30
-      valueIndex: 30
-      data[0]: 21
-      data[1]: 20
-      data[2]: -1
-      data[3]: 1
-    - op: 13
-      valueIndex: 31
-      data[0]: -1
-      data[1]: -1
-      data[2]: -1
-      data[3]: -1
-    - op: 0
-      valueIndex: 32
-      data[0]: -1
-      data[1]: -1
-      data[2]: -1
-      data[3]: 7
-    - op: 0
-      valueIndex: 34
-      data[0]: -1
-      data[1]: -1
-      data[2]: -1
-      data[3]: 1
-    - op: 31
-      valueIndex: 35
-      data[0]: 27
-      data[1]: 26
-      data[2]: -1
-      data[3]: 1
-    - op: 2
-      valueIndex: 36
-      data[0]: 29
-      data[1]: 28
-      data[2]: 30
-      data[3]: -1
+    m_Expressions: []
     m_NeedsLocalToWorld: 0
     m_NeedsWorldToLocal: 0
   m_ExposedExpressions: []
   m_PropertySheet:
     m_Float:
-      m_Array:
-      - m_ExpressionIndex: 0
-        m_Value: 0
-      - m_ExpressionIndex: 1
-        m_Value: 0
-      - m_ExpressionIndex: 2
-        m_Value: 0
-      - m_ExpressionIndex: 3
-        m_Value: 0
-      - m_ExpressionIndex: 4
-        m_Value: 1
-      - m_ExpressionIndex: 5
-        m_Value: 0
-      - m_ExpressionIndex: 13
-        m_Value: 1
-      - m_ExpressionIndex: 14
-        m_Value: 0
-      - m_ExpressionIndex: 15
-        m_Value: 0
-      - m_ExpressionIndex: 18
-        m_Value: 0
-      - m_ExpressionIndex: 19
-        m_Value: 1
-      - m_ExpressionIndex: 26
-        m_Value: 1
-      - m_ExpressionIndex: 33
-        m_Value: 1
+      m_Array: []
     m_Vector2f:
       m_Array: []
     m_Vector3f:
@@ -1687,22 +1446,10 @@ VFXAsset:
     m_Gradient:
       m_Array: []
     m_NamedObject:
-      m_Array:
-      - m_ExpressionIndex: 32
-        m_Value: {fileID: 0}
+      m_Array: []
     m_Bool:
       m_Array: []
-  m_Buffers:
-  - type: 1
-    size: 262144
-    capacity: 65536
-    layout:
-    - name: position
-      type: 3
-      offset:
-        bucket: 0
-        structure: 4
-        element: 0
+  m_Buffers: []
   m_CPUBuffers:
   - capacity: 1
     stride: 1
@@ -1715,37 +1462,7 @@ VFXAsset:
         element: 0
     initialData:
       data: 00000000
-  m_Systems:
-  - type: 1
-    flags: 0
-    capacity: 65536
-    buffers:
-    - index: 0
-      nameId: attributeBuffer
-    values: []
-    tasks:
-    - type: 805306368
-      buffers:
-      - index: 0
-        nameId: attributeBuffer
-      values:
-      - index: 31
-        nameId: uniform_deltaTime_b
-      processor: {fileID: 7200000, guid: b34989d1a6d49254b974bf1ad477e0e3, type: 3}
-    - type: 1073741826
-      buffers:
-      - index: 0
-        nameId: attributeBuffer
-      values:
-      - index: 35
-        nameId: uniform_Direction_b
-      - index: 33
-        nameId: uniform_Speed_b
-      - index: 34
-        nameId: uniform_DirectionBlend_b
-      - index: 32
-        nameId: texture_texture
-      processor: {fileID: 4800000, guid: ef71549d423f79744bbaed5385a8bfbd, type: 3}
+  m_Systems: []
   m_Events:
   - name: OnStart
     startSystems: 

@@ -26,6 +26,7 @@ namespace UnityEditor.VFX.Test
             var slotCount = blockConstantRate.GetInputSlot(0);
 
             var spawnerInit = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var spawnerOutput = ScriptableObject.CreateInstance<VFXQuadOutput>();
 
             var spawnCountValue = 753.0f;
             slotCount.value = spawnCountValue;
@@ -33,7 +34,9 @@ namespace UnityEditor.VFX.Test
             spawnerContext.AddChild(blockConstantRate);
             graph.AddChild(spawnerContext);
             graph.AddChild(spawnerInit);
+            graph.AddChild(spawnerOutput);
             spawnerInit.LinkFrom(spawnerContext);
+            spawnerOutput.LinkFrom(spawnerInit);
 
             graph.vfxAsset = new VFXAsset();
             graph.RecompileIfNeeded();
@@ -74,6 +77,7 @@ namespace UnityEditor.VFX.Test
             var slotCount = blockConstantRate.GetInputSlot(0);
 
             var spawnerInit = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var spawnerOutput = ScriptableObject.CreateInstance<VFXQuadOutput>();
 
             var spawnCountValue = 1984.0f;
             slotCount.value = spawnCountValue;
@@ -83,7 +87,9 @@ namespace UnityEditor.VFX.Test
             graph.AddChild(eventStop);
             graph.AddChild(spawnerContext);
             graph.AddChild(spawnerInit);
+            graph.AddChild(spawnerOutput);
             spawnerInit.LinkFrom(spawnerContext);
+            spawnerOutput.LinkFrom(spawnerInit);
             spawnerContext.LinkFrom(eventStart, 0, 0);
             spawnerContext.LinkFrom(eventStop, 0, 1);
 
@@ -178,6 +184,7 @@ namespace UnityEditor.VFX.Test
             blockCustomSpawner.SetSettingValue("m_customType", new SerializableType(typeof(VFXCustomSpawnerTest)));
 
             var spawnerInit = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var spawnerOutput = ScriptableObject.CreateInstance<VFXQuadOutput>();
             var blockSetAttribute = ScriptableObject.CreateInstance<SetAttribute>();
             blockSetAttribute.SetSettingValue("attribute", "lifetime");
             spawnerInit.AddChild(blockSetAttribute);
@@ -188,10 +195,12 @@ namespace UnityEditor.VFX.Test
             spawnerContext.AddChild(blockCustomSpawner);
             graph.AddChild(spawnerContext);
             graph.AddChild(spawnerInit);
+            graph.AddChild(spawnerOutput);
             graph.AddChild(blockAttributeSource);
             blockAttributeSource.outputSlots[0].Link(blockSetAttribute.inputSlots[0]);
 
             spawnerInit.LinkFrom(spawnerContext);
+            spawnerOutput.LinkFrom(spawnerInit);
 
             var valueTotalTime = 187.0f;
             blockCustomSpawner.GetInputSlot(0).value = valueTotalTime;

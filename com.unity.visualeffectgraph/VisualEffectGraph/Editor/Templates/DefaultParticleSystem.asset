@@ -518,9 +518,13 @@ MonoBehaviour:
   m_Data: {fileID: 114412486620591920}
   m_Space: 0
   m_InputFlowSlot:
-  - link: []
+  - link:
+    - context: {fileID: 114592171084504942}
+      slotIndex: 0
   m_OutputFlowSlot:
-  - link: []
+  - link:
+    - context: {fileID: 114498537633067934}
+      slotIndex: 0
 --- !u!114 &114399689270395292
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -598,11 +602,14 @@ MonoBehaviour:
   m_Data: {fileID: 114412486620591920}
   m_Space: 0
   m_InputFlowSlot:
-  - link: []
+  - link:
+    - context: {fileID: 114498537633067934}
+      slotIndex: 0
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
   useSoftParticle: 0
+  sortPriority: 0
   flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114472202488033534
@@ -726,9 +733,13 @@ MonoBehaviour:
   m_Data: {fileID: 114412486620591920}
   m_Space: 0
   m_InputFlowSlot:
-  - link: []
+  - link:
+    - context: {fileID: 114378104080370812}
+      slotIndex: 0
   m_OutputFlowSlot:
-  - link: []
+  - link:
+    - context: {fileID: 114421384271978552}
+      slotIndex: 0
   integration: 0
 --- !u!114 &114505611493306542
 MonoBehaviour:
@@ -817,17 +828,19 @@ MonoBehaviour:
   m_Parent: {fileID: 114348003522140610}
   m_Children:
   - {fileID: 114193941493372174}
-  m_UIPosition: {x: 62.93462, y: 20.838917}
+  m_UIPosition: {x: 67.24439, y: 21.4546}
   m_UICollapsed: 0
   m_InputSlots: []
   m_OutputSlots: []
-  m_Data: {fileID: 114295115202634846}
+  m_Data: {fileID: 0}
   m_Space: 0
   m_InputFlowSlot:
   - link: []
   - link: []
   m_OutputFlowSlot:
-  - link: []
+  - link:
+    - context: {fileID: 114378104080370812}
+      slotIndex: 0
 --- !u!114 &114617754304815562
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1393,24 +1406,33 @@ VFXAsset:
         m_Value:
           serializedVersion: 2
           m_Curve:
-          - serializedVersion: 2
+          - serializedVersion: 3
             time: 0
             value: 0
             inSlope: 0.8025456
             outSlope: 0.8025456
             tangentMode: 34
-          - serializedVersion: 2
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
             time: 0.5323555
             value: 0.42723957
             inSlope: -0.058829486
             outSlope: -0.058829486
             tangentMode: 34
-          - serializedVersion: 2
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
             time: 0.99664307
             value: 0
             inSlope: -0.9202046
             outSlope: -0.9202046
             tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
           m_PreInfinity: 2
           m_PostInfinity: 2
           m_RotationOrder: 4
@@ -1487,6 +1509,16 @@ VFXAsset:
         bucket: 786432
         structure: 1
         element: 0
+  - type: 1
+    size: 1
+    capacity: 1
+    layout:
+    - name: spawnCount
+      type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
   - type: 2
     size: 65536
     capacity: 0
@@ -1507,7 +1539,33 @@ VFXAsset:
         element: 0
     initialData:
       data: 00000000
+  - capacity: 1
+    stride: 1
+    layout:
+    - name: spawnCount
+      type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+    initialData:
+      data: 00000000
   m_Systems:
+  - type: 0
+    flags: 0
+    capacity: 0
+    buffers:
+    - index: 1
+      nameId: spawner_output
+    values: []
+    tasks:
+    - type: 268435457
+      buffers: []
+      values:
+      - index: 21
+        nameId: Rate
+      params: []
+      processor: {fileID: 0}
   - type: 1
     flags: 1
     capacity: 65536
@@ -1515,9 +1573,13 @@ VFXAsset:
     - index: 0
       nameId: attributeBuffer
     - index: 1
-      nameId: deadList
+      nameId: sourceAttributeBuffer
     - index: 2
+      nameId: deadList
+    - index: 3
       nameId: deadListCount
+    - index: 1
+      nameId: spawner_input
     values:
     - index: 23
       nameId: bounds_center
@@ -1528,10 +1590,12 @@ VFXAsset:
       buffers:
       - index: 0
         nameId: attributeBuffer
-      - index: 1
-        nameId: deadListIn
       - index: 2
+        nameId: deadListIn
+      - index: 3
         nameId: deadListCount
+      - index: 1
+        nameId: sourceAttributeBuffer
       values:
       - index: 31
         nameId: uniform_Velocity_b
@@ -1545,16 +1609,18 @@ VFXAsset:
         nameId: uniform_Min_d
       - index: 19
         nameId: uniform_Max_d
+      params: []
       processor: {fileID: 7200000, guid: 81f17fc458b645340b0993dd560881b5, type: 3}
     - type: 805306368
       buffers:
       - index: 0
         nameId: attributeBuffer
-      - index: 1
+      - index: 2
         nameId: deadListOut
       values:
       - index: 20
         nameId: uniform_deltaTime_b
+      params: []
       processor: {fileID: 7200000, guid: 514a44495fa515a4083c27765ff14d5f, type: 3}
     - type: 1073741826
       buffers:
@@ -1567,14 +1633,17 @@ VFXAsset:
         nameId: uniform_gradient_c
       - index: 22
         nameId: texture_texture
+      params:
+      - index: 0
+        nameId: sortPriority
       processor: {fileID: 4800000, guid: 0cffc1a8d9a1a5b4586d70a8ef30c256, type: 3}
   m_Events:
   - name: OnStart
-    startSystems: 
+    startSystems: 00000000
     stopSystems: 
   - name: OnStop
     startSystems: 
-    stopSystems: 
+    stopSystems: 00000000
   m_RendererSettings:
     motionVectorGenerationMode: 0
     shadowCastingMode: 0

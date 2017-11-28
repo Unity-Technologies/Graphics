@@ -144,7 +144,7 @@ namespace UnityEditor.VFX
         private List<int> m_BucketOffsets = new List<int>();
     }
 
-    class VFXDataParticle : VFXData
+    class VFXDataParticle : VFXData, ISpaceable
     {
         public override VFXDataType type { get { return VFXDataType.kParticle; } }
 
@@ -177,16 +177,15 @@ namespace UnityEditor.VFX
             }
         }
 
-        public Bounds bbox
+        public CoordinateSpace space
         {
-            get { return m_Bounds; }
-            set { m_Bounds = value; }
+            get { return m_Space; }
+            set { m_Space = value; }
         }
 
-        public bool worldSpace
+        public override bool CanBeCompiled()
         {
-            get { return m_WorldSpace; }
-            set { m_WorldSpace = value; }
+            return m_Owners.Count > 1 && m_Owners[0].contextType == VFXContextType.kInit && m_Owners[0].inputContexts.Count() > 0;
         }
 
         public override void GenerateAttributeLayout()
@@ -343,7 +342,7 @@ namespace UnityEditor.VFX
 
                 taskDesc.buffers = bufferMappings.ToArray();
                 taskDesc.values = uniformMappings.ToArray();
-
+                taskDesc.parameters = contextData.parameters;
                 taskDesc.processor = contextToCompiledData[context].processor;
 
                 taskDescs.Add(taskDesc);
@@ -360,12 +359,18 @@ namespace UnityEditor.VFX
             });
         }
 
+        public override T Clone<T>()
+        {
+            var instance = base.Clone<T>() as VFXDataParticle;
+            instance.m_Capacity = m_Capacity;
+            instance.m_Space = m_Space;
+            return instance as T;
+        }
+
         [SerializeField]
         private uint m_Capacity = 65536;
         [SerializeField]
-        private Bounds m_Bounds;
-        [SerializeField]
-        private bool m_WorldSpace;
+        private CoordinateSpace m_Space;
         [NonSerialized]
         private StructureOfArrayProvider m_layoutAttributeCurrent = new StructureOfArrayProvider();
         [NonSerialized]

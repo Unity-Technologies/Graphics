@@ -157,17 +157,7 @@ namespace UnityEditor.VFX.UI
                             update.LinkTo(output);
                         }*/
 
-
-                        VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>("Assets/VFXEditor/Editor/Templates/DefaultParticleSystem.asset");
-
-                        VFXViewPresenter presenter = VFXViewPresenter.Manager.GetPresenter(asset);
-                        presenter.useCount++;
-
-                        object data = VFXCopyPaste.CreateCopy(presenter.allChildren);
-
-                        VFXCopyPaste.PasteCopy(this, tPos, data);
-
-                        presenter.useCount--;
+                        CreateTemplateSystem(tPos);
                     }
                     else
                     {
@@ -277,6 +267,20 @@ namespace UnityEditor.VFX.UI
             }
 
             return new VFXRendererSettings();
+        }
+
+        public void CreateTemplateSystem(Vector2 tPos)
+        {
+            VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>("Assets/VFXEditor/Editor/Templates/DefaultParticleSystem.asset");
+
+            VFXViewPresenter presenter = VFXViewPresenter.Manager.GetPresenter(asset);
+            presenter.useCount++;
+
+            object data = VFXCopyPaste.CreateCopy(presenter.allChildren);
+
+            VFXCopyPaste.PasteCopy(this, tPos, data);
+
+            presenter.useCount--;
         }
 
         void SetRendererSettings(VFXRendererSettings settings)
@@ -629,15 +633,15 @@ namespace UnityEditor.VFX.UI
 
         void SelectionUpdated()
         {
+            if (presenter == null) return;
+
             if (!VFXComponentEditor.s_IsEditingAsset)
             {
-                var contextSelected = selection.OfType<VFXContextUI>();
+                var objectSelected = selection.OfType<GraphElement>().Select(t => t.GetPresenter<VFXNodePresenter>()).Where(t => t != null);
 
-                if (presenter == null) return;
-
-                if (contextSelected.Count() > 0)
+                if (objectSelected.Count() > 0)
                 {
-                    Selection.objects = contextSelected.Select(t => t.GetPresenter<VFXContextPresenter>().model).ToArray();
+                    Selection.objects = objectSelected.Select(t => t.model).ToArray();
                 }
                 else if (Selection.activeObject != GetPresenter<VFXViewPresenter>().GetVFXAsset())
                 {
