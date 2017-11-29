@@ -207,7 +207,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
             while (i <= last && lightData.lightType == GPULIGHTTYPE_LINE)
             {
-                DirectLighting lighting = EvaluateBSDF_Line(context, V, posInput, preLightData, lightData, bsdfData, bakeLightingData);
+                lightData.lightType = GPULIGHTTYPE_LINE; // Enforce constant propagation
+
+                DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, lightData, bsdfData, bakeLightingData);
                 AccumulateDirectLighting(lighting, aggregateLighting);
 
                 lightData = FetchLight(lightStart, min(++i, last));
@@ -215,7 +217,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
             while (i <= last && lightData.lightType == GPULIGHTTYPE_RECTANGLE)
             {
-                DirectLighting lighting = EvaluateBSDF_Rect(context, V, posInput, preLightData, lightData, bsdfData, bakeLightingData);
+                lightData.lightType = GPULIGHTTYPE_RECTANGLE; // Enforce constant propagation
+
+                DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, lightData, bsdfData, bakeLightingData);
                 AccumulateDirectLighting(lighting, aggregateLighting);
 
                 lightData = FetchLight(lightStart, min(++i, last));
