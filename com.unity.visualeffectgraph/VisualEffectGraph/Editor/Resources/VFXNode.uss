@@ -28,7 +28,17 @@ height:30;
 width:-1;
 }
 
-.VFXNodeUI.node.collapsed #title
+
+.VFXNodeUI #settings
+{
+    max-height:0;
+}
+.VFXNodeUI.expanded #settings
+{
+    max-height:10000;
+}
+
+.VFXNodeUI.node.collapsed #node-border > #title
 {
 	position-type:Relative;
 	position-left:0;
@@ -40,14 +50,13 @@ width:-1;
 	border-bottom-left-radius:2;
 	border-bottom-right-radius:2;
 }
-.VFXNodeUI.node.collapsed #title > Label {
+.VFXNodeUI.node.collapsed #node-border > #title > Label#title-label {
 	margin-top:4;
 	margin-left:20;
 	margin-right:20;
-	font-size:14;
 }
 
-.VFXNodeUI.node.collapsed .mainContainer
+.VFXNodeUI.node.collapsed .mainContainer, .VFXNodeUI.collapsed #contents, .VFXNodeUI.collapsed #contents > #top
 {
 	position-type:Absolute;
 	position-left:0;
@@ -56,13 +65,27 @@ width:-1;
 	position-bottom:0;
 }
 
-.VFXNodeUI.collapsed #input
+.VFXNodeUI.collapsed #contents > #top > #input
 {
-	position-type:Absolute;
-	position-left:0;
-	position-right:0;
-	position-top:0;
-	position-bottom:0;
+	padding-top:0;
+	padding-bottom:0;
+    background-color:rgba(0,0,0,0);
+    flex:1;
+}
+.VFXNodeUI.collapsed #contents > #top > #divider
+{
+	width:0;
+    border-right:0;
+}
+.VFXNodeUI.collapsed #contents > #top > #middle
+{
+    flex:0;
+}
+.VFXNodeUI.collapsed #contents > #top > #output
+{
+    flex-grow:1;
+    flex:1;
+    background-color:rgba(0,0,0,0);
 }
 .VFXNodeUI.node.collapsed #right #output
 {
@@ -128,15 +151,20 @@ width:-1;
 {
 	position-type:Absolute;
 	position-left:0;
-	-position-right:0;
 	width:16;
+	position-top:0;
+	position-bottom:0;
+}
+.VFXNodeUI.collapsed.node VFXOutputDataAnchor.VFXDataAnchor
+{
+	position-type:Absolute;
+	position-right:0;
+	width:-1;
 	position-top:0;
 	position-bottom:0;
 }
 .VFXNodeUI.collapsed.node .VFXDataAnchor #connector
 {
-	position-right : 5;
-	margin-top : 8;
 }
 
 

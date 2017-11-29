@@ -1,4 +1,4 @@
-.VFXContextSlotContainerUI.node.horizontal {
+.VFXContextSlotContainerUI.node {
 	background-color: #2C2C2C;
 	flex:1;
 	align-items:stretch;
@@ -7,7 +7,7 @@
 	border-color:rgba(0,0,0,0);
 }
 
-.VFXContextSlotContainerUI.node.horizontal #pane
+.VFXContextSlotContainerUI.node #pane
 {
 	border-left: 2;
 	border-top: 2;
@@ -17,12 +17,12 @@
 	flex:1;
 }
 
-VFXContextUI VFXBlockUI.VFXNodeUI.node.horizontal #title
+VFXContextUI VFXBlockUI.VFXNodeUI.node #title
 {
 	background-color:rgba(0,0,0,0);
 }
 
-.VFXContextSlotContainerUI.VFXNodeUI.node.horizontal #pane > #left
+.VFXContextSlotContainerUI.VFXNodeUI.node #pane > #left
 {
 	width:-1;
 	background-color:rgba(0,0,0,0);
@@ -33,26 +33,26 @@ VFXContextUI VFXBlockUI.VFXNodeUI.node.horizontal #title
 	margin-left:12;
 }
 
-.VFXContextSlotContainerUI.VFXNodeUI.node.horizontal #pane > #right
+.VFXContextSlotContainerUI.VFXNodeUI.node #pane > #right
 {
 	width:0;
 	visible:false;
 }
 
-.VFXContextSlotContainerUI.horizontal.node #pane > #left
+.VFXContextSlotContainerUI.node #pane > #left
 {
 	width:-1;
 	background-color: #363636;
 }
 
-.VFXContextSlotContainerUI.node.horizontal #title {
+.VFXContextSlotContainerUI.node #title {
 	flex-direction:row;
 }
-VFXBlockUI.node.horizontal #title > Label {
+VFXBlockUI.node #title > Label {
 	margin-left:0;
 }
 
-VFXBlockUI.VFXContextSlotContainerUI.node.horizontal #title Toggle
+VFXBlockUI.VFXContextSlotContainerUI.node #title Toggle
 {
 	width:16;
 	margin-top:16;
@@ -60,44 +60,44 @@ VFXBlockUI.VFXContextSlotContainerUI.node.horizontal #title Toggle
 }
 
 
-VFXBlockUI.VFXContextSlotContainerUI.node.horizontal.collapsed #title Toggle
+VFXBlockUI.VFXContextSlotContainerUI.node.collapsed #title Toggle
 {
 	margin-top:6;
 	margin-left:17;
 }
 
-VFXBlockUI.VFXContextSlotContainerUI.node.horizontal.collapsed .mainContainer
+VFXBlockUI.VFXContextSlotContainerUI.node.collapsed .mainContainer
 {
 	max-height:0;
 }
 
-VFXBlockUI.VFXNodeUI.node.horizontal.collapsed #title > Label {
+VFXBlockUI.VFXNodeUI.node.collapsed #title > Label {
 	margin-top:4;
 	margin-left:6;
 	margin-right:6;
 	font-size:14;
 }
 
-.node.horizontal.selected
+.node.selected
 {
 	border-color:#FFFFFF;
 }
 
-.VFXContextSlotContainerUI.node.horizontal #left > #title > Label {
+.VFXContextSlotContainerUI.node #left > #title > Label {
 	text-color: #c4c4c4;
 	font-style: bold;
 	text-alignment: middle-left;
 	flex: 1;
 }
-.VFXContextSlotContainerUI.node.horizontal:disabled #left > #title > Label {
+.VFXContextSlotContainerUI.node:disabled #left > #title > Label {
 	text-color: #333;
 }
 
-.VFXContextSlotContainerUI.node.horizontal:disabled {
+.VFXContextSlotContainerUI.node:disabled {
 	background-color: #F00;
 }
 
-.VFXContextSlotContainerUI.node.horizontal #left > #title > Button {
+.VFXContextSlotContainerUI.node #left > #title > Button {
 	text-color: rgb(153, 153, 153);
 	min-width:50;
 	margin-right: 6;
@@ -121,18 +121,22 @@ VFXBlockUI.VFXNodeUI.node.horizontal.collapsed #title > Label {
 	padding-bottom:3;
 }
 
-VFXBlockUI
+VFXBlockUI.node 
 {
+    margin-left:0;
+    margin-right:0;
+    margin-top:0;
+    margin-bottom:0;
 	flex-direction:row;
 }
 
-VFXBlockUI .mainContainer
+VFXBlockUI.node > #node-border
 {
-	flex-direction:row;
 	flex:1;
+    border-radius:0;
+    border-color:rgba(0,0,0,0);
 }
-VFXBlockUI .mainContainer #left
+VFXBlockUI.node > #selection-border
 {
-	width:-1;
-	flex:1;
+    border-radius:0;
 }
