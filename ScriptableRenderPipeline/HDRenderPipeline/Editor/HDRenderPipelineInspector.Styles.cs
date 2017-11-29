@@ -25,6 +25,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent spotCookieSize = new GUIContent("Spot Cookie Size");
             public readonly GUIContent pointCookieSize = new GUIContent("Point Cookie Size");
             public readonly GUIContent reflectionCubemapSize = new GUIContent("Reflection Cubemap Size");
+            public readonly GUIContent reflectionCacheCompressed = new GUIContent("Compress Reflection Probe Cache");
 
             public readonly GUIContent sssSettings = new GUIContent("Subsurface Scattering Settings");
 
