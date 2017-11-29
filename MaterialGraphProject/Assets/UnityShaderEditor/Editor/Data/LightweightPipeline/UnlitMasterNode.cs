@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph
         {
             name = "Unlit Master";
             AddSlot(new Vector3MaterialSlot(ColorSlotId, ColorSlotName, ColorSlotName, SlotType.Input, new Vector3(0.5f, 0.5f, 0.5f), ShaderStage.Fragment));
-            AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 0, ShaderStage.Fragment));
+            AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1, ShaderStage.Fragment));
 
             // clear out slot names that do not match the slots
             // we support
