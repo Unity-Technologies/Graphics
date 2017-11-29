@@ -28,9 +28,9 @@ VFXContextUI VFXBlockUI.VFXNodeUI.node #title
 	background-color:rgba(0,0,0,0);
 }
 
-.VFXContextSlotContainerUI  .propertyrm
+#settings .propertyrm
 {
-	margin-left:12;
+	margin-left:28;
 }
 
 .VFXContextSlotContainerUI.VFXNodeUI.node #pane > #right
