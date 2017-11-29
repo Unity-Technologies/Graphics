@@ -566,6 +566,61 @@ namespace UnityEditor.VFX
 
                 //Compute all eventGPU desc
                 /* WIP : Begin */
+
+                // Prerequisite : compute direct dependencies with gpu event
+                var allGPUEvent = compilableContexts.SelectMany(o => o.inputContexts).Where(o => o.contextType == VFXContextType.kSpawnerGPU).ToList();
+                var gpuEventParentSystem = allGPUEvent.Select(o => new
+                {
+                    gpuEvent = o,
+                    dependsOn = o.inputSlots.Concat(o.children.SelectMany(b => b.inputSlots))
+                        .SelectMany(s => s.LinkedSlots)
+                        .Select(b => b.owner)
+                        .OfType<VFXBlock>()
+                        .Select(b => b.GetParent().GetData() as VFXDataParticle)
+                        .Distinct()
+                        .ToArray(),
+                }).ToList();
+
+                //First, we process level 0 : every data which needed by gpu event but independent
+                var dataProcessed = new List<VFXDataParticle>();
+                var particleDataLayered = new List<List<VFXDataParticle>>();
+                particleDataLayered.Add(gpuEventParentSystem.SelectMany(o => o.dependsOn)
+                    .Where(o => !o.owners.Any(c => c.contextType == VFXContextType.kInit && c.inputContexts.Any(t => t.contextType == VFXContextType.kSpawnerGPU)))
+                    .ToList());
+                dataProcessed.AddRange(particleDataLayered[0]);
+
+                //Then, process all existing gpu event node
+                while (allGPUEvent.Count > 0)
+                {
+                    var processableLayer = allGPUEvent.Where(gpuEvent =>
+                        {
+                            var dependencies = gpuEventParentSystem.First(o => o.gpuEvent == gpuEvent).dependsOn;
+                            return dependencies.All(d => dataProcessed.Contains(d));
+                        }).ToList();
+
+                    if (processableLayer.Count == 0)
+                    {
+                        throw new InvalidOperationException("Unexpected graph of gpu event");
+                    }
+
+                    allGPUEvent.RemoveAll(o => processableLayer.Contains(o));
+                    var currentLayer = processableLayer.SelectMany(o => o.outputContexts).Select(o => o.GetData() as VFXDataParticle).Distinct().ToList();
+                    dataProcessed.AddRange(currentLayer);
+                    particleDataLayered.Add(currentLayer);
+                }
+
+                //Finally, we can add all other (scatter through depth to equalize charge, simple heuristic)
+                var allOtherIndependant = new Stack<VFXDataParticle>(compilableData.OfType<VFXDataParticle>().Except(dataProcessed));
+
+                int depth = 0;
+                while (allOtherIndependant.Count > 0)
+                {
+                    var current = allOtherIndependant.Pop();
+                    particleDataLayered[depth].Add(current);
+                    depth = (depth + 1) % particleDataLayered.Count;
+                }
+
+                //TODO use particleDataLayered
                 var allInitializeFromGPUEvent = compilableContexts.SelectMany(o => o.inputContexts).ToArray(); //dbg
                 var gpuEventBufferDictionary = new Dictionary<VFXContext, int>();
                 foreach (var initializeContext in allInitializeFromGPUEvent)
