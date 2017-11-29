@@ -350,3 +350,18 @@ void AddDecalToSurfaceData(float2 texCoords, inout SurfaceData surfaceData)
 	float4 decalNormalWS = SAMPLE_TEXTURE2D(_DBufferTexture1, sampler_DBufferTexture1, texCoords) * float4(2.0f, 2.0f, 2.0f, 1.0f) - float4(1.0f, 1.0f, 1.0f, 0.0f);
 	surfaceData.normalWS = normalize(lerp(surfaceData.normalWS, decalNormalWS.xyz, decalNormalWS.w));
 }
+
+
+void AddDecalBaseColor(float2 texCoords, inout float3 baseColor)
+{	
+	float4 decalBaseColor = SAMPLE_TEXTURE2D(_DBufferTexture0, sampler_DBufferTexture0, texCoords);
+	baseColor = lerp(baseColor, decalBaseColor.xyz, decalBaseColor.w);
+}
+
+void AddDecalNormal(float2 texCoords, inout float3 normalTS)
+{	
+	float4 decalNormalTS = SAMPLE_TEXTURE2D(_DBufferTexture1, sampler_DBufferTexture1, texCoords) * float4(2.0f, 2.0f, 2.0f, 1.0f) - float4(1.0f, 1.0f, 1.0f, 0.0f);
+	if(decalNormalTS.w > 0.0f)
+		normalTS = normalize(lerp(normalTS, decalNormalTS.xyz, decalNormalTS.w));
+	//normalTS = (lerp(normalTS, decalNormalTS.xyz, decalNormalTS.w));
+}

@@ -18,6 +18,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 	ZERO_INITIALIZE(UVMapping, texCoord);
 	ZERO_INITIALIZE(BuiltinData, builtinData);
 	texCoord.uv = positionDS.xz;
-	surfaceData.normalWS.xyz = mul((float3x3)_DecalToWorldR, SAMPLE_UVMAPPING_NORMALMAP(_NormalMap, sampler_NormalMap, texCoord, 1)) * 0.5f + 0.5f;
+	//surfaceData.normalWS.xyz = mul((float3x3)_DecalToWorldR, SAMPLE_UVMAPPING_NORMALMAP(_NormalMap, sampler_NormalMap, texCoord, 1)) * 0.5f + 0.5f;
+	surfaceData.normalWS.xyz = SAMPLE_UVMAPPING_NORMALMAP(_NormalMap, sampler_NormalMap, texCoord, 1) * 0.5f + 0.5f;
 	surfaceData.normalWS.w = surfaceData.baseColor.w;
 }

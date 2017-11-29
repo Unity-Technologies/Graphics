@@ -462,6 +462,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float3 bentNormalTS;
     float3 bentNormalWS;
     float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS, bentNormalTS);
+	AddDecalNormal(posInput.positionSS.xy, normalTS);
+	AddDecalBaseColor(posInput.positionSS.xy, surfaceData.baseColor);
     GetNormalWS(input, V, normalTS, surfaceData.normalWS);
     // Use bent normal to sample GI if available
     surfaceData.specularOcclusion = 1.0;
@@ -1573,6 +1575,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.transmittanceMask = 0.0;
 
     GetNormalWS(input, V, normalTS, surfaceData.normalWS);
+	AddDecalNormal(posInput.positionSS.xy, normalTS);
+	AddDecalBaseColor(posInput.positionSS.xy, surfaceData.baseColor);
     // Use bent normal to sample GI if available
     // If any layer use a bent normal map, then bentNormalTS contain the interpolated result of bentnormal and normalmap (in case no bent normal are available)
     // Note: the code in LitDataInternal ensure that we fallback on normal map for layer that have no bentnormal

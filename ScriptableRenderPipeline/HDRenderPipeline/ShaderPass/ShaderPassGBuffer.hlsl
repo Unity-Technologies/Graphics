@@ -42,7 +42,7 @@ void Frag(  PackedVaryingsToPS packedInput,
     SurfaceData surfaceData;
     BuiltinData builtinData;
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
-	AddDecalToSurfaceData(posInput.positionSS.xy, surfaceData);
+//	AddDecalToSurfaceData(posInput.positionSS.xy, surfaceData);
 
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
 
