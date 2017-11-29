@@ -38,6 +38,7 @@
 CBUFFER_START(UnityPerCamera)
     // Time (t = time since current level load) values from Unity
     float4 _Time; // (t/20, t, t*2, t*3)
+    float4 _LastTime; // Last frame time (t/20, t, t*2, t*3)
     float4 _SinTime; // sin(t/8), sin(t/4), sin(t/2), sin(t)
     float4 _CosTime; // cos(t/8), cos(t/4), cos(t/2), cos(t)
     float4 unity_DeltaTime; // dt, 1/dt, smoothdt, 1/smoothdt
@@ -218,6 +219,7 @@ CBUFFER_START(UnityVelocityPass)
     float4x4 unity_MatrixNonJitteredVP;
     float4x4 unity_MatrixPreviousVP;
     float4x4 unity_MatrixPreviousM;
+	float4x4 unity_MatrixPreviousMI;
     float4 unity_MotionVectorsParams;
 CBUFFER_END
 

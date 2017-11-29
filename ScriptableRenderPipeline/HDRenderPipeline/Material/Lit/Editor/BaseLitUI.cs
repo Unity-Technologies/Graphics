@@ -356,6 +356,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static public void SetupBaseLitMaterialPass(Material material)
         {
             SetupBaseUnlitMaterialPass(material);
+
+            bool windEnabled = material.GetFloat(kWindEnabled) > 0.0f;
+            bool enableVertexDisplacement = (DisplacementMode)material.GetFloat(kDisplacementMode) == DisplacementMode.Vertex;
+            
+            material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, windEnabled || enableVertexDisplacement);
+
         }
     }
 } // namespace UnityEditor
