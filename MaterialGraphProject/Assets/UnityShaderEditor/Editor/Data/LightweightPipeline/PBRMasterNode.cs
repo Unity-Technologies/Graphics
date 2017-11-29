@@ -62,6 +62,12 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
+        public bool IsSlotConnected(int slotId)
+        {
+            var slot = FindSlot<MaterialSlot>(slotId);
+            return slot != null && owner.GetEdges(slot.slotReference).Any();
+        }
+
         public sealed override void UpdateNodeAfterDeserialization()
         {
             name = "PBR Master";

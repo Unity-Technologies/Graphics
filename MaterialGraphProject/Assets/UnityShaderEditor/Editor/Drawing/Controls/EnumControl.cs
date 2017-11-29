@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         void OnValueChanged(ChangeEvent<Enum> evt)
         {
             var value = (Enum) m_PropertyInfo.GetValue(m_Node, null);
-            if (evt.newValue.Equals(value))
+            if (!evt.newValue.Equals(value))
             {
                 m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
                 m_PropertyInfo.SetValue(m_Node, evt.newValue, null);
