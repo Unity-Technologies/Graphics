@@ -1,4 +1,4 @@
-﻿#if SHADERPASS != SHADERPASS_GBUFFER
+﻿#if SHADERPASS != SHADERPASS_DBUFFER
 #error SHADERPASS_is_not_correctly_define
 #endif
 
@@ -20,10 +20,10 @@ void Frag(  PackedVaryingsToPS packedInput,
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
     // input.unPositionSS is SV_Position
     PositionInputs posInput = GetPositionInput(input.unPositionSS.xy, _ScreenSize.zw);
+
+	float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
 //    UpdatePositionInput(input.unPositionSS.z, input.unPositionSS.w, input.positionWS, posInput);
 /*
-    float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
-
     SurfaceData surfaceData;
     BuiltinData builtinData;
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
@@ -39,9 +39,14 @@ void Frag(  PackedVaryingsToPS packedInput,
 */
 	float d = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, posInput.positionSS.xy);
 	UpdatePositionInput(d, _InvViewProjMatrix, _ViewProjMatrix, posInput);
-	float3 positionWS = posInput.positionWS;
-	float3 positionDS = mul(_WorldToDecal, float4(positionWS, 1.0f)).xyz;
-	clip(positionDS < 0 ? -1 : 1);
-	clip(positionDS > 1 ? -1 : 1);
-	outDBuffer0.xyzw = float4(positionDS, 1.0f);
+
+    SurfaceData surfaceData;
+    BuiltinData builtinData;
+    GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
+	outDBuffer0 = surfaceData.baseColor;
+	outDBuffer1 = surfaceData.normalWS;
+//	outDBuffer0.xyzw = SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, positionDS.xz); // float4(positionDS, 1.0f);
+//	texCoord.uv = positionDS.xz;
+//	outDBuffer1.xyz = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, positionDS.xz).xyz; //SAMPLE_UVMAPPING_NORMALMAP(_NormalMap, sampler_NormalMap, texCoord, 1); //SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, positionDS.xz).xyz;
+//	outDBuffer1.w = outDBuffer0.w;
 }

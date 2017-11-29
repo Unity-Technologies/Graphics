@@ -275,5 +275,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _Size = Shader.PropertyToID("_Size");
         public static readonly int _Source4 = Shader.PropertyToID("_Source4");
         public static readonly int _Result1 = Shader.PropertyToID("_Result1");
+
+        public static readonly int _DBufferTexture0 = Shader.PropertyToID("_DBufferTexture0");
+        public static readonly int _DBufferTexture1 = Shader.PropertyToID("_DBufferTexture1");
     }
 }
