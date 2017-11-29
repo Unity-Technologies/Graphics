@@ -32,6 +32,11 @@ VFXFlowAnchor #connector.portHighlight #hole #cap{
     border-color: rgb(220, 220, 220);
 }
 
+VFXFlowAnchor.port.EdgeConnector
+{
+    port-color:rgb(220, 220, 220);
+}
+
 
 VFXFlowAnchor #connector{
 	position-type:absolute;

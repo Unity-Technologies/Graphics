@@ -76,21 +76,9 @@ namespace UnityEditor.VFX.UI
         StyleValue<Color> m_AnchorColor;
 
 
-        public Color anchorColor { get { return m_AnchorColor.GetSpecifiedValueOrDefault(GetPresenter<VFXDataAnchorPresenter>().direction == Direction.Input ? Color.red : Color.green); } }
         protected override void OnStyleResolved(ICustomStyle styles)
         {
             base.OnStyleResolved(styles);
-
-
-            Color prevColor = m_AnchorColor.value;
-            styles.ApplyCustomProperty(AnchorColorProperty, ref m_AnchorColor);
-            if (m_AnchorColor.value != prevColor)
-            {
-                foreach (var edge in GetAllEdges())
-                {
-                    edge.OnPortChanged(direction == Direction.Input);
-                }
-            }
         }
 
         IEnumerable<VFXDataEdge> GetAllEdges()
