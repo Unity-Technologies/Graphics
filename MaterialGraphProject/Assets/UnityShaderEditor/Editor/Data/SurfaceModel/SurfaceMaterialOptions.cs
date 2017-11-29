@@ -83,37 +83,7 @@ namespace UnityEditor.ShaderGraph
         private RenderType m_RenderType = RenderType.Opaque;
 
         [SerializeField]
-        private bool m_ShadowPass;
-
-        [SerializeField]
-        private bool m_FullForwardShadows;
-
-        [SerializeField]
-        private bool m_NoAmbient;
-
-        [SerializeField]
-        private bool m_NoVertexLights;
-
-        [SerializeField]
-        private bool m_NoLightmaps;
-
-        [SerializeField]
-        private bool m_NoDirLightmap;
-
-        [SerializeField]
-        private bool m_NoForwardAdd;
-
-        [SerializeField]
-        private bool m_ApproxView;
-
-        [SerializeField]
-        private bool m_HalfAsView;
-
-        [SerializeField]
         private int m_LOD = 200;
-
-        [SerializeField]
-        private bool m_Expanded;
 
         public void Init()
         {
@@ -124,15 +94,6 @@ namespace UnityEditor.ShaderGraph
             zWrite = ZWrite.On;
             renderQueue = RenderQueue.Geometry;
             renderType = RenderType.Opaque;
-            shadowPass = false;
-            fullForwardShadows = false;
-            noAmbient = false;
-            noVertexLights = false;
-            noLightmaps = false;
-            noDirLightmap = false;
-            noForwardAdd = false;
-            approxView = false;
-            halfAsView = false;
             lod = 200;
         }
 
@@ -193,15 +154,6 @@ namespace UnityEditor.ShaderGraph
         public ZWrite zWrite { get { return m_ZWrite; } set { m_ZWrite = value; } }
         public RenderQueue renderQueue { get { return m_RenderQueue; } set { m_RenderQueue = value; } }
         public RenderType renderType { get { return m_RenderType; } set { m_RenderType = value; } }
-        public bool shadowPass { get { return m_ShadowPass; } set { m_ShadowPass = value; } }
-        public bool fullForwardShadows { get { return m_FullForwardShadows; } set { m_FullForwardShadows = value; } }
-        public bool noAmbient { get { return m_NoAmbient; } set { m_NoAmbient = value; } }
-        public bool noVertexLights { get { return m_NoVertexLights; } set { m_NoVertexLights = value; } }
-        public bool noLightmaps { get { return m_NoLightmaps; } set { m_NoLightmaps = value; } }
-        public bool noDirLightmap { get { return m_NoDirLightmap; } set { m_NoDirLightmap = value; } }
-        public bool noForwardAdd { get { return m_NoForwardAdd; } set { m_NoForwardAdd = value; } }
-        public bool approxView { get { return m_ApproxView; } set { m_ApproxView = value; } }
-        public bool halfAsView { get { return m_HalfAsView; } set { m_HalfAsView = value; } }
         public int lod { get { return m_LOD; } set { m_LOD = value; } }
     }
 }

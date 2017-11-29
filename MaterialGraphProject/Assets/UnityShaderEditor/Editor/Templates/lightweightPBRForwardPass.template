@@ -111,7 +111,7 @@ Pass
        	Emission = Emission * Emission;
 #endif
 
-		return LightweightFragmentPBR(
+		half4 result = LightweightFragmentPBR(
 			IN.lwCustom,
 			WorldSpacePosition,
 			WorldSpaceNormal,
@@ -128,6 +128,17 @@ Pass
 			Occlusion,
 			Emission,
 			Alpha);
+
+#if _AlphaOut
+		result.a = Alpha;
+#else
+		result.a = 1;
+#endif
+
+#if _AlphaClip
+		clip(Alpha - 0.01);
+#endif
+		return result;
     }
 
 	ENDCG

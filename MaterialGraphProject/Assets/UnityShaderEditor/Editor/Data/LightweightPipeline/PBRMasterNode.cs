@@ -36,8 +36,16 @@ namespace UnityEditor.ShaderGraph
             Metallic
         }
 
+        public enum AlphaMode
+        {
+            Overwrite,
+            AlphaBlend,
+            AdditiveBlend,
+            Clip
+        }
+
         [SerializeField]
-        private Model m_Model;
+        private Model m_Model = Model.Metallic;
 
         [EnumControl("")]
         public Model model
@@ -53,6 +61,26 @@ namespace UnityEditor.ShaderGraph
                 if (onModified != null)
                 {
                     onModified(this, ModificationScope.Topological);
+                }
+            }
+        }
+
+        [SerializeField]
+        private AlphaMode m_AlphaMode;
+
+        [EnumControl("")]
+        public AlphaMode alphaMode
+        {
+            get { return m_AlphaMode; }
+            set
+            {
+                if (m_AlphaMode == value)
+                    return;
+
+                m_AlphaMode = value;
+                if (onModified != null)
+                {
+                    onModified(this, ModificationScope.Graph);
                 }
             }
         }
@@ -78,7 +106,7 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector3MaterialSlot(SpecularSlotId, SpecularSlotName, SpecularSlotName, SlotType.Input, Vector3.zero, ShaderStage.Fragment));
             AddSlot(new Vector1MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, 0.5f, ShaderStage.Fragment));
             AddSlot(new Vector1MaterialSlot(OcclusionSlotId, OcclusionSlotName, OcclusionSlotName, SlotType.Input, 1f, ShaderStage.Fragment));
-            AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 0, ShaderStage.Fragment));
+            AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1f, ShaderStage.Fragment));
 
             // clear out slot names that do not match the slots
             // we support

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -137,6 +138,38 @@ struct GraphVertexInput
             var zWriteVisitor = new ShaderGenerator();
 
             var materialOptions = new SurfaceMaterialOptions();
+            switch (masterNode.alphaMode)
+            {
+                case PBRMasterNode.AlphaMode.Overwrite:
+                case PBRMasterNode.AlphaMode.Clip:
+                    materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
+                    materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.Zero;
+                    materialOptions.cullMode = SurfaceMaterialOptions.CullMode.Back;
+                    materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
+                    materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.On;
+                    materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Geometry;
+                    materialOptions.renderType = SurfaceMaterialOptions.RenderType.Opaque;
+                    break;
+                case PBRMasterNode.AlphaMode.AlphaBlend:
+                    materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.SrcAlpha;
+                    materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
+                    materialOptions.cullMode = SurfaceMaterialOptions.CullMode.Back;
+                    materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
+                    materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
+                    materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Transparent;
+                    materialOptions.renderType = SurfaceMaterialOptions.RenderType.Transparent;
+                    break;
+                case PBRMasterNode.AlphaMode.AdditiveBlend:
+                    materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
+                    materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.One;
+                    materialOptions.cullMode = SurfaceMaterialOptions.CullMode.Back;
+                    materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
+                    materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
+                    materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Transparent;
+                    materialOptions.renderType = SurfaceMaterialOptions.RenderType.Transparent;
+                    break;
+            }
+
             materialOptions.GetTags(tagsVisitor);
             materialOptions.GetBlend(blendingVisitor);
             materialOptions.GetCull(cullingVisitor);
@@ -177,6 +210,16 @@ struct GraphVertexInput
             if (masterNode.model == PBRMasterNode.Model.Metallic)
                 defines.AddShaderChunk("#define _METALLIC_SETUP 1", true);
 
+            switch (masterNode.alphaMode)
+            {
+                case PBRMasterNode.AlphaMode.AlphaBlend:
+                case PBRMasterNode.AlphaMode.AdditiveBlend:
+                    defines.AddShaderChunk("#define _AlphaOut 1", true);
+                    break;
+                case PBRMasterNode.AlphaMode.Clip:
+                    defines.AddShaderChunk("#define _AlphaClip 1", true);
+                    break;
+            }
 
             var templateLocation = ShaderGenerator.GetTemplatePath(template);
 
@@ -215,7 +258,7 @@ struct GraphVertexInput
             subShader.AddShaderChunk("SubShader", true);
             subShader.AddShaderChunk("{", true);
             subShader.Indent();
-            subShader.AddShaderChunk("Tags{ \"RenderType\" = \"Opaque\" \"RenderPipeline\" = \"LightweightPipeline\"}", true);
+            subShader.AddShaderChunk("Tags{ \"RenderPipeline\" = \"LightweightPipeline\"}", true);
 
             subShader.AddShaderChunk(
                 GetShaderPassFromTemplate(
