@@ -178,6 +178,8 @@ public class MultiMaterialPlacerEditor : Editor
         o.transform.localRotation = Quaternion.identity;
         o.transform.localScale = Vector3.one * _placer.scale;
         o.transform.localEulerAngles = _placer.rotation;
+
+        o.gameObject.isStatic = _parent.gameObject.isStatic;
         return o;
     }
 
