@@ -63,6 +63,43 @@ namespace UnityEditor.VFX.UI
             graphView.GetPresenter<VFXViewPresenter>().AddElement(edgePresenter);
         }
 
+        bool ProviderFilter(VFXNodeProvider.Descriptor d)
+        {
+            if (!(d.modelDescriptor is VFXModelDescriptor<VFXContext>)) return false;
+
+            var desc = d.modelDescriptor as VFXModelDescriptor<VFXContext>;
+
+            if (direction == Direction.Input)
+            {
+                return VFXContext.CanLink(desc.model, this.GetPresenter<VFXFlowAnchorPresenter>().context.context);
+            }
+            else
+            {
+                return VFXContext.CanLink(this.GetPresenter<VFXFlowAnchorPresenter>().context.context, desc.model);
+            }
+        }
+
+        void AddLinkedContext(VFXNodeProvider.Descriptor d, Vector2 mPos)
+        {
+            VFXView view = GetFirstAncestorOfType<VFXView>();
+            if (view == null) return;
+            Vector2 tPos = view.ChangeCoordinatesTo(view.contentViewContainer, mPos);
+
+            VFXContext context = view.GetPresenter<VFXViewPresenter>().AddVFXContext(tPos, d.modelDescriptor as VFXModelDescriptor<VFXContext>);
+
+            if (context == null) return;
+
+
+            if (direction == Direction.Input)
+            {
+                this.GetPresenter<VFXFlowAnchorPresenter>().context.context.LinkFrom(context, 0, this.GetPresenter<VFXFlowAnchorPresenter>().slotIndex);
+            }
+            else
+            {
+                this.GetPresenter<VFXFlowAnchorPresenter>().context.context.LinkTo(context, this.GetPresenter<VFXFlowAnchorPresenter>().slotIndex, 0);
+            }
+        }
+
         void IEdgeConnectorListener.OnDropOutsidePort(Edge edge, Vector2 position)
         {
             VFXFlowAnchorPresenter presenter = GetPresenter<VFXFlowAnchorPresenter>();
@@ -117,6 +154,11 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
+            else
+            {
+                VFXFilterWindow.Show(Event.current.mousePosition, new VFXNodeProvider(AddLinkedContext, ProviderFilter, new Type[] { typeof(VFXContext)}));
+            }
+            /*
             else if (Event.current.modifiers == EventModifiers.Alt)
             {
                 VFXContextType targetContextType = VFXContextType.kNone;
@@ -168,7 +210,7 @@ namespace UnityEditor.VFX.UI
                         viewPresenter.AddElement(edgePresenter);
                     }
                 }
-            }
+            }*/
         }
     }
 }
