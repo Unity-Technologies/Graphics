@@ -20,8 +20,7 @@ namespace UnityEditor.VFX.Block
             public float DragCoefficient;
         }
 
-        [VFXSetting]
-        [Tooltip("Texture Data Layout : Actual Values, or Unsigned Normalized (Centered on Gray)")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Texture Data Layout : Actual Values, or Unsigned Normalized (Centered on Gray)")]
         public TextureDataEncoding DataEncoding = TextureDataEncoding.Signed;
 
         public override string name { get { return "Vector Field Force"; } }
