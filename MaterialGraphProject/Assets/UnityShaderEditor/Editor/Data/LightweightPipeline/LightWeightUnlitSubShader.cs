@@ -5,20 +5,15 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public class LightWeightPBRSubShader
+    public class LightWeightUnlitSubShader
     {
-        Pass m_ForwardPassMetallic = new Pass()
+        Pass m_UnlitPass = new Pass()
         {
-            Name = "LightweightForward",
+            Name = "Unlit",
             PixelShaderSlots = new List<int>()
             {
-                PBRMasterNode.AlbedoSlotId,
-                PBRMasterNode.NormalSlotId,
-                PBRMasterNode.EmissionSlotId,
-                PBRMasterNode.MetallicSlotId,
-                PBRMasterNode.SmoothnessSlotId,
-                PBRMasterNode.OcclusionSlotId,
-                PBRMasterNode.AlphaSlotId
+                UnlitMasterNode.ColorSlotId,
+                UnlitMasterNode.AlphaSlotId
             }
         };
 
@@ -29,22 +24,7 @@ namespace UnityEditor.ShaderGraph
             public List<int> PixelShaderSlots;
         }
 
-        Pass m_ForwardPassSpecular = new Pass()
-        {
-            Name = "LightweightForward",
-            PixelShaderSlots = new List<int>()
-            {
-                PBRMasterNode.AlbedoSlotId,
-                PBRMasterNode.NormalSlotId,
-                PBRMasterNode.EmissionSlotId,
-                PBRMasterNode.SpecularSlotId,
-                PBRMasterNode.SmoothnessSlotId,
-                PBRMasterNode.OcclusionSlotId,
-                PBRMasterNode.AlphaSlotId
-            }
-        };
-
-        private static string GetShaderPassFromTemplate(string template, PBRMasterNode masterNode, Pass pass, GenerationMode mode)
+        private static string GetShaderPassFromTemplate(string template, UnlitMasterNode masterNode, Pass pass, GenerationMode mode)
         {
             var surfaceVertexShader = new ShaderGenerator();
             var surfaceDescriptionFunction = new ShaderGenerator();
@@ -99,7 +79,11 @@ struct GraphVertexInput
 
             var slots = new List<MaterialSlot>();
             foreach (var id in pass.PixelShaderSlots)
-                slots.Add(masterNode.FindSlot<MaterialSlot>(id));
+            {
+                var slot = masterNode.FindSlot<MaterialSlot>(id);
+                if (slot != null)
+                    slots.Add(slot);
+            }
             AbstractMaterialGraph.GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, slots, true);
 
             var usedSlots = new List<MaterialSlot>();
@@ -168,16 +152,6 @@ struct GraphVertexInput
                 CoordinateSpace.World);
 
             ShaderGenerator defines = new ShaderGenerator();
-            defines.AddShaderChunk("#define _GLOSSYREFLECTIONS_ON", true);
-            defines.AddShaderChunk("#define _SPECULARHIGHLIGHTS_ON", true);
-
-            if (masterNode.IsSlotConnected(PBRMasterNode.NormalSlotId))
-                defines.AddShaderChunk("#define _NORMALMAP 1", true);
-
-            if (masterNode.model == PBRMasterNode.Model.Metallic)
-                defines.AddShaderChunk("#define _METALLIC_SETUP 1", true);
-
-
             var templateLocation = ShaderGenerator.GetTemplatePath(template);
 
             foreach (var slot in usedSlots)
@@ -209,7 +183,7 @@ struct GraphVertexInput
             return resultPass;
         }
 
-        public IEnumerable<string> GetSubshader(PBRMasterNode masterNode, GenerationMode mode)
+        public IEnumerable<string> GetSubshader(UnlitMasterNode masterNode, GenerationMode mode)
         {
             var subShader = new ShaderGenerator();
             subShader.AddShaderChunk("SubShader", true);
@@ -219,15 +193,11 @@ struct GraphVertexInput
 
             subShader.AddShaderChunk(
                 GetShaderPassFromTemplate(
-                    "lightweightPBRForwardPass.template",
+                    "lightweightUnlitPass.template",
                     masterNode,
-                    masterNode.model == PBRMasterNode.Model.Metallic ? m_ForwardPassMetallic : m_ForwardPassSpecular,
+                    m_UnlitPass,
                     mode),
                 true);
-
-            var extraPassesTemplateLocation = ShaderGenerator.GetTemplatePath("lightweightPBRExtraPasses.template");
-            if (File.Exists(extraPassesTemplateLocation))
-                subShader.AddShaderChunk(File.ReadAllText(extraPassesTemplateLocation), true);
 
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
