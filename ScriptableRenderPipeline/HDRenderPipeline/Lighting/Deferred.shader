@@ -48,7 +48,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             // Include
             //-------------------------------------------------------------------------------------
 
-            #include "../../Core/ShaderLibrary/Common.hlsl"
+            #include "ShaderLibrary/Common.hlsl"
             #include "../Debug/DebugDisplay.hlsl"
 
             // Note: We have fix as guidelines that we have only one deferred material (with control of GBuffer enabled). Mean a users that add a new
@@ -102,15 +102,15 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
                 // input.positionCS is SV_Position
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, uint2(input.positionCS.xy) / GetTileSize());
-                float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
+                float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.positionSS).x;
                 UpdatePositionInput(depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, posInput);
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
                 BSDFData bsdfData;
                 BakeLightingData bakeLightingData;
-                DECODE_FROM_GBUFFER(posInput.unPositionSS, MATERIAL_FEATURE_MASK_FLAGS, bsdfData, bakeLightingData.bakeDiffuseLighting);
+                DECODE_FROM_GBUFFER(posInput.positionSS, MATERIAL_FEATURE_MASK_FLAGS, bsdfData, bakeLightingData.bakeDiffuseLighting);
                 #ifdef SHADOWS_SHADOWMASK
-                DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.unPositionSS), bakeLightingData.bakeShadowMask);
+                DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.positionSS), bakeLightingData.bakeShadowMask);
                 #endif
 
                 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
@@ -120,8 +120,8 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                 LightLoop(V, posInput, preLightData, bsdfData, bakeLightingData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE, diffuseLighting, specularLighting);
 
             #ifdef VOLUMETRIC_LIGHTING_ENABLED
-                float4 volumetricLighting = GetInScatteredRadianceAndTransmittance(posInput.positionSS,
-                                                                                   posInput.depthVS,
+                float4 volumetricLighting = GetInScatteredRadianceAndTransmittance(posInput.positionNDC,
+                                                                                   posInput.linearDepth,
                                                                                    _VBufferLighting,
                                                                                    s_linear_clamp_sampler,
                                                                                    _VBufferResolutionAndScale.zw,

@@ -11,7 +11,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyBlacksmith"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 vulkan metal  // TEMP: until we go further in dev
+            #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -19,9 +19,9 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyBlacksmith"
             #pragma multi_compile _ ATMOSPHERICS_DEBUG
             #pragma multi_compile _ PERFORM_SKY_OCCLUSION_TEST
 
-            #include "../../../../Core/ShaderLibrary/Color.hlsl"
-            #include "../../../../Core/ShaderLibrary/Common.hlsl"
-            #include "../../../../Core/ShaderLibrary/CommonLighting.hlsl"
+            #include "ShaderLibrary/Color.hlsl"
+            #include "ShaderLibrary/Common.hlsl"
+            #include "ShaderLibrary/CommonLighting.hlsl"
             #include "../../../ShaderVariables.hlsl"
 
             TEXTURECUBE(_Cubemap);
@@ -74,21 +74,21 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyBlacksmith"
                 #ifdef PERFORM_SKY_OCCLUSION_TEST
                     // Determine whether the sky is occluded by the scene geometry.
                     // Do not perform blending with the environment map if the sky is occluded.
-                    float depthRaw     = max(_SkyDepth, LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).r);
-                    float skyTexWeight = (depthRaw > _SkyDepth) ? 0.0 : 1.0;
+                    float deviceDepth  = max(_SkyDepth, LOAD_TEXTURE2D(_MainDepthTexture, posInput.positionSS).r);
+                    float skyTexWeight = (deviceDepth > _SkyDepth) ? 0.0 : 1.0;
                 #else
-                    float depthRaw     = _SkyDepth;
+                    float deviceDepth  = _SkyDepth;
                     float skyTexWeight = 1.0;
                 #endif
 
                 if (_DisableSkyOcclusionTest != 0.0)
                 {
-                    depthRaw     = _SkyDepth;
+                    deviceDepth  = _SkyDepth;
                     skyTexWeight = 1.0;
                 }
 
                 // Since we only need the world space position, so we don't pass the view-projection matrix.
-                UpdatePositionInput(depthRaw, UNITY_MATRIX_I_VP, k_identity4x4, posInput);
+                UpdatePositionInput(deviceDepth, UNITY_MATRIX_I_VP, k_identity4x4, posInput);
 
                 float4 c1, c2, c3;
                 VolundTransferScatter(GetAbsolutePositionWS(posInput.positionWS), c1, c2, c3);

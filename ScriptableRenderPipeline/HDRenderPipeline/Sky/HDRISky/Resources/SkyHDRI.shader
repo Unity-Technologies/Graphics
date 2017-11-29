@@ -8,20 +8,12 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyHDRI"
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
 
-    #include "../../../../Core/ShaderLibrary/Color.hlsl"
-    #include "../../../../Core/ShaderLibrary/Common.hlsl"
-    #include "../../../../Core/ShaderLibrary/CommonLighting.hlsl"
-    #include "../../../../Core/ShaderLibrary/VolumeRendering.hlsl"
-    #include "../../../ShaderVariables.hlsl"
-
+    #include "ShaderLibrary/Color.hlsl"
+    #include "ShaderLibrary/Common.hlsl"
+    #include "ShaderLibrary/CommonLighting.hlsl"
 
     TEXTURECUBE(_Cubemap);
     SAMPLERCUBE(sampler_Cubemap);
-#ifdef VOLUMETRIC_LIGHTING_ENABLED
-    TEXTURE3D(_VBufferLighting);
-    SamplerState s_linear_clamp_sampler;
-#endif
-
 
     float4   _SkyParam; // x exposure, y multiplier, z rotation
     float4x4 _PixelCoordToViewDirWS; // Actually just 3x3, but Unity can only set 4x4
@@ -59,19 +51,6 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyHDRI"
         dir = float3(dot(rotDirX, dir), dir.y, dot(rotDirY, dir));
 
         float3 skyColor = ClampToFloat16Max(SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb * exp2(_SkyParam.x) * _SkyParam.y);
-
-    #ifdef VOLUMETRIC_LIGHTING_ENABLED
-        PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
-        float4 volumetricLighting = GetInScatteredRadianceAndTransmittance(posInput.positionSS,
-                                                                           _VBufferLighting,
-                                                                           s_linear_clamp_sampler,
-                                                                           _VBufferResolutionAndScale.zw);
-        // TODO: apply volumetrics after SSS.
-        // diffuseLighting  *= volumetricLighting.a;
-        skyColor *= volumetricLighting.a;
-        skyColor += volumetricLighting.rgb;
-    #endif
-
         return float4(skyColor, 1.0);
     }
 

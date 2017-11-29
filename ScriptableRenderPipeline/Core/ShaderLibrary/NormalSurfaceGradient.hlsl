@@ -29,7 +29,7 @@ float3 SurfaceGradientFromTBN(float2 deriv, float3 vT, float3 vB)
 float3 SurfaceGradientFromPerturbedNormal(float3 nrmVertexNormal, float3 v)
 {
     float3 n = nrmVertexNormal;
-    float s = 1.0 / max(FLT_EPSILON, abs(dot(n, v)));
+    float s = 1.0 / max(FLT_EPS, abs(dot(n, v)));
     return s * (dot(n, v) * n - v);
 }
 

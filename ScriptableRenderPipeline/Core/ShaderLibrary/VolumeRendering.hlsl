@@ -103,7 +103,7 @@ void ImportanceSamplePunctualLight(float rndVal, float3 lightPosition,
     float3 originToLight       = lightPosition - rayOrigin;
     float  originToLightProj   = dot(originToLight, rayDirection);
     float  originToLightDistSq = dot(originToLight, originToLight);
-    float  rayToLightDistSq    = max(originToLightDistSq - originToLightProj * originToLightProj, FLT_EPSILON);
+    float  rayToLightDistSq    = max(originToLightDistSq - originToLightProj * originToLightProj, FLT_EPS);
 
     float a    = tMin - originToLightProj;
     float b    = tMax - originToLightProj;
@@ -126,7 +126,7 @@ void ImportanceSamplePunctualLight(float rndVal, float3 lightPosition,
 // Absorption coefficient from Disney: http://blog.selfshadow.com/publications/s2015-shading-course/burley/s2015_pbs_disney_bsdf_notes.pdf
 float3 TransmittanceColorAtDistanceToAbsorption(float3 transmittanceColor, float atDistance)
 {
-    return -log(transmittanceColor + FLT_EPSILON) / max(atDistance, FLT_EPSILON);
+    return -log(transmittanceColor + FLT_EPS) / max(atDistance, FLT_EPS);
 }
 
 #ifndef USE_LEGACY_UNITY_SHADER_VARIABLES
@@ -143,12 +143,12 @@ float3 TransmittanceColorAtDistanceToAbsorption(float3 transmittanceColor, float
     #define VBUFFER_SLICE_COUNT 128
 #endif // PRESET_ULTRA
 
-float4 GetInScatteredRadianceAndTransmittance(float2 positionSS, float depthVS,
+float4 GetInScatteredRadianceAndTransmittance(float2 positionNDC, float linearDepth,
                                               TEXTURE3D(VBufferLighting), SAMPLER3D(linearClampSampler),
                                               float2 VBufferScale, float4 VBufferDepthEncodingParams)
 {
     int   n = VBUFFER_SLICE_COUNT;
-    float z = depthVS;
+    float z = linearDepth;
     float d = EncodeLogarithmicDepth(z, VBufferDepthEncodingParams);
 
     // We cannot use hardware trilinear interpolation since the distance between slices is log-encoded.
@@ -162,7 +162,7 @@ float4 GetInScatteredRadianceAndTransmittance(float2 positionSS, float depthVS,
     float z1 = DecodeLogarithmicDepth(d1, VBufferDepthEncodingParams);
 
     // Account for the visible area of the VBuffer.
-    float2 uv = positionSS * VBufferScale;
+    float2 uv = positionNDC * VBufferScale;
 
     // The sampler should clamp to edge.
     float4 L0 = SAMPLE_TEXTURE3D_LOD(VBufferLighting, linearClampSampler, float3(uv, d0), 0);
@@ -173,12 +173,12 @@ float4 GetInScatteredRadianceAndTransmittance(float2 positionSS, float depthVS,
 }
 
 // A version without depth - returns the value for the far plane.
-float4 GetInScatteredRadianceAndTransmittance(float2 positionSS,
+float4 GetInScatteredRadianceAndTransmittance(float2 positionNDC,
                                               TEXTURE3D(VBufferLighting), SAMPLER3D(linearClampSampler),
                                               float2 VBufferScale)
 {
     // Account for the visible area of the VBuffer.
-    float2 uv = positionSS * VBufferScale;
+    float2 uv = positionNDC * VBufferScale;
 
     // The sampler should clamp to edge.
     float4 L = SAMPLE_TEXTURE3D_LOD(VBufferLighting, linearClampSampler, float3(uv, 1), 0);

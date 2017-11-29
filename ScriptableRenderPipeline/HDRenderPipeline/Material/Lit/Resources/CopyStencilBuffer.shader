@@ -30,7 +30,7 @@ Shader "Hidden/HDRenderPipeline/CopyStencilBuffer"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #include "../../../../Core/ShaderLibrary/Packing.hlsl"
+            #include "ShaderLibrary/Packing.hlsl"
             #include "../../../ShaderVariables.hlsl"
             #include "../../../Lighting/LightDefinition.cs.hlsl"
 
@@ -58,12 +58,12 @@ Shader "Hidden/HDRenderPipeline/CopyStencilBuffer"
             [earlydepthstencil]
             float4 Frag(Varyings input) : SV_Target // use SV_StencilRef in D3D 11.3+
             {
-                uint2 positionSS = (uint2)input.positionCS.xy;
+                uint2 positionNDC = (uint2)input.positionCS.xy;
 
                 #ifdef EXPORT_HTILE
                     // There's no need for atomics as we are always writing the same value.
                     // Note: the GCN tile size is 8x8 pixels.
-                    _HTile[positionSS / 8] = _StencilRef;
+                    _HTile[positionNDC / 8] = _StencilRef;
                 #endif
 
                 return PackByte(_StencilRef);

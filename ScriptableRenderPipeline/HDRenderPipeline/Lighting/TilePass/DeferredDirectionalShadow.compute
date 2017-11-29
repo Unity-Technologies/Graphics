@@ -1,7 +1,7 @@
 ﻿// Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel DeferredDirectionalShadow
 
-#include "../../../Core/ShaderLibrary/Common.hlsl"
+#include "ShaderLibrary/Common.hlsl"
 #include "../../ShaderVariables.hlsl"
 #include "../../Lighting/Lighting.hlsl" 
 
@@ -18,7 +18,7 @@ void DeferredDirectionalShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 gro
 
     PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, tileCoord);
 
-    float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
+    float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.positionSS).x;
     UpdatePositionInput(depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, posInput);
 
     ShadowContext shadowContext = InitShadowContext();

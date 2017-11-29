@@ -8,6 +8,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         sealed class Styles
         {
             public readonly GUIContent defaults = new GUIContent("Defaults");
+            public readonly GUIContent renderPipelineResources = new GUIContent("Render Pipeline Resources", "Set of resources that need to be loaded when creating stand alone");
             public readonly GUIContent defaultDiffuseMaterial = new GUIContent("Default Diffuse Material", "Material to use when creating objects");
             public readonly GUIContent defaultShader = new GUIContent("Default Shader", "Shader to use when creating materials");
 
@@ -24,6 +25,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent spotCookieSize = new GUIContent("Spot Cookie Size");
             public readonly GUIContent pointCookieSize = new GUIContent("Point Cookie Size");
             public readonly GUIContent reflectionCubemapSize = new GUIContent("Reflection Cubemap Size");
+            public readonly GUIContent reflectionCacheCompressed = new GUIContent("Compress Reflection Probe Cache");
 
             public readonly GUIContent sssSettings = new GUIContent("Subsurface Scattering Settings");
 

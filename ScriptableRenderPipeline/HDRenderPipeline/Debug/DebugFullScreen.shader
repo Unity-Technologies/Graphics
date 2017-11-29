@@ -11,12 +11,12 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: unitl we go futher in dev
+            #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
 
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #include "../../Core/ShaderLibrary/Common.hlsl"
+            #include "ShaderLibrary/Common.hlsl"
             #include "../Debug/DebugDisplay.cs.hlsl"
             #include "../ShaderVariables.hlsl"
 

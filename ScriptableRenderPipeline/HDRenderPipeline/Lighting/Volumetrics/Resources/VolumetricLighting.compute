@@ -77,7 +77,7 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
     uint  clusterIndices[2];
     float clusterDepths[2];
     clusterIndices[0] = GetLightClusterIndex(tileCoord, z0);
-    clusterDepths[0]  = GetLightClusterMinDepthVS(tileCoord, clusterIndices[0]);
+    clusterDepths[0]  = GetLightClusterMinLinearDepth(tileCoord, clusterIndices[0]);
 #endif // LIGHTLOOP_TILE_PASS
 
     // TODO: replace 'sliceCountHack' with VBUFFER_SLICE_COUNT when the shader compiler bug is fixed.
@@ -146,7 +146,7 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
 
     #ifdef LIGHTLOOP_TILE_PASS
         clusterIndices[1] = GetLightClusterIndex(tileCoord, z1);
-        clusterDepths[1]  = GetLightClusterMinDepthVS(tileCoord, clusterIndices[1]);
+        clusterDepths[1]  = GetLightClusterMinLinearDepth(tileCoord, clusterIndices[1]);
 
         // Loop over 1 or 2 light clusters.
         for (int cluster = 0; cluster < 2; cluster++)

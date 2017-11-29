@@ -5,8 +5,8 @@
 
 #if defined(UNITY_COLORSPACE_GAMMA)
     #define LIGHTWEIGHT_GAMMA_TO_LINEAR(gammaColor) gammaColor * gammaColor
-    #define LIGHTWEIGHT_LINEAR_TO_GAMMA(linColor) sqrt(color)
-    #define OUTPUT_COLOR(color) return half4(LIGHTWEIGHT_LINEAR_TO_GAMMA(color.rgb), color.a)
+    #define LIGHTWEIGHT_LINEAR_TO_GAMMA(linColor) sqrt(linColor)
+    #define OUTPUT_COLOR(color) half4(LIGHTWEIGHT_LINEAR_TO_GAMMA(color.rgb), color.a)
 #else
     #define LIGHTWEIGHT_GAMMA_TO_LINEAR(color) color
     #define LIGHTWEIGHT_LINEAR_TO_GAMMA(color) color
