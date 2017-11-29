@@ -2,9 +2,16 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
+    public enum TextureType
+    {
+        Default,
+        Normal
+    };
+
     [Title("Input/Texture/Texture 2D")]
     public class Texture2DNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
@@ -32,6 +39,26 @@ namespace UnityEditor.ShaderGraph
         {
             name = "Texture 2D";
             UpdateNodeAfterDeserialization();
+        }
+
+        [SerializeField]
+        private TextureType m_TextureType = TextureType.Default;
+
+        [EnumControl("Type")]
+        public TextureType textureType
+        {
+            get { return m_TextureType; }
+            set
+            {
+                if (m_TextureType == value)
+                    return;
+
+                m_TextureType = value;
+                if (onModified != null)
+                {
+                    onModified(this, ModificationScope.Graph);
+                }
+            }
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -81,6 +108,10 @@ namespace UnityEditor.ShaderGraph
             }
 
             visitor.AddShaderChunk(result, true);
+
+            if (textureType == TextureType.Normal)
+                visitor.AddShaderChunk(string.Format("{0}.rgb = UnpackNormal({0});", GetVariableNameForSlot(OutputSlotRGBAId)), true);                
+
             visitor.AddShaderChunk(string.Format("{0} {1} = {2}.r;", precision, GetVariableNameForSlot(OutputSlotRId), GetVariableNameForSlot(OutputSlotRGBAId)), true);
             visitor.AddShaderChunk(string.Format("{0} {1} = {2}.g;", precision, GetVariableNameForSlot(OutputSlotGId), GetVariableNameForSlot(OutputSlotRGBAId)), true);
             visitor.AddShaderChunk(string.Format("{0} {1} = {2}.b;", precision, GetVariableNameForSlot(OutputSlotBId), GetVariableNameForSlot(OutputSlotRGBAId)), true);
