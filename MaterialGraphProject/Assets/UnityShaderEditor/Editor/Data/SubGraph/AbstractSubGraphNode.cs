@@ -65,6 +65,9 @@ namespace UnityEditor.ShaderGraph
                     case PropertyType.Texture:
                         slotType = SlotValueType.Texture2D;
                         break;
+                    case PropertyType.Cubemap:
+                        slotType = SlotValueType.Cubemap;
+                        break;
                     case PropertyType.Float:
                         slotType = SlotValueType.Vector1;
                         break;
@@ -99,6 +102,14 @@ namespace UnityEditor.ShaderGraph
                     var tProp = prop as TextureShaderProperty;
                     if (tSlot != null && tProp != null)
                         tSlot.texture = tProp.value.texture;
+                }
+                // copy default for cubemap for niceness
+                else if (slotType == SlotValueType.Cubemap && propType == PropertyType.Cubemap)
+                {
+                    var tSlot = slot as CubemapInputMaterialSlot;
+                    var tProp = prop as CubemapShaderProperty;
+                    if (tSlot != null && tProp != null)
+                        tSlot.cubemap = tProp.value.cubemap;
                 }
                 AddSlot(slot);
                 validNames.Add(id);

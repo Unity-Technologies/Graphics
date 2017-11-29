@@ -139,6 +139,10 @@ namespace UnityEditor.ShaderGraph
             {
                 return SlotValueType.Texture2D;
             }
+            if (t == typeof(Cubemap))
+            {
+                return SlotValueType.Cubemap;
+            }
             if (t == typeof(SamplerState))
             {
                 return SlotValueType.SamplerState;

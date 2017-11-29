@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         bool ValidateObject(Object obj)
         {
             return EditorUtility.IsPersistent(obj)
-                && (obj is Texture2D || obj is MaterialSubGraphAsset);
+                && (obj is Texture2D || obj is Cubemap || obj is MaterialSubGraphAsset);
         }
 
         void CreateNode(Object obj, Vector2 nodePosition)
@@ -39,6 +39,20 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_Graph.owner.RegisterCompleteObjectUndo("Drag Texture");
                 var property = new TextureShaderProperty { displayName = texture2D.name, value = { texture = texture2D } };
+                m_Graph.AddShaderProperty(property);
+                var node = new PropertyNode();
+                var drawState = node.drawState;
+                drawState.position = new Rect(nodePosition, drawState.position.size);
+                node.drawState = drawState;
+                m_Graph.AddNode(node);
+                node.propertyGuid = property.guid;
+            }
+
+            var cubemap = obj as Cubemap;
+            if (cubemap != null)
+            {
+                m_Graph.owner.RegisterCompleteObjectUndo("Drag Cubemap");
+                var property = new CubemapShaderProperty { displayName = cubemap.name, value = { cubemap = cubemap } };
                 m_Graph.AddShaderProperty(property);
                 var node = new PropertyNode();
                 var drawState = node.drawState;
