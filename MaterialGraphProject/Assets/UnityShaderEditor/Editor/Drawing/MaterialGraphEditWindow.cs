@@ -223,6 +223,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     case ConcreteSlotValueType.Texture2D:
                         prop = new TextureShaderProperty();
                         break;
+                    case ConcreteSlotValueType.Cubemap:
+                        prop = new CubemapShaderProperty();
+                        break;
                     case ConcreteSlotValueType.Vector4:
                         prop = new Vector4ShaderProperty();
                         break;
