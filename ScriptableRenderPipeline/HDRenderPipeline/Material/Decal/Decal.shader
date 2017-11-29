@@ -3,6 +3,8 @@
     Properties
     {      
         _BaseColorMap("BaseColorMap", 2D) = "white" {}     
+		_NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
+		_DecalBlend("_DecalBlend", Range(0.0, 1.0)) = 0.5
     }
 
     HLSLINCLUDE
@@ -65,6 +67,7 @@
     //-------------------------------------------------------------------------------------
     // Define
     //-------------------------------------------------------------------------------------
+	#define UNITY_MATERIAL_DECAL // Need to be define before including Material.hlsl
 /*
     #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
     // Use surface gradient normal mapping as it handle correctly triplanar normal mapping and multiple UVSet
@@ -115,13 +118,17 @@
 
             HLSLPROGRAM
 
-            #include "../../ShaderVariables.hlsl"
-			#include "OutputBuffers.hlsl"
-			#include "Decal.hlsl"
+//            #include "../../ShaderVariables.hlsl"
 //            #include "../../Material/Material.hlsl"
 //            #include "ShaderPass/LitSharePass.hlsl"
 //            #include "LitData.hlsl"
-			#include "../../ShaderPass/VaryingMesh.hlsl"
+//            #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
+
+			#define SHADERPASS SHADERPASS_DBUFFER
+            #include "../../ShaderVariables.hlsl"
+            #include "../../Material/Material.hlsl"
+			#include "ShaderPass/DecalSharePass.hlsl"
+            #include "DecalData.hlsl"
 			#include "../../ShaderPass/ShaderPassDBuffer.hlsl"
 
             ENDHLSL

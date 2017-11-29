@@ -1,3 +1,3 @@
-﻿CBUFFER_START(Decal)
-float4x4 _WorldToDecal;
-CBUFFER_END
+﻿#include "Decal.cs.hlsl"
+
+#define DBufferType0 float4

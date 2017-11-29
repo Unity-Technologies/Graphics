@@ -1,9 +1,9 @@
 ﻿using UnityEditor;
 using UnityEngine;
-namespace UnityEngine.Experimental.Rendering.HDPipeline.Decal
+namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [ExecuteInEditMode]
-    public class Decal : MonoBehaviour
+    public class DecalComponent : MonoBehaviour
     {
         public enum Kind
         {
@@ -57,7 +57,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Decal
         {
             // Create a custom game object
             GameObject go = new GameObject("Decal");
-            go.AddComponent<Decal>();
+            go.AddComponent<DecalComponent>();
             // Ensure it gets re-parented if this was a context click (otherwise does nothing)
             GameObjectUtility.SetParentAndAlign(go, menuCommand.context as GameObject);
             // Register the creation in the undo system

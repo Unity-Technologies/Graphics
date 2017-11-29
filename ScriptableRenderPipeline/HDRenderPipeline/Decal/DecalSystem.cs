@@ -2,7 +2,7 @@
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline.Decal
+namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class DecalSystem
     {
@@ -17,12 +17,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Decal
             }
         }
 
-        internal HashSet<Decal> m_DecalsDiffuse = new HashSet<Decal>();
-        internal HashSet<Decal> m_DecalsNormals = new HashSet<Decal>();
-        internal HashSet<Decal> m_DecalsBoth = new HashSet<Decal>();
+        internal HashSet<DecalComponent> m_DecalsDiffuse = new HashSet<DecalComponent>();
+        internal HashSet<DecalComponent> m_DecalsNormals = new HashSet<DecalComponent>();
+        internal HashSet<DecalComponent> m_DecalsBoth = new HashSet<DecalComponent>();
         Mesh m_CubeMesh;
 
         private static readonly int m_WorldToDecal = Shader.PropertyToID("_WorldToDecal");
+        private static readonly int m_DecalToWorldR = Shader.PropertyToID("_DecalToWorldR");
 
         public DecalSystem()
         {
@@ -64,17 +65,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Decal
             m_CubeMesh.triangles = triangles;
         }
 
-        public void AddDecal(Decal d)
+        public void AddDecal(DecalComponent d)
         {
             RemoveDecal(d);
-            if (d.m_Kind == Decal.Kind.DiffuseOnly)
+            if (d.m_Kind == DecalComponent.Kind.DiffuseOnly)
                 m_DecalsDiffuse.Add(d);
-            if (d.m_Kind == Decal.Kind.NormalsOnly)
+            if (d.m_Kind == DecalComponent.Kind.NormalsOnly)
                 m_DecalsNormals.Add(d);
-            if (d.m_Kind == Decal.Kind.Both)
+            if (d.m_Kind == DecalComponent.Kind.Both)
                 m_DecalsBoth.Add(d);
         }
-        public void RemoveDecal(Decal d)
+        public void RemoveDecal(DecalComponent d)
         {
             m_DecalsDiffuse.Remove(d);
             m_DecalsNormals.Remove(d);
@@ -97,9 +98,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Decal
 			}
             foreach (var decal in m_DecalsDiffuse)
             {              
-                Matrix4x4 final = decal.transform.localToWorldMatrix;   
+                Matrix4x4 final = decal.transform.localToWorldMatrix;
+                Matrix4x4 decalToWorldR = Matrix4x4.Rotate(decal.transform.localRotation);
                 Matrix4x4 worldToDecal = Matrix4x4.Translate(new Vector3(0.5f, 0.0f, 0.5f)) * Matrix4x4.Scale(new Vector3(1.0f, -1.0f, 1.0f)) * final.inverse;           
                 cmd.SetGlobalMatrix(m_WorldToDecal, worldToDecal * CRWStoAWS);
+                cmd.SetGlobalMatrix(m_DecalToWorldR, decalToWorldR);
                 //DrawMesh(Mesh mesh, Matrix4x4 matrix, Material material, int submeshIndex, int shaderPass);
                 cmd.DrawMesh(m_CubeMesh, final, decal.m_Material, 0, 0);
             }

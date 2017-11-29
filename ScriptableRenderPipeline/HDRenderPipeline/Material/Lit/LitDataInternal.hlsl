@@ -342,3 +342,11 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
     return alpha;
 }
+
+void AddDecalToSurfaceData(float2 texCoords, inout SurfaceData surfaceData)
+{
+	float4 decalBaseColor = SAMPLE_TEXTURE2D(_DBufferTexture0, sampler_DBufferTexture0, texCoords);
+	surfaceData.baseColor.xyz = lerp(surfaceData.baseColor.xyz, decalBaseColor.xyz, decalBaseColor.w);
+	float4 decalNormalWS = SAMPLE_TEXTURE2D(_DBufferTexture1, sampler_DBufferTexture1, texCoords) * float4(2.0f, 2.0f, 2.0f, 1.0f) - float4(1.0f, 1.0f, 1.0f, 0.0f);
+	surfaceData.normalWS = normalize(lerp(surfaceData.normalWS, decalNormalWS.xyz, decalNormalWS.w));
+}

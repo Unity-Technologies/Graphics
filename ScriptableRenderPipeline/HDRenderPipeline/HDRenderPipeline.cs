@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.Experimental.Rendering.HDPipeline.TilePass;
-using UnityEngine.Experimental.Rendering.HDPipeline.Decal;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -315,8 +315,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_GbufferManager.SetBufferDescription(gbufferIndex, "_GBufferTexture" + gbufferIndex, rtFormat[gbufferIndex], rtReadWrite[gbufferIndex]);
             }
 
-			m_DbufferManager.gbufferCount = 1;
+			m_DbufferManager.gbufferCount = 2;
             m_DbufferManager.SetBufferDescription(0, "_DBufferTexture0", RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+            m_DbufferManager.SetBufferDescription(1, "_DBufferTexture1", RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
 
             m_VelocityBuffer = HDShaderIDs._VelocityTexture;
             if (ShaderConfig.s_VelocityInGbuffer == 1)
@@ -773,6 +774,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 				CoreUtils.SetRenderTarget(cmd, m_DbufferManager.GetGBuffers(), m_CameraDepthStencilBufferRT);
                 cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, GetDepthTexture());
                 DecalSystem.instance.Render(renderContext, camera, cmd);
+                cmd.SetGlobalTexture(HDShaderIDs._DBufferTexture0, m_DbufferManager.GetGBuffers()[0]);
+                cmd.SetGlobalTexture(HDShaderIDs._DBufferTexture1, m_DbufferManager.GetGBuffers()[1]);
             }
 
             RenderGBuffer(m_CullResults, camera, renderContext, cmd);
