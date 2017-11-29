@@ -522,6 +522,7 @@ namespace UnityEditor.VFX.UI
 
             switch (contextType)
             {
+                case VFXContextType.kSpawnerGPU:
                 case VFXContextType.kSpawner: AddToClassList("spawner"); break;
                 case VFXContextType.kInit:    AddToClassList("init"); break;
                 case VFXContextType.kUpdate:  AddToClassList("update"); break;

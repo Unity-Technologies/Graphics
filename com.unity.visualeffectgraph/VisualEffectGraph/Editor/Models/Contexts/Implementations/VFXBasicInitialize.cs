@@ -1,3 +1,5 @@
+using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
 
@@ -12,6 +14,17 @@ namespace UnityEditor.VFX
         public override bool codeGeneratorCompute { get { return true; } }
         public override VFXTaskType taskType { get { return VFXTaskType.kInitialize; } }
         public override string renderLoopCommonInclude { get { return "VFXShaders/Common/VFXCommonCompute.cginc"; } }
+
+        public override IEnumerable<string> additionalDefines
+        {
+            get
+            {
+                if (inputContexts.Any(o => o.contextType == VFXContextType.kSpawnerGPU))
+                {
+                    yield return "VFX_USE_SPAWNER_FROM_GPU";
+                }
+            }
+        }
 
         public class InputProperties
         {

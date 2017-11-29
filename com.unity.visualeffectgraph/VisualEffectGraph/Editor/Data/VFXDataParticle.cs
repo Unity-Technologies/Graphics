@@ -251,7 +251,9 @@ namespace UnityEditor.VFX
             List<VFXSystemDesc> outSystemDescs,
             VFXExpressionGraph expressionGraph,
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
-            Dictionary<VFXContext, int> contextSpawnToBufferIndex)
+            Dictionary<VFXContext, int> contextSpawnToBufferIndex,
+            int eventGPUFrom,
+            int[][] eventGPUTo)
         {
             bool hasKill = IsAttributeStored(VFXAttribute.Alive);
 
@@ -259,6 +261,7 @@ namespace UnityEditor.VFX
             var attributeSourceBufferIndex = -1;
             var deadListBufferIndex = -1;
             var deadListCountIndex = -1;
+            var eventListCountIndex = -1;
 
             var systemBufferMappings = new List<VFXMapping>();
             var systemValueMappings = new List<VFXMapping>();
@@ -292,9 +295,19 @@ namespace UnityEditor.VFX
                 systemBufferMappings.Add(new VFXMapping(deadListCountIndex, "deadListCount"));
             }
 
+            if (eventGPUFrom != -1)
+            {
+                systemFlag |= VFXSystemFlag.kVFXSystemReceivedEventGPU;
+                systemBufferMappings.Add(new VFXMapping(eventGPUFrom, "eventList"));
+
+                eventListCountIndex = outBufferDescs.Count;
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Raw, size = 1 });
+                systemBufferMappings.Add(new VFXMapping(eventListCountIndex, "eventListCount"));
+            }
+
             var initContext = owners.FirstOrDefault(o => o.contextType == VFXContextType.kInit);
             if (initContext != null)
-                systemBufferMappings.AddRange(initContext.inputContexts.Select(o => new VFXMapping(contextSpawnToBufferIndex[o], "spawner_input")));
+                systemBufferMappings.AddRange(initContext.inputContexts.Where(o => o.contextType == VFXContextType.kSpawner).Select(o => new VFXMapping(contextSpawnToBufferIndex[o], "spawner_input")));
             if (owners.Count() > 0 && owners.First().contextType == VFXContextType.kInit) // TODO This test can be removed once we ensure priorly the system is valid
             {
                 var mapper = contextToCompiledData[owners.First()].cpuMapper;
@@ -316,25 +329,38 @@ namespace UnityEditor.VFX
             var bufferMappings = new List<VFXMapping>();
             var uniformMappings = new List<VFXMapping>();
 
-            foreach (var context in owners)
+            //foreach (var context in owners)
+            for (int i = 0; i < m_Owners.Count; ++i)
             {
-                //if (!contextToCompiledData.ContainsKey(context))
-                //    continue;
-
+                var context = m_Owners[i];
                 var contextData = contextToCompiledData[context];
 
                 var taskDesc = new VFXTaskDesc();
                 taskDesc.type = context.taskType;
 
                 bufferMappings.Clear();
+
+                var gpuTarget = i < eventGPUTo.Length ? eventGPUTo[i] : null;
+
                 if (attributeBufferIndex != -1)
                     bufferMappings.Add(new VFXMapping(attributeBufferIndex, "attributeBuffer"));
+                if (eventGPUFrom != -1 && context.contextType == VFXContextType.kInit)
+                    bufferMappings.Add(new VFXMapping(eventGPUFrom, "eventList"));
+                if (eventListCountIndex != -1 && context.contextType == VFXContextType.kInit)
+                    bufferMappings.Add(new VFXMapping(eventListCountIndex, "eventListCount"));
                 if (deadListBufferIndex != -1 && context.contextType != VFXContextType.kOutput)
                     bufferMappings.Add(new VFXMapping(deadListBufferIndex, context.contextType == VFXContextType.kUpdate ? "deadListOut" : "deadListIn"));
                 if (deadListCountIndex != -1 && context.contextType == VFXContextType.kInit)
                     bufferMappings.Add(new VFXMapping(deadListCountIndex, "deadListCount"));
                 if (attributeSourceBufferIndex != -1 && context.contextType == VFXContextType.kInit)
                     bufferMappings.Add(new VFXMapping(attributeSourceBufferIndex, "sourceAttributeBuffer"));
+
+                if (gpuTarget != null && gpuTarget.Length > 0)
+                {
+                    if (gpuTarget.Length != 1)
+                        throw new InvalidOperationException("Expect only one GPU target for now");
+                    bufferMappings.Add(new VFXMapping(gpuTarget[0], "eventListOut"));
+                }
 
                 uniformMappings.Clear();
                 foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.textures))

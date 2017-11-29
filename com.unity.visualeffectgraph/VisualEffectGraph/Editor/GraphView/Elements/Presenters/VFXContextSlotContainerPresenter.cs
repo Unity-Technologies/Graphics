@@ -13,14 +13,17 @@ namespace UnityEditor.VFX.UI
     {
         protected override VFXDataAnchorPresenter AddDataAnchor(VFXSlot slot, bool input)
         {
+            VFXContextDataAnchorPresenter anchorPresenter = null;
             if (input)
             {
-                VFXContextDataInputAnchorPresenter anchorPresenter = CreateInstance<VFXContextDataInputAnchorPresenter>();
-                anchorPresenter.Init(slot, this);
-
-                return anchorPresenter;
+                anchorPresenter = CreateInstance<VFXContextDataInputAnchorPresenter>();
             }
-            return null;
+            else
+            {
+                anchorPresenter = CreateInstance<VFXContextDataOutputAnchorPresenter>();
+            }
+            anchorPresenter.Init(slot, this);
+            return anchorPresenter;
         }
 
         public void Init(VFXModel model, VFXContextPresenter contextPresenter)

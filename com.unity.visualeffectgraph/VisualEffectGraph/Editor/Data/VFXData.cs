@@ -272,6 +272,8 @@ namespace UnityEditor.VFX
                     local = true;
                 if (!writtenInInit && (key & 0xAAAAAAAA) == 0) // no write mask
                     local = true;
+                if (VFXAttribute.AllAttributeLocalOnly.Contains(attribute))
+                    local = true;
 
                 if (local)
                     m_LocalCurrentAttributes.Add(attribute);

@@ -3,6 +3,7 @@ ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
 ${VFXGeneratedBlockFunction}
 
+AppendStructuredBuffer<uint> eventListOut; //Temp : cannot work with multiple event output
 AppendStructuredBuffer<uint> deadListOut;
 RWByteAddressBuffer attributeBuffer;
 
@@ -36,6 +37,13 @@ void CSMain(uint3 id : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID)
 				deadListOut.Append(index);
 				${VFXStoreAttributes:{alive}}
 			}
+			
+#if VFX_USE_EVENTCOUNT_CURRENT
+			for (uint i = 0; i < eventCount; ++i)
+			{
+				eventListOut.Append(index);
+			}
+#endif
 		}
 #else
 		${VFXLoadAttributes}

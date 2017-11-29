@@ -564,9 +564,51 @@ namespace UnityEditor.VFX
                 var eventDescs = new List<VFXEventDesc>();
                 FillEvent(eventDescs, contextSpawnToSpawnInfo, compilableContexts);
 
+                //Compute all eventGPU desc
+                /* WIP : Begin */
+                var allInitializeFromGPUEvent = compilableContexts.SelectMany(o => o.inputContexts).ToArray(); //dbg
+                var gpuEventBufferDictionary = new Dictionary<VFXContext, int>();
+                foreach (var initializeContext in allInitializeFromGPUEvent)
+                {
+                    var dataParticle = initializeContext.GetData() as VFXDataParticle;
+                    if (dataParticle != null && initializeContext.inputContexts.Any(o => o.contextType == VFXContextType.kSpawnerGPU))
+                    {
+                        var index = bufferDescs.Count;
+                        bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = dataParticle.capacity });
+
+                        gpuEventBufferDictionary.Add(initializeContext, index);
+                        gpuEventBufferDictionary.Add(initializeContext.inputContexts.First(), index); //will throw an exception if multiple initialize are connected to the same gpuEvent (or not connected)
+                    }
+                }
+
                 var contextSpawnToBufferIndex = contextSpawnToSpawnInfo.Select(o => new { o.Key, o.Value.bufferIndex }).ToDictionary(o => o.Key, o => o.bufferIndex);
                 foreach (var data in compilableData.OfType<VFXDataParticle>())
-                    data.FillDescs(bufferDescs, systemDescs, m_ExpressionGraph, contextToCompiledData, contextSpawnToBufferIndex);
+                {
+                    int gpuEventFrom = -1;
+                    var initializeContexts = data.owners.Where(o => o.contextType == VFXContextType.kInit).ToArray();
+                    if (initializeContexts.Length != 1)
+                    {
+                        throw new InvalidOperationException("Except only one initialize by system (for now at least)");
+                    }
+
+                    if (!gpuEventBufferDictionary.TryGetValue(initializeContexts[0], out gpuEventFrom))
+                    {
+                        gpuEventFrom = -1;
+                    }
+
+                    var gpuEventTo = new int[][] {};
+                    if (data.IsAttributeLocal(VFXAttribute.EventCount))
+                    {
+                        gpuEventTo = data.owners.Select(o =>
+                            {
+                                var allOutputSlot = o.children.SelectMany(b => b.outputSlots.SelectMany(c => c.LinkedSlots)).ToArray();
+                                return allOutputSlot.Select(s => gpuEventBufferDictionary[s.owner as VFXContext]).ToArray();
+                            }).ToArray();
+                    }
+
+                    data.FillDescs(bufferDescs, systemDescs, m_ExpressionGraph, contextToCompiledData, contextSpawnToBufferIndex, gpuEventFrom, gpuEventTo);
+                }
+                /* WIP : End */
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Setting up systems", 9 / nbSteps);
                 m_Graph.vfxAsset.SetSystems(systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray());

@@ -19,11 +19,12 @@ namespace UnityEditor.VFX
         kUpdate = 1 << 2,
         kOutput = 1 << 3,
         kEvent = 1 << 4,
+        kSpawnerGPU = 1 << 5,
 
         kInitAndUpdate = kInit | kUpdate,
         kInitAndUpdateAndOutput = kInit | kUpdate | kOutput,
         kUpdateAndOutput = kUpdate | kOutput,
-        kAll = kInit | kUpdate | kOutput | kSpawner,
+        kAll = kInit | kUpdate | kOutput | kSpawner | kSpawnerGPU,
     };
 
     [Flags]
