@@ -505,6 +505,9 @@ namespace UnityEditor.VFX.UI
 
                 pasteOffset = Vector2.zero; // if we change asset we want to paste exactly at the same place as the original asset the first time.
             }
+
+            // needed if some or all the selection has been deleted, so we no longer show the deleted object in the inspector.
+            SelectionUpdated();
         }
 
         public VFXDataAnchor GetDataAnchorByPresenter(VFXDataAnchorPresenter presenter)
@@ -687,6 +690,54 @@ namespace UnityEditor.VFX.UI
             VFXCopyPaste.UnserializeAndPasteElements(this, pasteOffset, data);
 
             pasteOffset += defaultPasteOffset;
+        }
+
+        const float k_MarginBetweenContexts = 30;
+        public void PushUnderContext(VFXContextUI context, float size)
+        {
+            if (size < 5) return;
+
+            HashSet<VFXContextUI> contexts = new HashSet<VFXContextUI>();
+
+            contexts.Add(context);
+
+            var flowEdges = edges.ToList().OfType<VFXFlowEdge>().ToList();
+
+            int contextCount = 0;
+
+            while (contextCount < contexts.Count())
+            {
+                contextCount = contexts.Count();
+                foreach (var flowEdge in flowEdges)
+                {
+                    VFXContextUI topContext = flowEdge.output.GetFirstAncestorOfType<VFXContextUI>();
+                    VFXContextUI bottomContext = flowEdge.input.GetFirstAncestorOfType<VFXContextUI>();
+                    if (contexts.Contains(topContext)  && !contexts.Contains(bottomContext))
+                    {
+                        float topContextBottom = topContext.layout.yMax;
+                        float newTopContextBottom = topContext.layout.yMax + size;
+                        if (topContext == context)
+                        {
+                            newTopContextBottom -= size;
+                            topContextBottom -= size;
+                        }
+                        float bottomContextTop = bottomContext.layout.yMin;
+
+                        if (topContextBottom < bottomContextTop && newTopContextBottom + k_MarginBetweenContexts > bottomContextTop)
+                        {
+                            contexts.Add(bottomContext);
+                        }
+                    }
+                }
+            }
+
+            contexts.Remove(context);
+
+            foreach (var c in contexts)
+            {
+                c.presenter.position = new Rect(c.GetPosition().min + new Vector2(0, size), c.GetPosition().size);
+                c.OnDataChanged();
+            }
         }
     }
 }
