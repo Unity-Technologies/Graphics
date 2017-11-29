@@ -85,7 +85,9 @@
 // ----------------------------------------------------------------------------
 
 #ifndef INTRINSIC_BITFIELD_EXTRACT
-// unsigned integer bit field extract implementation
+// Unsigned integer bit field extraction.
+// Note that the intrinsic itself generates a vector instruction.
+// Wrap this function with WaveReadFirstLane() to get scalar output.
 uint BitFieldExtract(uint data, uint numBits, uint offset)
 {
     uint mask = UINT_MAX >> (32u - numBits);
@@ -93,9 +95,24 @@ uint BitFieldExtract(uint data, uint numBits, uint offset)
 }
 #endif // INTRINSIC_BITFIELD_EXTRACT
 
-bool IsBitSet(uint data, uint bitPos)
+bool IsBitSet(uint data, uint offset)
 {
-    return BitFieldExtract(data, 1u, bitPos) != 0;
+    return BitFieldExtract(data, 1u, offset) != 0;
+}
+
+void SetBit(inout uint data, uint offset)
+{
+    data |= 1u << offset;
+}
+
+void ClearBit(inout uint data, uint offset)
+{
+    data &= ~(1u << offset);
+}
+
+void ToggleBit(inout uint data, uint offset)
+{
+    data ^= 1u << offset;
 }
 
 #ifndef INTRINSIC_WAVEREADFIRSTLANE
