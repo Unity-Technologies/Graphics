@@ -2091,9 +2091,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 LightingDebugSettings lightingDebug = debugDisplaySettings.lightingDebugSettings;
 
-                using (new ProfilingSample(cmd, "Tiled/cluster Lighting Debug", HDRenderPipeline.GetSampler(CustomSamplerId.TPTiledLightingDebug)))
+                if (lightingDebug.tileClusterDebug != TileSettings.TileClusterDebug.None)
                 {
-                    if (lightingDebug.tileClusterDebug != TileSettings.TileClusterDebug.None)
+                    using (new ProfilingSample(cmd, "Tiled/cluster Lighting Debug", HDRenderPipeline.GetSampler(CustomSamplerId.TPTiledLightingDebug)))
                     {
 
                         int w = hdCamera.camera.pixelWidth;
@@ -2147,42 +2147,45 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
  
-                using (new ProfilingSample(cmd, "Display Shadows", HDRenderPipeline.GetSampler(CustomSamplerId.TPDisplayShadows)))
+                if(lightingDebug.shadowDebugMode != ShadowMapDebugMode.None)
                 {
-                    if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeShadowMap)
+                    using (new ProfilingSample(cmd, "Display Shadows", HDRenderPipeline.GetSampler(CustomSamplerId.TPDisplayShadows)))
                     {
-                        int index = (int)lightingDebug.shadowMapIndex;
+                        if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeShadowMap)
+                        {
+                            int index = (int)lightingDebug.shadowMapIndex;
 
 #if UNITY_EDITOR
-                        if(lightingDebug.shadowDebugUseSelection)
-                        {
-                            index = -1;
-                            if (UnityEditor.Selection.activeObject is GameObject)
+                            if (lightingDebug.shadowDebugUseSelection)
                             {
-                                GameObject go = UnityEditor.Selection.activeObject as GameObject;
-                                Light light = go.GetComponent<Light>();
-                                if (light != null)
+                                index = -1;
+                                if (UnityEditor.Selection.activeObject is GameObject)
                                 {
-                                    index = m_ShadowMgr.GetShadowRequestIndex(light);
+                                    GameObject go = UnityEditor.Selection.activeObject as GameObject;
+                                    Light light = go.GetComponent<Light>();
+                                    if (light != null)
+                                    {
+                                        index = m_ShadowMgr.GetShadowRequestIndex(light);
+                                    }
+                                }
+                            }
+#endif
+
+                            if (index != -1)
+                            {
+                                uint faceCount = m_ShadowMgr.GetShadowRequestFaceCount((uint)index);
+                                for (uint i = 0; i < faceCount; ++i)
+                                {
+                                    m_ShadowMgr.DisplayShadow(cmd, index, i, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
+                                    HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera.camera.pixelWidth);
                                 }
                             }
                         }
-#endif
-
-                        if(index != -1)
+                        else if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeAtlas)
                         {
-                            uint faceCount = m_ShadowMgr.GetShadowRequestFaceCount((uint)index);
-                            for (uint i = 0; i < faceCount; ++i)
-                            {
-                                m_ShadowMgr.DisplayShadow(cmd, index, i, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
-                                HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera.camera.pixelWidth);
-                            }
+                            m_ShadowMgr.DisplayShadowMap(cmd, lightingDebug.shadowAtlasIndex, 0, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
+                            HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera.camera.pixelWidth);
                         }
-                    }
-                    else if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeAtlas)
-                    {
-                        m_ShadowMgr.DisplayShadowMap(cmd, lightingDebug.shadowAtlasIndex, 0, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
-                        HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera.camera.pixelWidth);
                     }
                 }
             }

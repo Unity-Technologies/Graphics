@@ -1,4 +1,4 @@
-//#define NATIVE_CODE_FOR_CMD_CONVERT_TEXTURE
+#define NATIVE_CODE_FOR_CMD_CONVERT_TEXTURE
 
 using UnityEngine;
 using System.Collections.Generic;
