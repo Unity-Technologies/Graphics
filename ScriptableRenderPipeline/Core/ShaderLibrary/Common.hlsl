@@ -442,7 +442,7 @@ struct PositionInputs
     float2 positionNDC; // Normalized screen UVs          : [0, 1) (with the half-pixel offset)
     uint2  positionSS;  // Screen space pixel coordinates : [0, NumPixels)
     uint2  tileCoord;   // Screen tile coordinates        : [0, NumTiles)
-    float  deviceDepth; // Depth from the depth buffer    : [0, 1]
+    float  deviceDepth; // Depth from the depth buffer    : [0, 1] (typically reversed)
     float  linearDepth; // View space Z coordinate        : [Near, Far]
 };
 
