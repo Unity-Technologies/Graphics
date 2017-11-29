@@ -24,7 +24,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
     public class EnumControlView : VisualElement
     {
-        GUIContent m_Label;
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;
 
@@ -34,7 +33,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             m_PropertyInfo = propertyInfo;
             if (!propertyInfo.PropertyType.IsEnum)
                 throw new ArgumentException("Property must be an enum.", "propertyInfo");
-            m_Label = new GUIContent(label ?? ObjectNames.NicifyVariableName(propertyInfo.Name));
             Add(new Label(label ?? ObjectNames.NicifyVariableName(propertyInfo.Name)));
             var enumField = new EnumField((Enum) m_PropertyInfo.GetValue(m_Node, null));
             enumField.OnValueChanged(OnValueChanged);
@@ -44,7 +42,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         void OnValueChanged(ChangeEvent<Enum> evt)
         {
             var value = (Enum) m_PropertyInfo.GetValue(m_Node, null);
-            if (evt.newValue.Equals(value))
+            if (!evt.newValue.Equals(value))
             {
                 m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
                 m_PropertyInfo.SetValue(m_Node, evt.newValue, null);
