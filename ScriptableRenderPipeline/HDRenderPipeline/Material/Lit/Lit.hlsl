@@ -401,6 +401,13 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
     bsdfData.materialId = surfaceData.materialId;
 
+    if (surfaceData.materialId != MATERIALID_LIT_ANISO)
+    {
+        // Notify the material classification system that we should not use
+        // the anisotropic GGX for forward rendering.
+        g_FeatureFlags &= ~MATERIALFEATUREFLAGS_LIT_ANISO;
+    }
+
     // IMPORTANT: In case of foward or gbuffer pass we must know what we are statically, so compiler can do compile time optimization
     if (bsdfData.materialId == MATERIALID_LIT_STANDARD)
     {
@@ -627,6 +634,34 @@ void DecodeFromGBuffer(
             bsdfData.materialId = MATERIALID_LIT_CLEAR_COAT;
     }
 
+    // We avoid divergent evaluation of the GGX, as that nearly doubles the cost.
+    // If the tile has anisotropy, all the pixels within the tile are evaluated as anisotropic.
+    if (HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
+    {
+        float  anisotropy;
+        float3 tangentWS;
+
+        if (bsdfData.materialId == MATERIALID_LIT_ANISO)
+        {
+            float metallic;
+            int octTangentSign;
+            UnpackFloatInt8bit(inGBuffer2.a, 4.0, metallic, octTangentSign);
+            inGBuffer2.r = (octTangentSign & 1) ? -inGBuffer2.r : inGBuffer2.r;
+            inGBuffer2.g = (octTangentSign & 2) ? -inGBuffer2.g : inGBuffer2.g;
+            tangentWS    = UnpackNormalOctEncode(inGBuffer2.rg);
+            anisotropy   = inGBuffer2.b * 2 - 1;
+
+            FillMaterialIdStandardData(baseColor, metallic, bsdfData);
+        }
+        else
+        {
+            anisotropy = 0;
+            tangentWS  = GetLocalFrame(bsdfData.normalWS)[0];
+        }
+
+        FillMaterialIdAnisoData(bsdfData.roughness, bsdfData.normalWS, tangentWS, anisotropy, bsdfData);
+    }
+
     if (bsdfData.materialId == MATERIALID_LIT_STANDARD && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_STANDARD))
     {
         float metallic;
@@ -652,20 +687,6 @@ void DecodeFromGBuffer(
         int   subsurfaceProfile = UnpackByte(inGBuffer2.w);
 
         FillMaterialIdSSSData(baseColor, subsurfaceProfile, subsurfaceRadius, thickness, bsdfData);
-    }
-    else if (bsdfData.materialId == MATERIALID_LIT_ANISO && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
-    {
-        float metallic;
-        int octTangentSign;
-        UnpackFloatInt8bit(inGBuffer2.a, 4.0, metallic, octTangentSign);
-        FillMaterialIdStandardData(baseColor, metallic, bsdfData);
-
-        inGBuffer2.r = (octTangentSign & 1) ? -inGBuffer2.r : inGBuffer2.r;
-        inGBuffer2.g = (octTangentSign & 2) ? -inGBuffer2.g : inGBuffer2.g;
-        float3 tangentWS = UnpackNormalOctEncode(inGBuffer2.rg);
-        float anisotropy = inGBuffer2.b * 2 - 1;
-
-        FillMaterialIdAnisoData(bsdfData.roughness, bsdfData.normalWS, tangentWS, anisotropy, bsdfData);
     }
     else if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
@@ -829,8 +850,9 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 
     float3 iblR;
 
-    // GGX aniso
-    if (bsdfData.materialId == MATERIALID_LIT_ANISO && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
+    // We avoid divergent evaluation of the GGX, as that nearly doubles the cost.
+    // If the tile has anisotropy, all the pixels within the tile are evaluated as anisotropic.
+    if (HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
     {
         preLightData.TdotV       = dot(bsdfData.tangentWS, V);
         preLightData.BdotV       = dot(bsdfData.bitangentWS, V);
@@ -849,7 +871,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
         float3 anisoIblNormalWS = GetAnisotropicModifiedNormal(grainDirWS, N, V, stretch);
         iblR = reflect(-V, anisoIblNormalWS);
     }
-    else // GGX iso
+    else
     {
         preLightData.TdotV       = 0;
         preLightData.BdotV       = 0;
@@ -1099,7 +1121,9 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 
     float DV;
 
-    if (bsdfData.materialId == MATERIALID_LIT_ANISO && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
+    // We avoid divergent evaluation of the GGX, as that nearly doubles the cost.
+    // If the tile has anisotropy, all the pixels within the tile are evaluated as anisotropic.
+    if (HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
     {
         float3 H = (L + V) * invLenLV;
         // For anisotropy we must not saturate these values
