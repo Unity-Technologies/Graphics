@@ -395,9 +395,9 @@ namespace UnityEditor.VFX
                 {
                     var refContext = associativeContext.FirstOrDefault(o => o.Key == owner);
                     if (refContext.Value == null)
-                        throw new NullReferenceException("ReproduceOwner : Unable to retrieve reference for " + owner);
+                        return null;
                     return refContext.Value;
-                }).ToList();
+                }).Where(owner => owner != null).ToList();
         }
 
         [SerializeField]

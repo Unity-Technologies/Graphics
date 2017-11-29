@@ -319,7 +319,7 @@ namespace UnityEditor.VFX.UI
 
             VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
 
-            presenter.BlocksDropped(null, after, blocksUI.Select(t => t.GetPresenter<VFXBlockPresenter>()), evt.imguiEvent.control);
+            BlocksDropped(null, after, blocksUI, evt.imguiEvent.control);
 
             DragAndDrop.AcceptDrag();
 
@@ -327,6 +327,27 @@ namespace UnityEditor.VFX.UI
             RemoveFromClassList("dropping");
 
             return EventPropagation.Stop;
+        }
+
+        public void BlocksDropped(VFXBlockPresenter blockPresenter, bool after, IEnumerable<VFXBlockUI> draggedBlocks, bool copy)
+        {
+            VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
+
+            HashSet<VFXContextUI> contexts = new HashSet<VFXContextUI>();
+            foreach (var draggedBlock in draggedBlocks)
+            {
+                contexts.Add(draggedBlock.context);
+            }
+
+            using (var growContext = new GrowContext(this))
+            {
+                presenter.BlocksDropped(blockPresenter, after, draggedBlocks.Select(t => t.GetPresenter<VFXBlockPresenter>()), copy);
+
+                foreach (var context in contexts)
+                {
+                    context.OnDataChanged();
+                }
+            }
         }
 
         EventPropagation IDropTarget.DragExited()
@@ -464,6 +485,27 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
+        class GrowContext : IDisposable
+        {
+            VFXContextUI m_Context;
+            Dictionary<VFXContextUI, float> m_PrevSizes = new Dictionary<VFXContextUI, float>();
+            float m_PrevSize;
+            public GrowContext(VFXContextUI context)
+            {
+                m_Context = context;
+                m_PrevSize = context.layout.size.y;
+            }
+
+            void IDisposable.Dispose()
+            {
+                m_Context.OnDataChanged();
+
+                (m_Context.panel as BaseVisualElementPanel).ValidateLayout();
+
+                m_Context.GetFirstAncestorOfType<VFXView>().PushUnderContext(m_Context, m_Context.layout.size.y - m_PrevSize);
+            }
+        }
+
         void AddBlock(Vector2 position, VFXModelDescriptor<VFXBlock> descriptor)
         {
             int blockIndex = -1;
@@ -478,7 +520,10 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            GetPresenter<VFXContextPresenter>().AddBlock(blockIndex, descriptor.CreateInstance());
+            using (var growContext = new GrowContext(this))
+            {
+                GetPresenter<VFXContextPresenter>().AddBlock(blockIndex, descriptor.CreateInstance());
+            }
         }
 
         public override void OnDataChanged()
