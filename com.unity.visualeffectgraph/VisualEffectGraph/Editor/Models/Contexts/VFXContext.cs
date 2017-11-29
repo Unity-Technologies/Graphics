@@ -82,6 +82,8 @@ namespace UnityEditor.VFX
 
             if (m_Data == null)
                 SetDefaultData(false);
+            else
+                m_Data.OnContextAdded(this);
 
             m_UICollapsed = false;
         }

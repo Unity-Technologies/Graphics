@@ -32,13 +32,10 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override void OnEnable()
+        /*public override void OnEnable()
         {
             base.OnEnable();
-
-            if (m_Owners == null)
-                m_Owners = new List<VFXContext>();
-        }
+        }*/
 
         public virtual bool CanBeCompiled()
         {
@@ -48,6 +45,11 @@ namespace UnityEditor.VFX
         // Never call this directly ! Only context must call this through SetData
         public void OnContextAdded(VFXContext context)
         {
+            if (context == null)
+                throw new ArgumentNullException();
+            if (m_Owners.Contains(context))
+                throw new ArgumentException(string.Format("{0} is already in the owner list of the {1}", context, this));
+
             m_Owners.Add(context);
         }
 
@@ -398,8 +400,8 @@ namespace UnityEditor.VFX
                 }).Where(owner => owner != null).ToList();
         }
 
-        [SerializeField]
-        protected List<VFXContext> m_Owners;
+        //[SerializeField]
+        protected List<VFXContext> m_Owners = new List<VFXContext>();
 
         [NonSerialized]
         protected Dictionary<VFXContext, Dictionary<VFXAttribute, VFXAttributeMode>> m_ContextsToAttributes = new Dictionary<VFXContext, Dictionary<VFXAttribute, VFXAttributeMode>>();
