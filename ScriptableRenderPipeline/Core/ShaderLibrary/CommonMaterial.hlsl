@@ -165,22 +165,18 @@ float ComputeWrappedDiffuseLighting(float NdotL, float w)
 // It can be accomplished by reading the stencil buffer.
 // A faster solution (which avoids an extra texture fetch) is to simply make sure that
 // all pixels which belong to an SSS material are not black (those that don't always are).
+// We choose the blue color channel since it's perceptually the least noticeable.
 float3 TagLightingForSSS(float3 subsurfaceLighting)
 {
-    subsurfaceLighting.r = max(subsurfaceLighting.r, HFLT_MIN);
+    subsurfaceLighting.b = max(subsurfaceLighting.b, HALF_MIN);
     return subsurfaceLighting;
 }
 
 // See TagLightingForSSS() for details.
 bool TestLightingForSSS(float3 subsurfaceLighting)
 {
-    return subsurfaceLighting.r > 0;
+    return subsurfaceLighting.b > 0;
 }
 
-// MACRO from Legacy Untiy
-// Transforms 2D UV by scale/bias property
-#define TRANSFORM_TEX(tex, name) ((tex.xy) * name##_ST.xy + name##_ST.zw)
-
-#define GET_TEXELSIZE_NAME(name) (name##_TexelSize)
 
 #endif // UNITY_COMMON_MATERIAL_INCLUDED

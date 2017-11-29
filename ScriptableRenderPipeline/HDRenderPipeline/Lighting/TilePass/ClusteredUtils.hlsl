@@ -83,7 +83,7 @@ float ClusterIdxToZ(int k, float suggestedBase)
 float SuggestLogBase50(float tileFarPlane)
 {
     const float C = (float)(1 << g_iLog2NumClusters);
-    float rangeFittedDistance = clamp((tileFarPlane - g_fNearPlane) / (g_fFarPlane - g_fNearPlane), FLT_EPSILON, 1.0);
+    float rangeFittedDistance = clamp((tileFarPlane - g_fNearPlane) / (g_fFarPlane - g_fNearPlane), FLT_EPS, 1.0);
     float suggested_base = pow((1.0 + sqrt(max(0.0, 1.0 - 4.0 * rangeFittedDistance * (1.0 - rangeFittedDistance)))) / (2.0 * rangeFittedDistance), 2.0 / C);      //
     return max(g_fClustBase, suggested_base);
 }
@@ -92,7 +92,7 @@ float SuggestLogBase50(float tileFarPlane)
 float SuggestLogBase25(float tileFarPlane)
 {
     const float C = (float)(1 << g_iLog2NumClusters);
-    float rangeFittedDistance = clamp((tileFarPlane - g_fNearPlane) / (g_fFarPlane - g_fNearPlane), FLT_EPSILON, 1.0);
+    float rangeFittedDistance = clamp((tileFarPlane - g_fNearPlane) / (g_fFarPlane - g_fNearPlane), FLT_EPS, 1.0);
     float suggested_base = pow((1 / 2.3) * max(0.0, (0.8 / rangeFittedDistance) - 1), 4.0 / (C * 2));     // approximate inverse of d*x^4 + (-x) + (1-d) = 0       - d is normalized distance
     return max(g_fClustBase, suggested_base);
 }

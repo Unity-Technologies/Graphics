@@ -18,6 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Plane[] frustumPlanes;
         public Vector4[] frustumPlaneEquations;
         public Camera camera;
+        public PostProcessRenderContext postprocessRenderContext;
 
         public Matrix4x4 viewProjMatrix
         {
@@ -70,6 +71,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             camera = cam;
             frustumPlanes = new Plane[6];
             frustumPlaneEquations = new Vector4[6];
+            postprocessRenderContext = new PostProcessRenderContext();
             Reset();
         }
 

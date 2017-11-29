@@ -381,7 +381,7 @@ Shader "HDRenderPipeline/LayeredLit"
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
-    #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_MULTIPLY _BLENDMODE_PRE_MULTIPLY
+    #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
     #pragma shader_feature _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
     #pragma shader_feature _ENABLE_FOG_ON_TRANSPARENT
 
@@ -408,8 +408,8 @@ Shader "HDRenderPipeline/LayeredLit"
     // Include
     //-------------------------------------------------------------------------------------
 
-    #include "../../../Core/ShaderLibrary/common.hlsl"
-    #include "../../../Core/ShaderLibrary/Wind.hlsl"
+    #include "ShaderLibrary/common.hlsl"
+    #include "ShaderLibrary/Wind.hlsl"
     #include "../../ShaderPass/FragInputs.hlsl"
     #include "../../ShaderPass/ShaderPass.cs.hlsl"
 
@@ -599,6 +599,8 @@ Shader "HDRenderPipeline/LayeredLit"
             ZWrite On
             ZTest LEqual
 
+            ColorMask 0
+
             HLSLPROGRAM
 
             #define SHADERPASS SHADERPASS_SHADOWS
@@ -620,6 +622,8 @@ Shader "HDRenderPipeline/LayeredLit"
             Cull[_CullMode]
 
             ZWrite On
+
+            ColorMask 0
 
             HLSLPROGRAM
 
@@ -653,7 +657,7 @@ Shader "HDRenderPipeline/LayeredLit"
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
             #define SHADERPASS SHADERPASS_FORWARD
-            #include "../../ShaderVariables.hlsl"          
+            #include "../../ShaderVariables.hlsl"
             #include "../../Lighting/Lighting.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
             #include "LayeredLitData.hlsl"

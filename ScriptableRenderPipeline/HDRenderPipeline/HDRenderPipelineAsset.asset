@@ -13,28 +13,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_RenderPipelineResources: {fileID: 11400000, guid: 42086e81f4f0c724f96f7f09cc995354,
     type: 2}
-  renderingSettings:
+  globalRenderingSettings:
     useForwardRenderingOnly: 0
     useDepthPrepassWithDeferredRendering: 0
     renderAlphaTestOnlyInDeferredPrepass: 0
+  globalTextureSettings:
+    spotCookieSize: 128
+    pointCookieSize: 512
+    reflectionCubemapSize: 128
+    reflectionCacheCompressed: 0
   sssSettings: {fileID: 11400000, guid: 873499ce7a6f749408981f512a9683f7, type: 2}
   tileSettings:
     enableTileAndCluster: 1
     enableComputeLightEvaluation: 1
     enableComputeLightVariants: 1
     enableComputeMaterialVariants: 1
-    enableClustered: 1
-    enableFptlForOpaqueWhenClustered: 1
+    enableFptlForForwardOpaque: 1
     enableBigTilePrepass: 1
-    diffuseGlobalDimmer: 1
-    specularGlobalDimmer: 1
   shadowInitParams:
     shadowAtlasWidth: 4096
     shadowAtlasHeight: 4096
-  textureSettings:
-    spotCookieSize: 128
-    pointCookieSize: 512
-    reflectionCubemapSize: 128
   m_DefaultDiffuseMaterial: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17,
     type: 2}
   m_DefaultShader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}

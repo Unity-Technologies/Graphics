@@ -15,8 +15,8 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
 
             #pragma multi_compile _ SHADOWS_SHADOWMASK
 
-            #include "../../Core/ShaderLibrary/Common.hlsl"
-            #include "../../Core/ShaderLibrary/Color.hlsl"
+            #include "ShaderLibrary/Common.hlsl"
+            #include "ShaderLibrary/Color.hlsl"
 
             // CAUTION: In case deferred lighting need to support various lighting model statically, we will require to do multicompile with different define like UNITY_MATERIAL_LIT
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
@@ -50,14 +50,14 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
             {
                 // input.positionCS is SV_Position
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
-                float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
+                float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.positionSS).x;
                 UpdatePositionInput(depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, posInput);
 
                 BSDFData bsdfData;
                 BakeLightingData bakeLightingData;
-                DECODE_FROM_GBUFFER(posInput.unPositionSS, 0xFFFFFFFF, bsdfData, bakeLightingData.bakeDiffuseLighting);
+                DECODE_FROM_GBUFFER(posInput.positionSS, UINT_MAX, bsdfData, bakeLightingData.bakeDiffuseLighting);
                 #ifdef SHADOWS_SHADOWMASK
-                DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.unPositionSS), bakeLightingData.bakeShadowMask);
+                DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.positionSS), bakeLightingData.bakeShadowMask);
                 #endif
 
                 // Init to not expected value
@@ -66,7 +66,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
 
                 if (_DebugViewMaterial == DEBUGVIEWGBUFFER_DEPTH)
                 {
-                    float linearDepth = frac(posInput.depthVS * 0.1);
+                    float linearDepth = frac(posInput.linearDepth * 0.1);
                     result = linearDepth.xxx;
                 }
                 // Caution: This value is not the same than the builtin data bakeDiffuseLighting. It also include emissive and multiply by the albedo

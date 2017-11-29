@@ -7,6 +7,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     [CustomEditor(typeof(HDRenderPipelineAsset))]
     public sealed partial class HDRenderPipelineInspector : HDBaseEditor<HDRenderPipelineAsset>
     {
+        SerializedProperty m_RenderPipelineResources;
         SerializedProperty m_DefaultDiffuseMaterial;
         SerializedProperty m_DefaultShader;
 
@@ -35,9 +36,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedProperty m_SpotCookieSize;
         SerializedProperty m_PointCookieSize;
         SerializedProperty m_ReflectionCubemapSize;
+        SerializedProperty m_ReflectionCacheCompressed;
 
         void InitializeProperties()
         {
+            m_RenderPipelineResources = properties.Find("m_RenderPipelineResources");
             m_DefaultDiffuseMaterial = properties.Find("m_DefaultDiffuseMaterial");
             m_DefaultShader = properties.Find("m_DefaultShader");
 
@@ -54,14 +57,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_ShadowAtlasHeight = properties.Find(x => x.shadowInitParams.shadowAtlasHeight);
 
             // Texture settings
-            m_SpotCookieSize = properties.Find(x => x.textureSettings.spotCookieSize);
-            m_PointCookieSize = properties.Find(x => x.textureSettings.pointCookieSize);
-            m_ReflectionCubemapSize = properties.Find(x => x.textureSettings.reflectionCubemapSize);
+            m_SpotCookieSize = properties.Find(x => x.globalTextureSettings.spotCookieSize);
+            m_PointCookieSize = properties.Find(x => x.globalTextureSettings.pointCookieSize);
+            m_ReflectionCubemapSize = properties.Find(x => x.globalTextureSettings.reflectionCubemapSize);
+            m_ReflectionCacheCompressed = properties.Find(x => x.globalTextureSettings.reflectionCacheCompressed);
 
             // Rendering settings
-            m_RenderingUseForwardOnly = properties.Find(x => x.renderingSettings.useForwardRenderingOnly);
-            m_RenderingUseDepthPrepass = properties.Find(x => x.renderingSettings.useDepthPrepassWithDeferredRendering);
-            m_RenderingUseDepthPrepassAlphaTestOnly = properties.Find(x => x.renderingSettings.renderAlphaTestOnlyInDeferredPrepass);
+            m_RenderingUseForwardOnly = properties.Find(x => x.globalRenderingSettings.useForwardRenderingOnly);
+            m_RenderingUseDepthPrepass = properties.Find(x => x.globalRenderingSettings.useDepthPrepassWithDeferredRendering);
+            m_RenderingUseDepthPrepassAlphaTestOnly = properties.Find(x => x.globalRenderingSettings.renderAlphaTestOnlyInDeferredPrepass);
 
             // Subsurface Scattering Settings
             m_SubsurfaceScatteringSettings = properties.Find(x => x.sssSettings);
@@ -179,6 +183,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(m_SpotCookieSize, s_Styles.spotCookieSize);
             EditorGUILayout.PropertyField(m_PointCookieSize, s_Styles.pointCookieSize);
             EditorGUILayout.PropertyField(m_ReflectionCubemapSize, s_Styles.reflectionCubemapSize);
+            
+            // Commented ou until we have proper realtime BC6H compression
+            //EditorGUILayout.PropertyField(m_ReflectionCacheCompressed, s_Styles.reflectionCacheCompressed);
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -205,6 +212,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUILayout.LabelField(s_Styles.defaults, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(m_RenderPipelineResources, s_Styles.renderPipelineResources);            
             EditorGUILayout.PropertyField(m_DefaultDiffuseMaterial, s_Styles.defaultDiffuseMaterial);
             EditorGUILayout.PropertyField(m_DefaultShader, s_Styles.defaultShader);
             EditorGUI.indentLevel--;

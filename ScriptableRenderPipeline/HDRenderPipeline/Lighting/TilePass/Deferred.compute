@@ -70,7 +70,7 @@
 // Include
 //-------------------------------------------------------------------------------------
 
-#include "../../../Core/ShaderLibrary/Common.hlsl"
+#include "ShaderLibrary/Common.hlsl"
 #include "../../Debug/DebugDisplay.hlsl"
 
 // Note: We have fix as guidelines that we have only one deferred material (with control of GBuffer enabled). Mean a users that add a new
@@ -126,7 +126,7 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
 
     PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, tileCoord);
 
-    float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
+    float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.positionSS).x;
 
     // For indirect case: we can still overlap inside a tile with the sky/background, reject it
     // Can't rely on stencil as we are in compute shader
@@ -141,9 +141,9 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
 
     BSDFData bsdfData;
     BakeLightingData bakeLightingData;
-    DECODE_FROM_GBUFFER(posInput.unPositionSS, featureFlags, bsdfData, bakeLightingData.bakeDiffuseLighting);
+    DECODE_FROM_GBUFFER(posInput.positionSS, featureFlags, bsdfData, bakeLightingData.bakeDiffuseLighting);
     #ifdef SHADOWS_SHADOWMASK
-    DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.unPositionSS), bakeLightingData.bakeShadowMask);
+    DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.positionSS), bakeLightingData.bakeShadowMask);
     #endif
 
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
@@ -153,8 +153,8 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     LightLoop(V, posInput, preLightData, bsdfData, bakeLightingData, featureFlags, diffuseLighting, specularLighting);
 
 #ifdef VOLUMETRIC_LIGHTING_ENABLED
-    float4 volumetricLighting = GetInScatteredRadianceAndTransmittance(posInput.positionSS,
-                                                                       posInput.depthVS,
+    float4 volumetricLighting = GetInScatteredRadianceAndTransmittance(posInput.positionNDC,
+                                                                       posInput.linearDepth,
                                                                        _VBufferLighting,
                                                                        s_linear_clamp_sampler,
                                                                        _VBufferResolutionAndScale.zw,

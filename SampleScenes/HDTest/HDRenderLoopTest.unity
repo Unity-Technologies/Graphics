@@ -23,7 +23,7 @@ RenderSettings:
   m_AmbientSkyColor: {r: 0.2, g: 0.2, b: 0.2, a: 0}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
-  m_AmbientIntensity: 1
+  m_AmbientIntensity: 0
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
   m_SkyboxMaterial: {fileID: 0}
@@ -35,10 +35,10 @@ RenderSettings:
   m_DefaultReflectionMode: 0
   m_DefaultReflectionResolution: 128
   m_ReflectionBounces: 1
-  m_ReflectionIntensity: 1
+  m_ReflectionIntensity: 0
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -517,6 +517,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -1321,6 +1322,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -1854,6 +1856,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -3016,6 +3019,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -3609,6 +3613,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -3734,6 +3739,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -4618,6 +4624,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -4925,6 +4932,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -5148,6 +5156,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -5311,6 +5320,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -6234,6 +6244,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -6401,6 +6412,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -6756,6 +6768,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -7001,6 +7014,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -7336,6 +7350,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -7788,6 +7803,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -8034,6 +8050,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -8526,6 +8543,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -8939,6 +8957,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -9130,6 +9149,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -9376,6 +9396,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -9501,6 +9522,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -9950,6 +9972,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -10075,6 +10098,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -10506,6 +10530,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -10742,6 +10767,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -11250,6 +11276,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -11375,6 +11402,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -11966,6 +11994,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -13173,6 +13202,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -13298,6 +13328,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -13958,6 +13989,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -14771,6 +14803,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -15619,6 +15652,7 @@ GameObject:
   - component: {fileID: 1828470167}
   - component: {fileID: 1828470165}
   - component: {fileID: 1828470168}
+  - component: {fileID: 1828470169}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -15676,7 +15710,7 @@ Camera:
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
-  m_HDR: 1
+  m_HDR: 0
   m_AllowMSAA: 0
   m_AllowDynamicResolution: 0
   m_ForceIntoRT: 0
@@ -15689,8 +15723,8 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1828470159}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -10}
+  m_LocalRotation: {x: -0.34097207, y: -0.14720488, z: 0.054151595, w: -0.92689615}
+  m_LocalPosition: {x: -102.840866, y: 5.4326243, z: 25.258797}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -15799,6 +15833,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   renderPipelineAsset: {fileID: 11400000, guid: 449281dd2b4fbee49b8397de0541ea3c,
     type: 2}
+--- !u!114 &1828470169
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1828470159}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23c1ce4fb46143f46bc5cb5224c934f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  renderingPath: 0
 --- !u!1 &1828745839
 GameObject:
   m_ObjectHideFlags: 0
@@ -16056,6 +16102,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -16137,6 +16184,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -16824,6 +16872,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -16951,6 +17000,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -17109,6 +17159,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -17294,6 +17345,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -17510,6 +17562,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000

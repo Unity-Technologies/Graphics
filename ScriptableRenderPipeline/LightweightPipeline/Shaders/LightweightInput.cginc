@@ -3,19 +3,6 @@
 
 #define MAX_VISIBLE_LIGHTS 16
 
-// Must match Lightweigth ShaderGraph master node
-struct SurfaceData
-{
-    half3 albedo;
-    half3 specular;
-    half  metallic;
-    half  smoothness;
-    half3 normal;
-    half3 emission;
-    half  occlusion;
-    half  alpha;
-};
-
 struct LightInput
 {
     float4 pos;

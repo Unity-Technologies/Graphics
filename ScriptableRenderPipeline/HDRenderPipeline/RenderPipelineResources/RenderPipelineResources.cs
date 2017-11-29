@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class RenderPipelineResources : ScriptableObject
     {
@@ -10,8 +10,8 @@
 
         // Lighting resources
         public Shader deferredShader;
+        public Shader combineLightingPass;
         public ComputeShader subsurfaceScatteringCS;
-        public ComputeShader volumetricLightingCS;
         public ComputeShader gaussianPyramidCS;
         public ComputeShader depthPyramidCS;
         public ComputeShader copyChannelCS;
@@ -27,6 +27,7 @@
         public ComputeShader buildMaterialFlagsShader;
         public ComputeShader deferredComputeShader;
         public ComputeShader deferredDirectionalShadowComputeShader;
+        public ComputeShader volumetricLightingCS;
 
         // SceneSettings
         // These shaders don't need to be reference by RenderPipelineResource as they are not use at runtime (only to draw in editor)
@@ -43,15 +44,5 @@
         public Shader opaqueAtmosphericScattering;
 
         public Shader skyboxCubemap;
-
-        public int applyDistortionKernel { get; private set; }
-
-        void OnEnable()
-        {
-            applyDistortionKernel = -1;
-
-            if (applyDistortionCS != null)
-                applyDistortionKernel = applyDistortionCS.FindKernel("KMain");
-        }
     }
 }

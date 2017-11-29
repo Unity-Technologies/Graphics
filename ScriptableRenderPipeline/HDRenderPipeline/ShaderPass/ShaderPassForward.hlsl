@@ -33,9 +33,9 @@ void Frag(PackedVaryingsToPS packedInput,
 {
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
-    // input.unPositionSS is SV_Position
-    PositionInputs posInput = GetPositionInput(input.unPositionSS.xy, _ScreenSize.zw, uint2(input.unPositionSS.xy) / GetTileSize());
-    UpdatePositionInput(input.unPositionSS.z, input.unPositionSS.w, input.positionWS, posInput);
+    // input.positionSS is SV_Position
+    PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, uint2(input.positionSS.xy) / GetTileSize());
+    UpdatePositionInput(input.positionSS.z, input.positionSS.w, input.positionWS, posInput);
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
 
     SurfaceData surfaceData;
@@ -71,7 +71,7 @@ void Frag(PackedVaryingsToPS packedInput,
     }
 
 #ifdef _DEPTHOFFSET_ON
-    outputDepth = posInput.depthRaw;
+    outputDepth = posInput.deviceDepth;
 #endif
 
 #ifdef DEBUG_DISPLAY

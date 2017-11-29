@@ -26,7 +26,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent alphaCutoffText = new GUIContent("Alpha Cutoff", "Threshold for alpha cutoff");
             public static GUIContent alphaCutoffShadowText = new GUIContent("Alpha Cutoff Shadow", "Threshold for alpha cutoff in case of shadow pass");
             public static GUIContent alphaCutoffPrepassText = new GUIContent("Alpha Cutoff Prepass", "Threshold for alpha cutoff in case of depth prepass");
-            public static GUIContent transparentDepthPrepassEnableText = new GUIContent("Enable transparent depth prepass", "It allow to ");
+            public static GUIContent alphaCutoffPostpassText = new GUIContent("Alpha Cutoff Postpass", "Threshold for alpha cutoff in case of depth postpass");
+            public static GUIContent transparentDepthPrepassEnableText = new GUIContent("Enable transparent depth prepass", "It allow to to fill depth buffer to improve sorting");
+            public static GUIContent transparentDepthPostpassEnableText = new GUIContent("Enable transparent depth postpass", "It allow to fill depth buffer for postprocess effect like DOF");
+            public static GUIContent transparentBackfaceEnableText = new GUIContent("Enable back then front rendering", "It allow to better sort transparent mesh by first rendering back faces then front faces in two separate drawcall");
             public static GUIContent enableTransparentFogText = new GUIContent("Enable fog", "Enable fog on transparent material");
             public static GUIContent enableBlendModePreserveSpecularLightingText = new GUIContent("Blend preserve specular lighting", "Blend mode will only affect diffuse lighting, allowing correct specular lighting (reflection) on transparent object");
 
@@ -51,12 +54,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Transparent
         }
 
-        // Enum values are hardcoded for retrocompatibility. Don't change them.
+        // Enum values are hardcoded for retro-compatibility. Don't change them.
         public enum BlendMode
         {
             Alpha = 0,
             Additive = 1,
-            Multiplicative = 3,
             PremultipliedAlpha = 4
         }
 
@@ -73,8 +75,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kAlphaCutoffShadow = "_AlphaCutoffShadow";
         protected MaterialProperty alphaCutoffPrepass = null;
         protected const string kAlphaCutoffPrepass = "_AlphaCutoffPrepass";
+        protected MaterialProperty alphaCutoffPostpass = null;
+        protected const string kAlphaCutoffPostpass = "_AlphaCutoffPostpass";
         protected MaterialProperty transparentDepthPrepassEnable = null;
         protected const string kTransparentDepthPrepassEnable = "_TransparentDepthPrepassEnable";
+        protected MaterialProperty transparentDepthPostpassEnable = null;
+        protected const string kTransparentDepthPostpassEnable = "_TransparentDepthPostpassEnable";
+        protected MaterialProperty transparentBackfaceEnable = null;
+        protected const string kTransparentBackfaceEnable = "_TransparentBackfaceEnable";
         protected MaterialProperty doubleSidedEnable = null;
         protected const string kDoubleSidedEnable = "_DoubleSidedEnable";
         protected MaterialProperty blendMode = null;
@@ -107,7 +115,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kEnableFogOnTransparent = "_EnableFogOnTransparent";
         protected MaterialProperty enableBlendModePreserveSpecularLighting = null;
         protected const string kEnableBlendModePreserveSpecularLighting = "_EnableBlendModePreserveSpecularLighting";
-        
+
 
         // See comment in LitProperties.hlsl
         const string kEmissionColor = "_EmissionColor";
@@ -133,7 +141,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             alphaCutoffShadow = FindProperty(kAlphaCutoffShadow, props, false);
             alphaCutoffPrepass = FindProperty(kAlphaCutoffPrepass, props, false);
+            alphaCutoffPostpass = FindProperty(kAlphaCutoffPostpass, props, false);
             transparentDepthPrepassEnable = FindProperty(kTransparentDepthPrepassEnable, props, false);
+            transparentDepthPostpassEnable = FindProperty(kTransparentDepthPostpassEnable, props, false);
+            transparentBackfaceEnable = FindProperty(kTransparentBackfaceEnable, props, false);
 
             doubleSidedEnable = FindProperty(kDoubleSidedEnable, props, false);
             blendMode = FindProperty(kBlendMode, props, false);
@@ -153,7 +164,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             preRefractionPass = FindProperty(kPreRefractionPass, props, false);
 
             enableFogOnTransparent = FindProperty(kEnableFogOnTransparent, props, false);
-            enableBlendModePreserveSpecularLighting = FindProperty(kEnableBlendModePreserveSpecularLighting, props, false);            
+            enableBlendModePreserveSpecularLighting = FindProperty(kEnableBlendModePreserveSpecularLighting, props, false);
         }
 
         void SurfaceTypePopup()
@@ -237,12 +248,29 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             EditorGUI.indentLevel--;
                         }
                     }
+
+                    if (transparentDepthPostpassEnable != null)
+                    {
+                        m_MaterialEditor.ShaderProperty(transparentDepthPostpassEnable, StylesBaseUnlit.transparentDepthPostpassEnableText);
+                        if (transparentDepthPostpassEnable.floatValue == 1.0f)
+                        {
+                            EditorGUI.indentLevel++;
+                            m_MaterialEditor.ShaderProperty(alphaCutoffPostpass, StylesBaseUnlit.alphaCutoffPostpassText);
+                            EditorGUI.indentLevel--;
+                        }
+                    }
                 }
                 EditorGUI.indentLevel--;
             }
+
+            if (transparentBackfaceEnable != null && ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent))
+                m_MaterialEditor.ShaderProperty(transparentBackfaceEnable, StylesBaseUnlit.transparentBackfaceEnableText);
+
             // This function must finish with double sided option (see LitUI.cs)
             if (doubleSidedEnable != null)
+            {
                 m_MaterialEditor.ShaderProperty(doubleSidedEnable, StylesBaseUnlit.doubleSidedEnableText);
+            }
 
             EditorGUI.indentLevel--;
         }
@@ -307,7 +335,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // These need to always been set either with opaque or transparent! So a users can switch to opaque and remove the keyword correctly
             SetKeyword(material, "_BLENDMODE_ALPHA", false);
             SetKeyword(material, "_BLENDMODE_ADD", false);
-            SetKeyword(material, "_BLENDMODE_MULTIPLY", false);
             SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", false);
 
             if (surfaceType == SurfaceType.Opaque)
@@ -331,7 +358,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                     SetKeyword(material, "_BLENDMODE_ALPHA", BlendMode.Alpha == blendMode);
                     SetKeyword(material, "_BLENDMODE_ADD", BlendMode.Additive == blendMode);
-                    SetKeyword(material, "_BLENDMODE_MULTIPLY", BlendMode.Multiplicative == blendMode);
                     SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", BlendMode.PremultipliedAlpha == blendMode);
 
                     switch (blendMode)
@@ -352,13 +378,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.One);
                             break;
 
-                        // Multiplicative
-                        // color: src * dst
-                        case BlendMode.Multiplicative:
-                            material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.DstColor);
-                            material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
-                            break;
-
                         // PremultipliedAlpha
                         // color: src * src_a + dst * (1 - src_a)
                         // src is supposed to have been multiplied by alpha in the texture on artists side.
@@ -369,18 +388,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     }
                 }
             }
-
-            bool doubleSidedEnable = material.HasProperty(kDoubleSidedEnable) && material.GetFloat(kDoubleSidedEnable) > 0.0f;
-            if (doubleSidedEnable)
-            {
-                material.SetInt("_CullMode", (int)UnityEngine.Rendering.CullMode.Off);
-            }
-            else
-            {
-                material.SetInt("_CullMode", (int)UnityEngine.Rendering.CullMode.Back);
-            }
-            SetKeyword(material, "_DOUBLESIDED_ON", doubleSidedEnable);
-
 
             bool fogEnabled = material.HasProperty(kEnableFogOnTransparent) && material.GetFloat(kEnableFogOnTransparent) > 0.0f && surfaceType == SurfaceType.Transparent;
             SetKeyword(material, "_ENABLE_FOG_ON_TRANSPARENT", fogEnabled);
@@ -420,6 +427,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         break;
                 }
             }
+
+            bool isBackFaceEnable = material.HasProperty(kTransparentBackfaceEnable) && material.GetFloat(kTransparentBackfaceEnable) > 0.0f && surfaceType == SurfaceType.Transparent;
+            bool doubleSidedEnable = material.HasProperty(kDoubleSidedEnable) && material.GetFloat(kDoubleSidedEnable) > 0.0f;
+
+            if (doubleSidedEnable && !isBackFaceEnable) // When backface is enable no need to disable cullmode as we render both side.
+            {
+                material.SetInt("_CullMode", (int)UnityEngine.Rendering.CullMode.Off);
+            }
+            // For both regular and backface, forward pass use backface culling
+            else
+            {
+                material.SetInt("_CullMode", (int)UnityEngine.Rendering.CullMode.Back);
+            }
+            SetKeyword(material, "_DOUBLESIDED_ON", doubleSidedEnable);
 
             // A material's GI flag internally keeps track of whether emission is enabled at all, it's enabled but has no effect
             // or is enabled and may be modified at runtime. This state depends on the values of the current flag and emissive color.
@@ -505,6 +526,36 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrepassStr, false);
                 }
             }
+
+            if (material.HasProperty(kTransparentDepthPostpassEnable))
+            {
+                bool depthWriteEnable = (material.GetFloat(kTransparentDepthPostpassEnable) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent);
+                if (depthWriteEnable)
+                {
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPostpassStr, true);
+                }
+                else
+                {
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPostpassStr, false);
+                }
+            }
+
+            if (material.HasProperty(kTransparentBackfaceEnable))
+            {
+                bool backFaceEnable = (material.GetFloat(kTransparentBackfaceEnable) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent);
+                if (backFaceEnable)
+                {
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentBackfaceStr, true);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentBackfaceDebugDisplayStr, true);
+                }
+                else
+                {
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentBackfaceStr, false);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentBackfaceDebugDisplayStr, false);
+                }
+            }
+
+
         }
 
         // Dedicated to emissive - for emissive Enlighten/PVR

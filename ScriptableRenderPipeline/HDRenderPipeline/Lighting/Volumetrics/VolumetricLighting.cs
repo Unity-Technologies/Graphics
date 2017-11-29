@@ -270,7 +270,7 @@ public partial class HDRenderPipeline : RenderPipeline
             // Compose the matrix which allows us to compute the world space view direction.
             // Compute it using the scaled resolution to account for the visible area of the VBuffer.
             Vector4   scaledRes = new Vector4(w * scale.x, h * scale.y, 1.0f / (w * scale.x), 1.0f / (h * scale.y));
-            Matrix4x4 transform = SkyManager.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, scaledRes, camera.viewMatrix, false);
+            Matrix4x4 transform = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, scaledRes, camera.viewMatrix, false);
 
             // TODO: set 'm_VolumetricLightingPreset'.
             cmd.SetComputeMatrixParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferCoordToViewDirWS, transform);
