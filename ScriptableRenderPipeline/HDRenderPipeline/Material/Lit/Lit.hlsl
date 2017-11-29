@@ -403,8 +403,10 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 
     if (surfaceData.materialId != MATERIALID_LIT_ANISO)
     {
-        // Notify the material classification system that we should not use
-        // the anisotropic GGX for forward rendering.
+        // Notify the material classification system that we should not use the anisotropic GGX for forward rendering.
+        // Forward rendering implies automatic material classification, so normally we don't use our material classification
+        // system, and set 'g_FeatureFlags' to UINT_MAX. However, since our rendering pipeline supports both forward and
+        // deferred rendering, 'g_FeatureFlags' is always available, so we can use it to control GGX evaluation.
         g_FeatureFlags &= ~MATERIALFEATUREFLAGS_LIT_ANISO;
     }
 
