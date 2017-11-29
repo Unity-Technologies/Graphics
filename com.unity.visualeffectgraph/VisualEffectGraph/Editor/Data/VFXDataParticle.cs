@@ -345,16 +345,25 @@ namespace UnityEditor.VFX
                 taskDesc.type = context.taskType;
 
                 bufferMappings.Clear();
+
                 if (attributeBufferIndex != -1)
                     bufferMappings.Add(new VFXMapping(attributeBufferIndex, "attributeBuffer"));
+
                 if (deadListBufferIndex != -1 && context.contextType != VFXContextType.kOutput)
                     bufferMappings.Add(new VFXMapping(deadListBufferIndex, context.contextType == VFXContextType.kUpdate ? "deadListOut" : "deadListIn"));
+
                 if (deadListCountIndex != -1 && context.contextType == VFXContextType.kInit)
                     bufferMappings.Add(new VFXMapping(deadListCountIndex, "deadListCount"));
+
                 if (attributeSourceBufferIndex != -1 && context.contextType == VFXContextType.kInit)
                     bufferMappings.Add(new VFXMapping(attributeSourceBufferIndex, "sourceAttributeBuffer"));
-                if (indirectBufferIndex != -1 && (context.contextType == VFXContextType.kUpdate || (context.contextType == VFXContextType.kOutput && (context as VFXAbstractParticleOutput).HasIndirectDraw())))
+
+                if (indirectBufferIndex != -1 &&
+                    (context.contextType == VFXContextType.kUpdate ||
+                     (context.contextType == VFXContextType.kOutput && (context as VFXAbstractParticleOutput).HasIndirectDraw())))
+                {
                     bufferMappings.Add(new VFXMapping(indirectBufferIndex, "indirectBuffer"));
+                }
 
                 uniformMappings.Clear();
                 foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.textures))
