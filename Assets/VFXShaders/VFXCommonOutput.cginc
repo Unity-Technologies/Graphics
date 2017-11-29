@@ -27,9 +27,9 @@ float4 VFXGetTextureColor(VFXSampler2D s,VFX_VARYING_PS_INPUTS i)
 {
     float4 texColor = 1.0f;
     #if defined(VFX_VARYING_UV)
-    texColor = SampleTexture(s,i.VFX_VARYING_UV.xy);
+    texColor = s.t.Sample(s.s,i.VFX_VARYING_UV.xy);
     #if USE_FLIPBOOK_INTERPOLATION && defined(VFX_VARYING_FRAMEBLEND)
-    float4 texColor2 = SampleTexture(s,i.VFX_VARYING_UV.zw);
+    float4 texColor2 = s.t.Sample(s.s,i.VFX_VARYING_UV.zw);
     texColor = lerp(texColor,texColor2,i.VFX_VARYING_FRAMEBLEND);
     #endif
     #endif
@@ -38,7 +38,7 @@ float4 VFXGetTextureColor(VFXSampler2D s,VFX_VARYING_PS_INPUTS i)
 
 float3 VFXGetTextureNormal(VFXSampler2D s,float2 uv)
 {
-    float4 packedNormal = SampleTexture(s,uv);
+    float4 packedNormal = s.t.Sample(s.s,uv);
     packedNormal.w *= packedNormal.x;
     float3 normal;
     normal.xy = packedNormal.wy * 2.0 - 1.0;

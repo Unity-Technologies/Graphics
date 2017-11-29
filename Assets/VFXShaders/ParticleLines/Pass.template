@@ -27,10 +27,10 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 			float3x3 rot = GetRotationMatrix(front,radians(angle));	
 			targetPosition = position;
 			
-			position += TransformInElementSpace((float3)0.0f,side,up,front,rot,pivot,size);
+			position += TransformInElementSpace((float3)0.0f,side,up,front,rot,pivot,float3(size,1.0f));
 			
 			${VFXLoadParameter:{targetOffset}}
-			targetPosition += TransformInElementSpace(targetOffset,side,up,front,rot,pivot,size);
+			targetPosition += TransformInElementSpace(targetOffset,side,up,front,rot,pivot,float3(size,1.0f));
 			#endif
 				
 			float3 vPos = id & 1 ? targetPosition : position;

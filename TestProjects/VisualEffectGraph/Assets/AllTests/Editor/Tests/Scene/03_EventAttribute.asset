@@ -4426,7 +4426,7 @@ VFXAsset:
       nameId: spawner_output
     values: []
     tasks:
-    - type: 268435460
+    - type: 268435458
       buffers: []
       values:
       - index: 58
@@ -4435,14 +4435,14 @@ VFXAsset:
         nameId: period
       params: []
       processor: {fileID: 0}
-    - type: 268435488
+    - type: 268435461
       buffers: []
       values:
       - index: 54
         nameId: color
       params: []
       processor: {fileID: 0}
-    - type: 268435488
+    - type: 268435461
       buffers: []
       values:
       - index: 55
@@ -4457,21 +4457,21 @@ VFXAsset:
       nameId: spawner_output
     values: []
     tasks:
-    - type: 268435457
+    - type: 268435456
       buffers: []
       values:
       - index: 59
         nameId: Rate
       params: []
       processor: {fileID: 0}
-    - type: 268435488
+    - type: 268435461
       buffers: []
       values:
       - index: 63
         nameId: color
       params: []
       processor: {fileID: 0}
-    - type: 268435488
+    - type: 268435461
       buffers: []
       values:
       - index: 64

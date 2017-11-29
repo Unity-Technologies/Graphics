@@ -3981,7 +3981,7 @@ VFXAsset:
       nameId: spawner_output
     values: []
     tasks:
-    - type: 268435458
+    - type: 268435457
       buffers: []
       values:
       - index: 45
