@@ -35,9 +35,9 @@ void Frag(  PackedVaryingsToPS packedInput,
 {
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
-    // input.unPositionSS is SV_Position
-    PositionInputs posInput = GetPositionInput(input.unPositionSS.xy, _ScreenSize.zw);
-    UpdatePositionInput(input.unPositionSS.z, input.unPositionSS.w, input.positionWS, posInput);
+    // input.positionSS is SV_Position
+    PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw);
+    UpdatePositionInput(input.positionSS.z, input.positionSS.w, input.positionWS, posInput);
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
 
     SurfaceData surfaceData;
@@ -50,7 +50,7 @@ void Frag(  PackedVaryingsToPS packedInput,
 
     float3 bakeDiffuseLighting = GetBakedDiffuseLigthing(surfaceData, builtinData, bsdfData, preLightData);
 
-    ENCODE_INTO_GBUFFER(surfaceData, bakeDiffuseLighting, posInput.unPositionSS, outGBuffer);
+    ENCODE_INTO_GBUFFER(surfaceData, bakeDiffuseLighting, posInput.positionSS, outGBuffer);
     ENCODE_SHADOWMASK_INTO_GBUFFER(float4(builtinData.shadowMask0, builtinData.shadowMask1, builtinData.shadowMask2, builtinData.shadowMask3), outShadowMaskBuffer);
     ENCODE_VELOCITY_INTO_GBUFFER(builtinData.velocity, outVelocityBuffer);
 

@@ -72,11 +72,11 @@ void UnpackShadowType( uint packedShadowType, out uint shadowType )
 
 // shadow sampling prototypes
 float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float4 L );
-float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float4 L, float2 unPositionSS );
+float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float4 L, float2 positionSS );
 
 // shadow sampling prototypes with screenspace info
 float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L );
-float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float2 unPositionSS );
+float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float2 positionSS );
 
 #include "ShadowSampling.hlsl"			// sampling patterns (don't modify)
 #include "ShadowAlgorithms.hlsl"		// engine default algorithms (don't modify)
@@ -87,7 +87,7 @@ float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 position
     return EvalShadow_PunctualDepth(shadowContext, positionWS, normalWS, shadowDataIndex, L);
 }
 
-float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float4 L, float2 unPositionSS )
+float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float4 L, float2 positionSS )
 {
     return GetPunctualShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L );
 }
@@ -99,7 +99,7 @@ float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 posit
     return EvalShadow_CascadedDepth_Blend( shadowContext, positionWS, normalWS, shadowDataIndex, L );
 }
 
-float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float2 unPositionSS )
+float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float2 positionSS )
 {
     return GetDirectionalShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L );
 }

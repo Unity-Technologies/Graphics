@@ -53,7 +53,7 @@ void MATERIALFLAGSGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 		if (UnpackByte(LOAD_TEXTURE2D(_StencilTexture, uCrd).r) != STENCILLIGHTINGUSAGE_NO_LIGHTING) // This test is we are the sky/background or not
 		{
 			PositionInputs posInput = GetPositionInput(uCrd, invScreenSize);
-            materialFeatureFlags |= MATERIAL_FEATURE_FLAGS_FROM_GBUFFER(posInput.unPositionSS);
+            materialFeatureFlags |= MATERIAL_FEATURE_FLAGS_FROM_GBUFFER(posInput.positionSS);
 		}
 	}
 

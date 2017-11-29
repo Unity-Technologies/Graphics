@@ -128,7 +128,7 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 {
     FragInputs output = InitializeFragInputs();
 
-    output.unPositionSS = input.positionCS; // input.positionCS is SV_Position
+    output.positionSS = input.positionCS; // input.positionCS is SV_Position
 
 #ifdef VARYINGS_NEED_POSITION_WS
     output.positionWS.xyz = input.interpolators0.xyz;
