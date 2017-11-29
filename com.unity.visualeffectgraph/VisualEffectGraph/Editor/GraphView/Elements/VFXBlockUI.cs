@@ -107,14 +107,13 @@ namespace UnityEditor.VFX.UI
             Vector2 pos = evt.imguiEvent.mousePosition;
 
             IEnumerable<VFXBlockUI> draggedBlocksUI = selection.Select(t => t as VFXBlockUI).Where(t => t != null);
-            IEnumerable<VFXBlockPresenter> draggedBlocks = draggedBlocksUI.Select(t => t.GetPresenter<VFXBlockPresenter>());
 
             VFXBlockPresenter blockPresenter = GetPresenter<VFXBlockPresenter>();
             VFXContextPresenter contextPresenter = blockPresenter.contextPresenter;
 
             if (context.CanDrop(draggedBlocksUI, this))
             {
-                contextPresenter.BlocksDropped(blockPresenter, pos.y > layout.height / 2, draggedBlocks, evt.imguiEvent.control);
+                context.BlocksDropped(blockPresenter, pos.y > layout.height / 2, draggedBlocksUI, evt.imguiEvent.control);
                 DragAndDrop.AcceptDrag();
             }
             else

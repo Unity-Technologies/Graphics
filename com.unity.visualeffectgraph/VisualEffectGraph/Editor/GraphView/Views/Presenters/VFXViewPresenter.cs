@@ -12,7 +12,7 @@ namespace UnityEditor.VFX.UI
     [Serializable]
     internal partial class VFXViewPresenter : GraphViewPresenter
     {
-        public int m_UseCount;
+        private int m_UseCount;
         public int useCount
         {
             get { return m_UseCount; }

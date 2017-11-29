@@ -45,8 +45,13 @@ namespace UnityEditor.VFX.UI
             public string name;
         }
 
-        public VFXNodeProvider(Action<Descriptor, Vector2> onAddBlock) : base(onAddBlock)
+        Func<Descriptor, bool> m_Filter;
+        IEnumerable<Type> m_AcceptedTypes;
+
+        public VFXNodeProvider(Action<Descriptor, Vector2> onAddBlock, Func<Descriptor, bool> filter = null, IEnumerable<Type> acceptedTypes = null) : base(onAddBlock)
         {
+            m_Filter = filter;
+            m_AcceptedTypes = acceptedTypes;
         }
 
         protected override string GetCategory(Descriptor desc)
@@ -57,6 +62,25 @@ namespace UnityEditor.VFX.UI
         protected override string GetName(Descriptor desc)
         {
             return desc.name;
+        }
+
+        string ComputeCategory<T>(string type, VFXModelDescriptor<T> model) where T : VFXModel
+        {
+            if (model.info != null && model.info.category != null)
+            {
+                if (m_AcceptedTypes != null && m_AcceptedTypes.Count() == 1)
+                {
+                    return model.info.category;
+                }
+                else
+                {
+                    return string.Format("{0}/{1}", type, model.info.category);
+                }
+            }
+            else
+            {
+                return type;
+            }
         }
 
         protected override IEnumerable<Descriptor> GetDescriptors()
@@ -72,7 +96,7 @@ namespace UnityEditor.VFX.UI
                     return new Descriptor()
                     {
                         modelDescriptor = o,
-                        category = "Context/" + o.info.category,
+                        category = ComputeCategory("Context", o),
                         name = o.name
                     };
                 }).OrderBy(o => o.category + o.name);
@@ -82,7 +106,7 @@ namespace UnityEditor.VFX.UI
                     return new Descriptor()
                     {
                         modelDescriptor = o,
-                        category = "Operator/" + o.info.category,
+                        category = ComputeCategory("Operator", o),
                         name = o.name
                     };
                 }).OrderBy(o => o.category + o.name);
@@ -92,14 +116,34 @@ namespace UnityEditor.VFX.UI
                     return new Descriptor()
                     {
                         modelDescriptor = o,
-                        category = "Parameter/",
+                        category = ComputeCategory("Parameter", o),
                         name = o.name
                     };
                 }).OrderBy(o => o.category + o.name);
 
-            return descriptorsContext.Concat(descriptorsOperator)
-                .Concat(descriptorParameter)
-                .Concat(Enumerable.Repeat(systemDesc, 1));
+            IEnumerable<Descriptor> descs = Enumerable.Empty<Descriptor>();
+
+            if (m_AcceptedTypes == null || m_AcceptedTypes.Contains(typeof(VFXContext)))
+            {
+                descs = descs.Concat(descriptorsContext);
+            }
+            if (m_AcceptedTypes == null || m_AcceptedTypes.Contains(typeof(VFXOperator)))
+            {
+                descs = descs.Concat(descriptorsOperator);
+            }
+            if (m_AcceptedTypes == null || m_AcceptedTypes.Contains(typeof(VFXParameter)))
+            {
+                descs = descs.Concat(descriptorParameter);
+            }
+            if (m_AcceptedTypes == null)
+            {
+                descs = descs.Concat(Enumerable.Repeat(systemDesc, 1));
+            }
+
+            if (m_Filter == null)
+                return descs;
+            else
+                return descs.Where(t => m_Filter(t));
         }
     }
 
@@ -107,6 +151,33 @@ namespace UnityEditor.VFX.UI
     class VFXView : GraphView, IParameterDropTarget
     {
         VisualElement m_NoAssetLabel;
+
+
+        public VFXModel AddNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
+        {
+            Vector2 tPos = this.ChangeCoordinatesTo(contentViewContainer, mPos);
+            if (d.modelDescriptor is VFXModelDescriptor<VFXOperator>)
+            {
+                return AddVFXOperator(tPos, (d.modelDescriptor as VFXModelDescriptor<VFXOperator>));
+            }
+            else if (d.modelDescriptor is VFXModelDescriptor<VFXContext>)
+            {
+                return AddVFXContext(tPos, d.modelDescriptor as VFXModelDescriptor<VFXContext>);
+            }
+            else if (d.modelDescriptor is VFXModelDescriptorParameters)
+            {
+                return AddVFXParameter(tPos, d.modelDescriptor as VFXModelDescriptorParameters);
+            }
+            else if (d.modelDescriptor == null)
+            {
+                CreateTemplateSystem(tPos);
+            }
+            else
+            {
+                Debug.LogErrorFormat("Add unknown presenter : {0}", d.modelDescriptor.GetType());
+            }
+            return null;
+        }
 
         public VFXView()
         {
@@ -124,46 +195,7 @@ namespace UnityEditor.VFX.UI
             var bg = new GridBackground() { name = "VFXBackgroundGrid" };
             Insert(0, bg);
 
-            this.AddManipulator(new FilterPopup(new VFXNodeProvider((d, mPos) =>
-                {
-                    Vector2 tPos = this.ChangeCoordinatesTo(contentViewContainer, mPos);
-                    if (d.modelDescriptor is VFXModelDescriptor<VFXOperator>)
-                    {
-                        AddVFXOperator(tPos, (d.modelDescriptor as VFXModelDescriptor<VFXOperator>));
-                    }
-                    else if (d.modelDescriptor is VFXModelDescriptor<VFXContext>)
-                    {
-                        AddVFXContext(tPos, d.modelDescriptor as VFXModelDescriptor<VFXContext>);
-                    }
-                    else if (d.modelDescriptor is VFXModelDescriptorParameters)
-                    {
-                        AddVFXParameter(tPos, d.modelDescriptor as VFXModelDescriptorParameters);
-                    }
-                    else if (d.modelDescriptor == null)
-                    {
-                        /*
-                        VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
-                        if (presenter != null)
-                        {
-                            var contexts = VFXLibrary.GetContexts().ToArray();
-                            var spawnerDesc = contexts.FirstOrDefault(t => t.name == "Spawner");
-                            var spawner = presenter.AddVFXContext(tPos, spawnerDesc);
-                            var initialize = presenter.AddVFXContext(tPos + new Vector2(0, 200), contexts.FirstOrDefault(t => t.name == "Initialize"));
-                            var update = presenter.AddVFXContext(tPos + new Vector2(0, 400), contexts.FirstOrDefault(t => t.name == "Update"));
-                            var output = presenter.AddVFXContext(tPos + new Vector2(0, 600), contexts.FirstOrDefault(t => t.name == "Point Output"));
-
-                            spawner.LinkTo(initialize);
-                            initialize.LinkTo(update);
-                            update.LinkTo(output);
-                        }*/
-
-                        CreateTemplateSystem(tPos);
-                    }
-                    else
-                    {
-                        Debug.LogErrorFormat("Add unknown presenter : {0}", d.modelDescriptor.GetType());
-                    }
-                }), null));
+            this.AddManipulator(new FilterPopup(new VFXNodeProvider((d, mPos) => AddNode(d, mPos)), null));
 
             typeFactory[typeof(VFXParameterPresenter)] = typeof(VFXParameterUI);
             typeFactory[typeof(VFXOperatorPresenter)] = typeof(VFXOperatorUI);
@@ -334,22 +366,22 @@ namespace UnityEditor.VFX.UI
             graph.RecompileIfNeeded();
         }
 
-        void AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
+        VFXContext AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
         {
-            if (presenter == null) return;
-            GetPresenter<VFXViewPresenter>().AddVFXContext(pos, desc);
+            if (presenter == null) return null;
+            return GetPresenter<VFXViewPresenter>().AddVFXContext(pos, desc);
         }
 
-        void AddVFXOperator(Vector2 pos, VFXModelDescriptor<VFXOperator> desc)
+        VFXOperator AddVFXOperator(Vector2 pos, VFXModelDescriptor<VFXOperator> desc)
         {
-            if (presenter == null) return;
-            GetPresenter<VFXViewPresenter>().AddVFXOperator(pos, desc);
+            if (presenter == null) return null;
+            return GetPresenter<VFXViewPresenter>().AddVFXOperator(pos, desc);
         }
 
-        void AddVFXParameter(Vector2 pos, VFXModelDescriptorParameters desc)
+        VFXParameter AddVFXParameter(Vector2 pos, VFXModelDescriptorParameters desc)
         {
-            if (presenter == null) return;
-            GetPresenter<VFXViewPresenter>().AddVFXParameter(pos, desc);
+            if (presenter == null) return null;
+            return GetPresenter<VFXViewPresenter>().AddVFXParameter(pos, desc);
         }
 
         public EventPropagation CloneModels() // TEST clean that
@@ -505,6 +537,9 @@ namespace UnityEditor.VFX.UI
 
                 pasteOffset = Vector2.zero; // if we change asset we want to paste exactly at the same place as the original asset the first time.
             }
+
+            // needed if some or all the selection has been deleted, so we no longer show the deleted object in the inspector.
+            SelectionUpdated();
         }
 
         public VFXDataAnchor GetDataAnchorByPresenter(VFXDataAnchorPresenter presenter)
@@ -687,6 +722,54 @@ namespace UnityEditor.VFX.UI
             VFXCopyPaste.UnserializeAndPasteElements(this, pasteOffset, data);
 
             pasteOffset += defaultPasteOffset;
+        }
+
+        const float k_MarginBetweenContexts = 30;
+        public void PushUnderContext(VFXContextUI context, float size)
+        {
+            if (size < 5) return;
+
+            HashSet<VFXContextUI> contexts = new HashSet<VFXContextUI>();
+
+            contexts.Add(context);
+
+            var flowEdges = edges.ToList().OfType<VFXFlowEdge>().ToList();
+
+            int contextCount = 0;
+
+            while (contextCount < contexts.Count())
+            {
+                contextCount = contexts.Count();
+                foreach (var flowEdge in flowEdges)
+                {
+                    VFXContextUI topContext = flowEdge.output.GetFirstAncestorOfType<VFXContextUI>();
+                    VFXContextUI bottomContext = flowEdge.input.GetFirstAncestorOfType<VFXContextUI>();
+                    if (contexts.Contains(topContext)  && !contexts.Contains(bottomContext))
+                    {
+                        float topContextBottom = topContext.layout.yMax;
+                        float newTopContextBottom = topContext.layout.yMax + size;
+                        if (topContext == context)
+                        {
+                            newTopContextBottom -= size;
+                            topContextBottom -= size;
+                        }
+                        float bottomContextTop = bottomContext.layout.yMin;
+
+                        if (topContextBottom < bottomContextTop && newTopContextBottom + k_MarginBetweenContexts > bottomContextTop)
+                        {
+                            contexts.Add(bottomContext);
+                        }
+                    }
+                }
+            }
+
+            contexts.Remove(context);
+
+            foreach (var c in contexts)
+            {
+                c.presenter.position = new Rect(c.GetPosition().min + new Vector2(0, size), c.GetPosition().size);
+                c.OnDataChanged();
+            }
         }
     }
 }

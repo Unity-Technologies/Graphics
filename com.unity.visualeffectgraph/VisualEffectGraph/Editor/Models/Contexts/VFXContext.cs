@@ -387,7 +387,7 @@ namespace UnityEditor.VFX
             return associativeContext;
         }
 
-        public static void ReproduceData(VFXModel[] fromArray, VFXModel[] toArray, List<KeyValuePair<VFXContext, VFXContext>> associativeContext)
+        public static IEnumerable<VFXData> ReproduceData(VFXModel[] fromArray, VFXModel[] toArray, List<KeyValuePair<VFXContext, VFXContext>> associativeContext)
         {
             var allData = fromArray.OfType<VFXContext>().Select(o => o.GetData()).Where(o => o != null).Distinct();
             var associativeData = allData.Select(o => new KeyValuePair<VFXData, VFXData>(o, o.Clone<VFXData>()));
@@ -409,6 +409,8 @@ namespace UnityEditor.VFX
                     to.m_Data = refData.Value;
                 }
             }
+
+            return associativeData.Select(t => t.Value);
         }
 
         public static void ReproduceLinkedFlowFromHiearchy(VFXModel[] fromArray, VFXModel[] toArray, List<KeyValuePair<VFXContext, VFXContext>> associativeContext)
