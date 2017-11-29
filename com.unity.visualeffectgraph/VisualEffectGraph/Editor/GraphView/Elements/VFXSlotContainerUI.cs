@@ -49,7 +49,7 @@ namespace UnityEditor.VFX.UI
 
                 m_SettingsContainer = new VisualElement { name = "settings" };
 
-                leftContainer.Insert(1, m_SettingsContainer); //between title and input
+                inputContainer.Insert(0, m_SettingsContainer); //between title and input
 
                 foreach (var setting in presenter.settings)
                 {

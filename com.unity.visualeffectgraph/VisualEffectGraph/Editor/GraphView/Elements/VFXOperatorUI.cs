@@ -58,7 +58,7 @@ namespace UnityEditor.VFX.UI
         public override void ApplyWidths(float labelWidth, float controlWidth)
         {
             base.ApplyWidths(labelWidth, controlWidth);
-            leftContainer.style.width = labelWidth + controlWidth + 20;
+            inputContainer.style.width = labelWidth + controlWidth + 20;
         }
     }
 
@@ -69,7 +69,7 @@ namespace UnityEditor.VFX.UI
         {
             VisualElement element = new VisualElement();
             element.name = "middle";
-            leftContainer.parent.Insert(1, element);
+            inputContainer.parent.Insert(1, element);
         }
 
         public override void OnDataChanged()

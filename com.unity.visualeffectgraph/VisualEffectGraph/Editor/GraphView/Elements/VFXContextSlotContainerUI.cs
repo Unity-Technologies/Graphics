@@ -16,9 +16,6 @@ namespace UnityEditor.VFX.UI
             forceNotififcationOnAdd = true;
             pickingMode = PickingMode.Ignore;
 
-            leftContainer.style.alignContent = Align.Stretch;
-            mainContainer.clippingOptions = ClippingOptions.ClipContents;
-
 
             AddToClassList("VFXContextSlotContainerUI");
         }
