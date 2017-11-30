@@ -436,7 +436,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             else
             {
                 PreviewMode mode;
-                shaderData.shaderString = m_Graph.GetPreviewShader(node, out mode);
+                if (node is IMasterNode)
+                {
+                    List<PropertyCollector.TextureInfo> configuredTextures;
+                    shaderData.shaderString = ((IMasterNode)node).GetShader(GenerationMode.Preview, node.name, out configuredTextures);
+                }
+                else
+                    shaderData.shaderString = m_Graph.GetPreviewShader(node, out mode);
             }
 
             File.WriteAllText(Application.dataPath + "/../GeneratedShader.shader", (shaderData.shaderString ?? "null").Replace("UnityEngine.MaterialGraph", "Generated"));
