@@ -796,10 +796,7 @@ MonoBehaviour:
   - {fileID: 114889596446218778}
   - {fileID: 114978069437681324}
   m_Capacity: 65536
-  m_Bounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_WorldSpace: 0
+  m_Space: 0
 --- !u!114 &114287871694759918
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -850,8 +847,7 @@ MonoBehaviour:
   m_UICollapsed: 0
   m_InputSlots: []
   m_OutputSlots: []
-  m_Data: {fileID: 114615797442467744}
-  m_Space: 0
+  m_Data: {fileID: 0}
   m_InputFlowSlot:
   - link: []
   - link: []
@@ -1933,7 +1929,6 @@ MonoBehaviour:
   - {fileID: 114696892658596888}
   m_OutputSlots: []
   m_Data: {fileID: 114278490781935024}
-  m_Space: 0
   m_InputFlowSlot:
   - link:
     - context: {fileID: 114290022498365920}
@@ -3065,7 +3060,6 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots: []
   m_Data: {fileID: 114278490781935024}
-  m_Space: 0
   m_InputFlowSlot:
   - link:
     - context: {fileID: 114566370008860848}
@@ -3445,7 +3439,6 @@ MonoBehaviour:
   - {fileID: 114687711517489188}
   m_OutputSlots: []
   m_Data: {fileID: 114278490781935024}
-  m_Space: 0
   m_InputFlowSlot:
   - link:
     - context: {fileID: 114889596446218778}
