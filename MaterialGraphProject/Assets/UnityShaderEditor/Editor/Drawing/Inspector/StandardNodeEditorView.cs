@@ -1,9 +1,4 @@
-﻿using System.Linq;
-using UnityEditor.Graphing.Util;
-using UnityEngine;
-using UnityEngine.Experimental.UIElements;
-using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph;
+﻿using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
