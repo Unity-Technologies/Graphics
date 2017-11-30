@@ -549,6 +549,7 @@ MonoBehaviour:
   blendMode: 1
   useSoftParticle: 0
   sortPriority: 0
+  indirectDraw: 0
 --- !u!114 &114149745243873572
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1748,6 +1749,7 @@ MonoBehaviour:
   blendMode: 1
   useSoftParticle: 0
   sortPriority: 0
+  indirectDraw: 0
 --- !u!114 &114445986921503696
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3532,6 +3534,7 @@ MonoBehaviour:
   blendMode: 2
   useSoftParticle: 0
   sortPriority: 0
+  indirectDraw: 0
   flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114788945439143174
@@ -4973,7 +4976,7 @@ VFXAsset:
       nameId: spawner_output
     values: []
     tasks:
-    - type: 268435457
+    - type: 268435456
       buffers: []
       values:
       - index: 3
@@ -5071,7 +5074,7 @@ VFXAsset:
       - index: 0
         nameId: sortPriority
       processor: {fileID: 4800000, guid: 0ae49485a705e8d4db7e748c2bb77a4f, type: 3}
-    - type: 1073741825
+    - type: 1073741824
       buffers:
       - index: 0
         nameId: attributeBuffer
@@ -5088,7 +5091,7 @@ VFXAsset:
       - index: 0
         nameId: sortPriority
       processor: {fileID: 4800000, guid: 1c5d12d491e69a54982def4e0edd2591, type: 3}
-    - type: 1073741828
+    - type: 1073741825
       buffers:
       - index: 0
         nameId: attributeBuffer
