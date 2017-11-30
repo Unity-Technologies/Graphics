@@ -43,15 +43,14 @@ namespace UnityEditor.ShaderGraph
         private bool m_RedChannel;
 
         [ToggleControl("Red")]
-        public ToggleState redChannel
+        public Toggle redChannel
         {
-            get { return ToggleHelper.GetToggleValue(m_RedChannel, channelCount > 0); }
+            get { return new Toggle(m_RedChannel, channelCount > 0); }
             set
             {
-                bool isOn = ToggleHelper.GetBoolValue(value);
-                if (m_RedChannel == isOn)
+                if (m_RedChannel == value.isOn)
                     return;
-                m_RedChannel = isOn;
+                m_RedChannel = value.isOn;
                 if (onModified != null)
                 {
                     onModified(this, ModificationScope.Node);
@@ -63,15 +62,14 @@ namespace UnityEditor.ShaderGraph
         private bool m_GreenChannel;
 
         [ToggleControl("Green")]
-        public ToggleState greenChannel
+        public Toggle greenChannel
         {
-            get { return ToggleHelper.GetToggleValue(m_GreenChannel, channelCount > 1); }
+            get { return new Toggle(m_GreenChannel, channelCount > 1); }
             set
             {
-                bool isOn = ToggleHelper.GetBoolValue(value);
-                if (m_GreenChannel == isOn)
+                if (m_GreenChannel == value.isOn)
                     return;
-                m_GreenChannel = isOn;
+                m_GreenChannel = value.isOn;
                 if (onModified != null)
                 {
                     onModified(this, ModificationScope.Node);
@@ -83,15 +81,14 @@ namespace UnityEditor.ShaderGraph
         private bool m_BlueChannel;
 
         [ToggleControl("Blue")]
-        public ToggleState blueChannel
+        public Toggle blueChannel
         {
-            get { return ToggleHelper.GetToggleValue(m_BlueChannel, channelCount > 2); }
+            get { return new Toggle(m_BlueChannel, channelCount > 2); }
             set
             {
-                bool isOn = ToggleHelper.GetBoolValue(value);
-                if (m_BlueChannel == isOn)
+                if (m_BlueChannel == value.isOn)
                     return;
-                m_BlueChannel = isOn;
+                m_BlueChannel = value.isOn;
                 if (onModified != null)
                 {
                     onModified(this, ModificationScope.Node);
@@ -102,15 +99,14 @@ namespace UnityEditor.ShaderGraph
         private bool m_AlphaChannel;
 
         [ToggleControl("Alpha")]
-        public ToggleState alphaChannel
+        public Toggle alphaChannel
         {
-            get { return ToggleHelper.GetToggleValue(m_AlphaChannel, channelCount > 3); }
+            get { return new Toggle(m_AlphaChannel, channelCount > 3); }
             set
             {
-                bool isOn = ToggleHelper.GetBoolValue(value);
-                if (m_AlphaChannel == isOn)
+                if (m_AlphaChannel == value.isOn)
                     return;
-                m_AlphaChannel = isOn;
+                m_AlphaChannel = value.isOn;
                 if (onModified != null)
                 {
                     onModified(this, ModificationScope.Node);
@@ -137,7 +133,7 @@ namespace UnityEditor.ShaderGraph
                 visitor.AddShaderChunk(string.Format("{0} _{1}_Flip = {0} ({2}{3}{4}{5});",
                     ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType),
                     GetVariableNameForNode(),
-                    string.Format("{0}", (Convert.ToInt32(m_RedChannel)).ToString()),
+                    Convert.ToInt32(m_RedChannel).ToString(),
                     channelCount > 1 ? string.Format(", {0}", (Convert.ToInt32(m_GreenChannel)).ToString()) : "",
                     channelCount > 2 ? string.Format(", {0}", (Convert.ToInt32(m_BlueChannel)).ToString()) : "",
                     channelCount > 3 ? string.Format(", {0}", (Convert.ToInt32(m_AlphaChannel)).ToString()) : ""), true);
