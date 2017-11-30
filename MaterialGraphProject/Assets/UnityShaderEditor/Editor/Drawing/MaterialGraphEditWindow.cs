@@ -145,12 +145,19 @@ namespace UnityEditor.ShaderGraph.Drawing
             var graphView = graphEditorView.graphView;
 
             var nodes = graphView.selection.OfType<MaterialNodeView>().Where(x => !(x.node is PropertyNode)).Select(x => x.node as INode).ToArray();
-            Vector2 middle = Vector2.zero;
+            var bounds = Rect.MinMaxRect(float.PositiveInfinity, float.PositiveInfinity, float.NegativeInfinity, float.NegativeInfinity);
             foreach (var node in nodes)
             {
-                middle += node.drawState.position.center;
+                var center = node.drawState.position.center;
+                bounds = Rect.MinMaxRect(
+                    Mathf.Min(bounds.xMin, center.x),
+                    Mathf.Min(bounds.yMin, center.y),
+                    Mathf.Max(bounds.xMax, center.x),
+                    Mathf.Max(bounds.yMax, center.y));
+
             }
-            middle /= nodes.Length;
+            var middle = bounds.center;
+            bounds.center = Vector2.zero;
 
             var copyPasteGraph = new CopyPasteGraph(
                 graphView.selection.OfType<MaterialNodeView>().Where(x => !(x.node is PropertyNode)).Select(x => x.node as INode),
@@ -161,7 +168,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
 
             var subGraph = new SubGraph();
-            subGraph.AddNode(new SubGraphOutputNode());
+            var subGraphOutputNode = new SubGraphOutputNode();
+            {
+                var drawState = subGraphOutputNode.drawState;
+                drawState.position = new Rect(new Vector2(bounds.xMax + 200f, 0f), drawState.position.size);
+                subGraphOutputNode.drawState = drawState;
+            }
+            subGraph.AddNode(subGraphOutputNode);
 
             var nodeGuidMap = new Dictionary<Guid, Guid>();
             foreach (var node in deserialized.GetNodes<INode>())
@@ -169,6 +182,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var oldGuid = node.guid;
                 var newGuid = node.RewriteGuid();
                 nodeGuidMap[oldGuid] = newGuid;
+                var drawState = node.drawState;
+                drawState.position = new Rect(drawState.position.position - middle, drawState.position.size);
+                node.drawState = drawState;
                 subGraph.AddNode(node);
             }
 
@@ -244,6 +260,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     subGraph.AddShaderProperty(prop);
                     var propNode = new PropertyNode();
+                    {
+                        var drawState = propNode.drawState;
+                        drawState.position = new Rect(new Vector2(bounds.xMin - 300f, 0f), drawState.position.size);
+                        propNode.drawState = drawState;
+                    }
                     subGraph.AddNode(propNode);
                     propNode.propertyGuid = prop.guid;
 
@@ -286,7 +307,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var subGraphNode = new SubGraphNode();
             var ds = subGraphNode.drawState;
-            ds.position = new Rect(middle, Vector2.one);
+            ds.position = new Rect(middle - new Vector2(100f, 150f), Vector2.zero);
             subGraphNode.drawState = ds;
             graphObject.graph.AddNode(subGraphNode);
             subGraphNode.subGraphAsset = loadedSubGraph;
