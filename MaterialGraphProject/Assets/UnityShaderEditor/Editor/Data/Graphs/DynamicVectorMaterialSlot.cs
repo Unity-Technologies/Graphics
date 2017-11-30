@@ -80,7 +80,13 @@ namespace UnityEditor.ShaderGraph
 
         protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
         {
-            return precision + "4 (" + value.x + "," + value.y + "," + value.z + "," + value.w + ")";
+            var channelCount = (int)SlotValueHelper.GetChannelCount(concreteValueType);
+            var values = value.x.ToString();
+            if (channelCount == 1)
+                return values;
+            for (var i = 1; i < channelCount; i++)
+                values += ", " + value[i];
+            return string.Format("{0}{1}({2})", precision, channelCount, values);
         }
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
