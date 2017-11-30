@@ -87,7 +87,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var previewData = new PreviewRenderData
             {
                 shaderData = shaderData,
-                renderTexture = new RenderTexture(256, 256, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave }
+                renderTexture = new RenderTexture(200, 200, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave }
             };
             if (m_RenderDatas.ContainsKey(node.guid))
             {
