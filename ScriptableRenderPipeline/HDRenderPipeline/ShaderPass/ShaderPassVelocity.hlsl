@@ -77,7 +77,19 @@ VaryingsPassToDS InterpolateWithBaryCoordsPassToDS(VaryingsPassToDS input0, Vary
 #define VARYINGS_NEED_PASS
 #include "VertMesh.hlsl"
 
-void PositionZBias(VaryingsToPS input)
+// Transforms normal from object to world space
+float3 TransformPreviousObjectToWorldNormal(float3 normalOS)
+{
+#ifdef UNITY_ASSUME_UNIFORM_SCALING
+    return normalize(mul((float3x3)unity_MatrixPreviousM, normalOS));
+#else
+    // Normal need to be multiply by inverse transpose
+    // mul(IT_M, norm) => mul(norm, I_M) => {dot(norm, I_M.col0), dot(norm, I_M.col1), dot(norm, I_M.col2)}
+    return normalize(mul(normalOS, (float3x3)unity_MatrixPreviousMI));
+#endif
+}
+
+void VelocityPositionZBias(VaryingsToPS input)
 {
 	#if defined(UNITY_REVERSED_Z)
 		input.vmesh.positionCS.z -= unity_MotionVectorsParams.z * input.vmesh.positionCS.w;
@@ -93,7 +105,7 @@ PackedVaryingsType Vert(AttributesMesh inputMesh,
     varyingsType.vmesh = VertMesh(inputMesh);
 
 #if !defined(TESSELLATION_ON)
-	PositionZBias(varyingsType);
+	VelocityPositionZBias(varyingsType);
 #endif
 
     // It is not possible to correctly generate the motion vector for tesselated geometry as tessellation parameters can change
@@ -104,7 +116,7 @@ PackedVaryingsType Vert(AttributesMesh inputMesh,
 	//Need to apply any vertex animation to the previous worldspace position, if we want it to show up in the velocity buffer
 	float3 previousPositionWS = mul(unity_MatrixPreviousM, unity_MotionVectorsParams.x ? float4(inputPass.previousPositionOS, 1.0) : float4(inputMesh.positionOS, 1.0)).xyz;
 	#ifdef ATTRIBUTES_NEED_NORMAL
-		float3 normalWS = normalize(mul(inputMesh.normalOS, (float3x3)unity_MatrixPreviousMI));
+		float3 normalWS = TransformPreviousObjectToWorldNormal(inputMesh.normalOS);
 	#else
 		float3 normalWS = float3(0.0, 0.0, 0.0);
 	#endif
@@ -129,7 +141,7 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
     output.vmesh = VertMeshTesselation(input.vmesh);
 
-	PositionZBias(output);
+	VelocityPositionZBias(output);
 
     output.vpass.positionCS = input.vpass.positionCS;
     output.vpass.previousPositionCS = input.vpass.previousPositionCS;
