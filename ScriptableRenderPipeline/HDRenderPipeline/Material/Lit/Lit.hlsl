@@ -403,8 +403,10 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 
     if (surfaceData.materialId != MATERIALID_LIT_ANISO)
     {
-        // Notify the material classification system that we should not use
-        // the anisotropic GGX for forward rendering.
+        // Notify the material classification system that we should not use the anisotropic GGX for forward rendering.
+        // Forward rendering implies automatic material classification, so normally we don't use our material classification
+        // system, and set 'g_FeatureFlags' to UINT_MAX. However, since our rendering pipeline supports both forward and
+        // deferred rendering, 'g_FeatureFlags' is always available, so we can use it to control GGX evaluation.
         g_FeatureFlags &= ~MATERIALFEATUREFLAGS_LIT_ANISO;
     }
 
@@ -952,7 +954,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     // Construct a right-handed view-dependent orthogonal basis around the normal
     preLightData.orthoBasisViewNormal[0] = normalize(V - N * NdotV);
     preLightData.orthoBasisViewNormal[2] = N;
-    preLightData.orthoBasisViewNormal[1] = normalize(cross(preLightData.orthoBasisViewNormal[2], preLightData.orthoBasisViewNormal[0]));
+    preLightData.orthoBasisViewNormal[1] = cross(preLightData.orthoBasisViewNormal[2], preLightData.orthoBasisViewNormal[0]);
 
     float3 ltcMagnitude = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_MULTI_GGX_FRESNEL_DISNEY_DIFFUSE_INDEX, 0).rgb;
     float  ltcGGXFresnelMagnitudeDiff = ltcMagnitude.r; // The difference of magnitudes of GGX and Fresnel
@@ -1779,23 +1781,22 @@ IndirectLighting EvaluateBSDF_SSRefraction(LightLoopContext lightLoopContext,
     float3 refractedBackPointWS = EstimateRaycast(V, posInput, preLightData.transmissionPositionWS, preLightData.transmissionRefractV);
 
     // Calculate screen space coordinates of refracted point in back plane
-    float4 refractedBackPointCS = mul(UNITY_MATRIX_VP, float4(refractedBackPointWS, 1.0));
-    float2 refractedBackPointSS = ComputeNormalizedDeviceCoordinates(refractedBackPointCS);
+    float2 refractedBackPointNDC = ComputeNormalizedDeviceCoordinates(refractedBackPointWS, UNITY_MATRIX_VP);
     uint2 depthSize = uint2(_PyramidDepthMipSize.xy);
-    float refractedBackPointDepth = LinearEyeDepth(LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, refractedBackPointSS * depthSize, 0).r, _ZBufferParams);
+    float refractedBackPointDepth = LinearEyeDepth(LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, refractedBackPointNDC * depthSize, 0).r, _ZBufferParams);
 
     // Exit if texel is out of color buffer
     // Or if the texel is from an object in front of the object
     if (refractedBackPointDepth < posInput.linearDepth
-        || any(refractedBackPointSS < 0.0)
-        || any(refractedBackPointSS > 1.0))
+        || any(refractedBackPointNDC < 0.0)
+        || any(refractedBackPointNDC > 1.0))
     {
         // Do nothing and don't update the hierarchy weight so we can fall back on refraction probe
         return lighting;
     }
 
     // Map the roughness to the correct mip map level of the color pyramid
-    lighting.specularTransmitted = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, refractedBackPointSS, preLightData.transmissionSSMipLevel).rgb;
+    lighting.specularTransmitted = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, refractedBackPointNDC, preLightData.transmissionSSMipLevel).rgb;
 
     // Beer-Lamber law for absorption
     lighting.specularTransmitted *= preLightData.transmissionTransmittance;
