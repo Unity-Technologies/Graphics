@@ -761,7 +761,6 @@ struct PreLightData
     float coatNdotV;
     float ieta;
     float coatFresnel0;
-    float3 coatV;
     float3 refractV; // The view vector refracted through clear coat interface
 
     // IBL
