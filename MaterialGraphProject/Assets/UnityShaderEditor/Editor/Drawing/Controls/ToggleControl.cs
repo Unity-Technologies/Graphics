@@ -6,32 +6,22 @@ using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
-    public enum ToggleState
+    [Serializable]
+    public struct Toggle
     {
-        EnabledOff,
-        EnabledOn,
-        DisabledOff,
-        DisabledOn
-    }
+        public bool isOn;
+        public bool isEnabled;
 
-    public static class ToggleHelper
-    {
-        public static bool GetBoolValue(ToggleState value)
+        public Toggle(bool on, bool enabled)
         {
-            if ((int)value > 1)
-                return Convert.ToBoolean((int)value - 2);
-            else
-                return Convert.ToBoolean((int)value);
+            isOn = on;
+            isEnabled = enabled;
         }
 
-        public static ToggleState GetToggleValue(bool value)
+        public Toggle(bool on)
         {
-            return (ToggleState)Convert.ToInt32(value);
-        }
-
-        public static ToggleState GetToggleValue(bool value, bool enableCondition)
-        {
-            return (ToggleState)(Convert.ToInt32(value) + (enableCondition ? 0 : 2));
+            isOn = on;
+            isEnabled = true;
         }
     }
 
@@ -62,8 +52,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         {
             m_Node = node;
             m_PropertyInfo = propertyInfo;
-            if (propertyInfo.PropertyType != typeof(ToggleState))
-                throw new ArgumentException("Property must be a ToggleState.", "propertyInfo");
+            if (propertyInfo.PropertyType != typeof(Toggle))
+                throw new ArgumentException("Property must be a Toggle.", "propertyInfo");
             m_Label = new GUIContent(label ?? ObjectNames.NicifyVariableName(propertyInfo.Name));
             m_Container = new IMGUIContainer(OnGUIHandler);
             Add(m_Container);
@@ -77,15 +67,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
         void OnGUIHandler()
         {
-            var value = (ToggleState) m_PropertyInfo.GetValue(m_Node, null);
+            var value = (Toggle) m_PropertyInfo.GetValue(m_Node, null);
 
             using (var changeCheckScope = new EditorGUI.ChangeCheckScope())
             {
-                bool isEnabled = (int)value < 2;
-                m_Container.SetEnabled(isEnabled);
+                m_Container.SetEnabled(value.isEnabled);
 
-                bool isOn = EditorGUILayout.Toggle(m_Label, (int)value == 1 || (int)value == 3);
-                value = (ToggleState)(Convert.ToInt32(!isEnabled) + Convert.ToInt32(isOn));
+                bool isOn = EditorGUILayout.Toggle(m_Label, value.isOn);
+                value = new Toggle(isOn, value.isEnabled);
                 if (changeCheckScope.changed)
                 {
                     m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
