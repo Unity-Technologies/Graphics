@@ -245,6 +245,7 @@ MonoBehaviour:
   blendMode: 1
   useSoftParticle: 0
   sortPriority: 0
+  indirectDraw: 0
   flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114036124727929684
@@ -734,6 +735,7 @@ MonoBehaviour:
   blendMode: 1
   useSoftParticle: 0
   sortPriority: 0
+  indirectDraw: 0
   flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114103004838022920
@@ -4593,7 +4595,7 @@ VFXAsset:
       nameId: spawner_output
     values: []
     tasks:
-    - type: 268435457
+    - type: 268435456
       buffers: []
       values:
       - index: 39

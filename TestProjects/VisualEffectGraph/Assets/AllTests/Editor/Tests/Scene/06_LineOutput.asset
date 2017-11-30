@@ -3448,6 +3448,7 @@ MonoBehaviour:
   blendMode: 1
   useSoftParticle: 0
   sortPriority: 0
+  indirectDraw: 0
 --- !u!2058629509 &8926484042661614526
 VFXAsset:
   m_ObjectHideFlags: 0
@@ -3980,7 +3981,7 @@ VFXAsset:
       nameId: spawner_output
     values: []
     tasks:
-    - type: 268435458
+    - type: 268435457
       buffers: []
       values:
       - index: 45
@@ -4039,7 +4040,7 @@ VFXAsset:
       values: []
       params: []
       processor: {fileID: 7200000, guid: 834b3f6aa316ed943a2a272dd2773cb3, type: 3}
-    - type: 1073741828
+    - type: 1073741825
       buffers:
       - index: 0
         nameId: attributeBuffer
