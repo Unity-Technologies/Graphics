@@ -589,7 +589,7 @@ namespace UnityEditor.VFX
                     .ToList());
                 dataProcessed.AddRange(particleDataLayered[0]);
 
-                //Then, process all existing gpu event node
+                //Then, process all existing GPU event node
                 while (allGPUEvent.Count > 0)
                 {
                     var processableLayer = allGPUEvent.Where(gpuEvent =>
@@ -620,48 +620,57 @@ namespace UnityEditor.VFX
                     depth = (depth + 1) % particleDataLayered.Count;
                 }
 
-                //TODO use particleDataLayered
-                var allInitializeFromGPUEvent = compilableContexts.SelectMany(o => o.inputContexts).ToArray(); //dbg
-                var gpuEventBufferDictionary = new Dictionary<VFXContext, int>();
-                foreach (var initializeContext in allInitializeFromGPUEvent)
+                //Optional check
+                if (compilableData.OfType<VFXDataParticle>().Count() != particleDataLayered.SelectMany(o => o).Count()
+                    ||  particleDataLayered.SelectMany(o => o).Distinct().Count() != particleDataLayered.SelectMany(o => o).Count())
                 {
-                    var dataParticle = initializeContext.GetData() as VFXDataParticle;
-                    if (dataParticle != null && initializeContext.inputContexts.Any(o => o.contextType == VFXContextType.kSpawnerGPU))
-                    {
-                        var index = bufferDescs.Count;
-                        bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = dataParticle.capacity });
+                    throw new InvalidOperationException("Unexpected compute of data particle layers");
+                }
 
-                        gpuEventBufferDictionary.Add(initializeContext, index);
-                        gpuEventBufferDictionary.Add(initializeContext.inputContexts.First(), index); //will throw an exception if multiple initialize are connected to the same gpuEvent (or not connected)
+                //Prepare GPU event buffer
+                var gpuEventBufferDictionary = new Dictionary<VFXContext, int>();
+                foreach (var dataParticle in gpuEventParentSystem.SelectMany(o => o.gpuEvent.outputContexts).Select(o => o.GetData() as VFXDataParticle).Distinct())
+                {
+                    var index = bufferDescs.Count;
+                    bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = dataParticle.capacity });
+
+                    var currentContext = dataParticle.owners.Where(o => o.contextType == VFXContextType.kInit);
+                    currentContext = currentContext.Concat(currentContext.SelectMany(o => o.inputContexts));
+
+                    foreach (var c in currentContext)
+                    {
+                        gpuEventBufferDictionary.Add(c, index);
                     }
                 }
 
                 var contextSpawnToBufferIndex = contextSpawnToSpawnInfo.Select(o => new { o.Key, o.Value.bufferIndex }).ToDictionary(o => o.Key, o => o.bufferIndex);
-                foreach (var data in compilableData.OfType<VFXDataParticle>())
+                for (int layer = 0; layer < particleDataLayered.Count; layer++)
                 {
-                    int gpuEventFrom = -1;
-                    var initializeContexts = data.owners.Where(o => o.contextType == VFXContextType.kInit).ToArray();
-                    if (initializeContexts.Length != 1)
+                    foreach (var data in particleDataLayered[layer])
                     {
-                        throw new InvalidOperationException("Except only one initialize by system (for now at least)");
-                    }
+                        int gpuEventFrom = -1;
+                        var initializeContexts = data.owners.Where(o => o.contextType == VFXContextType.kInit).ToArray();
+                        if (initializeContexts.Length != 1)
+                        {
+                            throw new InvalidOperationException("Except only one initialize by system (for now at least)");
+                        }
 
-                    if (!gpuEventBufferDictionary.TryGetValue(initializeContexts[0], out gpuEventFrom))
-                    {
-                        gpuEventFrom = -1;
-                    }
+                        if (!gpuEventBufferDictionary.TryGetValue(initializeContexts[0], out gpuEventFrom))
+                        {
+                            gpuEventFrom = -1;
+                        }
 
-                    var gpuEventTo = new int[][] {};
-                    if (data.IsAttributeLocal(VFXAttribute.EventCount))
-                    {
-                        gpuEventTo = data.owners.Select(o =>
-                            {
-                                var allOutputSlot = o.children.SelectMany(b => b.outputSlots.SelectMany(c => c.LinkedSlots)).ToArray();
-                                return allOutputSlot.Select(s => gpuEventBufferDictionary[s.owner as VFXContext]).ToArray();
-                            }).ToArray();
+                        var gpuEventTo = new int[][] {};
+                        if (data.IsAttributeLocal(VFXAttribute.EventCount))
+                        {
+                            gpuEventTo = data.owners.Select(o =>
+                                {
+                                    var allOutputSlot = o.children.SelectMany(b => b.outputSlots.SelectMany(c => c.LinkedSlots)).ToArray();
+                                    return allOutputSlot.Select(s => gpuEventBufferDictionary[s.owner as VFXContext]).ToArray();
+                                }).ToArray();
+                        }
+                        data.FillDescs(bufferDescs, systemDescs, m_ExpressionGraph, contextToCompiledData, contextSpawnToBufferIndex, gpuEventFrom, gpuEventTo, layer);
                     }
-
-                    data.FillDescs(bufferDescs, systemDescs, m_ExpressionGraph, contextToCompiledData, contextSpawnToBufferIndex, gpuEventFrom, gpuEventTo);
                 }
                 /* WIP : End */
 

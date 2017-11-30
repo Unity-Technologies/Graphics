@@ -253,7 +253,8 @@ namespace UnityEditor.VFX
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
             Dictionary<VFXContext, int> contextSpawnToBufferIndex,
             int eventGPUFrom,
-            int[][] eventGPUTo)
+            int[][] eventGPUTo,
+            int layer)
         {
             bool hasKill = IsAttributeStored(VFXAttribute.Alive);
 
@@ -382,6 +383,7 @@ namespace UnityEditor.VFX
                 buffers = systemBufferMappings.ToArray(),
                 values = systemValueMappings.ToArray(),
                 type = VFXSystemType.kVFXParticle,
+                layer = (uint)layer
             });
         }
 
