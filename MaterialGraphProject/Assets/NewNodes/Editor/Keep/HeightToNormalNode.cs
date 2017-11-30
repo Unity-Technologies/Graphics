@@ -1,13 +1,11 @@
 using System.Linq;
-using System.Reflection;
-using JetBrains.Annotations;
 using UnityEngine;
 using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility/Heightmap To Normalmap")]
-    public class HeightToNormalNode : AbstractMaterialNode, IGeneratesBodyCode
+    public class HeightToNormalNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
         public const int TextureInput = 0;
         public const int TexCoordInput = 1;
@@ -66,6 +64,16 @@ namespace UnityEditor.ShaderGraph
         public override bool hasPreview
         {
             get { return true; }
+        }
+
+        public bool RequiresMeshUV(UVChannel channel)
+        {
+            foreach (var slot in GetInputSlots<MaterialSlot>().OfType<IMayRequireMeshUV>())
+            {
+                if (slot.RequiresMeshUV(channel))
+                    return true;
+            }
+            return false;
         }
     }
 }
