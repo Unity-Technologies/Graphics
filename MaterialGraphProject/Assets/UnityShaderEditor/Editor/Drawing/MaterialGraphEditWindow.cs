@@ -141,6 +141,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (path.Length == 0)
                 return;
 
+            graphObject.RegisterCompleteObjectUndo("Convert To Subgraph");
             var graphView = graphEditorView.graphView;
 
             var nodes = graphView.selection.OfType<MaterialNodeView>().Where(x => !(x.node is PropertyNode)).Select(x => x.node as INode).ToArray();
