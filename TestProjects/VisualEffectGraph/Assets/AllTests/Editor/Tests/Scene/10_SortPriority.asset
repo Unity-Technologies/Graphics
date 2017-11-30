@@ -448,10 +448,7 @@ MonoBehaviour:
   - {fileID: 114664836143208348}
   - {fileID: 114525045353926142}
   m_Capacity: 10000
-  m_Bounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_WorldSpace: 0
+  m_Space: 0
 --- !u!114 &114204895226068596
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -534,7 +531,6 @@ MonoBehaviour:
   - {fileID: 114634362636730594}
   m_OutputSlots: []
   m_Data: {fileID: 114174554078140748}
-  m_Space: 0
   m_InputFlowSlot:
   - link:
     - context: {fileID: 114807708026722858}
@@ -1238,7 +1234,6 @@ MonoBehaviour:
   - {fileID: 114375036636068706}
   m_OutputSlots: []
   m_Data: {fileID: 114755914041404736}
-  m_Space: 0
   m_InputFlowSlot:
   - link:
     - context: {fileID: 114807708026722858}
@@ -1564,7 +1559,6 @@ MonoBehaviour:
   - {fileID: 114714640841922584}
   m_OutputSlots: []
   m_Data: {fileID: 114174554078140748}
-  m_Space: 0
   m_InputFlowSlot:
   - link:
     - context: {fileID: 114664836143208348}
@@ -2060,7 +2054,6 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots: []
   m_Data: {fileID: 114174554078140748}
-  m_Space: 0
   m_InputFlowSlot:
   - link:
     - context: {fileID: 114207965363388990}
@@ -2123,7 +2116,6 @@ MonoBehaviour:
   - {fileID: 114849092685793816}
   m_OutputSlots: []
   m_Data: {fileID: 114755914041404736}
-  m_Space: 0
   m_InputFlowSlot:
   - link:
     - context: {fileID: 114976729503126856}
@@ -2300,10 +2292,7 @@ MonoBehaviour:
   - {fileID: 114976729503126856}
   - {fileID: 114701271570148598}
   m_Capacity: 10000
-  m_Bounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_WorldSpace: 0
+  m_Space: 0
 --- !u!114 &114770147834105936
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2433,7 +2422,6 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots: []
   m_Data: {fileID: 0}
-  m_Space: 0
   m_InputFlowSlot:
   - link: []
   - link: []
@@ -2500,7 +2488,6 @@ MonoBehaviour:
   - {fileID: 114545534309531274}
   m_OutputSlots: []
   m_Data: {fileID: 114970945626309002}
-  m_Space: 0
   m_InputFlowSlot:
   - link:
     - context: {fileID: 114807708026722858}
@@ -2967,10 +2954,7 @@ MonoBehaviour:
   - {fileID: 114976929173405708}
   - {fileID: 114990649379872476}
   m_Capacity: 10000
-  m_Bounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_WorldSpace: 0
+  m_Space: 0
 --- !u!114 &114976729503126856
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2989,7 +2973,6 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots: []
   m_Data: {fileID: 114755914041404736}
-  m_Space: 0
   m_InputFlowSlot:
   - link:
     - context: {fileID: 114411037450555758}
@@ -3017,7 +3000,6 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots: []
   m_Data: {fileID: 114970945626309002}
-  m_Space: 0
   m_InputFlowSlot:
   - link:
     - context: {fileID: 114826167990830044}
@@ -3147,7 +3129,6 @@ MonoBehaviour:
   - {fileID: 114574594137845096}
   m_OutputSlots: []
   m_Data: {fileID: 114970945626309002}
-  m_Space: 0
   m_InputFlowSlot:
   - link:
     - context: {fileID: 114976929173405708}
@@ -4140,7 +4121,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: cac7cf6477131df4da0889aa9fcd348a, type: 3}
+      processor: {fileID: 4800000, guid: 86367e7af12ec87429e18163006e4aa3, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000

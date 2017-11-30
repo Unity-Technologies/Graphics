@@ -32,10 +32,15 @@ namespace UnityEditor.VFX
             }
         }
 
-        /*public override void OnEnable()
+        public override void OnEnable()
         {
             base.OnEnable();
-        }*/
+
+            if (m_Owners == null)
+                m_Owners = new List<VFXContext>();
+        }
+
+        public abstract void CopySettings<T>(T dst) where T : VFXData;
 
         public virtual bool CanBeCompiled()
         {
@@ -48,7 +53,7 @@ namespace UnityEditor.VFX
             if (context == null)
                 throw new ArgumentNullException();
             if (m_Owners.Contains(context))
-                throw new ArgumentException(string.Format("{0} is already in the owner list of the {1}", context, this));
+                throw new ArgumentException(string.Format("{0} is already in the owner list of {1}", context, this));
 
             m_Owners.Add(context);
         }
@@ -56,7 +61,8 @@ namespace UnityEditor.VFX
         // Never call this directly ! Only context must call this through SetData
         public void OnContextRemoved(VFXContext context)
         {
-            m_Owners.Remove(context);
+            if (!m_Owners.Remove(context))
+                throw new ArgumentException(string.Format("{0} is not in the owner list of {1}", context, this));
         }
 
         public bool IsCurrentAttributeRead(VFXAttribute attrib)                        { return (GetAttributeMode(attrib) & VFXAttributeMode.Read) != 0; }
@@ -296,9 +302,6 @@ namespace UnityEditor.VFX
             if (attribInfo.mode == VFXAttributeMode.None)
                 throw new ArgumentException("Cannot add an attribute without mode");
 
-            //if ((attribInfo.mode & VFXAttributeMode.Write) != 0 && context.contextType == VFXContextType.kOutput)
-            //    throw new ArgumentException("Output contexts cannot write attributes");
-
             Dictionary<VFXAttribute, VFXAttributeMode> attribs;
             if (!m_ContextsToAttributes.TryGetValue(context, out attribs))
             {
@@ -389,19 +392,8 @@ namespace UnityEditor.VFX
             Debug.Log(builder.ToString());
         }
 
-        public static void ReproduceOwner(VFXData source, VFXData dest, List<KeyValuePair<VFXContext, VFXContext>> associativeContext)
-        {
-            dest.m_Owners = source.m_Owners.Select(owner =>
-                {
-                    var refContext = associativeContext.FirstOrDefault(o => o.Key == owner);
-                    if (refContext.Value == null)
-                        return null;
-                    return refContext.Value;
-                }).Where(owner => owner != null).ToList();
-        }
-
-        //[SerializeField]
-        protected List<VFXContext> m_Owners = new List<VFXContext>();
+        [SerializeField]
+        protected List<VFXContext> m_Owners;
 
         [NonSerialized]
         protected Dictionary<VFXContext, Dictionary<VFXAttribute, VFXAttributeMode>> m_ContextsToAttributes = new Dictionary<VFXContext, Dictionary<VFXAttribute, VFXAttributeMode>>();

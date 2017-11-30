@@ -73,8 +73,6 @@ namespace UnityEditor.VFX.UI
             VFXModel[] copiedSlotContainers = slotContainers.Select(t => t.model).ToArray();
             copyData.slotContainers = copiedSlotContainers.Select(t => t.Clone<VFXModel>()).ToArray();
 
-            copyData.data = VFXContext.ReproduceData(copiedContexts, copyData.contexts, copiedContexts.Select((t, i) => new KeyValuePair<VFXContext, VFXContext>(t, copyData.contexts[i])).ToList()).ToArray();
-
             copyData.dataEdges = new DataEdge[dataEdges.Count()];
             int cpt = 0;
             foreach (var edge in dataEdges)
@@ -131,6 +129,8 @@ namespace UnityEditor.VFX.UI
 
                 copyData.flowEdges[cpt++] = copyPasteEdge;
             }
+
+            copyData.data = VFXContext.ReproduceDataSettings(copiedContexts.Select((t, i) => new KeyValuePair<VFXContext, VFXContext>(t, copyData.contexts[i])).ToList()).ToArray();
         }
 
         public static object CreateCopy(IEnumerable<GraphElementPresenter> elements)
@@ -299,7 +299,6 @@ namespace UnityEditor.VFX.UI
                 var newContext = slotContainer.Clone<VFXContext>();
                 newContext.position += pasteOffset;
                 newContexts.Add(newContext);
-                graph.AddChild(newContext);
             }
 
             List<VFXModel> newSlotContainers = new List<VFXModel>(copyData.slotContainers.Length);
@@ -309,11 +308,7 @@ namespace UnityEditor.VFX.UI
                 var newSlotContainer = slotContainer.Clone<VFXModel>();
                 newSlotContainer.position += pasteOffset;
                 newSlotContainers.Add(newSlotContainer);
-                graph.AddChild(newSlotContainer);
             }
-
-
-            VFXContext.ReproduceData(copyData.contexts, newContexts.ToArray(), copyData.contexts.Select((t, i) => new KeyValuePair<VFXContext, VFXContext>(t, newContexts[i])).ToList()).ToArray();
 
             foreach (var dataEdge in copyData.dataEdges)
             {
@@ -350,6 +345,13 @@ namespace UnityEditor.VFX.UI
 
                 inputContext.LinkFrom(outputContext, flowEdge.input.flowIndex, flowEdge.output.flowIndex);
             }
+
+            VFXContext.ReproduceDataSettings(copyData.contexts.Select((t, i) => new KeyValuePair<VFXContext, VFXContext>(t, newContexts[i])).ToList()).ToArray();
+
+            foreach (var m in newContexts)
+                graph.AddChild(m);
+            foreach (var m in newSlotContainers)
+                graph.AddChild(m);
 
             // Create all ui based on model
             view.OnDataChanged();

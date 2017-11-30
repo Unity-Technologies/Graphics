@@ -359,12 +359,11 @@ namespace UnityEditor.VFX
             });
         }
 
-        public override T Clone<T>()
+        public override void CopySettings<T>(T dst)
         {
-            var instance = base.Clone<T>() as VFXDataParticle;
+            var instance = dst as VFXDataParticle;
             instance.m_Capacity = m_Capacity;
             instance.m_Space = m_Space;
-            return instance as T;
         }
 
         [SerializeField]
