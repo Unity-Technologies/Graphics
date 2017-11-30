@@ -284,7 +284,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdatePreviewTexture()
         {
-            if (m_PreviewRenderData.texture == null || !node.previewExpanded || m_PreviewTextureView.panel == null)
+            if (m_PreviewRenderData.texture == null || !node.previewExpanded)
             {
                 m_PreviewTextureView.visible = false;
                 m_PreviewTextureView.image = Texture2D.blackTexture;
@@ -294,8 +294,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_PreviewTextureView.visible = true;
                 m_PreviewTextureView.AddToClassList("visible");
                 m_PreviewTextureView.RemoveFromClassList("hidden");
-                m_PreviewTextureView.image = m_PreviewRenderData.texture;
-                m_PreviewTextureView.Dirty(ChangeType.Repaint);
+                if (m_PreviewTextureView.image != m_PreviewRenderData.texture)
+                    m_PreviewTextureView.image = m_PreviewRenderData.texture;
+                else
+                    m_PreviewTextureView.Dirty(ChangeType.Repaint);
             }
         }
 
