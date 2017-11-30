@@ -61,21 +61,12 @@ namespace UnityEditor.ShaderGraph
             get { return m_ChannelMixer; }
             set
             {
-                if (Equals(value))
+                if ((value.outRed == m_ChannelMixer.outRed) && (value.outGreen == m_ChannelMixer.outGreen) && (value.outBlue == m_ChannelMixer.outBlue))
                     return;
                 m_ChannelMixer = value;
                 if (onModified != null)
                     onModified(this, ModificationScope.Node);
             }
-        }
-
-        bool Equals(ChannelMixer c)
-        {
-            if (ReferenceEquals(c, null))
-                return false;
-            if (ReferenceEquals(c, m_ChannelMixer))
-                return true;
-            return (c.outRed == m_ChannelMixer.outRed) && (c.outGreen == m_ChannelMixer.outGreen) && (c.outBlue == m_ChannelMixer.outBlue);
         }
 
         string GetFunctionPrototype(string argIn, string argRed, string argGreen, string argBlue, string argOut)
@@ -161,19 +152,15 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("In", "Red", "Green", "Blue", "Out"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
+            visitor.AddShaderChunk(GetFunctionPrototype("In", "Red", "Green", "Blue", "Out"), false);
+            visitor.AddShaderChunk("{", false);
+            visitor.Indent();
 
-            outputString.AddShaderChunk(string.Format("Out = {0} {1};",
-                ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType),
-                "(dot(In, Red), dot(In, Green), dot(In, Blue))"), true);
+            visitor.AddShaderChunk(string.Format("Out = {0} (dot(In, Red), dot(In, Green), dot(In, Blue));",
+                ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType)), true);
 
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+            visitor.Deindent();
+            visitor.AddShaderChunk("}", false);
         }
     }
 }

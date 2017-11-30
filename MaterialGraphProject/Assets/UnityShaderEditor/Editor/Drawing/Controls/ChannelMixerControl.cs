@@ -121,7 +121,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
         void OnClickButton(int outChannel)
         {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Button Change");
             m_OutChannel = outChannel;
             ResetSliders();
         }
