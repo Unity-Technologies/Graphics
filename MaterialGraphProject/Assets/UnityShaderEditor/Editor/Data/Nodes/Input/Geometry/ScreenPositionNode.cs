@@ -13,6 +13,7 @@ namespace UnityEditor.ShaderGraph
     public enum ScreenSpaceType
     {
         Default,
+        Raw,
         Center,
         Tiled
     };
@@ -46,13 +47,8 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        string GetCurrentType()
-        {
-            return System.Enum.GetName(typeof(ScreenSpaceType), m_ScreenSpaceType);
-        }
-
-        private const int kOutputSlot1Id = 0;
-        private const string kOutputSlot1Name = "Out";
+        private const int kOutputSlotId = 0;
+        private const string kOutputSlotName = "Out";
 
         public override bool hasPreview { get { return true; } }
         public override PreviewMode previewMode
@@ -63,28 +59,31 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new Vector2MaterialSlot(kOutputSlot1Id, kOutputSlot1Name, kOutputSlot1Name, SlotType.Output, Vector2.zero));
-            RemoveSlotsNameNotMatching(new[] { kOutputSlot1Id });
-        }
-
-        public override string GetVariableNameForSlot(int slotId)
-        {
-            return ShaderGeneratorNames.ScreenPosition;
+            AddSlot(new Vector4MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
+            RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
             switch (m_ScreenSpaceType)
             {
+                case ScreenSpaceType.Raw:
+                    visitor.AddShaderChunk(string.Format("{0}4 {1} = {2};", precision, GetVariableNameForSlot(kOutputSlotId), 
+                        ShaderGeneratorNames.ScreenPosition), true);
+                    break;
                 case ScreenSpaceType.Center:
-                    visitor.AddShaderChunk(string.Format("{0} = {1};", ShaderGeneratorNames.ScreenPosition, "float4((" + ShaderGeneratorNames.ScreenPosition + ".xy / " + ShaderGeneratorNames.ScreenPosition + ".w) * 2 - 1, 0, 0)"), false);
+                    visitor.AddShaderChunk(string.Format("{0}4 {1} = {2};", precision, GetVariableNameForSlot(kOutputSlotId), 
+                        "float4((" + ShaderGeneratorNames.ScreenPosition + ".xy / " + ShaderGeneratorNames.ScreenPosition + ".w) * 2 - 1, 0, 0)"), true);
                     break;
                 case ScreenSpaceType.Tiled:
-                    visitor.AddShaderChunk(string.Format("{0} = {1};", ShaderGeneratorNames.ScreenPosition, "float4((" + ShaderGeneratorNames.ScreenPosition + ".xy / " + ShaderGeneratorNames.ScreenPosition + ".w) * 2 - 1, 0, 0)"), false);
-                    visitor.AddShaderChunk(string.Format("{0} = {1};", ShaderGeneratorNames.ScreenPosition, "float4(" + ShaderGeneratorNames.ScreenPosition + ".x * _ScreenParams.x / _ScreenParams.y, " + ShaderGeneratorNames.ScreenPosition + ".y, 0, 0)"), false);
+                    visitor.AddShaderChunk(string.Format("{0}4 {1} = {2};", precision, GetVariableNameForSlot(kOutputSlotId), 
+                        "float4((" + ShaderGeneratorNames.ScreenPosition + ".xy / " + ShaderGeneratorNames.ScreenPosition + ".w) * 2 - 1, 0, 0)"), true);
+                    visitor.AddShaderChunk(string.Format("{0} = {1};", GetVariableNameForSlot(kOutputSlotId), 
+                        "float4(" + ShaderGeneratorNames.ScreenPosition + ".x * _ScreenParams.x / _ScreenParams.y, " + ShaderGeneratorNames.ScreenPosition + ".y, 0, 0)"), true);
                     break;
                 default:
-                    visitor.AddShaderChunk(string.Format("{0} = {1};", ShaderGeneratorNames.ScreenPosition, "float4(" + ShaderGeneratorNames.ScreenPosition + ".xy / " + ShaderGeneratorNames.ScreenPosition + ".w, 0, 0)"), false);
+                    visitor.AddShaderChunk(string.Format("{0}4 {1} = {2};", precision, GetVariableNameForSlot(kOutputSlotId),
+                        "float4(" + ShaderGeneratorNames.ScreenPosition + ".xy / " + ShaderGeneratorNames.ScreenPosition + ".w, 0, 0)"), true);
                     break;
             }
         }
