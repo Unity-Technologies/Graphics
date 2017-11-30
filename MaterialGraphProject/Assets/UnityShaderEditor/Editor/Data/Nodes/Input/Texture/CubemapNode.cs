@@ -13,11 +13,13 @@ namespace UnityEditor.ShaderGraph
         public const int CubemapInputId = 1;
         public const int ViewDirInputId = 2;
         public const int NormalInputId = 3;
+        public const int LODInputId = 4;
 
         const string kOutputSlotName = "Out";
         const string kCubemapInputName = "Cube";
         const string kViewDirInputName = "ViewDir";
         const string kNormalInputName = "Normal";
+        const string kLODInputName = "LOD";
 
         public override bool hasPreview { get { return true; } }
 
@@ -33,7 +35,8 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new CubemapInputMaterialSlot(CubemapInputId, kCubemapInputName, kCubemapInputName));
             AddSlot(new ViewDirectionMaterialSlot(ViewDirInputId, kViewDirInputName, kViewDirInputName, CoordinateSpace.Object));
             AddSlot(new NormalMaterialSlot(NormalInputId, kNormalInputName, kNormalInputName, CoordinateSpace.Object));
-            RemoveSlotsNameNotMatching(new[] { OutputSlotId, CubemapInputId, ViewDirInputId, NormalInputId });
+            AddSlot(new Vector1MaterialSlot(LODInputId, kLODInputName, kLODInputName, SlotType.Input, 0));
+            RemoveSlotsNameNotMatching(new[] { OutputSlotId, CubemapInputId, ViewDirInputId, NormalInputId, LODInputId });
         }
 
         public override PreviewMode previewMode
@@ -44,12 +47,13 @@ namespace UnityEditor.ShaderGraph
         // Node generations
         public virtual void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            string result = string.Format("{0}4 {1} = texCUBE ({2}, reflect(-{3}, {4}));"
+            string result = string.Format("{0}4 {1} = texCUBElod ({2}, {0}4(reflect(-{3}, {4}), {5}));"
                         , precision
                         , GetVariableNameForSlot(OutputSlotId)
                         , GetSlotValue(CubemapInputId, generationMode)
                         , GetSlotValue(ViewDirInputId, generationMode)
-                        , GetSlotValue(NormalInputId, generationMode));
+                        , GetSlotValue(NormalInputId, generationMode)
+                        , GetSlotValue(LODInputId, generationMode));
 
             visitor.AddShaderChunk(result, true);
         }
