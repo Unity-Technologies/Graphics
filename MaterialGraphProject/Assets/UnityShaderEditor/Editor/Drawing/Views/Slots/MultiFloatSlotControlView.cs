@@ -30,8 +30,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
 
         void AddField(Vector4 initialValue, int index, string subLabel)
         {
-            Add(new Label(subLabel));
+            var label = new Label(subLabel);
+            Add(label);
             var doubleField = new DoubleField { userData = index, value = initialValue[index] };
+            var dragger = new FieldMouseDragger<double>(doubleField);
+            dragger.SetDragZone(label);
             doubleField.OnValueChanged(evt =>
             {
                 var value = m_Get();

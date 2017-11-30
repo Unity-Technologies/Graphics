@@ -72,41 +72,25 @@ namespace UnityEditor.Graphing
             if (node == null)
                 return;
 
-            using (var stackDisposable = StackPool<INode>.GetDisposable())
-            using (var queueDisposable = QueuePool<INode>.GetDisposable())
+            // already added this node
+            if (nodeList.Contains(node))
+                return;
+
+            var ids = node.GetInputSlots<ISlot>().Select(x => x.id);
+            if (slotIds != null)
+                ids = node.GetInputSlots<ISlot>().Where(x => slotIds.Contains(x.id)).Select(x => x.id);
+
+            foreach (var slot in ids)
             {
-                var stack = stackDisposable.value;
-                var queue = queueDisposable.value;
-                queue.Enqueue(node);
-
-                while (queue.Any())
+                foreach (var edge in node.owner.GetEdges(node.GetSlotReference(slot)))
                 {
-                    var fromNode = queue.Dequeue();
-
-                    // already added this node
-                    if (nodeList.Contains(fromNode))
-                        continue;
-
-                    foreach (var slot in fromNode.GetInputSlots<ISlot>())
-                    {
-                        if (slotIds != null && !slotIds.Contains(slot.id))
-                            continue;
-
-                        foreach (var edge in fromNode.owner.GetEdges(fromNode.GetSlotReference(slot.id)))
-                        {
-                            var outputNode = fromNode.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
-                            queue.Enqueue(outputNode);
-                            stack.Push(outputNode);
-                        }
-                    }
+                    var outputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                    DepthFirstCollectNodesFromNode(nodeList, outputNode);
                 }
-
-                while (stack.Any())
-                    nodeList.Add(stack.Pop());
-
-                if (includeSelf == IncludeSelf.Include)
-                    nodeList.Add(node);
             }
+
+            if (includeSelf == IncludeSelf.Include)
+                nodeList.Add(node);
         }
 
         public static void CollectNodesNodeFeedsInto(List<INode> nodeList, INode node, IncludeSelf includeSelf = IncludeSelf.Include)
