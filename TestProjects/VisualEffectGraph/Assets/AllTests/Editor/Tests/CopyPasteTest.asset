@@ -840,7 +840,6 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots: []
   m_Data: {fileID: 114932548901276052}
-  m_Space: 0
   m_InputFlowSlot:
   - link: []
   m_OutputFlowSlot:
@@ -1165,7 +1164,6 @@ MonoBehaviour:
   - {fileID: 114190932133667664}
   m_OutputSlots: []
   m_Data: {fileID: 114932548901276052}
-  m_Space: 0
   m_InputFlowSlot:
   - link:
     - context: {fileID: 114575927712798874}
@@ -1175,6 +1173,7 @@ MonoBehaviour:
   blendMode: 1
   useSoftParticle: 0
   sortPriority: 0
+  indirectDraw: 0
   flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114806364651043532
@@ -1305,10 +1304,7 @@ MonoBehaviour:
   - {fileID: 114575927712798874}
   - {fileID: 114792578739552882}
   m_Capacity: 65536
-  m_Bounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_WorldSpace: 0
+  m_Space: 0
 --- !u!114 &114936841699705906
 MonoBehaviour:
   m_ObjectHideFlags: 0

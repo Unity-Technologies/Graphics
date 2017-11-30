@@ -493,7 +493,6 @@ MonoBehaviour:
   - {fileID: 114477739237832484}
   m_OutputSlots: []
   m_Data: {fileID: 114564655996645712}
-  m_Space: 0
   m_InputFlowSlot:
   - link:
     - context: {fileID: 114887803095184970}
@@ -612,7 +611,6 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots: []
   m_Data: {fileID: 114564655996645712}
-  m_Space: 0
   m_InputFlowSlot:
   - link:
     - context: {fileID: 114100529078072208}
@@ -1897,7 +1895,6 @@ MonoBehaviour:
   - {fileID: 114746892508350722}
   m_OutputSlots: []
   m_Data: {fileID: 114564655996645712}
-  m_Space: 0
   m_InputFlowSlot:
   - link:
     - context: {fileID: 114116801909999344}
@@ -1907,6 +1904,7 @@ MonoBehaviour:
   blendMode: 2
   useSoftParticle: 0
   sortPriority: 0
+  indirectDraw: 0
   flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114364075504055620
@@ -2114,7 +2112,6 @@ MonoBehaviour:
   - {fileID: 114475239543984432}
   m_OutputSlots: []
   m_Data: {fileID: 114564655996645712}
-  m_Space: 0
   m_InputFlowSlot:
   - link:
     - context: {fileID: 114116801909999344}
@@ -2124,6 +2121,7 @@ MonoBehaviour:
   blendMode: 2
   useSoftParticle: 0
   sortPriority: 0
+  indirectDraw: 0
   flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114401068537687094
@@ -3112,10 +3110,7 @@ MonoBehaviour:
   - {fileID: 114363922546830494}
   - {fileID: 114398040047341524}
   m_Capacity: 65536
-  m_Bounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_WorldSpace: 0
+  m_Space: 0
 --- !u!114 &114564680550324756
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4796,8 +4791,7 @@ MonoBehaviour:
   m_UICollapsed: 0
   m_InputSlots: []
   m_OutputSlots: []
-  m_Data: {fileID: 114564680550324756}
-  m_Space: 0
+  m_Data: {fileID: 0}
   m_InputFlowSlot:
   - link: []
   - link: []
@@ -5895,7 +5889,7 @@ VFXAsset:
       nameId: spawner_output
     values: []
     tasks:
-    - type: 268435457
+    - type: 268435456
       buffers: []
       values:
       - index: 58
@@ -5944,7 +5938,7 @@ VFXAsset:
       - index: 57
         nameId: uniform_Lifetime_e
       params: []
-      processor: {fileID: 7200000, guid: 52e45f16c71c9614aa116b84235314ea, type: 3}
+      processor: {fileID: 7200000, guid: e17bb5f2871d46942a6b596187ab7e46, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5955,7 +5949,7 @@ VFXAsset:
       - index: 66
         nameId: uniform_deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: 2ba1545288fdb1b49a812d591c51f366, type: 3}
+      processor: {fileID: 7200000, guid: adcba99bfb60ef24fb50b14b7363543f, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -5988,7 +5982,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: c75d0e106a6ff484881189745950d5f7, type: 3}
+      processor: {fileID: 4800000, guid: ec0ebec7c77d7614d9cf533935a7ada4, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -6021,7 +6015,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 964006da991aa1948beb35c7c815db98, type: 3}
+      processor: {fileID: 4800000, guid: fde97ad691d313543a48cfa3772cece2, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000

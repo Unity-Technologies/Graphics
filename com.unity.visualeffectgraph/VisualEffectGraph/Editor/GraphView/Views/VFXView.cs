@@ -182,7 +182,7 @@ namespace UnityEditor.VFX.UI
         public VFXView()
         {
             forceNotififcationOnAdd = true;
-            SetupZoom(new Vector3(0.125f, 0.125f, 1), new Vector3(8, 8, 1));
+            SetupZoom(0.125f, 8);
 
             //this.AddManipulator(new SelectionSetter(this));
             this.AddManipulator(new ContentDragger());
@@ -440,7 +440,7 @@ namespace UnityEditor.VFX.UI
 
         public IEnumerable<VFXContextUI> GetAllContexts()
         {
-            foreach (var layer in GetAllLayers())
+            foreach (var layer in contentViewContainer.Children())
             {
                 foreach (var element in layer)
                 {
@@ -558,7 +558,7 @@ namespace UnityEditor.VFX.UI
 
         public IEnumerable<VFXDataAnchor> GetAllDataAnchors(bool input, bool output)
         {
-            foreach (var layer in GetAllLayers())
+            foreach (var layer in contentViewContainer.Children())
             {
                 foreach (var element in layer)
                 {
@@ -588,7 +588,7 @@ namespace UnityEditor.VFX.UI
 
         public VFXDataEdge GetDataEdgeByPresenter(VFXDataEdgePresenter presenter)
         {
-            foreach (var layer in GetAllLayers())
+            foreach (var layer in contentViewContainer.Children())
             {
                 foreach (var element in layer)
                 {
@@ -605,7 +605,7 @@ namespace UnityEditor.VFX.UI
 
         public IEnumerable<VFXDataEdge> GetAllDataEdges()
         {
-            foreach (var layer in GetAllLayers())
+            foreach (var layer in contentViewContainer.Children())
             {
                 foreach (var element in layer)
                 {
@@ -617,7 +617,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override IEnumerable<Port> GetAllPorts(bool input, bool output)
+        public IEnumerable<Port> GetAllPorts(bool input, bool output)
         {
             foreach (var anchor in GetAllDataAnchors(input, output))
             {
@@ -629,14 +629,14 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override IEnumerable<Node> GetAllNodes()
+        public IEnumerable<Node> GetAllNodes()
         {
-            foreach (var node in base.GetAllNodes())
+            foreach (var node in nodes.ToList())
             {
                 yield return node;
             }
 
-            foreach (var layer in GetAllLayers())
+            foreach (var layer in contentViewContainer.Children())
             {
                 foreach (var element in layer)
                 {

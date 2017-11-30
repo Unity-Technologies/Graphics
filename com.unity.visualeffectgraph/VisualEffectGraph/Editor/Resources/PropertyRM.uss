@@ -16,6 +16,13 @@
     width:16;
 	height:16;
 }
+.propertyrm Button
+{
+    margin-top:1;
+    margin-bottom:1;
+    padding-top:0;
+    padding-bottom:0;
+}
 
 .propertyrm #label
 {

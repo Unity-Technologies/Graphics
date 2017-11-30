@@ -245,6 +245,7 @@ MonoBehaviour:
   blendMode: 1
   useSoftParticle: 0
   sortPriority: 0
+  indirectDraw: 0
   flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114036124727929684
@@ -734,6 +735,7 @@ MonoBehaviour:
   blendMode: 1
   useSoftParticle: 0
   sortPriority: 0
+  indirectDraw: 0
   flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114103004838022920
@@ -887,9 +889,6 @@ MonoBehaviour:
   - {fileID: 114295252955033220}
   - {fileID: 114033152555091602}
   m_Capacity: 655360
-  m_Bounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
   m_Space: 1
 --- !u!114 &114131131502761872
 MonoBehaviour:
@@ -911,9 +910,6 @@ MonoBehaviour:
   - {fileID: 114700733874330126}
   - {fileID: 114102368234356244}
   m_Capacity: 65536
-  m_Bounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
   m_Space: 0
 --- !u!114 &114143981825511226
 MonoBehaviour:
@@ -2025,7 +2021,7 @@ MonoBehaviour:
   m_UICollapsed: 0
   m_InputSlots: []
   m_OutputSlots: []
-  m_Data: {fileID: 114665202002168496}
+  m_Data: {fileID: 0}
   m_InputFlowSlot:
   - link: []
   - link: []
@@ -4599,7 +4595,7 @@ VFXAsset:
       nameId: spawner_output
     values: []
     tasks:
-    - type: 268435457
+    - type: 268435456
       buffers: []
       values:
       - index: 39
@@ -4644,7 +4640,7 @@ VFXAsset:
       - index: 40
         nameId: uniform_Velocity_d
       params: []
-      processor: {fileID: 7200000, guid: 3a69991a9330ad144a8948899cf5c9bb, type: 3}
+      processor: {fileID: 7200000, guid: ae51e80a1c327c842a53d8cb1646329f, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -4657,7 +4653,7 @@ VFXAsset:
       - index: 42
         nameId: uniform_deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: 9de2f73b3bfa38347b9c5b1828b92022, type: 3}
+      processor: {fileID: 7200000, guid: 21d411091d9890b4e865814a1b121473, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -4670,7 +4666,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 7a8d858e8d2b391478a973d844729294, type: 3}
+      processor: {fileID: 4800000, guid: 35e1124e89c7c6c4092b174867f51823, type: 3}
   - type: 1
     flags: 1
     capacity: 65536
@@ -4709,7 +4705,7 @@ VFXAsset:
       - index: 8
         nameId: uniform_Velocity_d
       params: []
-      processor: {fileID: 7200000, guid: d0a96d7653334d64eba3477a0e7c5bd7, type: 3}
+      processor: {fileID: 7200000, guid: 6c7876df80db2f54ab2af4b061684eae, type: 3}
     - type: 805306368
       buffers:
       - index: 4
@@ -4722,7 +4718,7 @@ VFXAsset:
       - index: 42
         nameId: uniform_deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: 9b99e2fba31fbeb459bdb1958f2e34b1, type: 3}
+      processor: {fileID: 7200000, guid: bf1f2f7f4ed068e468386440f263810e, type: 3}
     - type: 1073741826
       buffers:
       - index: 4
@@ -4735,7 +4731,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 7a815ef8ac4f7c5478b186cebeda598d, type: 3}
+      processor: {fileID: 4800000, guid: 619e78522ef261548b19c205ff2c2192, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000

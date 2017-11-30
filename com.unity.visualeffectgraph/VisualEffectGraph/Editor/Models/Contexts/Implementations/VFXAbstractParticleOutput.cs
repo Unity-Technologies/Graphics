@@ -28,6 +28,11 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected int sortPriority = 0;
 
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected bool indirectDraw = false;
+
+        public bool HasIndirectDraw() { return indirectDraw; }
+
         protected VFXAbstractParticleOutput() : base(VFXContextType.kOutput, VFXDataType.kParticle, VFXDataType.kNone) {}
 
         public override bool codeGeneratorCompute { get { return false; } }
@@ -86,6 +91,9 @@ namespace UnityEditor.VFX
                     if (settings.shadowCastingMode != ShadowCastingMode.Off)
                         yield return "USE_CAST_SHADOWS_PASS";
                 }
+
+                if (HasIndirectDraw())
+                    yield return "VFX_HAS_INDIRECT_DRAW";
             }
         }
 
@@ -126,6 +134,8 @@ namespace UnityEditor.VFX
             get
             {
                 yield return new VFXMapping(sortPriority, "sortPriority");
+                if (HasIndirectDraw())
+                    yield return new VFXMapping(1, "indirectDraw");
             }
         }
     }

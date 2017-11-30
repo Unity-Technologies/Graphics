@@ -13,11 +13,6 @@ namespace UnityEditor.VFX.UI
     {
         public VFXNodeUI()
         {
-            m_CollapseButton.visible = false;
-
-            Insert(0, titleContainer);
-            rightContainer.Insert(0, new VisualElement() { name = "rightBackground", pickingMode = PickingMode.Ignore });
-            leftContainer.Insert(0, new VisualElement() { name = "leftBackground", pickingMode = PickingMode.Ignore });
             AddToClassList("VFXNodeUI");
         }
 
@@ -42,6 +37,26 @@ namespace UnityEditor.VFX.UI
             if (anchor is VFXEditableDataAnchor)
             {
                 GetPresenter<VFXSlotContainerPresenter>().viewPresenter.onRecompileEvent -= (anchor as VFXEditableDataAnchor).OnRecompile;
+            }
+        }
+
+        public IEnumerable<Port> GetPorts(bool input, bool output)
+        {
+            if (input)
+            {
+                foreach (var child in inputContainer)
+                {
+                    if (child is Port)
+                        yield return child as Port;
+                }
+            }
+            if (output)
+            {
+                foreach (var child in outputContainer)
+                {
+                    if (child is Port)
+                        yield return child as Port;
+                }
             }
         }
     }

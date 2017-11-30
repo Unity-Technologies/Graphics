@@ -45,7 +45,7 @@ namespace UnityEditor.VFX.UIElements
             Add(m_DropDownButton);
         }
 
-        public StringFieldProvider(VisualElement existingLabel, Func<string[]> stringProvider) : base(existingLabel)
+        public StringFieldProvider(Label existingLabel, Func<string[]> stringProvider) : base(existingLabel)
         {
             m_fnStringProvider = stringProvider;
             CreateButton();

@@ -53,7 +53,7 @@ namespace UnityEditor.VFX.UIElements
             Add(m_DropDownButton);
         }
 
-        public VFXEnumField(VisualElement existingLabel, System.Type enumType) : base(existingLabel)
+        public VFXEnumField(Label existingLabel, System.Type enumType) : base(existingLabel)
         {
             CreateButton();
             if (!enumType.IsEnum)

@@ -67,7 +67,7 @@ namespace UnityEditor.VFX.UIElements
     class ObjectField : ValueControl<Object>
     {
         VisualElement m_IconContainer;
-        VisualElement m_NameContainer;
+        Label m_NameContainer;
         VisualElement m_SelectContainer;
 
         class Receiver : ObjectSelectorReceiver
@@ -114,7 +114,7 @@ namespace UnityEditor.VFX.UIElements
             Setup();
         }
 
-        public ObjectField(VisualElement existingLabel) : base(existingLabel)
+        public ObjectField(Label existingLabel) : base(existingLabel)
         {
             Setup();
         }
@@ -130,7 +130,7 @@ namespace UnityEditor.VFX.UIElements
 
         void Setup()
         {
-            m_NameContainer = new VisualElement();
+            m_NameContainer = new Label();
             m_NameContainer.name = "name";
 
             m_IconContainer = new VisualElement();

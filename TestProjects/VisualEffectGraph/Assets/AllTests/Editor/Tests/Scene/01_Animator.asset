@@ -18,7 +18,6 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots: []
   m_Data: {fileID: 114942164106119674}
-  m_Space: 0
   m_InputFlowSlot:
   - link:
     - context: {fileID: 114696786711219316}
@@ -774,7 +773,6 @@ MonoBehaviour:
   - {fileID: 114250947992964778}
   m_OutputSlots: []
   m_Data: {fileID: 114942164106119674}
-  m_Space: 0
   m_InputFlowSlot:
   - link:
     - context: {fileID: 114744487124577306}
@@ -862,8 +860,7 @@ MonoBehaviour:
   m_UICollapsed: 0
   m_InputSlots: []
   m_OutputSlots: []
-  m_Data: {fileID: 114570102821321064}
-  m_Space: 0
+  m_Data: {fileID: 0}
   m_InputFlowSlot:
   - link: []
   - link: []
@@ -1004,7 +1001,6 @@ MonoBehaviour:
   - {fileID: 114333373139681610}
   m_OutputSlots: []
   m_Data: {fileID: 114942164106119674}
-  m_Space: 0
   m_InputFlowSlot:
   - link:
     - context: {fileID: 114071411328686510}
@@ -1014,6 +1010,7 @@ MonoBehaviour:
   blendMode: 0
   useSoftParticle: 0
   sortPriority: 0
+  indirectDraw: 0
   flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114799785256960774
@@ -1270,10 +1267,7 @@ MonoBehaviour:
   - {fileID: 114071411328686510}
   - {fileID: 114793310504714078}
   m_Capacity: 65536
-  m_Bounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_WorldSpace: 0
+  m_Space: 0
 --- !u!114 &114946859040774818
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1650,7 +1644,7 @@ VFXAsset:
       nameId: spawner_output
     values: []
     tasks:
-    - type: 268435457
+    - type: 268435456
       buffers: []
       values:
       - index: 21

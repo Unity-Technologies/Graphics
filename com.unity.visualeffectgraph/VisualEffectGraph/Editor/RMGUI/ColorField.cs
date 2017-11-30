@@ -51,7 +51,7 @@ namespace UnityEditor.VFX.UIElements
             m_AlphaDisplay.AddManipulator(new Clickable(OnColorClick));
 
 
-            m_HDRLabel = new VisualElement() {
+            m_HDRLabel = new Label() {
                 pickingMode = PickingMode.Ignore,
                 text = "HDR"
             };
@@ -146,7 +146,7 @@ namespace UnityEditor.VFX.UIElements
             Add(m_EyeDropper);
         }
 
-        public ColorField(VisualElement existingLabel) : base(existingLabel)
+        public ColorField(Label existingLabel) : base(existingLabel)
         {
             VisualElement container = CreateColorContainer();
             Add(container);

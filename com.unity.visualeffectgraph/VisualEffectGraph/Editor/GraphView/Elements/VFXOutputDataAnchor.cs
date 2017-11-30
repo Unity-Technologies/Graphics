@@ -31,6 +31,7 @@ namespace UnityEditor.VFX.UI
                 name = "icon"
             };
 
+            Add(new VisualElement() { name = "lineSpacer" });
             Add(m_Icon); //insert between text and connector
         }
 
@@ -55,10 +56,10 @@ namespace UnityEditor.VFX.UI
             base.OnDataChanged();
             VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
 
-
             if (presenter.depth != 0 && m_Lines == null)
             {
-                m_Lines = new VisualElement[presenter.depth];
+                m_Lines = new VisualElement[presenter.depth + 1];
+
                 for (int i = 0; i < presenter.depth; ++i)
                 {
                     var line = new VisualElement();
@@ -67,7 +68,7 @@ namespace UnityEditor.VFX.UI
                     line.style.marginLeft = 0.5f * VFXPropertyIM.depthOffset;
                     line.style.marginRight = VFXPropertyIM.depthOffset * 0.5f;
 
-                    Insert(0, line);
+                    Add(line);
                     m_Lines[i] = line;
                 }
             }
