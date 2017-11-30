@@ -14,9 +14,14 @@ ${VFXGeneratedBlockFunction}
 
 #define VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)
 
-ByteAddressBuffer attributeBuffer;		
-float nbMax;	
+ByteAddressBuffer attributeBuffer;	
+
+#if VFX_HAS_INDIRECT_DRAW
+StructuredBuffer<uint> indirectBuffer;	
+#endif	
+
+CBUFFER_START(outputParams)	
+	float nbMax;
+CBUFFER_END
 
 ENDHLSL
-
-

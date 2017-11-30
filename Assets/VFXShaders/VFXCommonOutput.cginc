@@ -36,6 +36,16 @@ float4 VFXGetTextureColor(VFXSampler2D s,VFX_VARYING_PS_INPUTS i)
     return texColor;
 }
 
+float3 VFXGetTextureNormal(VFXSampler2D s,float2 uv)
+{
+    float4 packedNormal = s.t.Sample(s.s,uv);
+    packedNormal.w *= packedNormal.x;
+    float3 normal;
+    normal.xy = packedNormal.wy * 2.0 - 1.0;
+    normal.z = sqrt(1.0 - saturate(dot(normal.xy, normal.xy)));
+    return normal;
+}
+
 float4 VFXGetFragmentColor(VFX_VARYING_PS_INPUTS i)
 {
     float4 color = VFXGetParticleColor(i);
