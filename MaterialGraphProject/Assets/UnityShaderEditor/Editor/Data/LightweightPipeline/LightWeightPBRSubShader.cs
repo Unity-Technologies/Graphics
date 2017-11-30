@@ -45,7 +45,7 @@ namespace UnityEditor.ShaderGraph
             }
         };
 
-        private static string GetShaderPassFromTemplate(string template, PBRMasterNode masterNode, Pass pass, GenerationMode mode)
+        private static string GetShaderPassFromTemplate(string template, PBRMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions)
         {
             var surfaceVertexShader = new ShaderGenerator();
             var surfaceDescriptionFunction = new ShaderGenerator();
@@ -130,47 +130,13 @@ struct GraphVertexInput
             graph.AddShaderChunk(shaderProperties.GetPropertiesDeclaration(2), false);
             graph.AddShaderChunk(surfaceVertexShader.GetShaderString(2), false);
             graph.AddShaderChunk(surfaceDescriptionFunction.GetShaderString(2), false);
-
-            var tagsVisitor = new ShaderGenerator();
+            
             var blendingVisitor = new ShaderGenerator();
             var cullingVisitor = new ShaderGenerator();
             var zTestVisitor = new ShaderGenerator();
             var zWriteVisitor = new ShaderGenerator();
 
-            var materialOptions = new SurfaceMaterialOptions();
-            switch (masterNode.alphaMode)
-            {
-                case PBRMasterNode.AlphaMode.Overwrite:
-                case PBRMasterNode.AlphaMode.Clip:
-                    materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
-                    materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.Zero;
-                    materialOptions.cullMode = SurfaceMaterialOptions.CullMode.Back;
-                    materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
-                    materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.On;
-                    materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Geometry;
-                    materialOptions.renderType = SurfaceMaterialOptions.RenderType.Opaque;
-                    break;
-                case PBRMasterNode.AlphaMode.AlphaBlend:
-                    materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.SrcAlpha;
-                    materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
-                    materialOptions.cullMode = SurfaceMaterialOptions.CullMode.Back;
-                    materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
-                    materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
-                    materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Transparent;
-                    materialOptions.renderType = SurfaceMaterialOptions.RenderType.Transparent;
-                    break;
-                case PBRMasterNode.AlphaMode.AdditiveBlend:
-                    materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
-                    materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.One;
-                    materialOptions.cullMode = SurfaceMaterialOptions.CullMode.Back;
-                    materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
-                    materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
-                    materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Transparent;
-                    materialOptions.renderType = SurfaceMaterialOptions.RenderType.Transparent;
-                    break;
-            }
-
-            materialOptions.GetTags(tagsVisitor);
+            
             materialOptions.GetBlend(blendingVisitor);
             materialOptions.GetCull(cullingVisitor);
             materialOptions.GetDepthTest(zTestVisitor);
@@ -201,14 +167,12 @@ struct GraphVertexInput
                 CoordinateSpace.World);
 
             ShaderGenerator defines = new ShaderGenerator();
-            defines.AddShaderChunk("#define _GLOSSYREFLECTIONS_ON", true);
-            defines.AddShaderChunk("#define _SPECULARHIGHLIGHTS_ON", true);
 
             if (masterNode.IsSlotConnected(PBRMasterNode.NormalSlotId))
                 defines.AddShaderChunk("#define _NORMALMAP 1", true);
 
-            if (masterNode.model == PBRMasterNode.Model.Metallic)
-                defines.AddShaderChunk("#define _METALLIC_SETUP 1", true);
+            if (masterNode.model == PBRMasterNode.Model.Specular)
+                defines.AddShaderChunk("#define _SPECULAR_SETUP 1", true);
 
             switch (masterNode.alphaMode)
             {
@@ -243,12 +207,11 @@ struct GraphVertexInput
             resultPass = resultPass.Replace("${SurfaceOutputRemap}", surfaceOutputRemap.GetShaderString(3));
 
 
-            resultPass = resultPass.Replace("${Tags}", tagsVisitor.GetShaderString(2));
+            resultPass = resultPass.Replace("${Tags}", string.Empty);
             resultPass = resultPass.Replace("${Blending}", blendingVisitor.GetShaderString(2));
             resultPass = resultPass.Replace("${Culling}", cullingVisitor.GetShaderString(2));
             resultPass = resultPass.Replace("${ZTest}", zTestVisitor.GetShaderString(2));
             resultPass = resultPass.Replace("${ZWrite}", zWriteVisitor.GetShaderString(2));
-            resultPass = resultPass.Replace("${LOD}", "" + materialOptions.lod);
             return resultPass;
         }
 
@@ -260,12 +223,50 @@ struct GraphVertexInput
             subShader.Indent();
             subShader.AddShaderChunk("Tags{ \"RenderPipeline\" = \"LightweightPipeline\"}", true);
 
+            var materialOptions = new SurfaceMaterialOptions();
+            switch (masterNode.alphaMode)
+            {
+                case PBRMasterNode.AlphaMode.Overwrite:
+                case PBRMasterNode.AlphaMode.Clip:
+                    materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
+                    materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.Zero;
+                    materialOptions.cullMode = SurfaceMaterialOptions.CullMode.Back;
+                    materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
+                    materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.On;
+                    materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Geometry;
+                    materialOptions.renderType = SurfaceMaterialOptions.RenderType.Opaque;
+                    break;
+                case PBRMasterNode.AlphaMode.AlphaBlend:
+                    materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.SrcAlpha;
+                    materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
+                    materialOptions.cullMode = SurfaceMaterialOptions.CullMode.Back;
+                    materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
+                    materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
+                    materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Transparent;
+                    materialOptions.renderType = SurfaceMaterialOptions.RenderType.Transparent;
+                    break;
+                case PBRMasterNode.AlphaMode.AdditiveBlend:
+                    materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
+                    materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.One;
+                    materialOptions.cullMode = SurfaceMaterialOptions.CullMode.Back;
+                    materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
+                    materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
+                    materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Transparent;
+                    materialOptions.renderType = SurfaceMaterialOptions.RenderType.Transparent;
+                    break;
+            }
+
+            var tagsVisitor = new ShaderGenerator();
+            materialOptions.GetTags(tagsVisitor);
+            subShader.AddShaderChunk(tagsVisitor.GetShaderString(0), true);
+
             subShader.AddShaderChunk(
                 GetShaderPassFromTemplate(
                     "lightweightPBRForwardPass.template",
                     masterNode,
                     masterNode.model == PBRMasterNode.Model.Metallic ? m_ForwardPassMetallic : m_ForwardPassSpecular,
-                    mode),
+                    mode,
+                    materialOptions),
                 true);
 
             var extraPassesTemplateLocation = ShaderGenerator.GetTemplatePath("lightweightPBRExtraPasses.template");

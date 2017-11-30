@@ -1,6 +1,6 @@
 Pass
 {
-    Tags{"Lightmode" = "ShadowCaster"}
+    Tags{"LightMode" = "ShadowCaster"}
 
     ZWrite On ZTest LEqual
 
@@ -16,9 +16,10 @@ Pass
 
 Pass
 {
-    Tags{"Lightmode" = "DepthOnly"}
+    Tags{"LightMode" = "DepthOnly"}
 
     ZWrite On
+    ColorMask 0
 
     CGPROGRAM
     #pragma target 2.0
