@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -35,6 +35,5 @@ namespace UnityEditor.ShaderGraph
                 m_Vector4 = value
             };
         }
-
     }
 }

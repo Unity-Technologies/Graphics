@@ -63,8 +63,8 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_Exponential2(
-    [Slot(0, Binding.None)] DynamicDimensionVector In,
-    [Slot(1, Binding.None)] out DynamicDimensionVector Out)
+            [Slot(0, Binding.None)] DynamicDimensionVector In,
+            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"

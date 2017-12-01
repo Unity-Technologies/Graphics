@@ -10,5 +10,4 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-
 }

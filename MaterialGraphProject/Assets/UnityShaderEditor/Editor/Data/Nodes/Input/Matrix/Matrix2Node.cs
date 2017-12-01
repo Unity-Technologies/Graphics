@@ -31,11 +31,11 @@ namespace UnityEditor.ShaderGraph
         }
 
         void SetRow(ref Vector2 row, Vector2 value)
-            {
+        {
             if (value == row)
-                    return;
+                return;
             row = value;
-                if (onModified != null)
+            if (onModified != null)
                 onModified(this, ModificationScope.Graph);
         }
 

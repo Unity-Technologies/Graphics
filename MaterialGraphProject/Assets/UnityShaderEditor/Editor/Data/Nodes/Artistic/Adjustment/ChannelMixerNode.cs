@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        ChannelMixer m_ChannelMixer = new ChannelMixer( new Vector3(1, 0, 0), new Vector3(0, 1, 0), new Vector3(0, 0, 1));
+        ChannelMixer m_ChannelMixer = new ChannelMixer(new Vector3(1, 0, 0), new Vector3(0, 1, 0), new Vector3(0, 0, 1));
 
         [Serializable]
         public struct ChannelMixer
@@ -71,9 +71,9 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionPrototype(string argIn, string argRed, string argGreen, string argBlue, string argOut)
         {
-            return string.Format("void {0} ({1} {2}, {3} {4}, {3} {5}, {3} {6}, out {7} {8})", GetFunctionName(), 
-                ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType), argIn, 
-                precision+"3", argRed, argGreen, argBlue, 
+            return string.Format("void {0} ({1} {2}, {3} {4}, {3} {5}, {3} {6}, out {7} {8})", GetFunctionName(),
+                ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType), argIn,
+                precision + "3", argRed, argGreen, argBlue,
                 ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), argOut);
         }
 
@@ -83,7 +83,7 @@ namespace UnityEditor.ShaderGraph
             string outputValue = GetSlotValue(OutputSlotId, generationMode);
             visitor.AddShaderChunk(string.Format("{0} {1};", ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType), GetVariableNameForSlot(OutputSlotId)), true);
 
-            if(!generationMode.IsPreview())
+            if (!generationMode.IsPreview())
             {
                 visitor.AddShaderChunk(string.Format("{0}3 _{1}_Red = {0}3 ({2}, {3}, {4});", precision, GetVariableNameForNode(), channelMixer.outRed[0], channelMixer.outRed[1], channelMixer.outRed[2]), true);
                 visitor.AddShaderChunk(string.Format("{0}3 _{1}_Green = {0}3 ({2}, {3}, {4});", precision, GetVariableNameForNode(), channelMixer.outGreen[0], channelMixer.outGreen[1], channelMixer.outGreen[2]), true);
@@ -157,7 +157,7 @@ namespace UnityEditor.ShaderGraph
             visitor.Indent();
 
             visitor.AddShaderChunk(string.Format("Out = {0} (dot(In, Red), dot(In, Green), dot(In, Blue));",
-                ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType)), true);
+                    ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType)), true);
 
             visitor.Deindent();
             visitor.AddShaderChunk("}", false);

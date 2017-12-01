@@ -238,7 +238,7 @@ namespace UnityEditor.ShaderGraph
                 // are compatable.
                 if (inputSlot is DynamicVectorMaterialSlot)
                 {
-                    dynamicInputSlotsToCompare.Add((DynamicVectorMaterialSlot) inputSlot, outputConcreteType);
+                    dynamicInputSlotsToCompare.Add((DynamicVectorMaterialSlot)inputSlot, outputConcreteType);
                     continue;
                 }
 
@@ -290,7 +290,6 @@ namespace UnityEditor.ShaderGraph
 
             ListPool<DynamicVectorMaterialSlot>.Release(skippedDynamicSlots);
             DictionaryPool<DynamicVectorMaterialSlot, ConcreteSlotValueType>.Release(dynamicInputSlotsToCompare);
-
         }
 
         public int version { get; private set; }

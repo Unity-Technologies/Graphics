@@ -14,7 +14,6 @@ namespace UnityEditor.ShaderGraph
     [Title("UV/Rotate")]
     public class RotateNode : CodeFunctionNode
     {
-
         [SerializeField]
         private RotationUnit m_Unit = RotationUnit.Radians;
 
@@ -42,7 +41,7 @@ namespace UnityEditor.ShaderGraph
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            if(m_Unit == RotationUnit.Radians)
+            if (m_Unit == RotationUnit.Radians)
                 return GetType().GetMethod("Unity_Rotate_Radians", BindingFlags.Static | BindingFlags.NonPublic);
             else
                 return GetType().GetMethod("Unity_Rotate_Degrees", BindingFlags.Static | BindingFlags.NonPublic);
@@ -56,7 +55,7 @@ namespace UnityEditor.ShaderGraph
         {
             Out = Vector2.zero;
 
-            
+
             return
                 @"
 {
@@ -74,7 +73,7 @@ namespace UnityEditor.ShaderGraph
     //multiply the UVs by the rotation matrix
     UV.xy = mul(UV.xy, rMatrix);
     UV += Center;
-    
+
     Out = UV;
 }";
         }
@@ -86,7 +85,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(3, Binding.None)] out Vector2 Out)
         {
             Out = Vector2.zero;
-           
+
             return @"
 {
     //rotation matrix
@@ -104,10 +103,9 @@ namespace UnityEditor.ShaderGraph
     //multiply the UVs by the rotation matrix
     UV.xy = mul(UV.xy, rMatrix);
     UV += Center;
-    
+
     Out = UV;
 }";
-
         }
     }
 }

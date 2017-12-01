@@ -6,7 +6,7 @@ using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.ShaderGraph.UnitTests
 {
-    /* 
+    /*
    [TestFixture]
    public class PropertyGeneratorTests
    {

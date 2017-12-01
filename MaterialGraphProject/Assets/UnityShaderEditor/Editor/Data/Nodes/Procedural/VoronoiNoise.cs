@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph
         static string Unity_VoronoiNoise(
             [Slot(0, Binding.MeshUV0)] Vector2 UV,
             [Slot(1, Binding.None, 2.0f, 0, 0, 0)] Vector1 AngleOffset,
-            [Slot(2, Binding.None,5.0f,5.0f,5.0f,5.0f)] Vector1 CellDensity,
+            [Slot(2, Binding.None, 5.0f, 5.0f, 5.0f, 5.0f)] Vector1 CellDensity,
             [Slot(3, Binding.None)] out Vector1 Out,
             [Slot(4, Binding.None)] out Vector1 Cells)
         {

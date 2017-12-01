@@ -161,17 +161,17 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var center = node.drawState.position.center;
                 bounds = Rect.MinMaxRect(
-                    Mathf.Min(bounds.xMin, center.x),
-                    Mathf.Min(bounds.yMin, center.y),
-                    Mathf.Max(bounds.xMax, center.x),
-                    Mathf.Max(bounds.yMax, center.y));
+                        Mathf.Min(bounds.xMin, center.x),
+                        Mathf.Min(bounds.yMin, center.y),
+                        Mathf.Max(bounds.xMax, center.x),
+                        Mathf.Max(bounds.yMax, center.y));
             }
             var middle = bounds.center;
             bounds.center = Vector2.zero;
 
             var copyPasteGraph = new CopyPasteGraph(
-                graphView.selection.OfType<MaterialNodeView>().Where(x => !(x.node is PropertyNode)).Select(x => x.node as INode),
-                graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge));
+                    graphView.selection.OfType<MaterialNodeView>().Where(x => !(x.node is PropertyNode)).Select(x => x.node as INode),
+                    graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge));
 
             var deserialized = CopyPasteGraph.FromJson(JsonUtility.ToJson(copyPasteGraph, false));
             if (deserialized == null)
@@ -218,7 +218,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var inputSlotRef = new SlotReference(remappedInputNodeGuid, inputSlot.slotId);
                     subGraph.Connect(outputSlotRef, inputSlotRef);
                 }
-
                 // one edge needs to go to outside world
                 else if (outputSlotExistsInSubgraph)
                 {
@@ -232,9 +231,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Find the unique edges coming INTO the graph
             var uniqueIncomingEdges = externalOutputSlots.GroupBy(
-                edge => edge.outputSlot,
-                edge => edge,
-                (key, edges) => new { slotRef = key, edges = edges.ToList() });
+                    edge => edge.outputSlot,
+                    edge => edge,
+                    (key, edges) => new { slotRef = key, edges = edges.ToList() });
 
             var externalInputNeedingConnection = new List<KeyValuePair<IEdge, IShaderProperty>>();
             foreach (var group in uniqueIncomingEdges)
@@ -291,9 +290,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             var uniqueOutgoingEdges = externalInputSlots.GroupBy(
-                edge => edge.inputSlot,
-                edge => edge,
-                (key, edges) => new { slot = key, edges = edges.ToList() });
+                    edge => edge.inputSlot,
+                    edge => edge,
+                    (key, edges) => new { slot = key, edges = edges.ToList() });
 
             var externalOutputsNeedingConnection = new List<KeyValuePair<IEdge, IEdge>>();
             foreach (var group in uniqueOutgoingEdges)

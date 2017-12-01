@@ -28,7 +28,6 @@ namespace UnityEditor.ShaderGraph
         public SurfaceMaterialOptions options
         {
             get { return m_MaterialOptions; }
-
         }
 
         public abstract string GetShader(GenerationMode mode, string name, out List<PropertyCollector.TextureInfo> configuredTextures);

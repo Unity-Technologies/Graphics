@@ -56,7 +56,7 @@ namespace UnityEditor.ShaderGraph
                 }
             }
         }
-        
+
         public override bool hasPreview
         {
             get { return true; }
@@ -173,12 +173,12 @@ namespace UnityEditor.ShaderGraph
             }
 
             if (requiresTangentTransform)
-                visitor.AddShaderChunk("float3x3 tangentTransform = float3x3("+ spaceFrom.ToString() + "SpaceTangent, "+ spaceFrom.ToString() + "SpaceBiTangent, "+ spaceFrom.ToString() + "SpaceNormal);", false);
+                visitor.AddShaderChunk("float3x3 tangentTransform = float3x3(" + spaceFrom.ToString() + "SpaceTangent, " + spaceFrom.ToString() + "SpaceBiTangent, " + spaceFrom.ToString() + "SpaceNormal);", false);
 
             visitor.AddShaderChunk(string.Format("{0} {1} = {2};",
-                ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), 
-                GetVariableNameForSlot(OutputSlotId),
-                transformString), true);
+                    ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType),
+                    GetVariableNameForSlot(OutputSlotId),
+                    transformString), true);
         }
 
         public NeededCoordinateSpace RequiresTangent()

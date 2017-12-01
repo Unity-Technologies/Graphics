@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using UnityEditor.Experimental.UIElements;
 using UnityEngine;
@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             if (!string.IsNullOrEmpty(label))
                 Add(new Label(label));
 
-            var colorField = new ColorField { value = (Color) m_PropertyInfo.GetValue(m_Node, null) };
+            var colorField = new ColorField { value = (Color)m_PropertyInfo.GetValue(m_Node, null) };
             colorField.OnValueChanged(OnChange);
             Add(colorField);
         }

@@ -60,6 +60,5 @@ namespace UnityEditor.ShaderGraph
                 return nodes.OfType<AbstractMaterialNode>();
             }
         }
-
     }
 }

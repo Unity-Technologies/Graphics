@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls

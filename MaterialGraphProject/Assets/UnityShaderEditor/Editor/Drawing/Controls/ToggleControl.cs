@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using UnityEngine;
 using UnityEditor.Graphing;
@@ -67,7 +67,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
         void OnGUIHandler()
         {
-            var value = (Toggle) m_PropertyInfo.GetValue(m_Node, null);
+            var value = (Toggle)m_PropertyInfo.GetValue(m_Node, null);
 
             using (var changeCheckScope = new EditorGUI.ChangeCheckScope())
             {

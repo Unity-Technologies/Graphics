@@ -5,7 +5,7 @@ namespace UnityEditor.ShaderGraph
 {
     /*
     [Title("UV/Spherize 3D")]
-    public class SphericalIndentationNode : CodeFunctionNode 
+    public class SphericalIndentationNode : CodeFunctionNode
     {
         public SphericalIndentationNode()
         {

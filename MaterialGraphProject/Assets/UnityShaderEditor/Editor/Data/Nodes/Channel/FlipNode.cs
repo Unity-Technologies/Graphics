@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
@@ -116,9 +116,9 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionPrototype(string inArg, string flipArg, string outArg)
         {
-            return string.Format("void {0} ({1} {2}, {3} {4}, out {5} {6})", GetFunctionName(), 
+            return string.Format("void {0} ({1} {2}, {3} {4}, out {5} {6})", GetFunctionName(),
                 ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType), inArg,
-                ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType), flipArg, 
+                ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType), flipArg,
                 ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), outArg);
         }
 
@@ -128,15 +128,15 @@ namespace UnityEditor.ShaderGraph
             string outputValue = GetSlotValue(OutputSlotId, generationMode);
             visitor.AddShaderChunk(string.Format("{0} {1};", ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), GetVariableNameForSlot(OutputSlotId)), true);
 
-            if(!generationMode.IsPreview())
+            if (!generationMode.IsPreview())
             {
                 visitor.AddShaderChunk(string.Format("{0} _{1}_Flip = {0} ({2}{3}{4}{5});",
-                    ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType),
-                    GetVariableNameForNode(),
-                    Convert.ToInt32(m_RedChannel).ToString(),
-                    channelCount > 1 ? string.Format(", {0}", (Convert.ToInt32(m_GreenChannel)).ToString()) : "",
-                    channelCount > 2 ? string.Format(", {0}", (Convert.ToInt32(m_BlueChannel)).ToString()) : "",
-                    channelCount > 3 ? string.Format(", {0}", (Convert.ToInt32(m_AlphaChannel)).ToString()) : ""), true);
+                        ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType),
+                        GetVariableNameForNode(),
+                        Convert.ToInt32(m_RedChannel).ToString(),
+                        channelCount > 1 ? string.Format(", {0}", (Convert.ToInt32(m_GreenChannel)).ToString()) : "",
+                        channelCount > 2 ? string.Format(", {0}", (Convert.ToInt32(m_BlueChannel)).ToString()) : "",
+                        channelCount > 3 ? string.Format(", {0}", (Convert.ToInt32(m_AlphaChannel)).ToString()) : ""), true);
             }
 
             visitor.AddShaderChunk(GetFunctionCallBody(inputValue, string.Format("_{0}_Flip", GetVariableNameForNode()), outputValue), true);
@@ -146,7 +146,7 @@ namespace UnityEditor.ShaderGraph
         {
             return GetFunctionName() + " (" + inputValue + ", " + flipValue + ", " + outputValue + ");";
         }
-        
+
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
             base.CollectPreviewMaterialProperties(properties);
@@ -172,7 +172,7 @@ namespace UnityEditor.ShaderGraph
                 generatePropertyBlock = false
             });
         }
-        
+
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
             var outputString = new ShaderGenerator();

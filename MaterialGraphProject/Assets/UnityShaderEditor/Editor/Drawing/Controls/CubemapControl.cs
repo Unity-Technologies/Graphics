@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using UnityEditor.Experimental.UIElements;
 using UnityEngine;
@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             if (!string.IsNullOrEmpty(label))
                 Add(new Label(label));
 
-            var cubemapField = new ObjectField { value = (Cubemap) m_PropertyInfo.GetValue(m_Node, null), objectType = typeof(Cubemap) };
+            var cubemapField = new ObjectField { value = (Cubemap)m_PropertyInfo.GetValue(m_Node, null), objectType = typeof(Cubemap) };
             cubemapField.OnValueChanged(OnChange);
             Add(cubemapField);
         }

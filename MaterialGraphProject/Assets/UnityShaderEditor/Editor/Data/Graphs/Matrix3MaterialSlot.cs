@@ -6,7 +6,6 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     public class Matrix3MaterialSlot : MaterialSlot
     {
-
         public Matrix3MaterialSlot()
         {
         }
@@ -18,7 +17,7 @@ namespace UnityEditor.ShaderGraph
             SlotType slotType,
             ShaderStage shaderStage = ShaderStage.Dynamic,
             bool hidden = false)
-            :base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
+            : base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
         {
         }
 
@@ -33,7 +32,6 @@ namespace UnityEditor.ShaderGraph
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)
         {
-
         }
 
         public override SlotValueType valueType { get { return SlotValueType.Matrix3; } }

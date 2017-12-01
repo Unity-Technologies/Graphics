@@ -76,7 +76,7 @@ namespace UnityEditor.ShaderGraph
             {
                 overrideReferenceName = GetVariableNameForNode(),
                 generatePropertyBlock = false,
-                
+
                 value = new TextureSamplerState()
                 {
                     filter = m_filter,
