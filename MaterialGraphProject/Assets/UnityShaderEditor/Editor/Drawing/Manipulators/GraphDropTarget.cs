@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (texture2D != null)
             {
                 m_Graph.owner.RegisterCompleteObjectUndo("Drag Texture");
-                
+
                 bool isNormalMap = false;
                 if (EditorUtility.IsPersistent(texture2D)
                     && !string.IsNullOrEmpty(AssetDatabase.GetAssetPath(texture2D)))
@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var node = new Texture2DNode();
                 if (isNormalMap)
                     node.textureType = TextureType.Normal;
-                
+
                 var drawState = node.drawState;
                 drawState.position = new Rect(nodePosition, drawState.position.size);
                 node.drawState = drawState;

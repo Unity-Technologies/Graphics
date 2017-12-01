@@ -12,7 +12,7 @@ namespace UnityEditor.Graphing.Util
 
         protected override GraphElement InternalCreate(Type valueType)
         {
-            return (GraphElement) Activator.CreateInstance(valueType);
+            return (GraphElement)Activator.CreateInstance(valueType);
         }
     }
 }

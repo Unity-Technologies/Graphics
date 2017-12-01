@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.Experimental.UIElements;
@@ -77,39 +77,39 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             doubleField.RegisterCallback<MouseDownEvent>(Repaint);
             doubleField.RegisterCallback<MouseMoveEvent>(Repaint);
             doubleField.OnValueChanged(evt =>
-            {
-                var value = GetValue();
-                value[index] = (float)evt.newValue;
-                SetValue(value);
-                m_UndoGroup = -1;
-                Dirty(ChangeType.Repaint);
-            });
-            doubleField.RegisterCallback<InputEvent>(evt =>
-            {
-                if (m_UndoGroup == -1)
                 {
-                    m_UndoGroup = Undo.GetCurrentGroup();
-                    m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
-                }
-                float newValue;
-                if (!float.TryParse(evt.newData, out newValue))
-                    newValue = 0f;
-                var value = GetValue();
-                value[index] = newValue;
-                SetValue(value);
-                Dirty(ChangeType.Repaint);
-            });
-            doubleField.RegisterCallback<KeyDownEvent>(evt =>
-            {
-                if (evt.keyCode == KeyCode.Escape && m_UndoGroup > -1)
-                {
-                    Undo.RevertAllDownToGroup(m_UndoGroup);
+                    var value = GetValue();
+                    value[index] = (float)evt.newValue;
+                    SetValue(value);
                     m_UndoGroup = -1;
-                    m_Value = GetValue();
-                    evt.StopPropagation();
-                }
-                Dirty(ChangeType.Repaint);
-            });
+                    Dirty(ChangeType.Repaint);
+                });
+            doubleField.RegisterCallback<InputEvent>(evt =>
+                {
+                    if (m_UndoGroup == -1)
+                    {
+                        m_UndoGroup = Undo.GetCurrentGroup();
+                        m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
+                    }
+                    float newValue;
+                    if (!float.TryParse(evt.newData, out newValue))
+                        newValue = 0f;
+                    var value = GetValue();
+                    value[index] = newValue;
+                    SetValue(value);
+                    Dirty(ChangeType.Repaint);
+                });
+            doubleField.RegisterCallback<KeyDownEvent>(evt =>
+                {
+                    if (evt.keyCode == KeyCode.Escape && m_UndoGroup > -1)
+                    {
+                        Undo.RevertAllDownToGroup(m_UndoGroup);
+                        m_UndoGroup = -1;
+                        m_Value = GetValue();
+                        evt.StopPropagation();
+                    }
+                    Dirty(ChangeType.Repaint);
+                });
             Add(doubleField);
         }
 
@@ -128,7 +128,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         {
             var value = m_PropertyInfo.GetValue(m_Node, null);
             if (m_PropertyInfo.PropertyType == typeof(float))
-                return new Vector4((float) value, 0f, 0f, 0f);
+                return new Vector4((float)value, 0f, 0f, 0f);
             if (m_PropertyInfo.PropertyType == typeof(Vector2))
                 return (Vector2)value;
             if (m_PropertyInfo.PropertyType == typeof(Vector3))

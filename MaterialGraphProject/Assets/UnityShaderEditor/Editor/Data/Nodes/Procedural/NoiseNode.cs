@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph
 
         static string Unity_Noise(
             [Slot(0, Binding.MeshUV0)] Vector2 UV,
-            [Slot(1, Binding.None,500f,500f,500f,500f)] Vector1 Scale,
+            [Slot(1, Binding.None, 500f, 500f, 500f, 500f)] Vector1 Scale,
             [Slot(2, Binding.None)] out Vector1 Out)
         {
             return

@@ -186,13 +186,13 @@ namespace UnityEditor.ShaderGraph
                     s = new ColorMaterialSlot(attribute.slotId, par.Name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, hidden: attribute.hidden);
                 else if (attribute.binding == Binding.None || par.IsOut)
                     s = MaterialSlot.CreateMaterialSlot(
-                        ConvertTypeToSlotValueType(par),
-                        attribute.slotId,
-                        par.Name,
-                        par.Name,
-                        par.IsOut ? SlotType.Output : SlotType.Input,
-                        attribute.defaultValue ?? Vector4.zero,
-                        hidden: attribute.hidden);
+                            ConvertTypeToSlotValueType(par),
+                            attribute.slotId,
+                            par.Name,
+                            par.Name,
+                            par.IsOut ? SlotType.Output : SlotType.Input,
+                            attribute.defaultValue ?? Vector4.zero,
+                            hidden: attribute.hidden);
                 else
                     s = CreateBoundSlot(attribute.binding, attribute.slotId, par.Name, par.Name, attribute.hidden);
                 slots.Add(s);

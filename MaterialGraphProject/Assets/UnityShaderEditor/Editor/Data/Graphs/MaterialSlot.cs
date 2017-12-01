@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph
 
         private bool m_HasError;
 
-        protected MaterialSlot() { }
+        protected MaterialSlot() {}
 
         protected MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
             : base(slotId, displayName, slotType, hidden)
@@ -178,8 +178,8 @@ namespace UnityEditor.ShaderGraph
                 && otherSlot.owner != owner
                 && otherSlot.isInputSlot != isInputSlot
                 && ((isInputSlot
-                    ? otherSlot.IsCompatibleWithInputSlotType(valueType)
-                    : IsCompatibleWithInputSlotType(otherSlot.valueType)));
+                     ? otherSlot.IsCompatibleWithInputSlotType(valueType)
+                     : IsCompatibleWithInputSlotType(otherSlot.valueType)));
         }
 
         public virtual string GetDefaultValue(GenerationMode generationMode)

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -22,14 +22,13 @@ namespace UnityEditor.ShaderGraph
                     requiresMeshUVs = new List<UVChannel>()
                 };
             }
-
         }
 
         public bool NeedsTangentSpace()
         {
             var compoundSpaces = requiresBitangent | requiresNormal | requiresPosition
-                                 | requiresTangent | requiresViewDir | requiresPosition
-                                 | requiresNormal;
+                | requiresTangent | requiresViewDir | requiresPosition
+                | requiresNormal;
 
             return (compoundSpaces & NeededCoordinateSpace.Tangent) > 0;
         }
@@ -46,9 +45,9 @@ namespace UnityEditor.ShaderGraph
             newReqs.requiresVertexColor = other.requiresVertexColor | requiresVertexColor;
 
             newReqs.requiresMeshUVs = new List<UVChannel>();
-            if(requiresMeshUVs != null)
+            if (requiresMeshUVs != null)
                 newReqs.requiresMeshUVs.AddRange(requiresMeshUVs);
-            if(other.requiresMeshUVs != null)
+            if (other.requiresMeshUVs != null)
                 newReqs.requiresMeshUVs.AddRange(other.requiresMeshUVs);
             return newReqs;
         }

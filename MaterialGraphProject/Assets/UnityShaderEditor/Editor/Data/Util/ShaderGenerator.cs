@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph
 
         public static string GetUVName(this UVChannel channel)
         {
-            return UV[(int) channel];
+            return UV[(int)channel];
         }
     }
 
@@ -129,7 +129,7 @@ namespace UnityEditor.ShaderGraph
                 return result;
 
 
-            //todo: fix this up... quick hack for working 
+            //todo: fix this up... quick hack for working
             // in a package
             var path2 = new List<string>
             {
@@ -265,50 +265,50 @@ namespace UnityEditor.ShaderGraph
             public bool transpose;
         }
 
-        static TransformDesc[,][] m_transforms = null;
+        static TransformDesc[, ][] m_transforms = null;
 
         static TransformDesc[] GetTransformPath(CoordinateSpace from, CoordinateSpace to)
         {
-            if (m_transforms[(int) from, (int) to] != null)
+            if (m_transforms[(int)from, (int)to] != null)
             {
-                return m_transforms[(int) from, (int) to];
+                return m_transforms[(int)from, (int)to];
             }
             var distance = new int[4];
-            var prev = new CoordinateSpace?[4];
+            var prev = new CoordinateSpace ? [4];
             var queue = new List<CoordinateSpace>();
             foreach (var space in Enum.GetValues(typeof(CoordinateSpace)))
             {
-                distance[(int) space] = int.MaxValue;
-                prev[(int) space] = null;
-                queue.Add((CoordinateSpace) space);
+                distance[(int)space] = int.MaxValue;
+                prev[(int)space] = null;
+                queue.Add((CoordinateSpace)space);
             }
-            distance[(int) from] = 0;
+            distance[(int)from] = 0;
             List<CoordinateSpace> path = null;
             while (queue.Count != 0)
             {
-                queue.Sort((x, y) => distance[(int) x] - distance[(int) y]);
+                queue.Sort((x, y) => distance[(int)x] - distance[(int)y]);
                 var min = queue[0];
                 queue.Remove(min);
                 if (min == to)
                 {
                     path = new List<CoordinateSpace>();
-                    while (prev[(int) min] != null)
+                    while (prev[(int)min] != null)
                     {
                         path.Add(min);
-                        min = prev[(int) min].Value;
+                        min = prev[(int)min].Value;
                     }
                     break;
                 }
-                if (distance[(int) min] == int.MaxValue)
+                if (distance[(int)min] == int.MaxValue)
                 {
                     break;
                 }
                 foreach (var space in Enum.GetValues(typeof(CoordinateSpace)))
                 {
-                    int index = (int) space;
-                    if (m_transforms[(int) min, index] != null)
+                    int index = (int)space;
+                    if (m_transforms[(int)min, index] != null)
                     {
-                        var alt = distance[(int) min] + m_transforms[(int) min, index].Length;
+                        var alt = distance[(int)min] + m_transforms[(int)min, index].Length;
                         if (alt < distance[index])
                         {
                             distance[index] = alt;
@@ -321,7 +321,7 @@ namespace UnityEditor.ShaderGraph
             var matrixList = new List<TransformDesc>();
             foreach (var node in path)
             {
-                matrixList.AddRange(m_transforms[(int) from, (int) node]);
+                matrixList.AddRange(m_transforms[(int)from, (int)node]);
                 from = node;
             }
 
@@ -333,33 +333,33 @@ namespace UnityEditor.ShaderGraph
             if (m_transforms == null)
             {
                 m_transforms = new TransformDesc[4, 4][];
-                m_transforms[(int) CoordinateSpace.Object, (int) CoordinateSpace.Object] = new TransformDesc[] { };
-                m_transforms[(int) CoordinateSpace.View, (int) CoordinateSpace.View] = new TransformDesc[] { };
-                m_transforms[(int) CoordinateSpace.World, (int) CoordinateSpace.World] = new TransformDesc[] { };
-                m_transforms[(int) CoordinateSpace.Tangent, (int) CoordinateSpace.Tangent] = new TransformDesc[] { };
-                m_transforms[(int) CoordinateSpace.Object, (int) CoordinateSpace.World]
+                m_transforms[(int)CoordinateSpace.Object, (int)CoordinateSpace.Object] = new TransformDesc[] {};
+                m_transforms[(int)CoordinateSpace.View, (int)CoordinateSpace.View] = new TransformDesc[] {};
+                m_transforms[(int)CoordinateSpace.World, (int)CoordinateSpace.World] = new TransformDesc[] {};
+                m_transforms[(int)CoordinateSpace.Tangent, (int)CoordinateSpace.Tangent] = new TransformDesc[] {};
+                m_transforms[(int)CoordinateSpace.Object, (int)CoordinateSpace.World]
                     = new TransformDesc[] {new TransformDesc("unity_ObjectToWorld")};
-                m_transforms[(int) CoordinateSpace.View, (int) CoordinateSpace.World]
+                m_transforms[(int)CoordinateSpace.View, (int)CoordinateSpace.World]
                     = new TransformDesc[] {new TransformDesc("UNITY_MATRIX_I_V")};
-                m_transforms[(int) CoordinateSpace.World, (int) CoordinateSpace.Object]
+                m_transforms[(int)CoordinateSpace.World, (int)CoordinateSpace.Object]
                     = new TransformDesc[] {new TransformDesc("unity_WorldToObject")};
-                m_transforms[(int) CoordinateSpace.World, (int) CoordinateSpace.View]
+                m_transforms[(int)CoordinateSpace.World, (int)CoordinateSpace.View]
                     = new TransformDesc[] {new TransformDesc("UNITY_MATRIX_V")};
                 for (var from = CoordinateSpace.Object; from != CoordinateSpace.Tangent; from++)
                 {
                     for (var to = CoordinateSpace.Object; to != CoordinateSpace.Tangent; to++)
                     {
-                        if (m_transforms[(int) from, (int) to] == null)
+                        if (m_transforms[(int)from, (int)to] == null)
                         {
-                            m_transforms[(int) from, (int) to] = GetTransformPath(from, to);
+                            m_transforms[(int)from, (int)to] = GetTransformPath(from, to);
                         }
                     }
                 }
             }
             for (var k = CoordinateSpace.Object; k != CoordinateSpace.Tangent; k++)
             {
-                m_transforms[(int) CoordinateSpace.Tangent, (int) k] = null;
-                m_transforms[(int) k, (int) CoordinateSpace.Tangent] = null;
+                m_transforms[(int)CoordinateSpace.Tangent, (int)k] = null;
+                m_transforms[(int)k, (int)CoordinateSpace.Tangent] = null;
             }
         }
 
@@ -404,18 +404,18 @@ namespace UnityEditor.ShaderGraph
                 inputType = InputType.Vector;
                 isNormal = true;
             }
-            m_transforms[(int) CoordinateSpace.Tangent, (int) tangentMatrixSpace] =
+            m_transforms[(int)CoordinateSpace.Tangent, (int)tangentMatrixSpace] =
                 new[] {new TransformDesc("tangentSpaceTransform")};
-            m_transforms[(int) tangentMatrixSpace, (int) CoordinateSpace.Tangent] = new[]
-                {new TransformDesc("tangentSpaceTransform", true)};
+            m_transforms[(int)tangentMatrixSpace, (int)CoordinateSpace.Tangent] = new[]
+            {new TransformDesc("tangentSpaceTransform", true)};
             if (from == CoordinateSpace.Tangent)
             {
                 // if converting from tangent space, reuse the underlying space
                 from = tangentMatrixSpace;
                 variable = EmitTransform(
-                    GetTransformPath(CoordinateSpace.Tangent, tangentMatrixSpace),
-                    GetTransformPath(tangentMatrixSpace, CoordinateSpace.Tangent),
-                    variable, affine, !isNormal);
+                        GetTransformPath(CoordinateSpace.Tangent, tangentMatrixSpace),
+                        GetTransformPath(tangentMatrixSpace, CoordinateSpace.Tangent),
+                        variable, affine, !isNormal);
                 if (to == tangentMatrixSpace)
                 {
                     return variable;
@@ -430,7 +430,6 @@ namespace UnityEditor.ShaderGraph
             ShaderGenerator surfaceInputs,
             string toReplace = "float3 {0};")
         {
-
             if ((neededSpaces & NeededCoordinateSpace.Object) > 0)
                 surfaceInputs.AddShaderChunk(string.Format(toReplace, CoordinateSpace.Object.ToVariableName(interpolatorType)), false);
 
@@ -443,7 +442,6 @@ namespace UnityEditor.ShaderGraph
             if ((neededSpaces & NeededCoordinateSpace.Tangent) > 0)
                 surfaceInputs.AddShaderChunk(string.Format(toReplace, CoordinateSpace.Tangent.ToVariableName(interpolatorType)), false);
         }
-
 
         public static void GenerateStandardTransforms(
             int interpolatorStartIndex,
@@ -491,10 +489,10 @@ namespace UnityEditor.ShaderGraph
                 var name = preferedCoordinateSpace.ToVariableName(InterpolatorType.BiTangent);
                 interpolators.AddShaderChunk(string.Format("float3 {0} : TEXCOORD{1};", name, interpolatorIndex), false);
                 vertexShader.AddShaderChunk(string.Format("o.{0} = normalize(cross(o.{1}, o.{2}.xyz) * {3});",
-                    name,
-                    preferedCoordinateSpace.ToVariableName(InterpolatorType.Normal),
-                    preferedCoordinateSpace.ToVariableName(InterpolatorType.Tangent),
-                    "v.tangent.w"), false);
+                        name,
+                        preferedCoordinateSpace.ToVariableName(InterpolatorType.Normal),
+                        preferedCoordinateSpace.ToVariableName(InterpolatorType.Tangent),
+                        "v.tangent.w"), false);
                 pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", name), false);
                 interpolatorIndex++;
             }
@@ -520,7 +518,7 @@ namespace UnityEditor.ShaderGraph
             if (combinedRequierments.NeedsTangentSpace())
             {
                 pixelShader.AddShaderChunk(string.Format("float3x3 tangentSpaceTransform = float3x3({0},{1},{2});",
-                    preferedCoordinateSpace.ToVariableName(InterpolatorType.Tangent), preferedCoordinateSpace.ToVariableName(InterpolatorType.BiTangent), preferedCoordinateSpace.ToVariableName(InterpolatorType.Normal)), false);
+                        preferedCoordinateSpace.ToVariableName(InterpolatorType.Tangent), preferedCoordinateSpace.ToVariableName(InterpolatorType.BiTangent), preferedCoordinateSpace.ToVariableName(InterpolatorType.Normal)), false);
             }
 
             ShaderGenerator.GenerateSpaceTranslationPixelShader(combinedRequierments.requiresNormal, InterpolatorType.Normal, preferedCoordinateSpace,

@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph
         {}
 
         protected SpaceMaterialSlot(int slotId, string displayName, string shaderOutputName, CoordinateSpace space,
-            ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
+                                    ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
             : base(slotId, displayName, shaderOutputName, SlotType.Input, Vector3.zero, shaderStage, hidden)
         {
             this.space = space;

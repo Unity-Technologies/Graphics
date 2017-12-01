@@ -33,10 +33,10 @@ namespace UnityEditor.ShaderGraph
             // we support
             RemoveSlotsNameNotMatching(
                 new[]
-                {
-                    ColorSlotId,
-                    AlphaSlotId
-                });
+            {
+                ColorSlotId,
+                AlphaSlotId
+            });
         }
 
         public override string GetShader(GenerationMode mode, string outputName, out List<PropertyCollector.TextureInfo> configuredTextures)

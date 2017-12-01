@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph
             [SerializeField]
             private Shader m_Shader;
 
-            public Layer() { }
+            public Layer() {}
 
             public Guid guid
             {
@@ -264,23 +264,23 @@ struct GraphVertexInput
                 }
 
                 var masterNode = baseGraph.masterNode;
-                GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, ((AbstractMaterialNode) masterNode).GetInputSlots<MaterialSlot>().ToList(), true);
+                GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, ((AbstractMaterialNode)masterNode).GetInputSlots<MaterialSlot>().ToList(), true);
 
-              /*  foreach (var layer in layerMap)
-                {
-                    activeNodes.Clear();
-                    NodeUtils.DepthFirstCollectNodesFromNode(activeNodes, layer.Value.masterNode as AbstractMaterialNode);
-                    GenerateSurfaceDescription(
-                        activeNodes,
-                        layer.Value.masterNode as AbstractMaterialNode,
-                        this,
-                        surfaceDescriptionFunction,
-                        shaderFunctionVisitor,
-                        shaderProperties,
-                        requirements,
-                        mode,
-                        LayerToFunctionName(layer.Key));
-                }*/
+                /*  foreach (var layer in layerMap)
+                  {
+                      activeNodes.Clear();
+                      NodeUtils.DepthFirstCollectNodesFromNode(activeNodes, layer.Value.masterNode as AbstractMaterialNode);
+                      GenerateSurfaceDescription(
+                          activeNodes,
+                          layer.Value.masterNode as AbstractMaterialNode,
+                          this,
+                          surfaceDescriptionFunction,
+                          shaderFunctionVisitor,
+                          shaderProperties,
+                          requirements,
+                          mode,
+                          LayerToFunctionName(layer.Key));
+                  }*/
 
                 surfaceDescriptionStruct.AddShaderChunk("struct WeightsSurfaceDescription{", false);
                 surfaceDescriptionStruct.Indent();
@@ -361,7 +361,7 @@ struct GraphVertexInput
                 if (masterNode != null)
                 {
                     //var subShaders = masterNode.GetSubshader(requirements, null);
-                   // foreach (var ss in subShaders)
+                    // foreach (var ss in subShaders)
                     //    finalShader.AddShaderChunk(ss, false);
                 }
 

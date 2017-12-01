@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.Experimental.UIElements;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.Graphing;

@@ -139,8 +139,8 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionPrototype(string inArg, string outArg)
         {
-            return string.Format("void {0} ({1} {2}, out {3} {4})", GetFunctionName(), 
-                ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType), inArg, 
+            return string.Format("void {0} ({1} {2}, out {3} {4})", GetFunctionName(),
+                ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType), inArg,
                 ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), outArg);
         }
 
@@ -167,11 +167,11 @@ namespace UnityEditor.ShaderGraph
             outputString.Indent();
 
             outputString.AddShaderChunk(string.Format("Out = {0} ({1}, {2}, {3}, {4});",
-                ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType),
-                kInputSlotName + m_ComponentList[m_RedChannel],
-                kInputSlotName + m_ComponentList[m_GreenChannel],
-                kInputSlotName + m_ComponentList[m_BlueChannel],
-                kInputSlotName + m_ComponentList[m_AlphaChannel]), true);
+                    ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType),
+                    kInputSlotName + m_ComponentList[m_RedChannel],
+                    kInputSlotName + m_ComponentList[m_GreenChannel],
+                    kInputSlotName + m_ComponentList[m_BlueChannel],
+                    kInputSlotName + m_ComponentList[m_AlphaChannel]), true);
 
             outputString.Deindent();
             outputString.AddShaderChunk("}", true);

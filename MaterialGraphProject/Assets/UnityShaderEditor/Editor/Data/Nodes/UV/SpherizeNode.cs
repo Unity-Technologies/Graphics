@@ -10,6 +10,7 @@ namespace UnityEditor.ShaderGraph
         {
             name = "Spherize";
         }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Spherize", BindingFlags.Static | BindingFlags.NonPublic);

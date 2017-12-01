@@ -10,6 +10,7 @@ namespace UnityEditor.ShaderGraph
         {
             name = "Checkerboard";
         }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Checkerboard", BindingFlags.Static | BindingFlags.NonPublic);

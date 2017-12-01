@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         public void SlotDisplayNameIsCorrect()
         {
             var displayName = "New Display Name";
-            
+
             Assert.AreEqual(displayName + "(1)", m_NodeA.slot1.displayName);
 
             Assert.AreEqual(displayName + "(2)", m_NodeA.slot2.displayName);
@@ -66,7 +66,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual(displayName + "(3)", m_NodeA.slot3.displayName);
 
             Assert.AreEqual(displayName + "(4)", m_NodeA.slot4.displayName);
-            
         }
 
         [Test]
@@ -85,22 +84,22 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual(Vector4.one, 1);
         }
 
-   /*     [Test]
-        public void MaterialSlotCanGeneratePropertyUsagesForPreview()
-        {
-            string expected = string.Format("{0} {1};{2}", m_NodeA.precision, m_NodeA.GetVariableNameForSlot(TestNode.V1In), Environment.NewLine);
+        /*     [Test]
+             public void MaterialSlotCanGeneratePropertyUsagesForPreview()
+             {
+                 string expected = string.Format("{0} {1};{2}", m_NodeA.precision, m_NodeA.GetVariableNameForSlot(TestNode.V1In), Environment.NewLine);
 
-            var slot = m_NodeA.slot;
-            var visitor = new ShaderGenerator();
-            slot.GeneratePropertyUsages(visitor, GenerationMode.Preview);
-            Assert.AreEqual(expected, visitor.GetShaderString(0));
-        }*/
+                 var slot = m_NodeA.slot;
+                 var visitor = new ShaderGenerator();
+                 slot.GeneratePropertyUsages(visitor, GenerationMode.Preview);
+                 Assert.AreEqual(expected, visitor.GetShaderString(0));
+             }*/
 
         [Test]
         public void MaterialSlotReturnsValidDefaultValue()
         {
             string expected = string.Format("{0}", m_NodeA.GetVariableNameForSlot(TestNode.V1In));
-            
+
             var result = m_NodeA.slot1.GetDefaultValue(GenerationMode.Preview);
             Assert.AreEqual(expected, result);
 
@@ -111,7 +110,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             m_NodeA.slot2.value = new Vector4(6, 6, 6, 1);
             result = m_NodeA.slot1.GetDefaultValue(GenerationMode.ForReals);
             Assert.AreEqual("half2 (6,6)", result);
-            
+
             m_NodeA.slot3.value = new Vector4(6, 6, 6, 1);
             result = m_NodeA.slot3.GetDefaultValue(GenerationMode.ForReals);
             Assert.AreEqual("half3 (6,6,6)", result);
@@ -121,12 +120,12 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual("half4 (6,6,6,1)", result);
         }
 
-       /* [Test]
-        public void MaterialSlotThrowsWhenNoOwner()
-        {
-            var slot = new MaterialSlot(0, string.Empty, string.Empty, SlotType.Input, SlotValueType.Vector1, Vector4.zero);
-            Assert.Throws<Exception>(() => slot.GeneratePropertyUsages(new ShaderGenerator(), GenerationMode.Preview));
-            Assert.Throws<Exception>(() => slot.GetDefaultValue(GenerationMode.Preview));
-        }*/
+        /* [Test]
+         public void MaterialSlotThrowsWhenNoOwner()
+         {
+             var slot = new MaterialSlot(0, string.Empty, string.Empty, SlotType.Input, SlotValueType.Vector1, Vector4.zero);
+             Assert.Throws<Exception>(() => slot.GeneratePropertyUsages(new ShaderGenerator(), GenerationMode.Preview));
+             Assert.Throws<Exception>(() => slot.GetDefaultValue(GenerationMode.Preview));
+         }*/
     }
 }

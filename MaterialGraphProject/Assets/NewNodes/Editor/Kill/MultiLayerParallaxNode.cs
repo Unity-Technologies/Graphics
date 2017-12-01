@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph
 
         protected virtual MaterialSlot GetInputDepthSlot()
         {
-            return new Vector1MaterialSlot(InputDepthSlotId, GetInputSlot1Name(), kInputDepthShaderName, SlotType.Input,0);
+            return new Vector1MaterialSlot(InputDepthSlotId, GetInputSlot1Name(), kInputDepthShaderName, SlotType.Input, 0);
         }
 
         protected virtual MaterialSlot GetInputFadeRateSlot()
@@ -106,7 +106,7 @@ namespace UnityEditor.ShaderGraph
         {
             return kOutputSlotShaderName;
         }
-        
+
         protected virtual string GetFunctionPrototype(string depth, string fadeRate, string layerCount, string tex, string UVs, string viewTangentSpace)
         {
             var input1 = ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputDepthSlotId).concreteValueType);
@@ -124,7 +124,7 @@ namespace UnityEditor.ShaderGraph
             string fadeRateValue = GetSlotValue(InputFadeRateSlotId, generationMode);
             string layerCountValue = GetSlotValue(InputLayerCountSlotId, generationMode);
             string textureValue = GetSlotValue(TextureSlotId, generationMode);
-            
+
             var output = ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType);
             visitor.AddShaderChunk(string.Format("{0} {1} = {2};", output, GetVariableNameForSlot(OutputSlotId), GetFunctionCallBody(depthValue, fadeRateValue, layerCountValue, textureValue)), true);
         }

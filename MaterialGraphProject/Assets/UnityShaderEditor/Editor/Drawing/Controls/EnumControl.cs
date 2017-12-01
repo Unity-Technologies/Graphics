@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using UnityEditor.Experimental.UIElements;
 using UnityEngine;
@@ -34,14 +34,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             if (!propertyInfo.PropertyType.IsEnum)
                 throw new ArgumentException("Property must be an enum.", "propertyInfo");
             Add(new Label(label ?? ObjectNames.NicifyVariableName(propertyInfo.Name)));
-            var enumField = new EnumField((Enum) m_PropertyInfo.GetValue(m_Node, null));
+            var enumField = new EnumField((Enum)m_PropertyInfo.GetValue(m_Node, null));
             enumField.OnValueChanged(OnValueChanged);
             Add(enumField);
         }
 
         void OnValueChanged(ChangeEvent<Enum> evt)
         {
-            var value = (Enum) m_PropertyInfo.GetValue(m_Node, null);
+            var value = (Enum)m_PropertyInfo.GetValue(m_Node, null);
             if (!evt.newValue.Equals(value))
             {
                 m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);

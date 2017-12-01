@@ -22,7 +22,7 @@ namespace UnityEditor.Graphing.Util
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializableEdges = new List<SerializationHelper.JSONSerializedElement>();
 
-        public CopyPasteGraph() { }
+        public CopyPasteGraph() {}
 
         public CopyPasteGraph(IEnumerable<INode> nodes, IEnumerable<IEdge> edges)
         {

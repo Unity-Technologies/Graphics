@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector3MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, new Vector4(0, 0, 1)));
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
-        
+
         public override string GetVariableNameForSlot(int slotId)
         {
             return space.ToVariableName(InterpolatorType.BiTangent);

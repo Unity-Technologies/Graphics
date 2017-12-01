@@ -101,49 +101,49 @@ namespace UnityEditor.ShaderGraph
                 if (property is FloatShaderProperty)
                 {
                     var createdNode = new Vector1Node();
-                    createdNode.value = ((FloatShaderProperty) property).value;
+                    createdNode.value = ((FloatShaderProperty)property).value;
                     slotId = Vector1Node.OutputSlotId;
                     node = createdNode;
                 }
                 else if (property is Vector2ShaderProperty)
                 {
                     var createdNode = new Vector2Node();
-                    createdNode.value = ((Vector2ShaderProperty) property).value;
+                    createdNode.value = ((Vector2ShaderProperty)property).value;
                     slotId = Vector2Node.OutputSlotId;
                     node = createdNode;
                 }
                 else if (property is Vector3ShaderProperty)
                 {
                     var createdNode = new Vector3Node();
-                    createdNode.value = ((Vector3ShaderProperty) property).value;
+                    createdNode.value = ((Vector3ShaderProperty)property).value;
                     slotId = Vector3Node.OutputSlotId;
                     node = createdNode;
                 }
                 else if (property is Vector4ShaderProperty)
                 {
                     var createdNode = new Vector4Node();
-                    createdNode.value = ((Vector4ShaderProperty) property).value;
+                    createdNode.value = ((Vector4ShaderProperty)property).value;
                     slotId = Vector4Node.OutputSlotId;
                     node = createdNode;
                 }
                 else if (property is ColorShaderProperty)
                 {
                     var createdNode = new ColorNode();
-                    createdNode.color = ((ColorShaderProperty) property).value;
+                    createdNode.color = ((ColorShaderProperty)property).value;
                     slotId = ColorNode.OutputSlotId;
                     node = createdNode;
                 }
                 else if (property is TextureShaderProperty)
                 {
                     var createdNode = new Texture2DAssetNode();
-                    createdNode.texture = ((TextureShaderProperty) property).value.texture;
+                    createdNode.texture = ((TextureShaderProperty)property).value.texture;
                     slotId = Texture2DAssetNode.OutputSlotId;
                     node = createdNode;
                 }
                 else if (property is CubemapShaderProperty)
                 {
                     var createdNode = new CubemapAssetNode();
-                    createdNode.cubemap = ((CubemapShaderProperty) property).value.cubemap;
+                    createdNode.cubemap = ((CubemapShaderProperty)property).value.cubemap;
                     slotId = CubemapAssetNode.OutputSlotId;
                     node = createdNode;
                 }
@@ -276,14 +276,13 @@ namespace UnityEditor.ShaderGraph
             return reqs;
         }
 
-
         public string GetPreviewShader(AbstractMaterialNode node, out PreviewMode previewMode)
         {
             List<PropertyCollector.TextureInfo> configuredTextures;
             FloatShaderProperty outputIdProperty;
             return GetShader(node, GenerationMode.Preview, string.Format("hidden/preview/{0}", node.GetVariableNameForNode()), out configuredTextures, out previewMode, out outputIdProperty);
         }
-        
+
         public string GetUberPreviewShader(Dictionary<Guid, int> ids, out FloatShaderProperty outputIdProperty)
         {
             List<PropertyCollector.TextureInfo> configuredTextures;
@@ -300,7 +299,6 @@ namespace UnityEditor.ShaderGraph
                 foreach (var slot in slots)
                     surfaceDescriptionStruct.AddShaderChunk(string.Format("{0} {1};", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType), AbstractMaterialNode.GetHLSLSafeName(slot.shaderOutputName)), false);
                 surfaceDescriptionStruct.Deindent();
-
             }
             else
             {
@@ -323,7 +321,7 @@ namespace UnityEditor.ShaderGraph
             string surfaceDescriptionName = "SurfaceDescription",
             FloatShaderProperty outputIdProperty = null,
             Dictionary<Guid, int> ids = null,
-           IEnumerable<MaterialSlot> slots = null)
+            IEnumerable<MaterialSlot> slots = null)
         {
             if (graph == null)
                 return;
@@ -373,7 +371,6 @@ namespace UnityEditor.ShaderGraph
                         ids[activeNode.guid] = currentId;
                         surfaceDescriptionFunction.AddShaderChunk(string.Format("if ({0} == {1}) {{ surface.PreviewOutput = {2}; return surface; }}", outputIdProperty.referenceName, currentId, ShaderGenerator.AdaptNodeOutputForPreview(activeNode, outputSlot.id, activeNode.GetVariableNameForSlot(outputSlot.id))), false);
                     }
-
                 }
 
                 activeNode.CollectShaderProperties(shaderProperties, mode);
@@ -561,7 +558,7 @@ struct GraphVertexInput
             finalShader.AddShaderChunk("ENDCG", false);
 
             finalShader.AddShaderChunk(ShaderGenerator.GetPreviewSubShader(node, requirements), false);
-            
+
             ListPool<INode>.Release(activeNodeList);
 
             finalShader.Deindent();
