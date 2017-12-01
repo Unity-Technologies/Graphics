@@ -53,6 +53,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 objectField.OnValueChanged(OnTextureChanged);
                 Add(objectField);
             }
+            else if (property is CubemapShaderProperty)
+            {
+                var fProp = (CubemapShaderProperty)property;
+                var objectField = new ObjectField { name = "value", objectType = typeof(Cubemap), value = fProp.value.cubemap };
+                objectField.OnValueChanged(OnCubemapChanged);
+                Add(objectField);
+            }
 
             Add(new Button(OnClickRemove) { name = "remove", text = "Remove" });
         }
@@ -74,6 +81,17 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             if (newValue != fProp.value.texture)
             {
                 fProp.value.texture = newValue;
+                NotifyNodes();
+            }
+        }
+
+        void OnCubemapChanged(ChangeEvent<Object> evt)
+        {
+            var fProp = (CubemapShaderProperty)property;
+            var newValue = (Cubemap)evt.newValue;
+            if (newValue != fProp.value.cubemap)
+            {
+                fProp.value.cubemap = newValue;
                 NotifyNodes();
             }
         }
