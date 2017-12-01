@@ -19,7 +19,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent smoothnessRemappingText = new GUIContent("Smoothness Remapping", "Smoothness remapping");
             public static GUIContent aoRemappingText = new GUIContent("AmbientOcclusion Remapping", "AmbientOcclusion remapping");
             public static GUIContent maskMapSText = new GUIContent("Mask Map - M(R), AO(G), D(B), S(A)", "Mask map");
-            public static GUIContent maskMapSpecularText = new GUIContent("Mask Map - AO(G), D(B), S(A)", "Mask map");            
+            public static GUIContent maskMapSpecularText = new GUIContent("Mask Map - AO(G), D(B), S(A)", "Mask map");
 
             public static GUIContent normalMapSpaceText = new GUIContent("Normal Map space", "");
             public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (BC7/BC5/DXT5(nm))");
@@ -701,33 +701,33 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
             // (MaterialProperty value might come from renderer material property block)
-            SetKeyword(material, "_MAPPING_PLANAR", ((UVBaseMapping)material.GetFloat(kUVBase)) == UVBaseMapping.Planar);
-            SetKeyword(material, "_MAPPING_TRIPLANAR", ((UVBaseMapping)material.GetFloat(kUVBase)) == UVBaseMapping.Triplanar);
-            SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", (normalMapSpace == NormalMapSpace.TangentSpace));
+            CoreUtils.SetKeyword(material, "_MAPPING_PLANAR", ((UVBaseMapping)material.GetFloat(kUVBase)) == UVBaseMapping.Planar);
+            CoreUtils.SetKeyword(material, "_MAPPING_TRIPLANAR", ((UVBaseMapping)material.GetFloat(kUVBase)) == UVBaseMapping.Triplanar);
+            CoreUtils.SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", (normalMapSpace == NormalMapSpace.TangentSpace));
 
             if (normalMapSpace == NormalMapSpace.TangentSpace)
             {
                 // With details map, we always use a normal map and Unity provide a default (0, 0, 1) normal map for it
-                SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap) || material.GetTexture(kDetailMap));
-                SetKeyword(material, "_TANGENTMAP", material.GetTexture(kTangentMap));
-                SetKeyword(material, "_BENTNORMALMAP", material.GetTexture(kBentNormalMap));
+                CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap) || material.GetTexture(kDetailMap));
+                CoreUtils.SetKeyword(material, "_TANGENTMAP", material.GetTexture(kTangentMap));
+                CoreUtils.SetKeyword(material, "_BENTNORMALMAP", material.GetTexture(kBentNormalMap));
             }
             else // Object space
             {
                 // With details map, we always use a normal map but in case of objects space there is no good default, so the result will be weird until users fix it
-                SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMapOS) || material.GetTexture(kDetailMap));
-                SetKeyword(material, "_TANGENTMAP", material.GetTexture(kTangentMapOS));
-                SetKeyword(material, "_BENTNORMALMAP", material.GetTexture(kBentNormalMapOS));
+                CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMapOS) || material.GetTexture(kDetailMap));
+                CoreUtils.SetKeyword(material, "_TANGENTMAP", material.GetTexture(kTangentMapOS));
+                CoreUtils.SetKeyword(material, "_BENTNORMALMAP", material.GetTexture(kBentNormalMapOS));
             }
-            SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
-            SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
-            SetKeyword(material, "_ENABLESPECULAROCCLUSION", material.GetFloat(kEnableSpecularOcclusion) > 0.0f);
-            SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap));
-            SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
-            SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
-            SetKeyword(material, "_SUBSURFACE_RADIUS_MAP", material.GetTexture(kSubsurfaceRadiusMap));
-            SetKeyword(material, "_THICKNESSMAP", material.GetTexture(kThicknessMap));
-            SetKeyword(material, "_SPECULARCOLORMAP", material.GetTexture(kSpecularColorMap));
+            CoreUtils.SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
+            CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
+            CoreUtils.SetKeyword(material, "_ENABLESPECULAROCCLUSION", material.GetFloat(kEnableSpecularOcclusion) > 0.0f);
+            CoreUtils.SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap));
+            CoreUtils.SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
+            CoreUtils.SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
+            CoreUtils.SetKeyword(material, "_SUBSURFACE_RADIUS_MAP", material.GetTexture(kSubsurfaceRadiusMap));
+            CoreUtils.SetKeyword(material, "_THICKNESSMAP", material.GetTexture(kThicknessMap));
+            CoreUtils.SetKeyword(material, "_SPECULARCOLORMAP", material.GetTexture(kSpecularColorMap));
 
             bool needUV2 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV2 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0;
             bool needUV3 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV3 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0;
@@ -750,18 +750,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             Lit.MaterialId materialId = (Lit.MaterialId)material.GetFloat(kMaterialID);
 
-            SetKeyword(material, "_MATID_SSS", materialId == Lit.MaterialId.LitSSS);
-            //SetKeyword(material, "_MATID_STANDARD", materialId == Lit.MaterialId.LitStandard); // See comment in Lit.shader, it is the default, we don't define it
-            SetKeyword(material, "_MATID_ANISO", materialId == Lit.MaterialId.LitAniso);
-            SetKeyword(material, "_MATID_SPECULAR", materialId == Lit.MaterialId.LitSpecular);
-            SetKeyword(material, "_MATID_CLEARCOAT", materialId == Lit.MaterialId.LitClearCoat);
+            CoreUtils.SetKeyword(material, "_MATID_SSS", materialId == Lit.MaterialId.LitSSS);
+            //CoreUtils.SetKeyword(material, "_MATID_STANDARD", materialId == Lit.MaterialId.LitStandard); // See comment in Lit.shader, it is the default, we don't define it
+            CoreUtils.SetKeyword(material, "_MATID_ANISO", materialId == Lit.MaterialId.LitAniso);
+            CoreUtils.SetKeyword(material, "_MATID_SPECULAR", materialId == Lit.MaterialId.LitSpecular);
+            CoreUtils.SetKeyword(material, "_MATID_CLEARCOAT", materialId == Lit.MaterialId.LitClearCoat);
 
             var refractionModeValue = (Lit.RefractionMode)material.GetFloat(kRefractionMode);
             // We can't have refraction in pre-refraction queue
             var canHaveRefraction = !material.HasProperty(kPreRefractionPass) || material.GetFloat(kPreRefractionPass) <= 0.0;
-            SetKeyword(material, "_REFRACTION_PLANE", (refractionModeValue == Lit.RefractionMode.Plane) && canHaveRefraction);
-            SetKeyword(material, "_REFRACTION_SPHERE", (refractionModeValue == Lit.RefractionMode.Sphere) && canHaveRefraction);
-            SetKeyword(material, "_TRANSMITTANCECOLORMAP", material.GetTexture(kTransmittanceColorMap) && canHaveRefraction);
+            CoreUtils.SetKeyword(material, "_REFRACTION_PLANE", (refractionModeValue == Lit.RefractionMode.Plane) && canHaveRefraction);
+            CoreUtils.SetKeyword(material, "_REFRACTION_SPHERE", (refractionModeValue == Lit.RefractionMode.Sphere) && canHaveRefraction);
+            CoreUtils.SetKeyword(material, "_TRANSMITTANCECOLORMAP", material.GetTexture(kTransmittanceColorMap) && canHaveRefraction);
         }
     }
 } // namespace UnityEditor
