@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_HueMode = value;
-                if(onModified != null)
+                if (onModified != null)
                 {
                     onModified(this, ModificationScope.Graph);
                 }
@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            switch(m_HueMode)
+            switch (m_HueMode)
             {
                 case HueMode.Normalized:
                     return GetType().GetMethod("Unity_Hue_Normalized", BindingFlags.Static | BindingFlags.NonPublic);
@@ -73,7 +73,7 @@ namespace UnityEditor.ShaderGraph
             : (hue > 1)
                 ? hue - 1
                 : hue;
-    
+
     // HSV to RGB
     {precision}4 K2 = {precision}4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
     {precision}3 P2 = abs(frac(hsv.xxx + K2.xyz) * 6.0 - K2.www);
@@ -104,7 +104,7 @@ namespace UnityEditor.ShaderGraph
             : (hue > 1)
                 ? hue - 1
                 : hue;
-    
+
     // HSV to RGB
     {precision}4 K2 = {precision}4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
     {precision}3 P2 = abs(frac(hsv.xxx + K2.xyz) * 6.0 - K2.www);

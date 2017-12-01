@@ -114,15 +114,15 @@ namespace UnityEditor.ShaderGraph
             // we support
             RemoveSlotsNameNotMatching(
                 new[]
-                {
-                    AlbedoSlotId,
-                    NormalSlotId,
-                    EmissionSlotId,
-                    model == Model.Metallic ? MetallicSlotId : SpecularSlotId,
-                    SmoothnessSlotId,
-                    OcclusionSlotId,
-                    AlphaSlotId
-                });
+            {
+                AlbedoSlotId,
+                NormalSlotId,
+                EmissionSlotId,
+                model == Model.Metallic ? MetallicSlotId : SpecularSlotId,
+                SmoothnessSlotId,
+                OcclusionSlotId,
+                AlphaSlotId
+            });
         }
 
         public override string GetShader(GenerationMode mode, string outputName, out List<PropertyCollector.TextureInfo> configuredTextures)

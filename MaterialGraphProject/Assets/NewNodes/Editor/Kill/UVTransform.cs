@@ -8,7 +8,6 @@ namespace UnityEditor.ShaderGraph
     [Title("OLD/Transform")]
     public class UVTransform : CodeFunctionNode
     {
-
         [SerializeField]
         private RotationUnit m_constant = RotationUnit.Radians;
 
@@ -32,6 +31,7 @@ namespace UnityEditor.ShaderGraph
         {
             name = "Transform";
         }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_ScaleOffsetRotate", BindingFlags.Static | BindingFlags.NonPublic);
@@ -48,8 +48,8 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    
-    
+
+
     uv -= offset;
 
     {precision} s = sin(rotation);

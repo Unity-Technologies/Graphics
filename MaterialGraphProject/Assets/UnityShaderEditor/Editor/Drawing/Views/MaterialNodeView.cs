@@ -57,20 +57,20 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var collapsePreviewButton = new VisualElement { name = "collapse"};
                     collapsePreviewButton.Add(new VisualElement { name = "icon" });
                     collapsePreviewButton.AddManipulator(new Clickable(() =>
-                    {
-                        node.owner.owner.RegisterCompleteObjectUndo("Collapse Preview");
-                        UpdatePreviewExpandedState(false);
-                    }));
+                        {
+                            node.owner.owner.RegisterCompleteObjectUndo("Collapse Preview");
+                            UpdatePreviewExpandedState(false);
+                        }));
                     UpdatePreviewExpandedState(node.previewExpanded);
                     m_PreviewTextureView.Add(collapsePreviewButton);
 
                     var expandPreviewButton = new VisualElement { name = "expand"};
                     expandPreviewButton.Add(new VisualElement { name = "icon"});
                     expandPreviewButton.AddManipulator(new Clickable(() =>
-                    {
-                        node.owner.owner.RegisterCompleteObjectUndo("Expand Preview");
-                        UpdatePreviewExpandedState(true);
-                    }));
+                        {
+                            node.owner.owner.RegisterCompleteObjectUndo("Expand Preview");
+                            UpdatePreviewExpandedState(true);
+                        }));
                     m_PreviewContainer.Add(expandPreviewButton);
                 }
 
@@ -79,8 +79,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_ControlViews = new List<VisualElement>();
             foreach (var propertyInfo in node.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
-            foreach (IControlAttribute attribute in propertyInfo.GetCustomAttributes(typeof(IControlAttribute), false))
-                m_ControlViews.Add(attribute.InstantiateControl(node, propertyInfo));
+                foreach (IControlAttribute attribute in propertyInfo.GetCustomAttributes(typeof(IControlAttribute), false))
+                    m_ControlViews.Add(attribute.InstantiateControl(node, propertyInfo));
             m_Attachers = new List<Attacher>(node.GetInputSlots<MaterialSlot>().Count());
 
             AddSlots(node.GetSlots<MaterialSlot>());
@@ -255,7 +255,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             foreach (var anchor in inputContainer.Concat(outputContainer).OfType<Port>())
             {
-                var slot = (MaterialSlot) anchor.userData;
+                var slot = (MaterialSlot)anchor.userData;
                 anchor.portName = slot.displayName;
                 anchor.visualClass = slot.concreteValueType.ToClassName();
             }
@@ -334,7 +334,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             foreach (var attacher in m_Attachers)
             {
-                ((PortInputView) attacher.element).Dispose();
+                ((PortInputView)attacher.element).Dispose();
                 attacher.Detach();
                 attacher.element.parent.Remove(attacher.element);
             }

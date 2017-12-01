@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -18,7 +18,6 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireVertexColor
         , IMayRequireTime
     {
-
         protected abstract AbstractSubGraph referencedGraph { get; }
 
         public override bool hasPreview
@@ -162,10 +161,10 @@ namespace UnityEditor.ShaderGraph
                 return NeededCoordinateSpace.None;
 
             return referencedGraph.activeNodes.OfType<IMayRequireNormal>().Aggregate(NeededCoordinateSpace.None, (mask, node) =>
-            {
-                mask |= node.RequiresNormal();
-                return mask;
-            });
+                {
+                    mask |= node.RequiresNormal();
+                    return mask;
+                });
         }
 
         public bool RequiresMeshUV(UVChannel channel)
@@ -190,12 +189,11 @@ namespace UnityEditor.ShaderGraph
                 return NeededCoordinateSpace.None;
 
             return referencedGraph.activeNodes.OfType<IMayRequireViewDirection>().Aggregate(NeededCoordinateSpace.None, (mask, node) =>
-            {
-                mask |= node.RequiresViewDirection();
-                return mask;
-            });
+                {
+                    mask |= node.RequiresViewDirection();
+                    return mask;
+                });
         }
-
 
         public NeededCoordinateSpace RequiresPosition()
         {
@@ -203,10 +201,10 @@ namespace UnityEditor.ShaderGraph
                 return NeededCoordinateSpace.None;
 
             return referencedGraph.activeNodes.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) =>
-            {
-                mask |= node.RequiresPosition();
-                return mask;
-            });
+                {
+                    mask |= node.RequiresPosition();
+                    return mask;
+                });
         }
 
         public NeededCoordinateSpace RequiresTangent()
@@ -215,10 +213,10 @@ namespace UnityEditor.ShaderGraph
                 return NeededCoordinateSpace.None;
 
             return referencedGraph.activeNodes.OfType<IMayRequireTangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) =>
-            {
-                mask |= node.RequiresTangent();
-                return mask;
-            });
+                {
+                    mask |= node.RequiresTangent();
+                    return mask;
+                });
         }
 
         public bool RequiresTime()
@@ -235,10 +233,10 @@ namespace UnityEditor.ShaderGraph
                 return NeededCoordinateSpace.None;
 
             return referencedGraph.activeNodes.OfType<IMayRequireBitangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) =>
-            {
-                mask |= node.RequiresBitangent();
-                return mask;
-            });
+                {
+                    mask |= node.RequiresBitangent();
+                    return mask;
+                });
         }
 
         public bool RequiresVertexColor()

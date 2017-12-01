@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using UnityEditor.Experimental.UIElements;
 using UnityEngine;
@@ -37,9 +37,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             label = label ?? propertyInfo.Name;
 
             if (!string.IsNullOrEmpty(label))
-                Add(new Label{text = label});
+                Add(new Label {text = label});
 
-            var value = (Object) m_PropertyInfo.GetValue(m_Node, null);
+            var value = (Object)m_PropertyInfo.GetValue(m_Node, null);
             var objectField = new ObjectField { objectType = propertyInfo.PropertyType, value = value };
             objectField.OnValueChanged(OnValueChanged);
             Add(objectField);
@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
         void OnValueChanged(ChangeEvent<Object> evt)
         {
-            var value = (Object) m_PropertyInfo.GetValue(m_Node, null);
+            var value = (Object)m_PropertyInfo.GetValue(m_Node, null);
             if (evt.newValue != value)
             {
                 m_Node.owner.owner.RegisterCompleteObjectUndo("Change + " + m_Node.name);

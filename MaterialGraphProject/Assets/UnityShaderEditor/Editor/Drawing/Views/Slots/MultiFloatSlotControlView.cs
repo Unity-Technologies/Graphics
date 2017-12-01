@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.Experimental.UIElements;
 using UnityEditor.Graphing;
 using UnityEngine;
@@ -36,43 +36,43 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
             var dragger = new FieldMouseDragger<double>(doubleField);
             dragger.SetDragZone(label);
             doubleField.OnValueChanged(evt =>
-            {
-                var value = m_Get();
-                value[index] = (float)evt.newValue;
-                m_Set(value);
-                if (m_Node.onModified != null)
-                    m_Node.onModified(m_Node, ModificationScope.Node);
-                m_UndoGroup = -1;
-            });
-            doubleField.RegisterCallback<InputEvent>(evt =>
-            {
-                if (m_UndoGroup == -1)
                 {
-                    m_UndoGroup = Undo.GetCurrentGroup();
-                    m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
-                }
-                float newValue;
-                if (!float.TryParse(evt.newData, out newValue))
-                    newValue = 0f;
-                var value = m_Get();
-                if (Math.Abs(value[index] - newValue) > 1e-9)
-                {
-                    value[index] = newValue;
+                    var value = m_Get();
+                    value[index] = (float)evt.newValue;
                     m_Set(value);
                     if (m_Node.onModified != null)
                         m_Node.onModified(m_Node, ModificationScope.Node);
-                }
-            });
-            doubleField.RegisterCallback<KeyDownEvent>(evt =>
-            {
-                if (evt.keyCode == KeyCode.Escape && m_UndoGroup > -1)
-                {
-                    Undo.RevertAllDownToGroup(m_UndoGroup);
                     m_UndoGroup = -1;
-                    evt.StopPropagation();
-                }
-                Dirty(ChangeType.Repaint);
-            });
+                });
+            doubleField.RegisterCallback<InputEvent>(evt =>
+                {
+                    if (m_UndoGroup == -1)
+                    {
+                        m_UndoGroup = Undo.GetCurrentGroup();
+                        m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
+                    }
+                    float newValue;
+                    if (!float.TryParse(evt.newData, out newValue))
+                        newValue = 0f;
+                    var value = m_Get();
+                    if (Math.Abs(value[index] - newValue) > 1e-9)
+                    {
+                        value[index] = newValue;
+                        m_Set(value);
+                        if (m_Node.onModified != null)
+                            m_Node.onModified(m_Node, ModificationScope.Node);
+                    }
+                });
+            doubleField.RegisterCallback<KeyDownEvent>(evt =>
+                {
+                    if (evt.keyCode == KeyCode.Escape && m_UndoGroup > -1)
+                    {
+                        Undo.RevertAllDownToGroup(m_UndoGroup);
+                        m_UndoGroup = -1;
+                        evt.StopPropagation();
+                    }
+                    Dirty(ChangeType.Repaint);
+                });
             Add(doubleField);
         }
     }

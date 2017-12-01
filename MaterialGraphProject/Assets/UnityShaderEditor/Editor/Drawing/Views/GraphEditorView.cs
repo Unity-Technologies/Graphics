@@ -64,9 +64,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 var updateAssetButton = new ToolbarButtonView { text = "Update asset" };
                 updateAssetButton.AddManipulator(new Clickable(() =>
-                {
-                    if (onUpdateAssetClick != null) onUpdateAssetClick();
-                }));
+                    {
+                        if (onUpdateAssetClick != null) onUpdateAssetClick();
+                    }));
                 m_ToolbarView.Add(updateAssetButton);
 
                 m_ToolbarView.Add(new ToolbarSeparatorView());
@@ -75,9 +75,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 var convertToSubgraphButton = new ToolbarButtonView { text = "Convert to subgraph" };
                 convertToSubgraphButton.AddManipulator(new Clickable(() =>
-                {
-                    if (onConvertToSubgraphClick != null) onConvertToSubgraphClick();
-                }));
+                    {
+                        if (onConvertToSubgraphClick != null) onConvertToSubgraphClick();
+                    }));
                 m_ToolbarView.Add(convertToSubgraphButton);
 
                 m_ToolbarView.Add(new ToolbarSeparatorView());
@@ -86,9 +86,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 var showInProjectButton = new ToolbarButtonView { text = "Show in project" };
                 showInProjectButton.AddManipulator(new Clickable(() =>
-                {
-                    if (onShowInProjectClick != null) onShowInProjectClick();
-                }));
+                    {
+                        if (onShowInProjectClick != null) onShowInProjectClick();
+                    }));
                 m_ToolbarView.Add(showInProjectButton);
 
                 m_ToolbarView.Add(new ToolbarSeparatorView());
@@ -97,15 +97,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 m_TimeButton = new ToolbarButtonView { text = "Preview rate: " + previewRate };
                 m_TimeButton.AddManipulator(new Clickable(() =>
-                {
-                    if (previewRate == PreviewRate.Full)
-                        previewRate = PreviewRate.Throttled;
-                    else if (previewRate == PreviewRate.Throttled)
-                        previewRate = PreviewRate.Off;
-                    else if (previewRate == PreviewRate.Off)
-                        previewRate = PreviewRate.Full;
-                    m_TimeButton.text = "Preview rate: " + previewRate;
-                }));
+                    {
+                        if (previewRate == PreviewRate.Full)
+                            previewRate = PreviewRate.Throttled;
+                        else if (previewRate == PreviewRate.Throttled)
+                            previewRate = PreviewRate.Off;
+                        else if (previewRate == PreviewRate.Off)
+                            previewRate = PreviewRate.Full;
+                        m_TimeButton.text = "Preview rate: " + previewRate;
+                    }));
                 m_ToolbarView.Add(m_TimeButton);
 
                 m_ToolbarView.Add(new ToolbarSeparatorView());
@@ -139,7 +139,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             GUIUtility.systemCopyBuffer = shader;
                         }
                     }
-                ));
+                        ));
 
                 m_ToolbarView.Add(m_CopyToClipboardButton);
 

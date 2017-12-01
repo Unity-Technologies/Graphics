@@ -265,10 +265,10 @@ namespace UnityEditor.Graphing
                 return Enumerable.Empty<IEdge>();
 
             return candidateEdges.Where(candidateEdge =>
-            {
-                var cs = slot.isInputSlot ? candidateEdge.inputSlot : candidateEdge.outputSlot;
-                return cs.nodeGuid == s.nodeGuid && cs.slotId == s.slotId;
-            });
+                {
+                    var cs = slot.isInputSlot ? candidateEdge.inputSlot : candidateEdge.outputSlot;
+                    return cs.nodeGuid == s.nodeGuid && cs.slotId == s.slotId;
+                });
         }
 
         public virtual void OnBeforeSerialize()

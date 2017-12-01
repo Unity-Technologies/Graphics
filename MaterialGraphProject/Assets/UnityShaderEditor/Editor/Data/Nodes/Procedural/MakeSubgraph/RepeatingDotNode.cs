@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph
         static string Unity_Repreatingdot(
             [Slot(0, Binding.MeshUV0)] Vector2 UV,
             [Slot(1, Binding.None, 4.0f, 4.0f, 4.0f, 4.0f)] Vector1 Count,
-            [Slot(2, Binding.None, 0.5f,0.5f,0.5f,0.5f)] Vector1 Radius,
+            [Slot(2, Binding.None, 0.5f, 0.5f, 0.5f, 0.5f)] Vector1 Radius,
             [Slot(4, Binding.None)] out Vector1 Out)
         {
             return

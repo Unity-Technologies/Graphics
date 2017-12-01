@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.Experimental.UIElements;
 using UnityEditor.Graphing;
 using UnityEngine.Experimental.UIElements;
@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
 
         void OnValueChanged(ChangeEvent<Enum> evt)
         {
-            var channel = (UVChannel) evt.newValue;
+            var channel = (UVChannel)evt.newValue;
             if (channel != m_Slot.channel)
             {
                 m_Slot.owner.owner.owner.RegisterCompleteObjectUndo("Change UV Channel");

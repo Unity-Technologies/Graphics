@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -57,7 +57,6 @@ namespace UnityEditor.Graphing
 
         void Validate()
         {
-
             if (graph != null)
             {
                 graph.OnEnable();

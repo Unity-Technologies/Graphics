@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph
             SlotType slotType,
             ShaderStage shaderStage = ShaderStage.Dynamic,
             bool hidden = false)
-            :base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
+            : base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
         {
         }
 
@@ -29,7 +29,6 @@ namespace UnityEditor.ShaderGraph
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)
         {
-
         }
     }
 }

@@ -77,7 +77,7 @@ namespace UnityEditor.ShaderGraph
                 m_Vector4 = m_Value
             });
         }
-        
+
         public IShaderProperty AsShaderProperty()
         {
             var prop = new Vector4ShaderProperty();

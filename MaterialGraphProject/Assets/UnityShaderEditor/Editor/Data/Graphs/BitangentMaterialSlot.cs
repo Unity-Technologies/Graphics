@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph
         {}
 
         public BitangentMaterialSlot(int slotId, string displayName, string shaderOutputName, CoordinateSpace space,
-            ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
+                                     ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
             : base(slotId, displayName, shaderOutputName, space, shaderStage, hidden)
         {}
 

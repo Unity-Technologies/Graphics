@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph
 
         [MultiFloatControl("", " ", " ", " ", " ")]
         public Vector3 row1
-            {
+        {
             get { return m_Row1; }
             set { SetRow(ref m_Row1, value); }
         }
@@ -45,7 +45,7 @@ namespace UnityEditor.ShaderGraph
             if (value == row)
                 return;
             row = value;
-                if (onModified != null)
+            if (onModified != null)
                 onModified(this, ModificationScope.Graph);
         }
 

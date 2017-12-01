@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using UnityEngine;
 using UnityEditor.Graphing;
@@ -67,7 +67,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 for (int i = 0; i < popupEntries.Length; i++)
                     popupEntries[i] = enumEntryNames[i];
                 value = EditorGUILayout.Popup(m_Label, value, popupEntries);
-                
+
                 if (changeCheckScope.changed)
                 {
                     m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
