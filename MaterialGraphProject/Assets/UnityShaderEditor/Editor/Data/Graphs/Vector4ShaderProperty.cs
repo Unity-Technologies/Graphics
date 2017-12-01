@@ -6,6 +6,11 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     public class Vector4ShaderProperty : VectorShaderProperty
     {
+        public Vector4ShaderProperty()
+        {
+            displayName = "Vector4";
+        }
+
         public override PropertyType propertyType
         {
             get { return PropertyType.Vector4; }

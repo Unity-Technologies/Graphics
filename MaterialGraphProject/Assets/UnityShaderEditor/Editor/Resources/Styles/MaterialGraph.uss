@@ -25,70 +25,75 @@ MaterialGraphView {
     background-color: rgb(20, 21, 21);
 }
 
-MaterialNodeView > .mainContainer > #left > #previewContainer {
-    width: 200;
+MaterialNodeView #previewContainer,
+MaterialNodeView #controls {
+    background-color: #393939;
 }
 
-MaterialNodeView > .mainContainer > #left > #previewContainer.expanded > #preview.active,
-MaterialNodeView > .mainContainer > #left > #previewContainer.expanded > #preview.visible {
+MaterialNodeView #previewContainer > #preview  {
     width: 200;
     height: 200;
+    align-items:center;
 }
 
-MaterialNodeView > .mainContainer > #left > #previewContainer.collapsed > #collapse {
+MaterialNodeView #previewContainer > #preview > #collapse {
+    background-color: #000;
+    border-color: #F0F0F0;
+    width: 0;
     height: 0;
-}
-
-MaterialNodeView > .mainContainer > #left > #previewContainer.expanded > #collapse {
-    border-radius: 2;
-    text-alignment: middle-center;
-    position-left: 87;
-    position-right: 87;
-    position-top: 5;
-    position-type: absolute;
-    height: 0;
-    border-top-width: 0;
-    border-bottom-width: 0;
-    border-left-width: 0;
-    border-right-width: 0;
-}
-
-MaterialNodeView > .mainContainer > #left > #previewContainer.expanded:hover > #collapse {
-    background-color: rgba(0, 0, 0, 0.5);
-    text-color: rgba(255, 255, 255, 0.75);
-    border-color: rgba(255, 255, 255, 0.75);
+    opacity: 0;
+    border-radius: 1;
     border-top-width: 1;
     border-bottom-width: 1;
     border-left-width: 1;
     border-right-width: 1;
-    height: 26;
+    margin-top: 4;
+    align-items:center;
+    justify-content:center;
 }
 
-MaterialNodeView > .mainContainer > #left > #previewContainer.expanded > #collapse:hover {
-    background-color: rgba(0, 0, 0, 0.75);
-    text-color: rgba(255, 255, 255, 1);
-    border-color: rgba(255, 255, 255, 1);
+
+MaterialNodeView #previewContainer:hover > #preview > #collapse {
+    width: 20;
+    height: 20;
+    opacity: 0.6;
 }
 
-MaterialNodeView > .mainContainer > #left > #previewContainer.expanded > #collapse:active {
-	background-color: rgba(0, 0, 0, 0.66);
+MaterialNodeView #previewContainer > #preview > #collapse > #icon
+{
+    background-image : resource("GraphView/Nodes/PreviewCollapse.png");
+    width: 16;
+    height: 16;
+}
+MaterialNodeView #previewContainer > #preview > #collapse:hover {
+    opacity: 1.0;
 }
 
-MaterialNodeView > .mainContainer > #left > #previewContainer.expanded > #expand {
+MaterialNodeView #previewContainer.collapsed > #preview > #collapse {
     height: 0;
 }
 
-MaterialNodeView > .mainContainer > #left > #previewContainer.collapsed > #expand {
-    text-alignment: middle-center;
-    text-color: rgb(153, 153, 153);
+MaterialNodeView #previewContainer > #expand {
     align-self: center;
-    width: 50;
+    width: 56;
+    height: 16;
+    flex-direction: row;
+    justify-content:center;
 }
 
-MaterialNodeView > .mainContainer > #left > #previewContainer.collapsed > #expand:hover {
-    background-color: rgba(0, 0, 0, 0.5);
-    text-color: rgba(255, 255, 255, 1);
+MaterialNodeView #previewContainer > #expand > #icon {
+    align-self: center;
+    background-image : resource("GraphView/Nodes/PreviewExpand.png");
+    width: 16;
+    height: 16;
+}
 
+MaterialNodeView #previewContainer.collapsed > #expand:hover {
+    background-color: #2B2B2B;
+}
+
+MaterialNodeView #previewContainer.expanded > #expand {
+    height: 0;
 }
 
 MaterialNodeView > #resize {
@@ -205,7 +210,7 @@ PortInputView > #container {
     flex-direction: row;
     align-items: center;
     padding-left: 8;
-    margin-right: 10;
+    margin-right: 12;
     border-left-width: 1;
     border-top-width: 1;
     border-right-width: 1;
@@ -235,6 +240,7 @@ MultiFloatSlotControlView {
 MultiFloatSlotControlView > Label {
     margin-left: 0;
     margin-right: 0;
+    cursor: slide-arrow;
 }
 
 MultiFloatSlotControlView > DoubleField {
@@ -509,17 +515,23 @@ ColorControlView {
 
 MultiFloatControlView {
     flex-direction: row;
+    padding-left: 8;
+    padding-right: 8;
+    padding-top: 8;
+    padding-bottom: 8;
 }
 
 MultiFloatControlView > Label {
     margin-left: 0;
     margin-right: 0;
+    cursor: slide-arrow;
 }
 
 MultiFloatControlView > DoubleField {
-    flex: 1;
     margin-left: 0;
     margin-right: 0;
+    min-width: 30;
+    flex-grow: 1;
 }
 
 ObjectControlView {
@@ -528,4 +540,34 @@ ObjectControlView {
 
 ObjectControlView > ObjectField {
     flex: 1;
+}
+
+EnumControlView {
+    flex-direction: row;
+}
+
+EnumControlView > EnumField {
+    flex: 1;
+    margin-left: 0;
+    margin-right: 8;
+    margin-top: 8;
+    margin-bottom: 8;
+}
+
+EnumControlView > Label {
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-left: 8;
+    margin-right: 8;
+    margin-top: 8;
+    margin-bottom: 8;
+}
+
+PropertyControlView {
+    padding-left: 8;
+    padding-right: 8;
+    padding-top: 8;
+    padding-bottom: 8;
 }

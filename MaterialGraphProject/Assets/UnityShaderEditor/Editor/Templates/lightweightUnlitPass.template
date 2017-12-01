@@ -1,0 +1,62 @@
+Pass
+{
+	Tags{"LightMode" = "LightweightForward"}
+	${Tags}
+	${Blending}
+	${Culling}
+	${ZTest}
+	${ZWrite}
+	
+	CGPROGRAM
+	#pragma target 3.0
+	#pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
+    #pragma multi_compile_fog
+	#pragma multi_compile_instancing
+
+	#pragma vertex vert
+    #pragma fragment frag
+	#pragma glsl
+	#pragma debug
+
+    #include "UnityCG.cginc"
+
+    ${Defines}
+
+    ${Graph}
+
+    struct GraphVertexOutput
+    {
+        float4 position : POSITION;
+        ${Interpolators}
+		UNITY_VERTEX_OUTPUT_STEREO
+    };
+
+    GraphVertexOutput vert (GraphVertexInput v)
+	{
+	    v = PopulateVertexData(v);
+		
+		UNITY_SETUP_INSTANCE_ID(v);
+
+        GraphVertexOutput o;
+        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+        o.position = UnityObjectToClipPos(v.vertex);
+        ${VertexShader}
+        return o;
+	}
+
+    fixed4 frag (GraphVertexOutput IN) : SV_Target
+    {
+    	${LocalPixelShader}
+    	
+        SurfaceInputs surfaceInput;
+        ${SurfaceInputs}
+
+        SurfaceDescription surf = PopulateSurfaceData(surfaceInput);
+        float3 Color = 0;
+        float Alpha = 0;
+		${SurfaceOutputRemap}
+		
+    	return fixed4(Color, Alpha);
+    }
+    ENDCG
+}

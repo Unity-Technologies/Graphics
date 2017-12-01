@@ -52,6 +52,8 @@ namespace UnityEditor.ShaderGraph
                     return "(SS)";
                 case ConcreteSlotValueType.Texture2D:
                     return "(T)";
+                case ConcreteSlotValueType.Cubemap:
+                    return "(C)";
                 default:
                     return "(E)";
             }
@@ -84,6 +86,10 @@ namespace UnityEditor.ShaderGraph
                     return slotType == SlotType.Input
                         ? new Texture2DInputMaterialSlot(slotId, displayName, shaderOutputName, shaderStage, hidden)
                         : new Texture2DMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden);
+                case SlotValueType.Cubemap:
+                    return slotType == SlotType.Input
+                        ? new CubemapInputMaterialSlot(slotId, displayName, shaderOutputName, shaderStage, hidden)
+                        : new CubemapMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden);
                 case SlotValueType.Dynamic:
                     return new DynamicVectorMaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStage, hidden);
                 case SlotValueType.Vector4:
@@ -138,6 +144,8 @@ namespace UnityEditor.ShaderGraph
                     return inputType == SlotValueType.Matrix2;
                 case SlotValueType.Texture2D:
                     return inputType == SlotValueType.Texture2D;
+                case SlotValueType.Cubemap:
+                    return inputType == SlotValueType.Cubemap;
                 case SlotValueType.Dynamic:
                 case SlotValueType.Vector4:
                     return inputType == SlotValueType.Vector4
@@ -199,6 +207,8 @@ namespace UnityEditor.ShaderGraph
             {
                 case ConcreteSlotValueType.Texture2D:
                     return PropertyType.Texture;
+                case ConcreteSlotValueType.Cubemap:
+                    return PropertyType.Cubemap;
                 case ConcreteSlotValueType.Vector1:
                     return PropertyType.Float;
                 case ConcreteSlotValueType.Vector2:

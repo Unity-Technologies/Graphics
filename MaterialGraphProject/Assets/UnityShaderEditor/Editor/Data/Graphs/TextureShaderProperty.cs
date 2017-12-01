@@ -13,6 +13,7 @@ namespace UnityEditor.ShaderGraph
         public TextureShaderProperty()
         {
             value = new SerializableTexture();
+            displayName = "Texture";
         }
 
         public override PropertyType propertyType

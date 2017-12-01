@@ -1,13 +1,9 @@
-using System;
 using System.IO;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEditor.Experimental.AssetImporters;
-using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
-using Debug = System.Diagnostics.Debug;
-using Object = UnityEngine.Object;
 
 [CustomEditor(typeof(ShaderGraphImporter))]
 public class ShaderGraphImporterEditor : ScriptedImporterEditor
@@ -26,16 +22,7 @@ public class ShaderGraphImporterEditor : ScriptedImporterEditor
     {
         var guid = AssetDatabase.AssetPathToGUID(path);
         var extension = Path.GetExtension(path);
-        Type graphType;
-        if (extension == ".ShaderGraph")
-            graphType = typeof(MaterialGraph);
-        else if (extension == ".LayeredShaderGraph")
-            graphType = typeof(LayeredShaderGraph);
-        else if (extension == ".ShaderSubGraph")
-            graphType = typeof(SubGraph);
-        else if (extension == ".ShaderRemapGraph")
-            graphType = typeof(MasterRemapGraph);
-        else
+        if (extension != ".ShaderGraph" && extension != ".LayeredShaderGraph" && extension != ".ShaderSubGraph" && extension != ".ShaderRemapGraph")
             return false;
 
         var foundWindow = false;
@@ -50,18 +37,17 @@ public class ShaderGraphImporterEditor : ScriptedImporterEditor
 
         if (!foundWindow)
         {
-            var window = ScriptableObject.CreateInstance<MaterialGraphEditWindow>();
+            var window = CreateInstance<MaterialGraphEditWindow>();
             window.Show();
-            window.ChangeSelection(guid, graphType);
+            window.ChangeSelection(guid);
         }
         return true;
     }
 
-    [OnOpenAsset]
+    [OnOpenAsset(0)]
     public static bool OnOpenAsset(int instanceID, int line)
     {
         var path = AssetDatabase.GetAssetPath(instanceID);
         return ShowGraphEditWindow(path);
     }
-
 }

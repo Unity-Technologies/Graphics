@@ -124,7 +124,32 @@ namespace UnityEditor.ShaderGraph
                 result = Path.Combine(result, path[i]);
 
             result = Path.Combine(result, templateName);
-            return result;
+
+            if (File.Exists(result))
+                return result;
+
+
+            //todo: fix this up... quick hack for working 
+            // in a package
+            var path2 = new List<string>
+            {
+                "Packages",
+                "com.unity.shadergraph",
+                "Editor",
+                "Templates"
+            };
+
+            string result2 = path2[0];
+            for (int i = 1; i < path2.Count; i++)
+                result2 = Path.Combine(result2, path2[i]);
+
+            result2 = Path.Combine(result2, templateName);
+            result2 = Path.GetFullPath(result2);
+
+            if (File.Exists(result2))
+                return result2;
+
+            return string.Empty;
         }
 
         private const string kErrorString = @"ERROR!";
