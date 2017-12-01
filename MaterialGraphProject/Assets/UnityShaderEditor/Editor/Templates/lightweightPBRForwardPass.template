@@ -1,0 +1,146 @@
+Pass
+{
+	Tags{"LightMode" = "LightweightForward"}
+	${Tags}
+	${Blending}
+	${Culling}
+	${ZTest}
+	${ZWrite}
+	
+	CGPROGRAM
+	#pragma target 3.0
+	
+    #pragma multi_compile _ _MAIN_LIGHT_COOKIE
+    #pragma multi_compile _MAIN_DIRECTIONAL_LIGHT _MAIN_SPOT_LIGHT
+    #pragma multi_compile _ _ADDITIONAL_LIGHTS
+    #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+    #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
+    #pragma multi_compile _ LIGHTMAP_ON
+    #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+    #pragma multi_compile _ _HARD_SHADOWS _SOFT_SHADOWS _HARD_SHADOWS_CASCADES _SOFT_SHADOWS_CASCADES
+    #pragma multi_compile _ _VERTEX_LIGHTS
+
+    #pragma multi_compile_fog
+    #pragma multi_compile_instancing
+
+    #pragma vertex vert
+	#pragma fragment frag
+	
+	#pragma glsl
+	#pragma debug
+	
+	${Defines}
+
+	#include "LightweightLighting.cginc"
+
+	${Graph}
+	
+	struct GraphVertexOutput
+    {
+        float4 position : SV_POSITION;
+#ifdef LIGHTMAP_ON
+        float4 lightmapUV : TEXCOORD0;
+#else
+		float4 vertexSH : TEXCOORD0;
+#endif
+		half4 fogFactorAndVertexLight : TEXCOORD1; // x: fogFactor, yzw: vertex light
+        ${Interpolators}
+		UNITY_VERTEX_OUTPUT_STEREO
+    };
+	
+    GraphVertexOutput vert (GraphVertexInput v)
+	{
+	    v = PopulateVertexData(v);
+		
+		UNITY_SETUP_INSTANCE_ID(v);
+
+        GraphVertexOutput o = (GraphVertexOutput)0;
+        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
+        ${VertexShader}
+
+		float3 lwWNormal = normalize(UnityObjectToWorldNormal(v.normal));
+		float4 lwWorldPos = mul(unity_ObjectToWorld, v.vertex);
+		float4 clipPos = mul(UNITY_MATRIX_VP, lwWorldPos);
+
+#ifdef LIGHTMAP_ON
+		o.lightmapUV.zw = v.lightmapUV * unity_LightmapST.xy + unity_LightmapST.zw;
+#else
+		o.vertexSH = half4(EvaluateSHPerVertex(lwWNormal), 0.0);
+#endif
+
+		o.fogFactorAndVertexLight.yzw = VertexLighting(lwWorldPos.xyz, lwWNormal);
+		o.fogFactorAndVertexLight.x = ComputeFogFactor(clipPos.z);
+        o.position = clipPos;
+
+		return o;
+	}
+
+	fixed4 frag (GraphVertexOutput IN) : SV_Target
+    {
+    	${LocalPixelShader}
+
+        SurfaceInputs surfaceInput = (SurfaceInputs)0;
+        ${SurfaceInputs}
+
+        SurfaceDescription surf = PopulateSurfaceData(surfaceInput);
+
+		float3 Albedo = float3(0.5, 0.5, 0.5);
+		float3 Specular = float3(0, 0, 0);
+		float Metallic = 0;
+		float3 Normal = float3(0, 0, 1);
+		float3 Emission = 0;
+		float Smoothness = 0.5;
+		float Occlusion = 1;
+		float Alpha = 1;
+
+        ${SurfaceOutputRemap}
+
+#if defined(UNITY_COLORSPACE_GAMMA) 
+       	Albedo = Albedo * Albedo;
+       	Emission = Emission * Emission;
+#endif
+
+#if _NORMALMAP
+    half3 normalWS = TangentToWorldNormal(Normal, WorldSpaceTangent, WorldSpaceBiTangent, WorldSpaceNormal);
+#else
+    half3 normalWS = normalize(WorldSpaceNormal);
+#endif
+
+#if LIGHTMAP_ON
+	half3 indirectDiffuse = SampleLightmap(IN.lightmapUV.zw, normalWS);
+#else
+	half3 indirectDiffuse = EvaluateSHPerPixel(normalWS, IN.vertexSH);
+#endif
+
+	half4 color = LightweightFragmentPBR(
+			WorldSpacePosition,
+			normalWS,
+			WorldSpaceViewDirection,
+			indirectDiffuse,
+			IN.fogFactorAndVertexLight.yzw, 
+			Albedo,
+			Metallic,
+			Specular,
+			Smoothness,
+			Occlusion,
+			Emission,
+			Alpha);
+
+	// Computes fog factor per-vertex
+    ApplyFog(color.rgb, IN.fogFactorAndVertexLight.x);
+
+#if _AlphaOut
+		color.a = Alpha;
+#else
+		color.a = 1;
+#endif
+
+#if _AlphaClip
+		clip(Alpha - 0.01);
+#endif
+		return color;
+    }
+
+	ENDCG
+}

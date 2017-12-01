@@ -1,7 +1,5 @@
-﻿using System.Linq;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -29,7 +27,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         bool ValidateObject(Object obj)
         {
             return EditorUtility.IsPersistent(obj)
-                && (obj is Texture2D || obj is MaterialSubGraphAsset);
+                && (obj is Texture2D || obj is Cubemap || obj is MaterialSubGraphAsset);
         }
 
         void CreateNode(Object obj, Vector2 nodePosition)
@@ -38,14 +36,43 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (texture2D != null)
             {
                 m_Graph.owner.RegisterCompleteObjectUndo("Drag Texture");
-                var property = new TextureShaderProperty { displayName = texture2D.name, value = { texture = texture2D } };
-                m_Graph.AddShaderProperty(property);
-                var node = new PropertyNode();
+                
+                bool isNormalMap = false;
+                if (EditorUtility.IsPersistent(texture2D)
+                    && !string.IsNullOrEmpty(AssetDatabase.GetAssetPath(texture2D)))
+                {
+                    var importer = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(texture2D)) as TextureImporter;
+                    if (importer != null)
+                        isNormalMap = importer.textureType == TextureImporterType.NormalMap;
+                }
+
+                var node = new Texture2DNode();
+                if (isNormalMap)
+                    node.textureType = TextureType.Normal;
+                
                 var drawState = node.drawState;
                 drawState.position = new Rect(nodePosition, drawState.position.size);
                 node.drawState = drawState;
                 m_Graph.AddNode(node);
-                node.propertyGuid = property.guid;
+                var inputslot = node.FindSlot<Texture2DInputMaterialSlot>(Texture2DNode.TextureInputId);
+                if (inputslot != null)
+                    inputslot.texture = texture2D;
+            }
+
+            var cubemap = obj as Cubemap;
+            if (cubemap != null)
+            {
+                m_Graph.owner.RegisterCompleteObjectUndo("Drag Cubemap");
+                var property = new CubemapShaderProperty { displayName = cubemap.name, value = { cubemap = cubemap } };
+                m_Graph.AddShaderProperty(property);
+                var node = new CubemapNode();
+                var drawState = node.drawState;
+                drawState.position = new Rect(nodePosition, drawState.position.size);
+                node.drawState = drawState;
+                m_Graph.AddNode(node);
+                var inputslot = node.FindSlot<CubemapInputMaterialSlot>(CubemapNode.CubemapInputId);
+                if (inputslot != null)
+                    inputslot.cubemap = cubemap;
             }
 
             var subGraphAsset = obj as MaterialSubGraphAsset;
@@ -72,7 +99,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 Object draggedObject = null;
                 foreach (var obj in objects)
                 {
-                    Debug.Log(obj.GetType().Name);
                     if (ValidateObject(obj))
                     {
                         draggedObject = obj;

@@ -1,4 +1,7 @@
 {
+	"registry": "https://staging-packages.unity.com",
 	"dependencies": {
+		"com.unity.render-pipelines.core" : "0.1.11",
+		"com.unity.render-pipelines.lightweight" : "0.1.11"
 	}
 }

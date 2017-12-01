@@ -7,6 +7,11 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     public class FloatShaderProperty : AbstractShaderProperty<float>
     {
+        public FloatShaderProperty()
+        {
+            displayName = "Float";
+        }
+        
         public override PropertyType propertyType
         {
             get { return PropertyType.Float; }

@@ -6,7 +6,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input/Texture/Texture 2D Asset")]
-    public class Texture2DAssetNode : AbstractMaterialNode
+    public class Texture2DAssetNode : AbstractMaterialNode, IPropertyFromNode
     {
         public const int OutputSlotId = 0;
 
@@ -63,5 +63,16 @@ namespace UnityEditor.ShaderGraph
                 m_Texture = texture
             });
         }
+
+        public IShaderProperty AsShaderProperty()
+        {
+            var prop = new TextureShaderProperty();
+            prop.value = m_Texture;
+            if (texture != null)
+                prop.displayName = texture.name;
+            return prop;
+        }
+
+        public int outputSlotId { get { return OutputSlotId; } }
     }
 }
