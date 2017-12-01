@@ -37,7 +37,6 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { UVSlotId, OutputSlotId });
         }
 
-
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
             properties.Add(new PreviewProperty()
@@ -77,7 +76,7 @@ namespace UnityEditor.ShaderGraph
             outputString.AddShaderChunk(GetFunctionPrototype("Tex", "Out"), false);
             outputString.AddShaderChunk("{", false);
             outputString.Indent();
-            
+
             outputString.AddShaderChunk(string.Format("{0}3 nn = Tex.xyz * {0}3(2.0 * 1.7777, 2.0 * 1.7777, 0) + {0}3(-1.7777, -1.7777, 1);", precision), true);
             outputString.AddShaderChunk(string.Format("{0} g = 2.0 / dot(nn.xyz, nn.xyz);", precision), true);
             outputString.AddShaderChunk(string.Format("{0}3 n;", precision), true);

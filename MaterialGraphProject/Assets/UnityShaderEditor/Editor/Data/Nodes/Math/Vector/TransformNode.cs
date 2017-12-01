@@ -56,7 +56,7 @@ namespace UnityEditor.ShaderGraph
                 }
             }
         }
-        
+
         public override bool hasPreview
         {
             get { return true; }
@@ -88,7 +88,7 @@ namespace UnityEditor.ShaderGraph
         {
             NodeUtils.SlotConfigurationExceptionIfBadConfiguration(this, new[] { InputSlotId }, new[] { OutputSlotId });
             string inputValue = GetSlotValue(InputSlotId, generationMode);
-            string targetTransformString = "tangentTransform_"+ spaceFrom.ToString();
+            string targetTransformString = "tangentTransform_" + spaceFrom.ToString();
             string transformString = "";
             bool requiresTangentTransform = false;
 
@@ -105,7 +105,7 @@ namespace UnityEditor.ShaderGraph
                 else if (spaceTo == CoordinateSpace.Tangent)
                 {
                     requiresTangentTransform = true;
-                    transformString = "mul("+ targetTransformString +", " + inputValue + ").xyz";
+                    transformString = "mul(" + targetTransformString + ", " + inputValue + ").xyz";
                 }
                 else if (spaceTo == CoordinateSpace.View)
                 {
@@ -125,7 +125,7 @@ namespace UnityEditor.ShaderGraph
                 else if (spaceTo == CoordinateSpace.Tangent)
                 {
                     requiresTangentTransform = true;
-                    transformString = "mul( "+ targetTransformString +", mul( unity_ObjectToWorld, float4(" + inputValue + ", 0) ).xyz).xyz";
+                    transformString = "mul( " + targetTransformString + ", mul( unity_ObjectToWorld, float4(" + inputValue + ", 0) ).xyz).xyz";
                 }
                 else if (spaceTo == CoordinateSpace.View)
                 {
@@ -137,7 +137,7 @@ namespace UnityEditor.ShaderGraph
                 requiresTangentTransform = true;
                 if (spaceTo == CoordinateSpace.World)
                 {
-                    transformString = "mul( " + inputValue + ", "+ targetTransformString+ " ).xyz";
+                    transformString = "mul( " + inputValue + ", " + targetTransformString + " ).xyz";
                 }
                 else if (spaceTo == CoordinateSpace.Object)
                 {
@@ -174,12 +174,12 @@ namespace UnityEditor.ShaderGraph
             }
 
             if (requiresTangentTransform)
-                visitor.AddShaderChunk("float3x3 " + targetTransformString + " = float3x3("+ spaceFrom.ToString() + "SpaceTangent, "+ spaceFrom.ToString() + "SpaceBiTangent, "+ spaceFrom.ToString() + "SpaceNormal);", true);
+                visitor.AddShaderChunk("float3x3 " + targetTransformString + " = float3x3(" + spaceFrom.ToString() + "SpaceTangent, " + spaceFrom.ToString() + "SpaceBiTangent, " + spaceFrom.ToString() + "SpaceNormal);", true);
 
             visitor.AddShaderChunk(string.Format("{0} {1} = {2};",
-                ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), 
-                GetVariableNameForSlot(OutputSlotId),
-                transformString), true);
+                    ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType),
+                    GetVariableNameForSlot(OutputSlotId),
+                    transformString), true);
         }
 
         public NeededCoordinateSpace RequiresTangent()

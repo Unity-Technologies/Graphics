@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph
 
         public override Vector4 defaultValue
         {
-            get { return new Vector4(value, value, value, value);}
+            get { return new Vector4(value, value, value, value); }
         }
 
         public override string GetPropertyBlockString()
