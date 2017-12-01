@@ -2,19 +2,7 @@
 #define UNITY_COMMON_MATERIAL_INCLUDED
 
 //-----------------------------------------------------------------------------
-// Helper function for anisotropy
-//-----------------------------------------------------------------------------
-
-void ConvertAnisotropyToRoughness(float roughness, float anisotropy, out float roughnessT, out float roughnessB)
-{
-    // Use the parametrization of Sony Imageworks.
-    // Ref: Revisiting Physically Based Shading at Imageworks, p. 15.
-    roughnessT = roughness * (1 + anisotropy);
-    roughnessB = roughness * (1 - anisotropy);
-}
-
-//-----------------------------------------------------------------------------
-// Helper function for perceptual roughness
+// Helper functions for roughness
 //-----------------------------------------------------------------------------
 
 float PerceptualRoughnessToRoughness(float perceptualRoughness)
@@ -35,6 +23,27 @@ float PerceptualSmoothnessToRoughness(float perceptualSmoothness)
 float PerceptualSmoothnessToPerceptualRoughness(float perceptualSmoothness)
 {
     return (1.0 - perceptualSmoothness);
+}
+
+// Using roughness values of 0 leads to INFs and NANs. The only sensible place to use the roughness
+// value of 0 is IBL, so we do not modify the perceptual roughness which is used to select the MIP map level.
+// Note: making the constant too small results in aliasing.
+float ClampRoughnessForAnalyticalLights(float roughness)
+{
+    return max(roughness, 1.0/1024.0);
+}
+
+void ConvertAnisotropyToRoughness(float perceptualRoughness, float anisotropy, out float roughnessT, out float roughnessB)
+{
+    float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
+
+    // Use the parametrization of Sony Imageworks.
+    // Ref: Revisiting Physically Based Shading at Imageworks, p. 15.
+    roughnessT = roughness * (1 + anisotropy);
+    roughnessB = roughness * (1 - anisotropy);
+
+    roughnessT = ClampRoughnessForAnalyticalLights(roughnessT);
+    roughnessB = ClampRoughnessForAnalyticalLights(roughnessB);
 }
 
 // ----------------------------------------------------------------------------
