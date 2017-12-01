@@ -22,6 +22,11 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public ColorShaderProperty()
+        {
+            displayName = "Color";
+        }
+
         public override PropertyType propertyType
         {
             get { return PropertyType.Color; }

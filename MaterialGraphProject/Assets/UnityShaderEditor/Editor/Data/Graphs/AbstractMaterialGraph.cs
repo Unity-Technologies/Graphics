@@ -82,6 +82,11 @@ namespace UnityEditor.ShaderGraph
 
         void RemoveShaderPropertyNoValidate(Guid guid)
         {
+            var propertyNodes = GetNodes<PropertyNode>().Where(x => x.propertyGuid == guid).ToList();
+
+            foreach (var propNode in propertyNodes)
+                ReplacePropertyNodeWithConcreteNode(propNode);
+
             if (m_Properties.RemoveAll(x => x.guid == guid) > 0)
                 m_RemovedProperties.Add(guid);
         }
@@ -126,6 +131,20 @@ namespace UnityEditor.ShaderGraph
                     var createdNode = new ColorNode();
                     createdNode.color = ((ColorShaderProperty) property).value;
                     slotId = ColorNode.OutputSlotId;
+                    node = createdNode;
+                }
+                else if (property is TextureShaderProperty)
+                {
+                    var createdNode = new Texture2DAssetNode();
+                    createdNode.texture = ((TextureShaderProperty) property).value.texture;
+                    slotId = Texture2DAssetNode.OutputSlotId;
+                    node = createdNode;
+                }
+                else if (property is CubemapShaderProperty)
+                {
+                    var createdNode = new CubemapAssetNode();
+                    createdNode.cubemap = ((CubemapShaderProperty) property).value.cubemap;
+                    slotId = CubemapAssetNode.OutputSlotId;
                     node = createdNode;
                 }
 

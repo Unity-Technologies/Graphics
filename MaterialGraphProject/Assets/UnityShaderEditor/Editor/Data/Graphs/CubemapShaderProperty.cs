@@ -13,6 +13,7 @@ namespace UnityEditor.ShaderGraph
         public CubemapShaderProperty()
         {
             value = new SerializableCubemap();
+            displayName = "Cubemap";
         }
 
         public override PropertyType propertyType

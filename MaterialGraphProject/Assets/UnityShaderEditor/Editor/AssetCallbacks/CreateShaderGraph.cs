@@ -1,6 +1,5 @@
 using System.IO;
 using UnityEditor.ProjectWindowCallback;
-using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -15,8 +14,8 @@ namespace UnityEditor.ShaderGraph
 
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
-            var graph = new ShaderGraph.MaterialGraph();
-            //graph.AddNode(new LightweightMetallicMasterNode());
+            var graph = new MaterialGraph();
+            graph.AddNode(new PBRMasterNode());
             File.WriteAllText(pathName, EditorJsonUtility.ToJson(graph));
             AssetDatabase.Refresh();
         }

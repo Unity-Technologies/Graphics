@@ -18,17 +18,15 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_ControlsContainer;
         VisualElement m_PreviewContainer;
         List<Attacher> m_Attachers;
-        GraphView m_GraphView;
         VisualElement m_ControlsDivider;
 
-        public void Initialize(GraphView graphView, AbstractMaterialNode inNode, PreviewManager previewManager)
+        public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager)
         {
             AddToClassList("MaterialNode");
 
             if (inNode == null)
                 return;
 
-            m_GraphView = graphView;
             node = inNode;
             persistenceKey = node.guid.ToString();
             UpdateTitle();
