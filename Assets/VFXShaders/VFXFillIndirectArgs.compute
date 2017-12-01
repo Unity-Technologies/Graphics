@@ -4,6 +4,7 @@
 
 CBUFFER_START(Uniform)
 	uint maxNb;
+	uint offset;
 CBUFFER_END
  
 #define NB_THREADS_PER_GROUP 64
@@ -15,35 +16,35 @@ struct OutputData
 };
 
 ByteAddressBuffer nbElements; // Filled by GPU
-StructuredBuffer<OutputData> outputData; // Filled by CPU
+StructuredBuffer<OutputData> outputData; // Filled by CPU (TODO : rename)
+RWBuffer<uint> output; //(TODO : rename)
 
-RWBuffer<uint> output;
-
-// Points
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 {
-	if (id.x < maxNb) 
+	uint index = id.x + offset;
+	if (index < maxNb)
 	{
-		uint indexCount = 0;
-		uint instanceCount = 0;
+		uint firstArg = 0u;
+		uint secondArg = 0u;
+		uint thirdArg = 0u;
 
-		uint elementCount = nbElements.Load(id.x << 2);
+		uint elementCount = nbElements.Load(index << 2);
 
-		OutputData data = outputData[id.x];
+		OutputData data = outputData[index];
 		switch(data.type)
 		{
 			case 0: // point
 			{
-				indexCount = elementCount;
-				instanceCount = 1;
+				firstArg = elementCount;
+				secondArg = 1;
 				break;
 			}
 
 			case 1: // lines
 			{
-				indexCount = elementCount * 2;
-				instanceCount = 1;
+				firstArg = elementCount * 2;
+				secondArg = 1;
 				break;
 			}
 			
@@ -52,13 +53,13 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 				if (elementCount > 16384) // Due to 16bits indices (4 vertices per element)
 				{
 					const uint NB_PARTICLES_PER_INSTANCE = 2048;
-					indexCount = NB_PARTICLES_PER_INSTANCE * 6;
-					instanceCount = (elementCount + (NB_PARTICLES_PER_INSTANCE - 1)) / NB_PARTICLES_PER_INSTANCE;
+					firstArg = NB_PARTICLES_PER_INSTANCE * 6;
+					secondArg = (elementCount + (NB_PARTICLES_PER_INSTANCE - 1)) / NB_PARTICLES_PER_INSTANCE;
 				}
 				else
 				{
-					indexCount = elementCount * 6;
-					instanceCount = 1;
+					firstArg = elementCount * 6;
+					secondArg = 1;
 				}
 				break;
 			}
@@ -68,28 +69,36 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 				if (elementCount > 8192) // Due to 16bits indices (8 vertices per element)
 				{
 					const uint NB_PARTICLES_PER_INSTANCE = 1024;
-					indexCount = NB_PARTICLES_PER_INSTANCE * 36;
-					instanceCount = (elementCount + (NB_PARTICLES_PER_INSTANCE - 1)) / NB_PARTICLES_PER_INSTANCE;
+					firstArg = NB_PARTICLES_PER_INSTANCE * 36;
+					secondArg = (elementCount + (NB_PARTICLES_PER_INSTANCE - 1)) / NB_PARTICLES_PER_INSTANCE;
 				}
 				else
 				{
-					indexCount = elementCount * 36;
-					instanceCount = 1;
+					firstArg = elementCount * 36;
+					secondArg = 1;
 				}
 				break;
 			}
 
 			case 4: // meshes
 			{
-				indexCount = data.indexCount;
-				instanceCount = elementCount;
+				firstArg = data.indexCount;
+				secondArg = elementCount;
+				break;
+			}
+			case 0xffffffff: // dispatch
+			{
+				firstArg = (elementCount + NB_THREADS_PER_GROUP - 1) / NB_THREADS_PER_GROUP;
+				secondArg = thirdArg = 1u;
+				//todo => for spawnIndex
 				break;
 			}
 		}
-		
-		uint index = id.x * 5;
-		output[index + 0] = indexCount;
-		output[index + 1] = instanceCount;
-		// 3 next uint (startIndex, BaseVertex and StartInstance) set to 0 at initialization
+
+		uint indexOutput = index * 5;
+		output[indexOutput + 0] = firstArg; //IndexCountPerInstance or ThreadGroupCountX
+		output[indexOutput + 1] = secondArg; //InstanceCount or ThreadGroupCountY
+		output[indexOutput + 2] = thirdArg; //startIndex or ThreadGroupCountz
+		// 2 next uint (BaseVertex and StartInstance) set to 0 at initialization
 	}
 }
