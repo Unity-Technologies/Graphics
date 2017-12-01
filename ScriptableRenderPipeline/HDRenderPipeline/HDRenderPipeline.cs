@@ -1121,18 +1121,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     // We render first the opaque object as opaque alpha tested are more costly to render and could be reject by early-z (but not Hi-z as it is disable with clip instruction)
                     // This is handled automatically with the RenderQueue value (OpaqueAlphaTested have a different value and thus are sorted after Opaque)
-                    RenderOpaqueRenderList(cull, camera, renderContext, cmd, m_DepthOnlyAndDepthForwardOnlyPassNames, 0, RenderQueueRange.opaque);
+                    RenderOpaqueRenderList(cull, camera, renderContext, cmd, m_DepthOnlyAndDepthForwardOnlyPassNames, 0, RenderQueueRange.opaque, m_DepthStateOpaque);
                 }
                 else // Deferred rendering with partial depth prepass
                 {
                     // We always do a DepthForwardOnly pass with all the opaque (including alpha test)
-                    RenderOpaqueRenderList(cull, camera, renderContext, cmd, m_DepthForwardOnlyPassNames, 0, RenderQueueRange.opaque);
+                    RenderOpaqueRenderList(cull, camera, renderContext, cmd, m_DepthForwardOnlyPassNames, 0, RenderQueueRange.opaque, m_DepthStateOpaque);
 
                     // Render Alpha test only if requested
                     if (addAlphaTestedOnly)
                     {
                         var renderQueueRange = new RenderQueueRange { min = (int)RenderQueue.AlphaTest, max = (int)RenderQueue.GeometryLast - 1 };
-                        RenderOpaqueRenderList(cull, camera, renderContext, cmd, m_DepthOnlyPassNames, 0, renderQueueRange);
+                        RenderOpaqueRenderList(cull, camera, renderContext, cmd, m_DepthOnlyPassNames, 0, renderQueueRange, m_DepthStateOpaque);
                     }
                 }
 
@@ -1382,16 +1382,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (pass == ForwardPass.Opaque)
                 {
-                if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
-                {
-                    m_ForwardAndForwardOnlyPassNames[0] = m_ForwardOnlyPassNames[0] = HDShaderPassNames.s_ForwardOnlyDebugDisplayName;
-                    m_ForwardAndForwardOnlyPassNames[1] = HDShaderPassNames.s_ForwardDebugDisplayName;
-                }
-                else
-                {
-                    m_ForwardAndForwardOnlyPassNames[0] = m_ForwardOnlyPassNames[0] = HDShaderPassNames.s_ForwardOnlyName;
-                    m_ForwardAndForwardOnlyPassNames[1] = HDShaderPassNames.s_ForwardName;
-                }
+                    if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
+                    {
+                        m_ForwardAndForwardOnlyPassNames[0] = m_ForwardOnlyPassNames[0] = HDShaderPassNames.s_ForwardOnlyDebugDisplayName;
+                        m_ForwardAndForwardOnlyPassNames[1] = HDShaderPassNames.s_ForwardDebugDisplayName;
+                    }
+                    else
+                    {
+                        m_ForwardAndForwardOnlyPassNames[0] = m_ForwardOnlyPassNames[0] = HDShaderPassNames.s_ForwardOnlyName;
+                        m_ForwardAndForwardOnlyPassNames[1] = HDShaderPassNames.s_ForwardName;
+                    }
 
                     var passNames = m_Asset.globalRenderingSettings.ShouldUseForwardRenderingOnly() ? m_ForwardAndForwardOnlyPassNames : m_ForwardOnlyPassNames;
                     // Forward opaque material always have a prepass (whether or not we use deferred, whether or not there is option like alpha test only) so we pass the right depth state here.
@@ -1765,7 +1765,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Clear the HDR target
                 using (new ProfilingSample(cmd, "Clear HDR target", GetSampler(CustomSamplerId.ClearHDRTarget)))
                 {
-                    CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.Color, CoreUtils.clearColorAllBlack);
+                    Color clearColor = camera.camera.backgroundColor.linear; // Need it in linear because we clear a linear fp16 texture.
+                    CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.Color, clearColor);
                 }
 
                 // Clear GBuffers
