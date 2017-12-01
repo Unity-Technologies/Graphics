@@ -1,5 +1,5 @@
-#ifndef TILEPASS_SHADOW_HLSL
-#define TILEPASS_SHADOW_HLSL
+#ifndef LIGHTLOOP_SHADOW_HLSL
+#define LIGHTLOOP_SHADOW_HLSL
 
 #define SHADOW_DISPATCH_USE_CUSTOM_DIRECTIONAL
 #define SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL
@@ -120,4 +120,4 @@ float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 position
 
 
 
-#endif // TILEPASS_SHADOW_HLSL
+#endif // LIGHTLOOP_SHADOW_HLSL

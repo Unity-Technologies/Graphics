@@ -19,10 +19,10 @@
 #include "../Lighting/LightDefinition.cs.hlsl"
 #include "../Lighting/LightUtilities.hlsl"
 
-#include "TilePass/Shadow.hlsl"
+#include "LightLoop/Shadow.hlsl"
 
 #if defined(LIGHTLOOP_SINGLE_PASS) || defined(LIGHTLOOP_TILE_PASS)
-#include "../Lighting/TilePass/TilePass.hlsl"
+#include "../Lighting/LightLoop/LightLoopDef.hlsl"
 #endif
 
 // Shadow use samling function define in header above and must be include before Material.hlsl
@@ -30,7 +30,7 @@
 
 // LightLoop use evaluation BSDF function for light type define in Material.hlsl
 #if defined(LIGHTLOOP_SINGLE_PASS) || defined(LIGHTLOOP_TILE_PASS)
-#include "../Lighting/TilePass/TilePassLoop.hlsl"
+#include "../Lighting/LightLoop/LightLoop.hlsl"
 #endif
 
 
