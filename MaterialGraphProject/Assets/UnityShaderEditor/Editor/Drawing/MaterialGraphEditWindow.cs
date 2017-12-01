@@ -74,7 +74,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             if (graphObject == null)
+            {
+                Close();
                 return;
+            }
 
             var materialGraph = graphObject.graph as AbstractMaterialGraph;
             if (materialGraph == null)
