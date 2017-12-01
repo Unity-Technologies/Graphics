@@ -10,6 +10,7 @@ namespace UnityEditor.ShaderGraph
         {
             name = "Radial Shear";
         }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_RadialShear", BindingFlags.Static | BindingFlags.NonPublic);

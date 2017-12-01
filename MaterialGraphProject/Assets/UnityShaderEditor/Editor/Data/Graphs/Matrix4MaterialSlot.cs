@@ -17,10 +17,9 @@ namespace UnityEditor.ShaderGraph
             SlotType slotType,
             ShaderStage shaderStage = ShaderStage.Dynamic,
             bool hidden = false)
-            :base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
+            : base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
         {
         }
-
 
         protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
         {
@@ -29,12 +28,10 @@ namespace UnityEditor.ShaderGraph
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
         {
-
         }
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)
         {
-
         }
 
         public override SlotValueType valueType { get { return SlotValueType.Matrix4; } }

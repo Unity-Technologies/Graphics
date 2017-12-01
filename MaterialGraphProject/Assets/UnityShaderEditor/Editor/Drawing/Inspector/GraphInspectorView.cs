@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental.UIElements;
@@ -10,7 +10,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
     [Serializable]
-    class  PersistentMesh
+    class PersistentMesh
     {
         [SerializeField]
         Mesh m_Mesh;
@@ -162,7 +162,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             layerGraph.AddLayer();
         }
 
-
         void AddProperty(IShaderProperty property)
         {
             m_Graph.owner.RegisterCompleteObjectUndo("Add Property");
@@ -196,7 +195,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             SavePersistentData();
         }
 
-
         public override void OnPersistentDataReady()
         {
             base.OnPersistentDataReady();
@@ -214,7 +212,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_SelectedNodes.AddRange(nodes);
 
             var selectionHash = UIUtilities.GetHashCode(m_SelectedNodes.Count,
-                m_SelectedNodes != null ? m_SelectedNodes.FirstOrDefault() : null);
+                    m_SelectedNodes != null ? m_SelectedNodes.FirstOrDefault() : null);
             if (selectionHash != m_SelectionHash)
             {
                 m_SelectionHash = selectionHash;
@@ -230,7 +228,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 else if (m_SelectedNodes.Count == 1)
                 {
                     var node = m_SelectedNodes.First();
-                    var view = (AbstractNodeEditorView) Activator.CreateInstance(m_TypeMapper.MapType(node.GetType()));
+                    var view = (AbstractNodeEditorView)Activator.CreateInstance(m_TypeMapper.MapType(node.GetType()));
                     view.node = node;
                     m_ContentContainer.Add(view);
                 }
@@ -241,7 +239,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         {
             foreach (var propertyGuid in m_Graph.removedProperties)
             {
-                var propertyView = m_PropertyItems.OfType<ShaderPropertyView>().FirstOrDefault(v => v.property.guid == propertyGuid);if (propertyView != null)
+                var propertyView = m_PropertyItems.OfType<ShaderPropertyView>().FirstOrDefault(v => v.property.guid == propertyGuid); if (propertyView != null)
                     m_PropertyItems.Remove(propertyView);
             }
 

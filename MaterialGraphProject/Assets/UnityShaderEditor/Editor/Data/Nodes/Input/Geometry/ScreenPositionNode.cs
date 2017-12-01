@@ -68,17 +68,17 @@ namespace UnityEditor.ShaderGraph
             switch (m_ScreenSpaceType)
             {
                 case ScreenSpaceType.Raw:
-                    visitor.AddShaderChunk(string.Format("{0}4 {1} = {2};", precision, GetVariableNameForSlot(kOutputSlotId), 
+                    visitor.AddShaderChunk(string.Format("{0}4 {1} = {2};", precision, GetVariableNameForSlot(kOutputSlotId),
                         ShaderGeneratorNames.ScreenPosition), true);
                     break;
                 case ScreenSpaceType.Center:
-                    visitor.AddShaderChunk(string.Format("{0}4 {1} = {2};", precision, GetVariableNameForSlot(kOutputSlotId), 
+                    visitor.AddShaderChunk(string.Format("{0}4 {1} = {2};", precision, GetVariableNameForSlot(kOutputSlotId),
                         "float4((" + ShaderGeneratorNames.ScreenPosition + ".xy / " + ShaderGeneratorNames.ScreenPosition + ".w) * 2 - 1, 0, 0)"), true);
                     break;
                 case ScreenSpaceType.Tiled:
-                    visitor.AddShaderChunk(string.Format("{0}4 {1} = {2};", precision, GetVariableNameForSlot(kOutputSlotId), 
+                    visitor.AddShaderChunk(string.Format("{0}4 {1} = {2};", precision, GetVariableNameForSlot(kOutputSlotId),
                         "float4((" + ShaderGeneratorNames.ScreenPosition + ".xy / " + ShaderGeneratorNames.ScreenPosition + ".w) * 2 - 1, 0, 0)"), true);
-                    visitor.AddShaderChunk(string.Format("{0} = {1};", GetVariableNameForSlot(kOutputSlotId), 
+                    visitor.AddShaderChunk(string.Format("{0} = {1};", GetVariableNameForSlot(kOutputSlotId),
                         "float4(" + ShaderGeneratorNames.ScreenPosition + ".x * _ScreenParams.x / _ScreenParams.y, " + ShaderGeneratorNames.ScreenPosition + ".y, 0, 0)"), true);
                     break;
                 default:

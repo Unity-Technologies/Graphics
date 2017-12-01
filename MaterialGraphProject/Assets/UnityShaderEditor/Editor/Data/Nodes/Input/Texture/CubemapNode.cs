@@ -48,12 +48,12 @@ namespace UnityEditor.ShaderGraph
         public virtual void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
             string result = string.Format("{0}4 {1} = texCUBElod ({2}, {0}4(reflect(-{3}, {4}), {5}));"
-                        , precision
-                        , GetVariableNameForSlot(OutputSlotId)
-                        , GetSlotValue(CubemapInputId, generationMode)
-                        , GetSlotValue(ViewDirInputId, generationMode)
-                        , GetSlotValue(NormalInputId, generationMode)
-                        , GetSlotValue(LODInputId, generationMode));
+                    , precision
+                    , GetVariableNameForSlot(OutputSlotId)
+                    , GetSlotValue(CubemapInputId, generationMode)
+                    , GetSlotValue(ViewDirInputId, generationMode)
+                    , GetSlotValue(NormalInputId, generationMode)
+                    , GetSlotValue(LODInputId, generationMode));
 
             visitor.AddShaderChunk(result, true);
         }

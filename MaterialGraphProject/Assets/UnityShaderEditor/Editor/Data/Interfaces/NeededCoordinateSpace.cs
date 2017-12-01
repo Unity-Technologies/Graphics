@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
         World = 1 << 2,
         Tangent = 1 << 3
     }
-    
+
     public enum CoordinateSpace : int
     {
         Object,

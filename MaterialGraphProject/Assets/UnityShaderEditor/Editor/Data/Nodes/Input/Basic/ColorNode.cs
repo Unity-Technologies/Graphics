@@ -80,7 +80,7 @@ namespace UnityEditor.ShaderGraph
                 m_Color = color
             });
         }
-        
+
         public IShaderProperty AsShaderProperty()
         {
             var prop = new ColorShaderProperty();

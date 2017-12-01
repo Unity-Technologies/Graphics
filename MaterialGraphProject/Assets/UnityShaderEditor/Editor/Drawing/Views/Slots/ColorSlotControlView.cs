@@ -1,4 +1,4 @@
-﻿using UnityEditor.Experimental.UIElements;
+using UnityEditor.Experimental.UIElements;
 using UnityEditor.Graphing;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;

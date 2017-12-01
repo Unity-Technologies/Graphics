@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEditor.Graphing;
 
@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph
             var goodSlots =  new List<int>();
             foreach (var layer in layeredGraph.layers)
             {
-                AddSlot(new Vector1MaterialSlot(layer.guid.GetHashCode(), LayeredShaderGraph.LayerToFunctionName(layer.guid), LayeredShaderGraph.LayerToFunctionName(layer.guid), SlotType.Input,0));
+                AddSlot(new Vector1MaterialSlot(layer.guid.GetHashCode(), LayeredShaderGraph.LayerToFunctionName(layer.guid), LayeredShaderGraph.LayerToFunctionName(layer.guid), SlotType.Input, 0));
                 goodSlots.Add(layer.guid.GetHashCode());
             }
 

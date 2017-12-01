@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
@@ -100,7 +100,7 @@ namespace UnityEditor.ShaderGraph
             outputString.AddShaderChunk("{", false);
             outputString.Indent();
 
-            switch(channel)
+            switch (channel)
             {
                 case TextureChannel.Green:
                     outputString.AddShaderChunk("Out = In.yyyy;", false);

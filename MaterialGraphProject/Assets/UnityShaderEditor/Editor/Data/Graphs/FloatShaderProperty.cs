@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
         {
             displayName = "Float";
         }
-        
+
         public override PropertyType propertyType
         {
             get { return PropertyType.Float; }
@@ -19,30 +19,30 @@ namespace UnityEditor.ShaderGraph
 
         public override Vector4 defaultValue
         {
-            get { return new Vector4(value, value, value, value);}
+            get { return new Vector4(value, value, value, value); }
         }
 
         public override string GetPropertyBlockString()
         {
             var result = new StringBuilder();
-          //  if (m_FloatType == FloatPropertyChunk.FloatType.Toggle)
-           //     result.Append("[Toggle]");
-          //  else if (m_FloatType == FloatPropertyChunk.FloatType.PowerSlider)
-          //      result.Append("[PowerSlider(" + m_rangeValues.z + ")]");
+            //  if (m_FloatType == FloatPropertyChunk.FloatType.Toggle)
+            //     result.Append("[Toggle]");
+            //  else if (m_FloatType == FloatPropertyChunk.FloatType.PowerSlider)
+            //      result.Append("[PowerSlider(" + m_rangeValues.z + ")]");
             result.Append(referenceName);
             result.Append("(\"");
             result.Append(displayName);
 
             //if (m_FloatType == FloatPropertyChunk.FloatType.Float || m_FloatType == FloatPropertyChunk.FloatType.Toggle)
             //{
-                result.Append("\", Float) = ");
-           /* }
-            else if (m_FloatType == FloatPropertyChunk.FloatType.Range || m_FloatType == FloatPropertyChunk.FloatType.PowerSlider)
-            {
-                result.Append("\", Range(");
-                result.Append(m_rangeValues.x + ", " + m_rangeValues.y);
-                result.Append(")) = ");
-            }*/
+            result.Append("\", Float) = ");
+            /* }
+             else if (m_FloatType == FloatPropertyChunk.FloatType.Range || m_FloatType == FloatPropertyChunk.FloatType.PowerSlider)
+             {
+                 result.Append("\", Range(");
+                 result.Append(m_rangeValues.x + ", " + m_rangeValues.y);
+                 result.Append(")) = ");
+             }*/
             result.Append(value);
             return result.ToString();
         }

@@ -76,41 +76,41 @@ namespace UnityEditor.ShaderGraph
             if (property is FloatShaderProperty)
             {
                 var result = string.Format("{0} {1} = {2};"
-                    , precision
-                    , GetVariableNameForSlot(OutputSlotId)
-                    , property.referenceName);
+                        , precision
+                        , GetVariableNameForSlot(OutputSlotId)
+                        , property.referenceName);
                 visitor.AddShaderChunk(result, true);
             }
             else if (property is Vector2ShaderProperty)
             {
                 var result = string.Format("{0}2 {1} = {2};"
-                    , precision
-                    , GetVariableNameForSlot(OutputSlotId)
-                    , property.referenceName);
+                        , precision
+                        , GetVariableNameForSlot(OutputSlotId)
+                        , property.referenceName);
                 visitor.AddShaderChunk(result, true);
             }
             else if (property is Vector3ShaderProperty)
             {
                 var result = string.Format("{0}3 {1} = {2};"
-                    , precision
-                    , GetVariableNameForSlot(OutputSlotId)
-                    , property.referenceName);
+                        , precision
+                        , GetVariableNameForSlot(OutputSlotId)
+                        , property.referenceName);
                 visitor.AddShaderChunk(result, true);
             }
             else if (property is Vector4ShaderProperty)
             {
                 var result = string.Format("{0}4 {1} = {2};"
-                    , precision
-                    , GetVariableNameForSlot(OutputSlotId)
-                    , property.referenceName);
+                        , precision
+                        , GetVariableNameForSlot(OutputSlotId)
+                        , property.referenceName);
                 visitor.AddShaderChunk(result, true);
             }
             else if (property is ColorShaderProperty)
             {
                 var result = string.Format("{0}4 {1} = {2};"
-                    , precision
-                    , GetVariableNameForSlot(OutputSlotId)
-                    , property.referenceName);
+                        , precision
+                        , GetVariableNameForSlot(OutputSlotId)
+                        , property.referenceName);
                 visitor.AddShaderChunk(result, true);
             }
         }

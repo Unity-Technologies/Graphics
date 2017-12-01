@@ -1,4 +1,4 @@
-﻿using UnityEngine.Experimental.UIElements;
+using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {

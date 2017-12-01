@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph
         /*[SerializeField]
         private FloatPropertyChunk.FloatType m_floatType;*/
 
-       // [SerializeField]
+        // [SerializeField]
         //private Vector3 m_rangeValues = new Vector3(0f, 1f, 2f);
 
         public Vector1Node()
@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new Vector1MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output,0));
+            AddSlot(new Vector1MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, 0));
             RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
 
@@ -48,36 +48,36 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-       /* public FloatPropertyChunk.FloatType floatType
-        {
-            get { return m_floatType; }
-            set
-            {
-                if (m_floatType == value)
-                    return;
+        /* public FloatPropertyChunk.FloatType floatType
+         {
+             get { return m_floatType; }
+             set
+             {
+                 if (m_floatType == value)
+                     return;
 
-                m_floatType = value;
+                 m_floatType = value;
 
-                if (onModified != null)
-                    onModified(this, ModificationScope.Node);
-            }
-        }*/
+                 if (onModified != null)
+                     onModified(this, ModificationScope.Node);
+             }
+         }*/
 
-      /*  public Vector3 rangeValues
-        {
-            get { return m_rangeValues; }
-            set
-            {
-                if (m_rangeValues == value)
-                    return;
+        /*  public Vector3 rangeValues
+          {
+              get { return m_rangeValues; }
+              set
+              {
+                  if (m_rangeValues == value)
+                      return;
 
-                m_rangeValues = value;
+                  m_rangeValues = value;
 
-                if (onModified != null)
-                    onModified(this, ModificationScope.Node);
-            }
-        }
-*/
+                  if (onModified != null)
+                      onModified(this, ModificationScope.Node);
+              }
+          }
+  */
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
             if (!generationMode.IsPreview())
@@ -113,7 +113,6 @@ namespace UnityEditor.ShaderGraph
                 m_Float = m_Value
             });
         }
-
 
         public IShaderProperty AsShaderProperty()
         {

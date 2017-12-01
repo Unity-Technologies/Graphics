@@ -130,13 +130,13 @@ struct GraphVertexInput
             graph.AddShaderChunk(shaderProperties.GetPropertiesDeclaration(2), false);
             graph.AddShaderChunk(surfaceVertexShader.GetShaderString(2), false);
             graph.AddShaderChunk(surfaceDescriptionFunction.GetShaderString(2), false);
-            
+
             var blendingVisitor = new ShaderGenerator();
             var cullingVisitor = new ShaderGenerator();
             var zTestVisitor = new ShaderGenerator();
             var zWriteVisitor = new ShaderGenerator();
 
-            
+
             materialOptions.GetBlend(blendingVisitor);
             materialOptions.GetCull(cullingVisitor);
             materialOptions.GetDepthTest(zTestVisitor);

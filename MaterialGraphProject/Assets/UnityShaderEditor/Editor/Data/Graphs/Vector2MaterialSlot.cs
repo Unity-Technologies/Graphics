@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph
             Vector2 value,
             ShaderStage shaderStage = ShaderStage.Dynamic,
             bool hidden = false)
-            :base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
+            : base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
         {
             m_Value = value;
         }

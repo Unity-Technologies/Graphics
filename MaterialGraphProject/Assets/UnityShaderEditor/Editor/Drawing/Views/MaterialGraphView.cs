@@ -123,25 +123,25 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
 
             using (var remappedNodesDisposable = ListPool<INode>.GetDisposable())
-            using (var remappedEdgesDisposable = ListPool<IEdge>.GetDisposable())
-            {
-                var remappedNodes = remappedNodesDisposable.value;
-                var remappedEdges = remappedEdgesDisposable.value;
-                copyGraph.InsertInGraph(graphView.graph, remappedNodes, remappedEdges);
-
-                // Add new elements to selection
-                graphView.ClearSelection();
-                graphView.graphElements.ForEach(element =>
+                using (var remappedEdgesDisposable = ListPool<IEdge>.GetDisposable())
                 {
-                    var edge = element as Edge;
-                    if (edge != null && remappedEdges.Contains(edge.userData as IEdge))
-                        graphView.AddToSelection(edge);
+                    var remappedNodes = remappedNodesDisposable.value;
+                    var remappedEdges = remappedEdgesDisposable.value;
+                    copyGraph.InsertInGraph(graphView.graph, remappedNodes, remappedEdges);
 
-                    var nodeView = element as MaterialNodeView;
-                    if (nodeView != null && remappedNodes.Contains(nodeView.node))
-                        graphView.AddToSelection(nodeView);
-                });
-            }
+                    // Add new elements to selection
+                    graphView.ClearSelection();
+                    graphView.graphElements.ForEach(element =>
+                        {
+                            var edge = element as Edge;
+                            if (edge != null && remappedEdges.Contains(edge.userData as IEdge))
+                                graphView.AddToSelection(edge);
+
+                            var nodeView = element as MaterialNodeView;
+                            if (nodeView != null && remappedNodes.Contains(nodeView.node))
+                                graphView.AddToSelection(nodeView);
+                        });
+                }
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.Experimental.UIElements;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -39,14 +39,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             }
             else if (property is ColorShaderProperty)
             {
-                var fProp = (ColorShaderProperty) property;
+                var fProp = (ColorShaderProperty)property;
                 var colorField = new ColorField { name = "value", value = fProp.value };
                 colorField.OnValueChanged(OnColorChanged);
                 Add(colorField);
             }
             else if (property is TextureShaderProperty)
             {
-                var fProp = (TextureShaderProperty) property;
+                var fProp = (TextureShaderProperty)property;
                 var objectField = new ObjectField { name = "value", objectType = typeof(Texture), value = fProp.value.texture };
                 objectField.OnValueChanged(OnTextureChanged);
                 Add(objectField);
@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         void OnColorChanged(ChangeEvent<Color> evt)
         {
-            var fProp = (ColorShaderProperty) property;
+            var fProp = (ColorShaderProperty)property;
             if (evt.newValue != fProp.value)
             {
                 fProp.value = evt.newValue;
@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         void OnTextureChanged(ChangeEvent<Object> evt)
         {
-            var fProp = (TextureShaderProperty) property;
+            var fProp = (TextureShaderProperty)property;
             var newValue = (Texture)evt.newValue;
             if (newValue != fProp.value.texture)
             {
@@ -126,25 +126,25 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         void FloatField()
         {
-            var fProp = (FloatShaderProperty) property;
+            var fProp = (FloatShaderProperty)property;
             fProp.value = EditorGUILayout.FloatField(fProp.value);
         }
 
         void Vector2Field()
         {
-            var fProp = (Vector2ShaderProperty) property;
+            var fProp = (Vector2ShaderProperty)property;
             fProp.value = EditorGUILayout.Vector2Field("", fProp.value);
         }
 
         void Vector3Field()
         {
-            var fProp = (Vector3ShaderProperty) property;
+            var fProp = (Vector3ShaderProperty)property;
             fProp.value = EditorGUILayout.Vector3Field("", fProp.value);
         }
 
         void Vector4Field()
         {
-            var fProp = (Vector4ShaderProperty) property;
+            var fProp = (Vector4ShaderProperty)property;
             fProp.value = EditorGUILayout.Vector4Field("", fProp.value);
         }
     }

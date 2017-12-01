@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Reflection;
 using UnityEngine.Experimental.UIElements;
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
         public PropertyControlView(AbstractMaterialNode node)
         {
-            m_Node = (PropertyNode) node;
+            m_Node = (PropertyNode)node;
 
             Add(new IMGUIContainer(OnGUIHandler));
         }

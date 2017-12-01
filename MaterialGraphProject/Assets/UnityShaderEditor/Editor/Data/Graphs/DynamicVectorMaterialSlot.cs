@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph
             Vector4 value,
             ShaderStage shaderStage = ShaderStage.Dynamic,
             bool hidden = false)
-            :base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
+            : base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
         {
             m_Value = value;
         }
@@ -51,7 +51,6 @@ namespace UnityEditor.ShaderGraph
                 concreteValueType == ConcreteSlotValueType.Vector1 ? 1 : 0;
             return new MultiFloatSlotControlView(owner, components, () => value, (newValue) => value = newValue);
         }
-
 
         public override SlotValueType valueType { get { return SlotValueType.Dynamic; } }
 
