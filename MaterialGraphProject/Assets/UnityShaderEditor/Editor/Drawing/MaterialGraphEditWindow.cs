@@ -66,15 +66,23 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void Update()
         {
+            if (graphObject == null && selectedGuid != null)
+            {
+                var guid = selectedGuid;
+                selectedGuid = null;
+                ChangeSelection(guid);
+            }
+
             if (graphObject == null)
                 return;
+
             var materialGraph = graphObject.graph as AbstractMaterialGraph;
             if (materialGraph == null)
                 return;
             if (graphEditorView == null)
             {
                 var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(selectedGuid));
-                graphEditorView = new GraphEditorView(materialGraph, asset.name) {persistenceKey = AssetDatabase.AssetPathToGUID(AssetDatabase.GUIDToAssetPath(selectedGuid))};
+                graphEditorView = new GraphEditorView(materialGraph, asset.name) { persistenceKey = AssetDatabase.AssetPathToGUID(AssetDatabase.GUIDToAssetPath(selectedGuid)) };
             }
 
             graphEditorView.HandleGraphChanges();
@@ -154,7 +162,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     Mathf.Min(bounds.yMin, center.y),
                     Mathf.Max(bounds.xMax, center.x),
                     Mathf.Max(bounds.yMax, center.y));
-
             }
             var middle = bounds.center;
             bounds.center = Vector2.zero;
@@ -224,8 +231,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var uniqueIncomingEdges = externalOutputSlots.GroupBy(
                 edge => edge.outputSlot,
                 edge => edge,
-                (key, edges) => new {slotRef = key, edges = edges.ToList()});
-
+                (key, edges) => new { slotRef = key, edges = edges.ToList() });
 
             var externalInputNeedingConnection = new List<KeyValuePair<IEdge, IShaderProperty>>();
             foreach (var group in uniqueIncomingEdges)
@@ -281,7 +287,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var uniqueOutgoingEdges = externalInputSlots.GroupBy(
                 edge => edge.inputSlot,
                 edge => edge,
-                (key, edges) => new {slot = key, edges = edges.ToList()});
+                (key, edges) => new { slot = key, edges = edges.ToList() });
 
             var externalOutputsNeedingConnection = new List<KeyValuePair<IEdge, IEdge>>();
             foreach (var group in uniqueOutgoingEdges)
@@ -366,7 +372,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public void ChangeSelection(string newSelectionGuid, Type graphType)
+        public void ChangeSelection(string newSelectionGuid)
         {
             var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(newSelectionGuid));
             if (asset == null)
@@ -378,9 +384,29 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (selectedGuid == newSelectionGuid)
                 return;
 
+            var path = AssetDatabase.GetAssetPath(asset);
+            var extension = Path.GetExtension(path);
+            Type graphType;
+            switch (extension)
+            {
+                case ".ShaderGraph":
+                    graphType = typeof(MaterialGraph);
+                    break;
+                case ".LayeredShaderGraph":
+                    graphType = typeof(LayeredShaderGraph);
+                    break;
+                case ".ShaderSubGraph":
+                    graphType = typeof(SubGraph);
+                    break;
+                case ".ShaderRemapGraph":
+                    graphType = typeof(MasterRemapGraph);
+                    break;
+                default:
+                    return;
+            }
+
             selectedGuid = newSelectionGuid;
 
-            var path = AssetDatabase.GetAssetPath(asset);
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
             graphObject = CreateInstance<SerializableGraphObject>();
             graphObject.hideFlags = HideFlags.HideAndDontSave;
