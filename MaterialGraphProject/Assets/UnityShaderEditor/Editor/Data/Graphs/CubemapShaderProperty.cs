@@ -52,11 +52,6 @@ namespace UnityEditor.ShaderGraph
             return "samplerCUBE " + referenceName + ";";
         }
 
-        /*public override string GetInlinePropertyDeclarationString()
-        {
-            return "UNITY_DECLARE_TEX2D_NOSAMPLER(" + referenceName + ");";
-        }*/
-
         public override PreviewProperty GetPreviewMaterialProperty()
         {
             return new PreviewProperty()
