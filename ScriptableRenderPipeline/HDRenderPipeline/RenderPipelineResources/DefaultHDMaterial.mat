@@ -8,17 +8,15 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: DefaultHDMaterial
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
-  m_ShaderKeywords: _ALBEDOAFFECTEMISSIVE_OFF _ALPHACUTOFFENABLE_OFF _BLENDMODE_ALPHA
-    _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _DEPTHOFFSETENABLE_OFF _DISTORTIONDEPTHTEST_OFF
-    _DISTORTIONENABLE_OFF _DISTORTIONONLY_OFF _DOUBLESIDEDENABLE_OFF _ENABLESPECULAROCCLUSION_OFF
-    _ENABLEWIND_OFF _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _PREREFRACTIONPASS_OFF
-    _SURFACE_TYPE_TRANSPARENT
+  m_ShaderKeywords: _ALBEDOAFFECTEMISSIVE_OFF _ALPHACUTOFFENABLE_OFF _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
+    _DEPTHOFFSETENABLE_OFF _DISTORTIONDEPTHTEST_OFF _DISTORTIONENABLE_OFF _DISTORTIONONLY_OFF
+    _DOUBLESIDEDENABLE_OFF _ENABLESPECULAROCCLUSION_OFF _ENABLEWIND_OFF _NORMALMAP_TANGENT_SPACE
+    _PREREFRACTIONPASS_OFF
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3000
-  stringTagMap:
-    RenderType: Transparent
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
   disabledShaderPasses:
   - DistortionVectors
   m_SavedProperties:
@@ -132,7 +130,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -165,11 +169,13 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedNormalMode: 1
     - _Drag: 1
-    - _DstBlend: 10
+    - _DstBlend: 0
     - _EmissiveColorMode: 1
     - _EmissiveIntensity: 0
     - _EnableBlendModeAccurateLighting: 1
@@ -217,7 +223,7 @@ Material:
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
-    - _SurfaceType: 1
+    - _SurfaceType: 0
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
@@ -225,15 +231,16 @@ Material:
     - _UVDetail: 0
     - _UVSec: 0
     - _ZTestMode: 8
-    - _ZWrite: 0
+    - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.72794116, g: 0.72794116, b: 0.72794116, a: 1}
-    - _Color: {r: 0.33823532, g: 0.33823532, b: 0.33823532, a: 1}
+    - _Color: {r: 0.72794116, g: 0.72794116, b: 0.72794116, a: 1}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
+    - _ThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _TransmittanceColor: {r: 1, g: 1, b: 1, a: 1}
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}
