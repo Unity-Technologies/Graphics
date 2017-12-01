@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph
 
         static string Unity_Length(
             [Slot(0, Binding.None)] DynamicDimensionVector In,
-            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
+            [Slot(1, Binding.None)] out Vector1 Out)
         {
             return
                 @"
