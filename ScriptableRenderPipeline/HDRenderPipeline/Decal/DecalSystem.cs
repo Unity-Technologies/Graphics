@@ -17,9 +17,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        internal HashSet<DecalComponent> m_DecalsDiffuse = new HashSet<DecalComponent>();
-        internal HashSet<DecalComponent> m_DecalsNormals = new HashSet<DecalComponent>();
-        internal HashSet<DecalComponent> m_DecalsBoth = new HashSet<DecalComponent>();
+        internal HashSet<DecalComponent> m_Decals = new HashSet<DecalComponent>();
         Mesh m_CubeMesh;
 
         private static readonly int m_WorldToDecal = Shader.PropertyToID("_WorldToDecal");
@@ -67,19 +65,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void AddDecal(DecalComponent d)
         {
-            RemoveDecal(d);
-            if (d.m_Kind == DecalComponent.Kind.DiffuseOnly)
-                m_DecalsDiffuse.Add(d);
-            if (d.m_Kind == DecalComponent.Kind.NormalsOnly)
-                m_DecalsNormals.Add(d);
-            if (d.m_Kind == DecalComponent.Kind.Both)
-                m_DecalsBoth.Add(d);
+            if (d.m_Material.GetTexture("_BaseColorMap") || d.m_Material.GetTexture("_NormalMap"))
+            {
+                RemoveDecal(d);
+                m_Decals.Add(d);                
+            }
         }
+
         public void RemoveDecal(DecalComponent d)
         {
-            m_DecalsDiffuse.Remove(d);
-            m_DecalsNormals.Remove(d);
-            m_DecalsBoth.Remove(d);
+            m_Decals.Remove(d);
         }
 
         public void Render(ScriptableRenderContext renderContext, Camera camera, CommandBuffer cmd)
@@ -96,7 +91,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 			{
 				CRWStoAWS = Matrix4x4.identity;
 			}
-            foreach (var decal in m_DecalsDiffuse)
+            foreach (var decal in m_Decals)
             {              
                 Matrix4x4 final = decal.transform.localToWorldMatrix;
                 Matrix4x4 decalToWorldR = Matrix4x4.Rotate(decal.transform.localRotation);

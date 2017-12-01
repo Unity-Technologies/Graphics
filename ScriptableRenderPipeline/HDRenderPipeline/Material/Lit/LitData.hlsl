@@ -438,6 +438,19 @@ float3 ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCo
 #endif
 }
 
+void AddDecalBaseColor(float2 texCoords, inout float3 baseColor)
+{	
+	float4 decalBaseColor = SAMPLE_TEXTURE2D(_DBufferTexture0, sampler_DBufferTexture0, texCoords);
+	baseColor = lerp(baseColor, decalBaseColor.xyz, decalBaseColor.w);
+}
+
+void AddDecalNormal(float2 texCoords, inout float3 normalTS)
+{	
+	float4 decalNormalTS = SAMPLE_TEXTURE2D(_DBufferTexture1, sampler_DBufferTexture1, texCoords) * float4(2.0f, 2.0f, 2.0f, 1.0f) - float4(1.0f, 1.0f, 1.0f, 0.0f);
+	if(decalNormalTS.w > 0.0f)
+		normalTS = normalize(lerp(normalTS, decalNormalTS.xyz, decalNormalTS.w));
+}
+
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
 #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
@@ -462,8 +475,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float3 bentNormalTS;
     float3 bentNormalWS;
     float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS, bentNormalTS);
-	AddDecalNormal(posInput.positionSS.xy, normalTS);
 	AddDecalBaseColor(posInput.positionSS.xy, surfaceData.baseColor);
+
+	AddDecalNormal(posInput.positionSS.xy, normalTS);
     GetNormalWS(input, V, normalTS, surfaceData.normalWS);
     // Use bent normal to sample GI if available
     surfaceData.specularOcclusion = 1.0;
@@ -1574,9 +1588,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.atDistance = 1000000.0;
     surfaceData.transmittanceMask = 0.0;
 
-    GetNormalWS(input, V, normalTS, surfaceData.normalWS);
-	AddDecalNormal(posInput.positionSS.xy, normalTS);
 	AddDecalBaseColor(posInput.positionSS.xy, surfaceData.baseColor);
+	AddDecalNormal(posInput.positionSS.xy, normalTS);
+
+	GetNormalWS(input, V, normalTS, surfaceData.normalWS);
     // Use bent normal to sample GI if available
     // If any layer use a bent normal map, then bentNormalTS contain the interpolated result of bentnormal and normalmap (in case no bent normal are available)
     // Note: the code in LitDataInternal ensure that we fallback on normal map for layer that have no bentnormal
