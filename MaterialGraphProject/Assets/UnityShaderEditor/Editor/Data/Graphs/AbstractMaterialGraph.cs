@@ -22,6 +22,15 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         List<Guid> m_RemovedProperties = new List<Guid>();
 
+        [SerializeField]
+        SerializableMesh m_PreviewMesh;
+
+        public Mesh previewMesh
+        {
+            get { return m_PreviewMesh.mesh; }
+            set { m_PreviewMesh.mesh = value; }
+        }
+
         public IEnumerable<IShaderProperty> properties
         {
             get { return m_Properties; }
