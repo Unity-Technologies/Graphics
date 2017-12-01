@@ -1,0 +1,26 @@
+using System;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using UnityEngine;
+using UnityEngine.VFX;
+
+namespace UnityEditor.VFX
+{
+    class VFXExpressionSampleTexture2DArray : VFXExpression
+    {
+        public VFXExpressionSampleTexture2DArray() : this(VFXValue<Texture2DArray>.Default, VFXValue<Vector2>.Default, VFXValue<float>.Default, VFXValue<float>.Default)
+        {
+        }
+
+        public VFXExpressionSampleTexture2DArray(VFXExpression texture, VFXExpression uv, VFXExpression slice, VFXExpression mipLevel)
+            : base(Flags.InvalidOnCPU, new VFXExpression[4] { texture, uv, slice, mipLevel })
+        {}
+
+        sealed public override VFXExpressionOp operation { get { return VFXExpressionOp.kVFXSampleTexture2DArray; } }
+
+        public sealed override string GetCodeString(string[] parents)
+        {
+            return string.Format("SampleTexture({0},{1},{2},{3})", parents[0], parents[1], parents[2], parents[3]);
+        }
+    }
+}

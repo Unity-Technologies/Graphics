@@ -61,7 +61,10 @@ namespace UnityEditor.VFX
                 case VFXValueType.kInt: return "int";
                 case VFXValueType.kUint: return "uint";
                 case VFXValueType.kTexture2D: return "Texture2D";
+                case VFXValueType.kTexture2DArray: return "Texture2DArray";
                 case VFXValueType.kTexture3D: return "Texture3D";
+                case VFXValueType.kTextureCube: return "TextureCube";
+                case VFXValueType.kTextureCubeArray: return "TextureCubeArray";
                 case VFXValueType.kTransform: return "float4x4";
                 case VFXValueType.kBool: return "bool";
             }
@@ -79,7 +82,10 @@ namespace UnityEditor.VFX
                 case VFXValueType.kInt: return typeof(int);
                 case VFXValueType.kUint: return typeof(uint);
                 case VFXValueType.kTexture2D: return typeof(Texture2D);
+                case VFXValueType.kTexture2DArray: return typeof(Texture2DArray);
                 case VFXValueType.kTexture3D: return typeof(Texture3D);
+                case VFXValueType.kTextureCube: return typeof(Cubemap);
+                case VFXValueType.kTextureCubeArray: return typeof(CubemapArray);
                 case VFXValueType.kTransform: return typeof(Matrix4x4);
                 case VFXValueType.kMesh: return typeof(Mesh);
                 case VFXValueType.kCurve: return typeof(AnimationCurve);
