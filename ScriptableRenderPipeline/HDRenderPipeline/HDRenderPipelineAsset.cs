@@ -1,5 +1,3 @@
-using UnityEngine.Experimental.Rendering.HDPipeline.TilePass;
-
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     // The HDRenderPipeline assumes linear lighting. Doesn't work with gamma.
@@ -29,7 +27,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public GlobalRenderingSettings globalRenderingSettings = new GlobalRenderingSettings();
         public GlobalTextureSettings globalTextureSettings = new GlobalTextureSettings();
         public SubsurfaceScatteringSettings sssSettings;
-        public TileSettings tileSettings = new TileSettings();
+        public LightLoopSettings tileSettings = new LightLoopSettings();
 
         // Shadow Settings
         public ShadowInitParameters shadowInitParams = new ShadowInitParameters();

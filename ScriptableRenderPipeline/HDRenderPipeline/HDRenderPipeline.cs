@@ -4,7 +4,6 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using UnityEngine.Rendering.PostProcessing;
-using UnityEngine.Experimental.Rendering.HDPipeline.TilePass;
 using UnityEngine.Profiling;
 
 #if UNITY_EDITOR
@@ -915,7 +914,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     AccumulateDistortion(m_CullResults, camera, renderContext, cmd);
                     RenderDistortion(cmd, m_Asset.renderPipelineResources);
 
-                        RenderPostProcesses(hdCamera, cmd, postProcessLayer);
+                    RenderPostProcesses(hdCamera, cmd, postProcessLayer);
                 }
             }
 
