@@ -38,6 +38,10 @@ namespace UnityEngine.Experimental.Rendering
 
         void Update()
         {
+            // If the debug menu is running, we don't want to conflict with its inputs.
+            if(DebugMenuManager.instance.menuUI.isEnabled)
+                return;
+
             float inputRotateAxisX = 0.0f;
             float inputRotateAxisY = 0.0f;
             if (Input.GetMouseButton(1))
