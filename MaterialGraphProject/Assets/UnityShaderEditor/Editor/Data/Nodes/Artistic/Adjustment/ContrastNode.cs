@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Art/Adjustments/Contrast")]
+    [Title("Artistic/Adjustment/Contrast")]
     public class ContrastNode : CodeFunctionNode
     {
         public ContrastNode()
@@ -17,19 +17,16 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_Contrast(
-            [Slot(0, Binding.None)] Vector3 input,
-            [Slot(1, Binding.None)] Vector1 contrast,
-            [Slot(2, Binding.None)] Vector1 midPoint,
-            [Slot(3, Binding.None)] out Vector3 result)
+            [Slot(0, Binding.None)] Vector3 In,
+            [Slot(1, Binding.None, 1, 1, 1, 1)] Vector1 Contrast,
+            [Slot(2, Binding.None)] out Vector3 Out)
         {
-            result = Vector2.zero;
+            Out = Vector2.zero;
             return
                 @"
 {
-    // Contrast (reacts better when applied in log)
-    // Optimal range: [0.0, 2.0]]
-    // From PostProcessing
-    result =  (input - midPoint) * contrast + midPoint;
+    {precision} midpoint = pow(0.5, 2.2);
+    Out =  (In - midpoint) * Contrast + midpoint;
 }";
         }
     }
