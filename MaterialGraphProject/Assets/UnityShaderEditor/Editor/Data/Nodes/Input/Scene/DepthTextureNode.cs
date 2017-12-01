@@ -58,7 +58,6 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { UVSlotId, OutputSlotId });
         }
 
-
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
             properties.Add(new PreviewProperty()

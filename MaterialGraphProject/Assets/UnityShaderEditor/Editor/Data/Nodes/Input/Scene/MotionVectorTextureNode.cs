@@ -58,7 +58,6 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { UVSlotId, OutputSlotId });
         }
 
-
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
             properties.Add(new PreviewProperty()
@@ -86,7 +85,7 @@ namespace UnityEditor.ShaderGraph
             string outputValue = GetSlotValue(OutputSlotId, generationMode);
             visitor.AddShaderChunk(string.Format("{0}3 _MotionVectorTexture = {0}3(tex2D(_CameraMotionVectorTexture, {1}).rg, 0);", precision, uvValue), true);
 
-            if(motionVectorTextureMode == MotionVectorTextureMode.Hue)
+            if (motionVectorTextureMode == MotionVectorTextureMode.Hue)
             {
                 visitor.AddShaderChunk(string.Format("{0} hue = (atan2(_MotionVectorTexture.x, _MotionVectorTexture.y) / 3.14159265359 + 1.0) * 0.5;", precision), true);
                 visitor.AddShaderChunk(string.Format("_MotionVectorTexture = saturate({0}3(abs(hue * 6.0 - 3.0) - 1.0, 2.0 - abs(hue * 6.0 - 2.0), 2.0 - abs(hue * 6.0 - 4.0)));", precision), true);
