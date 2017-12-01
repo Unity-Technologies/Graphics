@@ -1,12 +1,9 @@
-using System;
 using System.IO;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEditor.Experimental.AssetImporters;
-using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 [CustomEditor(typeof(ShaderGraphImporter))]
 public class ShaderGraphImporterEditor : ScriptedImporterEditor
@@ -50,7 +47,6 @@ public class ShaderGraphImporterEditor : ScriptedImporterEditor
     [OnOpenAsset(0)]
     public static bool OnOpenAsset(int instanceID, int line)
     {
-        Debug.Log(instanceID);
         var path = AssetDatabase.GetAssetPath(instanceID);
         return ShowGraphEditWindow(path);
     }
