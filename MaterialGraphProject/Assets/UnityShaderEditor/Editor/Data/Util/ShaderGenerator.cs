@@ -134,7 +134,7 @@ namespace UnityEditor.ShaderGraph
             var path2 = new List<string>
             {
                 "Packages",
-                "com.unity.render-pipelines.shadergraph",
+                "com.unity.shadergraph",
                 "Editor",
                 "Templates"
             };
