@@ -145,7 +145,7 @@ float3 EstimateRaycast(float3 V, PositionInputs posInputs, float3 positionWS, fl
 // However as we use material classification it is hard to be fully separated
 // the dependecy is define in this include where there is shared define for material and lighting in case of deferred material.
 // If a user do a lighting architecture without material classification, this can be remove
-#include "../../Lighting/TilePass/TilePass.cs.hlsl"
+#include "../../Lighting/LightLoop/LightLoop.cs.hlsl"
 
 static uint g_FeatureFlags = UINT_MAX;
 

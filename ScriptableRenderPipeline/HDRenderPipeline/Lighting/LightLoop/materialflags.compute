@@ -5,7 +5,7 @@
 
 #include "ShaderLibrary/common.hlsl"
 #include "ShaderBase.hlsl"
-#include "TilePass.cs.hlsl"
+#include "LightLoop.cs.hlsl"
 
 #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
 #include "../../Material/Material.hlsl" // This includes Material.hlsl
