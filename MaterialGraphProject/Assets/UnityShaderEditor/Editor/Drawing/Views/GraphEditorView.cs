@@ -284,7 +284,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var nodeView = new MaterialNodeView { userData = node };
             m_GraphView.AddElement(nodeView);
-            nodeView.Initialize(m_GraphView, node as AbstractMaterialNode, m_PreviewManager);
+            nodeView.Initialize(node as AbstractMaterialNode, m_PreviewManager);
             node.onModified += OnNodeChanged;
         }
 
