@@ -16,6 +16,9 @@
     //-------------------------------------------------------------------------------------
     // Variant
     //-------------------------------------------------------------------------------------
+	#pragma shader_feature _COLORMAP
+	#pragma shader_feature _NORMALMAP
+
 /*
     #pragma shader_feature _ALPHATEST_ON
     #pragma shader_feature _DEPTHOFFSET_ON
@@ -134,5 +137,5 @@
             ENDHLSL
         }
 	}
-//    CustomEditor "Experimental.Rendering.HDPipeline.LitGUI"
+    CustomEditor "Experimental.Rendering.HDPipeline.DecalUI"
 }
