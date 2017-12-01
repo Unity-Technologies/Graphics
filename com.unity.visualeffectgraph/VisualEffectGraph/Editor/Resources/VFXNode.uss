@@ -83,8 +83,9 @@ width:-1;
 }
 .VFXNodeUI.collapsed #contents > #top > #output
 {
-    flex-grow:1;
-    flex:1;
+    flex-grow:0;
+    flex:0;
+    width:20;
     background-color:rgba(0,0,0,0);
 }
 .VFXNodeUI.node.collapsed #right #output
@@ -93,32 +94,9 @@ width:-1;
 	width:16;
 }
 
-.VFXNodeUI.node.collapsed #right #rightBackground
-{
-	background-color:rgba(0,0,0,0);
-}
-
-.VFXNodeUI.node.collapsed #left #leftBackground
-{
-	background-color:rgba(0,0,0,0);
-}
-
 .VFXNodeUI.collapsed #type
 {
 	max-width:0;
-}
-
-.VFXNodeUI.collapsed.node > .mainContainer #right
-{
-	padding-left:0;
-	padding-right:0;
-	flex:1;
-}
-.VFXNodeUI.collapsed.node > .mainContainer #left
-{
-	padding-left:0;
-	padding-right:0;
-	flex:1;
 }
 
 .VFXNodeUI.collapsed #icon
@@ -167,6 +145,10 @@ width:-1;
 {
 }
 
+.VFXNodeUI.collapsed.node .VFXDataAnchor #line
+{
+    background-color:rgba(0,0,0,0);
+}
 
 VFXOperatorUI.collapsed.VFXNodeUI.node .mainContainer > #middle
 {

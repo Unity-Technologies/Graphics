@@ -31,7 +31,7 @@ namespace UnityEditor.VFX.UI
             titleContainer.shadow.Insert(0, m_EnableToggle);
 
 
-            this.AddManipulator(new Collapser());
+            //this.AddManipulator(new Collapser());
             capabilities &= ~Capabilities.Ascendable;
 
             edgeDrawer.RemoveFromHierarchy();
