@@ -712,6 +712,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_FrameCount = Time.frameCount;
             }
 
+            var stereoEnabled = UnityEngine.XR.XRSettings.isDeviceActive && m_CurrentDebugDisplaySettings.renderingDebugSettings.enableStereoRendering;
+
             foreach (var camera in cameras)
             {
             // This is the main command buffer used for the frame.
