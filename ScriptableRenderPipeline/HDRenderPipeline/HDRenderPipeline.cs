@@ -712,7 +712,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_FrameCount = Time.frameCount;
             }
 
-            var stereoEnabled = UnityEngine.XR.XRSettings.isDeviceActive && m_CurrentDebugDisplaySettings.renderingDebugSettings.enableStereoRendering;
+            var stereoEnabled = UnityEngine.XR.XRSettings.isDeviceActive && m_CurrentDebugDisplaySettings.renderingDebugSettings.allowStereo;
 
             foreach (var camera in cameras)
             {
