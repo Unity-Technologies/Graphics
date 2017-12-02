@@ -250,10 +250,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                             ShaderUtil.ClearShaderErrors(m_UberShader);
                             ShaderUtil.UpdateShaderAsset(m_UberShader, k_EmptyShader);
                         }
-                        else
-                        {
-                            Debug.Log(message);
-                        }
 
                         foreach (var node in uberNodes)
                         {
@@ -267,7 +263,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         EditorUtility.DisplayProgressBar("Shader Graph", string.Format("Compiling preview shaders ({0}/{1})", i, count), 0f);
                     }
                     sw.Stop();
-                    Debug.LogFormat("Compiled preview shaders in {0} seconds", sw.Elapsed.TotalSeconds);
+                    //Debug.LogFormat("Compiled preview shaders in {0} seconds", sw.Elapsed.TotalSeconds);
                 }
                 finally
                 {
@@ -477,8 +473,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             var message = "RecreateShader: " + node.GetVariableNameForNode() + Environment.NewLine + shaderData.shaderString;
             if (MaterialGraphAsset.ShaderHasError(shaderData.shader))
                 Debug.LogWarning(message);
-            else
-                Debug.Log(message);
         }
 
         void DestroyPreview(Guid nodeGuid, PreviewRenderData previewRenderData)

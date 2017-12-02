@@ -132,7 +132,7 @@ namespace UnityEditor.Graphing
 
             foreach (var invalidSlot in invalidSlots.ToArray())
             {
-                Debug.LogFormat("Removing Invalid MaterialSlot: {0}", invalidSlot);
+                Debug.LogWarningFormat("Removing Invalid MaterialSlot: {0}", invalidSlot);
                 RemoveSlot(invalidSlot);
             }
         }

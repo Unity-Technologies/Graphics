@@ -181,7 +181,7 @@ namespace UnityEditor.Graphing
             m_AddedEdges.Add(newEdge);
             AddEdgeToNodeEdges(newEdge);
 
-            Debug.LogFormat("Connected edge: {0} -> {1} ({2} -> {3})\n{4}", newEdge.outputSlot.nodeGuid, newEdge.inputSlot.nodeGuid, fromNode.name, toNode.name, Environment.StackTrace);
+            //Debug.LogFormat("Connected edge: {0} -> {1} ({2} -> {3})\n{4}", newEdge.outputSlot.nodeGuid, newEdge.inputSlot.nodeGuid, fromNode.name, toNode.name, Environment.StackTrace);
             return newEdge;
         }
 
