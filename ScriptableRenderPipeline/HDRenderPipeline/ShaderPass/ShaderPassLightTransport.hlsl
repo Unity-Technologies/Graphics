@@ -2,8 +2,6 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
-#include "ShaderLibrary/Color.hlsl"
-
 CBUFFER_START(UnityMetaPass)
 // x = use uv1 as raster position
 // y = use uv2 as raster position
