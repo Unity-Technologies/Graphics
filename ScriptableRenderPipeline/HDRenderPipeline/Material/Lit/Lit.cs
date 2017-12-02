@@ -177,7 +177,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public enum GBufferMaterial
         {
             // Note: This count doesn't include the velocity buffer. On shader and csharp side the velocity buffer will be added by the framework
-            Count = (ShaderConfig.k_PackgbufferInU16 == 1) ? 2 : 4
+            Count = 4
         };
 
         //-----------------------------------------------------------------------------
@@ -189,22 +189,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderTextureFormat[] m_RTFormat4 = { RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB2101010, RenderTextureFormat.ARGB32, RenderTextureFormat.RGB111110Float };
         RenderTextureReadWrite[] m_RTReadWrite4 = { RenderTextureReadWrite.sRGB, RenderTextureReadWrite.Linear, RenderTextureReadWrite.Linear, RenderTextureReadWrite.Linear };
 
-        // TODO: Just discovered that Unity doesn't support unsigned 16 RT format.
-        RenderTextureFormat[] m_RTFormat2 = { RenderTextureFormat.ARGBInt, RenderTextureFormat.ARGBInt };
-        RenderTextureReadWrite[] m_RTReadWrite2 = { RenderTextureReadWrite.Linear, RenderTextureReadWrite.Linear };
-
         public override void GetMaterialGBufferDescription(out RenderTextureFormat[] RTFormat, out RenderTextureReadWrite[] RTReadWrite)
         {
-            if (ShaderConfig.s_PackgbufferInU16 == 1)
-            {
-                RTFormat = m_RTFormat2;
-                RTReadWrite = m_RTReadWrite2;
-            }
-            else
-            {
-                RTFormat = m_RTFormat4;
-                RTReadWrite = m_RTReadWrite4;
-            }
+            RTFormat = m_RTFormat4;
+            RTReadWrite = m_RTReadWrite4;
         }
 
         //-----------------------------------------------------------------------------
