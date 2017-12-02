@@ -19,8 +19,8 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyBlacksmith"
             #pragma multi_compile _ ATMOSPHERICS_DEBUG
             #pragma multi_compile _ PERFORM_SKY_OCCLUSION_TEST
 
-            #include "ShaderLibrary/Color.hlsl"
             #include "ShaderLibrary/Common.hlsl"
+            #include "ShaderLibrary/Color.hlsl"
             #include "ShaderLibrary/CommonLighting.hlsl"
             #include "../../../ShaderVariables.hlsl"
 
