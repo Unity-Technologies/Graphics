@@ -4,8 +4,7 @@
 
 // SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
 #include "Lit.cs.hlsl"
-#include "SubsurfaceScatteringSettings.cs.hlsl"
-#include "../SubsurfaceScattering/SubsurfaceScatteringUtilities.hlsl"
+#include "../SubsurfaceScattering/SubsurfaceScattering.hlsl"
 
 // Define refraction keyword helpers
 #define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
@@ -23,6 +22,9 @@
 #define GBufferType1 float4
 #define GBufferType2 float4
 #define GBufferType3 float4
+
+#define SSSBufferType0 GBufferType2
+#define SSSBufferType1 GBufferType0
 
 // GBuffer texture declaration
 TEXTURE2D(_GBufferTexture0);
@@ -74,26 +76,6 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define LTC_LUT_SIZE   64
 #define LTC_LUT_SCALE  ((LTC_LUT_SIZE - 1) * rcp(LTC_LUT_SIZE))
 #define LTC_LUT_OFFSET (0.5 * rcp(LTC_LUT_SIZE))
-
-// Subsurface scattering constant
-#define SSS_WRAP_ANGLE (PI/12)              // 15 degrees
-#define SSS_WRAP_LIGHT cos(PI/2 - SSS_WRAP_ANGLE)
-
-CBUFFER_START(UnitySSSParameters)
-// Warning: Unity is not able to losslessly transfer integers larger than 2^24 to the shader system.
-// Therefore, we bitcast uint to float in C#, and bitcast back to uint in the shader.
-uint   _EnableSSSAndTransmission; // Globally toggles subsurface and transmission scattering on/off
-float  _TexturingModeFlags;       // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
-float  _TransmissionFlags;        // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
-// Old SSS Model >>>
-uint   _UseDisneySSS;
-float4 _HalfRcpVariancesAndWeights[SSS_N_PROFILES][2]; // 2x Gaussians in RGB, A is interpolation weights
-// <<< Old SSS Model
-// Use float4 to avoid any packing issue between compute and pixel shaders
-float4  _ThicknessRemaps[SSS_N_PROFILES];   // R: start, G = end - start, BA unused
-float4 _ShapeParams[SSS_N_PROFILES];        // RGB = S = 1 / D, A = filter radius
-float4 _TransmissionTints[SSS_N_PROFILES];  // RGB = 1/4 * color, A = unused
-CBUFFER_END
 
 //-----------------------------------------------------------------------------
 // Helper for cheap screen space raycasting
@@ -266,43 +248,6 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
     }
 }
 
-// Returns the modified albedo (diffuse color) for materials with subsurface scattering.
-// Ref: Advanced Techniques for Realistic Real-Time Skin Rendering.
-float3 ApplyDiffuseTexturingMode(BSDFData bsdfData)
-{
-    float3 albedo = bsdfData.diffuseColor;
-
-    if (bsdfData.materialId == MATERIALID_LIT_SSS)
-    {
-    #if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_SUBSURFACE_SCATTERING)
-        // If the SSS pass is executed, we know we have SSS enabled.
-        bool enableSssAndTransmission = true;
-    #else
-        bool enableSssAndTransmission = _EnableSSSAndTransmission != 0;
-    #endif
-
-        if (enableSssAndTransmission)
-        {
-            bool performPostScatterTexturing = IsBitSet(asuint(_TexturingModeFlags), bsdfData.subsurfaceProfile);
-
-            if (performPostScatterTexturing)
-            {
-                // Post-scatter texturing mode: the albedo is only applied during the SSS pass.
-            #if !defined(SHADERPASS) || (SHADERPASS != SHADERPASS_SUBSURFACE_SCATTERING)
-                albedo = float3(1, 1, 1);
-            #endif
-            }
-            else
-            {
-                // Pre- and pos- scatter texturing mode.
-                albedo = sqrt(albedo);
-            }
-        }
-    }
-
-    return albedo;
-}
-
 void FillMaterialIdClearCoatData(float3 coatNormalWS, float coatCoverage, float coatIOR, inout BSDFData bsdfData)
 {
     bsdfData.coatNormalWS = lerp(bsdfData.normalWS, coatNormalWS, coatCoverage);
@@ -368,6 +313,14 @@ void ApplyDebugToSurfaceData(inout SurfaceData surfaceData)
         surfaceData.baseColor = _DebugLightingAlbedo.xyz;
     }
 #endif
+}
+
+SSSData ConvertSurfaceDataToSSSData(Surface surfaceData)
+{
+    SSSData sssData;
+    sssData.diffuseColor = surfaceData.baseColor;
+    sssData.subsurfaceRadius = surfaceData.subsurfaceRadius;
+    sssData.subsurfaceProfile = surfaceData.subsurfaceProfile;
 }
 
 //-----------------------------------------------------------------------------
@@ -476,7 +429,14 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     }
     else if (surfaceData.materialId == MATERIALID_LIT_SSS)
     {
-        outGBuffer2 = EncodeSSSDataToBuffer(surfaceData.baseColor, surfaceData.subsurfaceRadius, surfaceData.subsurfaceProfile, surfaceData.thickness, positionSS);
+#ifdef USE_COMPACT_SSS_BUFFER
+        EncodeIntoSSSBuffer(ConvertSurfaceDataToSSSData(surfaceData), positionSS, outGBuffer2);
+#else
+        // in this configuration, outGbuffer0 match the second Gbuffer encoding
+        float4 unused;
+        EncodeIntoSSSBuffer(ConvertSurfaceDataToSSSData(surfaceData), positionSS, outGBuffer2, unused);
+#endif
+        outGBuffer2.a = surfaceData.thickness;
     }
     else if (surfaceData.materialId == MATERIALID_LIT_ANISO)
     {
@@ -604,6 +564,8 @@ void DecodeFromGBuffer(
         float subsurfaceRadius;
         float thickness;
         int   subsurfaceProfile;
+        DecodeSSSProfileFromSSSBuffer(inGBuffer2, positionSS, subsurfaceProfile);
+        thickness = inGBuffer2.a;
         DecodeSSSDataFromBuffer(TEXTURE2D_PARAM_NOSAMPLER(_GBufferTexture2), positionSS, inGBuffer2, unusedColor, surfaceData.subsurfaceRadius, surfaceData.subsurfaceProfile, surfaceData.thickness);
         FillMaterialIdSSSData(baseColor, subsurfaceProfile, subsurfaceRadius, thickness, bsdfData);
     }
@@ -926,7 +888,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 // This function require the 3 structure surfaceData, builtinData, bsdfData because it may require both the engine side data, and data that will not be store inside the gbuffer.
 float3 GetBakedDiffuseLigthing(SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData, PreLightData preLightData)
 {
-    bsdfData.diffuseColor = ApplyDiffuseTexturingMode(bsdfData);
+    bsdfData.diffuseColor = ApplyDiffuseTexturingMode(bsdfData.diffuseColor, bsdfData.materialId == MATERIALID_LIT_SSS, bsdfData.subsurfaceProfile);
 
     // Premultiply bake diffuse lighting information with DisneyDiffuse pre-integration
     return builtinData.bakeDiffuseLighting * preLightData.diffuseFGD * surfaceData.ambientOcclusion * bsdfData.diffuseColor + builtinData.emissiveColor;
@@ -1947,7 +1909,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                                 lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), directAmbientOcclusion);
 #endif
 
-    float3 modifiedDiffuseColor = ApplyDiffuseTexturingMode(bsdfData);
+    float3 modifiedDiffuseColor = ApplyDiffuseTexturingMode(bsdfData.diffuseColor, bsdfData.materialId == MATERIALID_LIT_SSS, bsdfData.subsurfaceProfile);
 
     // Apply the albedo to the direct diffuse lighting (only once). The indirect (baked)
     // diffuse lighting has already had the albedo applied in GetBakedDiffuseLigthing().
