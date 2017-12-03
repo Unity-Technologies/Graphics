@@ -38,7 +38,6 @@
 #define SAMPLERCUBE_SHADOW(samplerName) SamplerComparisonState samplerName
 
 #define TEXTURE2D_ARGS(textureName, samplerName) Texture2D textureName, SamplerState samplerName
-#define TEXTURE2D_ARGS_NOSAMPLER(textureName) Texture2D textureName
 #define TEXTURE2D_ARRAY_ARGS(textureName, samplerName) Texture2DArray textureName, SamplerState samplerName
 #define TEXTURECUBE_ARGS(textureName, samplerName) TextureCube textureName, SamplerState samplerName
 #define TEXTURECUBE_ARRAY_ARGS(textureName, samplerName) TextureCubeArray textureName, SamplerState samplerName
@@ -48,7 +47,6 @@
 #define TEXTURECUBE_SHADOW_ARGS(textureName, samplerName) TextureCube textureName, SamplerComparisonState samplerName
 
 #define TEXTURE2D_PARAM(textureName, samplerName) textureName, samplerName
-#define TEXTURE2D_PARAM_NOSAMPLER(textureName) textureName
 #define TEXTURE2D_ARRAY_PARAM(textureName, samplerName) textureName, samplerName
 #define TEXTURECUBE_PARAM(textureName, samplerName) textureName, samplerName
 #define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName) textureName, samplerName

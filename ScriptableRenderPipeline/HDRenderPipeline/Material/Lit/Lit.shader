@@ -219,6 +219,11 @@ Shader "HDRenderPipeline/Lit"
     // This shader support vertex modification
     #define HAVE_VERTEX_MODIFICATION
 
+    // If we use subsurface scattering, enable output split lighting (for forward pass)
+    #if defined(_MATID_SSS) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    #define OUTPUT_SPLIT_LIGHTING
+    #endif
+
     //-------------------------------------------------------------------------------------
     // Include
     //-------------------------------------------------------------------------------------
