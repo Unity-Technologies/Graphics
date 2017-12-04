@@ -412,6 +412,8 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   attribute: lifetime
+  Composition: 0
+  Random: 0
 --- !u!114 &114117949157950100
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2237,6 +2239,8 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   attribute: position
+  Composition: 0
+  Random: 0
 --- !u!114 &114598413270541858
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5040,7 +5044,7 @@ VFXAsset:
       - index: 79
         nameId: uniform_Sphere_radius_f
       params: []
-      processor: {fileID: 7200000, guid: d097d10e900b5924aaabed4568e65465, type: 3}
+      processor: {fileID: 7200000, guid: aeac52d03ebd82d4b983f01f5a3a0b4f, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5073,7 +5077,7 @@ VFXAsset:
       - index: 63
         nameId: uniform_Force_d
       params: []
-      processor: {fileID: 7200000, guid: b6f714c68d790784089f95a62cb3ebf1, type: 3}
+      processor: {fileID: 7200000, guid: 61f75757a97404341a26685deebec2f5, type: 3}
     - type: 1073741824
       buffers:
       - index: 0
@@ -5086,7 +5090,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 0799e2b5725df924cb0b9c2766e5ce2c, type: 3}
+      processor: {fileID: 4800000, guid: 7efd28e754daf1641a6e644f398ad2b5, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000

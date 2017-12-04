@@ -108,6 +108,8 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   attribute: size
+  Composition: 0
+  Random: 0
 --- !u!114 &114041546472828886
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -316,6 +318,8 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   attribute: lifetime
+  Composition: 0
+  Random: 0
 --- !u!114 &114120743204362320
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -633,6 +637,8 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   attribute: size
+  Composition: 0
+  Random: 0
 --- !u!114 &114172597154747100
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2416,6 +2422,8 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   attribute: color
+  Composition: 0
+  Random: 0
 --- !u!114 &114564273787506364
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4526,7 +4534,7 @@ VFXAsset:
       - index: 51
         nameId: uniform_DirectionBlend_g
       params: []
-      processor: {fileID: 7200000, guid: 9ca717810f3a3564f97ce2cc47a76a42, type: 3}
+      processor: {fileID: 7200000, guid: 701e89ce5c3c9be459843f126d95b0b0, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -4537,7 +4545,7 @@ VFXAsset:
       - index: 50
         nameId: uniform_deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: f162a4f9320d38649b050f14ac38f15a, type: 3}
+      processor: {fileID: 7200000, guid: a92a613ef3a1da14b9f1728ccaab9bd6, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -4554,7 +4562,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 53d10a73dcb8fac4fa7b1eef1475768a, type: 3}
+      processor: {fileID: 4800000, guid: b101847ff14a17345aa9a75356c589a2, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 0000000001000000

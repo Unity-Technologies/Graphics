@@ -1485,6 +1485,7 @@ MonoBehaviour:
   - {fileID: 114719184606412478}
   m_OutputSlots: []
   m_Disabled: 0
+  DataEncoding: 0
 --- !u!114 &114518480327850464
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1678,6 +1679,8 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   attribute: size
+  Composition: 0
+  Random: 0
 --- !u!114 &114557997713897138
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4331,7 +4334,7 @@ VFXAsset:
       - index: 63
         nameId: texture_attributeMap_c
       params: []
-      processor: {fileID: 7200000, guid: e5339642739c7fc47abdc7654225dc06, type: 3}
+      processor: {fileID: 7200000, guid: 7ddf419d233de50459ea1c939ce0c3f9, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -4354,7 +4357,7 @@ VFXAsset:
       - index: 61
         nameId: texture_VectorField_b
       params: []
-      processor: {fileID: 7200000, guid: f4acb6756701c47439c48358a5e07800, type: 3}
+      processor: {fileID: 7200000, guid: b46dd63b2144a284ba751d03e39ce563, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -4391,7 +4394,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 9cff0a7929545a44bb897f7668b575c8, type: 3}
+      processor: {fileID: 4800000, guid: 9e572114d1ef7414dac087bdddd53f0a, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000

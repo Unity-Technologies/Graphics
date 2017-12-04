@@ -405,6 +405,8 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   attribute: pivot
+  Composition: 0
+  Random: 0
 --- !u!114 &114184143179556968
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -567,6 +569,8 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   attribute: angle
+  Composition: 0
+  Random: 0
 --- !u!114 &114239882570484514
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -587,6 +591,8 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   attribute: size
+  Composition: 0
+  Random: 0
 --- !u!114 &114241381865323760
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1251,6 +1257,8 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   attribute: color
+  Composition: 0
+  Random: 0
 --- !u!114 &114396796427771356
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4032,14 +4040,14 @@ VFXAsset:
       - index: 51
         nameId: uniform_Sphere_arc_c
       params: []
-      processor: {fileID: 7200000, guid: 9983445f7a3bc4a4abbcca47a9351f94, type: 3}
+      processor: {fileID: 7200000, guid: 9faad13d6cf5f214ab72276638c1a7ce, type: 3}
     - type: 805306368
       buffers:
       - index: 0
         nameId: attributeBuffer
       values: []
       params: []
-      processor: {fileID: 7200000, guid: 834b3f6aa316ed943a2a272dd2773cb3, type: 3}
+      processor: {fileID: 7200000, guid: 11b8a90ba7ef52e4e883185faf28dd2d, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -4058,7 +4066,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 1f53a7b5540775b49bd8b80bd81766de, type: 3}
+      processor: {fileID: 4800000, guid: 893970480c6f7b345973f39b96c37eae, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000

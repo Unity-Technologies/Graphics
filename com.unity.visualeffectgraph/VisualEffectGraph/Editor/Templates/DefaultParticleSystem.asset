@@ -95,6 +95,8 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   attribute: velocity
+  Composition: 0
+  Random: 0
 --- !u!114 &114050775771417792
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1604,7 +1606,7 @@ VFXAsset:
       - index: 19
         nameId: uniform_Max_d
       params: []
-      processor: {fileID: 7200000, guid: 81f17fc458b645340b0993dd560881b5, type: 3}
+      processor: {fileID: 7200000, guid: 97e9a12161cd59d4aa2348b791abadfa, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -1615,7 +1617,7 @@ VFXAsset:
       - index: 20
         nameId: uniform_deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: 514a44495fa515a4083c27765ff14d5f, type: 3}
+      processor: {fileID: 7200000, guid: 399659354faa1c14585a2257d04c8696, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -1630,7 +1632,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 0cffc1a8d9a1a5b4586d70a8ef30c256, type: 3}
+      processor: {fileID: 4800000, guid: 73efd6f8df57210449fc087be7833a29, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000

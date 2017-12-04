@@ -51,6 +51,8 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   attribute: position
+  Composition: 0
+  Random: 0
 --- !u!114 &114018812500985080
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -605,6 +607,8 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   attribute: velocity
+  Composition: 0
+  Random: 0
 --- !u!114 &114232224818690800
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -911,6 +915,8 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   attribute: position
+  Composition: 0
+  Random: 0
 --- !u!114 &114435760714304018
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1152,6 +1158,8 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   attribute: color
+  Composition: 0
+  Random: 0
 --- !u!114 &114558781327733842
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1339,6 +1347,8 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   attribute: lifetime
+  Composition: 0
+  Random: 0
 --- !u!114 &114645467107313494
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2022,6 +2032,8 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   attribute: size
+  Composition: 0
+  Random: 0
 --- !u!114 &114971289610343628
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2587,7 +2599,7 @@ VFXAsset:
       - index: 23
         nameId: uniform_Velocity_c
       params: []
-      processor: {fileID: 7200000, guid: 52439d2a8a2476b4a9192436e50aeb51, type: 3}
+      processor: {fileID: 7200000, guid: 30783e9cbdf99b84497e8d7227c9dc52, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -2602,7 +2614,7 @@ VFXAsset:
       - index: 26
         nameId: uniform_deltaTime_c
       params: []
-      processor: {fileID: 7200000, guid: 1b9477a5212728d4ebc89e99aeb6839d, type: 3}
+      processor: {fileID: 7200000, guid: ee797f6edfa58a24aa03d0d3a2647aec, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -2613,7 +2625,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 86ed34001435b48448e84b9a1564e903, type: 3}
+      processor: {fileID: 4800000, guid: ffcd3731d6f7e9e4bbd9d4220f6fe2b5, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -2626,7 +2638,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: d6124f4ec9b8cdd4495689d54df10235, type: 3}
+      processor: {fileID: 4800000, guid: d805b5ee157634545a72ea5f3d3bb598, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -2641,7 +2653,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: ab378cd9b49623647ab534e4ff07ca61, type: 3}
+      processor: {fileID: 4800000, guid: dc492d9c41ba14043aca912ed6bbbec2, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000

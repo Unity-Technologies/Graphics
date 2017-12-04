@@ -1602,6 +1602,8 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   attribute: color
+  Composition: 0
+  Random: 0
 --- !u!114 &114238998289809362
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4506,6 +4508,7 @@ MonoBehaviour:
   - {fileID: 114094427688043728}
   m_OutputSlots: []
   m_Disabled: 0
+  DataEncoding: 0
 --- !u!114 &114675624886454294
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4713,6 +4716,7 @@ MonoBehaviour:
   - {fileID: 114061630886536768}
   m_OutputSlots: []
   m_Disabled: 0
+  DataEncoding: 0
 --- !u!114 &114693190543876966
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6529,6 +6533,8 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   attribute: size
+  Composition: 0
+  Random: 0
 --- !u!114 &114984962291687466
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7769,7 +7775,7 @@ VFXAsset:
       - index: 105
         nameId: uniform_Sphere_arc_d
       params: []
-      processor: {fileID: 7200000, guid: 327e920b09ec099468906c436f416136, type: 3}
+      processor: {fileID: 7200000, guid: 5588048bcffebdc48bdbe848c22566b9, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -7826,7 +7832,7 @@ VFXAsset:
       - index: 93
         nameId: texture_VectorField_e
       params: []
-      processor: {fileID: 7200000, guid: b988d5ba15a53844793503d40208afd8, type: 3}
+      processor: {fileID: 7200000, guid: 82592eaed965238498928728fa027b95, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -7863,7 +7869,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 02a7b0a64b3f9a44f992cf3a37ab1c30, type: 3}
+      processor: {fileID: 4800000, guid: 9b35378ad59bf5e44ab2e5de68dd4f69, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000

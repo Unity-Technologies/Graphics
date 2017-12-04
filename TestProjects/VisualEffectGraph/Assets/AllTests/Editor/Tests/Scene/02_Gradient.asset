@@ -322,6 +322,8 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   attribute: alpha
+  Composition: 0
+  Random: 0
 --- !u!114 &114144396211893004
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -583,6 +585,8 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   attribute: velocity
+  Composition: 0
+  Random: 0
 --- !u!114 &114199533638581934
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -666,6 +670,8 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   attribute: lifetime
+  Composition: 0
+  Random: 0
 --- !u!114 &114256765480203324
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1408,6 +1414,8 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   attribute: color
+  Composition: 0
+  Random: 0
 --- !u!114 &114526285871449866
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2179,6 +2187,8 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   attribute: color
+  Composition: 0
+  Random: 0
 --- !u!114 &114749439433319896
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2640,6 +2650,8 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   attribute: alpha
+  Composition: 0
+  Random: 0
 --- !u!114 &114964533081039114
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3351,7 +3363,7 @@ VFXAsset:
       - index: 34
         nameId: uniform_Alpha_e
       params: []
-      processor: {fileID: 7200000, guid: 9df379138d979824c9e7cc59c49ef641, type: 3}
+      processor: {fileID: 7200000, guid: 792157d9befabc54cb2fcfe4de294d6a, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -3362,7 +3374,7 @@ VFXAsset:
       - index: 33
         nameId: uniform_deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: e73ae00d8b9ac6a4fa65f243db711ea6, type: 3}
+      processor: {fileID: 7200000, guid: dc89ace22d824c846bad39bc773a9e66, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -3381,7 +3393,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 83299017e214e1b4fbd38475c22e2857, type: 3}
+      processor: {fileID: 4800000, guid: 6b1a681eae9f57343a2df5a5dd3e192d, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000
