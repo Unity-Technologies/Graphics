@@ -82,30 +82,29 @@ namespace UnityEditor
             public static GUIContent streamApplyToAllSystemsText = new GUIContent("Apply to Systems", "Apply the vertex stream layout to all Particle Systems using this material");
         }
 
-        MaterialProperty blendMode = null;
-        MaterialProperty colorMode = null;
-        MaterialProperty flipbookMode = null;
-        MaterialProperty cullMode = null;
-        MaterialProperty albedoMap = null;
-        MaterialProperty albedoColor = null;
-        MaterialProperty alphaCutoff = null;
-        MaterialProperty metallicMap = null;
-        MaterialProperty metallic = null;
-        MaterialProperty smoothness = null;
-        MaterialProperty bumpScale = null;
-        MaterialProperty bumpMap = null;
-        MaterialProperty emissionEnabled = null;
-        MaterialProperty emissionColorForRendering = null;
-        MaterialProperty emissionMap = null;
-        MaterialProperty softParticlesEnabled = null;
-        MaterialProperty cameraFadingEnabled = null;
-        MaterialProperty softParticlesNearFadeDistance = null;
-        MaterialProperty softParticlesFarFadeDistance = null;
-        MaterialProperty cameraNearFadeDistance = null;
-        MaterialProperty cameraFarFadeDistance = null;
+        MaterialProperty blendMode;
+        MaterialProperty colorMode;
+        MaterialProperty flipbookMode;
+        MaterialProperty cullMode;
+        MaterialProperty albedoMap;
+        MaterialProperty albedoColor;
+        MaterialProperty alphaCutoff;
+        MaterialProperty metallicMap;
+        MaterialProperty metallic;
+        MaterialProperty smoothness;
+        MaterialProperty bumpScale;
+        MaterialProperty bumpMap;
+        MaterialProperty emissionEnabled;
+        MaterialProperty emissionColorForRendering;
+        MaterialProperty emissionMap;
+        MaterialProperty softParticlesEnabled;
+        MaterialProperty cameraFadingEnabled;
+        MaterialProperty softParticlesNearFadeDistance;
+        MaterialProperty softParticlesFarFadeDistance;
+        MaterialProperty cameraNearFadeDistance;
+        MaterialProperty cameraFarFadeDistance;
 
         MaterialEditor m_MaterialEditor;
-        ColorPickerHDRConfig m_ColorPickerHDRConfig = new ColorPickerHDRConfig(0f, 99f, 1 / 99f, 3f);
         List<ParticleSystemRenderer> m_RenderersUsingThisMaterial = new List<ParticleSystemRenderer>();
 
         bool m_FirstTimeApply = true;
@@ -364,7 +363,7 @@ namespace UnityEditor
 
         void DoAlbedoArea(Material material)
         {
-            m_MaterialEditor.TexturePropertyWithHDRColor(Styles.albedoText, albedoMap, albedoColor, m_ColorPickerHDRConfig, true);
+            m_MaterialEditor.TexturePropertyWithHDRColor(Styles.albedoText, albedoMap, albedoColor, true);
             if (((BlendMode)material.GetFloat("_Mode") == BlendMode.Cutout))
             {
                 m_MaterialEditor.ShaderProperty(alphaCutoff, Styles.alphaCutoffText, MaterialEditor.kMiniTextureFieldLabelIndentLevel);
@@ -390,7 +389,7 @@ namespace UnityEditor
                 bool hadEmissionTexture = emissionMap.textureValue != null;
 
                 // Texture and HDR color controls
-                m_MaterialEditor.TexturePropertyWithHDRColor(Styles.emissionText, emissionMap, emissionColorForRendering, m_ColorPickerHDRConfig, false);
+                m_MaterialEditor.TexturePropertyWithHDRColor(Styles.emissionText, emissionMap, emissionColorForRendering, false);
 
                 // If texture was assigned and color was black set color to white
                 float brightness = emissionColorForRendering.colorValue.maxColorComponent;
