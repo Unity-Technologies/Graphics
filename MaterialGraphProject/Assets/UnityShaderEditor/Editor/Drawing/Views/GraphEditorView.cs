@@ -19,7 +19,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         GraphInspectorView m_GraphInspectorView;
         ToolbarView m_ToolbarView;
         ToolbarButtonView m_TimeButton;
-        ToolbarButtonView m_CopyToClipboardButton;
 
         AbstractMaterialGraph m_Graph;
         PreviewManager m_PreviewManager;
@@ -109,43 +108,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                         m_TimeButton.text = "Preview rate: " + previewRate;
                     }));
                 m_ToolbarView.Add(m_TimeButton);
-
-                m_ToolbarView.Add(new ToolbarSeparatorView());
-
-                m_CopyToClipboardButton = new ToolbarButtonView() { text = "Copy shader to clipboard" };
-                m_CopyToClipboardButton.AddManipulator(new Clickable(() =>
-                    {
-                        AbstractMaterialNode copyFromNode = graph.GetNodes<MasterNode>().First();
-
-                        if (graphView.selection.Count == 1)
-                        {
-                            MaterialNodeView selectedNodeView = graphView.selection[0] as MaterialNodeView;
-
-                            if (selectedNodeView.node != null && selectedNodeView.node.hasPreview)
-                            {
-                                copyFromNode = selectedNodeView.node;
-                            }
-                        }
-
-                        var textureInfo = new List<PropertyCollector.TextureInfo>();
-                        PreviewMode previewMode;
-                        FloatShaderProperty outputIdProperty;
-                        if (copyFromNode is MasterNode)
-                        {
-                            var shader = ((MasterNode)copyFromNode).GetShader(GenerationMode.ForReals, copyFromNode.name, out textureInfo);
-                            GUIUtility.systemCopyBuffer = shader;
-                        }
-                        else
-                        {
-                            string shader = graph.GetShader(copyFromNode, GenerationMode.ForReals, assetName, out textureInfo, out previewMode, out outputIdProperty);
-                            GUIUtility.systemCopyBuffer = shader;
-                        }
-                    }
-                        ));
-
-                m_ToolbarView.Add(m_CopyToClipboardButton);
-
-                m_ToolbarView.Add(new ToolbarSeparatorView());
             }
             Add(m_ToolbarView);
 
