@@ -270,7 +270,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         class DoCreateNewAssetCommonSettings : DoCreateNewAsset<CommonSettings> {}
         class DoCreateNewAssetHDRISkySettings : DoCreateNewAsset<HDRISkySettings> {}
-        class DoCreateNewAssetBlacksmithSkySettings : DoCreateNewAsset<BlacksmithSkySettings> {}
         class DoCreateNewAssetProceduralSkySettings : DoCreateNewAsset<ProceduralSkySettings> {}
         class DoCreateNewAssetSubsurfaceScatteringSettings : DoCreateNewAsset<SubsurfaceScatteringSettings> {}
 
@@ -293,13 +292,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetHDRISkySettings>(), "New HDRISkySettings.asset", icon, null);
-        }
-
-        [MenuItem("Assets/Create/Render Pipeline/High Definition/BlacksmithSky Settings", priority = CoreUtils.assetCreateMenuPriority2)]
-        static void MenuCreateBlacksmithSkySettings()
-        {
-            var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetBlacksmithSkySettings>(), "New BlacksmithSkySettings.asset", icon, null);
         }
 
         [MenuItem("Assets/Create/Render Pipeline/High Definition/ProceduralSky Settings", priority = CoreUtils.assetCreateMenuPriority2)]
