@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Security;
-using ICSharpCode.NRefactory.Ast;
 using UnityEditor.Experimental.UIElements;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.Graphing;
@@ -20,10 +18,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         GraphView m_GraphView;
         Texture2D m_Icon;
 
-        static readonly string k_Actions = "Actions";
-        static readonly string k_AddNode = "Add Node";
-        static readonly string k_ConvertToProperty = "Convert to Property";
-        static readonly string k_ConvertToInlineNode = "Convert to Inline Node";
+        const string k_Actions = "Actions";
+        const string k_AddNode = "Add Node";
+        const string k_ConvertToProperty = "Convert To Property";
+        const string k_ConvertToInlineNode = "Convert To Inline Node";
 
         public void Initialize(EditorWindow editorWindow, IGraph graph, GraphView graphView)
         {
@@ -49,7 +47,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         struct NestedEntry
         {
             public string[] title;
-            public Type type;
+            public object userData;
         }
 
         public List<SearchTreeEntry> CreateSearchTree(SearchWindowContext context)
@@ -62,8 +60,18 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     var attrs = type.GetCustomAttributes(typeof(TitleAttribute), false) as TitleAttribute[];
                     if (attrs != null && attrs.Length > 0)
-                        nestedEntries.Add(new NestedEntry { title = attrs[0].title, type = type });
+                        nestedEntries.Add(new NestedEntry { title = attrs[0].title, userData = type });
                 }
+            }
+
+            foreach (var guid in AssetDatabase.FindAssets(string.Format("t:{0}", typeof(MaterialSubGraphAsset))))
+            {
+                var asset = AssetDatabase.LoadAssetAtPath<MaterialSubGraphAsset>(AssetDatabase.GUIDToAssetPath(guid));
+                nestedEntries.Add(new NestedEntry
+                {
+                    title = new [] {"Sub-graph Assets", asset.name},
+                    userData = asset
+                });
             }
 
             // Sort the entries lexicographically by group then title with the requirement that items always comes before sub-groups in the same group.
@@ -102,11 +110,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             };
 
             // Add in contextual node actions
-            if (m_GraphView.selection.OfType<MaterialNodeView>().Any())
-            {
+            var selection = m_GraphView.selection.OfType<MaterialNodeView>().ToList();
+            if (selection.Any(v => v.node is IPropertyFromNode))
                 tree.Add(new SearchTreeEntry(new GUIContent(k_ConvertToProperty, m_Icon)) { level = 1 });
+            if (selection.Any(v => v.node is PropertyNode))
                 tree.Add(new SearchTreeEntry(new GUIContent(k_ConvertToInlineNode, m_Icon)) { level = 1 });
-            }
 
             foreach (var nestedEntry in nestedEntries)
             {
@@ -145,7 +153,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
 
                 // Finally, add the actual entry.
-                tree.Add(new SearchTreeEntry(new GUIContent(nestedEntry.title.Last(), m_Icon)) { level = nestedEntry.title.Length + 1, userData = nestedEntry.type });
+                tree.Add(new SearchTreeEntry(new GUIContent(nestedEntry.title.Last(), m_Icon)) { level = nestedEntry.title.Length + 1, userData = nestedEntry.userData });
             }
 
             return tree;
@@ -157,22 +165,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return OnConvertToProperty();
             if (entry.name == k_ConvertToInlineNode)
                 return OnConvertToInlineNode();
-
-            var type = (Type)entry.userData;
-            var node = Activator.CreateInstance(type) as INode;
-            if (node == null)
-                return false;
-
-            var drawState = node.drawState;
-            var windowMousePosition = context.screenMousePosition - m_EditorWindow.position.position;
-            var graphMousePosition = m_EditorWindow.GetRootVisualContainer().ChangeCoordinatesTo(m_GraphView.contentViewContainer, windowMousePosition);
-            drawState.position = new Rect(graphMousePosition, Vector2.zero);
-            node.drawState = drawState;
-
-            m_Graph.owner.RegisterCompleteObjectUndo("Add " + node.name);
-            m_Graph.AddNode(node);
-
-            return true;
+            return OnAddNode(entry, context);
         }
 
         bool OnConvertToProperty()
@@ -224,6 +217,37 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var propNode in selectedNodeViews)
                 ((AbstractMaterialGraph)propNode.owner).ReplacePropertyNodeWithConcreteNode(propNode);
+
+            return true;
+        }
+
+        bool OnAddNode(SearchTreeEntry entry, SearchWindowContext context)
+        {
+            Type type;
+            var asset = entry.userData as MaterialSubGraphAsset;
+            if (asset != null)
+                type = typeof(SubGraphNode);
+            else
+                type = (Type)entry.userData;
+
+            var node = Activator.CreateInstance(type) as INode;
+            if (node == null)
+                return false;
+
+            var drawState = node.drawState;
+            var windowMousePosition = context.screenMousePosition - m_EditorWindow.position.position;
+            var graphMousePosition = m_EditorWindow.GetRootVisualContainer().ChangeCoordinatesTo(m_GraphView.contentViewContainer, windowMousePosition);
+            drawState.position = new Rect(graphMousePosition, Vector2.zero);
+            node.drawState = drawState;
+
+            if (asset != null)
+            {
+                var subgraphNode = (SubGraphNode)node;
+                subgraphNode.subGraphAsset = asset;
+            }
+
+            m_Graph.owner.RegisterCompleteObjectUndo("Add " + node.name);
+            m_Graph.AddNode(node);
 
             return true;
         }
