@@ -129,7 +129,7 @@ float3 EstimateRaycast(float3 V, PositionInputs posInputs, float3 positionWS, fl
 // If a user do a lighting architecture without material classification, this can be remove
 #include "../../Lighting/LightLoop/LightLoop.cs.hlsl"
 
-static uint g_FeatureFlags = UINT_MAX & ~MATERIALFEATUREFLAGS_LIT_CLEAR_COAT;
+static uint g_FeatureFlags = UINT_MAX;
 
 // This method allows us to know at compile time what shader features should be removed from the code when the materialID cannot be known on the whole tile (any combination of 2 or more differnet materials in the same tile)
 // This is only useful for classification during lighting, so it's not needed in EncodeIntoGBuffer and ConvertSurfaceDataToBSDFData (where we always know exactly what the MaterialID is)
@@ -487,7 +487,7 @@ void DecodeFromGBuffer(
 
     ZERO_INITIALIZE(BSDFData, bsdfData);
 
-    g_FeatureFlags = featureFlags & ~MATERIALFEATUREFLAGS_LIT_CLEAR_COAT;
+    g_FeatureFlags = featureFlags;
 
     float3 baseColor = inGBuffer0.rgb;
     bsdfData.specularOcclusion = inGBuffer0.a;
