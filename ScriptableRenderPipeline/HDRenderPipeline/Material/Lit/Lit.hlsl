@@ -359,13 +359,6 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     bsdfData.anisotropy          = surfaceData.anisotropy;
     bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
 
-    // Warning: 'bsdfData.roughness' is not meant to be used. Otherwise, we increase the register pressure.
-    // 'bsdfData.roughnessT' and 'bsdfData.roughnessB' are clamped, and are meant to be used with analytical lights.
-    // 'bsdfData.perceptualRoughness' is not clamped, and is meant to be used for IBL.
-    // If IBL needs the linear roughness value for some reason, it can be computed as follows:
-    // float roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
-    bsdfData.roughness = FLT_NAN;
-
     ConvertAnisotropyToRoughness(bsdfData.perceptualRoughness, bsdfData.anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
 
     if (surfaceData.materialId != MATERIALID_LIT_ANISO)
@@ -556,14 +549,6 @@ void DecodeFromGBuffer(
 
         bsdfData.bitangentWS = cross(bsdfData.normalWS, bsdfData.tangentWS);
     }
-
-    // Warning: 'bsdfData.roughness' is not meant to be used. Otherwise, we increase the register pressure.
-    // 'bsdfData.roughnessT' and 'bsdfData.roughnessB' are clamped, and are meant to be used with analytical lights.
-    // 'bsdfData.perceptualRoughness' is not clamped, and is meant to be used for IBL.
-    // If IBL needs the linear roughness value for some reason, it can be computed as follows:
-    // float roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
-    // TODO: remove 'bsdfData.roughness' completely.
-    bsdfData.roughness = FLT_NAN;
 
     ConvertAnisotropyToRoughness(bsdfData.perceptualRoughness, bsdfData.anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
 
