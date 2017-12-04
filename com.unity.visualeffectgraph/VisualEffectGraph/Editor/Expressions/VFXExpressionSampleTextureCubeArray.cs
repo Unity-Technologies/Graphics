@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
 
         public sealed override string GetCodeString(string[] parents)
         {
-            return string.Format("SampleTexture({0},{1},{2},{3})", parents[0], parents[1], parents[2], parents[3]);
+            return string.Format("SampleTexture(VFX_SAMPLER({0}),{1},{2},{3})", parents[0], parents[1], parents[2], parents[3]);
         }
     }
 }
