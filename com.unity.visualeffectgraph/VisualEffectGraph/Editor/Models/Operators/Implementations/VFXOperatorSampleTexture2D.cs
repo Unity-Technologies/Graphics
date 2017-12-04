@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
         public class InputProperties
         {
             [Tooltip("The texture to sample from.")]
-            public Texture2D texture = Texture2D.whiteTexture;
+            public Texture2D texture = null;
             [Tooltip("The texture coordinate used for the sampling.")]
             public Vector2 uv = Vector2.zero;
             [Min(0), Tooltip("The mip level to sample from.")]
