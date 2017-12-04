@@ -33,6 +33,10 @@ float ClampRoughnessForAnalyticalLights(float roughness)
     return max(roughness, 1.0/1024.0);
 }
 
+// 'bsdfData.roughnessT' and 'bsdfData.roughnessB' are clamped, and are meant to be used with analytical lights.
+// 'bsdfData.perceptualRoughness' is not clamped, and is meant to be used for IBL.
+// If IBL needs the linear roughness value for some reason, it can be computed as follows:
+// float roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
 void ConvertAnisotropyToRoughness(float perceptualRoughness, float anisotropy, out float roughnessT, out float roughnessB)
 {
     float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
