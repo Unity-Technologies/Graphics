@@ -84,8 +84,8 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
                 SSSData sssData;
                 DECODE_FROM_SSSBUFFER(pixelCoord, sssData);
 
-                int    profileID   = bsdfData.subsurfaceProfile;
-                float  distScale   = bsdfData.subsurfaceRadius;
+                int    profileID   = sssData.subsurfaceProfile;
+                float  distScale   = sssData.subsurfaceRadius;
                 float  maxDistance = _FilterKernelsBasic[profileID][SSS_BASIC_N_SAMPLES - 1].a;
 
                 // Take the first (central) sample.
@@ -126,7 +126,7 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
                 float  halfRcpVariance = _HalfRcpWeightedVariances[profileID].a;
             #endif
 
-            float3 albedo = ApplyDiffuseTexturingMode(sssData.diffuseColor, true, profileID);
+            float3 albedo = ApplyDiffuseTexturingMode(sssData.diffuseColor, profileID);
 
             #ifndef SSS_FILTER_HORIZONTAL_AND_COMBINE
                 albedo = float3(1, 1, 1);

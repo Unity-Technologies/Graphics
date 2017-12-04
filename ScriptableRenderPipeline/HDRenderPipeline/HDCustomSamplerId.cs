@@ -50,6 +50,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         TPDisplayShadows,
         TPRenderDeferredLighting,
 
+        // Misc
+        VolumeUpdate,
+
         Max
     }
 }

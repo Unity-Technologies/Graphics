@@ -743,6 +743,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             else
             {
                 m_CurrentDebugDisplaySettings = m_DebugDisplaySettings;
+
+                using (new ProfilingSample(cmd, "Volume Update", GetSampler(CustomSamplerId.VolumeUpdate)))
+                {
+                    // TODO: Transform & layer should be configurable per camera
+                    VolumeManager.instance.Update(camera.transform, -1);
+                }
             }
 
             ApplyDebugDisplaySettings(cmd);
