@@ -18,7 +18,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         MaterialGraphView m_GraphView;
         GraphInspectorView m_GraphInspectorView;
         ToolbarView m_ToolbarView;
-        ToolbarButtonView m_TimeButton;
 
         AbstractMaterialGraph m_Graph;
         PreviewManager m_PreviewManager;
@@ -33,19 +32,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return m_GraphView; }
         }
 
-        public PreviewRate previewRate
-        {
-            get { return previewManager.previewRate; }
-            set { previewManager.previewRate = value; }
-        }
-
-        public PreviewManager previewManager
+        PreviewManager previewManager
         {
             get { return m_PreviewManager; }
             set { m_PreviewManager = value; }
         }
 
-        public GraphInspectorView inspectorView
+        GraphInspectorView inspectorView
         {
             get { return m_GraphInspectorView; }
         }
@@ -93,21 +86,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_ToolbarView.Add(showInProjectButton);
 
                 m_ToolbarView.Add(new ToolbarSeparatorView());
-                m_ToolbarView.Add(new ToolbarSpaceView());
-                m_ToolbarView.Add(new ToolbarSeparatorView());
-
-                m_TimeButton = new ToolbarButtonView { text = "Preview rate: " + previewRate };
-                m_TimeButton.AddManipulator(new Clickable(() =>
-                    {
-                        if (previewRate == PreviewRate.Full)
-                            previewRate = PreviewRate.Throttled;
-                        else if (previewRate == PreviewRate.Throttled)
-                            previewRate = PreviewRate.Off;
-                        else if (previewRate == PreviewRate.Off)
-                            previewRate = PreviewRate.Full;
-                        m_TimeButton.text = "Preview rate: " + previewRate;
-                    }));
-                m_ToolbarView.Add(m_TimeButton);
             }
             Add(m_ToolbarView);
 

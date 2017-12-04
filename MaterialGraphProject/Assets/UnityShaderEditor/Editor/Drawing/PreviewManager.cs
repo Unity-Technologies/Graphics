@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -28,14 +28,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         MaterialPropertyBlock m_PreviewPropertyBlock;
         PreviewSceneResources m_SceneResources;
         Texture2D m_ErrorTexture;
-        DateTime m_LastUpdate;
         const bool k_UberShaderEnabled = true;
         Shader m_UberShader;
         string m_UberShaderString;
         Dictionary<Guid, int> m_UberShaderIds;
         FloatShaderProperty m_OutputIdProperty;
-
-        public PreviewRate previewRate { get; set; }
 
         public PreviewRenderData masterRenderData
         {
@@ -191,15 +188,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void RenderPreviews()
         {
-            if (previewRate == PreviewRate.Off)
-                return;
-
-            var updateTime = DateTime.Now;
-            if (previewRate == PreviewRate.Throttled && (updateTime - m_LastUpdate) < TimeSpan.FromSeconds(1.0 / 10.0))
-                return;
-
-            m_LastUpdate = updateTime;
-
             if (m_DirtyShaders.Any())
             {
                 m_NodesWith3DPreview.Clear();
