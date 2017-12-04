@@ -10,9 +10,9 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-    class Collapser : Manipulator
+    class SuperCollapser : Manipulator
     {
-        public Collapser()
+        public SuperCollapser()
         {
         }
 
@@ -30,9 +30,9 @@ namespace UnityEditor.VFX.UI
         {
             if (e.clickCount == 2)
             {
-                VFXSlotContainerUI slotContainer = (VFXSlotContainerUI)target;
+                VFXStandaloneSlotContainerUI slotContainer = (VFXStandaloneSlotContainerUI)target;
 
-                slotContainer.collapse = !slotContainer.collapse;
+                slotContainer.superCollapsed = !slotContainer.superCollapsed;
             }
         }
     }
@@ -40,7 +40,7 @@ namespace UnityEditor.VFX.UI
     {
         public VFXStandaloneSlotContainerUI()
         {
-            this.AddManipulator(new Collapser());
+            this.AddManipulator(new SuperCollapser());
         }
 
         protected override void OnStyleResolved(ICustomStyle style)
@@ -59,6 +59,32 @@ namespace UnityEditor.VFX.UI
         {
             base.ApplyWidths(labelWidth, controlWidth);
             inputContainer.style.width = labelWidth + controlWidth + 20;
+        }
+
+        public bool superCollapsed
+        {
+            get { return GetPresenter<VFXNodePresenter>().model.superCollapsed; }
+
+            set
+            {
+                if (GetPresenter<VFXNodePresenter>().model.superCollapsed != value)
+                {
+                    GetPresenter<VFXNodePresenter>().model.superCollapsed = value;
+                }
+            }
+        }
+        public override void OnDataChanged()
+        {
+            base.OnDataChanged();
+
+            if (superCollapsed)
+            {
+                AddToClassList("superCollapsed");
+            }
+            else
+            {
+                RemoveFromClassList("superCollapsed");
+            }
         }
     }
 

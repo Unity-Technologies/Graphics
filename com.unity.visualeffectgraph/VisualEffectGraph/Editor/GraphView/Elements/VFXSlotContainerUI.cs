@@ -14,19 +14,6 @@ namespace UnityEditor.VFX.UI
         public VisualElement m_SettingsContainer;
         private List<PropertyRM> m_Settings = new List<PropertyRM>();
 
-        public bool collapse
-        {
-            get { return GetPresenter<VFXNodePresenter>().model.collapsed; }
-
-            set
-            {
-                if (GetPresenter<VFXNodePresenter>().model.collapsed != value)
-                {
-                    GetPresenter<VFXNodePresenter>().model.collapsed = value;
-                }
-            }
-        }
-
         public VFXSlotContainerUI()
         {
         }
@@ -92,13 +79,13 @@ namespace UnityEditor.VFX.UI
             }
 
 
-            if (presenter.model.collapsed)
+            if (presenter.model.superCollapsed)
             {
-                AddToClassList("collapsed");
+                AddToClassList("superCollapsed");
             }
             else
             {
-                RemoveFromClassList("collapsed");
+                RemoveFromClassList("superCollapsed");
             }
         }
 
