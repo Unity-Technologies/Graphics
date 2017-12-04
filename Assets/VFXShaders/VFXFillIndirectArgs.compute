@@ -18,6 +18,7 @@ struct InputData
 ByteAddressBuffer inputGpuBuffer;
 StructuredBuffer<InputData> inputCpuBuffer;
 RWBuffer<uint> outputIndirectArgs;
+RWBuffer<uint> outputAdditional;
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
@@ -90,6 +91,10 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 			{
 				firstArg = (elementCount + NB_THREADS_PER_GROUP - 1) / NB_THREADS_PER_GROUP;
 				firstArg = max(1u, firstArg); //WIP
+				
+				//Update total element count (spawnIndex)
+				outputAdditional[index * 2 + 0] = elementCount;
+				outputAdditional[index * 2 + 1] = outputAdditional[data.arg0 * 2 + 1] + elementCount;
 				secondArg = thirdArg = 1u;
 				break;
 			}

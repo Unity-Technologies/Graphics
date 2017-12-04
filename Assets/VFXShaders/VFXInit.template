@@ -9,8 +9,9 @@ CBUFFER_START(initParams)
     uint nbSpawned;			// Numbers of particle spawned (0 if VFX_USE_SPAWNER_FROM_GPU)
     uint spawnIndex;		// Index of the first particle spawned (0 if VFX_USE_SPAWNER_FROM_GPU)
     
-    uint updateIndex;		// Only with SPAWNER_FROM_GPU
+    uint updateIndex;		// Only with SPAWNER_FROM_GPU //WIP
     uint maxParticleCount;	// Only with SPAWNER_FROM_GPU
+	uint offsetInAdditionalOutput;
     
     uint systemSeed;
 CBUFFER_END
@@ -22,8 +23,10 @@ ByteAddressBuffer deadListCount; // This is bad to use a SRV to fetch deadList c
 
 #if VFX_USE_SPAWNER_FROM_GPU
 ConsumeStructuredBuffer<uint> eventList;
-ByteAddressBuffer eventListCount;
-RWByteAddressBuffer eventSpawnIndex;
+ByteAddressBuffer eventListCount; //WIP
+RWByteAddressBuffer eventSpawnIndex; //WIP
+
+Buffer<uint> inputAdditional;
 #endif
 
 ${VFXGeneratedBlockFunction}
@@ -35,12 +38,15 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     uint currentSpawnIndex = spawnIndex;
 
 #if VFX_USE_SPAWNER_FROM_GPU
-    maxThreadId = eventListCount.Load(0x0); //nbSpawned is ignored for gpu event
+	maxThreadId = inputAdditional[offsetInAdditionalOutput * 2 + 0];
+	currentSpawnIndex = inputAdditional[offsetInAdditionalOutput * 2 + 1] - maxThreadId;
+	
+    /*maxThreadId = eventListCount.Load(0x0); //nbSpawned is ignored for gpu event
     currentSpawnIndex = eventSpawnIndex.Load(updateIndex & 1);
     if (id.x == 0)
     {
         eventSpawnIndex.Store((updateIndex+1) & 1, maxThreadId + currentSpawnIndex);
-    }
+    }*/
 #endif
 
 #if VFX_USE_ALIVE_CURRENT
