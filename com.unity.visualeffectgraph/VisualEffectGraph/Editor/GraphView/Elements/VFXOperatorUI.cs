@@ -36,7 +36,7 @@ namespace UnityEditor.VFX.UI
             }
         }
     }
-    class VFXStandaloneSlotContainerUI : VFXSlotContainerUI
+    class VFXStandaloneSlotContainerUI : VFXNodeUI
     {
         public VFXStandaloneSlotContainerUI()
         {

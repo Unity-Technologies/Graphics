@@ -159,7 +159,7 @@ namespace UnityEditor.VFX.UI
             }
             */
             // Temp fix until presenter are correct : need to update the visibility based on my own collaspsed.
-            VFXSlotContainerUI node = GetFirstAncestorOfType<VFXSlotContainerUI>();
+            VFXNodeUI node = GetFirstAncestorOfType<VFXNodeUI>();
             if (node != null)
             {
                 node.OnDataChanged();
