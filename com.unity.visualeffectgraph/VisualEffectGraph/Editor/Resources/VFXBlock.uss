@@ -28,7 +28,7 @@ VFXContextUI VFXBlockUI.VFXNodeUI.node #title
 	background-color:rgba(0,0,0,0);
 }
 
-#settings .propertyrm
+VFXBlockUIf #settings .propertyrm
 {
 	margin-left:28;
 }

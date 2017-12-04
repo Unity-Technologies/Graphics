@@ -45,6 +45,13 @@ namespace UnityEditor.VFX.UI
 
         protected override void OnStyleResolved(ICustomStyle style)
         {
+            float settingsLabelWidth = 30;
+            float settingsControlWidth = 110;
+            GetPreferedSettingsWidths(ref  settingsLabelWidth, ref settingsControlWidth);
+
+            ApplySettingsWidths(settingsLabelWidth, settingsControlWidth);
+            this.style.minWidth = settingsLabelWidth + settingsControlWidth + 20;
+
             base.OnStyleResolved(style);
 
             float labelWidth = 30;

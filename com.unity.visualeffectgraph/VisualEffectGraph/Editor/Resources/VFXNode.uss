@@ -32,6 +32,7 @@ width:-1;
 .VFXNodeUI #settings
 {
     max-height:0;
+    background-color:#393939;
 }
 .VFXNodeUI.expanded #settings
 {
