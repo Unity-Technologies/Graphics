@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph
         Fine
     };
 
-    [Title("Math/Derivative/DDX")]
+    [Title("Math", "Derivative", "DDX")]
     public class DDXNode : CodeFunctionNode
     {
         public DDXNode()

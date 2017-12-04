@@ -4,7 +4,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Art/Conversion/RGBtoLinear")]
+    [Title("Art", "Conversion", "RGBtoLinear")]
     public class RGBtoLinearNode : CodeFunctionNode
     {
         public RGBtoLinearNode()

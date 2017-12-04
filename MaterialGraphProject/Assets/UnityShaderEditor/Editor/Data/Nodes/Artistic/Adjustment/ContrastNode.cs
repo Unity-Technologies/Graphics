@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Artistic/Adjustment/Contrast")]
+    [Title("Artistic", "Adjustment", "Contrast")]
     public class ContrastNode : CodeFunctionNode
     {
         public ContrastNode()

@@ -5,7 +5,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("OLD/Transform")]
+    [Title("OLD", "Transform")]
     public class UVTransform : CodeFunctionNode
     {
         [SerializeField]

@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Vector/Rejection")]
+    [Title("Math", "Vector", "Rejection")]
     public class RejectionNode : CodeFunctionNode
     {
         public RejectionNode()

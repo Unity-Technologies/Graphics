@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
         Degrees
     };
 
-    [Title("UV/Rotate")]
+    [Title("UV", "Rotate")]
     public class RotateNode : CodeFunctionNode
     {
         [SerializeField]

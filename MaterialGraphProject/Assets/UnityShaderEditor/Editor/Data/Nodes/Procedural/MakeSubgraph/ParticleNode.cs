@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Procedural/MakeSubgraph/Particle")]
+    [Title("Procedural", "MakeSubgraph", "Particle")]
     public class ParticleNode : CodeFunctionNode
     {
         public ParticleNode()

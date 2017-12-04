@@ -4,7 +4,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Utility/Heightmap To Normalmap")]
+    [Title("Utility", "Heightmap To Normalmap")]
     public class HeightToNormalNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
         public const int TextureInput = 0;

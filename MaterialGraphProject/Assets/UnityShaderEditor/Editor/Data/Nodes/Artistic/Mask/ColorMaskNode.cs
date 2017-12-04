@@ -1,9 +1,9 @@
-using System.Reflection;
+﻿using System.Reflection;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Artistic/Mask/Color Mask")]
+    [Title("Artistic", "Mask", "Color Mask")]
     public class ColorMaskNode : CodeFunctionNode
     {
         public ColorMaskNode()

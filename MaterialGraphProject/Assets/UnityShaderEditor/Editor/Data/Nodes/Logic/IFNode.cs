@@ -5,7 +5,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
 // PROBABLY USEFUL, BUT BROKEN AT THE MOMENT
-//    [Title("Logic/If")]
+//    [Title("Logic", "If")]
 //    public class IfNode : CodeFunctionNode
 //    {
 //        public enum ComparisonOperationType

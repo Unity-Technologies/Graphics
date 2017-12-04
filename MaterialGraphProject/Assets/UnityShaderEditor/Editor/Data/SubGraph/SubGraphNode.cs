@@ -10,7 +10,7 @@ using UnityEditor.Graphs;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Sub-graph/Sub-graph Node")]
+    [Title("Sub-graph", "Sub-graph Node")]
     public class SubGraphNode : AbstractSubGraphNode
         , IGeneratesBodyCode
         , IOnAssetEnabled

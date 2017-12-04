@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input/Scene/Light Probe")]
+    [Title("Input", "Scene", "Light Probe")]
     public class LightProbeNode : CodeFunctionNode
     {
         public override bool hasPreview { get { return false; } }

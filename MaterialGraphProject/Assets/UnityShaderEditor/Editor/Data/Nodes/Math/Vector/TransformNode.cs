@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Vector/Transform")]
+    [Title("Math", "Vector", "Transform")]
     public class TransformNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireTangent, IMayRequireBitangent, IMayRequireNormal
     {
         [SerializeField]

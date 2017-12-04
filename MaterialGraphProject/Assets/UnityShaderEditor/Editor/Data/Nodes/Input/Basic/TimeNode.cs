@@ -1,9 +1,9 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input/Basic/Time")]
+    [Title("Input", "Basic", "Time")]
     public class TimeNode : AbstractMaterialNode, IMayRequireTime
     {
         private const string kOutputSlotName = "Time";

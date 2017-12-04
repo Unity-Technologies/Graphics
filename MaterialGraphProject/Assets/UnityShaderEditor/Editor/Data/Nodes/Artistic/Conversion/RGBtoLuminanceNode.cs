@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Art/Conversion/RGBtoLuminance")]
+    [Title("Art", "Conversion", "RGBtoLuminance")]
     public class RGBtoLuminanceNode : CodeFunctionNode
     {
         public RGBtoLuminanceNode()

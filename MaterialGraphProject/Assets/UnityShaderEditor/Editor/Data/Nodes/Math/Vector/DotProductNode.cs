@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Vector/Dot Product")]
+    [Title("Math", "Vector", "Dot Product")]
     public class DotProductNode : CodeFunctionNode
     {
         public DotProductNode()

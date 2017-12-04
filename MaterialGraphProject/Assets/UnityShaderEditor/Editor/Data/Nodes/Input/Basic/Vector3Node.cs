@@ -5,7 +5,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input/Basic/Vector 3")]
+    [Title("Input", "Basic", "Vector 3")]
     public class Vector3Node : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
     {
         [SerializeField]

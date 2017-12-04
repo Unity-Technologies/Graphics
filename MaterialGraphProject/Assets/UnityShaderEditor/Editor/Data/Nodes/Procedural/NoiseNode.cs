@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Procedural/Noise")]
+    [Title("Procedural", "Noise")]
     public class NoiseNode : CodeFunctionNode
     {
         public NoiseNode()

@@ -6,7 +6,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Channel/Split")]
+    [Title("Channel", "Split")]
     public class SplitNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         const string kInputSlotName = "Input";

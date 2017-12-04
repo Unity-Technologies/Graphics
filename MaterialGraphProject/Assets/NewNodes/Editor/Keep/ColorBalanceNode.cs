@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Art/Adjustments/ColorBalance")]
+    [Title("Art", "Adjustments", "ColorBalance")]
     public class ColorBalanceNode : CodeFunctionNode
     {
         public ColorBalanceNode()

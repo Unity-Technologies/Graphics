@@ -8,7 +8,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    /*   [Title("Input/Texture/TextureLOD")]
+    /*   [Title("Input", "Texture", "TextureLOD")]
        public class TextureLODNode : PropertyNode, IGeneratesBodyCode, IMayRequireMeshUV
        {
            protected const string kUVSlotName = "UV";

@@ -5,7 +5,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Derivative/DDXY")]
+    [Title("Math", "Derivative", "DDXY")]
     public class DDXYNode : CodeFunctionNode
     {
         public DDXYNode()

@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
         Normal
     };
 
-    [Title("Input/Texture/Texture 2D")]
+    [Title("Input", "Texture", "Texture 2D")]
     public class Texture2DNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
         public const int OutputSlotRGBAId = 0;

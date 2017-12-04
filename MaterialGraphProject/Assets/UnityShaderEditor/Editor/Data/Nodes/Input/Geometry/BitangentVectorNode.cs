@@ -3,7 +3,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input/Geometry/Bitangent Vector")]
+    [Title("Input", "Geometry", "Bitangent Vector")]
     public class BitangentVectorNode : GeometryNode, IMayRequireBitangent
     {
         public const int kOutputSlotId = 0;
