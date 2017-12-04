@@ -2,8 +2,8 @@
 // This file was automatically generated. Please don't edit by hand.
 //
 
-#ifndef SKYMANAGER_CS_HLSL
-#define SKYMANAGER_CS_HLSL
+#ifndef GGXCONVOLUTION_CS_HLSL
+#define GGXCONVOLUTION_CS_HLSL
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.LightSamplingParameters:  static fields
 //
