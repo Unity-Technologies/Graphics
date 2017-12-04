@@ -9,15 +9,15 @@ CBUFFER_END
  
 #define NB_THREADS_PER_GROUP 64
 
-struct OutputData
+struct InputData
 {
 	uint type;
-	uint indexCount;
+	uint arg0; //indexCount for meshes
 };
 
-ByteAddressBuffer nbElements; // Filled by GPU
-StructuredBuffer<OutputData> outputData; // Filled by CPU (TODO : rename)
-RWBuffer<uint> output; //(TODO : rename)
+ByteAddressBuffer inputGpuBuffer;
+StructuredBuffer<InputData> inputCpuBuffer;
+RWBuffer<uint> outputIndirectArgs;
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
@@ -25,13 +25,13 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 	uint index = id.x + offset;
 	if (index < maxNb)
 	{
+		uint elementCount = inputGpuBuffer.Load(index << 2);
+		InputData data = inputCpuBuffer[index];
+		
 		uint firstArg = 0u;
 		uint secondArg = 0u;
 		uint thirdArg = 0u;
-
-		uint elementCount = nbElements.Load(index << 2);
-
-		OutputData data = outputData[index];
+		
 		switch(data.type)
 		{
 			case 0: // point
@@ -82,23 +82,23 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 
 			case 4: // meshes
 			{
-				firstArg = data.indexCount;
+				firstArg = data.arg0;
 				secondArg = elementCount;
 				break;
 			}
 			case 0xffffffff: // dispatch
 			{
 				firstArg = (elementCount + NB_THREADS_PER_GROUP - 1) / NB_THREADS_PER_GROUP;
+				firstArg = max(1u, firstArg); //WIP
 				secondArg = thirdArg = 1u;
-				//todo => for spawnIndex
 				break;
 			}
 		}
 
 		uint indexOutput = index * 5;
-		output[indexOutput + 0] = firstArg; //IndexCountPerInstance or ThreadGroupCountX
-		output[indexOutput + 1] = secondArg; //InstanceCount or ThreadGroupCountY
-		output[indexOutput + 2] = thirdArg; //startIndex or ThreadGroupCountz
+		outputIndirectArgs[indexOutput + 0] = firstArg; //IndexCountPerInstance or ThreadGroupCountX
+		outputIndirectArgs[indexOutput + 1] = secondArg; //InstanceCount or ThreadGroupCountY
+		outputIndirectArgs[indexOutput + 2] = thirdArg; //startIndex or ThreadGroupCountz
 		// 2 next uint (BaseVertex and StartInstance) set to 0 at initialization
 	}
 }

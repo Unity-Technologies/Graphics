@@ -271,6 +271,7 @@ namespace UnityEditor.VFX
             var deadListBufferIndex = -1;
             var deadListCountIndex = -1;
             var eventListCountIndex = -1;
+            var eventSpawnIndex = -1;
 
             var systemBufferMappings = new List<VFXMapping>();
             var systemValueMappings = new List<VFXMapping>();
@@ -311,7 +312,11 @@ namespace UnityEditor.VFX
 
                 eventListCountIndex = outBufferDescs.Count;
                 outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Raw, size = 1 });
-                systemBufferMappings.Add(new VFXMapping(eventListCountIndex, "eventListCount"));
+                systemBufferMappings.Add(new VFXMapping(eventListCountIndex, "eventListCount")); //WIP : will be directly binded with an offset to nbElements (see VFXFillIndirectArgs.compute)
+
+                eventSpawnIndex = outBufferDescs.Count;
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Raw, size = 2 /* use with ping pong */ });
+                systemBufferMappings.Add(new VFXMapping(eventSpawnIndex, "eventSpawnIndex"));
             }
 
             var initContext = owners.FirstOrDefault(o => o.contextType == VFXContextType.kInit);
@@ -367,6 +372,8 @@ namespace UnityEditor.VFX
                     bufferMappings.Add(new VFXMapping(eventGPUFrom, "eventList"));
                 if (eventListCountIndex != -1 && context.contextType == VFXContextType.kInit)
                     bufferMappings.Add(new VFXMapping(eventListCountIndex, "eventListCount"));
+                if (eventSpawnIndex != -1 && context.contextType == VFXContextType.kInit)
+                    bufferMappings.Add(new VFXMapping(eventSpawnIndex, "eventSpawnIndex"));
                 if (deadListBufferIndex != -1 && context.contextType != VFXContextType.kOutput)
                     bufferMappings.Add(new VFXMapping(deadListBufferIndex, context.contextType == VFXContextType.kUpdate ? "deadListOut" : "deadListIn"));
 

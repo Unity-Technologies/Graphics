@@ -81,24 +81,6 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   attribute: velocity
---- !u!114 &114007333943050322
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2829ad09a6f0f61448f7c0c6b79353c2, type: 3}
-  m_Name: AgeAndDie
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114514921166371010}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 0
-  m_InputSlots: []
-  m_OutputSlots: []
-  m_Disabled: 0
 --- !u!114 &114032109532842492
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -251,6 +233,7 @@ MonoBehaviour:
   blendMode: 1
   useSoftParticle: 0
   sortPriority: 0
+  indirectDraw: 0
   flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114049745301330214
@@ -265,9 +248,8 @@ MonoBehaviour:
   m_Name: VFXBasicUpdate
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114639243697804752}
-  m_Children:
-  - {fileID: 114756623062944350}
-  m_UIPosition: {x: 405.52188, y: 168.24706}
+  m_Children: []
+  m_UIPosition: {x: 402.4685, y: 174.35382}
   m_UICollapsed: 0
   m_InputSlots: []
   m_OutputSlots: []
@@ -1044,7 +1026,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114639243697804752}
   m_Children:
-  - {fileID: 114793617565202558}
   - {fileID: 114472296979917982}
   m_UIPosition: {x: -564.26166, y: 52.2351}
   m_UICollapsed: 0
@@ -1274,7 +1255,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114639243697804752}
   m_Children: []
-  m_UIPosition: {x: 370.0521, y: 544.9993}
+  m_UIPosition: {x: 355.6221, y: 495.9374}
   m_UICollapsed: 0
   m_InputSlots:
   - {fileID: 114591248037853824}
@@ -1289,6 +1270,7 @@ MonoBehaviour:
   blendMode: 1
   useSoftParticle: 0
   sortPriority: 0
+  indirectDraw: 0
   flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114440000738327672
@@ -1449,7 +1431,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114639243697804752}
   m_Children:
-  - {fileID: 114007333943050322}
   - {fileID: 114734268747669396}
   m_UIPosition: {x: -103.19007, y: 103.381485}
   m_UICollapsed: 0
@@ -1994,24 +1975,6 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
---- !u!114 &114756623062944350
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2829ad09a6f0f61448f7c0c6b79353c2, type: 3}
-  m_Name: AgeAndDie
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114049745301330214}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 0
-  m_InputSlots: []
-  m_OutputSlots: []
-  m_Disabled: 0
 --- !u!114 &114761360518582648
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2072,24 +2035,6 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
---- !u!114 &114793617565202558
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2829ad09a6f0f61448f7c0c6b79353c2, type: 3}
-  m_Name: AgeAndDie
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114351032480103330}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 0
-  m_InputSlots: []
-  m_OutputSlots: []
-  m_Disabled: 0
 --- !u!114 &114811550938906930
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2556,7 +2501,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114639243697804752}
   m_Children: []
-  m_UIPosition: {x: -661.6969, y: 502.85843}
+  m_UIPosition: {x: -667.4689, y: 478.32745}
   m_UICollapsed: 0
   m_InputSlots:
   - {fileID: 114335390003859212}
@@ -2571,6 +2516,7 @@ MonoBehaviour:
   blendMode: 1
   useSoftParticle: 0
   sortPriority: 0
+  indirectDraw: 0
   flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114965800942908810
@@ -3266,6 +3212,10 @@ VFXAsset:
     capacity: 0
     layout: []
   - type: 1
+    size: 2
+    capacity: 0
+    layout: []
+  - type: 1
     size: 36864
     capacity: 4096
     layout:
@@ -3321,6 +3271,10 @@ VFXAsset:
     size: 1
     capacity: 0
     layout: []
+  - type: 1
+    size: 2
+    capacity: 0
+    layout: []
   m_CPUBuffers:
   - capacity: 1
     stride: 1
@@ -3353,7 +3307,7 @@ VFXAsset:
       nameId: spawner_output
     values: []
     tasks:
-    - type: 268435460
+    - type: 268435458
       buffers: []
       values:
       - index: 53
@@ -3426,7 +3380,7 @@ VFXAsset:
       processor: {fileID: 4800000, guid: 4410b7773629b684fa1400f13cf85736, type: 3}
     layer: 0
   - type: 1
-    flags: 3
+    flags: 5
     capacity: 2048
     buffers:
     - index: 6
@@ -3441,6 +3395,8 @@ VFXAsset:
       nameId: eventList
     - index: 10
       nameId: eventListCount
+    - index: 11
+      nameId: eventSpawnIndex
     values:
     - index: 50
       nameId: bounds_center
@@ -3455,6 +3411,8 @@ VFXAsset:
         nameId: eventList
       - index: 10
         nameId: eventListCount
+      - index: 11
+        nameId: eventSpawnIndex
       - index: 8
         nameId: deadListIn
       - index: 9
@@ -3494,23 +3452,25 @@ VFXAsset:
       - index: 0
         nameId: sortPriority
       processor: {fileID: 4800000, guid: 2770e2d775058a741a5e4c4ad30d68a1, type: 3}
-    layer: 0
+    layer: 1
   - type: 1
-    flags: 3
+    flags: 5
     capacity: 4096
     buffers:
-    - index: 11
-      nameId: attributeBuffer
     - index: 12
-      nameId: sourceAttributeBuffer
+      nameId: attributeBuffer
     - index: 13
-      nameId: deadList
+      nameId: sourceAttributeBuffer
     - index: 14
+      nameId: deadList
+    - index: 15
       nameId: deadListCount
     - index: 1
       nameId: eventList
-    - index: 15
+    - index: 16
       nameId: eventListCount
+    - index: 17
+      nameId: eventSpawnIndex
     values:
     - index: 47
       nameId: bounds_center
@@ -3519,17 +3479,19 @@ VFXAsset:
     tasks:
     - type: 536870912
       buffers:
-      - index: 11
+      - index: 12
         nameId: attributeBuffer
       - index: 1
         nameId: eventList
-      - index: 15
+      - index: 16
         nameId: eventListCount
-      - index: 13
-        nameId: deadListIn
+      - index: 17
+        nameId: eventSpawnIndex
       - index: 14
+        nameId: deadListIn
+      - index: 15
         nameId: deadListCount
-      - index: 12
+      - index: 13
         nameId: sourceAttributeBuffer
       values:
       - index: 42
@@ -3542,9 +3504,9 @@ VFXAsset:
       processor: {fileID: 7200000, guid: 1576122800598424a8c868d8c163035d, type: 3}
     - type: 805306368
       buffers:
-      - index: 11
+      - index: 12
         nameId: attributeBuffer
-      - index: 13
+      - index: 14
         nameId: deadListOut
       values:
       - index: 44
@@ -3553,7 +3515,7 @@ VFXAsset:
       processor: {fileID: 7200000, guid: a39085d94f0393d46bd85a7628556f2a, type: 3}
     - type: 1073741826
       buffers:
-      - index: 11
+      - index: 12
         nameId: attributeBuffer
       values:
       - index: 38
@@ -3562,7 +3524,7 @@ VFXAsset:
       - index: 0
         nameId: sortPriority
       processor: {fileID: 4800000, guid: 7c6827023b9d33c4292f207936207139, type: 3}
-    layer: 0
+    layer: 2
   m_Events:
   - name: OnStart
     startSystems: 00000000

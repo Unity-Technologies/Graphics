@@ -6,12 +6,16 @@ RWByteAddressBuffer attributeBuffer;
 ByteAddressBuffer sourceAttributeBuffer;
 
 CBUFFER_START(initParams)
-    uint nbSpawned;		// Numbers of particle spawned
-    uint spawnIndex;	// Index of the first particle spawned
+    uint nbSpawned;			// Numbers of particle spawned (0 if VFX_USE_SPAWNER_FROM_GPU)
+    uint spawnIndex;		// Index of the first particle spawned (0 if VFX_USE_SPAWNER_FROM_GPU)
+    
+    uint updateIndex;		// Only with SPAWNER_FROM_GPU
+    uint maxParticleCount;	// Only with SPAWNER_FROM_GPU
+    
     uint systemSeed;
 CBUFFER_END
 
-#if VFX_USE_ALIVE_CURRENT 
+#if VFX_USE_ALIVE_CURRENT
 ConsumeStructuredBuffer<uint> deadListIn;
 ByteAddressBuffer deadListCount; // This is bad to use a SRV to fetch deadList count but Unity API currently prevent from copying to CB
 #endif
@@ -19,6 +23,7 @@ ByteAddressBuffer deadListCount; // This is bad to use a SRV to fetch deadList c
 #if VFX_USE_SPAWNER_FROM_GPU
 ConsumeStructuredBuffer<uint> eventList;
 ByteAddressBuffer eventListCount;
+RWByteAddressBuffer eventSpawnIndex;
 #endif
 
 ${VFXGeneratedBlockFunction}
@@ -27,22 +32,29 @@ ${VFXGeneratedBlockFunction}
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
     uint maxThreadId = nbSpawned;
+    uint currentSpawnIndex = spawnIndex;
 
 #if VFX_USE_SPAWNER_FROM_GPU
-	maxThreadId = eventListCount.Load(0x0);
+    maxThreadId = eventListCount.Load(0x0); //nbSpawned is ignored for gpu event
+    currentSpawnIndex = eventSpawnIndex.Load(updateIndex & 1);
+    if (id.x == 0)
+    {
+        eventSpawnIndex.Store((updateIndex+1) & 1, maxThreadId + currentSpawnIndex);
+    }
 #endif
 
 #if VFX_USE_ALIVE_CURRENT
     maxThreadId = min(maxThreadId, deadListCount.Load(0x0));
+#else
+    maxThreadId = min(maxThreadId, maxParticleCount);
 #endif
 
     if (id.x < maxThreadId)
     {
 #if VFX_USE_SPAWNER_FROM_GPU
-		eventList.Consume(); //*WIP*
+        eventList.Consume(); //*WIP*
 #endif
-		
-        uint particleIndex = id.x + spawnIndex;
+        uint particleIndex = id.x + currentSpawnIndex;
         ${VFXComputeSourceIndex}
         ${VFXLoadAttributes}
 #if VFX_USE_PARTICLEID_CURRENT
