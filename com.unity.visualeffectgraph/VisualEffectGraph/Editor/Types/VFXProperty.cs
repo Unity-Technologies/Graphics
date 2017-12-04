@@ -66,7 +66,7 @@ namespace UnityEditor.VFX
                 return false;
 
             VFXProperty other = (VFXProperty)obj;
-            return name == other.name && type == other.type && ((attributes != null && other.attributes != null && Enumerable.SequenceEqual(attributes, other.attributes)) || attributes == null && other.attributes == null);
+            return name == other.name && type == other.type;
         }
 
         public IEnumerable<VFXProperty> SubProperties()

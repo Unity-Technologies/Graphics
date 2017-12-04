@@ -407,6 +407,11 @@ namespace UnityEditor.VFX
                 });
         }
 
+        public void UpdateAttributes(VFXPropertyAttribute[] attributes)
+        {
+            m_Property.attributes = attributes;
+        }
+
         protected override void OnAdded()
         {
             base.OnAdded();

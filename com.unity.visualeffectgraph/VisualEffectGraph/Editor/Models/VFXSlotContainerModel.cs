@@ -324,6 +324,18 @@ namespace UnityEditor.VFX
                 if (notify)
                     Invalidate(InvalidationCause.kStructureChanged);
             }
+
+            currentSlots = isInput ? inputSlots : outputSlots;
+            nbSlots = isInput ? GetNbInputSlots() : GetNbOutputSlots();
+
+            for (int i = 0; i < nbSlots; ++i)
+            {
+                VFXProperty prop = currentSlots[i].property;
+
+                currentSlots[i].UpdateAttributes(expectedProperties[i].property.attributes);
+            }
+
+
             return recreate;
         }
 
