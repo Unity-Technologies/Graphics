@@ -102,7 +102,7 @@ VFXSampler2D GetVFXSampler(Texture2D t,SamplerState s)
     return vfxSampler;
 }
 
-VFXSampler2D GetVFXSampler(Texture2DArray t,SamplerState s)
+VFXSampler2DArray GetVFXSampler(Texture2DArray t,SamplerState s)
 {
     VFXSampler2DArray vfxSampler;
     vfxSampler.t = t;
@@ -118,7 +118,7 @@ VFXSampler3D GetVFXSampler(Texture3D t,SamplerState s)
     return vfxSampler;
 }
 
-VFXSampler2D GetVFXSampler(TextureCube t,SamplerState s)
+VFXSamplerCube GetVFXSampler(TextureCube t,SamplerState s)
 {
     VFXSamplerCube vfxSampler;
     vfxSampler.t = t;
@@ -126,7 +126,7 @@ VFXSampler2D GetVFXSampler(TextureCube t,SamplerState s)
     return vfxSampler;
 }
 
-VFXSampler2D GetVFXSampler(TextureCubeArray t,SamplerState s)
+VFXSamplerCubeArray GetVFXSampler(TextureCubeArray t,SamplerState s)
 {
     VFXSamplerCubeArray vfxSampler;
     vfxSampler.t = t;
