@@ -218,7 +218,6 @@ namespace UnityEditor.VFX
 
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
-            base.OnInvalidate(model, cause);
             if (model == this && cause == InvalidationCause.kSettingChanged)
             {
                 bool notify = false;
@@ -227,6 +226,7 @@ namespace UnityEditor.VFX
                 if (notify)
                     Invalidate(InvalidationCause.kStructureChanged);
             }
+            base.OnInvalidate(model, cause);
         }
 
         static public IEnumerable<VFXNamedExpression> GetExpressionsFromSlots(IVFXSlotContainer slotContainer)

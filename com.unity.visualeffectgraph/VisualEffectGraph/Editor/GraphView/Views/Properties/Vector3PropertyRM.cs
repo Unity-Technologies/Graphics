@@ -86,6 +86,15 @@ namespace UnityEditor.VFX.UI
             return 195;
         }
 
+        public override bool IsCompatible(IPropertyRMProvider provider)
+        {
+            if (!base.IsCompatible(provider)) return false;
+
+            bool isColor = VFXPropertyAttribute.IsColor(provider.attributes);
+
+            return isColor == (m_ColorField != null);
+        }
+
         public override bool showsEverything { get { return true; } }
     }
 }

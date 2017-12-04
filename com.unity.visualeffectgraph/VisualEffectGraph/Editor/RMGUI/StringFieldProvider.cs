@@ -11,6 +11,12 @@ namespace UnityEditor.VFX.UIElements
         Button m_DropDownButton;
         Func<string[]> m_fnStringProvider;
 
+
+        public Func<string[]> stringProvider
+        {
+            get { return m_fnStringProvider; }
+        }
+
         void CreateButton()
         {
             m_DropDownButton = new Button();
