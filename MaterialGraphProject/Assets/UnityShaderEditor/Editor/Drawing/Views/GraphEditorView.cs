@@ -17,7 +17,6 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         MaterialGraphView m_GraphView;
         GraphInspectorView m_GraphInspectorView;
-        ToolbarView m_ToolbarView;
 
         AbstractMaterialGraph m_Graph;
         PreviewManager m_PreviewManager;
@@ -35,7 +34,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             set { m_SearchWindowProvider.onConvertToSubgraphClick = value; }
         }
 
-        public Action onShowInProjectClick { get; set; }
+        public Action onShowInProjectClick
+        {
+            get { return m_GraphInspectorView.onShowInProjectClick; }
+            set { m_GraphInspectorView.onShowInProjectClick = value; }
+        }
 
         public MaterialGraphView graphView
         {
@@ -60,22 +63,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddStyleSheetPath("Styles/MaterialGraph");
 
             previewManager = new PreviewManager(graph);
-
-            m_ToolbarView = new ToolbarView { name = "TitleBar" };
-            {
-                m_ToolbarView.Add(new ToolbarSpaceView());
-                m_ToolbarView.Add(new ToolbarSeparatorView());
-
-                var showInProjectButton = new ToolbarButtonView { text = "Show in project" };
-                showInProjectButton.AddManipulator(new Clickable(() =>
-                    {
-                        if (onShowInProjectClick != null) onShowInProjectClick();
-                    }));
-                m_ToolbarView.Add(showInProjectButton);
-
-                m_ToolbarView.Add(new ToolbarSeparatorView());
-            }
-            Add(m_ToolbarView);
 
             var content = new VisualElement { name = "content" };
             {

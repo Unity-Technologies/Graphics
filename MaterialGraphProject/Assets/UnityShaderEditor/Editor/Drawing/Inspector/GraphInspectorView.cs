@@ -44,6 +44,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         PersistentMesh m_PersistentMasterNodePreviewMesh;
 
         public Action onUpdateAssetClick { get; set; }
+        public Action onShowInProjectClick { get; set; }
 
         public GraphInspectorView(string assetName, PreviewManager previewManager, AbstractMaterialGraph graph)
         {
@@ -58,10 +59,17 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             {
                 var headerContainer = new VisualElement {name = "header"};
                 {
-                    headerContainer.Add(new Label(assetName) {name = "title"});
+                    var title = new Label(assetName) {name = "title"};
+                    title.AddManipulator(new Clickable(() =>
+                    {
+                        if (onShowInProjectClick != null)
+                            onShowInProjectClick();
+                    }));
+                    headerContainer.Add(title);
                     headerContainer.Add(new Button(() =>
                     {
-                        if (onUpdateAssetClick != null) onUpdateAssetClick();
+                        if (onUpdateAssetClick != null)
+                            onUpdateAssetClick();
                     }) { name = "save", text = "Save" });
                 }
                 topContainer.Add(headerContainer);
