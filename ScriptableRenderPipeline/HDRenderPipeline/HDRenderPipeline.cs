@@ -103,7 +103,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Renderer Bake configuration can vary depends on if shadow mask is enabled or no
         RendererConfiguration m_currentRendererConfigurationBakedLighting = HDUtils.k_RendererConfigurationBakedLighting;
         Material m_CopyStencilForSplitLighting;
-        Material m_CopyStencilForRegularLighting;
+        Material m_CopyStencilForNoLighting;
         GPUCopy m_GPUCopy;
 
         IBLFilterGGX m_IBLFilterGGX = null;
@@ -325,11 +325,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_applyDistortionKernel = m_applyDistortionCS.FindKernel("KMain");
 
             m_CopyStencilForSplitLighting   = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/CopyStencilBuffer");
-            m_CopyStencilForSplitLighting.EnableKeyword("EXPORT_HTILE");
             m_CopyStencilForSplitLighting.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.SplitLighting);
-            m_CopyStencilForRegularLighting = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/CopyStencilBuffer");
-            m_CopyStencilForRegularLighting.DisableKeyword("EXPORT_HTILE");
-            m_CopyStencilForRegularLighting.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.RegularLighting);
+            m_CopyStencilForNoLighting = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/CopyStencilBuffer");
+            m_CopyStencilForNoLighting.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.NoLighting);
             m_CameraMotionVectorsMaterial   = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/CameraMotionVectors");
 
             InitializeDebugMaterials();
@@ -629,11 +627,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return NeedDepthBufferCopy() ? m_CameraDepthBufferCopy : m_CameraDepthStencilBuffer;
         }
 
-        RenderTargetIdentifier GetStencilTexture()
-        {
-            return NeedStencilBufferCopy() ? m_CameraStencilBufferCopyRT : m_CameraDepthStencilBufferRT;
-        }
-
         RenderTargetIdentifier GetHTile()
         {
             // Currently, Unity does not offer a way to access the GCN HTile.
@@ -654,24 +647,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 cmd.SetGlobalTexture(HDShaderIDs._MainDepthTexture, GetDepthTexture());
             }
-        }
-
-        void PrepareAndBindStencilTexture(CommandBuffer cmd)
-        {
-            if (NeedStencilBufferCopy())
-            {
-                using (new ProfilingSample(cmd, "Copy StencilBuffer", GetSampler(CustomSamplerId.CopyStencilBuffer)))
-                {
-                    cmd.SetRandomWriteTarget(1, GetHTile());
-                    // Our method of exporting the stencil requires one pass per unique stencil value.
-                    CoreUtils.DrawFullScreen(cmd, m_CopyStencilForSplitLighting,   m_CameraStencilBufferCopyRT, m_CameraDepthStencilBufferRT);
-                    CoreUtils.DrawFullScreen(cmd, m_CopyStencilForRegularLighting, m_CameraStencilBufferCopyRT, m_CameraDepthStencilBufferRT);
-                    cmd.ClearRandomWriteTargets();
-                }
-            }
-
-            cmd.SetGlobalTexture(HDShaderIDs._HTile, GetHTile());
-            cmd.SetGlobalTexture(HDShaderIDs._StencilTexture, GetStencilTexture());
         }
 
         public void UpdateCommonSettings()
@@ -834,9 +809,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             RenderPyramidDepth(camera, cmd, renderContext, FullScreenDebugMode.DepthPyramid);
 
-            // Required for the SSS and the shader feature classification pass.
-            PrepareAndBindStencilTexture(cmd);
-
             if (m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled())
             {
                 RenderDebugViewMaterial(m_CullResults, hdCamera, renderContext, cmd);
@@ -850,7 +822,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 using (new ProfilingSample(cmd, "Render shadows", GetSampler(CustomSamplerId.RenderShadows)))
-                    {
+                {
                     m_LightLoop.RenderShadows(renderContext, cmd, m_CullResults);
                     // TODO: check if statement below still apply
                     renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after RenderShadows as it modify our view/proj matrix
@@ -866,13 +838,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 using (new ProfilingSample(cmd, "Build Light list", GetSampler(CustomSamplerId.BuildLightList)))
                 {
-                    m_LightLoop.BuildGPULightLists(camera, cmd, m_CameraDepthStencilBufferRT, GetStencilTexture());
+                    // TODO: Move this code inside LightLoop
+                    if (m_LightLoop.GetFeatureVariantsEnabled())
+                    {
+                        // For material classification we use compute shader and so can't read into the stencil, so prepare it.
+                        using (new ProfilingSample(cmd, "Clear and copy stencil texture", GetSampler(CustomSamplerId.ClearAndCopyStencilTexture)))
+                        {
+                            CoreUtils.SetRenderTarget(cmd, m_CameraStencilBufferCopyRT, ClearFlag.Color, CoreUtils.clearColorAllBlack);
+
+                            cmd.SetRandomWriteTarget(1, GetHTile());
+                            // In the material classification shader we will simply test is we are no lighting
+                            // Use ShaderPassID 1 => "Pass 1 - Write 1 if value different from stencilRef to output"
+                            CoreUtils.DrawFullScreen(cmd, m_CopyStencilForNoLighting, m_CameraStencilBufferCopyRT, m_CameraDepthStencilBufferRT, null, 1);
+                            cmd.ClearRandomWriteTargets();
+                        }
+                    }
+
+                    m_LightLoop.BuildGPULightLists(camera, cmd, m_CameraDepthStencilBufferRT, m_CameraStencilBufferCopyRT);
                 }
 
-                    // Caution: We require sun light here as some sky use the sun light to render, mean UpdateSkyEnvironment
-                    // must be call after BuildGPULightLists.
-                    // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
-                    UpdateSkyEnvironment(hdCamera, cmd);
+                // Caution: We require sun light here as some sky use the sun light to render, mean UpdateSkyEnvironment
+                // must be call after BuildGPULightLists.
+                // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
+                UpdateSkyEnvironment(hdCamera, cmd);
 
                 RenderDeferredLighting(hdCamera, cmd);
 
@@ -1280,6 +1268,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (sssSettings.useDisneySSS)
                 {
+                    using (new ProfilingSample(cmd, "HTile for SSS", GetSampler(CustomSamplerId.HTileForSSS)))
+                    {
+                        CoreUtils.SetRenderTarget(cmd, m_HTileRT, ClearFlag.Color, CoreUtils.clearColorAllBlack);
+
+                        cmd.SetRandomWriteTarget(1, GetHTile());
+                        // Generate HTile for the split lighting stencil usage. Don't write into stencil texture (shaderPassId = 2)
+                        // Use ShaderPassID 1 => "Pass 2 - Export HTILE for stencilRef to output"
+                        CoreUtils.DrawFullScreen(cmd, m_CopyStencilForSplitLighting, m_CameraStencilBufferCopyRT, m_CameraDepthStencilBufferRT, null, 2);
+                        cmd.ClearRandomWriteTargets();
+                    }
+
                     // TODO: Remove this once fix, see comment inside the function
                     hdCamera.SetupComputeShader(m_SubsurfaceScatteringCS, cmd);
 
@@ -1296,8 +1295,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, HDShaderIDs._ShapeParams,        sssParameters.shapeParams);
 
                     // TODO: abstract this in SSS manager
-                    cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._SSSBufferTexture0,  m_GbufferManager.GetGBuffers()[2]);
-                    cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._SSSBufferTexture1,  m_GbufferManager.GetGBuffers()[0]);
+                    cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._SSSBufferTexture0,  m_GbufferManager.GetGBuffers()[0]);
 
                     cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._DepthTexture,     GetDepthTexture());
                     cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._HTile,            GetHTile());
@@ -1326,8 +1324,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else
                 {
                     // TODO: abstract this in SSS manager
-                    cmd.SetGlobalTexture(HDShaderIDs._SSSBufferTexture0, m_GbufferManager.GetGBuffers()[2]);
-                    cmd.SetGlobalTexture(HDShaderIDs._SSSBufferTexture1, m_GbufferManager.GetGBuffers()[0]);
+                    cmd.SetGlobalTexture(HDShaderIDs._SSSBufferTexture0, m_GbufferManager.GetGBuffers()[0]);
 
                     cmd.SetGlobalTexture(HDShaderIDs._IrradianceSource, m_CameraSssDiffuseLightingBufferRT);  // Cannot set a RT on a material
                     m_SssVerticalFilterPass.SetVectorArray(HDShaderIDs._WorldScales,              sssParameters.worldScales);
@@ -1392,8 +1389,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     RenderTargetIdentifier[] m_MRTCache4 = new RenderTargetIdentifier[4];
                     m_MRTCache4[0] = m_CameraColorBufferRT;
                     m_MRTCache4[1] = m_CameraSssDiffuseLightingBufferRT;
-                    m_MRTCache4[2] = m_GbufferManager.GetGBuffers()[2];
-                    m_MRTCache4[3] = m_GbufferManager.GetGBuffers()[0];
+                    m_MRTCache4[2] = m_GbufferManager.GetGBuffers()[0];
 
                     CoreUtils.SetRenderTarget(cmd, m_MRTCache4, m_CameraDepthStencilBufferRT);
 
@@ -1760,22 +1756,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
                 // <<< Old SSS Model
-
-                if (NeedStencilBufferCopy())
-                {
-                    using (new ProfilingSample(cmd, "Clear stencil texture", GetSampler(CustomSamplerId.ClearStencilTexture)))
-                    {
-                        CoreUtils.SetRenderTarget(cmd, m_CameraStencilBufferCopyRT, ClearFlag.Color, CoreUtils.clearColorAllBlack);
-                    }
-                }
-
-                if (NeedHTileCopy())
-                {
-                    using (new ProfilingSample(cmd, "Clear HTile", GetSampler(CustomSamplerId.ClearHTile)))
-                    {
-                        CoreUtils.SetRenderTarget(cmd, m_HTileRT, ClearFlag.Color, CoreUtils.clearColorAllBlack);
-                    }
-                }
 
                 // TODO: As we are in development and have not all the setup pass we still clear the color in emissive buffer and gbuffer, but this will be removed later.
 

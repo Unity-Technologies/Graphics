@@ -1,8 +1,6 @@
 #ifndef UNITY_PACKING_INCLUDED
 #define UNITY_PACKING_INCLUDED
 
-#include "Common.hlsl"
-
 //-----------------------------------------------------------------------------
 // Normal packing
 //-----------------------------------------------------------------------------

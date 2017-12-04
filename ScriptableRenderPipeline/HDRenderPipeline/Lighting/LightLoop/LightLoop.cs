@@ -1779,7 +1779,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Cluster
-                VoxelLightListGeneration(cmd, camera, projscr, invProjscr, cameraDepthBufferRT);
+            VoxelLightListGeneration(cmd, camera, projscr, invProjscr, cameraDepthBufferRT);
 
             if (enableFeatureVariants)
             {
@@ -2144,7 +2144,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
             }
- 
+
             using (new ProfilingSample(cmd, "Display Shadows", HDRenderPipeline.GetSampler(CustomSamplerId.TPDisplayShadows)))
             {
                 if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeShadowMap)
