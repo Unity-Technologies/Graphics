@@ -221,18 +221,17 @@ void FillMaterialIdStandardData(float3 baseColor, float metallic, inout BSDFData
 
 void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsurfaceRadius, float thickness, inout BSDFData bsdfData)
 {
-    bsdfData.diffuseColor = baseColor;
-
-    bsdfData.fresnel0 = SKIN_SPECULAR_VALUE; // TODO take from subsurfaceProfile instead
-    bsdfData.subsurfaceProfile = subsurfaceProfile;
-    bsdfData.subsurfaceRadius  = subsurfaceRadius;
-    bsdfData.thickness = _ThicknessRemaps[subsurfaceProfile].x + _ThicknessRemaps[subsurfaceProfile].y * thickness;
+    bsdfData.diffuseColor       = baseColor;
+    bsdfData.fresnel0           = SKIN_SPECULAR_VALUE; // TODO take from subsurfaceProfile instead
+    bsdfData.subsurfaceProfile  = subsurfaceProfile;
+    bsdfData.subsurfaceRadius   = subsurfaceRadius;
+    bsdfData.thickness          = _ThicknessRemaps[subsurfaceProfile].x + _ThicknessRemaps[subsurfaceProfile].y * thickness;
+    bsdfData.enableTransmission = _EnableSSSAndTransmission != 0;
+    bsdfData.useThinObjectMode  = true; // Do not displace the point of BSDF evaluation
 
     uint transmissionMode = BitFieldExtract(asuint(_TransmissionFlags), 2u, 2u * subsurfaceProfile);
 
-    bsdfData.enableTransmission = _EnableSSSAndTransmission != 0 && transmissionMode != SSS_TRSM_MODE_NONE;
-
-    if (bsdfData.enableTransmission)
+    if (bsdfData.enableTransmission && transmissionMode != SSS_TRSM_MODE_NONE)
     {
         bsdfData.useThinObjectMode = transmissionMode == SSS_TRSM_MODE_THIN;
 
@@ -653,6 +652,22 @@ void DecodeFromGBuffer(
 
     ConvertAnisotropyToRoughness(bsdfData.perceptualRoughness, bsdfData.anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
 
+    if (HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_SSS))
+    {
+        float subsurfaceRadius  = 0;
+        float thickness         = 0;
+        int   subsurfaceProfile = SSS_NEUTRAL_PROFILE_ID;
+
+        if (bsdfData.materialId == MATERIALID_LIT_SSS)
+        {
+            subsurfaceRadius  = inGBuffer2.x;
+            thickness         = inGBuffer2.y;
+            subsurfaceProfile = UnpackByte(inGBuffer2.w);
+        }
+
+        FillMaterialIdSSSData(baseColor, subsurfaceProfile, subsurfaceRadius, thickness, bsdfData);
+    }
+
     if (bsdfData.materialId == MATERIALID_LIT_STANDARD && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_STANDARD))
     {
         float metallic;
@@ -670,14 +685,6 @@ void DecodeFromGBuffer(
         {
             FillMaterialIdStandardData(baseColor, metallic, bsdfData);
         }
-    }
-    else if (bsdfData.materialId == MATERIALID_LIT_SSS && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_SSS))
-    {
-        float subsurfaceRadius  = inGBuffer2.x;
-        float thickness         = inGBuffer2.y;
-        int   subsurfaceProfile = UnpackByte(inGBuffer2.w);
-
-        FillMaterialIdSSSData(baseColor, subsurfaceProfile, subsurfaceRadius, thickness, bsdfData);
     }
     else if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
