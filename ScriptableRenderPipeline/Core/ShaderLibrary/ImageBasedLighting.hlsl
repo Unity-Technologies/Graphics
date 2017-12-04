@@ -607,7 +607,7 @@ float4 IntegrateLD_MIS(TEXTURECUBE_ARGS(envMap, sampler_envMap),
     }
 
     // Prevent NaNs arising from the division of 0 by 0.
-    cbsdfInt = max(cbsdfInt, FLT_MIN);
+    cbsdfInt = max(cbsdfInt, FLT_EPS);
 
     return float4(lightInt / cbsdfInt, 1.0);
 }
