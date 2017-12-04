@@ -20,7 +20,7 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
 
             #include "ShaderLibrary/Common.hlsl"
             #include "ShaderLibrary/ImageBasedLighting.hlsl"
-            #include "SkyManager.cs.hlsl"
+            #include "GGXConvolution.cs.hlsl"
 
             TEXTURECUBE(_MainTex);
             SAMPLERCUBE(sampler_MainTex);
