@@ -84,14 +84,14 @@ float4 SampleTexture(VFXSampler3D s,float3 coords,float level = 0.0f)
     return s.t.SampleLevel(s.s,coords,level);
 }
 
-float4 SampleTexture(VFXSamplerCube s,float2 coords,float level = 0.0f)
+float4 SampleTexture(VFXSamplerCube s,float3 coords,float level = 0.0f)
 {
-    return s.t.SampleLevel(s.s, coords, level);
+    return s.t.SampleLevel(s.s,coords,level);
 }
 
-float4 SampleTexture(VFXSamplerCubeArray s,float2 coords,float slice,float level = 0.0f)
+float4 SampleTexture(VFXSamplerCubeArray s,float3 coords,float slice,float level = 0.0f)
 {
-    return s.t.SampleLevel(s.s, float3(coords, slice), level);
+    return s.t.SampleLevel(s.s,float4(coords,slice),level);
 }
 
 VFXSampler2D GetVFXSampler(Texture2D t,SamplerState s)
