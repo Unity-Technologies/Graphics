@@ -178,7 +178,7 @@ namespace UnityEditor.VFX.Test
         {
             VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>("Assets/VFXEditor/Editor/Tests/CopyPasteTest.asset");
 
-            VFXViewPresenter presenter = VFXViewPresenter.Manager.GetPresenter(asset);
+            VFXViewPresenter presenter = VFXViewPresenter.Manager.GetPresenter(asset, true);
 
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
             VFXView view = window.graphView as VFXView;

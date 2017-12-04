@@ -615,9 +615,7 @@ namespace UnityEditor.VFX.UI
                 else
                 {
                     if (forceUpdate)
-                    {
-                        presenter.SetVFXAsset(asset, true);
-                    }
+                        presenter.ForceReload();
                 }
 
                 return presenter;
@@ -751,8 +749,6 @@ namespace UnityEditor.VFX.UI
                 newPresenter.Init(model, this);
                 AddElement(newPresenter);
             }
-            RecreateNodeEdges();
-            RecreateFlowEdges();
         }
 
         private void RemovePresentersFromModel(VFXModel model, Dictionary<VFXModel, VFXNodePresenter> syncedModels)
