@@ -15,14 +15,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     public class GraphEditorView : VisualElement, IDisposable
     {
-        AbstractMaterialGraph m_Graph;
         MaterialGraphView m_GraphView;
         GraphInspectorView m_GraphInspectorView;
         ToolbarView m_ToolbarView;
         ToolbarButtonView m_TimeButton;
         ToolbarButtonView m_CopyToClipboardButton;
 
+        AbstractMaterialGraph m_Graph;
         PreviewManager m_PreviewManager;
+        SearchWindowProvider m_SearchWindowProvider;
 
         public Action onUpdateAssetClick { get; set; }
         public Action onConvertToSubgraphClick { get; set; }
@@ -50,9 +51,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return m_GraphInspectorView; }
         }
 
-        public GraphEditorView(AbstractMaterialGraph graph, string assetName)
+        public GraphEditorView(EditorWindow editorWindow, AbstractMaterialGraph graph, string assetName)
         {
             m_Graph = graph;
+            m_SearchWindowProvider = ScriptableObject.CreateInstance<SearchWindowProvider>();
             AddStyleSheetPath("Styles/MaterialGraph");
 
             previewManager = new PreviewManager(graph);
@@ -155,7 +157,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.AddManipulator(new RectangleSelector());
                 m_GraphView.AddManipulator(new SelectionDragger());
                 m_GraphView.AddManipulator(new ClickSelector());
-                m_GraphView.AddManipulator(new NodeCreator(graph));
                 m_GraphView.AddManipulator(new GraphDropTarget(graph));
                 content.Add(m_GraphView);
 
@@ -165,6 +166,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 m_GraphView.graphViewChanged = GraphViewChanged;
             }
+
+            m_SearchWindowProvider.Initialize(editorWindow, m_Graph, m_GraphView);
+            m_GraphView.AddManipulator(new NodeCreator(m_SearchWindowProvider));
 
             foreach (var node in graph.GetNodes<INode>())
                 AddNode(node);
@@ -320,7 +324,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     output = sourceAnchor,
                     input = targetAnchor
                 };
-//                edgeView.UpdateClasses(sourceSlot.concreteValueType, targetSlot.concreteValueType);
                 edgeView.output.Connect(edgeView);
                 edgeView.input.Connect(edgeView);
                 m_GraphView.AddElement(edgeView);
@@ -349,13 +352,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 nodeView.UpdatePortInputTypes();
                 foreach (var anchorView in nodeView.outputContainer.Children().OfType<Port>())
                 {
-                    var sourceSlot = (MaterialSlot)anchorView.userData;
                     foreach (var edgeView in anchorView.connections.OfType<Edge>())
                     {
                         var targetSlot = (MaterialSlot)edgeView.input.userData;
                         if (targetSlot.valueType == SlotValueType.Dynamic)
                         {
-//                            edgeView.UpdateClasses(sourceSlot.concreteValueType, targetSlot.concreteValueType);
                             var connectedNodeView = edgeView.input.node as MaterialNodeView;
                             if (connectedNodeView != null && !nodeViews.Contains(connectedNodeView))
                             {
@@ -372,8 +373,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                         continue;
                     foreach (var edgeView in anchorView.connections.OfType<Edge>())
                     {
-                        var sourceSlot = (MaterialSlot)edgeView.output.userData;
-//                        edgeView.UpdateClasses(sourceSlot.concreteValueType, targetSlot.concreteValueType);
                         var connectedNodeView = edgeView.output.node as MaterialNodeView;
                         if (connectedNodeView != null && !nodeViews.Contains(connectedNodeView))
                         {
@@ -401,6 +400,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 previewManager.Dispose();
                 previewManager = null;
+            }
+            if (m_SearchWindowProvider != null)
+            {
+                Object.DestroyImmediate(m_SearchWindowProvider);
+                m_SearchWindowProvider = null;
             }
         }
     }
