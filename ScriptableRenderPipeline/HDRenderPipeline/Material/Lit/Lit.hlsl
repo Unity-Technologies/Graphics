@@ -227,13 +227,12 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
     bsdfData.subsurfaceRadius   = subsurfaceRadius;
     bsdfData.thickness          = _ThicknessRemaps[subsurfaceProfile].x + _ThicknessRemaps[subsurfaceProfile].y * thickness;
     bsdfData.enableTransmission = _EnableSSSAndTransmission != 0;
-    bsdfData.useThinObjectMode  = true; // Do not displace the point of BSDF evaluation
 
     uint transmissionMode = BitFieldExtract(asuint(_TransmissionFlags), 2u, 2u * subsurfaceProfile);
 
     if (bsdfData.enableTransmission && transmissionMode != SSS_TRSM_MODE_NONE)
     {
-        bsdfData.useThinObjectMode = transmissionMode == SSS_TRSM_MODE_THIN;
+        bsdfData.useThickObjectMode = transmissionMode != SSS_TRSM_MODE_THIN;
 
         if (_UseDisneySSS != 0)
         {
@@ -1077,7 +1076,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 float3 EvaluateTransmission(BSDFData bsdfData, float intensity, float shadow)
 {
     // For low thickness, we can reuse the shadowing status for the back of the object.
-    shadow = bsdfData.useThinObjectMode ? shadow : 1.0;
+    shadow = bsdfData.useThickObjectMode ? 1.0 : shadow;
 
     float backLight = intensity * shadow;
 
