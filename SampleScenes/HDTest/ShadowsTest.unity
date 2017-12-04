@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 0.12544414, g: 0.13212782, b: 0.11914396, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -54,11 +54,10 @@ LightmapSettings:
     m_EnableBakedLightmaps: 0
     m_EnableRealtimeLightmaps: 0
   m_LightmapEditorSettings:
-    serializedVersion: 9
+    serializedVersion: 10
     m_Resolution: 2
     m_BakeResolution: 40
-    m_TextureWidth: 1024
-    m_TextureHeight: 1024
+    m_AtlasSize: 1024
     m_AO: 0
     m_AOMaxDistance: 1
     m_CompAOExponent: 1
@@ -88,6 +87,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaDirect: 0.5
     m_PVRFilteringAtrousPositionSigmaIndirect: 2
     m_PVRFilteringAtrousPositionSigmaAO: 1
+    m_ShowResolutionOverlay: 1
   m_LightingDataAsset: {fileID: 112000002, guid: e5562e1a270c3994d826092db897528c,
     type: 2}
   m_UseShadowmask: 1
@@ -202,7 +202,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_CommonSettings: {fileID: 11400000, guid: 075f395cb6ba2534196f2ce83c32e633, type: 2}
   m_SkySettings: {fileID: 11400000, guid: 622aa06566c087b41ac0edc80769f45f, type: 2}
-  m_SsaoSettings: {fileID: 0}
 --- !u!4 &8862570
 Transform:
   m_ObjectHideFlags: 0
@@ -307,7 +306,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!124 &25518111
 Behaviour:
   m_ObjectHideFlags: 0
@@ -351,7 +350,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
-  m_StereoMirrorMode: 0
 --- !u!4 &25518113
 Transform:
   m_ObjectHideFlags: 0
@@ -437,7 +435,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &38548579
 Transform:
   m_ObjectHideFlags: 0
@@ -458,7 +456,6 @@ AudioListener:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 38548578}
   m_Enabled: 1
-  m_ExtensionPropertyValues: []
 --- !u!124 &38548581
 Behaviour:
   m_ObjectHideFlags: 0
@@ -502,7 +499,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
-  m_StereoMirrorMode: 0
 --- !u!1001 &43913312
 Prefab:
   m_ObjectHideFlags: 0
@@ -1297,7 +1293,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!81 &240603308
 AudioListener:
   m_ObjectHideFlags: 0
@@ -1305,7 +1301,6 @@ AudioListener:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 240603307}
   m_Enabled: 1
-  m_ExtensionPropertyValues: []
 --- !u!124 &240603309
 Behaviour:
   m_ObjectHideFlags: 0
@@ -1349,7 +1344,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
-  m_StereoMirrorMode: 0
 --- !u!4 &240603311
 Transform:
   m_ObjectHideFlags: 0
@@ -2272,17 +2266,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_Version: 1
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  aspectRatio: 1
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  featuresFoldout: 1
+  showAdditionalSettings: 1
 --- !u!108 &367594608
 Light:
   m_ObjectHideFlags: 0
@@ -2474,7 +2474,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &401402600
 Transform:
   m_ObjectHideFlags: 0
@@ -2531,7 +2531,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
-  m_StereoMirrorMode: 0
 --- !u!1001 &454647942
 Prefab:
   m_ObjectHideFlags: 0
@@ -2844,6 +2843,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 948836267934e104294e03adad5c7bf7, type: 2}
   m_StaticBatchInfo:
@@ -4108,6 +4108,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 948836267934e104294e03adad5c7bf7, type: 2}
   m_StaticBatchInfo:
@@ -4429,17 +4430,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_Version: 1
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  aspectRatio: 1
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  featuresFoldout: 1
+  showAdditionalSettings: 1
 --- !u!108 &886044557
 Light:
   m_ObjectHideFlags: 0
@@ -4493,7 +4500,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &912444934
 Transform:
   m_ObjectHideFlags: 0
@@ -4514,7 +4521,6 @@ AudioListener:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 912444933}
   m_Enabled: 1
-  m_ExtensionPropertyValues: []
 --- !u!124 &912444936
 Behaviour:
   m_ObjectHideFlags: 0
@@ -4558,7 +4564,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
-  m_StereoMirrorMode: 0
 --- !u!1001 &935997991
 Prefab:
   m_ObjectHideFlags: 0
@@ -5305,7 +5310,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1175480045
 Transform:
   m_ObjectHideFlags: 0
@@ -5362,7 +5367,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
-  m_StereoMirrorMode: 0
 --- !u!1001 &1188504521
 Prefab:
   m_ObjectHideFlags: 0
@@ -5662,7 +5666,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1232280518
 Transform:
   m_ObjectHideFlags: 0
@@ -5719,7 +5723,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
-  m_StereoMirrorMode: 0
 --- !u!1001 &1238924665
 Prefab:
   m_ObjectHideFlags: 0
@@ -5791,7 +5794,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1239387815
 Transform:
   m_ObjectHideFlags: 0
@@ -5848,7 +5851,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
-  m_StereoMirrorMode: 0
 --- !u!1001 &1291944202
 Prefab:
   m_ObjectHideFlags: 0
@@ -6199,17 +6201,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_Version: 1
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  aspectRatio: 1
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  featuresFoldout: 1
+  showAdditionalSettings: 1
 --- !u!108 &1395086339
 Light:
   m_ObjectHideFlags: 0
@@ -6899,7 +6907,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1524083540
 Transform:
   m_ObjectHideFlags: 0
@@ -6956,7 +6964,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
-  m_StereoMirrorMode: 0
 --- !u!1001 &1532183583
 Prefab:
   m_ObjectHideFlags: 0
@@ -7150,7 +7157,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1558117774
 Transform:
   m_ObjectHideFlags: 0
@@ -7207,7 +7214,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
-  m_StereoMirrorMode: 0
 --- !u!1001 &1568431069
 Prefab:
   m_ObjectHideFlags: 0
@@ -7627,7 +7633,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1641371013
 Transform:
   m_ObjectHideFlags: 0
@@ -7648,7 +7654,6 @@ AudioListener:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1641371012}
   m_Enabled: 1
-  m_ExtensionPropertyValues: []
 --- !u!124 &1641371015
 Behaviour:
   m_ObjectHideFlags: 0
@@ -7692,7 +7697,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
-  m_StereoMirrorMode: 0
 --- !u!1001 &1642984832
 Prefab:
   m_ObjectHideFlags: 0
@@ -7950,7 +7954,6 @@ AudioListener:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1769631028}
   m_Enabled: 1
-  m_ExtensionPropertyValues: []
 --- !u!124 &1769631030
 Behaviour:
   m_ObjectHideFlags: 0
@@ -7994,7 +7997,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
-  m_StereoMirrorMode: 0
 --- !u!4 &1769631032
 Transform:
   m_ObjectHideFlags: 0
@@ -8548,7 +8550,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1909327634
 Transform:
   m_ObjectHideFlags: 0
@@ -8605,7 +8607,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
-  m_StereoMirrorMode: 0
 --- !u!1001 &1935664259
 Prefab:
   m_ObjectHideFlags: 0
@@ -8825,7 +8826,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2007753896
 Transform:
   m_ObjectHideFlags: 0
@@ -8882,7 +8883,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
-  m_StereoMirrorMode: 0
 --- !u!1001 &2018192138
 Prefab:
   m_ObjectHideFlags: 0
@@ -9282,7 +9282,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2095847156
 Transform:
   m_ObjectHideFlags: 0
@@ -9339,7 +9339,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
-  m_StereoMirrorMode: 0
 --- !u!1001 &2097384754
 Prefab:
   m_ObjectHideFlags: 0
@@ -9466,17 +9465,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_innerSpotPercent: 0
+  m_Version: 1
+  m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  lightTypeExtent: 0
   spotLightShape: 0
-  lightLength: 0
-  lightWidth: 0
+  shapeLength: 0
+  shapeWidth: 0
+  aspectRatio: 1
+  shapeRadius: 0
   maxSmoothness: 1
   applyRangeAttenuation: 1
+  useOldInspector: 0
+  featuresFoldout: 1
+  showAdditionalSettings: 1
 --- !u!108 &2102352250
 Light:
   m_ObjectHideFlags: 0

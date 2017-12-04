@@ -8,7 +8,7 @@
 
 #include "ShaderLibrary/common.hlsl"
 #include "ShaderBase.hlsl"
-#include "TilePass.cs.hlsl"
+#include "LightLoop.cs.hlsl"
 #include "LightingConvexHullUtils.hlsl"
 
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)

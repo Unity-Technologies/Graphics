@@ -1,5 +1,3 @@
-//#define NATIVE_CODE_FOR_CMD_CONVERT_TEXTURE
-
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
@@ -24,11 +22,7 @@ namespace UnityEngine.Experimental.Rendering
 
             if (mismatch)
             {
-#if NATIVE_CODE_FOR_CMD_CONVERT_TEXTURE
                 cmd.ConvertTexture(texture, 0, m_Cache, sliceIndex);
-#else
-                UnityEngine.Graphics.ConvertTexture(texture, 0, m_Cache, sliceIndex);
-#endif
             }
             else
             {
@@ -90,11 +84,7 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     for (int f = 0; f < 6; f++)
                     {
-#if NATIVE_CODE_FOR_CMD_CONVERT_TEXTURE
                         cmd.ConvertTexture(texture, f, m_Cache, 6 * sliceIndex + f);
-#else
-                        UnityEngine.Graphics.ConvertTexture(texture, f, m_Cache, 6 * sliceIndex + f);
-#endif
                     }
                 }
                 else
@@ -254,7 +244,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             public uint    texId;
             public uint    countLRU;
-            public uint    updateCount;
+            public uint    sliceEntryHash;
         };
 
         private int m_NumTextures;
@@ -267,15 +257,15 @@ namespace UnityEngine.Experimental.Rendering
         private static uint g_InvalidTexID = (uint)0;
 
 
-        public uint GetTextureUpdateCount(Texture texture)
+        public uint GetTextureHash(Texture texture)
         {
-            uint updateCount  = texture.updateCount;
+            uint textureHash  = texture.updateCount;
             // For baked probes in the editor we need to factor in the actual hash of texture because we can't increment the update count of a texture that's baked on the disk.
             // This code leaks logic from reflection probe baking into the texture cache which is not good... TODO: Find a way to do that outside of the texture cache.
 #if UNITY_EDITOR
-            updateCount += (uint)texture.imageContentsHash.GetHashCode();
+            textureHash += (uint)texture.imageContentsHash.GetHashCode();
 #endif
-            return updateCount;
+            return textureHash;
         }
 
         public int ReserveSlice(Texture texture, out bool needUpdate)
@@ -295,8 +285,8 @@ namespace UnityEngine.Experimental.Rendering
             {
                 sliceIndex = foundIndex;
 
-                var updateCount  = GetTextureUpdateCount(texture);
-                needUpdate |= (m_SliceArray[sliceIndex].updateCount != updateCount);
+                var textureHash  = GetTextureHash(texture);
+                needUpdate |= (m_SliceArray[sliceIndex].sliceEntryHash != textureHash);
 
                 Debug.Assert(m_SliceArray[sliceIndex].texId == texId);
             }
@@ -343,16 +333,16 @@ namespace UnityEngine.Experimental.Rendering
 
 
         // In case the texture content with which we update the cache is not the input texture, we need to provide the right update count.
-        public void UpdateSlice(CommandBuffer cmd, int sliceIndex, Texture content, uint updateCount)
-                {
+        public void UpdateSlice(CommandBuffer cmd, int sliceIndex, Texture content, uint textureHash)
+        {
             // transfer new slice to sliceIndex from source texture
-            m_SliceArray[sliceIndex].updateCount = updateCount;
+            m_SliceArray[sliceIndex].sliceEntryHash = textureHash;
             TransferToSlice(cmd, sliceIndex, content);
         }
 
         public void UpdateSlice(CommandBuffer cmd, int sliceIndex, Texture content)
         {
-            UpdateSlice(cmd, sliceIndex, content, GetTextureUpdateCount(content));
+            UpdateSlice(cmd, sliceIndex, content, GetTextureHash(content));
                 }
 
         public int FetchSlice(CommandBuffer cmd, Texture texture, bool forceReinject=false)
