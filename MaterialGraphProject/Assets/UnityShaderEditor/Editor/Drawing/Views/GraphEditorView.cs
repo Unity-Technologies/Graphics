@@ -23,7 +23,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         PreviewManager m_PreviewManager;
         SearchWindowProvider m_SearchWindowProvider;
 
-        public Action onUpdateAssetClick { get; set; }
+        public Action onUpdateAssetClick
+        {
+            get { return m_GraphInspectorView.onUpdateAssetClick; }
+            set { m_GraphInspectorView.onUpdateAssetClick = value; }
+        }
 
         public Action onConvertToSubgraphClick
         {
@@ -59,17 +63,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_ToolbarView = new ToolbarView { name = "TitleBar" };
             {
-                m_ToolbarView.Add(new ToolbarSpaceView());
-                m_ToolbarView.Add(new ToolbarSeparatorView());
-
-                var updateAssetButton = new ToolbarButtonView { text = "Update asset" };
-                updateAssetButton.AddManipulator(new Clickable(() =>
-                    {
-                        if (onUpdateAssetClick != null) onUpdateAssetClick();
-                    }));
-                m_ToolbarView.Add(updateAssetButton);
-
-                m_ToolbarView.Add(new ToolbarSeparatorView());
                 m_ToolbarView.Add(new ToolbarSpaceView());
                 m_ToolbarView.Add(new ToolbarSeparatorView());
 

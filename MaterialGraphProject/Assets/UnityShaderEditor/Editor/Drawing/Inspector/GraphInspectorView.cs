@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental.UIElements;
@@ -43,6 +43,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         PersistentMesh m_PersistentMasterNodePreviewMesh;
 
+        public Action onUpdateAssetClick { get; set; }
+
         public GraphInspectorView(string assetName, PreviewManager previewManager, AbstractMaterialGraph graph)
         {
             persistenceKey = "GraphInspector";
@@ -57,6 +59,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 var headerContainer = new VisualElement {name = "header"};
                 {
                     headerContainer.Add(new Label(assetName) {name = "title"});
+                    headerContainer.Add(new Button(() =>
+                    {
+                        if (onUpdateAssetClick != null) onUpdateAssetClick();
+                    }) { name = "save", text = "Save" });
                 }
                 topContainer.Add(headerContainer);
 
