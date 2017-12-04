@@ -24,7 +24,13 @@ namespace UnityEditor.ShaderGraph.Drawing
         SearchWindowProvider m_SearchWindowProvider;
 
         public Action onUpdateAssetClick { get; set; }
-        public Action onConvertToSubgraphClick { get; set; }
+
+        public Action onConvertToSubgraphClick
+        {
+            get { return m_SearchWindowProvider.onConvertToSubgraphClick; }
+            set { m_SearchWindowProvider.onConvertToSubgraphClick = value; }
+        }
+
         public Action onShowInProjectClick { get; set; }
 
         public MaterialGraphView graphView
@@ -62,17 +68,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if (onUpdateAssetClick != null) onUpdateAssetClick();
                     }));
                 m_ToolbarView.Add(updateAssetButton);
-
-                m_ToolbarView.Add(new ToolbarSeparatorView());
-                m_ToolbarView.Add(new ToolbarSpaceView());
-                m_ToolbarView.Add(new ToolbarSeparatorView());
-
-                var convertToSubgraphButton = new ToolbarButtonView { text = "Convert to subgraph" };
-                convertToSubgraphButton.AddManipulator(new Clickable(() =>
-                    {
-                        if (onConvertToSubgraphClick != null) onConvertToSubgraphClick();
-                    }));
-                m_ToolbarView.Add(convertToSubgraphButton);
 
                 m_ToolbarView.Add(new ToolbarSeparatorView());
                 m_ToolbarView.Add(new ToolbarSpaceView());

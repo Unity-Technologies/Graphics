@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor.Experimental.UIElements;
 using UnityEditor.Experimental.UIElements.GraphView;
-using UnityEditor.Graphing;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using INode = UnityEditor.Graphing.INode;
@@ -24,6 +23,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         const string k_ConvertToInlineNode = "Convert To Inline Node";
         const string k_ConvertToSubgraph = "Convert To Sub-graph";
         const string k_CopyShader = "Copy Shader To Clipboard";
+
+        public Action onConvertToSubgraphClick { get; set; }
 
         public void Initialize(EditorWindow editorWindow, AbstractMaterialGraph graph, GraphView graphView)
         {
@@ -112,7 +113,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             };
 
             // Add in contextual node actions
-            var selection = m_GraphView.selection.OfType<MaterialNodeView>().ToList();
+            var selection = m_GraphView.selection.OfType<MaterialNodeView>().Where(v => v.node != null).ToList();
             if (selection.Any())
                 tree.Add(new SearchTreeEntry(new GUIContent(k_ConvertToSubgraph, m_Icon)) { level = 1 });
             if (selection.Any(v => v.node is IPropertyFromNode))
@@ -202,6 +203,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         bool OnConvertToSubgraph()
         {
+            if (onConvertToSubgraphClick != null) onConvertToSubgraphClick();
             return true;
         }
 
