@@ -6,22 +6,20 @@ using UnityEditor.Experimental.Rendering.LightweightPipeline;
 public class LightweightStandardSimpleLightingGUI : ShaderGUI
 {
     private const float kMinShininessValue = 0.01f;
-    private MaterialProperty blendModeProp = null;
-    private MaterialProperty albedoMapProp = null;
-    private MaterialProperty albedoColorProp = null;
-    private MaterialProperty alphaCutoffProp = null;
-    private MaterialProperty specularSourceProp = null;
-    private MaterialProperty glossinessSourceProp = null;
-    private MaterialProperty specularGlossMapProp = null;
-    private MaterialProperty specularColorProp = null;
-    private MaterialProperty shininessProp = null;
-    private MaterialProperty bumpMapProp = null;
-    private MaterialProperty emissionMapProp = null;
-    private MaterialProperty emissionColorProp = null;
+    private MaterialProperty blendModeProp;
+    private MaterialProperty albedoMapProp;
+    private MaterialProperty albedoColorProp;
+    private MaterialProperty alphaCutoffProp;
+    private MaterialProperty specularSourceProp;
+    private MaterialProperty glossinessSourceProp;
+    private MaterialProperty specularGlossMapProp;
+    private MaterialProperty specularColorProp;
+    private MaterialProperty shininessProp;
+    private MaterialProperty bumpMapProp;
+    private MaterialProperty emissionMapProp;
+    private MaterialProperty emissionColorProp;
 
-    private MaterialEditor m_MaterialEditor = null;
-    private const float kMaxfp16 = 65536f; // Clamp to a value that fits into fp16.
-    private ColorPickerHDRConfig m_ColorPickerHDRConfig = new ColorPickerHDRConfig(0f, kMaxfp16, 1 / kMaxfp16, 3f);
+    private MaterialEditor m_MaterialEditor;
 
     private static class Styles
     {
@@ -200,7 +198,7 @@ public class LightweightStandardSimpleLightingGUI : ShaderGUI
             bool hadEmissionTexture = emissionMapProp.textureValue != null;
 
             // Texture and HDR color controls
-            m_MaterialEditor.TexturePropertyWithHDRColor(Styles.emissionMapLabel, emissionMapProp, emissionColorProp, m_ColorPickerHDRConfig, false);
+            m_MaterialEditor.TexturePropertyWithHDRColor(Styles.emissionMapLabel, emissionMapProp, emissionColorProp, false);
 
             // If texture was assigned and color was black set color to white
             float brightness = emissionColorProp.colorValue.maxColorComponent;
