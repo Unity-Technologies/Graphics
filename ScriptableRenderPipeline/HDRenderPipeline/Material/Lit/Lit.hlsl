@@ -23,9 +23,6 @@
 #define GBufferType2 float4
 #define GBufferType3 float4
 
-#define SSSBufferType0 GBufferType2
-#define SSSBufferType1 GBufferType0
-
 // GBuffer texture declaration
 TEXTURE2D(_GBufferTexture0);
 TEXTURE2D(_GBufferTexture1);
@@ -303,12 +300,15 @@ void ApplyDebugToSurfaceData(inout SurfaceData surfaceData)
 #endif
 }
 
-SSSData ConvertSurfaceDataToSSSData(Surface surfaceData)
+SSSData ConvertSurfaceDataToSSSData(SurfaceData surfaceData)
 {
     SSSData sssData;
+
     sssData.diffuseColor = surfaceData.baseColor;
     sssData.subsurfaceRadius = surfaceData.subsurfaceRadius;
     sssData.subsurfaceProfile = surfaceData.subsurfaceProfile;
+
+    return sssData;
 }
 
 //-----------------------------------------------------------------------------
@@ -424,8 +424,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
         // and we will move the specular occlusion in GBuffer2. This is an optimization for SSSSS and have no other side effect as specular occlusion is always used
         // during lighting pass when other buffer (Gbuffer0, 1, 2) and read anyway.
         EncodeIntoSSSBuffer(ConvertSurfaceDataToSSSData(surfaceData), positionSS, outGBuffer0);
-        outGBuffer2.r = surfaceData.specularOcclusion;
-        outGBuffer2.g = surfaceData.thickness; // Use for transmission
+        outGBuffer2 = float4(surfaceData.specularOcclusion, surfaceData.thickness, 0.0, 0.0); // Thickness is use for transmission
     }
     else if (surfaceData.materialId == MATERIALID_LIT_ANISO)
     {
@@ -534,7 +533,7 @@ void DecodeFromGBuffer(
 
         if (bsdfData.materialId == MATERIALID_LIT_SSS)
         {
-        	DecodeSSSProfileFromSSSBuffer(inGBuffer0, positionSS, subsurfaceProfile);
+            DecodeSSSProfileFromSSSBuffer(inGBuffer0, positionSS, subsurfaceProfile);
             bsdfData.specularOcclusion = inGBuffer2.r; // Reminder: when using SSS we exchange specular occlusion and subsurfaceRadius/profileID
             thickness = inGBuffer2.g;
         }
@@ -867,7 +866,7 @@ float3 GetBakedDiffuseLigthing(SurfaceData surfaceData, BuiltinData builtinData,
     if (bsdfData.materialId == MATERIALID_LIT_SSS)
     {
         bsdfData.diffuseColor = ApplyDiffuseTexturingMode(bsdfData.diffuseColor, bsdfData.subsurfaceProfile);
-    }    
+    }
 
     // Premultiply bake diffuse lighting information with DisneyDiffuse pre-integration
     return builtinData.bakeDiffuseLighting * preLightData.diffuseFGD * surfaceData.ambientOcclusion * bsdfData.diffuseColor + builtinData.emissiveColor;
@@ -1871,7 +1870,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
     float3 modifiedDiffuseColor;
     if (bsdfData.materialId == MATERIALID_LIT_SSS)
-        modifiedDiffuseColor = ApplyDiffuseTexturingMode(bsdfData.diffuseColor, bsdfData.subsurfaceProfile)
+        modifiedDiffuseColor = ApplyDiffuseTexturingMode(bsdfData.diffuseColor, bsdfData.subsurfaceProfile);
     else
         modifiedDiffuseColor = bsdfData.diffuseColor;
 

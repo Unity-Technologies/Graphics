@@ -82,7 +82,7 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
 
                 // Note: When we are in this SubsurfaceScattering shader we know that we are a SSS material.
                 SSSData sssData;
-                DECODE_FROM_SSSBUFFER(pixelCoord, sssData);
+                DECODE_FROM_SSSBUFFER(posInput.positionSS, sssData);
 
                 int    profileID   = sssData.subsurfaceProfile;
                 float  distScale   = sssData.subsurfaceRadius;

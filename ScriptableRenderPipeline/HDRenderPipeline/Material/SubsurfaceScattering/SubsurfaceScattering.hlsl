@@ -1,4 +1,5 @@
 #include "SubsurfaceScatteringSettings.cs.hlsl"
+#include "ShaderLibrary\Packing.hlsl"
 
 CBUFFER_START(UnitySSSParameters)
 // Warning: Unity is not able to losslessly transfer integers larger than 2^24 to the shader system.
@@ -131,10 +132,12 @@ struct SSSData
     float subsurfaceProfile;
 };
 
+#define SSSBufferType0 float4
+
 // SSSBuffer texture declaration
 TEXTURE2D(_SSSBufferTexture0);
 
-void EncodeIntoSSSBuffer(SSSData sssData, uint2 positionSS, out SSSBufferType0 outSSSBuffer0, out SSSBufferType1 outSSSBuffer1)
+void EncodeIntoSSSBuffer(SSSData sssData, uint2 positionSS, out SSSBufferType0 outSSSBuffer0)
 {
     outSSSBuffer0 = float4(sssData.diffuseColor, PackFloatInt8bit(sssData.subsurfaceRadius, sssData.subsurfaceProfile, 16.0));
 }

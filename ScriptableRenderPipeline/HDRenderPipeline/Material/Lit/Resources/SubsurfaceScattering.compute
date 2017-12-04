@@ -36,7 +36,9 @@
 // Included headers
 //--------------------------------------------------------------------------------------------------
 
+#include "ShaderLibrary/Common.hlsl"
 #include "ShaderLibrary/Packing.hlsl"
+#include "ShaderLibrary\Fibonacci.hlsl"
 #include "ShaderLibrary/SpaceFillingCurves.hlsl"
 #include "../../../ShaderVariables.hlsl"
 #include "../../../Lighting/LightDefinition.cs.hlsl"
@@ -317,7 +319,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
 
     // The result of the stencil test allows us to statically determine the material type (SSS).
     SSSData sssData;
-    DECODE_FROM_SSSBUFFER(pixelCoord, sssData);
+    DECODE_FROM_SSSBUFFER(posInput.positionSS, sssData);
 
     int    profileID   = sssData.subsurfaceProfile;
     float  distScale   = sssData.subsurfaceRadius;
@@ -362,10 +364,18 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
     float4x4 viewMatrix, projMatrix;
     GetLeftHandedViewSpaceMatrices(viewMatrix, projMatrix);
 
+    // TODO: Since we have moved to forward SSS, we don't support anymore a bsdfData.normalWS.
+    // Once we include normal+roughness rendering during the prepass, we will have a buffer to bind here and we will be able to reuse this part of the algorithm on demand.
+#if SSS_USE_TANGENT_PLANE
     // Compute the tangent frame in view space.
     float3 normalVS = mul((float3x3)viewMatrix, bsdfData.normalWS);
     float3 tangentX = GetLocalFrame(normalVS)[0] * unitsPerMm;
     float3 tangentY = GetLocalFrame(normalVS)[1] * unitsPerMm;
+#else
+    float3 normalVS = float3(0, 0, 0);
+    float3 tangentX = float3(0, 0, 0);
+    float3 tangentY = float3(0, 0, 0);
+#endif
 
 #if SSS_DEBUG_NORMAL_VS
     // We expect the normal to be front-facing.
