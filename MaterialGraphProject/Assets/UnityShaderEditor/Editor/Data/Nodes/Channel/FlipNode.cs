@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Channel/Flip")]
+    [Title("Channel", "Flip")]
     public class FlipNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
         public FlipNode()

@@ -4,7 +4,7 @@ using System.Collections;
 
 namespace UnityEditor.ShaderGraph
 {
-    /*  [Title("Art/ChannelBlend")]
+    /*  [Title("Art", "ChannelBlend")]
       public class ChannelBlend : FunctionNInNOut, IGeneratesFunction
       {
 

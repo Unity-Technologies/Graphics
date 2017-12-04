@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("UV/Radial Shear")]
+    [Title("UV", "Radial Shear")]
     public class RadialShearNode : CodeFunctionNode
     {
         public RadialShearNode()

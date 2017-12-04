@@ -5,7 +5,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Art/BlendMode")]
+    [Title("Art", "BlendMode")]
     public class BlendModeNode : CodeFunctionNode
     {
         public BlendModeNode()

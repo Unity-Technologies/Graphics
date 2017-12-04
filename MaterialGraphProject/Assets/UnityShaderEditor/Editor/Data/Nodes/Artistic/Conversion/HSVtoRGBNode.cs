@@ -4,7 +4,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Art/Conversion/HSVtoRGB")]
+    [Title("Art", "Conversion", "HSVtoRGB")]
     public class HSVtoRGBNode : CodeFunctionNode
     {
         public HSVtoRGBNode()

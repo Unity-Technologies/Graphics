@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Art/Adjustments/Levels")]
+    [Title("Art", "Adjustments", "Levels")]
     public class LevelsNode : CodeFunctionNode
     {
         public LevelsNode()

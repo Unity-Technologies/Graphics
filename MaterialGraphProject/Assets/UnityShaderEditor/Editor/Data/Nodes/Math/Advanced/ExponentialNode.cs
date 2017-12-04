@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
         Base2
     };
 
-    [Title("Math/Advanced/Exponential")]
+    [Title("Math", "Advanced", "Exponential")]
     public class ExponentialNode : CodeFunctionNode
     {
         public ExponentialNode()

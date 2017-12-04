@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Procedural/MakeSubgraph/Square")]
+    [Title("Procedural", "MakeSubgraph", "Square")]
     public class BoxNode : CodeFunctionNode
     {
         public BoxNode()

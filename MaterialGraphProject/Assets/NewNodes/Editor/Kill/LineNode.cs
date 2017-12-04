@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("OLD/Line")]
+    [Title("OLD", "Line")]
     public class LineNode : CodeFunctionNode
     {
         public LineNode()

@@ -4,7 +4,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Art/Conversion/LineartoRGB")]
+    [Title("Art", "Conversion", "LineartoRGB")]
     public class LineartoRGBNode : CodeFunctionNode
     {
         public LineartoRGBNode()

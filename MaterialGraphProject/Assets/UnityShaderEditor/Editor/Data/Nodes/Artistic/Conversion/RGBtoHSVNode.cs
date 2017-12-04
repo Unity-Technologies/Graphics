@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Art/Conversion/RGBtoHSV")]
+    [Title("Art", "Conversion", "RGBtoHSV")]
     public class RGBtoHSVNode : CodeFunctionNode
     {
         public RGBtoHSVNode()

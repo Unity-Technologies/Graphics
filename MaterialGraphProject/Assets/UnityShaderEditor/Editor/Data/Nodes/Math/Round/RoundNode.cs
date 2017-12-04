@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Round/Round")]
+    [Title("Math", "Round", "Round")]
     public class RoundNode : CodeFunctionNode
     {
         public RoundNode()

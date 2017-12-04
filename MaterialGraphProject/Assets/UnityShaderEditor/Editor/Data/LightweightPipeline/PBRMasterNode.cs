@@ -8,7 +8,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    [Title("Master/PBR")]
+    [Title("Master", "PBR")]
     public class PBRMasterNode : MasterNode
     {
         public const string AlbedoSlotName = "Albedo";

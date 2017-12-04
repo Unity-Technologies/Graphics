@@ -5,7 +5,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Normal/Unpack Normal")]
+    [Title("Normal", "Unpack Normal")]
     internal class UnpackNormalNode : CodeFunctionNode
     {
         public UnpackNormalNode()

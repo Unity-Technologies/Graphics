@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph
         Base10
     };
 
-    [Title("Math/Advanced/Log")]
+    [Title("Math", "Advanced", "Log")]
     public class LogNode : CodeFunctionNode
     {
         public LogNode()

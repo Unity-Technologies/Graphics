@@ -4,7 +4,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     /*
-    [Title("Input/Time/Sine Time")]
+    [Title("Input", "Time", "Sine Time")]
     public class SinTimeNode : AbstractMaterialNode, IMayRequireTime
     {
         public SinTimeNode()

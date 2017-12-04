@@ -5,7 +5,7 @@ using System;
 
 /*namespace UnityEditor.ShaderGraph
 {
-    [Title("Art/Filters/Convolution")]
+    [Title("Art", "Filters", "Convolution")]
     public class ConvolutionFilterNode : Function2Input, IGeneratesFunction, IGeneratesBodyCode, IMayRequireMeshUV
     {
         private const string kUVSlotName = "UV";

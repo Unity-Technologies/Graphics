@@ -3,7 +3,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("OLD/Parallax")]
+    [Title("OLD", "Parallax")]
     public class ParallaxNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireMeshUV, IMayRequireViewDirection
     {
         protected const string kInputSlot1ShaderName = "Depth";

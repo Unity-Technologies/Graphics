@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Interpolation/Smoothstep")]
+    [Title("Math", "Interpolation", "Smoothstep")]
     class SmoothstepNode : CodeFunctionNode
     {
         public SmoothstepNode()

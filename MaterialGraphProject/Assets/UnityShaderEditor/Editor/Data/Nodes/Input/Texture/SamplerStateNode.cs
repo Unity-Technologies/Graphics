@@ -5,7 +5,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input/Texture/Sampler State")]
+    [Title("Input", "Texture", "Sampler State")]
     public class SamplerStateNode : AbstractMaterialNode
     {
         [SerializeField]

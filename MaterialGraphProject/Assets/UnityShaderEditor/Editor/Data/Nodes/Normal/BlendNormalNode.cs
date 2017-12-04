@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Normal/Blend Normal")]
+    [Title("Normal", "Blend Normal")]
     public class BlendNormalNode : CodeFunctionNode
     {
         public BlendNormalNode()

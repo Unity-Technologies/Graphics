@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 
 namespace UnityEditor.ShaderGraph
 {
-/*    [Title("Logic/CustomCode")]
+/*    [Title("Logic", "CustomCode")]
     public class CustomCodeNode : FunctionNInNOut, IGeneratesFunction
     {
         [SerializeField] private string m_code;

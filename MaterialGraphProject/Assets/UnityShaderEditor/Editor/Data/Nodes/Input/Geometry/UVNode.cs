@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph
         bool RequiresMeshUV(UVChannel channel);
     }
 
-    [Title("Input/Geometry/UV")]
+    [Title("Input", "Geometry", "UV")]
     public class UVNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
         public const int OutputSlotId = 0;

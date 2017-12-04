@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Procedural/MakeSubgraph/Hexagon")]
+    [Title("Procedural", "MakeSubgraph", "Hexagon")]
     public class HexNode : CodeFunctionNode
     {
         public HexNode()

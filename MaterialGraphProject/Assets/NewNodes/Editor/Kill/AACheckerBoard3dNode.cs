@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("OLD/AACheckerboard3d")]
+    [Title("OLD", "AACheckerboard3d")]
     public class AACheckerboard3dNode : CodeFunctionNode
     {
         protected override MethodInfo GetFunctionToConvert()

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Procedural/MakeSubgraph/Fractal")]
+    [Title("Procedural", "MakeSubgraph", "Fractal")]
     public class FractalNode : CodeFunctionNode
     {
         public FractalNode()

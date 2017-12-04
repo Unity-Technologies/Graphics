@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Matrix/TransposeMatrix")]
+    [Title("Math", "Matrix", "TransposeMatrix")]
     public class MatrixTransposeNode : CodeFunctionNode
     {
         public MatrixTransposeNode()

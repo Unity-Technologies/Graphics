@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph
         Tiled
     };
 
-    [Title("Input/Geometry/Screen Position")]
+    [Title("Input", "Geometry", "Screen Position")]
     public class ScreenPositionNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireScreenPosition
     {
         public ScreenPositionNode()

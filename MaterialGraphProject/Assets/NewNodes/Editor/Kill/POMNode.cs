@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("OLD/ParallaxOcclusionMapping")]
+    [Title("OLD", "ParallaxOcclusionMapping")]
     public class ParallaxOcclusionMappingNode : CodeFunctionNode
     {
         protected override MethodInfo GetFunctionToConvert()

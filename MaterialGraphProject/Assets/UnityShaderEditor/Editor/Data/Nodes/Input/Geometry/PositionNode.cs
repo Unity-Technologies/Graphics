@@ -3,7 +3,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input/Geometry/Position")]
+    [Title("Input", "Geometry", "Position")]
     public class PositionNode : GeometryNode, IMayRequirePosition
     {
         private const int kOutputSlotId = 0;
