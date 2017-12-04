@@ -56,8 +56,6 @@ namespace UnityEditor.VFX.UI
 
         protected new void OnEnable()
         {
-            Debug.Log("OnEnable of VFXViewPresenter with instanceID:" + this.GetInstanceID());
-
             base.OnEnable();
 
             m_PresenterFactory[typeof(VFXContext)] = typeof(VFXContextPresenter);
@@ -83,7 +81,6 @@ namespace UnityEditor.VFX.UI
 
         protected void OnDisable()
         {
-            Debug.Log("OnDisable of VFXViewPresenter with instanceID :" + this.GetInstanceID());
             ReleaseUndoStack();
             Undo.undoRedoPerformed -= SynchronizeUndoRedoState;
             Undo.willFlushUndoRecord -= WillFlushUndoRecord;
