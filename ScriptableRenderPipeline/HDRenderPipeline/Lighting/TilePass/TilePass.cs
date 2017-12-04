@@ -192,7 +192,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public static int s_TileSizeClustered = 32;
 
             // feature variants
-            public static int s_NumFeatureVariants = 27;
+            public static int s_NumFeatureVariants = 14;
 
             // Following define the maximum number of bits use in each feature category.
             public static uint s_LightFeatureMaskFlags = 0xFFF000;
