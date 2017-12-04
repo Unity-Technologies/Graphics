@@ -90,39 +90,34 @@ bool TestLightingForSSS(float3 subsurfaceLighting)
 
 // Returns the modified albedo (diffuse color) for materials with subsurface scattering.
 // Ref: Advanced Techniques for Realistic Real-Time Skin Rendering.
-float3 ApplyDiffuseTexturingMode(float3 color, bool isSSSMaterial, int subsurfaceProfile)
+float3 ApplyDiffuseTexturingMode(float3 color, int subsurfaceProfile)
 {
-    float3 albedo = color;
-
-    if (isSSSMaterial)
-    {
 #if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_SUBSURFACE_SCATTERING)
-        // If the SSS pass is executed, we know we have SSS enabled.
-        bool enableSssAndTransmission = true;
+    // If the SSS pass is executed, we know we have SSS enabled.
+    bool enableSssAndTransmission = true;
 #else
-        bool enableSssAndTransmission = _EnableSSSAndTransmission != 0;
+    bool enableSssAndTransmission = _EnableSSSAndTransmission != 0;
 #endif
 
-        if (enableSssAndTransmission)
+    if (enableSssAndTransmission)
+    {
+        bool performPostScatterTexturing = IsBitSet(asuint(_TexturingModeFlags), subsurfaceProfile);
+
+        if (performPostScatterTexturing)
         {
-            bool performPostScatterTexturing = IsBitSet(asuint(_TexturingModeFlags), subsurfaceProfile);
-
-            if (performPostScatterTexturing)
-            {
-                // Post-scatter texturing mode: the albedo is only applied during the SSS pass.
+            // Post-scatter texturing mode: the albedo is only applied during the SSS pass.
 #if !defined(SHADERPASS) || (SHADERPASS != SHADERPASS_SUBSURFACE_SCATTERING)
-                albedo = float3(1, 1, 1);
+            color = float3(1, 1, 1);
 #endif
-            }
-            else
-            {
-                // Pre- and post- scatter texturing mode.
-                albedo = sqrt(albedo);
-            }
+        }
+        else
+        {
+            // Pre- and post- scatter texturing mode.
+            color = sqrt(color);
         }
     }
 
-    return albedo;
+    return color;
 }
 
 // ----------------------------------------------------------------------------
@@ -136,26 +131,12 @@ struct SSSData
     float subsurfaceProfile;
 };
 
-//#define USE_COMPACT_SSS_BUFFER
-
-#ifdef USE_COMPACT_SSS_BUFFER
-
 // SSSBuffer texture declaration
 TEXTURE2D(_SSSBufferTexture0);
 
-void EncodeIntoSSSBuffer(SSSData sssData, uint2 positionSS, out SSSBufferType0 outSSSBuffer0)
+void EncodeIntoSSSBuffer(SSSData sssData, uint2 positionSS, out SSSBufferType0 outSSSBuffer0, out SSSBufferType1 outSSSBuffer1)
 {
-    // RGBToYCoCg have better precision with a sRGB color, use cheap gamma 2 instead
-    // Take care that the render target use linear format
-    float3 YCoCg = RGBToYCoCg(LinearToGamma20(sssData.diffuseColor));
-
-    // Note: when we are in forward we don't need to store the thickness as it is already apply. So a potential optimization
-    // when we know that we are in full forward only is to not store the thickness and store the full baseColor (so not cost at decode)
-    // as this function aim to be share between hybrid deferred/forward, we can't assume it.
-
-    // subsurfaceRadius is like a mask (a bit like metal parameters and don't need a lot of precision, store it on 4 bit
-    // currently we support up to 16 SSS profile (SSS_N_PROFILES) - caution if this number change (for a higher value), code below must change!
-    outSSSBuffer0 = float4((positionSS.x & 1) == (positionSS.y & 1) ? YCoCg.rb : YCoCg.rg, PackFloatInt8bit(sssData.subsurfaceRadius, sssData.subsurfaceProfile, 16.0), 0.0);
+    outSSSBuffer0 = float4(sssData.diffuseColor, PackFloatInt8bit(sssData.subsurfaceRadius, sssData.subsurfaceProfile, 16.0));
 }
 
 void DecodeSSSProfileFromSSSBuffer(SSSBufferType0 inSSSBuffer0, uint2 positionSS, out int subsurfaceProfile)
@@ -166,60 +147,12 @@ void DecodeSSSProfileFromSSSBuffer(SSSBufferType0 inSSSBuffer0, uint2 positionSS
 
 void DecodeFromSSSBuffer(uint2 positionSS, out SSSData sssData)
 {
-    // unpack
     float4 inBuffer = LOAD_TEXTURE2D(_SSSBufferTexture0, positionSS);
-    float2 YChroma0 = inBuffer.rg;
-    UnpackFloatInt8bit(inBuffer.b, 16.0, sssData.subsurfaceRadius, sssData.subsurfaceProfile);
-    // Note: nothing in a, reserved for thickness in case of GBuffer rendering
-
-    // Reconstruct color
-    // Note: We don't care about pixel at border, will be handled by the edge filter (as it will be black)
-    float2 a0 = LOAD_TEXTURE2D(_SSSBufferTexture0, positionSS + uint2(1, 0)).rg;
-    float2 a1 = LOAD_TEXTURE2D(_SSSBufferTexture0, positionSS - uint2(1, 0)).rg;
-    float2 a2 = LOAD_TEXTURE2D(_SSSBufferTexture0, positionSS + uint2(0, 1)).rg;
-    float2 a3 = LOAD_TEXTURE2D(_SSSBufferTexture0, positionSS - uint2(0, 1)).rg;
-    float chroma1 = YCoCgCheckBoardEdgeFilter(YChroma0.r, a0, a1, a2, a3);
-    float3 YCoCg = (positionSS.x & 1) == (positionSS.y & 1) ? float3(YChroma0.r, chroma1, YChroma0.g) : float3(YChroma0.rg, chroma1);
-    sssData.diffuseColor = Gamma20ToLinear(YCoCgToRGB(YCoCg));
+    sssData.diffuseColor = LOAD_TEXTURE2D(_SSSBufferTexture0, positionSS).rgb;
+    UnpackFloatInt8bit(inBuffer.a, 16.0, sssData.subsurfaceRadius, sssData.subsurfaceProfile);
 }
 
 #define OUTPUT_SSSBUFFER(NAME) out GBufferType0 MERGE_NAME(NAME, 0) : SV_Target0
-#define ENCODE_INTO_SSSBUFFER(SURFACE_DATA, UNPOSITIONSS, NAME) EncodeIntoSSSBuffer(SURFACE_DATA, UNPOSITIONSS, MERGE_NAME(NAME, 0))
-
-#else
-
-// SSSBuffer texture declaration
-TEXTURE2D(_SSSBufferTexture0);
-TEXTURE2D(_SSSBufferTexture1);
-
-void EncodeIntoSSSBuffer(SSSData sssData, uint2 positionSS, out SSSBufferType0 outSSSBuffer0, out SSSBufferType1 outSSSBuffer1)
-{
-    outSSSBuffer0 = float4(0.0, sssData.subsurfaceRadius, PackByte(sssData.subsurfaceProfile), 0.0);
-    outSSSBuffer1 = float4(sssData.diffuseColor, 0.0);
-}
-
-void DecodeSSSProfileFromSSSBuffer(SSSBufferType0 inSSSBuffer0, uint2 positionSS, out int subsurfaceProfile)
-{
-    subsurfaceProfile = UnpackByte(inSSSBuffer0.b);
-}
-
-void DecodeFromSSSBuffer(uint2 positionSS, out SSSData sssData)
-{
-    // unpack
-    float4 inBuffer = LOAD_TEXTURE2D(_SSSBufferTexture0, positionSS);
-    sssData.subsurfaceRadius = inBuffer.g;
-    sssData.subsurfaceProfile = UnpackByte(inBuffer.b);
-    // Note: nothing in a, reserved for thickness in case of GBuffer rendering
-
-    sssData.diffuseColor = LOAD_TEXTURE2D(_SSSBufferTexture1, positionSS).rgb;
-}
-
-#define OUTPUT_SSSBUFFER(NAME)                              \
-        out GBufferType0 MERGE_NAME(NAME, 0) : SV_Target0,  \
-        out GBufferType1 MERGE_NAME(NAME, 1) : SV_Target1
-
-#define ENCODE_INTO_SSSBUFFER(SURFACE_DATA, UNPOSITIONSS, NAME) EncodeIntoSSSBuffer(ConvertSurfaceDataToSSSData(SURFACE_DATA), UNPOSITIONSS, MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1))
-
-#endif
+#define ENCODE_INTO_SSSBUFFER(SURFACE_DATA, UNPOSITIONSS, NAME) EncodeIntoSSSBuffer(ConvertSurfaceDataToSSSData(SURFACE_DATA), UNPOSITIONSS, MERGE_NAME(NAME, 0))
 
 #define DECODE_FROM_SSSBUFFER(UNPOSITIONSS, SSS_DATA) DecodeFromSSSBuffer(UNPOSITIONSS, SSS_DATA)
