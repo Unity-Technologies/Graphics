@@ -1,9 +1,9 @@
-#include "TilePass.cs.hlsl"
+#include "LightLoop.cs.hlsl"
 #include "../../Sky/SkyVariables.hlsl"
 
 StructuredBuffer<uint> g_vLightListGlobal;      // don't support Buffer yet in unity
 
-#define DWORD_PER_TILE 16 // See dwordsPerTile in TilePass.cs, we have roomm for 31 lights and a number of light value all store on 16 bit (ushort)
+#define DWORD_PER_TILE 16 // See dwordsPerTile in LightLoop.cs, we have roomm for 31 lights and a number of light value all store on 16 bit (ushort)
 
 CBUFFER_START(UnityTilePass)
 uint _NumTileFtplX;

@@ -18,25 +18,10 @@
 # endif
 #endif
 
-// In case we pack data uint16 buffer we need to change the output render target format to uint16
-// TODO: Is there a way to automate these output type based on the format declare in lit.cs ?
-#if SHADEROPTIONS_PACK_GBUFFER_IN_U16
-#define GBufferType0 uint4
-#define GBufferType1 uint4
-
-// TODO: How to abstract that ? We would like to avoid this PS4 test here
-#ifdef SHADER_API_PSSL
-// On PS4 we need to specify manually the format of the output render target, output type is not enough
-#pragma PSSL_target_output_format(target 0 FMT_UINT16_ABGR)
-#pragma PSSL_target_output_format(target 1 FMT_UINT16_ABGR)
-#endif
-
-#else
 #define GBufferType0 float4
 #define GBufferType1 float4
 #define GBufferType2 float4
 #define GBufferType3 float4
-#endif
 
 // GBuffer texture declaration
 TEXTURE2D(_GBufferTexture0);
@@ -142,7 +127,7 @@ float3 EstimateRaycast(float3 V, PositionInputs posInputs, float3 positionWS, fl
 // However as we use material classification it is hard to be fully separated
 // the dependecy is define in this include where there is shared define for material and lighting in case of deferred material.
 // If a user do a lighting architecture without material classification, this can be remove
-#include "../../Lighting/TilePass/TilePass.cs.hlsl"
+#include "../../Lighting/LightLoop/LightLoop.cs.hlsl"
 
 static uint g_FeatureFlags = UINT_MAX & ~MATERIALFEATUREFLAGS_LIT_CLEAR_COAT;
 
@@ -440,21 +425,12 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 void EncodeIntoGBuffer( SurfaceData surfaceData,
                         float3 bakeDiffuseLighting,
                         uint2 positionSS,
-                        #if SHADEROPTIONS_PACK_GBUFFER_IN_U16
-                        out GBufferType0 outGBufferU0,
-                        out GBufferType1 outGBufferU1
-                        #else
                         out GBufferType0 outGBuffer0,
                         out GBufferType1 outGBuffer1,
                         out GBufferType2 outGBuffer2,
                         out GBufferType3 outGBuffer3
-                        #endif
                         )
 {
-#if SHADEROPTIONS_PACK_GBUFFER_IN_U16
-    float4 outGBuffer0, outGBuffer1, outGBuffer2, outGBuffer3;
-#endif
-
     ApplyDebugToSurfaceData(surfaceData);
 
     // RT0 - 8:8:8:8 sRGB
@@ -503,44 +479,6 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
 
     // Lighting
     outGBuffer3 = float4(bakeDiffuseLighting, 0.0);
-
-#if SHADEROPTIONS_PACK_GBUFFER_IN_U16
-    // Now pack all buffer into 2 uint buffer
-
-    // We don't have hardware sRGB to store base color in case we pack int u16, so rather than perform full sRGB encoding just use cheap gamma20
-    // TODO: test alternative like FastLinearToSRGB to better match unpacked gbuffer
-    outGBuffer0.xyz = LinearToGamma20(outGBuffer0.xyz);
-
-    uint packedGBuffer1 = PackR10G10B10A2(outGBuffer1);
-
-    outGBufferU0 = uint4(   PackFloatToUInt(outGBuffer0.x, 8, 0)  | PackFloatToUInt(outGBuffer0.y, 8, 8),
-                            PackFloatToUInt(outGBuffer0.z, 8, 0)  | PackFloatToUInt(outGBuffer0.w, 8, 8),
-                            (packedGBuffer1 & 0x0000FFFF),
-                            (packedGBuffer1 & 0xFFFF0000) >> 16);
-
-    uint packedGBuffer3 = PackToR11G11B10f(outGBuffer3.xyz);
-
-    outGBufferU1 = uint4(   PackFloatToUInt(outGBuffer2.x, 8, 0)  | PackFloatToUInt(outGBuffer2.y, 8, 8),
-                            PackFloatToUInt(outGBuffer2.z, 8, 0)  | PackFloatToUInt(outGBuffer2.w, 8, 8),
-                            (packedGBuffer3 & 0x0000FFFF),
-                            (packedGBuffer3 & 0xFFFF0000) >> 16);
-#endif
-}
-
-float4 DecodeGBuffer0(GBufferType0 encodedGBuffer0)
-{
-    float4 decodedGBuffer0;
-#if SHADEROPTIONS_PACK_GBUFFER_IN_U16
-    decodedGBuffer0.x = UnpackUIntToFloat(encodedGBuffer0.x, 8, 0);
-    decodedGBuffer0.y = UnpackUIntToFloat(encodedGBuffer0.x, 8, 8);
-    decodedGBuffer0.z = UnpackUIntToFloat(encodedGBuffer0.y, 8, 0);
-    decodedGBuffer0.w = UnpackUIntToFloat(encodedGBuffer0.y, 8, 8);
-
-    decodedGBuffer0.xyz = Gamma20ToLinear(encodedGBuffer0.xyz);
-#else
-    decodedGBuffer0 = encodedGBuffer0;
-#endif
-    return decodedGBuffer0;
 }
 
 void DecodeFromGBuffer(
@@ -549,37 +487,14 @@ void DecodeFromGBuffer(
     out BSDFData bsdfData,
     out float3 bakeDiffuseLighting)
 {
-#if SHADEROPTIONS_PACK_GBUFFER_IN_U16
-    GBufferType0 inGBufferU0 = LOAD_TEXTURE2D(_GBufferTexture0, positionSS);
-    GBufferType1 inGBufferU1 = LOAD_TEXTURE2D(_GBufferTexture1, positionSS);
-#else
     GBufferType0 inGBuffer0 = LOAD_TEXTURE2D(_GBufferTexture0, positionSS);
     GBufferType1 inGBuffer1 = LOAD_TEXTURE2D(_GBufferTexture1, positionSS);
     GBufferType2 inGBuffer2 = LOAD_TEXTURE2D(_GBufferTexture2, positionSS);
     GBufferType3 inGBuffer3 = LOAD_TEXTURE2D(_GBufferTexture3, positionSS);
-#endif
 
     ZERO_INITIALIZE(BSDFData, bsdfData);
 
     g_FeatureFlags = featureFlags & ~MATERIALFEATUREFLAGS_LIT_CLEAR_COAT;
-
-#if SHADEROPTIONS_PACK_GBUFFER_IN_U16
-    float4 inGBuffer0, inGBuffer1, inGBuffer2, inGBuffer3;
-
-    inGBuffer0 = DecodeGBuffer0(inGBufferU0);
-
-    uint packedGBuffer1 = inGBufferU0.z | inGBufferU0.w << 16;
-    inGBuffer1 = UnpackR10G10B10A2(packedGBuffer1);
-
-    inGBuffer2.x = UnpackUIntToFloat(inGBufferU1.x, 8, 0);
-    inGBuffer2.y = UnpackUIntToFloat(inGBufferU1.x, 8, 8);
-    inGBuffer2.z = UnpackUIntToFloat(inGBufferU1.y, 8, 0);
-    inGBuffer2.w = UnpackUIntToFloat(inGBufferU1.y, 8, 8);
-
-    uint packedGBuffer3 = inGBufferU1.z | inGBufferU1.w << 16;
-    inGBuffer3.xyz = UnpackFromR11G11B10f(packedGBuffer1);
-    inGBuffer3.w = 0.0;
-#endif
 
     float3 baseColor = inGBuffer0.rgb;
     bsdfData.specularOcclusion = inGBuffer0.a;
@@ -1741,23 +1656,22 @@ IndirectLighting EvaluateBSDF_SSRefraction(LightLoopContext lightLoopContext,
     float3 refractedBackPointWS = EstimateRaycast(V, posInput, preLightData.transmissionPositionWS, preLightData.transmissionRefractV);
 
     // Calculate screen space coordinates of refracted point in back plane
-    float4 refractedBackPointCS = mul(UNITY_MATRIX_VP, float4(refractedBackPointWS, 1.0));
-    float2 refractedBackPointSS = ComputeNormalizedDeviceCoordinates(refractedBackPointCS);
+    float2 refractedBackPointNDC = ComputeNormalizedDeviceCoordinates(refractedBackPointWS, UNITY_MATRIX_VP);
     uint2 depthSize = uint2(_PyramidDepthMipSize.xy);
-    float refractedBackPointDepth = LinearEyeDepth(LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, refractedBackPointSS * depthSize, 0).r, _ZBufferParams);
+    float refractedBackPointDepth = LinearEyeDepth(LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, refractedBackPointNDC * depthSize, 0).r, _ZBufferParams);
 
     // Exit if texel is out of color buffer
     // Or if the texel is from an object in front of the object
     if (refractedBackPointDepth < posInput.linearDepth
-        || any(refractedBackPointSS < 0.0)
-        || any(refractedBackPointSS > 1.0))
+        || any(refractedBackPointNDC < 0.0)
+        || any(refractedBackPointNDC > 1.0))
     {
         // Do nothing and don't update the hierarchy weight so we can fall back on refraction probe
         return lighting;
     }
 
     // Map the roughness to the correct mip map level of the color pyramid
-    lighting.specularTransmitted = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, refractedBackPointSS, preLightData.transmissionSSMipLevel).rgb;
+    lighting.specularTransmitted = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, refractedBackPointNDC, preLightData.transmissionSSMipLevel).rgb;
 
     // Beer-Lamber law for absorption
     lighting.specularTransmitted *= preLightData.transmissionTransmittance;
