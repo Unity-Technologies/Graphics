@@ -50,7 +50,7 @@ RWTexture2D<float> conditionalDensities;  // [TEXTURE_WIDTH x TEXTURE_HEIGHT]
     GroupMemoryBarrierWithGroupSync();                          \
                                                                 \
     /* Prevent NaNs arising from the division of 0 by 0. */     \
-    sum = max(temp[SHARED_MEM(n - 1)], FLT_MIN);                \
+    sum = max(temp[SHARED_MEM(n - 1)], FLT_EPS);                \
                                                                 \
     GroupMemoryBarrierWithGroupSync();                          \
                                                                 \
