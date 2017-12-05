@@ -1,7 +1,7 @@
 using System.Reflection;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph
+/*namespace UnityEditor.ShaderGraph
 {
     [Title("Procedural", "MakeSubgraph", "Repeating Dot")]
     public class RepeatingDotNode : CodeFunctionNode
@@ -31,4 +31,4 @@ namespace UnityEditor.ShaderGraph
 }";
         }
     }
-}
+}*/
