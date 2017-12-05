@@ -7,6 +7,12 @@ public class PlayModeTestFramework : EditorWindow
 {
     static string scenesRootPath = "/Tests/GraphicsTests/RenderPipeline/HDRenderPipeline/Scenes";
 
+    enum Platforms { PC, PS4};
+    Platforms platform = Platforms.PC;
+
+    bool developmentBuild = false;
+    bool buildAndRun = true;
+
     [MenuItem("Internal/GraphicTest Tools/PlayMode Test Window")]
     public static void OpenPlayModeTestWindow()
     {
@@ -38,6 +44,12 @@ public class PlayModeTestFramework : EditorWindow
         {
             GUILayout.Label(allPaths[i]);
         }
+
+        platform = (Platforms)EditorGUILayout.EnumPopup("Target Platform ", platform);
+
+        developmentBuild = EditorGUILayout.Toggle("Development Build", developmentBuild);
+
+        buildAndRun = EditorGUILayout.Toggle("Build and Run", buildAndRun);
 
         if (GUILayout.Button("Build Player"))
         {
@@ -78,7 +90,19 @@ public class PlayModeTestFramework : EditorWindow
 
             //System.IO.Directory.Move(Application.dataPath + "/ImageTemplates/HDRenderPipeline", Application.dataPath + "/ImageTemplates/Resources/HDRenderPipeline");
 
-            BuildPipeline.BuildPlayer(testScenes, Application.dataPath + "/../Builds/GraphicTests/GraphicTestBuildPC.exe", BuildTarget.StandaloneWindows64, BuildOptions.None);
+            BuildOptions options = BuildOptions.None;
+            if (developmentBuild) options |= BuildOptions.Development;
+            if (buildAndRun) options |= BuildOptions.AutoRunPlayer;
+
+            switch (platform)
+            {
+                case Platforms.PC:
+                    BuildPipeline.BuildPlayer(testScenes, Application.dataPath + "/../Builds/GraphicTests/PC/GraphicTestBuildPC.exe", BuildTarget.StandaloneWindows64, options);
+                    break;
+                case Platforms.PS4:
+                    BuildPipeline.BuildPlayer(testScenes, Application.dataPath + "/../Builds/GraphicTests/PS4/GraphicTestBuildPS4.self", BuildTarget.PS4, options);
+                    break;
+            }
 
             // Move back Templates to their folder
             for (int i = 0; i < templates.Length; ++i)

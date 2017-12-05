@@ -119,7 +119,7 @@ public class PlayModeTestsUI : MonoBehaviour
             resultsMaxValue[i] = singleTestResult.Find("Max_Value/Text").GetComponent<Text>();
             resultsMaxFill[i] = singleTestResult.Find("Max_Value/Fill").GetComponent<RectTransform>();
 
-            singleTestResult.parent = scrollView.content;
+            singleTestResult.SetParent(scrollView.content);
             singleTestResult.anchorMin = new Vector2(0, 0);
             singleTestResult.anchorMax = new Vector2(1, 0);
             singleTestResult.offsetMin = new Vector2(0, scrollView.content.rect.height - (i + 1) * 200f);
