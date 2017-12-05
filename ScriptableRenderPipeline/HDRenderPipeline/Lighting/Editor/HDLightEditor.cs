@@ -175,8 +175,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         void DrawFeatures()
         {
-            EditorGUILayout.PropertyField(m_AdditionalLightData.showAdditionalSettings);
-
             bool disabledScope = settings.isCompletelyBaked
                 || m_LightShape == LightShape.Line
                 || m_LightShape == LightShape.Rectangle;
@@ -186,6 +184,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 bool shadowsEnabled = EditorGUILayout.Toggle(CoreEditorUtils.GetContent("Enable Shadows"), settings.shadowsType.enumValueIndex != 0);
                 settings.shadowsType.enumValueIndex = shadowsEnabled ? (int)LightShadows.Hard : (int)LightShadows.None;
             }
+
+            EditorGUILayout.PropertyField(m_AdditionalLightData.showAdditionalSettings);
         }
 
         void DrawShape()
@@ -282,13 +282,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // When directional light use a cookie, it can control the size
                 if (settings.cookie != null && m_LightShape == LightShape.Directional)
                 {
+                    EditorGUI.indentLevel++;
                     EditorGUILayout.Slider(m_AdditionalLightData.shapeLength, 0.01f, 10f, s_Styles.cookieSizeX);
                     EditorGUILayout.Slider(m_AdditionalLightData.shapeWidth, 0.01f, 10f, s_Styles.cookieSizeY);
+                    EditorGUI.indentLevel--;
                 }
             }
 
             if (m_AdditionalLightData.showAdditionalSettings.boolValue)
             {
+                EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Additional Settings", EditorStyles.boldLabel);
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_AdditionalLightData.affectDiffuse, s_Styles.affectDiffuse);
@@ -300,21 +303,25 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        void DrawBakedShadowParameters()
+        {
+            switch ((LightType)settings.lightType.enumValueIndex)
+            {
+                case LightType.Directional:
+                    EditorGUILayout.Slider(settings.bakedShadowAngleProp, 0f, 90f, s_Styles.bakedShadowAngle);
+                    break;
+                case LightType.Spot:
+                case LightType.Point:
+                    EditorGUILayout.PropertyField(settings.bakedShadowRadiusProp, s_Styles.bakedShadowRadius);
+                    break;
+            }
+        }
+
         void DrawShadows()
         {
             if (settings.isCompletelyBaked)
             {
-                switch ((LightType)settings.lightType.enumValueIndex)
-                {
-                    case LightType.Directional:
-                        EditorGUILayout.Slider(settings.bakedShadowAngleProp, 0f, 90f, s_Styles.bakedShadowAngle);
-                        break;
-                    case LightType.Spot:
-                    case LightType.Point:
-                        EditorGUILayout.PropertyField(settings.bakedShadowRadiusProp, s_Styles.bakedShadowRadius);
-                        break;
-                }
-
+                DrawBakedShadowParameters();
                 return;
             }
 
@@ -323,65 +330,72 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.Slider(settings.shadowsNormalBias, 0.001f, 1f, s_Styles.shadowNormalBias);
             EditorGUILayout.Slider(settings.shadowsNearPlane, 0.01f, 10f, s_Styles.shadowNearPlane);
 
-            if (settings.lightType.enumValueIndex != (int)LightType.Directional)
-                return;
-
-            using (var scope = new EditorGUI.ChangeCheckScope())
+            if (settings.lightType.enumValueIndex == (int)LightType.Directional)
             {
-                EditorGUILayout.IntSlider(m_AdditionalShadowData.cascadeCount, 1, 4, s_Styles.shadowCascadeCount);
-
-                if (scope.changed)
+                using (var scope = new EditorGUI.ChangeCheckScope())
                 {
-                    int len = m_AdditionalShadowData.cascadeCount.intValue;
-                    m_AdditionalShadowData.cascadeRatios.arraySize = len - 1;
-                    m_AdditionalShadowData.cascadeBorders.arraySize = len;
-                }
-            }
+                    EditorGUILayout.IntSlider(m_AdditionalShadowData.cascadeCount, 1, 4, s_Styles.shadowCascadeCount);
 
-            EditorGUI.indentLevel++;
-
-            using (var scope = new EditorGUI.ChangeCheckScope())
-            {
-                // Draw each field first...
-                int arraySize = m_AdditionalShadowData.cascadeRatios.arraySize;
-                for (int i = 0; i < arraySize; i++)
-                    EditorGUILayout.Slider(m_AdditionalShadowData.cascadeRatios.GetArrayElementAtIndex(i), 0f, 1f, s_Styles.shadowCascadeRatios[i]);
-
-                if (scope.changed)
-                {
-                    // ...then clamp values to avoid out of bounds cascade ratios
-                    for (int i = 0; i < arraySize; i++)
+                    if (scope.changed)
                     {
-                        var ratios = m_AdditionalShadowData.cascadeRatios;
-                        var ratioProp = ratios.GetArrayElementAtIndex(i);
-                        float val = ratioProp.floatValue;
-
-                        if (i > 0)
-                        {
-                            var prevRatioProp = ratios.GetArrayElementAtIndex(i - 1);
-                            float prevVal = prevRatioProp.floatValue;
-                            val = Mathf.Max(val, prevVal);
-                        }
-
-                        if (i < arraySize - 1)
-                        {
-                            var nextRatioProp = ratios.GetArrayElementAtIndex(i + 1);
-                            float nextVal = nextRatioProp.floatValue;
-                            val = Mathf.Min(val, nextVal);
-                        }
-
-                        ratioProp.floatValue = val;
+                        int len = m_AdditionalShadowData.cascadeCount.intValue;
+                        m_AdditionalShadowData.cascadeRatios.arraySize = len - 1;
+                        m_AdditionalShadowData.cascadeBorders.arraySize = len;
                     }
                 }
+
+                EditorGUI.indentLevel++;
+
+                using (var scope = new EditorGUI.ChangeCheckScope())
+                {
+                    // Draw each field first...
+                    int arraySize = m_AdditionalShadowData.cascadeRatios.arraySize;
+                    for (int i = 0; i < arraySize; i++)
+                        EditorGUILayout.Slider(m_AdditionalShadowData.cascadeRatios.GetArrayElementAtIndex(i), 0f, 1f, s_Styles.shadowCascadeRatios[i]);
+
+                    if (scope.changed)
+                    {
+                        // ...then clamp values to avoid out of bounds cascade ratios
+                        for (int i = 0; i < arraySize; i++)
+                        {
+                            var ratios = m_AdditionalShadowData.cascadeRatios;
+                            var ratioProp = ratios.GetArrayElementAtIndex(i);
+                            float val = ratioProp.floatValue;
+
+                            if (i > 0)
+                            {
+                                var prevRatioProp = ratios.GetArrayElementAtIndex(i - 1);
+                                float prevVal = prevRatioProp.floatValue;
+                                val = Mathf.Max(val, prevVal);
+                            }
+
+                            if (i < arraySize - 1)
+                            {
+                                var nextRatioProp = ratios.GetArrayElementAtIndex(i + 1);
+                                float nextVal = nextRatioProp.floatValue;
+                                val = Mathf.Min(val, nextVal);
+                            }
+
+                            ratioProp.floatValue = val;
+                        }
+                    }
+                }
+
+                EditorGUI.indentLevel--;
             }
 
-            EditorGUI.indentLevel--;
+            if (settings.isBakedOrMixed)
+                DrawBakedShadowParameters();
 
             if (m_AdditionalLightData.showAdditionalSettings.boolValue)
             {
+                EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Additional Settings", EditorStyles.boldLabel);
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(m_AdditionalShadowData.fadeDistance, s_Styles.shadowFadeDistance);
+
+                if (settings.lightType.enumValueIndex == (int)LightType.Point || settings.lightType.enumValueIndex == (int)LightType.Spot)
+                    EditorGUILayout.PropertyField(m_AdditionalShadowData.fadeDistance, s_Styles.shadowFadeDistance);
+
                 EditorGUILayout.PropertyField(m_AdditionalShadowData.dimmer, s_Styles.shadowDimmer);
                 EditorGUI.indentLevel--;
             }
