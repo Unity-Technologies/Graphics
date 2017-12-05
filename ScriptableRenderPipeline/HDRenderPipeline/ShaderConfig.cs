@@ -15,8 +15,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // 3) When this is solve (i.e move previousPositionCS to a free attribute semantic), Unity only support one pSecondaryFormat. Mean if we ahve a vertex color instance stream and motion vector, motion vector will overwrite vertex color stream. See MeshRenderingData.cpp
         // All this could be fix we a new Mesh API not ready yet. Note that this feature only affect animated mesh (vertex or skin) as others use depth reprojection.
         VelocityInGBuffer = 0, // Change to 1 to enable the feature, then regenerate hlsl headers.
-        // TODO: not working yet, waiting for UINT16 RT format support
-        PackGBufferInU16 = 0,
         CameraRelativeRendering = 1 // Rendering sets the origin of the world to the position of the primary (scene view) camera
     };
 
@@ -30,9 +28,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // but it is usually small, so we are fine with it (until someone at microsoft fix the debuggger).
         public const int k_VelocityInGbuffer = (int)ShaderOptions.VelocityInGBuffer;
         public static int s_VelocityInGbuffer = (int)ShaderOptions.VelocityInGBuffer;
-
-        public const int k_PackgbufferInU16 = (int)ShaderOptions.PackGBufferInU16;
-        public static int s_PackgbufferInU16 = (int)ShaderOptions.PackGBufferInU16;
 
         public const int k_CameraRelativeRendering = (int)ShaderOptions.CameraRelativeRendering;
         public static int s_CameraRelativeRendering = (int)ShaderOptions.CameraRelativeRendering;

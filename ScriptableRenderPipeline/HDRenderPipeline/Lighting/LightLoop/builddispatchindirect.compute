@@ -1,6 +1,6 @@
 #pragma kernel BuildDispatchIndirect
 
-
+#include "ShaderLibrary/Common.hlsl"
 #include "LightLoop.cs.hlsl"
 
 #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl

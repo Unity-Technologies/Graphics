@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 using System.Linq;
@@ -518,30 +519,30 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static public void SetupLayersMappingKeywords(Material material)
         {
             // object scale affect tile
-            SetKeyword(material, "_LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE", material.GetFloat(kObjectScaleAffectTile) > 0.0f);
+            CoreUtils.SetKeyword(material, "_LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE", material.GetFloat(kObjectScaleAffectTile) > 0.0f);
 
             // Blend mask
             UVBaseMapping UVBlendMaskMapping = (UVBaseMapping)material.GetFloat(kUVBlendMask);
-            SetKeyword(material, "_LAYER_MAPPING_PLANAR_BLENDMASK", UVBlendMaskMapping == UVBaseMapping.Planar);
-            SetKeyword(material, "_LAYER_MAPPING_TRIPLANAR_BLENDMASK",  UVBlendMaskMapping == UVBaseMapping.Triplanar);
+            CoreUtils.SetKeyword(material, "_LAYER_MAPPING_PLANAR_BLENDMASK", UVBlendMaskMapping == UVBaseMapping.Planar);
+            CoreUtils.SetKeyword(material, "_LAYER_MAPPING_TRIPLANAR_BLENDMASK",  UVBlendMaskMapping == UVBaseMapping.Triplanar);
 
             int numLayer = (int)material.GetFloat(kLayerCount);
 
             // Layer
             if (numLayer == 4)
             {
-                SetKeyword(material, "_LAYEREDLIT_4_LAYERS", true);
-                SetKeyword(material, "_LAYEREDLIT_3_LAYERS", false);
+                CoreUtils.SetKeyword(material, "_LAYEREDLIT_4_LAYERS", true);
+                CoreUtils.SetKeyword(material, "_LAYEREDLIT_3_LAYERS", false);
             }
             else if (numLayer == 3)
             {
-                SetKeyword(material, "_LAYEREDLIT_4_LAYERS", false);
-                SetKeyword(material, "_LAYEREDLIT_3_LAYERS", true);
+                CoreUtils.SetKeyword(material, "_LAYEREDLIT_4_LAYERS", false);
+                CoreUtils.SetKeyword(material, "_LAYEREDLIT_3_LAYERS", true);
             }
             else
             {
-                SetKeyword(material, "_LAYEREDLIT_4_LAYERS", false);
-                SetKeyword(material, "_LAYEREDLIT_3_LAYERS", false);
+                CoreUtils.SetKeyword(material, "_LAYEREDLIT_4_LAYERS", false);
+                CoreUtils.SetKeyword(material, "_LAYEREDLIT_3_LAYERS", false);
             }
 
             const string kLayerMappingPlanar = "_LAYER_MAPPING_PLANAR";
@@ -556,9 +557,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 string layerUVBaseParam = string.Format("{0}{1}", kUVBase, i);
                 UVBaseMapping layerUVBaseMapping = (UVBaseMapping)material.GetFloat(layerUVBaseParam);
                 string currentLayerMappingPlanar = string.Format("{0}{1}", kLayerMappingPlanar, i);
-                SetKeyword(material, currentLayerMappingPlanar, layerUVBaseMapping == UVBaseMapping.Planar);
+                CoreUtils.SetKeyword(material, currentLayerMappingPlanar, layerUVBaseMapping == UVBaseMapping.Planar);
                 string currentLayerMappingTriplanar = string.Format("{0}{1}", kLayerMappingTriplanar, i);
-                SetKeyword(material, currentLayerMappingTriplanar, layerUVBaseMapping == UVBaseMapping.Triplanar);
+                CoreUtils.SetKeyword(material, currentLayerMappingTriplanar, layerUVBaseMapping == UVBaseMapping.Triplanar);
 
                 string uvBase = string.Format("{0}{1}", kUVBase, i);
                 string uvDetail = string.Format("{0}{1}", kUVDetail, i);
@@ -605,67 +606,67 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 NormalMapSpace normalMapSpace = ((NormalMapSpace)material.GetFloat(kNormalMapSpace + i));
 
-                SetKeyword(material, "_NORMALMAP_TANGENT_SPACE" + i, normalMapSpace == NormalMapSpace.TangentSpace);
+                CoreUtils.SetKeyword(material, "_NORMALMAP_TANGENT_SPACE" + i, normalMapSpace == NormalMapSpace.TangentSpace);
 
                 if (normalMapSpace == NormalMapSpace.TangentSpace)
                 {
-                    SetKeyword(material, "_NORMALMAP" + i, material.GetTexture(kNormalMap + i) || material.GetTexture(kDetailMap + i));
-                    SetKeyword(material, "_BENTNORMALMAP" + i, material.GetTexture(kBentNormalMap + i));
+                    CoreUtils.SetKeyword(material, "_NORMALMAP" + i, material.GetTexture(kNormalMap + i) || material.GetTexture(kDetailMap + i));
+                    CoreUtils.SetKeyword(material, "_BENTNORMALMAP" + i, material.GetTexture(kBentNormalMap + i));
                 }
                 else
                 {
-                    SetKeyword(material, "_NORMALMAP" + i, material.GetTexture(kNormalMapOS + i) || material.GetTexture(kDetailMap + i));
-                    SetKeyword(material, "_BENTNORMALMAP" + i, material.GetTexture(kBentNormalMapOS + i));
+                    CoreUtils.SetKeyword(material, "_NORMALMAP" + i, material.GetTexture(kNormalMapOS + i) || material.GetTexture(kDetailMap + i));
+                    CoreUtils.SetKeyword(material, "_BENTNORMALMAP" + i, material.GetTexture(kBentNormalMapOS + i));
                 }
 
-                SetKeyword(material, "_MASKMAP" + i, material.GetTexture(kMaskMap + i));
+                CoreUtils.SetKeyword(material, "_MASKMAP" + i, material.GetTexture(kMaskMap + i));
 
-                SetKeyword(material, "_DETAIL_MAP" + i, material.GetTexture(kDetailMap + i));
+                CoreUtils.SetKeyword(material, "_DETAIL_MAP" + i, material.GetTexture(kDetailMap + i));
 
-                SetKeyword(material, "_HEIGHTMAP" + i, material.GetTexture(kHeightMap + i));
+                CoreUtils.SetKeyword(material, "_HEIGHTMAP" + i, material.GetTexture(kHeightMap + i));
 
-                SetKeyword(material, "_SUBSURFACE_RADIUS_MAP" + i, material.GetTexture(kSubsurfaceRadiusMap + i));
-                SetKeyword(material, "_THICKNESSMAP" + i, material.GetTexture(kThicknessMap + i));
+                CoreUtils.SetKeyword(material, "_SUBSURFACE_RADIUS_MAP" + i, material.GetTexture(kSubsurfaceRadiusMap + i));
+                CoreUtils.SetKeyword(material, "_THICKNESSMAP" + i, material.GetTexture(kThicknessMap + i));
             }
 
-            SetKeyword(material, "_INFLUENCEMASK_MAP", material.GetTexture(kLayerInfluenceMaskMap) && material.GetFloat(kkUseMainLayerInfluence) != 0.0f);
+            CoreUtils.SetKeyword(material, "_INFLUENCEMASK_MAP", material.GetTexture(kLayerInfluenceMaskMap) && material.GetFloat(kkUseMainLayerInfluence) != 0.0f);
 
-            SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
-            SetKeyword(material, "_ENABLESPECULAROCCLUSION", material.GetFloat(kEnableSpecularOcclusion) > 0.0f);
+            CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
+            CoreUtils.SetKeyword(material, "_ENABLESPECULAROCCLUSION", material.GetFloat(kEnableSpecularOcclusion) > 0.0f);
 
-            SetKeyword(material, "_MAIN_LAYER_INFLUENCE_MODE", material.GetFloat(kkUseMainLayerInfluence) != 0.0f);
+            CoreUtils.SetKeyword(material, "_MAIN_LAYER_INFLUENCE_MODE", material.GetFloat(kkUseMainLayerInfluence) != 0.0f);
 
             VertexColorMode VCMode = (VertexColorMode)material.GetFloat(kVertexColorMode);
             if (VCMode == VertexColorMode.Multiply)
             {
-                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_MUL", true);
-                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_ADD", false);
+                CoreUtils.SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_MUL", true);
+                CoreUtils.SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_ADD", false);
             }
             else if (VCMode == VertexColorMode.Add)
             {
-                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_MUL", false);
-                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_ADD", true);
+                CoreUtils.SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_MUL", false);
+                CoreUtils.SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_ADD", true);
             }
             else
             {
-                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_MUL", false);
-                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_ADD", false);
+                CoreUtils.SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_MUL", false);
+                CoreUtils.SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_ADD", false);
             }
 
             bool useHeightBasedBlend = material.GetFloat(kUseHeightBasedBlend) != 0.0f;
-            SetKeyword(material, "_HEIGHT_BASED_BLEND", useHeightBasedBlend);
+            CoreUtils.SetKeyword(material, "_HEIGHT_BASED_BLEND", useHeightBasedBlend);
 
             bool useDensityModeEnable = false;
             for (int i = 0; i < material.GetInt(kLayerCount); ++i )
             {
                 useDensityModeEnable |= material.GetFloat(kOpacityAsDensity + i) != 0.0f;
             }
-            SetKeyword(material, "_DENSITY_MODE", useDensityModeEnable);
+            CoreUtils.SetKeyword(material, "_DENSITY_MODE", useDensityModeEnable);
 
             Lit.MaterialId materialId = (Lit.MaterialId)material.GetFloat(kMaterialID);
 
-            SetKeyword(material, "_MATID_SSS", materialId == Lit.MaterialId.LitSSS);
-            //SetKeyword(material, "_MATID_STANDARD", materialId == Lit.MaterialId.LitStandard); // See comment in Lit.shader, it is the default, we don't define it
+            CoreUtils.SetKeyword(material, "_MATID_SSS", materialId == Lit.MaterialId.LitSSS);
+            //CoreUtils.SetKeyword(material, "_MATID_STANDARD", materialId == Lit.MaterialId.LitStandard); // See comment in Lit.shader, it is the default, we don't define it
         }
         private void DoEmissiveGUI(Material material)
         {
