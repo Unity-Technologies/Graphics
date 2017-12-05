@@ -294,6 +294,13 @@ float3x3 GetLocalFrame(float3 localZ)
     return float3x3(localX, localY, localZ);
 }
 
+float3x3 GetLocalFrame(float3 localZ, float3 localX)
+{
+    float3 localY = cross(localZ, localX);
+
+    return float3x3(localX, localY, localZ);
+}
+
 // ior is a value between 1.0 and 2.5
 float IORToFresnel0(float ior)
 {

@@ -8,6 +8,30 @@ namespace UnityEditor.Experimental.Rendering
 {
     public static class CoreEditorUtils
     {
+        // GUIContent cache utilities
+        static Dictionary<string, GUIContent> s_GUIContentCache = new Dictionary<string, GUIContent>();
+
+        public static GUIContent GetContent(string textAndTooltip)
+        {
+            if (string.IsNullOrEmpty(textAndTooltip))
+                return GUIContent.none;
+
+            GUIContent content;
+
+            if (!s_GUIContentCache.TryGetValue(textAndTooltip, out content))
+            {
+                var s = textAndTooltip.Split('|');
+                content = new GUIContent(s[0]);
+
+                if (s.Length > 1 && !string.IsNullOrEmpty(s[1]))
+                    content.tooltip = s[1];
+
+                s_GUIContentCache.Add(textAndTooltip, content);
+            }
+
+            return content;
+        }
+
         // Serialization helpers
         public static string FindProperty<T, TValue>(Expression<Func<T, TValue>> expr)
         {
@@ -116,6 +140,70 @@ namespace UnityEditor.Experimental.Rendering
             }
 
             return state;
+        }
+
+        public static bool DrawHeaderToggle(string title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction = null)
+        {
+            var backgroundRect = GUILayoutUtility.GetRect(1f, 17f);
+
+            var labelRect = backgroundRect;
+            labelRect.xMin += 16f;
+            labelRect.xMax -= 20f;
+
+            var toggleRect = backgroundRect;
+            toggleRect.y += 2f;
+            toggleRect.width = 13f;
+            toggleRect.height = 13f;
+
+            // Background rect should be full-width
+            backgroundRect.xMin = 0f;
+            backgroundRect.width += 4f;
+
+            // Background
+            float backgroundTint = EditorGUIUtility.isProSkin ? 0.1f : 1f;
+            EditorGUI.DrawRect(backgroundRect, new Color(backgroundTint, backgroundTint, backgroundTint, 0.2f));
+
+            // Title
+            using (new EditorGUI.DisabledScope(!activeField.boolValue))
+                EditorGUI.LabelField(labelRect, GetContent(title), EditorStyles.boldLabel);
+
+            // Active checkbox
+            activeField.serializedObject.Update();
+            activeField.boolValue = GUI.Toggle(toggleRect, activeField.boolValue, GUIContent.none, CoreEditorStyles.smallTickbox);
+            activeField.serializedObject.ApplyModifiedProperties();
+
+            // Context menu
+            var menuIcon = EditorGUIUtility.isProSkin
+                ? CoreEditorStyles.paneOptionsIconDark
+                : CoreEditorStyles.paneOptionsIconLight;
+
+            var menuRect = new Rect(labelRect.xMax + 4f, labelRect.y + 4f, menuIcon.width, menuIcon.height);
+
+            if (contextAction != null)
+                GUI.DrawTexture(menuRect, menuIcon);
+
+            // Handle events
+            var e = Event.current;
+
+            if (e.type == EventType.MouseDown)
+            {
+                if (contextAction != null && menuRect.Contains(e.mousePosition))
+                {
+                    contextAction(new Vector2(menuRect.x, menuRect.yMax));
+                    e.Use();
+                }
+                else if (labelRect.Contains(e.mousePosition))
+                {
+                    if (e.button == 0)
+                        group.isExpanded = !group.isExpanded;
+                    else if (contextAction != null)
+                        contextAction(e.mousePosition);
+
+                    e.Use();
+                }
+            }
+
+            return group.isExpanded;
         }
 
         public static void RemoveMaterialKeywords(Material material)
