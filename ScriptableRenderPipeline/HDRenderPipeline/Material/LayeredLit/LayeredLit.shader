@@ -647,6 +647,13 @@ Shader "HDRenderPipeline/LayeredLit"
             Name "Forward" // Name is not used
             Tags{ "LightMode" = "Forward" } // This will be only for transparent object based on the RenderQueue index
 
+            Stencil
+            {
+                Ref[_StencilRef]
+                Comp Always
+                Pass Replace
+            }
+
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
             Cull[_CullMode]
@@ -675,6 +682,13 @@ Shader "HDRenderPipeline/LayeredLit"
         {
             Name "ForwardDebugDisplay" // Name is not used
             Tags{ "LightMode" = "ForwardDebugDisplay" } // This will be only for transparent object based on the RenderQueue index
+
+            Stencil
+            {
+                Ref[_StencilRef]
+                Comp Always
+                Pass Replace
+            }
 
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
