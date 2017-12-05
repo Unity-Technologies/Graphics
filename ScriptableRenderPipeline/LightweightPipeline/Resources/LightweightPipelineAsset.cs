@@ -38,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         // Default values set when a new LightweightPipeline asset is created
         [SerializeField] private int m_MaxPixelLights = 4;
         [SerializeField] private bool m_SupportsVertexLight = false;
-        [SerializeField] private bool m_SupportSoftParticles = false;
+        [SerializeField] private bool m_RequireCameraDepthTexture = false;
         [SerializeField] private MSAAQuality m_MSAA = MSAAQuality._4x;
         [SerializeField] private float m_RenderScale = 1.0f;
         [SerializeField] private ShadowType m_ShadowType = ShadowType.HARD_SHADOWS;
@@ -125,9 +125,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             get { return m_SupportsVertexLight; }
         }
 
-        public bool SupportsSoftParticles
+        public bool RequireCameraDepthTexture
         {
-            get { return m_SupportSoftParticles; }
+            get { return m_RequireCameraDepthTexture; }
         }
 
         public int MSAASampleCount
