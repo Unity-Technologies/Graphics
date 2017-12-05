@@ -149,7 +149,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float   thickness;
             public int     subsurfaceProfile;
             public bool    enableTransmission; // Read from the SSS profile
-            public bool    useThinObjectMode;  // Read from the SSS profile
+            public bool    useThickObjectMode; // Read from the SSS profile
             public Vector3 transmittance;
 
             // SpecColor

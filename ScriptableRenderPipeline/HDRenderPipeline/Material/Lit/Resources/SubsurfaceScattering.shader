@@ -33,9 +33,7 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
 
             // Do not modify these.
             #include "../../../ShaderPass/ShaderPass.cs.hlsl"
-            #define SHADERPASS            SHADERPASS_SUBSURFACE_SCATTERING
-            #define MILLIMETERS_PER_METER 1000
-            #define CENTIMETERS_PER_METER 100
+            #define SHADERPASS SHADERPASS_SUBSURFACE_SCATTERING
 
             //-------------------------------------------------------------------------------------
             // Include
@@ -49,7 +47,6 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
             // Inputs & outputs
             //-------------------------------------------------------------------------------------
 
-            float4 _WorldScales[SSS_N_PROFILES];                             // Size of the world unit in meters (only the X component is used)
             float4 _FilterKernelsBasic[SSS_N_PROFILES][SSS_BASIC_N_SAMPLES]; // RGB = weights, A = radial distance
             float4 _HalfRcpWeightedVariances[SSS_BASIC_N_SAMPLES];           // RGB for chromatic, A for achromatic
 
