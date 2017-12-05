@@ -1,6 +1,6 @@
 namespace UnityEditor.ShaderGraph
 {
-    public enum BlendModesEnum
+    public enum BlendMode
     {
         Burn,
         Darken,
