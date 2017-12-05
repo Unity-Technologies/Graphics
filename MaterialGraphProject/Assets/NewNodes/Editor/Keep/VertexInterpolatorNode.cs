@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEditor.Graphing;
 
-namespace UnityEditor.ShaderGraph
+/*namespace UnityEditor.ShaderGraph
 {
     [Title("Vertex Interpolation")]
     public class VertexInterpolatorNode : AbstractMaterialNode
@@ -27,4 +27,4 @@ namespace UnityEditor.ShaderGraph
 
         static readonly int[] k_ValidSlots = { InputSlotId, OutputSlotId };
     }
-}
+}*/
