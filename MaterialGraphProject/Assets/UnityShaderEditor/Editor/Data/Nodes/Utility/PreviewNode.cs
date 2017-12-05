@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Preview Node")]
+    [Title("Utility", "Preview")]
     public class PreviewNode : CodeFunctionNode
     {
         public override bool hasPreview { get { return true; } }
@@ -46,13 +46,13 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_Preview(
-            [Slot(0, Binding.None)] DynamicDimensionVector input,
-            [Slot(1, Binding.None)] out DynamicDimensionVector output)
+            [Slot(0, Binding.None)] DynamicDimensionVector In,
+            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
 {
-    output = input;
+    Out = In;
 }
 ";
         }
