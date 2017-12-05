@@ -220,10 +220,14 @@ void FillMaterialIdStandardData(float3 baseColor, float metallic, inout BSDFData
     bsdfData.fresnel0 = lerp(val.xxx, baseColor, metallic);
 }
 
-void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsurfaceRadius, float thickness, inout BSDFData bsdfData)
+void FillMaterialIdSSSData(float3 baseColor, inout BSDFData bsdfData)
 {
-    bsdfData.diffuseColor       = baseColor;
-    bsdfData.fresnel0           = SKIN_SPECULAR_VALUE; // TODO take from subsurfaceProfile instead
+    bsdfData.diffuseColor = baseColor;
+    bsdfData.fresnel0     = SKIN_SPECULAR_VALUE; // TODO take from subsurfaceProfile instead
+}
+
+void FillTransmissionData(int subsurfaceProfile, float subsurfaceRadius, float thickness, inout BSDFData bsdfData)
+{
     bsdfData.enableTransmission = _EnableSSSAndTransmission != 0;
 
     uint transmissionMode = BitFieldExtract(asuint(_TransmissionFlags), 2u, 2u * subsurfaceProfile);
@@ -399,7 +403,8 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     }
     else if (bsdfData.materialId == MATERIALID_LIT_SSS)
     {
-        FillMaterialIdSSSData(surfaceData.baseColor, surfaceData.subsurfaceProfile, surfaceData.subsurfaceRadius, surfaceData.thickness, bsdfData);
+        FillMaterialIdSSSData(surfaceData.baseColor, bsdfData);
+        FillTransmissionData(surfaceData.subsurfaceProfile, surfaceData.subsurfaceRadius, surfaceData.thickness, bsdfData);
     }
     else if (bsdfData.materialId == MATERIALID_LIT_ANISO)
     {
@@ -578,9 +583,11 @@ void DecodeFromGBuffer(
             subsurfaceRadius  = inGBuffer2.x;
             thickness         = inGBuffer2.y;
             subsurfaceProfile = UnpackByte(inGBuffer2.w);
+
+            FillMaterialIdSSSData(baseColor, bsdfData);
         }
 
-        FillMaterialIdSSSData(baseColor, subsurfaceProfile, subsurfaceRadius, thickness, bsdfData);
+        FillTransmissionData(subsurfaceProfile, subsurfaceRadius, thickness, bsdfData);
     }
 
     if (bsdfData.materialId == MATERIALID_LIT_STANDARD && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_STANDARD))
