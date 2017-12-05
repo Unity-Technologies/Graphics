@@ -712,7 +712,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_FrameCount = Time.frameCount;
             }
 
-            var stereoEnabled = UnityEngine.XR.XRSettings.isDeviceActive && m_CurrentDebugDisplaySettings.renderingDebugSettings.allowStereo;
+            var stereoActive = UnityEngine.XR.XRSettings.isDeviceActive && m_CurrentDebugDisplaySettings.renderingDebugSettings.allowStereo;
 
             foreach (var camera in cameras)
             {
@@ -781,7 +781,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             renderContext.SetupCameraProperties(camera);
 
             var postProcessLayer = camera.GetComponent<PostProcessLayer>();
-            var hdCamera = HDCamera.Get(camera, postProcessLayer);
+            var hdCamera = HDCamera.Get(camera, postProcessLayer, m_Asset.globalRenderingSettings, stereoActive);
             PushGlobalParams(hdCamera, cmd, sssSettings);
 
             // TODO: Find a correct place to bind these material textures
