@@ -1260,8 +1260,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Combines specular lighting and diffuse lighting with subsurface scattering.
         void SubsurfaceScatteringPass(HDCamera hdCamera, CommandBuffer cmd, SubsurfaceScatteringSettings sssParameters)
         {
-            // Currently, forward-rendered objects do not output split lighting required for the SSS pass.
-            if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission || m_Asset.globalRenderingSettings.ShouldUseForwardRenderingOnly())
+            if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission)
                 return;
 
             using (new ProfilingSample(cmd, "Subsurface Scattering", GetSampler(CustomSamplerId.SubsurfaceScattering)))
@@ -1386,12 +1385,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (pass == ForwardPass.Opaque)
                 {
                     // TODO: return this from the SSS manager with variable MRT + if SSS is enabled
-                    RenderTargetIdentifier[] m_MRTCache4 = new RenderTargetIdentifier[4];
-                    m_MRTCache4[0] = m_CameraColorBufferRT;
-                    m_MRTCache4[1] = m_CameraSssDiffuseLightingBufferRT;
-                    m_MRTCache4[2] = m_GbufferManager.GetGBuffers()[0];
+                    RenderTargetIdentifier[] m_MRTCache3 = new RenderTargetIdentifier[3];
+                    m_MRTCache3[0] = m_CameraColorBufferRT;
+                    m_MRTCache3[1] = m_CameraSssDiffuseLightingBufferRT;
+                    m_MRTCache3[2] = m_GbufferManager.GetGBuffers()[0];
 
-                    CoreUtils.SetRenderTarget(cmd, m_MRTCache4, m_CameraDepthStencilBufferRT);
+                    CoreUtils.SetRenderTarget(cmd, m_MRTCache3, m_CameraDepthStencilBufferRT);
 
                     if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
                     {
@@ -1734,7 +1733,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.GetTemporaryRT(m_DepthPyramidBuffer, m_DepthPyramidBufferDesc, FilterMode.Trilinear);
                     // End
 
-                    if (!m_Asset.globalRenderingSettings.ShouldUseForwardRenderingOnly())
+                    // TODO: commented just to test forward SSS until we implement correct manager.
+                    // In forward we need to allocate a target for SSSBuffer0
+                    //if (!m_Asset.globalRenderingSettings.ShouldUseForwardRenderingOnly())
                         m_GbufferManager.InitGBuffers(w, h, m_DeferredMaterial, enableBakeShadowMask, cmd);
 
                     CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.Depth);

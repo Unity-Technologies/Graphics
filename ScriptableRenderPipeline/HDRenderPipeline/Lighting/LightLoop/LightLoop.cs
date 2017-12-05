@@ -401,6 +401,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static ComputeBuffer s_GlobalLightListAtomic = null;
         // clustered light list specific buffers and data end
 
+        bool m_isForwardRenderingOnly;
         bool m_isFptlEnabled;
         bool m_isFptlEnabledForForwardOpaque;
 
@@ -458,7 +459,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool GetFeatureVariantsEnabled()
         {
-            return m_isFptlEnabled && m_TileSettings.enableComputeLightEvaluation && (m_TileSettings.enableComputeLightVariants || m_TileSettings.enableComputeMaterialVariants);
+            return !m_isForwardRenderingOnly && m_isFptlEnabled && m_TileSettings.enableComputeLightEvaluation &&
+                    (m_TileSettings.enableComputeLightVariants || m_TileSettings.enableComputeMaterialVariants);
         }
 
         LightLoopSettings m_TileSettings = null;
@@ -483,7 +485,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
 
             // If Deferred, enable Fptl. If we are forward renderer only and not using Fptl for forward opaque, disable Fptl
-            m_isFptlEnabled = !renderingSettings.ShouldUseForwardRenderingOnly() || tileSettings.enableFptlForForwardOpaque; // TODO: Disable if MSAA
+            m_isForwardRenderingOnly = renderingSettings.ShouldUseForwardRenderingOnly();
+            m_isFptlEnabled = !m_isForwardRenderingOnly || tileSettings.enableFptlForForwardOpaque; // TODO: Disable if MSAA
             m_isFptlEnabledForForwardOpaque = tileSettings.enableFptlForForwardOpaque; // TODO: Disable if MSAA
 
             m_Resources = renderPipelineResources;

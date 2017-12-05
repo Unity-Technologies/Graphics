@@ -1,5 +1,6 @@
 #include "SubsurfaceScatteringSettings.cs.hlsl"
 #include "ShaderLibrary\Packing.hlsl"
+#include "CommonSubsurfaceScattering.hlsl"
 
 CBUFFER_START(UnitySSSParameters)
 // Warning: Unity is not able to losslessly transfer integers larger than 2^24 to the shader system.
@@ -22,72 +23,8 @@ CBUFFER_END
 #define SSS_WRAP_LIGHT cos(PI/2 - SSS_WRAP_ANGLE)
 
 // ----------------------------------------------------------------------------
-// SSS/Transmittance helper
+// helper functions
 // ----------------------------------------------------------------------------
-
-// Computes the fraction of light passing through the object.
-// Evaluate Int{0, inf}{2 * Pi * r * R(sqrt(r^2 + d^2))}, where R is the diffusion profile.
-// Note: 'volumeAlbedo' should be premultiplied by 0.25.
-// Ref: Approximate Reflectance Profiles for Efficient Subsurface Scattering by Pixar (BSSRDF only).
-float3 ComputeTransmittanceDisney(float3 S, float3 volumeAlbedo, float thickness, float radiusScale)
-{
-    // Thickness and SSS radius are decoupled for artists.
-    // In theory, we should modify the thickness by the inverse of the radius scale of the profile.
-    // thickness /= radiusScale;
-
-#if 0
-    float3 expOneThird = exp(((-1.0 / 3.0) * thickness) * S);
-#else
-    // Help the compiler.
-    float  k = (-1.0 / 3.0) * LOG2_E;
-    float3 p = (k * thickness) * S;
-    float3 expOneThird = exp2(p);
-#endif
-
-    // Premultiply & optimize: T = (1/4 * A) * (e^(-t * S) + 3 * e^(-1/3 * t * S))
-    return volumeAlbedo * (expOneThird * expOneThird * expOneThird + 3 * expOneThird);
-}
-
-// Evaluates transmittance for a linear combination of two normalized 2D Gaussians.
-// Ref: Real-Time Realistic Skin Translucency (2010), equation 9 (modified).
-// Note: 'volumeAlbedo' should be premultiplied by 0.25, correspondingly 'lerpWeight' by 4,
-// and 'halfRcpVariance1' should be prescaled by (0.1 * SssConstants.SSS_BASIC_DISTANCE_SCALE)^2.
-float3 ComputeTransmittanceJimenez(float3 halfRcpVariance1, float lerpWeight1,
-                                   float3 halfRcpVariance2, float lerpWeight2,
-                                   float3 volumeAlbedo, float thickness, float radiusScale)
-{
-    // Thickness and SSS radius are decoupled for artists.
-    // In theory, we should modify the thickness by the inverse of the radius scale of the profile.
-    // thickness /= radiusScale;
-
-    float t2 = thickness * thickness;
-
-    // T = A * lerp(exp(-t2 * halfRcpVariance1), exp(-t2 * halfRcpVariance2), lerpWeight2)
-    return volumeAlbedo * (exp(-t2 * halfRcpVariance1) * lerpWeight1 + exp(-t2 * halfRcpVariance2) * lerpWeight2);
-}
-
-// Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
-float ComputeWrappedDiffuseLighting(float NdotL, float w)
-{
-    return saturate((NdotL + w) / ((1 + w) * (1 + w)));
-}
-
-// In order to support subsurface scattering, we need to know which pixels have an SSS material.
-// It can be accomplished by reading the stencil buffer.
-// A faster solution (which avoids an extra texture fetch) is to simply make sure that
-// all pixels which belong to an SSS material are not black (those that don't always are).
-// We choose the blue color channel since it's perceptually the least noticeable.
-float3 TagLightingForSSS(float3 subsurfaceLighting)
-{
-    subsurfaceLighting.b = max(subsurfaceLighting.b, HALF_MIN);
-    return subsurfaceLighting;
-}
-
-// See TagLightingForSSS() for details.
-bool TestLightingForSSS(float3 subsurfaceLighting)
-{
-    return subsurfaceLighting.b > 0;
-}
 
 // Returns the modified albedo (diffuse color) for materials with subsurface scattering.
 // Ref: Advanced Techniques for Realistic Real-Time Skin Rendering.
@@ -155,7 +92,8 @@ void DecodeFromSSSBuffer(uint2 positionSS, out SSSData sssData)
     UnpackFloatInt8bit(inBuffer.a, 16.0, sssData.subsurfaceRadius, sssData.subsurfaceProfile);
 }
 
-#define OUTPUT_SSSBUFFER(NAME) out GBufferType0 MERGE_NAME(NAME, 0) : SV_Target0
+// OUTPUT_SSSBUFFER start from SV_Target2 as SV_Target0 and SV_Target1 are used for lighting buffer
+#define OUTPUT_SSSBUFFER(NAME) out GBufferType0 MERGE_NAME(NAME, 0) : SV_Target2
 #define ENCODE_INTO_SSSBUFFER(SURFACE_DATA, UNPOSITIONSS, NAME) EncodeIntoSSSBuffer(ConvertSurfaceDataToSSSData(SURFACE_DATA), UNPOSITIONSS, MERGE_NAME(NAME, 0))
 
 #define DECODE_FROM_SSSBUFFER(UNPOSITIONSS, SSS_DATA) DecodeFromSSSBuffer(UNPOSITIONSS, SSS_DATA)
