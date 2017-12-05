@@ -89,9 +89,7 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 			}
 			case 0xffffffff: // dispatch
 			{
-				firstArg = (elementCount + NB_THREADS_PER_GROUP - 1) / NB_THREADS_PER_GROUP;
-				firstArg = max(1u, firstArg); //WIP
-				
+				firstArg = (elementCount + NB_THREADS_PER_GROUP - 1) / NB_THREADS_PER_GROUP;				
 				//Update total element count (spawnIndex)
 				outputAdditional[index * 2 + 0] = elementCount;
 				outputAdditional[index * 2 + 1] = outputAdditional[data.arg0 * 2 + 1] + elementCount;

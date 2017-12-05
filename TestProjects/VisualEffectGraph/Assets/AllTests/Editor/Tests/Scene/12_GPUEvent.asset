@@ -3208,14 +3208,6 @@ VFXAsset:
     capacity: 0
     layout: []
   - type: 1
-    size: 1
-    capacity: 0
-    layout: []
-  - type: 1
-    size: 2
-    capacity: 0
-    layout: []
-  - type: 1
     size: 36864
     capacity: 4096
     layout:
@@ -3265,14 +3257,6 @@ VFXAsset:
     layout: []
   - type: 1
     size: 1
-    capacity: 0
-    layout: []
-  - type: 1
-    size: 1
-    capacity: 0
-    layout: []
-  - type: 1
-    size: 2
     capacity: 0
     layout: []
   m_CPUBuffers:
@@ -3393,10 +3377,6 @@ VFXAsset:
       nameId: deadListCount
     - index: 0
       nameId: eventList
-    - index: 10
-      nameId: eventListCount
-    - index: 11
-      nameId: eventSpawnIndex
     values:
     - index: 50
       nameId: bounds_center
@@ -3409,10 +3389,6 @@ VFXAsset:
         nameId: attributeBuffer
       - index: 0
         nameId: eventList
-      - index: 10
-        nameId: eventListCount
-      - index: 11
-        nameId: eventSpawnIndex
       - index: 8
         nameId: deadListIn
       - index: 9
@@ -3457,20 +3433,16 @@ VFXAsset:
     flags: 5
     capacity: 4096
     buffers:
-    - index: 12
+    - index: 10
       nameId: attributeBuffer
-    - index: 13
+    - index: 11
       nameId: sourceAttributeBuffer
-    - index: 14
+    - index: 12
       nameId: deadList
-    - index: 15
+    - index: 13
       nameId: deadListCount
     - index: 1
       nameId: eventList
-    - index: 16
-      nameId: eventListCount
-    - index: 17
-      nameId: eventSpawnIndex
     values:
     - index: 47
       nameId: bounds_center
@@ -3479,19 +3451,15 @@ VFXAsset:
     tasks:
     - type: 536870912
       buffers:
-      - index: 12
+      - index: 10
         nameId: attributeBuffer
       - index: 1
         nameId: eventList
-      - index: 16
-        nameId: eventListCount
-      - index: 17
-        nameId: eventSpawnIndex
-      - index: 14
+      - index: 12
         nameId: deadListIn
-      - index: 15
-        nameId: deadListCount
       - index: 13
+        nameId: deadListCount
+      - index: 11
         nameId: sourceAttributeBuffer
       values:
       - index: 42
@@ -3504,9 +3472,9 @@ VFXAsset:
       processor: {fileID: 7200000, guid: 1576122800598424a8c868d8c163035d, type: 3}
     - type: 805306368
       buffers:
-      - index: 12
+      - index: 10
         nameId: attributeBuffer
-      - index: 14
+      - index: 12
         nameId: deadListOut
       values:
       - index: 44
@@ -3515,7 +3483,7 @@ VFXAsset:
       processor: {fileID: 7200000, guid: a39085d94f0393d46bd85a7628556f2a, type: 3}
     - type: 1073741826
       buffers:
-      - index: 12
+      - index: 10
         nameId: attributeBuffer
       values:
       - index: 38
