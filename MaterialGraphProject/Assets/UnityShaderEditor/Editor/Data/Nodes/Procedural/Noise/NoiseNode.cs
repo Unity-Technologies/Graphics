@@ -3,20 +3,20 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Procedural", "Noise")]
+    [Title("Procedural", "Noise", "Simple Noise")]
     public class NoiseNode : CodeFunctionNode
     {
         public NoiseNode()
         {
-            name = "Noise";
+            name = "Simple Noise";
         }
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_Noise", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_SimpleNoise", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_Noise(
+        static string Unity_SimpleNoise(
             [Slot(0, Binding.MeshUV0)] Vector2 UV,
             [Slot(1, Binding.None, 500f, 500f, 500f, 500f)] Vector1 Scale,
             [Slot(2, Binding.None)] out Vector1 Out)
