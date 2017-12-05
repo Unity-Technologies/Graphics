@@ -127,14 +127,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (m_GraphObject.graph.GetType() == typeof(MaterialGraph))
                     UpdateShaderGraphOnDisk(path);
 
-                if (m_GraphObject.graph.GetType() == typeof(LayeredShaderGraph))
-                    UpdateShaderGraphOnDisk(path);
-
                 if (m_GraphObject.graph.GetType() == typeof(SubGraph))
                     UpdateAbstractSubgraphOnDisk<SubGraph>(path);
-
-                if (m_GraphObject.graph.GetType() == typeof(MasterRemapGraph))
-                    UpdateAbstractSubgraphOnDisk<MasterRemapGraph>(path);
 
                 graphObject.isDirty = false;
                 var windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
@@ -397,14 +391,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case ".ShaderGraph":
                     graphType = typeof(MaterialGraph);
                     break;
-                case ".LayeredShaderGraph":
-                    graphType = typeof(LayeredShaderGraph);
-                    break;
                 case ".ShaderSubGraph":
                     graphType = typeof(SubGraph);
-                    break;
-                case ".ShaderRemapGraph":
-                    graphType = typeof(MasterRemapGraph);
                     break;
                 default:
                     return;
