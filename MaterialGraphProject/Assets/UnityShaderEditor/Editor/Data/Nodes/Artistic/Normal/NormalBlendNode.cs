@@ -3,29 +3,29 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Normal", "Blend Normal")]
-    public class BlendNormalNode : CodeFunctionNode
+    [Title("Artistic", "Normal", "Normal Blend")]
+    public class NormalBlendNode : CodeFunctionNode
     {
-        public BlendNormalNode()
+        public NormalBlendNode()
         {
-            name = "BlendNormal";
+            name = "Normal Blend";
         }
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_Blendnormal", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_NormalBlend", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_Blendnormal(
-            [Slot(0, Binding.None)] Vector3 first,
-            [Slot(1, Binding.None)] Vector3 second,
-            [Slot(2, Binding.None)] out Vector3 result)
+        static string Unity_NormalBlend(
+            [Slot(0, Binding.None, 0, 0, 1, 0)] Vector3 A,
+            [Slot(1, Binding.None, 0, 0, 1, 0)] Vector3 B,
+            [Slot(2, Binding.None)] out Vector3 Out)
         {
-            result = Vector3.one;
+            Out = Vector3.one;
 
             return @"
 {
-    result = normalize({precision}3(first.rg + second.rg, first.b * second.b));
+    Out = normalize({precision}3(A.rg + B.rg, A.b * B.b));
 }
 ";
         }

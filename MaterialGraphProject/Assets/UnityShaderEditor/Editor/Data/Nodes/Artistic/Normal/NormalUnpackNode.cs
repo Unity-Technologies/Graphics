@@ -5,28 +5,28 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Normal", "Unpack Normal")]
-    internal class UnpackNormalNode : CodeFunctionNode
+    [Title("Artistic", "Normal", "Normal Unpack")]
+    internal class NormalUnpackNode : CodeFunctionNode
     {
-        public UnpackNormalNode()
+        public NormalUnpackNode()
         {
-            name = "UnpackNormal";
+            name = "Normal Unpack";
         }
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_UnpackNormal", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_NormalUnpack", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_UnpackNormal(
-            [Slot(0, Binding.None)] Vector4 packedNormal,
-            [Slot(1, Binding.None)] out Vector3 normal)
+        static string Unity_NormalUnpack(
+            [Slot(0, Binding.None)] Vector4 In,
+            [Slot(1, Binding.None)] out Vector3 Out)
         {
-            normal = Vector3.up;
+            Out = Vector3.up;
             return
                 @"
 {
-    normal = UnpackNormal(packedNormal);
+    Out = UnpackNormal(In);
 }
 ";
         }
