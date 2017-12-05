@@ -769,14 +769,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             RenderDepthPrepass(m_CullResults, camera, renderContext, cmd, true);
 
-            using (new ProfilingSample(cmd, "Decals"))
-            {
-				CoreUtils.SetRenderTarget(cmd, m_DbufferManager.GetGBuffers(), m_CameraDepthStencilBufferRT);
-                cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, GetDepthTexture());
-                DecalSystem.instance.Render(renderContext, camera, cmd);
-                cmd.SetGlobalTexture(HDShaderIDs._DBufferTexture0, m_DbufferManager.GetGBuffers()[0]);
-                cmd.SetGlobalTexture(HDShaderIDs._DBufferTexture1, m_DbufferManager.GetGBuffers()[1]);
-            }
+            RenderDBuffer(camera, renderContext, cmd);
 
             RenderGBuffer(m_CullResults, camera, renderContext, cmd);
 
@@ -1146,6 +1139,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.s_GBufferName, HDUtils.k_RendererConfigurationBakedLighting, RenderQueueRange.opaque, m_DepthStateOpaque);
                     }
                 }
+            }
+        }
+
+        void RenderDBuffer(Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        {
+            using (new ProfilingSample(cmd, "Decals"))
+            {
+                CoreUtils.SetRenderTarget(cmd, m_DbufferManager.GetGBuffers(), m_CameraDepthStencilBufferRT);
+                cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, GetDepthTexture());
+                DecalSystem.instance.Render(renderContext, camera, cmd);
             }
         }
 

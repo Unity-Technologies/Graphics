@@ -106,8 +106,6 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float4 inputColor)
 #include "Unlit/Unlit.hlsl"
 #elif defined(UNITY_MATERIAL_IRIDESCENCE)
 //#include "Iridescence/Iridescence.hlsl"
-#elif defined(UNITY_MATERIAL_DECAL)
-#include "Decal/Decal.hlsl"
 #endif
 
 //-----------------------------------------------------------------------------
@@ -233,12 +231,6 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float4 inputColor)
 #endif
 
 #endif // #ifdef GBUFFERMATERIAL_COUNT
-
-
-// define for dbuffer management
-#define OUTPUT_DBUFFER(NAME)                            \
-        out DBufferType0 MERGE_NAME(NAME, 0) : SV_Target0,	\
-		out DBufferType0 MERGE_NAME(NAME, 1) : SV_Target1	\
 
 
 #endif // UNITY_MATERIAL_INCLUDED

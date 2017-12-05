@@ -15,23 +15,22 @@ PackedVaryingsType Vert(AttributesMesh inputMesh)
 void Frag(  PackedVaryingsToPS packedInput,
             OUTPUT_DBUFFER(outDBuffer)            
             )
-{
-	
+{	
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
     // input.unPositionSS is SV_Position
     PositionInputs posInput = GetPositionInput(input.unPositionSS.xy, _ScreenSize.zw);
 
 	float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
-/*
-    ENCODE_INTO_GBUFFER(surfaceData, bakeDiffuseLighting, outGBuffer);
-    ENCODE_VELOCITY_INTO_GBUFFER(builtinData.velocity, outVelocityBuffer);
-*/
 	float d = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, posInput.positionSS.xy);
 	UpdatePositionInput(d, _InvViewProjMatrix, _ViewProjMatrix, posInput);
 
-    SurfaceData surfaceData;
-    BuiltinData builtinData;
-    GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
-	outDBuffer0 = surfaceData.baseColor;
-	outDBuffer1 = surfaceData.normalWS;
+	float3 positionWS = posInput.positionWS;
+	float3 positionDS = mul(_WorldToDecal, float4(positionWS, 1.0f)).xyz;
+	clip(positionDS < 0 ? -1 : 1);
+	clip(positionDS > 1 ? -1 : 1);
+
+    DecalSurfaceData surfaceData;
+    GetSurfaceData(positionDS.xz, surfaceData);
+
+	ENCODE_INTO_DBUFFER(surfaceData, outDBuffer);
 }

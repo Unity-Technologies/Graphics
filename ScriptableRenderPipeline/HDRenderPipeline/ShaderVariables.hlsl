@@ -208,13 +208,6 @@ TEXTURE2D(unity_DynamicDirectionality);
 TEXTURE3D_FLOAT(unity_ProbeVolumeSH);
 SAMPLER3D(samplerunity_ProbeVolumeSH);
 
-// Decals textures
-TEXTURE2D(_DBufferTexture0);
-SAMPLER2D(sampler_DBufferTexture0);
-TEXTURE2D(_DBufferTexture1);
-SAMPLER2D(sampler_DBufferTexture1);
-
-
 CBUFFER_START(UnityVelocityPass)
     float4x4 unity_MatrixNonJitteredVP;
     float4x4 unity_MatrixPreviousVP;
