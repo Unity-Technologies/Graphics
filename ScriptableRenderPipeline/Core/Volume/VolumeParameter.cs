@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
@@ -10,6 +11,8 @@ namespace UnityEngine.Experimental.Rendering
     // of the following is a bit hacky...
     public abstract class VolumeParameter
     {
+        public const string k_DebuggerDisplay = "{m_Value} ({m_OverrideState})";
+
         [SerializeField]
         protected bool m_OverrideState;
 
@@ -38,7 +41,7 @@ namespace UnityEngine.Experimental.Rendering
         }
     }
 
-    [Serializable]
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public class VolumeParameter<T> : VolumeParameter
     {
         [SerializeField]
@@ -96,6 +99,11 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        public override string ToString()
+        {
+            return string.Format("{0} ({1})", value, overrideState);
+        }
+
         //
         // Implicit conversion; assuming the following:
         //
@@ -131,10 +139,10 @@ namespace UnityEngine.Experimental.Rendering
     //  public enum MyEnum { One, Two }
     //
 
-    [Serializable]
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class BoolParameter : VolumeParameter<bool> { }
 
-    [Serializable]
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class IntParameter : VolumeParameter<int>
     {
         public override void Interp(int from, int to, float t)
@@ -145,10 +153,10 @@ namespace UnityEngine.Experimental.Rendering
         }
     }
 
-    [Serializable]
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class InstantIntParameter : VolumeParameter<int> { }
 
-    [Serializable]
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class ClampedIntParameter : VolumeParameter<int>
     {
         public ParameterClampMode clampMode = ParameterClampMode.MinMax;
@@ -175,7 +183,7 @@ namespace UnityEngine.Experimental.Rendering
         }
     }
 
-    [Serializable]
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class InstantClampedIntParameter : VolumeParameter<int>
     {
         public ParameterClampMode clampMode = ParameterClampMode.MinMax;
@@ -197,7 +205,7 @@ namespace UnityEngine.Experimental.Rendering
         }
     }
 
-    [Serializable]
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class FloatParameter : VolumeParameter<float>
     {
         public override void Interp(float from, float to, float t)
@@ -206,10 +214,10 @@ namespace UnityEngine.Experimental.Rendering
         }
     }
 
-    [Serializable]
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class InstantFloatParameter : VolumeParameter<float> { }
 
-    [Serializable]
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class ClampedFloatParameter : VolumeParameter<float>
     {
         public ParameterClampMode clampMode = ParameterClampMode.MinMax;
@@ -239,7 +247,7 @@ namespace UnityEngine.Experimental.Rendering
         }
     }
 
-    [Serializable]
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class InstantClampedFloatParameter : VolumeParameter<float>
     {
         public ParameterClampMode clampMode = ParameterClampMode.MinMax;
@@ -262,7 +270,7 @@ namespace UnityEngine.Experimental.Rendering
     }
 
     // Holds a min & a max values clamped in a range (MinMaxSlider in the editor)
-    [Serializable]
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class RangeParameter : VolumeParameter<Vector2>
     {
         public float min = 0;
@@ -285,7 +293,7 @@ namespace UnityEngine.Experimental.Rendering
         }
     }
 
-    [Serializable]
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class InstantRangeParameter : VolumeParameter<Vector2>
     {
         public float min = 0;
@@ -303,7 +311,7 @@ namespace UnityEngine.Experimental.Rendering
     }
 
     // 32-bit RGBA
-    [Serializable]
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class ColorParameter : VolumeParameter<Color>
     {
         public bool hdr = false;
@@ -323,10 +331,10 @@ namespace UnityEngine.Experimental.Rendering
         }
     }
 
-    [Serializable]
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class InstantColorParameter : VolumeParameter<Color> { }
 
-    [Serializable]
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class Vector2Parameter : VolumeParameter<Vector2>
     {
         public override void Interp(Vector2 from, Vector2 to, float t)
@@ -336,10 +344,10 @@ namespace UnityEngine.Experimental.Rendering
         }
     }
 
-    [Serializable]
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class InstantVector2Parameter : VolumeParameter<Vector2> { }
 
-    [Serializable]
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class Vector3Parameter : VolumeParameter<Vector3>
     {
         public override void Interp(Vector3 from, Vector3 to, float t)
@@ -350,10 +358,10 @@ namespace UnityEngine.Experimental.Rendering
         }
     }
 
-    [Serializable]
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class InstantVector3Parameter : VolumeParameter<Vector3> { }
 
-    [Serializable]
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class Vector4Parameter : VolumeParameter<Vector4>
     {
         public override void Interp(Vector4 from, Vector4 to, float t)
@@ -365,11 +373,11 @@ namespace UnityEngine.Experimental.Rendering
         }
     }
 
-    [Serializable]
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class InstantVector4Parameter : VolumeParameter<Vector4> { }
 
     // Used as a container to store custom serialized classes/structs inside volume components
-    [Serializable]
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public class ObjectParameter<T> : VolumeParameter<T>
     {
         internal ReadOnlyCollection<VolumeParameter> parameters { get; private set; }
