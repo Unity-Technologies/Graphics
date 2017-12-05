@@ -53,7 +53,8 @@ Shader "GraphicTests/ComparerShader"
 			fixed4 frag (v2f i) : SV_Target
 			{
                 fixed4 c1 = tex2D(_MainTex, i.uv);
-                fixed4 c2 = tex2D(_CompareTex, i.uv);
+                float2 uv2 = float2(i.uv.x, 1-i.uv.y);
+                fixed4 c2 = tex2D(_CompareTex, uv2);
 
                 fixed4 o = c1 - c2;
                 o.a = 1;

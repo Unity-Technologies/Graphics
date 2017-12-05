@@ -5,7 +5,7 @@ using UnityEditor;
 
 public class PlayModeTestFramework : EditorWindow
 {
-    static string scenesRootPath = "/Tests/GraphicsTests/RenderPipeline/HDRenderPipeline";
+    static string scenesRootPath = "/Tests/GraphicsTests/RenderPipeline/HDRenderPipeline/Scenes";
 
     [MenuItem("Internal/GraphicTest Tools/PlayMode Test Window")]
     public static void OpenPlayModeTestWindow()
@@ -43,11 +43,13 @@ public class PlayModeTestFramework : EditorWindow
         {
             EditorBuildSettingsScene[] prevScenes = EditorBuildSettings.scenes;
 
-            EditorBuildSettingsScene[] testScenes = new EditorBuildSettingsScene[allPaths.Length];
+            EditorBuildSettingsScene[] testScenes = new EditorBuildSettingsScene[allPaths.Length+1];
+
+            testScenes[0] = new EditorBuildSettingsScene(Application.dataPath+ "/Tests/GraphicsTests/RenderPipeline/HDRenderPipeline/PlayModeTest/PlayModeTests.unity", true);
 
             for (int i=0; i<allPaths.Length;++i)
             {
-                testScenes[i] = new EditorBuildSettingsScene(allPaths[i], true);
+                testScenes[i+1] = new EditorBuildSettingsScene(allPaths[i], true);
             }
 
             Debug.Log("Do build in : " + Application.dataPath + "/../Builds/GraphicTests/GraphicTestBuildPC.exe");
@@ -76,7 +78,7 @@ public class PlayModeTestFramework : EditorWindow
 
             //System.IO.Directory.Move(Application.dataPath + "/ImageTemplates/HDRenderPipeline", Application.dataPath + "/ImageTemplates/Resources/HDRenderPipeline");
 
-            // BuildPipeline.BuildPlayer(testScenes, Application.dataPath + "/../Builds/GraphicTests/GraphicTestBuildPC.exe", BuildTarget.StandaloneWindows64, BuildOptions.None);
+            BuildPipeline.BuildPlayer(testScenes, Application.dataPath + "/../Builds/GraphicTests/GraphicTestBuildPC.exe", BuildTarget.StandaloneWindows64, BuildOptions.None);
 
             // Move back Templates to their folder
             for (int i = 0; i < templates.Length; ++i)
