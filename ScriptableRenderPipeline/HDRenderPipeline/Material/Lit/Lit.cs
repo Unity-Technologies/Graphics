@@ -129,7 +129,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("", true)]
             public Vector3 normalWS;
             public float perceptualRoughness;
-            public float roughness;
             public int materialId;
 
             // MaterialId dependent attribute
