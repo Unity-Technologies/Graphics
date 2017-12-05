@@ -1,7 +1,7 @@
 using System.Reflection;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph
+/*namespace UnityEditor.ShaderGraph
 {
     [Title("Procedural", "MakeSubgraph", "Square")]
     public class BoxNode : CodeFunctionNode
@@ -31,4 +31,4 @@ namespace UnityEditor.ShaderGraph
 }";
         }
     }
-}
+}*/
