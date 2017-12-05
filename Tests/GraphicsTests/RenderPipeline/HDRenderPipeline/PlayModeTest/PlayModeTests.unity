@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 0
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 0}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -177,12 +177,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
---- !u!114 &319763168 stripped
-MonoBehaviour:
-  m_PrefabParentObject: {fileID: 114563891725493384, guid: 45351acbe8482b74da5758589fb97889,
-    type: 2}
-  m_PrefabInternal: {fileID: 1442888911}
-  m_Script: {fileID: -98529514, guid: f70555f144d8491a825f0804e09c671c, type: 3}
 --- !u!1 &679160865
 GameObject:
   m_ObjectHideFlags: 0
@@ -361,11 +355,6 @@ Prefab:
       propertyPath: m_Pivot.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 114475795168163414, guid: 45351acbe8482b74da5758589fb97889,
-        type: 2}
-      propertyPath: resultImage
-      value: 
-      objectReference: {fileID: 319763168}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 45351acbe8482b74da5758589fb97889, type: 2}
   m_IsPrefabParent: 0
