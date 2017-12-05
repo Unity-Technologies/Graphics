@@ -44,7 +44,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedObject m_SerializedAdditionalLightData;
         SerializedObject m_SerializedAdditionalShadowData;
 
-        //SerializedBaseData m_BaseData;
         SerializedLightData m_AdditionalLightData;
         SerializedShadowData m_AdditionalShadowData;
 
