@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine.Rendering;
 using System;
 using System.Diagnostics;
@@ -99,6 +99,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         readonly List<RenderPipelineMaterial> m_MaterialList = new List<RenderPipelineMaterial>();
 
         readonly GBufferManager m_GbufferManager = new GBufferManager();
+        readonly SubsurfaceScatteringManager m_SSSBufferManager = new SubsurfaceScatteringManager();
 
         // Renderer Bake configuration can vary depends on if shadow mask is enabled or no
         RendererConfiguration m_currentRendererConfigurationBakedLighting = HDUtils.k_RendererConfigurationBakedLighting;
@@ -1292,14 +1293,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, HDShaderIDs._WorldScales,        sssParameters.worldScales);
                     cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, HDShaderIDs._FilterKernels,      sssParameters.filterKernels);
-                    cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, HDShaderIDs._ShapeParams,        sssParameters.shapeParams);
-
-                    // TODO: abstract this in SSS manager
-                    cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._SSSBufferTexture0,  m_GbufferManager.GetGBuffers()[0]);
-
+                    cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, HDShaderIDs._ShapeParams,        sssParameters.shapeParams);                        
                     cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._DepthTexture,     GetDepthTexture());
                     cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._HTile,            GetHTile());
                     cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._IrradianceSource, m_CameraSssDiffuseLightingBufferRT);
+
+                    for (int i = 0; i < m_SSSBufferManager.sssBufferCount; ++i)
+                    {
+                        cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._SSSBufferTexture[i], m_SSSBufferManager.GetSSSBuffers(i));
+                    }
 
                     if (NeedTemporarySubsurfaceBuffer())
                     {
@@ -1323,8 +1325,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
-                    // TODO: abstract this in SSS manager
-                    cmd.SetGlobalTexture(HDShaderIDs._SSSBufferTexture0, m_GbufferManager.GetGBuffers()[0]);
+                    for (int i = 0; i < m_SSSBufferManager.sssBufferCount; ++i)
+                    {
+                        cmd.SetGlobalTexture(HDShaderIDs._SSSBufferTexture[i], m_SSSBufferManager.GetSSSBuffers(i));
+                    }
 
                     cmd.SetGlobalTexture(HDShaderIDs._IrradianceSource, m_CameraSssDiffuseLightingBufferRT);  // Cannot set a RT on a material
                     m_SssVerticalFilterPass.SetVectorArray(HDShaderIDs._WorldScales,              sssParameters.worldScales);
@@ -1734,10 +1738,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.GetTemporaryRT(m_DepthPyramidBuffer, m_DepthPyramidBufferDesc, FilterMode.Trilinear);
                     // End
 
-                    // TODO: commented just to test forward SSS until we implement correct manager.
-                    // In forward we need to allocate a target for SSSBuffer0
-                    //if (!m_Asset.globalRenderingSettings.ShouldUseForwardRenderingOnly())
+                    if (!m_Asset.globalRenderingSettings.ShouldUseForwardRenderingOnly())
+                    {
                         m_GbufferManager.InitGBuffers(w, h, m_DeferredMaterial, enableBakeShadowMask, cmd);
+                        m_SSSBufferManager.InitGBuffers(w, h, m_GbufferManager, cmd);
+                    }
+                    else
+                    {
+                        // We need to allocate target for SSS
+                        m_SSSBufferManager.InitGBuffers(w, h, cmd);
+                    }
 
                     CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.Depth);
                 }
