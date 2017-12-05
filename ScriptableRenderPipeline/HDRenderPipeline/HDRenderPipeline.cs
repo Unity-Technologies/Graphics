@@ -1389,13 +1389,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (pass == ForwardPass.Opaque)
                 {
-                    // TODO: return this from the SSS manager with variable MRT + if SSS is enabled
-                    RenderTargetIdentifier[] m_MRTCache3 = new RenderTargetIdentifier[3];
-                    m_MRTCache3[0] = m_CameraColorBufferRT;
-                    m_MRTCache3[1] = m_CameraSssDiffuseLightingBufferRT;
-                    m_MRTCache3[2] = m_GbufferManager.GetGBuffers()[0];
+                    // In case of forward SSS we will bind all the required target. It is up to the shader to write into it or not.
+                    if (m_CurrentDebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission)
+                    {
+                        RenderTargetIdentifier[] m_MRTWithSSS = new RenderTargetIdentifier[2 + m_SSSBufferManager.sssBufferCount];
+                        m_MRTWithSSS[0] = m_CameraColorBufferRT; // Store the specular color
+                        m_MRTWithSSS[1] = m_CameraSssDiffuseLightingBufferRT;
+                        for (int i = 0; i < m_SSSBufferManager.sssBufferCount; ++i)
+                        {
+                            m_MRTWithSSS[i + 2] = m_SSSBufferManager.GetSSSBuffers(i);
+                        }
 
-                    CoreUtils.SetRenderTarget(cmd, m_MRTCache3, m_CameraDepthStencilBufferRT);
+                        CoreUtils.SetRenderTarget(cmd, m_MRTWithSSS, m_CameraDepthStencilBufferRT);
+                    }
+                    else
+                    {
+                        CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
+                    }
 
                     if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
                     {
