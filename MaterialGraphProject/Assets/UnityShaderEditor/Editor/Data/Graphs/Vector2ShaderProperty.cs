@@ -30,9 +30,9 @@ namespace UnityEditor.ShaderGraph
         {
             return new PreviewProperty()
             {
-                m_Name = referenceName,
-                m_PropType = PropertyType.Vector2,
-                m_Vector4 = value
+                name = referenceName,
+                propType = PropertyType.Vector2,
+                vector4Value = value
             };
         }
     }

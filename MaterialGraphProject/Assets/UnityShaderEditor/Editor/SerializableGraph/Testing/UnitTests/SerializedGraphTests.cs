@@ -557,10 +557,6 @@ namespace UnityEditor.Graphing.UnitTests
 
             Assert.AreEqual(2, graph.GetNodes<INode>().Count());
 
-            var createdEdge = graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), null);
-            Assert.AreEqual(0, graph.edges.Count());
-            Assert.IsNull(createdEdge);
-
             var createdEdge2 = graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), new SlotReference(Guid.NewGuid(), 666));
             Assert.AreEqual(0, graph.edges.Count());
             Assert.IsNull(createdEdge2);

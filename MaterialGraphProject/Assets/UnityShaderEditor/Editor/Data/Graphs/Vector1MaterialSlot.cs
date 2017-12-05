@@ -75,11 +75,11 @@ namespace UnityEditor.ShaderGraph
         {
             var pp = new PreviewProperty
             {
-                m_Name = name,
-                m_PropType = ConvertConcreteSlotValueTypeToPropertyType(concreteValueType),
-                m_Vector4 = new Vector4(value, value, value, value),
-                m_Float = value,
-                m_Color = new Vector4(value, value, value, value),
+                name = name,
+                propType = ConvertConcreteSlotValueTypeToPropertyType(concreteValueType),
+                vector4Value = new Vector4(value, value, value, value),
+                floatValue = value,
+                colorValue = new Vector4(value, value, value, value),
             };
             return pp;
         }

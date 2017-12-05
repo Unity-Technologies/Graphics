@@ -52,14 +52,14 @@ namespace UnityEditor.ShaderGraph
 
         public virtual int AddSlot()
         {
-            var index = GetInputSlots<ISlot>().Count() + 1;
+            var index = this.GetInputSlots<ISlot>().Count() + 1;
             AddSlot(new Vector4MaterialSlot(index, "Output " + index, "Output" + index, SlotType.Input, Vector4.zero));
             return index;
         }
 
         public virtual void RemoveSlot()
         {
-            var index = GetInputSlots<ISlot>().Count();
+            var index = this.GetInputSlots<ISlot>().Count();
             if (index == 0)
                 return;
 

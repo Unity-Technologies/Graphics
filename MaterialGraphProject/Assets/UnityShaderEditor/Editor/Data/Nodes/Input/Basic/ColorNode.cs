@@ -75,9 +75,9 @@ namespace UnityEditor.ShaderGraph
         {
             properties.Add(new PreviewProperty
             {
-                m_Name = GetVariableNameForNode(),
-                m_PropType = PropertyType.Color,
-                m_Color = color
+                name = GetVariableNameForNode(),
+                propType = PropertyType.Color,
+                colorValue = color
             });
         }
 

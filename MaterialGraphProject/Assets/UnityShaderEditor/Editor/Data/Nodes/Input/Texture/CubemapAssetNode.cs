@@ -58,9 +58,9 @@ namespace UnityEditor.ShaderGraph
         {
             properties.Add(new PreviewProperty
             {
-                m_Name = GetVariableNameForSlot(OutputSlotId),
-                m_PropType = PropertyType.Cubemap,
-                m_Cubemap = cubemap
+                name = GetVariableNameForSlot(OutputSlotId),
+                propType = PropertyType.Cubemap,
+                cubemapValue = cubemap
             });
         }
 

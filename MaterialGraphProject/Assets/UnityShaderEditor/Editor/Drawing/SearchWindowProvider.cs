@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor.Experimental.UIElements;
 using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEditor.Graphing;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using INode = UnityEditor.Graphing.INode;
@@ -207,6 +208,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             return true;
         }
 
+        static List<IEdge> s_TempEdges = new List<IEdge>();
+
         bool OnConvertToProperty()
         {
             if (m_GraphView == null)
@@ -230,8 +233,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var oldSlot = node.FindSlot<MaterialSlot>(converter.outputSlotId);
                 var newSlot = propNode.FindSlot<MaterialSlot>(PropertyNode.OutputSlotId);
 
-                var edges = m_Graph.GetEdges(oldSlot.slotReference).ToArray();
-                foreach (var edge in edges)
+                s_TempEdges.Clear();
+                m_Graph.GetEdges(oldSlot.slotReference, s_TempEdges);
+                foreach (var edge in s_TempEdges)
                     m_Graph.Connect(newSlot.slotReference, edge.inputSlot);
 
                 m_Graph.RemoveNode(node);
