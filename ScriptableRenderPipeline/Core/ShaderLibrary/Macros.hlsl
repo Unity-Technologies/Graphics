@@ -32,6 +32,11 @@
 #define LOG2_E      1.44269504088896340736
 #define INFINITY    asfloat(0x7F800000)
 
+#define MILLIMETERS_PER_METER 1000
+#define METERS_PER_MILLIMETER rcp(MILLIMETERS_PER_METER)
+#define CENTIMETERS_PER_METER 100
+#define METERS_PER_CENTIMETER rcp(CENTIMETERS_PER_METER)
+
 #define FLT_EPS     5.960464478e-8  // 2^-24, machine epsilon: 1 + EPS = 1 (half of the ULP for 1)
 #define FLT_MIN     1.175494351e-38 // Minimum representable positive floating-point number
 #define FLT_MAX     3.402823466e+38 // Maximum representable floating-point number
