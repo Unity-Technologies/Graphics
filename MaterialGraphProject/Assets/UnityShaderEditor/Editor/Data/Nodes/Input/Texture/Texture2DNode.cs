@@ -119,7 +119,9 @@ namespace UnityEditor.ShaderGraph
 
         public bool RequiresMeshUV(UVChannel channel)
         {
-            foreach (var slot in GetInputSlots<MaterialSlot>().OfType<IMayRequireMeshUV>())
+            s_TempSlots.Clear();
+            GetInputSlots(s_TempSlots);
+            foreach (var slot in s_TempSlots)
             {
                 if (slot.RequiresMeshUV(channel))
                     return true;

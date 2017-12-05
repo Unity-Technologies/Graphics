@@ -104,23 +104,23 @@ namespace UnityEditor.ShaderGraph
 
             properties.Add(new PreviewProperty()
             {
-                m_Name = string.Format("_{0}_Red", GetVariableNameForNode()),
-                m_PropType = PropertyType.Vector3,
-                m_Vector4 = channelMixer.outRed
+                name = string.Format("_{0}_Red", GetVariableNameForNode()),
+                propType = PropertyType.Vector3,
+                vector4Value = channelMixer.outRed
             });
 
             properties.Add(new PreviewProperty()
             {
-                m_Name = string.Format("_{0}_Green", GetVariableNameForNode()),
-                m_PropType = PropertyType.Vector3,
-                m_Vector4 = channelMixer.outGreen
+                name = string.Format("_{0}_Green", GetVariableNameForNode()),
+                propType = PropertyType.Vector3,
+                vector4Value = channelMixer.outGreen
             });
 
             properties.Add(new PreviewProperty()
             {
-                m_Name = string.Format("_{0}_Blue", GetVariableNameForNode()),
-                m_PropType = PropertyType.Vector3,
-                m_Vector4 = channelMixer.outBlue
+                name = string.Format("_{0}_Blue", GetVariableNameForNode()),
+                propType = PropertyType.Vector3,
+                vector4Value = channelMixer.outBlue
             });
         }
 

@@ -69,9 +69,9 @@ namespace UnityEditor.ShaderGraph
         {
             return new PreviewProperty
             {
-                m_Name = referenceName,
-                m_PropType = PropertyType.Color,
-                m_Color = value
+                name = referenceName,
+                propType = PropertyType.Color,
+                colorValue = value
             };
         }
     }

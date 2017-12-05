@@ -108,9 +108,9 @@ namespace UnityEditor.ShaderGraph
         {
             properties.Add(new PreviewProperty()
             {
-                m_Name = GetVariableNameForNode(),
-                m_PropType = PropertyType.Float,
-                m_Float = m_Value
+                name = GetVariableNameForNode(),
+                propType = PropertyType.Float,
+                floatValue = m_Value
             });
         }
 

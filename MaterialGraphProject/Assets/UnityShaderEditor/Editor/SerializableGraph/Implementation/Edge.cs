@@ -52,7 +52,8 @@ namespace UnityEditor.Graphing
         {
             unchecked
             {
-                return ((m_OutputSlot != null ? m_OutputSlot.GetHashCode() : 0) * 397) ^ (m_InputSlot != null ? m_InputSlot.GetHashCode() : 0);
+                // Can't make fields readonly due to Unity serialization
+                return (m_OutputSlot.GetHashCode() * 397) ^ m_InputSlot.GetHashCode();
             }
         }
     }

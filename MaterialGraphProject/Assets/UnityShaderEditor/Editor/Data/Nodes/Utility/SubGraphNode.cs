@@ -91,7 +91,9 @@ namespace UnityEditor.ShaderGraph
             // Step 1...
             // find out which output slots are actually used
             //var validOutputSlots = NodeUtils.GetSlotsThatOutputToNodeRecurse(this, (graph as BaseMaterialGraph).masterNode);
-            foreach (var slot in GetOutputSlots<MaterialSlot>())
+            s_TempSlots.Clear();
+            GetOutputSlots(s_TempSlots);
+            foreach (var slot in s_TempSlots)
             {
                 var outDimension = ConvertConcreteSlotValueTypeToString(precision, slot.concreteValueType);
                 outputString.AddShaderChunk(string.Format("{0} {1} = 0;", outDimension, GetVariableNameForSlot(slot.id)), false);
@@ -160,7 +162,9 @@ namespace UnityEditor.ShaderGraph
 
             // Step 5...
             // Copy the outputs to the parent context name);
-            foreach (var slot in GetOutputSlots<MaterialSlot>())
+            s_TempSlots.Clear();
+            GetOutputSlots(s_TempSlots);
+            foreach (var slot in s_TempSlots)
             {
                 var inputValue = subGraphOutputNode.GetSlotValue(slot.id, GenerationMode.ForReals);
 

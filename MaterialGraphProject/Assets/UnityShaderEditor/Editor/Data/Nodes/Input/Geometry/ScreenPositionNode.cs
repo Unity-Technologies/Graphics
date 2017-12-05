@@ -5,11 +5,6 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
-    public interface IMayRequireScreenPosition
-    {
-        bool RequiresScreenPosition();
-    }
-
     public enum ScreenSpaceType
     {
         Default,

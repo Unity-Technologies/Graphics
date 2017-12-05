@@ -19,6 +19,9 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     public abstract class AbstractMaterialNode : SerializableNode, IGenerateProperties
     {
+        protected static List<MaterialSlot> s_TempSlots = new List<MaterialSlot>();
+        protected static List<IEdge> s_TempEdges = new List<IEdge>();
+
         public enum OutputPrecision
         {
             @fixed,
@@ -91,6 +94,24 @@ namespace UnityEditor.ShaderGraph
             protected set { m_HasError = value; }
         }
 
+        string m_DefaultVariableName;
+        string m_NameForDefaultVariableName;
+        Guid m_GuidForDefaultVariableName;
+
+        string defaultVariableName
+        {
+            get
+            {
+                if (m_NameForDefaultVariableName != name || m_GuidForDefaultVariableName != guid)
+                {
+                    m_DefaultVariableName = string.Format("{0}_{1}", GetHLSLSafeName(name), GuidEncoder.Encode(guid));
+                    m_NameForDefaultVariableName = name;
+                    m_GuidForDefaultVariableName = guid;
+                }
+                return m_DefaultVariableName;
+            }
+        }
+
         protected AbstractMaterialNode()
         {
             version = 0;
@@ -98,7 +119,7 @@ namespace UnityEditor.ShaderGraph
 
         public virtual void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
-            foreach (var inputSlot in GetInputSlots<MaterialSlot>())
+            foreach (var inputSlot in this.GetInputSlots<MaterialSlot>())
             {
                 var edges = owner.GetEdges(inputSlot.slotReference);
                 if (edges.Any())
@@ -183,7 +204,9 @@ namespace UnityEditor.ShaderGraph
 
             // all children nodes needs to be updated first
             // so do that here
-            foreach (var inputSlot in GetInputSlots<MaterialSlot>())
+            var slots = ListPool<MaterialSlot>.Get();
+            GetInputSlots(slots);
+            foreach (var inputSlot in slots)
             {
                 inputSlot.hasError = false;
 
@@ -200,12 +223,15 @@ namespace UnityEditor.ShaderGraph
                         isInError = true;
                 }
             }
+            ListPool<MaterialSlot>.Release(slots);
 
             var dynamicInputSlotsToCompare = DictionaryPool<DynamicVectorMaterialSlot, ConcreteSlotValueType>.Get();
             var skippedDynamicSlots = ListPool<DynamicVectorMaterialSlot>.Get();
 
             // iterate the input slots
-            foreach (var inputSlot in GetInputSlots<MaterialSlot>())
+            s_TempSlots.Clear();
+            GetInputSlots(s_TempSlots);
+            foreach (var inputSlot in s_TempSlots)
             {
                 // if there is a connection
                 var edges = owner.GetEdges(inputSlot.slotReference).ToList();
@@ -255,13 +281,17 @@ namespace UnityEditor.ShaderGraph
             foreach (var skippedSlot in skippedDynamicSlots)
                 skippedSlot.SetConcreteType(dynamicType);
 
-            var inputError = GetInputSlots<MaterialSlot>().Any(x => x.hasError);
+            s_TempSlots.Clear();
+            GetInputSlots(s_TempSlots);
+            var inputError = s_TempSlots.Any(x => x.hasError);
 
             // configure the output slots now
             // their slotType will either be the default output slotType
             // or the above dynanic slotType for dynamic nodes
             // or error if there is an input error
-            foreach (var outputSlot in GetOutputSlots<MaterialSlot>())
+            s_TempSlots.Clear();
+            GetOutputSlots(s_TempSlots);
+            foreach (var outputSlot in s_TempSlots)
             {
                 outputSlot.hasError = false;
 
@@ -279,7 +309,9 @@ namespace UnityEditor.ShaderGraph
             }
 
             isInError |= inputError;
-            isInError |= GetOutputSlots<MaterialSlot>().Any(x => x.hasError);
+            s_TempSlots.Clear();
+            GetOutputSlots(s_TempSlots);
+            isInError |= s_TempSlots.Any(x => x.hasError);
             isInError |= CalculateNodeHasError();
             hasError = isInError;
 
@@ -354,17 +386,17 @@ namespace UnityEditor.ShaderGraph
 
         public virtual void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
-            var validSlots = GetInputSlots<MaterialSlot>().ToArray();
-
-            for (var index = 0; index < validSlots.Length; index++)
+            s_TempSlots.Clear();
+            GetInputSlots(s_TempSlots);
+            foreach (var s in s_TempSlots)
             {
-                var s = validSlots[index];
-                var edges = owner.GetEdges(s.slotReference);
-                if (edges.Any())
+                s_TempEdges.Clear();
+                owner.GetEdges(s.slotReference, s_TempEdges);
+                if (s_TempEdges.Any())
                     continue;
 
                 var item = s.GetPreviewProperty(GetVariableNameForSlot(s.id));
-                if (item == null)
+                if (item.name == null)
                     continue;
 
                 properties.Add(item);
@@ -376,12 +408,12 @@ namespace UnityEditor.ShaderGraph
             var slot = FindSlot<MaterialSlot>(slotId);
             if (slot == null)
                 throw new ArgumentException(string.Format("Attempting to use MaterialSlot({0}) on node of type {1} where this slot can not be found", slotId, this), "slotId");
-            return "_" + GetVariableNameForNode() + "_" + GetHLSLSafeName(slot.shaderOutputName);
+            return string.Format("_{0}_{1}", GetVariableNameForNode(), GetHLSLSafeName(slot.shaderOutputName));
         }
 
         public virtual string GetVariableNameForNode()
         {
-            return GetHLSLSafeName(name) + "_" + GuidEncoder.Encode(guid);
+            return defaultVariableName;
         }
 
         public static string GetHLSLSafeName(string input)
