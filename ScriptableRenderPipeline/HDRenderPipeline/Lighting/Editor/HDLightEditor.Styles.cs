@@ -10,16 +10,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         sealed class Styles
         {
             // Base
-            public readonly GUIContent range = new GUIContent("Range", "Controls how far the light is emitted from the center of the object.");
-            public readonly GUIContent color = new GUIContent("Color", "Controls the color being emitted by the light.");
-            public readonly GUIContent spotAngle = new GUIContent("Angle", "Controls the angle in degrees at the base of a Spot light's cone.");
-            public readonly GUIContent useColorTemperature = new GUIContent("Use Color Temperature", "Choose between RGB and temperature mode for light's color.");
-            public readonly GUIContent colorFilter = new GUIContent("Filter", "A colored gel can be put in front of the light source to tint the light.");
-            public readonly GUIContent colorTemperature = new GUIContent("Temperature", "Also known as CCT (Correlated color temperature). The color temperature of the electromagnetic radiation emitted from an ideal black body is defined as its surface temperature in Kelvin. White is 6500K");
-            public readonly GUIContent intensity = new GUIContent("Intensity", "Controls the brightness of the light. Light color is multiplied by this value.");
-            public readonly GUIContent lightmappingMode = new GUIContent("Mode", "Specifies the light mode used to determine if and how a light will be baked. Possible modes are Baked, Mixed, and Realtime.");
-            public readonly GUIContent lightBounceIntensity = new GUIContent("Indirect Multiplier", "Controls the intensity of indirect light being contributed to the scene. A value of 0 will cause Realtime lights to be removed from realtime global illumination and Baked and Mixed lights to no longer emit indirect lighting. Has no effect when both Realtime and Baked Global Illumination are disabled.");
-            public readonly GUIContent cookie = new GUIContent("Cookie", "Specifies the Texture mask to cast shadows, create silhouettes, or patterned illumination for the light.");
             public readonly GUIContent cookieSizeX = new GUIContent("Size X", "Controls the size of the cookie mask currently assigned to the light.");
             public readonly GUIContent cookieSizeY = new GUIContent("Size Y", "Controls the size of the cookie mask currently assigned to the light.");
             public readonly GUIContent shadowBias = new GUIContent("Bias", "Controls the distance at which the shadows will be pushed away from the light. Useful for avoiding false self-shadowing artifacts.");
@@ -27,10 +17,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent shadowNearPlane = new GUIContent("Near Plane", "Controls the value for the near clip plane when rendering shadows. Currently clamped to 0.1 units or 1% of the lights range property, whichever is lower.");
             public readonly GUIContent bakedShadowRadius = new GUIContent("Baked Shadow Radius", "Controls the amount of artificial softening applied to the edges of shadows cast by the Point or Spot light.");
             public readonly GUIContent bakedShadowAngle = new GUIContent("Baked Shadow Angle", "Controls the amount of artificial softening applied to the edges of shadows cast by directional lights.");
-
-            public readonly GUIContent bakingWarning = new GUIContent("Light mode is currently overridden to Realtime mode. Enable Baked Global Illumination to use Mixed or Baked light modes.");
-            public readonly GUIContent indirectBounceShadowWarning = new GUIContent("Realtime indirect bounce shadowing is not supported for Spot and Point lights.");
-            public readonly GUIContent cookieWarning = new GUIContent("Cookie textures for spot lights should be set to clamp, not repeat, to avoid artifacts.");
 
             // Additional light data
             public readonly GUIContent maxSmoothness = new GUIContent("Max Smoothness", "Very low cost way of faking spherical area lighting. This will modify the roughness of the material lit. This is useful when the specular highlight is too small or too sharp.");
