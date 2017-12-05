@@ -5,24 +5,24 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Art", "BlendMode")]
-    public class BlendModeNode : CodeFunctionNode
+    [Title("Artistic", "Blend", "Blend")]
+    public class BlendNode : CodeFunctionNode
     {
-        public BlendModeNode()
+        public BlendNode()
         {
-            name = "BlendMode";
+            name = "Blend";
         }
 
         string GetCurrentBlendName()
         {
-            return System.Enum.GetName(typeof(BlendModesEnum), m_BlendMode);
+            return System.Enum.GetName(typeof(BlendMode), m_BlendMode);
         }
 
         [SerializeField]
-        BlendModesEnum m_BlendMode;
+        BlendMode m_BlendMode = BlendMode.Overlay;
 
         [EnumControl("")]
-        public BlendModesEnum blendMode
+        public BlendMode blendMode
         {
             get { return m_BlendMode; }
             set
