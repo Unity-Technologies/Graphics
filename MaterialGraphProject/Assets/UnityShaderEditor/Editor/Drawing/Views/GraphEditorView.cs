@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental.UIElements.GraphView;
-using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using UnityEditor.ShaderGraph;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Inspector;
 using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
@@ -83,7 +81,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             m_SearchWindowProvider.Initialize(editorWindow, m_Graph, m_GraphView);
-            m_GraphView.AddManipulator(new NodeCreator(m_SearchWindowProvider));
+            m_GraphView.nodeCreationRequest = (c) => SearchWindow.Open(new SearchWindowContext(c.screenMousePosition), m_SearchWindowProvider);
+            //m_GraphView.AddManipulator(new NodeCreator(m_SearchWindowProvider));
 
             foreach (var node in graph.GetNodes<INode>())
                 AddNode(node);
