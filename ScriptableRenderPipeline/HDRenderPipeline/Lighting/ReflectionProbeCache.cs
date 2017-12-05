@@ -26,9 +26,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ProbeFilteringState[]   m_ProbeBakingState;
         Material                m_ConvertTextureMaterial;
         MaterialPropertyBlock   m_ConvertTextureMPB;
+        bool                    m_PerformBC6HCompression;
 
         public ReflectionProbeCache(IBLFilterGGX iblFilter, int cacheSize, int probeSize, TextureFormat probeFormat, bool isMipmaped)
         {
+            // BC6H requires CPP feature not yet available
+            probeFormat = TextureFormat.RGBAHalf;
+
             Debug.Assert(probeFormat == TextureFormat.BC6H || probeFormat == TextureFormat.RGBAHalf, "Reflection Probe Cache format for HDRP can only be BC6H or FP16.");
 
             m_ProbeSize = probeSize;
@@ -36,6 +40,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_TextureCache = new TextureCacheCubemap();
             m_TextureCache.AllocTextureArray(cacheSize, probeSize, probeFormat, isMipmaped);
             m_IBLFilterGGX = iblFilter;
+
+            m_PerformBC6HCompression = probeFormat == TextureFormat.BC6H;
 
             InitializeProbeBakingStates();
         }
@@ -191,7 +197,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         if (result == null)
                             return -1;
 
-                        m_TextureCache.UpdateSlice(cmd, sliceIndex, result, m_TextureCache.GetTextureHash(texture)); // Be careful to provide the update count from the input texture, not the temporary one used for convolving.
+                        if (m_PerformBC6HCompression)
+                        {
+                            cmd.BC6HEncodeFastCubemap(
+                                result, m_ProbeSize, m_TextureCache.GetTexCache(),
+                                0, int.MaxValue, sliceIndex);
+                            m_TextureCache.SetSliceHash(sliceIndex, m_TextureCache.GetTextureHash(texture));
+                        }
+                        else
+                        {
+                            m_TextureCache.UpdateSlice(cmd, sliceIndex, result, m_TextureCache.GetTextureHash(texture)); // Be careful to provide the update count from the input texture, not the temporary one used for convolving.
+                        }
 
                         m_ProbeBakingState[sliceIndex] = ProbeFilteringState.Ready;
                     }
