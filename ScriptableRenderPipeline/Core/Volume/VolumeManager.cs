@@ -129,7 +129,6 @@ namespace UnityEngine.Experimental.Rendering
         {
             VolumeComponent comp;
             m_Components.TryGetValue(type, out comp);
-            Assert.IsNotNull(comp, "Component map is corrupted, \"" + type + "\" not found");
             return comp;
         }
 
