@@ -83,7 +83,7 @@ void EncodeIntoSSSBuffer(SSSData sssData, uint2 positionSS, out SSSBufferType0 o
 void DecodeSSSProfileFromSSSBuffer(SSSBufferType0 inSSSBuffer0, uint2 positionSS, out int subsurfaceProfile)
 {
     float unused;
-    UnpackFloatInt8bit(inSSSBuffer0.b, 16.0, unused, subsurfaceProfile);
+    UnpackFloatInt8bit(inSSSBuffer0.a, 16.0, unused, subsurfaceProfile);
 }
 
 void DecodeFromSSSBuffer(uint2 positionSS, out SSSData sssData)
