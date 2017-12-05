@@ -32,9 +32,10 @@
 #define LOG2_E      1.44269504088896340736
 #define INFINITY    asfloat(0x7F800000)
 
-#define FLT_EPS     1.192092896e-07 // Smallest positive number, such that 1.0 + FLT_EPS != 1.0
+#define FLT_EPS     5.960464478e-8  // 2^-24, machine epsilon: 1 + EPS = 1 (half of the ULP for 1)
 #define FLT_MIN     1.175494351e-38 // Minimum representable positive floating-point number
 #define FLT_MAX     3.402823466e+38 // Maximum representable floating-point number
+#define FLT_NAN     asfloat(0xFFFFFFFF)
 #define HALF_MIN    6.103515625e-5  // 2^-14, the same value for 10, 11 and 16-bit: https://www.khronos.org/opengl/wiki/Small_Float_Formats
 #define HALF_MAX    65504.0
 #define UINT_MAX    0xFFFFFFFFu
@@ -104,5 +105,11 @@ void FunctionName(inout bool   a, inout bool   b) { bool   t = a; a = b; b = t; 
 void FunctionName(inout bool2  a, inout bool2  b) { bool2  t = a; a = b; b = t; } \
 void FunctionName(inout bool3  a, inout bool3  b) { bool3  t = a; a = b; b = t; } \
 void FunctionName(inout bool4  a, inout bool4  b) { bool4  t = a; a = b; b = t; }
+
+
+// MACRO from Legacy Untiy
+// Transforms 2D UV by scale/bias property
+#define TRANSFORM_TEX(tex, name) ((tex.xy) * name##_ST.xy + name##_ST.zw)
+#define GET_TEXELSIZE_NAME(name) (name##_TexelSize)
 
 #endif // UNITY_MACROS_INCLUDED
