@@ -2,6 +2,8 @@
 #define UNITY_DEBUG_DISPLAY_INCLUDED
 
 #include "DebugDisplay.cs.hlsl"
+#include "MaterialDebug.cs.hlsl"
+#include "LightingDebug.cs.hlsl"
 
 // Set of parameters available when switching to debug shader mode
 int _DebugLightingMode; // Match enum DebugLightingMode

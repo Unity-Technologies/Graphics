@@ -15,13 +15,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         //SkyResolution4096 = 4096
     }
 
-    [GenerateHLSL(PackingRules.Exact)]
-    public enum LightSamplingParameters
-    {
-        TextureHeight = 256,
-        TextureWidth  = 512
-    }
-
     public enum EnvironementUpdateMode
     {
         OnChanged = 0,
