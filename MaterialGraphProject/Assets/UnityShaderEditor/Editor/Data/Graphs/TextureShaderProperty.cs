@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Text;
 using UnityEngine;
 
@@ -62,9 +62,9 @@ namespace UnityEditor.ShaderGraph
         {
             return new PreviewProperty()
             {
-                m_Name = referenceName,
-                m_PropType = PropertyType.Texture,
-                m_Texture = value.texture
+                name = referenceName,
+                propType = PropertyType.Texture,
+                textureValue = value.texture
             };
         }
     }

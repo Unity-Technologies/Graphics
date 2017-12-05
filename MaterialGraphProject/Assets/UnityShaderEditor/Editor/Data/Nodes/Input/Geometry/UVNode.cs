@@ -4,11 +4,6 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    interface IMayRequireMeshUV
-    {
-        bool RequiresMeshUV(UVChannel channel);
-    }
-
     [Title("Input", "Geometry", "UV")]
     public class UVNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {

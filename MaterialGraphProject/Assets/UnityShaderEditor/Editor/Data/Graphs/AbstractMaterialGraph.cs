@@ -91,6 +91,8 @@ namespace UnityEditor.ShaderGraph
                 m_RemovedProperties.Add(guid);
         }
 
+        static List<IEdge> s_TempEdges = new List<IEdge>();
+
         public void ReplacePropertyNodeWithConcreteNode(PropertyNode propertyNode)
         {
             var property = properties.FirstOrDefault(x => x.guid == propertyNode.propertyGuid);
@@ -155,7 +157,9 @@ namespace UnityEditor.ShaderGraph
                 node.drawState = propertyNode.drawState;
                 AddNodeNoValidate(node);
 
-                foreach (var edge in GetEdges(slot.slotReference).ToArray())
+                s_TempEdges.Clear();
+                GetEdges(slot.slotReference, s_TempEdges);
+                foreach (var edge in s_TempEdges)
                     ConnectNoValidate(node.GetSlotReference(slotId), edge.inputSlot);
 
                 RemoveNodeNoValidate(propertyNode);

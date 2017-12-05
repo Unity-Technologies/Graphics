@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -30,7 +30,7 @@ SamplerState {0};
 
         public override PreviewProperty GetPreviewMaterialProperty()
         {
-            return null;
+            return default(PreviewProperty);
         }
     }
 }
