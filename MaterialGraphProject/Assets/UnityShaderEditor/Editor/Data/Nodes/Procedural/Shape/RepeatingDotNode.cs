@@ -1,34 +1,34 @@
 using System.Reflection;
 using UnityEngine;
 
-/*namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph
 {
-    [Title("Procedural", "MakeSubgraph", "Repeating Dot")]
-    public class RepeatingDotNode : CodeFunctionNode
+    [Title("Procedural", "Shape", "Ellipse")]
+    public class EllipseNode : CodeFunctionNode
     {
-        public RepeatingDotNode()
+        public EllipseNode()
         {
-            name = "Repeating Dot";
+            name = "Ellipse";
         }
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_Repreatingdot", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_Ellipse", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_Repreatingdot(
+        static string Unity_Ellipse(
             [Slot(0, Binding.MeshUV0)] Vector2 UV,
-            [Slot(1, Binding.None, 4.0f, 4.0f, 4.0f, 4.0f)] Vector1 Count,
-            [Slot(2, Binding.None, 0.5f, 0.5f, 0.5f, 0.5f)] Vector1 Radius,
+            [Slot(2, Binding.None, 0.5f, 0, 0, 0)] Vector1 Width,
+            [Slot(3, Binding.None, 0.5f, 0, 0, 0)] Vector1 Height,
             [Slot(4, Binding.None)] out Vector1 Out)
         {
             return
                 @"
 {
-    UV *= 2.0 - 1.0;
-    UV = fmod(UV * Count, 1.0) * 2.0 - 1.0;
-    Out = step(length(UV),Radius);
+    UV = (UV * 2.0 - 1.0);
+    UV = UV / {precision}2(Width, Height);
+    Out = step(length(UV), 1);
 }";
         }
     }
-}*/
+}
