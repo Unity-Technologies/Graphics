@@ -17,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        internal HashSet<DecalComponent> m_Decals = new HashSet<DecalComponent>();
+        internal HashSet<DecalProjectorComponent> m_Decals = new HashSet<DecalProjectorComponent>();
         Mesh m_CubeMesh;
 
         private static readonly int m_WorldToDecal = Shader.PropertyToID("_WorldToDecal");
@@ -47,23 +47,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             int[] triangles = new int[36];
 
-            triangles[0] = 0; triangles[1] = 1; triangles[2] = 2;
-            triangles[3] = 0; triangles[4] = 2; triangles[5] = 3;
-            triangles[6] = 1; triangles[7] = 5; triangles[8] = 6;
-            triangles[9] = 1; triangles[10] = 6; triangles[11] = 2;
-            triangles[12] = 5; triangles[13] = 4; triangles[14] = 7;
-            triangles[15] = 5; triangles[16] = 7; triangles[17] = 6;
-            triangles[18] = 4; triangles[19] = 0; triangles[20] = 3;
-            triangles[21] = 4; triangles[22] = 3; triangles[23] = 7;
-            triangles[24] = 3; triangles[25] = 2; triangles[26] = 6;
-            triangles[27] = 3; triangles[28] = 6; triangles[29] = 7;
-            triangles[30] = 4; triangles[31] = 5; triangles[32] = 1;
-            triangles[33] = 4; triangles[34] = 1; triangles[35] = 0;
+            triangles[0] = 0; triangles[1] = 2; triangles[2] = 1;
+            triangles[3] = 0; triangles[4] = 3; triangles[5] = 2;
+            triangles[6] = 1; triangles[7] = 6; triangles[8] = 5;
+            triangles[9] = 1; triangles[10] = 2; triangles[11] = 6;
+            triangles[12] = 5; triangles[13] = 7; triangles[14] = 4;
+            triangles[15] = 5; triangles[16] = 6; triangles[17] = 7;
+            triangles[18] = 4; triangles[19] = 3; triangles[20] = 0;
+            triangles[21] = 4; triangles[22] = 7; triangles[23] = 3;
+            triangles[24] = 3; triangles[25] = 6; triangles[26] = 2;
+            triangles[27] = 3; triangles[28] = 7; triangles[29] = 6;
+            triangles[30] = 4; triangles[31] = 1; triangles[32] = 5;
+            triangles[33] = 4; triangles[34] = 0; triangles[35] = 1;
 
             m_CubeMesh.triangles = triangles;
         }
 
-        public void AddDecal(DecalComponent d)
+        public void AddDecal(DecalProjectorComponent d)
         {
             if (d.m_Material.GetTexture("_BaseColorMap") || d.m_Material.GetTexture("_NormalMap"))
             {
@@ -72,7 +72,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void RemoveDecal(DecalComponent d)
+        public void RemoveDecal(DecalProjectorComponent d)
         {
             m_Decals.Remove(d);
         }
@@ -81,25 +81,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (m_CubeMesh == null)
                 CreateCubeMesh();
-			Matrix4x4 CRWStoAWS = new Matrix4x4();
-			if (ShaderConfig.s_CameraRelativeRendering == 1)
-			{
-				Vector4 worldSpaceCameraPos = Shader.GetGlobalVector(HDShaderIDs._WorldSpaceCameraPos);
-				CRWStoAWS = Matrix4x4.Translate(worldSpaceCameraPos);
-			}
-			else
-			{
-				CRWStoAWS = Matrix4x4.identity;
-			}
             foreach (var decal in m_Decals)
             {              
-                Matrix4x4 final = decal.transform.localToWorldMatrix;
-                Matrix4x4 decalToWorldR = Matrix4x4.Rotate(decal.transform.localRotation);
-                Matrix4x4 worldToDecal = Matrix4x4.Translate(new Vector3(0.5f, 0.0f, 0.5f)) * Matrix4x4.Scale(new Vector3(1.0f, -1.0f, 1.0f)) * final.inverse;           
-                cmd.SetGlobalMatrix(m_WorldToDecal, worldToDecal * CRWStoAWS);
-                cmd.SetGlobalMatrix(m_DecalToWorldR, decalToWorldR);
-                //DrawMesh(Mesh mesh, Matrix4x4 matrix, Material material, int submeshIndex, int shaderPass);
-                cmd.DrawMesh(m_CubeMesh, final, decal.m_Material, 0, 0);
+                if (decal.transform.hasChanged)
+                {
+                    decal.UpdatePropertyBlock();
+                    decal.transform.hasChanged = false;
+                }
+                cmd.DrawMesh(m_CubeMesh, decal.transform.localToWorldMatrix, decal.m_Material, 0, 0, decal.GetPropertyBlock());
             }
         }
     }

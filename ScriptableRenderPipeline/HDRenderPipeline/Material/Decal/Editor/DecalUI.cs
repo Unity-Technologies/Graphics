@@ -38,19 +38,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             decalBlend = FindProperty(kDecalBlend, props);
         }
 
-        static public void SetKeyword(Material m, string keyword, bool state)
-        {
-            if (state)
-                m.EnableKeyword(keyword);
-            else
-                m.DisableKeyword(keyword);
-        }
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
         static public void SetupMaterialKeywordsAndPass(Material material)
         {
-            SetKeyword(material, "_COLORMAP", material.GetTexture(kBaseColorMap));
-            SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap));
+            CoreUtils.SetKeyword(material, "_COLORMAP", material.GetTexture(kBaseColorMap));
+            CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap));
         }
 
         protected void SetupMaterialKeywordsAndPassInternal(Material material)

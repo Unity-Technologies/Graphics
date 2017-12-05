@@ -5,14 +5,19 @@
 #ifndef DECAL_CS_HLSL
 #define DECAL_CS_HLSL
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Decal+SurfaceData:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.Decal+DecalSurfaceData:  static fields
 //
-#define DEBUGVIEW_DECAL_SURFACEDATA_BASE_COLOR (2000)
-#define DEBUGVIEW_DECAL_SURFACEDATA_NORMAL_WS (2001)
+#define DEBUGVIEW_DECAL_DECALSURFACEDATA_BASE_COLOR (10000)
+#define DEBUGVIEW_DECAL_DECALSURFACEDATA_NORMAL_WS (10001)
 
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.Decal+SurfaceData
+//
+// UnityEngine.Experimental.Rendering.HDPipeline.Decal+DBufferMaterial:  static fields
+//
+#define DBUFFERMATERIAL_COUNT (2)
+
+// Generated from UnityEngine.Experimental.Rendering.HDPipeline.Decal+DecalSurfaceData
 // PackingRules = Exact
-struct SurfaceData
+struct DecalSurfaceData
 {
     float4 baseColor;
     float4 normalWS;
@@ -21,16 +26,16 @@ struct SurfaceData
 //
 // Debug functions
 //
-void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout float3 result, inout bool needLinearToSRGB)
+void GetGeneratedDecalSurfaceDataDebug(uint paramId, DecalSurfaceData decalsurfacedata, inout float3 result, inout bool needLinearToSRGB)
 {
     switch (paramId)
     {
-        case DEBUGVIEW_DECAL_SURFACEDATA_BASE_COLOR:
-            result = surfacedata.baseColor.xyz;
+        case DEBUGVIEW_DECAL_DECALSURFACEDATA_BASE_COLOR:
+            result = decalsurfacedata.baseColor.xyz;
             needLinearToSRGB = true;
             break;
-        case DEBUGVIEW_DECAL_SURFACEDATA_NORMAL_WS:
-            result = surfacedata.normalWS.xyz;
+        case DEBUGVIEW_DECAL_DECALSURFACEDATA_NORMAL_WS:
+            result = decalsurfacedata.normalWS.xyz;
             break;
     }
 }
