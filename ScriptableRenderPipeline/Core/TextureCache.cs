@@ -334,10 +334,16 @@ namespace UnityEngine.Experimental.Rendering
 
         // In case the texture content with which we update the cache is not the input texture, we need to provide the right update count.
         public void UpdateSlice(CommandBuffer cmd, int sliceIndex, Texture content, uint textureHash)
+                {
+            // transfer new slice to sliceIndex from source texture
+            SetSliceHash(sliceIndex, textureHash);
+            TransferToSlice(cmd, sliceIndex, content);
+        }
+
+        public void SetSliceHash(int sliceIndex, uint hash)
         {
             // transfer new slice to sliceIndex from source texture
-            m_SliceArray[sliceIndex].sliceEntryHash = textureHash;
-            TransferToSlice(cmd, sliceIndex, content);
+            m_SliceArray[sliceIndex].sliceEntryHash = hash;
         }
 
         public void UpdateSlice(CommandBuffer cmd, int sliceIndex, Texture content)
