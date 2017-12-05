@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.Graphing;
 
-namespace UnityEditor.ShaderGraph
+/*namespace UnityEditor.ShaderGraph
 {
     [Title("OLD", "Transform")]
     public class UVTransform : CodeFunctionNode
@@ -71,4 +71,4 @@ namespace UnityEditor.ShaderGraph
 ";
         }
     }
-}
+}*/

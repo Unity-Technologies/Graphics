@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace UnityEditor.ShaderGraph
+/*namespace UnityEditor.ShaderGraph
 {
     [Title("OLD", "Pulse")]
     public class PulseNode : CodeFunctionNode
@@ -27,4 +27,4 @@ namespace UnityEditor.ShaderGraph
 ";
         }
     }
-}
+}*/
