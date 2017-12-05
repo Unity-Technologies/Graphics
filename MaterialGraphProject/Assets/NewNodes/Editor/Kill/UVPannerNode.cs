@@ -1,7 +1,7 @@
 using System.Reflection;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph
+/*namespace UnityEditor.ShaderGraph
 {
     [Title("OLD", "UV Panner")]
     public class PannerNode : CodeFunctionNode
@@ -30,4 +30,4 @@ namespace UnityEditor.ShaderGraph
 }";
         }
     }
-}
+}*/
