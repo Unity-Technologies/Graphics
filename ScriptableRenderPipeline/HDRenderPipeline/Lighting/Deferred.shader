@@ -99,15 +99,15 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
                 // input.positionCS is SV_Position
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, uint2(input.positionCS.xy) / GetTileSize());
-                float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
+                float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.positionSS).x;
                 UpdatePositionInput(depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, posInput);
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
                 BSDFData bsdfData;
                 BakeLightingData bakeLightingData;
-                DECODE_FROM_GBUFFER(posInput.unPositionSS, MATERIAL_FEATURE_MASK_FLAGS, bsdfData, bakeLightingData.bakeDiffuseLighting);
+                DECODE_FROM_GBUFFER(posInput.positionSS, MATERIAL_FEATURE_MASK_FLAGS, bsdfData, bakeLightingData.bakeDiffuseLighting);
                 #ifdef SHADOWS_SHADOWMASK
-                DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.unPositionSS), bakeLightingData.bakeShadowMask);
+                DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.positionSS), bakeLightingData.bakeShadowMask);
                 #endif
 
                 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
@@ -119,7 +119,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                 Outputs outputs;
 
             #ifdef OUTPUT_SPLIT_LIGHTING
-                if (_EnableSSSAndTransmission != 0)
+                if (_EnableSSSAndTransmission != 0 && bsdfData.materialId == MATERIALID_LIT_SSS)
                 {
                     outputs.specularLighting = float4(specularLighting, 1.0);
                     outputs.diffuseLighting  = TagLightingForSSS(diffuseLighting);

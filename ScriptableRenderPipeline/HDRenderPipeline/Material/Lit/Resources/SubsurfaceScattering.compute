@@ -160,9 +160,9 @@ void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, float2 cen
     #if SSS_USE_TANGENT_PLANE
         float3 relPosVS   = vec.x * tangentX + vec.y * tangentY;
         float3 positionVS = centerPosVS + relPosVS;
-        float2 positionSS = ComputeScreenSpacePosition(positionCS, projMatrix);
+        float2 positionNDC = ComputeNormalizedDeviceCoordinates(positionCS, projMatrix);
 
-        position = (int2)(positionSS * _ScreenSize.xy);
+        position = (int2)(positionNDC * _ScreenSize.xy);
         xy2      = dot(relPosVS.xy, relPosVS.xy);
     #else
         position = (int2)(centerCoord + vec * pixelsPerMm);
@@ -327,7 +327,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
     float  maxDistance = _ShapeParams[profileID].a;
 
     // Reconstruct the view-space position corresponding to the central sample.
-    float2 centerPosSS = posInput.positionSS;
+    float2 centerPosSS = posInput.positionNDC;
     float2 cornerPosSS = centerPosSS + 0.5 * _ScreenSize.zw;
     float3 centerPosVS = ComputeViewSpacePosition(centerPosSS, centerDepth, UNITY_MATRIX_I_P);
     float3 cornerPosVS = ComputeViewSpacePosition(cornerPosSS, centerDepth, UNITY_MATRIX_I_P);

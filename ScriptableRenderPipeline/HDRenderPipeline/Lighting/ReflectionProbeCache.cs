@@ -202,11 +202,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             cmd.BC6HEncodeFastCubemap(
                                 result, m_ProbeSize, m_TextureCache.GetTexCache(),
                                 0, int.MaxValue, sliceIndex);
-                            m_TextureCache.SetSliceHash(sliceIndex, m_TextureCache.GetTextureUpdateCount(texture));
+                            m_TextureCache.SetSliceHash(sliceIndex, m_TextureCache.GetTextureHash(texture));
                         }
                         else
                         {
-                            m_TextureCache.UpdateSlice(cmd, sliceIndex, result, m_TextureCache.GetTextureUpdateCount(texture)); // Be careful to provide the update count from the input texture, not the temporary one used for convolving.
+                            m_TextureCache.UpdateSlice(cmd, sliceIndex, result, m_TextureCache.GetTextureHash(texture)); // Be careful to provide the update count from the input texture, not the temporary one used for convolving.
                         }
 
                         m_ProbeBakingState[sliceIndex] = ProbeFilteringState.Ready;

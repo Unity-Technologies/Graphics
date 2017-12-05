@@ -11,7 +11,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedProperty m_DefaultDiffuseMaterial;
         SerializedProperty m_DefaultShader;
 
-        // TilePass settings
+        // LightLoop settings
         SerializedProperty m_enableTileAndCluster;
         SerializedProperty m_enableSplitLightEvaluation;
         SerializedProperty m_enableComputeLightEvaluation;

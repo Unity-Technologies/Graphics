@@ -76,7 +76,8 @@ void EncodeMode11( inout uint4 block, inout float blockMSLE, float3 texels[ 16 ]
     // compute endpoints (min/max RGB bbox)
     float3 blockMin = texels[ 0 ];
     float3 blockMax = texels[ 0 ];
-    for ( uint i = 1; i < 16; ++i )
+    uint i;
+    for (i = 1; i < 16; ++i )
     {
         blockMin = min( blockMin, texels[ i ] );
         blockMax = max( blockMax, texels[ i ] );
