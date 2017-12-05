@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEditor.Graphing;
 
-namespace UnityEditor.ShaderGraph
+/*namespace UnityEditor.ShaderGraph
 {
     [Title("OLD", "Parallax")]
     public class ParallaxNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireMeshUV, IMayRequireViewDirection
@@ -118,4 +118,4 @@ namespace UnityEditor.ShaderGraph
             return NeededCoordinateSpace.Tangent;
         }
     }
-}
+}*/

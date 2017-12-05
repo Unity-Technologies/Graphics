@@ -1,7 +1,7 @@
 using System.Reflection;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph
+/*namespace UnityEditor.ShaderGraph
 {
     [Title("OLD", "Line")]
     public class LineNode : CodeFunctionNode
@@ -34,4 +34,4 @@ namespace UnityEditor.ShaderGraph
 }";
         }
     }
-}
+}*/

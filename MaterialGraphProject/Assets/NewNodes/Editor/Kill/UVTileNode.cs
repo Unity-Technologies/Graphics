@@ -1,7 +1,7 @@
 using System.Reflection;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph
+/*namespace UnityEditor.ShaderGraph
 {
     [Title("OLD", "UV Tile")]
     public class UVTileNode : CodeFunctionNode
@@ -29,4 +29,4 @@ namespace UnityEditor.ShaderGraph
 }";
         }
     }
-}
+}*/
