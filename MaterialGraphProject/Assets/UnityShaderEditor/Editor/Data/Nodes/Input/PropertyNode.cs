@@ -31,37 +31,37 @@ namespace UnityEditor.ShaderGraph
 
             if (property is FloatShaderProperty)
             {
-                AddSlot(new Vector1MaterialSlot(OutputSlotId, "float", "float", SlotType.Output, 0));
+                AddSlot(new Vector1MaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, 0));
                 RemoveSlotsNameNotMatching(new[] {OutputSlotId});
             }
             else if (property is Vector2ShaderProperty)
             {
-                AddSlot(new Vector2MaterialSlot(OutputSlotId, "V2", "V2", SlotType.Output, Vector4.zero));
+                AddSlot(new Vector2MaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, Vector4.zero));
                 RemoveSlotsNameNotMatching(new[] {OutputSlotId});
             }
             else if (property is Vector3ShaderProperty)
             {
-                AddSlot(new Vector3MaterialSlot(OutputSlotId, "V3", "V3", SlotType.Output, Vector4.zero));
+                AddSlot(new Vector3MaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, Vector4.zero));
                 RemoveSlotsNameNotMatching(new[] {OutputSlotId});
             }
             else if (property is Vector4ShaderProperty)
             {
-                AddSlot(new Vector4MaterialSlot(OutputSlotId, "V4", "V4", SlotType.Output, Vector4.zero));
+                AddSlot(new Vector4MaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, Vector4.zero));
                 RemoveSlotsNameNotMatching(new[] {OutputSlotId});
             }
             else if (property is ColorShaderProperty)
             {
-                AddSlot(new Vector4MaterialSlot(OutputSlotId, "Color", "Color", SlotType.Output, Vector4.zero));
+                AddSlot(new Vector4MaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, Vector4.zero));
                 RemoveSlotsNameNotMatching(new[] {OutputSlotId});
             }
             else if (property is TextureShaderProperty)
             {
-                AddSlot(new Texture2DMaterialSlot(OutputSlotId, "T", "T", SlotType.Output));
+                AddSlot(new Texture2DMaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output));
                 RemoveSlotsNameNotMatching(new[] {OutputSlotId});
             }
             else if (property is CubemapShaderProperty)
             {
-                AddSlot(new CubemapMaterialSlot(OutputSlotId, "C", "C", SlotType.Output));
+                AddSlot(new CubemapMaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output));
                 RemoveSlotsNameNotMatching(new[] { OutputSlotId });
             }
         }
