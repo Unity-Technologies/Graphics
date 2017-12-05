@@ -340,10 +340,10 @@ namespace UnityEngine.Experimental.Rendering
             TransferToSlice(cmd, sliceIndex, content);
         }
 
-        public void SetSliceHash(int sliceIndex, uint updateCount)
+        public void SetSliceHash(int sliceIndex, uint hash)
         {
             // transfer new slice to sliceIndex from source texture
-            m_SliceArray[sliceIndex].sliceEntryHash = updateCount;
+            m_SliceArray[sliceIndex].sliceEntryHash = hash;
         }
 
         public void UpdateSlice(CommandBuffer cmd, int sliceIndex, Texture content)
