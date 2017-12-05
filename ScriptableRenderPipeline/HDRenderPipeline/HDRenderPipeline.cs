@@ -366,7 +366,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_IBLFilterGGX = new IBLFilterGGX(asset.renderPipelineResources);
 
-            m_LightLoop.Build(asset.renderPipelineResources, asset.globalRenderingSettings, asset.tileSettings, asset.globalTextureSettings, asset.shadowInitParams, m_ShadowSettings, m_IBLFilterGGX);
+            m_LightLoop.Build(asset.renderPipelineResources, asset.tileSettings, asset.globalTextureSettings, asset.shadowInitParams, m_ShadowSettings, m_IBLFilterGGX);
 
             m_SkyManager.Build(asset.renderPipelineResources, m_IBLFilterGGX);
             m_SkyManager.skySettings = skySettingsToUse;
@@ -712,7 +712,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_FrameCount = Time.frameCount;
             }
 
-            var stereoActive = UnityEngine.XR.XRSettings.isDeviceActive && m_CurrentDebugDisplaySettings.renderingDebugSettings.allowStereo;
+            var stereoActive = UnityEngine.XR.XRSettings.isDeviceActive && m_DebugDisplaySettings.renderingDebugSettings.allowStereo;
 
             foreach (var camera in cameras)
             {
@@ -776,12 +776,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 CullResults.Cull(ref cullingParams, renderContext,ref m_CullResults);
             }
 
+            var postProcessLayer = camera.GetComponent<PostProcessLayer>();
+            var hdCamera = HDCamera.Get(camera, postProcessLayer, m_Asset.globalRenderingSettings, stereoActive);
+            m_LightLoop.UpdateRenderingPathState(hdCamera.useForwardOnly);
+
             Resize(camera);
 
             renderContext.SetupCameraProperties(camera);
 
-            var postProcessLayer = camera.GetComponent<PostProcessLayer>();
-            var hdCamera = HDCamera.Get(camera, postProcessLayer, m_Asset.globalRenderingSettings, stereoActive);
             PushGlobalParams(hdCamera, cmd, sssSettings);
 
             // TODO: Find a correct place to bind these material textures
@@ -822,9 +824,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             InitAndClearBuffer(hdCamera, enableBakeShadowMask, cmd);
 
-            RenderDepthPrepass(m_CullResults, camera, renderContext, cmd);
+            RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd);
 
-            RenderGBuffer(m_CullResults, camera, renderContext, cmd);
+            RenderGBuffer(m_CullResults, hdCamera, renderContext, cmd);
 
             // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
             CopyDepthBufferIfNeeded(cmd);
@@ -878,19 +880,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // therefore, forward-rendered objects do not output split lighting required for the SSS pass.
                 SubsurfaceScatteringPass(hdCamera, cmd, sssSettings);
 
-                RenderForward(m_CullResults, camera, renderContext, cmd, ForwardPass.Opaque);
+                RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.Opaque);
                 RenderForwardError(m_CullResults, camera, renderContext, cmd, ForwardPass.Opaque);
 
                 RenderSky(hdCamera, cmd);
 
                 // Render pre refraction objects
-                RenderForward(m_CullResults, camera, renderContext, cmd, ForwardPass.PreRefraction);
+                RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.PreRefraction);
                 RenderForwardError(m_CullResults, camera, renderContext, cmd, ForwardPass.PreRefraction);
 
                 RenderGaussianPyramidColor(camera, cmd, renderContext, FullScreenDebugMode.PreRefractionColorPyramid);
 
                 // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
-                RenderForward(m_CullResults, camera, renderContext, cmd, ForwardPass.Transparent);
+                RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.Transparent);
                 RenderForwardError(m_CullResults, camera, renderContext, cmd, ForwardPass.Transparent);
 
                 PushFullScreenDebugTexture(cmd, m_CameraColorBuffer, camera, renderContext, FullScreenDebugMode.NanTracker);
@@ -1104,7 +1106,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Forward only renderer: We always render everything
         // Deferred renderer: We render a depth prepass only if engine request it. We can decide if we render everything or only opaque alpha tested object.
         // Forward opaque with deferred renderer (DepthForwardOnly pass): We always render everything
-        void RenderDepthPrepass(CullResults cull, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        void RenderDepthPrepass(CullResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             // In case of deferred renderer, we can have forward opaque material. These materials need to be render in the depth buffer to correctly build the light list.
             // And they will tag the stencil to not be lit during the deferred lighting pass.
@@ -1114,8 +1116,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // It must also have a "DepthForwardOnly" and no "DepthOnly" pass as forward material (either deferred or forward only rendering) have always a depth pass.
 
             // In case of forward only rendering we have a depth prepass. In case of deferred renderer, it is optional
-            bool addFullDepthPrepass = m_Asset.globalRenderingSettings.ShouldUseForwardRenderingOnly() || m_Asset.globalRenderingSettings.useDepthPrepassWithDeferredRendering;
-            bool addAlphaTestedOnly = !m_Asset.globalRenderingSettings.ShouldUseForwardRenderingOnly() && m_Asset.globalRenderingSettings.useDepthPrepassWithDeferredRendering && m_Asset.globalRenderingSettings.renderAlphaTestOnlyInDeferredPrepass;
+            bool addFullDepthPrepass = hdCamera.useForwardOnly || m_Asset.globalRenderingSettings.useDepthPrepassWithDeferredRendering;
+            bool addAlphaTestedOnly = !hdCamera.useForwardOnly && m_Asset.globalRenderingSettings.useDepthPrepassWithDeferredRendering && m_Asset.globalRenderingSettings.renderAlphaTestOnlyInDeferredPrepass;
+
+            var camera = hdCamera.camera;
 
             using (new ProfilingSample(cmd, addAlphaTestedOnly ? "Depth Prepass alpha test" : "Depth Prepass", GetSampler(CustomSamplerId.DepthPrepass)))
             {
@@ -1147,10 +1151,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // RenderGBuffer do the gbuffer pass. This is solely call with deferred. If we use a depth prepass, then the depth prepass will perform the alpha testing for opaque apha tested and we don't need to do it anymore
         // during Gbuffer pass. This is handled in the shader and the depth test (equal and no depth write) is done here.
-        void RenderGBuffer(CullResults cull, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        void RenderGBuffer(CullResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            if (m_Asset.globalRenderingSettings.ShouldUseForwardRenderingOnly())
+            if (hdCamera.useForwardOnly)
                 return;
+
+            var camera = hdCamera.camera;
 
             using (new ProfilingSample(cmd, m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() ? "GBufferDebugDisplay" : "GBuffer", GetSampler(CustomSamplerId.GBuffer)))
             {
@@ -1245,7 +1251,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderDeferredLighting(HDCamera hdCamera, CommandBuffer cmd)
         {
-            if (m_Asset.globalRenderingSettings.ShouldUseForwardRenderingOnly())
+            if (hdCamera.useForwardOnly)
                 return;
 
             m_MRTCache2[0] = m_CameraColorBufferRT;
@@ -1272,7 +1278,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void SubsurfaceScatteringPass(HDCamera hdCamera, CommandBuffer cmd, SubsurfaceScatteringSettings sssParameters)
         {
             // Currently, forward-rendered objects do not output split lighting required for the SSS pass.
-            if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission || m_Asset.globalRenderingSettings.ShouldUseForwardRenderingOnly())
+            if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission || hdCamera.useForwardOnly)
                 return;
 
             using (new ProfilingSample(cmd, "Subsurface Scattering", GetSampler(CustomSamplerId.SubsurfaceScattering)))
@@ -1358,7 +1364,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Render forward is use for both transparent and opaque objects. In case of deferred we can still render opaque object in forward.
-        void RenderForward(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, ForwardPass pass)
+        void RenderForward(CullResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd, ForwardPass pass)
         {
             // Guidelines: In deferred by default there is no opaque in forward. However it is possible to force an opaque material to render in forward
             // by using the pass "ForwardOnly". In this case the .shader should not have "Forward" but only a "ForwardOnly" pass.
@@ -1381,6 +1387,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
 
+                var camera = hdCamera.camera;
+
                 m_LightLoop.RenderForward(camera, cmd, pass == ForwardPass.Opaque);
 
                 if (pass == ForwardPass.Opaque)
@@ -1396,7 +1404,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_ForwardAndForwardOnlyPassNames[1] = HDShaderPassNames.s_ForwardName;
                 }
 
-                    var passNames = m_Asset.globalRenderingSettings.ShouldUseForwardRenderingOnly() ? m_ForwardAndForwardOnlyPassNames : m_ForwardOnlyPassNames;
+                    var passNames = hdCamera.useForwardOnly ? m_ForwardAndForwardOnlyPassNames : m_ForwardOnlyPassNames;
                     // Forward opaque material always have a prepass (whether or not we use deferred, whether or not there is option like alpha test only) so we pass the right depth state here.
                     RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, passNames, m_currentRendererConfigurationBakedLighting, null, m_DepthStateOpaqueWithPrepass);
                 }
@@ -1724,7 +1732,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.GetTemporaryRT(m_DepthPyramidBuffer, m_DepthPyramidBufferDesc, FilterMode.Trilinear);
                     // End
 
-                    if (!m_Asset.globalRenderingSettings.ShouldUseForwardRenderingOnly())
+                    if (!camera.useForwardOnly)
                         m_GbufferManager.InitGBuffers(w, h, m_DeferredMaterial, enableBakeShadowMask, cmd);
 
                     CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.Depth);
@@ -1772,7 +1780,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 // Clear GBuffers
-                if (!m_Asset.globalRenderingSettings.ShouldUseForwardRenderingOnly())
+                if (!camera.useForwardOnly)
                 {
                     using (new ProfilingSample(cmd, "Clear GBuffer", GetSampler(CustomSamplerId.ClearGBuffer)))
                     {
