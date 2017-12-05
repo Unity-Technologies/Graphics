@@ -3,20 +3,20 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Procedural", "Voronoi")]
-    public class VoronoiNoiseNode : CodeFunctionNode
+    [Title("Procedural", "Noise", "Voronoi")]
+    public class VoronoiNode : CodeFunctionNode
     {
-        public VoronoiNoiseNode()
+        public VoronoiNode()
         {
             name = "Voronoi";
         }
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_VoronoiNoise", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_Voronoi", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_VoronoiNoise(
+        static string Unity_Voronoi(
             [Slot(0, Binding.MeshUV0)] Vector2 UV,
             [Slot(1, Binding.None, 2.0f, 0, 0, 0)] Vector1 AngleOffset,
             [Slot(2, Binding.None, 5.0f, 5.0f, 5.0f, 5.0f)] Vector1 CellDensity,
