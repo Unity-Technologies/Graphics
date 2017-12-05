@@ -1,7 +1,7 @@
 using System.Reflection;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph
+/*namespace UnityEditor.ShaderGraph
 {
     [Title("OLD", "ParallaxOcclusionMapping")]
     public class ParallaxOcclusionMappingNode : CodeFunctionNode
@@ -169,4 +169,4 @@ namespace UnityEditor.ShaderGraph
 ";
         }
     }
-}
+}*/

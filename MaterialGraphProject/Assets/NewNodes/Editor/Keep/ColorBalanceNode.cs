@@ -1,7 +1,7 @@
 using System.Reflection;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph
+/*namespace UnityEditor.ShaderGraph
 {
     [Title("Art", "Adjustments", "ColorBalance")]
     public class ColorBalanceNode : CodeFunctionNode
@@ -45,4 +45,4 @@ namespace UnityEditor.ShaderGraph
 ";
         }
     }
-}
+}*/
