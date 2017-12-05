@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using UnityEngine;
@@ -209,6 +210,23 @@ namespace UnityEditor.Experimental.Rendering
         public static void RemoveMaterialKeywords(Material material)
         {
             material.shaderKeywords = null;
+        }
+
+        public static T[] GetAdditionalData<T>(params UnityEngine.Object[] targets)
+            where T : Component
+        {
+            // Handles multi-selection
+            var data = targets.Cast<Component>()
+                .Select(t => t.GetComponent<T>())
+                .ToArray();
+
+            for (int i = 0; i < data.Length; i++)
+            {
+                if (data[i] == null)
+                    data[i] = Undo.AddComponent<T>(((Component)targets[i]).gameObject);
+            }
+
+            return data;
         }
     }
 }
