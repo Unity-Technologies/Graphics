@@ -89,6 +89,7 @@ float4 _HalfRcpVariancesAndWeights[SSS_N_PROFILES][2]; // 2x Gaussians in RGB, A
 float4  _ThicknessRemaps[SSS_N_PROFILES];   // R: start, G = end - start, BA unused
 float4 _ShapeParams[SSS_N_PROFILES];        // RGB = S = 1 / D, A = filter radius
 float4 _TransmissionTints[SSS_N_PROFILES];  // RGB = 1/4 * color, A = unused
+float4 _WorldScales[SSS_N_PROFILES];        // X = meters per world unit; Y = world units per meter
 CBUFFER_END
 
 //-----------------------------------------------------------------------------
@@ -223,17 +224,16 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
 {
     bsdfData.diffuseColor       = baseColor;
     bsdfData.fresnel0           = SKIN_SPECULAR_VALUE; // TODO take from subsurfaceProfile instead
-    bsdfData.subsurfaceProfile  = subsurfaceProfile;
-    bsdfData.subsurfaceRadius   = subsurfaceRadius;
-    bsdfData.thickness          = _ThicknessRemaps[subsurfaceProfile].x + _ThicknessRemaps[subsurfaceProfile].y * thickness;
     bsdfData.enableTransmission = _EnableSSSAndTransmission != 0;
-    bsdfData.useThinObjectMode  = true; // Do not displace the point of BSDF evaluation
 
     uint transmissionMode = BitFieldExtract(asuint(_TransmissionFlags), 2u, 2u * subsurfaceProfile);
 
     if (bsdfData.enableTransmission && transmissionMode != SSS_TRSM_MODE_NONE)
     {
-        bsdfData.useThinObjectMode = transmissionMode == SSS_TRSM_MODE_THIN;
+        bsdfData.subsurfaceProfile  = subsurfaceProfile;
+        bsdfData.subsurfaceRadius   = subsurfaceRadius;
+        bsdfData.useThickObjectMode = transmissionMode != SSS_TRSM_MODE_THIN;
+        bsdfData.thickness          = _ThicknessRemaps[subsurfaceProfile].x + _ThicknessRemaps[subsurfaceProfile].y * thickness;
 
         if (_UseDisneySSS != 0)
         {
@@ -1071,17 +1071,51 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     diffuseLighting = diffuseTerm;
 }
 
-// Currently, we only model diffuse transmission. Specular transmission is not yet supported.
-// We assume that the back side of the object is a uniformly illuminated infinite plane
-// with the reversed normal (and the view vector) of the current sample.
-float3 EvaluateTransmission(BSDFData bsdfData, float intensity, float shadow)
+// In the "thin object" mode (for cards), we assume that the geometry is very thin.
+// We apply wrapped lighting to compensate for that, and do not modify the shading position.
+// Otherwise, in the "thick object" mode, we can have EITHER reflected (front) lighting
+// OR transmitted (back) lighting, never both at the same time. For transmitted lighting,
+// we need to push the shading position back to avoid self-shadowing problems.
+float3 ComputeThicknessDisplacement(BSDFData bsdfData, float3 L, float NdotL)
 {
-    // For low thickness, we can reuse the shadowing status for the back of the object.
-    shadow = bsdfData.useThinObjectMode ? shadow : 1.0;
+    // Compute the thickness in world units along the normal.
+    float thicknessInMeters = bsdfData.thickness * METERS_PER_MILLIMETER;
+    float thicknessInUnits  = thicknessInMeters * _WorldScales[bsdfData.subsurfaceProfile].y;
 
-    float backLight = intensity * shadow;
+    // Compute the thickness in world units along the light vector.
+    float unprojectedThickness = thicknessInUnits / -NdotL;
 
-    return backLight * bsdfData.transmittance; // Premultiplied with the diffuse color
+    return unprojectedThickness * L;
+}
+
+// Currently, we only model diffuse transmission. Specular transmission is not yet supported.
+// Transmitted lighting is computed as follows:
+// - we assume that the object is a thick plane (slab);
+// - we reverse the front-facing normal for the back of the object;
+// - we assume that the incoming radiance is constant along the entire back surface;
+// - we apply BSDF-specific diffuse transmission to transmit the light subsurface and back;
+// - we integrate the diffuse reflectance profile w.r.t. the radius (while also accounting
+//   for the thickness) to compute the transmittance;
+// - we multiply the transmitted radiance by the transmittance.
+float3 EvaluateTransmission(BSDFData bsdfData, float NdotL, float NdotV, float attenuation)
+{
+    float wrappedNdotL = ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
+    float negatedNdotL = saturate(-NdotL);
+
+    // Apply wrapped lighting to better handle thin objects (cards) at grazing angles.
+    float backNdotL = bsdfData.useThickObjectMode ? negatedNdotL : wrappedNdotL;
+
+    // Apply BSDF-specific diffuse transmission to attenuation. See also: [SSS-NOTE-TRSM]
+    // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
+#ifdef LIT_DIFFUSE_LAMBERT_BRDF
+    attenuation *= Lambert();
+#else
+    attenuation *= INV_PI * F_Transm_Schlick(0, 0.5, NdotV) * F_Transm_Schlick(0, 0.5, backNdotL);
+#endif
+
+    float intensity = attenuation * backNdotL;
+
+    return intensity * bsdfData.transmittance;
 }
 
 //-----------------------------------------------------------------------------
@@ -1115,14 +1149,14 @@ float4 EvaluateCookie_Directional(LightLoopContext lightLoopContext, Directional
 void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs posInput,
                                DirectionalLightData lightData, BakeLightingData bakeLightingData,
                                float3 N, float3 L,
-                               out float3 color, out float attenuation, out float shadow)
+                               out float3 color, out float attenuation)
 {
     float3 positionWS = posInput.positionWS;
+    float  shadow     = 1.0;
     float  shadowMask = 1.0;
 
     color       = lightData.color;
     attenuation = 1.0;
-    shadow      = 1.0;
 
 #ifdef SHADOWS_SHADOWMASK
     // shadowMaskSelector.x is -1 if there is no shadow mask
@@ -1149,6 +1183,8 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 #endif
     }
 
+    attenuation *= shadow;
+
     [branch] if (lightData.cookieIndex >= 0)
     {
         float3 lightToSample = positionWS - lightData.positionWS;
@@ -1167,21 +1203,24 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
 
-    float3 positionWS = posInput.positionWS;
-
     float3 N     = bsdfData.normalWS;
     float3 L     = -lightData.forward; // Lights point backward in Unity
     float  NdotL = dot(N, L);
 
-    float3 color; float attenuation, shadow;
-    EvaluateLight_Directional(lightLoopContext, posInput, lightData, bakeLightingData, N, L,
-                              color, attenuation, shadow);
+    [flatten] if (bsdfData.useThickObjectMode && NdotL < 0)
+    {
+        posInput.positionWS += ComputeThicknessDisplacement(bsdfData, L, NdotL);
+    }
 
-    float intensity = shadow * attenuation * saturate(NdotL);
+    float3 color; float attenuation;
+    EvaluateLight_Directional(lightLoopContext, posInput, lightData, bakeLightingData, N, L,
+                              color, attenuation);
+
+    float intensity = attenuation * saturate(NdotL);
 
     [branch] if (intensity > 0.0)
     {
-        BSDF(V, L, positionWS, preLightData, bsdfData, lighting.diffuse, lighting.specular);
+        BSDF(V, L, posInput.positionWS, preLightData, bsdfData, lighting.diffuse, lighting.specular);
 
         lighting.diffuse  *= intensity * lightData.diffuseScale;
         lighting.specular *= intensity * lightData.specularScale;
@@ -1189,24 +1228,8 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        // Apply wrapped lighting to better handle thin objects (cards) at grazing angles.
-        float wrappedNdotL = ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
-
-        // Apply the BSDF to attenuation. See also: [SSS-NOTE-TRSM]
-    #ifdef LIT_DIFFUSE_LAMBERT_BRDF
-        attenuation *= Lambert();
-    #else
-        float tNdotL = saturate(-NdotL);
-        float  NdotV = preLightData.NdotV;
-        attenuation *= INV_PI * F_Transm_Schlick(0, 0.5, NdotV) * F_Transm_Schlick(0, 0.5, tNdotL);
-    #endif
-
-        // Shadowing is applied inside EvaluateTransmission().
-        intensity = attenuation * wrappedNdotL;
-
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-        lighting.diffuse += EvaluateTransmission(bsdfData, intensity * lightData.diffuseScale, shadow);
+        lighting.diffuse += EvaluateTransmission(bsdfData, NdotL, preLightData.NdotV, attenuation * lightData.diffuseScale);
     }
 
     // Save ALU by applying light and cookie colors only once.
@@ -1267,14 +1290,14 @@ float GetPunctualShapeAttenuation(LightData lightData, float3 L, float distSq)
 void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs posInput,
                             LightData lightData, BakeLightingData bakeLightingData,
                             float3 N, float3 L, float distSq,
-                            out float3 color, out float attenuation, out float shadow)
+                            out float3 color, out float attenuation)
 {
     float3 positionWS = posInput.positionWS;
+    float  shadow     = 1.0;
     float  shadowMask = 1.0;
 
     color       = lightData.color;
     attenuation = GetPunctualShapeAttenuation(lightData, L, distSq);
-    shadow      = 1.0;
 
 #ifdef SHADOWS_SHADOWMASK
     // shadowMaskSelector.x is -1 if there is no shadow mask
@@ -1303,6 +1326,8 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 #endif
     }
 
+    attenuation *= shadow;
+
     // Projector lights always have cookies, so we can perform clipping inside the if().
     [branch] if (lightData.cookieIndex >= 0)
     {
@@ -1321,8 +1346,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
 
-    float3 positionWS    = posInput.positionWS;
-    float3 lightToSample = positionWS - lightData.positionWS;
+    float3 lightToSample = posInput.positionWS - lightData.positionWS;
     int    lightType     = lightData.lightType;
 
     float3 unL    = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? -lightToSample : -lightData.forward;
@@ -1331,11 +1355,16 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     float3 L      = unL * rsqrt(distSq);
     float  NdotL  = dot(N, L);
 
-    float3 color; float attenuation, shadow;
-    EvaluateLight_Punctual(lightLoopContext, posInput, lightData, bakeLightingData, N, L, distSq,
-                           color, attenuation, shadow);
+    [flatten] if (bsdfData.useThickObjectMode && NdotL < 0)
+    {
+        posInput.positionWS += ComputeThicknessDisplacement(bsdfData, L, NdotL);
+    }
 
-    float intensity = shadow * attenuation * saturate(NdotL);
+    float3 color; float attenuation;
+    EvaluateLight_Punctual(lightLoopContext, posInput, lightData, bakeLightingData, N, L, distSq,
+                           color, attenuation);
+
+    float intensity = attenuation * saturate(NdotL);
 
     [branch] if (intensity > 0.0)
     {
@@ -1343,7 +1372,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
         bsdfData.roughnessT = max(bsdfData.roughnessT, lightData.minRoughness);
         bsdfData.roughnessB = max(bsdfData.roughnessB, lightData.minRoughness);
 
-        BSDF(V, L, positionWS, preLightData, bsdfData, lighting.diffuse, lighting.specular);
+        BSDF(V, L, posInput.positionWS, preLightData, bsdfData, lighting.diffuse, lighting.specular);
 
         lighting.diffuse  *= intensity * lightData.diffuseScale;
         lighting.specular *= intensity * lightData.specularScale;
@@ -1351,24 +1380,8 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        // Apply wrapped lighting to better handle thin objects (cards) at grazing angles.
-        float wrappedNdotL = ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
-
-        // Apply the BSDF to attenuation. See also: [SSS-NOTE-TRSM]
-    #ifdef LIT_DIFFUSE_LAMBERT_BRDF
-        attenuation *= Lambert();
-    #else
-        float tNdotL = saturate(-NdotL);
-        float  NdotV = preLightData.NdotV;
-        attenuation *= INV_PI * F_Transm_Schlick(0, 0.5, NdotV) * F_Transm_Schlick(0, 0.5, tNdotL);
-    #endif
-
-        // Shadowing is applied inside EvaluateTransmission().
-        intensity = attenuation * wrappedNdotL;
-
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-        lighting.diffuse += EvaluateTransmission(bsdfData, intensity * lightData.diffuseScale, shadow);
+        lighting.diffuse += EvaluateTransmission(bsdfData, NdotL, preLightData.NdotV, attenuation * lightData.diffuseScale);
     }
 
     // Save ALU by applying light and cookie colors only once.
@@ -1454,12 +1467,13 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
 
         // Use the Lambertian approximation for performance reasons.
         // The matrix multiplication should not generate any extra ALU on GCN.
+        // TODO: double evaluation is very inefficient! This is a temporary solution.
         ltcValue  = LTCEvaluate(P1, P2, B, mul(flipMatrix, k_identity3x3));
         ltcValue *= lightData.diffuseScale;
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-        lighting.diffuse += EvaluateTransmission(bsdfData, ltcValue, 1);
+        lighting.diffuse += bsdfData.transmittance * ltcValue;
     }
 
     // Evaluate the coat part
@@ -1583,12 +1597,13 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
         float3x3 ltcTransform = mul(flipMatrix, k_identity3x3);
 
         // Polygon irradiance in the transformed configuration.
+        // TODO: double evaluation is very inefficient! This is a temporary solution.
         ltcValue  = PolygonIrradiance(mul(lightVerts, ltcTransform));
         ltcValue *= lightData.diffuseScale;
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-        lighting.diffuse += EvaluateTransmission(bsdfData, ltcValue, 1);
+        lighting.diffuse += bsdfData.transmittance * ltcValue;
     }
 
     // Evaluate the coat part
