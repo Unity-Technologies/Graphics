@@ -2,7 +2,7 @@ using UnityEditor.Graphing;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace UnityEditor.ShaderGraph
+/*namespace UnityEditor.ShaderGraph
 {
     [Title("Art", "Adjustments", "Levels")]
     public class LevelsNode : CodeFunctionNode
@@ -36,4 +36,4 @@ namespace UnityEditor.ShaderGraph
 ";
         }
     }
-}
+}*/
