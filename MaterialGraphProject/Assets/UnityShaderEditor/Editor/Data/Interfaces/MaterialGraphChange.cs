@@ -26,16 +26,6 @@ namespace UnityEditor.ShaderGraph
         public Guid guid { get; private set; }
     }
 
-    public class LayerAdded : GraphChange
-    {
-        public LayerAdded(LayeredShaderGraph.Layer layer)
-        {
-            this.layer = layer;
-        }
-
-        public LayeredShaderGraph.Layer layer { get; private set; }
-    }
-
     public class LayerRemoved : GraphChange
     {
         public LayerRemoved(Guid id)
