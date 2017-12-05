@@ -128,11 +128,10 @@ namespace UnityEditor.Graphing
             return new Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo>();
         }
 
+        static List<IEdge> s_TempEdges = new List<IEdge>();
+
         protected IEdge ConnectNoValidate(SlotReference fromSlotRef, SlotReference toSlotRef)
         {
-            if (fromSlotRef == null || toSlotRef == null)
-                return null;
-
             var fromNode = GetNodeFromGuid(fromSlotRef.nodeGuid);
             var toNode = GetNodeFromGuid(toSlotRef.nodeGuid);
 
@@ -151,27 +150,17 @@ namespace UnityEditor.Graphing
             var fromSlot = fromNode.FindSlot<ISlot>(fromSlotRef.slotId);
             var toSlot = toNode.FindSlot<ISlot>(toSlotRef.slotId);
 
-            SlotReference outputSlot = null;
-            SlotReference inputSlot = null;
-
-            // output must connect to input
-            if (fromSlot.isOutputSlot)
-                outputSlot = fromSlotRef;
-            else if (fromSlot.isInputSlot)
-                inputSlot = fromSlotRef;
-
-            if (toSlot.isOutputSlot)
-                outputSlot = toSlotRef;
-            else if (toSlot.isInputSlot)
-                inputSlot = toSlotRef;
-
-            if (inputSlot == null || outputSlot == null)
+            if (fromSlot.isOutputSlot == toSlot.isOutputSlot)
                 return null;
 
-            var slotEdges = GetEdges(inputSlot).ToList();
+            var outputSlot = fromSlot.isOutputSlot ? fromSlotRef : toSlotRef;
+            var inputSlot = fromSlot.isInputSlot ? fromSlotRef : toSlotRef;
+
+            s_TempEdges.Clear();
+            GetEdges(inputSlot, s_TempEdges);
 
             // remove any inputs that exits before adding
-            foreach (var edge in slotEdges)
+            foreach (var edge in s_TempEdges)
             {
                 RemoveEdgeNoValidate(edge);
             }
@@ -247,28 +236,26 @@ namespace UnityEditor.Graphing
             return default(T);
         }
 
-        public IEnumerable<IEdge> GetEdges(SlotReference s)
+        public void GetEdges(SlotReference s, List<IEdge> foundEdges)
         {
-            if (s == null)
-                return Enumerable.Empty<IEdge>();
-
             var node = GetNodeFromGuid(s.nodeGuid);
             if (node == null)
             {
                 Debug.LogWarning("Node does not exist");
-                return Enumerable.Empty<IEdge>();
+                return;
             }
             ISlot slot = node.FindSlot<ISlot>(s.slotId);
 
             List<IEdge> candidateEdges;
             if (!m_NodeEdges.TryGetValue(s.nodeGuid, out candidateEdges))
-                return Enumerable.Empty<IEdge>();
+                return;
 
-            return candidateEdges.Where(candidateEdge =>
-                {
-                    var cs = slot.isInputSlot ? candidateEdge.inputSlot : candidateEdge.outputSlot;
-                    return cs.nodeGuid == s.nodeGuid && cs.slotId == s.slotId;
-                });
+            foreach (var edge in candidateEdges)
+            {
+                var cs = slot.isInputSlot ? edge.inputSlot : edge.outputSlot;
+                if (cs.nodeGuid == s.nodeGuid && cs.slotId == s.slotId)
+                    foundEdges.Add(edge);
+            }
         }
 
         public virtual void OnBeforeSerialize()

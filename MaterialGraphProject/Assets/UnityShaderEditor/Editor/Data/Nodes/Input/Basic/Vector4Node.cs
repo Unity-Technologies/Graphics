@@ -72,9 +72,9 @@ namespace UnityEditor.ShaderGraph
         {
             properties.Add(new PreviewProperty()
             {
-                m_Name = GetVariableNameForNode(),
-                m_PropType = PropertyType.Vector4,
-                m_Vector4 = m_Value
+                name = GetVariableNameForNode(),
+                propType = PropertyType.Vector4,
+                vector4Value = m_Value
             });
         }
 

@@ -232,7 +232,7 @@ namespace UnityEditor.ShaderGraph
 
         public virtual PreviewProperty GetPreviewProperty(string name)
         {
-            return null;
+            return default(PreviewProperty);
         }
 
         public abstract void CopyValuesFrom(MaterialSlot foundSlot);

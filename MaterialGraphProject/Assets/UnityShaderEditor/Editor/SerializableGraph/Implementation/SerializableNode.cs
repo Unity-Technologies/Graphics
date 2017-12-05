@@ -74,19 +74,31 @@ namespace UnityEditor.Graphing
 
         public OnNodeModified onModified { get; set; }
 
-        public IEnumerable<T> GetInputSlots<T>() where T : ISlot
+        public void GetInputSlots<T>(List<T> foundSlots) where T : ISlot
         {
-            return GetSlots<T>().Where(x => x.isInputSlot);
+            foreach (var slot in m_Slots)
+            {
+                if (slot.isInputSlot && slot is T)
+                    foundSlots.Add((T)slot);
+            }
         }
 
-        public IEnumerable<T> GetOutputSlots<T>() where T : ISlot
+        public void GetOutputSlots<T>(List<T> foundSlots) where T : ISlot
         {
-            return GetSlots<T>().Where(x => x.isOutputSlot);
+            foreach (var slot in m_Slots)
+            {
+                if (slot.isOutputSlot && slot is T)
+                    foundSlots.Add((T)slot);
+            }
         }
 
-        public IEnumerable<T> GetSlots<T>() where T : ISlot
+        public void GetSlots<T>(List<T> foundSlots) where T : ISlot
         {
-            return m_Slots.OfType<T>();
+            foreach (var slot in m_Slots)
+            {
+                if (slot is T)
+                    foundSlots.Add((T)slot);
+            }
         }
 
         public virtual void AddSlot(ISlot slot)
@@ -141,28 +153,43 @@ namespace UnityEditor.Graphing
         {
             var slot = FindSlot<ISlot>(slotId);
             if (slot == null)
-                return null;
+                throw new ArgumentException("Slot could not be found", "slotId");
             return new SlotReference(guid, slotId);
         }
 
         public T FindSlot<T>(int slotId) where T : ISlot
         {
-            return GetSlots<T>().FirstOrDefault(x => x.id == slotId);
+            foreach (var slot in m_Slots)
+            {
+                if (slot.id == slotId && slot is T)
+                    return (T)slot;
+            }
+            return default(T);
         }
 
         public T FindInputSlot<T>(int slotId) where T : ISlot
         {
-            return GetInputSlots<T>().FirstOrDefault(x => x.id == slotId);
+            foreach (var slot in m_Slots)
+            {
+                if (slot.isInputSlot && slot.id == slotId && slot is T)
+                    return (T)slot;
+            }
+            return default(T);
         }
 
         public T FindOutputSlot<T>(int slotId) where T : ISlot
         {
-            return GetOutputSlots<T>().FirstOrDefault(x => x.id == slotId);
+            foreach (var slot in m_Slots)
+            {
+                if (slot.isOutputSlot && slot.id == slotId && slot is T)
+                    return (T)slot;
+            }
+            return default(T);
         }
 
         public virtual IEnumerable<ISlot> GetInputsWithNoConnection()
         {
-            return GetInputSlots<ISlot>().Where(x => !owner.GetEdges(GetSlotReference(x.id)).Any());
+            return this.GetInputSlots<ISlot>().Where(x => !owner.GetEdges(GetSlotReference(x.id)).Any());
         }
 
         public virtual void OnBeforeSerialize()

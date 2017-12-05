@@ -269,14 +269,19 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            foreach (var outSlot in GetOutputSlots<MaterialSlot>())
+            s_TempSlots.Clear();
+            GetOutputSlots(s_TempSlots);
+            foreach (var outSlot in s_TempSlots)
             {
                 visitor.AddShaderChunk(GetParamTypeName(outSlot) + " " + GetVariableNameForSlot(outSlot.id) + ";", true);
             }
 
             string call = GetFunctionName() + "(";
             bool first = true;
-            foreach (var slot in GetSlots<MaterialSlot>().OrderBy(x => x.id))
+            s_TempSlots.Clear();
+            GetSlots(s_TempSlots);
+            s_TempSlots.Sort((slot1, slot2) => slot1.id.CompareTo(slot2.id));
+            foreach (var slot in s_TempSlots)
             {
                 if (!first)
                 {
@@ -309,8 +314,11 @@ namespace UnityEditor.ShaderGraph
         {
             string header = "void " + GetFunctionName() + "(";
 
+            s_TempSlots.Clear();
+            GetSlots(s_TempSlots);
+            s_TempSlots.Sort((slot1, slot2) => slot1.id.CompareTo(slot2.id));
             var first = true;
-            foreach (var slot in GetSlots<MaterialSlot>().OrderBy(x => x.id))
+            foreach (var slot in s_TempSlots)
             {
                 if (!first)
                     header += ", ";
@@ -344,7 +352,9 @@ namespace UnityEditor.ShaderGraph
                 return string.Empty;
 
             result = result.Replace("{precision}", precision.ToString());
-            foreach (var slot in GetSlots<MaterialSlot>())
+            s_TempSlots.Clear();
+            GetSlots(s_TempSlots);
+            foreach (var slot in s_TempSlots)
             {
                 var toReplace = string.Format("{{slot{0}dimension}}", slot.id);
                 var replacement = GetSlotDimension(slot.concreteValueType);
@@ -368,7 +378,9 @@ namespace UnityEditor.ShaderGraph
         public NeededCoordinateSpace RequiresNormal()
         {
             var binding = NeededCoordinateSpace.None;
-            foreach (var slot in GetInputSlots<MaterialSlot>().OfType<IMayRequireNormal>())
+            s_TempSlots.Clear();
+            GetInputSlots(s_TempSlots);
+            foreach (var slot in s_TempSlots)
                 binding |= slot.RequiresNormal();
             return binding;
         }
@@ -376,38 +388,48 @@ namespace UnityEditor.ShaderGraph
         public NeededCoordinateSpace RequiresViewDirection()
         {
             var binding = NeededCoordinateSpace.None;
-            foreach (var slot in GetInputSlots<MaterialSlot>().OfType<IMayRequireViewDirection>())
+            s_TempSlots.Clear();
+            GetInputSlots(s_TempSlots);
+            foreach (var slot in s_TempSlots)
                 binding |= slot.RequiresViewDirection();
             return binding;
         }
 
         public NeededCoordinateSpace RequiresPosition()
         {
+            s_TempSlots.Clear();
+            GetInputSlots(s_TempSlots);
             var binding = NeededCoordinateSpace.None;
-            foreach (var slot in GetInputSlots<MaterialSlot>().OfType<IMayRequirePosition>())
+            foreach (var slot in s_TempSlots)
                 binding |= slot.RequiresPosition();
             return binding;
         }
 
         public NeededCoordinateSpace RequiresTangent()
         {
+            s_TempSlots.Clear();
+            GetInputSlots(s_TempSlots);
             var binding = NeededCoordinateSpace.None;
-            foreach (var slot in GetInputSlots<MaterialSlot>().OfType<IMayRequireTangent>())
+            foreach (var slot in s_TempSlots)
                 binding |= slot.RequiresTangent();
             return binding;
         }
 
         public NeededCoordinateSpace RequiresBitangent()
         {
+            s_TempSlots.Clear();
+            GetInputSlots(s_TempSlots);
             var binding = NeededCoordinateSpace.None;
-            foreach (var slot in GetInputSlots<MaterialSlot>().OfType<IMayRequireBitangent>())
+            foreach (var slot in s_TempSlots)
                 binding |= slot.RequiresBitangent();
             return binding;
         }
 
         public bool RequiresMeshUV(UVChannel channel)
         {
-            foreach (var slot in GetInputSlots<MaterialSlot>().OfType<IMayRequireMeshUV>())
+            s_TempSlots.Clear();
+            GetInputSlots(s_TempSlots);
+            foreach (var slot in s_TempSlots)
             {
                 if (slot.RequiresMeshUV(channel))
                     return true;
@@ -417,7 +439,9 @@ namespace UnityEditor.ShaderGraph
 
         public bool RequiresScreenPosition()
         {
-            foreach (var slot in GetInputSlots<MaterialSlot>().OfType<IMayRequireScreenPosition>())
+            s_TempSlots.Clear();
+            GetInputSlots(s_TempSlots);
+            foreach (var slot in s_TempSlots)
             {
                 if (slot.RequiresScreenPosition())
                     return true;
@@ -427,7 +451,9 @@ namespace UnityEditor.ShaderGraph
 
         public bool RequiresVertexColor()
         {
-            foreach (var slot in GetInputSlots<MaterialSlot>().OfType<IMayRequireVertexColor>())
+            s_TempSlots.Clear();
+            GetInputSlots(s_TempSlots);
+            foreach (var slot in s_TempSlots)
             {
                 if (slot.RequiresVertexColor())
                     return true;
