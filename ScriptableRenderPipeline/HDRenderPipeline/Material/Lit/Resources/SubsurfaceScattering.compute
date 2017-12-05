@@ -19,8 +19,6 @@
 // Do not modify these.
 #include "../../../ShaderPass/ShaderPass.cs.hlsl"
 #define SHADERPASS            SHADERPASS_SUBSURFACE_SCATTERING
-#define MILLIMETERS_PER_METER 1000
-#define CENTIMETERS_PER_METER 100
 #define GROUP_SIZE_1D         16
 #define GROUP_SIZE_2D         (GROUP_SIZE_1D * GROUP_SIZE_1D)
 #define TEXTURE_CACHE_BORDER  2
@@ -48,7 +46,6 @@
 // Inputs & outputs
 //--------------------------------------------------------------------------------------------------
 
-float4 _WorldScales[SSS_N_PROFILES];                             // Size of the world unit in meters (only the X component is used)
 float4 _FilterKernels[SSS_N_PROFILES][SSS_N_SAMPLES_NEAR_FIELD]; // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
 
 TEXTURE2D(_DepthTexture);                           // Z-buffer
