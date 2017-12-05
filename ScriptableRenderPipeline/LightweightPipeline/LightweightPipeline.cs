@@ -494,7 +494,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             // TODO: PostProcessing and SoftParticles are currently not support for VR
             bool postProcessEnabled = m_CameraPostProcessLayer != null && m_CameraPostProcessLayer.enabled && !stereoEnabled;
-            bool softParticlesEnabled = m_Asset.SupportsSoftParticles && !stereoEnabled;
+            bool softParticlesEnabled = m_Asset.RequireCameraDepthTexture && !stereoEnabled;
             if (postProcessEnabled)
             {
                 m_RequiredDepth = true;
@@ -917,7 +917,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cmd.EnableShaderKeyword(shadowKeywords[keywordIndex]);
             }
 
-            CoreUtils.SetKeyword(cmd, "SOFTPARTICLES_ON", m_Asset.SupportsSoftParticles);
+            CoreUtils.SetKeyword(cmd, "SOFTPARTICLES_ON", m_Asset.RequireCameraDepthTexture);
         }
 
         private bool RenderShadows(ref CullResults cullResults, ref VisibleLight shadowLight, int shadowLightIndex, ref ScriptableRenderContext context)
