@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using System.Collections.Generic;
 
-namespace UnityEditor.ShaderGraph
+/*namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Scene", "Scene Normals")]
     public class SceneNormalsNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IGenerateProperties, IMayRequireScreenPosition
@@ -111,4 +111,4 @@ namespace UnityEditor.ShaderGraph
             return uvSlot.RequiresScreenPosition();
         }
     }
-}
+}*/

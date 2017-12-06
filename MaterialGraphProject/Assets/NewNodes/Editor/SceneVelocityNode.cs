@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using System.Collections.Generic;
 
-namespace UnityEditor.ShaderGraph
+/*namespace UnityEditor.ShaderGraph
 {
     public enum SceneVelocityMode
     {
@@ -106,4 +106,4 @@ namespace UnityEditor.ShaderGraph
             return uvSlot.RequiresScreenPosition();
         }
     }
-}
+}*/
