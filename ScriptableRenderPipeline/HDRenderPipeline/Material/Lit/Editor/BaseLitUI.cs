@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -325,29 +326,29 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool enablePixelDisplacement = (DisplacementMode)material.GetFloat(kDisplacementMode) == DisplacementMode.Pixel;
             bool enableTessellationDisplacement = ((DisplacementMode)material.GetFloat(kDisplacementMode) == DisplacementMode.Tessellation) && material.HasProperty(kTessellationMode);
 
-            SetKeyword(material, "_VERTEX_DISPLACEMENT", enableVertexDisplacement);
-            SetKeyword(material, "_PIXEL_DISPLACEMENT", enablePixelDisplacement);
+            CoreUtils.SetKeyword(material, "_VERTEX_DISPLACEMENT", enableVertexDisplacement);
+            CoreUtils.SetKeyword(material, "_PIXEL_DISPLACEMENT", enablePixelDisplacement);
             // Only set if tessellation exist
-            SetKeyword(material, "_TESSELLATION_DISPLACEMENT", enableTessellationDisplacement);
+            CoreUtils.SetKeyword(material, "_TESSELLATION_DISPLACEMENT", enableTessellationDisplacement);
 
             bool displacementLockObjectScale = material.GetFloat(kDisplacementLockObjectScale) > 0.0;
             bool displacementLockTilingScale = material.GetFloat(kDisplacementLockTilingScale) > 0.0;
             // Tessellation reuse vertex flag.
-            SetKeyword(material, "_VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && (enableVertexDisplacement || enableTessellationDisplacement));
-            SetKeyword(material, "_PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && enablePixelDisplacement);
-            SetKeyword(material, "_DISPLACEMENT_LOCK_TILING_SCALE", displacementLockTilingScale && enableDisplacement);
+            CoreUtils.SetKeyword(material, "_VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && (enableVertexDisplacement || enableTessellationDisplacement));
+            CoreUtils.SetKeyword(material, "_PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && enablePixelDisplacement);
+            CoreUtils.SetKeyword(material, "_DISPLACEMENT_LOCK_TILING_SCALE", displacementLockTilingScale && enableDisplacement);
 
             bool windEnabled = material.GetFloat(kWindEnabled) > 0.0f;
-            SetKeyword(material, "_VERTEX_WIND", windEnabled);
+            CoreUtils.SetKeyword(material, "_VERTEX_WIND", windEnabled);
 
             // Depth offset is only enabled if per pixel displacement is
             bool depthOffsetEnable = (material.GetFloat(kDepthOffsetEnable) > 0.0f) && enablePixelDisplacement;
-            SetKeyword(material, "_DEPTHOFFSET_ON", depthOffsetEnable);
+            CoreUtils.SetKeyword(material, "_DEPTHOFFSET_ON", depthOffsetEnable);
 
             if (material.HasProperty(kTessellationMode))
             {
                 TessellationMode tessMode = (TessellationMode)material.GetFloat(kTessellationMode);
-                SetKeyword(material, "_TESSELLATION_PHONG", tessMode == TessellationMode.Phong);
+                CoreUtils.SetKeyword(material, "_TESSELLATION_PHONG", tessMode == TessellationMode.Phong);
             }
 
             SetupMainTexForAlphaTestGI("_BaseColorMap", "_BaseColor", material);

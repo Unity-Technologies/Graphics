@@ -68,25 +68,24 @@
 #define DEBUGVIEW_LIT_BSDFDATA_SPECULAR_OCCLUSION (1032)
 #define DEBUGVIEW_LIT_BSDFDATA_NORMAL_WS (1033)
 #define DEBUGVIEW_LIT_BSDFDATA_PERCEPTUAL_ROUGHNESS (1034)
-#define DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS (1035)
-#define DEBUGVIEW_LIT_BSDFDATA_MATERIAL_ID (1036)
-#define DEBUGVIEW_LIT_BSDFDATA_TANGENT_WS (1037)
-#define DEBUGVIEW_LIT_BSDFDATA_BITANGENT_WS (1038)
-#define DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS_T (1039)
-#define DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS_B (1040)
-#define DEBUGVIEW_LIT_BSDFDATA_ANISOTROPY (1041)
-#define DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_RADIUS (1042)
-#define DEBUGVIEW_LIT_BSDFDATA_THICKNESS (1043)
-#define DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_PROFILE (1044)
-#define DEBUGVIEW_LIT_BSDFDATA_ENABLE_TRANSMISSION (1045)
-#define DEBUGVIEW_LIT_BSDFDATA_USE_THIN_OBJECT_MODE (1046)
-#define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE (1047)
-#define DEBUGVIEW_LIT_BSDFDATA_COAT_NORMAL_WS (1048)
-#define DEBUGVIEW_LIT_BSDFDATA_COAT_COVERAGE (1049)
-#define DEBUGVIEW_LIT_BSDFDATA_COAT_IOR (1050)
-#define DEBUGVIEW_LIT_BSDFDATA_IOR (1051)
-#define DEBUGVIEW_LIT_BSDFDATA_ABSORPTION_COEFFICIENT (1052)
-#define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE_MASK (1053)
+#define DEBUGVIEW_LIT_BSDFDATA_MATERIAL_ID (1035)
+#define DEBUGVIEW_LIT_BSDFDATA_TANGENT_WS (1036)
+#define DEBUGVIEW_LIT_BSDFDATA_BITANGENT_WS (1037)
+#define DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS_T (1038)
+#define DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS_B (1039)
+#define DEBUGVIEW_LIT_BSDFDATA_ANISOTROPY (1040)
+#define DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_RADIUS (1041)
+#define DEBUGVIEW_LIT_BSDFDATA_THICKNESS (1042)
+#define DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_PROFILE (1043)
+#define DEBUGVIEW_LIT_BSDFDATA_ENABLE_TRANSMISSION (1044)
+#define DEBUGVIEW_LIT_BSDFDATA_USE_THICK_OBJECT_MODE (1045)
+#define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE (1046)
+#define DEBUGVIEW_LIT_BSDFDATA_COAT_NORMAL_WS (1047)
+#define DEBUGVIEW_LIT_BSDFDATA_COAT_COVERAGE (1048)
+#define DEBUGVIEW_LIT_BSDFDATA_COAT_IOR (1049)
+#define DEBUGVIEW_LIT_BSDFDATA_IOR (1050)
+#define DEBUGVIEW_LIT_BSDFDATA_ABSORPTION_COEFFICIENT (1051)
+#define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE_MASK (1052)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+GBufferMaterial:  static fields
@@ -128,7 +127,6 @@ struct BSDFData
     float specularOcclusion;
     float3 normalWS;
     float perceptualRoughness;
-    float roughness;
     int materialId;
     float3 tangentWS;
     float3 bitangentWS;
@@ -139,7 +137,7 @@ struct BSDFData
     float thickness;
     int subsurfaceProfile;
     bool enableTransmission;
-    bool useThinObjectMode;
+    bool useThickObjectMode;
     float3 transmittance;
     float3 coatNormalWS;
     float coatCoverage;
@@ -244,9 +242,6 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_LIT_BSDFDATA_PERCEPTUAL_ROUGHNESS:
             result = bsdfdata.perceptualRoughness.xxx;
             break;
-        case DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS:
-            result = bsdfdata.roughness.xxx;
-            break;
         case DEBUGVIEW_LIT_BSDFDATA_MATERIAL_ID:
             result = GetIndexColor(bsdfdata.materialId);
             break;
@@ -277,8 +272,8 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_LIT_BSDFDATA_ENABLE_TRANSMISSION:
             result = (bsdfdata.enableTransmission) ? float3(1.0, 1.0, 1.0) : float3(0.0, 0.0, 0.0);
             break;
-        case DEBUGVIEW_LIT_BSDFDATA_USE_THIN_OBJECT_MODE:
-            result = (bsdfdata.useThinObjectMode) ? float3(1.0, 1.0, 1.0) : float3(0.0, 0.0, 0.0);
+        case DEBUGVIEW_LIT_BSDFDATA_USE_THICK_OBJECT_MODE:
+            result = (bsdfdata.useThickObjectMode) ? float3(1.0, 1.0, 1.0) : float3(0.0, 0.0, 0.0);
             break;
         case DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE:
             result = bsdfdata.transmittance;

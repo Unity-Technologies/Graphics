@@ -145,6 +145,21 @@ namespace UnityEngine.Experimental.Rendering
             m_DebugMenuStateDirty = true;
         }
 
+        public void RemoveDebugItem(string debugPanelName, string name)
+        {
+            DebugPanel debugPanel = GetDebugPanel(debugPanelName);
+
+            if (debugPanel != null)
+            {
+                DebugItem item = debugPanel.GetDebugItem(name);
+                if (item != null)
+                    debugPanel.RemoveDebugItem(item);
+            }
+
+            m_DebugMenuStateDirty = true;
+
+        }
+
         public void SetDebugMenuState(DebugMenuState state)
         {
             m_DebugMenuStateDirty = true;

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -312,30 +312,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        static public void SetKeyword(Material m, string keyword, bool state)
-        {
-            if (state)
-                m.EnableKeyword(keyword);
-            else
-                m.DisableKeyword(keyword);
-        }
-
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if ocde change
         static public void SetupBaseUnlitKeywords(Material material)
         {
             bool alphaTestEnable = material.HasProperty(kAlphaCutoffEnabled) && material.GetFloat(kAlphaCutoffEnabled) > 0.0f;
-            SetKeyword(material, "_ALPHATEST_ON", alphaTestEnable);
+            CoreUtils.SetKeyword(material, "_ALPHATEST_ON", alphaTestEnable);
 
             SurfaceType surfaceType = (SurfaceType)material.GetFloat(kSurfaceType);
-            SetKeyword(material, "_SURFACE_TYPE_TRANSPARENT", surfaceType == SurfaceType.Transparent);
+            CoreUtils.SetKeyword(material, "_SURFACE_TYPE_TRANSPARENT", surfaceType == SurfaceType.Transparent);
 
             bool enableBlendModePreserveSpecularLighting = material.HasProperty(kEnableBlendModePreserveSpecularLighting) && material.GetFloat(kEnableBlendModePreserveSpecularLighting) > 0.0f;
-            SetKeyword(material, "_BLENDMODE_PRESERVE_SPECULAR_LIGHTING", enableBlendModePreserveSpecularLighting);
+            CoreUtils.SetKeyword(material, "_BLENDMODE_PRESERVE_SPECULAR_LIGHTING", enableBlendModePreserveSpecularLighting);
 
             // These need to always been set either with opaque or transparent! So a users can switch to opaque and remove the keyword correctly
-            SetKeyword(material, "_BLENDMODE_ALPHA", false);
-            SetKeyword(material, "_BLENDMODE_ADD", false);
-            SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", false);
+            CoreUtils.SetKeyword(material, "_BLENDMODE_ALPHA", false);
+            CoreUtils.SetKeyword(material, "_BLENDMODE_ADD", false);
+            CoreUtils.SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", false);
 
             if (surfaceType == SurfaceType.Opaque)
             {
@@ -356,9 +348,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     BlendMode blendMode = (BlendMode)material.GetFloat(kBlendMode);
 
-                    SetKeyword(material, "_BLENDMODE_ALPHA", BlendMode.Alpha == blendMode);
-                    SetKeyword(material, "_BLENDMODE_ADD", BlendMode.Additive == blendMode);
-                    SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", BlendMode.PremultipliedAlpha == blendMode);
+                    CoreUtils.SetKeyword(material, "_BLENDMODE_ALPHA", BlendMode.Alpha == blendMode);
+                    CoreUtils.SetKeyword(material, "_BLENDMODE_ADD", BlendMode.Additive == blendMode);
+                    CoreUtils.SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", BlendMode.PremultipliedAlpha == blendMode);
 
                     switch (blendMode)
                     {
@@ -390,7 +382,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             bool fogEnabled = material.HasProperty(kEnableFogOnTransparent) && material.GetFloat(kEnableFogOnTransparent) > 0.0f && surfaceType == SurfaceType.Transparent;
-            SetKeyword(material, "_ENABLE_FOG_ON_TRANSPARENT", fogEnabled);
+            CoreUtils.SetKeyword(material, "_ENABLE_FOG_ON_TRANSPARENT", fogEnabled);
 
             if (material.HasProperty(kDistortionEnable))
             {
@@ -440,7 +432,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 material.SetInt("_CullMode", (int)UnityEngine.Rendering.CullMode.Back);
             }
-            SetKeyword(material, "_DOUBLESIDED_ON", doubleSidedEnable);
+            CoreUtils.SetKeyword(material, "_DOUBLESIDED_ON", doubleSidedEnable);
 
             // A material's GI flag internally keeps track of whether emission is enabled at all, it's enabled but has no effect
             // or is enabled and may be modified at runtime. This state depends on the values of the current flag and emissive color.

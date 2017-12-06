@@ -32,9 +32,15 @@
 #define LOG2_E      1.44269504088896340736
 #define INFINITY    asfloat(0x7F800000)
 
-#define FLT_EPS     1.192092896e-07 // Smallest positive number, such that 1.0 + FLT_EPS != 1.0
+#define MILLIMETERS_PER_METER 1000
+#define METERS_PER_MILLIMETER rcp(MILLIMETERS_PER_METER)
+#define CENTIMETERS_PER_METER 100
+#define METERS_PER_CENTIMETER rcp(CENTIMETERS_PER_METER)
+
+#define FLT_EPS     5.960464478e-8  // 2^-24, machine epsilon: 1 + EPS = 1 (half of the ULP for 1)
 #define FLT_MIN     1.175494351e-38 // Minimum representable positive floating-point number
 #define FLT_MAX     3.402823466e+38 // Maximum representable floating-point number
+#define FLT_NAN     asfloat(0xFFFFFFFF)
 #define HALF_MIN    6.103515625e-5  // 2^-14, the same value for 10, 11 and 16-bit: https://www.khronos.org/opengl/wiki/Small_Float_Formats
 #define HALF_MAX    65504.0
 #define UINT_MAX    0xFFFFFFFFu

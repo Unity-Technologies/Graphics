@@ -126,7 +126,13 @@ PackedVaryingsMeshToPS PackVaryingsMeshToPS(VaryingsMeshToPS input)
 
 FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 {
-    FragInputs output = InitializeFragInputs();
+    FragInputs output;
+    ZERO_INITIALIZE(FragInputs, output);
+
+    // Init to some default value to make the computer quiet (else it output "divide by zero" warning even if value is not used).
+    // TODO: this is a really poor workaround, but the variable is used in a bunch of places
+    // to compute normals which are then passed on elsewhere to compute other values...
+    output.worldToTangent = k_identity3x3;
 
     output.positionSS = input.positionCS; // input.positionCS is SV_Position
 
