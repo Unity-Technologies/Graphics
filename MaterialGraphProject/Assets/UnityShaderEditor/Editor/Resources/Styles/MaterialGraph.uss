@@ -206,7 +206,7 @@ PortInputView.typeVector1 {
 }
 
 PortInputView > #container {
-    background-color: #393939;
+    background-color: rgba(63, 63, 63, 0.8);
     flex-direction: row;
     align-items: center;
     padding-left: 8;
