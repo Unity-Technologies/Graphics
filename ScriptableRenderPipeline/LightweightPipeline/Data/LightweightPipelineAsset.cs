@@ -54,12 +54,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private Shader m_BlitShader;
         [SerializeField] private Shader m_CopyDepthShader;
 
+#if UNITY_EDITOR
         [SerializeField] private Material m_DefaultMaterial;
         [SerializeField] private Material m_DefaultParticleMaterial;
         [SerializeField] private Material m_DefaultTerrainMaterial;
 
-#if UNITY_EDITOR
-        [UnityEditor.MenuItem("Assets/Create/Render Pipeline/Lightweight/Render Pipeline", priority = CoreUtils.assetCreateMenuPriority1)]
+        [UnityEditor.MenuItem("Assets/Create/Render Pipeline/Lightweight/Pipeline Asset", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateLightweightPipeline()
         {
             var instance = CreateInstance<LightweightPipelineAsset>();
@@ -77,7 +77,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // There's currently an issue that prevents FindAssets from find resources withing the package folder.
             if (resourceAsset == null)
             {
-                string path = "Packages/com.unity.render-pipelines.lightweight/Resources/LightweightPipelineResource.asset";
+                string path = "Packages/com.unity.render-pipelines.lightweight/Data/LightweightPipelineResource.asset";
                 resourceAsset = UnityEditor.AssetDatabase.LoadAssetAtPath<LightweightPipelineResource>(path);
             }
 
@@ -186,12 +186,20 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public override Material GetDefaultMaterial()
         {
+#if UNITY_EDITOR
             return m_DefaultMaterial;
+#else
+            return null;
+#endif
         }
 
         public override Material GetDefaultParticleMaterial()
         {
+#if UNITY_EDITOR
             return m_DefaultParticleMaterial;
+#else
+            return null;
+#endif
         }
 
         public override Material GetDefaultLineMaterial()
@@ -201,7 +209,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public override Material GetDefaultTerrainMaterial()
         {
+#if UNITY_EDITOR
             return m_DefaultTerrainMaterial;
+#else
+            return null;
+#endif
         }
 
         public override Material GetDefaultUIMaterial()
