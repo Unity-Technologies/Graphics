@@ -93,7 +93,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (graphEditorView == null)
                 {
                     var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(selectedGuid));
-                    graphEditorView = new GraphEditorView(this, materialGraph, asset.name) { persistenceKey = AssetDatabase.AssetPathToGUID(AssetDatabase.GUIDToAssetPath(selectedGuid)) };
+                    graphEditorView = new GraphEditorView(this, materialGraph, asset.name) { persistenceKey = selectedGuid };
                 }
 
                 graphEditorView.HandleGraphChanges();
@@ -425,7 +425,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphObject.graph.OnEnable();
                 graphObject.graph.ValidateGraph();
 
-                graphEditorView = new GraphEditorView(this, m_GraphObject.graph as AbstractMaterialGraph, asset.name) { persistenceKey = AssetDatabase.GUIDToAssetPath(selectedGuid) };
+                graphEditorView = new GraphEditorView(this, m_GraphObject.graph as AbstractMaterialGraph, asset.name) { persistenceKey = selectedGuid };
                 graphEditorView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
 
                 titleContent = new GUIContent(asset.name);
