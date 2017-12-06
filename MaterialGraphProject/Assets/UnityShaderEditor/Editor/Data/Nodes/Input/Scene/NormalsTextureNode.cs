@@ -5,8 +5,8 @@ using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input/Scene/Normals Texture")]
-    public class NormalsTextureNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IGenerateProperties, IMayRequireScreenPosition
+    [Title("Input", "Scene", "Scene Normals")]
+    public class SceneNormalsNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IGenerateProperties, IMayRequireScreenPosition
     {
         const string kUVSlotName = "UV";
         const string kOutputSlotName = "Out";
@@ -14,9 +14,9 @@ namespace UnityEditor.ShaderGraph
         public const int UVSlotId = 0;
         public const int OutputSlotId = 1;
 
-        public NormalsTextureNode()
+        public SceneNormalsNode()
         {
-            name = "Normals Texture";
+            name = "Scene Normals";
             UpdateNodeAfterDeserialization();
         }
 
@@ -41,17 +41,17 @@ namespace UnityEditor.ShaderGraph
         {
             properties.Add(new PreviewProperty()
             {
-                m_Name = "_CameraDepthNormalsTexture",
-                m_PropType = PropertyType.Float,
-                m_Vector4 = new Vector4(1, 1, 1, 1),
-                m_Float = 1,
-                m_Color = new Vector4(1, 1, 1, 1),
+                name = "_CameraDepthNormalsTexture",
+                propType = PropertyType.Float,
+                vector4Value = new Vector4(1, 1, 1, 1),
+                floatValue = 1,
+                colorValue = new Vector4(1, 1, 1, 1),
             });
         }
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
-            properties.AddShaderProperty(new SamplerShaderProperty
+            properties.AddShaderProperty(new Sampler2DShaderProperty
             {
                 overrideReferenceName = "_CameraDepthNormalsTexture",
                 generatePropertyBlock = false

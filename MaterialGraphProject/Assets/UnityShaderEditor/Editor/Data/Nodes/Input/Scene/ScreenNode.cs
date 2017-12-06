@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input/Scene/Screen")]
+    [Title("Input", "Scene", "Screen")]
     public class ScreenNode : AbstractMaterialNode
     {
         const string kOutputSlotName = "Width";

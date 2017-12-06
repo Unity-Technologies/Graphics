@@ -5,14 +5,14 @@ using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum DepthTextureMode
+    public enum SceneDepthMode
     {
         Default,
         Normalized
     };
 
-    [Title("Input/Scene/Depth Texture")]
-    public class DepthTextureNode : AbstractMaterialNode, IGenerateProperties, IGeneratesBodyCode, IMayRequireScreenPosition
+    [Title("Input", "Scene", "Scene Depth")]
+    public class SceneDepthNode : AbstractMaterialNode, IGenerateProperties, IGeneratesBodyCode, IMayRequireScreenPosition
     {
         const string kUVSlotName = "UV";
         const string kOutputSlotName = "Out";
@@ -20,9 +20,9 @@ namespace UnityEditor.ShaderGraph
         public const int UVSlotId = 0;
         public const int OutputSlotId = 1;
 
-        public DepthTextureNode()
+        public SceneDepthNode()
         {
-            name = "Depth Texture";
+            name = "Scene Depth";
             UpdateNodeAfterDeserialization();
         }
 
@@ -32,18 +32,18 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private DepthTextureMode m_DepthTextureMode = DepthTextureMode.Default;
+        private SceneDepthMode m_SceneDepthMode = SceneDepthMode.Default;
 
         [EnumControl("Mode")]
-        public DepthTextureMode depthTextureMode
+        public SceneDepthMode sceneDepthMode
         {
-            get { return m_DepthTextureMode; }
+            get { return m_SceneDepthMode; }
             set
             {
-                if (m_DepthTextureMode == value)
+                if (m_SceneDepthMode == value)
                     return;
 
-                m_DepthTextureMode = value;
+                m_SceneDepthMode = value;
                 if (onModified != null)
                 {
                     onModified(this, ModificationScope.Graph);
@@ -62,17 +62,17 @@ namespace UnityEditor.ShaderGraph
         {
             properties.Add(new PreviewProperty()
             {
-                m_Name = "_CameraDepthTexture",
-                m_PropType = PropertyType.Float,
-                m_Vector4 = new Vector4(1, 1, 1, 1),
-                m_Float = 1,
-                m_Color = new Vector4(1, 1, 1, 1),
+                name = "_CameraDepthTexture",
+                propType = PropertyType.Float,
+                vector4Value = new Vector4(1, 1, 1, 1),
+                floatValue = 1,
+                colorValue = new Vector4(1, 1, 1, 1),
             });
         }
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
-            properties.AddShaderProperty(new SamplerShaderProperty
+            properties.AddShaderProperty(new Sampler2DShaderProperty
             {
                 overrideReferenceName = "_CameraDepthTexture",
                 generatePropertyBlock = false
@@ -84,9 +84,9 @@ namespace UnityEditor.ShaderGraph
             string uvValue = GetSlotValue(UVSlotId, generationMode);
             string outputValue = GetSlotValue(OutputSlotId, generationMode);
             string methodName = "";
-            switch (depthTextureMode)
+            switch (sceneDepthMode)
             {
-                case DepthTextureMode.Normalized:
+                case SceneDepthMode.Normalized:
                     methodName = "Linear01Depth";
                     break;
                 default:

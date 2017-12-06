@@ -4,28 +4,24 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
+    public class TextureSampler2D { }
+
     [Serializable]
-    public class SamplerShaderProperty : AbstractShaderProperty<float>
+    public class Sampler2DShaderProperty : AbstractShaderProperty<object>
     {
         public override PropertyType propertyType
         {
-            get { return PropertyType.Float; }
+            get { return PropertyType.SamplerState; }
         }
 
         public override Vector4 defaultValue
         {
-            get { return new Vector4(value, value, value, value); }
+            get { return new Vector4(); }
         }
 
         public override string GetPropertyBlockString()
         {
-            var result = new StringBuilder();
-            result.Append(referenceName);
-            result.Append("(\"");
-            result.Append(displayName);
-            result.Append("\", Float) = ");
-            result.Append(value);
-            return result.ToString();
+            return string.Empty;
         }
 
         public override string GetPropertyDeclarationString()
@@ -35,12 +31,7 @@ namespace UnityEditor.ShaderGraph
 
         public override PreviewProperty GetPreviewMaterialProperty()
         {
-            return new PreviewProperty()
-            {
-                m_Name = referenceName,
-                m_PropType = PropertyType.Float,
-                m_Float = value
-            };
+            return default(PreviewProperty);
         }
     }
 }

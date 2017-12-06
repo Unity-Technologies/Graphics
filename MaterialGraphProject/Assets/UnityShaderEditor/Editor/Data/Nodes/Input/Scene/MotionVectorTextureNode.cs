@@ -5,14 +5,14 @@ using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum MotionVectorTextureMode
+    public enum SceneVelocityMode
     {
         Default,
         Hue
     };
 
-    [Title("Input/Scene/Motion Vector Texture")]
-    public class MotionVectorTextureNode : AbstractMaterialNode, IGenerateProperties, IGeneratesBodyCode, IMayRequireScreenPosition
+    [Title("Input", "Scene", "Scene Velocity")]
+    public class SceneVelocityNode : AbstractMaterialNode, IGenerateProperties, IGeneratesBodyCode, IMayRequireScreenPosition
     {
         const string kUVSlotName = "UV";
         const string kOutputSlotName = "Out";
@@ -20,9 +20,9 @@ namespace UnityEditor.ShaderGraph
         public const int UVSlotId = 0;
         public const int OutputSlotId = 1;
 
-        public MotionVectorTextureNode()
+        public SceneVelocityNode()
         {
-            name = "Motion Vector Texture";
+            name = "Scene Velocity";
             UpdateNodeAfterDeserialization();
         }
 
@@ -32,18 +32,18 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private MotionVectorTextureMode m_MotionVectorTextureMode = MotionVectorTextureMode.Default;
+        private SceneVelocityMode m_SceneVelocityMode = SceneVelocityMode.Default;
 
         [EnumControl("Mode")]
-        public MotionVectorTextureMode motionVectorTextureMode
+        public SceneVelocityMode sceneVelocityMode
         {
-            get { return m_MotionVectorTextureMode; }
+            get { return m_SceneVelocityMode; }
             set
             {
-                if (m_MotionVectorTextureMode == value)
+                if (m_SceneVelocityMode == value)
                     return;
 
-                m_MotionVectorTextureMode = value;
+                m_SceneVelocityMode = value;
                 if (onModified != null)
                 {
                     onModified(this, ModificationScope.Graph);
@@ -62,17 +62,17 @@ namespace UnityEditor.ShaderGraph
         {
             properties.Add(new PreviewProperty()
             {
-                m_Name = "_CameraMotionVectorTexture",
-                m_PropType = PropertyType.Float,
-                m_Vector4 = new Vector4(1, 1, 1, 1),
-                m_Float = 1,
-                m_Color = new Vector4(1, 1, 1, 1),
+                name = "_CameraMotionVectorTexture",
+                propType = PropertyType.Float,
+                vector4Value = new Vector4(1, 1, 1, 1),
+                floatValue = 1,
+                colorValue = new Vector4(1, 1, 1, 1),
             });
         }
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
-            properties.AddShaderProperty(new SamplerShaderProperty
+            properties.AddShaderProperty(new Sampler2DShaderProperty
             {
                 overrideReferenceName = "_CameraMotionVectorTexture",
                 generatePropertyBlock = false
@@ -85,7 +85,7 @@ namespace UnityEditor.ShaderGraph
             string outputValue = GetSlotValue(OutputSlotId, generationMode);
             visitor.AddShaderChunk(string.Format("{0}3 _MotionVectorTexture = {0}3(tex2D(_CameraMotionVectorTexture, {1}).rg, 0);", precision, uvValue), true);
 
-            if (motionVectorTextureMode == MotionVectorTextureMode.Hue)
+            if (sceneVelocityMode == SceneVelocityMode.Hue)
             {
                 visitor.AddShaderChunk(string.Format("{0} hue = (atan2(_MotionVectorTexture.x, _MotionVectorTexture.y) / 3.14159265359 + 1.0) * 0.5;", precision), true);
                 visitor.AddShaderChunk(string.Format("_MotionVectorTexture = saturate({0}3(abs(hue * 6.0 - 3.0) - 1.0, 2.0 - abs(hue * 6.0 - 2.0), 2.0 - abs(hue * 6.0 - 4.0)));", precision), true);

@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph
         ExponentialSquared
     };
 
-    [Title("Input/Scene/Fog")]
+    [Title("Input", "Scene", "Fog")]
     public class FogNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequirePosition
     {
         const string kOutputSlotName = "Color";
