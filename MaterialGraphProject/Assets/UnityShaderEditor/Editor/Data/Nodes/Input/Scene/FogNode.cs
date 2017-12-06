@@ -5,13 +5,6 @@ using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum FogMode
-    {
-        Linear,
-        Exponential,
-        ExponentialSquared
-    };
-
     [Title("Input", "Scene", "Fog")]
     public class FogNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequirePosition
     {
