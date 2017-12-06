@@ -3,9 +3,6 @@
 //-------------------------------------------------------------------------------------
 #include "../../../Core/ShaderLibrary/Packing.hlsl"
 #include "../../../Core/ShaderLibrary/SampleUVMapping.hlsl"
-#include "../../../Core/ShaderLibrary/EntityLighting.hlsl"
-#include "../MaterialUtilities.hlsl"
-
 
 void GetSurfaceData(float2 texCoordDS, out DecalSurfaceData surfaceData)
 {

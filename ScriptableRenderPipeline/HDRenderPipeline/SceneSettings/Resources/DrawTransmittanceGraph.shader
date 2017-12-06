@@ -20,8 +20,8 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
             // Include
             //-------------------------------------------------------------------------------------
 
-            #include "../../../Core/ShaderLibrary/CommonMaterial.hlsl"
             #include "../../../Core/ShaderLibrary/Common.hlsl"
+            #include "../../../Core/ShaderLibrary/CommonMaterial.hlsl"
             #define USE_LEGACY_UNITY_MATRIX_VARIABLES
             #include "../../ShaderVariables.hlsl"
 
@@ -64,7 +64,7 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
 
                 if (_UseDisneySSS)
                 {
-                    T = ComputeTransmittance(_ShapeParam.rgb, float3(0.25, 0.25, 0.25), d, 1);
+                    T = ComputeTransmittanceDisney(_ShapeParam.rgb, float3(0.25, 0.25, 0.25), d, 1);
                 }
                 else
                 {

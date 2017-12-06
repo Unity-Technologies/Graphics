@@ -86,6 +86,38 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float4 inputColor)
     return result;
 }
 
+//-----------------------------------------------------------------------------
+// Alpha test replacement
+//-----------------------------------------------------------------------------
+
+// This function must be use instead of clip instruction. It allow to manage in which case the clip is perform
+void DoAlphaTest(float alpha, float alphaCutoff)
+{
+    // For Deferred:
+    // If we have a prepass, we need to remove the clip from the GBuffer pass (otherwise HiZ does not work on PS4) - SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
+    // For Forward (Lit or Unlit)
+    // Opaque geometry always has a depth pre-pass so we never want to do the clip here. For transparent we perform the clip as usual.
+    // Also no alpha test for light transport
+#if !(SHADERPASS == SHADERPASS_FORWARD && !defined(_SURFACE_TYPE_TRANSPARENT)) && !(SHADERPASS == SHADERPASS_FORWARD_UNLIT && !defined(_SURFACE_TYPE_TRANSPARENT)) && !defined(SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST) && !(SHADERPASS == SHADERPASS_LIGHT_TRANSPORT)
+    clip(alpha - alphaCutoff);
+#endif
+}
+
+//-----------------------------------------------------------------------------
+// Reflection / Refraction hierarchy handling
+//-----------------------------------------------------------------------------
+
+// This function is use with reflection and refraction hierarchy of LightLoop
+// It will add weight to hierarchyWeight but ensure that hierarchyWeight is not more than one
+// by updating the weight value. Returned weight value must be apply on current lighting
+// Example: Total hierarchyWeight is 0.8 and weight is 0.4. Function return hierarchyWeight of 1.0 and weight of 0.2
+// hierarchyWeight and weight must be positive and between 0 and 1
+void UpdateLightingHierarchyWeights(inout float hierarchyWeight, inout float weight)
+{
+    float accumulatedWeight = hierarchyWeight + weight;
+    hierarchyWeight = saturate(accumulatedWeight);
+    weight -= saturate(accumulatedWeight - hierarchyWeight);
+}
 
 //-----------------------------------------------------------------------------
 // BuiltinData
@@ -132,8 +164,15 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float4 inputColor)
 #define DECODE_FROM_GBUFFER(NAME, FEATURE_FLAGS, BSDF_DATA, BAKE_DIFFUSE_LIGHTING) DecodeFromGBuffer(MERGE_NAME(NAME,0), MERGE_NAME(NAME,1), FEATURE_FLAGS, BSDF_DATA, BAKE_DIFFUSE_LIGHTING)
 #define MATERIAL_FEATURE_FLAGS_FROM_GBUFFER(NAME) MaterialFeatureFlagsFromGBuffer(MERGE_NAME(NAME,0), MERGE_NAME(NAME,1))
 
-#if SHADEROPTIONS_VELOCITY_IN_GBUFFER
-#define OUTPUT_GBUFFER_VELOCITY(NAME) ,out float4 NAME : SV_Target2
+#ifdef SHADOWS_SHADOWMASK
+    #define OUTPUT_GBUFFER_SHADOWMASK(NAME) ,out float4 NAME : SV_Target2
+    #if SHADEROPTIONS_VELOCITY_IN_GBUFFER
+    #define OUTPUT_GBUFFER_VELOCITY(NAME) ,out float4 NAME : SV_Target3
+    #endif
+#else
+    #if SHADEROPTIONS_VELOCITY_IN_GBUFFER
+    #define OUTPUT_GBUFFER_VELOCITY(NAME) ,out float4 NAME : SV_Target2
+    #endif
 #endif
 
 #elif GBUFFERMATERIAL_COUNT == 3
@@ -157,9 +196,15 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float4 inputColor)
 #define DECODE_FROM_GBUFFER(NAME, FEATURE_FLAGS, BSDF_DATA, BAKE_DIFFUSE_LIGHTING) DecodeFromGBuffer(MERGE_NAME(NAME,0), MERGE_NAME(NAME,1), MERGE_NAME(NAME,2), FEATURE_FLAGS, BSDF_DATA, BAKE_DIFFUSE_LIGHTING)
 #define MATERIAL_FEATURE_FLAGS_FROM_GBUFFER(NAME) MaterialFeatureFlagsFromGBuffer(MERGE_NAME(NAME,0), MERGE_NAME(NAME,1), MERGE_NAME(NAME,2))
 
-
-#if SHADEROPTIONS_VELOCITY_IN_GBUFFER
-#define OUTPUT_GBUFFER_VELOCITY(NAME) ,out float4 NAME : SV_Target3
+#ifdef SHADOWS_SHADOWMASK
+    #define OUTPUT_GBUFFER_SHADOWMASK(NAME) ,out float4 NAME : SV_Target3
+    #if SHADEROPTIONS_VELOCITY_IN_GBUFFER
+    #define OUTPUT_GBUFFER_VELOCITY(NAME) ,out float4 NAME : SV_Target4
+    #endif
+#else
+    #if SHADEROPTIONS_VELOCITY_IN_GBUFFER
+    #define OUTPUT_GBUFFER_VELOCITY(NAME) ,out float4 NAME : SV_Target3
+    #endif
 #endif
 
 #elif GBUFFERMATERIAL_COUNT == 4
@@ -186,8 +231,15 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float4 inputColor)
 #define DECODE_FROM_GBUFFER(NAME, FEATURE_FLAGS, BSDF_DATA, BAKE_DIFFUSE_LIGHTING) DecodeFromGBuffer(MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3), FEATURE_FLAGS, BSDF_DATA, BAKE_DIFFUSE_LIGHTING)
 #define MATERIAL_FEATURE_FLAGS_FROM_GBUFFER(NAME) MaterialFeatureFlagsFromGBuffer(MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3))
 
-#if SHADEROPTIONS_VELOCITY_IN_GBUFFER
-#define OUTPUT_GBUFFER_VELOCITY(NAME) ,out float4 NAME : SV_Target4
+#ifdef SHADOWS_SHADOWMASK
+    #define OUTPUT_GBUFFER_SHADOWMASK(NAME) ,out float4 NAME : SV_Target4
+    #if SHADEROPTIONS_VELOCITY_IN_GBUFFER
+    #define OUTPUT_GBUFFER_VELOCITY(NAME) ,out float4 NAME : SV_Target5
+    #endif
+#else
+    #if SHADEROPTIONS_VELOCITY_IN_GBUFFER
+    #define OUTPUT_GBUFFER_VELOCITY(NAME) ,out float4 NAME : SV_Target4
+    #endif
 #endif
 
 #elif GBUFFERMATERIAL_COUNT == 5
@@ -217,10 +269,65 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float4 inputColor)
 #define DECODE_FROM_GBUFFER(NAME, FEATURE_FLAGS, BSDF_DATA, BAKE_DIFFUSE_LIGHTING) DecodeFromGBuffer(MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3), MERGE_NAME(NAME, 4), FEATURE_FLAGS, BSDF_DATA, BAKE_DIFFUSE_LIGHTING)
 #define MATERIAL_FEATURE_FLAGS_FROM_GBUFFER(NAME) MaterialFeatureFlagsFromGBuffer(MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3), MERGE_NAME(NAME, 4))
 
-#if SHADEROPTIONS_VELOCITY_IN_GBUFFER
-#define OUTPUT_GBUFFER_VELOCITY(NAME) ,out float4 NAME : SV_Target5
+#ifdef SHADOWS_SHADOWMASK
+    #define OUTPUT_GBUFFER_SHADOWMASK(NAME) ,out float4 NAME : SV_Target5
+    #if SHADEROPTIONS_VELOCITY_IN_GBUFFER
+    #define OUTPUT_GBUFFER_VELOCITY(NAME) ,out float4 NAME : SV_Target6
+    #endif
+#else
+    #if SHADEROPTIONS_VELOCITY_IN_GBUFFER
+    #define OUTPUT_GBUFFER_VELOCITY(NAME) ,out float4 NAME : SV_Target5
+    #endif
 #endif
 
+#elif GBUFFERMATERIAL_COUNT == 6
+
+#define OUTPUT_GBUFFER(NAME)                            \
+        out GBufferType0 MERGE_NAME(NAME, 0) : SV_Target0,    \
+        out GBufferType1 MERGE_NAME(NAME, 1) : SV_Target1,    \
+        out GBufferType2 MERGE_NAME(NAME, 2) : SV_Target2,    \
+        out GBufferType3 MERGE_NAME(NAME, 3) : SV_Target3,    \
+        out GBufferType4 MERGE_NAME(NAME, 4) : SV_Target4,    \
+        out GBufferType5 MERGE_NAME(NAME, 5) : SV_Target5
+
+#define DECLARE_GBUFFER_TEXTURE(NAME)   \
+        TEXTURE2D(MERGE_NAME(NAME, 0));  \
+        TEXTURE2D(MERGE_NAME(NAME, 1));  \
+        TEXTURE2D(MERGE_NAME(NAME, 2));  \
+        TEXTURE2D(MERGE_NAME(NAME, 3));  \
+        TEXTURE2D(MERGE_NAME(NAME, 4));  \
+        TEXTURE2D(MERGE_NAME(NAME, 5));
+
+#define FETCH_GBUFFER(NAME, TEX, unCoord2)                                        \
+        GBufferType0 MERGE_NAME(NAME, 0) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 0), unCoord2); \
+        GBufferType1 MERGE_NAME(NAME, 1) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 1), unCoord2); \
+        GBufferType2 MERGE_NAME(NAME, 2) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 2), unCoord2); \
+        GBufferType3 MERGE_NAME(NAME, 3) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 3), unCoord2); \
+        GBufferType4 MERGE_NAME(NAME, 4) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 4), unCoord2); \
+        GBufferType5 MERGE_NAME(NAME, 5) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 5), unCoord2);
+
+#define ENCODE_INTO_GBUFFER(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, NAME) EncodeIntoGBuffer(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3), MERGE_NAME(NAME, 4), MERGE_NAME(NAME, 5))
+#define DECODE_FROM_GBUFFER(NAME, FEATURE_FLAGS, BSDF_DATA, BAKE_DIFFUSE_LIGHTING) DecodeFromGBuffer(MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3), MERGE_NAME(NAME, 4), MERGE_NAME(NAME, 5), FEATURE_FLAGS, BSDF_DATA, BAKE_DIFFUSE_LIGHTING)
+#define MATERIAL_FEATURE_FLAGS_FROM_GBUFFER(NAME) MaterialFeatureFlagsFromGBuffer(MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3), MERGE_NAME(NAME, 4), MERGE_NAME(NAME, 5))
+
+#ifdef SHADOWS_SHADOWMASK
+    #define OUTPUT_GBUFFER_SHADOWMASK(NAME) ,out float4 NAME : SV_Target6
+    #if SHADEROPTIONS_VELOCITY_IN_GBUFFER
+    #define OUTPUT_GBUFFER_VELOCITY(NAME) ,out float4 NAME : SV_Target7
+    #endif
+#else
+    #if SHADEROPTIONS_VELOCITY_IN_GBUFFER
+    #define OUTPUT_GBUFFER_VELOCITY(NAME) ,out float4 NAME : SV_Target6
+    #endif
+#endif
+
+#endif
+
+#ifdef SHADOWS_SHADOWMASK
+#define ENCODE_SHADOWMASK_INTO_GBUFFER(SHADOWMASK, NAME) EncodeShadowMask(SHADOWMASK, NAME)
+#else
+#define OUTPUT_GBUFFER_SHADOWMASK(NAME)
+#define ENCODE_SHADOWMASK_INTO_GBUFFER(SHADOWMASK, NAME)
 #endif
 
 #if SHADEROPTIONS_VELOCITY_IN_GBUFFER

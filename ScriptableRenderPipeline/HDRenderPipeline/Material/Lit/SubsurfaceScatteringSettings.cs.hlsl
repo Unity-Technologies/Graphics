@@ -8,7 +8,7 @@
 // UnityEngine.Experimental.Rendering.HDPipeline.SssConstants:  static fields
 //
 #define SSS_N_PROFILES (16)
-#define SSS_NEUTRAL_PROFILE_ID (15)
+#define SSS_NEUTRAL_PROFILE_ID (0)
 #define SSS_N_SAMPLES_NEAR_FIELD (55)
 #define SSS_N_SAMPLES_FAR_FIELD (21)
 #define SSS_LOD_THRESHOLD (4)

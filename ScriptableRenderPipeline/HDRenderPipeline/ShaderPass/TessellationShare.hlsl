@@ -31,7 +31,7 @@ TessellationFactors HullConstant(InputPatch<PackedVaryingsToDS, 3> input)
     output.edge[0] = min(tf.x, MAX_TESSELLATION_FACTORS);
     output.edge[1] = min(tf.y, MAX_TESSELLATION_FACTORS);
     output.edge[2] = min(tf.z, MAX_TESSELLATION_FACTORS);
-    output.inside = min(tf.w, MAX_TESSELLATION_FACTORS);
+    output.inside  = min(tf.w, MAX_TESSELLATION_FACTORS);
 
     return output;
 }

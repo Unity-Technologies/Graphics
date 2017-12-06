@@ -20,5 +20,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Note: This count doesn't include the velocity buffer. On shader and csharp side the velocity buffer will be added by the framework
             Count = 2
         };
+
+        //-----------------------------------------------------------------------------
+        // DBuffer management
+        //-----------------------------------------------------------------------------
+
+       static public int GetMaterialDBufferCount() { return (int)DBufferMaterial.Count; }
+
+       static RenderTextureFormat[] m_RTFormat = { RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32};
+       static RenderTextureReadWrite[] m_RTReadWrite = { RenderTextureReadWrite.sRGB, RenderTextureReadWrite.Linear};
+
+
+       static public void GetMaterialDBufferDescription(out RenderTextureFormat[] RTFormat, out RenderTextureReadWrite[] RTReadWrite)
+       {
+            RTFormat = m_RTFormat;
+            RTReadWrite = m_RTReadWrite;
+       }
     }
 }
