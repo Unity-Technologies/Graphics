@@ -237,6 +237,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     inputContainer.Add(port);
                     var portInputView = new PortInputView(slot);
                     Add(portInputView);
+                    mainContainer.BringToFront();
                     m_Attachers.Add(new Attacher(portInputView, port, SpriteAlignment.LeftCenter) { distance = -8f });
                 }
             }
