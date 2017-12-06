@@ -128,7 +128,7 @@ inline half3 SubtractDirectMainLightFromLightmap(half3 lightmap, half attenuatio
     half3 subtractedLightmap = lightmap - estimatedLightContributionMaskedByInverseOfShadow;
 
     // 2) Allows user to define overall ambient of the scene and control situation when realtime shadow becomes too dark.
-    half3 realtimeShadow = max(subtractedLightmap, _SubtractiveShadowColor);
+    half3 realtimeShadow = max(subtractedLightmap, _SubtractiveShadowColor.xyz);
     realtimeShadow = lerp(realtimeShadow, lightmap, shadowStrength);
 
     // 3) Pick darkest color
