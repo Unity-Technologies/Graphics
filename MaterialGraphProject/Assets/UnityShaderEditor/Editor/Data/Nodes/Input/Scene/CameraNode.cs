@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph
     {
         const string kOutputSlotName = "Position";
         const string kOutputSlot1Name = "Direction";
-        const string kOutputSlot2Name = "isOrtho";
+        const string kOutputSlot2Name = "Orthographic";
         const string kOutputSlot3Name = "Near Plane";
         const string kOutputSlot4Name = "Far Plane";
         const string kOutputSlot5Name = "Sign";
