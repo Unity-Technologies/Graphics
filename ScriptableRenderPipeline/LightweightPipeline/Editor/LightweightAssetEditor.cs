@@ -11,29 +11,29 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent shadowLabel = new GUIContent("Shadows");
             public static GUIContent defaults = new GUIContent("Defaults");
 
-            public static GUIContent renderScaleLabel = new GUIContent("Render Scale", "Allows game to render at a resolution different than native resolution. UI is always rendered at native resolution.");
+            public static GUIContent renderScaleLabel = new GUIContent("Render Scale", "Scales the camera render target allowing the game to render at a resolution different than native resolution. UI is always rendered at native resolution. When in VR mode, VR scaling configuration is used instead.");
 
-            public static GUIContent maxPixelLightsLabel = new GUIContent("Max Pixel Lights",
+            public static GUIContent maxPixelLightsLabel = new GUIContent("Pixel Lights",
                     "Controls the amount of pixel lights that run in fragment light loop. Lights are sorted and culled per-object.");
 
-            public static GUIContent enableVertexLightLabel = new GUIContent("Enable Vertex Light",
-                    "If enabled, shades additional lights exceeding maxAdditionalPixelLights per-vertex up to the maximum of 8 lights.");
+            public static GUIContent enableVertexLightLabel = new GUIContent("Enable Vertex Lighting",
+                    "If enabled shades additional lights exceeding the maximum number of pixel lights per-vertex up to the maximum of 8 lights.");
 
-            public static GUIContent requireCameraDepthTexture = new GUIContent("Camera Depth Texture", "If enabled the the pipeline will generate depth texture necessary for some effects like soft particles.");
+            public static GUIContent requireCameraDepthTexture = new GUIContent("Camera Depth Texture", "If enabled the pipeline will generate camera's depth that can be bound in shaders as _CameraDepthTexture. This is necessary for some effect like Soft Particles.");
 
             public static GUIContent shadowType = new GUIContent("Shadow Type",
-                    "Single directional shadow supported. SOFT_SHADOWS applies shadow filtering.");
+                    "Global shadow settings. Options are NO_SHADOW, HARD_SHADOWS and SOFT_SHADOWS.");
 
             public static GUIContent shadowNearPlaneOffset = new GUIContent("Shadow Near Plane Offset",
-                    "Offset shadow near plane to account for large triangles being distorted by pancaking");
+                    "Offset shadow near plane to account for large triangles being distorted by pancaking.");
 
-            public static GUIContent shadowDistante = new GUIContent("Shadow Distance", "Max shadow drawing distance");
+            public static GUIContent shadowDistante = new GUIContent("Shadow Distance", "Max shadow rendering distance.");
 
             public static GUIContent shadowAtlasResolution = new GUIContent("Shadow Map Resolution",
-                    "Resolution of shadow map texture. If cascades are enabled all cascades will be packed into this texture resolution.");
+                    "Resolution of shadow map texture. If cascades are enabled, cascades will be packed into an atlas and this setting controls the max shadows atlas resolution.");
 
             public static GUIContent shadowCascades = new GUIContent("Shadow Cascades",
-                    "Number of cascades for directional shadows");
+                    "Number of cascades used in directional lights shadows");
 
             public static GUIContent shadowCascadeSplit = new GUIContent("Shadow Cascade Split",
                 "Percentages to split shadow volume");
@@ -47,7 +47,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent defaultTerrainMaterial = new GUIContent("Default Terrain Material",
                 "Material to use in Terrains");
 
-            public static GUIContent msaaContent = new GUIContent("Anti Aliasing (MSAA)", "Controls the global anti aliasing applied to all cameras.");
+            public static GUIContent msaaContent = new GUIContent("Anti Aliasing (MSAA)", "Controls the global anti aliasing settings.");
         }
 
         private int kMaxSupportedPixelLights = 8;
