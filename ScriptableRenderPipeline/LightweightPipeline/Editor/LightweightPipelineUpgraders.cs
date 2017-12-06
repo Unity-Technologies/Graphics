@@ -130,9 +130,27 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
     public class StandardUpgrader : MaterialUpgrader
     {
+        public static void UpdateStandardMaterialKeywords(Material material)
+        {
+            material.SetFloat("_WorkflowMode", 1.0f);
+            LightweightShaderHelper.SetKeyword(material, "_OCCLUSIONMAP", material.GetTexture("_OcclusionMap"));
+            LightweightShaderHelper.SetKeyword(material, "_METALLICSPECGLOSSMAP", material.GetTexture("_MetallicGlossMap"));
+        }
+
+        public static void UpdateStandardSpecularMaterialKeywords(Material material)
+        {
+            material.SetFloat("_WorkflowMode", 0.0f);
+            LightweightShaderHelper.SetKeyword(material, "_OCCLUSIONMAP", material.GetTexture("_OcclusionMap"));
+            LightweightShaderHelper.SetKeyword(material, "_METALLICSPECGLOSSMAP", material.GetTexture("_SpecGlossMap"));
+            LightweightShaderHelper.SetKeyword(material, "_SPECULAR_SETUP", true);
+        }
+
         public StandardUpgrader(string oldShaderName)
         {
-            RenameShader(oldShaderName, LightweightPipelineAsset.m_StandardShaderPath);
+            if (oldShaderName.Contains("Specular"))
+                RenameShader(oldShaderName, LightweightPipelineAsset.m_StandardShaderPath, UpdateStandardSpecularMaterialKeywords);
+            else
+                RenameShader(oldShaderName, LightweightPipelineAsset.m_StandardShaderPath, UpdateStandardMaterialKeywords);
         }
     }
 

@@ -57,6 +57,8 @@ float4 ShadowMoments_Decode16MSM( float4 moments )
 	return mul( moments, mat );
 }
 
+// Note: Don't call this with all moments being equal or 0.0, otherwise this code degenerates into lots of +/-inf calculations
+//       which don't behave quite the same on all hardware.
 void ShadowMoments_SolveMSM( float4 moments, float depth, float momentBias, out float3 z, out float4 b )
 {
 	// Bias input data to avoid artifacts

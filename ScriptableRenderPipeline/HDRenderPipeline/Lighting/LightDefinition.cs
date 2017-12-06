@@ -24,6 +24,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Disk,
     };
 
+    // This is use to distinguish between reflection and refraction probe in LightLoop
+    [GenerateHLSL]
+    public enum GPUImageBasedLightingType
+    {
+        Reflection,
+        Refraction
+    };
+
     // These structures share between C# and hlsl need to be align on float4, so we pad them.
     [GenerateHLSL]
     public struct DirectionalLightData
@@ -42,6 +50,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Vector3 up;      // Rescaled by (2 / shapeWidth)
         public float diffuseScale;
+
+        public bool dynamicShadowCasterOnly; // Use with ShadowMask feature
+        public Vector2 fadeDistanceScaleAndBias; // Use with ShadowMask feature
+        public float unused0;
+
+        public Vector4 shadowMaskSelector; // Use with ShadowMask feature
     };
 
     [GenerateHLSL]
@@ -65,11 +79,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float angleScale;  // Spot light
         public float angleOffset; // Spot light
         public float shadowDimmer;
-        public int unused0;
+        public bool dynamicShadowCasterOnly; // Use with ShadowMask feature
 
         public Vector2 size;      // Used by area, frustum projector and spot lights (x = cot(outerHalfAngle))
         public GPULightType lightType;
         public float minRoughness;  // This is use to give a small "area" to punctual light, as if we have a light with a radius.
+
+        public Vector4 shadowMaskSelector; // Use with ShadowMask feature
     };
 
 
