@@ -4,8 +4,6 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    public class TextureSampler2D { }
-
     [Serializable]
     public class Sampler2DShaderProperty : AbstractShaderProperty<object>
     {
