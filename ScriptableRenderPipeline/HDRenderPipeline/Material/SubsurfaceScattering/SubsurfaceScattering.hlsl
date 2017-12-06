@@ -45,9 +45,9 @@ float3 ApplyDiffuseTexturingMode(float3 color, int subsurfaceProfile)
         if (performPostScatterTexturing)
         {
             // Post-scatter texturing mode: the albedo is only applied during the SSS pass.
-#if !defined(SHADERPASS) || (SHADERPASS != SHADERPASS_SUBSURFACE_SCATTERING)
+        #if !defined(SHADERPASS) || (SHADERPASS != SHADERPASS_SUBSURFACE_SCATTERING)
             color = float3(1, 1, 1);
-#endif
+        #endif
         }
         else
         {
