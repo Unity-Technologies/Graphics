@@ -531,8 +531,8 @@ void DecodeFromGBuffer(
 
     if (HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_SSS))
     {
-        float subsurfaceRadius  = 0;
-        float thickness         = 0;
+        float subsurfaceRadius  = 0.0;
+        float thickness         = 0.0;
         int   subsurfaceProfile = SSS_NEUTRAL_PROFILE_ID;
 
         if (bsdfData.materialId == MATERIALID_LIT_SSS)
