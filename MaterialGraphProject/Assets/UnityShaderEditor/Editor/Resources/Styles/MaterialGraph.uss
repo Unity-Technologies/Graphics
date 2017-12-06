@@ -237,13 +237,13 @@ MultiFloatSlotControlView {
     align-items: center;
 }
 
-MultiFloatSlotControlView > Label {
+MultiFloatSlotControlView > #dummy > Label {
     margin-left: 0;
     margin-right: 0;
     cursor: slide-arrow;
 }
 
-MultiFloatSlotControlView > DoubleField {
+MultiFloatSlotControlView > FloatField {
     width: 30;
     margin-left: 0;
     margin-right: 0;
@@ -523,13 +523,13 @@ MultiFloatControlView {
     padding-bottom: 8;
 }
 
-MultiFloatControlView > Label {
+MultiFloatControlView > #dummy > Label {
     margin-left: 0;
     margin-right: 0;
     cursor: slide-arrow;
 }
 
-MultiFloatControlView > DoubleField {
+MultiFloatControlView > FloatField {
     margin-left: 0;
     margin-right: 0;
     min-width: 30;
@@ -572,4 +572,29 @@ PropertyControlView {
     padding-right: 8;
     padding-top: 8;
     padding-bottom: 8;
+}
+
+FloatField {
+	min-height: 15;
+	margin-left: 4;
+	margin-top: 2;
+	margin-right: 4;
+	margin-bottom: 2;
+	padding-left: 3;
+	padding-top: 1;
+	padding-right: 3;
+	padding-bottom: 2;
+	slice-left: 3;
+	slice-top: 3;
+	slice-right: 3;
+	slice-bottom: 3;
+	selection-color: rgba(61,128,223,166);
+	cursor: text;
+	text-color: #B4B4B4;
+	background-image: resource("Builtin Skins/DarkSkin/Images/TextField.png");
+	cursor-color:#B4B4B4;
+}
+
+FloatField:focus {
+	background-image: resource("Builtin Skins/DarkSkin/Images/TextField focused.png");
 }
