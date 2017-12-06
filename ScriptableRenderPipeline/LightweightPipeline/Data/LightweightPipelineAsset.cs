@@ -31,8 +31,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public class LightweightPipelineAsset : RenderPipelineAsset
     {
-        public static readonly string m_SimpleLightShaderPath = "LightweightPipeline/Standard (Simple Lighting)";
-        public static readonly string m_StandardShaderPath = "LightweightPipeline/Standard (Physically Based)";
         public static readonly string[] m_SearchPaths = {"Assets", "Packages/com.unity.render-pipelines"};
 
         // Default values set when a new LightweightPipeline asset is created
@@ -88,9 +86,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 instance.m_DefaultTerrainMaterial = resourceAsset.DefaultTerrainMaterial;
             }
 
-            instance.m_DefaultShader = Shader.Find(m_StandardShaderPath);
-            instance.m_BlitShader = Shader.Find("Hidden/LightweightPipeline/Blit");
-            instance.m_CopyDepthShader = Shader.Find("Hidden/LightweightPipeline/CopyDepth");
+            instance.m_DefaultShader = Shader.Find(LightweightShaderUtils.GetShaderPath(ShaderPathID.STANDARD_PBS));
+            instance.m_BlitShader = Shader.Find(LightweightShaderUtils.GetShaderPath(ShaderPathID.HIDDEN_BLIT));
+            instance.m_CopyDepthShader = Shader.Find(LightweightShaderUtils.GetShaderPath(ShaderPathID.HIDDEN_DEPTH_COPY));
 
             string assetPath = UnityEditor.EditorUtility.SaveFilePanelInProject("Save Lightweight Asset", "LightweightAsset", "asset",
                 "Please enter a file name to save the asset to");
