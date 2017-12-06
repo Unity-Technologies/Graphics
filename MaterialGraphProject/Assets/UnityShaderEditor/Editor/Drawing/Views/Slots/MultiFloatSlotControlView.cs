@@ -30,12 +30,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
 
         void AddField(Vector4 initialValue, int index, string subLabel)
         {
+            var dummy = new VisualElement { name = "dummy" };
             var label = new Label(subLabel);
-            Add(label);
-            var doubleField = new DoubleField { userData = index, value = initialValue[index] };
-            var dragger = new FieldMouseDragger<double>(doubleField);
+            dummy.Add(label);
+            Add(dummy);
+            var field = new FloatField { userData = index, value = initialValue[index] };
+            var dragger = new FieldMouseDragger<double>(field);
             dragger.SetDragZone(label);
-            doubleField.OnValueChanged(evt =>
+            field.OnValueChanged(evt =>
                 {
                     var value = m_Get();
                     value[index] = (float)evt.newValue;
@@ -44,7 +46,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
                         m_Node.onModified(m_Node, ModificationScope.Node);
                     m_UndoGroup = -1;
                 });
-            doubleField.RegisterCallback<InputEvent>(evt =>
+            field.RegisterCallback<InputEvent>(evt =>
                 {
                     if (m_UndoGroup == -1)
                     {
@@ -63,7 +65,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
                             m_Node.onModified(m_Node, ModificationScope.Node);
                     }
                 });
-            doubleField.RegisterCallback<KeyDownEvent>(evt =>
+            field.RegisterCallback<KeyDownEvent>(evt =>
                 {
                     if (evt.keyCode == KeyCode.Escape && m_UndoGroup > -1)
                     {
@@ -73,7 +75,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
                     }
                     Dirty(ChangeType.Repaint);
                 });
-            Add(doubleField);
+            Add(field);
         }
     }
 }
