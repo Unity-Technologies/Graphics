@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    internal class MaterialGraphPreviewGenerator : IDisposable
+    public class MaterialGraphPreviewGenerator : IDisposable
     {
         private readonly Scene m_Scene;
         static Mesh s_Quad;
