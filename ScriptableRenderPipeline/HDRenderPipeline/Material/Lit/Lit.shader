@@ -81,6 +81,7 @@ Shader "HDRenderPipeline/Lit"
 
         [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+        [ToggleOff] _TransparentBackfaceEnable("_TransparentBackfaceEnable", Float) = 0.0
 
         // Transparency
         [Enum(None, 0, Plane, 1, Sphere, 2)]_RefractionMode("Refraction Mode", Int) = 0
@@ -454,6 +455,35 @@ Shader "HDRenderPipeline/Lit"
             #include "ShaderPass/LitDistortionPass.hlsl"
             #include "LitData.hlsl"
             #include "../../ShaderPass/ShaderPassDistortion.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "TransparentBackface"
+            Tags { "LightMode" = "TransparentBackface" }
+
+            Blend [_SrcBlend] [_DstBlend]
+            ZWrite [_ZWrite]
+            Cull Front
+
+            HLSLPROGRAM
+
+            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
+            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
+            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
+            // #include "../../Lighting/Forward.hlsl"
+            #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
+            #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
+
+            #define SHADERPASS SHADERPASS_FORWARD
+            #include "../../ShaderVariables.hlsl"
+            #include "../../Lighting/Lighting.hlsl"
+            #include "ShaderPass/LitSharePass.hlsl"
+            #include "LitData.hlsl"
+            #include "../../ShaderPass/ShaderPassForward.hlsl"
 
             ENDHLSL
         }

@@ -15,8 +15,8 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
 
     #pragma multi_compile _ _ENABLE_SUN_DISK
 
-    #include "ShaderLibrary/Color.hlsl"
     #include "ShaderLibrary/Common.hlsl"
+    #include "ShaderLibrary/Color.hlsl"
     #include "ShaderLibrary/CommonLighting.hlsl"
 
     float4   _SkyParam; // x exposure, y multiplier, z rotation

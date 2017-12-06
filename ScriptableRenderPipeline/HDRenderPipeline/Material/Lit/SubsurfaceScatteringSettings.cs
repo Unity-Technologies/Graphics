@@ -362,7 +362,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [NonSerialized] public uint      texturingModeFlags;        // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
         [NonSerialized] public uint      transmissionFlags;         // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
         [NonSerialized] public Vector4[] thicknessRemaps;           // Remap: 0 = start, 1 = end - start
-        [NonSerialized] public Vector4[] worldScales;               // Size of the world unit in meters (only the X component is used)
+        [NonSerialized] public Vector4[] worldScales;               // X = meters per world unit; Y = world units per meter
         [NonSerialized] public Vector4[] shapeParams;               // RGB = S = 1 / D, A = filter radius
         [NonSerialized] public Vector4[] transmissionTints;         // RGB = color, A = unused
         [NonSerialized] public Vector4[] filterKernels;             // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
@@ -472,7 +472,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             transmissionFlags  |= (uint)profiles[p].transmissionMode << i * 2;
 
             thicknessRemaps[i]   = new Vector4(profiles[p].thicknessRemap.x, profiles[p].thicknessRemap.y - profiles[p].thicknessRemap.x, 0f, 0f);
-            worldScales[i]       = new Vector4(profiles[p].worldScale, 0f, 0f, 0f);
+            worldScales[i]       = new Vector4(profiles[p].worldScale, 1.0f / profiles[p].worldScale, 0f, 0f);
             shapeParams[i]       = profiles[p].shapeParam;
             shapeParams[i].w     = profiles[p].maxRadius;
             transmissionTints[i] = profiles[p].transmissionTint * 0.25f; // Premultiplied

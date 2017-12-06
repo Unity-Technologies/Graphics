@@ -43,5 +43,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Shader opaqueAtmosphericScattering;
 
         public Shader skyboxCubemap;
+
+        // Utilities
+        public ComputeShader encodeBC6HCS;
     }
 }

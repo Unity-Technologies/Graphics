@@ -58,3 +58,4 @@ MonoBehaviour:
   opaqueAtmosphericScattering: {fileID: 4800000, guid: 326059e48e5735e46a98047eff4f0295,
     type: 3}
   skyboxCubemap: {fileID: 103, guid: 0000000000000000f000000000000000, type: 0}
+  encodeBC6HCS: {fileID: 7200000, guid: aa922d239de60304f964e24488559eeb, type: 3}
