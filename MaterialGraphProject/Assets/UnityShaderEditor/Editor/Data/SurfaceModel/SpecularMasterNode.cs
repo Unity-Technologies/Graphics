@@ -4,7 +4,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
 /*    [Serializable]
-    [Title("Master/Specular")]
+    [Title("Master", "Specular")]
     public class SpecularMasterNode : AbstractSurfaceMasterNode
     {
         public const string SpecularSlotName = "Specular";

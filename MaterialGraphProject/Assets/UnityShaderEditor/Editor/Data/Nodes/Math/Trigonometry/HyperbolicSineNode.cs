@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Trigonometry/Hyperbolic Sine")]
+    [Title("Math", "Trigonometry", "Hyperbolic Sine")]
     class HyperbolicSineNode : CodeFunctionNode
     {
         public HyperbolicSineNode()

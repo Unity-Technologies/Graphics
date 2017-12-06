@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Range/One Minus")]
+    [Title("Math", "Range", "One Minus")]
     public class OneMinusNode : CodeFunctionNode
     {
         public OneMinusNode()

@@ -3,7 +3,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input/Geometry/Tangent Vector")]
+    [Title("Input", "Geometry", "Tangent Vector")]
     public class TangentVectorNode : GeometryNode, IMayRequireTangent
     {
         public const int kOutputSlotId = 0;

@@ -98,7 +98,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             s_Meshes[3] = meshFilter.sharedMesh;
                             break;
                         default:
-                            Debug.Log("Something is wrong, weird object found: " + t.name);
+                            Debug.LogWarning("Something is wrong, weird object found: " + t.name);
                             break;
                     }
                 }

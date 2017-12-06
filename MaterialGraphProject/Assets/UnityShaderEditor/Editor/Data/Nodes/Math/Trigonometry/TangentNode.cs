@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Trigonometry/Tangent")]
+    [Title("Math", "Trigonometry", "Tangent")]
     public class TangentNode : CodeFunctionNode
     {
         public TangentNode()

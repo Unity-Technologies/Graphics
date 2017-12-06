@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Trigonometry/Radians To Degrees")]
+    [Title("Math", "Trigonometry", "Radians To Degrees")]
     public class RadiansToDegreesNode : CodeFunctionNode
     {
         public RadiansToDegreesNode()

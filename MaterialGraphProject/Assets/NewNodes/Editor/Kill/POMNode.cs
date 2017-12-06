@@ -1,9 +1,9 @@
 using System.Reflection;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph
+/*namespace UnityEditor.ShaderGraph
 {
-    [Title("OLD/ParallaxOcclusionMapping")]
+    [Title("OLD", "ParallaxOcclusionMapping")]
     public class ParallaxOcclusionMappingNode : CodeFunctionNode
     {
         protected override MethodInfo GetFunctionToConvert()
@@ -169,4 +169,4 @@ namespace UnityEditor.ShaderGraph
 ";
         }
     }
-}
+}*/

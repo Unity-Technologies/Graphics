@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Vector/Reflection")]
+    [Title("Math", "Vector", "Reflection")]
     class ReflectionNode : CodeFunctionNode
     {
         public ReflectionNode()

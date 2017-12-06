@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input/Scene/Camera")]
+    [Title("Input", "Scene", "Camera")]
     public class CameraNode : AbstractMaterialNode
     {
         const string kOutputSlotName = "Pos";

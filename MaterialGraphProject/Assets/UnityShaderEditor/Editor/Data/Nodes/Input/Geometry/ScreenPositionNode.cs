@@ -5,11 +5,6 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
-    public interface IMayRequireScreenPosition
-    {
-        bool RequiresScreenPosition();
-    }
-
     public enum ScreenSpaceType
     {
         Default,
@@ -18,7 +13,7 @@ namespace UnityEditor.ShaderGraph
         Tiled
     };
 
-    [Title("Input/Geometry/Screen Position")]
+    [Title("Input", "Geometry", "Screen Position")]
     public class ScreenPositionNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireScreenPosition
     {
         public ScreenPositionNode()

@@ -56,9 +56,9 @@ namespace UnityEditor.ShaderGraph
         {
             return new PreviewProperty()
             {
-                m_Name = referenceName,
-                m_PropType = PropertyType.Float,
-                m_Float = value
+                name = referenceName,
+                propType = PropertyType.Float,
+                floatValue = value
             };
         }
     }

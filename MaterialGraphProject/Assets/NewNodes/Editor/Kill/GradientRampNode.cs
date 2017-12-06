@@ -1,9 +1,9 @@
 using System.Reflection;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph
+/*namespace UnityEditor.ShaderGraph
 {
-    [Title("OLD/Gradient Ramp")]
+    [Title("OLD", "Gradient Ramp")]
     public class GradientRampNode : CodeFunctionNode
     {
         public GradientRampNode()
@@ -30,4 +30,4 @@ namespace UnityEditor.ShaderGraph
 ";
         }
     }
-}
+}*/

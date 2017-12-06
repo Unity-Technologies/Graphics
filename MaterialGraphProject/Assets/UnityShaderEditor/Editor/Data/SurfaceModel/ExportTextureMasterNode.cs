@@ -8,7 +8,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     /*   [Serializable]
-       [Title("Master/Custom Texture")]
+       [Title("Master", "Custom Texture")]
        public class ExportTextureMasterNode : MasterNode
        {
            public const string ColorSlotName = "Color";

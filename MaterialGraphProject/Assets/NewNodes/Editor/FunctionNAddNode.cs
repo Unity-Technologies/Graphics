@@ -4,7 +4,7 @@ using System.Collections;
 
 namespace UnityEditor.ShaderGraph
 {
-    /*  [Title("Math/Advanced/Adder")]
+    /*  [Title("Math", "Advanced", "Adder")]
       public class AddManyNode : FunctionNInNOut, IGeneratesFunction
       {
           int m_nodeInputCount = 2;

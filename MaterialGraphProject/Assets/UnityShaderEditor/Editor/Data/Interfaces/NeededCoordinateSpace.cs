@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Linq;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -31,9 +32,16 @@ namespace UnityEditor.ShaderGraph
 
     public static class CoordinateSpaceNameExtensions
     {
+        static int s_SpaceCount = Enum.GetValues(typeof(CoordinateSpace)).Length;
+        static int s_InterpolatorCount = Enum.GetValues(typeof(InterpolatorType)).Length;
+        static string[] s_VariableNames = new string[s_SpaceCount * s_InterpolatorCount];
+
         public static string ToVariableName(this CoordinateSpace space, InterpolatorType type)
         {
-            return string.Format("{0}Space{1}", space, type);
+            var index = (int)space * s_SpaceCount + (int)type;
+            if (string.IsNullOrEmpty(s_VariableNames[index]))
+                s_VariableNames[index] = string.Format("{0}Space{1}", space, type);
+            return s_VariableNames[index];
         }
 
         public static NeededCoordinateSpace ToNeededCoordinateSpace(this CoordinateSpace space)

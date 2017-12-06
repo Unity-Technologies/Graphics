@@ -8,7 +8,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    [Title("Master/Unlit")]
+    [Title("Master", "Unlit")]
     public class UnlitMasterNode : MasterNode
     {
         public const string ColorSlotName = "Color";

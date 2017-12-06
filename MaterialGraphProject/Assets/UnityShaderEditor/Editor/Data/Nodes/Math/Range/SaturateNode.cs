@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Range/Saturate")]
+    [Title("Math", "Range", "Saturate")]
     class SaturateNode : CodeFunctionNode
     {
         public SaturateNode()

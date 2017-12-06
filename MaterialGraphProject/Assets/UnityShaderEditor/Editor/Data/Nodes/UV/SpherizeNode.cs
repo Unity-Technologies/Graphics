@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("UV/Spherize")]
+    [Title("UV", "Spherize")]
     public class SpherizeNode : CodeFunctionNode
     {
         public SpherizeNode()

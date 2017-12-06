@@ -318,6 +318,8 @@ GraphInspectorView > #top > #header {
     background-color: rgb(64, 64, 64);
     border-color: rgb(79, 79, 79);
     border-bottom-width: 1;
+    flex-direction: row;
+    justify-content: space-between;
 }
 
 GraphInspectorView > #top > #header > #title {

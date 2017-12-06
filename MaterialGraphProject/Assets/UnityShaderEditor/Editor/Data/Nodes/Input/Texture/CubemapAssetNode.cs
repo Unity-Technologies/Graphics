@@ -5,7 +5,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input/Texture/Cubemap Asset")]
+    [Title("Input", "Texture", "Cubemap Asset")]
     public class CubemapAssetNode : AbstractMaterialNode, IPropertyFromNode
     {
         public const int OutputSlotId = 0;
@@ -58,9 +58,9 @@ namespace UnityEditor.ShaderGraph
         {
             properties.Add(new PreviewProperty
             {
-                m_Name = GetVariableNameForSlot(OutputSlotId),
-                m_PropType = PropertyType.Cubemap,
-                m_Cubemap = cubemap
+                name = GetVariableNameForSlot(OutputSlotId),
+                propType = PropertyType.Cubemap,
+                cubemapValue = cubemap
             });
         }
 

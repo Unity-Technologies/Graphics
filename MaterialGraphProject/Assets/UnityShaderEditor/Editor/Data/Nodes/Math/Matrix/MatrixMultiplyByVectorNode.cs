@@ -3,7 +3,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Matrix/MultiplyMatrixByVector")]
+    [Title("Math", "Matrix", "MultiplyMatrixByVector")]
     public class MatrixMultiplyByVectorNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
         protected const string kInputSlot1ShaderName = "Input1";
