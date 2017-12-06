@@ -1,4 +1,5 @@
 using System.Reflection;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -16,10 +17,11 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_CrossProduct(
-            [Slot(0, Binding.None)] DynamicDimensionVector A,
-            [Slot(1, Binding.None)] DynamicDimensionVector B,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+            [Slot(0, Binding.None)] Vector3 A,
+            [Slot(1, Binding.None)] Vector3 B,
+            [Slot(2, Binding.None)] out Vector3 Out)
         {
+            Out = Vector3.zero;
             return
                 @"
 {
