@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input/Scene/Ambient")]
+    [Title("Input", "Scene", "Ambient")]
     public class AmbientNode : AbstractMaterialNode
     {
         const string kOutputSlotName = "Color";

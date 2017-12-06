@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input/Scene/Object")]
+    [Title("Input", "Scene", "Object")]
     public class ObjectNode : AbstractMaterialNode
     {
         const string kOutputSlotName = "Position";
