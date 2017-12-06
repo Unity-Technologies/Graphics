@@ -526,7 +526,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         ~PreviewManager()
         {
-            ReleaseUnmanagedResources();
+            throw new Exception("PreviewManager was not disposed of properly.");
         }
 
         const string k_EmptyShader = @"

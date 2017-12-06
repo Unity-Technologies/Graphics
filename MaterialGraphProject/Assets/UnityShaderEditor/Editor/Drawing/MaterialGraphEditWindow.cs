@@ -24,6 +24,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         [SerializeField]
         SerializableGraphObject m_GraphObject;
 
+        [NonSerialized]
+        bool m_HasError;
+
         GraphEditorView m_GraphEditorView;
 
         GraphEditorView graphEditorView
@@ -66,30 +69,43 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void Update()
         {
-            if (graphObject == null && selectedGuid != null)
-            {
-                var guid = selectedGuid;
-                selectedGuid = null;
-                ChangeSelection(guid);
-            }
-
-            if (graphObject == null)
-            {
-                Close();
+            if (m_HasError)
                 return;
-            }
 
-            var materialGraph = graphObject.graph as AbstractMaterialGraph;
-            if (materialGraph == null)
-                return;
-            if (graphEditorView == null)
+            try
             {
-                var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(selectedGuid));
-                graphEditorView = new GraphEditorView(this, materialGraph, asset.name) { persistenceKey = AssetDatabase.AssetPathToGUID(AssetDatabase.GUIDToAssetPath(selectedGuid)) };
-            }
+                if (graphObject == null && selectedGuid != null)
+                {
+                    var guid = selectedGuid;
+                    selectedGuid = null;
+                    ChangeSelection(guid);
+                }
 
-            graphEditorView.HandleGraphChanges();
-            graphObject.graph.ClearChanges();
+                if (graphObject == null)
+                {
+                    Close();
+                    return;
+                }
+
+                var materialGraph = graphObject.graph as AbstractMaterialGraph;
+                if (materialGraph == null)
+                    return;
+                if (graphEditorView == null)
+                {
+                    var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(selectedGuid));
+                    graphEditorView = new GraphEditorView(this, materialGraph, asset.name) { persistenceKey = AssetDatabase.AssetPathToGUID(AssetDatabase.GUIDToAssetPath(selectedGuid)) };
+                }
+
+                graphEditorView.HandleGraphChanges();
+                graphObject.graph.ClearChanges();
+            }
+            catch (Exception)
+            {
+                m_HasError = true;
+                m_GraphEditorView = null;
+                graphObject = null;
+                throw;
+            }
         }
 
         void OnDisable()
@@ -373,46 +389,56 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void ChangeSelection(string newSelectionGuid)
         {
-            var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(newSelectionGuid));
-            if (asset == null)
-                return;
-
-            if (!EditorUtility.IsPersistent(asset))
-                return;
-
-            if (selectedGuid == newSelectionGuid)
-                return;
-
-            var path = AssetDatabase.GetAssetPath(asset);
-            var extension = Path.GetExtension(path);
-            Type graphType;
-            switch (extension)
+            try
             {
-                case ".ShaderGraph":
-                    graphType = typeof(MaterialGraph);
-                    break;
-                case ".ShaderSubGraph":
-                    graphType = typeof(SubGraph);
-                    break;
-                default:
+                var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(newSelectionGuid));
+                if (asset == null)
                     return;
+
+                if (!EditorUtility.IsPersistent(asset))
+                    return;
+
+                if (selectedGuid == newSelectionGuid)
+                    return;
+
+                var path = AssetDatabase.GetAssetPath(asset);
+                var extension = Path.GetExtension(path);
+                Type graphType;
+                switch (extension)
+                {
+                    case ".ShaderGraph":
+                        graphType = typeof(MaterialGraph);
+                        break;
+                    case ".ShaderSubGraph":
+                        graphType = typeof(SubGraph);
+                        break;
+                    default:
+                        return;
+                }
+
+                selectedGuid = newSelectionGuid;
+
+                var textGraph = File.ReadAllText(path, Encoding.UTF8);
+                graphObject = CreateInstance<SerializableGraphObject>();
+                graphObject.hideFlags = HideFlags.HideAndDontSave;
+                graphObject.graph = JsonUtility.FromJson(textGraph, graphType) as IGraph;
+                graphObject.graph.OnEnable();
+                graphObject.graph.ValidateGraph();
+
+                graphEditorView = new GraphEditorView(this, m_GraphObject.graph as AbstractMaterialGraph, asset.name) { persistenceKey = AssetDatabase.GUIDToAssetPath(selectedGuid) };
+                graphEditorView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
+
+                titleContent = new GUIContent(asset.name);
+
+                Repaint();
             }
-
-            selectedGuid = newSelectionGuid;
-
-            var textGraph = File.ReadAllText(path, Encoding.UTF8);
-            graphObject = CreateInstance<SerializableGraphObject>();
-            graphObject.hideFlags = HideFlags.HideAndDontSave;
-            graphObject.graph = JsonUtility.FromJson(textGraph, graphType) as IGraph;
-            graphObject.graph.OnEnable();
-            graphObject.graph.ValidateGraph();
-
-            graphEditorView = new GraphEditorView(this, m_GraphObject.graph as AbstractMaterialGraph, asset.name) { persistenceKey = AssetDatabase.GUIDToAssetPath(selectedGuid) };
-            graphEditorView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
-
-            titleContent = new GUIContent(asset.name);
-
-            Repaint();
+            catch (Exception)
+            {
+                m_HasError = true;
+                m_GraphEditorView = null;
+                graphObject = null;
+                throw;
+            }
         }
 
         void OnPostLayout(PostLayoutEvent evt)
