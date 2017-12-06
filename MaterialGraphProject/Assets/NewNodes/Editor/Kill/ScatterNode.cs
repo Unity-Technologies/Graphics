@@ -2,7 +2,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    /*  [Title("Procedural/Scatter")]
+    /*  [Title("Procedural", "Scatter")]
       public class ScatterNode : FunctionNInNOut, IGeneratesFunction
       {
 

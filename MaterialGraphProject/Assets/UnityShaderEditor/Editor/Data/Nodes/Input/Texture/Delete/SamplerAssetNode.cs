@@ -8,7 +8,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    /* [Title("Input/Texture/Sampler Asset")]
+    /* [Title("Input", "Texture", "Sampler Asset")]
      public class SamplerAssetNode : PropertyNode
      {
 

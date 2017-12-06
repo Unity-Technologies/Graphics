@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Basic/Multiply")]
+    [Title("Math", "Basic", "Multiply")]
     public class MultiplyNode : CodeFunctionNode
     {
         public MultiplyNode()

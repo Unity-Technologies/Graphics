@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Trigonometry/Hyperbolic Tangent")]
+    [Title("Math", "Trigonometry", "Hyperbolic Tangent")]
     class HyperbolicTangentNode : CodeFunctionNode
     {
         public HyperbolicTangentNode()

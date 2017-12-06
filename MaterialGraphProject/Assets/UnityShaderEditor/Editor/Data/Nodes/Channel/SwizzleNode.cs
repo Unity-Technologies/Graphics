@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Channel/Swizzle")]
+    [Title("Channel", "Swizzle")]
     public class SwizzleNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
         public SwizzleNode()

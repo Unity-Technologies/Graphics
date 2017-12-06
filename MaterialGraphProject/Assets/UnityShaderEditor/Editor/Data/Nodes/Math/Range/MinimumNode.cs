@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Range/Minimum")]
+    [Title("Math", "Range", "Minimum")]
     public class MinimumNode : CodeFunctionNode
     {
         public MinimumNode()

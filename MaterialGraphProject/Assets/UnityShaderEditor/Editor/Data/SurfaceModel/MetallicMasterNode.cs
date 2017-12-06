@@ -4,7 +4,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     /*  [Serializable]
-      [Title("Master/Metallic")]
+      [Title("Master", "Metallic")]
       public class MetallicMasterNode : AbstractSurfaceMasterNode
       {
           public const string MetallicSlotName = "Metallic";

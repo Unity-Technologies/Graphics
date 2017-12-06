@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
         Normal
     };
 
-    [Title("Input/Texture/Texture 2D")]
+    [Title("Input", "Texture", "Texture 2D")]
     public class Texture2DNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
         public const int OutputSlotRGBAId = 0;
@@ -119,7 +119,9 @@ namespace UnityEditor.ShaderGraph
 
         public bool RequiresMeshUV(UVChannel channel)
         {
-            foreach (var slot in GetInputSlots<MaterialSlot>().OfType<IMayRequireMeshUV>())
+            s_TempSlots.Clear();
+            GetInputSlots(s_TempSlots);
+            foreach (var slot in s_TempSlots)
             {
                 if (slot.RequiresMeshUV(channel))
                     return true;

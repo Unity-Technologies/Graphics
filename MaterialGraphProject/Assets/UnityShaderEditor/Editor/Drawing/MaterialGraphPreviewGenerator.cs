@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    internal class MaterialGraphPreviewGenerator : IDisposable
+    public class MaterialGraphPreviewGenerator : IDisposable
     {
         private readonly Scene m_Scene;
         static Mesh s_Quad;
@@ -101,7 +101,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             s_Meshes[3] = meshFilter.sharedMesh;
                             break;
                         default:
-                            Debug.Log("Something is wrong, weird object found: " + t.name);
+                            Debug.LogWarning("Something is wrong, weird object found: " + t.name);
                             break;
                     }
                 }

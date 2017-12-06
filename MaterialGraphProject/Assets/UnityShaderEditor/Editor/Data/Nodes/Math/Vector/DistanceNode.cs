@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Vector/Distance")]
+    [Title("Math", "Vector", "Distance")]
     public class DistanceNode : CodeFunctionNode
     {
         public DistanceNode()

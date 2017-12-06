@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Vector/Cross Product")]
+    [Title("Math", "Vector", "Cross Product")]
     public class CrossProductNode : CodeFunctionNode
     {
         public CrossProductNode()

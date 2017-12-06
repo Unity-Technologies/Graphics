@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEditor.Experimental.UIElements;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.Graphing;
@@ -65,7 +65,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             base.OnStyleResolved(styles);
             styles.ApplyCustomProperty(k_EdgeColorProperty, ref m_EdgeColor);
             m_EdgeControl.UpdateLayout();
-            m_EdgeControl.edgeColor = edgeColor;
+            m_EdgeControl.inputColor = edgeColor;
+            m_EdgeControl.outputColor = edgeColor;
         }
 
         public void UpdateSlotType()

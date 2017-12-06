@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Channel/Flip")]
+    [Title("Channel", "Flip")]
     public class FlipNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
         public FlipNode()
@@ -153,9 +153,9 @@ namespace UnityEditor.ShaderGraph
 
             properties.Add(new PreviewProperty()
             {
-                m_Name = string.Format("_{0}_Flip", GetVariableNameForNode()),
-                m_PropType = PropertyType.Vector4,
-                m_Vector4 = new Vector4(Convert.ToInt32(m_RedChannel), Convert.ToInt32(m_GreenChannel), Convert.ToInt32(m_BlueChannel), Convert.ToInt32(m_AlphaChannel)),
+                name = string.Format("_{0}_Flip", GetVariableNameForNode()),
+                propType = PropertyType.Vector4,
+                vector4Value = new Vector4(Convert.ToInt32(m_RedChannel), Convert.ToInt32(m_GreenChannel), Convert.ToInt32(m_BlueChannel), Convert.ToInt32(m_AlphaChannel)),
             });
         }
 

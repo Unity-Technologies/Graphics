@@ -62,9 +62,9 @@ namespace UnityEditor.ShaderGraph
         {
             var pp = new PreviewProperty
             {
-                m_Name = name,
-                m_PropType = PropertyType.Texture,
-                m_Texture = texture
+                name = name,
+                propType = PropertyType.Texture,
+                textureValue = texture
             };
             return pp;
         }

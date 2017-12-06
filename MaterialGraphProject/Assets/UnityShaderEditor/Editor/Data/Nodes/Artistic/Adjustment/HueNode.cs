@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
         Normalized
     };
 
-    [Title("Artistic/Adjustment/Hue")]
+    [Title("Artistic", "Adjustment", "Hue")]
     public class HueNode : CodeFunctionNode
     {
         public HueNode()

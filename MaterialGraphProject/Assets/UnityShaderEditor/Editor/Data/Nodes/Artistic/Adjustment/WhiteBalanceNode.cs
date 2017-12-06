@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Artistic/Adjustment/White Balance")]
+    [Title("Artistic", "Adjustment", "White Balance")]
     public class WhiteBalanceNode : CodeFunctionNode
     {
         public WhiteBalanceNode()

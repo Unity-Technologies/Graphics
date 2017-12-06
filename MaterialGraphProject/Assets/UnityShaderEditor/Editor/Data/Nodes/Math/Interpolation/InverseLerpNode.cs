@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Interpolation/Inverse Lerp")]
+    [Title("Math", "Interpolation", "Inverse Lerp")]
     public class InverseLerpNode : CodeFunctionNode
     {
         public InverseLerpNode()
