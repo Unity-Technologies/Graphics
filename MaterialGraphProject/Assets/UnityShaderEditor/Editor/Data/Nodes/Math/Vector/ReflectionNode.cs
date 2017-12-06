@@ -17,11 +17,10 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_Reflection(
-            [Slot(0, Binding.None)] Vector3 In,
-            [Slot(1, Binding.None)] Vector3 Normal,
-            [Slot(2, Binding.None)] out Vector3 Out)
+            [Slot(0, Binding.None)] DynamicDimensionVector In,
+            [Slot(1, Binding.None)] DynamicDimensionVector Normal,
+            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
-            Out = Vector3.one;
 
             return @"
 {
