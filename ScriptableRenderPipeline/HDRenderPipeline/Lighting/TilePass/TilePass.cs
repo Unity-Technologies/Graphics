@@ -479,13 +479,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 GlobalTextureSettings textureSettings,
                                 ShadowInitParameters shadowInit, ShadowSettings shadowSettings, IBLFilterGGX iblFilterGGX)
             {
-                // Deferred opaque are always using Fptl. Forward opaque can use Fptl or Cluster, transparent use cluster.
-                // When MSAA is enabled we disable Fptl as it become expensive compare to cluster
-                // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
-
-                // If Deferred, enable Fptl. If we are forward renderer only and not using Fptl for forward opaque, disable Fptl
-                m_isFptlEnabledForForwardOpaque = tileSettings.enableFptlForForwardOpaque; // TODO: Disable if MSAA
-
                 m_Resources = renderPipelineResources;
                 m_TileSettings = tileSettings;
 
@@ -1275,7 +1268,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public void UpdateRenderingPathState(bool useForwardRenderingOnly)
             {
+                // Deferred opaque are always using Fptl. Forward opaque can use Fptl or Cluster, transparent use cluster.
+                // When MSAA is enabled we disable Fptl as it become expensive compare to cluster
+                // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
+
+                // If Deferred, enable Fptl. If we are forward renderer only and not using Fptl for forward opaque, disable Fptl
                 m_isFptlEnabled = !useForwardRenderingOnly || m_TileSettings.enableFptlForForwardOpaque; // TODO: Disable if MSAA
+                m_isFptlEnabledForForwardOpaque = m_TileSettings.enableFptlForForwardOpaque; // TODO: Disable if MSAA
 
                 if (GetFeatureVariantsEnabled())
                 {
