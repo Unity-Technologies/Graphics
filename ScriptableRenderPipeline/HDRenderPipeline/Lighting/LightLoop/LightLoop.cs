@@ -246,6 +246,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // clustered light list specific buffers and data begin
         public bool enableBigTilePrepass;
 
+        public bool enableAsyncCompute;
+
         public enum TileClusterDebug : int
         {
             None,
@@ -274,6 +276,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             enableFptlForForwardOpaque = true;
             enableBigTilePrepass = true;
+
+            enableAsyncCompute = false;
         }
     }
 
@@ -1673,7 +1677,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, numTilesX, numTilesY, 1);
         }
 
-        public void BuildGPULightLists(Camera camera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT)
+        public bool IsAsyncEnabled()
+        {
+            return m_LightLoopSettings.enableAsyncCompute;
+        }
+
+        public void BuildGPULightListsCommon(Camera camera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT)
         {
             cmd.BeginSample("Build Light List");
 
@@ -1692,8 +1701,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var projscr = temp * proj;
             var invProjscr = projscr.inverse;
             bool isOrthographic = camera.orthographic;
-
-            cmd.SetRenderTarget(BuiltinRenderTextureType.None);
 
             // generate screen-space AABBs (used for both fptl and clustered).
             if (m_lightCount != 0)
@@ -1819,7 +1826,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             cmd.EndSample("Build Light List");
+        }
 
+        public void BuildGPULightLists(Camera camera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT)
+        {
+            cmd.SetRenderTarget(BuiltinRenderTextureType.None);
+
+            BuildGPULightListsCommon(camera, cmd, cameraDepthBufferRT, stencilTextureRT);
+            PushGlobalParams(camera, cmd);
+        }
+
+        public GPUFence BuildGPULightListsAsyncBegin(Camera camera, ScriptableRenderContext renderContext, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, GPUFence startFence)
+        {
+            var cmd = CommandBufferPool.Get("Build light list");
+            cmd.WaitOnGPUFence(startFence);
+
+            BuildGPULightListsCommon(camera, cmd, cameraDepthBufferRT, stencilTextureRT);
+            GPUFence completeFence = cmd.CreateGPUFence();
+            renderContext.ExecuteCommandBufferAsync(cmd, ComputeQueueType.Background);
+            CommandBufferPool.Release(cmd);
+
+            return completeFence;
+        }
+
+        public void BuildGPULightListAsyncEnd(Camera camera, CommandBuffer cmd, GPUFence doneFence)
+        {
+            cmd.WaitOnGPUFence(doneFence);
             PushGlobalParams(camera, cmd);
         }
 

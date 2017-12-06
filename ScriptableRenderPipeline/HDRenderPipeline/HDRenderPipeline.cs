@@ -399,6 +399,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Compute Lighting", () => m_Asset.tileSettings.enableComputeLightEvaluation, (value) => m_Asset.tileSettings.enableComputeLightEvaluation = (bool)value, DebugItemFlag.RuntimeOnly);
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Light Classification", () => m_Asset.tileSettings.enableComputeLightVariants, (value) => m_Asset.tileSettings.enableComputeLightVariants = (bool)value, DebugItemFlag.RuntimeOnly);
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Material Classification", () => m_Asset.tileSettings.enableComputeMaterialVariants, (value) => m_Asset.tileSettings.enableComputeMaterialVariants = (bool)value, DebugItemFlag.RuntimeOnly);
+            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Async Compute", () => m_Asset.tileSettings.enableAsyncCompute, (value) => m_Asset.tileSettings.enableAsyncCompute = (bool)value, DebugItemFlag.RuntimeOnly);
         }
 
         void InitializeDebugMaterials()
@@ -851,8 +852,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     RenderSSAO(cmd, camera, renderContext, postProcessLayer);
                 }
 
+                bool enableAsyncCompute = m_LightLoop.IsAsyncEnabled();
+                GPUFence buildGPULightListsCompleteFence = new GPUFence();
+                if (enableAsyncCompute)
+                {
+                    GPUFence startFence = cmd.CreateGPUFence();
+                    renderContext.ExecuteCommandBuffer(cmd);
+                    CommandBufferPool.Release(cmd);
+                    cmd = CommandBufferPool.Get("");
+
+                    buildGPULightListsCompleteFence = m_LightLoop.BuildGPULightListsAsyncBegin(camera, renderContext, m_CameraDepthStencilBufferRT, GetStencilTexture(), startFence);
+                }
+
                 using (new ProfilingSample(cmd, "Render shadows", GetSampler(CustomSamplerId.RenderShadows)))
-                    {
+                {
                     m_LightLoop.RenderShadows(renderContext, cmd, m_CullResults);
                     // TODO: check if statement below still apply
                     renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after RenderShadows as it modify our view/proj matrix
@@ -866,15 +879,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     PushFullScreenDebugTexture(cmd, m_DeferredShadowBuffer, hdCamera.camera, renderContext, FullScreenDebugMode.DeferredShadows);
                 }
 
-                using (new ProfilingSample(cmd, "Build Light list", GetSampler(CustomSamplerId.BuildLightList)))
+                if (enableAsyncCompute)
                 {
-                    m_LightLoop.BuildGPULightLists(camera, cmd, m_CameraDepthStencilBufferRT, GetStencilTexture());
+                    m_LightLoop.BuildGPULightListAsyncEnd(camera, cmd, buildGPULightListsCompleteFence);
+                }
+                else
+                {
+                    using (new ProfilingSample(cmd, "Build Light list", GetSampler(CustomSamplerId.BuildLightList)))
+                    {
+                        m_LightLoop.BuildGPULightLists(camera, cmd, m_CameraDepthStencilBufferRT, GetStencilTexture());
+                    }
                 }
 
-                    // Caution: We require sun light here as some sky use the sun light to render, mean UpdateSkyEnvironment
-                    // must be call after BuildGPULightLists.
-                    // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
-                    UpdateSkyEnvironment(hdCamera, cmd);
+                // Caution: We require sun light here as some sky use the sun light to render, mean UpdateSkyEnvironment
+                // must be call after BuildGPULightLists.
+                // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
+                UpdateSkyEnvironment(hdCamera, cmd);
 
                 RenderDeferredLighting(hdCamera, cmd);
 
