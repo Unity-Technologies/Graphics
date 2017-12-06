@@ -2,19 +2,7 @@
 #define UNITY_COMMON_MATERIAL_INCLUDED
 
 //-----------------------------------------------------------------------------
-// Helper function for anisotropy
-//-----------------------------------------------------------------------------
-
-void ConvertAnisotropyToRoughness(float roughness, float anisotropy, out float roughnessT, out float roughnessB)
-{
-    // Use the parametrization of Sony Imageworks.
-    // Ref: Revisiting Physically Based Shading at Imageworks, p. 15.
-    roughnessT = roughness * (1 + anisotropy);
-    roughnessB = roughness * (1 - anisotropy);
-}
-
-//-----------------------------------------------------------------------------
-// Helper function for perceptual roughness
+// Helper functions for roughness
 //-----------------------------------------------------------------------------
 
 float PerceptualRoughnessToRoughness(float perceptualRoughness)
@@ -35,6 +23,31 @@ float PerceptualSmoothnessToRoughness(float perceptualSmoothness)
 float PerceptualSmoothnessToPerceptualRoughness(float perceptualSmoothness)
 {
     return (1.0 - perceptualSmoothness);
+}
+
+// Using roughness values of 0 leads to INFs and NANs. The only sensible place to use the roughness
+// value of 0 is IBL, so we do not modify the perceptual roughness which is used to select the MIP map level.
+// Note: making the constant too small results in aliasing.
+float ClampRoughnessForAnalyticalLights(float roughness)
+{
+    return max(roughness, 1.0/1024.0);
+}
+
+// 'bsdfData.roughnessT' and 'bsdfData.roughnessB' are clamped, and are meant to be used with analytical lights.
+// 'bsdfData.perceptualRoughness' is not clamped, and is meant to be used for IBL.
+// If IBL needs the linear roughness value for some reason, it can be computed as follows:
+// float roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
+void ConvertAnisotropyToRoughness(float perceptualRoughness, float anisotropy, out float roughnessT, out float roughnessB)
+{
+    float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
+
+    // Use the parametrization of Sony Imageworks.
+    // Ref: Revisiting Physically Based Shading at Imageworks, p. 15.
+    roughnessT = roughness * (1 + anisotropy);
+    roughnessB = roughness * (1 - anisotropy);
+
+    roughnessT = ClampRoughnessForAnalyticalLights(roughnessT);
+    roughnessB = ClampRoughnessForAnalyticalLights(roughnessB);
 }
 
 // ----------------------------------------------------------------------------
@@ -165,22 +178,18 @@ float ComputeWrappedDiffuseLighting(float NdotL, float w)
 // It can be accomplished by reading the stencil buffer.
 // A faster solution (which avoids an extra texture fetch) is to simply make sure that
 // all pixels which belong to an SSS material are not black (those that don't always are).
+// We choose the blue color channel since it's perceptually the least noticeable.
 float3 TagLightingForSSS(float3 subsurfaceLighting)
 {
-    subsurfaceLighting.r = max(subsurfaceLighting.r, HFLT_MIN);
+    subsurfaceLighting.b = max(subsurfaceLighting.b, HALF_MIN);
     return subsurfaceLighting;
 }
 
 // See TagLightingForSSS() for details.
 bool TestLightingForSSS(float3 subsurfaceLighting)
 {
-    return subsurfaceLighting.r > 0;
+    return subsurfaceLighting.b > 0;
 }
 
-// MACRO from Legacy Untiy
-// Transforms 2D UV by scale/bias property
-#define TRANSFORM_TEX(tex, name) ((tex.xy) * name##_ST.xy + name##_ST.zw)
-
-#define GET_TEXELSIZE_NAME(name) (name##_TexelSize)
 
 #endif // UNITY_COMMON_MATERIAL_INCLUDED

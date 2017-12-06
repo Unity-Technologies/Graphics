@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.Rendering;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -10,7 +11,7 @@ namespace UnityEngine.Experimental.Rendering
     {
         private Texture2DArray m_Cache;
 
-        public override void TransferToSlice(int sliceIndex, Texture texture)
+        public override void TransferToSlice(CommandBuffer cmd, int sliceIndex, Texture texture)
         {
             var mismatch = (m_Cache.width != texture.width) || (m_Cache.height != texture.height);
 
@@ -21,15 +22,11 @@ namespace UnityEngine.Experimental.Rendering
 
             if (mismatch)
             {
-                if (!UnityEngine.Graphics.ConvertTexture(texture, 0, m_Cache, sliceIndex))
-                {
-                    Debug.LogErrorFormat(texture, "Unable to convert texture \"{0}\" to match renderloop settings ({1}x{2} {3})",
-                        texture.name, m_Cache.width, m_Cache.height, m_Cache.format);
-                }
+                cmd.ConvertTexture(texture, 0, m_Cache, sliceIndex);
             }
             else
             {
-                UnityEngine.Graphics.CopyTexture(texture, 0, m_Cache, sliceIndex);
+                cmd.CopyTexture(texture, 0, m_Cache, sliceIndex);
             }
         }
 
@@ -70,10 +67,10 @@ namespace UnityEngine.Experimental.Rendering
         private int m_CubeMipLevelPropName;
         private int m_cubeSrcTexPropName;
 
-        public override void TransferToSlice(int sliceIndex, Texture texture)
+        public override void TransferToSlice(CommandBuffer cmd, int sliceIndex, Texture texture)
         {
             if (!TextureCache.supportsCubemapArrayTextures)
-                TransferToPanoCache(sliceIndex, texture);
+                TransferToPanoCache(cmd, sliceIndex, texture);
             else
             {
                 var mismatch = (m_Cache.width != texture.width) || (m_Cache.height != texture.height);
@@ -85,27 +82,15 @@ namespace UnityEngine.Experimental.Rendering
 
                 if (mismatch)
                 {
-                    bool failed = false;
-
                     for (int f = 0; f < 6; f++)
                     {
-                        if (!UnityEngine.Graphics.ConvertTexture(texture, f, m_Cache, 6 * sliceIndex + f))
-                        {
-                            failed = true;
-                            break;
-                        }
-                    }
-
-                    if (failed)
-                    {
-                        Debug.LogErrorFormat(texture, "Unable to convert texture \"{0}\" to match renderloop settings ({1}x{2} {3})",
-                            texture.name, m_Cache.width, m_Cache.height, m_Cache.format);
+                        cmd.ConvertTexture(texture, f, m_Cache, 6 * sliceIndex + f);
                     }
                 }
                 else
                 {
                     for (int f = 0; f < 6; f++)
-                        UnityEngine.Graphics.CopyTexture(texture, f, m_Cache, 6 * sliceIndex + f);
+                        cmd.CopyTexture(texture, f, m_Cache, 6 * sliceIndex + f);
                 }
             }
         }
@@ -181,18 +166,17 @@ namespace UnityEngine.Experimental.Rendering
                 Texture.DestroyImmediate(m_Cache);
         }
 
-        private void TransferToPanoCache(int sliceIndex, Texture texture)
+        private void TransferToPanoCache(CommandBuffer cmd, int sliceIndex, Texture texture)
         {
             m_CubeBlitMaterial.SetTexture(m_cubeSrcTexPropName, texture);
             for (int m = 0; m < m_NumPanoMipLevels; m++)
             {
                 m_CubeBlitMaterial.SetInt(m_CubeMipLevelPropName, Mathf.Min(m_NumMipLevels - 1, m));
-                UnityEngine.Graphics.SetRenderTarget(m_StagingRTs[m]);
-                UnityEngine.Graphics.Blit(null, m_CubeBlitMaterial, 0);
+                cmd.Blit(null, m_StagingRTs[m], m_CubeBlitMaterial, 0);
             }
 
             for (int m = 0; m < m_NumPanoMipLevels; m++)
-                UnityEngine.Graphics.CopyTexture(m_StagingRTs[m], 0, 0, m_CacheNoCubeArray, sliceIndex, m);
+                cmd.CopyTexture(m_StagingRTs[m], 0, 0, m_CacheNoCubeArray, sliceIndex, m);
         }
     }
 
@@ -223,7 +207,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public static TextureFormat GetPreferredHdrCompressedTextureFormat
+        public static TextureFormat GetPreferredHDRCompressedTextureFormat
         {
             get
             {
@@ -231,7 +215,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 var probeFormat = TextureFormat.BC6H;
 
-                // On editor the texture is uncompressed when operating against mobile build targets
+//                // On editor the texture is uncompressed when operating against mobile build targets
 //#if UNITY_2017_2_OR_NEWER
                 if (SystemInfo.SupportsTextureFormat(probeFormat) && !UnityEngine.Rendering.GraphicsSettings.HasShaderDefine(UnityEngine.Rendering.BuiltinShaderDefine.UNITY_NO_DXT5nm))
                     format = probeFormat;
@@ -260,9 +244,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             public uint    texId;
             public uint    countLRU;
-        #if UNITY_EDITOR
-            public Hash128 hash;
-        #endif
+            public uint    sliceEntryHash;
         };
 
         private int m_NumTextures;
@@ -274,39 +256,43 @@ namespace UnityEngine.Experimental.Rendering
         private static uint g_MaxFrameCount = unchecked((uint)(-1));
         private static uint g_InvalidTexID = (uint)0;
 
-        public int FetchSlice(Texture texture, bool forceReinject=false)
-        {
-            var sliceIndex = -1;
 
+        public uint GetTextureHash(Texture texture)
+        {
+            uint textureHash  = texture.updateCount;
+            // For baked probes in the editor we need to factor in the actual hash of texture because we can't increment the update count of a texture that's baked on the disk.
+            // This code leaks logic from reflection probe baking into the texture cache which is not good... TODO: Find a way to do that outside of the texture cache.
+#if UNITY_EDITOR
+            textureHash += (uint)texture.imageContentsHash.GetHashCode();
+#endif
+            return textureHash;
+        }
+
+        public int ReserveSlice(Texture texture, out bool needUpdate)
+        {
+            needUpdate = false;
             if (texture == null)
-                return sliceIndex;
+                return -1;
 
             var texId = (uint)texture.GetInstanceID();
-        #if UNITY_EDITOR
-            var hash  = texture.imageContentsHash;
-        #endif
-
-            //assert(TexID!=g_InvalidTexID);
-            if (texId == g_InvalidTexID) return 0;
-
-            var bSwapSlice = forceReinject;
-            var bFoundAvailOrExistingSlice = false;
+            if (texId == g_InvalidTexID)
+                return -1;
 
             // search for existing copy
-            int cachedSlice;
-            if (m_LocatorInSliceArray.TryGetValue(texId, out cachedSlice))
+            var sliceIndex = -1;
+            var foundIndex = -1;
+            if (m_LocatorInSliceArray.TryGetValue(texId, out foundIndex))
             {
-                sliceIndex = cachedSlice;
-                Debug.Assert(m_SliceArray[sliceIndex].texId == texId);
+                sliceIndex = foundIndex;
 
-                bFoundAvailOrExistingSlice = true;
-            #if UNITY_EDITOR
-                bSwapSlice = bSwapSlice || (m_SliceArray[sliceIndex].hash != hash);
-            #endif
+                var textureHash  = GetTextureHash(texture);
+                needUpdate |= (m_SliceArray[sliceIndex].sliceEntryHash != textureHash);
+
+                Debug.Assert(m_SliceArray[sliceIndex].texId == texId);
             }
 
             // If no existing copy found in the array
-            if (!bFoundAvailOrExistingSlice)
+            if(sliceIndex == -1)
             {
                 // look for first non zero entry. Will by the least recently used entry
                 // since the array was pre-sorted (in linear time) in NewFrame()
@@ -315,12 +301,15 @@ namespace UnityEngine.Experimental.Rendering
                 while ((!bFound) && j < m_NumTextures)
                 {
                     idx = m_SortedIdxArray[j];
-                    if (m_SliceArray[idx].countLRU == 0) ++j;       // if entry already snagged by a new texture in this frame then ++j
-                    else bFound = true;
+                    if (m_SliceArray[idx].countLRU == 0)
+                        ++j;       // if entry already snagged by a new texture in this frame then ++j
+                    else
+                        bFound = true;
                 }
 
                 if (bFound)
                 {
+                    needUpdate = true;
                     // if we are replacing an existing entry delete it from m_locatorInSliceArray.
                     if (m_SliceArray[idx].texId != g_InvalidTexID)
                     {
@@ -331,26 +320,49 @@ namespace UnityEngine.Experimental.Rendering
                     m_SliceArray[idx].texId = texId;
 
                     sliceIndex = idx;
-                    bFoundAvailOrExistingSlice = true;
-                    bSwapSlice = true;
                 }
             }
 
-            // wrap up
-            Debug.Assert(bFoundAvailOrExistingSlice, "The texture cache doesn't have enough space to store all textures. Please either increase the size of the texture cache, or use fewer unique textures.");
-            if (bFoundAvailOrExistingSlice)
+            if(sliceIndex != -1)
             {
                 m_SliceArray[sliceIndex].countLRU = 0;      // mark slice as in use this frame
+            }
 
-                if (bSwapSlice) // if this was a miss
+            return sliceIndex;
+        }
+
+
+        // In case the texture content with which we update the cache is not the input texture, we need to provide the right update count.
+        public void UpdateSlice(CommandBuffer cmd, int sliceIndex, Texture content, uint textureHash)
                 {
-                #if UNITY_EDITOR
-                    m_SliceArray[sliceIndex].hash = hash;
-                #endif
+            // transfer new slice to sliceIndex from source texture
+            SetSliceHash(sliceIndex, textureHash);
+            TransferToSlice(cmd, sliceIndex, content);
+        }
 
-                    // transfer new slice to sliceIndex from source texture
-                    TransferToSlice(sliceIndex, texture);
+        public void SetSliceHash(int sliceIndex, uint hash)
+        {
+            // transfer new slice to sliceIndex from source texture
+            m_SliceArray[sliceIndex].sliceEntryHash = hash;
+        }
+
+        public void UpdateSlice(CommandBuffer cmd, int sliceIndex, Texture content)
+        {
+            UpdateSlice(cmd, sliceIndex, content, GetTextureHash(content));
                 }
+
+        public int FetchSlice(CommandBuffer cmd, Texture texture, bool forceReinject=false)
+        {
+            bool needUpdate = false;
+            var sliceIndex = ReserveSlice(texture, out needUpdate);
+
+            var bSwapSlice = forceReinject || needUpdate;
+
+            // wrap up
+            Debug.Assert(sliceIndex != -1, "The texture cache doesn't have enough space to store all textures. Please either increase the size of the texture cache, or use fewer unique textures.");
+            if (sliceIndex != -1 && bSwapSlice)
+            {
+                UpdateSlice(cmd, sliceIndex, texture);
             }
 
             return sliceIndex;
@@ -396,7 +408,7 @@ namespace UnityEngine.Experimental.Rendering
             m_NumMipLevels = 0;
         }
 
-        public virtual void TransferToSlice(int sliceIndex, Texture texture)
+        public virtual void TransferToSlice(CommandBuffer cmd, int sliceIndex, Texture texture)
         {
         }
 

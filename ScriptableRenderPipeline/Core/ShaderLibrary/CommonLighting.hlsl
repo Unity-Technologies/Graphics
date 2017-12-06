@@ -4,22 +4,22 @@
 // These clamping function to max of floating point 16 bit are use to prevent INF in code in case of extreme value
 float ClampToFloat16Max(float value)
 {
-    return min(value, 65504.0);
+    return min(value, HALF_MAX);
 }
 
 float2 ClampToFloat16Max(float2 value)
 {
-    return min(value, 65504.0);
+    return min(value, HALF_MAX);
 }
 
 float3 ClampToFloat16Max(float3 value)
 {
-    return min(value, 65504.0);
+    return min(value, HALF_MAX);
 }
 
 float4 ClampToFloat16Max(float4 value)
 {
-    return min(value, 65504.0);
+    return min(value, HALF_MAX);
 }
 
 // Ligthing convention
@@ -290,6 +290,13 @@ float3x3 GetLocalFrame(float3 localZ)
 
     float3 localX = float3(c * x * a - 1, sz * b, c);
     float3 localY = float3(b, y * ya - sz, y);
+
+    return float3x3(localX, localY, localZ);
+}
+
+float3x3 GetLocalFrame(float3 localZ, float3 localX)
+{
+    float3 localY = cross(localZ, localX);
 
     return float3x3(localX, localY, localZ);
 }

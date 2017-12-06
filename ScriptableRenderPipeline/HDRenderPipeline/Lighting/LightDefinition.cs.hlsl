@@ -55,9 +55,9 @@ struct DirectionalLightData
     float specularScale;
     float3 up;
     float diffuseScale;
-    bool dynamicShadowCasterOnly;
     float2 fadeDistanceScaleAndBias;
     float unused0;
+    bool dynamicShadowCasterOnly;
     float4 shadowMaskSelector;
 };
 
@@ -79,10 +79,10 @@ struct LightData
     float angleOffset;
     float shadowDimmer;
     bool dynamicShadowCasterOnly;
+    float4 shadowMaskSelector;
     float2 size;
     int lightType;
     float minRoughness;
-    float4 shadowMaskSelector;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.EnvLightData
@@ -146,10 +146,6 @@ float GetDiffuseScale(DirectionalLightData value)
 {
 	return value.diffuseScale;
 }
-bool GetDynamicShadowCasterOnly(DirectionalLightData value)
-{
-	return value.dynamicShadowCasterOnly;
-}
 float2 GetFadeDistanceScaleAndBias(DirectionalLightData value)
 {
 	return value.fadeDistanceScaleAndBias;
@@ -157,6 +153,10 @@ float2 GetFadeDistanceScaleAndBias(DirectionalLightData value)
 float GetUnused0(DirectionalLightData value)
 {
 	return value.unused0;
+}
+bool GetDynamicShadowCasterOnly(DirectionalLightData value)
+{
+	return value.dynamicShadowCasterOnly;
 }
 float4 GetShadowMaskSelector(DirectionalLightData value)
 {
@@ -222,6 +222,10 @@ bool GetDynamicShadowCasterOnly(LightData value)
 {
 	return value.dynamicShadowCasterOnly;
 }
+float4 GetShadowMaskSelector(LightData value)
+{
+	return value.shadowMaskSelector;
+}
 float2 GetSize(LightData value)
 {
 	return value.size;
@@ -233,10 +237,6 @@ int GetLightType(LightData value)
 float GetMinRoughness(LightData value)
 {
 	return value.minRoughness;
-}
-float4 GetShadowMaskSelector(LightData value)
-{
-	return value.shadowMaskSelector;
 }
 
 //

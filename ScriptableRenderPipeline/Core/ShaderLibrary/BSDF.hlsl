@@ -69,19 +69,11 @@ float3 F_Transm_Schlick(float3 f0, float u)
 // Specular BRDF
 //-----------------------------------------------------------------------------
 
-// With analytical light (not image based light) we clamp the minimun roughness in the NDF to avoid numerical instability.
-#define UNITY_MIN_ROUGHNESS 0.002
-
-float ClampRoughnessForAnalyticalLights(float roughness)
-{
-    return max(roughness, UNITY_MIN_ROUGHNESS);
-}
-
 float D_GGXNoPI(float NdotH, float roughness)
 {
-    float a2 = roughness * roughness;
-    float f = (NdotH * a2 - NdotH) * NdotH + 1.0;
-    return a2 / (f * f);
+    float a2 = Sq(roughness);
+    float s  = (NdotH * a2 - NdotH) * NdotH + 1.0;
+    return a2 / (s * s);
 }
 
 float D_GGX(float NdotH, float roughness)
@@ -99,10 +91,7 @@ float G_MaskingSmithGGX(float NdotV, float roughness)
     // tan²(theta) = (1 - cos²(theta)) / cos²(theta) = 1 / cos²(theta) - 1.
     // Assume that (VdotH > 0), e.i. (acos(LdotV) < Pi).
 
-    float a2 = roughness * roughness;
-    float z2 = NdotV * NdotV;
-
-    return 1 / (0.5 + 0.5 * sqrt(1.0 + a2 * (1.0 / z2 - 1.0)));
+    return 1.0 / (0.5 + 0.5 * sqrt(1.0 + Sq(roughness) * (1.0 / Sq(NdotV) - 1.0)));
 }
 
 // Ref: Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs, p. 12.
@@ -114,7 +103,7 @@ float D_GGX_Visible(float NdotH, float NdotV, float VdotH, float roughness)
 // Precompute part of lambdaV
 float GetSmithJointGGXPartLambdaV(float NdotV, float roughness)
 {
-    float a2 = roughness * roughness;
+    float a2 = Sq(roughness);
     return sqrt((-NdotV * a2 + NdotV) * NdotV + a2);
 }
 
@@ -122,7 +111,7 @@ float GetSmithJointGGXPartLambdaV(float NdotV, float roughness)
 // Ref: http://jcgt.org/published/0003/02/03/paper.pdf
 float V_SmithJointGGX(float NdotL, float NdotV, float roughness, float partLambdaV)
 {
-    float a2 = roughness * roughness;
+    float a2 = Sq(roughness);
 
     // Original formulation:
     // lambda_v = (-1 + sqrt(a2 * (1 - NdotL2) / NdotL2 + 1)) * 0.5
@@ -146,14 +135,14 @@ float V_SmithJointGGX(float NdotL, float NdotV, float roughness)
 // Inline D_GGX() * V_SmithJointGGX() together for better code generation.
 float DV_SmithJointGGX(float NdotH, float NdotL, float NdotV, float roughness, float partLambdaV)
 {
-    float a2 = roughness * roughness;
-    float  f = (NdotH * a2 - NdotH) * NdotH + 1.0;
-    float2 D = float2(a2, f * f);            // Fraction without the constant (1/Pi)
+    float a2 = Sq(roughness);
+    float s  = (NdotH * a2 - NdotH) * NdotH + 1.0;
 
     float lambdaV = NdotL * partLambdaV;
     float lambdaL = NdotV * sqrt((-NdotL * a2 + NdotL) * NdotL + a2);
 
-    float2 G = float2(1, lambdaV + lambdaL); // Fraction without the constant (0.5)
+    float2 D = float2(a2, s * s);            // Fraction without the multiplier (1/Pi)
+    float2 G = float2(1, lambdaV + lambdaL); // Fraction without the multiplier (1/2)
 
     return (INV_PI * 0.5) * (D.x * G.x) / (D.y * G.y);
 }
@@ -195,11 +184,11 @@ float V_SmithJointGGXApprox(float NdotL, float NdotV, float roughness)
 // roughnessB -> roughness in bitangent direction
 float D_GGXAnisoNoPI(float TdotH, float BdotH, float NdotH, float roughnessT, float roughnessB)
 {
-    float aT2 = roughnessT * roughnessT;
-    float aB2 = roughnessB * roughnessB;
+    float a2 = roughnessT * roughnessB;
+    float3 v = float3(roughnessB * TdotH, roughnessT * BdotH, a2 * NdotH);
+    float  s = dot(v, v);
 
-    float f = TdotH * TdotH / aT2 + BdotH * BdotH / aB2 + NdotH * NdotH;
-    return 1.0 / (roughnessT * roughnessB * f * f);
+    return a2 * Sq(a2 / s);
 }
 
 float D_GGXAniso(float TdotH, float BdotH, float NdotH, float roughnessT, float roughnessB)
@@ -209,21 +198,15 @@ float D_GGXAniso(float TdotH, float BdotH, float NdotH, float roughnessT, float 
 
 float GetSmithJointGGXAnisoPartLambdaV(float TdotV, float BdotV, float NdotV, float roughnessT, float roughnessB)
 {
-    float aT2 = roughnessT * roughnessT;
-    float aB2 = roughnessB * roughnessB;
-
-    return sqrt(aT2 * TdotV * TdotV + aB2 * BdotV * BdotV + NdotV * NdotV);
+    return length(float3(roughnessT * TdotV, roughnessB * BdotV, NdotV));
 }
 
 // Note: V = G / (4 * NdotL * NdotV)
 // Ref: https://cedec.cesa.or.jp/2015/session/ENG/14698.html The Rendering Materials of Far Cry 4
 float V_SmithJointGGXAniso(float TdotV, float BdotV, float NdotV, float TdotL, float BdotL, float NdotL, float roughnessT, float roughnessB, float partLambdaV)
 {
-    float aT2 = roughnessT * roughnessT;
-    float aB2 = roughnessB * roughnessB;
-
     float lambdaV = NdotL * partLambdaV;
-    float lambdaL = NdotV * sqrt(aT2 * TdotL * TdotL + aB2 * BdotL * BdotL + NdotL * NdotL);
+    float lambdaL = NdotV * length(float3(roughnessT * TdotL, roughnessB * BdotL, NdotL));
 
     return 0.5 / (lambdaV + lambdaL);
 }
@@ -235,21 +218,19 @@ float V_SmithJointGGXAniso(float TdotV, float BdotV, float NdotV, float TdotL, f
 }
 
 // Inline D_GGXAniso() * V_SmithJointGGXAniso() together for better code generation.
-float DV_SmithJointGGXAniso(float TdotH, float BdotH, float NdotH,
-                            float TdotV, float BdotV, float NdotV,
+float DV_SmithJointGGXAniso(float TdotH, float BdotH, float NdotH, float NdotV,
                             float TdotL, float BdotL, float NdotL,
                             float roughnessT, float roughnessB, float partLambdaV)
 {
-    float aT2 = roughnessT * roughnessT;
-    float aB2 = roughnessB * roughnessB;
-
-    float  f = TdotH * TdotH / aT2 + BdotH * BdotH / aB2 + NdotH * NdotH;
-    float2 D = float2(1, roughnessT * roughnessB * f * f); // Fraction without the constant (1/Pi)
+    float a2 = roughnessT * roughnessB;
+    float3 v = float3(roughnessB * TdotH, roughnessT * BdotH, a2 * NdotH);
+    float  s = dot(v, v);
 
     float lambdaV = NdotL * partLambdaV;
-    float lambdaL = NdotV * sqrt(aT2 * TdotL * TdotL + aB2 * BdotL * BdotL + NdotL * NdotL);
+    float lambdaL = NdotV * length(float3(roughnessT * TdotL, roughnessB * BdotL, NdotL));
 
-    float2 G = float2(1, lambdaV + lambdaL);               // Fraction without the constant (0.5)
+    float2 D = float2(a2 * a2 * a2, s * s);  // Fraction without the multiplier (1/Pi)
+    float2 G = float2(1, lambdaV + lambdaL); // Fraction without the multiplier (1/2)
 
     return (INV_PI * 0.5) * (D.x * G.x) / (D.y * G.y);
 }
@@ -260,9 +241,7 @@ float DV_SmithJointGGXAniso(float TdotH, float BdotH, float NdotH,
                             float roughnessT, float roughnessB)
 {
     float partLambdaV = GetSmithJointGGXAnisoPartLambdaV(TdotV, BdotV, NdotV, roughnessT, roughnessB);
-    return DV_SmithJointGGXAniso(TdotH, BdotH, NdotH,
-                                 TdotV, BdotV, NdotV,
-                                 TdotL, BdotL, NdotL,
+    return DV_SmithJointGGXAniso(TdotH, BdotH, NdotH, NdotV, TdotL, BdotL, NdotL,
                                  roughnessT, roughnessB, partLambdaV);
 }
 
