@@ -19,6 +19,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public Vector3  directionalLightCascades;
         public float    directionalLightNearPlaneOffset;
 
+        public RenderTextureFormat renderTextureFormat;
+
         static ShadowSettings defaultShadowSettings = null;
 
         public static ShadowSettings Default
@@ -35,6 +37,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     defaultShadowSettings.directionalLightCascadeCount = 4;
                     defaultShadowSettings.directionalLightNearPlaneOffset = 5;
                     defaultShadowSettings.maxShadowDistance = 1000.0F;
+                    defaultShadowSettings.renderTextureFormat = RenderTextureFormat.Shadowmap;
                 }
                 return defaultShadowSettings;
             }
@@ -458,6 +461,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_ShadowSettings.shadowAtlasWidth = m_Asset.ShadowAtlasResolution;
             m_ShadowSettings.shadowAtlasHeight = m_Asset.ShadowAtlasResolution;
             m_ShadowSettings.maxShadowDistance = m_Asset.ShadowDistance;
+            m_ShadowSettings.renderTextureFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap)
+                ? RenderTextureFormat.Shadowmap
+                : RenderTextureFormat.Depth;
 
             switch (m_ShadowSettings.directionalLightCascadeCount)
             {
@@ -875,20 +881,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             for (int i = 0; i < cascadeCount; ++i)
                 shadowMatrices[i] = (cascadeCount >= i) ? m_ShadowSlices[i].shadowTransform : Matrix4x4.identity;
 
-            // TODO: shadow resolution per cascade in case cascades endup being supported.
-            float invShadowResolution = 1.0f / shadowResolution;
-            float[] pcfKernel =
-            {
-                -0.5f * invShadowResolution, 0.5f * invShadowResolution,
-                0.5f * invShadowResolution, 0.5f * invShadowResolution,
-                -0.5f * invShadowResolution, -0.5f * invShadowResolution,
-                0.5f * invShadowResolution, -0.5f * invShadowResolution
-            };
-
+            float invShadowResolution = 0.5f / shadowResolution;
             cmd.SetGlobalMatrixArray("_WorldToShadow", shadowMatrices);
             cmd.SetGlobalVectorArray("_DirShadowSplitSpheres", m_DirectionalShadowSplitDistances);
             cmd.SetGlobalVector("_ShadowData", new Vector4(strength, bias, normalBias, nearPlane));
-            cmd.SetGlobalFloatArray("_PCFKernel", pcfKernel);
+            cmd.SetGlobalVector("_ShadowOffset0", new Vector4(-invShadowResolution, -invShadowResolution, 0.0f, 0.0f));
+            cmd.SetGlobalVector("_ShadowOffset1", new Vector4( invShadowResolution, -invShadowResolution, 0.0f, 0.0f));
+            cmd.SetGlobalVector("_ShadowOffset2", new Vector4(-invShadowResolution,  invShadowResolution, 0.0f, 0.0f));
+            cmd.SetGlobalVector("_ShadowOffset3", new Vector4( invShadowResolution,  invShadowResolution, 0.0f, 0.0f));
         }
 
         private void SetShaderKeywords(CommandBuffer cmd, ref LightData lightData, VisibleLight[] visibleLights)
@@ -936,7 +936,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             var cmd = CommandBufferPool.Get();
             cmd.name = "Render packed shadows";
             cmd.GetTemporaryRT(m_ShadowMapRTID, m_ShadowSettings.shadowAtlasWidth,
-                m_ShadowSettings.shadowAtlasHeight, kShadowDepthBufferBits, FilterMode.Bilinear, RenderTextureFormat.Depth);
+                m_ShadowSettings.shadowAtlasHeight, kShadowDepthBufferBits, FilterMode.Bilinear, m_ShadowSettings.renderTextureFormat);
             SetRenderTarget(cmd, m_ShadowMapRT, ClearFlag.All);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -1069,7 +1069,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (m_RequiredDepth && !LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.DepthPass))
                     depthRT = m_DepthRT;
             }
-
 
             if (ForceClear())
             {
