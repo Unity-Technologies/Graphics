@@ -52,7 +52,6 @@ namespace UnityEditor.ShaderGraph
 
         static string Unity_Hue_Degrees(
             [Slot(0, Binding.None)] Vector3 In,
-            [Slot(1, Binding.None)] Vector1 Hue,
             [Slot(2, Binding.None)] out Vector3 Out)
         {
             Out = Vector3.zero;
@@ -67,7 +66,6 @@ namespace UnityEditor.ShaderGraph
     {precision} E = 1e-10;
     {precision}3 hsv = {precision}3(abs(Q.z + (Q.w - Q.y)/(6.0 * D + E)), D / (Q.x + E), Q.x);
 
-    {precision} hue = hsv.x + Hue / 360;
     hsv.x = (hue < 0)
             ? hue + 1
             : (hue > 1)
@@ -83,7 +81,6 @@ namespace UnityEditor.ShaderGraph
 
         static string Unity_Hue_Normalized(
             [Slot(0, Binding.None)] Vector3 In,
-            [Slot(1, Binding.None, 0.5f, 0.5f, 0.5f, 0.5f)] Vector1 Hue,
             [Slot(2, Binding.None)] out Vector3 Out)
         {
             Out = Vector3.zero;
@@ -98,7 +95,6 @@ namespace UnityEditor.ShaderGraph
     {precision} E = 1e-10;
     {precision}3 hsv = {precision}3(abs(Q.z + (Q.w - Q.y)/(6.0 * D + E)), D / (Q.x + E), Q.x);
 
-    {precision} hue = hsv.x + Hue;
     hsv.x = (hue < 0)
             ? hue + 1
             : (hue > 1)
