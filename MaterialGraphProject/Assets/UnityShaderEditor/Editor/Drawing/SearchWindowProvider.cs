@@ -18,15 +18,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         GraphView m_GraphView;
         Texture2D m_Icon;
 
-        const string k_Actions = "Actions";
-        const string k_AddNode = "Add Node";
-        const string k_ConvertToProperty = "Convert To Property";
-        const string k_ConvertToInlineNode = "Convert To Inline Node";
-        const string k_ConvertToSubgraph = "Convert To Sub-graph";
-        const string k_CopyShader = "Copy Shader To Clipboard";
-
-        public Action onConvertToSubgraphClick { get; set; }
-
         public void Initialize(EditorWindow editorWindow, AbstractMaterialGraph graph, GraphView graphView)
         {
             m_EditorWindow = editorWindow;
@@ -109,20 +100,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             // First item in the tree is the title of the window.
             var tree = new List<SearchTreeEntry>
             {
-                new SearchTreeGroupEntry(new GUIContent(k_Actions), 0),
-                new SearchTreeGroupEntry(new GUIContent(k_AddNode)) { level = 1 },
+                new SearchTreeGroupEntry(new GUIContent("Create Node"), 0),
             };
-
-            // Add in contextual node actions
-            var selection = m_GraphView.selection.OfType<MaterialNodeView>().Where(v => v.node != null).ToList();
-            if (selection.Any())
-                tree.Add(new SearchTreeEntry(new GUIContent(k_ConvertToSubgraph, m_Icon)) { level = 1 });
-            if (selection.Any(v => v.node is IPropertyFromNode))
-                tree.Add(new SearchTreeEntry(new GUIContent(k_ConvertToProperty, m_Icon)) { level = 1 });
-            if (selection.Any(v => v.node is PropertyNode))
-                tree.Add(new SearchTreeEntry(new GUIContent(k_ConvertToInlineNode, m_Icon)) { level = 1 });
-            if (selection.Count == 1 && selection.First().node.hasPreview)
-                tree.Add(new SearchTreeEntry(new GUIContent(k_CopyShader, m_Icon)) { level = 1 });
 
             foreach (var nestedEntry in nestedEntries)
             {
@@ -157,109 +136,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     var group = nestedEntry.title[i];
                     groups.Add(group);
-                    tree.Add(new SearchTreeGroupEntry(new GUIContent(group)) { level = i + 2 });
+                    tree.Add(new SearchTreeGroupEntry(new GUIContent(group)) { level = i + 1 });
                 }
 
                 // Finally, add the actual entry.
-                tree.Add(new SearchTreeEntry(new GUIContent(nestedEntry.title.Last(), m_Icon)) { level = nestedEntry.title.Length + 1, userData = nestedEntry.userData });
+                tree.Add(new SearchTreeEntry(new GUIContent(nestedEntry.title.Last(), m_Icon)) { level = nestedEntry.title.Length, userData = nestedEntry.userData });
             }
 
             return tree;
         }
 
         public bool OnSelectEntry(SearchTreeEntry entry, SearchWindowContext context)
-        {
-            if (entry.name == k_ConvertToProperty)
-                return OnConvertToProperty();
-            if (entry.name == k_ConvertToInlineNode)
-                return OnConvertToInlineNode();
-            if (entry.name == k_ConvertToSubgraph)
-                return OnConvertToSubgraph();
-            if (entry.name == k_CopyShader)
-                return OnCopyShader();
-            return OnAddNode(entry, context);
-        }
-
-        bool OnCopyShader()
-        {
-            var copyFromNode = m_GraphView.selection.OfType<MaterialNodeView>().First().node;
-
-            List<PropertyCollector.TextureInfo> textureInfo;
-            var masterNode = copyFromNode as MasterNode;
-            if (masterNode != null)
-            {
-                var shader = masterNode.GetShader(GenerationMode.ForReals, masterNode.name, out textureInfo);
-                GUIUtility.systemCopyBuffer = shader;
-            }
-            else
-            {
-                PreviewMode previewMode;
-                FloatShaderProperty outputIdProperty;
-                var shader = m_Graph.GetShader(copyFromNode, GenerationMode.ForReals, copyFromNode.name, out textureInfo, out previewMode, out outputIdProperty);
-                GUIUtility.systemCopyBuffer = shader;
-            }
-
-            return true;
-        }
-
-        bool OnConvertToSubgraph()
-        {
-            if (onConvertToSubgraphClick != null) onConvertToSubgraphClick();
-            return true;
-        }
-
-        static List<IEdge> s_TempEdges = new List<IEdge>();
-
-        bool OnConvertToProperty()
-        {
-            if (m_GraphView == null)
-                return false;
-
-            var selectedNodeViews = m_GraphView.selection.OfType<MaterialNodeView>().Select(x => x.node).ToList();
-            foreach (var node in selectedNodeViews)
-            {
-                if (!(node is IPropertyFromNode))
-                    continue;
-
-                var converter = node as IPropertyFromNode;
-                var prop = converter.AsShaderProperty();
-                m_Graph.AddShaderProperty(prop);
-
-                var propNode = new PropertyNode();
-                propNode.drawState = node.drawState;
-                m_Graph.AddNode(propNode);
-                propNode.propertyGuid = prop.guid;
-
-                var oldSlot = node.FindSlot<MaterialSlot>(converter.outputSlotId);
-                var newSlot = propNode.FindSlot<MaterialSlot>(PropertyNode.OutputSlotId);
-
-                s_TempEdges.Clear();
-                m_Graph.GetEdges(oldSlot.slotReference, s_TempEdges);
-                foreach (var edge in s_TempEdges)
-                    m_Graph.Connect(newSlot.slotReference, edge.inputSlot);
-
-                m_Graph.RemoveNode(node);
-            }
-
-            return true;
-        }
-
-        bool OnConvertToInlineNode()
-        {
-            if (m_GraphView == null)
-                return false;
-
-            var selectedNodeViews = m_GraphView.selection.OfType<MaterialNodeView>()
-                .Select(x => x.node)
-                .OfType<PropertyNode>();
-
-            foreach (var propNode in selectedNodeViews)
-                ((AbstractMaterialGraph)propNode.owner).ReplacePropertyNodeWithConcreteNode(propNode);
-
-            return true;
-        }
-
-        bool OnAddNode(SearchTreeEntry entry, SearchWindowContext context)
         {
             Type type;
             var asset = entry.userData as MaterialSubGraphAsset;

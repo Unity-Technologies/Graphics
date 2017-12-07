@@ -123,6 +123,37 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        {
+            if (evt.target is Node)
+                evt.menu.AppendAction("Copy shader", ConvertToShader, ConvertToShaderStatus);
+            base.BuildContextualMenu(evt);
+        }
+
+        ContextualMenu.MenuAction.StatusFlags ConvertToShaderStatus(EventBase eventBase)
+        {
+            return node.hasPreview ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Hidden;
+        }
+
+        void ConvertToShader(EventBase eventBase)
+        {
+            List<PropertyCollector.TextureInfo> textureInfo;
+            var masterNode = node as MasterNode;
+            if (masterNode != null)
+            {
+                var shader = masterNode.GetShader(GenerationMode.ForReals, masterNode.name, out textureInfo);
+                GUIUtility.systemCopyBuffer = shader;
+            }
+            else
+            {
+                PreviewMode previewMode;
+                FloatShaderProperty outputIdProperty;
+                var graph = (AbstractMaterialGraph)node.owner;
+                var shader = graph.GetShader(node, GenerationMode.ForReals, node.name, out textureInfo, out previewMode, out outputIdProperty);
+                GUIUtility.systemCopyBuffer = shader;
+            }
+        }
+
         void UpdatePreviewExpandedState(bool expanded)
         {
             node.previewExpanded = expanded;
