@@ -20,8 +20,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Start()
         {
-            m_PropertyBlock = new MaterialPropertyBlock();
-            UpdatePropertyBlock();
+            m_PropertyBlock = new MaterialPropertyBlock();           
             DecalSystem.instance.AddDecal(this);
         }
 
@@ -78,13 +77,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Selection.activeObject = go;
         }
 
-        public void UpdatePropertyBlock()
+		public void UpdatePropertyBlock(Vector3 cameraPos)
         {
             Matrix4x4 CRWStoAWS = new Matrix4x4();
             if (ShaderConfig.s_CameraRelativeRendering == 1)
             {
-//                Vector4 worldSpaceCameraPos = Shader.GetGlobalVector(HDShaderIDs._WorldSpaceCameraPos);
-                CRWStoAWS = Matrix4x4.Translate(Camera.main.transform.position);
+				CRWStoAWS = Matrix4x4.Translate(cameraPos);
             }
             else
             {
@@ -99,7 +97,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_PropertyBlock = new MaterialPropertyBlock();
             }
             m_PropertyBlock.SetMatrix(m_DecalToWorldR, decalToWorldR);
-            m_PropertyBlock.SetMatrix(m_WorldToDecal, worldToDecal);
+            m_PropertyBlock.SetMatrix(m_WorldToDecal, worldToDecal * CRWStoAWS);
         }
 
         public MaterialPropertyBlock GetPropertyBlock()

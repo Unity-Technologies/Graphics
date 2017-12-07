@@ -825,10 +825,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool enableBakeShadowMask = m_LightLoop.PrepareLightsForGPU(m_ShadowSettings, m_CullResults, camera);
             ConfigureForShadowMask(enableBakeShadowMask, cmd);
 
+			InitAndClearBuffer(hdCamera, enableBakeShadowMask, cmd);
             RenderDepthPrepass(m_CullResults, camera, renderContext, cmd, true);
-            InitAndClearBuffer(hdCamera, enableBakeShadowMask, cmd);
 
-            RenderDBuffer(camera, renderContext, cmd);
+            RenderDBuffer(hdCamera.cameraPos, renderContext, cmd);
 
             RenderGBuffer(m_CullResults, camera, renderContext, cmd);
 
@@ -1197,13 +1197,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderDBuffer(Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        void RenderDBuffer(Vector3 cameraPos, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             using (new ProfilingSample(cmd, "Decals"))
             {
-                CoreUtils.SetRenderTarget(cmd, m_DbufferManager.GetDBuffers(), m_CameraDepthStencilBufferRT);
+				Color clearColor = new Color(0,0,0,0);
+                CoreUtils.SetRenderTarget(cmd, m_DbufferManager.GetDBuffers(), m_CameraDepthStencilBufferRT, ClearFlag.Color, clearColor);
                 cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, GetDepthTexture());
-                DecalSystem.instance.Render(renderContext, camera, cmd);
+				DecalSystem.instance.Render(renderContext, cameraPos, cmd);
             }
         }
 
