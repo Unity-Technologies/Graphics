@@ -546,7 +546,7 @@ PropertyControlView {
     padding-bottom: 4;
 }
 
-ColorspaceConversionControlView {
+EnumConversionControlView {
     flex-direction: row;
     padding-left: 8;
     padding-right: 8;
@@ -554,7 +554,7 @@ ColorspaceConversionControlView {
     padding-bottom: 4;
 }
 
-ColorspaceConversionControlView > EnumField {
+EnumConversionControlView > EnumField {
     flex: 1;
     margin-left: 0;
     margin-right: 0;
@@ -562,7 +562,7 @@ ColorspaceConversionControlView > EnumField {
     margin-bottom: 0;
 }
 
-ColorspaceConversionControlView > Label {
+EnumConversionControlView > Label {
     margin-left: 4;
     margin-right: 4;
     margin-top: 0;

@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph
     }
 
     [Serializable]
-    public struct ColorspaceConversion
+    public struct ColorspaceConversion : IEnumConversion
     {
         public Colorspace from;
         public Colorspace to;
@@ -23,6 +23,18 @@ namespace UnityEditor.ShaderGraph
         {
             this.from = from;
             this.to = to;
+        }
+
+        Enum IEnumConversion.from
+        {
+            get { return from; }
+            set { from = (Colorspace)value; }
+        }
+
+        Enum IEnumConversion.to
+        {
+            get { return to; }
+            set { to = (Colorspace)value; }
         }
     }
 
@@ -37,7 +49,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         ColorspaceConversion m_Conversion = new ColorspaceConversion(Colorspace.RGB, Colorspace.RGB);
 
-        [ColorspaceConversionControl]
+        [EnumConversionControl]
         ColorspaceConversion conversion
         {
             get { return m_Conversion; }
