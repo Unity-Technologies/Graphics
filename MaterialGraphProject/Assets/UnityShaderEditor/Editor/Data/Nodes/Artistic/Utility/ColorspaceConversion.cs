@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEditor.Graphing;
@@ -12,6 +13,19 @@ namespace UnityEditor.ShaderGraph
         HSV
     }
 
+    [Serializable]
+    public struct ColorspaceConversion
+    {
+        public Colorspace from;
+        public Colorspace to;
+
+        public ColorspaceConversion(Colorspace from, Colorspace to)
+        {
+            this.from = from;
+            this.to = to;
+        }
+    }
+
     [Title("Artistic", "Utility", "Colorspace Conversion")]
     public class ColorspaceConversionNode : CodeFunctionNode
     {
@@ -21,52 +35,30 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private Colorspace m_SpaceListFrom = Colorspace.RGB;
-        [SerializeField]
-        private Colorspace m_SpaceListTo = Colorspace.RGB;
+        ColorspaceConversion m_Conversion = new ColorspaceConversion(Colorspace.RGB, Colorspace.RGB);
 
-        [EnumControl("From")]
-        public Colorspace spaceFrom
+        [ColorspaceConversionControl]
+        ColorspaceConversion conversion
         {
-            get { return m_SpaceListFrom; }
+            get { return m_Conversion; }
             set
             {
-                if (m_SpaceListFrom == value)
+                if (m_Conversion.Equals(value))
                     return;
-
-                m_SpaceListFrom = value;
+                m_Conversion = value;
                 if (onModified != null)
-                {
                     onModified(this, ModificationScope.Graph);
-                }
-            }
-        }
-
-        [EnumControl("To")]
-        public Colorspace spaceTo
-        {
-            get { return m_SpaceListTo; }
-            set
-            {
-                if (m_SpaceListTo == value)
-                    return;
-
-                m_SpaceListTo = value;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Graph);
-                }
             }
         }
 
         string GetSpaceFrom()
         {
-            return System.Enum.GetName(typeof(Colorspace), m_SpaceListFrom);
+            return Enum.GetName(typeof(Colorspace), conversion.from);
         }
 
         string GetSpaceTo()
         {
-            return System.Enum.GetName(typeof(Colorspace), m_SpaceListTo);
+            return Enum.GetName(typeof(Colorspace), conversion.to);
         }
 
         protected override MethodInfo GetFunctionToConvert()
