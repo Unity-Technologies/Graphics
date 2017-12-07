@@ -30,6 +30,7 @@ MonoBehaviour:
     enableComputeMaterialVariants: 1
     enableFptlForForwardOpaque: 1
     enableBigTilePrepass: 1
+    enableAsyncCompute: 0
   shadowInitParams:
     shadowAtlasWidth: 4096
     shadowAtlasHeight: 4096
