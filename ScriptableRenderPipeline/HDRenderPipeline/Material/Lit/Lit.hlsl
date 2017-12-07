@@ -1209,7 +1209,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
         lighting.specular *= intensity * lightData.specularScale;
     }
 
-    [branch] if (bsdfData.enableTransmission)
+    [flatten] if (bsdfData.enableTransmission)
     {
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         lighting.diffuse += EvaluateTransmission(bsdfData, NdotL, preLightData.NdotV, attenuation * lightData.diffuseScale);
@@ -1363,7 +1363,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
         lighting.specular *= intensity * lightData.specularScale;
     }
 
-    [branch] if (bsdfData.enableTransmission)
+    [flatten] if (bsdfData.enableTransmission)
     {
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         lighting.diffuse += EvaluateTransmission(bsdfData, NdotL, preLightData.NdotV, attenuation * lightData.diffuseScale);
