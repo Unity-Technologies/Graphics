@@ -105,7 +105,7 @@ namespace UnityEngine.Experimental.Rendering
                             .SelectMany(
                                 a => a.GetTypes()
                                 .Where(
-                                    t => t.IsSubclassOf(typeof(VolumeComponent))
+                                    t => t.IsSubclassOf(typeof(VolumeComponent)) && !t.IsAbstract
                                 )
                             );
 
