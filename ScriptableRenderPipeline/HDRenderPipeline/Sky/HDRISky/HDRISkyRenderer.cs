@@ -4,9 +4,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         Material m_SkyHDRIMaterial; // Renders a cubemap into a render texture (can be cube or 2D)
         MaterialPropertyBlock m_PropertyBlock;
-        HDRISkySettings m_HdriSkyParams;
+        HDRISky m_HdriSkyParams;
 
-        public HDRISkyRenderer(HDRISkySettings hdriSkyParams)
+        public HDRISkyRenderer(HDRISky hdriSkyParams)
         {
             m_HdriSkyParams = hdriSkyParams;
             m_PropertyBlock = new MaterialPropertyBlock();

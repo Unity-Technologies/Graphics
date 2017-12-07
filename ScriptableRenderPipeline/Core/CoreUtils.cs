@@ -100,8 +100,27 @@ namespace UnityEngine.Experimental.Rendering
 
         public static void ClearCubemap(CommandBuffer cmd, RenderTargetIdentifier buffer, Color clearColor)
         {
+            // We should have the option to clear mip maps here, but since RenderTargetIdentifier, we can't know the number to clear...
+            // So for now, we won't do it.
             for(int i = 0; i < 6; ++i)
                 SetRenderTarget(cmd, buffer, ClearFlag.Color, clearColor, 0, (CubemapFace)i);
+        }
+
+        public static void ClearCubemap(CommandBuffer cmd, RenderTexture renderTexture, Color clearColor, bool clearMips = false)
+        {
+            int mipCount = 1;
+            if (renderTexture.useMipMap && clearMips)
+            {
+                mipCount = (int)Mathf.Log((float)renderTexture.width, 2.0f) + 1;
+            }
+
+            for (int i = 0; i < 6; ++i)
+            {
+                for (int mip = 0; mip < mipCount; ++ mip )
+                {
+                    SetRenderTarget(cmd, new RenderTargetIdentifier(renderTexture), ClearFlag.Color, clearColor, mip, (CubemapFace)i);
+                }
+            }
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full screen quad.
