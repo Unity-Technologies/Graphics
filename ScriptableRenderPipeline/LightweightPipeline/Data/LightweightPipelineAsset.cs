@@ -18,7 +18,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     {
         _512 = 512,
         _1024 = 1024,
-        _2048 = 2048
+        _2048 = 2048,
+        _4096 = 4096
     }
 
     public enum MSAAQuality
@@ -40,10 +41,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private MSAAQuality m_MSAA = MSAAQuality._4x;
         [SerializeField] private float m_RenderScale = 1.0f;
         [SerializeField] private ShadowType m_ShadowType = ShadowType.HARD_SHADOWS;
-        [SerializeField] private ShadowResolution m_ShadowAtlasResolution = ShadowResolution._1024;
+        [SerializeField] private ShadowResolution m_ShadowAtlasResolution = ShadowResolution._2048;
         [SerializeField] private float m_ShadowNearPlaneOffset = 2.0f;
         [SerializeField] private float m_ShadowDistance = 50.0f;
-        [SerializeField] private ShadowCascades m_ShadowCascades = ShadowCascades.NO_CASCADES;
+        [SerializeField] private ShadowCascades m_ShadowCascades = ShadowCascades.FOUR_CASCADES;
         [SerializeField] private float m_Cascade2Split = 0.25f;
         [SerializeField] private Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
 
