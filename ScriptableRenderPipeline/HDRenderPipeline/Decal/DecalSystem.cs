@@ -77,17 +77,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Decals.Remove(d);
         }
 
-        public void Render(ScriptableRenderContext renderContext, Camera camera, CommandBuffer cmd)
+        public void Render(ScriptableRenderContext renderContext, Vector3 cameraPos, CommandBuffer cmd)
         {
             if (m_CubeMesh == null)
                 CreateCubeMesh();
             foreach (var decal in m_Decals)
             {              
-                if (decal.transform.hasChanged)
-                {
-                    decal.UpdatePropertyBlock();
-                    decal.transform.hasChanged = false;
-                }
+				decal.UpdatePropertyBlock(cameraPos);
                 cmd.DrawMesh(m_CubeMesh, decal.transform.localToWorldMatrix, decal.m_Material, 0, 0, decal.GetPropertyBlock());
             }
         }
