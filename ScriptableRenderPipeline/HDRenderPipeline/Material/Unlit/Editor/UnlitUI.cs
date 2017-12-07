@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -81,7 +82,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetupBaseUnlitKeywords(material);
             SetupBaseUnlitMaterialPass(material);
 
-            SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
+            CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
         }
     }
 } // namespace UnityEditor

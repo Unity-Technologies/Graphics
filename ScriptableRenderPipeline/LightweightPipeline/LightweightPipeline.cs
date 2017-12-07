@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.XR;
@@ -126,9 +127,22 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private ShadowSettings m_ShadowSettings = ShadowSettings.Default;
         private ShadowSliceData[] m_ShadowSlices = new ShadowSliceData[kMaxCascades];
 
+        // Pipeline pass names
         private static readonly ShaderPassName m_DepthPrePass = new ShaderPassName("DepthOnly");
         private static readonly ShaderPassName m_LitPassName = new ShaderPassName("LightweightForward");
-        private static readonly ShaderPassName m_UnlitPassName = new ShaderPassName("SRPDefaultUnlit");
+        private static readonly ShaderPassName m_UnlitPassName = new ShaderPassName("SRPDefaultUnlit"); // Renders all shaders without a lightmode tag
+
+        // Legacy pass names
+        public static readonly ShaderPassName s_AlwaysName = new ShaderPassName("Always");
+        public static readonly ShaderPassName s_ForwardBaseName = new ShaderPassName("ForwardBase");
+        public static readonly ShaderPassName s_PrepassBaseName = new ShaderPassName("PrepassBase");
+        public static readonly ShaderPassName s_VertexName = new ShaderPassName("Vertex");
+        public static readonly ShaderPassName s_VertexLMRGBMName = new ShaderPassName("VertexLMRGBM");
+        public static readonly ShaderPassName s_VertexLMName = new ShaderPassName("VertexLM");
+        public static readonly ShaderPassName[] s_LegacyPassNames =
+        {
+            s_AlwaysName, s_ForwardBaseName, s_PrepassBaseName, s_VertexName, s_VertexLMRGBMName, s_VertexLMName
+        };
 
         private RenderTextureFormat m_ColorFormat;
         private PostProcessRenderContext m_PostProcessRenderContext;
@@ -144,6 +158,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private Mesh m_BlitQuad;
         private Material m_BlitMaterial;
         private Material m_CopyDepthMaterial;
+        private Material m_ErrorMaterial;
         private int m_BlitTexID = Shader.PropertyToID("_BlitTex");
 
         private CopyTextureSupport m_CopyTextureSupport;
@@ -198,12 +213,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_BlitQuad = LightweightUtils.CreateQuadMesh(false);
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(m_Asset.BlitShader);
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(m_Asset.CopyDepthShader);
+            m_ErrorMaterial = CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader");
         }
 
         public override void Dispose()
         {
             base.Dispose();
             Shader.globalRenderPipeline = "";
+
+            CoreUtils.Destroy(m_ErrorMaterial);
+            CoreUtils.Destroy(m_CopyDepthMaterial);
+            CoreUtils.Destroy(m_BlitMaterial);
         }
 
         CullResults m_CullResults;
@@ -348,6 +368,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             context.DrawRenderers(m_CullResults.visibleRenderers, ref opaqueDrawSettings, opaqueFilterSettings);
 
+            // Render objects that did not match any shader pass with error shader
+            RenderObjectsWithError(ref context, opaqueFilterSettings, SortFlags.None);
+
             if (m_CurrCamera.clearFlags == CameraClearFlags.Skybox)
                 context.DrawSkybox(m_CurrCamera);
         }
@@ -382,17 +405,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBufferPool.Release(cmd);
         }
 
-        private void AfterTransparent(ref ScriptableRenderContext context, FrameRenderingConfiguration config)
-        {
-            if (!LightweightUtils.HasFlag(config, FrameRenderingConfiguration.PostProcess))
-                return;
-
-            CommandBuffer cmd = CommandBufferPool.Get("After Transparent");
-            RenderPostProcess(cmd, BuiltinRenderTextureType.CurrentActive, BuiltinRenderTextureType.CameraTarget, false);
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
-        }
-
         private void RenderTransparents(ref ScriptableRenderContext context, RendererConfiguration config)
         {
             var transparentSettings = new DrawRendererSettings(m_CurrCamera, m_LitPassName);
@@ -406,6 +418,36 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             };
 
             context.DrawRenderers(m_CullResults.visibleRenderers, ref transparentSettings, transparentFilterSettings);
+
+            // Render objects that did not match any shader pass with error shader
+            RenderObjectsWithError(ref context, transparentFilterSettings, SortFlags.None);
+        }
+
+        private void AfterTransparent(ref ScriptableRenderContext context, FrameRenderingConfiguration config)
+        {
+            if (!LightweightUtils.HasFlag(config, FrameRenderingConfiguration.PostProcess))
+                return;
+
+            CommandBuffer cmd = CommandBufferPool.Get("After Transparent");
+            RenderPostProcess(cmd, BuiltinRenderTextureType.CurrentActive, BuiltinRenderTextureType.CameraTarget, false);
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+        }
+
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        private void RenderObjectsWithError(ref ScriptableRenderContext context, FilterRenderersSettings filterSettings, SortFlags sortFlags)
+        {
+            if (m_ErrorMaterial != null)
+            {
+                DrawRendererSettings errorSettings = new DrawRendererSettings(m_CurrCamera, s_LegacyPassNames[0]);
+                for (int i = 1; i < s_LegacyPassNames.Length; ++i)
+                    errorSettings.SetShaderPassName(i, s_LegacyPassNames[i]);
+
+                errorSettings.sorting.flags = sortFlags;
+                errorSettings.rendererConfiguration = RendererConfiguration.None;
+                errorSettings.SetOverrideMaterial(m_ErrorMaterial, 0);
+                context.DrawRenderers(m_CullResults.visibleRenderers, ref errorSettings, filterSettings);
+            }
         }
 
         private void BuildShadowSettings()
@@ -448,11 +490,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_RequiredDepth = false;
             m_CameraPostProcessLayer = m_CurrCamera.GetComponent<PostProcessLayer>();
 
-            bool msaaEnabled = m_Asset.MSAASampleCount > 1 && (m_CurrCamera.targetTexture == null || m_CurrCamera.targetTexture.antiAliasing > 1);
+            bool msaaEnabled = m_CurrCamera.allowMSAA && m_Asset.MSAASampleCount > 1 && (m_CurrCamera.targetTexture == null || m_CurrCamera.targetTexture.antiAliasing > 1);
 
             // TODO: PostProcessing and SoftParticles are currently not support for VR
             bool postProcessEnabled = m_CameraPostProcessLayer != null && m_CameraPostProcessLayer.enabled && !stereoEnabled;
-            bool softParticlesEnabled = m_Asset.SupportsSoftParticles && !stereoEnabled;
+            bool softParticlesEnabled = m_Asset.RequireCameraDepthTexture && !stereoEnabled;
             if (postProcessEnabled)
             {
                 m_RequiredDepth = true;
@@ -718,7 +760,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
 
             Light light = lightData.light;
-            if (light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
+            if (light.bakingOutput.mixedLightingMode == MixedLightingMode.Subtractive && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
             {
                 // TODO: Add support to shadow mask
                 if (m_MixedLightingSetup == MixedLightingSetup.None && lightData.light.shadows != LightShadows.None)
@@ -875,7 +917,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cmd.EnableShaderKeyword(shadowKeywords[keywordIndex]);
             }
 
-            CoreUtils.SetKeyword(cmd, "SOFTPARTICLES_ON", m_Asset.SupportsSoftParticles);
+            CoreUtils.SetKeyword(cmd, "SOFTPARTICLES_ON", m_Asset.RequireCameraDepthTexture);
         }
 
         private bool RenderShadows(ref CullResults cullResults, ref VisibleLight shadowLight, int shadowLightIndex, ref ScriptableRenderContext context)

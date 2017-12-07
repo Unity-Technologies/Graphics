@@ -70,144 +70,73 @@
 #include "API/D3D11_1.hlsl"
 #elif defined(SHADER_API_METAL)
 #include "API/Metal.hlsl"
+#elif defined(SHADER_API_VULKAN)
+#include "API/Vulkan.hlsl"
 #else
 #error unsupported shader api
 #endif
 #include "API/Validate.hlsl"
 
+#include "Macros.hlsl"
 #include "Random.hlsl"
-
-// Some shader compiler don't support to do multiple ## for concatenation inside the same macro, it require an indirection.
-// This is the purpose of this macro
-#define MERGE_NAME(X, Y) X##Y
-
-// These define are use to abstract the way we sample into a cubemap array.
-// Some platform don't support cubemap array so we fallback on 2D latlong
-#ifdef UNITY_NO_CUBEMAP_ARRAY
-#define TEXTURECUBE_ARRAY_ABSTRACT TEXTURE2D_ARRAY
-#define SAMPLERCUBE_ABSTRACT SAMPLER2D
-#define TEXTURECUBE_ARRAY_ARGS_ABSTRACT TEXTURE2D_ARRAY_ARGS
-#define TEXTURECUBE_ARRAY_PARAM_ABSTRACT TEXTURE2D_ARRAY_PARAM
-#define SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(textureName, samplerName, coord3, index, lod) SAMPLE_TEXTURE2D_ARRAY_LOD(textureName, samplerName, DirectionToLatLongCoordinate(coord3), index, lod)
-#else
-#define TEXTURECUBE_ARRAY_ABSTRACT TEXTURECUBE_ARRAY
-#define SAMPLERCUBE_ABSTRACT SAMPLERCUBE
-#define TEXTURECUBE_ARRAY_ARGS_ABSTRACT TEXTURECUBE_ARRAY_ARGS
-#define TEXTURECUBE_ARRAY_PARAM_ABSTRACT TEXTURECUBE_ARRAY_PARAM
-#define SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(textureName, samplerName, coord3, index, lod) SAMPLE_TEXTURECUBE_ARRAY_LOD(textureName, samplerName, coord3, index, lod)
-#endif
 
 // ----------------------------------------------------------------------------
 // Common intrinsic (general implementation of intrinsic available on some platform)
 // ----------------------------------------------------------------------------
 
 #ifndef INTRINSIC_BITFIELD_EXTRACT
-// unsigned integer bit field extract implementation
+// Unsigned integer bit field extraction.
+// Note that the intrinsic itself generates a vector instruction.
+// Wrap this function with WaveReadFirstLane() to get scalar output.
 uint BitFieldExtract(uint data, uint numBits, uint offset)
 {
-    uint mask = 0xFFFFFFFFu >> (32u - numBits);
+    uint mask = UINT_MAX >> (32u - numBits);
     return (data >> offset) & mask;
 }
 #endif // INTRINSIC_BITFIELD_EXTRACT
 
-bool IsBitSet(uint data, uint bitPos)
+bool IsBitSet(uint data, uint offset)
 {
-    return BitFieldExtract(data, 1u, bitPos) != 0;
+    return BitFieldExtract(data, 1u, offset) != 0;
+}
+
+void SetBit(inout uint data, uint offset)
+{
+    data |= 1u << offset;
+}
+
+void ClearBit(inout uint data, uint offset)
+{
+    data &= ~(1u << offset);
+}
+
+void ToggleBit(inout uint data, uint offset)
+{
+    data ^= 1u << offset;
 }
 
 #ifndef INTRINSIC_WAVEREADFIRSTLANE
-// Warning: for correctness, the value you pass to the function must be constant across the wave!
-uint WaveReadFirstLane(uint scalarValue)
-{
-    return scalarValue;
-}
+    // Warning: for correctness, the argument must have the same value across the wave!
+    TEMPLATE_1_FLT(WaveReadFirstLane, scalarValue, return scalarValue)
+    TEMPLATE_1_INT(WaveReadFirstLane, scalarValue, return scalarValue)
 #endif
 
 #ifndef INTRINSIC_MUL24
-int Mul24(int a, int b)
-{
-    return a * b;
-}
-
-uint Mul24(uint a, uint b)
-{
-    return a * b;
-}
+    TEMPLATE_2_INT(Mul24, a, b, return a * b)
 #endif // INTRINSIC_MUL24
 
 #ifndef INTRINSIC_MAD24
-int Mad24(int a, int b, int c)
-{
-    return a * b + c;
-}
-
-uint Mad24(uint a, uint b, uint c)
-{
-    return a * b + c;
-}
+    TEMPLATE_3_INT(Mad24, a, b, c, return a * b + c)
 #endif // INTRINSIC_MAD24
 
 #ifndef INTRINSIC_MINMAX3
-float Min3(float a, float b, float c)
-{
-    return min(min(a, b), c);
-}
-
-float2 Min3(float2 a, float2 b, float2 c)
-{
-    return min(min(a, b), c);
-}
-
-float3 Min3(float3 a, float3 b, float3 c)
-{
-    return min(min(a, b), c);
-}
-
-float4 Min3(float4 a, float4 b, float4 c)
-{
-    return min(min(a, b), c);
-}
-
-float Max3(float a, float b, float c)
-{
-    return max(max(a, b), c);
-}
-
-float2 Max3(float2 a, float2 b, float2 c)
-{
-    return max(max(a, b), c);
-}
-
-float3 Max3(float3 a, float3 b, float3 c)
-{
-    return max(max(a, b), c);
-}
-
-float4 Max3(float4 a, float4 b, float4 c)
-{
-    return max(max(a, b), c);
-}
+    TEMPLATE_3_FLT(Min3, a, b, c, return min(min(a, b), c))
+    TEMPLATE_3_INT(Min3, a, b, c, return min(min(a, b), c))
+    TEMPLATE_3_FLT(Max3, a, b, c, return max(max(a, b), c))
+    TEMPLATE_3_INT(Max3, a, b, c, return max(max(a, b), c))
 #endif // INTRINSIC_MINMAX3
 
-void Swap(inout float a, inout float b)
-{
-    float  t = a; a = b; b = t;
-}
-
-void Swap(inout float2 a, inout float2 b)
-{
-    float2 t = a; a = b; b = t;
-}
-
-void Swap(inout float3 a, inout float3 b)
-{
-    float3 t = a; a = b; b = t;
-}
-
-void Swap(inout float4 a, inout float4 b)
-{
-    float4 t = a; a = b; b = t;
-}
+TEMPLATE_SWAP(Swap) // Define a Swap(a, b) function for all types
 
 #define CUBEMAPFACE_POSITIVE_X 0
 #define CUBEMAPFACE_NEGATIVE_X 1
@@ -261,47 +190,22 @@ void GetCubeFaceID(float3 dir, out int faceIndex)
 #endif // INTRINSIC_CUBEMAP_FACE_ID
 
 // ----------------------------------------------------------------------------
-// Common math definition and fastmath function
+// Common math functions
 // ----------------------------------------------------------------------------
-
-#define PI          3.14159265359
-#define TWO_PI      6.28318530718
-#define FOUR_PI     12.56637061436
-#define INV_PI      0.31830988618
-#define INV_TWO_PI  0.15915494309
-#define INV_FOUR_PI 0.07957747155
-#define HALF_PI     1.57079632679
-#define INV_HALF_PI 0.636619772367
-#define INFINITY    asfloat(0x7F800000)
-#define FLT_SMALL   0.0001
-#define LOG2_E      1.44269504089
-
-#define FLT_EPSILON 1.192092896e-07 // Smallest positive number, such that 1.0 + FLT_EPSILON != 1.0
-#define FLT_MIN     1.175494351e-38 // Minimum representable positive floating-point number
-#define FLT_MAX     3.402823466e+38 // Maximum representable floating-point number
-
-#define HFLT_MIN    0.00006103515625 // 2^14  it is the same for 10, 11 and 16bit float. ref: https://www.khronos.org/opengl/wiki/Small_Float_Formats
 
 float DegToRad(float deg)
 {
-    return deg * PI / 180.0;
+    return deg * (PI / 180.0);
 }
 
 float RadToDeg(float rad)
 {
-    return rad * 180.0 / PI;
+    return rad * (180.0 / PI);
 }
 
 // Square functions for cleaner code
-float Sqr(float x)
-{
-    return x * x;
-}
-
-float3 Sqr(float3 x)
-{
-    return x * x;
-}
+TEMPLATE_1_FLT(Sq, x, return x * x)
+TEMPLATE_1_INT(Sq, x, return x * x)
 
 // Input [0, 1] and output [0, PI/2]
 // 9 VALU
@@ -373,31 +277,34 @@ static const float4x4 k_identity4x4 = {1.0, 0.0, 0.0, 0.0,
 // Using pow often result to a warning like this
 // "pow(f, e) will not work for negative f, use abs(f) or conditionally handle negative values if you expect them"
 // PositivePow remove this warning when you know the value is positive and avoid inf/NAN.
-float PositivePow(float base, float power)
+TEMPLATE_2_FLT(PositivePow, base, power, return pow(max(abs(base), FLT_EPS), power))
+
+// Computes (FastSign(s) * x) using 2x VALU.
+// See the comment about FastSign() below.
+float FastMulBySignOf(float s, float x, bool ignoreNegZero = true)
 {
-    return pow(max(abs(base), float(FLT_EPSILON)), power);
+    if (ignoreNegZero)
+    {
+        return (s >= 0) ? x : -x;
+    }
+    else
+    {
+        uint negZero = 0x80000000u;
+        uint signBit = negZero & asuint(s);
+        return asfloat(signBit ^ asuint(x));
+    }
 }
 
-float2 PositivePow(float2 base, float2 power)
+// Returns -1 for negative numbers and 1 for positive numbers.
+// 0 can be handled in 2 different ways.
+// The IEEE floating point standard defines 0 as signed: +0 and -0.
+// However, mathematics typically treats 0 as unsigned.
+// Therefore, we treat -0 as +0 by default: FastSign(+0) = FastSign(-0) = 1.
+// If (ignoreNegZero = false), FastSign(-0, false) = -1.
+// Note that the sign() function in HLSL implements signum, which returns 0 for 0.
+float FastSign(float s, bool ignoreNegZero = true)
 {
-    return pow(max(abs(base), float2(FLT_EPSILON, FLT_EPSILON)), power);
-}
-
-float3 PositivePow(float3 base, float3 power)
-{
-    return pow(max(abs(base), float3(FLT_EPSILON, FLT_EPSILON, FLT_EPSILON)), power);
-}
-
-float4 PositivePow(float4 base, float4 power)
-{
-    return pow(max(abs(base), float4(FLT_EPSILON, FLT_EPSILON, FLT_EPSILON, FLT_EPSILON)), power);
-}
-
-// Ref: https://twitter.com/SebAaltonen/status/878250919879639040
-// 2 mads (mad_sat and mad), faster than regular sign
-float3 FastSign(float x)
-{
-    return  saturate(x * FLT_MAX) * 2.0 - 1.0;
+    return FastMulBySignOf(s, 1.0, ignoreNegZero);
 }
 
 // Orthonormalizes the tangent frame using the Gram-Schmidt process.
@@ -457,7 +364,7 @@ float3 LatlongToDirectionCoordinate(float2 coord)
 }
 
 // ----------------------------------------------------------------------------
-// World position reconstruction / transformation
+// Depth encoding/decoding
 // ----------------------------------------------------------------------------
 
 // Z buffer to linear 0..1 depth (0 at near plane, 1 at far plane).
@@ -484,114 +391,124 @@ float LinearEyeDepth(float depth, float4 zBufferParam)
 // Z buffer to linear depth.
 // Correctly handles oblique view frustums. Only valid for projection matrices!
 // Ref: An Efficient Depth Linearization Method for Oblique View Frustums, Eq. 6.
-float LinearEyeDepth(float2 positionSS, float depthRaw, float4 invProjParam)
+float LinearEyeDepth(float2 positionNDC, float deviceDepth, float4 invProjParam)
 {
-    float4 positionCS = float4(positionSS * 2.0 - 1.0, depthRaw, 1.0);
+    float4 positionCS = float4(positionNDC * 2.0 - 1.0, deviceDepth, 1.0);
     float  viewSpaceZ = rcp(dot(positionCS, invProjParam));
     // The view space uses a right-handed coordinate system.
     return -viewSpaceZ;
 }
 
-struct PositionInputs
+// Z buffer to linear depth.
+// Correctly handles oblique view frustums.
+// Typically, this is the cheapest variant, provided you've already computed 'positionWS'.
+float LinearEyeDepth(float3 positionWS, float4x4 viewProjMatrix)
 {
-    // Normalize screen position (offset by 0.5)
-    float2 positionSS;
-    // Unormalize screen position (offset by 0.5)
-    uint2 unPositionSS;
-    uint2 unTileCoord;
+    return mul(viewProjMatrix, float4(positionWS, 1.0)).w;
+}
 
-    float depthRaw; // raw depth from depth buffer
-    float depthVS;
+// ----------------------------------------------------------------------------
+// Space transformations
+// ----------------------------------------------------------------------------
 
-    float3 positionWS;
-};
-
-// This function is use to provide an easy way to sample into a screen texture, either from a pixel or a compute shaders.
-// This allow to easily share code.
-// If a compute shader call this function unPositionSS is an integer usually calculate like: uint2 unPositionSS = groupId.xy * BLOCK_SIZE + groupThreadId.xy
-// else it is current unormalized screen coordinate like return by SV_Position
-PositionInputs GetPositionInput(float2 unPositionSS, float2 invScreenSize, uint2 unTileCoord)   // Specify explicit tile coordinates so that we can easily make it lane invariant for compute evaluation.
+// Use case examples:
+// (position = positionCS) => (clipSpaceTransform = use default)
+// (position = positionVS) => (clipSpaceTransform = UNITY_MATRIX_P)
+// (position = positionWS) => (clipSpaceTransform = UNITY_MATRIX_VP)
+float2 ComputeNormalizedDeviceCoordinates(float3 position, float4x4 clipSpaceTransform = k_identity4x4)
 {
-    PositionInputs posInput;
-    ZERO_INITIALIZE(PositionInputs, posInput);
-
-    posInput.positionSS = unPositionSS;
-#if SHADER_STAGE_COMPUTE
-    // In case of compute shader an extra half offset is added to the screenPos to shift the integer position to pixel center.
-    posInput.positionSS.xy += float2(0.5, 0.5);
+    float4 positionCS = mul(clipSpaceTransform, float4(position, 1.0));
+    float2 positionNDC = positionCS.xy * (rcp(positionCS.w) * 0.5) + 0.5;
+#if UNITY_UV_STARTS_AT_TOP
+    positionNDC.y = 1.0 - positionNDC.y;
 #endif
-    posInput.positionSS *= invScreenSize;
-
-    posInput.unPositionSS = uint2(unPositionSS);
-    posInput.unTileCoord = unTileCoord;
-
-    return posInput;
+    return positionNDC;
 }
 
-PositionInputs GetPositionInput(float2 unPositionSS, float2 invScreenSize)
-{
-    return GetPositionInput(unPositionSS, invScreenSize, uint2(0, 0));
-}
-
-// From forward
-// depthRaw and depthVS come directly form .zw of SV_Position
-void UpdatePositionInput(float depthRaw, float depthVS, float3 positionWS, inout PositionInputs posInput)
-{
-    posInput.depthRaw   = depthRaw;
-    posInput.depthVS    = depthVS;
-    posInput.positionWS = positionWS;
-}
-
-float4 ComputeClipSpacePosition(float2 positionSS, float depthRaw)
+float4 ComputeClipSpacePosition(float2 positionNDC, float deviceDepth)
 {
 #if UNITY_UV_STARTS_AT_TOP
-    positionSS.y = 1.0 - positionSS.y;
+    positionNDC.y = 1.0 - positionNDC.y;
 #endif
-    return float4(positionSS * 2.0 - 1.0, depthRaw, 1.0);
+    return float4(positionNDC * 2.0 - 1.0, deviceDepth, 1.0);
 }
 
-float2 ComputeScreenSpacePosition(float4 positionCS)
+float3 ComputeViewSpacePosition(float2 positionNDC, float deviceDepth, float4x4 invProjMatrix)
 {
-    float2 positionSS = positionCS.xy * (rcp(positionCS.w) * 0.5) + 0.5;
-#if UNITY_UV_STARTS_AT_TOP
-    positionSS.y = 1.0 - positionSS.y;
-#endif
-    return positionSS;
-}
-
-float2 ComputeScreenSpacePosition(float3 positionWS, float4x4 viewProjectionMatrix)
-{
-    float4 positionCS = mul(viewProjectionMatrix, float4(positionWS, 1.0));
-    return ComputeScreenSpacePosition(positionCS);
-}
-
-float3 ComputeViewSpacePosition(float2 positionSS, float depthRaw, float4x4 invProjMatrix)
-{
-    float4 positionCS = ComputeClipSpacePosition(positionSS, depthRaw);
+    float4 positionCS = ComputeClipSpacePosition(positionNDC, deviceDepth);
     float4 positionVS = mul(invProjMatrix, positionCS);
     // The view space uses a right-handed coordinate system.
     positionVS.z = -positionVS.z;
     return positionVS.xyz / positionVS.w;
 }
 
-float3 ComputeWorldSpacePosition(float2 positionSS, float depthRaw, float4x4 invViewProjMatrix)
+float3 ComputeWorldSpacePosition(float2 positionNDC, float deviceDepth, float4x4 invViewProjMatrix)
 {
-    float4 positionCS  = ComputeClipSpacePosition(positionSS, depthRaw);
+    float4 positionCS  = ComputeClipSpacePosition(positionNDC, deviceDepth);
     float4 hpositionWS = mul(invViewProjMatrix, positionCS);
     return hpositionWS.xyz / hpositionWS.w;
+}
+
+// ----------------------------------------------------------------------------
+// PositionInputs
+// ----------------------------------------------------------------------------
+
+struct PositionInputs
+{
+    float3 positionWS;  // World space position (could be camera-relative)
+    float2 positionNDC; // Normalized screen UVs          : [0, 1) (with the half-pixel offset)
+    uint2  positionSS;  // Screen space pixel coordinates : [0, NumPixels)
+    uint2  tileCoord;   // Screen tile coordinates        : [0, NumTiles)
+    float  deviceDepth; // Depth from the depth buffer    : [0, 1] (typically reversed)
+    float  linearDepth; // View space Z coordinate        : [Near, Far]
+};
+
+// This function is use to provide an easy way to sample into a screen texture, either from a pixel or a compute shaders.
+// This allow to easily share code.
+// If a compute shader call this function positionSS is an integer usually calculate like: uint2 positionSS = groupId.xy * BLOCK_SIZE + groupThreadId.xy
+// else it is current unormalized screen coordinate like return by SV_Position
+PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, uint2 tileCoord)   // Specify explicit tile coordinates so that we can easily make it lane invariant for compute evaluation.
+{
+    PositionInputs posInput;
+    ZERO_INITIALIZE(PositionInputs, posInput);
+
+    posInput.positionNDC = positionSS;
+#if SHADER_STAGE_COMPUTE
+    // In case of compute shader an extra half offset is added to the screenPos to shift the integer position to pixel center.
+    posInput.positionNDC.xy += float2(0.5, 0.5);
+#endif
+    posInput.positionNDC *= invScreenSize;
+
+    posInput.positionSS = uint2(positionSS);
+    posInput.tileCoord = tileCoord;
+
+    return posInput;
+}
+
+PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize)
+{
+    return GetPositionInput(positionSS, invScreenSize, uint2(0, 0));
+}
+
+// From forward
+// deviceDepth and linearDepth come directly from .zw of SV_Position
+void UpdatePositionInput(float deviceDepth, float linearDepth, float3 positionWS, inout PositionInputs posInput)
+{
+    posInput.deviceDepth = deviceDepth;
+    posInput.linearDepth = linearDepth;
+    posInput.positionWS  = positionWS;
 }
 
 // From deferred or compute shader
 // depth must be the depth from the raw depth buffer. This allow to handle all kind of depth automatically with the inverse view projection matrix.
 // For information. In Unity Depth is always in range 0..1 (even on OpenGL) but can be reversed.
-void UpdatePositionInput(float depthRaw, float4x4 invViewProjMatrix, float4x4 viewProjMatrix, inout PositionInputs posInput)
+void UpdatePositionInput(float deviceDepth, float4x4 invViewProjMatrix, float4x4 viewProjMatrix, inout PositionInputs posInput)
 {
-    posInput.depthRaw = depthRaw;
-
-    posInput.positionWS = ComputeWorldSpacePosition(posInput.positionSS, depthRaw, invViewProjMatrix);
+    posInput.deviceDepth = deviceDepth;
+    posInput.positionWS  = ComputeWorldSpacePosition(posInput.positionNDC, deviceDepth, invViewProjMatrix);
 
     // The compiler should optimize this (less expensive than reconstruct depth VS from depth buffer)
-    posInput.depthVS = mul(viewProjMatrix, float4(posInput.positionWS, 1.0)).w;
+    posInput.linearDepth = mul(viewProjMatrix, float4(posInput.positionWS, 1.0)).w;
 }
 
 // The view direction 'V' points towards the camera.
@@ -600,9 +517,9 @@ void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float4x4 viewP
 {
     posInput.positionWS += depthOffsetVS * (-V);
 
-    float4 positionCS = mul(viewProjMatrix, float4(posInput.positionWS, 1.0));
-    posInput.depthVS  = positionCS.w;
-    posInput.depthRaw = positionCS.z / positionCS.w;
+    float4 positionCS    = mul(viewProjMatrix, float4(posInput.positionWS, 1.0));
+    posInput.linearDepth = positionCS.w;
+    posInput.deviceDepth = positionCS.z / positionCS.w;
 }
 
 // ----------------------------------------------------------------------------
@@ -629,16 +546,17 @@ float4 GetFullScreenTriangleVertexPosition(uint vertexID, float z = UNITY_NEAR_C
 // LOD dithering transition helper
 // LOD0 must use this function with ditherFactor 1..0
 // LOD1 must use this function with ditherFactor 0..1
-void LODDitheringTransition(uint2 unPositionSS, float ditherFactor)
+void LODDitheringTransition(uint2 positionSS, float ditherFactor)
 {
     // Generate a spatially varying pattern.
     // Unfortunately, varying the pattern with time confuses the TAA, increasing the amount of noise.
-    float p = GenerateHashedRandomFloat(unPositionSS);
+    float p = GenerateHashedRandomFloat(positionSS);
 
     // We want to have a symmetry between 0..0.5 ditherFactor and 0.5..1 so no pixels are transparent during the transition
     // this is handled by this test which reverse the pattern
     p = (ditherFactor >= 0.5) ? p : 1 - p;
     clip(ditherFactor - p);
 }
+
 
 #endif // UNITY_COMMON_INCLUDED

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
 
@@ -18,8 +18,35 @@ namespace UnityEngine.Experimental.Rendering
 
     public static class CoreUtils
     {
+        // Data useful for various cubemap processes.
+        // Ref: https://msdn.microsoft.com/en-us/library/windows/desktop/bb204881(v=vs.85).aspx
+        static public readonly Vector3[] lookAtList =
+        {
+            new Vector3(1.0f, 0.0f, 0.0f),
+            new Vector3(-1.0f, 0.0f, 0.0f),
+            new Vector3(0.0f, 1.0f, 0.0f),
+            new Vector3(0.0f, -1.0f, 0.0f),
+            new Vector3(0.0f, 0.0f, 1.0f),
+            new Vector3(0.0f, 0.0f, -1.0f),
+        };
+
+        static public readonly Vector3[] upVectorList =
+        {
+            new Vector3(0.0f, 1.0f, 0.0f),
+            new Vector3(0.0f, 1.0f, 0.0f),
+            new Vector3(0.0f, 0.0f, -1.0f),
+            new Vector3(0.0f, 0.0f, 1.0f),
+            new Vector3(0.0f, 1.0f, 0.0f),
+            new Vector3(0.0f, 1.0f, 0.0f),
+        };
+
         // Note: Color.Black have alpha channel set to 1. Most of the time we want alpha channel set to 0 as we use black to clear render target
         public static Color clearColorAllBlack { get { return new Color(0f, 0f, 0f, 0f); } }
+
+        public const int editMenuPriority1 = 320;
+        public const int editMenuPriority2 = 331;
+        public const int assetCreateMenuPriority1 = 230;
+        public const int assetCreateMenuPriority2 = 241;
 
         // Render Target Management.
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
@@ -74,7 +101,7 @@ namespace UnityEngine.Experimental.Rendering
         public static void ClearCubemap(CommandBuffer cmd, RenderTargetIdentifier buffer, Color clearColor)
         {
             for(int i = 0; i < 6; ++i)
-                SetRenderTarget(cmd, buffer, ClearFlag.Color, clearColorAllBlack, 0, (CubemapFace)i);
+                SetRenderTarget(cmd, buffer, ClearFlag.Color, clearColor, 0, (CubemapFace)i);
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full screen quad.

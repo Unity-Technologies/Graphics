@@ -1,8 +1,6 @@
 #ifndef UNITY_PACKING_INCLUDED
 #define UNITY_PACKING_INCLUDED
 
-#include "Common.hlsl"
-
 //-----------------------------------------------------------------------------
 // Normal packing
 //-----------------------------------------------------------------------------
@@ -262,14 +260,14 @@ float4 UnpackQuat(float4 packedQuat)
 // Packs an integer stored using at most 'numBits' into a [0..1] float.
 float PackInt(uint i, uint numBits)
 {
-    uint maxInt = 0xFFFFFFFFu >> (32u - numBits);
+    uint maxInt = UINT_MAX >> (32u - numBits);
     return saturate(i * rcp(maxInt));
 }
 
 // Unpacks a [0..1] float into an integer of size 'numBits'.
 uint UnpackInt(float f, uint numBits)
 {
-    uint maxInt = 0xFFFFFFFFu >> (32u - numBits);
+    uint maxInt = UINT_MAX >> (32u - numBits);
     return (uint)(f * maxInt + 0.5); // Round instead of truncating
 }
 
@@ -404,7 +402,7 @@ uint PackFloatToUInt(float src, uint numBits, uint offset)
 
 float UnpackUIntToFloat(uint src, uint numBits, uint offset)
 {
-    uint maxInt = 0xFFFFFFFFu >> (32u - numBits);
+    uint maxInt = UINT_MAX >> (32u - numBits);
     return float(BitFieldExtract(src, numBits, offset)) * rcp(maxInt);
 }
 

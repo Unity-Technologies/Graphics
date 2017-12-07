@@ -8,15 +8,14 @@ namespace UnityEditor.Experimental.Rendering
         private static readonly string s_TestSceneFolder = "/GraphicsTests/RenderPipeline/LightweightPipeline/Scenes";
         private static readonly string s_BuildFolder = "/TestScenesBuild";
 
-        [MenuItem("RenderPipeline/TestFramework/Build-iOS")]
+        [MenuItem("Internal/RenderPipeline/TestFramework/Build-iOS")]
         public static void BuildiOS()
         {
             TestFrameworkCustomBuild builder = new TestFrameworkCustomBuild();
             builder.Build(BuildTarget.iOS, BuildOptions.AcceptExternalModificationsToPlayer);
         }
 
-        [MenuItem("RenderPipeline/TestFramework/Build-iOS", true)]
-
+        [MenuItem("Internal/RenderPipeline/TestFramework/Build-iOS", true)]
         public static bool ValidateBuildiOS()
         {
 #if UNITY_STANDALONE_OSX

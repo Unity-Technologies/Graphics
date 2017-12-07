@@ -1,3 +1,6 @@
+#include "ShaderLibrary/SampleUVMapping.hlsl"
+#include "../MaterialUtilities.hlsl"
+
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
@@ -12,7 +15,7 @@ float GetSpecularOcclusionFromBentAO(float3 V, float3 bentNormalWS, SurfaceData 
     // Ambient occlusion is cosine weighted, thus use following equation. See slide 129
     float cosAv = sqrt(1.0 - surfaceData.ambientOcclusion);
     float roughness = max(PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness), 0.01); // Clamp to 0.01 to avoid edge cases
-    float cosAs = exp2(-3.32193 * Sqr(roughness));
+    float cosAs = exp2((-log(10.0)/log(2.0)) * Sq(roughness));
     float cosB = dot(bentNormalWS, reflect(-V, surfaceData.normalWS));
 
     return SphericalCapIntersectionSolidArea(cosAv, cosAs, cosB) / (TWO_PI * (1.0 - cosAs));
@@ -231,7 +234,7 @@ void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
 #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-    LODDitheringTransition(posInput.unPositionSS, unity_LODFade.x);
+    LODDitheringTransition(posInput.positionSS, unity_LODFade.x);
 #endif
 
     ApplyDoubleSidedFlipOrMirror(input); // Apply double sided flip on the vertex normal

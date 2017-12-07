@@ -2,8 +2,6 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
-#include "../../Core/ShaderLibrary/Color.hlsl"
-
 CBUFFER_START(UnityMetaPass)
 // x = use uv1 as raster position
 // y = use uv2 as raster position
@@ -46,6 +44,12 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
     output.vmesh.positionWS = positionWS;
 #endif
 
+    // Not required for meta pass but to silent the shader compiler warning in case it is declare
+#ifdef VARYINGS_NEED_TANGENT_TO_WORLD
+    output.vmesh.normalWS = float3(0.0, 0.0, 0.0);
+    output.vmesh.tangentWS = float4(0.0, 0.0, 0.0, 0.0);
+#endif
+
 #ifdef VARYINGS_NEED_TEXCOORD0
     output.vmesh.texCoord0 = inputMesh.uv0;
 #endif
@@ -69,11 +73,15 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
 {
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
-    // input.unPositionSS is SV_Position
-    PositionInputs posInput = GetPositionInput(input.unPositionSS.xy, _ScreenSize.zw);
-    UpdatePositionInput(input.unPositionSS.z, input.unPositionSS.w, input.positionWS, posInput);
-    // No position and depth in case of light transport
-    float3 V = float3(0.0, 0.0, 1.0); // No vector view in case of light transport
+    // input.positionSS is SV_Position
+    PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw);
+    UpdatePositionInput(input.positionSS.z, input.positionSS.w, input.positionWS, posInput);
+
+#ifdef VARYINGS_NEED_POSITION_WS
+    float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
+#else
+    float3 V = 0; // Avoid the division by 0
+#endif
 
     SurfaceData surfaceData;
     BuiltinData builtinData;

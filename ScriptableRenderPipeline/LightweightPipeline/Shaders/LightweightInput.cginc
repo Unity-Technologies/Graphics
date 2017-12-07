@@ -3,19 +3,6 @@
 
 #define MAX_VISIBLE_LIGHTS 16
 
-// Must match Lightweigth ShaderGraph master node
-struct SurfaceData
-{
-    half3 albedo;
-    half3 specular;
-    half  metallic;
-    half  smoothness;
-    half3 normal;
-    half3 emission;
-    half  occlusion;
-    half  alpha;
-};
-
 struct LightInput
 {
     float4 pos;
@@ -54,7 +41,6 @@ half4 _SubtractiveShadowColor;
 CBUFFER_END
 
 CBUFFER_START(_PerCamera)
-sampler2D _MainLightCookie;
 float4 _MainLightPosition;
 half4 _MainLightColor;
 half4 _MainLightDistanceAttenuation;
@@ -69,6 +55,8 @@ half4 _AdditionalLightDistanceAttenuation[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightSpotDir[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightSpotAttenuation[MAX_VISIBLE_LIGHTS];
 CBUFFER_END
+
+sampler2D _MainLightCookie;
 
 // These are set internally by the engine upon request by RendererConfiguration.
 // Check GetRendererSettings in LightweightPipeline.cs
