@@ -191,7 +191,7 @@ namespace UnityEditor.Experimental.Rendering
                 var script = (MonoScript)o;
                 var scriptType = script.GetClass();
 
-                if (!scriptType.IsSubclassOf(typeof(VolumeComponent)))
+                if (!scriptType.IsSubclassOf(typeof(VolumeComponent)) || scriptType.IsAbstract)
                     return false;
 
                 if (actualTarget.components.Exists(t => t.GetType() == scriptType))
