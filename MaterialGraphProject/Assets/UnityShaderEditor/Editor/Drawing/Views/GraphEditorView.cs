@@ -28,8 +28,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public Action onConvertToSubgraphClick
         {
-            get { return m_SearchWindowProvider.onConvertToSubgraphClick; }
-            set { m_SearchWindowProvider.onConvertToSubgraphClick = value; }
+            get { return m_GraphView.onConvertToSubgraphClick; }
+            set { m_GraphView.onConvertToSubgraphClick = value; }
         }
 
         public Action onShowInProjectClick

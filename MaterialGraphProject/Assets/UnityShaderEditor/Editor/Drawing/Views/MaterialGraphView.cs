@@ -16,6 +16,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     public sealed class MaterialGraphView : GraphView
     {
         public AbstractMaterialGraph graph { get; private set; }
+        public Action onConvertToSubgraphClick { get; set; }
 
         public override List<Port> GetCompatiblePorts(Port startAnchor, NodeAdapter nodeAdapter)
         {
@@ -46,6 +47,85 @@ namespace UnityEditor.ShaderGraph.Drawing
                 compatibleAnchors.Add(candidateAnchor);
             }
             return compatibleAnchors;
+        }
+
+        public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        {
+            base.BuildContextualMenu(evt);
+            evt.menu.AppendSeparator();
+            evt.menu.AppendAction("Convert To Sub-graph", ConvertToSubgraph, ConvertToSubgraphStatus);
+            evt.menu.AppendAction("Convert To Inline Node", ConvertToInlineNode, ConvertToInlineNodeStatus);
+            evt.menu.AppendAction("Convert To Property", ConvertToProperty, ConvertToPropertyStatus);
+        }
+
+        ContextualMenu.MenuAction.StatusFlags ConvertToPropertyStatus(EventBase eventBase)
+        {
+            if (selection.OfType<MaterialNodeView>().Any(v => v.node != null))
+            {
+                if (selection.OfType<MaterialNodeView>().Any(v => v.node is IPropertyFromNode))
+                    return ContextualMenu.MenuAction.StatusFlags.Normal;
+                return ContextualMenu.MenuAction.StatusFlags.Disabled;
+            }
+            return ContextualMenu.MenuAction.StatusFlags.Hidden;
+        }
+
+        void ConvertToProperty(EventBase eventBase)
+        {
+            var selectedNodeViews = selection.OfType<MaterialNodeView>().Select(x => x.node).ToList();
+            foreach (var node in selectedNodeViews)
+            {
+                if (!(node is IPropertyFromNode))
+                    continue;
+
+                var converter = node as IPropertyFromNode;
+                var prop = converter.AsShaderProperty();
+                graph.AddShaderProperty(prop);
+
+                var propNode = new PropertyNode();
+                propNode.drawState = node.drawState;
+                graph.AddNode(propNode);
+                propNode.propertyGuid = prop.guid;
+
+                var oldSlot = node.FindSlot<MaterialSlot>(converter.outputSlotId);
+                var newSlot = propNode.FindSlot<MaterialSlot>(PropertyNode.OutputSlotId);
+
+                foreach (var edge in graph.GetEdges(oldSlot.slotReference))
+                    graph.Connect(newSlot.slotReference, edge.inputSlot);
+
+                graph.RemoveNode(node);
+            }
+        }
+
+        ContextualMenu.MenuAction.StatusFlags ConvertToInlineNodeStatus(EventBase eventBase)
+        {
+            if (selection.OfType<MaterialNodeView>().Any(v => v.node != null))
+            {
+                if (selection.OfType<MaterialNodeView>().Any(v => v.node is PropertyNode))
+                    return ContextualMenu.MenuAction.StatusFlags.Normal;
+                return ContextualMenu.MenuAction.StatusFlags.Disabled;
+            }
+            return ContextualMenu.MenuAction.StatusFlags.Hidden;
+        }
+
+        void ConvertToInlineNode(EventBase eventBase)
+        {
+            var selectedNodeViews = selection.OfType<MaterialNodeView>()
+                .Select(x => x.node)
+                .OfType<PropertyNode>();
+
+            foreach (var propNode in selectedNodeViews)
+                ((AbstractMaterialGraph)propNode.owner).ReplacePropertyNodeWithConcreteNode(propNode);
+        }
+
+        ContextualMenu.MenuAction.StatusFlags ConvertToSubgraphStatus(EventBase eventBase)
+        {
+            if (onConvertToSubgraphClick == null) return ContextualMenu.MenuAction.StatusFlags.Hidden;
+            return selection.OfType<MaterialNodeView>().Any(v => v.node != null) ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Hidden;
+        }
+
+        void ConvertToSubgraph(EventBase eventBase)
+        {
+            onConvertToSubgraphClick();
         }
 
         public delegate void OnSelectionChanged(IEnumerable<INode> nodes);
