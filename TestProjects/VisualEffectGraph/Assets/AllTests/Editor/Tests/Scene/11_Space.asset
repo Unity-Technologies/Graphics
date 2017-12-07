@@ -15,6 +15,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114424367337161112}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -45,6 +46,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114703225181215258}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -75,6 +77,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114145270825309474}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -108,6 +111,7 @@ MonoBehaviour:
   - {fileID: 114390491756664678}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114009476257809162}
   m_MasterData:
     m_Owner: {fileID: 114844073414749800}
@@ -139,6 +143,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114100819626177754}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -170,6 +175,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114026971033279704}
   m_MasterData:
     m_Owner: {fileID: 114296402150873828}
@@ -201,6 +207,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114790385309351918}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -232,6 +239,7 @@ MonoBehaviour:
   - {fileID: 114713442904867960}
   m_UIPosition: {x: 3426.4893, y: 258.60632}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 114469419625582162}
   m_OutputSlots: []
@@ -263,6 +271,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114535837646468700}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -296,6 +305,7 @@ MonoBehaviour:
   - {fileID: 114362595753117012}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114101930587489630}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -334,6 +344,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114767901983384342}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -364,6 +375,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114192734413408754}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -394,6 +406,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 114669263914044358}
   m_OutputSlots: []
@@ -413,6 +426,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 114143981825511226}
   m_OutputSlots: []
@@ -437,6 +451,7 @@ MonoBehaviour:
   - {fileID: 114282392454529888}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114057526512818296}
   m_MasterData:
     m_Owner: {fileID: 114948833932143152}
@@ -471,6 +486,7 @@ MonoBehaviour:
   - {fileID: 114624822208364118}
   m_UIPosition: {x: 3325.5835, y: -954.07947}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 114296267870898022}
   m_OutputSlots: []
@@ -498,6 +514,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114767901983384342}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -528,6 +545,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114767901983384342}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -558,6 +576,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114101930587489630}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -588,6 +607,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114626960453368842}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -618,6 +638,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114296267870898022}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -649,6 +670,7 @@ MonoBehaviour:
   - {fileID: 114551699811176788}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114100819626177754}
   m_MasterData:
     m_Owner: {fileID: 114525982121517532}
@@ -687,6 +709,7 @@ MonoBehaviour:
   - {fileID: 114911332324136014}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114101930587489630}
   m_MasterData:
     m_Owner: {fileID: 114525982121517532}
@@ -724,6 +747,7 @@ MonoBehaviour:
   - {fileID: 114378015815502156}
   m_UIPosition: {x: 3814.3518, y: 258.44656}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 114545600095199990}
   m_OutputSlots: []
@@ -758,6 +782,7 @@ MonoBehaviour:
   - {fileID: 114267980458501362}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114767901983384342}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -796,6 +821,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114296267870898022}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -826,6 +852,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114360989164917894}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -856,6 +883,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114057526512818296}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -886,6 +914,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_Owners:
   - {fileID: 114063386016050250}
   - {fileID: 114295252955033220}
@@ -907,6 +936,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_Owners:
   - {fileID: 114948833932143152}
   - {fileID: 114700733874330126}
@@ -928,6 +958,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114143981825511226}
   m_MasterData:
     m_Owner: {fileID: 114053073078299734}
@@ -962,6 +993,7 @@ MonoBehaviour:
   - {fileID: 114005995903604994}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114145270825309474}
   m_MasterData:
     m_Owner: {fileID: 114177730877058034}
@@ -995,6 +1027,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114192734413408754}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -1025,6 +1058,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114349834215278906}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -1055,6 +1089,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114101930587489630}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -1085,6 +1120,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 2412.3208, y: -376.48233}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 114145270825309474}
@@ -1114,6 +1150,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114767901983384342}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -1147,6 +1184,7 @@ MonoBehaviour:
   - {fileID: 114159059247472882}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114192734413408754}
   m_MasterData:
     m_Owner: {fileID: 114300600209293622}
@@ -1182,6 +1220,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114100819626177754}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -1213,6 +1252,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114101930587489630}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -1243,6 +1283,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114767901983384342}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -1273,6 +1314,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114291020478921290}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -1304,6 +1346,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114296267870898022}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -1334,6 +1377,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114291020478921290}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -1368,6 +1412,7 @@ MonoBehaviour:
   - {fileID: 114188600774548618}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114767901983384342}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -1402,6 +1447,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114790385309351918}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -1432,6 +1478,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114767901983384342}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -1462,6 +1509,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114101930587489630}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -1495,6 +1543,7 @@ MonoBehaviour:
   - {fileID: 114127943389097384}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114057526512818296}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -1532,6 +1581,7 @@ MonoBehaviour:
   - {fileID: 114212539838352166}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114291020478921290}
   m_MasterData:
     m_Owner: {fileID: 114967168399529338}
@@ -1564,6 +1614,7 @@ MonoBehaviour:
   - {fileID: 114369648571609434}
   m_UIPosition: {x: 3183.2788, y: -253.4969}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots: []
   m_Data: {fileID: 114128353478866914}
@@ -1593,6 +1644,7 @@ MonoBehaviour:
   - {fileID: 114772091200556280}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114296267870898022}
   m_MasterData:
     m_Owner: {fileID: 114063386016050250}
@@ -1624,6 +1676,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 114026971033279704}
   m_OutputSlots: []
@@ -1646,6 +1699,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 114192734413408754}
   m_OutputSlots: []
@@ -1665,6 +1719,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114057526512818296}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -1695,6 +1750,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114450484333583414}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -1737,6 +1793,7 @@ MonoBehaviour:
   - {fileID: 114967168399529338}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_saved: 1
 --- !u!114 &114329200176131532
 MonoBehaviour:
@@ -1753,6 +1810,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114101930587489630}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -1783,6 +1841,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114360989164917894}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -1813,6 +1872,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 2788.5173, y: -545.6117}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 114767901983384342}
   - {fileID: 114703225181215258}
@@ -1836,6 +1896,7 @@ MonoBehaviour:
   - {fileID: 114738438074210446}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114349834215278906}
   m_MasterData:
     m_Owner: {fileID: 114338299745033226}
@@ -1868,6 +1929,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 114626960453368842}
   m_OutputSlots: []
@@ -1893,6 +1955,7 @@ MonoBehaviour:
   - {fileID: 114127262910178922}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114360989164917894}
   m_MasterData:
     m_Owner: {fileID: 114624822208364118}
@@ -1925,6 +1988,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114101930587489630}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -1955,6 +2019,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 114790385309351918}
   m_OutputSlots: []
@@ -1974,6 +2039,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 114535837646468700}
   m_OutputSlots: []
@@ -1996,6 +2062,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114360989164917894}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -2027,6 +2094,7 @@ MonoBehaviour:
   - {fileID: 114045114768959248}
   m_UIPosition: {x: 3457.5552, y: -1284.7422}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots: []
   m_Data: {fileID: 0}
@@ -2054,6 +2122,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114009476257809162}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -2084,6 +2153,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114450484333583414}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -2117,6 +2187,7 @@ MonoBehaviour:
   - {fileID: 114736590185640890}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114424367337161112}
   m_MasterData:
     m_Owner: {fileID: 114511851397707688}
@@ -2149,6 +2220,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114626960453368842}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -2182,6 +2254,7 @@ MonoBehaviour:
   - {fileID: 114455869954840598}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114430526333681348}
   m_MasterData:
     m_Owner: {fileID: 114713442904867960}
@@ -2195,7 +2268,11 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
-    attributes: []
+    attributes:
+    - m_Type: 5
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: 
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114450484333583414
@@ -2216,6 +2293,7 @@ MonoBehaviour:
   - {fileID: 114321076096565650}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114450484333583414}
   m_MasterData:
     m_Owner: {fileID: 114525982121517532}
@@ -2248,6 +2326,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114430526333681348}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -2278,6 +2357,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114296267870898022}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -2308,6 +2388,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114469419625582162}
   m_MasterData:
     m_Owner: {fileID: 114033152555091602}
@@ -2339,6 +2420,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114101930587489630}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -2369,6 +2451,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114057526512818296}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -2399,6 +2482,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114009476257809162}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -2429,6 +2513,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114057526512818296}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -2459,6 +2544,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 114424367337161112}
   m_OutputSlots: []
@@ -2481,6 +2567,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114145270825309474}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -2511,6 +2598,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 2847.659, y: -872.17316}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 114101930587489630}
   - {fileID: 114100819626177754}
@@ -2534,6 +2622,7 @@ MonoBehaviour:
   - {fileID: 114036124727929684}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114535837646468700}
   m_MasterData:
     m_Owner: {fileID: 114378015815502156}
@@ -2547,7 +2636,11 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
-    attributes: []
+    attributes:
+    - m_Type: 5
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: 
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114545600095199990
@@ -2565,6 +2658,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114545600095199990}
   m_MasterData:
     m_Owner: {fileID: 114102368234356244}
@@ -2596,6 +2690,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114535837646468700}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -2629,6 +2724,7 @@ MonoBehaviour:
   - {fileID: 114203727264035846}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114100819626177754}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -2663,6 +2759,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114100819626177754}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -2694,6 +2791,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114703225181215258}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -2724,6 +2822,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114626960453368842}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -2754,6 +2853,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114430526333681348}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -2787,6 +2887,7 @@ MonoBehaviour:
   - {fileID: 114004947194849618}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114703225181215258}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -2821,6 +2922,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114767901983384342}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -2851,6 +2953,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 114360989164917894}
   m_OutputSlots: []
@@ -2876,6 +2979,7 @@ MonoBehaviour:
   - {fileID: 114090536319985824}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114626960453368842}
   m_MasterData:
     m_Owner: {fileID: 114353971789117148}
@@ -2911,6 +3015,7 @@ MonoBehaviour:
   - {fileID: 114711234654465426}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114296267870898022}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -2962,6 +3067,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114669263914044358}
   m_MasterData:
     m_Owner: {fileID: 114045114768959248}
@@ -2993,6 +3099,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114790385309351918}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -3023,6 +3130,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114767901983384342}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -3054,6 +3162,7 @@ MonoBehaviour:
   - {fileID: 114300600209293622}
   m_UIPosition: {x: 3586.0945, y: -141.85463}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots: []
   m_Data: {fileID: 114131131502761872}
@@ -3081,6 +3190,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114701409248247672}
   m_MasterData:
     m_Owner: {fileID: 114773682988844608}
@@ -3115,6 +3225,7 @@ MonoBehaviour:
   - {fileID: 114594605464250986}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114703225181215258}
   m_MasterData:
     m_Owner: {fileID: 114338299745033226}
@@ -3151,6 +3262,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114296267870898022}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -3181,6 +3293,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 114430526333681348}
   m_OutputSlots: []
@@ -3206,6 +3319,7 @@ MonoBehaviour:
   - {fileID: 114697855538207816}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114767901983384342}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -3240,6 +3354,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114057526512818296}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -3270,6 +3385,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114101930587489630}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -3300,6 +3416,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114424367337161112}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -3330,6 +3447,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114349834215278906}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -3360,6 +3478,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114057526512818296}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -3390,6 +3509,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114424367337161112}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -3420,6 +3540,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114349834215278906}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -3453,6 +3574,7 @@ MonoBehaviour:
   - {fileID: 114714647814023132}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114767901983384342}
   m_MasterData:
     m_Owner: {fileID: 114338299745033226}
@@ -3492,6 +3614,7 @@ MonoBehaviour:
   - {fileID: 114467070674123516}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114296267870898022}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -3526,6 +3649,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 2360.1519, y: -713.4079}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 114701409248247672}
@@ -3545,6 +3669,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114291020478921290}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -3576,6 +3701,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114430526333681348}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -3609,6 +3735,7 @@ MonoBehaviour:
   - {fileID: 114248812161445824}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114790385309351918}
   m_MasterData:
     m_Owner: {fileID: 114369648571609434}
@@ -3644,6 +3771,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114145270825309474}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -3674,6 +3802,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114009476257809162}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -3704,6 +3833,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114703225181215258}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -3734,6 +3864,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114296267870898022}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -3764,6 +3895,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 114009476257809162}
   m_OutputSlots: []
@@ -3789,6 +3921,7 @@ MonoBehaviour:
   - {fileID: 114873806664665124}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114101930587489630}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -3823,6 +3956,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114101930587489630}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -3853,6 +3987,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114767901983384342}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -3883,6 +4018,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114192734413408754}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -3916,6 +4052,7 @@ MonoBehaviour:
   - {fileID: 114175688498384132}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114101930587489630}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -3950,6 +4087,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114450484333583414}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -3983,6 +4121,7 @@ MonoBehaviour:
   - {fileID: 114353971789117148}
   m_UIPosition: {x: 3795.737, y: -735.6658}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 114057526512818296}
   m_OutputSlots: []
@@ -4010,6 +4149,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114535837646468700}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -4040,6 +4180,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 2441.624, y: -962.3472}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 114291020478921290}
@@ -4062,6 +4203,7 @@ MonoBehaviour:
   - {fileID: 114504602591296034}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114057526512818296}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -4656,7 +4798,7 @@ VFXAsset:
       - index: 40
         nameId: uniform_Velocity_d
       params: []
-      processor: {fileID: 7200000, guid: add88f7350404b143b9458b50f605c3c, type: 3}
+      processor: {fileID: 7200000, guid: ae51e80a1c327c842a53d8cb1646329f, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -4669,7 +4811,7 @@ VFXAsset:
       - index: 42
         nameId: uniform_deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: b268cf3d33526c5449e2935932251958, type: 3}
+      processor: {fileID: 7200000, guid: 21d411091d9890b4e865814a1b121473, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -4682,7 +4824,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: b1030b494154f8b4cab03b32c903bb43, type: 3}
+      processor: {fileID: 4800000, guid: 35e1124e89c7c6c4092b174867f51823, type: 3}
   - type: 1
     flags: 1
     capacity: 65536
@@ -4721,7 +4863,7 @@ VFXAsset:
       - index: 8
         nameId: uniform_Velocity_d
       params: []
-      processor: {fileID: 7200000, guid: 860d184e5b6c2844a82984b36dd8263f, type: 3}
+      processor: {fileID: 7200000, guid: 6c7876df80db2f54ab2af4b061684eae, type: 3}
     - type: 805306368
       buffers:
       - index: 4
@@ -4734,7 +4876,7 @@ VFXAsset:
       - index: 42
         nameId: uniform_deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: aaed8b13a95615b45ba0dc2784744624, type: 3}
+      processor: {fileID: 7200000, guid: bf1f2f7f4ed068e468386440f263810e, type: 3}
     - type: 1073741826
       buffers:
       - index: 4
@@ -4747,7 +4889,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 837d95b288b01034eb40a5d7abde3fd0, type: 3}
+      processor: {fileID: 4800000, guid: 619e78522ef261548b19c205ff2c2192, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000
