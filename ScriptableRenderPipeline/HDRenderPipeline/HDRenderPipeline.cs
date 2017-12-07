@@ -365,7 +365,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_IBLFilterGGX = new IBLFilterGGX(asset.renderPipelineResources);
 
-            m_LightLoop.Build(asset.renderPipelineResources, asset.tileSettings, asset.globalTextureSettings, asset.shadowInitParams, m_ShadowSettings, m_IBLFilterGGX);
+            m_LightLoop.Build(asset.renderPipelineResources, asset.lightLoopSettings, asset.globalTextureSettings, asset.shadowInitParams, m_ShadowSettings, m_IBLFilterGGX);
 
             m_SkyManager.Build(asset.renderPipelineResources, m_IBLFilterGGX);
             m_SkyManager.skySettings = skySettingsToUse;
@@ -393,12 +393,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Deferred Depth Prepass", () => m_Asset.globalRenderingSettings.useDepthPrepassWithDeferredRendering, (value) => m_Asset.globalRenderingSettings.useDepthPrepassWithDeferredRendering = (bool)value, DebugItemFlag.RuntimeOnly);
             DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Deferred Depth Prepass ATest Only", () => m_Asset.globalRenderingSettings.renderAlphaTestOnlyInDeferredPrepass, (value) => m_Asset.globalRenderingSettings.renderAlphaTestOnlyInDeferredPrepass = (bool)value, DebugItemFlag.RuntimeOnly);
 
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Tile/Cluster", () => m_Asset.tileSettings.enableTileAndCluster, (value) => m_Asset.tileSettings.enableTileAndCluster = (bool)value, DebugItemFlag.RuntimeOnly);
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Big Tile", () => m_Asset.tileSettings.enableBigTilePrepass, (value) => m_Asset.tileSettings.enableBigTilePrepass = (bool)value, DebugItemFlag.RuntimeOnly);
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Compute Lighting", () => m_Asset.tileSettings.enableComputeLightEvaluation, (value) => m_Asset.tileSettings.enableComputeLightEvaluation = (bool)value, DebugItemFlag.RuntimeOnly);
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Light Classification", () => m_Asset.tileSettings.enableComputeLightVariants, (value) => m_Asset.tileSettings.enableComputeLightVariants = (bool)value, DebugItemFlag.RuntimeOnly);
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Material Classification", () => m_Asset.tileSettings.enableComputeMaterialVariants, (value) => m_Asset.tileSettings.enableComputeMaterialVariants = (bool)value, DebugItemFlag.RuntimeOnly);
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Async Compute", () => m_Asset.tileSettings.enableAsyncCompute, (value) => m_Asset.tileSettings.enableAsyncCompute = (bool)value, DebugItemFlag.RuntimeOnly);
+            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Tile/Cluster", () => m_Asset.lightLoopSettings.enableTileAndCluster, (value) => m_Asset.lightLoopSettings.enableTileAndCluster = (bool)value, DebugItemFlag.RuntimeOnly);
+            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Big Tile", () => m_Asset.lightLoopSettings.enableBigTilePrepass, (value) => m_Asset.lightLoopSettings.enableBigTilePrepass = (bool)value, DebugItemFlag.RuntimeOnly);
+            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Compute Lighting", () => m_Asset.lightLoopSettings.enableComputeLightEvaluation, (value) => m_Asset.lightLoopSettings.enableComputeLightEvaluation = (bool)value, DebugItemFlag.RuntimeOnly);
+            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Light Classification", () => m_Asset.lightLoopSettings.enableComputeLightVariants, (value) => m_Asset.lightLoopSettings.enableComputeLightVariants = (bool)value, DebugItemFlag.RuntimeOnly);
+            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Material Classification", () => m_Asset.lightLoopSettings.enableComputeMaterialVariants, (value) => m_Asset.lightLoopSettings.enableComputeMaterialVariants = (bool)value, DebugItemFlag.RuntimeOnly);
+            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Async Compute", () => m_Asset.lightLoopSettings.enableAsyncCompute, (value) => m_Asset.lightLoopSettings.enableAsyncCompute = (bool)value, DebugItemFlag.RuntimeOnly);
         }
 
         void InitializeDebugMaterials()
