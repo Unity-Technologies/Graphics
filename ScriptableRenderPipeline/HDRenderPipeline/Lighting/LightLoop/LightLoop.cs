@@ -246,6 +246,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // clustered light list specific buffers and data begin
         public bool enableBigTilePrepass;
 
+        public bool enableAsyncCompute;
+
         public enum TileClusterDebug : int
         {
             None,
@@ -274,6 +276,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             enableFptlForForwardOpaque = true;
             enableBigTilePrepass = true;
+
+            enableAsyncCompute = false;
         }
     }
 
@@ -475,20 +479,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         public void Build(  RenderPipelineResources renderPipelineResources,
-                            GlobalRenderingSettings renderingSettings,
                             LightLoopSettings tileSettings,
                             GlobalTextureSettings textureSettings,
                             ShadowInitParameters shadowInit, ShadowSettings shadowSettings, IBLFilterGGX iblFilterGGX)
         {
-            // Deferred opaque are always using Fptl. Forward opaque can use Fptl or Cluster, transparent use cluster.
-            // When MSAA is enabled we disable Fptl as it become expensive compare to cluster
-            // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
-
-            // If Deferred, enable Fptl. If we are forward renderer only and not using Fptl for forward opaque, disable Fptl
-            m_isForwardRenderingOnly = renderingSettings.ShouldUseForwardRenderingOnly();
-            m_isFptlEnabled = !m_isForwardRenderingOnly || tileSettings.enableFptlForForwardOpaque; // TODO: Disable if MSAA
-            m_isFptlEnabledForForwardOpaque = tileSettings.enableFptlForForwardOpaque; // TODO: Disable if MSAA
-
             m_Resources = renderPipelineResources;
             m_LightLoopSettings = tileSettings;
 
@@ -510,14 +504,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
 
-            if (GetFeatureVariantsEnabled())
-            {
-                s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(m_LightLoopSettings.enableBigTilePrepass ? "TileLightListGen_SrcBigTile_FeatureFlags" : "TileLightListGen_FeatureFlags");
-            }
-            else
-            {
-                s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(m_LightLoopSettings.enableBigTilePrepass ? "TileLightListGen_SrcBigTile" : "TileLightListGen");
-            }
             s_AABBBoundsBuffer = new ComputeBuffer(2 * k_MaxLightsOnScreen, 3 * sizeof(float));
             s_ConvexBoundsBuffer = new ComputeBuffer(k_MaxLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightBound)));
             s_LightVolumeDataBuffer = new ComputeBuffer(k_MaxLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightVolumeData)));
@@ -1285,6 +1271,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     light.bakingOutput.occlusionMaskChannel != -1; // We need to have an occlusion mask channel assign, else we have no shadow mask
         }
 
+        public void UpdateRenderingPathState(bool useForwardRenderingOnly)
+        {
+            // Deferred opaque are always using Fptl. Forward opaque can use Fptl or Cluster, transparent use cluster.
+            // When MSAA is enabled we disable Fptl as it become expensive compare to cluster
+            // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
+
+            // If Deferred, enable Fptl. If we are forward renderer only and not using Fptl for forward opaque, disable Fptl
+            m_isForwardRenderingOnly = useForwardRenderingOnly;
+            m_isFptlEnabled = !m_isForwardRenderingOnly || tileSettings.enableFptlForForwardOpaque; // TODO: Disable if MSAA
+            m_isFptlEnabledForForwardOpaque = tileSettings.enableFptlForForwardOpaque; // TODO: Disable if MSAA
+
+            if (GetFeatureVariantsEnabled())
+            {
+                s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(m_LightLoopSettings.enableBigTilePrepass ? "TileLightListGen_SrcBigTile_FeatureFlags" : "TileLightListGen_FeatureFlags");
+            }
+            else
+            {
+                s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(m_LightLoopSettings.enableBigTilePrepass ? "TileLightListGen_SrcBigTile" : "TileLightListGen");
+            }
+        }
+
         // Return true if BakedShadowMask are enabled
         public bool PrepareLightsForGPU(CommandBuffer cmd, ShadowSettings shadowSettings, CullResults cullResults, Camera camera)
         {
@@ -1676,7 +1683,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, numTilesX, numTilesY, 1);
         }
 
-        public void BuildGPULightLists(Camera camera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT)
+        public bool IsAsyncEnabled()
+        {
+            return m_LightLoopSettings.enableAsyncCompute;
+        }
+
+        public void BuildGPULightListsCommon(Camera camera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT)
         {
             cmd.BeginSample("Build Light List");
 
@@ -1695,8 +1707,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var projscr = temp * proj;
             var invProjscr = projscr.inverse;
             bool isOrthographic = camera.orthographic;
-
-            cmd.SetRenderTarget(BuiltinRenderTextureType.None);
 
             // generate screen-space AABBs (used for both fptl and clustered).
             if (m_lightCount != 0)
@@ -1822,7 +1832,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             cmd.EndSample("Build Light List");
+        }
 
+        public void BuildGPULightLists(Camera camera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT)
+        {
+            cmd.SetRenderTarget(BuiltinRenderTextureType.None);
+
+            BuildGPULightListsCommon(camera, cmd, cameraDepthBufferRT, stencilTextureRT);
+            PushGlobalParams(camera, cmd);
+        }
+
+        public GPUFence BuildGPULightListsAsyncBegin(Camera camera, ScriptableRenderContext renderContext, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, GPUFence startFence)
+        {
+            var cmd = CommandBufferPool.Get("Build light list");
+            cmd.WaitOnGPUFence(startFence);
+
+            BuildGPULightListsCommon(camera, cmd, cameraDepthBufferRT, stencilTextureRT);
+            GPUFence completeFence = cmd.CreateGPUFence();
+            renderContext.ExecuteCommandBufferAsync(cmd, ComputeQueueType.Background);
+            CommandBufferPool.Release(cmd);
+
+            return completeFence;
+        }
+
+        public void BuildGPULightListAsyncEnd(Camera camera, CommandBuffer cmd, GPUFence doneFence)
+        {
+            cmd.WaitOnGPUFence(doneFence);
             PushGlobalParams(camera, cmd);
         }
 

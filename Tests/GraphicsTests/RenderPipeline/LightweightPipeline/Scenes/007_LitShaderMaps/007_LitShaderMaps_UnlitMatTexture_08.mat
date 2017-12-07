@@ -8,7 +8,7 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: 007_LitShaderMaps_UnlitMatTexture_08
   m_Shader: {fileID: 4800000, guid: 650dd9526735d5b46b79224bc6e94025, type: 3}
-  m_ShaderKeywords: _EMISSION _NORMALMAP _SPECGLOSSMAP_BASE_ALPHA
+  m_ShaderKeywords: _SAMPLE_GI
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -76,6 +76,7 @@ Material:
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _ReflectionSource: 0
+    - _SampleGI: 1
     - _Shininess: 1
     - _SmoothnessTextureChannel: 0
     - _SpecSource: 0
@@ -84,7 +85,7 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _Color: {r: 0.9264706, g: 0.095371954, b: 0.095371954, a: 1}
+    - _Color: {r: 1, g: 1, b: 0.9254902, a: 1}
     - _EmissionColor: {r: 0.20663926, g: 0.24034719, b: 0.28676468, a: 1}
     - _MainColor: {r: 1, g: 1, b: 1, a: 1}
     - _ReflectColor: {r: 1, g: 1, b: 1, a: 1}
