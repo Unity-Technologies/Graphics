@@ -16,7 +16,8 @@ namespace UnityEditor.VFX
             : base(Flags.InvalidOnCPU, new VFXExpression[3] { texture, uv, mipLevel })
         {}
 
-        sealed public override VFXExpressionOp operation { get { return VFXExpressionOp.kVFXSampleTexture2D; } }
+        sealed public override VFXExpressionOp operation { get { return VFXExpressionOp.kVFXNoneOp; } }
+        sealed public override VFXValueType valueType { get { return VFXValueType.kFloat4; } }
 
         public sealed override string GetCodeString(string[] parents)
         {
