@@ -118,7 +118,6 @@ namespace UnityEngine.Experimental.Rendering
                 m_Components.Add(type, inst);
 
                 inst = (VolumeComponent)ScriptableObject.CreateInstance(type);
-                inst.SetAllOverridesTo(true);
                 m_ComponentsDefaultState.Add(inst);
             }
 
@@ -204,12 +203,14 @@ namespace UnityEngine.Experimental.Rendering
 
                 for (int i = 0; i < count; i++)
                 {
+                    var fromParam = target.parameters[i];
                     var toParam = component.parameters[i];
+
+                    // Keep track of the override state for debugging purpose
+                    fromParam.overrideState = toParam.overrideState;
+
                     if (toParam.overrideState)
-                    {
-                        var fromParam = target.parameters[i];
                         fromParam.Interp(fromParam, toParam, interpFactor);
-                    }
                 }
             }
         }
