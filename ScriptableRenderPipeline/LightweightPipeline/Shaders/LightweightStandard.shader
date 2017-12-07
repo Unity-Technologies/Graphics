@@ -140,28 +140,27 @@
             ENDCG
         }
 
-            // This pass it not used during regular rendering, only for lightmap baking.
-            Pass
-            {
-                Tags{"LightMode" = "Meta"}
+        // This pass it not used during regular rendering, only for lightmap baking.
+        Pass
+        {
+            Tags{"LightMode" = "Meta"}
 
-                Cull Off
+            Cull Off
 
-                CGPROGRAM
-                #pragma vertex LightweightVertexMeta
-                #pragma fragment LightweightFragmentMeta
+            CGPROGRAM
+            #pragma vertex LightweightVertexMeta
+            #pragma fragment LightweightFragmentMeta
 
-                #pragma shader_feature _EMISSION
-                #pragma shader_feature _METALLICSPECGLOSSMAP
-                #pragma shader_feature _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-                #pragma shader_feature EDITOR_VISUALIZATION
+            #pragma shader_feature _EMISSION
+            #pragma shader_feature _METALLICSPECGLOSSMAP
+            #pragma shader_feature _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+            #pragma shader_feature EDITOR_VISUALIZATION
 
-                #pragma shader_feature _EMISSION
-                #pragma shader_feature _SPECGLOSSMAP
+            #pragma shader_feature _SPECGLOSSMAP
 
-                #include "LightweightPassMeta.cginc"
-                ENDCG
-            }
+            #include "LightweightPassMeta.cginc"
+            ENDCG
+        }
     }
     FallBack "Hidden/InternalErrorShader"
     CustomEditor "LightweightStandardGUI"

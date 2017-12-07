@@ -8,7 +8,7 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: 007_LitShaderMaps_UnlitMat_07
   m_Shader: {fileID: 4800000, guid: 650dd9526735d5b46b79224bc6e94025, type: 3}
-  m_ShaderKeywords: _ALPHABLEND_ON _NORMALMAP _SPECGLOSSMAP_BASE_ALPHA
+  m_ShaderKeywords: _ALPHABLEND_ON _SAMPLE_GI
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -77,6 +77,7 @@ Material:
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _ReflectionSource: 0
+    - _SampleGI: 1
     - _Shininess: 1
     - _SmoothnessTextureChannel: 0
     - _SpecSource: 0
