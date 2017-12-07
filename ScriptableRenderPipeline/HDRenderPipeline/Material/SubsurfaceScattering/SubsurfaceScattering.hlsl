@@ -66,8 +66,8 @@ float3 ApplyDiffuseTexturingMode(float3 color, int subsurfaceProfile)
 struct SSSData
 {
     float3 diffuseColor;
-    float subsurfaceRadius;
-    float subsurfaceProfile;
+    float  subsurfaceRadius;
+    int    subsurfaceProfile;
 };
 
 #define SSSBufferType0 float4
@@ -80,17 +80,16 @@ void EncodeIntoSSSBuffer(SSSData sssData, uint2 positionSS, out SSSBufferType0 o
     outSSSBuffer0 = float4(sssData.diffuseColor, PackFloatInt8bit(sssData.subsurfaceRadius, sssData.subsurfaceProfile, 16.0));
 }
 
-void DecodeSSSProfileFromSSSBuffer(SSSBufferType0 inSSSBuffer0, uint2 positionSS, out int subsurfaceProfile)
+void DecodeFromSSSBuffer(float4 sssBuffer, uint2 positionSS, out SSSData sssData)
 {
-    float unused;
-    UnpackFloatInt8bit(inSSSBuffer0.a, 16.0, unused, subsurfaceProfile);
+    sssData.diffuseColor = sssBuffer.rgb;
+    UnpackFloatInt8bit(sssBuffer.a, 16.0, sssData.subsurfaceRadius, sssData.subsurfaceProfile);
 }
 
 void DecodeFromSSSBuffer(uint2 positionSS, out SSSData sssData)
 {
-    float4 inBuffer = LOAD_TEXTURE2D(_SSSBufferTexture0, positionSS);
-    sssData.diffuseColor = LOAD_TEXTURE2D(_SSSBufferTexture0, positionSS).rgb;
-    UnpackFloatInt8bit(inBuffer.a, 16.0, sssData.subsurfaceRadius, sssData.subsurfaceProfile);
+    float4 sssBuffer = LOAD_TEXTURE2D(_SSSBufferTexture0, positionSS);
+    DecodeFromSSSBuffer(sssBuffer, positionSS, sssData);
 }
 
 // OUTPUT_SSSBUFFER start from SV_Target2 as SV_Target0 and SV_Target1 are used for lighting buffer

@@ -192,31 +192,28 @@ int UnpackMaterialId(float f)
     return int(round(f * 3.0));
 }
 
-void FillMaterialIdStandardData(float3 baseColor, float metallic, inout BSDFData bsdfData)
+float3 ComputeDiffuseColor(float3 baseColor, float metallic)
 {
-    bsdfData.diffuseColor = baseColor * (1.0 - metallic);
-    float val = DEFAULT_SPECULAR_VALUE;
-    bsdfData.fresnel0 = lerp(val.xxx, baseColor, metallic);
+    return baseColor * (1.0 - metallic);
 }
 
-void FillMaterialIdSSSData(float3 baseColor, float subsurfaceRadius, inout BSDFData bsdfData)
+float3 ComputeFresnel0(float3 baseColor, float metallic, float dielectricF0)
 {
-    bsdfData.diffuseColor = baseColor;
-    bsdfData.subsurfaceRadius = subsurfaceRadius;
-    bsdfData.fresnel0     = SKIN_SPECULAR_VALUE; // TODO take from subsurfaceProfile instead
+    return lerp(dielectricF0.xxx, baseColor, metallic);
 }
 
-void FillTransmissionData(int subsurfaceProfile, float thickness, inout BSDFData bsdfData)
+// Fills the data which may be accessed if MATERIALFEATUREFLAGS_LIT_SSS is set.
+void FillMaterialIdSssData(int subsurfaceProfile, float radius, float thickness, uint transmissionMode,
+                           inout BSDFData bsdfData)
 {
+    bsdfData.subsurfaceProfile  = subsurfaceProfile;
+    bsdfData.subsurfaceRadius   = radius;
     bsdfData.enableTransmission = _EnableSSSAndTransmission != 0;
-
-    uint transmissionMode = BitFieldExtract(asuint(_TransmissionFlags), 2u, 2u * subsurfaceProfile);
 
     if (bsdfData.enableTransmission && transmissionMode != SSS_TRSM_MODE_NONE)
     {
-        bsdfData.subsurfaceProfile  = subsurfaceProfile;
+        bsdfData.thickness = _ThicknessRemaps[subsurfaceProfile].x + _ThicknessRemaps[subsurfaceProfile].y * thickness;
         bsdfData.useThickObjectMode = transmissionMode != SSS_TRSM_MODE_THIN;
-        bsdfData.thickness          = _ThicknessRemaps[subsurfaceProfile].x + _ThicknessRemaps[subsurfaceProfile].y * thickness;
 
         if (_UseDisneySSS != 0)
         {
@@ -345,30 +342,39 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     // IMPORTANT: In case of foward or gbuffer pass we must know what we are statically, so compiler can do compile time optimization
     if (bsdfData.materialId == MATERIALID_LIT_STANDARD)
     {
-        FillMaterialIdStandardData(surfaceData.baseColor, surfaceData.metallic, bsdfData);
+        bsdfData.diffuseColor = ComputeDiffuseColor(surfaceData.baseColor, surfaceData.metallic);
+        bsdfData.fresnel0     = ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, DEFAULT_SPECULAR_VALUE);
     }
     else if (bsdfData.materialId == MATERIALID_LIT_SPECULAR)
     {
         // Note: Specular is not a material id but just a way to parameterize the standard materialid, thus we reset materialId to MATERIALID_LIT_STANDARD
-        bsdfData.materialId = MATERIALID_LIT_STANDARD;
+        bsdfData.materialId   = MATERIALID_LIT_STANDARD;
         bsdfData.diffuseColor = surfaceData.baseColor;
-        bsdfData.fresnel0 = surfaceData.specularColor;
+        bsdfData.fresnel0     = surfaceData.specularColor;
     }
     else if (bsdfData.materialId == MATERIALID_LIT_SSS)
     {
-        FillMaterialIdSSSData(surfaceData.baseColor, surfaceData.subsurfaceRadius, bsdfData);
-        FillTransmissionData(surfaceData.subsurfaceProfile, surfaceData.thickness, bsdfData);
+        bsdfData.diffuseColor = surfaceData.baseColor;
+        bsdfData.fresnel0     = SKIN_SPECULAR_VALUE; // TODO: take from the SSS profile
+        uint transmissionMode = BitFieldExtract(asuint(_TransmissionFlags), 2u, 2u * surfaceData.subsurfaceProfile);
+
+        FillMaterialIdSssData(surfaceData.subsurfaceProfile,
+                              surfaceData.subsurfaceRadius,
+                              surfaceData.thickness,
+                              transmissionMode, bsdfData);
     }
     else if (bsdfData.materialId == MATERIALID_LIT_ANISO)
     {
-        FillMaterialIdStandardData(surfaceData.baseColor, surfaceData.metallic, bsdfData);
-        bsdfData.tangentWS   = surfaceData.tangentWS;
-        bsdfData.bitangentWS = cross(bsdfData.normalWS, bsdfData.tangentWS);
+        bsdfData.diffuseColor = ComputeDiffuseColor(surfaceData.baseColor, surfaceData.metallic);
+        bsdfData.fresnel0     = ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, DEFAULT_SPECULAR_VALUE);
+        bsdfData.tangentWS    = surfaceData.tangentWS;
+        bsdfData.bitangentWS  = cross(bsdfData.normalWS, bsdfData.tangentWS);
     }
     else if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
+        bsdfData.diffuseColor = ComputeDiffuseColor(surfaceData.baseColor, surfaceData.metallic);
+        bsdfData.fresnel0     = ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, DEFAULT_SPECULAR_VALUE);
         // When using clear coat we assume that bottom layer is regular
-        FillMaterialIdStandardData(surfaceData.baseColor, surfaceData.metallic, bsdfData);
         FillMaterialIdClearCoatData(surfaceData.coatNormalWS, surfaceData.coatCoverage, surfaceData.coatIOR, bsdfData);
     }
 
@@ -502,6 +508,10 @@ void DecodeFromGBuffer(
             bsdfData.materialId = MATERIALID_LIT_CLEAR_COAT;
     }
 
+    float metallic          = 0;
+    float dielectricF0      = DEFAULT_SPECULAR_VALUE;
+    bool  specularColorMode = false;
+
     // We avoid divergent evaluation of the GGX, as that nearly doubles the cost.
     // If the tile has anisotropy, all the pixels within the tile are evaluated as anisotropic.
     if (HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_ANISO))
@@ -511,7 +521,6 @@ void DecodeFromGBuffer(
 
         if (bsdfData.materialId == MATERIALID_LIT_ANISO)
         {
-            float metallic;
             int octTangentSign;
             UnpackFloatInt8bit(inGBuffer2.a, 4.0, metallic, octTangentSign);
 
@@ -520,8 +529,6 @@ void DecodeFromGBuffer(
 
             bsdfData.anisotropy = inGBuffer2.b * 2 - 1;
             bsdfData.tangentWS  = UnpackNormalOctEncode(inGBuffer2.rg);
-
-            FillMaterialIdStandardData(baseColor, metallic, bsdfData);
         }
 
         bsdfData.bitangentWS = cross(bsdfData.normalWS, bsdfData.tangentWS);
@@ -531,39 +538,35 @@ void DecodeFromGBuffer(
 
     if (HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_SSS))
     {
-        float subsurfaceRadius  = 0.0;
-        float thickness         = 0.0;
         int   subsurfaceProfile = SSS_NEUTRAL_PROFILE_ID;
+        uint  transmissionMode  = SSS_TRSM_MODE_NONE;
+        float radius            = 0;
+        float thickness         = 0;
 
         if (bsdfData.materialId == MATERIALID_LIT_SSS)
         {
-            DecodeSSSProfileFromSSSBuffer(inGBuffer0, positionSS, subsurfaceProfile);
-            bsdfData.specularOcclusion = inGBuffer2.r; // Reminder: when using SSS we exchange specular occlusion and subsurfaceRadius/profileID
-            thickness = inGBuffer2.g;
-            // We don't use subsurfaceRadius in deferred lighting pass, only for SSSSS, so let it to 0
-            FillMaterialIdSSSData(baseColor, subsurfaceRadius, bsdfData);
+            // Reminder: when using SSS we exchange specular occlusion and subsurfaceRadius/profileID
+            bsdfData.specularOcclusion = inGBuffer2.r;
+
+            SSSData sssData;
+            DecodeFromSSSBuffer(inGBuffer0, positionSS, sssData);
+
+            subsurfaceProfile = sssData.subsurfaceProfile;
+            transmissionMode  = BitFieldExtract(asuint(_TransmissionFlags), 2u, 2u * subsurfaceProfile);
+            radius            = sssData.subsurfaceRadius;
+            thickness         = inGBuffer2.g;
+
+            dielectricF0      = SKIN_SPECULAR_VALUE; // TODO: take from the SSS profile
         }
 
-        FillTransmissionData(subsurfaceProfile, thickness, bsdfData);
+        FillMaterialIdSssData(subsurfaceProfile, radius, thickness, transmissionMode, bsdfData);
     }
 
     if (bsdfData.materialId == MATERIALID_LIT_STANDARD && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_STANDARD))
     {
-        float metallic;
         int materialIdExtent;
         UnpackFloatInt8bit(inGBuffer2.a, 4.0, metallic, materialIdExtent);
-
-        [flatten] if (materialIdExtent == GBUFFER_LIT_STANDARD_SPECULAR_COLOR_ID)
-        {
-            // Note: Specular is not a material id but just a way to parameterize the standard materialid, thus we reset materialId to MATERIALID_LIT_STANDARD
-            // For material classification it will be consider as Standard as well, thus no need to create special case
-            bsdfData.diffuseColor = baseColor;
-            bsdfData.fresnel0 = inGBuffer2.rgb;
-        }
-        else // GBUFFER_LIT_STANDARD_REGULAR_ID
-        {
-            FillMaterialIdStandardData(baseColor, metallic, bsdfData);
-        }
+        specularColorMode = (materialIdExtent == GBUFFER_LIT_STANDARD_SPECULAR_COLOR_ID);
     }
     else if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
@@ -573,12 +576,25 @@ void DecodeFromGBuffer(
 
         float coatCoverage = inGBuffer2.b;
         float coatIOR;
-        int metallic;
-        UnpackFloatInt8bit(inGBuffer2.a, 16.0, coatIOR, metallic);
+        int metallic15;
+        UnpackFloatInt8bit(inGBuffer2.a, 16.0, coatIOR, metallic15);
+        metallic = metallic15 / 15.0;
 
         // When using clear coat we assume that bottom layer is regular
-        FillMaterialIdStandardData(baseColor, metallic / 15.0f, bsdfData);
         FillMaterialIdClearCoatData(coatNormalWS, coatCoverage, coatIOR, bsdfData);
+    }
+
+    if (specularColorMode)
+    {
+        // Note: Specular is not a material id but just a way to parameterize the standard materialid, thus we reset materialId to MATERIALID_LIT_STANDARD
+        // For material classification it will be consider as Standard as well, thus no need to create special case
+        bsdfData.diffuseColor = baseColor;
+        bsdfData.fresnel0     = inGBuffer2.rgb;
+    }
+    else
+    {
+        bsdfData.diffuseColor = ComputeDiffuseColor(baseColor, metallic);
+        bsdfData.fresnel0     = ComputeFresnel0(baseColor, metallic, dielectricF0);
     }
 
     bakeDiffuseLighting = inGBuffer3.rgb;
