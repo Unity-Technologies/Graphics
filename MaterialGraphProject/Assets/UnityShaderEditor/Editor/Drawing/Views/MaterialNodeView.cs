@@ -316,6 +316,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (m_PreviewContainer != null)
                     m_ControlsDivider.PlaceBehind(m_PreviewContainer);
             }
+
+            if (m_ControlsContainer.childCount == 0)
+                m_ControlsContainer.RemoveFromClassList("notEmpty");
+            else
+                m_ControlsContainer.AddToClassList("notEmpty");
         }
 
         void UpdateSize()

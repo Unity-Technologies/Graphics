@@ -30,6 +30,11 @@ MaterialNodeView #controls {
     background-color: #393939;
 }
 
+MaterialNodeView #controls.notEmpty {
+    padding-top: 4;
+    padding-bottom: 4;
+}
+
 MaterialNodeView #previewContainer > #preview  {
     width: 200;
     height: 200;
@@ -478,39 +483,6 @@ IMGUISlotEditorView {
     padding-bottom: 2;
 }
 
-
-ToolbarView {
-    flex-direction: row;
-    border-color: rgb(32, 32, 32);
-    border-bottom-width: 1;
-}
-
-ToolbarSeparatorView {
-    background-color: rgb(32, 32, 32);
-    width: 1;
-}
-
-ToolbarSpaceView {
-    width: 5;
-}
-
-ToolbarButtonView {
-    font-size: 10;
-    text-color: rgb(180, 180, 180);
-    padding-top: 3;
-    padding-bottom: 3;
-    padding-left: 4;
-    padding-right: 4;
-}
-
-ToolbarButtonView:hover {
-    background-color: rgba(255, 255, 255, 0.25);
-}
-
-ToolbarButtonView:active {
-    background-color: rgba(0, 0, 0, 0.25);
-}
-
 ColorControlView {
     flex-direction: row;
 }
@@ -519,8 +491,8 @@ MultiFloatControlView {
     flex-direction: row;
     padding-left: 8;
     padding-right: 8;
-    padding-top: 8;
-    padding-bottom: 8;
+    padding-top: 4;
+    padding-bottom: 4;
 }
 
 MultiFloatControlView > #dummy > Label {
@@ -552,8 +524,8 @@ EnumControlView > EnumField {
     flex: 1;
     margin-left: 0;
     margin-right: 8;
-    margin-top: 8;
-    margin-bottom: 8;
+    margin-top: 4;
+    margin-bottom: 4;
 }
 
 EnumControlView > Label {
@@ -563,15 +535,15 @@ EnumControlView > Label {
     padding-bottom: 0;
     margin-left: 8;
     margin-right: 8;
-    margin-top: 8;
-    margin-bottom: 8;
+    margin-top: 4;
+    margin-bottom: 4;
 }
 
 PropertyControlView {
     padding-left: 8;
     padding-right: 8;
-    padding-top: 8;
-    padding-bottom: 8;
+    padding-top: 4;
+    padding-bottom: 4;
 }
 
 FloatField {
