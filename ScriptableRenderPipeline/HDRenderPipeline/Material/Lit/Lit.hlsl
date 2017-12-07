@@ -1256,7 +1256,7 @@ float GetPunctualShapeAttenuation(LightData lightData, float3 L, float distSq)
 // None of the outputs are premultiplied.
 void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs posInput,
                             LightData lightData, BakeLightingData bakeLightingData,
-                            float3 N, float3 L, float distSq,
+                            float3 N, float3 L, float dist, float distSq,
                             out float3 color, out float attenuation)
 {
     float3 positionWS = posInput.positionWS;
@@ -1276,7 +1276,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     {
         // TODO: make projector lights cast shadows.
         float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
-        float4 L_dist = float4(L, sqrt(distSq));
+        float4 L_dist = float4(L, dist);
         shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS + offset, N, lightData.shadowIndex, L_dist, posInput.positionSS);
 #ifdef SHADOWS_SHADOWMASK
         // Note: Legacy Unity have two shadow mask mode. ShadowMask (ShadowMask contain static objects shadow and ShadowMap contain only dynamic objects shadow, final result is the minimun of both value)
@@ -1316,11 +1316,13 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     float3 lightToSample = posInput.positionWS - lightData.positionWS;
     int    lightType     = lightData.lightType;
 
-    float3 unL    = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? -lightToSample : -lightData.forward;
-    float  distSq = dot(unL, unL);
-    float3 N      = bsdfData.normalWS;
-    float3 L      = unL * rsqrt(distSq);
-    float  NdotL  = dot(N, L);
+    float3 unL     = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? -lightToSample : -lightData.forward;
+    float  distSq  = dot(unL, unL);
+    float  distRcp = rsqrt(distSq);
+    float  dist    = distSq * distRcp;
+    float3 N       = bsdfData.normalWS;
+    float3 L       = unL * distRcp;
+    float  NdotL   = dot(N, L);
 
     [flatten] if (bsdfData.useThickObjectMode && NdotL < 0)
     {
@@ -1328,7 +1330,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     }
 
     float3 color; float attenuation;
-    EvaluateLight_Punctual(lightLoopContext, posInput, lightData, bakeLightingData, N, L, distSq,
+    EvaluateLight_Punctual(lightLoopContext, posInput, lightData, bakeLightingData, N, L, dist, distSq,
                            color, attenuation);
 
     float intensity = attenuation * saturate(NdotL);
