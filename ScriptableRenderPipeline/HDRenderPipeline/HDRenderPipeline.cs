@@ -947,9 +947,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     if (camera.cameraType == CameraType.SceneView)
                         cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, m_CameraDepthStencilBufferRT);
 #endif
-
-                    renderContext.ExecuteCommandBuffer(cmd);
                 }
+
+                // Caution: ExecuteCommandBuffer must be outside of the profiling bracket
+                renderContext.ExecuteCommandBuffer(cmd);
 
                 CommandBufferPool.Release(cmd);
                 renderContext.Submit();
