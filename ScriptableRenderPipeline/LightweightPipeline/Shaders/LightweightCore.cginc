@@ -13,6 +13,20 @@
     #define OUTPUT_COLOR(color) color
 #endif
 
+#ifdef _NORMALMAP
+    #define OUTPUT_NORMAL(IN, OUT) OutputTangentToWorld(IN.tangent, IN.normal, OUT.tangent, OUT.binormal, OUT.normal)
+#else
+    #define OUTPUT_NORMAL(IN, OUT) OUT.normal = UnityObjectToWorldNormal(IN.normal)
+#endif
+
+#ifdef LIGHTMAP_ON
+    #define OUTPUT_LIGHTMAP_UV(lightmapUV, lightmapScaleOffset, OUT) OUT.xy = lightmapUV.xy * lightmapScaleOffset.xy + lightmapScaleOffset.zw;
+    #define OUTPUT_SH(normalWS, OUT)
+#else
+    #define OUTPUT_LIGHTMAP_UV(lightmapUV, lightmapScaleOffset, OUT)
+    #define OUTPUT_SH(normalWS, OUT) OUT.xyz = EvaluateSHPerVertex(normalWS)
+#endif
+
 half _Pow4(half x)
 {
     return x * x * x * x;
@@ -22,6 +36,13 @@ half _LerpOneTo(half b, half t)
 {
     half oneMinusT = 1 - t;
     return oneMinusT + b * t;
+}
+
+void AlphaDiscard(half alpha, half cutoff)
+{
+#ifdef _ALPHATEST_ON
+    clip(alpha - cutoff);
+#endif
 }
 
 half3 SafeNormalize(half3 inVec)
@@ -69,15 +90,10 @@ half3 EvaluateSHPerVertex(half3 normalWS)
     return half3(0.0, 0.0, 0.0);
 }
 
-half3 EvaluateSHPerPixel(half3 normalWS)
-{
-    return max(half3(0, 0, 0), ShadeSH9(half4(normalWS, 1.0)));
-}
-
-half3 EvaluateSHPerPixel(half3 normalWS, half3 L2Term)
+half3 EvaluateSHPerPixel(half3 L2Term, half3 normalWS)
 {
 #ifdef EVALUATE_SH_MIXED
-    return = max(half3(0, 0, 0), L2Term + SHEvalLinearL0L1(half4(normalWS, 1.0)));
+    return max(half3(0, 0, 0), L2Term + SHEvalLinearL0L1(half4(normalWS, 1.0)));
 #endif
 
     // Default: Evaluate SH fully per-pixel
@@ -95,6 +111,15 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
 #endif
 
     return bakedColor;
+}
+
+half3 SampleGI(float4 sampleData, half3 normalWS)
+{
+#if LIGHTMAP_ON
+    return SampleLightmap(sampleData.xy, normalWS);
+#endif
+
+    return EvaluateSHPerPixel(sampleData.xyz, normalWS);
 }
 
 void OutputTangentToWorld(half4 vertexTangent, half3 vertexNormal, out half3 tangentWS, out half3 binormalWS, out half3 normalWS)

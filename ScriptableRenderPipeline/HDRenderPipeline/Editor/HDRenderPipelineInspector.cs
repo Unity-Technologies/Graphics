@@ -19,6 +19,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedProperty m_enableComputeMaterialVariants;
         SerializedProperty m_enableFptlForForwardOpaque;
         SerializedProperty m_enableBigTilePrepass;
+        SerializedProperty m_enableAsyncCompute;
 
         // Rendering Settings
         SerializedProperty m_RenderingUseForwardOnly;
@@ -51,6 +52,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_enableComputeMaterialVariants = properties.Find(x => x.tileSettings.enableComputeMaterialVariants);
             m_enableFptlForForwardOpaque = properties.Find(x => x.tileSettings.enableFptlForForwardOpaque);
             m_enableBigTilePrepass = properties.Find(x => x.tileSettings.enableBigTilePrepass);
+            m_enableAsyncCompute = properties.Find(x => x.tileSettings.enableAsyncCompute);
 
             // Shadow settings
             m_ShadowAtlasWidth = properties.Find(x => x.shadowInitParams.shadowAtlasWidth);
@@ -105,6 +107,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     EditorGUILayout.PropertyField(m_enableComputeMaterialVariants, s_Styles.enableComputeMaterialVariants);
                     EditorGUI.indentLevel--;
                 }
+                EditorGUILayout.PropertyField(m_enableAsyncCompute, s_Styles.enableAsyncCompute);
             }
 
             if (EditorGUI.EndChangeCheck())
