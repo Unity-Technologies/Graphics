@@ -263,7 +263,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         CommonSettings.Settings m_CommonSettings = CommonSettings.Settings.s_Defaultsettings;
-        SkySettings m_SkySettings = null;
 
         static public CustomSampler   GetSampler(CustomSamplerId id)
         {
@@ -278,17 +277,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return CommonSettingsSingleton.overrideSettings.settings;
 
                 return m_CommonSettings;
-            }
-        }
-
-        public SkySettings skySettingsToUse
-        {
-            get
-            {
-                if (SkySettingsSingleton.overrideSettings)
-                    return SkySettingsSingleton.overrideSettings;
-
-                return m_SkySettings;
             }
         }
 
@@ -369,7 +357,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_LightLoop.Build(asset.renderPipelineResources, asset.globalRenderingSettings, asset.tileSettings, asset.globalTextureSettings, asset.shadowInitParams, m_ShadowSettings, m_IBLFilterGGX);
 
             m_SkyManager.Build(asset.renderPipelineResources, m_IBLFilterGGX);
-            m_SkyManager.skySettings = skySettingsToUse;
 
             m_DebugDisplaySettings.RegisterDebug();
             m_DebugFullScreenTempRT = HDShaderIDs._DebugFullScreenTexture;
@@ -537,7 +524,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // TODO: This is the wrong way to handle resize/allocation. We can have several different camera here, mean that the loop on camera will allocate and deallocate
             // the below buffer which is bad. Best is to have a set of buffer for each camera that is persistent and reallocate resource if need
             // For now consider we have only one camera that go to this code, the main one.
-            m_SkyManager.skySettings = skySettingsToUse;
             m_SkyManager.Resize(camera.nearClipPlane, camera.farClipPlane); // TODO: Also a bad naming, here we just want to realloc texture if skyparameters change (useful for lookdev)
 
             bool resolutionChanged = camera.pixelWidth != m_CurrentWidth || camera.pixelHeight != m_CurrentHeight;
@@ -871,10 +857,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_LightLoop.BuildGPULightLists(camera, cmd, m_CameraDepthStencilBufferRT, GetStencilTexture());
                 }
 
-                    // Caution: We require sun light here as some sky use the sun light to render, mean UpdateSkyEnvironment
-                    // must be call after BuildGPULightLists.
-                    // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
-                    UpdateSkyEnvironment(hdCamera, cmd);
+                // Caution: We require sun light here as some sky use the sun light to render, mean UpdateSkyEnvironment
+                // must be call after BuildGPULightLists.
+                // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
+                UpdateSkyEnvironment(hdCamera, cmd);
 
                 RenderDeferredLighting(hdCamera, cmd);
 
@@ -1349,8 +1335,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderSky(HDCamera hdCamera, CommandBuffer cmd)
         {
-            m_SkyManager.RenderSky(hdCamera, m_LightLoop.GetCurrentSunLight(), m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, cmd, m_DebugDisplaySettings);
-            m_SkyManager.RenderOpaqueAtmosphericScattering(cmd);
+            // Rendering the sky is the first time in the frame where we need fog parameters so we push them here for the whole frame.
+            var visualEnv = VolumeManager.instance.GetComponent<VisualEnvironment>();
+            visualEnv.PushFogShaderParameters(cmd, m_DebugDisplaySettings.renderingDebugSettings);
+
+            m_SkyManager.RenderSky(hdCamera, m_LightLoop.GetCurrentSunLight(), m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, cmd);
+            if(visualEnv.fogType != AtmosphericScattering.FogType.None)
+                m_SkyManager.RenderOpaqueAtmosphericScattering(cmd);
         }
 
         public Texture2D ExportSkyToTexture()

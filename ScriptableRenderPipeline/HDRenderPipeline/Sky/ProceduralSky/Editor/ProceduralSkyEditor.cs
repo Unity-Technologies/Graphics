@@ -1,69 +1,47 @@
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.Experimental.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [CanEditMultipleObjects]
-    [CustomEditor(typeof(ProceduralSkySettings))]
+    [VolumeComponentEditor(typeof(ProceduralSky))]
     public class ProceduralSkySettingsEditor
         : SkySettingsEditor
     {
-        private class Styles
+        SerializedDataParameter m_SunSize;
+        SerializedDataParameter m_SunSizeConvergence;
+        SerializedDataParameter m_AtmosphericThickness;
+        SerializedDataParameter m_SkyTint;
+        SerializedDataParameter m_GroundColor;
+        SerializedDataParameter m_EnableSunDisk;
+
+        public override void OnEnable()
         {
-            public readonly GUIContent sunSize = new GUIContent("Sun Size");
-            public readonly GUIContent sunSizeConvergence = new GUIContent("Sun Size Convergence");
-            public readonly GUIContent atmosphereThickness = new GUIContent("Atmosphere Thickness");
-            public readonly GUIContent skyTint = new GUIContent("SkyTint");
-            public readonly GUIContent groundColor = new GUIContent("Ground Color");
-            public readonly GUIContent enableSunDisk = new GUIContent("Enable Sun Disk");
-        }
+            base.OnEnable();
 
-        private static Styles s_Styles = null;
-        private static Styles styles
-        {
-            get
-            {
-                if (s_Styles == null)
-                    s_Styles = new Styles();
-                return s_Styles;
-            }
-        }
+            var o = new PropertyFetcher<ProceduralSky>(serializedObject);
 
-        private SerializedProperty m_SunSize;
-        private SerializedProperty m_SunSizeConvergence;
-        private SerializedProperty m_AtmosphericThickness;
-        private SerializedProperty m_SkyTint;
-        private SerializedProperty m_GroundColor;
-        private SerializedProperty m_EnableSunDisk;
-
-        protected override void InitializeProperties()
-        {
-            base.InitializeProperties();
-
-            m_SunSize = serializedObject.FindProperty("sunSize");
-            m_SunSizeConvergence = serializedObject.FindProperty("sunSizeConvergence");
-            m_AtmosphericThickness = serializedObject.FindProperty("atmosphereThickness");
-            m_SkyTint = serializedObject.FindProperty("skyTint");
-            m_GroundColor = serializedObject.FindProperty("groundColor");
-            m_EnableSunDisk = serializedObject.FindProperty("enableSunDisk");
+            m_SunSize = Unpack(o.Find(x => x.sunSize));
+            m_SunSizeConvergence = Unpack(o.Find(x => x.sunSizeConvergence));
+            m_AtmosphericThickness = Unpack(o.Find(x => x.atmosphereThickness));
+            m_SkyTint = Unpack(o.Find(x => x.skyTint));
+            m_GroundColor = Unpack(o.Find(x => x.groundColor));
+            m_EnableSunDisk = Unpack(o.Find(x => x.enableSunDisk));
         }
 
         public override void OnInspectorGUI()
         {
-            serializedObject.Update();
-
-            EditorGUILayout.PropertyField(m_EnableSunDisk, styles.enableSunDisk);
-            EditorGUILayout.PropertyField(m_SunSize, styles.sunSize);
-            EditorGUILayout.PropertyField(m_SunSizeConvergence, styles.sunSizeConvergence);
-            EditorGUILayout.PropertyField(m_AtmosphericThickness, styles.atmosphereThickness);
-            EditorGUILayout.PropertyField(m_SkyTint, styles.skyTint);
-            EditorGUILayout.PropertyField(m_GroundColor, styles.groundColor);
+            PropertyField(m_EnableSunDisk);
+            PropertyField(m_SunSize);
+            PropertyField(m_SunSizeConvergence);
+            PropertyField(m_AtmosphericThickness);
+            PropertyField(m_SkyTint);
+            PropertyField(m_GroundColor);
 
             EditorGUILayout.Space();
 
             base.CommonSkySettingsGUI();
-
-            serializedObject.ApplyModifiedProperties();
         }
     }
 }

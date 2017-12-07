@@ -1,18 +1,30 @@
+using System;
+
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [ExecuteInEditMode]
-    public abstract class SkySettings : ScriptableObject
-    {
-        [Range(0,360)]
-        public float                    rotation = 0.0f;
-        public float                    exposure = 0.0f;
-        public float                    multiplier = 1.0f;
-        public SkyResolution            resolution = SkyResolution.SkyResolution256;
-        public EnvironementUpdateMode   updateMode = EnvironementUpdateMode.OnChanged;
-        public float                    updatePeriod = 0.0f;
-        public Cubemap                  lightingOverride = null;
+    [Serializable]
+    public sealed class SkyResolutionParameter : VolumeParameter<SkyResolution> { }
 
-        public AtmosphericScatteringSettings atmosphericScatteringSettings = new AtmosphericScatteringSettings();
+    [Serializable]
+    public sealed class EnvUpdateParameter : VolumeParameter<EnvironementUpdateMode> { }
+
+    public abstract class SkySettings : VolumeComponent
+    {
+
+        [Tooltip("Rotation of the sky.")]
+        public ClampedFloatParameter    rotation = new ClampedFloatParameter { value = 0.0f, min = 0.0f, max = 360.0f };
+        [Tooltip("Exposure of the sky in EV.")]
+        public FloatParameter           exposure = new FloatParameter { value = 0.0f };
+        [Tooltip("Intensity multiplier for the sky.")]
+        public ClampedFloatParameter    multiplier = new ClampedFloatParameter { value = 1.0f, min = 0.0f, clampMode = ParameterClampMode.Min };
+        [Tooltip("Resolution of the environment lighting generated from the sky.")]
+        public SkyResolutionParameter   resolution = new SkyResolutionParameter { value = SkyResolution.SkyResolution256 };
+        [Tooltip("Specify how the environment lighting should be updated.")]
+        public EnvUpdateParameter       updateMode = new EnvUpdateParameter { value = EnvironementUpdateMode.OnChanged };
+        [Tooltip("If environment update is set to realtime, period in seconds at which it is updated (0.0 means every frame).")]
+        public ClampedFloatParameter    updatePeriod = new ClampedFloatParameter { value = 0.0f, min = 0.0f, clampMode = ParameterClampMode.Min };
+        [Tooltip("If a lighting override cubemap is provided, this cubemap will be used to compute lighting instead of the result from the visible sky.")]
+        public CubemapParameter         lightingOverride = new CubemapParameter { value = null };
 
         public override int GetHashCode()
         {
@@ -25,8 +37,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // TODO: Fixme once we switch to .Net 4.6+
                 //>>>
-                hash = hash * 23 + ((int)resolution).GetHashCode(); // Enum.GetHashCode generates garbade on .NET 3.5... Wtf !?
-                hash = hash * 23 + ((int)updateMode).GetHashCode();
+                hash = hash * 23 + ((int)resolution.value).GetHashCode(); // Enum.GetHashCode generates garbage on .NET 3.5... Wtf !?
+                hash = hash * 23 + ((int)updateMode.value).GetHashCode();
                 //<<<
 
                 hash = hash * 23 + updatePeriod.GetHashCode();
