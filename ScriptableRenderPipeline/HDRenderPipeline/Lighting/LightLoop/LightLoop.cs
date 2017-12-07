@@ -477,19 +477,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         public void Build(  RenderPipelineResources renderPipelineResources,
-                            GlobalRenderingSettings renderingSettings,
                             LightLoopSettings tileSettings,
                             GlobalTextureSettings textureSettings,
                             ShadowInitParameters shadowInit, ShadowSettings shadowSettings, IBLFilterGGX iblFilterGGX)
         {
-            // Deferred opaque are always using Fptl. Forward opaque can use Fptl or Cluster, transparent use cluster.
-            // When MSAA is enabled we disable Fptl as it become expensive compare to cluster
-            // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
-
-            // If Deferred, enable Fptl. If we are forward renderer only and not using Fptl for forward opaque, disable Fptl
-            m_isFptlEnabled = !renderingSettings.ShouldUseForwardRenderingOnly() || tileSettings.enableFptlForForwardOpaque; // TODO: Disable if MSAA
-            m_isFptlEnabledForForwardOpaque = tileSettings.enableFptlForForwardOpaque; // TODO: Disable if MSAA
-
             m_Resources = renderPipelineResources;
             m_LightLoopSettings = tileSettings;
 
@@ -511,14 +502,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
 
-            if (GetFeatureVariantsEnabled())
-            {
-                s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(m_LightLoopSettings.enableBigTilePrepass ? "TileLightListGen_SrcBigTile_FeatureFlags" : "TileLightListGen_FeatureFlags");
-            }
-            else
-            {
-                s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(m_LightLoopSettings.enableBigTilePrepass ? "TileLightListGen_SrcBigTile" : "TileLightListGen");
-            }
             s_AABBBoundsBuffer = new ComputeBuffer(2 * k_MaxLightsOnScreen, 3 * sizeof(float));
             s_ConvexBoundsBuffer = new ComputeBuffer(k_MaxLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightBound)));
             s_LightVolumeDataBuffer = new ComputeBuffer(k_MaxLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightVolumeData)));
@@ -1284,6 +1267,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed &&
                     light.bakingOutput.mixedLightingMode == MixedLightingMode.Shadowmask &&
                     light.bakingOutput.occlusionMaskChannel != -1; // We need to have an occlusion mask channel assign, else we have no shadow mask
+        }
+
+        public void UpdateRenderingPathState(bool useForwardRenderingOnly)
+        {
+            // Deferred opaque are always using Fptl. Forward opaque can use Fptl or Cluster, transparent use cluster.
+            // When MSAA is enabled we disable Fptl as it become expensive compare to cluster
+            // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
+
+            // If Deferred, enable Fptl. If we are forward renderer only and not using Fptl for forward opaque, disable Fptl
+            m_isFptlEnabled = !useForwardRenderingOnly || m_LightLoopSettings.enableFptlForForwardOpaque; // TODO: Disable if MSAA
+            m_isFptlEnabledForForwardOpaque = m_LightLoopSettings.enableFptlForForwardOpaque; // TODO: Disable if MSAA
+
+            if (GetFeatureVariantsEnabled())
+            {
+                s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(m_LightLoopSettings.enableBigTilePrepass ? "TileLightListGen_SrcBigTile_FeatureFlags" : "TileLightListGen_FeatureFlags");
+            }
+            else
+            {
+                s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(m_LightLoopSettings.enableBigTilePrepass ? "TileLightListGen_SrcBigTile" : "TileLightListGen");
+            }
         }
 
         // Return true if BakedShadowMask are enabled
