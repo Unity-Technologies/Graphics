@@ -838,7 +838,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     CommandBufferPool.Release(cmd);
                     cmd = CommandBufferPool.Get("");
 
-                    buildGPULightListsCompleteFence = m_LightLoop.BuildGPULightListsAsyncBegin(camera, renderContext, m_CameraDepthStencilBufferRT, GetStencilTexture(), startFence);
+                    buildGPULightListsCompleteFence = m_LightLoop.BuildGPULightListsAsyncBegin(camera, renderContext, m_CameraDepthStencilBufferRT, m_CameraStencilBufferCopyRT, startFence);
                 }
 
                 using (new ProfilingSample(cmd, "Render shadows", GetSampler(CustomSamplerId.RenderShadows)))
@@ -880,7 +880,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     using (new ProfilingSample(cmd, "Build Light list", GetSampler(CustomSamplerId.BuildLightList)))
                     {
-                        m_LightLoop.BuildGPULightLists(camera, cmd, m_CameraDepthStencilBufferRT, GetStencilTexture());
+                        m_LightLoop.BuildGPULightLists(camera, cmd, m_CameraDepthStencilBufferRT, m_CameraStencilBufferCopyRT);
                     }
                 }
 
