@@ -17,6 +17,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly string s_MotionVectorsStr = "MotionVectors";
         public static readonly string s_DistortionVectorsStr = "DistortionVectors";
         public static readonly string s_TransparentDepthPrepassStr = "TransparentDepthPrepass";
+        public static readonly string s_TransparentBackfaceStr = "TransparentBackface";
+        public static readonly string s_TransparentBackfaceDebugDisplayStr = "TransparentBackfaceDebugDisplay";
+        public static readonly string s_TransparentDepthPostpassStr = "TransparentDepthPostpass";
         public static readonly string s_MetaStr = "Meta";
         public static readonly string s_ShadowCasterStr = "ShadowCaster";
 
@@ -35,6 +38,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly ShaderPassName s_MotionVectorsName = new ShaderPassName(s_MotionVectorsStr);
         public static readonly ShaderPassName s_DistortionVectorsName = new ShaderPassName(s_DistortionVectorsStr);
         public static readonly ShaderPassName s_TransparentDepthPrepassName = new ShaderPassName(s_TransparentDepthPrepassStr);
+        public static readonly ShaderPassName s_TransparentBackfaceName = new ShaderPassName(s_TransparentBackfaceStr);
+        public static readonly ShaderPassName s_TransparentBackfaceDebugDisplayName = new ShaderPassName(s_TransparentBackfaceDebugDisplayStr);
+        public static readonly ShaderPassName s_TransparentDepthPostpassName = new ShaderPassName(s_TransparentDepthPostpassStr);
 
         // Legacy name
         public static readonly ShaderPassName s_AlwaysName = new ShaderPassName("Always");
@@ -84,11 +90,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int g_BaseFeatureFlags = Shader.PropertyToID("g_BaseFeatureFlags");
         public static readonly int g_TileFeatureFlags = Shader.PropertyToID("g_TileFeatureFlags");
-
-        public static readonly int _GBufferTexture0 = Shader.PropertyToID("_GBufferTexture0");
-        public static readonly int _GBufferTexture1 = Shader.PropertyToID("_GBufferTexture1");
-        public static readonly int _GBufferTexture2 = Shader.PropertyToID("_GBufferTexture2");
-        public static readonly int _GBufferTexture3 = Shader.PropertyToID("_GBufferTexture3");
 
         public static readonly int g_DispatchIndirectBuffer = Shader.PropertyToID("g_DispatchIndirectBuffer");
         public static readonly int g_TileList = Shader.PropertyToID("g_TileList");
@@ -209,10 +210,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int[] _DBufferTexture =
         {
-            Shader.PropertyToID("_DBufferTexture0"),
+            Shader.PropertyToID("_DBufferTexture0"), 
             Shader.PropertyToID("_DBufferTexture1"),
             Shader.PropertyToID("_DBufferTexture2"),
             Shader.PropertyToID("_DBufferTexture3")
+        };
+
+        public static readonly int[] _SSSBufferTexture = 
+        {
+            Shader.PropertyToID("_SSSBufferTexture0"),
+            Shader.PropertyToID("_SSSBufferTexture1"),
+            Shader.PropertyToID("_SSSBufferTexture2"),
+            Shader.PropertyToID("_SSSBufferTexture3"),
         };
 
         public static readonly int _VelocityTexture = Shader.PropertyToID("_VelocityTexture");

@@ -73,6 +73,9 @@
 #define SAMPLE_TEXTURECUBE_SHADOW(textureName, samplerName, coord4) textureName.SampleCmpLevelZero(samplerName, (coord3).xyz, (coord3).w)
 #define SAMPLE_TEXTURECUBE_ARRAY_SHADOW(textureName, samplerName, coord4, index) textureName.SampleCmpLevelZero(samplerName, float4((coord4).xyz, index), (coord4).w)
 
+#define SAMPLE_DEPTH_TEXTURE(textureName, samplerName, coord2) SAMPLE_TEXTURE2D(textureName, samplerName, coord2).r
+#define SAMPLE_DEPTH_TEXTURE_LOD(textureName, samplerName, coord2, lod) SAMPLE_TEXTURE2D_LOD(textureName, samplerName, coord2, lod).r
+
 #define TEXTURE2D_HALF TEXTURE2D
 #define TEXTURE2D_FLOAT TEXTURE2D
 #define TEXTURE3D_HALF TEXTURE3D

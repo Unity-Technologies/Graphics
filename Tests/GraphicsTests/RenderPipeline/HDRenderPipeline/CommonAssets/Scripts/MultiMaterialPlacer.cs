@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[SelectionBase]
 public class MultiMaterialPlacer : MonoBehaviour
 {
     public Renderer prefabObject;

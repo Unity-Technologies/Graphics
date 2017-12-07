@@ -28,7 +28,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 metal // TEMP: until we go further in dev
+            #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
             // #pragma enable_d3d11_debug_symbols
 
             #pragma vertex Vert
@@ -36,18 +36,19 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
             // Chose supported lighting architecture in case of deferred rendering
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
-            #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
             // Split lighting is utilized during the SSS pass.
             #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile _ DEBUG_DISPLAY
 
+            #define USE_FPTL_LIGHTLIST // deferred opaque always use FPTL
+
             //-------------------------------------------------------------------------------------
             // Include
             //-------------------------------------------------------------------------------------
 
-            #include "../../Core/ShaderLibrary/Common.hlsl"
+            #include "ShaderLibrary/Common.hlsl"
             #include "../Debug/DebugDisplay.hlsl"
 
             // Note: We have fix as guidelines that we have only one deferred material (with control of GBuffer enabled). Mean a users that add a new
@@ -61,7 +62,6 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             // variable declaration
             //-------------------------------------------------------------------------------------
 
-            DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
             #ifdef SHADOWS_SHADOWMASK
             TEXTURE2D(_ShadowMaskTexture);
             #endif
@@ -99,16 +99,15 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
                 // input.positionCS is SV_Position
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, uint2(input.positionCS.xy) / GetTileSize());
-                float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
-                UpdatePositionInput(depth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
+                float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.positionSS).x;
+                UpdatePositionInput(depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, posInput);
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
-                FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
                 BSDFData bsdfData;
                 BakeLightingData bakeLightingData;
-                DECODE_FROM_GBUFFER(gbuffer, MATERIAL_FEATURE_MASK_FLAGS, bsdfData, bakeLightingData.bakeDiffuseLighting);
+                DECODE_FROM_GBUFFER(posInput.positionSS, MATERIAL_FEATURE_MASK_FLAGS, bsdfData, bakeLightingData.bakeDiffuseLighting);
                 #ifdef SHADOWS_SHADOWMASK
-                DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.unPositionSS), bakeLightingData.bakeShadowMask);
+                DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.positionSS), bakeLightingData.bakeShadowMask);
                 #endif
 
                 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
@@ -118,9 +117,18 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                 LightLoop(V, posInput, preLightData, bsdfData, bakeLightingData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE, diffuseLighting, specularLighting);
 
                 Outputs outputs;
+
             #ifdef OUTPUT_SPLIT_LIGHTING
-                outputs.specularLighting = float4(specularLighting, 1.0);
-                outputs.diffuseLighting  = TagLightingForSSS(diffuseLighting);
+                if (_EnableSSSAndTransmission != 0 && bsdfData.materialId == MATERIALID_LIT_SSS)
+                {
+                    outputs.specularLighting = float4(specularLighting, 1.0);
+                    outputs.diffuseLighting  = TagLightingForSSS(diffuseLighting);
+                }
+                else
+                {
+                    outputs.specularLighting = float4(diffuseLighting + specularLighting, 1.0);
+                    outputs.diffuseLighting  = 0;
+                }
             #else
                 outputs.combinedLighting = float4(diffuseLighting + specularLighting, 1.0);
             #endif

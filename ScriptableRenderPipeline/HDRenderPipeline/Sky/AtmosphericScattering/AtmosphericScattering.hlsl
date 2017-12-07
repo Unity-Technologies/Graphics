@@ -1,7 +1,7 @@
 #ifndef UNITY_ATMOSPHERIC_SCATTERING_INCLUDED
 #define UNITY_ATMOSPHERIC_SCATTERING_INCLUDED
 
-#include "../../../Core/ShaderLibrary/VolumeRendering.hlsl"
+#include "ShaderLibrary/VolumeRendering.hlsl"
 
 #include "AtmosphericScattering.cs.hlsl"
 #include "../SkyVariables.hlsl"
@@ -40,7 +40,7 @@ float3 GetFogColor(PositionInputs posInput)
     else if (_FogColorMode == FOGCOLORMODE_SKY_COLOR)
     {
         // Based on Uncharted 4 "Mip Sky Fog" trick: http://advances.realtimerendering.com/other/2016/naughty_dog/NaughtyDog_TechArt_Final.pdf
-        float mipLevel = (1.0 - _MipFogMaxMip * saturate((posInput.depthVS - _MipFogNear) / (_MipFogFar - _MipFogNear))) * _SkyTextureMipCount;
+        float mipLevel = (1.0 - _MipFogMaxMip * saturate((posInput.linearDepth - _MipFogNear) / (_MipFogFar - _MipFogNear))) * _SkyTextureMipCount;
         float3 dir = normalize(posInput.positionWS - GetPrimaryCameraPosition());
         return SampleSkyTexture(dir, mipLevel).rgb;
     }
@@ -54,13 +54,13 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput)
     if (_AtmosphericScatteringType == FOGTYPE_EXPONENTIAL)
     {
         float3 fogColor = GetFogColor(posInput);
-        float fogFactor = _ExpFogDensity * (1.0f - Transmittance(OpticalDepthHomogeneous(1.0f / _ExpFogDistance, posInput.depthVS)));
+        float fogFactor = _ExpFogDensity * (1.0f - Transmittance(OpticalDepthHomogeneous(1.0f / _ExpFogDistance, posInput.linearDepth)));
         return float4(fogColor, fogFactor);
     }
     else if (_AtmosphericScatteringType == FOGTYPE_LINEAR)
     {
         float3 fogColor = GetFogColor(posInput);
-        float fogFactor = _LinearFogDensity * saturate((posInput.depthVS - _LinearFogStart) * _LinearFogOneOverRange);
+        float fogFactor = _LinearFogDensity * saturate((posInput.linearDepth - _LinearFogStart) * _LinearFogOneOverRange);
         return float4(fogColor, fogFactor);
     }
     else // NONE

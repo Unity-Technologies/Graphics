@@ -73,7 +73,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 			scInit.resourceBinder                    = binder;
 
 			m_ShadowMgr = new ShadowManager(shadowSettings, ref scInit, m_Shadowmaps);
-			// set global overrides - these need to match the override specified in ShadowDispatch.hlsl
+			// set global overrides - these need to match the override specified in Fptl/Shadow.hlsl
 			m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Point        , ShadowAlgorithm.PCF, ShadowVariant.V1, ShadowPrecision.High, true );
 			m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Spot         , ShadowAlgorithm.PCF, ShadowVariant.V1, ShadowPrecision.High, true );
 			m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Directional  , ShadowAlgorithm.PCF, ShadowVariant.V1, ShadowPrecision.High, true );
@@ -130,14 +130,14 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 	public class OnTileDeferredRenderPipeline : RenderPipelineAsset {
 
 	#if UNITY_EDITOR
-		[UnityEditor.MenuItem("RenderPipeline/OnTileDeferredPipeline/Create Pipeline Asset", false, 17)]
+		[UnityEditor.MenuItem("Assets/Create/Render Pipeline/On Tile Deferred/Render Pipeline", priority = CoreUtils.assetCreateMenuPriority1)]
 		static void CreateDeferredRenderPipeline()
 		{
 			var instance = ScriptableObject.CreateInstance<OnTileDeferredRenderPipeline> ();
 			UnityEditor.AssetDatabase.CreateAsset (instance, "Assets/OnTileDeferredPipeline.asset");
 		}
 
-		[UnityEditor.MenuItem("RenderPipeline/OnTileDeferredPipeline/Material Upgraders/Upgrade Standard Shader Materials")]
+		[UnityEditor.MenuItem("Edit/Render Pipeline/Upgrade/On Tile Deferred/Upgrade Standard Shader Materials", priority = CoreUtils.editMenuPriority2)]
 		static void SetupDeferredRenderPipelineMaterials()
 		{
 			Renderer[] _renderers = Component.FindObjectsOfType<Renderer> ();
@@ -358,7 +358,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 			m_CubeReflTexArray = new TextureCacheCubemap();
 			m_CookieTexArray.AllocTextureArray(8, m_TextureSettings.spotCookieSize, m_TextureSettings.spotCookieSize, TextureFormat.RGBA32, true);
 			m_CubeCookieTexArray.AllocTextureArray(4, m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true);
-			m_CubeReflTexArray.AllocTextureArray(64, m_TextureSettings.reflectionCubemapSize, TextureCache.GetPreferredHdrCompressedTextureFormat, true);
+			m_CubeReflTexArray.AllocTextureArray(64, m_TextureSettings.reflectionCubemapSize, TextureCache.GetPreferredHDRCompressedTextureFormat, true);
 
 			s_LightDataBuffer = new ComputeBuffer(k_MaxLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightData)));
 
@@ -912,7 +912,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 					m_LightData[i].x = LightDefinitions.SPHERE_LIGHT;
 
 					if (light.light.cookie != null)
-						m_LightData[i].z = m_CubeCookieTexArray.FetchSlice(light.light.cookie);
+						m_LightData[i].z = m_CubeCookieTexArray.FetchSlice(cmd, light.light.cookie);
 
 				} else if (light.lightType == LightType.Spot) {
 					m_LightData[i].x = LightDefinitions.SPOT_LIGHT;
@@ -923,9 +923,9 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 					m_LightMatrix[i] = SpotlightMatrix (light, worldToLight, range, chsa); 
 
 					if (light.light.cookie != null)
-						m_LightData[i].z = m_CookieTexArray.FetchSlice (light.light.cookie);
+						m_LightData[i].z = m_CookieTexArray.FetchSlice (cmd, light.light.cookie);
 					else
-						m_LightData [i].z = m_CookieTexArray.FetchSlice (m_DefaultSpotCookie);
+						m_LightData [i].z = m_CookieTexArray.FetchSlice (cmd, m_DefaultSpotCookie);
 					
 				} else if (light.lightType == LightType.Directional) {
 					m_LightData[i].x = LightDefinitions.DIRECTIONAL_LIGHT;
@@ -934,7 +934,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 					m_LightMatrix[i] = DirectionalLightmatrix (light, worldToLight);
 
 					if (light.light.cookie != null)
-						m_LightData[i].z = m_CookieTexArray.FetchSlice (light.light.cookie);
+						m_LightData[i].z = m_CookieTexArray.FetchSlice (cmd, light.light.cookie);
 
 				}
 			}
@@ -993,7 +993,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 				lgtData.lightIntensity = decodeVals.x;
 				lgtData.decodeExp = decodeVals.y;
 
-				lgtData.sliceIndex = m_CubeReflTexArray.FetchSlice(cubemap);
+				lgtData.sliceIndex = m_CubeReflTexArray.FetchSlice(cmd, cubemap);
 
 				var delta = combinedExtent - e;
 				lgtData.boxInnerDist = e;

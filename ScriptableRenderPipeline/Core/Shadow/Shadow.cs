@@ -5,10 +5,11 @@ using System.Collections.Generic;
 namespace UnityEngine.Experimental.Rendering
 {
     using ShadowRequestVector = VectorArray<ShadowmapBase.ShadowRequest>;
-    using ShadowDataVector    = VectorArray<ShadowData>;
+    using ShadowDataVector = VectorArray<ShadowData>;
     using ShadowPayloadVector = VectorArray<ShadowPayload>;
     using ShadowIndicesVector = VectorArray<int>;
-    using ShadowAlgoVector    = VectorArray<GPUShadowAlgorithm>;
+    using ShadowAlgoVector = VectorArray<GPUShadowAlgorithm>;
+    using Profiling;
 
     // Standard shadow map atlas implementation using one large shadow map
     public class ShadowAtlas : ShadowmapBase, IDisposable
@@ -31,6 +32,8 @@ namespace UnityEngine.Experimental.Rendering
         protected          float[]                    m_TmpBorders = new float[((k_MaxCascadesInShader+3)/4)*4];
         protected          ShadowAlgoVector           m_SupportedAlgorithms = new ShadowAlgoVector( 0, false );
         protected          Material                   m_DebugMaterial = null;
+
+        private CustomSampler   m_SamplerShadowMaps = CustomSampler.Create("ShadowMaps");
 
         protected struct Key
         {
@@ -116,6 +119,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             m_Shadowmap = new RenderTexture( (int) m_Width, (int) m_Height, (int) m_ShadowmapBits, m_ShadowmapFormat, RenderTextureReadWrite.Linear );
             CreateShadowmap( m_Shadowmap );
+            m_Shadowmap.Create();
         }
 
         virtual protected void CreateShadowmap( RenderTexture shadowmap )
@@ -478,8 +482,8 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (m_ActiveEntriesCount == 0)
                 return;
-
-            var profilingSample = new ProfilingSample(cmd, "Shadowmap{0}", m_TexSlot);
+            string sLabel = string.Format("Shadowmap{0}", m_TexSlot);
+            var profilingSample = new ProfilingSample(cmd, sLabel, m_SamplerShadowMaps);
 
             string cbName = "";
             if (!string.IsNullOrEmpty( m_ShaderKeyword ) )
@@ -1122,7 +1126,7 @@ namespace UnityEngine.Experimental.Rendering
         private ShadowRequestVector m_TmpRequests   = new ShadowRequestVector( 0, false );
         // The following vector holds data that are returned to the caller so it can be sent to GPU memory in some form. Contents are stable in between calls to ProcessShadowRequests.
         private ShadowIndicesVector m_ShadowIndices = new ShadowIndicesVector( 0, false );
-
+        private CustomSampler   m_SamplerRenderShadows = CustomSampler.Create("RenderShadows");
 
         public override uint GetShadowMapCount()
         {
@@ -1412,7 +1416,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public override void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CommandBuffer cmd, CullResults cullResults, List<VisibleLight> lights)
         {
-            using (new ProfilingSample(cmd, "Render Shadows"))
+            using (new ProfilingSample(cmd, "Render Shadows", m_SamplerRenderShadows))
             {
                 foreach( var sm in m_Shadowmaps )
                 {

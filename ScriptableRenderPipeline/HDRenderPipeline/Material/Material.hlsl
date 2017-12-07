@@ -1,21 +1,21 @@
 #ifndef UNITY_MATERIAL_INCLUDED
 #define UNITY_MATERIAL_INCLUDED
 
-#include "../../Core/ShaderLibrary/Color.hlsl"
-#include "../../Core/ShaderLibrary/Packing.hlsl"
-#include "../../Core/ShaderLibrary/BSDF.hlsl"
-#include "../../Core/ShaderLibrary/Debug.hlsl"
-#include "../../Core/ShaderLibrary/GeometricTools.hlsl"
-#include "../../Core/ShaderLibrary/CommonMaterial.hlsl"
-#include "../../Core/ShaderLibrary/EntityLighting.hlsl"
-#include "../../Core/ShaderLibrary/ImageBasedLighting.hlsl"
+#include "ShaderLibrary/Color.hlsl"
+#include "ShaderLibrary/Packing.hlsl"
+#include "ShaderLibrary/BSDF.hlsl"
+#include "ShaderLibrary/Debug.hlsl"
+#include "ShaderLibrary/GeometricTools.hlsl"
+#include "ShaderLibrary/CommonMaterial.hlsl"
+#include "ShaderLibrary/EntityLighting.hlsl"
+#include "ShaderLibrary/ImageBasedLighting.hlsl"
 #include "../Sky/AtmosphericScattering/AtmosphericScattering.hlsl"
 
 // Guidelines for Material Keyword.
 // There is a set of Material Keyword that a HD shaders must define (or not define). We call them system KeyWord.
 // .Shader need to define:
 // - _SURFACE_TYPE_TRANSPARENT if they use a transparent material
-// - _BLENDMODE_ALPHA, _BLENDMODE_ADD, _BLENDMODE_MULTIPLY, _BLENDMODE_PRE_MULTIPLY for blend mode
+// - _BLENDMODE_ALPHA, _BLENDMODE_ADD, _BLENDMODE_PRE_MULTIPLY for blend mode
 // - _BLENDMODE_PRESERVE_SPECULAR_LIGHTING for correct lighting when blend mode are use with a Lit material
 // - _ENABLE_FOG_ON_TRANSPARENT if fog is enable on transparent surface
 
@@ -35,13 +35,13 @@ float4 ApplyBlendMode(float3 diffuseLighting, float3 specularLighting, float opa
     // However this have precision issue when reaching 0, so we change the blend mode and apply src * src_a inside the shader instead
     #if defined(_BLENDMODE_ADD) || defined(_BLENDMODE_ALPHA)
     return float4(diffuseLighting * opacity + specularLighting, opacity);
-    #else // defined(_BLENDMODE_MULTIPLY) || defined(_BLENDMODE_PRE_MULTIPLY)
+    #else // defined(_BLENDMODE_PRE_MULTIPLY)
     return float4(diffuseLighting + specularLighting, opacity);
     #endif
 #else
     #if defined(_BLENDMODE_ADD) || defined(_BLENDMODE_ALPHA)
     return float4((diffuseLighting + specularLighting) * opacity, opacity);
-    #else // defined(_BLENDMODE_MULTIPLY) || defined(_BLENDMODE_PRE_MULTIPLY)
+    #else // defined(_BLENDMODE_PRE_MULTIPLY)
     return float4(diffuseLighting + specularLighting, opacity);
     #endif
 #endif
@@ -71,9 +71,6 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float4 inputColor)
     #elif defined(_BLENDMODE_ADD)
     // For additive, we just need to fade to black with fog density (black + background == background color == fog color)
     result.rgb = result.rgb * (1.0 - fog.a);
-    #elif defined(_BLENDMODE_MULTIPLY)
-    // For multiplicative, we just need to fade to white with fog density (white * background == background color == fog color)
-    result.rgb = lerp(result.rgb, float3(1.0, 1.0, 1.0), fog.a);
     #elif defined(_BLENDMODE_PRE_MULTIPLY)
     // For Pre-Multiplied Alpha Blend, we need to multiply fog color by src alpha to match regular alpha blending formula.
     result.rgb = lerp(result.rgb, fog.rgb * result.a, fog.a);
@@ -152,17 +149,7 @@ void UpdateLightingHierarchyWeights(inout float hierarchyWeight, inout float wei
         out GBufferType0 MERGE_NAME(NAME, 0) : SV_Target0,    \
         out GBufferType1 MERGE_NAME(NAME, 1) : SV_Target1
 
-#define DECLARE_GBUFFER_TEXTURE(NAME)   \
-        TEXTURE2D(MERGE_NAME(NAME, 0));  \
-        TEXTURE2D(MERGE_NAME(NAME, 1));
-
-#define FETCH_GBUFFER(NAME, TEX, unCoord2)                                        \
-        GBufferType0 MERGE_NAME(NAME, 0) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 0), unCoord2); \
-        GBufferType1 MERGE_NAME(NAME, 1) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 1), unCoord2);
-
-#define ENCODE_INTO_GBUFFER(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, NAME) EncodeIntoGBuffer(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, MERGE_NAME(NAME,0), MERGE_NAME(NAME,1))
-#define DECODE_FROM_GBUFFER(NAME, FEATURE_FLAGS, BSDF_DATA, BAKE_DIFFUSE_LIGHTING) DecodeFromGBuffer(MERGE_NAME(NAME,0), MERGE_NAME(NAME,1), FEATURE_FLAGS, BSDF_DATA, BAKE_DIFFUSE_LIGHTING)
-#define MATERIAL_FEATURE_FLAGS_FROM_GBUFFER(NAME) MaterialFeatureFlagsFromGBuffer(MERGE_NAME(NAME,0), MERGE_NAME(NAME,1))
+#define ENCODE_INTO_GBUFFER(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, UNPOSITIONSS, NAME) EncodeIntoGBuffer(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, UNPOSITIONSS, MERGE_NAME(NAME,0), MERGE_NAME(NAME,1))
 
 #ifdef SHADOWS_SHADOWMASK
     #define OUTPUT_GBUFFER_SHADOWMASK(NAME) ,out float4 NAME : SV_Target2
@@ -182,19 +169,7 @@ void UpdateLightingHierarchyWeights(inout float hierarchyWeight, inout float wei
         out GBufferType1 MERGE_NAME(NAME, 1) : SV_Target1,    \
         out GBufferType2 MERGE_NAME(NAME, 2) : SV_Target2
 
-#define DECLARE_GBUFFER_TEXTURE(NAME)   \
-        TEXTURE2D(MERGE_NAME(NAME, 0));  \
-        TEXTURE2D(MERGE_NAME(NAME, 1));  \
-        TEXTURE2D(MERGE_NAME(NAME, 2));
-
-#define FETCH_GBUFFER(NAME, TEX, unCoord2)                                        \
-        GBufferType0 MERGE_NAME(NAME, 0) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 0), unCoord2); \
-        GBufferType1 MERGE_NAME(NAME, 1) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 1), unCoord2); \
-        GBufferType2 MERGE_NAME(NAME, 2) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 2), unCoord2);
-
-#define ENCODE_INTO_GBUFFER(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, NAME) EncodeIntoGBuffer(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, MERGE_NAME(NAME,0), MERGE_NAME(NAME,1), MERGE_NAME(NAME,2))
-#define DECODE_FROM_GBUFFER(NAME, FEATURE_FLAGS, BSDF_DATA, BAKE_DIFFUSE_LIGHTING) DecodeFromGBuffer(MERGE_NAME(NAME,0), MERGE_NAME(NAME,1), MERGE_NAME(NAME,2), FEATURE_FLAGS, BSDF_DATA, BAKE_DIFFUSE_LIGHTING)
-#define MATERIAL_FEATURE_FLAGS_FROM_GBUFFER(NAME) MaterialFeatureFlagsFromGBuffer(MERGE_NAME(NAME,0), MERGE_NAME(NAME,1), MERGE_NAME(NAME,2))
+#define ENCODE_INTO_GBUFFER(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, UNPOSITIONSS, NAME) EncodeIntoGBuffer(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, UNPOSITIONSS, MERGE_NAME(NAME,0), MERGE_NAME(NAME,1), MERGE_NAME(NAME,2))
 
 #ifdef SHADOWS_SHADOWMASK
     #define OUTPUT_GBUFFER_SHADOWMASK(NAME) ,out float4 NAME : SV_Target3
@@ -215,21 +190,7 @@ void UpdateLightingHierarchyWeights(inout float hierarchyWeight, inout float wei
         out GBufferType2 MERGE_NAME(NAME, 2) : SV_Target2,    \
         out GBufferType3 MERGE_NAME(NAME, 3) : SV_Target3
 
-#define DECLARE_GBUFFER_TEXTURE(NAME)   \
-        TEXTURE2D(MERGE_NAME(NAME, 0));  \
-        TEXTURE2D(MERGE_NAME(NAME, 1));  \
-        TEXTURE2D(MERGE_NAME(NAME, 2));  \
-        TEXTURE2D(MERGE_NAME(NAME, 3));
-
-#define FETCH_GBUFFER(NAME, TEX, unCoord2)                                        \
-        GBufferType0 MERGE_NAME(NAME, 0) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 0), unCoord2); \
-        GBufferType1 MERGE_NAME(NAME, 1) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 1), unCoord2); \
-        GBufferType2 MERGE_NAME(NAME, 2) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 2), unCoord2); \
-        GBufferType3 MERGE_NAME(NAME, 3) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 3), unCoord2);
-
-#define ENCODE_INTO_GBUFFER(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, NAME) EncodeIntoGBuffer(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3))
-#define DECODE_FROM_GBUFFER(NAME, FEATURE_FLAGS, BSDF_DATA, BAKE_DIFFUSE_LIGHTING) DecodeFromGBuffer(MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3), FEATURE_FLAGS, BSDF_DATA, BAKE_DIFFUSE_LIGHTING)
-#define MATERIAL_FEATURE_FLAGS_FROM_GBUFFER(NAME) MaterialFeatureFlagsFromGBuffer(MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3))
+#define ENCODE_INTO_GBUFFER(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, UNPOSITIONSS, NAME) EncodeIntoGBuffer(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, UNPOSITIONSS, MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3))
 
 #ifdef SHADOWS_SHADOWMASK
     #define OUTPUT_GBUFFER_SHADOWMASK(NAME) ,out float4 NAME : SV_Target4
@@ -251,23 +212,7 @@ void UpdateLightingHierarchyWeights(inout float hierarchyWeight, inout float wei
         out GBufferType3 MERGE_NAME(NAME, 3) : SV_Target3,    \
         out GBufferType4 MERGE_NAME(NAME, 4) : SV_Target4
 
-#define DECLARE_GBUFFER_TEXTURE(NAME)   \
-        TEXTURE2D(MERGE_NAME(NAME, 0));  \
-        TEXTURE2D(MERGE_NAME(NAME, 1));  \
-        TEXTURE2D(MERGE_NAME(NAME, 2));  \
-        TEXTURE2D(MERGE_NAME(NAME, 3));  \
-        TEXTURE2D(MERGE_NAME(NAME, 4));
-
-#define FETCH_GBUFFER(NAME, TEX, unCoord2)                                        \
-        GBufferType0 MERGE_NAME(NAME, 0) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 0), unCoord2); \
-        GBufferType1 MERGE_NAME(NAME, 1) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 1), unCoord2); \
-        GBufferType2 MERGE_NAME(NAME, 2) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 2), unCoord2); \
-        GBufferType3 MERGE_NAME(NAME, 3) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 3), unCoord2); \
-        GBufferType4 MERGE_NAME(NAME, 4) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 4), unCoord2);
-
-#define ENCODE_INTO_GBUFFER(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, NAME) EncodeIntoGBuffer(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3), MERGE_NAME(NAME, 4))
-#define DECODE_FROM_GBUFFER(NAME, FEATURE_FLAGS, BSDF_DATA, BAKE_DIFFUSE_LIGHTING) DecodeFromGBuffer(MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3), MERGE_NAME(NAME, 4), FEATURE_FLAGS, BSDF_DATA, BAKE_DIFFUSE_LIGHTING)
-#define MATERIAL_FEATURE_FLAGS_FROM_GBUFFER(NAME) MaterialFeatureFlagsFromGBuffer(MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3), MERGE_NAME(NAME, 4))
+#define ENCODE_INTO_GBUFFER(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, UNPOSITIONSS, NAME) EncodeIntoGBuffer(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, UNPOSITIONSS, MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3), MERGE_NAME(NAME, 4))
 
 #ifdef SHADOWS_SHADOWMASK
     #define OUTPUT_GBUFFER_SHADOWMASK(NAME) ,out float4 NAME : SV_Target5
@@ -290,25 +235,7 @@ void UpdateLightingHierarchyWeights(inout float hierarchyWeight, inout float wei
         out GBufferType4 MERGE_NAME(NAME, 4) : SV_Target4,    \
         out GBufferType5 MERGE_NAME(NAME, 5) : SV_Target5
 
-#define DECLARE_GBUFFER_TEXTURE(NAME)   \
-        TEXTURE2D(MERGE_NAME(NAME, 0));  \
-        TEXTURE2D(MERGE_NAME(NAME, 1));  \
-        TEXTURE2D(MERGE_NAME(NAME, 2));  \
-        TEXTURE2D(MERGE_NAME(NAME, 3));  \
-        TEXTURE2D(MERGE_NAME(NAME, 4));  \
-        TEXTURE2D(MERGE_NAME(NAME, 5));
-
-#define FETCH_GBUFFER(NAME, TEX, unCoord2)                                        \
-        GBufferType0 MERGE_NAME(NAME, 0) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 0), unCoord2); \
-        GBufferType1 MERGE_NAME(NAME, 1) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 1), unCoord2); \
-        GBufferType2 MERGE_NAME(NAME, 2) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 2), unCoord2); \
-        GBufferType3 MERGE_NAME(NAME, 3) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 3), unCoord2); \
-        GBufferType4 MERGE_NAME(NAME, 4) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 4), unCoord2); \
-        GBufferType5 MERGE_NAME(NAME, 5) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 5), unCoord2);
-
-#define ENCODE_INTO_GBUFFER(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, NAME) EncodeIntoGBuffer(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3), MERGE_NAME(NAME, 4), MERGE_NAME(NAME, 5))
-#define DECODE_FROM_GBUFFER(NAME, FEATURE_FLAGS, BSDF_DATA, BAKE_DIFFUSE_LIGHTING) DecodeFromGBuffer(MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3), MERGE_NAME(NAME, 4), MERGE_NAME(NAME, 5), FEATURE_FLAGS, BSDF_DATA, BAKE_DIFFUSE_LIGHTING)
-#define MATERIAL_FEATURE_FLAGS_FROM_GBUFFER(NAME) MaterialFeatureFlagsFromGBuffer(MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3), MERGE_NAME(NAME, 4), MERGE_NAME(NAME, 5))
+#define ENCODE_INTO_GBUFFER(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, UNPOSITIONSS, NAME) EncodeIntoGBuffer(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, UNPOSITIONSS, MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3), MERGE_NAME(NAME, 4), MERGE_NAME(NAME, 5))
 
 #ifdef SHADOWS_SHADOWMASK
     #define OUTPUT_GBUFFER_SHADOWMASK(NAME) ,out float4 NAME : SV_Target6
@@ -322,6 +249,9 @@ void UpdateLightingHierarchyWeights(inout float hierarchyWeight, inout float wei
 #endif
 
 #endif
+
+#define DECODE_FROM_GBUFFER(UNPOSITIONSS, FEATURE_FLAGS, BSDF_DATA, BAKE_DIFFUSE_LIGHTING) DecodeFromGBuffer(UNPOSITIONSS, FEATURE_FLAGS, BSDF_DATA, BAKE_DIFFUSE_LIGHTING)
+#define MATERIAL_FEATURE_FLAGS_FROM_GBUFFER(UNPOSITIONSS) MaterialFeatureFlagsFromGBuffer(UNPOSITIONSS)
 
 #ifdef SHADOWS_SHADOWMASK
 #define ENCODE_SHADOWMASK_INTO_GBUFFER(SHADOWMASK, NAME) EncodeShadowMask(SHADOWMASK, NAME)

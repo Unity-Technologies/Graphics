@@ -28,8 +28,6 @@ namespace UnityEditor
 
         private static class Styles
         {
-            public static GUIContent uvSetLabel = new GUIContent("UV Set");
-
             public static GUIContent albedoText = new GUIContent("Albedo", "Albedo (RGB) and Transparency (A)");
             public static GUIContent alphaCutoffText = new GUIContent("Alpha Cutoff", "Threshold for alpha cutoff");
             public static GUIContent specularMapText = new GUIContent("Specular", "Specular (RGB) and Smoothness (A)");
@@ -40,12 +38,8 @@ namespace UnityEditor
             public static GUIContent highlightsText = new GUIContent("Specular Highlights", "Specular Highlights");
             public static GUIContent reflectionsText = new GUIContent("Reflections", "Glossy Reflections");
             public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map");
-            public static GUIContent heightMapText = new GUIContent("Height Map", "Height Map (G)");
             public static GUIContent occlusionText = new GUIContent("Occlusion", "Occlusion (G)");
             public static GUIContent emissionText = new GUIContent("Color", "Emission (RGB)");
-            public static GUIContent detailMaskText = new GUIContent("Detail Mask", "Mask for Secondary Maps (A)");
-            public static GUIContent detailAlbedoText = new GUIContent("Detail Albedo x2", "Albedo (RGB) multiplied by 2");
-            public static GUIContent detailNormalMapText = new GUIContent("Normal Map", "Normal Map");
             public static GUIContent bumpScaleNotSupported = new GUIContent("Bump scale is not supported on mobile platforms");
             public static GUIContent fixNow = new GUIContent("Fix now");
 
@@ -62,41 +56,32 @@ namespace UnityEditor
         }
 
         #pragma warning disable 0414
-        private MaterialProperty workflowMode = null;
-        private MaterialProperty blendMode = null;
+        private MaterialProperty workflowMode;
+        private MaterialProperty blendMode;
 
-        private MaterialProperty albedoColor = null;
-        private MaterialProperty albedoMap = null;
-        private MaterialProperty alphaCutoff = null;
+        private MaterialProperty albedoColor;
+        private MaterialProperty albedoMap;
+        private MaterialProperty alphaCutoff;
 
-        private MaterialProperty smoothness = null;
-        private MaterialProperty smoothnessScale = null;
-        private MaterialProperty smoothnessMapChannel = null;
+        private MaterialProperty smoothness;
+        private MaterialProperty smoothnessScale;
+        private MaterialProperty smoothnessMapChannel;
 
-        private MaterialProperty metallic = null;
-        private MaterialProperty specColor = null;
-        private MaterialProperty metallicGlossMap = null;
-        private MaterialProperty specGlossMap = null;
-        private MaterialProperty highlights = null;
-        private MaterialProperty reflections = null;
+        private MaterialProperty metallic;
+        private MaterialProperty specColor;
+        private MaterialProperty metallicGlossMap;
+        private MaterialProperty specGlossMap;
+        private MaterialProperty highlights;
+        private MaterialProperty reflections;
 
-        private MaterialProperty bumpScale = null;
-        private MaterialProperty bumpMap = null;
-        private MaterialProperty occlusionStrength = null;
-        private MaterialProperty occlusionMap = null;
-        private MaterialProperty heigtMapScale = null;
-        private MaterialProperty heightMap = null;
-        private MaterialProperty emissionColorForRendering = null;
-        private MaterialProperty emissionMap = null;
-        private MaterialProperty detailMask = null;
-        private MaterialProperty detailAlbedoMap = null;
-        private MaterialProperty detailNormalMapScale = null;
-        private MaterialProperty detailNormalMap = null;
-        private MaterialProperty uvSetSecondary = null;
+        private MaterialProperty bumpScale;
+        private MaterialProperty bumpMap;
+        private MaterialProperty occlusionStrength;
+        private MaterialProperty occlusionMap;
+        private MaterialProperty emissionColorForRendering;
+        private MaterialProperty emissionMap;
 
         private MaterialEditor m_MaterialEditor;
-        private const float kMaxfp16 = 65536f; // Clamp to a value that fits into fp16.
-        private ColorPickerHDRConfig m_ColorPickerHDRConfig = new ColorPickerHDRConfig(0f, kMaxfp16, 1 / kMaxfp16, 3f);
 
         private bool m_FirstTimeApply = true;
         #pragma warning restore 0414
@@ -122,17 +107,10 @@ namespace UnityEditor
 
             bumpScale = FindProperty("_BumpScale", props);
             bumpMap = FindProperty("_BumpMap", props);
-            heigtMapScale = FindProperty("_Parallax", props);
-            heightMap = FindProperty("_ParallaxMap", props);
             occlusionStrength = FindProperty("_OcclusionStrength", props);
             occlusionMap = FindProperty("_OcclusionMap", props);
             emissionColorForRendering = FindProperty("_EmissionColor", props);
             emissionMap = FindProperty("_EmissionMap", props);
-            detailMask = FindProperty("_DetailMask", props);
-            detailAlbedoMap = FindProperty("_DetailAlbedoMap", props);
-            detailNormalMapScale = FindProperty("_DetailNormalMapScale", props);
-            detailNormalMap = FindProperty("_DetailNormalMap", props);
-            uvSetSecondary = FindProperty("_UVSec", props);
         }
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
@@ -285,7 +263,7 @@ namespace UnityEditor
                 bool hadEmissionTexture = emissionMap.textureValue != null;
 
                 // Texture and HDR color controls
-                m_MaterialEditor.TexturePropertyWithHDRColor(Styles.emissionText, emissionMap, emissionColorForRendering, m_ColorPickerHDRConfig, false);
+                m_MaterialEditor.TexturePropertyWithHDRColor(Styles.emissionText, emissionMap, emissionColorForRendering, false);
 
                 // If texture was assigned and color was black set color to white
                 float brightness = emissionColorForRendering.colorValue.maxColorComponent;

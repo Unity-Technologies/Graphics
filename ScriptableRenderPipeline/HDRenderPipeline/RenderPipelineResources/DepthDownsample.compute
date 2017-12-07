@@ -1,4 +1,4 @@
-﻿#include "../../Core/ShaderLibrary/Common.hlsl"
+﻿#include "ShaderLibrary/Common.hlsl"
 
 Texture2D<float> _Source;
 RWTexture2D<float> _Result;

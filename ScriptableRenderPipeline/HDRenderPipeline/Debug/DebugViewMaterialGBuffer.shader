@@ -8,15 +8,14 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 metal // TEMP: until we go further in dev
+            #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
 
             #pragma vertex Vert
             #pragma fragment Frag
 
             #pragma multi_compile _ SHADOWS_SHADOWMASK
 
-            #include "../../Core/ShaderLibrary/Common.hlsl"
-            #include "../../Core/ShaderLibrary/Color.hlsl"
+            #include "ShaderLibrary/Common.hlsl"
 
             // CAUTION: In case deferred lighting need to support various lighting model statically, we will require to do multicompile with different define like UNITY_MATERIAL_LIT
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
@@ -25,7 +24,6 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
             #include "../Debug/DebugDisplay.hlsl"
             #include "../Material/Material.hlsl"
 
-            DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
             #ifdef SHADOWS_SHADOWMASK
             TEXTURE2D(_ShadowMaskTexture);
             #endif
@@ -51,15 +49,14 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
             {
                 // input.positionCS is SV_Position
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
-                float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
-                UpdatePositionInput(depth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
+                float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.positionSS).x;
+                UpdatePositionInput(depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, posInput);
 
-                FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
                 BSDFData bsdfData;
                 BakeLightingData bakeLightingData;
-                DECODE_FROM_GBUFFER(gbuffer, 0xFFFFFFFF, bsdfData, bakeLightingData.bakeDiffuseLighting);
+                DECODE_FROM_GBUFFER(posInput.positionSS, UINT_MAX, bsdfData, bakeLightingData.bakeDiffuseLighting);
                 #ifdef SHADOWS_SHADOWMASK
-                DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.unPositionSS), bakeLightingData.bakeShadowMask);
+                DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.positionSS), bakeLightingData.bakeShadowMask);
                 #endif
 
                 // Init to not expected value
@@ -68,7 +65,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
 
                 if (_DebugViewMaterial == DEBUGVIEWGBUFFER_DEPTH)
                 {
-                    float linearDepth = frac(posInput.depthVS * 0.1);
+                    float linearDepth = frac(posInput.linearDepth * 0.1);
                     result = linearDepth.xxx;
                 }
                 // Caution: This value is not the same than the builtin data bakeDiffuseLighting. It also include emissive and multiply by the albedo

@@ -15,13 +15,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         //SkyResolution4096 = 4096
     }
 
-    [GenerateHLSL(PackingRules.Exact)]
-    public enum LightSamplingParameters
-    {
-        TextureHeight = 256,
-        TextureWidth  = 512
-    }
-
     public enum EnvironementUpdateMode
     {
         OnChanged = 0,
@@ -57,7 +50,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         IBLFilterGGX            m_iblFilterGgx;
 
         Vector4                 m_CubemapScreenSize;
-        Matrix4x4[]             m_faceWorldToViewMatrixMatrices     = new Matrix4x4[6];
         Matrix4x4[]             m_facePixelCoordToViewDirMatrices   = new Matrix4x4[6];
         Matrix4x4[]             m_faceCameraInvViewProjectionMatrix = new Matrix4x4[6];
 
@@ -67,29 +59,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         bool                    m_NeedLowLevelUpdateEnvironment;
         int                     m_UpdatedFramesRequired = 2; // The first frame after the scene load is currently not rendered correctly
         float                   m_CurrentUpdateTime;
+        int                     m_LastFrameUpdated = -1;
 
         bool                    m_useMIS = false;
-
-        // Ref: https://msdn.microsoft.com/en-us/library/windows/desktop/bb204881(v=vs.85).aspx
-        readonly Vector3[] m_LookAtList =
-        {
-            new Vector3(1.0f, 0.0f, 0.0f),
-            new Vector3(-1.0f, 0.0f, 0.0f),
-            new Vector3(0.0f, 1.0f, 0.0f),
-            new Vector3(0.0f, -1.0f, 0.0f),
-            new Vector3(0.0f, 0.0f, 1.0f),
-            new Vector3(0.0f, 0.0f, -1.0f),
-        };
-
-        readonly Vector3[] m_UpVectorList =
-        {
-            new Vector3(0.0f, 1.0f, 0.0f),
-            new Vector3(0.0f, 1.0f, 0.0f),
-            new Vector3(0.0f, 0.0f, -1.0f),
-            new Vector3(0.0f, 0.0f, 1.0f),
-            new Vector3(0.0f, 1.0f, 0.0f),
-            new Vector3(0.0f, 1.0f, 0.0f),
-        };
 
         SkySettings m_SkySettings;
         public SkySettings skySettings
@@ -188,6 +160,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 m_UpdatedFramesRequired = 2; // Special case. Even if update mode is set to OnDemand, we need to regenerate the environment after destroying the texture.
+                m_LastFrameUpdated = -1;
             }
 
             m_CubemapScreenSize = new Vector4((float)resolution, (float)resolution, 1.0f / (float)resolution, 1.0f / (float)resolution);
@@ -201,62 +174,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             for (int i = 0; i < 6; ++i)
             {
-                var lookAt      = Matrix4x4.LookAt(Vector3.zero, m_LookAtList[i], m_UpVectorList[i]);
+                var lookAt      = Matrix4x4.LookAt(Vector3.zero, CoreUtils.lookAtList[i], CoreUtils.upVectorList[i]);
                 var worldToView = lookAt * Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)); // Need to scale -1.0 on Z to match what is being done in the camera.wolrdToCameraMatrix API. ...
                 var screenSize  = new Vector4((int)m_SkySettings.resolution, (int)m_SkySettings.resolution, 1.0f / (int)m_SkySettings.resolution, 1.0f / (int)m_SkySettings.resolution);
 
-                m_faceWorldToViewMatrixMatrices[i]     = worldToView;
-                m_facePixelCoordToViewDirMatrices[i]   = ComputePixelCoordToWorldSpaceViewDirectionMatrix(0.5f * Mathf.PI, screenSize, worldToView, true);
+                m_facePixelCoordToViewDirMatrices[i]   = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(0.5f * Mathf.PI, screenSize, worldToView, true);
                 m_faceCameraInvViewProjectionMatrix[i] = HDUtils.GetViewProjectionMatrix(lookAt, cubeProj).inverse;
             }
         }
 
-        public static Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(float verticalFoV, Vector4 screenSize, Matrix4x4 worldToViewMatrix, bool renderToCubemap)
-        {
-            // Compose the view space version first.
-            // V = -(X, Y, Z), s.t. Z = 1,
-            // X = (2x / resX - 1) * tan(vFoV / 2) * ar = x * [(2 / resX) * tan(vFoV / 2) * ar] + [-tan(vFoV / 2) * ar] = x * [-m00] + [-m20]
-            // Y = (2y / resY - 1) * tan(vFoV / 2)      = y * [(2 / resY) * tan(vFoV / 2)]      + [-tan(vFoV / 2)]      = y * [-m11] + [-m21]
-            float tanHalfVertFoV = Mathf.Tan(0.5f * verticalFoV);
-            float aspectRatio    = screenSize.x * screenSize.w;
-
-            // Compose the matrix.
-            float m21 = tanHalfVertFoV;
-            float m20 = tanHalfVertFoV * aspectRatio;
-            float m00 = -2.0f * screenSize.z * m20;
-            float m11 = -2.0f * screenSize.w * m21;
-            float m33 = -1.0f;
-
-            if (renderToCubemap)
-            {
-                // Flip Y.
-                m11 = -m11;
-                m21 = -m21;
-            }
-
-            var viewSpaceRasterTransform = new Matrix4x4(new Vector4( m00, 0.0f, 0.0f, 0.0f),
-                                                         new Vector4(0.0f,  m11, 0.0f, 0.0f),
-                                                         new Vector4( m20,  m21,  m33, 0.0f),
-                                                         new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-
-            // Remove the translation component.
-            var homogeneousZero = new Vector4(0, 0, 0, 1);
-            worldToViewMatrix.SetColumn(3, homogeneousZero);
-
-            // Flip the Z to make the coordinate system left-handed.
-            worldToViewMatrix.SetRow(2, -worldToViewMatrix.GetRow(2));
-
-            // Transpose for HLSL.
-            return Matrix4x4.Transpose(worldToViewMatrix.transpose * viewSpaceRasterTransform);
-        }
-
         // Sets the global MIP-mapped cubemap '_SkyTexture' in the shader.
         // The texture being set is the sky (environment) map pre-convolved with GGX.
-        public void SetGlobalSkyTexture()
+        public void SetGlobalSkyTexture(CommandBuffer cmd)
         {
-            Shader.SetGlobalTexture(HDShaderIDs._SkyTexture, m_SkyboxGGXCubemapRT);
+            cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, m_SkyboxGGXCubemapRT);
             float mipCount = Mathf.Clamp(Mathf.Log((float)m_SkyboxGGXCubemapRT.width, 2.0f) + 1, 0.0f, 6.0f);
-            Shader.SetGlobalFloat(HDShaderIDs._SkyTextureMipCount, mipCount);
+            cmd.SetGlobalFloat(HDShaderIDs._SkyTextureMipCount, mipCount);
         }
 
         public void Resize(float nearPlane, float farPlane)
@@ -266,10 +199,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RebuildSkyMatrices(nearPlane, farPlane);
         }
 
-        public void Build(RenderPipelineResources renderPipelinesResources)
+        public void Build(RenderPipelineResources renderPipelinesResources, IBLFilterGGX iblFilterGGX)
         {
-            // Create unititialized. Lazy initialization is performed later.
-            m_iblFilterGgx = new IBLFilterGGX(renderPipelinesResources);
+            m_iblFilterGgx = iblFilterGGX;
 
             // TODO: We need to have an API to send our sky information to Enlighten. For now use a workaround through skybox/cubemap material...
             m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(renderPipelinesResources.skyboxCubemap);
@@ -333,36 +265,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.GenerateMips(dest);
         }
 
-        void RenderCubemapGGXConvolution(CommandBuffer cmd, BuiltinSkyParameters builtinParams, SkySettings skyParams, Texture input, RenderTexture target)
+        void RenderCubemapGGXConvolution(CommandBuffer cmd, Texture input, RenderTexture target)
         {
             using (new ProfilingSample(cmd, "Update Env: GGX Convolution"))
             {
-                int mipCount = 1 + (int)Mathf.Log(input.width, 2.0f);
-                if (mipCount < ((int)EnvConstants.SpecCubeLodStep + 1))
-                {
-                    Debug.LogWarning("RenderCubemapGGXConvolution: Cubemap size is too small for GGX convolution, needs at least " + ((int)EnvConstants.SpecCubeLodStep + 1) + " mip levels");
-                    return;
-                }
-
-                if (!m_iblFilterGgx.IsInitialized())
-                    m_iblFilterGgx.Initialize(cmd);
-
-                // Copy the first mip
-                using (new ProfilingSample(cmd, "Copy Original Mip"))
-                {
-                    for (int f = 0; f < 6; f++)
-                    {
-                        cmd.CopyTexture(input, f, 0, target, f, 0);
-                    }
-                }
-
-                using (new ProfilingSample(cmd, "GGX Convolution"))
-                {
-                    if (m_useMIS && m_iblFilterGgx.supportMis)
-                        m_iblFilterGgx.FilterCubemapMIS(cmd, input, target, mipCount, m_SkyboxConditionalCdfRT, m_SkyboxMarginalRowCdfRT, m_faceWorldToViewMatrixMatrices);
-                    else
-                        m_iblFilterGgx.FilterCubemap(cmd, input, target, mipCount, m_faceWorldToViewMatrixMatrices);
-                }
+                if (m_useMIS && m_iblFilterGgx.supportMis)
+                    m_iblFilterGgx.FilterCubemapMIS(cmd, input, target, m_SkyboxConditionalCdfRT, m_SkyboxMarginalRowCdfRT);
+                else
+                    m_iblFilterGgx.FilterCubemap(cmd, input, target);
             }
         }
 
@@ -373,17 +283,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void UpdateEnvironment(HDCamera camera, Light sunLight, CommandBuffer cmd)
         {
+            if (m_LastFrameUpdated == Time.frameCount)
+                return;
+
+            m_LastFrameUpdated = Time.frameCount;
+
             // We need one frame delay for this update to work since DynamicGI.UpdateEnvironment is executed directly but the renderloop is not (so we need to wait for the sky texture to be rendered first)
             if (m_NeedLowLevelUpdateEnvironment)
             {
                 using (new ProfilingSample(cmd, "DynamicGI.UpdateEnvironment"))
                 {
                     // TODO: Properly send the cubemap to Enlighten. Currently workaround is to set the cubemap in a Skybox/cubemap material
+                    float intensity = IsSkyValid() ? 1.0f : 0.0f; // Eliminate all diffuse if we don't have a skybox (meaning for now the background is black in HDRP)
                     m_StandardSkyboxMaterial.SetTexture("_Tex", m_SkyboxCubemapRT);
-                    RenderSettings.skybox = IsSkyValid() ? m_StandardSkyboxMaterial : null; // Setup this material as the default to be use in RenderSettings
-                    RenderSettings.ambientIntensity = 1.0f; // fix this to 1, this parameter should not exist!
+                    RenderSettings.skybox = m_StandardSkyboxMaterial; // Setup this material as the default to be use in RenderSettings
+                    RenderSettings.ambientIntensity = intensity;
                     RenderSettings.ambientMode = AmbientMode.Skybox; // Force skybox for our HDRI
-                    RenderSettings.reflectionIntensity = 1.0f;
+                    RenderSettings.reflectionIntensity = intensity;
                     RenderSettings.customReflection = null;
                     DynamicGI.UpdateEnvironment();
 
@@ -400,8 +316,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_BuiltinParameters.screenSize = m_CubemapScreenSize;
                 m_BuiltinParameters.cameraPosWS = camera.camera.transform.position;
 
+                int sunHash = 0;
+                if(sunLight != null)
+                    sunHash = (sunLight.GetHashCode() * 23 + sunLight.transform.position.GetHashCode()) * 23 + sunLight.transform.rotation.GetHashCode();
+                int skyHash = sunHash * 23 + skySettings.GetHashCode();
+
                 if (m_UpdatedFramesRequired > 0 ||
-                    (skySettings.updateMode == EnvironementUpdateMode.OnChanged && skySettings.GetHashCode() != m_SkyParametersHash) ||
+                    (skySettings.updateMode == EnvironementUpdateMode.OnChanged && skyHash != m_SkyParametersHash) ||
                     (skySettings.updateMode == EnvironementUpdateMode.Realtime && m_CurrentUpdateTime > skySettings.updatePeriod))
                 {
                     using (new ProfilingSample(cmd, "Sky Environment Pass"))
@@ -418,11 +339,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
 
                         // Convolve downsampled cubemap
-                        RenderCubemapGGXConvolution(cmd, m_BuiltinParameters, skySettings, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
+                        RenderCubemapGGXConvolution(cmd, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
 
                         m_NeedLowLevelUpdateEnvironment = true;
                         m_UpdatedFramesRequired--;
-                        m_SkyParametersHash = skySettings.GetHashCode();
+                        m_SkyParametersHash = skyHash;
                         m_CurrentUpdateTime = 0.0f;
                         #if UNITY_EDITOR
                         // In the editor when we change the sky we want to make the GI dirty so when baking again the new sky is taken into account.
@@ -440,7 +361,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         // Clear temp cubemap and redo GGX from black and then feed it to enlighten for default light probe.
                         CoreUtils.ClearCubemap(cmd, m_SkyboxCubemapRT, Color.black);
-                        RenderCubemapGGXConvolution(cmd, m_BuiltinParameters, skySettings, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
+                        RenderCubemapGGXConvolution(cmd, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
 
                         m_SkyParametersHash = 0;
                         m_NeedLowLevelUpdateEnvironment = true;
@@ -460,7 +381,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     m_BuiltinParameters.commandBuffer = cmd;
                     m_BuiltinParameters.sunLight = sunLight;
-                    m_BuiltinParameters.pixelCoordToViewDirMatrix = ComputePixelCoordToWorldSpaceViewDirectionMatrix(camera.camera.fieldOfView * Mathf.Deg2Rad, camera.screenSize, camera.viewMatrix, false);
+                    m_BuiltinParameters.pixelCoordToViewDirMatrix = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(camera.camera.fieldOfView * Mathf.Deg2Rad, camera.screenSize, camera.viewMatrix, false);
                     m_BuiltinParameters.invViewProjMatrix = camera.viewProjMatrix.inverse;
                     m_BuiltinParameters.screenSize = camera.screenSize;
                     m_BuiltinParameters.cameraPosWS = camera.camera.transform.position;
@@ -520,7 +441,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int offset = 0;
             for (int i = 0; i < 6; ++i)
             {
-                Graphics.SetRenderTarget(m_SkyboxCubemapRT, 0, (CubemapFace)i);
+                UnityEngine.Graphics.SetRenderTarget(m_SkyboxCubemapRT, 0, (CubemapFace)i);
                 temp.ReadPixels(new Rect(0, 0, resolution, resolution), offset, 0);
                 temp.Apply();
                 offset += resolution;
@@ -528,12 +449,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Flip texture.
             // Temporarily disabled until proper API reaches trunk
-            Graphics.Blit(temp, tempRT, new Vector2(1.0f, -1.0f), new Vector2(0.0f, 0.0f));
+            UnityEngine.Graphics.Blit(temp, tempRT, new Vector2(1.0f, -1.0f), new Vector2(0.0f, 0.0f));
 
             result.ReadPixels(new Rect(0, 0, resolution * 6, resolution), 0, 0);
             result.Apply();
 
-            Graphics.SetRenderTarget(null);
+            UnityEngine.Graphics.SetRenderTarget(null);
             Object.DestroyImmediate(temp);
             Object.DestroyImmediate(tempRT);
 
