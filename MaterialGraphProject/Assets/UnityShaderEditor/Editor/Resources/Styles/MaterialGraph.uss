@@ -27,7 +27,7 @@ MaterialGraphView {
 
 MaterialNodeView #previewContainer,
 MaterialNodeView #controls {
-    background-color: #393939;
+    background-color: rgba(63, 63, 63, 0.8);
 }
 
 MaterialNodeView #controls.notEmpty {
@@ -126,6 +126,20 @@ PortInputView {
     justify-content: flex-end;
 }
 
+PortInputView > #container {
+    background-color: rgba(63, 63, 63, 0.8);
+    flex-direction: row;
+    align-items: center;
+    padding-left: 8;
+    margin-right: 12;
+    border-left-width: 1;
+    border-top-width: 1;
+    border-right-width: 1;
+    border-bottom-width: 1;
+    border-color: rgba(25, 25, 25, 0.8);
+    border-radius: 2;
+}
+
 PortInputView > #container > #slot {
     width: 8;
     height: 8;
@@ -208,20 +222,6 @@ PortInputView.typeVector1 > #container > #slot > #dot {
 
 PortInputView.typeVector1 {
     edge-color: #84E4E7;
-}
-
-PortInputView > #container {
-    background-color: rgba(63, 63, 63, 0.8);
-    flex-direction: row;
-    align-items: center;
-    padding-left: 8;
-    margin-right: 12;
-    border-left-width: 1;
-    border-top-width: 1;
-    border-right-width: 1;
-    border-bottom-width: 1;
-    border-color: rgba(25, 25, 25, 0.8);
-    border-radius: 2;
 }
 
 TextureSlotControlView {
