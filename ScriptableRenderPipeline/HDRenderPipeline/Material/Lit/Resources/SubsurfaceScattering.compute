@@ -364,6 +364,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
     // TODO: Since we have moved to forward SSS, we don't support anymore a bsdfData.normalWS.
     // Once we include normal+roughness rendering during the prepass, we will have a buffer to bind here and we will be able to reuse this part of the algorithm on demand.
 #if SSS_USE_TANGENT_PLANE
+    #error ThisWillNotCompile_SeeComment
     // Compute the tangent frame in view space.
     float3 normalVS = mul((float3x3)viewMatrix, bsdfData.normalWS);
     float3 tangentX = GetLocalFrame(normalVS)[0] * unitsPerMm;

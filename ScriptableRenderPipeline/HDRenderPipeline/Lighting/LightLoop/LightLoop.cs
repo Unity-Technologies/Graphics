@@ -1,4 +1,4 @@
-﻿using UnityEngine.Rendering;
+using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System;
 
@@ -479,12 +479,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         public void Build(  RenderPipelineResources renderPipelineResources,
-                            LightLoopSettings tileSettings,
+                            LightLoopSettings lightLoopSettings,
                             GlobalTextureSettings textureSettings,
                             ShadowInitParameters shadowInit, ShadowSettings shadowSettings, IBLFilterGGX iblFilterGGX)
         {
             m_Resources = renderPipelineResources;
-            m_LightLoopSettings = tileSettings;
+            m_LightLoopSettings = lightLoopSettings;
 
             m_lightList = new LightList();
             m_lightList.Allocate();
@@ -1279,8 +1279,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // If Deferred, enable Fptl. If we are forward renderer only and not using Fptl for forward opaque, disable Fptl
             m_isForwardRenderingOnly = useForwardRenderingOnly;
-            m_isFptlEnabled = !m_isForwardRenderingOnly || tileSettings.enableFptlForForwardOpaque; // TODO: Disable if MSAA
-            m_isFptlEnabledForForwardOpaque = tileSettings.enableFptlForForwardOpaque; // TODO: Disable if MSAA
+            m_isFptlEnabled = !m_isForwardRenderingOnly || m_LightLoopSettings.enableFptlForForwardOpaque; // TODO: Disable if MSAA
+            m_isFptlEnabledForForwardOpaque = m_LightLoopSettings.enableFptlForForwardOpaque; // TODO: Disable if MSAA
 
             if (GetFeatureVariantsEnabled())
             {

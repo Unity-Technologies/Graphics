@@ -11,7 +11,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         readonly int m_SSSBuffer0;
         readonly RenderTargetIdentifier m_SSSBuffer0RT;
 
-        public int sssBufferCount { get; set; }
+        public int sssBufferCount { get { return k_MaxSSSBuffer; } }
 
         RenderTargetIdentifier[] m_ColorMRTs;
         RenderTargetIdentifier[] m_RTIDs = new RenderTargetIdentifier[k_MaxSSSBuffer];
@@ -25,8 +25,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // for SSS
         public void InitGBuffers(int width, int height, GBufferManager gbufferManager, CommandBuffer cmd)
         {
-            sssBufferCount = k_MaxSSSBuffer;
-
             m_RTIDs[0] = gbufferManager.GetGBuffers()[0];
         }
 
@@ -34,8 +32,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // TODO: Provide a way to reuse a render target
         public void InitGBuffers(int width, int height, CommandBuffer cmd)
         {
-            sssBufferCount = k_MaxSSSBuffer;
-     
             m_RTIDs[0] = m_SSSBuffer0RT;
 
             cmd.ReleaseTemporaryRT(m_SSSBuffer0);
