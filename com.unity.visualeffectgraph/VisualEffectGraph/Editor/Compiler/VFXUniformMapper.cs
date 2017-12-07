@@ -81,6 +81,34 @@ namespace UnityEditor.VFX
             }
         }
 
+        // This retrieves expression to name with additional type conversion where suitable
+        public Dictionary<VFXExpression, string> expressionToCode
+        {
+            get
+            {
+                return m_UniformToName.Select(s => {
+                        string code = null;
+                        switch (s.Key.valueType)
+                        {
+                            case VFXValueType.kInt:
+                                code = "asint(" + s.Value + ")";
+                                break;
+                            case VFXValueType.kUint:
+                                code = "asuint(" + s.Value + ")";
+                                break;
+                            case VFXValueType.kBool:
+                                code = "(bool)asuint(" + s.Value + ")";
+                                break;
+                            default:
+                                code = s.Value;
+                                break;
+                        }
+
+                        return new KeyValuePair<VFXExpression, string>(s.Key, code);
+                    }).Union(m_TextureToName).ToDictionary(s => s.Key, s => s.Value);
+            }
+        }
+
         private Dictionary<VFXExpression, string> m_UniformToName;
         private Dictionary<VFXExpression, string> m_TextureToName;
     }
