@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph
             switch (slotId)
             {
                 case OutputSlot1Id:
-                    return "mul(unity_ObjectToWorld, UNITY_MATRIX_IT_MV [2].xyz)";
+                    return "-1 * mul(unity_ObjectToWorld, UNITY_MATRIX_IT_MV [2].xyz)";
                 case OutputSlot2Id:
                     return "unity_OrthoParams.w";
                 case OutputSlot3Id:
