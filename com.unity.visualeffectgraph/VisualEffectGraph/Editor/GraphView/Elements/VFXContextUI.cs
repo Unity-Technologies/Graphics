@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXContextUI : GraphElement, IControlledElement<VFXContextPresenter>, IDropTarget, IEdgeDrawerContainer
+    class VFXContextUI : GraphElement, IControlledElement<VFXContextPresenter>, IControlledElement<VFXNodeController>, IDropTarget, IEdgeDrawerContainer
     {
         // TODO: Unused except for debugging
         const string RectColorProperty = "rect-color";
@@ -62,6 +62,16 @@ namespace UnityEditor.VFX.UI
         {
             get { return m_Controller; }
         }
+
+        VFXNodeController IControlledElement<VFXNodeController>.controller
+        {
+            get { return m_Controller; }
+            set
+            {
+                controller = value as VFXContextPresenter;
+            }
+        }
+
         public VFXContextPresenter controller
         {
             get { return m_Controller; }
@@ -585,7 +595,7 @@ namespace UnityEditor.VFX.UI
 
             foreach (var inanchorpresenter in presenter.flowInputAnchors)
             {
-                var existing = m_FlowInputConnectorContainer.Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.presenter == inanchorpresenter);
+                var existing = m_FlowInputConnectorContainer.Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.controller == inanchorpresenter);
                 if (existing == null)
                 {
                     var anchor = VFXFlowAnchor.Create(inanchorpresenter);
@@ -608,7 +618,7 @@ namespace UnityEditor.VFX.UI
 
             foreach (var outanchorpresenter in presenter.flowOutputAnchors)
             {
-                var existing = m_FlowOutputConnectorContainer.Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.presenter == outanchorpresenter);
+                var existing = m_FlowOutputConnectorContainer.Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.controller == outanchorpresenter);
                 if (existing == null)
                 {
                     var anchor = VFXFlowAnchor.Create(outanchorpresenter);

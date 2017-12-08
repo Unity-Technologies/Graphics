@@ -65,9 +65,7 @@ namespace UnityEditor.VFX.Test
 
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
 
-            window.presenter = m_ViewPresenter.graphViewPresenter;
-
-            VFXView view = window.graphView as VFXView;
+            VFXView view = window.graphView;
             view.presenter = m_ViewPresenter.graphViewPresenter;
 
             view.ClearSelection();
@@ -131,8 +129,6 @@ namespace UnityEditor.VFX.Test
 
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
 
-            window.presenter = m_ViewPresenter.graphViewPresenter;
-
             VFXView view = window.graphView;
             view.controller = m_ViewPresenter;
 
@@ -181,9 +177,8 @@ namespace UnityEditor.VFX.Test
             VFXViewPresenter presenter = VFXViewPresenter.Manager.GetPresenter(asset);
 
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
-            VFXView view = window.graphView as VFXView;
+            VFXView view = window.graphView;
 
-            window.presenter = presenter.graphViewPresenter;
             view.controller = presenter;
 
             view.ClearSelection();
@@ -196,7 +191,6 @@ namespace UnityEditor.VFX.Test
 
             view.CopySelectionCallback();
 
-            window.presenter = m_ViewPresenter.graphViewPresenter;
             view.controller = m_ViewPresenter;
 
             view.PasteCallback();
@@ -285,9 +279,7 @@ namespace UnityEditor.VFX.Test
 
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
 
-            window.presenter = m_ViewPresenter.graphViewPresenter;
-
-            VFXView view = window.graphView as VFXView;
+            VFXView view = window.graphView;
             view.controller = m_ViewPresenter;
 
             view.ClearSelection();
@@ -322,9 +314,7 @@ namespace UnityEditor.VFX.Test
         {
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
 
-            window.presenter = m_ViewPresenter.graphViewPresenter;
-
-            VFXView view = window.graphView as VFXView;
+            VFXView view = window.graphView;
             view.controller = m_ViewPresenter;
 
             view.CreateTemplateSystem(Vector2.zero);

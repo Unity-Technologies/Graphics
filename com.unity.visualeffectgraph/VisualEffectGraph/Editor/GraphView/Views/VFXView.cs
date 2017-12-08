@@ -162,14 +162,20 @@ namespace UnityEditor.VFX.UI
             get { return m_Controller; }
             set
             {
-                if (m_Controller != null)
+                if (m_Controller != value)
                 {
-                    m_Controller.UnregisterHandler(this);
-                }
-                m_Controller = value;
-                if (m_Controller != null)
-                {
-                    m_Controller.RegisterHandler(this);
+                    if (m_Controller != null)
+                    {
+                        m_Controller.UnregisterHandler(this);
+                        m_Controller.useCount--;
+                    }
+                    m_Controller = value;
+                    if (m_Controller != null)
+                    {
+                        m_Controller.RegisterHandler(this);
+                        m_Controller.useCount++;
+                    }
+                    NewControllerSet();
                 }
             }
         }
@@ -216,19 +222,6 @@ namespace UnityEditor.VFX.UI
             Insert(0, bg);
 
             this.AddManipulator(new FilterPopup(new VFXNodeProvider((d, mPos) => AddNode(d, mPos)), null));
-
-            typeFactory[typeof(VFXParameterPresenter)] = typeof(VFXParameterUI);
-            typeFactory[typeof(VFXOperatorPresenter)] = typeof(VFXOperatorUI);
-            typeFactory[typeof(VFXContextPresenter)] = typeof(VFXContextUI);
-            typeFactory[typeof(VFXFlowEdgePresenter)] = typeof(VFXFlowEdge);
-            typeFactory[typeof(VFXDataEdgePresenter)] = typeof(VFXDataEdge);
-            typeFactory[typeof(VFXFlowInputAnchorPresenter)] = typeof(VFXFlowAnchor);
-            typeFactory[typeof(VFXFlowOutputAnchorPresenter)] = typeof(VFXFlowAnchor);
-            typeFactory[typeof(VFXContextDataInputAnchorPresenter)] = typeof(VFXDataAnchor);
-            typeFactory[typeof(VFXContextDataOutputAnchorPresenter)] = typeof(VFXDataAnchor);
-            typeFactory[typeof(VFXInputOperatorAnchorPresenter)] = typeof(VFXDataAnchor);
-            typeFactory[typeof(VFXOutputOperatorAnchorPresenter)] = typeof(VFXDataAnchor);
-            typeFactory[typeof(Preview3DPresenter)] = typeof(Preview3D);
 
             AddStyleSheetPath("PropertyRM");
             AddStyleSheetPath("VFXContext");
@@ -306,6 +299,130 @@ namespace UnityEditor.VFX.UI
 
             this.serializeGraphElements = SerializeElements;
             this.unserializeAndPaste = UnserializeAndPasteElements;
+
+            RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
+            RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
+        }
+
+        void OnControllerChanged(ControllerChangedEvent e)
+        {
+            if (e.controller == controller)
+            {
+                ControllerChanged();
+            }
+        }
+
+        void ControllerChanged()
+        {
+            SyncNodes();
+            SyncEdges();
+
+            VFXViewPresenter presenter = controller;
+
+            if (presenter != null)
+            {
+                var settings = GetRendererSettings();
+
+                m_ToggleCastShadows.on = settings.shadowCastingMode != ShadowCastingMode.Off;
+                m_ToggleCastShadows.SetEnabled(true);
+
+                m_ToggleMotionVectors.on = settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object;
+                m_ToggleMotionVectors.SetEnabled(true);
+
+                // if the asset dis destroy somehow, fox example if the user delete the asset, delete the presenter and update the window.
+                VFXAsset asset = presenter.GetVFXAsset();
+                if (asset == null)
+                {
+                    VFXViewPresenter.Manager.RemovePresenter(presenter);
+
+                    this.controller = null;
+                    return;
+                }
+            }
+            else
+            {
+                m_ToggleCastShadows.SetEnabled(false);
+                m_ToggleMotionVectors.SetEnabled(false);
+            }
+
+            // needed if some or all the selection has been deleted, so we no longer show the deleted object in the inspector.
+            SelectionUpdated();
+        }
+
+        void OnAttachToPanel(AttachToPanelEvent e)
+        {
+            BaseVisualElementPanel panel = this.panel as BaseVisualElementPanel;
+
+            panel.scheduler.ScheduleOnce(t => { panel.ValidateLayout(); FrameAll(); }, 100);
+        }
+
+        void NewControllerSet()
+        {
+            if (controller != null)
+            {
+                m_NoAssetLabel.RemoveFromHierarchy();
+
+                BaseVisualElementPanel panel = this.panel as BaseVisualElementPanel;
+                if (panel != null)
+                    panel.scheduler.ScheduleOnce(t => { panel.ValidateLayout(); FrameAll(); }, 100);
+
+                pasteOffset = Vector2.zero; // if we change asset we want to paste exactly at the same place as the original asset the first time.
+            }
+            else
+            {
+                if (m_NoAssetLabel.parent == null)
+                {
+                    Add(m_NoAssetLabel);
+                }
+            }
+        }
+
+        IEnumerable<GraphElement> rootSlotContainers
+        {
+            get
+            {
+                return contentViewContainer.Query().Children<VisualElement>().Children<GraphElement>().ToList().Cast<IControlledElement>().Where(t => t.controller is VFXNodeController).Cast<GraphElement>();
+            }
+        }
+
+
+        private class SlotContainerFactory : BaseTypeFactory<VFXNodeController, GraphElement>
+        {
+            protected override GraphElement InternalCreate(Type valueType)
+            {
+                return (GraphElement)System.Activator.CreateInstance(valueType);
+            }
+        }
+        private SlotContainerFactory m_SlotContainerFactory = new SlotContainerFactory();
+
+
+        void SyncNodes()
+        {
+            var controlledElements = rootSlotContainers.ToArray();
+            if (controller == null)
+            {
+                foreach (var element in controlledElements)
+                {
+                    Remove(element);
+                }
+            }
+            else
+            {
+                foreach (var deletedNode in controlledElements.Cast<IControlledElement>().Select(t => !controller.nodes.Contains(t.controller as VFXNodeController)).Cast<GraphElement>())
+                {
+                    Remove(deletedNode);
+                }
+
+                foreach (var newController in controller.nodes)
+                {
+                    var newElement = m_SlotContainerFactory.Create(newController);
+                    (newElement as IControlledElement<VFXNodeController>).controller = newController;
+                }
+            }
+        }
+
+        void SyncEdges()
+        {
         }
 
         VFXRendererSettings GetRendererSettings()
@@ -501,80 +618,18 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        VFXViewPresenter m_OldPresenter;
-
-        public override void OnDataChanged()
-        {
-            base.OnDataChanged();
-            VFXViewPresenter presenter = controller;
-
-            if (presenter != null)
-            {
-                var settings = GetRendererSettings();
-
-                m_ToggleCastShadows.on = settings.shadowCastingMode != ShadowCastingMode.Off;
-                m_ToggleCastShadows.SetEnabled(true);
-
-                m_ToggleMotionVectors.on = settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object;
-                m_ToggleMotionVectors.SetEnabled(true);
-
-                // if the asset dis destroy somehow, fox example if the user delete the asset, delete the presenter and update the window.
-                VFXAsset asset = presenter.GetVFXAsset();
-                if (asset == null)
-                {
-                    VFXViewPresenter.Manager.RemovePresenter(presenter);
-
-                    VFXViewWindow.currentWindow.presenter = null;
-                    this.presenter = null; // this recall OnDataChanged recursively;
-                    return;
-                }
-            }
-            else
-            {
-                m_ToggleCastShadows.SetEnabled(false);
-                m_ToggleMotionVectors.SetEnabled(false);
-            }
-
-            if (presenter != null)
-            {
-                m_NoAssetLabel.RemoveFromHierarchy();
-            }
-            else
-            {
-                if (m_NoAssetLabel.parent == null)
-                {
-                    Add(m_NoAssetLabel);
-                }
-            }
-
-            if (m_OldPresenter != presenter && panel != null)
-            {
-                BaseVisualElementPanel panel = this.panel as BaseVisualElementPanel;
-
-
-                panel.scheduler.ScheduleOnce(t => { panel.ValidateLayout(); FrameAll(); }, 100);
-
-                m_OldPresenter = presenter;
-
-                pasteOffset = Vector2.zero; // if we change asset we want to paste exactly at the same place as the original asset the first time.
-            }
-
-            // needed if some or all the selection has been deleted, so we no longer show the deleted object in the inspector.
-            SelectionUpdated();
-        }
-
         public VFXDataAnchor GetDataAnchorByPresenter(VFXDataAnchorPresenter presenter)
         {
             if (presenter == null)
                 return null;
-            return GetAllDataAnchors(presenter.direction == Direction.Input, presenter.direction == Direction.Output).Where(t => t.presenter == presenter).FirstOrDefault();
+            return GetAllDataAnchors(presenter.direction == Direction.Input, presenter.direction == Direction.Output).Where(t => t.controller == presenter).FirstOrDefault();
         }
 
         public VFXFlowAnchor GetFlowAnchorByPresenter(VFXFlowAnchorPresenter presenter)
         {
             if (presenter == null)
                 return null;
-            return GetAllFlowAnchors(presenter.direction == Direction.Input, presenter.direction == Direction.Output).Where(t => t.presenter == presenter).FirstOrDefault();
+            return GetAllFlowAnchors(presenter.direction == Direction.Input, presenter.direction == Direction.Output).Where(t => t.controller == presenter).FirstOrDefault();
         }
 
         public IEnumerable<VFXDataAnchor> GetAllDataAnchors(bool input, bool output)
@@ -616,7 +671,7 @@ namespace UnityEditor.VFX.UI
                     if (element is VFXDataEdge)
                     {
                         VFXDataEdge candidate = element as VFXDataEdge;
-                        if (candidate.presenter == presenter)
+                        if (candidate.controller == presenter)
                             return candidate;
                     }
                 }

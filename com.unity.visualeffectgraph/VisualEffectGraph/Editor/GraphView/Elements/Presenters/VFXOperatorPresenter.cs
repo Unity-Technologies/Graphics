@@ -25,7 +25,8 @@ namespace UnityEditor.VFX.UI
 
             if (slot.GetExpression() == null)
             {
-                anchor.name = "Empty";
+                //TRISTAN
+                //anchor.name = "Empty";
             }
             return anchor;
         }

@@ -176,7 +176,7 @@ namespace UnityEditor.VFX.UI
         {
             VFXView view = graphView as VFXView;
             VFXDataEdge dataEdge = edge as VFXDataEdge;
-            VFXDataEdgePresenter edgePresenter = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
+            VFXDataEdgePresenter edgePresenter = VFXDataEdgePresenter.CreateInstance<VFXDataEdgePresenter>();
             edgePresenter.Init(dataEdge.input.controller, dataEdge.output.controller);
             dataEdge.controller = edgePresenter;
 

@@ -26,7 +26,7 @@ namespace UnityEditor.VFX.UI
                 if (m_UseCount == 0)
                 {
                     Manager.RemovePresenter(this);
-                    Object.DestroyImmediate(this);
+                    //Object.DestroyImmediate(this);
                 }
             }
         }
@@ -46,8 +46,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        [SerializeField]
-        public List<VFXFlowAnchorPresenter> m_FlowAnchorPresenters;
+        List<VFXFlowAnchorPresenter> m_FlowAnchorPresenters = new List<VFXFlowAnchorPresenter>();
 
         // Model / Presenters synchronization
         private Dictionary<VFXModel, VFXNodeController> m_SyncedModels = new Dictionary<VFXModel, VFXNodeController>();
@@ -59,7 +58,7 @@ namespace UnityEditor.VFX.UI
         {
             protected override Controller InternalCreate(Type valueType)
             {
-                return (Controller)ScriptableObject.CreateInstance(valueType);
+                return (Controller)Controller.CreateInstance(valueType);
             }
         }
         private PresenterFactory m_PresenterFactory = new PresenterFactory();
@@ -77,8 +76,6 @@ namespace UnityEditor.VFX.UI
 
         protected new void OnEnable()
         {
-            Debug.Log("OnEnable of VFXViewPresenter with instanceID:" + this.GetInstanceID());
-
             base.OnEnable();
 
             m_PresenterFactory[typeof(VFXContext)] = typeof(VFXContextPresenter);
@@ -98,7 +95,6 @@ namespace UnityEditor.VFX.UI
 
         protected void OnDisable()
         {
-            Debug.Log("OnDisable of VFXViewPresenter with instanceID :" + this.GetInstanceID());
             ReleaseUndoStack();
             Undo.undoRedoPerformed -= SynchronizeUndoRedoState;
             Undo.willFlushUndoRecord -= WillFlushUndoRecord;
@@ -181,6 +177,10 @@ namespace UnityEditor.VFX.UI
         {
             get { return m_SyncedModels.Values.OfType<VFXContextPresenter>(); }
         }
+        public IEnumerable<VFXNodeController> nodes
+        {
+            get { return m_SyncedModels.Values; }
+        }
 
         public void RecreateFlowEdges()
         {
@@ -238,8 +238,8 @@ namespace UnityEditor.VFX.UI
             var toAnchor = edge.input;
 
             //Update connection
-            var slotInput = toAnchor ? toAnchor.model : null;
-            var slotOuput = fromAnchor ? fromAnchor.model : null;
+            var slotInput = toAnchor != null ? toAnchor.model : null;
+            var slotOuput = fromAnchor != null ? fromAnchor.model : null;
             if (slotInput && slotOuput)
             {
                 //Save concerned object

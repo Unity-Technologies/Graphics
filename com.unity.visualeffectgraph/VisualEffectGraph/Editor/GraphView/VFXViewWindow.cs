@@ -11,7 +11,7 @@ using UnityEditor;
 namespace  UnityEditor.VFX.UI
 {
     [Serializable]
-    class VFXViewWindow : GraphViewEditorWindow
+    class VFXViewWindow : EditorWindow
     {
         ShortcutHandler m_ShortcutHandler;
 
@@ -43,43 +43,19 @@ namespace  UnityEditor.VFX.UI
             GetWindow<VFXViewWindow>();
         }
 
+        public VFXView graphView
+        {
+            get; private set;
+        }
         public void LoadAsset(VFXAsset asset)
         {
-            VFXViewPresenter newPresenter = VFXViewPresenter.Manager.GetPresenter(asset);
-
-            if (presenter != newPresenter)
+            if (graphView.controller == null || graphView.controller.GetVFXAsset() != asset)
             {
-                if (presenter != null)
-                    GetPresenter<VFXGraphViewPresenter>().m_RealPresenter.useCount--;
-                presenter = newPresenter.graphViewPresenter;
-                newPresenter.useCount++;
-
-                graphView.controller = newPresenter;
+                graphView.controller = VFXViewPresenter.Manager.GetPresenter(asset, true);
             }
         }
 
-        public new VFXView graphView
-        {
-            get { return base.graphView as VFXView; }
-        }
-
-        protected override GraphView BuildView()
-        {
-            BuildPresenters();
-
-            VFXView view = new VFXView();
-            VFXGraphViewPresenter presenter = GetPresenter<VFXGraphViewPresenter>();
-            if (presenter != null)
-            {
-                presenter.m_RealPresenter.useCount++;
-            }
-            view.controller = presenter.m_RealPresenter;
-
-            SetupFramingShortcutHandler(view);
-            return view;
-        }
-
-        protected override GraphViewPresenter BuildPresenters()
+        protected VFXAsset GetCurrentAsset()
         {
             var objs = Selection.objects;
 
@@ -94,26 +70,23 @@ namespace  UnityEditor.VFX.UI
 
                 selectedAsset = asset;
             }
-            if (selectedAsset != null)
-            {
-                if (presenter != null)
-                {
-                    var viewPresenter = graphView.controller;
-                    if (viewPresenter.GetVFXAsset() != selectedAsset)
-                        viewPresenter.useCount--;
-                }
-            }
-
-            if (selectedAsset != null)
-            {
-                return VFXViewPresenter.Manager.GetPresenter(selectedAsset, false).graphViewPresenter;
-            }
-            return null;
+            return selectedAsset;
         }
 
-        protected new void OnEnable()
+        protected void OnEnable()
         {
-            base.OnEnable();
+            graphView = new VFXView();
+            graphView.StretchToParentSize();
+            SetupFramingShortcutHandler(graphView);
+
+            this.GetRootVisualContainer().Add(graphView);
+
+
+            VFXAsset currentAsset = GetCurrentAsset();
+            if (currentAsset != null)
+            {
+                graphView.controller = VFXViewPresenter.Manager.GetPresenter(currentAsset, true);
+            }
 
             autoCompile = true;
 
@@ -122,32 +95,24 @@ namespace  UnityEditor.VFX.UI
             graphView.RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
 
 
-            VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
+            VisualElement rootVisualElement = this.GetRootVisualContainer();
             if (rootVisualElement.panel != null)
             {
-                rootVisualElement.parent.AddManipulator(m_ShortcutHandler);
+                rootVisualElement.AddManipulator(m_ShortcutHandler);
                 Debug.Log("View window was already attached to a panel on OnEnable");
             }
 
             currentWindow = this;
         }
 
-        protected new void OnDisable()
+        protected void OnDisable()
         {
             if (graphView != null)
             {
                 graphView.UnregisterCallback<AttachToPanelEvent>(OnEnterPanel);
                 graphView.UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
-
-                VFXViewPresenter presenter = graphView.controller;
-                if (presenter != null)
-                {
-                    presenter.useCount--;
-                    graphView.controller = null;
-                }
+                graphView.controller = null;
             }
-
-            base.OnDisable();
             currentWindow = null;
         }
 
@@ -160,15 +125,9 @@ namespace  UnityEditor.VFX.UI
 
                 VFXViewPresenter presenter = graphView.controller;
 
-                VFXViewPresenter newPresenter = VFXViewPresenter.Manager.GetPresenter(objs[0] as VFXAsset);
-
-                if (presenter != newPresenter)
+                if (presenter == null || presenter.GetVFXAsset() != objs[0] as VFXAsset)
                 {
-                    this.presenter = newPresenter.graphViewPresenter;
-                    graphView.controller = newPresenter;
-                    newPresenter.useCount++;
-                    if (presenter != null)
-                        presenter.useCount--;
+                    graphView.controller = VFXViewPresenter.Manager.GetPresenter(objs[0] as VFXAsset);
                 }
             }
         }
@@ -176,7 +135,7 @@ namespace  UnityEditor.VFX.UI
         void OnEnterPanel(AttachToPanelEvent e)
         {
             VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
-            rootVisualElement.parent.AddManipulator(m_ShortcutHandler);
+            rootVisualElement.AddManipulator(m_ShortcutHandler);
 
             Debug.Log("VFXViewWindow.OnEnterPanel");
         }
@@ -184,7 +143,7 @@ namespace  UnityEditor.VFX.UI
         void OnLeavePanel(DetachFromPanelEvent e)
         {
             VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
-            rootVisualElement.parent.RemoveManipulator(m_ShortcutHandler);
+            rootVisualElement.RemoveManipulator(m_ShortcutHandler);
 
             Debug.Log("VFXViewWindow.OnLeavePanel");
         }

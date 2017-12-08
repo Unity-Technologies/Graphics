@@ -115,8 +115,8 @@ namespace UnityEditor.VFX.Test
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
             window.Close();
             window = EditorWindow.GetWindow<VFXViewWindow>();
-            window.LoadAsset(m_Asset);
-            m_ViewPresenter = window.GetPresenter<VFXGraphViewPresenter>().m_RealPresenter;
+            m_ViewPresenter = VFXViewPresenter.Manager.GetPresenter(m_Asset, true);
+            window.graphView.controller = m_ViewPresenter;
             //m_View = m_ViewPresenter.View;
         }
 

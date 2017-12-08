@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.UI
         void Disconnect(VFXEdgeController edgePresenter);
     }
 
-    abstract class VFXDataAnchorPresenter : Controller<VFXSlot>, IVFXAnchorPresenter, IPropertyRMProvider, IValuePresenter
+    abstract class VFXDataAnchorPresenter : VFXController<VFXSlot>, IVFXAnchorPresenter, IPropertyRMProvider, IValuePresenter
     {
         private VFXSlotContainerPresenter m_SourceNode;
 
@@ -25,6 +25,15 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public override string name
+        {
+            get
+            {
+                if (model.GetExpression() == null)
+                    return "Empty";
+                return base.name;
+            }
+        }
 
         IDataWatchHandle m_MasterSlotHandle;
 
@@ -36,12 +45,11 @@ namespace UnityEditor.VFX.UI
             m_SourceNode = scPresenter;
 
             portType = model.property.type;
-            name = model.property.name;
 
             UpdateHidden();
             m_SourceNode.viewPresenter.AddInvalidateDelegate(model, OnInvalidate);
 
-            if (model.GetMasterSlot() != null && model.GetMasterSlot() != this)
+            if (model.GetMasterSlot() != null && model.GetMasterSlot() != model)
             {
                 m_MasterSlotHandle = DataWatchService.sharedInstance.AddWatch(model.GetMasterSlot(), MasterSlotChanged);
             }

@@ -11,6 +11,17 @@ namespace UnityEditor.VFX.UI
     {
         public override Direction direction
         { get { return Direction.Output; } }
+        public override string name
+        {
+            get
+            {
+                if (model.IsMasterSlot())
+                {
+                    return model.property.type.UserFriendlyName();
+                }
+                return base.name;
+            }
+        }
     }
 
     class VFXSubParameterPresenter : IPropertyRMProvider, IValuePresenter
@@ -113,8 +124,6 @@ namespace UnityEditor.VFX.UI
             var anchor = VFXParameterOutputDataAnchorPresenter.CreateInstance<VFXParameterOutputDataAnchorPresenter>();
             anchor.Init(slot, this);
             anchor.portType = slot.property.type;
-            if (slot.IsMasterSlot())
-                anchor.name = slot.property.type.UserFriendlyName();
             return anchor;
         }
 
