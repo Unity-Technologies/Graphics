@@ -239,7 +239,7 @@ float3 IntegrateSpecularGGXIBLRef(LightLoopContext lightLoopContext,
         }
         else
         {
-            ImportanceSampleGGX(u, V, localToWorld, bsdfData.roughness, NdotV, L, VdotH, NdotL, weightOverPdf);
+            ImportanceSampleGGX(u, V, localToWorld, bsdfData.roughnessT, NdotV, L, VdotH, NdotL, weightOverPdf);
         }
 
         if (NdotL > 0.0)

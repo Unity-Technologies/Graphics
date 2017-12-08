@@ -8,7 +8,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -16,7 +16,6 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
             #pragma multi_compile _ SHADOWS_SHADOWMASK
 
             #include "ShaderLibrary/Common.hlsl"
-            #include "ShaderLibrary/Color.hlsl"
 
             // CAUTION: In case deferred lighting need to support various lighting model statically, we will require to do multicompile with different define like UNITY_MATERIAL_LIT
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
@@ -24,7 +23,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
             #define DEBUG_DISPLAY
             #include "../Debug/DebugDisplay.hlsl"
             #include "../Material/Material.hlsl"
-            
+
             #ifdef SHADOWS_SHADOWMASK
             TEXTURE2D(_ShadowMaskTexture);
             #endif

@@ -82,6 +82,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
         [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+        [ToggleOff] _TransparentBackfaceEnable("_TransparentBackfaceEnable", Float) = 0.0
 
         // Transparency
         [Enum(None, 0, Plane, 1, Sphere, 2)]_RefractionMode("Refraction Mode", Int) = 0
@@ -169,8 +170,7 @@ Shader "HDRenderPipeline/LitTessellation"
     HLSLINCLUDE
 
     #pragma target 5.0
-    #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
-    // #pragma enable_d3d11_debug_symbols
+    #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
     //-------------------------------------------------------------------------------------
     // Variant
@@ -231,6 +231,11 @@ Shader "HDRenderPipeline/LitTessellation"
     // This shader support vertex modification
     #define HAVE_VERTEX_MODIFICATION
     #define HAVE_TESSELLATION_MODIFICATION
+
+    // If we use subsurface scattering, enable output split lighting (for forward pass)
+    #if defined(_MATID_SSS) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    #define OUTPUT_SPLIT_LIGHTING
+    #endif
 
     //-------------------------------------------------------------------------------------
     // Include
@@ -500,8 +505,47 @@ Shader "HDRenderPipeline/LitTessellation"
 
         Pass
         {
+            Name "TransparentBackface"
+            Tags { "LightMode" = "TransparentBackface" }
+
+            Blend [_SrcBlend] [_DstBlend]
+            ZWrite [_ZWrite]
+            Cull Front
+
+            HLSLPROGRAM
+
+            #pragma hull Hull
+            #pragma domain Domain
+
+            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
+            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
+            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
+            // #include "../../Lighting/Forward.hlsl"
+            #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
+            #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
+
+            #define SHADERPASS SHADERPASS_FORWARD
+            #include "../../ShaderVariables.hlsl"
+            #include "../../Lighting/Lighting.hlsl"
+            #include "ShaderPass/LitSharePass.hlsl"
+            #include "LitData.hlsl"
+            #include "../../ShaderPass/ShaderPassForward.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
             Name "Forward" // Name is not used
             Tags { "LightMode" = "Forward" } // This will be only for transparent object based on the RenderQueue index
+
+            Stencil
+            {
+                Ref[_StencilRef]
+                Comp Always
+                Pass Replace
+            }
 
             Blend [_SrcBlend] [_DstBlend]
             ZWrite [_ZWrite]
@@ -534,6 +578,13 @@ Shader "HDRenderPipeline/LitTessellation"
         {
             Name "ForwardDebugDisplay" // Name is not used
             Tags{ "LightMode" = "ForwardDebugDisplay" } // This will be only for transparent object based on the RenderQueue index
+
+            Stencil
+            {
+                Ref[_StencilRef]
+                Comp Always
+                Pass Replace
+            }
 
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]

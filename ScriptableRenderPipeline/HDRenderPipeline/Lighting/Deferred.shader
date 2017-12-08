@@ -28,8 +28,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
-            // #pragma enable_d3d11_debug_symbols
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -135,7 +134,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                 Outputs outputs;
 
             #ifdef OUTPUT_SPLIT_LIGHTING
-                if (_EnableSSSAndTransmission != 0)
+                if (_EnableSSSAndTransmission != 0 && bsdfData.materialId == MATERIALID_LIT_SSS)
                 {
                     outputs.specularLighting = float4(specularLighting, 1.0);
                     outputs.diffuseLighting  = TagLightingForSSS(diffuseLighting);

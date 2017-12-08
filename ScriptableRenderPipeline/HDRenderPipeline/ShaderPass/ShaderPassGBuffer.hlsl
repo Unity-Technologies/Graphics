@@ -38,7 +38,12 @@ void Frag(  PackedVaryingsToPS packedInput,
     // input.positionSS is SV_Position
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw);
     UpdatePositionInput(input.positionSS.z, input.positionSS.w, input.positionWS, posInput);
+
+#ifdef VARYINGS_NEED_POSITION_WS
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
+#else
+    float3 V = 0; // Avoid the division by 0
+#endif
 
     SurfaceData surfaceData;
     BuiltinData builtinData;

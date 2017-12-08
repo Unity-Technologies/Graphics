@@ -5,7 +5,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         PushGlobalParameters,
         CopySetDepthBuffer,
         CopyDepthStencilbuffer,
-        CopyStencilBuffer,
+        HTileForSSS,
         Forward,
         RenderSSAO,
         RenderShadows,
@@ -32,7 +32,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         InitGBuffersAndClearDepthStencil,
         ClearSSSDiffuseTarget,
         ClearSSSFilteringTarget,
-        ClearStencilTexture,
+        ClearAndCopyStencilTexture,
         ClearHTile,
         ClearHDRTarget,
         ClearGBuffer,
@@ -49,6 +49,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         TPForwardTiledClusterpass,
         TPDisplayShadows,
         TPRenderDeferredLighting,
+
+        // Misc
+        VolumeUpdate,
 
         Max
     }

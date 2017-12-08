@@ -133,10 +133,9 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
                 [branch] if (lightData.cookieIndex >= 0)
                 {
                     float3 lightToSample = positionWS - lightData.positionWS;
-                    float4 cookie = EvaluateCookie_Directional(context, lightData, lightToSample);
+                    float3 cookie = EvaluateCookie_Directional(context, lightData, lightToSample);
 
                     color     *= cookie.rgb;
-                    intensity *= cookie.a;
                 }
 
                 // Compute the amount of in-scattered radiance.
