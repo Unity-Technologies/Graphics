@@ -848,9 +848,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd, true);
 
-                    RenderDBuffer(hdCamera.cameraPos, renderContext, cmd);
-
                     RenderVelocity(m_CullResults, hdCamera, renderContext, cmd);
+
+                    RenderDBuffer(hdCamera.cameraPos, renderContext, cmd);
 
                     RenderGBuffer(m_CullResults, hdCamera, renderContext, cmd);
 
@@ -1247,10 +1247,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderDBuffer(Vector3 cameraPos, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            using (new ProfilingSample(cmd, "Decals"))
+            using (new ProfilingSample(cmd, "Decals", GetSampler(CustomSamplerId.DBuffer)))
             {
-				Color clearColor = new Color(0,0,0,0);
-                CoreUtils.SetRenderTarget(cmd, m_DbufferManager.GetDBuffers(), m_CameraDepthStencilBufferRT, ClearFlag.Color, clearColor);
+                CoreUtils.SetRenderTarget(cmd, m_DbufferManager.GetDBuffers(), m_CameraDepthStencilBufferRT, ClearFlag.Color, CoreUtils.clearColorAllBlack);
                 cmd.SetGlobalTexture(HDShaderIDs._MainDepthTexture, GetDepthTexture());
 				DecalSystem.instance.Render(renderContext, cameraPos, cmd);
             }
