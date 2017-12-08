@@ -83,10 +83,21 @@ namespace UnityEditor.VFX
                 {
                     r.WriteVariable(attribute.type, name, attribute.value.GetCodeString(null));
                 }
+
+                /* WIP PAUL */
+                if (attribute.name == "eventCount")
+                {
+                    var linkedOutCount = context.children.SelectMany(b => b.outputSlots.SelectMany(c => c.LinkedSlots)).Count();
+                    for (uint i = 0; i < linkedOutCount; ++i)
+                    {
+                        r.WriteFormat(" uint eventCount_{0} = 0u;", VFXCodeGeneratorHelper.GeneratePrefix(i));
+                    }
+                }
+                /* END WIP */
                 r.WriteLine();
             }
 
-            //< Source Attribute (default temporary behavior, source is always the initial current value)
+            //< Source Attribute
             foreach (var attribute in attributesSource.Select(o => o.attrib))
             {
                 var name = string.Format("{0}_source", attribute.name);
@@ -104,7 +115,7 @@ namespace UnityEditor.VFX
                         loadCode = loadCode.Replace("index", "sourceGPUEventIndex"); //*Hack*
                         r.WriteVariable(attribute.type, name, loadCode);
                     }
-                    /*WIP */
+                    /* END WIP */
                     else
                     {
                         r.WriteVariable(attribute.type, name, context.GetData().GetLoadAttributeCode(attribute, VFXAttributeLocation.Source));
@@ -141,6 +152,19 @@ namespace UnityEditor.VFX
                 r.Append(context.GetData().GetStoreAttributeCode(attribute, new VFXAttributeExpression(attribute).GetCodeString(null)));
                 r.AppendLine(";");
             }
+
+            /* WIP PAUL */
+            if (regex.IsMatch("eventCount"))
+            {
+                var linkedOutCount = context.children.SelectMany(b => b.outputSlots.SelectMany(c => c.LinkedSlots)).Count();
+                for (uint i = 0; i < linkedOutCount; ++i)
+                {
+                    var prefix = VFXCodeGeneratorHelper.GeneratePrefix(i);
+                    r.AppendFormat("for (uint i_{0} = 0; i_{0} < eventCount_{0}; ++i_{0}) eventListOut_{0}.Append(index);", prefix);
+                    r.AppendLine();
+                }
+            }
+            /* END WIP */
             return r;
         }
 
@@ -359,6 +383,20 @@ namespace UnityEditor.VFX
             globalDeclaration.WriteCBuffer(contextData.uniformMapper, "parameters");
             globalDeclaration.WriteTexture(contextData.uniformMapper);
 
+            /* Begin WIP */
+            var data = context.GetData() as VFXDataParticle;
+            var linkedEventOut = Enumerable.Empty<VFXSlot>().ToList();
+            if (data != null && data.IsAttributeLocal(VFXAttribute.EventCount))
+            {
+                linkedEventOut = context.children.SelectMany(b => b.outputSlots.SelectMany(c => c.LinkedSlots)).ToList(); //this value should be stored in data
+                for (uint i = 0; i < (uint)linkedEventOut.Count; ++i)
+                {
+                    var prefix = VFXCodeGeneratorHelper.GeneratePrefix(i);
+                    globalDeclaration.WriteLineFormat("AppendStructuredBuffer<uint> eventListOut_{0};", prefix);
+                }
+            }
+            /* End WIP */
+
             //< Block processor
             var blockFunction = new VFXShaderWriter();
             var blockCallFunction = new VFXShaderWriter();
@@ -417,8 +455,26 @@ namespace UnityEditor.VFX
                     }
                 }
 
+                /* WIP PAUL */
+                if (nameParameter.Contains("eventCount"))
+                {
+                    blockCallFunction.WriteLine("eventCount = 0;");
+                }
+                /* END WIP */
                 blockCallFunction.WriteCallFunction(methodName, expressionParameter, nameParameter, modeParameter, contextData.gpuMapper, expressionToNameLocal);
+                /* WIP PAUL */
+                if (nameParameter.Contains("eventCount"))
+                {
+                    foreach (var outputSlot in block.outputSlots.SelectMany(o => o.LinkedSlots))
+                    {
+                        var indexOf = linkedEventOut.IndexOf(outputSlot);
+                        if (indexOf == -1)
+                            throw new InvalidOperationException("cannot retrieve output Slot index");
+                        blockCallFunction.WriteLineFormat("eventCount_{0} += eventCount;", VFXCodeGeneratorHelper.GeneratePrefix((uint)indexOf));
+                    }
+                }
 
+                /* END WIP */
                 if (needScope)
                     blockCallFunction.ExitScope();
             }

@@ -3,7 +3,6 @@ ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
 ${VFXGeneratedBlockFunction}
 
-AppendStructuredBuffer<uint> eventListOut; //Temp : cannot work with multiple event output
 RWByteAddressBuffer attributeBuffer;
 
 #if VFX_USE_ALIVE_CURRENT
@@ -44,16 +43,10 @@ void CSMain(uint3 id : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID)
 			}
 			else
 			{	
-				${VFXStoreAttributes:{alive}}
+				//TODOPAUL : to see (one frame missing...)
+				${VFXStoreAttributes:{alive|eventCount}}
 				deadListOut.Append(index);
 			}
-			
-#if VFX_USE_EVENTCOUNT_CURRENT
-			for (uint i = 0; i < eventCount; ++i)
-			{
-				eventListOut.Append(index);
-			}
-#endif
 		}
 #else
 		${VFXLoadAttributes}

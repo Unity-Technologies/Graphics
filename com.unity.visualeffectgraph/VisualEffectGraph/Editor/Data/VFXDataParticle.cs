@@ -382,11 +382,13 @@ namespace UnityEditor.VFX
                     bufferMappings.Add(new VFXMapping(indirectBufferIndex, "indirectBuffer"));
                 }
 
-                if (gpuTarget != null && gpuTarget.Length > 0)
+                if (gpuTarget != null)
                 {
-                    if (gpuTarget.Length != 1)
-                        throw new InvalidOperationException("Expect only one GPU target for now");
-                    bufferMappings.Add(new VFXMapping(gpuTarget[0], "eventListOut"));
+                    for (uint indexTarget = 0; indexTarget < (uint)gpuTarget.Length; ++indexTarget)
+                    {
+                        var prefix = VFXCodeGeneratorHelper.GeneratePrefix(indexTarget);
+                        bufferMappings.Add(new VFXMapping(gpuTarget[indexTarget], string.Format("eventListOut_{0}", prefix)));
+                    }
                 }
 
                 uniformMappings.Clear();
