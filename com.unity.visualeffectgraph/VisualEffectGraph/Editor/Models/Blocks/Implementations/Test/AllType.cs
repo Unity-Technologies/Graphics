@@ -25,7 +25,10 @@ namespace UnityEditor.VFX.Block.Test
             [Tooltip("This is a color")]
             public Color aColor = Color.gray;
             public Texture2D aTexture2D = null;
+            public Texture2DArray aTexture2DArray = null;
             public Texture3D aTexture3D = null;
+            public Cubemap aTextureCube = null;
+            public CubemapArray aTextureCubeArray = null;
             public Sphere aSphere;
             public Vector aVector = new Vector { space = CoordinateSpace.Local, vector = Vector3.one };
             public Position aPosition = new Position { space = CoordinateSpace.Local, position = Vector3.forward };

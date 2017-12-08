@@ -106,7 +106,10 @@ namespace UnityEditor.VFX
                 case VFXValueType.kInt:
                 case VFXValueType.kUint:
                 case VFXValueType.kTexture2D:
+                case VFXValueType.kTexture2DArray:
                 case VFXValueType.kTexture3D:
+                case VFXValueType.kTextureCube:
+                case VFXValueType.kTextureCubeArray:
                 case VFXValueType.kTransform:
                 case VFXValueType.kBool:
                     return true;
@@ -120,7 +123,10 @@ namespace UnityEditor.VFX
             switch (type)
             {
                 case VFXValueType.kTexture2D:
+                case VFXValueType.kTexture2DArray:
                 case VFXValueType.kTexture3D:
+                case VFXValueType.kTextureCube:
+                case VFXValueType.kTextureCubeArray:
                     return true;
             }
 

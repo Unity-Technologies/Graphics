@@ -22,10 +22,22 @@ namespace UnityEditor.VFX.Test
         string m_pathTexture2D_B;
         Texture2D m_texture2D_A;
         Texture2D m_texture2D_B;
+        string m_pathTexture2DArray_A;
+        string m_pathTexture2DArray_B;
+        Texture2DArray m_texture2DArray_A;
+        Texture2DArray m_texture2DArray_B;
         string m_pathTexture3D_A;
         string m_pathTexture3D_B;
         Texture3D m_texture3D_A;
         Texture3D m_texture3D_B;
+        string m_pathTextureCube_A;
+        string m_pathTextureCube_B;
+        Cubemap m_textureCube_A;
+        Cubemap m_textureCube_B;
+        string m_pathTextureCubeArray_A;
+        string m_pathTextureCubeArray_B;
+        CubemapArray m_textureCubeArray_A;
+        CubemapArray m_textureCubeArray_B;
 
         [OneTimeSetUp]
         public void Init()
@@ -42,6 +54,15 @@ namespace UnityEditor.VFX.Test
             m_texture2D_A = AssetDatabase.LoadAssetAtPath<Texture2D>(m_pathTexture2D_A);
             m_texture2D_B = AssetDatabase.LoadAssetAtPath<Texture2D>(m_pathTexture2D_B);
 
+            m_pathTexture2DArray_A = "Assets/texture2DArray_A.asset";
+            m_pathTexture2DArray_B = "Assets/texture2DArray_B.asset";
+            m_texture2DArray_A = new Texture2DArray(16, 16, 4, TextureFormat.ARGB32, false);
+            m_texture2DArray_B = new Texture2DArray(32, 32, 4, TextureFormat.ARGB32, false);
+            AssetDatabase.CreateAsset(m_texture2DArray_A, m_pathTexture2DArray_A);
+            AssetDatabase.CreateAsset(m_texture2DArray_B, m_pathTexture2DArray_B);
+            m_texture2DArray_A = AssetDatabase.LoadAssetAtPath<Texture2DArray>(m_pathTexture2DArray_A);
+            m_texture2DArray_B = AssetDatabase.LoadAssetAtPath<Texture2DArray>(m_pathTexture2DArray_B);
+
             m_pathTexture3D_A = "Assets/texture3D_A.asset";
             m_pathTexture3D_B = "Assets/texture3D_B.asset";
             m_texture3D_A = new Texture3D(16, 16, 16, TextureFormat.ARGB32, false);
@@ -50,6 +71,24 @@ namespace UnityEditor.VFX.Test
             AssetDatabase.CreateAsset(m_texture3D_B, m_pathTexture3D_B);
             m_texture3D_A = AssetDatabase.LoadAssetAtPath<Texture3D>(m_pathTexture3D_A);
             m_texture3D_B = AssetDatabase.LoadAssetAtPath<Texture3D>(m_pathTexture3D_B);
+
+            m_pathTextureCube_A = "Assets/textureCube_A.asset";
+            m_pathTextureCube_B = "Assets/textureCube_B.asset";
+            m_textureCube_A = new Cubemap(16, TextureFormat.ARGB32, false);
+            m_textureCube_B = new Cubemap(32, TextureFormat.ARGB32, false);
+            AssetDatabase.CreateAsset(m_textureCube_A, m_pathTextureCube_A);
+            AssetDatabase.CreateAsset(m_textureCube_B, m_pathTextureCube_B);
+            m_textureCube_A = AssetDatabase.LoadAssetAtPath<Cubemap>(m_pathTextureCube_A);
+            m_textureCube_B = AssetDatabase.LoadAssetAtPath<Cubemap>(m_pathTextureCube_B);
+
+            m_pathTextureCubeArray_A = "Assets/textureCubeArray_A.asset";
+            m_pathTextureCubeArray_B = "Assets/textureCubeArray_B.asset";
+            m_textureCubeArray_A = new CubemapArray(16, 4, TextureFormat.ARGB32, false);
+            m_textureCubeArray_B = new CubemapArray(32, 4, TextureFormat.ARGB32, false);
+            AssetDatabase.CreateAsset(m_textureCubeArray_A, m_pathTextureCubeArray_A);
+            AssetDatabase.CreateAsset(m_textureCubeArray_B, m_pathTextureCubeArray_B);
+            m_textureCubeArray_A = AssetDatabase.LoadAssetAtPath<CubemapArray>(m_pathTextureCubeArray_A);
+            m_textureCubeArray_B = AssetDatabase.LoadAssetAtPath<CubemapArray>(m_pathTextureCubeArray_B);
 
             m_mainObject = new GameObject("TestObject");
         }
@@ -62,8 +101,14 @@ namespace UnityEditor.VFX.Test
             UnityEngine.Object.DestroyImmediate(m_sphereEmpty);
             AssetDatabase.DeleteAsset(m_pathTexture2D_A);
             AssetDatabase.DeleteAsset(m_pathTexture2D_B);
+            AssetDatabase.DeleteAsset(m_pathTexture2DArray_A);
+            AssetDatabase.DeleteAsset(m_pathTexture2DArray_B);
             AssetDatabase.DeleteAsset(m_pathTexture3D_A);
             AssetDatabase.DeleteAsset(m_pathTexture3D_B);
+            AssetDatabase.DeleteAsset(m_pathTextureCube_A);
+            AssetDatabase.DeleteAsset(m_pathTextureCube_B);
+            AssetDatabase.DeleteAsset(m_pathTextureCubeArray_A);
+            AssetDatabase.DeleteAsset(m_pathTextureCubeArray_B);
         }
 
         [UnityTest]
@@ -85,7 +130,10 @@ namespace UnityEditor.VFX.Test
                         case VFXValueType.kColorGradient: return new Gradient() { colorKeys = new GradientColorKey[] { new GradientColorKey(Color.white, 0.2f) } };
                         case VFXValueType.kMesh: return m_cubeEmpty.GetComponent<MeshFilter>().sharedMesh;
                         case VFXValueType.kTexture2D: return m_texture2D_A;
+                        case VFXValueType.kTexture2DArray: return m_texture2DArray_A;
                         case VFXValueType.kTexture3D: return m_texture3D_A;
+                        case VFXValueType.kTextureCube: return m_textureCube_A;
+                        case VFXValueType.kTextureCubeArray: return m_textureCubeArray_A;
                         case VFXValueType.kBool: return false;
                     }
                     Assert.Fail();
@@ -106,7 +154,10 @@ namespace UnityEditor.VFX.Test
                         case VFXValueType.kColorGradient: return new Gradient() { colorKeys = new GradientColorKey[] { new GradientColorKey(Color.white, 0.2f), new GradientColorKey(Color.black, 0.6f) } };
                         case VFXValueType.kMesh: return m_sphereEmpty.GetComponent<MeshFilter>().sharedMesh;
                         case VFXValueType.kTexture2D: return m_texture2D_B;
+                        case VFXValueType.kTexture2DArray: return m_texture2DArray_B;
                         case VFXValueType.kTexture3D: return m_texture3D_B;
+                        case VFXValueType.kTextureCube: return m_textureCube_B;
+                        case VFXValueType.kTextureCubeArray: return m_textureCubeArray_B;
                         case VFXValueType.kBool: return true;
                     }
                     Assert.Fail();
@@ -267,11 +318,29 @@ namespace UnityEditor.VFX.Test
                     Assert.AreEqual(baseValue, vfxComponent.GetTexture2D(currentName));
                     vfxComponent.SetTexture2D(currentName, newValue as Texture2D);
                 }
+                else if (type == VFXValueType.kTexture2DArray)
+                {
+                    Assert.IsTrue(vfxComponent.HasTexture2DArray(currentName));
+                    Assert.AreEqual(baseValue, vfxComponent.GetTexture2DArray(currentName));
+                    vfxComponent.SetTexture2DArray(currentName, newValue as Texture2DArray);
+                }
                 else if (type == VFXValueType.kTexture3D)
                 {
                     Assert.IsTrue(vfxComponent.HasTexture3D(currentName));
                     Assert.AreEqual(baseValue, vfxComponent.GetTexture3D(currentName));
                     vfxComponent.SetTexture3D(currentName, newValue as Texture3D);
+                }
+                else if (type == VFXValueType.kTextureCube)
+                {
+                    Assert.IsTrue(vfxComponent.HasTextureCube(currentName));
+                    Assert.AreEqual(baseValue, vfxComponent.GetTextureCube(currentName));
+                    vfxComponent.SetTextureCube(currentName, newValue as Cubemap);
+                }
+                else if (type == VFXValueType.kTextureCubeArray)
+                {
+                    Assert.IsTrue(vfxComponent.HasTextureCubeArray(currentName));
+                    Assert.AreEqual(baseValue, vfxComponent.GetTextureCubeArray(currentName));
+                    vfxComponent.SetTextureCubeArray(currentName, newValue as CubemapArray);
                 }
                 else if (type == VFXValueType.kBool)
                 {
@@ -343,10 +412,25 @@ namespace UnityEditor.VFX.Test
                     Assert.IsTrue(vfxComponent.HasTexture2D(currentName));
                     Assert.AreEqual(baseValue, vfxComponent.GetTexture2D(currentName));
                 }
+                else if (type == VFXValueType.kTexture2DArray)
+                {
+                    Assert.IsTrue(vfxComponent.HasTexture2DArray(currentName));
+                    Assert.AreEqual(baseValue, vfxComponent.GetTexture2DArray(currentName));
+                }
                 else if (type == VFXValueType.kTexture3D)
                 {
                     Assert.IsTrue(vfxComponent.HasTexture3D(currentName));
                     Assert.AreEqual(baseValue, vfxComponent.GetTexture3D(currentName));
+                }
+                else if (type == VFXValueType.kTextureCube)
+                {
+                    Assert.IsTrue(vfxComponent.HasTextureCube(currentName));
+                    Assert.AreEqual(baseValue, vfxComponent.GetTextureCube(currentName));
+                }
+                else if (type == VFXValueType.kTextureCubeArray)
+                {
+                    Assert.IsTrue(vfxComponent.HasTextureCubeArray(currentName));
+                    Assert.AreEqual(baseValue, vfxComponent.GetTextureCubeArray(currentName));
                 }
                 else if (type == VFXValueType.kBool)
                 {
