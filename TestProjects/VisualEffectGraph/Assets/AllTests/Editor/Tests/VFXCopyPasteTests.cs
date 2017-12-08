@@ -178,7 +178,7 @@ namespace UnityEditor.VFX.Test
         {
             VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>("Assets/VFXEditor/Editor/Tests/CopyPasteTest.asset");
 
-            VFXViewPresenter presenter = VFXViewPresenter.Manager.GetPresenter(asset);
+            VFXViewPresenter presenter = VFXViewPresenter.Manager.GetPresenter(asset, true);
 
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
             VFXView view = window.graphView as VFXView;
@@ -235,24 +235,24 @@ namespace UnityEditor.VFX.Test
             VFXOperator[] operatorModels = operators.Select(u => u.GetPresenter<VFXOperatorPresenter>().Operator).ToArray();
 
             Assert.IsNotNull(dataEdges.Where(t =>
-                    t.output.GetFirstAncestorOfType<VFXSlotContainerUI>() == parameters[1] &&
+                    t.output.GetFirstAncestorOfType<VFXNodeUI>() == parameters[1] &&
                     operators.Contains(t.input.GetFirstAncestorOfType<VFXOperatorUI>())
                     ).FirstOrDefault());
 
             Assert.IsNotNull(dataEdges.Where(t =>
                     operators.Contains(t.input.GetFirstAncestorOfType<VFXOperatorUI>()) &&
                     operators.Contains(t.output.GetFirstAncestorOfType<VFXOperatorUI>()) &&
-                    t.output.GetFirstAncestorOfType<VFXSlotContainerUI>() != t.input.GetFirstAncestorOfType<VFXSlotContainerUI>()
+                    t.output.GetFirstAncestorOfType<VFXNodeUI>() != t.input.GetFirstAncestorOfType<VFXNodeUI>()
                     ).FirstOrDefault());
 
             Assert.IsNotNull(dataEdges.Where(t =>
-                    t.output.GetFirstAncestorOfType<VFXSlotContainerUI>() == parameters[0] &&
-                    t.input.GetFirstAncestorOfType<VFXSlotContainerUI>() == contexts[0].ownData
+                    t.output.GetFirstAncestorOfType<VFXNodeUI>() == parameters[0] &&
+                    t.input.GetFirstAncestorOfType<VFXNodeUI>() == contexts[0].ownData
                     ).FirstOrDefault());
 
             Assert.IsNotNull(dataEdges.Where(t =>
-                    operators.Contains(t.output.GetFirstAncestorOfType<VFXSlotContainerUI>()) &&
-                    t.input.GetFirstAncestorOfType<VFXSlotContainerUI>() == contexts[0].GetAllBlocks().First()
+                    operators.Contains(t.output.GetFirstAncestorOfType<VFXNodeUI>()) &&
+                    t.input.GetFirstAncestorOfType<VFXNodeUI>() == contexts[0].GetAllBlocks().First()
                     ).FirstOrDefault());
 
 

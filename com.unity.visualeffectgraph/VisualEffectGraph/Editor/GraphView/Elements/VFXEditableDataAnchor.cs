@@ -157,7 +157,7 @@ namespace UnityEditor.VFX.UI
 
             VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
 
-            if (m_PropertyRM == null || m_EditedType != presenter.portType)
+            if (m_PropertyRM == null || !m_PropertyRM.IsCompatible(presenter))
             {
                 BuildProperty();
                 m_EditedType = presenter.portType;

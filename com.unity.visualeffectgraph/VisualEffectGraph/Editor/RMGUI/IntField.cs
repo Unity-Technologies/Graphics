@@ -28,7 +28,7 @@ namespace UnityEditor.VFX.UIElements
             Add(m_TextField);
         }
 
-        public IntField(VisualElement existingLabel) : base(existingLabel)
+        public IntField(Label existingLabel) : base(existingLabel)
         {
             CreateTextField();
             Add(m_TextField);

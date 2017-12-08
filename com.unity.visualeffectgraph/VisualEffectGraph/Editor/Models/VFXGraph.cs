@@ -114,9 +114,10 @@ namespace UnityEditor.VFX
                 var from = children.ToArray();
                 var copy = from.Select(o => o.Clone<VFXModel>()).ToArray();
                 VFXSlot.ReproduceLinkedSlotFromHierachy(from, copy);
+
                 var associativeContext = VFXContext.BuildAssociativeContext(from, copy);
-                VFXContext.ReproduceData(from, copy, associativeContext);
-                VFXContext.ReproduceLinkedFlowFromHiearchy(from, copy, associativeContext);
+                VFXContext.ReproduceLinkedFlowFromHiearchy(associativeContext);
+                VFXContext.ReproduceDataSettings(associativeContext);
 
                 var clone = CreateInstance(GetType()) as VFXGraph;
                 clone.m_Children = new List<VFXModel>();

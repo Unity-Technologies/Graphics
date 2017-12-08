@@ -141,9 +141,9 @@ uint id = clamp(uint({0}), 0, count - 1);
                 }
 
                 if (Composition != AttributeCompositionMode.Blend)
-                    return output + string.Format(VFXBlockUtility.GetComposeFormatString(Composition), attributeName, "value");
+                    return output + VFXBlockUtility.GetComposeString(Composition, attributeName, "value");
                 else
-                    return output + string.Format(VFXBlockUtility.GetComposeFormatString(Composition), attributeName, "value", "blend");
+                    return output + VFXBlockUtility.GetComposeString(Composition, attributeName, "value", "blend");
             }
         }
 

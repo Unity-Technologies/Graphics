@@ -24,52 +24,16 @@ namespace UnityEditor.VFX.UI
         public override void OnPortChanged(bool isInput)
         {
             base.OnPortChanged(isInput);
-
-            UpdateColor();
-        }
-
-        public virtual void UpdateColor()
-        {
-            if (selected)
-            {
-                edgeControl.inputColor = edgeControl.outputColor = selectedColor;
-            }
-            else
-            {
-                if (input != null)
-                {
-                    edgeControl.inputColor = (input as VFXDataAnchor).anchorColor;
-                }
-                else if (output != null)
-                {
-                    edgeControl.inputColor = (output as VFXDataAnchor).anchorColor;
-                }
-                if (output != null)
-                {
-                    edgeControl.outputColor = (output as VFXDataAnchor).anchorColor;
-                }
-                else if (input != null)
-                {
-                    edgeControl.outputColor = (input as VFXDataAnchor).anchorColor;
-                }
-            }
         }
 
         public override void OnSelected()
         {
             base.OnSelected();
-            UpdateColor();
         }
 
         public override void OnUnselected()
         {
             base.OnUnselected();
-            UpdateColor();
-        }
-
-        protected override void DrawEdge()
-        {
-            UpdateEdgeControl();
         }
     }
 }

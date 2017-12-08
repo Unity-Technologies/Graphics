@@ -27,28 +27,28 @@ namespace UnityEditor.VFX.UI
         // TODO: Unused except for debugging
         const string RectColorProperty = "rect-color";
 
-        VisualElement     m_Header;
-        VisualElement     m_HeaderContainer;
-        VisualElement       m_HeaderIcon;
-        VisualElement       m_HeaderTitle;
+        VisualElement               m_Header;
+        VisualElement               m_HeaderContainer;
+        VisualElement               m_HeaderIcon;
+        Label                       m_HeaderTitle;
 
-        VisualElement       m_HeaderSpace;
+        VisualElement               m_HeaderSpace;
 
-        VisualElement     m_Footer;
-        VisualElement       m_FooterIcon;
-        VisualElement       m_FooterTitle;
+        VisualElement               m_Footer;
+        VisualElement               m_FooterIcon;
+        Label                       m_FooterTitle;
 
-        VisualElement     m_FlowInputConnectorContainer;
-        VisualElement     m_FlowOutputConnectorContainer;
-        VisualElement     m_NodeContainer;
-        BlockContainer      m_BlockContainer;
-        VisualElement     m_InsideContainer;
+        VisualElement               m_FlowInputConnectorContainer;
+        VisualElement               m_FlowOutputConnectorContainer;
+        VisualElement               m_NodeContainer;
+        BlockContainer              m_BlockContainer;
+        VisualElement               m_InsideContainer;
 
-        VisualElement       m_DragDisplay;
+        VisualElement               m_DragDisplay;
 
-        VFXContextSlotContainerUI  m_OwnData;
+        VFXContextSlotContainerUI   m_OwnData;
 
-        EdgeDrawer m_EdgeDrawer;
+        EdgeDrawer                  m_EdgeDrawer;
 
         protected GraphViewTypeFactory typeFactory { get; set; }
 
@@ -98,7 +98,7 @@ namespace UnityEditor.VFX.UI
                 name = "HeaderContainer"
             };
             m_HeaderContainer.AddToClassList("Extremity");
-            m_HeaderTitle = new VisualElement() { name = "HeaderTitle" , text = "Title" };
+            m_HeaderTitle = new Label() { name = "HeaderTitle" , text = "Title" };
             m_HeaderTitle.AddToClassList("title");
             m_HeaderIcon = new VisualElement() { name = "HeaderIcon"};
             m_HeaderIcon.AddToClassList("icon");
@@ -134,7 +134,7 @@ namespace UnityEditor.VFX.UI
             m_Footer = new VisualElement() {
                 name = "Footer"
             };
-            m_FooterTitle = new VisualElement() { name = "FooterTitle", text = "footer" };
+            m_FooterTitle = new Label() { name = "FooterTitle", text = "footer" };
             m_FooterTitle.AddToClassList("title");
             m_FooterIcon = new VisualElement() { name = "FooterIcon"};
             m_FooterIcon.AddToClassList("icon");

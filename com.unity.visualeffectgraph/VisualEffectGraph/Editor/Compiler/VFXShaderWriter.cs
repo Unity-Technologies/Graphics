@@ -229,7 +229,7 @@ namespace UnityEditor.VFX
                     int currentSize = 0;
                     foreach (var value in block)
                     {
-                        string type = VFXExpression.TypeToCode(value.valueType);
+                        string type = VFXExpression.TypeToUniformCode(value.valueType);
                         string name = mapper.GetName(value);
                         currentSize += VFXExpression.TypeToSize(value.valueType);
 

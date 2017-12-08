@@ -12,8 +12,8 @@ namespace UnityEditor.VFX
         public override string codeGeneratorTemplate { get { return "VFXShaders/VFXParticleLines"; } }
         public override VFXTaskType taskType { get { return VFXTaskType.kParticleLineOutput; } }
 
-        [VFXSetting]
-        bool targetFromAttributes = true;
+        [VFXSetting, SerializeField]
+        protected bool targetFromAttributes = true;
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {

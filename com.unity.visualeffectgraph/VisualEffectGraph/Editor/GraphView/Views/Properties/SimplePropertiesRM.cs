@@ -293,5 +293,24 @@ namespace UnityEditor.VFX.UI
                 return new StringField(m_Label);
             }
         }
+
+        public override bool IsCompatible(IPropertyRMProvider provider)
+        {
+            if (!base.IsCompatible(provider)) return false;
+
+            var stringProvider = FindStringProvider(m_Provider.customAttributes);
+            var pushButtonProvider = FindPushButtonBehavior(m_Provider.customAttributes);
+
+            if (stringProvider != null)
+            {
+                return m_Field is StringFieldProvider && (m_Field as StringFieldProvider).stringProvider == stringProvider;
+            }
+            else if (pushButtonProvider != null)
+            {
+                return m_Field is StringFieldPushButton && (m_Field as StringFieldPushButton).pushButtonProvider == pushButtonProvider;
+            }
+
+            return !(m_Field is StringFieldProvider) && !(m_Field is StringFieldPushButton);
+        }
     }
 }

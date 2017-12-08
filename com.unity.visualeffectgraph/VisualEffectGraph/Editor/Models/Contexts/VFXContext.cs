@@ -92,7 +92,6 @@ namespace UnityEditor.VFX
             var clone = base.Clone<T>() as VFXContext;
             clone.m_InputFlowSlot = Enumerable.Range(0, m_InputFlowSlot.Count()).Select(_ => new VFXContextSlot()).ToArray();
             clone.m_OutputFlowSlot = Enumerable.Range(0, m_OutputFlowSlot.Count()).Select(_ => new VFXContextSlot()).ToArray();
-            clone.m_Data = null;
             return clone as T;
         }
 
@@ -381,57 +380,41 @@ namespace UnityEditor.VFX
                 if (from != null)
                 {
                     if (to == null)
-                        throw new NullReferenceException("ReproduceLinkedFlowFromHiearchy : Inconsistent hierarchy");
+                        throw new NullReferenceException("BuildAssociativeContext : Inconsistent hierarchy");
                     associativeContext.Add(new KeyValuePair<VFXContext, VFXContext>(from, to));
                 }
             }
             return associativeContext;
         }
 
-        public static IEnumerable<VFXData> ReproduceData(VFXModel[] fromArray, VFXModel[] toArray, List<KeyValuePair<VFXContext, VFXContext>> associativeContext)
+        public static IEnumerable<VFXData> ReproduceDataSettings(List<KeyValuePair<VFXContext, VFXContext>> associativeContext)
         {
-            var allData = fromArray.OfType<VFXContext>().Select(o => o.GetData()).Where(o => o != null).Distinct();
-            var associativeData = allData.Select(o => new KeyValuePair<VFXData, VFXData>(o, o.Clone<VFXData>()));
+            var allDstData = associativeContext.Select(o => o.Value.GetData()).Where(o => o != null).Distinct();
 
-            foreach (var data in associativeData)
+            foreach (var data in allDstData)
             {
-                VFXData.ReproduceOwner(data.Key, data.Value, associativeContext);
+                var srcData = associativeContext.First(c => c.Value == data.owners.First()).Key.GetData();
+                srcData.CopySettings(data);
             }
 
-            for (int i = 0; i < fromArray.Length; ++i)
-            {
-                var from = fromArray[i] as VFXContext;
-                var to = toArray[i] as VFXContext;
-                if (from != null && from.m_Data != null)
-                {
-                    var refData = associativeData.FirstOrDefault(o => o.Key == from.m_Data);
-                    if (refData.Value == null)
-                        throw new NullReferenceException("ReproduceData : Unable to retrieve data for " + from);
-                    to.m_Data = refData.Value;
-                }
-            }
-
-            return associativeData.Select(t => t.Value);
+            return allDstData;
         }
 
-        public static void ReproduceLinkedFlowFromHiearchy(VFXModel[] fromArray, VFXModel[] toArray, List<KeyValuePair<VFXContext, VFXContext>> associativeContext)
+        public static void ReproduceLinkedFlowFromHiearchy(List<KeyValuePair<VFXContext, VFXContext>> associativeContext)
         {
-            for (int i = 0; i < fromArray.Length; ++i)
+            for (int i = 0; i < associativeContext.Count(); ++i)
             {
-                var from = fromArray[i] as VFXContext;
-                var to = toArray[i] as VFXContext;
-                if (from != null)
+                var from = associativeContext[i].Key;
+                var to = associativeContext[i].Value;
+                for (int slotIndex = 0; slotIndex < from.m_InputFlowSlot.Length; ++slotIndex)
                 {
-                    for (int slotIndex = 0; slotIndex < from.m_InputFlowSlot.Length; ++slotIndex)
+                    var slotInputFrom = from.m_InputFlowSlot[slotIndex];
+                    foreach (var link in slotInputFrom.link)
                     {
-                        var slotInputFrom = from.m_InputFlowSlot[slotIndex];
-                        foreach (var link in slotInputFrom.link)
-                        {
-                            var refContext = associativeContext.FirstOrDefault(o => o.Key == link.context);
-                            if (refContext.Value == null)
-                                throw new NullReferenceException("ReproduceLinkedFlowFromHiearchy : Unable to retrieve reference for " + link);
-                            InnerLink(refContext.Value, to, link.slotIndex, slotIndex, false);
-                        }
+                        var refContext = associativeContext.FirstOrDefault(o => o.Key == link.context);
+                        if (refContext.Value == null)
+                            throw new NullReferenceException("ReproduceLinkedFlowFromHiearchy : Unable to retrieve reference for " + link);
+                        InnerLink(refContext.Value, to, link.slotIndex, slotIndex, false);
                     }
                 }
             }
