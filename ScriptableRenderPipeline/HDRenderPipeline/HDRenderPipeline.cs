@@ -6,7 +6,6 @@ using System.Linq;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.Profiling;
 
-
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -845,7 +844,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     ConfigureForShadowMask(enableBakeShadowMask, cmd);
 
-			        InitAndClearBuffer(hdCamera, enableBakeShadowMask, cmd);
+	                InitAndClearBuffer(hdCamera, enableBakeShadowMask, cmd);
+
                     RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd, true);
 
                     RenderDBuffer(hdCamera.cameraPos, renderContext, cmd);
