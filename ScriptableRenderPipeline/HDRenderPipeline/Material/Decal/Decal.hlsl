@@ -104,6 +104,7 @@ void DecodeFromDBuffer(
 {
     ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
 	surfaceData.baseColor = inDBuffer0;
-	surfaceData.normalWS = inDBuffer1 * float4(2.0f, 2.0f, 2.0f, 1.0f) - float4(1.0f, 1.0f, 1.0f, 0.0f);
+	surfaceData.normalWS.xyz = inDBuffer1.xyz * 2.0f - 1.0f;
+	surfaceData.normalWS.w = inDBuffer1.w;
 }
 

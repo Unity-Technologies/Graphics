@@ -30,8 +30,8 @@
     // Include
     //-------------------------------------------------------------------------------------
 
-    #include "../../../Core/ShaderLibrary/Common.hlsl"
-    #include "../../../Core/ShaderLibrary/Wind.hlsl"
+    #include "ShaderLibrary/Common.hlsl"
+    #include "ShaderLibrary/Wind.hlsl"
     #include "../../ShaderPass/FragInputs.hlsl"
     #include "../../ShaderPass/ShaderPass.cs.hlsl"
 
@@ -55,9 +55,10 @@
             Name "DBuffer"  // Name is not used
             Tags { "LightMode" = "dBuffer" } // This will be only for opaque object based on the RenderQueue index
 
-            Cull Back
+			// need to optimize this and use proper Cull and ZTest modes for cases when decal geometry is clipped by camera 
+            Cull Off
 			ZWrite Off
-			ZTest LEqual
+			ZTest Always
 
             HLSLPROGRAM
 

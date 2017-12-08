@@ -25,12 +25,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // DBuffer management
         //-----------------------------------------------------------------------------
 
-		// should this be rolled into common class shared with Lit.cs???
+		// should this be combined into common class shared with Lit.cs???
        static public int GetMaterialDBufferCount() { return (int)DBufferMaterial.Count; }
 
        static RenderTextureFormat[] m_RTFormat = { RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32};
        static RenderTextureReadWrite[] m_RTReadWrite = { RenderTextureReadWrite.sRGB, RenderTextureReadWrite.Linear};
-
 
        static public void GetMaterialDBufferDescription(out RenderTextureFormat[] RTFormat, out RenderTextureReadWrite[] RTReadWrite)
        {
