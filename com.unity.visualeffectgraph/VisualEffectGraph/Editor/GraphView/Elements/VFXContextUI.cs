@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
+using UnityEngine.VFX;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEngine.Experimental.UIElements.StyleSheets;
@@ -26,28 +27,28 @@ namespace UnityEditor.VFX.UI
         // TODO: Unused except for debugging
         const string RectColorProperty = "rect-color";
 
-        VisualElement     m_Header;
-        VisualElement     m_HeaderContainer;
-        VisualElement       m_HeaderIcon;
-        VisualElement       m_HeaderTitle;
+        VisualElement               m_Header;
+        VisualElement               m_HeaderContainer;
+        VisualElement               m_HeaderIcon;
+        Label                       m_HeaderTitle;
 
-        VisualElement       m_HeaderSpace;
+        VisualElement               m_HeaderSpace;
 
-        VisualElement     m_Footer;
-        VisualElement       m_FooterIcon;
-        VisualElement       m_FooterTitle;
+        VisualElement               m_Footer;
+        VisualElement               m_FooterIcon;
+        Label                       m_FooterTitle;
 
-        VisualElement     m_FlowInputConnectorContainer;
-        VisualElement     m_FlowOutputConnectorContainer;
-        VisualElement     m_NodeContainer;
-        BlockContainer      m_BlockContainer;
-        VisualElement     m_InsideContainer;
+        VisualElement               m_FlowInputConnectorContainer;
+        VisualElement               m_FlowOutputConnectorContainer;
+        VisualElement               m_NodeContainer;
+        BlockContainer              m_BlockContainer;
+        VisualElement               m_InsideContainer;
 
-        VisualElement       m_DragDisplay;
+        VisualElement               m_DragDisplay;
 
-        VFXContextSlotContainerUI  m_OwnData;
+        VFXContextSlotContainerUI   m_OwnData;
 
-        EdgeDrawer m_EdgeDrawer;
+        EdgeDrawer                  m_EdgeDrawer;
 
         protected GraphViewTypeFactory typeFactory { get; set; }
 
@@ -97,7 +98,7 @@ namespace UnityEditor.VFX.UI
                 name = "HeaderContainer"
             };
             m_HeaderContainer.AddToClassList("Extremity");
-            m_HeaderTitle = new VisualElement() { name = "HeaderTitle" , text = "Title" };
+            m_HeaderTitle = new Label() { name = "HeaderTitle" , text = "Title" };
             m_HeaderTitle.AddToClassList("title");
             m_HeaderIcon = new VisualElement() { name = "HeaderIcon"};
             m_HeaderIcon.AddToClassList("icon");
@@ -133,7 +134,7 @@ namespace UnityEditor.VFX.UI
             m_Footer = new VisualElement() {
                 name = "Footer"
             };
-            m_FooterTitle = new VisualElement() { name = "FooterTitle", text = "footer" };
+            m_FooterTitle = new Label() { name = "FooterTitle", text = "footer" };
             m_FooterTitle.AddToClassList("title");
             m_FooterIcon = new VisualElement() { name = "FooterIcon"};
             m_FooterIcon.AddToClassList("icon");
@@ -196,9 +197,7 @@ namespace UnityEditor.VFX.UI
 
         void OnSpace()
         {
-            VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
-            int result = (int)presenter.context.space;
-
+            var presenter = GetPresenter<VFXContextPresenter>();
             presenter.context.space = (CoordinateSpace)(((int)presenter.context.space + 1) % (CoordinateSpaceInfo.SpaceCount));
         }
 
@@ -220,6 +219,16 @@ namespace UnityEditor.VFX.UI
                 }
             }
             return accept;
+        }
+
+        public override bool HitTest(Vector2 localPoint)
+        {
+            // needed so that if we click on a block we won't select the context as well.
+            if (m_BlockContainer.ContainsPoint(this.ChangeCoordinatesTo(m_BlockContainer, localPoint)))
+            {
+                return false;
+            }
+            return ContainsPoint(localPoint);
         }
 
         public void DraggingBlocks(IEnumerable<VFXBlockUI> blocks, VFXBlockUI target, bool after)
@@ -310,17 +319,35 @@ namespace UnityEditor.VFX.UI
 
             VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
 
-            int cpt = 0;
-            foreach (var blockui in blocksUI)
-            {
-                VFXBlockPresenter blockPres = blockui.GetPresenter<VFXBlockPresenter>();
-                presenter.AddBlock(after ? -1 : cpt++, blockPres.block);
-            }
+            BlocksDropped(null, after, blocksUI, evt.imguiEvent.control);
+
+            DragAndDrop.AcceptDrag();
 
             m_DragStarted = false;
             RemoveFromClassList("dropping");
 
             return EventPropagation.Stop;
+        }
+
+        public void BlocksDropped(VFXBlockPresenter blockPresenter, bool after, IEnumerable<VFXBlockUI> draggedBlocks, bool copy)
+        {
+            VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
+
+            HashSet<VFXContextUI> contexts = new HashSet<VFXContextUI>();
+            foreach (var draggedBlock in draggedBlocks)
+            {
+                contexts.Add(draggedBlock.context);
+            }
+
+            using (var growContext = new GrowContext(this))
+            {
+                presenter.BlocksDropped(blockPresenter, after, draggedBlocks.Select(t => t.GetPresenter<VFXBlockPresenter>()), copy);
+
+                foreach (var context in contexts)
+                {
+                    context.OnDataChanged();
+                }
+            }
         }
 
         EventPropagation IDropTarget.DragExited()
@@ -330,14 +357,6 @@ namespace UnityEditor.VFX.UI
             m_DragStarted = false;
 
             return EventPropagation.Stop;
-        }
-
-        public override void OnSelected()
-        {
-            base.OnSelected();
-
-            if (!VFXComponentEditor.s_IsEditingAsset)
-                Selection.activeObject = GetPresenter<VFXContextPresenter>().model;
         }
 
         public EventPropagation DeleteSelection()
@@ -466,6 +485,27 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
+        class GrowContext : IDisposable
+        {
+            VFXContextUI m_Context;
+            Dictionary<VFXContextUI, float> m_PrevSizes = new Dictionary<VFXContextUI, float>();
+            float m_PrevSize;
+            public GrowContext(VFXContextUI context)
+            {
+                m_Context = context;
+                m_PrevSize = context.layout.size.y;
+            }
+
+            void IDisposable.Dispose()
+            {
+                m_Context.OnDataChanged();
+
+                (m_Context.panel as BaseVisualElementPanel).ValidateLayout();
+
+                m_Context.GetFirstAncestorOfType<VFXView>().PushUnderContext(m_Context, m_Context.layout.size.y - m_PrevSize);
+            }
+        }
+
         void AddBlock(Vector2 position, VFXModelDescriptor<VFXBlock> descriptor)
         {
             int blockIndex = -1;
@@ -480,7 +520,10 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            GetPresenter<VFXContextPresenter>().AddBlock(blockIndex, descriptor.CreateInstance());
+            using (var growContext = new GrowContext(this))
+            {
+                GetPresenter<VFXContextPresenter>().AddBlock(blockIndex, descriptor.CreateInstance());
+            }
         }
 
         public override void OnDataChanged()

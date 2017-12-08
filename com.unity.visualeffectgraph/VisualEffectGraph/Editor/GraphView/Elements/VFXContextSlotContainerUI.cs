@@ -9,15 +9,12 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXContextSlotContainerUI : VFXSlotContainerUI, IEdgeDrawerContainer
+    class VFXContextSlotContainerUI : VFXNodeUI, IEdgeDrawerContainer
     {
         public VFXContextSlotContainerUI()
         {
             forceNotififcationOnAdd = true;
             pickingMode = PickingMode.Ignore;
-
-            leftContainer.style.alignContent = Align.Stretch;
-            mainContainer.clippingOptions = ClippingOptions.ClipContents;
 
 
             AddToClassList("VFXContextSlotContainerUI");

@@ -173,6 +173,17 @@ namespace UnityEditor.VFX.Test
             contextInitialize.AddChild(allType);
             graph.AddChild(contextInitialize);
 
+            // Needs a spawner and output for the system to be valid
+            {
+                var spawner = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+                spawner.LinkTo(contextInitialize);
+                graph.AddChild(spawner);
+
+                var output = ScriptableObject.CreateInstance<VFXPointOutput>();
+                output.LinkFrom(contextInitialize);
+                graph.AddChild(output);
+            }
+
             var types = Enum.GetValues(typeof(VFXValueType)).Cast<VFXValueType>()
                 .Where(e => e != VFXValueType.kSpline
                     &&  e != VFXValueType.kTransform

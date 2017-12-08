@@ -76,21 +76,9 @@ namespace UnityEditor.VFX.UI
         StyleValue<Color> m_AnchorColor;
 
 
-        public Color anchorColor { get { return m_AnchorColor.GetSpecifiedValueOrDefault(GetPresenter<VFXDataAnchorPresenter>().direction == Direction.Input ? Color.red : Color.green); } }
         protected override void OnStyleResolved(ICustomStyle styles)
         {
             base.OnStyleResolved(styles);
-
-
-            Color prevColor = m_AnchorColor.value;
-            styles.ApplyCustomProperty(AnchorColorProperty, ref m_AnchorColor);
-            if (m_AnchorColor.value != prevColor)
-            {
-                foreach (var edge in GetAllEdges())
-                {
-                    edge.OnPortChanged(direction == Direction.Input);
-                }
-            }
         }
 
         IEnumerable<VFXDataEdge> GetAllEdges()
@@ -154,7 +142,7 @@ namespace UnityEditor.VFX.UI
                     break;
             }
 
-
+            /*
             RemoveFromClassList("hidden");
             RemoveFromClassList("invisible");
 
@@ -169,6 +157,14 @@ namespace UnityEditor.VFX.UI
             {
                 visible = true;
             }
+            */
+            // Temp fix until presenter are correct : need to update the visibility based on my own collaspsed.
+            VFXNodeUI node = GetFirstAncestorOfType<VFXNodeUI>();
+            if (node != null)
+            {
+                node.OnDataChanged();
+            }
+
 
             if (presenter.direction == Direction.Output)
                 m_ConnectorText.text = presenter.name;
@@ -245,6 +241,75 @@ namespace UnityEditor.VFX.UI
                 {
                     VFXParameter parameter = viewPresenter.AddVFXParameter(view.contentViewContainer.GlobalToBound(position) - new Vector2(360, 0), parameterDesc);
                     startSlot.Link(parameter.outputSlots[0]);
+                }
+            }
+            else
+            {
+                VFXFilterWindow.Show(Event.current.mousePosition, new VFXNodeProvider(AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter) }));
+            }
+        }
+
+        bool ProviderFilter(VFXNodeProvider.Descriptor d)
+        {
+            var mySlot = GetPresenter<VFXDataAnchorPresenter>().model;
+
+            VFXModelDescriptor desc = d.modelDescriptor as VFXModelDescriptor;
+            if (desc == null)
+                return false;
+
+            IVFXSlotContainer container = desc.model as IVFXSlotContainer;
+            if (container == null)
+            {
+                return false;
+            }
+
+            var getSlots = direction == Direction.Input ? (System.Func<int, VFXSlot> )container.GetOutputSlot : (System.Func<int, VFXSlot> )container.GetInputSlot;
+
+            int count = direction == Direction.Input ? container.GetNbOutputSlots() : container.GetNbInputSlots();
+
+
+            bool oneFound = false;
+            for (int i = 0; i < count; ++i)
+            {
+                VFXSlot slot = getSlots(i);
+
+                if (slot.CanLink(mySlot))
+                {
+                    oneFound = true;
+                    break;
+                }
+            }
+
+            return oneFound;
+        }
+
+        void AddLinkedNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
+        {
+            var mySlot = GetPresenter<VFXDataAnchorPresenter>().model;
+            VFXView view = GetFirstAncestorOfType<VFXView>();
+            if (view == null) return;
+            Vector2 tPos = view.ChangeCoordinatesTo(view.contentViewContainer, mPos);
+
+            VFXModelDescriptor desc = d.modelDescriptor as VFXModelDescriptor;
+
+            IVFXSlotContainer  result = view.AddNode(d, mPos) as IVFXSlotContainer;
+
+            if (result == null)
+                return;
+
+
+            var getSlots = direction == Direction.Input ? (System.Func<int, VFXSlot>)result.GetOutputSlot : (System.Func<int, VFXSlot>)result.GetInputSlot;
+
+            int count = direction == Direction.Input ? result.GetNbOutputSlots() : result.GetNbInputSlots();
+
+            for (int i = 0; i < count; ++i)
+            {
+                VFXSlot slot = getSlots(i);
+
+                if (slot.CanLink(mySlot))
+                {
+                    slot.Link(mySlot);
+                    return;
                 }
             }
         }

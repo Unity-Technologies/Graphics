@@ -14,10 +14,15 @@ namespace UnityEditor.VFX
 #if !USE_SHADER_AS_SUBASSET
     public class VFXCacheManager : EditorWindow
     {
-        [MenuItem("VFX Editor/Rebuild VFXCache")]
-        public static void Rebuild()
+        [MenuItem("VFX Editor/Clear VFXCache")]
+        public static void Clear()
         {
             FileUtil.DeleteFileOrDirectory(VFXGraphCompiledData.baseCacheFolder);
+        }
+
+        [MenuItem("VFX Editor/Build VFXCache")]
+        public static void Build()
+        {
             var vfxAssets = new List<VFXAsset>();
             var vfxAssetsGuid = AssetDatabase.FindAssets("t:VFXAsset");
             foreach (var guid in vfxAssetsGuid)
@@ -109,7 +114,10 @@ namespace UnityEditor.VFX
                 var from = children.ToArray();
                 var copy = from.Select(o => o.Clone<VFXModel>()).ToArray();
                 VFXSlot.ReproduceLinkedSlotFromHierachy(from, copy);
-                VFXContext.ReproduceLinkedFlowFromHiearchy(from, copy);
+
+                var associativeContext = VFXContext.BuildAssociativeContext(from, copy);
+                VFXContext.ReproduceLinkedFlowFromHiearchy(associativeContext);
+                VFXContext.ReproduceDataSettings(associativeContext);
 
                 var clone = CreateInstance(GetType()) as VFXGraph;
                 clone.m_Children = new List<VFXModel>();

@@ -37,7 +37,7 @@ namespace UnityEditor.VFX.UI
 
         Texture2D[] m_IconStates;
 
-        public VisualElement m_Label;
+        public Label m_Label;
 
 
         public bool m_PropertyEnabled;
@@ -53,6 +53,12 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+
+        public virtual bool IsCompatible(IPropertyRMProvider provider)
+        {
+            return GetType() == GetPropertyType(provider);
+        }
+
         public float GetPreferredLabelWidth()
         {
             if (m_Label.panel == null) return 40;
@@ -65,7 +71,7 @@ namespace UnityEditor.VFX.UI
             if (element != null)
             {
                 m_Label.style.font = element.style.font;
-                return m_Label.MeasureTextSize(m_Label.text, -1, MeasureMode.Undefined, m_Label.style.height, MeasureMode.Exactly).x + m_Provider.depth * VFXPropertyIM.depthOffset;
+                return m_Label.DoMeasure(-1, MeasureMode.Undefined, m_Label.style.height, MeasureMode.Exactly).x + m_Provider.depth * VFXPropertyIM.depthOffset;
             }
             return 40 + m_Provider.depth * VFXPropertyIM.depthOffset;
         }
@@ -139,7 +145,7 @@ namespace UnityEditor.VFX.UI
             string labelText = provider.name;
             string labelTooltip = null;
             VFXPropertyAttribute.ApplyToGUI(provider.attributes, ref labelText, ref labelTooltip);
-            m_Label = new VisualElement() { name = "label", text = labelText };
+            m_Label = new Label() { name = "label", text = labelText };
             m_Label.AddTooltip(labelTooltip);
 
             if (provider.depth != 0)
@@ -200,10 +206,10 @@ namespace UnityEditor.VFX.UI
             {typeof(string), typeof(StringPropertyRM)}
         };
 
-        public static PropertyRM Create(IPropertyRMProvider presenter, float labelWidth)
+
+        static Type GetPropertyType(IPropertyRMProvider presenter)
         {
             Type propertyType = null;
-
             Type type = presenter.portType;
 
             if (type.IsEnum)
@@ -235,6 +241,13 @@ namespace UnityEditor.VFX.UI
             {
                 propertyType = typeof(EmptyPropertyRM);
             }
+
+            return propertyType;
+        }
+
+        public static PropertyRM Create(IPropertyRMProvider presenter, float labelWidth)
+        {
+            Type propertyType = GetPropertyType(presenter);
 
             return System.Activator.CreateInstance(propertyType, new object[] { presenter, labelWidth }) as PropertyRM;
         }
@@ -334,7 +347,7 @@ namespace UnityEditor.VFX.UI
             m_Field.SetEnabled(propertyEnabled);
         }
 
-        ValueControl<T> m_Field;
+        protected ValueControl<T> m_Field;
         public override void UpdateGUI()
         {
             m_Field.SetValue(m_Value);

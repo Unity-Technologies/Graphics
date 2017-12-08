@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 
 using Object = UnityEngine.Object;
 using System.Text.RegularExpressions;
@@ -347,7 +348,7 @@ namespace UnityEditor.VFX
             var blockCallFunction = new VFXShaderWriter();
             var blockDeclared = new HashSet<string>();
             var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
-            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToName).ToDictionary(s => s.Key, s => s.Value);
+            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
 
             foreach (var current in context.activeChildrenWithImplicit.Select((v, i) => new { block = v, blockIndex = i }))
             {
@@ -420,6 +421,13 @@ namespace UnityEditor.VFX
 
             globalIncludeContent.WriteLine();
             globalIncludeContent.WriteLine("#include \"Assets/" + context.renderLoopCommonInclude + "\"");
+
+            if (context.GetData() is ISpaceable)
+            {
+                var spaceable = context.GetData() as ISpaceable;
+                globalIncludeContent.WriteLineFormat("#define {0} 1", spaceable.space == CoordinateSpace.Global ? "VFX_WORLD_SPACE" : "VFX_LOCAL_SPACE");
+            }
+
             globalIncludeContent.WriteLine("#include \"Assets/VFXShaders/VFXCommon.cginc\"");
 
             // Per-block includes

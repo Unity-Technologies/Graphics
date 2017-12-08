@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace UnityEditor.VFX
 {
     [VFXInfo]
@@ -20,6 +22,11 @@ namespace UnityEditor.VFX
                 return VFXExpressionMapper.FromContext(this);
 
             return null;
+        }
+
+        public override bool CanBeCompiled()
+        {
+            return outputContexts.Any(c => c.CanBeCompiled());
         }
     }
 }

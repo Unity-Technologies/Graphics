@@ -71,6 +71,23 @@ namespace UnityEditor.VFX
             throw new NotImplementedException(type.ToString());
         }
 
+        // As certain type of uniforms are not handled in material, we need to use floats instead
+        public static string TypeToUniformCode(VFXValueType type)
+        {
+            switch (type)
+            {
+                case VFXValueType.kFloat: return "float";
+                case VFXValueType.kFloat2: return "float2";
+                case VFXValueType.kFloat3: return "float3";
+                case VFXValueType.kFloat4: return "float4";
+                case VFXValueType.kInt: return "float";
+                case VFXValueType.kUint: return "float";
+                case VFXValueType.kTransform: return "float4x4";
+                case VFXValueType.kBool: return "float";
+            }
+            throw new NotImplementedException(type.ToString());
+        }
+
         public static Type TypeToType(VFXValueType type)
         {
             switch (type)

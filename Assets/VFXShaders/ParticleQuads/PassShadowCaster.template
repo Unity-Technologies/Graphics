@@ -36,7 +36,7 @@ Pass
 #define VFX_VARYING_UV uv
 		
 	${VFXBegin:VFXVertexAdditionalProcess}
-		o.pos = UnityApplyLinearShadowBias(o.pos);
+	o.pos = UnityApplyLinearShadowBias(o.pos);
 	${VFXEnd}
 		
 	${VFXInclude("Assets/VFXShaders/ParticleQuads/Pass.template")}	

@@ -7,10 +7,10 @@ namespace UnityEditor.VFX.UIElements
 {
     class LabeledField<T, U> : VisualElement, INotifyValueChanged<U> where T : VisualElement, INotifyValueChanged<U>, new()
     {
-        protected VisualElement m_Label;
+        protected Label m_Label;
         protected T m_Control;
 
-        public LabeledField(VisualElement existingLabel)
+        public LabeledField(Label existingLabel)
         {
             m_Label = existingLabel;
 
@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.UIElements
         {
             if (!string.IsNullOrEmpty(label))
             {
-                m_Label = new VisualElement() { text = label };
+                m_Label = new Label() { text = label };
                 m_Label.AddToClassList("label");
 
                 Add(m_Label);
@@ -101,9 +101,9 @@ namespace UnityEditor.VFX.UIElements
 
     abstract class ValueControl<T> : VisualElement
     {
-        protected VisualElement m_Label;
+        protected Label m_Label;
 
-        protected ValueControl(VisualElement existingLabel)
+        protected ValueControl(Label existingLabel)
         {
             m_Label = existingLabel;
         }
@@ -112,7 +112,7 @@ namespace UnityEditor.VFX.UIElements
         {
             if (!string.IsNullOrEmpty(label))
             {
-                m_Label = new VisualElement() { text = label };
+                m_Label = new Label() { text = label };
                 m_Label.AddToClassList("label");
 
                 Add(m_Label);
@@ -173,7 +173,7 @@ namespace UnityEditor.VFX.UIElements
             m_Multiplier = 1.0f;
         }
 
-        public OldFloatField(VisualElement existingLabel) : base(existingLabel)
+        public OldFloatField(Label existingLabel) : base(existingLabel)
         {
             CreateFields();
             Add(m_TextField);

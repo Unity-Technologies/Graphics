@@ -5,6 +5,9 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
 	if (index < asuint(nbMax))
 	{
+		#if VFX_HAS_INDIRECT_DRAW
+		index = indirectBuffer[index];
+		#endif
 		${VFXLoadAttributes:{alive}}
 		if (alive)
 		{
@@ -18,7 +21,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 			o.VFX_VARYING_UV.y = float((id & 2) >> 1);
 			
 			float3 vPos = position;
-			vPos += TransformInElementSpace(float3(o.VFX_VARYING_UV - 0.5f,0.0f),side,up,front,angle,pivot,size);
+			vPos += TransformInElementSpace(float3(o.VFX_VARYING_UV.xy - 0.5f,0.0f),side,up,front,angle,pivot,float3(size,1.0f));
 
 			o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
 

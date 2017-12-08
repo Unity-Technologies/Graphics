@@ -30,8 +30,6 @@ namespace UnityEditor.VFX.UI
             m_EnableToggle = new Toggle(OnToggleEnable);
             titleContainer.shadow.Insert(0, m_EnableToggle);
 
-
-            this.AddManipulator(new Collapser());
             capabilities &= ~Capabilities.Ascendable;
 
             edgeDrawer.RemoveFromHierarchy();
@@ -79,7 +77,6 @@ namespace UnityEditor.VFX.UI
             base.OnDataChanged();
             var presenter = GetPresenter<VFXBlockPresenter>();
 
-            presenter.block.collapsed = !presenter.expanded;
             m_EnableToggle.on = presenter.block.enabled;
             if (inputContainer != null)
                 inputContainer.SetEnabled(presenter.block.enabled);
@@ -107,14 +104,14 @@ namespace UnityEditor.VFX.UI
             Vector2 pos = evt.imguiEvent.mousePosition;
 
             IEnumerable<VFXBlockUI> draggedBlocksUI = selection.Select(t => t as VFXBlockUI).Where(t => t != null);
-            IEnumerable<VFXBlockPresenter> draggedBlocks = draggedBlocksUI.Select(t => t.GetPresenter<VFXBlockPresenter>());
 
             VFXBlockPresenter blockPresenter = GetPresenter<VFXBlockPresenter>();
             VFXContextPresenter contextPresenter = blockPresenter.contextPresenter;
 
             if (context.CanDrop(draggedBlocksUI, this))
             {
-                contextPresenter.BlocksDropped(blockPresenter, pos.y > layout.height / 2, draggedBlocks);
+                context.BlocksDropped(blockPresenter, pos.y > layout.height / 2, draggedBlocksUI, evt.imguiEvent.control);
+                DragAndDrop.AcceptDrag();
             }
             else
             {

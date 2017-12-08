@@ -105,7 +105,7 @@ namespace UnityEngine.Experimental.UIElements
             GL.End();
             GL.invertCulling = true;
             m_Material.SetPass(0);
-            Graphics.DrawMeshNow(m_Mesh, Matrix4x4.identity);
+            UnityEngine.Graphics.DrawMeshNow(m_Mesh, Matrix4x4.identity);
             GL.invertCulling = false;
             //Graphics.DrawMesh(m_Mesh, Matrix4x4.identity, m_Material, 1);
 

@@ -33,7 +33,7 @@ float3x3 VFXGetWorldToViewRotMatrix()
 
 float3 VFXGetViewWorldPosition()
 {
-    return GetCurrentViewPosition();
+    return GetAbsolutePositionWS(GetCurrentViewPosition());
 }
 
 float4 VFXGetPOSSS(float4 posCS)
@@ -46,5 +46,5 @@ float4 VFXGetPOSSS(float4 posCS)
 
 float VFXLinearEyeDepth(float4 posSS)
 {
-    return LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_MainDepthTexture, UNITY_PROJ_COORD(posSS)),_zBufferParams);
+    return LinearEyeDepth(SAMPLE_TEXTURE2D(_MainDepthTexture, sampler_MainDepthTexture, posSS.xyz / posSS.w),_ZBufferParams);
 }

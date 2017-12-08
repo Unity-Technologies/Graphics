@@ -12,6 +12,7 @@ namespace UnityEditor.VFX.UIElements
 
         VisualElement m_AlphaDisplay;
         VisualElement m_NotAlphaDisplay;
+        VisualElement m_AlphaContainer;
 
         VisualElement m_HDRLabel;
 
@@ -42,15 +43,15 @@ namespace UnityEditor.VFX.UIElements
 
             m_NotAlphaDisplay.AddToClassList("notalphadisplay");
 
-            VisualElement alphaContainer = new VisualElement();
-            alphaContainer.style.flexDirection = FlexDirection.Row;
-            alphaContainer.style.height = 3;
+            m_AlphaContainer = new VisualElement();
+            m_AlphaContainer.style.flexDirection = FlexDirection.Row;
+            m_AlphaContainer.style.height = 3;
 
             m_ColorDisplay.AddManipulator(new Clickable(OnColorClick));
             m_AlphaDisplay.AddManipulator(new Clickable(OnColorClick));
 
 
-            m_HDRLabel = new VisualElement() {
+            m_HDRLabel = new Label() {
                 pickingMode = PickingMode.Ignore,
                 text = "HDR"
             };
@@ -65,20 +66,42 @@ namespace UnityEditor.VFX.UIElements
             m_HDRLabel.AddToClassList("hdr");
 
             m_Container.Add(m_ColorDisplay);
-            m_Container.Add(alphaContainer);
+            m_Container.Add(m_AlphaContainer);
             m_Container.Add(m_HDRLabel);
 
-            alphaContainer.Add(m_AlphaDisplay);
-            alphaContainer.Add(m_NotAlphaDisplay);
+            m_AlphaContainer.Add(m_AlphaDisplay);
+            m_AlphaContainer.Add(m_NotAlphaDisplay);
 
 
             return m_Container;
         }
 
+        bool m_ShowAlpha = true;
+
+        public bool showAlpha
+        {
+            get { return m_ShowAlpha; }
+            set
+            {
+                if (m_ShowAlpha != value)
+                {
+                    m_ShowAlpha = value;
+                    if (m_ShowAlpha)
+                    {
+                        m_Container.Add(m_AlphaContainer);
+                    }
+                    else
+                    {
+                        m_AlphaContainer.RemoveFromHierarchy();
+                    }
+                }
+            }
+        }
+
         void OnColorClick()
         {
             if (enabledInHierarchy)
-                ColorPicker.Show(OnColorChanged, m_Value, true, true);
+                ColorPicker.Show(OnColorChanged, m_Value.gamma, m_ShowAlpha, true);
         }
 
         VisualElement CreateEyeDropper()
@@ -123,7 +146,7 @@ namespace UnityEditor.VFX.UIElements
             Add(m_EyeDropper);
         }
 
-        public ColorField(VisualElement existingLabel) : base(existingLabel)
+        public ColorField(Label existingLabel) : base(existingLabel)
         {
             VisualElement container = CreateColorContainer();
             Add(container);
@@ -134,7 +157,7 @@ namespace UnityEditor.VFX.UIElements
 
         void OnColorChanged(Color color)
         {
-            SetValue(color);
+            SetValue(color.linear);
 
             if (m_EyeDroppperScheduler != null)
             {
@@ -149,7 +172,8 @@ namespace UnityEditor.VFX.UIElements
 
         protected override void ValueToGUI()
         {
-            m_ColorDisplay.style.backgroundColor = new Color(m_Value.r, m_Value.g, m_Value.b, 1);
+            Color displayedColor = (new Color(m_Value.r, m_Value.g, m_Value.b, 1)).gamma;
+            m_ColorDisplay.style.backgroundColor = displayedColor;
             m_AlphaDisplay.style.flex = m_Value.a;
             m_NotAlphaDisplay.style.flex = 1 - m_Value.a;
 

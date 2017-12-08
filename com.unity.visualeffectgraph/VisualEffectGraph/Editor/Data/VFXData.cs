@@ -28,7 +28,6 @@ namespace UnityEditor.VFX
             switch (type)
             {
                 case VFXDataType.kParticle:     return ScriptableObject.CreateInstance<VFXDataParticle>();
-                case VFXDataType.kSpawnEvent:   return ScriptableObject.CreateInstance<VFXDataSpawnEvent>();
                 default:                        return null;
             }
         }
@@ -41,16 +40,29 @@ namespace UnityEditor.VFX
                 m_Owners = new List<VFXContext>();
         }
 
+        public abstract void CopySettings<T>(T dst) where T : VFXData;
+
+        public virtual bool CanBeCompiled()
+        {
+            return true;
+        }
+
         // Never call this directly ! Only context must call this through SetData
         public void OnContextAdded(VFXContext context)
         {
+            if (context == null)
+                throw new ArgumentNullException();
+            if (m_Owners.Contains(context))
+                throw new ArgumentException(string.Format("{0} is already in the owner list of {1}", context, this));
+
             m_Owners.Add(context);
         }
 
         // Never call this directly ! Only context must call this through SetData
         public void OnContextRemoved(VFXContext context)
         {
-            m_Owners.Remove(context);
+            if (!m_Owners.Remove(context))
+                throw new ArgumentException(string.Format("{0} is not in the owner list of {1}", context, this));
         }
 
         public bool IsCurrentAttributeRead(VFXAttribute attrib)                        { return (GetAttributeMode(attrib) & VFXAttributeMode.Read) != 0; }
@@ -289,9 +301,6 @@ namespace UnityEditor.VFX
         {
             if (attribInfo.mode == VFXAttributeMode.None)
                 throw new ArgumentException("Cannot add an attribute without mode");
-
-            //if ((attribInfo.mode & VFXAttributeMode.Write) != 0 && context.contextType == VFXContextType.kOutput)
-            //    throw new ArgumentException("Output contexts cannot write attributes");
 
             Dictionary<VFXAttribute, VFXAttributeMode> attribs;
             if (!m_ContextsToAttributes.TryGetValue(context, out attribs))

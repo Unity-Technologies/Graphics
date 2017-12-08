@@ -7,7 +7,6 @@ CBUFFER_START(Uniform)
 CBUFFER_END
  
 #define NB_THREADS_PER_GROUP 64
-#define NB_INDICES_PER_INSTANCE 2048
 
 struct OutputData
 {
@@ -40,13 +39,21 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 				instanceCount = 1;
 				break;
 			}
+
+			case 1: // lines
+			{
+				indexCount = elementCount * 2;
+				instanceCount = 1;
+				break;
+			}
 			
-			case 1: // quads
+			case 2: // quads
 			{
 				if (elementCount > 16384) // Due to 16bits indices (4 vertices per element)
 				{
-					indexCount = NB_INDICES_PER_INSTANCE * 6;
-					instanceCount = (elementCount + (NB_INDICES_PER_INSTANCE - 1)) / NB_INDICES_PER_INSTANCE;
+					const uint NB_PARTICLES_PER_INSTANCE = 2048;
+					indexCount = NB_PARTICLES_PER_INSTANCE * 6;
+					instanceCount = (elementCount + (NB_PARTICLES_PER_INSTANCE - 1)) / NB_PARTICLES_PER_INSTANCE;
 				}
 				else
 				{
@@ -55,27 +62,27 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 				}
 				break;
 			}
-
-			case 2: // meshes
-			{
-				indexCount = data.indexCount;
-				instanceCount = elementCount;
-				break;
-			}
-
+			
 			case 3: // hexahedron
 			{
-				// Version with hexahedron batched in index buffer
 				if (elementCount > 8192) // Due to 16bits indices (8 vertices per element)
 				{
-					indexCount = NB_INDICES_PER_INSTANCE * 36;
-					instanceCount = (elementCount + (NB_INDICES_PER_INSTANCE - 1)) / NB_INDICES_PER_INSTANCE;
+					const uint NB_PARTICLES_PER_INSTANCE = 1024;
+					indexCount = NB_PARTICLES_PER_INSTANCE * 36;
+					instanceCount = (elementCount + (NB_PARTICLES_PER_INSTANCE - 1)) / NB_PARTICLES_PER_INSTANCE;
 				}
 				else
 				{
 					indexCount = elementCount * 36;
 					instanceCount = 1;
 				}
+				break;
+			}
+
+			case 4: // meshes
+			{
+				indexCount = data.indexCount;
+				instanceCount = elementCount;
 				break;
 			}
 		}

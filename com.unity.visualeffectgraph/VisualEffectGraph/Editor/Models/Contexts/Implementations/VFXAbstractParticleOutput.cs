@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -23,6 +24,14 @@ namespace UnityEditor.VFX
 
         [VFXSetting, SerializeField]
         protected bool useSoftParticle = false;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected int sortPriority = 0;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected bool indirectDraw = false;
+
+        public bool HasIndirectDraw() { return indirectDraw; }
 
         protected VFXAbstractParticleOutput() : base(VFXContextType.kOutput, VFXDataType.kParticle, VFXDataType.kNone) {}
 
@@ -82,6 +91,9 @@ namespace UnityEditor.VFX
                     if (settings.shadowCastingMode != ShadowCastingMode.Off)
                         yield return "USE_CAST_SHADOWS_PASS";
                 }
+
+                if (HasIndirectDraw())
+                    yield return "VFX_HAS_INDIRECT_DRAW";
             }
         }
 
@@ -109,11 +121,21 @@ namespace UnityEditor.VFX
 
                 var shaderTags = new VFXShaderWriter();
                 if (blendMode == BlendMode.Masked)
-                    shaderTags.Write("Tags { \"Queue\"=\"Geometry\" \"IgnoreProjector\"=\"False\" \"RenderType\"=\"Opaque\" }");
+                    shaderTags.Write("Tags { \"Queue\"=\"AlphaTest\" \"IgnoreProjector\"=\"False\" \"RenderType\"=\"Opaque\" }");
                 else
                     shaderTags.Write("Tags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\" }");
 
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXShaderTags}", shaderTags);
+            }
+        }
+
+        public override IEnumerable<VFXMapping> additionalMappings
+        {
+            get
+            {
+                yield return new VFXMapping(sortPriority, "sortPriority");
+                if (HasIndirectDraw())
+                    yield return new VFXMapping(1, "indirectDraw");
             }
         }
     }

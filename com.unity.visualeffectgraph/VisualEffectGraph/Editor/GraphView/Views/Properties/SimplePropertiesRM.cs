@@ -189,27 +189,6 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class Vector3PropertyRM : SimpleUIPropertyRM<Vector3, Vector3>
-    {
-        public Vector3PropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
-        {
-        }
-
-        public override INotifyValueChanged<Vector3> CreateField()
-        {
-            var field = new LabeledField<Vector3Field, Vector3>(m_Label);
-
-            field.control.dynamicUpdate = true;
-
-            return field;
-        }
-
-        public override float GetPreferredControlWidth()
-        {
-            return 195;
-        }
-    }
-
     class Vector2PropertyRM : SimpleUIPropertyRM<Vector2, Vector2>
     {
         public Vector2PropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
@@ -313,6 +292,25 @@ namespace UnityEditor.VFX.UI
             {
                 return new StringField(m_Label);
             }
+        }
+
+        public override bool IsCompatible(IPropertyRMProvider provider)
+        {
+            if (!base.IsCompatible(provider)) return false;
+
+            var stringProvider = FindStringProvider(m_Provider.customAttributes);
+            var pushButtonProvider = FindPushButtonBehavior(m_Provider.customAttributes);
+
+            if (stringProvider != null)
+            {
+                return m_Field is StringFieldProvider && (m_Field as StringFieldProvider).stringProvider == stringProvider;
+            }
+            else if (pushButtonProvider != null)
+            {
+                return m_Field is StringFieldPushButton && (m_Field as StringFieldPushButton).pushButtonProvider == pushButtonProvider;
+            }
+
+            return !(m_Field is StringFieldProvider) && !(m_Field is StringFieldPushButton);
         }
     }
 }

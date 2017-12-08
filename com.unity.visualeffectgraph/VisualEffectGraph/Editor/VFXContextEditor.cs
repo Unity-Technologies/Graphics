@@ -16,66 +16,52 @@ using System.Reflection;
 
 [CustomEditor(typeof(VFXContext), true)]
 [CanEditMultipleObjects]
-public class VFXContextEditor : Editor
+public class VFXContextEditor : VFXSlotContainerEditor
 {
     SerializedProperty spaceProperty;
-    SerializedProperty[] settingsProperty;
-    void OnEnable()
+    SerializedObject dataObject;
+    protected new void OnEnable()
     {
-        spaceProperty = serializedObject.FindProperty("m_Space");
-
-        ComputeSettings();
-    }
-
-    void ComputeSettings()
-    {
-        VFXContext context = targets[0] as VFXContext;
-        IEnumerable<FieldInfo> settingFields = context.GetSettings(false, VFXSettingAttribute.VisibleFlags.InInspector);
-
-        for (int i = 1; i < targets.Length; ++i)
+        UnityEngine.Object[] allData = targets.Cast<VFXContext>().Select(t => t.GetData()).Distinct().Where(t => t != null).Cast<UnityEngine.Object>().ToArray();
+        if (allData.Length > 0)
         {
-            IEnumerable<FieldInfo> otherSettingFields = (targets[i] as VFXContext).GetSettings(false, VFXSettingAttribute.VisibleFlags.InInspector);
+            dataObject = new SerializedObject(allData);
 
-            settingFields = settingFields.Intersect(otherSettingFields);
+            spaceProperty = dataObject.FindProperty("m_Space");
+        }
+        else
+        {
+            dataObject = null;
+            spaceProperty = null;
         }
 
-        settingsProperty = settingFields.Select(t => serializedObject.FindProperty(t.Name)).Where(t => t != null).ToArray();
+
+        base.OnEnable();
     }
 
-    void OnDisable()
+    public override void DoInspectorGUI()
     {
-    }
+        if (spaceProperty != null)
+            EditorGUILayout.PropertyField(spaceProperty);
 
-    public void OnSceneGUI()
-    {
+        base.DoInspectorGUI();
     }
 
     public override void OnInspectorGUI()
     {
-        EditorGUILayout.PropertyField(spaceProperty);
+        if (dataObject != null)
+            dataObject.Update();
 
-        foreach (var prop in settingsProperty)
-        {
-            bool visibleChildren = EditorGUILayout.PropertyField(prop);
-            if (visibleChildren)
+        base.OnInspectorGUI();
+
+        if (dataObject != null)
+            if (dataObject.ApplyModifiedProperties())
             {
-                SerializedProperty childProp = serializedObject.FindProperty(prop.propertyPath);
-                while (childProp.NextVisible(visibleChildren) && childProp.propertyPath.StartsWith(prop.propertyPath + "."))
+                foreach (VFXContext context in targets.OfType<VFXContext>())
                 {
-                    visibleChildren = EditorGUILayout.PropertyField(childProp);
+                    // notify that something changed.
+                    context.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
                 }
             }
-        }
-
-        if (serializedObject.ApplyModifiedProperties())
-        {
-            foreach (VFXContext context in targets.OfType<VFXContext>())
-            {
-                // notify that something changed.
-                context.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
-            }
-
-            ComputeSettings(); // need to recompute settings because some might show/hide
-        }
     }
 }
