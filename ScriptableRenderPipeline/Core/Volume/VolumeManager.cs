@@ -101,13 +101,8 @@ namespace UnityEngine.Experimental.Rendering
             m_ComponentsDefaultState.Clear();
 
             // Rebuild it from scratch
-            var types = AppDomain.CurrentDomain.GetAssemblies()
-                            .SelectMany(
-                                a => a.GetTypes()
-                                .Where(
-                                    t => t.IsSubclassOf(typeof(VolumeComponent)) && !t.IsAbstract
-                                )
-                            );
+            var types = CoreUtils.GetAllAssemblyTypes()
+                            .Where(t => t.IsSubclassOf(typeof(VolumeComponent)) && !t.IsAbstract);
 
             foreach (var type in types)
             {
