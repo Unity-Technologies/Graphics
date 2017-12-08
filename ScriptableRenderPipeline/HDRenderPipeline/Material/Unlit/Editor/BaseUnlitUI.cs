@@ -505,7 +505,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 material.SetShaderPassEnabled(HDShaderPassNames.s_GBufferDebugDisplayStr, true);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_DistortionVectorsStr, distortionEnable); // note: use distortionEnable
-                material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrepassStr, enablePass);
+                material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrePassStr, enablePass);
+                material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentBackfaceStr, enablePass);
+                material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentBackfaceDebugDisplayStr, enablePass);
+                material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPostPassStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_MetaStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_ShadowCasterStr, enablePass);
             }
@@ -515,11 +518,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 bool depthWriteEnable = (material.GetFloat(kTransparentDepthPrepassEnable) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent);
                 if (depthWriteEnable)
                 {
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrepassStr, true);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrePassStr, true);
                 }
                 else
                 {
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrepassStr, false);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrePassStr, false);
                 }
             }
 
@@ -528,11 +531,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 bool depthWriteEnable = (material.GetFloat(kTransparentDepthPostpassEnable) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent);
                 if (depthWriteEnable)
                 {
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPostpassStr, true);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPostPassStr, true);
                 }
                 else
                 {
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPostpassStr, false);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPostPassStr, false);
                 }
             }
 

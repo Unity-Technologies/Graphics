@@ -84,7 +84,7 @@ Shader "HDRenderPipeline/LitTessellation"
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
         _AlphaCutoffPostpass("_AlphaCutoffPostpass", Range(0.0, 1.0)) = 0.5
         [ToggleOff] _TransparentBackfaceEnable("_TransparentBackfaceEnable", Float) = 0.0
-        [ToggleOff] _TransparentDepthPostpassEnable("_TransparentBackfaceEnable", Float) = 0.0
+        [ToggleOff] _TransparentDepthPostpassEnable("_TransparentDepthPostpassEnable", Float) = 0.0
 
         // Transparency
         [Enum(None, 0, Plane, 1, Sphere, 2)]_RefractionMode("Refraction Mode", Int) = 0
@@ -614,6 +614,28 @@ Shader "HDRenderPipeline/LitTessellation"
             #include "ShaderPass/LitSharePass.hlsl"
             #include "LitData.hlsl"
             #include "../../ShaderPass/ShaderPassForward.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "TransparentDepthPostPass"
+            Tags { "LightMode" = "TransparentDepthPostPass" }
+
+            Cull[_CullMode]
+            ZWrite On
+            ColorMask 0
+
+            HLSLPROGRAM
+
+            #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #define CUTOFF_TRANSPARENT_DEPTH_POSTPASS
+            #include "../../ShaderVariables.hlsl"
+            #include "../../Material/Material.hlsl"
+            #include "ShaderPass/LitDepthPass.hlsl"
+            #include "LitData.hlsl"
+            #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
         }
