@@ -399,8 +399,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 GL.Clear(true, true, Color.black);
                 Graphics.Blit(Texture2D.whiteTexture, renderData.renderTexture, m_SceneResources.checkerboardMaterial);
                 var mesh = (renderData == masterRenderData && m_Graph.previewMesh) ? m_Graph.previewMesh :  m_SceneResources.sphere;
-                Quaternion rotation = (renderData == masterRenderData) ? m_Graph.previewRotation : Quaternion.identity;
-                Graphics.DrawMesh(mesh, Matrix4x4.TRS(-mesh.bounds.center, rotation, Vector3.one), m_PreviewMaterial, 1, m_SceneResources.camera, 0, m_PreviewPropertyBlock, ShadowCastingMode.Off, false, null, false);
+                Quaternion rotation = (renderData == masterRenderData) ? m_Graph.previewData.rotation : Quaternion.identity;
+                float scale = (renderData == masterRenderData) ? m_Graph.previewData.scale : 1f;
+                Graphics.DrawMesh(mesh, Matrix4x4.TRS(-mesh.bounds.center, rotation, Vector3.one * scale), m_PreviewMaterial, 1, m_SceneResources.camera, 0, m_PreviewPropertyBlock, ShadowCastingMode.Off, false, null, false);
                 var previousUseSRP = Unsupported.useScriptableRenderPipeline;
                 Unsupported.useScriptableRenderPipeline = renderData.shaderData.node is IMasterNode;
                 m_SceneResources.camera.Render();
