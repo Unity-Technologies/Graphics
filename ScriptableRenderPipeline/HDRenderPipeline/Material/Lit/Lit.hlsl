@@ -1105,7 +1105,7 @@ float3 EvaluateTransmission(BSDFData bsdfData, float NdotL, float NdotV, float a
 // EvaluateBSDF_Directional
 //-----------------------------------------------------------------------------
 
-float4 EvaluateCookie_Directional(LightLoopContext lightLoopContext, DirectionalLightData lightData,
+float3 EvaluateCookie_Directional(LightLoopContext lightLoopContext, DirectionalLightData lightData,
                                   float3 lighToSample)
 {
     // Compute the CS position (in [-1, 1]^2) by projecting 'positionWS' onto the near plane.
@@ -1121,9 +1121,7 @@ float4 EvaluateCookie_Directional(LightLoopContext lightLoopContext, Directional
     positionNDC = lightData.tileCookie ? frac(positionNDC) : positionNDC;
 
     // We let the sampler handle clamping to border.
-    float4 cookie = SampleCookie2D(lightLoopContext, positionNDC, lightData.cookieIndex);
-
-    return cookie;
+    return SampleCookie2D(lightLoopContext, positionNDC, lightData.cookieIndex);
 }
 
 // None of the outputs are premultiplied.
@@ -1169,10 +1167,9 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
     [branch] if (lightData.cookieIndex >= 0)
     {
         float3 lightToSample = positionWS - lightData.positionWS;
-        float4 cookie = EvaluateCookie_Directional(lightLoopContext, lightData, lightToSample);
+        float3 cookie = EvaluateCookie_Directional(lightLoopContext, lightData, lightToSample);
 
-        color       *= cookie.rgb;
-        attenuation *= cookie.a;
+        color *= cookie;
     }
 }
 
@@ -1238,7 +1235,8 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 
     [branch] if (lightType == GPULIGHTTYPE_POINT)
     {
-        cookie = SampleCookieCube(lightLoopContext, positionLS, lightData.cookieIndex);
+        cookie.rgb = SampleCookieCube(lightLoopContext, positionLS, lightData.cookieIndex);
+        cookie.a   = 1;
     }
     else
     {
@@ -1252,8 +1250,8 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
         float2 positionNDC = positionCS * 0.5 + 0.5;
 
         // Manually clamp to border (black).
-        cookie = SampleCookie2D(lightLoopContext, positionNDC, lightData.cookieIndex);
-        cookie.a = isInBounds ? cookie.a : 0;
+        cookie.rgb = SampleCookie2D(lightLoopContext, positionNDC, lightData.cookieIndex);
+        cookie.a   = isInBounds ? 1 : 0;
     }
 
     return cookie;
