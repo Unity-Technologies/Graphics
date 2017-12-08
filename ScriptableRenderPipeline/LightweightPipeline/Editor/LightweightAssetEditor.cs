@@ -9,48 +9,53 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             public static GUIContent renderingLabel = new GUIContent("Rendering");
             public static GUIContent shadowLabel = new GUIContent("Shadows");
-            public static GUIContent defaults = new GUIContent("Defaults");
+            public static GUIContent defaults = new GUIContent("Default Materials");
 
-            public static GUIContent renderScaleLabel = new GUIContent("Render Scale", "Allows game to render at a resolution different than native resolution. UI is always rendered at native resolution.");
+            public static GUIContent renderScaleLabel = new GUIContent("Render Scale", "Scales the camera render target allowing the game to render at a resolution different than native resolution. UI is always rendered at native resolution. When in VR mode, VR scaling configuration is used instead.");
 
-            public static GUIContent maxPixelLightsLabel = new GUIContent("Max Pixel Lights",
+            public static GUIContent maxPixelLightsLabel = new GUIContent("Pixel Lights",
                     "Controls the amount of pixel lights that run in fragment light loop. Lights are sorted and culled per-object.");
 
-            public static GUIContent enableVertexLightLabel = new GUIContent("Enable Vertex Light",
-                    "If enabled, shades additional lights exceeding maxAdditionalPixelLights per-vertex up to the maximum of 8 lights.");
+            public static GUIContent enableVertexLightLabel = new GUIContent("Vertex Lighting",
+                    "If enabled shades additional lights exceeding the maximum number of pixel lights per-vertex up to the maximum of 8 lights.");
 
-            public static GUIContent requireCameraDepthTexture = new GUIContent("Camera Depth Texture", "If enabled the the pipeline will generate depth texture necessary for some effects like soft particles.");
+            public static GUIContent requireCameraDepthTexture = new GUIContent("Camera Depth Texture", "If enabled the pipeline will generate camera's depth that can be bound in shaders as _CameraDepthTexture. This is necessary for some effect like Soft Particles.");
 
-            public static GUIContent shadowType = new GUIContent("Shadow Type",
-                    "Single directional shadow supported. SOFT_SHADOWS applies shadow filtering.");
+            public static GUIContent shadowType = new GUIContent("Type",
+                    "Global shadow settings. Options are NO_SHADOW, HARD_SHADOWS and SOFT_SHADOWS.");
 
-            public static GUIContent shadowNearPlaneOffset = new GUIContent("Shadow Near Plane Offset",
-                    "Offset shadow near plane to account for large triangles being distorted by pancaking");
+            public static GUIContent shadowNearPlaneOffset = new GUIContent("Near Plane Offset",
+                    "Offset shadow near plane to account for large triangles being distorted by pancaking.");
 
-            public static GUIContent shadowDistante = new GUIContent("Shadow Distance", "Max shadow drawing distance");
+            public static GUIContent shadowDistante = new GUIContent("Distance", "Max shadow rendering distance.");
 
-            public static GUIContent shadowAtlasResolution = new GUIContent("Shadow Map Resolution",
-                    "Resolution of shadow map texture. If cascades are enabled all cascades will be packed into this texture resolution.");
+            public static GUIContent shadowAtlasResolution = new GUIContent("Shadowmap Resolution",
+                    "Resolution of shadow map texture. If cascades are enabled, cascades will be packed into an atlas and this setting controls the max shadows atlas resolution.");
 
-            public static GUIContent shadowCascades = new GUIContent("Shadow Cascades",
-                    "Number of cascades for directional shadows");
+            public static GUIContent shadowCascades = new GUIContent("Cascades",
+                    "Number of cascades used in directional lights shadows");
 
-            public static GUIContent shadowCascadeSplit = new GUIContent("Shadow Cascade Split",
-                "Percentages to split shadow volume");
+            public static GUIContent shadowCascadeSplit = new GUIContent("Cascades Split",
+                    "Percentages to split shadow volume");
 
-            public static GUIContent defaultMaterial = new GUIContent("Default Material",
-                "Material to use when creating 3D objects");
+            public static GUIContent defaultMaterial = new GUIContent("Mesh",
+                    "Material to use when creating 3D objects");
 
-            public static GUIContent defaultParticleMaterial = new GUIContent("Default Particle Material",
-                "Material to use when creating Particle Systems");
+            public static GUIContent defaultParticleMaterial = new GUIContent("Particles",
+                    "Material to use when creating Particle Systems");
 
-            public static GUIContent defaultTerrainMaterial = new GUIContent("Default Terrain Material",
-                "Material to use in Terrains");
+            public static GUIContent defaultTerrainMaterial = new GUIContent("Terrain",
+                    "Material to use in Terrains");
 
-            public static GUIContent msaaContent = new GUIContent("Anti Aliasing (MSAA)", "Controls the global anti aliasing applied to all cameras.");
+            public static GUIContent msaaContent = new GUIContent("Anti Aliasing (MSAA)", "Controls the global anti aliasing settings.");
+
+            public static string[] shadowTypeOptions = {"No Shadows", "Hard Shadows", "Hard and Soft Shadows"};
+            public static string[] shadowCascadeOptions = {"No Cascades", "Two Cascades", "Four Cascades"};
         }
 
         private int kMaxSupportedPixelLights = 8;
+        private float kMinRenderScale = 0.1f;
+        private float kMaxRenderScale = 4.0f;
         private SerializedProperty m_RenderScale;
         private SerializedProperty m_MaxPixelLights;
         private SerializedProperty m_SupportsVertexLightProp;
@@ -86,6 +91,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_MSAA = serializedObject.FindProperty("m_MSAA");
         }
 
+        protected void DoPopup(GUIContent label, SerializedProperty property, string[] options)
+        {
+            var mode = property.intValue;
+            EditorGUI.BeginChangeCheck();
+            mode = EditorGUILayout.Popup(label, mode, options);
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(property.objectReferenceValue, property.name);
+                property.intValue = mode;
+            }
+        }
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -95,7 +112,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             EditorGUI.indentLevel++;
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(Styles.renderScaleLabel);
-            m_RenderScale.floatValue = EditorGUILayout.Slider(m_RenderScale.floatValue, 0.1f, 1.0f);
+            m_RenderScale.floatValue = EditorGUILayout.Slider(m_RenderScale.floatValue, kMinRenderScale, kMaxRenderScale);
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(Styles.maxPixelLightsLabel);
@@ -111,11 +128,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             EditorGUILayout.LabelField(Styles.shadowLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(m_ShadowTypeProp, Styles.shadowType);
+            DoPopup(Styles.shadowType, m_ShadowTypeProp, Styles.shadowTypeOptions);
             EditorGUILayout.PropertyField(m_ShadowAtlasResolutionProp, Styles.shadowAtlasResolution);
+
             EditorGUILayout.PropertyField(m_ShadowNearPlaneOffsetProp, Styles.shadowNearPlaneOffset);
             EditorGUILayout.PropertyField(m_ShadowDistanceProp, Styles.shadowDistante);
-            EditorGUILayout.PropertyField(m_ShadowCascadesProp, Styles.shadowCascades);
+            DoPopup(Styles.shadowCascades, m_ShadowCascadesProp, Styles.shadowCascadeOptions);
 
             ShadowCascades cascades = (ShadowCascades)m_ShadowCascadesProp.intValue;
             if (cascades == ShadowCascades.FOUR_CASCADES)

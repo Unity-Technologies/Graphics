@@ -323,9 +323,34 @@ namespace UnityEditor.Experimental.Rendering
             Undo.DestroyObjectImmediate(prevSettings);
         }
 
+        void MoveComponent(int id, int offset)
+        {
+            // Move components
+            serializedObject.Update();
+            m_Components.MoveArrayElement(id, id + offset);
+            serializedObject.ApplyModifiedProperties();
+
+            // Move editors
+            var prev = m_Editors[id + offset];
+            m_Editors[id + offset] = m_Editors[id];
+            m_Editors[id] = prev;
+        }
+
         void OnContextClick(Vector2 position, VolumeComponent targetComponent, int id)
         {
             var menu = new GenericMenu();
+
+            if (id == 0)
+                menu.AddDisabledItem(CoreEditorUtils.GetContent("Move Up"));
+            else
+                menu.AddItem(CoreEditorUtils.GetContent("Move Up"), false, () => MoveComponent(id, -1));
+
+            if (id == m_Editors.Count - 1)
+                menu.AddDisabledItem(CoreEditorUtils.GetContent("Move Down"));
+            else
+                menu.AddItem(CoreEditorUtils.GetContent("Move Down"), false, () => MoveComponent(id, 1));
+
+            menu.AddSeparator(string.Empty);
             menu.AddItem(CoreEditorUtils.GetContent("Reset"), false, () => ResetComponent(targetComponent.GetType(), id));
             menu.AddItem(CoreEditorUtils.GetContent("Remove"), false, () => RemoveComponent(id));
             menu.AddSeparator(string.Empty);

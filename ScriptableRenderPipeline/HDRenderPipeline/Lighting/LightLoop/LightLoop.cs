@@ -763,7 +763,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (light.light.cookie != null)
             {
-                directionalLightData.tileCookie = light.light.cookie.wrapMode == TextureWrapMode.Repeat;
+                directionalLightData.tileCookie = light.light.cookie.wrapMode == TextureWrapMode.Repeat ? 1 : 0;
                 directionalLightData.cookieIndex = m_CookieTexArray.FetchSlice(cmd, light.light.cookie);
             }
             // fix up shadow information
@@ -786,13 +786,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 directionalLightData.shadowMaskSelector[light.light.bakingOutput.occlusionMaskChannel] = 1.0f;
                 // TODO: make this option per light, not global
-                directionalLightData.dynamicShadowCasterOnly = QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask;
+                directionalLightData.dynamicShadowCasterOnly = QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask ? 1 : 0;
             }
             else
             {
                 // use -1 to say that we don't use shadow mask
                 directionalLightData.shadowMaskSelector.x = -1.0f;
-                directionalLightData.dynamicShadowCasterOnly = false;
+                directionalLightData.dynamicShadowCasterOnly = 0;
             }
 
             m_CurrentSunLight = m_CurrentSunLight == null ? light.light : m_CurrentSunLight;
@@ -951,13 +951,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 lightData.shadowMaskSelector[light.light.bakingOutput.occlusionMaskChannel] = 1.0f;
                 // TODO: make this option per light, not global
-                lightData.dynamicShadowCasterOnly = QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask;
+                lightData.dynamicShadowCasterOnly = QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask ? 1 : 0;
             }
             else
             {
                 // use -1 to say that we don't use shadow mask
                 lightData.shadowMaskSelector.x = -1.0f;
-                lightData.dynamicShadowCasterOnly = false;
+                lightData.dynamicShadowCasterOnly = 0;
             }
 
             m_lightList.lights.Add(lightData);
