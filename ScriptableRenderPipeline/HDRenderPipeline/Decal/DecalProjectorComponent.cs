@@ -55,10 +55,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
         }
 
-        public void OnDrawGizmos()
-        {
-            //DrawGizmo(false);
-        }
         public void OnDrawGizmosSelected()
         {
             DrawGizmo(true);
