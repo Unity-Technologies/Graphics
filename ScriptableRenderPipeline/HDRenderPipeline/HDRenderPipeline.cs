@@ -808,6 +808,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd);
 
+                    RenderVelocity(m_CullResults, hdCamera, renderContext, cmd);
+
                     RenderGBuffer(m_CullResults, hdCamera, renderContext, cmd);
 
                     // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
@@ -923,8 +925,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                         else
                         {
-                            RenderVelocity(m_CullResults, hdCamera, renderContext, cmd); // Note we may have to render velocity earlier if we do temporalAO, temporal volumetric etc... Mean we will not take into account forward opaque in case of deferred rendering ?
-
                             RenderGaussianPyramidColor(camera, cmd, renderContext, FullScreenDebugMode.FinalColorPyramid);
 
                             // TODO: Check with VFX team.
