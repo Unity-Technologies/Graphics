@@ -91,11 +91,17 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        [SerializeField]
+        VFXPropertyAttribute[] m_Attributes;
+
         public virtual void UpdateInfos()
         {
-            if (model.property.type != portType)
+            bool sameAttributes = (m_Attributes == null && model.property.attributes == null) || (m_Attributes != null && model.property.attributes != null && Enumerable.SequenceEqual(m_Attributes, model.property.attributes));
+
+            if (model.property.type != portType || !sameAttributes)
             {
                 portType = model.property.type;
+                m_Attributes = model.property.attributes;
             }
         }
 
@@ -164,7 +170,7 @@ namespace UnityEditor.VFX.UI
 
         public VFXPropertyAttribute[] attributes
         {
-            get { return model.property.attributes; }
+            get { return m_Attributes; }
         }
 
         public int depth

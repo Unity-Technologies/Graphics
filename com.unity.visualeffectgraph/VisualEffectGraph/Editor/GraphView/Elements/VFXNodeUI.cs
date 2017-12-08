@@ -80,7 +80,10 @@ namespace UnityEditor.VFX.UI
 
                 m_SettingsContainer = new VisualElement { name = "settings" };
 
-                inputContainer.Insert(0, m_SettingsContainer); //between title and input
+
+                VisualElement inputParent = new VisualElement() { name = "inputAndSettings" };
+
+                mainContainer.Q("contents").Insert(0, m_SettingsContainer);
 
                 foreach (var setting in presenter.settings)
                 {
@@ -120,6 +123,16 @@ namespace UnityEditor.VFX.UI
                         edge.OnDataChanged();
                     }
                 }
+            }
+
+
+            if (presenter.model.superCollapsed)
+            {
+                AddToClassList("superCollapsed");
+            }
+            else
+            {
+                RemoveFromClassList("superCollapsed");
             }
         }
 
@@ -166,11 +179,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public virtual void GetPreferedWidths(ref float labelWidth, ref float controlWidth)
+        public virtual void GetPreferedSettingsWidths(ref float labelWidth, ref float controlWidth)
         {
             foreach (var setting in m_Settings)
             {
-                float portLabelWidth = setting.GetPreferredLabelWidth();
+                float portLabelWidth = setting.GetPreferredLabelWidth() + 5;
                 float portControlWidth = setting.GetPreferredControlWidth();
 
                 if (labelWidth < portLabelWidth)
@@ -184,7 +197,15 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public virtual void GetPreferedWidths(ref float labelWidth, ref float controlWidth)
+        {
+        }
+
         public virtual void ApplyWidths(float labelWidth, float controlWidth)
+        {
+        }
+
+        public virtual void ApplySettingsWidths(float labelWidth, float controlWidth)
         {
             foreach (var setting in m_Settings)
             {

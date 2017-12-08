@@ -53,6 +53,12 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+
+        public virtual bool IsCompatible(IPropertyRMProvider provider)
+        {
+            return GetType() == GetPropertyType(provider);
+        }
+
         public float GetPreferredLabelWidth()
         {
             if (m_Label.panel == null) return 40;
@@ -200,10 +206,10 @@ namespace UnityEditor.VFX.UI
             {typeof(string), typeof(StringPropertyRM)}
         };
 
-        public static PropertyRM Create(IPropertyRMProvider presenter, float labelWidth)
+
+        static Type GetPropertyType(IPropertyRMProvider presenter)
         {
             Type propertyType = null;
-
             Type type = presenter.portType;
 
             if (type.IsEnum)
@@ -235,6 +241,13 @@ namespace UnityEditor.VFX.UI
             {
                 propertyType = typeof(EmptyPropertyRM);
             }
+
+            return propertyType;
+        }
+
+        public static PropertyRM Create(IPropertyRMProvider presenter, float labelWidth)
+        {
+            Type propertyType = GetPropertyType(presenter);
 
             return System.Activator.CreateInstance(propertyType, new object[] { presenter, labelWidth }) as PropertyRM;
         }
@@ -334,7 +347,7 @@ namespace UnityEditor.VFX.UI
             m_Field.SetEnabled(propertyEnabled);
         }
 
-        ValueControl<T> m_Field;
+        protected ValueControl<T> m_Field;
         public override void UpdateGUI()
         {
             m_Field.SetValue(m_Value);

@@ -36,8 +36,6 @@ namespace UnityEditor.VFX.UI
             m_EnableToggle = new Toggle(OnToggleEnable);
             titleContainer.shadow.Insert(0, m_EnableToggle);
 
-
-            //this.AddManipulator(new Collapser());
             capabilities &= ~Capabilities.Ascendable;
 
             edgeDrawer.RemoveFromHierarchy();
@@ -85,7 +83,6 @@ namespace UnityEditor.VFX.UI
             base.OnDataChanged();
             var presenter = controller;
 
-            presenter.block.collapsed = !presenter.expanded;
             m_EnableToggle.on = presenter.block.enabled;
             if (inputContainer != null)
                 inputContainer.SetEnabled(presenter.block.enabled);
