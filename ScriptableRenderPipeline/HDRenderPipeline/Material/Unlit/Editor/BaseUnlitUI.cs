@@ -423,15 +423,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool isBackFaceEnable = material.HasProperty(kTransparentBackfaceEnable) && material.GetFloat(kTransparentBackfaceEnable) > 0.0f && surfaceType == SurfaceType.Transparent;
             bool doubleSidedEnable = material.HasProperty(kDoubleSidedEnable) && material.GetFloat(kDoubleSidedEnable) > 0.0f;
 
-            if (doubleSidedEnable && !isBackFaceEnable) // When backface is enable no need to disable cullmode as we render both side.
+            // Disable culling if double sided
+            material.SetInt("_CullMode", doubleSidedEnable ? (int)UnityEngine.Rendering.CullMode.Off : (int)UnityEngine.Rendering.CullMode.Back);
+
+            // We have a separate cullmode (_CullModeForward) for Forward in case we use backface then frontface rendering, need to configure it
+            if (isBackFaceEnable)
             {
-                material.SetInt("_CullMode", (int)UnityEngine.Rendering.CullMode.Off);
+                material.SetInt("_CullModeForward", (int)UnityEngine.Rendering.CullMode.Back);
             }
-            // For both regular and backface, forward pass use backface culling
             else
             {
-                material.SetInt("_CullMode", (int)UnityEngine.Rendering.CullMode.Back);
+                material.SetInt("_CullModeForward", doubleSidedEnable ? (int)UnityEngine.Rendering.CullMode.Off : (int)UnityEngine.Rendering.CullMode.Back);
             }
+
             CoreUtils.SetKeyword(material, "_DOUBLESIDED_ON", doubleSidedEnable);
 
             // A material's GI flag internally keeps track of whether emission is enabled at all, it's enabled but has no effect
