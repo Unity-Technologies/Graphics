@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace UnityEditor.ShaderGraph
 {
-    /* [Title("UV/Tri-Planar Mapping")]
+    /* [Title("UV", "Tri-Planar Mapping")]
      public class UVTriPlanar : FunctionNInNOut, IGeneratesFunction, IMayRequireNormal, IMayRequireWorldPosition
      {
          private int slot0, slot1, slot2, slot3, slot4, slot5, slot6 = 0;
@@ -117,7 +117,7 @@ namespace UnityEditor.ShaderGraph
 
  namespace UnityEditor.ShaderGraph
  {
-     [Title("UV/Tri-Planar Mapping")]
+     [Title("UV", "Tri-Planar Mapping")]
      public class UVTriPlanar : FunctionNInNOut, IGeneratesFunction, IMayRequireNormal, IMayRequireWorldPosition
      {
          private int slot0, slot1, slot2, slot3, slot4, slot5, slot6 = 0;

@@ -15,7 +15,7 @@ namespace UnityEditor.Graphing
         INode GetNodeFromGuid(Guid guid);
         bool ContainsNodeGuid(Guid guid);
         T GetNodeFromGuid<T>(Guid guid) where T : INode;
-        IEnumerable<IEdge> GetEdges(SlotReference s);
+        void GetEdges(SlotReference s, List<IEdge> foundEdges);
         void ValidateGraph();
         void ReplaceWith(IGraph other);
         IGraphObject owner { get; set; }
@@ -24,5 +24,15 @@ namespace UnityEditor.Graphing
         IEnumerable<IEdge> addedEdges { get; }
         IEnumerable<IEdge> removedEdges { get; }
         void ClearChanges();
+    }
+
+    public static class GraphExtensions
+    {
+        public static IEnumerable<IEdge> GetEdges(this IGraph graph, SlotReference s)
+        {
+            var edges = new List<IEdge>();
+            graph.GetEdges(s, edges);
+            return edges;
+        }
     }
 }

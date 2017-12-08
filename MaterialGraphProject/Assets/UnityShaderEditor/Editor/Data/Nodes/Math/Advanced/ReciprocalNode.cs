@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
         Fast
     };
 
-    [Title("Math/Advanced/Reciprocal")]
+    [Title("Math", "Advanced", "Reciprocal")]
     public class ReciprocalNode : CodeFunctionNode
     {
         public ReciprocalNode()

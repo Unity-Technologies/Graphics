@@ -90,7 +90,7 @@ Shader ""Hidden/GraphErrorShader2""
 
             var name = Path.GetFileNameWithoutExtension(path);
             var shaderString = graph.GetShader(string.Format("graphs/{0}", name), GenerationMode.ForReals, out configuredTextures);
-            Debug.Log(shaderString);
+            //Debug.Log(shaderString);
             return shaderString;
         }
         catch (Exception)

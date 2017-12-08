@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class SerializableTexture
+    public class SerializableTexture : ISerializationCallbackReceiver
     {
         [SerializeField]
         private string m_SerializedTexture;
@@ -15,26 +15,32 @@ namespace UnityEditor.ShaderGraph
             public Texture texture;
         }
 
+        Texture m_Texture;
+
         public Texture texture
         {
             get
             {
-                if (string.IsNullOrEmpty(m_SerializedTexture))
-                    return null;
-
-                var tex = new TextureHelper();
-                EditorJsonUtility.FromJsonOverwrite(m_SerializedTexture, tex);
-                return tex.texture;
+                if (m_Texture == null && !string.IsNullOrEmpty(m_SerializedTexture))
+                {
+                    var tex = new TextureHelper();
+                    EditorJsonUtility.FromJsonOverwrite(m_SerializedTexture, tex);
+                    m_Texture = tex.texture;
+                    m_SerializedTexture = null;
+                }
+                return m_Texture;
             }
-            set
-            {
-                if (texture == value)
-                    return;
+            set { m_Texture = value; }
+        }
 
-                var tex = new TextureHelper();
-                tex.texture = value;
-                m_SerializedTexture = EditorJsonUtility.ToJson(tex, true);
-            }
+        public void OnBeforeSerialize()
+        {
+            var tex = new TextureHelper { texture = texture };
+            m_SerializedTexture = EditorJsonUtility.ToJson(tex, true);
+        }
+
+        public void OnAfterDeserialize()
+        {
         }
     }
 }

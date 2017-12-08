@@ -5,7 +5,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input/Basic/Vector 2")]
+    [Title("Input", "Basic", "Vector 2")]
     public class Vector2Node : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
     {
         [SerializeField]
@@ -72,9 +72,9 @@ namespace UnityEditor.ShaderGraph
         {
             properties.Add(new PreviewProperty()
             {
-                m_Name = GetVariableNameForNode(),
-                m_PropType = PropertyType.Vector2,
-                m_Vector4 = m_Value
+                name = GetVariableNameForNode(),
+                propType = PropertyType.Vector2,
+                vector4Value = m_Value
             });
         }
 

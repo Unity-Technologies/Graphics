@@ -1,0 +1,13 @@
+{
+    "name": "com.unity.shadergraph.EditorTests",
+    "references": [
+        "com.unity.shadergraph.Editor"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}

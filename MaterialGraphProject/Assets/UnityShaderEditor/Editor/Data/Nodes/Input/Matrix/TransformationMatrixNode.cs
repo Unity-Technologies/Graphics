@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph
         WorldToObject
     };
 
-    [Title("Input/Matrix/Transformation Matrix")]
+    [Title("Input", "Matrix", "Transformation Matrix")]
     public class TransformationMatrixNode : AbstractMaterialNode
     {
         static Dictionary<TransformationMatrixType, string> m_matrixList = new Dictionary<TransformationMatrixType, string>

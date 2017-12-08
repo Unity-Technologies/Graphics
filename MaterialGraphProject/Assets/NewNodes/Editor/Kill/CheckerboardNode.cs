@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("OLD/Checkerboard")]
+    [Title("OLD", "Checkerboard")]
     public class CheckerboardNode : CodeFunctionNode
     {
         public CheckerboardNode()

@@ -4,7 +4,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("UV/Flipbook")]
+    [Title("UV", "Flipbook")]
     public class FlipbookNode : CodeFunctionNode
     {
         public FlipbookNode()

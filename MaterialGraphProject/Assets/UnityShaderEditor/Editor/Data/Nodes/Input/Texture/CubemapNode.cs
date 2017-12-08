@@ -6,7 +6,7 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input/Texture/Cubemap")]
+    [Title("Input", "Texture", "Cubemap")]
     public class CubemapNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireViewDirection, IMayRequireNormal
     {
         public const int OutputSlotId = 0;

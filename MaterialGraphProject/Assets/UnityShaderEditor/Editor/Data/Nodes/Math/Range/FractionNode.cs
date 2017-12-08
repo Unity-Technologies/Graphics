@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Range/Fraction")]
+    [Title("Math", "Range", "Fraction")]
     public class FractionNode : CodeFunctionNode
     {
         public FractionNode()

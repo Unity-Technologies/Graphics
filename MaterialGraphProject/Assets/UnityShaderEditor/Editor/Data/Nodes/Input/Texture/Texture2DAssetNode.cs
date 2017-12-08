@@ -1,11 +1,11 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input/Texture/Texture 2D Asset")]
+    [Title("Input", "Texture", "Texture 2D Asset")]
     public class Texture2DAssetNode : AbstractMaterialNode, IPropertyFromNode
     {
         public const int OutputSlotId = 0;
@@ -58,9 +58,9 @@ namespace UnityEditor.ShaderGraph
         {
             properties.Add(new PreviewProperty
             {
-                m_Name = GetVariableNameForSlot(OutputSlotId),
-                m_PropType = PropertyType.Texture,
-                m_Texture = texture
+                name = GetVariableNameForSlot(OutputSlotId),
+                propType = PropertyType.Texture,
+                textureValue = texture
             });
         }
 
