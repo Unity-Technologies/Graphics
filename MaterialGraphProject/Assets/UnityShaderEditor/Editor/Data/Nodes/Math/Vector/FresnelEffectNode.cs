@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Vector/Fresnel Effect")]
+    [Title("Math", "Vector", "Fresnel Effect")]
     class FresnelNode : CodeFunctionNode
     {
         public FresnelNode()

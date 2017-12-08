@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Round/Truncate")]
+    [Title("Math", "Round", "Truncate")]
     public class TruncateNode : CodeFunctionNode
     {
         public TruncateNode()

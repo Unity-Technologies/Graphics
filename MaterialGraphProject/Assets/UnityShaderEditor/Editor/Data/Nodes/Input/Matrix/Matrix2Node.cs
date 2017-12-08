@@ -4,7 +4,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input/Matrix/Matrix 2x2")]
+    [Title("Input", "Matrix", "Matrix 2x2")]
     public class Matrix2Node : AbstractMaterialNode, IGeneratesBodyCode
     {
         const int kOutputSlotId = 0;

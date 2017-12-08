@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Advanced/Normalize")]
+    [Title("Math", "Advanced", "Normalize")]
     class NormalizeNode : CodeFunctionNode
     {
         public NormalizeNode()

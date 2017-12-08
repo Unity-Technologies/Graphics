@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input/Scene/Reflection Probe")]
+    [Title("Input", "Scene", "Reflection Probe")]
     public class ReflectionProbeNode : CodeFunctionNode
     {
         public ReflectionProbeNode()

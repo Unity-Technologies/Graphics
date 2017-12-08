@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Advanced/Posterize")]
+    [Title("Math", "Advanced", "Posterize")]
     class PosterizeNode : CodeFunctionNode
     {
         public PosterizeNode()

@@ -5,7 +5,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Derivative/DDXY")]
+    [Title("Math", "Derivative", "DDXY")]
     public class DDXYNode : CodeFunctionNode
     {
         public DDXYNode()
@@ -52,8 +52,8 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_DDXY_Default(
-            [Slot(0, Binding.None)] Vector1 In,
-            [Slot(1, Binding.None)] out Vector1 Out)
+            [Slot(0, Binding.None)] DynamicDimensionVector In,
+            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
@@ -64,8 +64,8 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_DDXY_Coarse(
-            [Slot(0, Binding.None)] Vector1 In,
-            [Slot(1, Binding.None)] out Vector1 Out)
+            [Slot(0, Binding.None)] DynamicDimensionVector In,
+            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
@@ -76,8 +76,8 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_DDXY_Fine(
-            [Slot(0, Binding.None)] Vector1 In,
-            [Slot(1, Binding.None)] out Vector1 Out)
+            [Slot(0, Binding.None)] DynamicDimensionVector In,
+            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"

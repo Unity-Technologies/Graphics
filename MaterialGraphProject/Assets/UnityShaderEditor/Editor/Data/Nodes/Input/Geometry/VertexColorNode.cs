@@ -3,12 +3,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    interface IMayRequireVertexColor
-    {
-        bool RequiresVertexColor();
-    }
-
-    [Title("Input/Geometry/Vertex Color")]
+    [Title("Input", "Geometry", "Vertex Color")]
     public class VertexColorNode : AbstractMaterialNode, IMayRequireVertexColor
     {
         private const int kOutputSlotId = 0;

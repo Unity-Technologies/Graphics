@@ -88,9 +88,9 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual(1, properties.Count);
             var pp = properties.FirstOrDefault();
 
-            Assert.AreEqual(m_NodeA.GetVariableNameForSlot(slot.id), pp.m_Name);
-            Assert.AreEqual(PropertyType.Float, pp.m_PropType);
-            Assert.AreEqual(slot.value, pp.m_Vector4);
+            Assert.AreEqual(m_NodeA.GetVariableNameForSlot(slot.id), pp.name);
+            Assert.AreEqual(PropertyType.Float, pp.propType);
+            Assert.AreEqual(slot.value, pp.vector4Value);
         }
 
         [Test]

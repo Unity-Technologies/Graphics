@@ -57,9 +57,9 @@ namespace UnityEditor.ShaderGraph
         {
             return new PreviewProperty()
             {
-                m_Name = referenceName,
-                m_PropType = PropertyType.Cubemap,
-                m_Cubemap = value.cubemap
+                name = referenceName,
+                propType = PropertyType.Cubemap,
+                cubemapValue = value.cubemap
             };
         }
     }

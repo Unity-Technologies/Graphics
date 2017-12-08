@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math/Advanced/Negate")]
+    [Title("Math", "Advanced", "Negate")]
     public class NegateNode : CodeFunctionNode
     {
         public NegateNode()

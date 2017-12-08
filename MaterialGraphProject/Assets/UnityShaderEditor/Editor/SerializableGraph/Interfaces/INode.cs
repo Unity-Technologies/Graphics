@@ -21,9 +21,9 @@ namespace UnityEditor.Graphing
         Guid RewriteGuid();
         string name { get; set; }
         bool canDeleteNode { get; }
-        IEnumerable<T> GetInputSlots<T>() where T : ISlot;
-        IEnumerable<T> GetOutputSlots<T>() where T : ISlot;
-        IEnumerable<T> GetSlots<T>() where T : ISlot;
+        void GetInputSlots<T>(List<T> foundSlots) where T : ISlot;
+        void GetOutputSlots<T>(List<T> foundSlots) where T : ISlot;
+        void GetSlots<T>(List<T> foundSlots) where T : ISlot;
         void AddSlot(ISlot slot);
         void RemoveSlot(int slotId);
         SlotReference GetSlotReference(int slotId);
@@ -35,5 +35,29 @@ namespace UnityEditor.Graphing
         bool hasError { get; }
         void ValidateNode();
         void UpdateNodeAfterDeserialization();
+    }
+
+    public static class NodeExtensions
+    {
+        public static IEnumerable<T> GetSlots<T>(this INode node) where T : ISlot
+        {
+            var slots = new List<T>();
+            node.GetSlots(slots);
+            return slots;
+        }
+
+        public static IEnumerable<T> GetInputSlots<T>(this INode node) where T : ISlot
+        {
+            var slots = new List<T>();
+            node.GetInputSlots(slots);
+            return slots;
+        }
+
+        public static IEnumerable<T> GetOutputSlots<T>(this INode node) where T : ISlot
+        {
+            var slots = new List<T>();
+            node.GetOutputSlots(slots);
+            return slots;
+        }
     }
 }

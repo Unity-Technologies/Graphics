@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental.UIElements;
@@ -28,6 +28,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         List<INode> m_SelectedNodes;
 
+        public Action onUpdateAssetClick { get; set; }
+        public Action onShowInProjectClick { get; set; }
+
         public GraphInspectorView(string assetName, PreviewManager previewManager, AbstractMaterialGraph graph)
         {
             m_Graph = graph;
@@ -39,7 +42,18 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             {
                 var headerContainer = new VisualElement {name = "header"};
                 {
-                    headerContainer.Add(new Label(assetName) {name = "title"});
+                    var title = new Label(assetName) {name = "title"};
+                    title.AddManipulator(new Clickable(() =>
+                    {
+                        if (onShowInProjectClick != null)
+                            onShowInProjectClick();
+                    }));
+                    headerContainer.Add(title);
+                    headerContainer.Add(new Button(() =>
+                    {
+                        if (onUpdateAssetClick != null)
+                            onUpdateAssetClick();
+                    }) { name = "save", text = "Save" });
                 }
                 topContainer.Add(headerContainer);
 
@@ -67,25 +81,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 }
                 bottomContainer.Add(propertiesContainer);
 
-                if (m_Graph is LayeredShaderGraph)
-                {
-                    var layersContainer = new VisualElement {name = "properties"};
-                    {
-                        var header = new VisualElement {name = "header"};
-                        {
-                            var title = new Label("Layers") {name = "title"};
-                            header.Add(title);
-
-                            var addLayerButton = new Button(OnAddLayer) {text = "Add", name = "addButton"};
-                            header.Add(addLayerButton);
-                        }
-                        propertiesContainer.Add(header);
-
-                        m_LayerItems = new VisualContainer {name = "items"};
-                        propertiesContainer.Add(m_LayerItems);
-                    }
-                    bottomContainer.Add(layersContainer);
-                }
 
                 m_PreviewTextureView = new PreviewTextureView {name = "preview", image = Texture2D.blackTexture};
                 bottomContainer.Add(m_PreviewTextureView);
@@ -104,11 +99,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
             foreach (var property in m_Graph.properties)
                 m_PropertyItems.Add(new ShaderPropertyView(m_Graph, property));
-
-            var layerGraph = m_Graph as LayeredShaderGraph;
-            if (layerGraph != null)
-                foreach (var layer in layerGraph.layers)
-                    m_LayerItems.Add(new ShaderLayerView(layerGraph, layer));
 
             // Nodes missing custom editors:
             // - PropertyNode
@@ -136,15 +126,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             gm.AddItem(new GUIContent("Texture"), false, () => AddProperty(new TextureShaderProperty()));
             gm.AddItem(new GUIContent("Cubemap"), false, () => AddProperty(new CubemapShaderProperty()));
             gm.ShowAsContext();
-        }
-
-        void OnAddLayer()
-        {
-            var layerGraph = m_Graph as LayeredShaderGraph;
-            if (layerGraph == null)
-                return;
-
-            layerGraph.AddLayer();
         }
 
         void AddProperty(IShaderProperty property)
@@ -217,20 +198,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
             foreach (var property in m_Graph.addedProperties)
                 m_PropertyItems.Add(new ShaderPropertyView(m_Graph, property));
-
-            var layerGraph = m_Graph as LayeredShaderGraph;
-            if (layerGraph != null)
-            {
-                foreach (var id in layerGraph.removedLayers)
-                {
-                    var view = m_LayerItems.OfType<ShaderLayerView>().FirstOrDefault(v => v.layer.guid == id);
-                    if (view != null)
-                        m_LayerItems.Remove(view);
-                }
-
-                foreach (var layer in layerGraph.addedLayers)
-                    m_LayerItems.Add(new ShaderLayerView(layerGraph, layer));
-            }
         }
 
         public void Dispose()

@@ -7,7 +7,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Channel/Combine")]
+    [Title("Channel", "Combine")]
     public class CombineNode : CodeFunctionNode
     {
         public CombineNode()

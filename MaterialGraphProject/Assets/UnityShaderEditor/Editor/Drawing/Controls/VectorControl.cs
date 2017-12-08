@@ -69,14 +69,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
         void AddField(int index, string subLabel)
         {
+            var dummy = new VisualElement { name = "dummy" };
             var label = new Label(subLabel);
-            Add(label);
-            var doubleField = new DoubleField { userData = index, value = m_Value[index] };
-            var dragger = new FieldMouseDragger<double>(doubleField);
+            dummy.Add(label);
+            Add(dummy);
+            var field = new FloatField { userData = index, value = m_Value[index] };
+            var dragger = new FieldMouseDragger<double>(field);
             dragger.SetDragZone(label);
-            doubleField.RegisterCallback<MouseDownEvent>(Repaint);
-            doubleField.RegisterCallback<MouseMoveEvent>(Repaint);
-            doubleField.OnValueChanged(evt =>
+            field.RegisterCallback<MouseDownEvent>(Repaint);
+            field.RegisterCallback<MouseMoveEvent>(Repaint);
+            field.OnValueChanged(evt =>
                 {
                     var value = GetValue();
                     value[index] = (float)evt.newValue;
@@ -84,7 +86,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     m_UndoGroup = -1;
                     Dirty(ChangeType.Repaint);
                 });
-            doubleField.RegisterCallback<InputEvent>(evt =>
+            field.RegisterCallback<InputEvent>(evt =>
                 {
                     if (m_UndoGroup == -1)
                     {
@@ -99,7 +101,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     SetValue(value);
                     Dirty(ChangeType.Repaint);
                 });
-            doubleField.RegisterCallback<KeyDownEvent>(evt =>
+            field.RegisterCallback<KeyDownEvent>(evt =>
                 {
                     if (evt.keyCode == KeyCode.Escape && m_UndoGroup > -1)
                     {
@@ -110,7 +112,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     }
                     Dirty(ChangeType.Repaint);
                 });
-            Add(doubleField);
+            Add(field);
         }
 
         object ValueToPropertyType(Vector4 value)

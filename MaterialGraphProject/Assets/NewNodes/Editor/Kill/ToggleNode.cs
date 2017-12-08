@@ -2,7 +2,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    /* [Title("Input/Toggle")]
+    /* [Title("Input", "Toggle")]
      public class ToggleNode : PropertyNode, IGeneratesBodyCode
      {
          [SerializeField]

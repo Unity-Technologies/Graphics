@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph
         SQRT2
     };
 
-    [Title("Input/Basic/Constant")]
+    [Title("Input", "Basic", "Constant")]
     public class ConstantNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         static Dictionary<ConstantType, float> m_constantList = new Dictionary<ConstantType, float>
