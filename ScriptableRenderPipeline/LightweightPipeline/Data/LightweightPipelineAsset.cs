@@ -2,9 +2,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public enum ShadowCascades
     {
-        NO_CASCADES = 1,
-        TWO_CASCADES = 2,
-        FOUR_CASCADES = 4,
+        NO_CASCADES = 0,
+        TWO_CASCADES,
+        FOUR_CASCADES,
     }
 
     public enum ShadowType
@@ -167,8 +167,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public int CascadeCount
         {
-            get { return (int)m_ShadowCascades; }
-            private set { m_ShadowCascades = (ShadowCascades)value; }
+            get
+            {
+                switch (m_ShadowCascades)
+                {
+                    case ShadowCascades.TWO_CASCADES:
+                        return 2;
+                    case ShadowCascades.FOUR_CASCADES:
+                        return 4;
+                    default:
+                        return 1;
+                }
+            }
         }
 
         public float Cascade2Split
