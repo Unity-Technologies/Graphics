@@ -42,6 +42,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent enableComputeMaterialVariants = new GUIContent("Compute Material Variants");
             public readonly GUIContent enableFptlForForwardOpaque = new GUIContent("Fptl for forward opaque");
             public readonly GUIContent enableBigTilePrepass = new GUIContent("Big tile prepass");
+            public readonly GUIContent enableAsyncCompute = new GUIContent("Enable Async Compute");
         }
 
         static Styles s_Styles;
