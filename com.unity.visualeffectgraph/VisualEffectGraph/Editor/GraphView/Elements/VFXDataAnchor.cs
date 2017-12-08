@@ -52,6 +52,8 @@ namespace UnityEditor.VFX.UI
             VisualElement connector = m_ConnectorBox as VisualElement;
 
             connector.Add(m_ConnectorHighlight);
+
+            RegisterCallback<ControllerChangedEvent>(OnChange);
         }
 
         protected override VisualElement CreateConnector()
@@ -116,14 +118,19 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override void OnDataChanged()
+        void OnChange(ControllerChangedEvent e)
         {
-            base.OnDataChanged();
+            if (e.controller == controller)
+            {
+                SelfChange();
+            }
+        }
+
+        public virtual void SelfChange()
+        {
             m_ConnectorText.text = "";
 
-            VFXDataAnchorPresenter presenter = controller;
-
-            if (presenter.connected)
+            if (controller.connected)
                 AddToClassList("connected");
             else
                 RemoveFromClassList("connected");
@@ -136,13 +143,13 @@ namespace UnityEditor.VFX.UI
                 RemoveFromClassList(cls);
             }
 
-            string className = VFXTypeDefinition.GetTypeCSSClass(presenter.portType);
+            string className = VFXTypeDefinition.GetTypeCSSClass(controller.portType);
             AddToClassList(className);
             m_ConnectorBox.AddToClassList(className);
 
             AddToClassList("EdgeConnector");
 
-            switch (presenter.direction)
+            switch (controller.direction)
             {
                 case Direction.Input:
                     AddToClassList("Input");
@@ -152,31 +159,19 @@ namespace UnityEditor.VFX.UI
                     break;
             }
 
-            /*
-            RemoveFromClassList("hidden");
-            RemoveFromClassList("invisible");
+            portName = "";
 
-            if (presenter.collapsed && !presenter.connected)
+            if (controller.expandedInHierachy)
             {
-                visible = false;
-
+                RemoveFromClassList("hidden");
+            }
+            else
+            {
                 AddToClassList("hidden");
-                AddToClassList("invisible");
-            }
-            else if (!visible)
-            {
-                visible = true;
-            }
-            */
-            // Temp fix until presenter are correct : need to update the visibility based on my own collaspsed.
-            VFXNodeUI node = GetFirstAncestorOfType<VFXNodeUI>();
-            if (node != null)
-            {
-                node.OnDataChanged();
             }
 
 
-            if (presenter.direction == Direction.Output)
+            if (controller.direction == Direction.Output)
                 m_ConnectorText.text = presenter.name;
         }
 

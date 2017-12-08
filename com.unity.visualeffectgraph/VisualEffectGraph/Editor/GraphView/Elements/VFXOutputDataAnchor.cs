@@ -39,7 +39,7 @@ namespace UnityEditor.VFX.UI
         {
             VFXDataAnchorPresenter presenter = controller;
 
-            if (presenter.expanded)
+            if (presenter.expandedSelf)
             {
                 presenter.RetractPath();
             }
@@ -51,9 +51,9 @@ namespace UnityEditor.VFX.UI
 
         VisualElement[] m_Lines;
 
-        public override void OnDataChanged()
+        public override void SelfChange()
         {
-            base.OnDataChanged();
+            base.SelfChange();
             VFXDataAnchorPresenter presenter = controller;
 
             if (presenter.depth != 0 && m_Lines == null)
@@ -82,7 +82,7 @@ namespace UnityEditor.VFX.UI
                 m_Icons[0] = GetTypeIcon(presenter.portType, IconType.plus);
                 m_Icons[1] = GetTypeIcon(presenter.portType, IconType.minus);
 
-                m_Icon.style.backgroundImage = presenter.expanded ? m_Icons[1] : m_Icons[0];
+                m_Icon.style.backgroundImage = presenter.expandedSelf ? m_Icons[1] : m_Icons[0];
 
                 m_Icon.AddManipulator(new Clickable(OnToggleExpanded));
             }
@@ -92,7 +92,7 @@ namespace UnityEditor.VFX.UI
             }
 
             if (presenter.expandable)
-                m_Icon.style.backgroundImage = presenter.expanded ? m_Icons[1] : m_Icons[0];
+                m_Icon.style.backgroundImage = presenter.expandedSelf ? m_Icons[1] : m_Icons[0];
 
 
             string text = "";

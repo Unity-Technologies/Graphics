@@ -178,11 +178,6 @@ namespace UnityEditor.VFX.UI
             get { return model.depth; }
         }
 
-        public bool expanded
-        {
-            get { return !model.collapsed; }
-        }
-
         public virtual bool expandable
         {
             get { return VFXContextSlotContainerPresenter.IsTypeExpandable(portType); }
@@ -193,16 +188,29 @@ namespace UnityEditor.VFX.UI
             get { return portType.Name; }
         }
 
-        [SerializeField]
         private bool m_Hidden;
 
-        public bool collapsed
+        public bool expandedInHierachy
         {
             get
             {
-                return m_Hidden && !connected;
+                return !m_Hidden || connected;
             }
         }
+
+        public bool expandedSelf
+        {
+            get
+            {
+                return !model.collapsed;
+            }
+        }
+
+        bool IPropertyRMProvider.expanded
+        {
+            get { return expandedSelf; }
+        }
+
         public bool editable
         {
             get

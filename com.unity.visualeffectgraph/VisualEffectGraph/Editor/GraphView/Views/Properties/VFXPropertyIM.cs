@@ -99,8 +99,8 @@ namespace UnityEditor.VFX.UI
             {
                 if (presenter.expandable)
                 {
-                    bool expanded = presenter.expanded;
-                    if (GUILayout.Toggle(presenter.expanded, "", VFXDataGUIStyles.instance.GetGUIStyleForExpandableType(presenter.portType), GUILayout.Width(iconSize), GUILayout.Height(iconSize)) != expanded)
+                    bool expanded = presenter.expandedSelf;
+                    if (GUILayout.Toggle(presenter.expandedSelf, "", VFXDataGUIStyles.instance.GetGUIStyleForExpandableType(presenter.portType), GUILayout.Width(iconSize), GUILayout.Height(iconSize)) != expanded)
                     {
                         if (!expanded)
                         {

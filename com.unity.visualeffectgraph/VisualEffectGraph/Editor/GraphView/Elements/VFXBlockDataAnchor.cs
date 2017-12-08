@@ -25,39 +25,5 @@ namespace UnityEditor.VFX.UI
             anchor.AddManipulator(anchor.m_EdgeConnector);
             return anchor;
         }
-
-        /*
-        internal override void DoRepaint(IStylePainter pc)
-        {
-            base.DoRepaint(pc);
-
-            VFXContextDataAnchorPresenter presenter = GetPresenter<VFXContextDataAnchorPresenter>();
-
-            if (presenter.connected)
-            {
-                var edgePresenter = presenter.connections.First() as VFXDataEdgePresenter;
-
-                VFXDataEdge edge = this.GetFirstAncestorOfType<VFXView>().GetDataEdgeByPresenter(edgePresenter);
-
-                if (edge != null)
-                {
-                    Vector2 globaCenter = layout.position + (Vector2)GetLocalCenter();
-
-                    Vector2 from = globaCenter - new Vector2(10, 0);
-                    Vector2 to = globaCenter + new Vector2(5, 0);
-
-                    GraphView view = this.GetFirstAncestorOfType<GraphView>();
-
-                    float realWidth = edge.edgeWidth;
-                    if (realWidth * view.scale < 1.0f)
-                    {
-                        realWidth = 1.0f / view.scale;
-                    }
-
-                    Color edgeColor = edge.style.borderColor;
-                    VFXEdgeUtils.RenderLine(from, to, edgeColor, realWidth, view.scale);
-                }
-            }
-        }*/
     }
 }

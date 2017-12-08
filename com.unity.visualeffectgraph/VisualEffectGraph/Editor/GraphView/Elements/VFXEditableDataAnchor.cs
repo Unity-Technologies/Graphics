@@ -151,9 +151,9 @@ namespace UnityEditor.VFX.UI
 
         Type m_EditedType;
 
-        public override void OnDataChanged()
+        public override void SelfChange()
         {
-            base.OnDataChanged();
+            base.SelfChange();
 
             VFXDataAnchorPresenter presenter = controller;
 
@@ -171,7 +171,7 @@ namespace UnityEditor.VFX.UI
             VFXDataAnchorPresenter presenter = controller;
             if (m_PropertyRM != null && presenter != null)
             {
-                m_PropertyRM.propertyEnabled = presenter.editable && !presenter.collapsed;
+                m_PropertyRM.propertyEnabled = presenter.editable && presenter.expandedInHierachy;
                 m_PropertyRM.Update();
             }
         }

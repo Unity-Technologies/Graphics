@@ -59,11 +59,65 @@ namespace UnityEditor.VFX.UI
             return true;
         }
 
+        protected void SyncSettings()
+        {
+            if (m_SettingsContainer == null && controller.settings != null)
+            {
+                object settings = controller.settings;
+
+                m_SettingsContainer = new VisualElement { name = "settings" };
+
+
+                VisualElement inputParent = new VisualElement() { name = "inputAndSettings" };
+
+                mainContainer.Q("contents").Insert(0, m_SettingsContainer);
+
+                foreach (var setting in controller.settings)
+                {
+                    AddSetting(setting);
+                }
+            }
+            if (m_SettingsContainer != null)
+            {
+                var activeSettings = controller.model.GetSettings(false, VFXSettingAttribute.VisibleFlags.InGraph);
+                for (int i = 0; i < m_Settings.Count; ++i)
+                    m_Settings[i].RemoveFromHierarchy();
+
+                for (int i = 0; i < m_Settings.Count; ++i)
+                {
+                    PropertyRM prop = m_Settings[i];
+                    if (prop != null && activeSettings.Any(s => s.Name == controller.settings[i].name))
+                    {
+                        m_SettingsContainer.Add(prop);
+                        prop.Update();
+                    }
+                }
+            }
+        }
+
+        void SyncAnchors()
+        {
+            var existingAnchors = inputContainer.Children().Cast<VFXDataAnchor>().ToDictionary(t => t.controller, t => t);
+
+            var deletedControllers = existingAnchors.Keys.Except(controller.inputPorts);
+
+            foreach (var deletedController in deletedControllers)
+            {
+                inputContainer.Remove(existingAnchors[deletedController]);
+            }
+
+            foreach (var newController in controller.inputPorts.Except(existingAnchors.Keys))
+            {
+                var newElement = InstantiateDataAnchor(newController);
+                (newElement as IControlledElement<VFXDataAnchorPresenter>).controller = newController;
+
+                inputContainer.Add(newElement);
+            }
+        }
+
         protected virtual void SelfChange()
         {
-            var presenter = controller;
-
-            if (presenter == null)
+            if (controller == null)
                 return;
 
             if (HasPosition())
@@ -73,60 +127,7 @@ namespace UnityEditor.VFX.UI
                 style.positionTop = presenter.position.y;
             }
 
-
-            if (m_SettingsContainer == null && presenter.settings != null)
-            {
-                object settings = presenter.settings;
-
-                m_SettingsContainer = new VisualElement { name = "settings" };
-
-
-                VisualElement inputParent = new VisualElement() { name = "inputAndSettings" };
-
-                mainContainer.Q("contents").Insert(0, m_SettingsContainer);
-
-                foreach (var setting in presenter.settings)
-                {
-                    AddSetting(setting);
-                }
-            }
-            if (m_SettingsContainer != null)
-            {
-                var activeSettings = presenter.model.GetSettings(false, VFXSettingAttribute.VisibleFlags.InGraph);
-                for (int i = 0; i < m_Settings.Count; ++i)
-                    m_Settings[i].RemoveFromHierarchy();
-
-                for (int i = 0; i < m_Settings.Count; ++i)
-                {
-                    PropertyRM prop = m_Settings[i];
-                    if (prop != null && activeSettings.Any(s => s.Name == presenter.settings[i].name))
-                    {
-                        m_SettingsContainer.Add(prop);
-                        prop.Update();
-                    }
-                }
-            }
-
-            GraphView graphView = this.GetFirstAncestorOfType<GraphView>();
-            if (graphView != null)
-            {
-                var allEdges = graphView.Query<Edge>().ToList();
-
-                foreach (Port anchor in this.Query<Port>().Where(t => true).ToList())
-                {
-                    foreach (var edge in allEdges.Where(t =>
-                        {
-                            var pres = t.GetPresenter<EdgePresenter>();
-                            return pres != null && (pres.output == anchor.presenter || pres.input == anchor.presenter);
-                        }))
-                    {
-                        edge.OnDataChanged();
-                    }
-                }
-            }
-
-
-            if (presenter.model.superCollapsed)
+            if (controller.model.superCollapsed)
             {
                 AddToClassList("superCollapsed");
             }
@@ -134,6 +135,10 @@ namespace UnityEditor.VFX.UI
             {
                 RemoveFromClassList("superCollapsed");
             }
+
+            SyncSettings();
+
+            SyncAnchors();
         }
 
         public virtual VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorPresenter presenter)
