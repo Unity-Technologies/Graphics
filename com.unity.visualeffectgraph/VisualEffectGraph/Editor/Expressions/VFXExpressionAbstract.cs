@@ -263,11 +263,14 @@ namespace UnityEditor.VFX
             if (m_Flags != other.m_Flags)
                 return false;
 
-            if (other.additionnalOperands.Length != additionnalOperands.Length)
+            var operands = additionnalOperands;
+            var otherOperands = other.additionnalOperands;
+
+            if (operands.Length != otherOperands.Length)
                 return false;
 
-            for (int i = 0; i < additionnalOperands.Length; ++i)
-                if (additionnalOperands[i] != other.additionnalOperands[i])
+            for (int i = 0; i < operands.Length; ++i)
+                if (operands[i] != otherOperands[i])
                     return false;
 
             var thisParents = parents;
