@@ -81,7 +81,9 @@ Shader "HDRenderPipeline/Lit"
 
         [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+        _AlphaCutoffPostpass("_AlphaCutoffPostpass", Range(0.0, 1.0)) = 0.5
         [ToggleOff] _TransparentBackfaceEnable("_TransparentBackfaceEnable", Float) = 0.0
+        [ToggleOff] _TransparentDepthPostpassEnable("_TransparentBackfaceEnable", Float) = 0.0
 
         // Transparency
         [Enum(None, 0, Plane, 1, Sphere, 2)]_RefractionMode("Refraction Mode", Int) = 0
@@ -102,6 +104,7 @@ Shader "HDRenderPipeline/Lit"
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
+        [HideInInspector] _CullModeForward("__cullmodeForward", Float) = 2.0 // This mode is dedicated to Forward to correctly handle backface then front face rendering thin transparent
         [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
 
         [ToggleOff] _EnableFogOnTransparent("Enable Fog", Float) = 1.0
@@ -506,7 +509,7 @@ Shader "HDRenderPipeline/Lit"
 
             Blend [_SrcBlend] [_DstBlend]
             ZWrite [_ZWrite]
-            Cull [_CullMode]
+            Cull [_CullModeForward]
 
             HLSLPROGRAM
 
@@ -542,7 +545,7 @@ Shader "HDRenderPipeline/Lit"
 
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
-            Cull[_CullMode]
+            Cull[_CullModeForward]
 
             HLSLPROGRAM
 
@@ -566,6 +569,27 @@ Shader "HDRenderPipeline/Lit"
             ENDHLSL
         }
 
+        Pass
+        {
+            Name "TransparentDepthPostPass"
+            Tags { "LightMode" = "TransparentDepthPostPass" }
+
+            Cull[_CullMode]
+            ZWrite On
+            ColorMask 0
+
+            HLSLPROGRAM
+
+            #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #define CUTOFF_TRANSPARENT_DEPTH_POSTPASS
+            #include "../../ShaderVariables.hlsl"
+            #include "../../Material/Material.hlsl"
+            #include "ShaderPass/LitDepthPass.hlsl"
+            #include "LitData.hlsl"
+            #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
+
+            ENDHLSL
+        }
     }
 
     CustomEditor "Experimental.Rendering.HDPipeline.LitGUI"
