@@ -1,8 +1,8 @@
 ﻿//-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
-#include "../../../Core/ShaderLibrary/Packing.hlsl"
-#include "../../../Core/ShaderLibrary/SampleUVMapping.hlsl"
+#include "ShaderLibrary/Packing.hlsl"
+#include "ShaderLibrary/SampleUVMapping.hlsl"
 
 void GetSurfaceData(float2 texCoordDS, out DecalSurfaceData surfaceData)
 {

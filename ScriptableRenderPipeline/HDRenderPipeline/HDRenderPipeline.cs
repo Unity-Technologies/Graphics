@@ -86,6 +86,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             for (int dbufferIndex = 0; dbufferIndex < dbufferCount; ++dbufferIndex)
             {
+                cmd.ReleaseTemporaryRT(HDShaderIDs._DBufferTexture[dbufferIndex]);
                 cmd.GetTemporaryRT(HDShaderIDs._DBufferTexture[dbufferIndex], width, height, 0, FilterMode.Point, rtFormat[dbufferIndex], rtReadWrite[dbufferIndex]);
                 m_RTIDs[dbufferIndex] = new RenderTargetIdentifier(HDShaderIDs._DBufferTexture[dbufferIndex]);
             }
@@ -844,10 +845,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     ConfigureForShadowMask(enableBakeShadowMask, cmd);
 
-			InitAndClearBuffer(hdCamera, enableBakeShadowMask, cmd);
-            RenderDepthPrepass(m_CullResults, camera, renderContext, cmd, true);
+			        InitAndClearBuffer(hdCamera, enableBakeShadowMask, cmd);
+                    RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd, true);
 
-            RenderDBuffer(hdCamera.cameraPos, renderContext, cmd);
+                    RenderDBuffer(hdCamera.cameraPos, renderContext, cmd);
 
                     RenderGBuffer(m_CullResults, hdCamera, renderContext, cmd);
 
@@ -1250,7 +1251,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
 				Color clearColor = new Color(0,0,0,0);
                 CoreUtils.SetRenderTarget(cmd, m_DbufferManager.GetDBuffers(), m_CameraDepthStencilBufferRT, ClearFlag.Color, clearColor);
-                cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, GetDepthTexture());
+                cmd.SetGlobalTexture(HDShaderIDs._MainDepthTexture, GetDepthTexture());
 				DecalSystem.instance.Render(renderContext, cameraPos, cmd);
             }
         }

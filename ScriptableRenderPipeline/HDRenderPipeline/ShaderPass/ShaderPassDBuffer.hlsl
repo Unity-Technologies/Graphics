@@ -16,13 +16,10 @@ void Frag(  PackedVaryingsToPS packedInput,
             OUTPUT_DBUFFER(outDBuffer)            
             )
 {	
-    FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
-    // input.unPositionSS is SV_Position
-    PositionInputs posInput = GetPositionInput(input.unPositionSS.xy, _ScreenSize.zw);
+    PositionInputs posInput = GetPositionInput(packedInput.vmesh.positionCS, _ScreenSize.zw);
 
-	float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
-	float d = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, posInput.positionSS.xy);
-	UpdatePositionInput(d, _InvViewProjMatrix, _ViewProjMatrix, posInput);
+	float d = LOAD_TEXTURE2D(_MainDepthTexture, posInput.positionSS).x;
+	UpdatePositionInput(d, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, posInput);
 
 	float3 positionWS = posInput.positionWS;
 	float3 positionDS = mul(_WorldToDecal, float4(positionWS, 1.0f)).xyz;

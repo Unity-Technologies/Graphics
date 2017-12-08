@@ -6,8 +6,6 @@ TEXTURE2D(_BaseColorMap);
 SAMPLER2D(sampler_BaseColorMap);
 TEXTURE2D(_NormalMap);
 SAMPLER2D(sampler_NormalMap);
-TEXTURE2D(_CameraDepthTexture);
-SAMPLER2D(sampler_CameraDepthTexture);
 
 float _DecalBlend;
 

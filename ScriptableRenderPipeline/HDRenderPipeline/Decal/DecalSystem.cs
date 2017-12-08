@@ -20,9 +20,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         internal HashSet<DecalProjectorComponent> m_Decals = new HashSet<DecalProjectorComponent>();
         Mesh m_CubeMesh;
 
-        private static readonly int m_WorldToDecal = Shader.PropertyToID("_WorldToDecal");
-        private static readonly int m_DecalToWorldR = Shader.PropertyToID("_DecalToWorldR");
-
         public DecalSystem()
         {
             CreateCubeMesh();       

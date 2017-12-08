@@ -1,10 +1,7 @@
-#include "ShaderLibrary/SampleUVMapping.hlsl"
-#include "../MaterialUtilities.hlsl"
-
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
-#include "../../../Core/ShaderLibrary/SampleUVMapping.hlsl"
+#include "ShaderLibrary/SampleUVMapping.hlsl"
 #include "../MaterialUtilities.hlsl"
 #include "../Decal/DecalUtilities.hlsl"
 
@@ -284,7 +281,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // Caution: surfaceData must be fully initialize before calling GetBuiltinData
     GetBuiltinData(input, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
-	AddDecalContribution(posInput.unPositionSS, surfaceData);
+	AddDecalContribution(posInput.positionSS, surfaceData);
 }
 
 #include "LitDataMeshModification.hlsl"
