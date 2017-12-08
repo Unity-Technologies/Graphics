@@ -208,7 +208,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.PropertyToID("_GBufferTexture7")
         };
 
-        public static readonly int[] _SSSBufferTexture =
+        public static readonly int[] _DBufferTexture =
+        {
+            Shader.PropertyToID("_DBufferTexture0"), 
+            Shader.PropertyToID("_DBufferTexture1"),
+            Shader.PropertyToID("_DBufferTexture2"),
+            Shader.PropertyToID("_DBufferTexture3")
+        };
+
+        public static readonly int[] _SSSBufferTexture = 
         {
             Shader.PropertyToID("_SSSBufferTexture0"),
             Shader.PropertyToID("_SSSBufferTexture1"),

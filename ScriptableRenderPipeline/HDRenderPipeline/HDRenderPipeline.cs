@@ -67,6 +67,45 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
     }
 
+    public class DBufferManager
+    {
+        public const int k_MaxDbuffer = 4;
+
+        public int dbufferCount { get; set; }
+
+        RenderTargetIdentifier[] m_ColorMRTs;
+        RenderTargetIdentifier[] m_RTIDs = new RenderTargetIdentifier[k_MaxDbuffer];
+
+        public void InitDBuffers(int width, int height,  CommandBuffer cmd)
+        {            
+            dbufferCount = Decal.GetMaterialDBufferCount();
+            RenderTextureFormat[] rtFormat;
+            RenderTextureReadWrite[] rtReadWrite;
+            Decal.GetMaterialDBufferDescription(out rtFormat, out rtReadWrite);
+
+            for (int dbufferIndex = 0; dbufferIndex < dbufferCount; ++dbufferIndex)
+            {
+                cmd.ReleaseTemporaryRT(HDShaderIDs._DBufferTexture[dbufferIndex]);
+                cmd.GetTemporaryRT(HDShaderIDs._DBufferTexture[dbufferIndex], width, height, 0, FilterMode.Point, rtFormat[dbufferIndex], rtReadWrite[dbufferIndex]);
+                m_RTIDs[dbufferIndex] = new RenderTargetIdentifier(HDShaderIDs._DBufferTexture[dbufferIndex]);
+            }
+        }
+
+        public RenderTargetIdentifier[] GetDBuffers()
+        {
+            if (m_ColorMRTs == null || m_ColorMRTs.Length != dbufferCount)
+                m_ColorMRTs = new RenderTargetIdentifier[dbufferCount];
+
+            for (int index = 0; index < dbufferCount; index++)
+            {
+                m_ColorMRTs[index] = m_RTIDs[index];
+            }
+
+            return m_ColorMRTs;
+        }
+    }
+
+
     public partial class HDRenderPipeline : RenderPipeline
     {
         enum ForwardPass
@@ -100,6 +139,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         readonly List<RenderPipelineMaterial> m_MaterialList = new List<RenderPipelineMaterial>();
 
         readonly GBufferManager m_GbufferManager = new GBufferManager();
+        readonly DBufferManager m_DbufferManager = new DBufferManager();
         readonly SubsurfaceScatteringManager m_SSSBufferManager = new SubsurfaceScatteringManager();
 
         // Renderer Bake configuration can vary depends on if shadow mask is enabled or no
@@ -804,11 +844,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     ConfigureForShadowMask(enableBakeShadowMask, cmd);
 
-                    InitAndClearBuffer(hdCamera, enableBakeShadowMask, cmd);
+	                InitAndClearBuffer(hdCamera, enableBakeShadowMask, cmd);
 
-                    RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd);
+                    RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd, true);
 
                     RenderVelocity(m_CullResults, hdCamera, renderContext, cmd);
+
+                    RenderDBuffer(hdCamera.cameraPos, renderContext, cmd);
 
                     RenderGBuffer(m_CullResults, hdCamera, renderContext, cmd);
 
@@ -1117,7 +1159,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Forward only renderer: We always render everything
         // Deferred renderer: We render a depth prepass only if engine request it. We can decide if we render everything or only opaque alpha tested object.
         // Forward opaque with deferred renderer (DepthForwardOnly pass): We always render everything
-        void RenderDepthPrepass(CullResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        void RenderDepthPrepass(CullResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd, bool hasDecals)
         {
             // In case of deferred renderer, we can have forward opaque material. These materials need to be render in the depth buffer to correctly build the light list.
             // And they will tag the stencil to not be lit during the deferred lighting pass.
@@ -1135,7 +1177,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd, addAlphaTestedOnly ? "Depth Prepass alpha test" : "Depth Prepass", GetSampler(CustomSamplerId.DepthPrepass)))
             {
                 CoreUtils.SetRenderTarget(cmd, m_CameraDepthStencilBufferRT);
-                if (addFullDepthPrepass && !addAlphaTestedOnly) // Always true in case of forward rendering, use in case of deferred rendering if requesting a full depth prepass
+                if (hasDecals || (addFullDepthPrepass && !addAlphaTestedOnly)) // Always true in case of forward rendering, use in case of deferred rendering if requesting a full depth prepass
                 {
                     // We render first the opaque object as opaque alpha tested are more costly to render and could be reject by early-z (but not Hi-z as it is disable with clip instruction)
                     // This is handled automatically with the RenderQueue value (OpaqueAlphaTested have a different value and thus are sorted after Opaque)
@@ -1200,6 +1242,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.s_GBufferName, m_currentRendererConfigurationBakedLighting, RenderQueueRange.opaque, m_DepthStateOpaque);
                     }
                 }
+            }
+        }
+
+        void RenderDBuffer(Vector3 cameraPos, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        {
+            using (new ProfilingSample(cmd, "Decals", GetSampler(CustomSamplerId.DBuffer)))
+            {
+                CoreUtils.SetRenderTarget(cmd, m_DbufferManager.GetDBuffers(), m_CameraDepthStencilBufferRT, ClearFlag.Color, CoreUtils.clearColorAllBlack);
+                cmd.SetGlobalTexture(HDShaderIDs._MainDepthTexture, GetDepthTexture());
+				DecalSystem.instance.Render(renderContext, cameraPos, cmd);
             }
         }
 
@@ -1797,6 +1849,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // We need to allocate target for SSS
                         m_SSSBufferManager.InitGBuffers(w, h, cmd);
                     }
+
+                    m_DbufferManager.InitDBuffers(w, h, cmd);
 
                     CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.Depth);
                 }

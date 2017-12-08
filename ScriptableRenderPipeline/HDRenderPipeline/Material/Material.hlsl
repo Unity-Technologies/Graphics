@@ -269,4 +269,5 @@ void UpdateLightingHierarchyWeights(inout float hierarchyWeight, inout float wei
 
 #endif // #ifdef GBUFFERMATERIAL_COUNT
 
+
 #endif // UNITY_MATERIAL_INCLUDED
