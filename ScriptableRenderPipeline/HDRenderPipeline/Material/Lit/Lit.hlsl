@@ -1114,16 +1114,14 @@ float4 EvaluateCookie_Directional(LightLoopContext lightLoopContext, Directional
     float3   positionLS   = mul(lighToSample, transpose(lightToWorld));
     float2   positionCS   = positionLS.xy;
 
-    // Tile the texture if the 'repeat' wrap mode is enabled.
-    bool isInBounds = lightData.tileCookie || max(abs(positionCS.x), abs(positionCS.y)) <= 1.0;
-
     // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
-    float2 positionNDC = frac(positionCS * 0.5 + 0.5);
+    float2 positionNDC = positionCS * 0.5 + 0.5;
+
+    // Tile the texture if the 'repeat' wrap mode is enabled.
+    positionNDC = lightData.tileCookie ? frac(positionNDC) : positionNDC;
 
     // We let the sampler handle clamping to border.
     float4 cookie = SampleCookie2D(lightLoopContext, positionNDC, lightData.cookieIndex);
-
-    cookie.a = isInBounds ? cookie.a : 0;
 
     return cookie;
 }
@@ -1253,7 +1251,7 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
         // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
         float2 positionNDC = positionCS * 0.5 + 0.5;
 
-        // We let the sampler handle clamping to border.
+        // Manually clamp to border (black).
         cookie = SampleCookie2D(lightLoopContext, positionNDC, lightData.cookieIndex);
         cookie.a = isInBounds ? cookie.a : 0;
     }
