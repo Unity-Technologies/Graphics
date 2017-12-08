@@ -26,6 +26,7 @@ namespace UnityEditor.ShaderGraph
 
         private static string GetShaderPassFromTemplate(string template, UnlitMasterNode masterNode, Pass pass, GenerationMode mode)
         {
+            var vertexInputs = new ShaderGenerator();
             var surfaceVertexShader = new ShaderGenerator();
             var surfaceDescriptionFunction = new ShaderGenerator();
             var surfaceDescriptionStruct = new ShaderGenerator();
@@ -34,18 +35,6 @@ namespace UnityEditor.ShaderGraph
 
             var shaderProperties = new PropertyCollector();
 
-            var graphVertexInput = @"
-struct GraphVertexInput
-{
-     float4 vertex : POSITION;
-     float3 normal : NORMAL;
-     float4 tangent : TANGENT;
-     float4 color : COLOR;
-     float4 texcoord0 : TEXCOORD0;
-     float4 lightmapUV : TEXCOORD1;
-     UNITY_VERTEX_INPUT_INSTANCE_ID
-};";
-
             surfaceInputs.AddShaderChunk("struct SurfaceInputs{", false);
             surfaceInputs.Indent();
 
@@ -53,6 +42,7 @@ struct GraphVertexInput
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots);
 
             var requirements = AbstractMaterialGraph.GetRequirements(activeNodeList);
+            AbstractMaterialGraph.GenerateApplicationVertexInputs(requirements, vertexInputs, 0, 8);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, surfaceInputs);
@@ -107,7 +97,7 @@ struct GraphVertexInput
 
             var graph = new ShaderGenerator();
             graph.AddShaderChunk(shaderFunctionVisitor.GetShaderString(2), false);
-            graph.AddShaderChunk(graphVertexInput, false);
+            graph.AddShaderChunk(vertexInputs.GetShaderString(2), false);
             graph.AddShaderChunk(surfaceInputs.GetShaderString(2), false);
             graph.AddShaderChunk(surfaceDescriptionStruct.GetShaderString(2), false);
             graph.AddShaderChunk(shaderProperties.GetPropertiesDeclaration(2), false);
