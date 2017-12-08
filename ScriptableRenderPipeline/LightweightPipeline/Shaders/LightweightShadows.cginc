@@ -39,13 +39,13 @@ float ApplyDepthBias(float clipZ)
 
 inline half SampleShadowmap(float4 shadowCoord)
 {
-    if (shadowCoord.x <= 0 || shadowCoord.x >= 1 || shadowCoord.y <= 0 || shadowCoord.y >= 1)
+    float3 coord = shadowCoord.xyz /= shadowCoord.w;
+    coord.z = saturate(ApplyDepthBias(coord.z));
+    if (coord.x <= 0 || coord.x >= 1 || coord.y <= 0 || coord.y >= 1)
         return 1;
 
 #if defined(_SOFT_SHADOWS) || defined(_SOFT_SHADOWS_CASCADES)
     // 4-tap hardware comparison
-    float3 coord = shadowCoord.xyz /= shadowCoord.w;
-    coord.z = ApplyDepthBias(coord.z);
     half4 attenuation;
     attenuation.x = UNITY_SAMPLE_SHADOW(_ShadowMap, coord + _ShadowOffset0.xyz);
     attenuation.y = UNITY_SAMPLE_SHADOW(_ShadowMap, coord + _ShadowOffset1.xyz);
@@ -55,8 +55,7 @@ inline half SampleShadowmap(float4 shadowCoord)
     return dot(attenuation, 0.25);
 #else
     // 1-tap hardware comparison
-    shadowCoord.z = ApplyDepthBias(shadowCoord.z);
-    half attenuation = UNITY_SAMPLE_SHADOW_PROJ(_ShadowMap, shadowCoord);
+    half attenuation = UNITY_SAMPLE_SHADOW(_ShadowMap, coord);
     return lerp(attenuation, 1.0, _ShadowData.x);
 #endif
 }
