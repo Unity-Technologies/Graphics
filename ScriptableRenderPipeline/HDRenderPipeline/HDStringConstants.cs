@@ -16,10 +16,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly string s_SRPDefaultUnlitStr = "SRPDefaultUnlit";
         public static readonly string s_MotionVectorsStr = "MotionVectors";
         public static readonly string s_DistortionVectorsStr = "DistortionVectors";
-        public static readonly string s_TransparentDepthPrepassStr = "TransparentDepthPrepass";
+        public static readonly string s_TransparentDepthPrePassStr = "TransparentDepthPrepass";
         public static readonly string s_TransparentBackfaceStr = "TransparentBackface";
         public static readonly string s_TransparentBackfaceDebugDisplayStr = "TransparentBackfaceDebugDisplay";
-        public static readonly string s_TransparentDepthPostpassStr = "TransparentDepthPostpass";
+        public static readonly string s_TransparentDepthPostPassStr = "TransparentDepthPostpass";
         public static readonly string s_MetaStr = "Meta";
         public static readonly string s_ShadowCasterStr = "ShadowCaster";
 
