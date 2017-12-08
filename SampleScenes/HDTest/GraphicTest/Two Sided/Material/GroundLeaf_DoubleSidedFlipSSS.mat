@@ -18,6 +18,9 @@ Material:
     RenderType: TransparentCutout
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentDepthPostpass
+  - TransparentBackface
+  - TransparentBackfaceDebugDisplay
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -138,16 +141,20 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 1
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 0
+    - _CullModeForward: 0
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAOScale: 1
@@ -173,6 +180,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 1
     - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedMode: 2
@@ -240,6 +249,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVMappingPlanar: 0
