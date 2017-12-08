@@ -19,7 +19,7 @@ namespace UnityEditor.VFX
             public float right = 0.0f;
         }
 
-        override public string name { get { return "Condition"; } }
+        override public string name { get { return "Compare"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

@@ -54,7 +54,7 @@ namespace UnityEditor.VFX
                 case VFXCondition.GreaterOrEqual:   comparator = ">=";  break;
             }
 
-            return string.Format("({0} {1} {2})", parents[0], comparator, parents[1]);
+            return string.Format("{0} {1} {2}", parents[0], comparator, parents[1]);
         }
 
         protected override VFXExpression Reduce(VFXExpression[] reducedParents)
@@ -66,5 +66,47 @@ namespace UnityEditor.VFX
 
         protected override int[] additionnalOperands { get { return new int[] { (int)condition }; } }
         private VFXCondition condition;
+    }
+
+    class VFXExpressionBranch : VFXExpression
+    {
+        public VFXExpressionBranch()
+            : this(VFXValue.Constant(true), VFXValue.Constant(0.0f), VFXValue.Constant(0.0f))
+        {}
+
+        public VFXExpressionBranch(VFXExpression pred, VFXExpression trueExp, VFXExpression falseExp)
+            : base(VFXExpression.Flags.None, new VFXExpression[] { pred, trueExp, falseExp })
+        {
+            if (parents[1].valueType != parents[2].valueType)
+                throw new ArgumentException("both branch expressions must be of the same types");
+        }
+
+        public override VFXExpressionOp operation
+        {
+            get
+            {
+                return VFXExpressionOp.kVFXBranch;
+            }
+        }
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            bool pred = constParents[0].Get<bool>();
+            return pred ? constParents[1] : constParents[2];
+        }
+
+        public override string GetCodeString(string[] parents)
+        {
+            return string.Format("{0} ? {1} : {2}", parents);
+        }
+
+        protected override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            if (reducedParents[0].Is(VFXExpression.Flags.Constant)) // detect static branching
+                return Evaluate(reducedParents);
+            return base.Reduce(reducedParents);
+        }
+
+        protected override int[] additionnalOperands { get { return new int[] { TypeToSize(parents[1].valueType) }; } }
     }
 }
