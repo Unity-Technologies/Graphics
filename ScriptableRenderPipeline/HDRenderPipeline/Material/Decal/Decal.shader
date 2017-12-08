@@ -1,4 +1,4 @@
-﻿Shader "HDRenderPipeline/Decal"
+Shader "HDRenderPipeline/Decal"
 {
     Properties
     {      
@@ -10,7 +10,7 @@
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 metal // TEMP: until we go futher in dev
+    #pragma only_renderers d3d11 ps4 xboxone vulkan metal
     //#pragma enable_d3d11_debug_symbols
 
     //-------------------------------------------------------------------------------------
@@ -53,7 +53,7 @@
         Pass
         {
             Name "DBuffer"  // Name is not used
-            Tags { "LightMode" = "dBuffer" } // This will be only for opaque object based on the RenderQueue index
+            Tags { "LightMode" = "DBuffer" } // This will be only for opaque object based on the RenderQueue index
 
 			// need to optimize this and use proper Cull and ZTest modes for cases when decal geometry is clipped by camera 
             Cull Off

@@ -17,6 +17,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         DepthPrepass,
         TransparentDepthPrepass,
         GBuffer,
+        DBuffer,
         DisplayDebugViewMaterial,
         DebugViewMaterialGBuffer,
         BlitDebugViewMaterialDebug,

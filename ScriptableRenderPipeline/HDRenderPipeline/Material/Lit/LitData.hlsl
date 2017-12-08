@@ -279,9 +279,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // This is use with anisotropic material
     surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
+    AddDecalContribution(posInput.positionSS, surfaceData);
+
     // Caution: surfaceData must be fully initialize before calling GetBuiltinData
     GetBuiltinData(input, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
-	AddDecalContribution(posInput.positionSS, surfaceData);
 }
 
 #include "LitDataMeshModification.hlsl"
