@@ -28,8 +28,6 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        IPanel panel { get; }
-
         public void RegisterHandler(IEventHandler handler)
         {
             if (m_EventHandlers.Contains(handler))
@@ -66,7 +64,7 @@ namespace UnityEditor.VFX.UI
                 e.controller = this;
                 e.change = eventID;
                 e.target = eventHandler;
-                UIElementsUtility.eventDispatcher.DispatchEvent(e, panel);
+                UIElementsUtility.eventDispatcher.DispatchEvent(e, (eventHandler as VisualElement).panel);
             }
         }
 
@@ -110,7 +108,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    public class ControllerChangedEvent : EventBase<ControllerChangedEvent>
+    public class ControllerChangedEvent : EventBase<ControllerChangedEvent>, IPropagatableEvent
     {
         public Controller controller;
 

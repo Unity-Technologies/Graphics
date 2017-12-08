@@ -207,6 +207,10 @@ namespace UnityEditor.VFX.UI
 
         public VFXView()
         {
+            m_SlotContainerFactory[typeof(VFXContextPresenter)] = typeof(VFXContextUI);
+            m_SlotContainerFactory[typeof(VFXOperatorPresenter)] = typeof(VFXOperatorUI);
+            m_SlotContainerFactory[typeof(VFXParameterPresenter)] = typeof(VFXParameterUI);
+
             forceNotififcationOnAdd = true;
             SetupZoom(0.125f, 8);
 
@@ -317,9 +321,7 @@ namespace UnityEditor.VFX.UI
             SyncNodes();
             SyncEdges();
 
-            VFXViewPresenter presenter = controller;
-
-            if (presenter != null)
+            if (controller != null)
             {
                 var settings = GetRendererSettings();
 
@@ -330,10 +332,10 @@ namespace UnityEditor.VFX.UI
                 m_ToggleMotionVectors.SetEnabled(true);
 
                 // if the asset dis destroy somehow, fox example if the user delete the asset, delete the presenter and update the window.
-                VFXAsset asset = presenter.GetVFXAsset();
+                VFXAsset asset = controller.GetVFXAsset();
                 if (asset == null)
                 {
-                    VFXViewPresenter.Manager.RemovePresenter(presenter);
+                    VFXViewPresenter.Manager.RemovePresenter(controller);
 
                     this.controller = null;
                     return;
@@ -377,11 +379,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        IEnumerable<GraphElement> rootSlotContainers
+        Dictionary<VFXNodeController, GraphElement> rootSlotContainers
         {
             get
             {
-                return contentViewContainer.Query().Children<VisualElement>().Children<GraphElement>().ToList().Cast<IControlledElement>().Where(t => t.controller is VFXNodeController).Cast<GraphElement>();
+                return contentViewContainer.Query().Children<VisualElement>().Children<GraphElement>().ToList().Cast<IControlledElement>().Where(t => t.controller is VFXNodeController).ToDictionary(t => t.controller as VFXNodeController, t => t as GraphElement);
             }
         }
 
@@ -398,25 +400,30 @@ namespace UnityEditor.VFX.UI
 
         void SyncNodes()
         {
-            var controlledElements = rootSlotContainers.ToArray();
+            var controlledElements = rootSlotContainers;
+
             if (controller == null)
             {
-                foreach (var element in controlledElements)
+                foreach (var element in controlledElements.Values)
                 {
-                    Remove(element);
+                    RemoveElement(element);
                 }
             }
             else
             {
-                foreach (var deletedNode in controlledElements.Cast<IControlledElement>().Select(t => !controller.nodes.Contains(t.controller as VFXNodeController)).Cast<GraphElement>())
+                var deletedControllers = controlledElements.Keys.Except(controller.nodes);
+
+                foreach (var deletedController in deletedControllers)
                 {
-                    Remove(deletedNode);
+                    RemoveElement(controlledElements[deletedController]);
                 }
 
-                foreach (var newController in controller.nodes)
+                foreach (var newController in controller.nodes.Except(controlledElements.Keys))
                 {
                     var newElement = m_SlotContainerFactory.Create(newController);
                     (newElement as IControlledElement<VFXNodeController>).controller = newController;
+
+                    AddElement(newElement);
                 }
             }
         }
@@ -427,10 +434,9 @@ namespace UnityEditor.VFX.UI
 
         VFXRendererSettings GetRendererSettings()
         {
-            var presenter = controller;
-            if (presenter != null)
+            if (controller != null)
             {
-                var asset = presenter.GetVFXAsset();
+                var asset = controller.GetVFXAsset();
                 if (asset != null)
                     return asset.rendererSettings;
             }
@@ -442,26 +448,25 @@ namespace UnityEditor.VFX.UI
         {
             VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>("Assets/VFXEditor/Editor/Templates/DefaultParticleSystem.asset");
 
-            VFXViewPresenter presenter = VFXViewPresenter.Manager.GetPresenter(asset);
-            presenter.useCount++;
+            VFXViewPresenter controller = VFXViewPresenter.Manager.GetPresenter(asset);
+            controller.useCount++;
 
-            object data = VFXCopyPaste.CreateCopy(presenter.allChildren);
+            object data = VFXCopyPaste.CreateCopy(controller.allChildren);
 
             VFXCopyPaste.PasteCopy(this, tPos, data);
 
-            presenter.useCount--;
+            controller.useCount--;
         }
 
         void SetRendererSettings(VFXRendererSettings settings)
         {
-            var presenter = controller;
-            if (presenter != null)
+            if (controller != null)
             {
-                var asset = presenter.GetVFXAsset();
+                var asset = controller.GetVFXAsset();
                 if (asset != null)
                 {
                     asset.rendererSettings = settings;
-                    presenter.GetGraph().SetExpressionGraphDirty();
+                    controller.model.SetExpressionGraphDirty();
                 }
             }
         }
@@ -498,26 +503,26 @@ namespace UnityEditor.VFX.UI
 
         void OnCompile()
         {
-            var graph = controller.GetGraph();
+            var graph = controller.model;
             graph.SetExpressionGraphDirty();
             graph.RecompileIfNeeded();
         }
 
         VFXContext AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
         {
-            if (presenter == null) return null;
+            if (controller == null) return null;
             return controller.AddVFXContext(pos, desc);
         }
 
         VFXOperator AddVFXOperator(Vector2 pos, VFXModelDescriptor<VFXOperator> desc)
         {
-            if (presenter == null) return null;
+            if (controller == null) return null;
             return controller.AddVFXOperator(pos, desc);
         }
 
         VFXParameter AddVFXParameter(Vector2 pos, VFXModelDescriptorParameters desc)
         {
-            if (presenter == null) return null;
+            if (controller == null) return null;
             return controller.AddVFXParameter(pos, desc);
         }
 
@@ -527,44 +532,43 @@ namespace UnityEditor.VFX.UI
             foreach (var context in contexts)
             {
                 context.position = context.position + new Vector2(50, 50);
-                controller.GetGraph().AddChild(context);
+                controller.model.AddChild(context);
             }
 
             var operators = selection.OfType<VFXNodeUI>().Select(p => p.controller.model.Clone<VFXSlotContainerModel<VFXModel, VFXModel>>());
             foreach (var op in operators)
             {
                 op.position = op.position + new Vector2(50, 50);
-                controller.GetGraph().AddChild(op);
+                controller.model.AddChild(op);
             }
             return EventPropagation.Stop;
         }
 
         public EventPropagation Resync()
         {
-            var presenter = controller;
-            if (presenter != null)
-                presenter.ForceReload();
+            if (controller != null)
+                controller.ForceReload();
             return EventPropagation.Stop;
         }
 
         public EventPropagation OutputToDot()
         {
-            if (presenter == null) return EventPropagation.Stop;
-            DotGraphOutput.DebugExpressionGraph(controller.GetGraph(), VFXExpressionContextOption.None);
+            if (controller == null) return EventPropagation.Stop;
+            DotGraphOutput.DebugExpressionGraph(controller.model, VFXExpressionContextOption.None);
             return EventPropagation.Stop;
         }
 
         public EventPropagation OutputToDotReduced()
         {
-            if (presenter == null) return EventPropagation.Stop;
-            DotGraphOutput.DebugExpressionGraph(controller.GetGraph(), VFXExpressionContextOption.Reduction);
+            if (controller == null) return EventPropagation.Stop;
+            DotGraphOutput.DebugExpressionGraph(controller.model, VFXExpressionContextOption.Reduction);
             return EventPropagation.Stop;
         }
 
         public EventPropagation OutputToDotConstantFolding()
         {
-            if (presenter == null) return EventPropagation.Stop;
-            DotGraphOutput.DebugExpressionGraph(controller.GetGraph(), VFXExpressionContextOption.ConstantFolding);
+            if (controller == null) return EventPropagation.Stop;
+            DotGraphOutput.DebugExpressionGraph(controller.model, VFXExpressionContextOption.ConstantFolding);
             return EventPropagation.Stop;
         }
 
@@ -591,8 +595,7 @@ namespace UnityEditor.VFX.UI
 
         public override List<Port> GetCompatiblePorts(Port startAnchor, NodeAdapter nodeAdapter)
         {
-            VFXViewPresenter presenter = controller;
-            if (presenter == null) return null;
+            if (controller == null) return null;
 
 
             if (startAnchor is VFXDataAnchor)
@@ -737,14 +740,13 @@ namespace UnityEditor.VFX.UI
 
         void IParameterDropTarget.OnDragPerform(IMGUIEvent evt, VFXParameterPresenter parameter)
         {
-            VFXViewPresenter presenter = controller;
-            if (presenter == null) return;
-            presenter.AddVFXParameter(contentViewContainer.GlobalToBound(evt.imguiEvent.mousePosition), VFXLibrary.GetParameters().FirstOrDefault(t => t.name == parameter.portType.UserFriendlyName()));
+            if (controller == null) return;
+            controller.AddVFXParameter(contentViewContainer.GlobalToBound(evt.imguiEvent.mousePosition), VFXLibrary.GetParameters().FirstOrDefault(t => t.name == parameter.portType.UserFriendlyName()));
         }
 
         void SelectionUpdated()
         {
-            if (presenter == null) return;
+            if (controller == null) return;
 
             if (!VFXComponentEditor.s_IsEditingAsset)
             {
@@ -848,7 +850,7 @@ namespace UnityEditor.VFX.UI
 
             foreach (var c in contexts)
             {
-                c.presenter.position = new Rect(c.GetPosition().min + new Vector2(0, size), c.GetPosition().size);
+                c.controller.position = c.GetPosition().min + new Vector2(0, size);
                 c.OnDataChanged();
             }
         }

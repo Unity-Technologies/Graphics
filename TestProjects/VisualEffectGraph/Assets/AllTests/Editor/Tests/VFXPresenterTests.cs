@@ -236,7 +236,7 @@ namespace UnityEditor.VFX.Test
         {
             Action fnResync = delegate()
                 {
-                    m_ViewPresenter.SetVFXAsset(m_ViewPresenter.GetVFXAsset(), true);
+                    m_ViewPresenter.ForceReload();
                 };
 
             Func<IVFXSlotContainer, VFXSlotContainerPresenter> fnFindPresenter = delegate(IVFXSlotContainer slotContainer)

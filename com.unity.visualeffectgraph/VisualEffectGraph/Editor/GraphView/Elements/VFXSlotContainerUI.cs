@@ -31,37 +31,36 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        public override void OnDataChanged()
+        protected override void SelfChange()
         {
-            base.OnDataChanged();
-            var presenter = controller;
+            base.SelfChange();
 
-            if (presenter == null)
+            if (controller == null)
                 return;
 
-            if (m_SettingsContainer == null && presenter.settings != null)
+            if (m_SettingsContainer == null && controller.settings != null)
             {
-                object settings = presenter.settings;
+                object settings = controller.settings;
 
                 m_SettingsContainer = new VisualElement { name = "settings" };
 
                 inputContainer.Insert(0, m_SettingsContainer); //between title and input
 
-                foreach (var setting in presenter.settings)
+                foreach (var setting in controller.settings)
                 {
                     AddSetting(setting);
                 }
             }
             if (m_SettingsContainer != null)
             {
-                var activeSettings = presenter.model.GetSettings(false, VFXSettingAttribute.VisibleFlags.InGraph);
+                var activeSettings = controller.model.GetSettings(false, VFXSettingAttribute.VisibleFlags.InGraph);
                 for (int i = 0; i < m_Settings.Count; ++i)
                     m_Settings[i].RemoveFromHierarchy();
 
                 for (int i = 0; i < m_Settings.Count; ++i)
                 {
                     PropertyRM prop = m_Settings[i];
-                    if (prop != null && activeSettings.Any(s => s.Name == presenter.settings[i].name))
+                    if (prop != null && activeSettings.Any(s => s.Name == controller.settings[i].name))
                     {
                         m_SettingsContainer.Add(prop);
                         prop.Update();
@@ -69,26 +68,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            GraphView graphView = this.GetFirstAncestorOfType<GraphView>();
-            if (graphView != null)
-            {
-                var allEdges = graphView.Query<Edge>().ToList();
-
-                foreach (Port anchor in this.Query<Port>().Where(t => true).ToList())
-                {
-                    foreach (var edge in allEdges.Where(t =>
-                        {
-                            var pres = t.GetPresenter<EdgePresenter>();
-                            return pres != null && (pres.output == anchor.presenter || pres.input == anchor.presenter);
-                        }))
-                    {
-                        edge.OnDataChanged();
-                    }
-                }
-            }
-
-
-            if (presenter.model.collapsed)
+            if (controller.model.collapsed)
             {
                 AddToClassList("collapsed");
             }

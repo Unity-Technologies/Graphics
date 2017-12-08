@@ -290,7 +290,7 @@ namespace UnityEditor.VFX.UI
 
         static void PasteNodes(VFXView view, Vector2 pasteOffset, Data copyData)
         {
-            var graph = view.controller.GetGraph();
+            var graph = view.controller.model;
 
             List<VFXContext> newContexts = new List<VFXContext>(copyData.contexts.Length);
 

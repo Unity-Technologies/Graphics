@@ -20,41 +20,28 @@ namespace UnityEditor.VFX.UI
             int cpt = 0;
             foreach (var setting in settings)
             {
-                var settingPresenter = VFXSettingPresenter.CreateInstance<VFXSettingPresenter>();
+                var settingPresenter = new VFXSettingPresenter();
                 settingPresenter.Init(this.slotContainer, setting.Name, setting.FieldType);
                 m_Settings[cpt++] = settingPresenter;
             }
-            OnInvalidate(model, VFXModel.InvalidationCause.kStructureChanged);
-            viewPresenter.AddInvalidateDelegate(model, OnInvalidate);
+        }
+
+        protected override void ModelChanged(UnityEngine.Object obj)
+        {
+            var inputs = inputPorts;
+            List<VFXDataAnchorPresenter> newAnchors = new List<VFXDataAnchorPresenter>();
+
+            UpdateSlots(newAnchors, slotContainer.inputSlots, true, true);
+
+            m_InputPorts = newAnchors;
+            newAnchors = new List<VFXDataAnchorPresenter>();
+            UpdateSlots(newAnchors, slotContainer.outputSlots, true, false);
+            m_OutputPorts = newAnchors;
+            base.ModelChanged(obj);
         }
 
         public override VFXSlotContainerPresenter slotContainerPresenter { get { return this; } }
 
-        protected void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
-        {
-            if (model as IVFXSlotContainer == slotContainer && (cause == VFXModel.InvalidationCause.kStructureChanged || cause == VFXModel.InvalidationCause.kSettingChanged))
-            {
-                var inputs = inputPorts;
-                List<VFXDataAnchorPresenter> newAnchors = new List<VFXDataAnchorPresenter>();
-
-                UpdateSlots(newAnchors, slotContainer.inputSlots, true, true);
-
-                m_InputPorts = newAnchors;
-                newAnchors = new List<VFXDataAnchorPresenter>();
-                UpdateSlots(newAnchors, slotContainer.outputSlots, true, false);
-                m_OutputPorts = newAnchors;
-
-                // separate UpdateInfos for the recreation of the list to make the code more reantrant, as UpdateInfos can trigger a compilation, that itself calls OnInvalidate.
-                foreach (var anchor in m_InputPorts)
-                {
-                    (anchor as VFXDataAnchorPresenter).UpdateInfos();
-                }
-                foreach (var anchor in m_OutputPorts)
-                {
-                    (anchor as VFXDataAnchorPresenter).UpdateInfos();
-                }
-            }
-        }
 
         void UpdateSlots(List<VFXDataAnchorPresenter> newAnchors, IEnumerable<VFXSlot> slotList, bool expanded, bool input)
         {

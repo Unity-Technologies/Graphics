@@ -114,6 +114,12 @@ namespace UnityEditor.VFX.UI
             SyncPresenters();
         }
 
+        public override void ForceUpdate()
+        {
+            base.ForceUpdate();
+            m_SlotPresenter.ForceUpdate();
+        }
+
         private void OnModelInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {
             if (model == this.model && cause == VFXModel.InvalidationCause.kStructureChanged)

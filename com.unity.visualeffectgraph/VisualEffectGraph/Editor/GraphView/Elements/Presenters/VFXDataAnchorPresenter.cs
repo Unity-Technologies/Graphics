@@ -47,7 +47,6 @@ namespace UnityEditor.VFX.UI
             portType = model.property.type;
 
             UpdateHidden();
-            m_SourceNode.viewPresenter.AddInvalidateDelegate(model, OnInvalidate);
 
             if (model.GetMasterSlot() != null && model.GetMasterSlot() != model)
             {
@@ -57,11 +56,13 @@ namespace UnityEditor.VFX.UI
 
         void MasterSlotChanged(UnityEngine.Object obj)
         {
-            NotifyChange(AnyThing);
+            ModelChanged(obj);
         }
 
         protected override void ModelChanged(UnityEngine.Object obj)
         {
+            UpdateHidden();
+            UpdateInfos();
             NotifyChange(AnyThing);
         }
 
@@ -70,15 +71,6 @@ namespace UnityEditor.VFX.UI
             if (m_MasterSlotHandle != null)
             {
                 DataWatchService.sharedInstance.RemoveWatch(m_MasterSlotHandle);
-            }
-        }
-
-        void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
-        {
-            UpdateHidden();
-            if (cause == VFXModel.InvalidationCause.kConnectionChanged)
-            {
-                UpdateInfos();
             }
         }
 

@@ -42,6 +42,11 @@ namespace UnityEditor.VFX.UI
             m_ViewPresenter = viewPresenter;
         }
 
+        public virtual void ForceUpdate()
+        {
+            ModelChanged(model);
+        }
+
         protected override void ModelChanged(UnityEngine.Object obj)
         {
             NotifyChange(AnyThing);

@@ -26,7 +26,7 @@ namespace UnityEditor.VFX.UI
                 if (m_UseCount == 0)
                 {
                     Manager.RemovePresenter(this);
-                    //Object.DestroyImmediate(this);
+                    this.OnDisable();
                 }
             }
         }
@@ -77,24 +77,11 @@ namespace UnityEditor.VFX.UI
         protected new void OnEnable()
         {
             base.OnEnable();
-
-            m_PresenterFactory[typeof(VFXContext)] = typeof(VFXContextPresenter);
-            m_PresenterFactory[typeof(VFXOperator)] = typeof(VFXOperatorPresenter);
-            m_PresenterFactory[typeof(VFXParameter)] = typeof(VFXParameterPresenter);
-
-            if (m_FlowAnchorPresenters == null)
-                m_FlowAnchorPresenters = new List<VFXFlowAnchorPresenter>();
-
-            if (m_VFXAsset)
-            {
-                InitializeUndoStack();
-            }
-            Undo.undoRedoPerformed += SynchronizeUndoRedoState;
-            Undo.willFlushUndoRecord += WillFlushUndoRecord;
         }
 
         protected void OnDisable()
         {
+            RemoveInvalidateDelegate(model, InvalidateExpressionGraph);
             ReleaseUndoStack();
             Undo.undoRedoPerformed -= SynchronizeUndoRedoState;
             Undo.willFlushUndoRecord -= WillFlushUndoRecord;
@@ -309,7 +296,7 @@ namespace UnityEditor.VFX.UI
                 }
                 while (slotToClean != null);
 
-                m_Graph.RemoveChild(operatorPresenter.model);
+                model.RemoveChild(operatorPresenter.model);
                 RecreateNodeEdges();
             }
             else if (element is VFXFlowEdgePresenter)
@@ -355,6 +342,9 @@ namespace UnityEditor.VFX.UI
 
         protected override void ModelChanged(UnityEngine.Object obj)
         {
+            SyncPresentersFromModel();
+
+            NotifyChange(AnyThing);
         }
 
         public void RegisterFlowAnchorPresenter(VFXFlowAnchorPresenter presenter)
@@ -471,7 +461,7 @@ namespace UnityEditor.VFX.UI
         private void AddVFXModel(Vector2 pos, VFXModel model)
         {
             model.position = pos;
-            m_Graph.AddChild(model);
+            this.model.AddChild(model);
         }
 
         public VFXContext AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
@@ -498,11 +488,6 @@ namespace UnityEditor.VFX.UI
         public VFXAsset GetVFXAsset()
         {
             return m_VFXAsset;
-        }
-
-        public VFXGraph GetGraph()
-        {
-            return m_Graph;
         }
 
         public void Clear()
@@ -563,14 +548,14 @@ namespace UnityEditor.VFX.UI
                 if (!s_Presenters.TryGetValue(asset, out presenter))
                 {
                     presenter = CreateInstance<VFXViewPresenter>();
-                    presenter.SetVFXAsset(asset, false);
+                    presenter.Init(asset);
                     s_Presenters[asset] = presenter;
                 }
                 else
                 {
                     if (forceUpdate)
                     {
-                        presenter.SetVFXAsset(asset, true);
+                        presenter.ForceReload();
                     }
                 }
 
@@ -586,23 +571,40 @@ namespace UnityEditor.VFX.UI
 
         public void ForceReload()
         {
-            // Do we have a leak without this line ?
-            /*if (m_VFXAsset != null && !EditorUtility.IsPersistent(m_VFXAsset))
-                DestroyImmediate(m_VFXAsset);*/
-
             Clear();
-            //Debug.Log(string.Format("SET GRAPH ASSET new:{0} old:{1} force:{2}", vfx, m_VFXAsset, force));
 
-            if (m_Graph != null)
+            if (model != null)
             {
-                RemoveInvalidateDelegate(m_Graph, SyncPresentersFromModel);
-                RemoveInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
+                RemoveInvalidateDelegate(model, InvalidateExpressionGraph);
             }
 
-            m_Graph = m_VFXAsset.GetOrCreateGraph();
+            // Hack should not call init again
+            base.Init(m_VFXAsset.GetOrCreateGraph());
 
-            AddInvalidateDelegate(m_Graph, SyncPresentersFromModel);
-            AddInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
+            AddInvalidateDelegate(model, InvalidateExpressionGraph);
+
+            // First trigger
+            RecompileExpressionGraphIfNeeded();
+
+#if ENABLE_VIEW_3D_PRESENTER
+            if (presenter != null)
+                RemoveElement(presenter);
+            presenter = CreateInstance<Preview3DPresenter>();
+            AddElement(presenter);
+#endif
+            ModelChanged(m_VFXAsset);
+        }
+
+        public void Init(VFXAsset vfx)
+        {
+            Clear();
+
+            m_VFXAsset = vfx;
+            base.Init(m_VFXAsset.GetOrCreateGraph());
+
+            InitializeUndoStack();
+
+            AddInvalidateDelegate(model, InvalidateExpressionGraph);
 
             // First trigger
             RecompileExpressionGraphIfNeeded();
@@ -617,82 +619,37 @@ namespace UnityEditor.VFX.UI
             presenter = CreateInstance<Preview3DPresenter>();
             AddElement(presenter);
 #endif
-            SyncPresentersFromModel(m_Graph, VFXModel.InvalidationCause.kStructureChanged);
-        }
 
-        public void SetVFXAsset(VFXAsset vfx, bool force)
-        {
-            if (m_VFXAsset != vfx || force)
+
+            m_PresenterFactory[typeof(VFXContext)] = typeof(VFXContextPresenter);
+            m_PresenterFactory[typeof(VFXOperator)] = typeof(VFXOperatorPresenter);
+            m_PresenterFactory[typeof(VFXParameter)] = typeof(VFXParameterPresenter);
+
+            if (m_FlowAnchorPresenters == null)
+                m_FlowAnchorPresenters = new List<VFXFlowAnchorPresenter>();
+
+            if (m_VFXAsset)
             {
-                // Do we have a leak without this line ?
-                /*if (m_VFXAsset != null && !EditorUtility.IsPersistent(m_VFXAsset))
-                    DestroyImmediate(m_VFXAsset);*/
-
-                Clear();
-                //Debug.Log(string.Format("SET GRAPH ASSET new:{0} old:{1} force:{2}", vfx, m_VFXAsset, force));
-
-                if (m_Graph != null)
-                {
-                    RemoveInvalidateDelegate(m_Graph, SyncPresentersFromModel);
-                    RemoveInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
-                }
-
-                m_VFXAsset = vfx == null ? new VFXAsset() : vfx;
-                m_Graph = m_VFXAsset.GetOrCreateGraph();
                 InitializeUndoStack();
-
-                AddInvalidateDelegate(m_Graph, SyncPresentersFromModel);
-                AddInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
-
-                // First trigger
-                RecompileExpressionGraphIfNeeded();
-
-
-                // Doesn't work for some reason
-                //View.FrameAll();
-
-#if ENABLE_VIEW_3D_PRESENTER
-                if (presenter != null)
-                    RemoveElement(presenter);
-                presenter = CreateInstance<Preview3DPresenter>();
-                AddElement(presenter);
-#endif
             }
-            SyncPresentersFromModel(m_Graph, VFXModel.InvalidationCause.kStructureChanged);
+            Undo.undoRedoPerformed += SynchronizeUndoRedoState;
+            Undo.willFlushUndoRecord += WillFlushUndoRecord;
+
+            SyncPresentersFromModel();
         }
 
-        public void SyncPresentersFromModel(VFXModel model, VFXModel.InvalidationCause cause)
+        public void SyncPresentersFromModel()
         {
-            switch (cause)
-            {
-                case VFXModel.InvalidationCause.kStructureChanged:
-                {
-                    Dictionary<VFXModel, VFXNodeController> syncedModels = null;
-                    if (model is VFXGraph)
-                        syncedModels = m_SyncedModels;
+            var toRemove = m_SyncedModels.Keys.Except(model.children).ToList();
+            foreach (var m in toRemove)
+                RemovePresentersFromModel(m, m_SyncedModels);
 
-                    if (syncedModels != null)
-                    {
-                        var toRemove = syncedModels.Keys.Except(model.children).ToList();
-                        foreach (var m in toRemove)
-                            RemovePresentersFromModel(m, syncedModels);
+            var toAdd = model.children.Except(m_SyncedModels.Keys).ToList();
+            foreach (var m in toAdd)
+                AddPresentersFromModel(m, m_SyncedModels);
 
-                        var toAdd = model.children.Except(syncedModels.Keys).ToList();
-                        foreach (var m in toAdd)
-                            AddPresentersFromModel(m, syncedModels);
-                    }
-
-                    RecreateNodeEdges();
-                    RecreateFlowEdges();
-
-                    break;
-                }
-                case VFXModel.InvalidationCause.kConnectionChanged:
-                    RecreateNodeEdges();
-                    break;
-            }
-
-            //Debug.Log("Invalidate Model: " + model + " Cause: " + cause + " nbElements:" + m_Elements.Count);
+            RecreateNodeEdges();
+            RecreateFlowEdges();
         }
 
         private void AddPresentersFromModel(VFXModel model, Dictionary<VFXModel, VFXNodeController> syncedModels)
@@ -703,6 +660,7 @@ namespace UnityEditor.VFX.UI
             if (newPresenter != null)
             {
                 newPresenter.Init(model, this);
+                newPresenter.ForceUpdate();
             }
         }
 
@@ -713,8 +671,6 @@ namespace UnityEditor.VFX.UI
 
         [SerializeField]
         private VFXAsset m_VFXAsset;
-        [SerializeField]
-        private VFXGraph m_Graph;
 
         private VFXView m_View; // Don't call directly as it is lazy initialized
     }

@@ -155,7 +155,7 @@ namespace  UnityEditor.VFX.UI
             VFXViewPresenter presenter = graphView.controller;
             if (presenter != null)
             {
-                var graph = presenter.GetGraph();
+                var graph = presenter.model;
                 if (graph != null)
                 {
                     var filename = System.IO.Path.GetFileName(m_DisplayedAssetPath);

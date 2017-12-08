@@ -16,6 +16,10 @@ namespace UnityEditor.VFX.UI
         {
             get { return m_Controller; }
         }
+        public override void UpdatePresenterPosition()
+        {
+            controller.position = GetPosition().position;
+        }
 
         public VFXSlotContainerPresenter controller
         {
@@ -39,60 +43,36 @@ namespace UnityEditor.VFX.UI
         public VFXNodeUI()
         {
             AddToClassList("VFXNodeUI");
+            RegisterCallback<ControllerChangedEvent>(OnChange);
         }
 
-        public virtual VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorPresenter presenter)
+        virtual protected void OnChange(ControllerChangedEvent e)
         {
-            if (presenter.direction == Direction.Input)
+            if (e.controller == controller)
             {
-                VFXEditableDataAnchor anchor = VFXEditableDataAnchor.Create(presenter);
-                presenter.sourceNode.viewPresenter.onRecompileEvent += anchor.OnRecompile;
-
-                return anchor;
-            }
-            else
-            {
-                return VFXOutputDataAnchor.Create(presenter);
+                SelfChange();
             }
         }
 
-        protected override void OnPortRemoved(Port anchor)
+        protected virtual bool HasPosition()
         {
-            if (anchor is VFXEditableDataAnchor)
-            {
-                controller.viewPresenter.onRecompileEvent -= (anchor as VFXEditableDataAnchor).OnRecompile;
-            }
+            return true;
         }
 
-        public IEnumerable<Port> GetPorts(bool input, bool output)
-        {
-            if (input)
-            {
-                foreach (var child in inputContainer)
-                {
-                    if (child is Port)
-                        yield return child as Port;
-                }
-            }
-            if (output)
-            {
-                foreach (var child in outputContainer)
-                {
-                    if (child is Port)
-                        yield return child as Port;
-                }
-            }
-        }
-
-        public override void OnDataChanged()
+        protected virtual void SelfChange()
         {
             var presenter = controller;
 
-            base.OnDataChanged();
-
-
             if (presenter == null)
                 return;
+
+            if (HasPosition())
+            {
+                style.positionType = PositionType.Absolute;
+                style.positionLeft = presenter.position.x;
+                style.positionTop = presenter.position.y;
+            }
+
 
             if (m_SettingsContainer == null && presenter.settings != null)
             {
@@ -139,6 +119,49 @@ namespace UnityEditor.VFX.UI
                     {
                         edge.OnDataChanged();
                     }
+                }
+            }
+        }
+
+        public virtual VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorPresenter presenter)
+        {
+            if (presenter.direction == Direction.Input)
+            {
+                VFXEditableDataAnchor anchor = VFXEditableDataAnchor.Create(presenter);
+                presenter.sourceNode.viewPresenter.onRecompileEvent += anchor.OnRecompile;
+
+                return anchor;
+            }
+            else
+            {
+                return VFXOutputDataAnchor.Create(presenter);
+            }
+        }
+
+        protected override void OnPortRemoved(Port anchor)
+        {
+            if (anchor is VFXEditableDataAnchor)
+            {
+                controller.viewPresenter.onRecompileEvent -= (anchor as VFXEditableDataAnchor).OnRecompile;
+            }
+        }
+
+        public IEnumerable<Port> GetPorts(bool input, bool output)
+        {
+            if (input)
+            {
+                foreach (var child in inputContainer)
+                {
+                    if (child is Port)
+                        yield return child as Port;
+                }
+            }
+            if (output)
+            {
+                foreach (var child in outputContainer)
+                {
+                    if (child is Port)
+                        yield return child as Port;
                 }
             }
         }

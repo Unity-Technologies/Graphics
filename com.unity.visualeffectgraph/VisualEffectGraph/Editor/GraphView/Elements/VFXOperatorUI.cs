@@ -78,9 +78,9 @@ namespace UnityEditor.VFX.UI
         }
 
 
-        public override void OnDataChanged()
+        protected virtual void SelfChange()
         {
-            base.OnDataChanged();
+            base.SelfChange();
             var presenter = controller;
             if (presenter == null || presenter.Operator == null)
                 return;

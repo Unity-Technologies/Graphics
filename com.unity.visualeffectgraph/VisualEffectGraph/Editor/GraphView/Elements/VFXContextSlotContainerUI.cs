@@ -46,18 +46,14 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        public override void OnDataChanged()
+        protected override void SelfChange()
         {
-            base.OnDataChanged();
-            var presenter = controller;
+            base.SelfChange();
+        }
 
-            if (presenter == null)
-                return;
-
-            Rect rect = GetPosition();
-            rect.position = presenter.position;
-
-            SetPosition(rect);
+        protected override bool HasPosition()
+        {
+            return false;
         }
 
         public VFXContextUI context

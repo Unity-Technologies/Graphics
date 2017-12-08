@@ -85,17 +85,140 @@ namespace UnityEditor.VFX.UI
                 if (m_Controller != null)
                 {
                     m_Controller.RegisterHandler(this);
+
+                    m_OwnData.controller = m_Controller.slotContainerPresenter;
+
+                    bool slotsVisible = m_Controller.slotContainerPresenter.inputPorts.Count() > 0 || (m_Controller.slotContainerPresenter.settings != null && m_Controller.slotContainerPresenter.settings.Count() > 0);
+                    if (slotsVisible && m_OwnData.parent == null)
+                    {
+                        m_Header.Add(m_OwnData);
+                    }
+                    else if (!slotsVisible && m_OwnData.parent != null)
+                    {
+                        m_Header.Remove(m_OwnData);
+                    }
                 }
             }
         }
 
         void OnChange(ControllerChangedEvent e)
         {
+            if (e.controller == controller)
+            {
+                VFXContextPresenter presenter = controller;
+
+                style.positionType = PositionType.Absolute;
+                style.positionLeft = presenter.position.x;
+                style.positionTop = presenter.position.y;
+
+                if (m_PopupManipulator == null)
+                {
+                    m_PopupManipulator = new FilterPopup(new VFXBlockProvider(presenter, (d, mPos) =>
+                        {
+                            AddBlock(mPos, d);
+                        }));
+                    m_NodeContainer.AddManipulator(m_PopupManipulator);
+                }
+
+
+                // Recreate label with good name // Dirty
+                if (presenter.context.inputType != VFXDataType.kNone)
+                    m_HeaderTitle.text = string.Format("{0} {1}", presenter.context.name, presenter.context.inputType.ToString().Substring(1));
+                else
+                    m_HeaderTitle.text = presenter.context.name;
+                m_HeaderIcon.style.backgroundImage = GetIconForVFXType(presenter.context.inputType);
+
+                VFXContextType contextType = presenter.context.contextType;
+
+                RemoveFromClassList("spawner");
+                RemoveFromClassList("init");
+                RemoveFromClassList("update");
+                RemoveFromClassList("output");
+
+
+                foreach (int val in System.Enum.GetValues(typeof(CoordinateSpace)))
+                {
+                    m_HeaderSpace.RemoveFromClassList("space" + ((CoordinateSpace)val).ToString());
+                }
+                m_HeaderSpace.AddToClassList("space" + (presenter.context.space).ToString());
+
+                switch (contextType)
+                {
+                    case VFXContextType.kSpawner: AddToClassList("spawner"); break;
+                    case VFXContextType.kInit: AddToClassList("init"); break;
+                    case VFXContextType.kUpdate: AddToClassList("update"); break;
+                    case VFXContextType.kOutput: AddToClassList("output"); break;
+                    case VFXContextType.kEvent: AddToClassList("event"); break;
+                    default: throw new Exception();
+                }
+
+
+                if (presenter.context.outputType == VFXDataType.kNone)
+                {
+                    if (m_Footer.parent != null)
+                        m_InsideContainer.Remove(m_Footer);
+                }
+                else
+                {
+                    if (m_Footer.parent == null)
+                        m_InsideContainer.Add(m_Footer);
+                    m_FooterTitle.text = presenter.context.outputType.ToString().Substring(1);
+                    m_FooterIcon.style.backgroundImage = GetIconForVFXType(presenter.context.outputType);
+                }
+
+                HashSet<VisualElement> newInAnchors = new HashSet<VisualElement>();
+
+                foreach (var inanchorpresenter in presenter.flowInputAnchors)
+                {
+                    var existing = m_FlowInputConnectorContainer.Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.controller == inanchorpresenter);
+                    if (existing == null)
+                    {
+                        var anchor = VFXFlowAnchor.Create(inanchorpresenter);
+                        m_FlowInputConnectorContainer.Add(anchor);
+                        newInAnchors.Add(anchor);
+                    }
+                    else
+                    {
+                        newInAnchors.Add(existing);
+                    }
+                }
+
+                foreach (var nonLongerExistingAnchor in m_FlowInputConnectorContainer.Where(t => !newInAnchors.Contains(t)).ToList()) // ToList to make a copy because the enumerable will change when we delete
+                {
+                    m_FlowInputConnectorContainer.Remove(nonLongerExistingAnchor);
+                }
+
+
+                HashSet<VisualElement> newOutAnchors = new HashSet<VisualElement>();
+
+                foreach (var outanchorpresenter in presenter.flowOutputAnchors)
+                {
+                    var existing = m_FlowOutputConnectorContainer.Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.controller == outanchorpresenter);
+                    if (existing == null)
+                    {
+                        var anchor = VFXFlowAnchor.Create(outanchorpresenter);
+                        m_FlowOutputConnectorContainer.Add(anchor);
+                        newOutAnchors.Add(anchor);
+                    }
+                    else
+                    {
+                        newOutAnchors.Add(existing);
+                    }
+                }
+
+                foreach (var nonLongerExistingAnchor in m_FlowOutputConnectorContainer.Where(t => !newOutAnchors.Contains(t)).ToList()) // ToList to make a copy because the enumerable will change when we delete
+                {
+                    m_FlowOutputConnectorContainer.Remove(nonLongerExistingAnchor);
+                }
+
+
+                RefreshContext();
+            }
         }
 
         public VFXContextUI()
         {
-            capabilities |= Capabilities.Deletable | Capabilities.Ascendable;
+            capabilities |= Capabilities.Selectable | Capabilities.Movable | Capabilities.Deletable | Capabilities.Ascendable;
             forceNotififcationOnAdd = true;
             pickingMode = PickingMode.Ignore;
 
@@ -226,6 +349,11 @@ namespace UnityEditor.VFX.UI
             clippingOptions = VisualElement.ClippingOptions.NoClipping;
 
             RegisterCallback<ControllerChangedEvent>(OnChange);
+        }
+
+        public override void UpdatePresenterPosition()
+        {
+            controller.position = GetPosition().position;
         }
 
         void IEdgeDrawerContainer.EdgeDirty()
@@ -525,131 +653,6 @@ namespace UnityEditor.VFX.UI
             using (var growContext = new GrowContext(this))
             {
                 controller.AddBlock(blockIndex, descriptor.CreateInstance());
-            }
-        }
-
-        public override void OnDataChanged()
-        {
-            base.OnDataChanged();
-
-            VFXContextPresenter presenter = controller;
-            if (presenter == null || presenter.context == null)
-                return;
-
-            if (m_PopupManipulator == null)
-            {
-                m_PopupManipulator = new FilterPopup(new VFXBlockProvider(presenter, (d, mPos) =>
-                    {
-                        AddBlock(mPos, d);
-                    }));
-                m_NodeContainer.AddManipulator(m_PopupManipulator);
-            }
-
-
-            // Recreate label with good name // Dirty
-            if (presenter.context.inputType != VFXDataType.kNone)
-                m_HeaderTitle.text = string.Format("{0} {1}", presenter.context.name, presenter.context.inputType.ToString().Substring(1));
-            else
-                m_HeaderTitle.text = presenter.context.name;
-            m_HeaderIcon.style.backgroundImage = GetIconForVFXType(presenter.context.inputType);
-
-            VFXContextType contextType = presenter.context.contextType;
-
-            RemoveFromClassList("spawner");
-            RemoveFromClassList("init");
-            RemoveFromClassList("update");
-            RemoveFromClassList("output");
-
-
-            foreach (int val in System.Enum.GetValues(typeof(CoordinateSpace)))
-            {
-                m_HeaderSpace.RemoveFromClassList("space" + ((CoordinateSpace)val).ToString());
-            }
-            m_HeaderSpace.AddToClassList("space" + (presenter.context.space).ToString());
-
-            switch (contextType)
-            {
-                case VFXContextType.kSpawner: AddToClassList("spawner"); break;
-                case VFXContextType.kInit:    AddToClassList("init"); break;
-                case VFXContextType.kUpdate:  AddToClassList("update"); break;
-                case VFXContextType.kOutput:  AddToClassList("output"); break;
-                case VFXContextType.kEvent:   AddToClassList("event"); break;
-                default: throw new Exception();
-            }
-
-
-            if (presenter.context.outputType == VFXDataType.kNone)
-            {
-                if (m_Footer.parent != null)
-                    m_InsideContainer.Remove(m_Footer);
-            }
-            else
-            {
-                if (m_Footer.parent == null)
-                    m_InsideContainer.Add(m_Footer);
-                m_FooterTitle.text = presenter.context.outputType.ToString().Substring(1);
-                m_FooterIcon.style.backgroundImage = GetIconForVFXType(presenter.context.outputType);
-            }
-
-            HashSet<VisualElement> newInAnchors = new HashSet<VisualElement>();
-
-            foreach (var inanchorpresenter in presenter.flowInputAnchors)
-            {
-                var existing = m_FlowInputConnectorContainer.Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.controller == inanchorpresenter);
-                if (existing == null)
-                {
-                    var anchor = VFXFlowAnchor.Create(inanchorpresenter);
-                    m_FlowInputConnectorContainer.Add(anchor);
-                    newInAnchors.Add(anchor);
-                }
-                else
-                {
-                    newInAnchors.Add(existing);
-                }
-            }
-
-            foreach (var nonLongerExistingAnchor in m_FlowInputConnectorContainer.Where(t => !newInAnchors.Contains(t)).ToList()) // ToList to make a copy because the enumerable will change when we delete
-            {
-                m_FlowInputConnectorContainer.Remove(nonLongerExistingAnchor);
-            }
-
-
-            HashSet<VisualElement> newOutAnchors = new HashSet<VisualElement>();
-
-            foreach (var outanchorpresenter in presenter.flowOutputAnchors)
-            {
-                var existing = m_FlowOutputConnectorContainer.Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.controller == outanchorpresenter);
-                if (existing == null)
-                {
-                    var anchor = VFXFlowAnchor.Create(outanchorpresenter);
-                    m_FlowOutputConnectorContainer.Add(anchor);
-                    newOutAnchors.Add(anchor);
-                }
-                else
-                {
-                    newOutAnchors.Add(existing);
-                }
-            }
-
-            foreach (var nonLongerExistingAnchor in m_FlowOutputConnectorContainer.Where(t => !newOutAnchors.Contains(t)).ToList()) // ToList to make a copy because the enumerable will change when we delete
-            {
-                m_FlowOutputConnectorContainer.Remove(nonLongerExistingAnchor);
-            }
-
-
-            RefreshContext();
-
-
-            m_OwnData.controller = presenter.slotContainerPresenter;
-
-            bool slotsVisible = presenter.slotContainerPresenter.inputPorts.Count() > 0 || (presenter.slotContainerPresenter.settings != null && presenter.slotContainerPresenter.settings.Count() > 0);
-            if (slotsVisible && m_OwnData.parent == null)
-            {
-                m_Header.Add(m_OwnData);
-            }
-            else if (!slotsVisible && m_OwnData.parent != null)
-            {
-                m_Header.Remove(m_OwnData);
             }
         }
 

@@ -6,7 +6,7 @@ using UnityEditor.Experimental.UIElements.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXSettingPresenter : GraphElementPresenter, IPropertyRMProvider
+    class VFXSettingPresenter : IPropertyRMProvider
     {
         [SerializeField]
         IVFXSlotContainer m_Owner;
@@ -14,18 +14,20 @@ namespace UnityEditor.VFX.UI
 
         System.Type m_SettingType;
 
-        public System.Type portType { get { return m_SettingType; } }
+        string m_Name;
 
-        public override UnityEngine.Object[] GetObjectsToWatch()
-        {
-            return new UnityEngine.Object[] { this, m_Owner as UnityEngine.Object };
-        }
+        public System.Type portType { get { return m_SettingType; } }
 
         public void Init(IVFXSlotContainer owner, string name, System.Type type)
         {
             m_Owner = owner;
-            this.name = name;
+            m_Name = name;
             m_SettingType = type;
+        }
+
+        public string name
+        {
+            get { return m_Name; }
         }
 
         public object value
