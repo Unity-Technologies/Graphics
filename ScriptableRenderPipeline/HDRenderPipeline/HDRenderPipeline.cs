@@ -1338,7 +1338,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._CameraFilteringBuffer, m_CameraFilteringBufferRT);
 
                         // Perform the SSS filtering pass which fills 'm_CameraFilteringBufferRT'.
-                        cmd.DispatchCompute(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, ((int)hdCamera.screenSize.x + 15) / 16, ((int)hdCamera.screenSize.y + 15) / 16, 1);
+                        // We dispatch 4x swizzled 16x16 groups per a 32x32 macrotile.
+                        cmd.DispatchCompute(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, 4, ((int)hdCamera.screenSize.x + 31) / 32, ((int)hdCamera.screenSize.y + 31) / 32);
 
                         cmd.SetGlobalTexture(HDShaderIDs._IrradianceSource, m_CameraFilteringBufferRT);  // Cannot set a RT on a material
 
@@ -1350,7 +1351,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._CameraColorTexture, m_CameraColorBufferRT);
 
                         // Perform the SSS filtering pass which performs an in-place update of 'm_CameraColorBufferRT'.
-                        cmd.DispatchCompute(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, ((int)hdCamera.screenSize.x + 15) / 16, ((int)hdCamera.screenSize.y + 15) / 16, 1);
+                        // We dispatch 4x swizzled 16x16 groups per a 32x32 macrotile.
+                        cmd.DispatchCompute(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, 4, ((int)hdCamera.screenSize.x + 31) / 32, ((int)hdCamera.screenSize.y + 31) / 32);
                     }
                 }
                 else
