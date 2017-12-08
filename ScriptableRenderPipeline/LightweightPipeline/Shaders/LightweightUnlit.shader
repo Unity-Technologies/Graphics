@@ -1,4 +1,4 @@
-﻿Shader "LightweightPipeline/Unlit"
+Shader "LightweightPipeline/Standard Unlit"
 {
     Properties
     {

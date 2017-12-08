@@ -101,13 +101,8 @@ namespace UnityEngine.Experimental.Rendering
             m_ComponentsDefaultState.Clear();
 
             // Rebuild it from scratch
-            var types = AppDomain.CurrentDomain.GetAssemblies()
-                            .SelectMany(
-                                a => a.GetTypes()
-                                .Where(
-                                    t => t.IsSubclassOf(typeof(VolumeComponent)) && !t.IsAbstract
-                                )
-                            );
+            var types = CoreUtils.GetAllAssemblyTypes()
+                            .Where(t => t.IsSubclassOf(typeof(VolumeComponent)) && !t.IsAbstract);
 
             foreach (var type in types)
             {
@@ -293,9 +288,9 @@ namespace UnityEngine.Experimental.Rendering
                 float blendDistSqr = volume.blendDistance * volume.blendDistance;
 
                 // Volume has no influence, ignore it
-                // Note: Volume doesn't do anything when `closestDistanceSqr = blendDistSqr` but
-                //       we can't use a >= comparison as blendDistSqr could be set to 0 in which
-                //       case volume would have total influence
+                // Note: Volume doesn't do anything when `closestDistanceSqr = blendDistSqr` but we
+                //       can't use a >= comparison as blendDistSqr could be set to 0 in which case
+                //       volume would have total influence
                 if (closestDistanceSqr > blendDistSqr)
                     continue;
 

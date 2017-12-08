@@ -16,6 +16,9 @@ Material:
   stringTagMap: {}
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentDepthPostpass
+  - TransparentBackface
+  - TransparentBackfaceDebugDisplay
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -96,7 +99,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: d734753529ca78148a43944515a64bc5, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MaskMap:
@@ -163,11 +166,18 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmittanceColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax: 1
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
@@ -175,6 +185,7 @@ Material:
     - _CoatIOR: 0.5
     - _CoatRoughness: 0
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAOScale: 1
@@ -200,6 +211,8 @@ Material:
     - _DistortionOnly: 0
     - _DistortionScale: 1
     - _DistortionSrcBlend: 1
+    - _DistortionVectorBias: -1
+    - _DistortionVectorScale: 2
     - _DoubleSided: 1
     - _DoubleSidedEnable: 0
     - _DoubleSidedLigthing: 1
@@ -262,6 +275,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 0
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVMappingPlanar: 0
@@ -278,6 +293,7 @@ Material:
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _SpecColor: {r: 0.04, g: 0.04, b: 0.04, a: 1}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
+    - _ThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _TransmittanceColor: {r: 1, g: 1, b: 1, a: 1}
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}
