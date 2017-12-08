@@ -24,6 +24,8 @@ namespace UnityEditor.VFX.Block.Test
         {
             get
             {
+                foreach (var param in base.parameters)
+                    yield return param;
                 yield return new VFXNamedExpression(VFXBuiltInExpression.DeltaTime, "deltaTime");
             }
         }
@@ -31,7 +33,7 @@ namespace UnityEditor.VFX.Block.Test
 
         public class InputProperties
         {
-            //None
+            public uint count = 1u;
         }
 
         public class OutputProperties
@@ -46,7 +48,7 @@ namespace UnityEditor.VFX.Block.Test
                 return
                     @"if (age + deltaTime > lifetime)
 {
-    eventCount += 1u;
+    eventCount += count;
 }
 ";
             }

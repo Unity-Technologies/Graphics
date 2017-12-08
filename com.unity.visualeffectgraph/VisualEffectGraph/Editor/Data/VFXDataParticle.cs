@@ -165,11 +165,11 @@ namespace UnityEditor.VFX
             get
             {
                 var init = owners.FirstOrDefault(o => o.contextType == VFXContextType.kInit);
-                return init != null ? (uint)init.inputContexts.Count() : 0u;
+                return init != null ? (uint)init.inputContexts.Where(o => o.contextType == VFXContextType.kSpawner /* explicitly ignore spawner gpu */).Count() : 0u;
             }
         }
 
-        private uint attributeBufferSize
+        public uint attributeBufferSize
         {
             get
             {
@@ -260,33 +260,36 @@ namespace UnityEditor.VFX
             VFXExpressionGraph expressionGraph,
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
             Dictionary<VFXContext, int> contextSpawnToBufferIndex,
+            int attributeBufferIndex,
+            int attributeEventGPUSourceBufferIndex,
             int eventGPUFrom,
             int[][] eventGPUTo,
             int layer)
         {
             bool hasKill = IsAttributeStored(VFXAttribute.Alive);
 
-            var attributeBufferIndex = -1;
-            var attributeSourceBufferIndex = -1;
             var deadListBufferIndex = -1;
             var deadListCountIndex = -1;
+            int attributeSourceBufferIndex = -1;
 
             var systemBufferMappings = new List<VFXMapping>();
             var systemValueMappings = new List<VFXMapping>();
 
-            if (attributeBufferSize > 0)
+            if (attributeBufferIndex != -1)
             {
-                attributeBufferIndex = outBufferDescs.Count;
-                outBufferDescs.Add(m_layoutAttributeCurrent.GetBufferDesc(m_Capacity));
                 systemBufferMappings.Add(new VFXMapping(attributeBufferIndex, "attributeBuffer"));
             }
 
             if (m_layoutAttributeSource.GetBufferSize(sourceCount) > 0u)
             {
                 attributeSourceBufferIndex = outBufferDescs.Count;
-                var bufferDesc = m_layoutAttributeSource.GetBufferDesc(sourceCount);
-                outBufferDescs.Add(bufferDesc);
+                outBufferDescs.Add(m_layoutAttributeSource.GetBufferDesc(sourceCount));
                 systemBufferMappings.Add(new VFXMapping(attributeSourceBufferIndex, "sourceAttributeBuffer"));
+            }
+
+            if (attributeEventGPUSourceBufferIndex != -1)
+            {
+                systemBufferMappings.Add(new VFXMapping(attributeEventGPUSourceBufferIndex, "sourceEventGPUAttributeBuffer"));
             }
 
             var systemFlag = VFXSystemFlag.kVFXSystemDefault;
@@ -369,6 +372,9 @@ namespace UnityEditor.VFX
                 if (attributeSourceBufferIndex != -1 && context.contextType == VFXContextType.kInit)
                     bufferMappings.Add(new VFXMapping(attributeSourceBufferIndex, "sourceAttributeBuffer"));
 
+                if (attributeEventGPUSourceBufferIndex != -1 && context.contextType == VFXContextType.kInit)
+                    bufferMappings.Add(new VFXMapping(attributeEventGPUSourceBufferIndex, "sourceEventGPUAttributeBuffer"));
+
                 if (indirectBufferIndex != -1 &&
                     (context.contextType == VFXContextType.kUpdate ||
                      (context.contextType == VFXContextType.kOutput && (context as VFXAbstractParticleOutput).HasIndirectDraw())))
@@ -420,8 +426,8 @@ namespace UnityEditor.VFX
         [SerializeField]
         private CoordinateSpace m_Space;
         [NonSerialized]
-        private StructureOfArrayProvider m_layoutAttributeCurrent = new StructureOfArrayProvider();
+        public StructureOfArrayProvider m_layoutAttributeCurrent = new StructureOfArrayProvider(); //TODOPAUL : temporary
         [NonSerialized]
-        private StructureOfArrayProvider m_layoutAttributeSource = new StructureOfArrayProvider();
+        public StructureOfArrayProvider m_layoutAttributeSource = new StructureOfArrayProvider();
     }
 }

@@ -627,8 +627,21 @@ namespace UnityEditor.VFX
                     throw new InvalidOperationException("Unexpected compute of data particle layers");
                 }
 
-                //Prepare GPU event buffer
-                var gpuEventBufferDictionary = new Dictionary<VFXContext, int>();
+                //Prepare all attribute buffer
+                var attributeBufferDictionnary = new Dictionary<VFXData, int>();
+                foreach (var data in particleDataLayered.SelectMany(o => o))
+                {
+                    int attributeBufferIndex = -1;
+                    if (data.attributeBufferSize > 0)
+                    {
+                        attributeBufferIndex = bufferDescs.Count;
+                        bufferDescs.Add(data.m_layoutAttributeCurrent.GetBufferDesc(data.capacity));
+                    }
+                    attributeBufferDictionnary.Add(data, attributeBufferIndex);
+                }
+
+                //Prepare GPU event buffer (out buffer)
+                var gpuEventBufferDictionnary = new Dictionary<VFXContext, KeyValuePair<int, int>>();
                 foreach (var dataParticle in gpuEventParentSystem.SelectMany(o => o.gpuEvent.outputContexts).Select(o => o.GetData() as VFXDataParticle).Distinct())
                 {
                     var index = bufferDescs.Count;
@@ -637,9 +650,12 @@ namespace UnityEditor.VFX
                     var currentContext = dataParticle.owners.Where(o => o.contextType == VFXContextType.kInit);
                     currentContext = currentContext.Concat(currentContext.SelectMany(o => o.inputContexts));
 
+                    var dependencies = gpuEventParentSystem.First(o => currentContext.Contains(o.gpuEvent)).dependsOn.ToArray(); //*hack*
+                    var sourceAttribute = attributeBufferDictionnary[dependencies[0]];
+
                     foreach (var c in currentContext)
                     {
-                        gpuEventBufferDictionary.Add(c, index);
+                        gpuEventBufferDictionnary.Add(c, new KeyValuePair<int, int>(index, sourceAttribute));
                     }
                 }
 
@@ -649,15 +665,14 @@ namespace UnityEditor.VFX
                     foreach (var data in particleDataLayered[layer])
                     {
                         int gpuEventFrom = -1;
+                        int gpuEventAttributeSource = -1;
                         var initializeContexts = data.owners.Where(o => o.contextType == VFXContextType.kInit).ToArray();
-                        if (initializeContexts.Length != 1)
-                        {
-                            throw new InvalidOperationException("Except only one initialize by system (for now at least)");
-                        }
 
-                        if (!gpuEventBufferDictionary.TryGetValue(initializeContexts[0], out gpuEventFrom))
+                        KeyValuePair<int, int> gpuEvent;
+                        if (gpuEventBufferDictionnary.TryGetValue(initializeContexts[0], out gpuEvent))
                         {
-                            gpuEventFrom = -1;
+                            gpuEventFrom = gpuEvent.Key;
+                            gpuEventAttributeSource = gpuEvent.Value;
                         }
 
                         var gpuEventTo = new int[][] {};
@@ -666,10 +681,22 @@ namespace UnityEditor.VFX
                             gpuEventTo = data.owners.Select(o =>
                                 {
                                     var allOutputSlot = o.children.SelectMany(b => b.outputSlots.SelectMany(c => c.LinkedSlots)).ToArray();
-                                    return allOutputSlot.Select(s => gpuEventBufferDictionary[s.owner as VFXContext]).ToArray();
+                                    return allOutputSlot.Select(s => gpuEventBufferDictionnary[s.owner as VFXContext].Key).ToArray();
                                 }).ToArray();
                         }
-                        data.FillDescs(bufferDescs, systemDescs, m_ExpressionGraph, contextToCompiledData, contextSpawnToBufferIndex, gpuEventFrom, gpuEventTo, layer);
+
+                        var attributeBufferIndex = attributeBufferDictionnary[data];
+
+                        data.FillDescs(bufferDescs,
+                            systemDescs,
+                            m_ExpressionGraph,
+                            contextToCompiledData,
+                            contextSpawnToBufferIndex,
+                            attributeBufferIndex,
+                            gpuEventAttributeSource,
+                            gpuEventFrom,
+                            gpuEventTo,
+                            layer);
                     }
                 }
                 /* WIP : End */

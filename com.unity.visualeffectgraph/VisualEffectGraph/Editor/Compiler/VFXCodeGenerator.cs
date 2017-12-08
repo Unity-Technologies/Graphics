@@ -92,7 +92,23 @@ namespace UnityEditor.VFX
                 var name = string.Format("{0}_source", attribute.name);
                 if (context.contextType == VFXContextType.kInit)
                 {
-                    r.WriteVariable(attribute.type, name, context.GetData().GetLoadAttributeCode(attribute, VFXAttributeLocation.Source));
+                    /* WIP PAUL */
+                    if (context.inputContexts.Any(o => o.contextType == VFXContextType.kSpawnerGPU))
+                    {
+                        var linkedSlot = context.inputContexts.First().inputSlots.First().LinkedSlots.First();
+                        var parentContext = (linkedSlot.owner as VFXBlock).GetParent();
+                        var data = parentContext.GetData() as VFXDataParticle;
+
+                        var loadCode = data.GetLoadAttributeCode(attribute, VFXAttributeLocation.Current);
+                        loadCode = loadCode.Replace("attributeBuffer", "sourceEventGPUAttributeBuffer"); //*Hack*
+                        loadCode = loadCode.Replace("index", "sourceGPUEventIndex"); //*Hack*
+                        r.WriteVariable(attribute.type, name, loadCode);
+                    }
+                    /*WIP */
+                    else
+                    {
+                        r.WriteVariable(attribute.type, name, context.GetData().GetLoadAttributeCode(attribute, VFXAttributeLocation.Source));
+                    }
                 }
                 else
                 {
