@@ -63,6 +63,20 @@ namespace UnityEditor.ShaderGraph
                     result.Add(textureInfo);
                 }
             }
+
+            foreach (var prop in m_Properties.OfType<CubemapShaderProperty>())
+            {
+                if (prop.referenceName != null)
+                {
+                    var textureInfo = new TextureInfo
+                    {
+                        name = prop.referenceName,
+                        textureId = prop.value.cubemap != null ? prop.value.cubemap.GetInstanceID() : 0,
+                        modifiable = prop.modifiable
+                    };
+                    result.Add(textureInfo);
+                }
+            }
             return result;
         }
     }
