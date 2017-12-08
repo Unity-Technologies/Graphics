@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.AnimatedValues;
 using UnityEngine;
 using UnityEngine.Rendering;

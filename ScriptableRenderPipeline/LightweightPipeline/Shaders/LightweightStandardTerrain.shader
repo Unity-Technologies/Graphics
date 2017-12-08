@@ -1,4 +1,4 @@
-﻿Shader "LightweightPipeline/Standard Terrain"
+Shader "LightweightPipeline/Standard Terrain"
 {
     Properties
     {

@@ -10,6 +10,7 @@ namespace UnityEditor.Experimental.Rendering
 
         string m_OldShader;
         string m_NewShader;
+        private static readonly string projectBackMessage = "Make sure to have a project backup before proceeding.";
         MaterialFinalizer m_Finalizer;
 
         Dictionary<string, string> m_TextureRename = new Dictionary<string, string>();
@@ -162,8 +163,7 @@ namespace UnityEditor.Experimental.Rendering
 
         public static void UpgradeProjectFolder(List<MaterialUpgrader> upgraders, string progressBarName, UpgradeFlags flags = UpgradeFlags.None)
         {
-            if (!EditorUtility.DisplayDialog("Material Upgrader", "The upgrade will overwrite material settings in your project." +
-                    "Be sure to have a project backup before proceeding", "Proceed", "Cancel"))
+            if (!EditorUtility.DisplayDialog("Material Upgrader", "The upgrade will overwrite materials in your project. " + projectBackMessage, "Proceed", "Cancel"))
                 return;
 
             int totalMaterialCount = 0;
@@ -206,14 +206,14 @@ namespace UnityEditor.Experimental.Rendering
             if (upgrader != null)
                 upgrader.Upgrade(material, flags);
             else if ((flags & UpgradeFlags.LogMessageWhenNoUpgraderFound) == UpgradeFlags.LogMessageWhenNoUpgraderFound)
-                Debug.Log(string.Format("There's no upgrader to convert {0} shader to selected pipeline", material.shader.name));
+                Debug.Log(string.Format("{0} material was not upgraded. There's no upgrader to convert {1} shader to selected pipeline", material.name, material.shader.name));
         }
 
         public static void UpgradeSelection(List<MaterialUpgrader> upgraders, string progressBarName, UpgradeFlags flags = UpgradeFlags.None)
         {
             var selection = Selection.objects;
-            if (!EditorUtility.DisplayDialog("Material Upgrader", string.Format("The upgrade will possibly overwrite all the {0} selected material settings", selection.Length) +
-                    "Be sure to have a project backup before proceeding", "Proceed", "Cancel"))
+            if (!EditorUtility.DisplayDialog("Material Upgrader", string.Format("The upgrade will overwrite {0} selected material{1}. ", selection.Length, (selection.Length > 1) ? "s" : "") +
+                    projectBackMessage, "Proceed", "Cancel"))
                 return;
 
             string lastMaterialName = "";

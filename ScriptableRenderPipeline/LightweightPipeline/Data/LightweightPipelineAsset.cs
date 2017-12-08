@@ -2,9 +2,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public enum ShadowCascades
     {
-        NO_CASCADES = 1,
-        TWO_CASCADES = 2,
-        FOUR_CASCADES = 4,
+        NO_CASCADES = 0,
+        TWO_CASCADES,
+        FOUR_CASCADES,
     }
 
     public enum ShadowType
@@ -18,7 +18,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     {
         _512 = 512,
         _1024 = 1024,
-        _2048 = 2048
+        _2048 = 2048,
+        _4096 = 4096
     }
 
     public enum MSAAQuality
@@ -31,8 +32,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public class LightweightPipelineAsset : RenderPipelineAsset
     {
-        public static readonly string m_SimpleLightShaderPath = "LightweightPipeline/Standard (Simple Lighting)";
-        public static readonly string m_StandardShaderPath = "LightweightPipeline/Standard (Physically Based)";
         public static readonly string[] m_SearchPaths = {"Assets", "Packages/com.unity.render-pipelines"};
 
         // Default values set when a new LightweightPipeline asset is created
@@ -42,10 +41,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private MSAAQuality m_MSAA = MSAAQuality._4x;
         [SerializeField] private float m_RenderScale = 1.0f;
         [SerializeField] private ShadowType m_ShadowType = ShadowType.HARD_SHADOWS;
-        [SerializeField] private ShadowResolution m_ShadowAtlasResolution = ShadowResolution._1024;
+        [SerializeField] private ShadowResolution m_ShadowAtlasResolution = ShadowResolution._2048;
         [SerializeField] private float m_ShadowNearPlaneOffset = 2.0f;
         [SerializeField] private float m_ShadowDistance = 50.0f;
-        [SerializeField] private ShadowCascades m_ShadowCascades = ShadowCascades.NO_CASCADES;
+        [SerializeField] private ShadowCascades m_ShadowCascades = ShadowCascades.FOUR_CASCADES;
         [SerializeField] private float m_Cascade2Split = 0.25f;
         [SerializeField] private Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
 
@@ -54,12 +53,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private Shader m_BlitShader;
         [SerializeField] private Shader m_CopyDepthShader;
 
+#if UNITY_EDITOR
         [SerializeField] private Material m_DefaultMaterial;
         [SerializeField] private Material m_DefaultParticleMaterial;
         [SerializeField] private Material m_DefaultTerrainMaterial;
 
-#if UNITY_EDITOR
-        [UnityEditor.MenuItem("Assets/Create/Render Pipeline/Lightweight/Render Pipeline", priority = CoreUtils.assetCreateMenuPriority1)]
+        [UnityEditor.MenuItem("Assets/Create/Render Pipeline/Lightweight/Pipeline Asset", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateLightweightPipeline()
         {
             var instance = CreateInstance<LightweightPipelineAsset>();
@@ -77,7 +76,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // There's currently an issue that prevents FindAssets from find resources withing the package folder.
             if (resourceAsset == null)
             {
-                string path = "Packages/com.unity.render-pipelines.lightweight/Resources/LightweightPipelineResource.asset";
+                string path = "Packages/com.unity.render-pipelines.lightweight/Data/LightweightPipelineResource.asset";
                 resourceAsset = UnityEditor.AssetDatabase.LoadAssetAtPath<LightweightPipelineResource>(path);
             }
 
@@ -88,16 +87,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 instance.m_DefaultTerrainMaterial = resourceAsset.DefaultTerrainMaterial;
             }
 
-            instance.m_DefaultShader = Shader.Find(m_StandardShaderPath);
-            instance.m_BlitShader = Shader.Find("Hidden/LightweightPipeline/Blit");
-            instance.m_CopyDepthShader = Shader.Find("Hidden/LightweightPipeline/CopyDepth");
+            instance.m_DefaultShader = Shader.Find(LightweightShaderUtils.GetShaderPath(ShaderPathID.STANDARD_PBS));
+            instance.m_BlitShader = Shader.Find(LightweightShaderUtils.GetShaderPath(ShaderPathID.HIDDEN_BLIT));
+            instance.m_CopyDepthShader = Shader.Find(LightweightShaderUtils.GetShaderPath(ShaderPathID.HIDDEN_DEPTH_COPY));
 
             string assetPath = UnityEditor.EditorUtility.SaveFilePanelInProject("Save Lightweight Asset", "LightweightAsset", "asset",
-                "Please enter a file name to save the asset to");
+                    "Please enter a file name to save the asset to");
 
             if (assetPath.Length > 0)
                 UnityEditor.AssetDatabase.CreateAsset(instance, assetPath);
         }
+
 #endif
 
         protected override IRenderPipeline InternalCreatePipeline()
@@ -168,8 +168,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public int CascadeCount
         {
-            get { return (int)m_ShadowCascades; }
-            private set { m_ShadowCascades = (ShadowCascades)value; }
+            get
+            {
+                switch (m_ShadowCascades)
+                {
+                    case ShadowCascades.TWO_CASCADES:
+                        return 2;
+                    case ShadowCascades.FOUR_CASCADES:
+                        return 4;
+                    default:
+                        return 1;
+                }
+            }
         }
 
         public float Cascade2Split
@@ -186,12 +196,20 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public override Material GetDefaultMaterial()
         {
+#if UNITY_EDITOR
             return m_DefaultMaterial;
+#else
+            return null;
+#endif
         }
 
         public override Material GetDefaultParticleMaterial()
         {
+#if UNITY_EDITOR
             return m_DefaultParticleMaterial;
+#else
+            return null;
+#endif
         }
 
         public override Material GetDefaultLineMaterial()
@@ -201,7 +219,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public override Material GetDefaultTerrainMaterial()
         {
+#if UNITY_EDITOR
             return m_DefaultTerrainMaterial;
+#else
+            return null;
+#endif
         }
 
         public override Material GetDefaultUIMaterial()
@@ -223,6 +245,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             return null;
         }
+
         public override Shader GetDefaultShader()
         {
             return m_DefaultShader;
