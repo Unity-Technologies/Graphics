@@ -22,7 +22,7 @@ MonoBehaviour:
     pointCookieSize: 512
     reflectionCubemapSize: 128
     reflectionCacheCompressed: 0
-  sssSettings: {fileID: 11400000, guid: 873499ce7a6f749408981f512a9683f7, type: 2}
+  sssSettings: {fileID: 11400000, guid: c4d57f106d34d0046a33b3e66da29a72, type: 2}
   tileSettings:
     enableTileAndCluster: 1
     enableComputeLightEvaluation: 1
@@ -30,6 +30,7 @@ MonoBehaviour:
     enableComputeMaterialVariants: 1
     enableFptlForForwardOpaque: 1
     enableBigTilePrepass: 1
+    enableAsyncCompute: 0
   shadowInitParams:
     shadowAtlasWidth: 4096
     shadowAtlasHeight: 4096

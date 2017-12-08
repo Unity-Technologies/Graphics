@@ -91,11 +91,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int g_BaseFeatureFlags = Shader.PropertyToID("g_BaseFeatureFlags");
         public static readonly int g_TileFeatureFlags = Shader.PropertyToID("g_TileFeatureFlags");
 
-        public static readonly int _GBufferTexture0 = Shader.PropertyToID("_GBufferTexture0");
-        public static readonly int _GBufferTexture1 = Shader.PropertyToID("_GBufferTexture1");
-        public static readonly int _GBufferTexture2 = Shader.PropertyToID("_GBufferTexture2");
-        public static readonly int _GBufferTexture3 = Shader.PropertyToID("_GBufferTexture3");
-
         public static readonly int g_DispatchIndirectBuffer = Shader.PropertyToID("g_DispatchIndirectBuffer");
         public static readonly int g_TileList = Shader.PropertyToID("g_TileList");
         public static readonly int g_NumTiles = Shader.PropertyToID("g_NumTiles");
@@ -211,6 +206,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.PropertyToID("_GBufferTexture5"),
             Shader.PropertyToID("_GBufferTexture6"),
             Shader.PropertyToID("_GBufferTexture7")
+        };
+
+        public static readonly int[] _SSSBufferTexture =
+        {
+            Shader.PropertyToID("_SSSBufferTexture0"),
+            Shader.PropertyToID("_SSSBufferTexture1"),
+            Shader.PropertyToID("_SSSBufferTexture2"),
+            Shader.PropertyToID("_SSSBufferTexture3"),
         };
 
         public static readonly int _VelocityTexture = Shader.PropertyToID("_VelocityTexture");

@@ -27,7 +27,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public GlobalRenderingSettings globalRenderingSettings = new GlobalRenderingSettings();
         public GlobalTextureSettings globalTextureSettings = new GlobalTextureSettings();
         public SubsurfaceScatteringSettings sssSettings;
-        public LightLoopSettings tileSettings = new LightLoopSettings();
+        public LightLoopSettings lightLoopSettings = new LightLoopSettings();
 
         // Shadow Settings
         public ShadowInitParameters shadowInitParams = new ShadowInitParameters();
