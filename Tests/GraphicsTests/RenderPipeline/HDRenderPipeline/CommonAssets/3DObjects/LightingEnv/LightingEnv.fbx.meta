@@ -4,12 +4,21 @@ ModelImporter:
   serializedVersion: 22
   fileIDToRecycleName:
     100000: //RootNode
+    100002: LightingEnv
+    100004: Shell
     400000: //RootNode
+    400002: LightingEnv
+    400004: Shell
     2100000: No Name
     2300000: //RootNode
+    2300002: LightingEnv
+    2300004: Shell
     3300000: //RootNode
+    3300002: LightingEnv
+    3300004: Shell
     4300000: Plane
     4300002: LightingEnv
+    4300004: Shell
   externalObjects:
   - first:
       type: UnityEngine:Material
