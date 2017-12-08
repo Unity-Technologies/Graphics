@@ -70,15 +70,82 @@ namespace UnityEditor.Experimental.Rendering
                             split = string.Format("{0}{1}", split, Path.DirectorySeparatorChar);
                             var splitPaths = p.FullName.Split(new[] { split }, StringSplitOptions.RemoveEmptyEntries);
 
+                            // Add prefix to the name for easier reading
+                            var name = p.Name;
+                            switch (pipelinePath)
+                            {
+                                case "LightweightPipeline":
+                                    name = "LTRP_" + name;
+                                    break;
+                                case "HDRenderPipeline":
+                                    name = "HDRP_" + name;
+                                    break;
+                            }
+
                             yield return new TestInfo
                             {
-                                name = p.Name,
+                                name = name,
                                 relativePath = splitPaths.Last(),
                                 threshold = 0.02f,
                                 frameWait = 100
                             };
                         }
                     }
+                }
+            }
+
+            public static IEnumerable HDScenes
+            {
+                get
+                {
+                    return GetScenesForPipeline("HDRenderPipeline");
+                }
+            }
+
+            public static IEnumerable LTScenes
+            {
+                get
+                {
+                    return GetScenesForPipeline("LightweightPipeline");
+                }
+            }
+
+            public static IEnumerable GetScenesForPipeline(string _pipelinePath)
+            {
+                var absoluteScenesPath = s_Path.Aggregate(s_RootPath, Path.Combine);
+
+                var filesPath = Path.Combine(absoluteScenesPath, _pipelinePath);
+
+                // find all the scenes
+                var allPaths = System.IO.Directory.GetFiles(filesPath, "*.unity", System.IO.SearchOption.AllDirectories);
+
+                // construct all the needed test infos
+                foreach (var path in allPaths)
+                {
+                    var p = new FileInfo(path);
+                    var split = s_Path.Aggregate("", Path.Combine);
+                    split = string.Format("{0}{1}", split, Path.DirectorySeparatorChar);
+                    var splitPaths = p.FullName.Split(new[] { split }, StringSplitOptions.RemoveEmptyEntries);
+
+                    // Add prefix to the name for easier reading
+                    var name = p.Name;
+                    switch (_pipelinePath)
+                    {
+                        case "LightweightPipeline":
+                            name = "LTRP_" + name;
+                            break;
+                        case "HDRenderPipeline":
+                            name = "HDRP_" + name;
+                            break;
+                    }
+
+                    yield return new TestInfo
+                    {
+                        name = name,
+                        relativePath = splitPaths.Last(),
+                        threshold = 0.02f,
+                        frameWait = 100
+                    };
                 }
             }
         }
@@ -94,6 +161,17 @@ namespace UnityEditor.Experimental.Rendering
         }
 
         [UnityTest]
+        public IEnumerator HDRP_TestScene([ValueSource(typeof(CollectScenes), "HDScenes")]TestInfo testInfo)
+        {
+            return TestScene(testInfo);
+        }
+
+        [UnityTest]
+        public IEnumerator LTRP_TestScene([ValueSource(typeof(CollectScenes), "LTScenes")]TestInfo testInfo)
+        {
+            return TestScene(testInfo);
+        }
+
         public IEnumerator TestScene([ValueSource(typeof(CollectScenes), "scenes")]TestInfo testInfo)
         {
 			var prjRelativeGraphsPath = s_Path.Aggregate(s_RootPath, Path.Combine);
