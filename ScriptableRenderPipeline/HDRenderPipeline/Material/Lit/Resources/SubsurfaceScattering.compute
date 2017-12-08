@@ -179,6 +179,7 @@ void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, float2 cen
         float  rcpPdf = _FilterKernels[profileID][i][iP];
         float3 weight = ComputeBilateralWeight(xy2, relZ, mmPerUnit, shapeParam, rcpPdf);
 
+        // Note: if the texture sample if off-screen, (z = 0) -> (viewZ = far) -> (weight ≈ 0).
         totalIrradiance += weight * irradiance;
         totalWeight     += weight;
     }
@@ -226,6 +227,10 @@ void SubsurfaceScattering(uint3 groupId       : SV_GroupID,
     int2  cacheAnchor = (int2)groupAnchor - TEXTURE_CACHE_BORDER;
     uint2 cacheCoord  = localCoord + TEXTURE_CACHE_BORDER;
     float stencilRef  = STENCILLIGHTINGUSAGE_SPLIT_LIGHTING;
+    bool  isOffScreen = groupAnchor.x >= (uint)_ScreenSize.x ||
+                        groupAnchor.y >= (uint)_ScreenSize.y;
+
+    [branch] if (isOffScreen) { return; }
 
     [branch] if (groupThreadId == 0)
     {
@@ -313,9 +318,7 @@ void SubsurfaceScattering(uint3 groupId       : SV_GroupID,
     GroupMemoryBarrierWithGroupSync();
 #endif
 
-    bool isOffScreen = pixelCoord.x >= (uint)_ScreenSize.x || pixelCoord.y >= (uint)_ScreenSize.y;
-
-    [branch] if (!passedStencilTest || isOffScreen) { return; }
+    [branch] if (!passedStencilTest) { return; }
 
     PositionInputs posInput = GetPositionInput(pixelCoord, _ScreenSize.zw);
 
