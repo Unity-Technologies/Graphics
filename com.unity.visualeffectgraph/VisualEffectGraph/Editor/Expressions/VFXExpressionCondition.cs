@@ -3,40 +3,22 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    enum VFXCondition
-    {
-        Equal,
-        NotEqual,
-        Less,
-        LessOrEqual,
-        Greater,
-        GreaterOrEqual,
-    }
-
     class VFXExpressionCondition : VFXExpression
     {
         public VFXExpressionCondition()
             : this(VFXCondition.Equal, VFXValue.Constant(0.0f), VFXValue.Constant(0.0f))
         {}
 
-        public VFXExpressionCondition(VFXCondition cond, VFXExpression left, VFXExpression right) : base(VFXExpression.Flags.InvalidOnCPU, new VFXExpression[] { left, right })
+        public VFXExpressionCondition(VFXCondition cond, VFXExpression left, VFXExpression right) : base(VFXExpression.Flags.None, new VFXExpression[] { left, right })
         {
-            this.cond = cond;
+            condition = cond;
         }
 
         public override VFXExpressionOp operation
         {
             get
             {
-                return VFXExpressionOp.kVFXNoneOp;
-            }
-        }
-
-        public override VFXValueType valueType
-        {
-            get
-            {
-                return VFXValueType.kBool;
+                return VFXExpressionOp.kVFXCondition;
             }
         }
 
@@ -46,7 +28,7 @@ namespace UnityEditor.VFX
             float left = constParents[0].Get<float>();
             float right = constParents[1].Get<float>();
 
-            switch (cond)
+            switch (condition)
             {
                 case VFXCondition.Equal:            res = left == right;    break;
                 case VFXCondition.NotEqual:         res = left != right;    break;
@@ -62,7 +44,7 @@ namespace UnityEditor.VFX
         public override string GetCodeString(string[] parents)
         {
             string comparator = null;
-            switch (cond)
+            switch (condition)
             {
                 case VFXCondition.Equal:            comparator = "==";  break;
                 case VFXCondition.NotEqual:         comparator = "!=";  break;
@@ -75,7 +57,14 @@ namespace UnityEditor.VFX
             return string.Format("({0} {1} {2})", parents[0], comparator, parents[1]);
         }
 
-        protected override int[] additionnalOperands { get { return new int[1] { (int)cond }; } }
-        private VFXCondition cond;
+        protected override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            var newExpression = (VFXExpressionCondition)base.Reduce(reducedParents);
+            newExpression.condition = condition;
+            return newExpression;
+        }
+
+        protected override int[] additionnalOperands { get { return new int[] { (int)condition }; } }
+        private VFXCondition condition;
     }
 }
