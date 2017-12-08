@@ -28,6 +28,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         List<INode> m_SelectedNodes;
 
+        Vector2 m_PreviewScrollPosition;
+
         public Action onUpdateAssetClick { get; set; }
         public Action onShowInProjectClick { get; set; }
 
@@ -81,9 +83,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 }
                 bottomContainer.Add(propertiesContainer);
 
-
-                m_PreviewTextureView = new PreviewTextureView {name = "preview", image = Texture2D.blackTexture};
+                m_PreviewTextureView = new PreviewTextureView { name = "preview", image = Texture2D.blackTexture };
+                m_PreviewTextureView.AddManipulator(new Draggable(OnMouseDrag, true));
                 bottomContainer.Add(m_PreviewTextureView);
+
+                m_PreviewScrollPosition = new Vector2(0f, 0f);
 
                 m_PreviewMeshPicker = new ObjectField() { objectType = typeof(Mesh) };
                 m_PreviewMeshPicker.OnValueChanged(OnPreviewMeshChanged);
@@ -113,6 +117,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         MasterNode masterNode
         {
             get { return m_PreviewRenderHandle.shaderData.node as MasterNode; }
+        }
+
+        void OnMouseDrag(Vector2 deltaMouse)
+        {
+            Vector2 previewSize = m_PreviewTextureView.contentRect.size;
+
+            m_PreviewScrollPosition -= deltaMouse * (Event.current.shift ? 3f : 1f) / Mathf.Min(previewSize.x, previewSize.y) * 140f;
+            m_PreviewScrollPosition.y = Mathf.Clamp(m_PreviewScrollPosition.y, -90f, 90f);
+            Quaternion previewRotation = Quaternion.Euler(m_PreviewScrollPosition.y, 0, 0) * Quaternion.Euler(0, m_PreviewScrollPosition.x, 0);
+            m_Graph.previewRotation = previewRotation;
         }
 
         void OnAddProperty()
