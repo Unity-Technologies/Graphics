@@ -1,4 +1,4 @@
-﻿using UnityEditor;
+using UnityEditor;
 using UnityEngine;
 
 public abstract class LightweightShaderGUI : ShaderGUI
@@ -50,7 +50,7 @@ public abstract class LightweightShaderGUI : ShaderGUI
 
     public static void SetupMaterialBlendMode(Material material)
     {
-        BlendMode blendMode = (BlendMode) material.GetFloat("_Mode");
+        BlendMode blendMode = (BlendMode)material.GetFloat("_Mode");
         switch (blendMode)
         {
             case BlendMode.Opaque:

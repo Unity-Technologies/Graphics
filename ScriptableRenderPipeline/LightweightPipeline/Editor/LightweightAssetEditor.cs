@@ -36,16 +36,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     "Number of cascades used in directional lights shadows");
 
             public static GUIContent shadowCascadeSplit = new GUIContent("Cascades Split",
-                "Percentages to split shadow volume");
+                    "Percentages to split shadow volume");
 
             public static GUIContent defaultMaterial = new GUIContent("Mesh",
-                "Material to use when creating 3D objects");
+                    "Material to use when creating 3D objects");
 
             public static GUIContent defaultParticleMaterial = new GUIContent("Particles",
-                "Material to use when creating Particle Systems");
+                    "Material to use when creating Particle Systems");
 
             public static GUIContent defaultTerrainMaterial = new GUIContent("Terrain",
-                "Material to use in Terrains");
+                    "Material to use in Terrains");
 
             public static GUIContent msaaContent = new GUIContent("Anti Aliasing (MSAA)", "Controls the global anti aliasing settings.");
 

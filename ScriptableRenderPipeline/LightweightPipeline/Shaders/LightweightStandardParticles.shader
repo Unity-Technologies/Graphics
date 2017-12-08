@@ -1,4 +1,4 @@
-﻿Shader "LightweightPipeline/Particles/Standard"
+Shader "LightweightPipeline/Particles/Standard"
 {
     Properties
     {

@@ -1,4 +1,4 @@
-﻿using UnityEditor.AnimatedValues;
+using UnityEditor.AnimatedValues;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.LightweightPipeline;
 
@@ -70,8 +70,8 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             get
             {
                 return TypeIsSame && LightProperty.type == LightType.Point &&
-                        ShadowTypeIsSame && IsShadowEnabled &&
-                       LightmappingTypeIsSame && !settings.isCompletelyBaked;
+                    ShadowTypeIsSame && IsShadowEnabled &&
+                    LightmappingTypeIsSame && !settings.isCompletelyBaked;
             }
         }
 
