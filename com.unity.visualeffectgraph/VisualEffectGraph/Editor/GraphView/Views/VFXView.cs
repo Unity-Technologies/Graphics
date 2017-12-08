@@ -421,15 +421,67 @@ namespace UnityEditor.VFX.UI
                 foreach (var newController in controller.nodes.Except(controlledElements.Keys))
                 {
                     var newElement = m_SlotContainerFactory.Create(newController);
-                    (newElement as IControlledElement<VFXNodeController>).controller = newController;
-
                     AddElement(newElement);
+                    (newElement as IControlledElement<VFXNodeController>).controller = newController;
                 }
             }
         }
 
         void SyncEdges()
         {
+            {
+                var dataEdges = contentViewContainer.Query().Children<VisualElement>().Children<VFXDataEdge>().ToList().ToDictionary(t => t.controller, t => t);
+                if (controller == null)
+                {
+                    foreach (var element in dataEdges.Values)
+                    {
+                        RemoveElement(element);
+                    }
+                }
+                else
+                {
+                    var deletedControllers = dataEdges.Keys.Except(controller.dataEdges);
+
+                    foreach (var deletedController in deletedControllers)
+                    {
+                        RemoveElement(dataEdges[deletedController]);
+                    }
+
+                    foreach (var newController in controller.dataEdges.Except(dataEdges.Keys))
+                    {
+                        var newElement = new VFXDataEdge();
+                        AddElement(newElement);
+                        newElement.controller = newController;
+                    }
+                }
+            }
+
+            {
+                var flowEdges = contentViewContainer.Query().Children<VisualElement>().Children<VFXFlowEdge>().ToList().ToDictionary(t => t.controller, t => t);
+                if (controller == null)
+                {
+                    foreach (var element in flowEdges.Values)
+                    {
+                        RemoveElement(element);
+                    }
+                }
+                else
+                {
+                    var deletedControllers = flowEdges.Keys.Except(controller.flowEdges);
+
+                    foreach (var deletedController in deletedControllers)
+                    {
+                        RemoveElement(flowEdges[deletedController]);
+                    }
+
+                    foreach (var newController in controller.flowEdges.Except(flowEdges.Keys))
+                    {
+                        var newElement = new VFXFlowEdge();
+                        AddElement(newElement);
+                        newElement.controller = newController;
+                    }
+                }
+            }
         }
 
         VFXRendererSettings GetRendererSettings()

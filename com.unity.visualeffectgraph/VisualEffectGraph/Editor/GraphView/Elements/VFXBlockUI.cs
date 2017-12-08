@@ -78,9 +78,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override void OnDataChanged()
+        protected override void SelfChange()
         {
-            base.OnDataChanged();
+            base.SelfChange();
             var presenter = controller;
 
             m_EnableToggle.on = presenter.block.enabled;

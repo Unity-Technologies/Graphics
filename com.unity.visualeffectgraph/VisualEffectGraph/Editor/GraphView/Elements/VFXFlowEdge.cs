@@ -194,6 +194,26 @@ namespace UnityEditor.VFX.UI
     {
         public VFXFlowEdge()
         {
+            RegisterCallback<ControllerChangedEvent>(OnChange);
+        }
+
+        protected virtual void OnChange(ControllerChangedEvent e)
+        {
+            if (e.controller == controller)
+            {
+                SelfChange();
+            }
+        }
+
+        protected virtual void SelfChange()
+        {
+            if (controller != null)
+            {
+                VFXView view = GetFirstAncestorOfType<VFXView>();
+                base.input = view.GetFlowAnchorByPresenter(controller.input);
+                base.output = view.GetFlowAnchorByPresenter(controller.output);
+            }
+            edgeControl.UpdateLayout();
         }
 
         VFXFlowEdgePresenter m_Controller;

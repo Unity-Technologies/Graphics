@@ -67,9 +67,35 @@ namespace UnityEditor.VFX.UI
             NotifyChange(AnyThing);
         }
 
-        private void OnDisable()
+        protected override void ModelChanged(UnityEngine.Object obj)
         {
-            DataWatchService.sharedInstance.RemoveWatch(m_DataHandle);
+            // make sure we listen to the right data
+            if (m_DataHandle == null && context.GetData() != null)
+            {
+                m_DataHandle = DataWatchService.sharedInstance.AddWatch(context.GetData(), DataChanged);
+            }
+            if (m_DataHandle != null && context.GetData() != m_DataHandle.watched)
+            {
+                DataWatchService.sharedInstance.RemoveWatch(m_DataHandle);
+                if (context.GetData() != null)
+                {
+                    m_DataHandle = DataWatchService.sharedInstance.AddWatch(context.GetData(), DataChanged);
+                }
+                else
+                {
+                    m_DataHandle = null;
+                }
+            }
+
+            base.ModelChanged(obj);
+        }
+
+        protected override void OnDisable()
+        {
+            if (m_DataHandle != null)
+            {
+                DataWatchService.sharedInstance.RemoveWatch(m_DataHandle);
+            }
 
             base.OnDisable();
         }
@@ -83,8 +109,6 @@ namespace UnityEditor.VFX.UI
             m_OutputPorts.Clear();
 
             base.Init(model, viewPresenter);
-
-            m_DataHandle = DataWatchService.sharedInstance.AddWatch(context.GetData(), ModelChanged);
 
             m_SlotPresenter.Init(model, this);
 
@@ -172,6 +196,7 @@ namespace UnityEditor.VFX.UI
                 {
                     presenter = CreateInstance<VFXBlockPresenter>();
                     presenter.Init(block, this);
+                    presenter.ForceUpdate();
                 }
                 m_NewPresenters.Add(presenter);
             }

@@ -87,7 +87,7 @@ namespace UnityEditor.VFX.UI
             m_Handle = DataWatchService.sharedInstance.AddWatch(m_Model, ModelChanged);
         }
 
-        protected void OnDisable()
+        protected virtual void OnDisable()
         {
             DataWatchService.sharedInstance.RemoveWatch(m_Handle);
         }

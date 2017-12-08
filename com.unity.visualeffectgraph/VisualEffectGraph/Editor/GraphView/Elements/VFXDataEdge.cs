@@ -40,6 +40,26 @@ namespace UnityEditor.VFX.UI
         }
         public VFXDataEdge()
         {
+            RegisterCallback<ControllerChangedEvent>(OnChange);
+        }
+
+        protected virtual void OnChange(ControllerChangedEvent e)
+        {
+            if (e.controller == controller)
+            {
+                SelfChange();
+            }
+        }
+
+        protected virtual void SelfChange()
+        {
+            if (controller != null)
+            {
+                VFXView view = GetFirstAncestorOfType<VFXView>();
+                base.input = view.GetDataAnchorByPresenter(controller.input);
+                base.output = view.GetDataAnchorByPresenter(controller.output);
+                edgeControl.UpdateLayout();
+            }
         }
 
         public new VFXDataAnchor input

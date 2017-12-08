@@ -7,6 +7,8 @@ using UnityEngine.VFX;
 using UnityEngine.Experimental.UIElements;
 
 using Object = UnityEngine.Object;
+using System.Collections.ObjectModel;
+
 namespace UnityEditor.VFX.UI
 {
     class VFXGraphViewPresenter : GraphViewPresenter
@@ -147,7 +149,7 @@ namespace UnityEditor.VFX.UI
                         if (anchorFrom != null && anchorTo != null)
                         {
                             edgePresenter = CreateInstance<VFXDataEdgePresenter>();
-                            edgePresenter.Init(anchorFrom, anchorTo);
+                            edgePresenter.Init(anchorTo, anchorFrom);
                             m_DataEdges.Add(edgePresenter);
                         }
                     }
@@ -199,7 +201,7 @@ namespace UnityEditor.VFX.UI
                         else
                         {
                             edgePresenter = CreateInstance<VFXFlowEdgePresenter>();
-                            edgePresenter.Init(outputAnchor, inputAnchor);
+                            edgePresenter.Init(inputAnchor, outputAnchor);
                             m_FlowEdges.Add(edgePresenter);
                         }
                     }
@@ -217,6 +219,15 @@ namespace UnityEditor.VFX.UI
         {
             Add,
             Remove
+        }
+
+        public ReadOnlyCollection<VFXDataEdgePresenter> dataEdges
+        {
+            get { return m_DataEdges.AsReadOnly(); }
+        }
+        public ReadOnlyCollection<VFXFlowEdgePresenter> flowEdges
+        {
+            get { return m_FlowEdges.AsReadOnly(); }
         }
 
         public void AddElement(VFXDataEdgePresenter edge)

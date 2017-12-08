@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
@@ -9,12 +10,20 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXNodeUI : Node, IControlledElement<VFXSlotContainerPresenter>
+    class VFXNodeUI : Node, IControlledElement<VFXSlotContainerPresenter>, IControlledElement<VFXNodeController>
     {
         VFXSlotContainerPresenter m_Controller;
         Controller IControlledElement.controller
         {
             get { return m_Controller; }
+        }
+        VFXNodeController IControlledElement<VFXNodeController>.controller
+        {
+            get { return m_Controller; }
+            set
+            {
+                controller = value as VFXSlotContainerPresenter;
+            }
         }
         public override void UpdatePresenterPosition()
         {
@@ -97,21 +106,27 @@ namespace UnityEditor.VFX.UI
 
         void SyncAnchors()
         {
-            var existingAnchors = inputContainer.Children().Cast<VFXDataAnchor>().ToDictionary(t => t.controller, t => t);
+            SyncAnchors(controller.inputPorts, inputContainer);
+            SyncAnchors(controller.outputPorts, outputContainer);
+        }
 
-            var deletedControllers = existingAnchors.Keys.Except(controller.inputPorts);
+        void SyncAnchors(ReadOnlyCollection<VFXDataAnchorPresenter> ports, VisualElement container)
+        {
+            var existingAnchors = container.Children().Cast<VFXDataAnchor>().ToDictionary(t => t.controller, t => t);
+
+            var deletedControllers = existingAnchors.Keys.Except(ports);
 
             foreach (var deletedController in deletedControllers)
             {
-                inputContainer.Remove(existingAnchors[deletedController]);
+                container.Remove(existingAnchors[deletedController]);
             }
 
-            foreach (var newController in controller.inputPorts.Except(existingAnchors.Keys))
+            foreach (var newController in ports.Except(existingAnchors.Keys))
             {
                 var newElement = InstantiateDataAnchor(newController);
                 (newElement as IControlledElement<VFXDataAnchorPresenter>).controller = newController;
 
-                inputContainer.Add(newElement);
+                container.Add(newElement);
             }
         }
 
@@ -120,11 +135,13 @@ namespace UnityEditor.VFX.UI
             if (controller == null)
                 return;
 
+            title = controller.title;
+
             if (HasPosition())
             {
                 style.positionType = PositionType.Absolute;
-                style.positionLeft = presenter.position.x;
-                style.positionTop = presenter.position.y;
+                style.positionLeft = controller.position.x;
+                style.positionTop = controller.position.y;
             }
 
             if (controller.model.superCollapsed)
@@ -137,8 +154,8 @@ namespace UnityEditor.VFX.UI
             }
 
             SyncSettings();
-
             SyncAnchors();
+            RefreshExpandedState();
         }
 
         public virtual VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorPresenter presenter)

@@ -61,11 +61,11 @@ namespace UnityEditor.VFX.UI
             return new VisualElement();
         }
 
-        public static VFXDataAnchor Create(VFXDataAnchorPresenter presenter)
+        public static VFXDataAnchor Create(VFXDataAnchorPresenter controller)
         {
-            var anchor = new VFXDataAnchor(presenter.orientation, presenter.direction, presenter.portType);
+            var anchor = new VFXDataAnchor(controller.orientation, controller.direction, controller.portType);
             anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
-            anchor.controller = presenter;
+            anchor.controller = controller;
 
             anchor.AddManipulator(anchor.m_EdgeConnector);
             return anchor;
@@ -128,8 +128,6 @@ namespace UnityEditor.VFX.UI
 
         public virtual void SelfChange()
         {
-            m_ConnectorText.text = "";
-
             if (controller.connected)
                 AddToClassList("connected");
             else
@@ -172,7 +170,9 @@ namespace UnityEditor.VFX.UI
 
 
             if (controller.direction == Direction.Output)
-                m_ConnectorText.text = presenter.name;
+                m_ConnectorText.text = controller.name;
+            else
+                m_ConnectorText.text = "";
         }
 
         void IEdgeConnectorListener.OnDrop(GraphView graphView, Edge edge)
@@ -188,9 +188,7 @@ namespace UnityEditor.VFX.UI
 
         void IEdgeConnectorListener.OnDropOutsidePort(Edge edge, Vector2 position)
         {
-            VFXDataAnchorPresenter presenter = controller;
-
-            VFXSlot startSlot = presenter.model;
+            VFXSlot startSlot = controller.model;
 
             VFXView view = this.GetFirstAncestorOfType<VFXView>();
             VFXViewPresenter viewPresenter = view.controller;
@@ -214,7 +212,7 @@ namespace UnityEditor.VFX.UI
                 if (nodePresenter != null)
                 {
                     IVFXSlotContainer slotContainer = nodePresenter.slotContainer;
-                    if (presenter.direction == Direction.Input)
+                    if (controller.direction == Direction.Input)
                     {
                         foreach (var outputSlot in slotContainer.outputSlots)
                         {
@@ -240,9 +238,9 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
-            else if (presenter.direction == Direction.Input && Event.current.modifiers == EventModifiers.Alt)
+            else if (controller.direction == Direction.Input && Event.current.modifiers == EventModifiers.Alt)
             {
-                VFXModelDescriptorParameters parameterDesc = VFXLibrary.GetParameters().FirstOrDefault(t => t.name == presenter.portType.UserFriendlyName());
+                VFXModelDescriptorParameters parameterDesc = VFXLibrary.GetParameters().FirstOrDefault(t => t.name == controller.portType.UserFriendlyName());
                 if (parameterDesc != null)
                 {
                     VFXParameter parameter = viewPresenter.AddVFXParameter(view.contentViewContainer.GlobalToBound(position) - new Vector2(360, 0), parameterDesc);
