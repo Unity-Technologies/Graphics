@@ -206,7 +206,7 @@ namespace UnityEditor.Experimental.Rendering
             if (upgrader != null)
                 upgrader.Upgrade(material, flags);
             else if ((flags & UpgradeFlags.LogMessageWhenNoUpgraderFound) == UpgradeFlags.LogMessageWhenNoUpgraderFound)
-                Debug.Log(string.Format("There's no upgrader to convert {0} shader to selected pipeline", material.shader.name));
+                Debug.Log(string.Format("{0} material was not upgraded. There's no upgrader to convert {1} shader to selected pipeline", material.name, material.shader.name));
         }
 
         public static void UpgradeSelection(List<MaterialUpgrader> upgraders, string progressBarName, UpgradeFlags flags = UpgradeFlags.None)

@@ -13,7 +13,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             List<MaterialUpgrader> upgraders = new List<MaterialUpgrader>();
             GetUpgraders(ref upgraders);
 
-            MaterialUpgrader.UpgradeProjectFolder(upgraders, "Upgrade to Lightweight Pipeline Materials");
+            MaterialUpgrader.UpgradeProjectFolder(upgraders, "Upgrade to Lightweight Pipeline Materials", MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound);
         }
 
         [MenuItem("Edit/Render Pipeline/Upgrade/Lightweight/Upgrade Selected Materials", priority = CoreUtils.editMenuPriority2)]
@@ -22,7 +22,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             List<MaterialUpgrader> upgraders = new List<MaterialUpgrader>();
             GetUpgraders(ref upgraders);
 
-            MaterialUpgrader.UpgradeSelection(upgraders, "Upgrade to Lightweight Pipeline Materials");
+            MaterialUpgrader.UpgradeSelection(upgraders, "Upgrade to Lightweight Pipeline Materials", MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound);
         }
 
         private static void GetUpgraders(ref List<MaterialUpgrader> upgraders)
