@@ -1,22 +1,20 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.Experimental.UIElements;
 using System.Linq;
 using UnityEngine;
 using UnityEditor.Experimental.UIElements.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
-    abstract class VFXDataAnchorPresenter : PortPresenter, IPropertyRMProvider, IValuePresenter
+    interface IVFXAnchorPresenter
     {
-        [SerializeField]
-        private VFXSlot m_Model;
-        public VFXSlot model { get { return m_Model; } }
+        void Connect(VFXEdgeController edgePresenter);
+        void Disconnect(VFXEdgeController edgePresenter);
+    }
 
-        public override UnityEngine.Object[] GetObjectsToWatch()
-        {
-            return new UnityEngine.Object[] { this, m_Model, m_Model.GetMasterSlot() };
-        }
-
+    abstract class VFXDataAnchorPresenter : Controller<VFXSlot>, IVFXAnchorPresenter, IPropertyRMProvider, IValuePresenter
+    {
         private VFXSlotContainerPresenter m_SourceNode;
 
         public VFXSlotContainerPresenter sourceNode
@@ -27,9 +25,14 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+
+        IDataWatchHandle m_MasterSlotHandle;
+
+        public Type portType { get; set; }
+
         public void Init(VFXSlot model, VFXSlotContainerPresenter scPresenter)
         {
-            m_Model = model;
+            base.Init(model);
             m_SourceNode = scPresenter;
 
             portType = model.property.type;
@@ -37,6 +40,29 @@ namespace UnityEditor.VFX.UI
 
             UpdateHidden();
             m_SourceNode.viewPresenter.AddInvalidateDelegate(model, OnInvalidate);
+
+            if (model.GetMasterSlot() != null && model.GetMasterSlot() != this)
+            {
+                m_MasterSlotHandle = DataWatchService.sharedInstance.AddWatch(model.GetMasterSlot(), MasterSlotChanged);
+            }
+        }
+
+        void MasterSlotChanged(UnityEngine.Object obj)
+        {
+            NotifyChange(AnyThing);
+        }
+
+        protected override void ModelChanged(UnityEngine.Object obj)
+        {
+            NotifyChange(AnyThing);
+        }
+
+        void OnDisable()
+        {
+            if (m_MasterSlotHandle != null)
+            {
+                DataWatchService.sharedInstance.RemoveWatch(m_MasterSlotHandle);
+            }
         }
 
         void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
@@ -53,7 +79,7 @@ namespace UnityEditor.VFX.UI
             m_Hidden = false;
 
 
-            VFXSlot parent = m_Model.GetParent();
+            VFXSlot parent = model.GetParent();
             while (parent != null)
             {
                 if (parent.collapsed)
@@ -69,9 +95,7 @@ namespace UnityEditor.VFX.UI
         {
             if (model.property.type != portType)
             {
-                sourceNode.viewPresenter.UnregisterDataAnchorPresenter(this);
                 portType = model.property.type;
-                sourceNode.viewPresenter.RegisterDataAnchorPresenter(this);
             }
         }
 
@@ -103,10 +127,27 @@ namespace UnityEditor.VFX.UI
         }
 
 
-        public override void Connect(EdgePresenter edgePresenter)
+        List<VFXDataEdgePresenter> m_Connections = new List<VFXDataEdgePresenter>();
+
+        public virtual void Connect(VFXEdgeController edgePresenter)
         {
-            base.Connect(edgePresenter);
+            m_Connections.Add(edgePresenter as VFXDataEdgePresenter);
         }
+
+        public virtual void Disconnect(VFXEdgeController edgePresenter)
+        {
+            m_Connections.Remove(edgePresenter as VFXDataEdgePresenter);
+        }
+
+        public bool connected
+        {
+            get { return m_Connections.Count > 0; }
+        }
+
+        public IEnumerable<VFXDataEdgePresenter> connections { get { return m_Connections; } }
+
+        public abstract Direction direction { get; }
+        public Orientation orientation { get { return Orientation.Horizontal; } }
 
         public string path
         {
@@ -149,7 +190,7 @@ namespace UnityEditor.VFX.UI
         [SerializeField]
         private bool m_Hidden;
 
-        public override bool collapsed
+        public bool collapsed
         {
             get
             {

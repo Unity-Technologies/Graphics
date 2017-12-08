@@ -105,7 +105,7 @@ namespace UnityEditor.VFX.UI
             var anchor = new VFXEditableDataAnchor(presenter.orientation, presenter.direction, presenter.portType);
 
             anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
-            anchor.presenter = presenter;
+            anchor.controller = presenter;
             anchor.AddManipulator(anchor.m_EdgeConnector);
             return anchor;
         }
@@ -133,7 +133,7 @@ namespace UnityEditor.VFX.UI
 
         void BuildProperty()
         {
-            VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
+            VFXDataAnchorPresenter presenter = controller;
             if (m_PropertyRM != null)
             {
                 Remove(m_PropertyRM);
@@ -155,7 +155,7 @@ namespace UnityEditor.VFX.UI
         {
             base.OnDataChanged();
 
-            VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
+            VFXDataAnchorPresenter presenter = controller;
 
             if (m_PropertyRM == null || m_EditedType != presenter.portType)
             {
@@ -168,7 +168,7 @@ namespace UnityEditor.VFX.UI
 
         public void OnRecompile()
         {
-            VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
+            VFXDataAnchorPresenter presenter = controller;
             if (m_PropertyRM != null && presenter != null)
             {
                 m_PropertyRM.propertyEnabled = presenter.editable && !presenter.collapsed;

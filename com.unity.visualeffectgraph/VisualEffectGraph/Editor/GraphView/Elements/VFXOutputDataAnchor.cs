@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.UI
             var anchor = new VFXOutputDataAnchor(presenter.orientation, presenter.direction, presenter.portType);
 
             anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
-            anchor.presenter = presenter;
+            anchor.controller = presenter;
             anchor.AddManipulator(anchor.m_EdgeConnector);
             return anchor;
         }
@@ -37,7 +37,7 @@ namespace UnityEditor.VFX.UI
 
         void OnToggleExpanded()
         {
-            VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
+            VFXDataAnchorPresenter presenter = controller;
 
             if (presenter.expanded)
             {
@@ -54,7 +54,7 @@ namespace UnityEditor.VFX.UI
         public override void OnDataChanged()
         {
             base.OnDataChanged();
-            VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
+            VFXDataAnchorPresenter presenter = controller;
 
             if (presenter.depth != 0 && m_Lines == null)
             {

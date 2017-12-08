@@ -11,19 +11,9 @@ namespace UnityEditor.VFX.UI
 {
     class VFXBlockPresenter : VFXContextSlotContainerPresenter
     {
-        protected new void OnEnable()
-        {
-            base.OnEnable();
-            capabilities |= Capabilities.Selectable | Capabilities.Droppable | Capabilities.Movable | Capabilities.Deletable;
-            capabilities &= ~Capabilities.Ascendable;
-
-            // Most initialization will be done in Init
-        }
-
         public void Init(VFXBlock model, VFXContextPresenter contextPresenter)
         {
             base.Init(model, contextPresenter);
-            capabilities |= Capabilities.Selectable;
         }
 
         public VFXBlock block

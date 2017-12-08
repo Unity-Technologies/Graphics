@@ -9,20 +9,20 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXSlotContainerUI : VFXNodeUI
+    abstract class VFXSlotContainerUI : VFXNodeUI
     {
         public VisualElement m_SettingsContainer;
         private List<PropertyRM> m_Settings = new List<PropertyRM>();
 
         public bool collapse
         {
-            get { return GetPresenter<VFXNodePresenter>().model.collapsed; }
+            get { return controller.model.collapsed; }
 
             set
             {
-                if (GetPresenter<VFXNodePresenter>().model.collapsed != value)
+                if (controller.model.collapsed != value)
                 {
-                    GetPresenter<VFXNodePresenter>().model.collapsed = value;
+                    controller.model.collapsed = value;
                 }
             }
         }
@@ -33,12 +33,8 @@ namespace UnityEditor.VFX.UI
 
         public override void OnDataChanged()
         {
-            var presenter = GetPresenter<VFXSlotContainerPresenter>();
-            // update the title in the presenter before it is used somewhere in base.OnDataChanged();
-            presenter.UpdateTitle();
-
             base.OnDataChanged();
-
+            var presenter = controller;
 
             if (presenter == null)
                 return;

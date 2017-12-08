@@ -72,10 +72,16 @@ namespace UnityEditor.VFX.UI
             inputContainer.parent.Insert(1, element);
         }
 
+        public new VFXOperatorPresenter controller
+        {
+            get { return base.controller as VFXOperatorPresenter; }
+        }
+
+
         public override void OnDataChanged()
         {
             base.OnDataChanged();
-            var presenter = GetPresenter<VFXOperatorPresenter>();
+            var presenter = controller;
             if (presenter == null || presenter.Operator == null)
                 return;
         }

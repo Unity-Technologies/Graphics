@@ -15,10 +15,40 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    internal class VFXDataEdge : VFXEdge
+    internal class VFXDataEdge : VFXEdge, IControlledElement<VFXDataEdgePresenter>
     {
+        VFXDataEdgePresenter m_Controller;
+        Controller IControlledElement.controller
+        {
+            get { return m_Controller; }
+        }
+        public VFXDataEdgePresenter controller
+        {
+            get { return m_Controller; }
+            set
+            {
+                if (m_Controller != null)
+                {
+                    m_Controller.UnregisterHandler(this);
+                }
+                m_Controller = value;
+                if (m_Controller != null)
+                {
+                    m_Controller.RegisterHandler(this);
+                }
+            }
+        }
         public VFXDataEdge()
         {
+        }
+
+        public new VFXDataAnchor input
+        {
+            get { return base.input as VFXDataAnchor; }
+        }
+        public new VFXDataAnchor output
+        {
+            get { return base.output as VFXDataAnchor; }
         }
 
         public override void OnPortChanged(bool isInput)

@@ -65,10 +65,10 @@ namespace UnityEditor.VFX.Test
 
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
 
-            window.presenter = m_ViewPresenter;
+            window.presenter = m_ViewPresenter.graphViewPresenter;
 
             VFXView view = window.graphView as VFXView;
-            view.presenter = m_ViewPresenter;
+            view.presenter = m_ViewPresenter.graphViewPresenter;
 
             view.ClearSelection();
             foreach (var element in view.Query().OfType<GraphElement>().ToList().OfType<ISelectable>())
@@ -81,7 +81,7 @@ namespace UnityEditor.VFX.Test
             AABox originalBounds = new AABox() { center = Vector3.one, size = Vector3.one * 10 };
             boundsSlot.value = originalBounds;
 
-            VFXBlock flipBookBlock = m_ViewPresenter.elements.OfType<VFXContextPresenter>().First().blockPresenters.First().block;
+            VFXBlock flipBookBlock = m_ViewPresenter.contexts.First().blockPresenters.First().block;
             VFXSlot minValueSlot = flipBookBlock.GetInputSlot(0);
 
 
@@ -97,7 +97,7 @@ namespace UnityEditor.VFX.Test
             var elements = view.Query().OfType<GraphElement>().ToList();
 
             var contexts = elements.OfType<VFXContextUI>().ToArray();
-            var copyContext = elements.OfType<VFXContextUI>().Select(t => t.GetPresenter<VFXContextPresenter>()).First(t => t.context != newContext).context;
+            var copyContext = elements.OfType<VFXContextUI>().Select(t => t.controller).First(t => t.context != newContext).context;
 
             var copyBoundsSlot = copyContext.GetInputSlot(0);
             var copyMinSlot = copyContext[0].GetInputSlot(0);
@@ -112,7 +112,7 @@ namespace UnityEditor.VFX.Test
             elements = view.Query().OfType<GraphElement>().ToList();
             contexts = elements.OfType<VFXContextUI>().ToArray();
 
-            var copy2Context = contexts.First(t => t.GetPresenter<VFXContextPresenter>().context != newContext && t.GetPresenter<VFXContextPresenter>().context != copyContext).GetPresenter<VFXContextPresenter>().context;
+            var copy2Context = contexts.First(t => t.controller.context != newContext && t.controller.context != copyContext).controller.context;
 
             Assert.AreNotEqual(copy2Context.position, newContext.position);
             Assert.AreNotEqual(copy2Context.position, copyContext.position);
@@ -131,10 +131,10 @@ namespace UnityEditor.VFX.Test
 
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
 
-            window.presenter = m_ViewPresenter;
+            window.presenter = m_ViewPresenter.graphViewPresenter;
 
-            VFXView view = window.graphView as VFXView;
-            view.presenter = m_ViewPresenter;
+            VFXView view = window.graphView;
+            view.controller = m_ViewPresenter;
 
             view.ClearSelection();
             foreach (var element in view.Query().OfType<GraphElement>().ToList().OfType<ISelectable>())
@@ -156,21 +156,21 @@ namespace UnityEditor.VFX.Test
 
             var elements = view.Query().OfType<GraphElement>().ToList();
 
-            var copyOperator = elements.OfType<VFXOperatorUI>().First(t => t.GetPresenter<VFXOperatorPresenter>().Operator != newOperator);
+            var copyOperator = elements.OfType<VFXOperatorUI>().First(t => t.controller.Operator != newOperator);
 
-            var copaASlot = copyOperator.GetPresenter<VFXOperatorPresenter>().Operator.GetInputSlot(0);
+            var copaASlot = copyOperator.controller.Operator.GetInputSlot(0);
 
             Assert.AreEqual((Vector3)copaASlot.value, originalA);
 
-            Assert.AreNotEqual(copyOperator.GetPresenter<VFXOperatorPresenter>().Operator.position, newOperator.position);
+            Assert.AreNotEqual(copyOperator.controller.Operator.position, newOperator.position);
 
             view.PasteCallback();
 
             elements = view.Query().OfType<GraphElement>().ToList();
-            var copy2Operator = elements.OfType<VFXOperatorUI>().First(t => t.GetPresenter<VFXOperatorPresenter>().Operator != newOperator && t != copyOperator);
+            var copy2Operator = elements.OfType<VFXOperatorUI>().First(t => t.controller.Operator != newOperator && t != copyOperator);
 
-            Assert.AreNotEqual(copy2Operator.GetPresenter<VFXOperatorPresenter>().Operator.position, newOperator.position);
-            Assert.AreNotEqual(copy2Operator.GetPresenter<VFXOperatorPresenter>().Operator.position, copyOperator.GetPresenter<VFXOperatorPresenter>().Operator.position);
+            Assert.AreNotEqual(copy2Operator.controller.Operator.position, newOperator.position);
+            Assert.AreNotEqual(copy2Operator.controller.Operator.position, copyOperator.controller.Operator.position);
         }
 
         [Test]
@@ -183,8 +183,8 @@ namespace UnityEditor.VFX.Test
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
             VFXView view = window.graphView as VFXView;
 
-            window.presenter = presenter;
-            view.presenter = presenter;
+            window.presenter = presenter.graphViewPresenter;
+            view.controller = presenter;
 
             view.ClearSelection();
 
@@ -196,8 +196,8 @@ namespace UnityEditor.VFX.Test
 
             view.CopySelectionCallback();
 
-            window.presenter = m_ViewPresenter;
-            view.presenter = m_ViewPresenter;
+            window.presenter = m_ViewPresenter.graphViewPresenter;
+            view.controller = m_ViewPresenter;
 
             view.PasteCallback();
 
@@ -220,7 +220,7 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(contexts.Length, 2);
 
-            if (contexts[0].GetPresenter<VFXContextPresenter>().context is VFXBasicUpdate)
+            if (contexts[0].controller.context is VFXBasicUpdate)
             {
                 var tmp = contexts[0];
                 contexts[0] = contexts[1];
@@ -232,7 +232,7 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(dataEdges.Length, 4);
 
-            VFXOperator[] operatorModels = operators.Select(u => u.GetPresenter<VFXOperatorPresenter>().Operator).ToArray();
+            VFXOperator[] operatorModels = operators.Select(u => u.controller.Operator).ToArray();
 
             Assert.IsNotNull(dataEdges.Where(t =>
                     t.output.GetFirstAncestorOfType<VFXSlotContainerUI>() == parameters[1] &&
@@ -285,10 +285,10 @@ namespace UnityEditor.VFX.Test
 
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
 
-            window.presenter = m_ViewPresenter;
+            window.presenter = m_ViewPresenter.graphViewPresenter;
 
             VFXView view = window.graphView as VFXView;
-            view.presenter = m_ViewPresenter;
+            view.controller = m_ViewPresenter;
 
             view.ClearSelection();
             foreach (var element in view.Query().OfType<VFXBlockUI>().ToList().OfType<ISelectable>())
@@ -296,7 +296,7 @@ namespace UnityEditor.VFX.Test
                 view.AddToSelection(element);
             }
 
-            VFXBlock flipBookBlock = m_ViewPresenter.elements.OfType<VFXContextPresenter>().First().blockPresenters.First().block;
+            VFXBlock flipBookBlock = m_ViewPresenter.contexts.First().blockPresenters.First().block;
             VFXSlot minValueSlot = flipBookBlock.GetInputSlot(0);
 
             float originalMinValue = 123.456f;
@@ -310,7 +310,7 @@ namespace UnityEditor.VFX.Test
 
             var elements = view.Query().OfType<VFXBlockUI>().ToList();
 
-            var copyBlock = elements.Select(t => t.GetPresenter<VFXBlockPresenter>()).First(t => t.block != newBlock).block;
+            var copyBlock = elements.Select(t => t.controller).First(t => t.block != newBlock).block;
 
             var copyMinSlot = copyBlock.GetInputSlot(0);
 
@@ -322,10 +322,10 @@ namespace UnityEditor.VFX.Test
         {
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
 
-            window.presenter = m_ViewPresenter;
+            window.presenter = m_ViewPresenter.graphViewPresenter;
 
             VFXView view = window.graphView as VFXView;
-            view.presenter = m_ViewPresenter;
+            view.controller = m_ViewPresenter;
 
             view.CreateTemplateSystem(Vector2.zero);
         }

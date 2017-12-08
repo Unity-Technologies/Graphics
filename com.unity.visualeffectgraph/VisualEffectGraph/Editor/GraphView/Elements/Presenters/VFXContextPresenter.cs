@@ -1,14 +1,18 @@
 using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEngine.Experimental.UIElements;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using System.Collections.ObjectModel;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXContextPresenter : VFXNodePresenter
+    class VFXContextPresenter : VFXNodeController
     {
         public VFXContext context       { get { return model as VFXContext; } }
+
+        public override VFXSlotContainerPresenter slotContainerPresenter { get { return m_SlotPresenter; } }
 
         [SerializeField]
         private List<VFXBlockPresenter> m_BlockPresenters = new List<VFXBlockPresenter>();
@@ -19,29 +23,26 @@ namespace UnityEditor.VFX.UI
 
         [SerializeField]
         protected List<VFXFlowAnchorPresenter> m_FlowInputAnchors = new List<VFXFlowAnchorPresenter>();
-        public IEnumerable<VFXFlowAnchorPresenter> flowInputAnchors
+        public ReadOnlyCollection<VFXFlowAnchorPresenter> flowInputAnchors
         {
-            get { return m_FlowInputAnchors; }
+            get { return m_FlowInputAnchors.AsReadOnly(); }
         }
 
         [SerializeField]
         protected List<VFXFlowAnchorPresenter> m_FlowOutputAnchors = new List<VFXFlowAnchorPresenter>();
-        public IEnumerable<VFXFlowAnchorPresenter> flowOutputAnchors
+        public ReadOnlyCollection<VFXFlowAnchorPresenter> flowOutputAnchors
         {
-            get { return m_FlowOutputAnchors; }
+            get { return m_FlowOutputAnchors.AsReadOnly(); }
         }
 
         VFXContextSlotContainerPresenter m_SlotPresenter;
-        public VFXContextSlotContainerPresenter slotPresenter
-        {
-            get { return m_SlotPresenter; }
-        }
 
+        [SerializeField]
+        IDataWatchHandle m_DataHandle;
 
         protected new void OnEnable()
         {
             base.OnEnable();
-            capabilities |= Capabilities.Deletable | Capabilities.Ascendable;
         }
 
         public override void OnRemoveFromGraph()
@@ -61,15 +62,29 @@ namespace UnityEditor.VFX.UI
                 viewPresenter.UnregisterFlowAnchorPresenter(anchor);
         }
 
+        void DataChanged(UnityEngine.Object obj)
+        {
+            NotifyChange(AnyThing);
+        }
+
+        private void OnDisable()
+        {
+            DataWatchService.sharedInstance.RemoveWatch(m_DataHandle);
+
+            base.OnDisable();
+        }
+
         public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
             UnregisterAnchors();
 
             m_SlotPresenter = CreateInstance<VFXContextSlotContainerPresenter>();
-            inputPorts.Clear();
-            outputPorts.Clear();
+            m_InputPorts.Clear();
+            m_OutputPorts.Clear();
 
             base.Init(model, viewPresenter);
+
+            m_DataHandle = DataWatchService.sharedInstance.AddWatch(context.GetData(), ModelChanged);
 
             m_SlotPresenter.Init(model, this);
 
@@ -151,23 +166,10 @@ namespace UnityEditor.VFX.UI
                 {
                     presenter = CreateInstance<VFXBlockPresenter>();
                     presenter.Init(block, this);
-                    presenter.expanded = !block.collapsed;
-                    presenter.title = block.name;
                 }
                 m_NewPresenters.Add(presenter);
             }
             m_BlockPresenters = m_NewPresenters;
-        }
-
-        public override IEnumerable<GraphElementPresenter> allChildren
-        {
-            get
-            {
-                foreach (var presenter in m_BlockPresenters)
-                {
-                    yield return presenter;
-                }
-            }
         }
 
         internal void BlocksDropped(VFXBlockPresenter blockPresenter, bool after, IEnumerable<VFXBlockPresenter> draggedBlocks, bool copy)
@@ -202,24 +204,6 @@ namespace UnityEditor.VFX.UI
                 {
                     this.ReorderBlock(insertIndex++, draggedBlock.block);
                 }
-            }
-        }
-
-        public override UnityEngine.Object[] GetObjectsToWatch()
-        {
-            return new UnityEngine.Object[] { this, model, context.GetData() };
-        }
-
-        public override IEnumerable<GraphElementPresenter> allElements
-        {
-            get
-            {
-                return Enumerable.Repeat((GraphElementPresenter)this, 1)
-                    .Concat(inputPorts.Cast<GraphElementPresenter>())
-                    .Concat(outputPorts.Cast<GraphElementPresenter>())
-                    .Concat(flowInputAnchors.Cast<GraphElementPresenter>())
-                    .Concat(flowOutputAnchors.Cast<GraphElementPresenter>())
-                    .Concat(blockPresenters.Cast<GraphElementPresenter>());
             }
         }
     }

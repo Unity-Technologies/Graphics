@@ -1,5 +1,6 @@
 using System;
 using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEngine.Experimental.UIElements;
 using UnityEngine;
 using System.Reflection;
 using System.Linq;
@@ -89,12 +90,22 @@ namespace UnityEditor.VFX.UI
     class VFXParameterPresenter : VFXSlotContainerPresenter, IPropertyRMProvider, IValuePresenter
     {
         VFXSubParameterPresenter[] m_SubPresenters;
+
+        IDataWatchHandle m_SlotHandle;
+
         public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
             base.Init(model, viewPresenter);
 
             m_CachedMinValue = parameter.m_Min != null ? parameter.m_Min.Get() : null;
             m_CachedMaxValue = parameter.m_Max != null ? parameter.m_Max.Get() : null;
+
+            m_SlotHandle = DataWatchService.sharedInstance.AddWatch(parameter.outputSlots[0], OnSlotChanged);
+        }
+
+        void OnSlotChanged(UnityEngine.Object obj)
+        {
+            NotifyChange(AnyThing);
         }
 
         protected override VFXDataAnchorPresenter AddDataAnchor(VFXSlot slot, bool input)
@@ -107,9 +118,9 @@ namespace UnityEditor.VFX.UI
             return anchor;
         }
 
-        public override void UpdateTitle()
+        public override string title
         {
-            title = parameter.outputSlots[0].property.type.UserFriendlyName();
+            get { return parameter.outputSlots[0].property.type.UserFriendlyName(); }
         }
 
         public int CreateSubPresenters()
@@ -259,11 +270,6 @@ namespace UnityEditor.VFX.UI
         void IPropertyRMProvider.RetractPath()
         {
             throw new NotImplementedException();
-        }
-
-        public override UnityEngine.Object[] GetObjectsToWatch()
-        {
-            return new UnityEngine.Object[] { this, model, parameter.outputSlots[0] };
         }
 
         public override void DrawGizmos(VFXComponent component)

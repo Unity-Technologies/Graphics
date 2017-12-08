@@ -50,12 +50,17 @@ namespace  UnityEditor.VFX.UI
             if (presenter != newPresenter)
             {
                 if (presenter != null)
-                    GetPresenter<VFXViewPresenter>().useCount--;
-                presenter = newPresenter;
+                    GetPresenter<VFXGraphViewPresenter>().m_RealPresenter.useCount--;
+                presenter = newPresenter.graphViewPresenter;
                 newPresenter.useCount++;
 
-                graphView.presenter = newPresenter;
+                graphView.controller = newPresenter;
             }
+        }
+
+        public new VFXView graphView
+        {
+            get { return base.graphView as VFXView; }
         }
 
         protected override GraphView BuildView()
@@ -63,12 +68,12 @@ namespace  UnityEditor.VFX.UI
             BuildPresenters();
 
             VFXView view = new VFXView();
-            VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
+            VFXGraphViewPresenter presenter = GetPresenter<VFXGraphViewPresenter>();
             if (presenter != null)
             {
-                presenter.useCount++;
+                presenter.m_RealPresenter.useCount++;
             }
-            view.presenter = presenter;
+            view.controller = presenter.m_RealPresenter;
 
             SetupFramingShortcutHandler(view);
             return view;
@@ -93,17 +98,15 @@ namespace  UnityEditor.VFX.UI
             {
                 if (presenter != null)
                 {
-                    if (GetPresenter<VFXViewPresenter>().GetVFXAsset() != selectedAsset)
-                        if (GetPresenter<VFXViewPresenter>().GetVFXAsset() != selectedAsset)
-                        {
-                            GetPresenter<VFXViewPresenter>().useCount--;
-                        }
+                    var viewPresenter = graphView.controller;
+                    if (viewPresenter.GetVFXAsset() != selectedAsset)
+                        viewPresenter.useCount--;
                 }
             }
 
             if (selectedAsset != null)
             {
-                return VFXViewPresenter.Manager.GetPresenter(selectedAsset, false);
+                return VFXViewPresenter.Manager.GetPresenter(selectedAsset, false).graphViewPresenter;
             }
             return null;
         }
@@ -136,11 +139,11 @@ namespace  UnityEditor.VFX.UI
                 graphView.UnregisterCallback<AttachToPanelEvent>(OnEnterPanel);
                 graphView.UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
 
-                VFXViewPresenter presenter = graphView.GetPresenter<VFXViewPresenter>();
+                VFXViewPresenter presenter = graphView.controller;
                 if (presenter != null)
                 {
                     presenter.useCount--;
-                    graphView.presenter = null;
+                    graphView.controller = null;
                 }
             }
 
@@ -155,14 +158,14 @@ namespace  UnityEditor.VFX.UI
             {
                 m_DisplayedAssetPath = AssetDatabase.GetAssetPath(objs[0] as VFXAsset);
 
-                VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
+                VFXViewPresenter presenter = graphView.controller;
 
                 VFXViewPresenter newPresenter = VFXViewPresenter.Manager.GetPresenter(objs[0] as VFXAsset);
 
                 if (presenter != newPresenter)
                 {
-                    this.presenter = newPresenter;
-                    graphView.presenter = newPresenter;
+                    this.presenter = newPresenter.graphViewPresenter;
+                    graphView.controller = newPresenter;
                     newPresenter.useCount++;
                     if (presenter != null)
                         presenter.useCount--;
@@ -190,7 +193,7 @@ namespace  UnityEditor.VFX.UI
 
         void Update()
         {
-            VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
+            VFXViewPresenter presenter = graphView.controller;
             if (presenter != null)
             {
                 var graph = presenter.GetGraph();

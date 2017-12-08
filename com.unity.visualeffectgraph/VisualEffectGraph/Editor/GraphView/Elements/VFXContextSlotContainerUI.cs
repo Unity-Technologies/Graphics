@@ -15,12 +15,13 @@ namespace UnityEditor.VFX.UI
         {
             forceNotififcationOnAdd = true;
             pickingMode = PickingMode.Ignore;
+            capabilities &= ~Capabilities.Selectable;
 
 
             AddToClassList("VFXContextSlotContainerUI");
         }
 
-        public override Port InstantiatePort(PortPresenter presenter)
+        public override VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorPresenter presenter)
         {
             VFXContextDataAnchorPresenter anchorPresenter = presenter as VFXContextDataAnchorPresenter;
 
@@ -35,7 +36,7 @@ namespace UnityEditor.VFX.UI
         {
             if (anchor is VFXEditableDataAnchor)
             {
-                var viewPresenter = GetPresenter<VFXSlotContainerPresenter>().viewPresenter;
+                var viewPresenter = controller.viewPresenter;
                 viewPresenter.onRecompileEvent += (anchor as VFXEditableDataAnchor).OnRecompile;
             }
         }
@@ -48,12 +49,15 @@ namespace UnityEditor.VFX.UI
         public override void OnDataChanged()
         {
             base.OnDataChanged();
-            var presenter = GetPresenter<VFXContextSlotContainerPresenter>();
+            var presenter = controller;
 
             if (presenter == null)
                 return;
 
-            SetPosition(presenter.position);
+            Rect rect = GetPosition();
+            rect.position = presenter.position;
+
+            SetPosition(rect);
         }
 
         public VFXContextUI context

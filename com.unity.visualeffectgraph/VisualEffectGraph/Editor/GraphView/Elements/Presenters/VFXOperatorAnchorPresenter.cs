@@ -31,9 +31,7 @@ namespace UnityEditor.VFX.UI
 
                 if (newAnchorType != portType)
                 {
-                    this.sourceNode.viewPresenter.UnregisterDataAnchorPresenter(this);
                     portType = newAnchorType;
-                    this.sourceNode.viewPresenter.RegisterDataAnchorPresenter(this);
                 }
             }
             else

@@ -55,9 +55,9 @@ namespace UnityEditor.VFX.UI
         }
 
 
-        static void CopyNodes(Data copyData, IEnumerable<GraphElementPresenter> elements, IEnumerable<VFXContextPresenter> contexts, IEnumerable<VFXSlotContainerPresenter> slotContainers)
+        static void CopyNodes(Data copyData, IEnumerable<Controller> elements, IEnumerable<VFXContextPresenter> contexts, IEnumerable<VFXSlotContainerPresenter> slotContainers)
         {
-            IEnumerable<VFXSlotContainerPresenter> dataEdgeTargets = slotContainers.Concat(contexts.Select(t => t.slotPresenter as VFXSlotContainerPresenter)).Concat(contexts.SelectMany(t => t.blockPresenters).Cast<VFXSlotContainerPresenter>()).ToArray();
+            IEnumerable<VFXSlotContainerPresenter> dataEdgeTargets = slotContainers.Concat(contexts.Select(t => t.slotContainerPresenter as VFXSlotContainerPresenter)).Concat(contexts.SelectMany(t => t.blockPresenters).Cast<VFXSlotContainerPresenter>()).ToArray();
 
             // consider only edges contained in the selection
 
@@ -133,7 +133,7 @@ namespace UnityEditor.VFX.UI
             copyData.data = VFXContext.ReproduceDataSettings(copiedContexts.Select((t, i) => new KeyValuePair<VFXContext, VFXContext>(t, copyData.contexts[i])).ToList()).ToArray();
         }
 
-        public static object CreateCopy(IEnumerable<GraphElementPresenter> elements)
+        public static object CreateCopy(IEnumerable<Controller> elements)
         {
             IEnumerable<VFXContextPresenter> contexts = elements.OfType<VFXContextPresenter>();
             IEnumerable<VFXSlotContainerPresenter> slotContainers = elements.Where(t => t is VFXOperatorPresenter || t is VFXParameterPresenter).Cast<VFXSlotContainerPresenter>();
@@ -154,7 +154,7 @@ namespace UnityEditor.VFX.UI
             return copyData;
         }
 
-        public static string SerializeElements(IEnumerable<GraphElementPresenter> elements)
+        public static string SerializeElements(IEnumerable<Controller> elements)
         {
             return JsonUtility.ToJson(CreateCopy(elements));
         }
@@ -244,7 +244,7 @@ namespace UnityEditor.VFX.UI
 
             if (selectedBlocks.Count() > 0)
             {
-                targetBlock = selectedBlocks.OrderByDescending(t => t.context.GetPresenter<VFXContextPresenter>().context.GetIndex(t.GetPresenter<VFXBlockPresenter>().block)).First();
+                targetBlock = selectedBlocks.OrderByDescending(t => t.context.controller.context.GetIndex(t.controller.block)).First();
                 targetContext = targetBlock.context;
             }
             else if (selectedContexts.Count() == 1)
@@ -257,12 +257,12 @@ namespace UnityEditor.VFX.UI
                 return;
             }
 
-            VFXContext targetModelContext = targetContext.GetPresenter<VFXContextPresenter>().context;
+            VFXContext targetModelContext = targetContext.controller.context;
 
             int targetIndex = -1;
             if (targetBlock != null)
             {
-                targetIndex = targetModelContext.GetIndex(targetBlock.GetPresenter<VFXBlockPresenter>().block) + 1;
+                targetIndex = targetModelContext.GetIndex(targetBlock.controller.block) + 1;
             }
 
             var newBlocks = new HashSet<VFXBlock>();
@@ -282,7 +282,7 @@ namespace UnityEditor.VFX.UI
 
             view.ClearSelection();
 
-            foreach (var uiBlock in targetContext.Query().OfType<VFXBlockUI>().Where(t => newBlocks.Contains(t.GetPresenter<VFXBlockPresenter>().block)).ToList())
+            foreach (var uiBlock in targetContext.Query().OfType<VFXBlockUI>().Where(t => newBlocks.Contains(t.controller.block)).ToList())
             {
                 view.AddToSelection(uiBlock);
             }
@@ -290,7 +290,7 @@ namespace UnityEditor.VFX.UI
 
         static void PasteNodes(VFXView view, Vector2 pasteOffset, Data copyData)
         {
-            var graph = view.GetPresenter<VFXViewPresenter>().GetGraph();
+            var graph = view.controller.GetGraph();
 
             List<VFXContext> newContexts = new List<VFXContext>(copyData.contexts.Length);
 
@@ -366,7 +366,7 @@ namespace UnityEditor.VFX.UI
 
             foreach (var slotContainer in newContexts)
             {
-                VFXContextUI contextUI = elements.OfType<VFXContextUI>().FirstOrDefault(t => t.GetPresenter<VFXContextPresenter>().model == slotContainer);
+                VFXContextUI contextUI = elements.OfType<VFXContextUI>().FirstOrDefault(t => t.controller.model == slotContainer);
                 if (contextUI != null)
                 {
                     newSlotContainerUIs.Add(contextUI.ownData);
@@ -377,7 +377,7 @@ namespace UnityEditor.VFX.UI
             }
             foreach (var slotContainer in newSlotContainers)
             {
-                VFXStandaloneSlotContainerUI slotContainerUI = elements.OfType<VFXStandaloneSlotContainerUI>().FirstOrDefault(t => t.GetPresenter<VFXSlotContainerPresenter>().model == slotContainer);
+                VFXStandaloneSlotContainerUI slotContainerUI = elements.OfType<VFXStandaloneSlotContainerUI>().FirstOrDefault(t => t.controller.model == slotContainer);
                 if (slotContainerUI != null)
                 {
                     newSlotContainerUIs.Add(slotContainerUI);

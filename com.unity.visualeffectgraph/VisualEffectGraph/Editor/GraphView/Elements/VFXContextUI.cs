@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXContextUI : GraphElement, IDropTarget, IEdgeDrawerContainer
+    class VFXContextUI : GraphElement, IControlledElement<VFXContextPresenter>, IDropTarget, IEdgeDrawerContainer
     {
         // TODO: Unused except for debugging
         const string RectColorProperty = "rect-color";
@@ -54,8 +54,38 @@ namespace UnityEditor.VFX.UI
 
         public VFXContextSlotContainerUI ownData { get { return m_OwnData; }}
 
+
+        VFXContextPresenter m_Controller;
+
+
+        Controller IControlledElement.controller
+        {
+            get { return m_Controller; }
+        }
+        public VFXContextPresenter controller
+        {
+            get { return m_Controller; }
+            set
+            {
+                if (m_Controller != null)
+                {
+                    m_Controller.UnregisterHandler(this);
+                }
+                m_Controller = value;
+                if (m_Controller != null)
+                {
+                    m_Controller.RegisterHandler(this);
+                }
+            }
+        }
+
+        void OnChange(ControllerChangedEvent e)
+        {
+        }
+
         public VFXContextUI()
         {
+            capabilities |= Capabilities.Deletable | Capabilities.Ascendable;
             forceNotififcationOnAdd = true;
             pickingMode = PickingMode.Ignore;
 
@@ -151,7 +181,7 @@ namespace UnityEditor.VFX.UI
                 var menu = new GenericMenu();
 
                 // Needs to have the model here to filter compatible node blocks
-                var contextType = GetPresenter<VFXContextPresenter>().Model.ContextType;
+                var contextType = controller.Model.ContextType;
                 foreach (var desc in VFXLibrary.GetBlocks())
                     if ((desc.CompatibleContexts & contextType) != 0)
                         menu.AddItem(new GUIContent(desc.Name), false,
@@ -164,10 +194,6 @@ namespace UnityEditor.VFX.UI
             */
 
             m_NodeContainer.Add(m_InsideContainer);
-            typeFactory = new GraphViewTypeFactory();
-            typeFactory[typeof(VFXBlockPresenter)] = typeof(VFXBlockUI);
-            typeFactory[typeof(VFXContextDataInputAnchorPresenter)] = typeof(VFXBlockDataAnchor);
-            typeFactory[typeof(VFXContextDataOutputAnchorPresenter)] = typeof(VFXBlockDataAnchor);
 
             ClearClassList();
             AddToClassList("VFXContext");
@@ -188,6 +214,8 @@ namespace UnityEditor.VFX.UI
             m_EdgeDrawer.element = this;
 
             clippingOptions = VisualElement.ClippingOptions.NoClipping;
+
+            RegisterCallback<ControllerChangedEvent>(OnChange);
         }
 
         void IEdgeDrawerContainer.EdgeDirty()
@@ -197,7 +225,7 @@ namespace UnityEditor.VFX.UI
 
         void OnSpace()
         {
-            var presenter = GetPresenter<VFXContextPresenter>();
+            var presenter = controller;
             presenter.context.space = (CoordinateSpace)(((int)presenter.context.space + 1) % (CoordinateSpaceInfo.SpaceCount));
         }
 
@@ -212,7 +240,7 @@ namespace UnityEditor.VFX.UI
                     accept = false;
                     break;
                 }
-                if (!GetPresenter<VFXContextPresenter>().model.AcceptChild(block.GetPresenter<VFXBlockPresenter>().block))
+                if (!controller.model.AcceptChild(block.controller.block))
                 {
                     accept = false;
                     break;
@@ -317,7 +345,7 @@ namespace UnityEditor.VFX.UI
             if (!CanDrop(blocksUI, null))
                 return EventPropagation.Stop;
 
-            VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
+            VFXContextPresenter presenter = controller;
 
             BlocksDropped(null, after, blocksUI, evt.imguiEvent.control);
 
@@ -331,7 +359,7 @@ namespace UnityEditor.VFX.UI
 
         public void BlocksDropped(VFXBlockPresenter blockPresenter, bool after, IEnumerable<VFXBlockUI> draggedBlocks, bool copy)
         {
-            VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
+            VFXContextPresenter presenter = controller;
 
             HashSet<VFXContextUI> contexts = new HashSet<VFXContextUI>();
             foreach (var draggedBlock in draggedBlocks)
@@ -341,7 +369,7 @@ namespace UnityEditor.VFX.UI
 
             using (var growContext = new GrowContext(this))
             {
-                presenter.BlocksDropped(blockPresenter, after, draggedBlocks.Select(t => t.GetPresenter<VFXBlockPresenter>()), copy);
+                presenter.BlocksDropped(blockPresenter, after, draggedBlocks.Select(t => t.controller), copy);
 
                 foreach (var context in contexts)
                 {
@@ -389,30 +417,21 @@ namespace UnityEditor.VFX.UI
             if (block == null)
                 return;
 
-            VFXContextPresenter contextPresenter = GetPresenter<VFXContextPresenter>();
-            contextPresenter.RemoveBlock(block.GetPresenter<VFXBlockPresenter>().block);
+            VFXContextPresenter contextPresenter = controller;
+            contextPresenter.RemoveBlock(block.controller.block);
         }
 
         private void InstantiateBlock(VFXBlockPresenter blockPresenter)
         {
-            // call factory
-            GraphElement newElem = typeFactory.Create(blockPresenter);
+            var blockUI = new VFXBlockUI();
+            blockUI.controller = blockPresenter;
 
-            if (newElem == null)
-            {
-                return;
-            }
-
-            newElem.SetPosition(blockPresenter.position);
-            newElem.presenter = blockPresenter;
-            m_BlockContainer.Add(newElem);
-
-            newElem.presenter.selected = blockPresenter.selected;
+            m_BlockContainer.Add(blockUI);
         }
 
         public void RefreshContext()
         {
-            VFXContextPresenter contextPresenter = GetPresenter<VFXContextPresenter>();
+            VFXContextPresenter contextPresenter = controller;
             var blockPresenters = contextPresenter.blockPresenters;
 
             // recreate the children list based on the presenter list to keep the order.
@@ -422,7 +441,7 @@ namespace UnityEditor.VFX.UI
             {
                 var child = m_BlockContainer.ElementAt(i) as VFXBlockUI;
                 if (child != null)
-                    blocksUIs.Add(child.GetPresenter<VFXBlockPresenter>(), child);
+                    blocksUIs.Add(child.controller, child);
             }
 
             foreach (var kv in blocksUIs)
@@ -444,33 +463,6 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
-
-
-            // Does not guarantee correct ordering
-            /*var blocks = m_BlockContainer.children.OfType<VFXBlockUI>().ToList();
-
-            // Process removals
-            foreach (var c in blocks)
-            {
-                // been removed?
-                var nb = c as VFXBlockUI;
-                var block = contextPresenter.blockPresenters.OfType<VFXBlockPresenter>().FirstOrDefault(a => a == nb.GetPresenter<VFXBlockPresenter>());
-                if (block == null)
-                {
-                    m_BlockContainer.RemoveFromSelection(nb);
-                    m_BlockContainer.RemoveChild(nb);
-                }
-            }
-
-            // Process additions
-            foreach (var blockPresenter in contextPresenter.blockPresenters)
-            {
-                var block = blocks.OfType<VFXBlockUI>().FirstOrDefault(a => a.GetPresenter<VFXBlockPresenter>() == blockPresenter);
-                if (block == null)
-                {
-                    InstantiateBlock(blockPresenter);
-                }
-            }*/
         }
 
         Texture2D GetIconForVFXType(VFXDataType type)
@@ -522,7 +514,7 @@ namespace UnityEditor.VFX.UI
 
             using (var growContext = new GrowContext(this))
             {
-                GetPresenter<VFXContextPresenter>().AddBlock(blockIndex, descriptor.CreateInstance());
+                controller.AddBlock(blockIndex, descriptor.CreateInstance());
             }
         }
 
@@ -530,7 +522,7 @@ namespace UnityEditor.VFX.UI
         {
             base.OnDataChanged();
 
-            VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
+            VFXContextPresenter presenter = controller;
             if (presenter == null || presenter.context == null)
                 return;
 
@@ -638,9 +630,9 @@ namespace UnityEditor.VFX.UI
             RefreshContext();
 
 
-            m_OwnData.presenter = presenter.slotPresenter;
+            m_OwnData.controller = presenter.slotContainerPresenter;
 
-            bool slotsVisible = presenter.slotPresenter.inputPorts.Count() > 0 || (presenter.slotPresenter.settings != null && presenter.slotPresenter.settings.Count() > 0);
+            bool slotsVisible = presenter.slotContainerPresenter.inputPorts.Count() > 0 || (presenter.slotContainerPresenter.settings != null && presenter.slotContainerPresenter.settings.Count() > 0);
             if (slotsVisible && m_OwnData.parent == null)
             {
                 m_Header.Add(m_OwnData);

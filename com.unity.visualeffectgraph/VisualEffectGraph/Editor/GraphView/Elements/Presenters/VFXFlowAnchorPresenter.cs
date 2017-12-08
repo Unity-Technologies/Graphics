@@ -5,7 +5,7 @@ using UnityEditor.Experimental.UIElements.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
-    abstract class VFXFlowAnchorPresenter : PortPresenter
+    abstract class VFXFlowAnchorPresenter : Controller, IVFXAnchorPresenter
     {
         [SerializeField]
         VFXContextPresenter m_Context;
@@ -20,9 +20,34 @@ namespace UnityEditor.VFX.UI
         {
             m_Context = context;
             m_SlotIndex = slotIndex;
-            portType = typeof(int); // We dont care about that atm!
-            orientation = Orientation.Vertical;
         }
+
+        List<VFXFlowEdgePresenter> m_Connections = new List<VFXFlowEdgePresenter>();
+
+        public virtual void Connect(VFXEdgeController edgePresenter)
+        {
+            m_Connections.Add(edgePresenter as VFXFlowEdgePresenter);
+        }
+
+        public virtual void Disconnect(VFXEdgeController edgePresenter)
+        {
+            m_Connections.Remove(edgePresenter as VFXFlowEdgePresenter);
+        }
+
+        public bool connected
+        {
+            get { return m_Connections.Count > 0; }
+        }
+
+        public virtual bool IsConnectable()
+        {
+            return true;
+        }
+
+        public abstract Direction direction { get; }
+        public Orientation orientation { get { return Orientation.Vertical; } }
+
+        public IEnumerable<VFXFlowEdgePresenter> connections { get { return m_Connections; } }
     }
 
     class VFXFlowInputAnchorPresenter : VFXFlowAnchorPresenter
@@ -37,6 +62,10 @@ namespace UnityEditor.VFX.UI
             {
                 return Direction.Input;
             }
+        }
+        public override bool IsConnectable()
+        {
+            return !connected;
         }
     }
 

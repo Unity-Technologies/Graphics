@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXSlotContainerPresenter : VFXNodePresenter
+    class VFXSlotContainerPresenter : VFXNodeController
     {
         public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
@@ -28,27 +28,20 @@ namespace UnityEditor.VFX.UI
             viewPresenter.AddInvalidateDelegate(model, OnInvalidate);
         }
 
+        public override VFXSlotContainerPresenter slotContainerPresenter { get { return this; } }
+
         protected void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {
             if (model as IVFXSlotContainer == slotContainer && (cause == VFXModel.InvalidationCause.kStructureChanged || cause == VFXModel.InvalidationCause.kSettingChanged))
             {
                 var inputs = inputPorts;
-                List<PortPresenter> newAnchors = new List<PortPresenter>();
+                List<VFXDataAnchorPresenter> newAnchors = new List<VFXDataAnchorPresenter>();
 
                 UpdateSlots(newAnchors, slotContainer.inputSlots, true, true);
 
-                foreach (var anchor in inputPorts.Except(newAnchors).Cast<VFXDataAnchorPresenter>())
-                {
-                    viewPresenter.UnregisterDataAnchorPresenter(anchor);
-                }
                 m_InputPorts = newAnchors;
-                newAnchors = new List<PortPresenter>();
+                newAnchors = new List<VFXDataAnchorPresenter>();
                 UpdateSlots(newAnchors, slotContainer.outputSlots, true, false);
-
-                foreach (var anchor in outputPorts.Except(newAnchors).Cast<VFXDataAnchorPresenter>())
-                {
-                    viewPresenter.UnregisterDataAnchorPresenter(anchor);
-                }
                 m_OutputPorts = newAnchors;
 
                 // separate UpdateInfos for the recreation of the list to make the code more reantrant, as UpdateInfos can trigger a compilation, that itself calls OnInvalidate.
@@ -63,7 +56,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void UpdateSlots(List<PortPresenter> newAnchors, IEnumerable<VFXSlot> slotList, bool expanded, bool input)
+        void UpdateSlots(List<VFXDataAnchorPresenter> newAnchors, IEnumerable<VFXSlot> slotList, bool expanded, bool input)
         {
             VFXSlot[] slots = slotList.ToArray();
             {
@@ -76,7 +69,6 @@ namespace UnityEditor.VFX.UI
                         propPresenter = AddDataAnchor(slot, input);
                     }
                     newAnchors.Add(propPresenter);
-                    viewPresenter.RegisterDataAnchorPresenter(propPresenter);
 
                     if (!typeof(ISpaceable).IsAssignableFrom(slot.property.type) || slot.children.Count() != 1)
                     {

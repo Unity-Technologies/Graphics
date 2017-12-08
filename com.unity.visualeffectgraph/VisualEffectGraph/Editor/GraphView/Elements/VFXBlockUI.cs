@@ -13,6 +13,12 @@ namespace UnityEditor.VFX.UI
     {
         Toggle m_EnableToggle;
 
+        public new VFXBlockPresenter controller
+        {
+            get { return base.controller as VFXBlockPresenter; }
+            set { base.controller = value; }
+        }
+
 
         void IEdgeDrawerContainer.EdgeDirty()
         {
@@ -39,7 +45,7 @@ namespace UnityEditor.VFX.UI
 
         void OnToggleEnable()
         {
-            var presenter = GetPresenter<VFXBlockPresenter>();
+            var presenter = controller;
 
             presenter.block.enabled = !presenter.block.enabled;
         }
@@ -77,7 +83,7 @@ namespace UnityEditor.VFX.UI
         public override void OnDataChanged()
         {
             base.OnDataChanged();
-            var presenter = GetPresenter<VFXBlockPresenter>();
+            var presenter = controller;
 
             presenter.block.collapsed = !presenter.expanded;
             m_EnableToggle.on = presenter.block.enabled;
@@ -108,7 +114,7 @@ namespace UnityEditor.VFX.UI
 
             IEnumerable<VFXBlockUI> draggedBlocksUI = selection.Select(t => t as VFXBlockUI).Where(t => t != null);
 
-            VFXBlockPresenter blockPresenter = GetPresenter<VFXBlockPresenter>();
+            VFXBlockPresenter blockPresenter = controller;
             VFXContextPresenter contextPresenter = blockPresenter.contextPresenter;
 
             if (context.CanDrop(draggedBlocksUI, this))

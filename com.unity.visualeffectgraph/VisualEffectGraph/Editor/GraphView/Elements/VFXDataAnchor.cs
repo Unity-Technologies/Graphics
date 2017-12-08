@@ -9,9 +9,32 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXDataAnchor : Port, IEdgeConnectorListener
+    class VFXDataAnchor : Port, IControlledElement<VFXDataAnchorPresenter>, IEdgeConnectorListener
     {
         VisualElement m_ConnectorHighlight;
+
+        VFXDataAnchorPresenter m_Controller;
+        Controller IControlledElement.controller
+        {
+            get { return m_Controller; }
+        }
+        public VFXDataAnchorPresenter controller
+        {
+            get { return m_Controller; }
+            set
+            {
+                if (m_Controller != null)
+                {
+                    m_Controller.UnregisterHandler(this);
+                }
+                m_Controller = value;
+                if (m_Controller != null)
+                {
+                    m_Controller.RegisterHandler(this);
+                }
+            }
+        }
+
 
         protected VFXDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type) : base(anchorOrientation, anchorDirection, type)
         {
@@ -40,7 +63,7 @@ namespace UnityEditor.VFX.UI
         {
             var anchor = new VFXDataAnchor(presenter.orientation, presenter.direction, presenter.portType);
             anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
-            anchor.presenter = presenter;
+            anchor.controller = presenter;
 
             anchor.AddManipulator(anchor.m_EdgeConnector);
             return anchor;
@@ -85,7 +108,7 @@ namespace UnityEditor.VFX.UI
         {
             VFXView view = GetFirstAncestorOfType<VFXView>();
 
-            foreach (var edgePresenter in GetPresenter<VFXDataAnchorPresenter>().connections)
+            foreach (var edgePresenter in controller.connections)
             {
                 VFXDataEdge edge = view.GetDataEdgeByPresenter(edgePresenter as VFXDataEdgePresenter);
                 if (edge != null)
@@ -98,10 +121,7 @@ namespace UnityEditor.VFX.UI
             base.OnDataChanged();
             m_ConnectorText.text = "";
 
-            VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
-
-            // reverse because we want the flex to choose the position of the connector
-            presenter.position = layout;
+            VFXDataAnchorPresenter presenter = controller;
 
             if (presenter.connected)
                 AddToClassList("connected");
@@ -119,16 +139,6 @@ namespace UnityEditor.VFX.UI
             string className = VFXTypeDefinition.GetTypeCSSClass(presenter.portType);
             AddToClassList(className);
             m_ConnectorBox.AddToClassList(className);
-
-
-            if (presenter.connections.FirstOrDefault(t => t.selected) != null)
-            {
-                AddToClassList("selected");
-            }
-            else
-            {
-                RemoveFromClassList("selected");
-            }
 
             AddToClassList("EdgeConnector");
 
@@ -164,26 +174,27 @@ namespace UnityEditor.VFX.UI
 
         void IEdgeConnectorListener.OnDrop(GraphView graphView, Edge edge)
         {
-            EdgePresenter edgePresenter = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
-            edge.presenter = edgePresenter;
-            edgePresenter.input = edge.input.GetPresenter<VFXDataAnchorPresenter>();
-            edgePresenter.output = edge.output.GetPresenter<VFXDataAnchorPresenter>();
+            VFXView view = graphView as VFXView;
+            VFXDataEdge dataEdge = edge as VFXDataEdge;
+            VFXDataEdgePresenter edgePresenter = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
+            edgePresenter.Init(dataEdge.input.controller, dataEdge.output.controller);
+            dataEdge.controller = edgePresenter;
 
-            graphView.GetPresenter<VFXViewPresenter>().AddElement(edgePresenter);
+            view.controller.AddElement(edgePresenter);
         }
 
         void IEdgeConnectorListener.OnDropOutsidePort(Edge edge, Vector2 position)
         {
-            VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
+            VFXDataAnchorPresenter presenter = controller;
 
             VFXSlot startSlot = presenter.model;
 
             VFXView view = this.GetFirstAncestorOfType<VFXView>();
-            VFXViewPresenter viewPresenter = view.GetPresenter<VFXViewPresenter>();
+            VFXViewPresenter viewPresenter = view.controller;
 
 
-            Node endNode = null;
-            foreach (var node in view.GetAllNodes())
+            VFXNodeUI endNode = null;
+            foreach (var node in view.GetAllNodes().OfType<VFXNodeUI>())
             {
                 if (node.worldBound.Contains(position))
                 {
@@ -193,9 +204,9 @@ namespace UnityEditor.VFX.UI
 
             if (endNode != null)
             {
-                VFXSlotContainerPresenter nodePresenter = endNode.GetPresenter<VFXSlotContainerPresenter>();
+                VFXSlotContainerPresenter nodePresenter = endNode.controller.slotContainerPresenter;
 
-                var compatibleAnchors = nodePresenter.viewPresenter.GetCompatiblePorts(presenter, null);
+                var compatibleAnchors = nodePresenter.viewPresenter.GetCompatiblePorts(controller, null);
 
                 if (nodePresenter != null)
                 {
@@ -204,7 +215,7 @@ namespace UnityEditor.VFX.UI
                     {
                         foreach (var outputSlot in slotContainer.outputSlots)
                         {
-                            var endPresenter = nodePresenter.allChildren.OfType<VFXDataAnchorPresenter>().First(t => t.model == outputSlot);
+                            var endPresenter = nodePresenter.outputPorts.First(t => t.model == outputSlot);
                             if (compatibleAnchors.Contains(endPresenter))
                             {
                                 startSlot.Link(outputSlot);
@@ -216,7 +227,7 @@ namespace UnityEditor.VFX.UI
                     {
                         foreach (var inputSlot in slotContainer.inputSlots)
                         {
-                            var endPresenter = nodePresenter.allChildren.OfType<VFXDataAnchorPresenter>().First(t => t.model == inputSlot);
+                            var endPresenter = nodePresenter.inputPorts.First(t => t.model == inputSlot);
                             if (compatibleAnchors.Contains(endPresenter))
                             {
                                 inputSlot.Link(startSlot);
@@ -243,7 +254,7 @@ namespace UnityEditor.VFX.UI
 
         bool ProviderFilter(VFXNodeProvider.Descriptor d)
         {
-            var mySlot = GetPresenter<VFXDataAnchorPresenter>().model;
+            var mySlot = controller.model;
 
             VFXModelDescriptor desc = d.modelDescriptor as VFXModelDescriptor;
             if (desc == null)
@@ -277,7 +288,7 @@ namespace UnityEditor.VFX.UI
 
         void AddLinkedNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
         {
-            var mySlot = GetPresenter<VFXDataAnchorPresenter>().model;
+            var mySlot = controller.model;
             VFXView view = GetFirstAncestorOfType<VFXView>();
             if (view == null) return;
             Vector2 tPos = view.ChangeCoordinatesTo(view.contentViewContainer, mPos);

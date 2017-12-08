@@ -7,7 +7,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    partial class VFXViewPresenter : GraphViewPresenter
+    partial class VFXViewPresenter : Controller<VFXGraph>
     {
         public event System.Action onRecompileEvent;
         public void RecompileExpressionGraphIfNeeded()

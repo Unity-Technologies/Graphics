@@ -18,6 +18,11 @@ namespace UnityEditor.VFX.UI
         {
         }
 
+        public new VFXParameterPresenter controller
+        {
+            get { return base.controller as VFXParameterPresenter; }
+        }
+
         public override void GetPreferedWidths(ref float labelWidth, ref float controlWidth)
         {
             base.GetPreferedWidths(ref labelWidth, ref controlWidth);
@@ -57,7 +62,7 @@ namespace UnityEditor.VFX.UI
         public override void OnDataChanged()
         {
             base.OnDataChanged();
-            var presenter = GetPresenter<VFXParameterPresenter>();
+            var presenter = controller;
             if (presenter == null)
                 return;
 

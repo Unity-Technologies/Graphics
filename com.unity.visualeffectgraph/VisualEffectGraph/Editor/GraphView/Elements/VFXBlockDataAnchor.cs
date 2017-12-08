@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.UI
         {
             var anchor = new VFXBlockDataAnchor(presenter.orientation, presenter.direction, presenter.portType);
             anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
-            anchor.presenter = presenter;
+            anchor.controller = presenter;
 
             anchor.AddManipulator(anchor.m_EdgeConnector);
             return anchor;
