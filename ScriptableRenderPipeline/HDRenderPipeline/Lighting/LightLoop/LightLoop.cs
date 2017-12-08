@@ -1,4 +1,4 @@
-﻿using UnityEngine.Rendering;
+using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System;
 
@@ -405,6 +405,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static ComputeBuffer s_GlobalLightListAtomic = null;
         // clustered light list specific buffers and data end
 
+        bool m_isForwardRenderingOnly;
         bool m_isFptlEnabled;
         bool m_isFptlEnabledForForwardOpaque;
 
@@ -462,7 +463,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool GetFeatureVariantsEnabled()
         {
-            return m_isFptlEnabled && m_LightLoopSettings.enableComputeLightEvaluation && (m_LightLoopSettings.enableComputeLightVariants || m_LightLoopSettings.enableComputeMaterialVariants);
+            return !m_isForwardRenderingOnly && m_isFptlEnabled && m_LightLoopSettings.enableComputeLightEvaluation &&
+                    (m_LightLoopSettings.enableComputeLightVariants || m_LightLoopSettings.enableComputeMaterialVariants);
         }
 
         LightLoopSettings m_LightLoopSettings = null;
@@ -477,12 +479,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         public void Build(  RenderPipelineResources renderPipelineResources,
-                            LightLoopSettings tileSettings,
+                            LightLoopSettings lightLoopSettings,
                             GlobalTextureSettings textureSettings,
                             ShadowInitParameters shadowInit, ShadowSettings shadowSettings, IBLFilterGGX iblFilterGGX)
         {
             m_Resources = renderPipelineResources;
-            m_LightLoopSettings = tileSettings;
+            m_LightLoopSettings = lightLoopSettings;
 
             m_lightList = new LightList();
             m_lightList.Allocate();
@@ -761,7 +763,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (light.light.cookie != null)
             {
-                directionalLightData.tileCookie = light.light.cookie.wrapMode == TextureWrapMode.Repeat;
+                directionalLightData.tileCookie = light.light.cookie.wrapMode == TextureWrapMode.Repeat ? 1 : 0;
                 directionalLightData.cookieIndex = m_CookieTexArray.FetchSlice(cmd, light.light.cookie);
             }
             // fix up shadow information
@@ -784,13 +786,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 directionalLightData.shadowMaskSelector[light.light.bakingOutput.occlusionMaskChannel] = 1.0f;
                 // TODO: make this option per light, not global
-                directionalLightData.dynamicShadowCasterOnly = QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask;
+                directionalLightData.dynamicShadowCasterOnly = QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask ? 1 : 0;
             }
             else
             {
                 // use -1 to say that we don't use shadow mask
                 directionalLightData.shadowMaskSelector.x = -1.0f;
-                directionalLightData.dynamicShadowCasterOnly = false;
+                directionalLightData.dynamicShadowCasterOnly = 0;
             }
 
             m_CurrentSunLight = m_CurrentSunLight == null ? light.light : m_CurrentSunLight;
@@ -949,13 +951,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 lightData.shadowMaskSelector[light.light.bakingOutput.occlusionMaskChannel] = 1.0f;
                 // TODO: make this option per light, not global
-                lightData.dynamicShadowCasterOnly = QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask;
+                lightData.dynamicShadowCasterOnly = QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask ? 1 : 0;
             }
             else
             {
                 // use -1 to say that we don't use shadow mask
                 lightData.shadowMaskSelector.x = -1.0f;
-                lightData.dynamicShadowCasterOnly = false;
+                lightData.dynamicShadowCasterOnly = 0;
             }
 
             m_lightList.lights.Add(lightData);
@@ -1276,7 +1278,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
 
             // If Deferred, enable Fptl. If we are forward renderer only and not using Fptl for forward opaque, disable Fptl
-            m_isFptlEnabled = !useForwardRenderingOnly || m_LightLoopSettings.enableFptlForForwardOpaque; // TODO: Disable if MSAA
+            m_isForwardRenderingOnly = useForwardRenderingOnly;
+            m_isFptlEnabled = !m_isForwardRenderingOnly || m_LightLoopSettings.enableFptlForForwardOpaque; // TODO: Disable if MSAA
             m_isFptlEnabledForForwardOpaque = m_LightLoopSettings.enableFptlForForwardOpaque; // TODO: Disable if MSAA
 
             if (GetFeatureVariantsEnabled())
@@ -1790,7 +1793,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Cluster
-                VoxelLightListGeneration(cmd, camera, projscr, invProjscr, cameraDepthBufferRT);
+            VoxelLightListGeneration(cmd, camera, projscr, invProjscr, cameraDepthBufferRT);
 
             if (enableFeatureVariants)
             {
@@ -2180,7 +2183,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
             }
- 
+
             using (new ProfilingSample(cmd, "Display Shadows", HDRenderPipeline.GetSampler(CustomSamplerId.TPDisplayShadows)))
             {
                 if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeShadowMap)
