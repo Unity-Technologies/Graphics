@@ -19,23 +19,44 @@
 #define LIGHTWEIGHT_SHADOW_ATTENUATION(posWorld, vertexNormal, shadowDir) 1.0h
 #endif
 
-sampler2D_float _ShadowMap;
-float _PCFKernel[8];
+UNITY_DECLARE_SHADOWMAP(_ShadowMap);
 float4x4 _WorldToShadow[MAX_SHADOW_CASCADES];
 float4 _DirShadowSplitSpheres[MAX_SHADOW_CASCADES];
-half4 _ShadowData;
+half4 _ShadowOffset0;
+half4 _ShadowOffset1;
+half4 _ShadowOffset2;
+half4 _ShadowOffset3;
+half4 _ShadowData; // (x: 1.0 - shadowStrength, y: bias, z: normal bias, w: near plane offset)
 
-inline half ShadowAttenuation(float3 shadowCoord)
+float ApplyDepthBias(float clipZ)
 {
-    if (shadowCoord.x <= 0 || shadowCoord.x >= 1 || shadowCoord.y <= 0 || shadowCoord.y >= 1)
+#ifdef UNITY_REVERSED_Z
+    return  clipZ + _ShadowData.y;
+#endif
+
+    return  clipZ - _ShadowData.y;
+}
+
+inline half SampleShadowmap(float4 shadowCoord)
+{
+    float3 coord = shadowCoord.xyz /= shadowCoord.w;
+    coord.z = saturate(ApplyDepthBias(coord.z));
+    if (coord.x <= 0 || coord.x >= 1 || coord.y <= 0 || coord.y >= 1)
         return 1;
 
-    float depth = tex2D(_ShadowMap, shadowCoord).r;
-
-#if defined(UNITY_REVERSED_Z)
-    return step(depth - _ShadowData.y, shadowCoord.z);
+#if defined(_SOFT_SHADOWS) || defined(_SOFT_SHADOWS_CASCADES)
+    // 4-tap hardware comparison
+    half4 attenuation;
+    attenuation.x = UNITY_SAMPLE_SHADOW(_ShadowMap, coord + _ShadowOffset0.xyz);
+    attenuation.y = UNITY_SAMPLE_SHADOW(_ShadowMap, coord + _ShadowOffset1.xyz);
+    attenuation.z = UNITY_SAMPLE_SHADOW(_ShadowMap, coord + _ShadowOffset2.xyz);
+    attenuation.w = UNITY_SAMPLE_SHADOW(_ShadowMap, coord + _ShadowOffset3.xyz);
+    lerp(attenuation, 1.0, _ShadowData.xxxx);
+    return dot(attenuation, 0.25);
 #else
-    return step(shadowCoord.z, depth + _ShadowData.y);
+    // 1-tap hardware comparison
+    half attenuation = UNITY_SAMPLE_SHADOW(_ShadowMap, coord);
+    return lerp(attenuation, 1.0, _ShadowData.x);
 #endif
 }
 
@@ -57,17 +78,6 @@ inline half ComputeCascadeIndex(float3 wpos)
     return 4 - dot(weights, fixed4(4, 3, 2, 1));
 }
 
-inline half ShadowPCF(half3 shadowCoord)
-{
-    // TODO: simulate textureGatherOffset not available, simulate it
-    half2 offset = half2(0, 0);
-    half attenuation = ShadowAttenuation(half3(shadowCoord.xy + half2(_PCFKernel[0], _PCFKernel[1]) + offset, shadowCoord.z)) +
-        ShadowAttenuation(half3(shadowCoord.xy + half2(_PCFKernel[2], _PCFKernel[3]) + offset, shadowCoord.z)) +
-        ShadowAttenuation(half3(shadowCoord.xy + half2(_PCFKernel[4], _PCFKernel[5]) + offset, shadowCoord.z)) +
-        ShadowAttenuation(half3(shadowCoord.xy + half2(_PCFKernel[6], _PCFKernel[7]) + offset, shadowCoord.z));
-    return attenuation * 0.25;
-}
-
 inline half ComputeShadowAttenuation(float3 posWorld, half3 vertexNormal, half3 shadowDir)
 {
     half NdotL = dot(vertexNormal, shadowDir);
@@ -81,15 +91,9 @@ inline half ComputeShadowAttenuation(float3 posWorld, half3 vertexNormal, half3 
     if (cascadeIndex >= MAX_SHADOW_CASCADES)
         return 1.0;
 #endif
-    float4 shadowCoord = mul(_WorldToShadow[cascadeIndex], float4(posWorldOffsetNormal, 1.0));
-    shadowCoord.xyz /= shadowCoord.w;
-    shadowCoord.z = saturate(shadowCoord.z);
 
-#if defined(_SOFT_SHADOWS) || defined(_SOFT_SHADOWS_CASCADES)
-    return ShadowPCF(shadowCoord.xyz);
-#else
-    return ShadowAttenuation(shadowCoord.xyz);
-#endif
+    float4 shadowCoord = mul(_WorldToShadow[cascadeIndex], float4(posWorldOffsetNormal, 1.0));
+    return SampleShadowmap(shadowCoord);
 }
 
 half MixRealtimeAndBakedOcclusion(half realtimeAttenuation, half4 bakedOcclusion, half4 distanceAttenuation)
