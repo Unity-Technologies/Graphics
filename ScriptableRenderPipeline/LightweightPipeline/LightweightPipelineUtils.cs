@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
@@ -57,8 +57,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Punctual lights are sorted per-object by the engine based on distance to object center + luminance
             // Here we sort globally the light list per camera distance to fit the closest lights in the global light buffer
             // Check MAX_VISIBLE_LIGHTS in the LightweightLighting.cginc to see the max global buffer list size
-            int lhsDistance = (int) (SquaredDistanceToCamera(lhsLight.transform.position)*100.0f);
-            int rhsDistance = (int) (SquaredDistanceToCamera(rhsLight.transform.position)*100.0f);
+            int lhsDistance = (int)(SquaredDistanceToCamera(lhsLight.transform.position) * 100.0f);
+            int rhsDistance = (int)(SquaredDistanceToCamera(rhsLight.transform.position) * 100.0f);
             int result = lhsDistance - rhsDistance;
             return result;
         }
@@ -92,13 +92,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (light.lightType == LightType.Directional)
             {
-                float scale = 1.0f/light.light.cookieSize;
+                float scale = 1.0f / light.light.cookieSize;
 
                 // apply cookie scale and offset by 0.5 to convert from [-0.5, 0.5] to texture space [0, 1]
                 Vector4 row0 = cookieMatrix.GetRow(0);
                 Vector4 row1 = cookieMatrix.GetRow(1);
-                cookieMatrix.SetRow(0, new Vector4(row0.x*scale, row0.y*scale, row0.z*scale, row0.w*scale + 0.5f));
-                cookieMatrix.SetRow(1, new Vector4(row1.x*scale, row1.y*scale, row1.z*scale, row1.w*scale + 0.5f));
+                cookieMatrix.SetRow(0, new Vector4(row0.x * scale, row0.y * scale, row0.z * scale, row0.w * scale + 0.5f));
+                cookieMatrix.SetRow(1, new Vector4(row1.x * scale, row1.y * scale, row1.z * scale, row1.w * scale + 0.5f));
             }
             else if (light.lightType == LightType.Spot)
             {
@@ -169,8 +169,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 new Vector3(-1.0f, -1.0f, 0.0f),
                 new Vector3(-1.0f,  1.0f, 0.0f),
-                new Vector3( 1.0f, -1.0f, 0.0f),
-                new Vector3( 1.0f,  1.0f, 0.0f)
+                new Vector3(1.0f, -1.0f, 0.0f),
+                new Vector3(1.0f,  1.0f, 0.0f)
             };
 
             mesh.uv = new Vector2[]

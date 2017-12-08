@@ -2,8 +2,6 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
-#include "ShaderLibrary/Color.hlsl"
-
 CBUFFER_START(UnityMetaPass)
 // x = use uv1 as raster position
 // y = use uv2 as raster position
@@ -78,8 +76,12 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     // input.positionSS is SV_Position
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw);
     UpdatePositionInput(input.positionSS.z, input.positionSS.w, input.positionWS, posInput);
-    // No position and depth in case of light transport
-    float3 V = float3(0.0, 0.0, 1.0); // No vector view in case of light transport
+
+#ifdef VARYINGS_NEED_POSITION_WS
+    float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
+#else
+    float3 V = 0; // Avoid the division by 0
+#endif
 
     SurfaceData surfaceData;
     BuiltinData builtinData;

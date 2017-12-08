@@ -25,10 +25,16 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 #endif // TESSELLATION_ON
 
 void Frag(PackedVaryingsToPS packedInput,
-          out float4 outColor : SV_Target0
-      #ifdef _DEPTHOFFSET_ON
-          , out float outputDepth : SV_Depth
-      #endif
+        #ifdef OUTPUT_SPLIT_LIGHTING
+            out float4 outColor : SV_Target0,  // outSpecularLighting
+            out float4 outDiffuseLighting : SV_Target1,
+            OUTPUT_SSSBUFFER(outSSSBuffer)
+        #else
+            out float4 outColor : SV_Target0
+        #endif
+        #ifdef _DEPTHOFFSET_ON
+            , out float outputDepth : SV_Depth
+        #endif
           )
 {
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
@@ -36,7 +42,12 @@ void Frag(PackedVaryingsToPS packedInput,
     // input.positionSS is SV_Position
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, uint2(input.positionSS.xy) / GetTileSize());
     UpdatePositionInput(input.positionSS.z, input.positionSS.w, input.positionWS, posInput);
+
+#ifdef VARYINGS_NEED_POSITION_WS
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
+#else
+    float3 V = 0; // Avoid the division by 0
+#endif
 
     SurfaceData surfaceData;
     BuiltinData builtinData;
@@ -66,8 +77,23 @@ void Frag(PackedVaryingsToPS packedInput,
         bakeLightingData.bakeShadowMask = float4(builtinData.shadowMask0, builtinData.shadowMask1, builtinData.shadowMask2, builtinData.shadowMask3);
 #endif
         LightLoop(V, posInput, preLightData, bsdfData, bakeLightingData, featureFlags, diffuseLighting, specularLighting);
+
+#ifdef OUTPUT_SPLIT_LIGHTING
+        if (_EnableSSSAndTransmission != 0)
+        {
+            outColor = float4(specularLighting, 1.0);
+            outDiffuseLighting = float4(TagLightingForSSS(diffuseLighting), 1.0);
+        }
+        else
+        {
+            outColor = float4(diffuseLighting + specularLighting, 1.0);
+            outDiffuseLighting = 0;
+        }
+        ENCODE_INTO_SSSBUFFER(surfaceData, posInput.positionSS, outSSSBuffer);
+#else
         outColor = ApplyBlendMode(diffuseLighting, specularLighting, builtinData.opacity);
         outColor = EvaluateAtmosphericScattering(posInput, outColor);
+#endif
     }
 
 #ifdef _DEPTHOFFSET_ON

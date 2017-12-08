@@ -11,12 +11,12 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
     #pragma fragment Frag
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
+    #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
     #pragma multi_compile _ _ENABLE_SUN_DISK
 
-    #include "ShaderLibrary/Color.hlsl"
     #include "ShaderLibrary/Common.hlsl"
+    #include "ShaderLibrary/Color.hlsl"
     #include "ShaderLibrary/CommonLighting.hlsl"
 
     float4   _SkyParam; // x exposure, y multiplier, z rotation

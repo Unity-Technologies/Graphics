@@ -1,6 +1,6 @@
-﻿#include "../ShaderLibrary/Common.hlsl"
-#include "../ShaderLibrary/BC6H.hlsl"
-#include "../ShaderLibrary/Sampling.hlsl"
+﻿#include "ShaderLibrary/Common.hlsl"
+#include "ShaderLibrary/BC6H.hlsl"
+#include "ShaderLibrary/Sampling.hlsl"
 
 TextureCube<float4> _Source;
 RWTexture2DArray<uint4> _Target;

@@ -1,4 +1,4 @@
-﻿Shader "Hidden/LightweightPipeline/CopyDepth"
+Shader "Hidden/LightweightPipeline/CopyDepth"
 {
     SubShader
     {

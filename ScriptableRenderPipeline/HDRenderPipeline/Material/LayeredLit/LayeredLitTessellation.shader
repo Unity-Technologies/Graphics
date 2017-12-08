@@ -326,8 +326,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
     HLSLINCLUDE
 
     #pragma target 5.0
-    #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
-    // #pragma enable_d3d11_debug_symbols
+    #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
     #pragma shader_feature _ALPHATEST_ON
     #pragma shader_feature _DEPTHOFFSET_ON
@@ -415,6 +414,11 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
     // This shader support vertex modification
     #define HAVE_VERTEX_MODIFICATION
     #define HAVE_TESSELLATION_MODIFICATION
+
+    // If we use subsurface scattering, enable output split lighting (for forward pass)
+    #if defined(_MATID_SSS) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    #define OUTPUT_SPLIT_LIGHTING
+    #endif
 
     //-------------------------------------------------------------------------------------
     // Include
@@ -678,6 +682,13 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             Name "Forward" // Name is not used
             Tags{ "LightMode" = "Forward" } // This will be only for transparent object based on the RenderQueue index
 
+            Stencil
+            {
+                Ref[_StencilRef]
+                Comp Always
+                Pass Replace
+            }
+
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
             Cull[_CullMode]
@@ -709,6 +720,13 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         {
             Name "ForwardDebugDisplay" // Name is not used
             Tags{ "LightMode" = "ForwardDebugDisplay" } // This will be only for transparent object based on the RenderQueue index
+
+            Stencil
+            {
+                Ref[_StencilRef]
+                Comp Always
+                Pass Replace
+            }
 
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
