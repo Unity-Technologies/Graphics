@@ -44,13 +44,13 @@ public class LightweightUnlitGUI : LightweightShaderGUI
         EditorGUI.BeginChangeCheck();
         {
             DoPopup(Styles.renderingModeLabel, blendModeProp, Styles.blendNames);
-            int modeValue = (int) blendModeProp.floatValue;
+            int modeValue = (int)blendModeProp.floatValue;
 
             GUIContent mainTexLabel = Styles.mainTexLabels[Math.Min(modeValue, 1)];
             m_MaterialEditor.TexturePropertySingleLine(mainTexLabel, mainTexProp, mainColorProp);
             m_MaterialEditor.TextureScaleOffsetProperty(mainTexProp);
 
-            if ((UpgradeBlendMode) modeValue == UpgradeBlendMode.Cutout)
+            if ((UpgradeBlendMode)modeValue == UpgradeBlendMode.Cutout)
                 m_MaterialEditor.RangeProperty(alphaCutoffProp, Styles.alphaCutoffLabel);
 
             EditorGUILayout.Space();

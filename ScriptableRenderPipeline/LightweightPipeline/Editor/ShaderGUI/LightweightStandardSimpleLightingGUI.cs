@@ -180,7 +180,8 @@ public class LightweightStandardSimpleLightingGUI : LightweightShaderGUI
             int glossSource = (int)glossinessSourceProp.floatValue;
             m_MaterialEditor.TexturePropertySingleLine(Styles.albedoGlosinessLabels[glossSource], albedoMapProp,
                 albedoColorProp);
-            m_MaterialEditor.TextureScaleOffsetProperty(albedoMapProp);}
+            m_MaterialEditor.TextureScaleOffsetProperty(albedoMapProp);
+        }
         else
         {
             m_MaterialEditor.TexturePropertySingleLine(Styles.albedoAlphaLabel, albedoMapProp, albedoColorProp);

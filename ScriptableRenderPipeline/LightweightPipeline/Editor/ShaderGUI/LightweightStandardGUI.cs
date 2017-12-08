@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
@@ -182,14 +182,14 @@ namespace UnityEditor
 
             if (oldShader.name.Equals("Standard (Specular setup)"))
             {
-                material.SetFloat("_WorkflowMode", (float) WorkflowMode.Specular);
+                material.SetFloat("_WorkflowMode", (float)WorkflowMode.Specular);
                 Texture texture = material.GetTexture("_SpecGlossMap");
                 if (texture != null)
                     material.SetTexture("_MetallicSpecGlossMap", texture);
             }
             else
             {
-                material.SetFloat("_WorkflowMode", (float) WorkflowMode.Metallic);
+                material.SetFloat("_WorkflowMode", (float)WorkflowMode.Metallic);
                 Texture texture = material.GetTexture("_MetallicGlossMap");
                 if (texture != null)
                     material.SetTexture("_MetallicSpecGlossMap", texture);
@@ -241,7 +241,7 @@ namespace UnityEditor
         {
             string[] metallicSpecSmoothnessChannelName;
             bool hasGlossMap = false;
-            if ((WorkflowMode) workflowMode.floatValue == WorkflowMode.Metallic)
+            if ((WorkflowMode)workflowMode.floatValue == WorkflowMode.Metallic)
             {
                 hasGlossMap = metallicGlossMap.textureValue != null;
                 metallicSpecSmoothnessChannelName = Styles.metallicSmoothnessChannelNames;

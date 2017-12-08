@@ -254,7 +254,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     continue;
 
                 cullingParameters.shadowDistance = Mathf.Min(m_ShadowSettings.maxShadowDistance,
-                    m_CurrCamera.farClipPlane);
+                        m_CurrCamera.farClipPlane);
 
 #if UNITY_EDITOR
                 // Emit scene view UI
@@ -320,7 +320,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     // If no additional lights then no light sorting is performed and the indices match.
                     int shadowOriginalIndex = (lightData.totalAdditionalLightsCount > 0) ? GetLightUnsortedIndex(lightData.mainLightIndex) : lightData.mainLightIndex;
                     lightData.shadowsRendered = RenderShadows(ref m_CullResults, ref mainLight,
-                        shadowOriginalIndex, ref context);
+                            shadowOriginalIndex, ref context);
                 }
             }
         }
@@ -490,7 +490,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_IntermediateTextureArray = false;
 
             bool intermediateTexture = m_CurrCamera.targetTexture != null || m_CurrCamera.cameraType == CameraType.SceneView ||
-                                            m_Asset.RenderScale < 1.0f || m_CurrCamera.allowHDR;
+                m_Asset.RenderScale < 1.0f || m_CurrCamera.allowHDR;
 
             m_ColorFormat = m_CurrCamera.allowHDR ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32;
             m_RequiredDepth = false;
@@ -849,17 +849,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     // We do it by settings the perObjectLightIndexMap to the appropriate additionalLightIndex.
                     perObjectLightIndexMap[GetLightUnsortedIndex(i)] = additionalLightIndex;
                     InitializeLightConstants(lights, i, out m_LightPositions[additionalLightIndex],
-                            out m_LightColors[additionalLightIndex],
-                            out m_LightDistanceAttenuations[additionalLightIndex],
-                            out m_LightSpotDirections[additionalLightIndex],
-                            out m_LightSpotAttenuations[additionalLightIndex]);
+                        out m_LightColors[additionalLightIndex],
+                        out m_LightDistanceAttenuations[additionalLightIndex],
+                        out m_LightSpotDirections[additionalLightIndex],
+                        out m_LightSpotAttenuations[additionalLightIndex]);
                     additionalLightIndex++;
                 }
             }
             m_CullResults.SetLightIndexMap(perObjectLightIndexMap);
 
             cmd.SetGlobalVector(PerCameraBuffer._AdditionalLightCount, new Vector4(lightData.pixelAdditionalLightsCount,
-                 lightData.totalAdditionalLightsCount, 0.0f, 0.0f));
+                    lightData.totalAdditionalLightsCount, 0.0f, 0.0f));
             cmd.SetGlobalVectorArray(PerCameraBuffer._AdditionalLightPosition, m_LightPositions);
             cmd.SetGlobalVectorArray(PerCameraBuffer._AdditionalLightColor, m_LightColors);
             cmd.SetGlobalVectorArray(PerCameraBuffer._AdditionalLightDistanceAttenuation, m_LightDistanceAttenuations);
@@ -886,9 +886,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.SetGlobalVectorArray("_DirShadowSplitSpheres", m_DirectionalShadowSplitDistances);
             cmd.SetGlobalVector("_ShadowData", new Vector4(strength, bias, normalBias, nearPlane));
             cmd.SetGlobalVector("_ShadowOffset0", new Vector4(-invShadowResolution, -invShadowResolution, 0.0f, 0.0f));
-            cmd.SetGlobalVector("_ShadowOffset1", new Vector4( invShadowResolution, -invShadowResolution, 0.0f, 0.0f));
+            cmd.SetGlobalVector("_ShadowOffset1", new Vector4(invShadowResolution, -invShadowResolution, 0.0f, 0.0f));
             cmd.SetGlobalVector("_ShadowOffset2", new Vector4(-invShadowResolution,  invShadowResolution, 0.0f, 0.0f));
-            cmd.SetGlobalVector("_ShadowOffset3", new Vector4( invShadowResolution,  invShadowResolution, 0.0f, 0.0f));
+            cmd.SetGlobalVector("_ShadowOffset3", new Vector4(invShadowResolution,  invShadowResolution, 0.0f, 0.0f));
         }
 
         private void SetShaderKeywords(CommandBuffer cmd, ref LightData lightData, VisibleLight[] visibleLights)

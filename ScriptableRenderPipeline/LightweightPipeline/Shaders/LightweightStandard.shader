@@ -1,4 +1,4 @@
-﻿Shader "LightweightPipeline/Standard (Physically Based)"
+Shader "LightweightPipeline/Standard (Physically Based)"
 {
     Properties
     {
@@ -165,4 +165,3 @@
     FallBack "Hidden/InternalErrorShader"
     CustomEditor "LightweightStandardGUI"
 }
-

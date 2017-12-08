@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public enum ShaderPathID
     {
@@ -31,8 +31,8 @@
 
         public static string GetShaderPath(ShaderPathID id)
         {
-            int index = (int) id;
-            if (index < 0 && index >= (int) ShaderPathID.SHADER_PATH_COUNT)
+            int index = (int)id;
+            if (index < 0 && index >= (int)ShaderPathID.SHADER_PATH_COUNT)
             {
                 Debug.LogError("Trying to access lightweight shader path out of bounds");
                 return "";

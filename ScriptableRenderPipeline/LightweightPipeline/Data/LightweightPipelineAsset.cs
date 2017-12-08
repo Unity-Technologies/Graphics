@@ -92,11 +92,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             instance.m_CopyDepthShader = Shader.Find(LightweightShaderUtils.GetShaderPath(ShaderPathID.HIDDEN_DEPTH_COPY));
 
             string assetPath = UnityEditor.EditorUtility.SaveFilePanelInProject("Save Lightweight Asset", "LightweightAsset", "asset",
-                "Please enter a file name to save the asset to");
+                    "Please enter a file name to save the asset to");
 
             if (assetPath.Length > 0)
                 UnityEditor.AssetDatabase.CreateAsset(instance, assetPath);
         }
+
 #endif
 
         protected override IRenderPipeline InternalCreatePipeline()
@@ -244,6 +245,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             return null;
         }
+
         public override Shader GetDefaultShader()
         {
             return m_DefaultShader;
