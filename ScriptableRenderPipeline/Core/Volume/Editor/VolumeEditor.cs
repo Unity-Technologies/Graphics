@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -39,14 +39,12 @@ namespace UnityEditor.Experimental.Rendering
             m_Editors = new List<VolumeComponentEditor>();
 
             // Gets the list of all available component editors
-            var editorTypes = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(
-                    a => a.GetTypes()
-                    .Where(
-                        t => t.IsSubclassOf(typeof(VolumeComponentEditor))
-                          && t.IsDefined(typeof(VolumeComponentEditorAttribute), false)
-                    )
-                ).ToList();
+            var editorTypes = CoreUtils.GetAllAssemblyTypes()
+                                .Where(
+                                    t => t.IsSubclassOf(typeof(VolumeComponentEditor))
+                                      && t.IsDefined(typeof(VolumeComponentEditorAttribute), false)
+                                      && !t.IsAbstract
+                                );
 
             // Map them to their corresponding component type
             foreach (var editorType in editorTypes)
