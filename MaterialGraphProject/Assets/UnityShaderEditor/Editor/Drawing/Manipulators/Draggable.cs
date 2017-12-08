@@ -14,8 +14,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         bool m_OutputDeltaMovement;
 
-        Vector2 m_PreviousMousePosition;
-
         public Draggable(Action<Vector2> handler, bool outputDeltaMovement = false)
         {
             m_Handler = handler;
@@ -43,7 +41,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnMouseDown(MouseDownEvent evt)
         {
-            m_PreviousMousePosition = evt.localMousePosition;
             target.TakeMouseCapture();
             m_Active = true;
             evt.StopPropagation();
@@ -55,9 +52,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (m_OutputDeltaMovement)
                 {
-                    Vector2 deltaMouse = evt.localMousePosition - m_PreviousMousePosition;
-                    m_PreviousMousePosition = evt.localMousePosition;
-                    m_Handler(deltaMouse);
+                    m_Handler(evt.mouseDelta);
                 }
                 else
                 {
