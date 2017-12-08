@@ -13,5 +13,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableGaussianPyramid = true;
         public bool enableSSSAndTransmission = true;
         public bool enableAtmosphericScattering = true;
+        public bool allowStereo = true;
     }
 }

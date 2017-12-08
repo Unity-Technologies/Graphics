@@ -219,6 +219,11 @@ Shader "HDRenderPipeline/Lit"
     // This shader support vertex modification
     #define HAVE_VERTEX_MODIFICATION
 
+    // If we use subsurface scattering, enable output split lighting (for forward pass)
+    #if defined(_MATID_SSS) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    #define OUTPUT_SPLIT_LIGHTING
+    #endif
+
     //-------------------------------------------------------------------------------------
     // Include
     //-------------------------------------------------------------------------------------
@@ -493,6 +498,13 @@ Shader "HDRenderPipeline/Lit"
             Name "Forward" // Name is not used
             Tags { "LightMode" = "Forward" } // This will be only for transparent object based on the RenderQueue index
 
+            Stencil
+            {
+                Ref[_StencilRef]
+                Comp Always
+                Pass Replace
+            }
+
             Blend [_SrcBlend] [_DstBlend]
             ZWrite [_ZWrite]
             Cull [_CullMode]
@@ -521,6 +533,13 @@ Shader "HDRenderPipeline/Lit"
         {
             Name "ForwardDebugDisplay" // Name is not used
             Tags{ "LightMode" = "ForwardDebugDisplay" } // This will be only for transparent object based on the RenderQueue index
+
+            Stencil
+            {
+                Ref[_StencilRef]
+                Comp Always
+                Pass Replace
+            }
 
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]

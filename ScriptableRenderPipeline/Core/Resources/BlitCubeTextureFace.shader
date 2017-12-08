@@ -1,9 +1,9 @@
 ﻿Shader "Hidden/SRP/BlitCubeTextureFace"
 {
-    SubShader 
+    SubShader
     {
         // Cubemap blit.  Takes a face index.
-        Pass 
+        Pass
         {
 
             ZTest Always
@@ -11,7 +11,7 @@
             Cull Off
 
             HLSLPROGRAM
-            #include "../ShaderLibrary/Common.hlsl"
+            #include "ShaderLibrary/Common.hlsl"
 
             #pragma vertex vert
             #pragma fragment frag
