@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEditor;
 using UnityEngine;
+
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [ExecuteInEditMode]
@@ -20,7 +21,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Start()
         {
-            m_PropertyBlock = new MaterialPropertyBlock();           
+            m_PropertyBlock = new MaterialPropertyBlock();
             DecalSystem.instance.AddDecal(this);
         }
 
@@ -58,19 +59,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void OnDrawGizmosSelected()
         {
             DrawGizmo(true);
-        }
-
-        [MenuItem("GameObject/Effects/Decal", false, 0)]
-        static void CreateDecal(MenuCommand menuCommand)
-        {
-            // Create a custom game object
-            GameObject go = new GameObject("Decal");
-            go.AddComponent<DecalProjectorComponent>();
-            // Ensure it gets re-parented if this was a context click (otherwise does nothing)
-            GameObjectUtility.SetParentAndAlign(go, menuCommand.context as GameObject);
-            // Register the creation in the undo system
-            Undo.RegisterCreatedObjectUndo(go, "Create " + go.name);
-            Selection.activeObject = go;
         }
 
 		public void UpdatePropertyBlock(Vector3 cameraPos)
