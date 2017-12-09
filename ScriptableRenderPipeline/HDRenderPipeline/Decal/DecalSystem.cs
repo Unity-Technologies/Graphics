@@ -22,7 +22,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public DecalSystem()
         {
-            CreateCubeMesh();       
+            CreateCubeMesh();
         }
 
         void CreateCubeMesh()
@@ -62,10 +62,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void AddDecal(DecalProjectorComponent d)
         {
+            // If no decal material assign, don't add it
+            if (d.m_Material == null)
+                return;
+
             if (d.m_Material.GetTexture("_BaseColorMap") || d.m_Material.GetTexture("_NormalMap"))
             {
                 RemoveDecal(d);
-                m_Decals.Add(d);                
+                m_Decals.Add(d);
             }
         }
 
@@ -79,7 +83,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_CubeMesh == null)
                 CreateCubeMesh();
             foreach (var decal in m_Decals)
-            {              
+            {
 				decal.UpdatePropertyBlock(cameraPos);
                 cmd.DrawMesh(m_CubeMesh, decal.transform.localToWorldMatrix, decal.m_Material, 0, 0, decal.GetPropertyBlock());
             }
