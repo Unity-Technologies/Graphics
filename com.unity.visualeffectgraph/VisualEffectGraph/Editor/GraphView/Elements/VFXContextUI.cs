@@ -620,10 +620,11 @@ namespace UnityEditor.VFX.UI
 
             void IDisposable.Dispose()
             {
-                DataWatchService.sharedInstance.PollNativeData();
+                VFXView view = m_Context.GetFirstAncestorOfType<VFXView>();
+                view.controller.ApplyChanges();
                 (m_Context.panel as BaseVisualElementPanel).ValidateLayout();
 
-                m_Context.GetFirstAncestorOfType<VFXView>().PushUnderContext(m_Context, m_Context.layout.size.y - m_PrevSize);
+                view.PushUnderContext(m_Context, m_Context.layout.size.y - m_PrevSize);
             }
         }
 

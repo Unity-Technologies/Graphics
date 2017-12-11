@@ -7,7 +7,7 @@ using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
-    public class Controller
+    public abstract class Controller
     {
         public static T CreateInstance<T>() where T : new()
         {
@@ -68,6 +68,8 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public abstract void ApplyChanges();
+
         List<IEventHandler> m_EventHandlers = new List<IEventHandler>();
     }
 
@@ -93,6 +95,22 @@ namespace UnityEditor.VFX.UI
         }
 
         protected abstract void ModelChanged(UnityEngine.Object obj);
+
+
+        public virtual  IEnumerable<Controller> allChildren
+        {
+            get { return Enumerable.Empty<Controller>(); }
+        }
+
+        public override void ApplyChanges()
+        {
+            ModelChanged(model);
+
+            foreach (var controller in allChildren)
+            {
+                controller.ApplyChanges();
+            }
+        }
 
         public T model { get { return m_Model; } }
     }

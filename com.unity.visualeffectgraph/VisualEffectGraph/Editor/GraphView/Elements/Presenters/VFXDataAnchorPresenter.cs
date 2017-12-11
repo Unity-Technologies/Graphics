@@ -11,6 +11,8 @@ namespace UnityEditor.VFX.UI
     {
         void Connect(VFXEdgeController edgePresenter);
         void Disconnect(VFXEdgeController edgePresenter);
+
+        Direction direction {get; }
     }
 
     abstract class VFXDataAnchorPresenter : VFXController<VFXSlot>, IVFXAnchorPresenter, IPropertyRMProvider, IValuePresenter

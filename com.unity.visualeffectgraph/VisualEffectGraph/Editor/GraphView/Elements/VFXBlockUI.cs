@@ -41,15 +41,6 @@ namespace UnityEditor.VFX.UI
             edgeDrawer.RemoveFromHierarchy();
         }
 
-        protected internal override void ExecuteDefaultAction(EventBase evt)
-        {
-            if (evt is DetachFromPanelEvent)
-            {
-                Debug.Log("block removed");
-            }
-            base.ExecuteDefaultAction(evt);
-        }
-
         void OnToggleEnable()
         {
             var presenter = controller;

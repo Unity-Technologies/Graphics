@@ -53,6 +53,8 @@ namespace UnityEditor.VFX.Test
 
             var newContext = m_ViewPresenter.AddVFXContext(new Vector2(100, 100), initContextDesc);
 
+            m_ViewPresenter.ApplyChanges();
+
             Assert.AreEqual(m_ViewPresenter.allChildren.Where(t => t is VFXContextPresenter).Count(), 1);
 
             var contextPresenter = m_ViewPresenter.allChildren.OfType<VFXContextPresenter>().First();
@@ -63,9 +65,12 @@ namespace UnityEditor.VFX.Test
 
             contextPresenter.AddBlock(0, flipBookBlockDesc.CreateInstance());
 
+            m_ViewPresenter.ApplyChanges();
+
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
 
             VFXView view = window.graphView;
+            view.controller = m_ViewPresenter;
 
             view.ClearSelection();
             foreach (var element in view.Query().OfType<GraphElement>().ToList().OfType<ISelectable>())
@@ -122,6 +127,7 @@ namespace UnityEditor.VFX.Test
 
             var newOperator = m_ViewPresenter.AddVFXOperator(new Vector2(100, 100), crossOperatorDesc);
 
+            m_ViewPresenter.ApplyChanges();
             var operatorPresenter = m_ViewPresenter.allChildren.OfType<VFXOperatorPresenter>().First();
 
             Assert.AreEqual(operatorPresenter.model, newOperator);
@@ -264,6 +270,7 @@ namespace UnityEditor.VFX.Test
 
             var newContext = m_ViewPresenter.AddVFXContext(new Vector2(100, 100), initContextDesc);
 
+            m_ViewPresenter.ApplyChanges();
             Assert.AreEqual(m_ViewPresenter.allChildren.Where(t => t is VFXContextPresenter).Count(), 1);
 
             var contextPresenter = m_ViewPresenter.allChildren.OfType<VFXContextPresenter>().First();
@@ -275,6 +282,8 @@ namespace UnityEditor.VFX.Test
             contextPresenter.AddBlock(0, flipBookBlockDesc.CreateInstance());
 
             var newBlock = contextPresenter.context.children.First();
+
+            m_ViewPresenter.ApplyChanges();
 
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
 

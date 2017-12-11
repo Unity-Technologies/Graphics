@@ -6,7 +6,7 @@ using UnityEditor.Experimental.UIElements.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXSettingPresenter : IPropertyRMProvider
+    class VFXSettingPresenter : Controller, IPropertyRMProvider
     {
         [SerializeField]
         IVFXSlotContainer m_Owner;
@@ -108,6 +108,10 @@ namespace UnityEditor.VFX.UI
         }
 
         public void RetractPath()
+        {
+        }
+
+        public override void ApplyChanges()
         {
         }
     }

@@ -51,7 +51,7 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        public IEnumerable<Controller> allChildren
+        public override IEnumerable<Controller> allChildren
         {
             get { return m_SyncedModels.Values.Cast<Controller>().Concat(m_DataEdges.Cast<Controller>()).Concat(m_FlowEdges.Cast<Controller>()); }
         }
@@ -61,12 +61,13 @@ namespace UnityEditor.VFX.UI
             base.OnEnable();
         }
 
-        protected void OnDisable()
+        public override void OnDisable()
         {
             RemoveInvalidateDelegate(model, InvalidateExpressionGraph);
             ReleaseUndoStack();
             Undo.undoRedoPerformed -= SynchronizeUndoRedoState;
             Undo.willFlushUndoRecord -= WillFlushUndoRecord;
+            base.OnDisable();
         }
 
         IEnumerable<VFXSlotContainerPresenter> AllSlotContainerPresenters

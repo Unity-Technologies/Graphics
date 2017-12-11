@@ -278,7 +278,7 @@ namespace UnityEditor.VFX.UI
             targetModelContext.Invalidate(VFXModel.InvalidationCause.kStructureChanged);
 
             // Create all ui based on model
-            DataWatchService.sharedInstance.PollNativeData();
+            view.controller.ApplyChanges();
 
             view.ClearSelection();
 
@@ -354,7 +354,7 @@ namespace UnityEditor.VFX.UI
                 graph.AddChild(m);
 
             // Create all ui based on model
-            DataWatchService.sharedInstance.PollNativeData();
+            view.controller.ApplyChanges();
 
             view.ClearSelection();
 

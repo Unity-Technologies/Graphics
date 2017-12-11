@@ -6,7 +6,7 @@ using UnityEditor.Experimental.UIElements.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXEdgeController : Controller
+    abstract class VFXEdgeController : Controller
     {
     }
 
@@ -16,6 +16,15 @@ namespace UnityEditor.VFX.UI
         T m_Output;
         public virtual void Init(T input, T output)
         {
+            if (input.direction != Direction.Input)
+            {
+                Debug.LogError("Input has the wrong direction");
+            }
+
+            if (output.direction != Direction.Output)
+            {
+                Debug.LogError("Input has the wrong direction");
+            }
             m_Input = input;
             m_Output = output;
 
@@ -34,6 +43,10 @@ namespace UnityEditor.VFX.UI
                 m_Input.Disconnect(this);
             if (m_Output != null)
                 m_Output.Disconnect(this);
+        }
+
+        public override void ApplyChanges()
+        {
         }
     }
 

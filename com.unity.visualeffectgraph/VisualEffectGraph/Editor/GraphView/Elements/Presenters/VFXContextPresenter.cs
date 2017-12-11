@@ -235,5 +235,10 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
+
+        public override IEnumerable<Controller> allChildren
+        {
+            get { return Enumerable.Repeat(m_SlotPresenter as Controller, 1).Concat(m_BlockPresenters.Cast<Controller>()); }
+        }
     }
 }

@@ -48,6 +48,10 @@ namespace UnityEditor.VFX.UI
         public Orientation orientation { get { return Orientation.Vertical; } }
 
         public IEnumerable<VFXFlowEdgePresenter> connections { get { return m_Connections; } }
+
+        public override void ApplyChanges()
+        {
+        }
     }
 
     class VFXFlowInputAnchorPresenter : VFXFlowAnchorPresenter

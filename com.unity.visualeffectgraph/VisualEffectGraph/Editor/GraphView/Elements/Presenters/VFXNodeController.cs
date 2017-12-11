@@ -78,5 +78,10 @@ namespace UnityEditor.VFX.UI
         {
             get { return model.name; }
         }
+
+        public override IEnumerable<Controller> allChildren
+        {
+            get { return inputPorts.Cast<Controller>().Concat(outputPorts.Cast<Controller>()); }
+        }
     }
 }

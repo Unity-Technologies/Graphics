@@ -123,6 +123,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public override IEnumerable<Controller> allChildren
+        {
+            get { return base.allChildren.Concat(m_Settings.Cast<Controller>()); }
+        }
+
         [SerializeField]
         private VFXSettingPresenter[] m_Settings;
     }
