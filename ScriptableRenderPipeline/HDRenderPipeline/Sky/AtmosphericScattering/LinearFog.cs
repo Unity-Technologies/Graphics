@@ -11,8 +11,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private readonly static int m_LinearFogParam = Shader.PropertyToID("_LinearFogParameters");
 
         // Linear Fog
-        public ClampedFloatParameter    fogStart = new ClampedFloatParameter { value = 500.0f, min = 0.0f, clampMode = ParameterClampMode.Min };
-        public ClampedFloatParameter    fogEnd = new ClampedFloatParameter { value = 1000.0f, min = 0.0f, clampMode = ParameterClampMode.Min };
+        public MinFloatParameter    fogStart = new MinFloatParameter(500.0f, 0.0f);
+        public MinFloatParameter    fogEnd = new MinFloatParameter(1000.0f, 0.0f);
 
         public override void PushShaderParameters(CommandBuffer cmd, RenderingDebugSettings renderingDebug)
         {

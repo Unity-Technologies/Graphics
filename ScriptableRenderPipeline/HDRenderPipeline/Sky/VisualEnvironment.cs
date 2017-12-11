@@ -6,7 +6,39 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    // TODO instead of hardcoing this, we need to generate the information from the existing sky currently implemented.
+    // Keep this class first in the file. Otherwise it seems that the script type is not registered properly.
+    [Serializable]
+    public sealed class VisualEnvironment : VolumeComponent
+    {
+        public SkyTypeParameter skyType = new SkyTypeParameter(SkyType.None);
+        public FogTypeParameter fogType = new FogTypeParameter(FogType.None);
+
+        public void PushFogShaderParameters(CommandBuffer cmd, RenderingDebugSettings renderingDebug)
+        {
+            switch (fogType.value)
+            {
+                case FogType.None:
+                    {
+                        AtmosphericScattering.PushNeutralShaderParameters(cmd);
+                        break;
+                    }
+                case FogType.Linear:
+                    {
+                        var fogSettings = VolumeManager.instance.GetComponent<LinearFog>();
+                        fogSettings.PushShaderParameters(cmd, renderingDebug);
+                        break;
+                    }
+                case FogType.Exponential:
+                    {
+                        var fogSettings = VolumeManager.instance.GetComponent<ExponentialFog>();
+                        fogSettings.PushShaderParameters(cmd, renderingDebug);
+                        break;
+                    }
+            }
+        }
+    }
+
+    // TODO instead of hardcoding this, we need to generate the information from the existing sky currently implemented.
     public enum SkyType
     {
         None,
@@ -15,37 +47,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     }
     
     [Serializable]
-    public sealed class SkyTypeParameter : VolumeParameter<SkyType> { }
-
-
-    [Serializable]
-    public sealed class VisualEnvironment : VolumeComponent
+    public sealed class SkyTypeParameter : VolumeParameter<SkyType>
     {
-        public SkyTypeParameter skyType = new SkyTypeParameter { value = SkyType.ProceduralSky };
-        public AtmosphericScattering.FogTypeParameter fogType = new AtmosphericScattering.FogTypeParameter { value = AtmosphericScattering.FogType.None };
-
-        public void PushFogShaderParameters(CommandBuffer cmd, RenderingDebugSettings renderingDebug)
+        public SkyTypeParameter(SkyType value, bool overrideState = false)
+            : base(value, overrideState)
         {
-            switch(fogType.value)
-            {
-                case AtmosphericScattering.FogType.None:
-                    {
-                        AtmosphericScattering.PushNeutralShaderParameters(cmd);
-                        break;
-                    }
-                case AtmosphericScattering.FogType.Linear:
-                    {
-                        var fogSettings = VolumeManager.instance.GetComponent<LinearFog>();
-                        fogSettings.PushShaderParameters(cmd, renderingDebug);
-                        break;
-                    }
-                case AtmosphericScattering.FogType.Exponential:
-                    {
-                        var fogSettings = VolumeManager.instance.GetComponent<ExponentialFog>();
-                        fogSettings.PushShaderParameters(cmd, renderingDebug);
-                        break;
-                    }
-            }
         }
     }
 }

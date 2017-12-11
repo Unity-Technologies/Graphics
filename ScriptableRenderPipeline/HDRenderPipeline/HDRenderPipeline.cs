@@ -1373,8 +1373,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             visualEnv.PushFogShaderParameters(cmd, m_DebugDisplaySettings.renderingDebugSettings);
 
             m_SkyManager.RenderSky(hdCamera, m_LightLoop.GetCurrentSunLight(), m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, cmd);
-            if(visualEnv.fogType != AtmosphericScattering.FogType.None)
-            m_SkyManager.RenderOpaqueAtmosphericScattering(cmd);
+            if(visualEnv.fogType != FogType.None)
+                m_SkyManager.RenderOpaqueAtmosphericScattering(cmd);
         }
 
         public Texture2D ExportSkyToTexture()

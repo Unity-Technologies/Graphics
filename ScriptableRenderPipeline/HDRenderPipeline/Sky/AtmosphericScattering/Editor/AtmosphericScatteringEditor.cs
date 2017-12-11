@@ -34,7 +34,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             PropertyField(m_Density);
             PropertyField(m_ColorMode);
             EditorGUI.indentLevel++;
-            if(!m_ColorMode.value.hasMultipleDifferentValues && (AtmosphericScattering.FogColorMode)m_ColorMode.value.intValue == AtmosphericScattering.FogColorMode.ConstantColor)
+            if(!m_ColorMode.value.hasMultipleDifferentValues && (FogColorMode)m_ColorMode.value.intValue == FogColorMode.ConstantColor)
             {
                 PropertyField(m_Color);
             }

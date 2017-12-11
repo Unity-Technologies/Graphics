@@ -4,7 +4,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class HDRISky : SkySettings
     {
         [Tooltip("Cubemap used to render the sky.")]
-        public CubemapParameter skyHDRI = new CubemapParameter { value = null };
+        public CubemapParameter skyHDRI = new CubemapParameter(null);
 
         public override SkyRenderer GetRenderer()
         {
