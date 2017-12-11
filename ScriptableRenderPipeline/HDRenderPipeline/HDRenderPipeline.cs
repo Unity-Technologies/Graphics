@@ -897,10 +897,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             buildGPULightListsCompleteFence = m_LightLoop.BuildGPULightListsAsyncBegin(camera, renderContext, m_CameraDepthStencilBufferRT, m_CameraStencilBufferCopyRT, startFence);
                         }
 
-                        // Render the volumetric lighting.
-                        // The pass only requires the volume properties and the light list, and can run async.
-                        VolumetricLightingPass(hdCamera, cmd);
-
                         using (new ProfilingSample(cmd, "Render shadows", GetSampler(CustomSamplerId.RenderShadows)))
                         {
                             m_LightLoop.RenderShadows(renderContext, cmd, m_CullResults);
@@ -943,6 +939,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 m_LightLoop.BuildGPULightLists(camera, cmd, m_CameraDepthStencilBufferRT, m_CameraStencilBufferCopyRT);
                             }
                         }
+
+                        // Render the volumetric lighting.
+                        // The pass requires the volume properties, the light list and the shadows, and can run async.
+                        VolumetricLightingPass(hdCamera, cmd);
 
                         // Caution: We require sun light here as some sky use the sun light to render, mean UpdateSkyEnvironment
                         // must be call after BuildGPULightLists.
