@@ -215,12 +215,25 @@ float3x3 GetRotationMatrix(float3 axis,float angle)
                     t * x * z - s * y,  t * y * z + s * x,  t * z * z + c);
 }
 
+float4x4 GetPrimitiveToVFXMatrix(float3 side,float3 up,float3 front,float3 angle,float3 pivot,float3 size,float3 pos)
+{
+    float3x3 rot = GetRotationMatrix(up,radians(angle.y));
+    rot = mul(rot,GetRotationMatrix(side,radians(angle.x)));
+    rot = mul(rot,GetRotationMatrix(front,radians(angle.z)));
+    rot = mul(rot,transpose(float3x3(side * size.x,up * size.y,front * size.z)));
+    pos -= pivot * size;
+    return float4x4(
+        float4(rot[0],pos.x),
+        float4(rot[1],pos.y),
+        float4(rot[2],pos.z),
+        float4(0,0,0,1));
+}
+
 float3 TransformInElementSpace(float3 offsets,float3 side,float3 up,float3 front,float3x3 rot,float3 pivot,float3 size)
 {
     offsets -= pivot;
     offsets *= size;
     float3 tOffsets = mul(rot,side * offsets.x + up * offsets.y + front * offsets.z);
-    //tOffsets += front * offsets.z;
     return tOffsets;
 }
 

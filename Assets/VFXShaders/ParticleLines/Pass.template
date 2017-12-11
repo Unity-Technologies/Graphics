@@ -23,14 +23,12 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 			if (!alive)
 				return o;
 			
-			#if TARGET_FROM_ATTRIBUTES
-			float3x3 rot = GetRotationMatrix(front,radians(angle));	
-			targetPosition = position;
-			
-			position += TransformInElementSpace((float3)0.0f,side,up,front,rot,pivot,float3(size,1.0f));
+			float4x4 primitiveToVFX = GetPrimitiveToVFXMatrix(side,up,front,float3(0,0,0),pivot,float3(size,1.0f),position);
+			#if TARGET_FROM_ATTRIBUTES			
+			position = mul(primitiveToVFX,float4(0,0,0,1));
 			
 			${VFXLoadParameter:{targetOffset}}
-			targetPosition += TransformInElementSpace(targetOffset,side,up,front,rot,pivot,float3(size,1.0f));
+			targetPosition = mul(primitiveToVFX,float4(targetOffset,1));
 			#endif
 				
 			float3 vPos = id & 1 ? targetPosition : position;

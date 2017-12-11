@@ -73,44 +73,44 @@ namespace UnityEditor.VFX.Block
 float3x3 viewRot = GetVFXToViewRotMatrix();
 side = viewRot[0].xyz;
 up = viewRot[1].xyz;
-front = viewRot[2].xyz;
+front = -viewRot[2].xyz;
 ";
 
                     case Mode.FaceCameraPosition:
                         return @"
-front = normalize(GetViewVFXPosition() - position);
-side = normalize(cross(front,GetVFXToViewRotMatrix()[1].xyz));
-up = cross(side,front);
+front = normalize(position - GetViewVFXPosition());
+side = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,front));
+up = cross(front,side);
 ";
 
                     case Mode.LookAtPosition:
                         return @"
-front = normalize(Position_position - position);
-side = normalize(cross(front,GetVFXToViewRotMatrix()[1].xyz));
-up = cross(side,front);
+front = normalize(position - Position_position);
+side = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,front));
+up = cross(front,side);
 ";
 
                     case Mode.FixedOrientation:
                         return @"
 front = Front;
-side = normalize(cross(front,Up));
-up = cross(side,front);
+side = normalize(cross(Up,front));
+up = cross(front,side);
 ";
 
                     case Mode.FixedAxis:
                         return @"
 up = Up;
-front = GetViewVFXPosition() - position;
-side = normalize(cross(front,up));
-front = cross(up,side);
+front = position - GetViewVFXPosition();
+side = normalize(cross(up,front));
+front = cross(side,up);
 ";
 
                     case Mode.AlongVelocity:
                         return @"
 up = normalize(velocity);
-front = GetViewVFXPosition() - position;
-side = normalize(cross(front,up));
-front = cross(up,side);
+front = position - GetViewVFXPosition();
+side = normalize(cross(up,front));
+front = cross(side,up);
 ";
 
                     default:
