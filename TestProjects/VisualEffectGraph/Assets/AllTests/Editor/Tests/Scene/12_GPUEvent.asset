@@ -1472,7 +1472,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Vector2, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"x":1.0,"y":2.0}'
+      m_SerializableObject: '{"x":0.8999999761581421,"y":3.0}'
   m_Property:
     name: period
     m_serializedType:
@@ -17102,9 +17102,9 @@ VFXAsset:
       - m_ExpressionIndex: 89
         m_Value: 1
       - m_ExpressionIndex: 90
-        m_Value: 2
+        m_Value: 3
       - m_ExpressionIndex: 91
-        m_Value: 1
+        m_Value: 0.9
       - m_ExpressionIndex: 92
         m_Value: 0
       - m_ExpressionIndex: 93
@@ -17617,46 +17617,6 @@ VFXAsset:
         structure: 4
         element: 3
   - type: 1
-    size: 786432
-    capacity: 65536
-    layout:
-    - name: lifetime
-      type: 1
-      offset:
-        bucket: 0
-        structure: 1
-        element: 0
-    - name: position
-      type: 3
-      offset:
-        bucket: 65536
-        structure: 8
-        element: 0
-    - name: color
-      type: 3
-      offset:
-        bucket: 65536
-        structure: 8
-        element: 4
-    - name: texIndex
-      type: 1
-      offset:
-        bucket: 589824
-        structure: 3
-        element: 0
-    - name: alive
-      type: 14
-      offset:
-        bucket: 589824
-        structure: 3
-        element: 1
-    - name: age
-      type: 1
-      offset:
-        bucket: 589824
-        structure: 3
-        element: 2
-  - type: 1
     size: 1114096
     capacity: 65535
     layout:
@@ -17736,16 +17696,56 @@ VFXAsset:
         bucket: 589824
         structure: 3
         element: 2
-  - type: 2
-    size: 65535
-    capacity: 0
-    layout: []
+  - type: 1
+    size: 786432
+    capacity: 65536
+    layout:
+    - name: lifetime
+      type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+    - name: position
+      type: 3
+      offset:
+        bucket: 65536
+        structure: 8
+        element: 0
+    - name: color
+      type: 3
+      offset:
+        bucket: 65536
+        structure: 8
+        element: 4
+    - name: texIndex
+      type: 1
+      offset:
+        bucket: 589824
+        structure: 3
+        element: 0
+    - name: alive
+      type: 14
+      offset:
+        bucket: 589824
+        structure: 3
+        element: 1
+    - name: age
+      type: 1
+      offset:
+        bucket: 589824
+        structure: 3
+        element: 2
   - type: 2
     size: 65535
     capacity: 0
     layout: []
   - type: 2
     size: 65536
+    capacity: 0
+    layout: []
+  - type: 2
+    size: 65535
     capacity: 0
     layout: []
   - type: 2
@@ -17787,18 +17787,6 @@ VFXAsset:
     capacity: 0
     layout: []
   - type: 2
-    size: 65536
-    capacity: 0
-    layout: []
-  - type: 1
-    size: 1
-    capacity: 0
-    layout: []
-  - type: 2
-    size: 65536
-    capacity: 0
-    layout: []
-  - type: 2
     size: 65535
     capacity: 0
     layout: []
@@ -17808,6 +17796,18 @@ VFXAsset:
     layout: []
   - type: 2
     size: 65535
+    capacity: 0
+    layout: []
+  - type: 2
+    size: 65536
+    capacity: 0
+    layout: []
+  - type: 1
+    size: 1
+    capacity: 0
+    layout: []
+  - type: 2
+    size: 65536
     capacity: 0
     layout: []
   - type: 2
@@ -17921,7 +17921,7 @@ VFXAsset:
         nameId: indirectBuffer
       - index: 5
         nameId: eventListOut_b
-      - index: 8
+      - index: 6
         nameId: eventListOut_c
       values:
       - index: 194
@@ -17962,12 +17962,12 @@ VFXAsset:
       nameId: attributeBuffer
     - index: 0
       nameId: sourceAttributeBuffer
+    - index: 5
+      nameId: eventList
     - index: 13
       nameId: deadList
     - index: 14
       nameId: deadListCount
-    - index: 5
-      nameId: eventList
     - index: 15
       nameId: indirectBuffer
     values:
@@ -18019,9 +18019,9 @@ VFXAsset:
         nameId: deadListOut
       - index: 15
         nameId: indirectBuffer
-      - index: 6
-        nameId: eventListOut_b
       - index: 7
+        nameId: eventListOut_b
+      - index: 8
         nameId: eventListOut_c
       values:
       - index: 187
@@ -18054,117 +18054,19 @@ VFXAsset:
     layer: 1
   - type: 1
     flags: 7
-    capacity: 65536
+    capacity: 65535
     buffers:
     - index: 2
       nameId: attributeBuffer
-    - index: 0
+    - index: 1
       nameId: sourceAttributeBuffer
+    - index: 7
+      nameId: eventList
     - index: 16
       nameId: deadList
     - index: 17
       nameId: deadListCount
-    - index: 8
-      nameId: eventList
     - index: 18
-      nameId: indirectBuffer
-    values:
-    - index: 162
-      nameId: bounds_center
-    - index: 185
-      nameId: bounds_size
-    tasks:
-    - type: 536870912
-      buffers:
-      - index: 2
-        nameId: attributeBuffer
-      - index: 8
-        nameId: eventList
-      - index: 16
-        nameId: deadListIn
-      - index: 17
-        nameId: deadListCount
-      - index: 0
-        nameId: sourceAttributeBuffer
-      values:
-      - index: 169
-        nameId: uniform_Min_b
-      - index: 168
-        nameId: uniform_Max_b
-      - index: 161
-        nameId: uniform_Circle_radius_c
-      - index: 159
-        nameId: uniform_Circle_arc_c
-      - index: 59
-        nameId: uniform_f
-      - index: 65
-        nameId: uniform_g
-      - index: 112
-        nameId: uniform_h
-      - index: 170
-        nameId: uniform_MinValue_f
-      - index: 167
-        nameId: uniform_MaxValue_f
-      params: []
-      processor: {fileID: 7200000, guid: 204a733728a7a294d9f27f9282850f0d, type: 3}
-    - type: 805306368
-      buffers:
-      - index: 2
-        nameId: attributeBuffer
-      - index: 16
-        nameId: deadListOut
-      - index: 18
-        nameId: indirectBuffer
-      values:
-      - index: 149
-        nameId: uniform_FrameRate_b
-      - index: 45
-        nameId: uniform_deltaTime_b
-      params: []
-      processor: {fileID: 7200000, guid: 9b00875c3cee8694994a2e7d7212d374, type: 3}
-    - type: 1073741826
-      buffers:
-      - index: 2
-        nameId: attributeBuffer
-      - index: 18
-        nameId: indirectBuffer
-      values:
-      - index: 62
-        nameId: uniform_b
-      - index: 123
-        nameId: uniform_c
-      - index: 63
-        nameId: uniform_d
-      - index: 122
-        nameId: uniform_e
-      - index: 113
-        nameId: uniform_flipBookSize
-      - index: 154
-        nameId: uniform_invFlipBookSize
-      - index: 152
-        nameId: texture_texture
-      params:
-      - index: 0
-        nameId: sortPriority
-      - index: 1
-        nameId: indirectDraw
-      processor: {fileID: 4800000, guid: 4586580546bfa0048903b2019bdc2d37, type: 3}
-    layer: 1
-  - type: 1
-    flags: 7
-    capacity: 65535
-    buffers:
-    - index: 3
-      nameId: attributeBuffer
-    - index: 1
-      nameId: sourceAttributeBuffer
-    - index: 19
-      nameId: deadList
-    - index: 20
-      nameId: deadListCount
-    - index: 6
-      nameId: eventList
-    - index: 21
       nameId: indirectBuffer
     values:
     - index: 176
@@ -18174,13 +18076,13 @@ VFXAsset:
     tasks:
     - type: 536870912
       buffers:
-      - index: 3
+      - index: 2
         nameId: attributeBuffer
-      - index: 6
+      - index: 7
         nameId: eventList
-      - index: 19
+      - index: 16
         nameId: deadListIn
-      - index: 20
+      - index: 17
         nameId: deadListCount
       - index: 1
         nameId: sourceAttributeBuffer
@@ -18211,11 +18113,11 @@ VFXAsset:
       processor: {fileID: 7200000, guid: a77e1fb70a856b648a9b76a304e0c34e, type: 3}
     - type: 805306368
       buffers:
-      - index: 3
+      - index: 2
         nameId: attributeBuffer
-      - index: 19
+      - index: 16
         nameId: deadListOut
-      - index: 21
+      - index: 18
         nameId: indirectBuffer
       values:
       - index: 198
@@ -18226,9 +18128,9 @@ VFXAsset:
       processor: {fileID: 7200000, guid: f87bf4e8e360cad44bbc77ad3fa54d1c, type: 3}
     - type: 1073741826
       buffers:
-      - index: 3
+      - index: 2
         nameId: attributeBuffer
-      - index: 21
+      - index: 18
         nameId: indirectBuffer
       values:
       - index: 55
@@ -18250,17 +18152,17 @@ VFXAsset:
     flags: 7
     capacity: 65536
     buffers:
-    - index: 4
+    - index: 3
       nameId: attributeBuffer
     - index: 1
       nameId: sourceAttributeBuffer
-    - index: 22
-      nameId: deadList
-    - index: 23
-      nameId: deadListCount
-    - index: 7
+    - index: 8
       nameId: eventList
-    - index: 24
+    - index: 19
+      nameId: deadList
+    - index: 20
+      nameId: deadListCount
+    - index: 21
       nameId: indirectBuffer
     values:
     - index: 171
@@ -18270,13 +18172,13 @@ VFXAsset:
     tasks:
     - type: 536870912
       buffers:
-      - index: 4
+      - index: 3
         nameId: attributeBuffer
-      - index: 7
+      - index: 8
         nameId: eventList
-      - index: 22
+      - index: 19
         nameId: deadListIn
-      - index: 23
+      - index: 20
         nameId: deadListCount
       - index: 1
         nameId: sourceAttributeBuffer
@@ -18297,11 +18199,11 @@ VFXAsset:
       processor: {fileID: 7200000, guid: 06afaabbf46b7cb4c82b49e13a1d5bef, type: 3}
     - type: 805306368
       buffers:
-      - index: 4
+      - index: 3
         nameId: attributeBuffer
-      - index: 22
+      - index: 19
         nameId: deadListOut
-      - index: 24
+      - index: 21
         nameId: indirectBuffer
       values:
       - index: 193
@@ -18312,9 +18214,9 @@ VFXAsset:
       processor: {fileID: 7200000, guid: c5cac71d45c83174b976df525174233a, type: 3}
     - type: 1073741826
       buffers:
-      - index: 4
+      - index: 3
         nameId: attributeBuffer
-      - index: 24
+      - index: 21
         nameId: indirectBuffer
       values:
       - index: 62
@@ -18338,6 +18240,104 @@ VFXAsset:
         nameId: indirectDraw
       processor: {fileID: 4800000, guid: 191156d87998a0948a426068630c6c6d, type: 3}
     layer: 2
+  - type: 1
+    flags: 7
+    capacity: 65536
+    buffers:
+    - index: 4
+      nameId: attributeBuffer
+    - index: 0
+      nameId: sourceAttributeBuffer
+    - index: 6
+      nameId: eventList
+    - index: 22
+      nameId: deadList
+    - index: 23
+      nameId: deadListCount
+    - index: 24
+      nameId: indirectBuffer
+    values:
+    - index: 162
+      nameId: bounds_center
+    - index: 185
+      nameId: bounds_size
+    tasks:
+    - type: 536870912
+      buffers:
+      - index: 4
+        nameId: attributeBuffer
+      - index: 6
+        nameId: eventList
+      - index: 22
+        nameId: deadListIn
+      - index: 23
+        nameId: deadListCount
+      - index: 0
+        nameId: sourceAttributeBuffer
+      values:
+      - index: 169
+        nameId: uniform_Min_b
+      - index: 168
+        nameId: uniform_Max_b
+      - index: 161
+        nameId: uniform_Circle_radius_c
+      - index: 159
+        nameId: uniform_Circle_arc_c
+      - index: 59
+        nameId: uniform_f
+      - index: 65
+        nameId: uniform_g
+      - index: 112
+        nameId: uniform_h
+      - index: 170
+        nameId: uniform_MinValue_f
+      - index: 167
+        nameId: uniform_MaxValue_f
+      params: []
+      processor: {fileID: 7200000, guid: 204a733728a7a294d9f27f9282850f0d, type: 3}
+    - type: 805306368
+      buffers:
+      - index: 4
+        nameId: attributeBuffer
+      - index: 22
+        nameId: deadListOut
+      - index: 24
+        nameId: indirectBuffer
+      values:
+      - index: 149
+        nameId: uniform_FrameRate_b
+      - index: 45
+        nameId: uniform_deltaTime_b
+      params: []
+      processor: {fileID: 7200000, guid: 9b00875c3cee8694994a2e7d7212d374, type: 3}
+    - type: 1073741826
+      buffers:
+      - index: 4
+        nameId: attributeBuffer
+      - index: 24
+        nameId: indirectBuffer
+      values:
+      - index: 62
+        nameId: uniform_b
+      - index: 123
+        nameId: uniform_c
+      - index: 63
+        nameId: uniform_d
+      - index: 122
+        nameId: uniform_e
+      - index: 113
+        nameId: uniform_flipBookSize
+      - index: 154
+        nameId: uniform_invFlipBookSize
+      - index: 152
+        nameId: texture_texture
+      params:
+      - index: 0
+        nameId: sortPriority
+      - index: 1
+        nameId: indirectDraw
+      processor: {fileID: 4800000, guid: 4586580546bfa0048903b2019bdc2d37, type: 3}
+    layer: 1
   m_Events:
   - name: OnStart
     startSystems: 00000000

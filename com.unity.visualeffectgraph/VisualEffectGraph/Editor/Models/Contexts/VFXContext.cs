@@ -370,14 +370,27 @@ namespace UnityEditor.VFX
             }
         }
 
+        private IEnumerable<IVFXSlotContainer> allSlotContainer
+        {
+            get
+            {
+                return activeChildrenWithImplicit.OfType<IVFXSlotContainer>().Concat(Enumerable.Repeat(this as IVFXSlotContainer, 1));
+            }
+        }
+
         public IEnumerable<VFXSlot> allLinkedOutputSlot
         {
             get
             {
-                var linkedOutCount =    activeChildrenWithImplicit.OfType<IVFXSlotContainer>()
-                    .Concat(Enumerable.Repeat(this as IVFXSlotContainer, 1))
-                    .SelectMany(o => o.outputSlots.SelectMany(s => s.LinkedSlots));
-                return linkedOutCount;
+                return allSlotContainer.SelectMany(o => o.outputSlots.SelectMany(s => s.LinkedSlots));
+            }
+        }
+
+        public IEnumerable<VFXSlot> allLinkedInputSlot
+        {
+            get
+            {
+                return allSlotContainer.SelectMany(o => o.inputSlots.SelectMany(s => s.LinkedSlots));
             }
         }
 

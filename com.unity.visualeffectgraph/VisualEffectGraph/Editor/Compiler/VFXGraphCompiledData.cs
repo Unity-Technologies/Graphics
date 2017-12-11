@@ -485,7 +485,7 @@ namespace UnityEditor.VFX
             Profiler.BeginSample("VFXEditor.CompileAsset");
             try
             {
-                float nbSteps = 9.0f;
+                float nbSteps = 10.0f;
                 string progressBarTitle = "Compiling VFX...";
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Collect dependencies", 0 / nbSteps);
@@ -498,11 +498,15 @@ namespace UnityEditor.VFX
                 foreach (var data in compilableData)
                     data.CollectAttributes();
 
-                EditorUtility.DisplayProgressBar(progressBarTitle, "Compile expression Graph", 2 / nbSteps);
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Compute layers", 2 / nbSteps);
+                foreach (var data in compilableData)
+                    data.ComputeLayer();
+
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Compile expression Graph", 3 / nbSteps);
                 m_ExpressionGraph = new VFXExpressionGraph();
                 m_ExpressionGraph.CompileExpressions(m_Graph, VFXExpressionContextOption.Reduction, true);
 
-                EditorUtility.DisplayProgressBar(progressBarTitle, "Generate bytecode", 3 / nbSteps);
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Generate bytecode", 4 / nbSteps);
                 var expressionDescs = new List<VFXExpressionDesc>();
                 var valueDescs = new List<VFXExpressionValueContainerDescAbstract>();
                 FillExpressionDescs(expressionDescs, valueDescs, m_ExpressionGraph);
@@ -511,7 +515,7 @@ namespace UnityEditor.VFX
                 foreach (var context in compilableContexts)
                     contextToCompiledData.Add(context, new VFXContextCompiledData());
 
-                EditorUtility.DisplayProgressBar(progressBarTitle, "Generate mappings", 4 / nbSteps);
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Generate mappings", 5 / nbSteps);
                 foreach (var context in compilableContexts)
                 {
                     uint contextId = (uint)context.GetParent().GetIndex(context);
@@ -527,7 +531,7 @@ namespace UnityEditor.VFX
                 var globalEventAttributeDescs = new List<VFXLayoutElementDesc>() { new VFXLayoutElementDesc() { name = "spawnCount", type = VFXValueType.kFloat } };
                 FillEventAttributeDescs(globalEventAttributeDescs, m_ExpressionGraph, compilableContexts);
 
-                EditorUtility.DisplayProgressBar(progressBarTitle, "Generate Attribute layouts", 5 / nbSteps);
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Generate Attribute layouts", 6 / nbSteps);
                 foreach (var data in compilableData)
                     data.GenerateAttributeLayout();
 
@@ -541,16 +545,16 @@ namespace UnityEditor.VFX
 
                 var generatedCodeData = new List<GeneratedCodeData>();
 
-                EditorUtility.DisplayProgressBar(progressBarTitle, "Generate shaders", 6 / nbSteps);
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Generate shaders", 7 / nbSteps);
                 GenerateShaders(generatedCodeData, m_ExpressionGraph, compilableContexts, contextToCompiledData);
-                EditorUtility.DisplayProgressBar(progressBarTitle, "Write shader files", 7 / nbSteps);
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Write shader files", 8 / nbSteps);
                 SaveShaderFiles(m_Graph.vfxAsset, generatedCodeData, contextToCompiledData);
 
                 var bufferDescs = new List<VFXGPUBufferDesc>();
                 var cpuBufferDescs = new List<VFXCPUBufferDesc>();
                 var systemDescs = new List<VFXSystemDesc>();
 
-                EditorUtility.DisplayProgressBar(progressBarTitle, "Generate native systems", 8 / nbSteps);
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Generate native systems", 9 / nbSteps);
                 cpuBufferDescs.Add(new VFXCPUBufferDesc()
                 {
                     capacity = 1u,
@@ -566,70 +570,9 @@ namespace UnityEditor.VFX
 
                 //Compute all eventGPU desc
                 /* WIP : Begin */
-
-                // Prerequisite : compute direct dependencies with gpu event
-                var allGPUEvent = compilableContexts.SelectMany(o => o.inputContexts).Where(o => o.contextType == VFXContextType.kSpawnerGPU).ToList();
-                var gpuEventParentSystem = allGPUEvent.Select(o => new
-                {
-                    gpuEvent = o,
-                    dependsOn = o.inputSlots.Concat(o.children.SelectMany(b => b.inputSlots))
-                        .SelectMany(s => s.LinkedSlots)
-                        .Select(b => b.owner)
-                        .OfType<VFXBlock>()
-                        .Select(b => b.GetParent().GetData() as VFXDataParticle)
-                        .Distinct()
-                        .ToArray(),
-                }).ToList();
-
-                //First, we process level 0 : every data which needed by gpu event but independent
-                var dataProcessed = new List<VFXDataParticle>();
-                var particleDataLayered = new List<List<VFXDataParticle>>();
-                particleDataLayered.Add(gpuEventParentSystem.SelectMany(o => o.dependsOn)
-                    .Where(o => !o.owners.Any(c => c.contextType == VFXContextType.kInit && c.inputContexts.Any(t => t.contextType == VFXContextType.kSpawnerGPU)))
-                    .Distinct().ToList());
-                dataProcessed.AddRange(particleDataLayered[0]);
-
-                //Then, process all existing GPU event node
-                while (allGPUEvent.Count > 0)
-                {
-                    var processableLayer = allGPUEvent.Where(gpuEvent =>
-                        {
-                            var dependencies = gpuEventParentSystem.First(o => o.gpuEvent == gpuEvent).dependsOn;
-                            return dependencies.All(d => dataProcessed.Contains(d));
-                        }).ToList();
-
-                    if (processableLayer.Count == 0)
-                    {
-                        throw new InvalidOperationException("Unexpected graph of gpu event");
-                    }
-
-                    allGPUEvent.RemoveAll(o => processableLayer.Contains(o));
-                    var currentLayer = processableLayer.SelectMany(o => o.outputContexts).Select(o => o.GetData() as VFXDataParticle).Distinct().ToList();
-                    dataProcessed.AddRange(currentLayer);
-                    particleDataLayered.Add(currentLayer);
-                }
-
-                //Finally, we can add all other (scatter through depth to equalize charge, simple heuristic)
-                var allOtherIndependant = new Stack<VFXDataParticle>(compilableData.OfType<VFXDataParticle>().Except(dataProcessed));
-
-                int depth = 0;
-                while (allOtherIndependant.Count > 0)
-                {
-                    var current = allOtherIndependant.Pop();
-                    particleDataLayered[depth].Add(current);
-                    depth = (depth + 1) % particleDataLayered.Count;
-                }
-
-                //Optional check
-                if (compilableData.OfType<VFXDataParticle>().Count() != particleDataLayered.SelectMany(o => o).Count()
-                    ||  particleDataLayered.SelectMany(o => o).Distinct().Count() != particleDataLayered.SelectMany(o => o).Count())
-                {
-                    throw new InvalidOperationException("Unexpected compute of data particle layers");
-                }
-
                 //Prepare all attribute buffer
                 var attributeBufferDictionnary = new Dictionary<VFXData, int>();
-                foreach (var data in particleDataLayered.SelectMany(o => o))
+                foreach (var data in compilableData.OfType<VFXDataParticle>())
                 {
                     int attributeBufferIndex = -1;
                     if (data.attributeBufferSize > 0)
@@ -641,63 +584,26 @@ namespace UnityEditor.VFX
                 }
 
                 //Prepare GPU event buffer (out buffer)
-                var gpuEventBufferDictionnary = new Dictionary<VFXContext, KeyValuePair<int, int>>();
-                foreach (var dataParticle in gpuEventParentSystem.SelectMany(o => o.gpuEvent.outputContexts).Select(o => o.GetData() as VFXDataParticle).Distinct())
+                var gpuEventBufferDictionnary = new Dictionary<VFXData, int>();
+
+                //simplify this ! TODOPAUL
+                foreach (var dataParticle in compilableData.Where(o => o.layer != uint.MaxValue).SelectMany(o => o.dependenciesOut).Distinct().OfType<VFXDataParticle>())
                 {
                     var index = bufferDescs.Count;
                     bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = dataParticle.capacity });
-
-                    var currentContext = dataParticle.owners.Where(o => o.contextType == VFXContextType.kInit);
-                    currentContext = currentContext.Concat(currentContext.SelectMany(o => o.inputContexts));
-
-                    var dependencies = gpuEventParentSystem.First(o => currentContext.Contains(o.gpuEvent)).dependsOn.ToArray(); //*hack*
-                    var sourceAttribute = attributeBufferDictionnary[dependencies[0]];
-
-                    foreach (var c in currentContext)
-                    {
-                        gpuEventBufferDictionnary.Add(c, new KeyValuePair<int, int>(index, sourceAttribute));
-                    }
+                    gpuEventBufferDictionnary.Add(dataParticle, index);
                 }
 
                 var contextSpawnToBufferIndex = contextSpawnToSpawnInfo.Select(o => new { o.Key, o.Value.bufferIndex }).ToDictionary(o => o.Key, o => o.bufferIndex);
-                for (int layer = 0; layer < particleDataLayered.Count; layer++)
+                foreach (var data in compilableData.OfType<VFXDataParticle>())
                 {
-                    foreach (var data in particleDataLayered[layer])
-                    {
-                        int gpuEventFrom = -1;
-                        int gpuEventAttributeSource = -1;
-                        var initializeContexts = data.owners.Where(o => o.contextType == VFXContextType.kInit).ToArray();
-
-                        KeyValuePair<int, int> gpuEvent;
-                        if (gpuEventBufferDictionnary.TryGetValue(initializeContexts[0], out gpuEvent))
-                        {
-                            gpuEventFrom = gpuEvent.Key;
-                            gpuEventAttributeSource = gpuEvent.Value;
-                        }
-
-                        var gpuEventTo = new int[][] {};
-                        if (data.IsAttributeLocal(VFXAttribute.EventCount))
-                        {
-                            gpuEventTo = data.owners.Select(o =>
-                                {
-                                    var allOutputSlot = o.children.SelectMany(b => b.outputSlots.SelectMany(c => c.LinkedSlots)).ToArray();
-                                    return allOutputSlot.Select(s => gpuEventBufferDictionnary[s.owner as VFXContext].Key).ToArray();
-                                }).ToArray();
-                        }
-
-                        var attributeBufferIndex = attributeBufferDictionnary[data];
-
-                        data.FillDescs(bufferDescs,
-                            systemDescs,
-                            m_ExpressionGraph,
-                            contextToCompiledData,
-                            contextSpawnToBufferIndex,
-                            attributeBufferIndex,
-                            gpuEventAttributeSource,
-                            gpuEventFrom,
-                            gpuEventTo,
-                            layer);
-                    }
+                    data.FillDescs(bufferDescs,
+                        systemDescs,
+                        m_ExpressionGraph,
+                        contextToCompiledData,
+                        contextSpawnToBufferIndex,
+                        attributeBufferDictionnary,
+                        gpuEventBufferDictionnary);
                 }
                 /* WIP : End */
 

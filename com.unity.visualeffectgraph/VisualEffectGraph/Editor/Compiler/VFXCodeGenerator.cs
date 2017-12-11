@@ -140,7 +140,7 @@ namespace UnityEditor.VFX
             /* WIP PAUL */
             if (regex.IsMatch("eventCount"))
             {
-                var linkedOutCount = context.children.SelectMany(b => b.outputSlots.SelectMany(c => c.LinkedSlots)).Count();
+                var linkedOutCount = context.children.SelectMany(b => b.outputSlots.SelectMany(c => c.LinkedSlots)).Count(); //TODOPAUL (stop recomputing this !)
                 for (uint i = 0; i < linkedOutCount; ++i)
                 {
                     var prefix = VFXCodeGeneratorHelper.GeneratePrefix(i);
@@ -268,7 +268,7 @@ namespace UnityEditor.VFX
             }
             else
             {
-                /* context invalid or gpu event */
+                /* context invalid or GPU event */
             }
             return r;
         }
@@ -445,25 +445,22 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                /* WIP PAUL */
-                if (nameParameter.Contains(VFXAttribute.EventCount.name))
+                bool needEventCount = nameParameter.Contains(VFXAttribute.EventCount.name);
+                if (needEventCount)
                 {
                     blockCallFunction.WriteLine("eventCount = 0;");
                 }
-                /* END WIP */
                 blockCallFunction.WriteCallFunction(methodName, expressionParameter, nameParameter, modeParameter, contextData.gpuMapper, expressionToNameLocal);
-                /* WIP PAUL */
-                if (nameParameter.Contains(VFXAttribute.EventCount.name))
+                if (needEventCount)
                 {
                     foreach (var outputSlot in block.outputSlots.SelectMany(o => o.LinkedSlots))
                     {
-                        var indexOf = linkedEventOut.IndexOf(outputSlot);
-                        if (indexOf == -1)
+                        var eventIndex = linkedEventOut.IndexOf(outputSlot);
+                        if (eventIndex == -1)
                             throw new InvalidOperationException("Cannot retrieve output slot index");
-                        blockCallFunction.WriteLineFormat("eventCount_{0} += eventCount;", VFXCodeGeneratorHelper.GeneratePrefix((uint)indexOf));
+                        blockCallFunction.WriteLineFormat("eventCount_{0} += eventCount;", VFXCodeGeneratorHelper.GeneratePrefix((uint)eventIndex));
                     }
                 }
-                /* END WIP */
                 if (needScope)
                     blockCallFunction.ExitScope();
             }

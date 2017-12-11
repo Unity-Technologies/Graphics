@@ -136,9 +136,44 @@ namespace UnityEditor.VFX
 
         public void CollectAttributes()
         {
+            m_DependenciesIn.Clear();
+            var inDependencies = owners.Where(o => o.contextType == VFXContextType.kInit)
+                .SelectMany(o => o.inputContexts.Where(i => i.contextType == VFXContextType.kSpawnerGPU))
+                .SelectMany(o => o.allLinkedInputSlot)
+                .Select(o =>
+                {
+                    if (o.owner is VFXBlock)
+                    {
+                        return (o.owner as VFXBlock).GetParent() as VFXContext;
+                    }
+                    else if (o.owner is VFXContext)
+                    {
+                        return o.owner as VFXContext;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Unexpected linked slot on spawner GPU");
+                    }
+                })
+                .Select(o => o.GetData())
+                .Distinct();
+            foreach (var depend in inDependencies)
+            {
+                m_DependenciesIn.Add(depend);
+            }
+
+            m_DependenciesOut.Clear();
+            var outDependencies = owners.SelectMany(o => o.allLinkedOutputSlot)
+                .SelectMany(o => (o.owner as VFXContext).outputContexts)
+                .Select(o => o.GetData())
+                .Distinct();
+            foreach (var depend in outDependencies)
+            {
+                m_DependenciesOut.Add(depend);
+            }
+
             m_ContextsToAttributes.Clear();
             m_AttributesToContexts.Clear();
-
             bool changed = true;
             while (changed)
             {
@@ -187,6 +222,28 @@ namespace UnityEditor.VFX
 
             //TMP Debug only
             DebugLogAttributes();
+        }
+
+        private static uint ComputeLayer(IEnumerable<VFXData> dependenciesIn)
+        {
+            if (dependenciesIn.Any())
+            {
+                return 1u + ComputeLayer(dependenciesIn.SelectMany(o => o.m_DependenciesIn));
+            }
+            return 0u;
+        }
+
+        public void ComputeLayer()
+        {
+            if (!m_DependenciesIn.Any()
+                &&  !m_DependenciesOut.Any())
+            {
+                m_Layer = uint.MaxValue;
+            }
+            else
+            {
+                m_Layer = ComputeLayer(m_DependenciesIn);
+            }
         }
 
         protected bool HasImplicitInit(VFXAttribute attrib)
@@ -394,6 +451,30 @@ namespace UnityEditor.VFX
             Debug.Log(builder.ToString());
         }
 
+        public uint layer
+        {
+            get
+            {
+                return m_Layer;
+            }
+        }
+
+        public IEnumerable<VFXData> dependenciesIn
+        {
+            get
+            {
+                return m_DependenciesIn;
+            }
+        }
+
+        public IEnumerable<VFXData> dependenciesOut
+        {
+            get
+            {
+                return m_DependenciesOut;
+            }
+        }
+
         [SerializeField]
         protected List<VFXContext> m_Owners;
 
@@ -409,5 +490,14 @@ namespace UnityEditor.VFX
 
         [NonSerialized]
         protected HashSet<VFXAttribute> m_ReadSourceAttributes = new HashSet<VFXAttribute>();
+
+        [NonSerialized]
+        protected HashSet<VFXData> m_DependenciesIn = new HashSet<VFXData>();
+
+        [NonSerialized]
+        protected HashSet<VFXData> m_DependenciesOut = new HashSet<VFXData>();
+
+        [NonSerialized]
+        protected uint m_Layer;
     }
 }
