@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     [VolumeComponentEditor(typeof(LinearFog))]
     public class LinearFogEditor : AtmosphericScatteringEditor

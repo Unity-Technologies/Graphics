@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEditor.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     [VolumeComponentEditor(typeof(ExponentialFog))]
     public class ExponentialFogEditor : AtmosphericScatteringEditor
