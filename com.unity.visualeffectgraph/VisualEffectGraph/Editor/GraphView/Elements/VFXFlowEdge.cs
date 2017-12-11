@@ -210,8 +210,30 @@ namespace UnityEditor.VFX.UI
             if (controller != null)
             {
                 VFXView view = GetFirstAncestorOfType<VFXView>();
-                base.input = view.GetFlowAnchorByPresenter(controller.input);
-                base.output = view.GetFlowAnchorByPresenter(controller.output);
+
+                var newInput = view.GetFlowAnchorByPresenter(controller.input);
+
+                if (base.input != newInput)
+                {
+                    if (base.input != null)
+                    {
+                        base.input.Disconnect(this);
+                    }
+                    base.input = newInput;
+                    base.input.Connect(this);
+                }
+
+                var newOutput = view.GetFlowAnchorByPresenter(controller.output);
+
+                if (base.output != newOutput)
+                {
+                    if (base.output != null)
+                    {
+                        base.output.Disconnect(this);
+                    }
+                    base.output = newOutput;
+                    base.output.Connect(this);
+                }
             }
             edgeControl.UpdateLayout();
         }
