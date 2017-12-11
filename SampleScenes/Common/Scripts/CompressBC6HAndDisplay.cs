@@ -36,7 +36,7 @@ public class CompressBC6HAndDisplay : MonoBehaviour
         m_EncodeBC6H = new EncodeBC6H(m_BC6HShader);
     }
 
-    void OnPreRender(CommandBuffer cmb)
+    void EncodeBC6HTest(CommandBuffer cmb)
     {
         if (m_SourceTexture == null
             || m_SourceMaterial == null
@@ -65,7 +65,7 @@ public class CompressBC6HAndDisplay : MonoBehaviour
     void Update()
     {
         var cmd = new CommandBuffer { name = "EncodeBC6H Compress" };
-        OnPreRender(cmd);
+        EncodeBC6HTest(cmd);
         Graphics.ExecuteCommandBuffer(cmd);
     }
 

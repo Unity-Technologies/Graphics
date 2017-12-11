@@ -81,6 +81,9 @@ Shader "HDRenderPipeline/Lit"
 
         [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+        _AlphaCutoffPostpass("_AlphaCutoffPostpass", Range(0.0, 1.0)) = 0.5
+        [ToggleOff] _TransparentBackfaceEnable("_TransparentBackfaceEnable", Float) = 0.0
+        [ToggleOff] _TransparentDepthPostpassEnable("_TransparentDepthPostpassEnable", Float) = 0.0
 
         // Transparency
         [Enum(None, 0, Plane, 1, Sphere, 2)]_RefractionMode("Refraction Mode", Int) = 0
@@ -101,6 +104,7 @@ Shader "HDRenderPipeline/Lit"
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
+        [HideInInspector] _CullModeForward("__cullmodeForward", Float) = 2.0 // This mode is dedicated to Forward to correctly handle backface then front face rendering thin transparent
         [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
 
         [ToggleOff] _EnableFogOnTransparent("Enable Fog", Float) = 1.0
@@ -158,8 +162,7 @@ Shader "HDRenderPipeline/Lit"
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
-    //#pragma enable_d3d11_debug_symbols
+    #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
     //-------------------------------------------------------------------------------------
     // Variant
@@ -217,6 +220,11 @@ Shader "HDRenderPipeline/Lit"
     #define SURFACE_GRADIENT
     // This shader support vertex modification
     #define HAVE_VERTEX_MODIFICATION
+
+    // If we use subsurface scattering, enable output split lighting (for forward pass)
+    #if defined(_MATID_SSS) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    #define OUTPUT_SPLIT_LIGHTING
+    #endif
 
     //-------------------------------------------------------------------------------------
     // Include
@@ -460,12 +468,48 @@ Shader "HDRenderPipeline/Lit"
 
         Pass
         {
-            Name "Forward" // Name is not used
-            Tags { "LightMode" = "Forward" } // This will be only for transparent object based on the RenderQueue index
+            Name "TransparentBackface"
+            Tags { "LightMode" = "TransparentBackface" }
 
             Blend [_SrcBlend] [_DstBlend]
             ZWrite [_ZWrite]
-            Cull [_CullMode]
+            Cull Front
+
+            HLSLPROGRAM
+
+            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
+            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
+            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
+            // #include "../../Lighting/Forward.hlsl"
+            #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
+            #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
+
+            #define SHADERPASS SHADERPASS_FORWARD
+            #include "../../ShaderVariables.hlsl"
+            #include "../../Lighting/Lighting.hlsl"
+            #include "ShaderPass/LitSharePass.hlsl"
+            #include "LitData.hlsl"
+            #include "../../ShaderPass/ShaderPassForward.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "Forward" // Name is not used
+            Tags { "LightMode" = "Forward" } // This will be only for transparent object based on the RenderQueue index
+
+            Stencil
+            {
+                Ref[_StencilRef]
+                Comp Always
+                Pass Replace
+            }
+
+            Blend [_SrcBlend] [_DstBlend]
+            ZWrite [_ZWrite]
+            Cull [_CullModeForward]
 
             HLSLPROGRAM
 
@@ -492,9 +536,16 @@ Shader "HDRenderPipeline/Lit"
             Name "ForwardDebugDisplay" // Name is not used
             Tags{ "LightMode" = "ForwardDebugDisplay" } // This will be only for transparent object based on the RenderQueue index
 
+            Stencil
+            {
+                Ref[_StencilRef]
+                Comp Always
+                Pass Replace
+            }
+
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
-            Cull[_CullMode]
+            Cull[_CullModeForward]
 
             HLSLPROGRAM
 
@@ -518,6 +569,27 @@ Shader "HDRenderPipeline/Lit"
             ENDHLSL
         }
 
+        Pass
+        {
+            Name "TransparentDepthPostPass"
+            Tags { "LightMode" = "TransparentDepthPostPass" }
+
+            Cull[_CullMode]
+            ZWrite On
+            ColorMask 0
+
+            HLSLPROGRAM
+
+            #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #define CUTOFF_TRANSPARENT_DEPTH_POSTPASS
+            #include "../../ShaderVariables.hlsl"
+            #include "../../Material/Material.hlsl"
+            #include "ShaderPass/LitDepthPass.hlsl"
+            #include "LitData.hlsl"
+            #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
+
+            ENDHLSL
+        }
     }
 
     CustomEditor "Experimental.Rendering.HDPipeline.LitGUI"

@@ -5,7 +5,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         PushGlobalParameters,
         CopySetDepthBuffer,
         CopyDepthStencilbuffer,
-        CopyStencilBuffer,
+        HTileForSSS,
         Forward,
         RenderSSAO,
         RenderShadows,
@@ -15,7 +15,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Distortion,
         ApplyDistortion,
         DepthPrepass,
+        TransparentDepthPrepass,
         GBuffer,
+        DBuffer,
         DisplayDebugViewMaterial,
         DebugViewMaterialGBuffer,
         BlitDebugViewMaterialDebug,
@@ -23,6 +25,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ForwardPassName,
         ForwardTransparentDepthPrepass,
         RenderForwardError,
+        TransparentDepthPostPass,
         Velocity,
         GaussianPyramidColor,
         PyramidDepth,
@@ -32,7 +35,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         InitGBuffersAndClearDepthStencil,
         ClearSSSDiffuseTarget,
         ClearSSSFilteringTarget,
-        ClearStencilTexture,
+        ClearAndCopyStencilTexture,
         ClearHTile,
         ClearHDRTarget,
         ClearGBuffer,
@@ -49,6 +52,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         TPForwardTiledClusterpass,
         TPDisplayShadows,
         TPRenderDeferredLighting,
+
+        // Misc
+        VolumeUpdate,
 
         Max
     }

@@ -66,8 +66,7 @@
 #elif defined(SHADER_API_PSSL)
 #include "API/PSSL.hlsl"
 #elif defined(SHADER_API_XBOXONE)
-#include "API/D3D11.hlsl"
-#include "API/D3D11_1.hlsl"
+#include "API/XBoneOne.hlsl"
 #elif defined(SHADER_API_METAL)
 #include "API/Metal.hlsl"
 #elif defined(SHADER_API_VULKAN)
@@ -85,7 +84,9 @@
 // ----------------------------------------------------------------------------
 
 #ifndef INTRINSIC_BITFIELD_EXTRACT
-// unsigned integer bit field extract implementation
+// Unsigned integer bit field extraction.
+// Note that the intrinsic itself generates a vector instruction.
+// Wrap this function with WaveReadFirstLane() to get scalar output.
 uint BitFieldExtract(uint data, uint numBits, uint offset)
 {
     uint mask = UINT_MAX >> (32u - numBits);
@@ -93,9 +94,24 @@ uint BitFieldExtract(uint data, uint numBits, uint offset)
 }
 #endif // INTRINSIC_BITFIELD_EXTRACT
 
-bool IsBitSet(uint data, uint bitPos)
+bool IsBitSet(uint data, uint offset)
 {
-    return BitFieldExtract(data, 1u, bitPos) != 0;
+    return BitFieldExtract(data, 1u, offset) != 0;
+}
+
+void SetBit(inout uint data, uint offset)
+{
+    data |= 1u << offset;
+}
+
+void ClearBit(inout uint data, uint offset)
+{
+    data &= ~(1u << offset);
+}
+
+void ToggleBit(inout uint data, uint offset)
+{
+    data ^= 1u << offset;
 }
 
 #ifndef INTRINSIC_WAVEREADFIRSTLANE
@@ -374,9 +390,9 @@ float LinearEyeDepth(float depth, float4 zBufferParam)
 // Z buffer to linear depth.
 // Correctly handles oblique view frustums. Only valid for projection matrices!
 // Ref: An Efficient Depth Linearization Method for Oblique View Frustums, Eq. 6.
-float LinearEyeDepth(float2 positionSS, float deviceDepth, float4 invProjParam)
+float LinearEyeDepth(float2 positionNDC, float deviceDepth, float4 invProjParam)
 {
-    float4 positionCS = float4(positionSS * 2.0 - 1.0, deviceDepth, 1.0);
+    float4 positionCS = float4(positionNDC * 2.0 - 1.0, deviceDepth, 1.0);
     float  viewSpaceZ = rcp(dot(positionCS, invProjParam));
     // The view space uses a right-handed coordinate system.
     return -viewSpaceZ;
@@ -398,36 +414,36 @@ float LinearEyeDepth(float3 positionWS, float4x4 viewProjMatrix)
 // (position = positionCS) => (clipSpaceTransform = use default)
 // (position = positionVS) => (clipSpaceTransform = UNITY_MATRIX_P)
 // (position = positionWS) => (clipSpaceTransform = UNITY_MATRIX_VP)
-float2 ComputeScreenSpacePosition(float3 position, float4x4 clipSpaceTransform = k_identity4x4)
+float2 ComputeNormalizedDeviceCoordinates(float3 position, float4x4 clipSpaceTransform = k_identity4x4)
 {
     float4 positionCS = mul(clipSpaceTransform, float4(position, 1.0));
-    float2 positionSS = positionCS.xy * (rcp(positionCS.w) * 0.5) + 0.5;
+    float2 positionNDC = positionCS.xy * (rcp(positionCS.w) * 0.5) + 0.5;
 #if UNITY_UV_STARTS_AT_TOP
-    positionSS.y = 1.0 - positionSS.y;
+    positionNDC.y = 1.0 - positionNDC.y;
 #endif
-    return positionSS;
+    return positionNDC;
 }
 
-float4 ComputeClipSpacePosition(float2 positionSS, float deviceDepth)
+float4 ComputeClipSpacePosition(float2 positionNDC, float deviceDepth)
 {
 #if UNITY_UV_STARTS_AT_TOP
-    positionSS.y = 1.0 - positionSS.y;
+    positionNDC.y = 1.0 - positionNDC.y;
 #endif
-    return float4(positionSS * 2.0 - 1.0, deviceDepth, 1.0);
+    return float4(positionNDC * 2.0 - 1.0, deviceDepth, 1.0);
 }
 
-float3 ComputeViewSpacePosition(float2 positionSS, float deviceDepth, float4x4 invProjMatrix)
+float3 ComputeViewSpacePosition(float2 positionNDC, float deviceDepth, float4x4 invProjMatrix)
 {
-    float4 positionCS = ComputeClipSpacePosition(positionSS, deviceDepth);
+    float4 positionCS = ComputeClipSpacePosition(positionNDC, deviceDepth);
     float4 positionVS = mul(invProjMatrix, positionCS);
     // The view space uses a right-handed coordinate system.
     positionVS.z = -positionVS.z;
     return positionVS.xyz / positionVS.w;
 }
 
-float3 ComputeWorldSpacePosition(float2 positionSS, float deviceDepth, float4x4 invViewProjMatrix)
+float3 ComputeWorldSpacePosition(float2 positionNDC, float deviceDepth, float4x4 invViewProjMatrix)
 {
-    float4 positionCS  = ComputeClipSpacePosition(positionSS, deviceDepth);
+    float4 positionCS  = ComputeClipSpacePosition(positionNDC, deviceDepth);
     float4 hpositionWS = mul(invViewProjMatrix, positionCS);
     return hpositionWS.xyz / hpositionWS.w;
 }
@@ -438,44 +454,39 @@ float3 ComputeWorldSpacePosition(float2 positionSS, float deviceDepth, float4x4 
 
 struct PositionInputs
 {
-    // TODO: improve the naming convention.
-    // Some options:
-    // positionNDC,   positionSS,   tileCoordSS
-    // pixelCoordUV,  pixelCoordSS, tileCoordSS
-    // pixelCoordSS,  pixelIndexSS, tileIndexSS
-    float3 positionWS;   // World space position (could be camera-relative)
-    float2 positionSS;   // Screen space pixel position : [0, 1) (with the half-pixel offset)
-    uint2  unPositionSS; // Screen space pixel index    : [0, NumPixels)
-    uint2  unTileCoord;  // Screen space tile  index    : [0, NumTiles)
-    float  deviceDepth;  // Depth from the depth buffer : [0, 1]
-    float  linearDepth;  // View space Z coordinate     : [Near, Far]
+    float3 positionWS;  // World space position (could be camera-relative)
+    float2 positionNDC; // Normalized screen UVs          : [0, 1) (with the half-pixel offset)
+    uint2  positionSS;  // Screen space pixel coordinates : [0, NumPixels)
+    uint2  tileCoord;   // Screen tile coordinates        : [0, NumTiles)
+    float  deviceDepth; // Depth from the depth buffer    : [0, 1] (typically reversed)
+    float  linearDepth; // View space Z coordinate        : [Near, Far]
 };
 
 // This function is use to provide an easy way to sample into a screen texture, either from a pixel or a compute shaders.
 // This allow to easily share code.
-// If a compute shader call this function unPositionSS is an integer usually calculate like: uint2 unPositionSS = groupId.xy * BLOCK_SIZE + groupThreadId.xy
+// If a compute shader call this function positionSS is an integer usually calculate like: uint2 positionSS = groupId.xy * BLOCK_SIZE + groupThreadId.xy
 // else it is current unormalized screen coordinate like return by SV_Position
-PositionInputs GetPositionInput(float2 unPositionSS, float2 invScreenSize, uint2 unTileCoord)   // Specify explicit tile coordinates so that we can easily make it lane invariant for compute evaluation.
+PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, uint2 tileCoord)   // Specify explicit tile coordinates so that we can easily make it lane invariant for compute evaluation.
 {
     PositionInputs posInput;
     ZERO_INITIALIZE(PositionInputs, posInput);
 
-    posInput.positionSS = unPositionSS;
+    posInput.positionNDC = positionSS;
 #if SHADER_STAGE_COMPUTE
     // In case of compute shader an extra half offset is added to the screenPos to shift the integer position to pixel center.
-    posInput.positionSS.xy += float2(0.5, 0.5);
+    posInput.positionNDC.xy += float2(0.5, 0.5);
 #endif
-    posInput.positionSS *= invScreenSize;
+    posInput.positionNDC *= invScreenSize;
 
-    posInput.unPositionSS = uint2(unPositionSS);
-    posInput.unTileCoord = unTileCoord;
+    posInput.positionSS = uint2(positionSS);
+    posInput.tileCoord = tileCoord;
 
     return posInput;
 }
 
-PositionInputs GetPositionInput(float2 unPositionSS, float2 invScreenSize)
+PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize)
 {
-    return GetPositionInput(unPositionSS, invScreenSize, uint2(0, 0));
+    return GetPositionInput(positionSS, invScreenSize, uint2(0, 0));
 }
 
 // From forward
@@ -493,7 +504,7 @@ void UpdatePositionInput(float deviceDepth, float linearDepth, float3 positionWS
 void UpdatePositionInput(float deviceDepth, float4x4 invViewProjMatrix, float4x4 viewProjMatrix, inout PositionInputs posInput)
 {
     posInput.deviceDepth = deviceDepth;
-    posInput.positionWS  = ComputeWorldSpacePosition(posInput.positionSS, deviceDepth, invViewProjMatrix);
+    posInput.positionWS  = ComputeWorldSpacePosition(posInput.positionNDC, deviceDepth, invViewProjMatrix);
 
     // The compiler should optimize this (less expensive than reconstruct depth VS from depth buffer)
     posInput.linearDepth = mul(viewProjMatrix, float4(posInput.positionWS, 1.0)).w;
@@ -534,16 +545,17 @@ float4 GetFullScreenTriangleVertexPosition(uint vertexID, float z = UNITY_NEAR_C
 // LOD dithering transition helper
 // LOD0 must use this function with ditherFactor 1..0
 // LOD1 must use this function with ditherFactor 0..1
-void LODDitheringTransition(uint2 unPositionSS, float ditherFactor)
+void LODDitheringTransition(uint2 positionSS, float ditherFactor)
 {
     // Generate a spatially varying pattern.
     // Unfortunately, varying the pattern with time confuses the TAA, increasing the amount of noise.
-    float p = GenerateHashedRandomFloat(unPositionSS);
+    float p = GenerateHashedRandomFloat(positionSS);
 
     // We want to have a symmetry between 0..0.5 ditherFactor and 0.5..1 so no pixels are transparent during the transition
     // this is handled by this test which reverse the pattern
     p = (ditherFactor >= 0.5) ? p : 1 - p;
     clip(ditherFactor - p);
 }
+
 
 #endif // UNITY_COMMON_INCLUDED

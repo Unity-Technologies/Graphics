@@ -19,9 +19,9 @@ float3 PhongTessellation(float3 positionWS, float3 p0, float3 p1, float3 p2, flo
 float3 GetScreenSpaceTessFactor(float3 p0, float3 p1, float3 p2, float4x4 viewProjectionMatrix, float4 screenSize, float triangleSize)
 {
     // Get screen space adaptive scale factor
-    float2 edgeScreenPosition0 = ComputeScreenSpacePosition(p0, viewProjectionMatrix) * screenSize.xy;
-    float2 edgeScreenPosition1 = ComputeScreenSpacePosition(p1, viewProjectionMatrix) * screenSize.xy;
-    float2 edgeScreenPosition2 = ComputeScreenSpacePosition(p2, viewProjectionMatrix) * screenSize.xy;
+    float2 edgeScreenPosition0 = ComputeNormalizedDeviceCoordinates(p0, viewProjectionMatrix) * screenSize.xy;
+    float2 edgeScreenPosition1 = ComputeNormalizedDeviceCoordinates(p1, viewProjectionMatrix) * screenSize.xy;
+    float2 edgeScreenPosition2 = ComputeNormalizedDeviceCoordinates(p2, viewProjectionMatrix) * screenSize.xy;
 
     float EdgeScale = 1.0 / triangleSize; // Edge size in reality, but name is simpler
     float3 tessFactor;

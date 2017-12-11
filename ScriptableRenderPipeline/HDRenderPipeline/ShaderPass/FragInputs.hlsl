@@ -3,14 +3,14 @@
 // This structure gather all possible varying/interpolator for this shader.
 //-------------------------------------------------------------------------------------
 
-#include "../Debug/DebugDisplay.cs.hlsl"
+#include "../Debug/MaterialDebug.cs.hlsl"
 
 struct FragInputs
 {
     // Contain value return by SV_POSITION (That is name positionCS in PackedVarying).
     // xy: unormalized screen position (offset by 0.5), z: device depth, w: depth in view space
     // Note: SV_POSITION is the result of the clip space position provide to the vertex shaders that is transform by the viewport
-    float4 unPositionSS; // In case depth offset is use, positionWS.w is equal to depth offset
+    float4 positionSS; // In case depth offset is use, positionWS.w is equal to depth offset
     float3 positionWS;
     float2 texCoord0;
     float2 texCoord1;
@@ -29,21 +29,6 @@ struct FragInputs
     // For two sided lighting
     bool isFrontFace;
 };
-
-// FragInputs use dir vector that are normalized in the code even if not used
-// so we initialize them to a valid != 0 to shutdown compiler warning
-FragInputs InitializeFragInputs()
-{
-    FragInputs output;
-    ZERO_INITIALIZE(FragInputs, output);
-
-    // Init to some default value to make the computer quiet (else it output "divide by zero" warning even if value is not used).
-    output.worldToTangent[0] = float3(1, 0, 0);
-    output.worldToTangent[1] = float3(0, 1, 0);
-    output.worldToTangent[2] = float3(0, 0, 1);
-
-    return output;
-}
 
 void GetVaryingsDataDebug(uint paramId, FragInputs input, inout float3 result, inout bool needLinearToSRGB)
 {

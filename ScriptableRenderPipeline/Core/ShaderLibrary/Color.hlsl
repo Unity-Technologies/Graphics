@@ -127,14 +127,16 @@ float Luminance(float3 linearRgb)
     return dot(linearRgb, float3(0.2126729f, 0.7151522f, 0.0721750f));
 }
 
+// This function take a rgb color (best is to provide color in sRGB space)
+// and return a YCoCg color in [0..1] space for 8bit (An offset is apply in the function)
 // Ref: http://www.nvidia.com/object/real-time-ycocg-dxt-compression.html
-#define CHROMA_BIAS (0.5 * 256.0 / 255.0)
+#define YCOCG_CHROMA_BIAS (128.0 / 255.0)
 float3 RGBToYCoCg(float3 rgb)
 {
     float3 YCoCg;
     YCoCg.x = dot(rgb, float3(0.25, 0.5, 0.25));
-    YCoCg.y = dot(rgb, float3(0.5, 0.0, -0.5)) + CHROMA_BIAS;
-    YCoCg.z = dot(rgb, float3(-0.25, 0.5, -0.25)) + CHROMA_BIAS;
+    YCoCg.y = dot(rgb, float3(0.5, 0.0, -0.5)) + YCOCG_CHROMA_BIAS;
+    YCoCg.z = dot(rgb, float3(-0.25, 0.5, -0.25)) + YCOCG_CHROMA_BIAS;
 
     return YCoCg;
 }
@@ -142,8 +144,8 @@ float3 RGBToYCoCg(float3 rgb)
 float3 YCoCgToRGB(float3 YCoCg)
 {
     float Y = YCoCg.x;
-    float Co = YCoCg.y - CHROMA_BIAS;
-    float Cg = YCoCg.z - CHROMA_BIAS;
+    float Co = YCoCg.y - YCOCG_CHROMA_BIAS;
+    float Cg = YCoCg.z - YCOCG_CHROMA_BIAS;
 
     float3 rgb;
     rgb.r = Y + Co - Cg;
@@ -152,4 +154,17 @@ float3 YCoCgToRGB(float3 YCoCg)
 
     return rgb;
 }
+
+// Following function can be use to reconstruct chroma component for a checkboard YCoCg pattern
+// Reference: The Compact YCoCg Frame Buffer
+float YCoCgCheckBoardEdgeFilter(float centerLum, float2 a0, float2 a1, float2 a2, float2 a3)
+{
+    float4 lum = float4(a0.x, a1.x, a2.x, a3.x);
+    // Optimize: float4 w = 1.0 - step(30.0 / 255.0, abs(lum - centerLum));
+    float4 w = 1.0 - saturate((abs(lum.xxxx - centerLum) - 30.0 / 255.0) * HALF_MAX);
+    float W = w.x + w.y + w.z + w.w;
+    // handle the special case where all the weights are zero.
+    return  (W == 0.0) ? a0.y : (w.x * a0.y + w.y* a1.y + w.z* a2.y + w.w * a3.y) / W;
+}
+
 #endif // UNITY_COLOR_INCLUDED

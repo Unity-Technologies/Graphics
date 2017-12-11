@@ -100,7 +100,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             var startSlice = 6 * targetArrayIndex;
-            for (var mip = fromMip; mip <= toMip; ++mip)
+            for (var mip = actualFromMip; mip <= actualToMip; ++mip)
             {
                 var rtMip = Mathf.Clamp(mip, actualFromMip, actualToMip);
                 for (var faceId = 0; faceId < 6; ++faceId)

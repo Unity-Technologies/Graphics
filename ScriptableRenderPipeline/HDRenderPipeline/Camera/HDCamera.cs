@@ -34,6 +34,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // avoid one-frame jumps/hiccups with temporal effects (motion blur, TAA...)
         public bool isFirstFrame { get; private set; }
 
+        public bool useForwardOnly { get; private set; }
+        public bool stereoEnabled { get; private set; }
+
         public Vector4 invProjParam
         {
             // Ref: An Efficient Depth Linearization Method for Oblique View Frustums, Eq. 6.
@@ -75,7 +78,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Reset();
         }
 
-        public void Update(PostProcessLayer postProcessLayer)
+        public void Update(PostProcessLayer postProcessLayer, GlobalRenderingSettings globalRenderingSettings, bool stereoActive)
         {
             // If TAA is enabled projMatrix will hold a jittered projection matrix. The original,
             // non-jittered projection matrix can be accessed via nonJitteredProjMatrix.
@@ -142,16 +145,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frustumPlaneEquations[5] = new Vector4(-camera.transform.forward.x, -camera.transform.forward.y, -camera.transform.forward.z,  Vector3.Dot(camera.transform.forward, relPos) + camera.farClipPlane);
 
             m_LastFrameActive = Time.frameCount;
+
+            stereoEnabled = stereoActive && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
+            useForwardOnly = globalRenderingSettings.ShouldUseForwardRenderingOnly() || stereoEnabled;
         }
 
         public void Reset()
         {
             m_LastFrameActive = -1;
             isFirstFrame = true;
+            stereoEnabled = false;
+            useForwardOnly = false;
         }
 
         // Grab the HDCamera tied to a given Camera and update it.
-        public static HDCamera Get(Camera camera, PostProcessLayer postProcessLayer)
+        public static HDCamera Get(Camera camera, PostProcessLayer postProcessLayer, GlobalRenderingSettings globalRenderingSettings, bool stereoActive)
         {
             HDCamera hdcam;
 
@@ -161,7 +169,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_Cameras.Add(camera, hdcam);
             }
 
-            hdcam.Update(postProcessLayer);
+            hdcam.Update(postProcessLayer, globalRenderingSettings, stereoActive);
             return hdcam;
         }
 

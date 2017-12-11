@@ -167,6 +167,8 @@ public class MultiMaterialPlacerEditor : Editor
                 UnityEditor.Experimental.Rendering.HDPipeline.HDEditorUtils.ResetMaterialKeywords(mat);
             }
         }
+
+        UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
     }
 
     public static Renderer CopyObject( Renderer _target, float _x, float _y, Transform _parent, MultiMaterialPlacer _placer )
@@ -178,6 +180,8 @@ public class MultiMaterialPlacerEditor : Editor
         o.transform.localRotation = Quaternion.identity;
         o.transform.localScale = Vector3.one * _placer.scale;
         o.transform.localEulerAngles = _placer.rotation;
+
+        o.gameObject.isStatic = _parent.gameObject.isStatic;
         return o;
     }
 

@@ -6,10 +6,10 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyHDRI"
     #pragma fragment Frag
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
+    #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
-    #include "ShaderLibrary/Color.hlsl"
     #include "ShaderLibrary/Common.hlsl"
+    #include "ShaderLibrary/Color.hlsl"
     #include "ShaderLibrary/CommonLighting.hlsl"
 
     TEXTURECUBE(_Cubemap);

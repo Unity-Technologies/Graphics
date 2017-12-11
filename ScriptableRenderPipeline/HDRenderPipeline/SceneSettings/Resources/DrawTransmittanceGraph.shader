@@ -11,7 +11,7 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -24,6 +24,7 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
             #include "ShaderLibrary/CommonMaterial.hlsl"
             #define USE_LEGACY_UNITY_MATRIX_VARIABLES
             #include "../../ShaderVariables.hlsl"
+            #include "../../Material/SubsurfaceScattering/CommonSubsurfaceScattering.hlsl"
 
             //-------------------------------------------------------------------------------------
             // Inputs & outputs
