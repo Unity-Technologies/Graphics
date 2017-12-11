@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
 
@@ -227,6 +229,22 @@ namespace UnityEngine.Experimental.Rendering
                 UnityObject.Destroy(obj);
 #endif
             }
+        }
+
+        public static IEnumerable<Type> GetAllAssemblyTypes()
+        {
+            return AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(t =>
+                {
+                    // Ugly hack to handle mis-versioned dlls
+                    var innerTypes = new Type[0];
+                    try
+                    {
+                        innerTypes = t.GetTypes();
+                    }
+                    catch {}
+                    return innerTypes;
+                });
         }
 
         public static void Destroy(params UnityObject[] objs)

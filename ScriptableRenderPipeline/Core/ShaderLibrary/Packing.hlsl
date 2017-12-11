@@ -32,8 +32,12 @@ float3 UnpackNormalOctEncode(float2 f)
 {
     float3 n = float3(f.x, f.y, 1.0 - abs(f.x) - abs(f.y));
 
-    float2 val = 1.0 - abs(n.yx);
-    n.xy = (n.zz < float2(0.0, 0.0) ? (n.xy >= 0.0 ? val : -val) : n.xy);
+    //float2 val = 1.0 - abs(n.yx);
+    //n.xy = (n.zz < float2(0.0, 0.0) ? (n.xy >= 0.0 ? val : -val) : n.xy);
+
+    // Optimized version of above code:
+    float t = max(-n.z, 0.0);
+    n.xy += n.xy >= 0.0 ? -t.xx : t.xx;
 
     return normalize(n);
 }
