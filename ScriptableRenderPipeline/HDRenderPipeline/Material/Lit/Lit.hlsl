@@ -924,8 +924,6 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 #define USE_DEFERRED_DIRECTIONAL_SHADOWS // Deferred shadows are always enabled for opaque objects
 #endif
 
-#include "../../Lighting/Lightevaluation.hlsl"
-
 //-----------------------------------------------------------------------------
 // Lighting structure for light accumulation
 //-----------------------------------------------------------------------------
