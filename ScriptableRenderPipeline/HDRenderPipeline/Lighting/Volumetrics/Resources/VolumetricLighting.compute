@@ -53,17 +53,13 @@ float3 GetPointAtDistance(Ray ray, float t)
 }
 
 // Computes the in-scattered radiance along the ray.
-void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
+void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
+                                  PositionInputs posInput, Ray ray, uint2 voxelCoord, float4 depthParams)
 {
-    LightLoopContext context;
-    // ZERO_INITIALIZE(LightLoopContext, context);
-    context.shadowContext = InitShadowContext();
+    BakeLightingData unusedData;         // Unused, so define once
 
-    uint   featureFlags = 0xFFFFFFFF;       // TODO
-    float4 depthParams  = _VBufferDepthEncodingParams;
-
-    float z0 = 0, t0 = 0;                   // Start at the origin of the ray
-    float de = rcp(VBUFFER_SLICE_COUNT);    // Log-encoded distance between slices
+    float z0 = 0, t0 = 0;                // Start at the origin of the ray
+    float de = rcp(VBUFFER_SLICE_COUNT); // Log-encoded distance between slices
 
     float3 totalRadiance = 0;
     float  opticalDepth  = 0;
@@ -76,8 +72,8 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
     // to compute min/max light indices, and then use this range for the entire slice.
     uint  clusterIndices[2];
     float clusterDepths[2];
-    clusterIndices[0] = GetLightClusterIndex(tileCoord, z0);
-    clusterDepths[0]  = GetLightClusterMinLinearDepth(tileCoord, clusterIndices[0]);
+    clusterIndices[0] = GetLightClusterIndex(posInput.tileCoord, z0);
+    clusterDepths[0]  = GetLightClusterMinLinearDepth(posInput.tileCoord, clusterIndices[0]);
 #endif // LIGHTLOOP_TILE_PASS
 
     // TODO: replace 'sliceCountHack' with VBUFFER_SLICE_COUNT when the shader compiler bug is fixed.
@@ -109,43 +105,28 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
             ImportanceSampleHomogeneousMedium(rndVal, extinction, dt, tOffset, weight);
 
             float t = t0 + tOffset;
-            float3 positionWS = GetPointAtDistance(ray, t);
+            posInput.positionWS = GetPointAtDistance(ray, t);
 
             for (uint i = 0; i < _DirectionalLightCount; ++i)
             {
                 // Fetch the light.
                 DirectionalLightData lightData = _DirectionalLightDatas[i];
+                float3 L = -lightData.forward; // Lights point backwards in Unity
 
-                float3 L         = -lightData.forward; // Lights point backwards in Unity
-                float  intensity = weight;
-                float3 color     = lightData.color;
+                float3 color; float attenuation;
+                EvaluateLight_Directional(context, posInput, lightData, unusedData, 0, L,
+                                          color, attenuation);
 
-                [branch] if (lightData.shadowIndex >= 0)
-                {
-                    float shadow = GetDirectionalShadowAttenuation(context.shadowContext, positionWS,
-                                   float3(0, 0, 0), lightData.shadowIndex, L);
-
-                    intensity *= shadow;
-                }
-
-                // Note: no fog attenuation along shadow rays for directional lights.
-
-                [branch] if (lightData.cookieIndex >= 0)
-                {
-                    float3 lightToSample = positionWS - lightData.positionWS;
-                    float3 cookie = EvaluateCookie_Directional(context, lightData, lightToSample);
-
-                    color     *= cookie.rgb;
-                }
+                float intensity = attenuation * weight;
 
                 // Compute the amount of in-scattered radiance.
-                sampleRadiance += color * intensity;
+                sampleRadiance += intensity * color;
             }
         }
 
     #ifdef LIGHTLOOP_TILE_PASS
-        clusterIndices[1] = GetLightClusterIndex(tileCoord, z1);
-        clusterDepths[1]  = GetLightClusterMinLinearDepth(tileCoord, clusterIndices[1]);
+        clusterIndices[1] = GetLightClusterIndex(posInput.tileCoord, z1);
+        clusterDepths[1]  = GetLightClusterMinLinearDepth(posInput.tileCoord, clusterIndices[1]);
 
         // Loop over 1 or 2 light clusters.
         for (int cluster = 0; cluster < 2; cluster++)
@@ -168,7 +149,7 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
                 uint punctualLightCount;
 
             #ifdef LIGHTLOOP_TILE_PASS
-                GetCountAndStartCluster(tileCoord, clusterIndices[cluster], LIGHTCATEGORY_PUNCTUAL,
+                GetCountAndStartCluster(posInput.tileCoord, clusterIndices[cluster], LIGHTCATEGORY_PUNCTUAL,
                                         punctualLightStart, punctualLightCount);
             #else
                 punctualLightStart = 0;
@@ -207,10 +188,10 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
                                                   ray.originWS, ray.directionWS,
                                                   tEntr, tExit, t, distSq, rcpPdf);
 
-                    float3 positionWS = GetPointAtDistance(ray, t);
+                    posInput.positionWS = GetPointAtDistance(ray, t);
 
                     // TODO: we could compute this data in ImportanceSamplePunctualLight().
-                    float3 lightToSample = positionWS - lightData.positionWS;
+                    float3 lightToSample = posInput.positionWS - lightData.positionWS;
                     float  dist          = sqrt(distSq);
                     float3 L             = lightToSample * -rsqrt(distSq);
                     float  intensity     = GetPunctualShapeAttenuation(lightData, L, distSq);
@@ -222,7 +203,7 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
                     [branch] if (lightData.shadowIndex >= 0)
                     {
                         // TODO: make projector lights cast shadows.
-                        float shadow = GetPunctualShadowAttenuation(context.shadowContext, positionWS,
+                        float shadow = GetPunctualShadowAttenuation(context.shadowContext, posInput.positionWS,
                                        float3(0, 0, 0), lightData.shadowIndex, float4(L, dist));
 
                         intensity *= lerp(1, shadow, lightData.shadowDimmer);
@@ -320,5 +301,14 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
     ray.ratioLenToZ = len;
     ray.directionWS = dir * lenRcp;
 
-    FillVolumetricLightingBuffer(ray, voxelCoord, tileCoord);
+    // TODO
+    LightLoopContext context;
+    context.shadowContext = InitShadowContext();
+    uint featureFlags = 0xFFFFFFFF;
+
+    PositionInputs posInput;
+    ZERO_INITIALIZE(PositionInputs, posInput);
+    posInput.tileCoord = tileCoord;
+
+    FillVolumetricLightingBuffer(context, featureFlags, posInput, ray, voxelCoord, _VBufferDepthEncodingParams);
 }
