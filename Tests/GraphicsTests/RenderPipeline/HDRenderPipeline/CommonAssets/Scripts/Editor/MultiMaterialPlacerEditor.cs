@@ -167,6 +167,8 @@ public class MultiMaterialPlacerEditor : Editor
                 UnityEditor.Experimental.Rendering.HDPipeline.HDEditorUtils.ResetMaterialKeywords(mat);
             }
         }
+
+        UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
     }
 
     public static Renderer CopyObject( Renderer _target, float _x, float _y, Transform _parent, MultiMaterialPlacer _placer )
