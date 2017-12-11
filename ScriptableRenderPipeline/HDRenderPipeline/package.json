@@ -1,5 +1,5 @@
 {
-    "name": "com.unity.render-pipelines.high-defintion",
+    "name": "com.unity.render-pipelines.high-definition",
     "description": "HD Render Pipeline for Unity.",
     "version": "0.1.13",
     "unity": "2018.1",
