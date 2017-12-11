@@ -163,10 +163,26 @@ namespace UnityEditor.VFX.UI
                 RemoveFromClassList("superCollapsed");
             }
 
+            base.expanded = controller.expanded;
+
             SyncSettings();
             SyncAnchors();
             RefreshExpandedState();
         }
+
+        public override bool expanded
+        {
+            get { return base.expanded; }
+            set
+            {
+                if (base.expanded == value)
+                    return;
+
+                base.expanded = value;
+                controller.expanded = value;
+            }
+        }
+
 
         public virtual VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorPresenter presenter)
         {

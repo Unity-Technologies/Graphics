@@ -24,6 +24,14 @@ namespace UnityEditor.VFX.UI
             //hideFlags = HideFlags.HideAndDontSave;
         }
 
+        public virtual void OnDisable()
+        {
+            foreach (var element in allChildren)
+            {
+                element.OnDisable();
+            }
+        }
+
         public virtual void OnRemoveFromGraph()
         {
         }
@@ -70,6 +78,11 @@ namespace UnityEditor.VFX.UI
 
         public abstract void ApplyChanges();
 
+        public virtual  IEnumerable<Controller> allChildren
+        {
+            get { return Enumerable.Empty<Controller>(); }
+        }
+
         List<IEventHandler> m_EventHandlers = new List<IEventHandler>();
     }
 
@@ -89,18 +102,14 @@ namespace UnityEditor.VFX.UI
             m_Handle = DataWatchService.sharedInstance.AddWatch(m_Model, ModelChanged);
         }
 
-        public virtual void OnDisable()
+        public override void OnDisable()
         {
             DataWatchService.sharedInstance.RemoveWatch(m_Handle);
+            base.OnDisable();
         }
 
         protected abstract void ModelChanged(UnityEngine.Object obj);
 
-
-        public virtual  IEnumerable<Controller> allChildren
-        {
-            get { return Enumerable.Empty<Controller>(); }
-        }
 
         public override void ApplyChanges()
         {
@@ -137,23 +146,6 @@ namespace UnityEditor.VFX.UI
             flags = EventFlags.Bubbles | EventFlags.Capturable;
             controller = null;
             change = 0;
-        }
-    }
-
-    interface IControlledElement
-    {
-        Controller controller
-        {
-            get;
-        }
-    }
-
-    interface IControlledElement<T> : IControlledElement where T : Controller
-    {
-        new T controller
-        {
-            get;
-            set;
         }
     }
 }

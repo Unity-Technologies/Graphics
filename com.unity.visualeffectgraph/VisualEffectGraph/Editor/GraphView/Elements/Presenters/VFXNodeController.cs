@@ -74,6 +74,21 @@ namespace UnityEditor.VFX.UI
                 model.collapsed = !value;
             }
         }
+        public bool superCollapsed
+        {
+            get
+            {
+                return model.superCollapsed;
+            }
+            set
+            {
+                model.superCollapsed = value;
+                if (model.superCollapsed)
+                {
+                    model.collapsed = false;
+                }
+            }
+        }
         public virtual string title
         {
             get { return model.name; }

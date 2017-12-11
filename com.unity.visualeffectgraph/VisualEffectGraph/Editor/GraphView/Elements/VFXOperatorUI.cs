@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.UI
             {
                 VFXStandaloneSlotContainerUI slotContainer = (VFXStandaloneSlotContainerUI)target;
 
-                slotContainer.superCollapsed = !slotContainer.superCollapsed;
+                slotContainer.controller.superCollapsed = !slotContainer.superCollapsed;
             }
         }
     }
@@ -71,14 +71,6 @@ namespace UnityEditor.VFX.UI
         public bool superCollapsed
         {
             get { return controller.model.superCollapsed; }
-
-            set
-            {
-                if (controller.model.superCollapsed != value)
-                {
-                    controller.model.superCollapsed = value;
-                }
-            }
         }
         protected override void SelfChange()
         {
