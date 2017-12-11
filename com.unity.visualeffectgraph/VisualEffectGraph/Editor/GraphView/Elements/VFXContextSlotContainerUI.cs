@@ -21,11 +21,11 @@ namespace UnityEditor.VFX.UI
             AddToClassList("VFXContextSlotContainerUI");
         }
 
-        public override VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorPresenter presenter)
+        public override VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorPresenter presenter, VFXNodeUI node)
         {
             VFXContextDataAnchorPresenter anchorPresenter = presenter as VFXContextDataAnchorPresenter;
 
-            VFXEditableDataAnchor anchor = VFXBlockDataAnchor.Create(anchorPresenter);
+            VFXEditableDataAnchor anchor = VFXBlockDataAnchor.Create(anchorPresenter, node);
 
             anchorPresenter.sourceNode.viewPresenter.onRecompileEvent += anchor.OnRecompile;
 

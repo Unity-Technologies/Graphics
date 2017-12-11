@@ -487,6 +487,10 @@ namespace UnityEditor.VFX.UI
                         var newElement = new VFXDataEdge();
                         AddElement(newElement);
                         newElement.controller = newController;
+                        if (newElement.input != null)
+                            newElement.input.node.RefreshExpandedState();
+                        if (newElement.output != null)
+                            newElement.output.node.RefreshExpandedState();
                     }
                 }
             }

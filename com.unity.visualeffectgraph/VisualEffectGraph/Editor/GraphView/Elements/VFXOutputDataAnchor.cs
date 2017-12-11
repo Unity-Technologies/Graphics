@@ -11,9 +11,9 @@ namespace UnityEditor.VFX.UI
     partial class VFXOutputDataAnchor : VFXDataAnchor
     {
         // TODO This is a workaround to avoid having a generic type for the anchor as generic types mess with USS.
-        public static new VFXOutputDataAnchor Create(VFXDataAnchorPresenter presenter)
+        public static new VFXOutputDataAnchor Create(VFXDataAnchorPresenter presenter, VFXNodeUI node)
         {
-            var anchor = new VFXOutputDataAnchor(presenter.orientation, presenter.direction, presenter.portType);
+            var anchor = new VFXOutputDataAnchor(presenter.orientation, presenter.direction, presenter.portType, node);
 
             anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
             anchor.controller = presenter;
@@ -24,7 +24,7 @@ namespace UnityEditor.VFX.UI
         Texture2D[] m_Icons;
         VisualElement m_Icon;
 
-        protected VFXOutputDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type) : base(anchorOrientation, anchorDirection, type)
+        protected VFXOutputDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type, VFXNodeUI node) : base(anchorOrientation, anchorDirection, type, node)
         {
             m_Icon = new VisualElement()
             {

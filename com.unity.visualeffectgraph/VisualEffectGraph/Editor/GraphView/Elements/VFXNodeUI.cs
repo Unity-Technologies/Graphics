@@ -133,7 +133,7 @@ namespace UnityEditor.VFX.UI
 
             foreach (var newController in ports.Except(existingAnchors.Keys))
             {
-                var newElement = InstantiateDataAnchor(newController);
+                var newElement = InstantiateDataAnchor(newController, this);
                 (newElement as IControlledElement<VFXDataAnchorPresenter>).controller = newController;
 
                 container.Add(newElement);
@@ -184,18 +184,18 @@ namespace UnityEditor.VFX.UI
         }
 
 
-        public virtual VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorPresenter presenter)
+        public virtual VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorPresenter presenter, VFXNodeUI node)
         {
             if (presenter.direction == Direction.Input)
             {
-                VFXEditableDataAnchor anchor = VFXEditableDataAnchor.Create(presenter);
+                VFXEditableDataAnchor anchor = VFXEditableDataAnchor.Create(presenter, node);
                 presenter.sourceNode.viewPresenter.onRecompileEvent += anchor.OnRecompile;
 
                 return anchor;
             }
             else
             {
-                return VFXOutputDataAnchor.Create(presenter);
+                return VFXOutputDataAnchor.Create(presenter, node);
             }
         }
 

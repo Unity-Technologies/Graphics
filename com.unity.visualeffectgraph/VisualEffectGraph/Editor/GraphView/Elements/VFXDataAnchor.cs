@@ -35,8 +35,14 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        VFXNodeUI m_Node;
 
-        protected VFXDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type) : base(anchorOrientation, anchorDirection, type)
+        public new VFXNodeUI node
+        {
+            get {return m_Node; }
+        }
+
+        protected VFXDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type, VFXNodeUI node) : base(anchorOrientation, anchorDirection, type)
         {
             AddToClassList("VFXDataAnchor");
 
@@ -53,6 +59,8 @@ namespace UnityEditor.VFX.UI
 
             connector.Add(m_ConnectorHighlight);
 
+            m_Node = node;
+
             RegisterCallback<ControllerChangedEvent>(OnChange);
         }
 
@@ -61,9 +69,9 @@ namespace UnityEditor.VFX.UI
             return new VisualElement();
         }
 
-        public static VFXDataAnchor Create(VFXDataAnchorPresenter controller)
+        public static VFXDataAnchor Create(VFXDataAnchorPresenter controller, VFXNodeUI node)
         {
-            var anchor = new VFXDataAnchor(controller.orientation, controller.direction, controller.portType);
+            var anchor = new VFXDataAnchor(controller.orientation, controller.direction, controller.portType, node);
             anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
             anchor.controller = controller;
 

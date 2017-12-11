@@ -100,9 +100,9 @@ namespace UnityEditor.VFX.UI
 
 
         // TODO This is a workaround to avoid having a generic type for the anchor as generic types mess with USS.
-        public static new VFXEditableDataAnchor Create(VFXDataAnchorPresenter presenter)
+        public static new VFXEditableDataAnchor Create(VFXDataAnchorPresenter presenter, VFXNodeUI node)
         {
-            var anchor = new VFXEditableDataAnchor(presenter.orientation, presenter.direction, presenter.portType);
+            var anchor = new VFXEditableDataAnchor(presenter.orientation, presenter.direction, presenter.portType, node);
 
             anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
             anchor.controller = presenter;
@@ -110,7 +110,7 @@ namespace UnityEditor.VFX.UI
             return anchor;
         }
 
-        protected VFXEditableDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type) : base(anchorOrientation, anchorDirection, type)
+        protected VFXEditableDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type, VFXNodeUI node) : base(anchorOrientation, anchorDirection, type, node)
         {
         }
 
