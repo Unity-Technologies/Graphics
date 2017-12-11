@@ -491,8 +491,8 @@ namespace UnityEditor.VFX
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Collect dependencies", 0 / nbSteps);
                 var models = new HashSet<Object>();
                 m_Graph.CollectDependencies(models);
-                var compilableContexts = models.OfType<VFXContext>().Where(c => c.CanBeCompiled()).ToList(); //TEMP DEBUG
-                var compilableData = models.OfType<VFXData>().Where(d => d.CanBeCompiled()).ToList();
+                var compilableContexts = models.OfType<VFXContext>().Where(c => c.CanBeCompiled());
+                var compilableData = models.OfType<VFXData>().Where(d => d.CanBeCompiled());
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Collect attributes", 1 / nbSteps);
                 foreach (var data in compilableData)
@@ -568,9 +568,6 @@ namespace UnityEditor.VFX
                 /* WIP : Begin */
 
                 // Prerequisite : compute direct dependencies with gpu event
-                var test = compilableContexts.Where(o => o.contextType == VFXContextType.kInit).ToList();
-                var test2 = test.SelectMany(o => o.inputContexts).ToList();
-
                 var allGPUEvent = compilableContexts.SelectMany(o => o.inputContexts).Where(o => o.contextType == VFXContextType.kSpawnerGPU).ToList();
                 var gpuEventParentSystem = allGPUEvent.Select(o => new
                 {

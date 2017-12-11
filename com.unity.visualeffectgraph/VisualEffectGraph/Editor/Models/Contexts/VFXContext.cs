@@ -370,6 +370,17 @@ namespace UnityEditor.VFX
             }
         }
 
+        public IEnumerable<VFXSlot> allLinkedOutputSlot
+        {
+            get
+            {
+                var linkedOutCount =    activeChildrenWithImplicit.OfType<IVFXSlotContainer>()
+                    .Concat(Enumerable.Repeat(this as IVFXSlotContainer, 1))
+                    .SelectMany(o => o.outputSlots.SelectMany(s => s.LinkedSlots));
+                return linkedOutCount;
+            }
+        }
+
         public static List<KeyValuePair<VFXContext, VFXContext>> BuildAssociativeContext(VFXModel[] fromArray, VFXModel[] toArray)
         {
             var associativeContext = new List<KeyValuePair<VFXContext, VFXContext>>();

@@ -3,6 +3,7 @@ ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
 
 RWByteAddressBuffer attributeBuffer;
+ByteAddressBuffer sourceAttributeBuffer;
 
 CBUFFER_START(initParams)
     uint nbSpawned;			// Numbers of particle spawned (0 if VFX_USE_SPAWNER_FROM_GPU)
@@ -20,9 +21,6 @@ ByteAddressBuffer deadListCount; // This is bad to use a SRV to fetch deadList c
 #if VFX_USE_SPAWNER_FROM_GPU
 ConsumeStructuredBuffer<uint> eventList;
 Buffer<uint> inputAdditional;
-ByteAddressBuffer sourceEventGPUAttributeBuffer;
-#else
-ByteAddressBuffer sourceAttributeBuffer;
 #endif
 
 ${VFXGeneratedBlockFunction}
@@ -47,10 +45,13 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     if (id.x < maxThreadId)
     {
 #if VFX_USE_SPAWNER_FROM_GPU
-        int sourceGPUEventIndex = eventList.Consume();
+        int sourceIndex = eventList.Consume();
 #endif
         uint particleIndex = id.x + currentSpawnIndex;
+		
+#if !VFX_USE_SPAWNER_FROM_GPU
         ${VFXComputeSourceIndex}
+#endif
         ${VFXLoadAttributes}
 #if VFX_USE_PARTICLEID_CURRENT
          particleId = particleIndex;

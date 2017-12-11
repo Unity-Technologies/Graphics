@@ -85,12 +85,12 @@ namespace UnityEditor.VFX
                 }
 
                 /* WIP PAUL */
-                if (attribute.name == "eventCount")
+                if (attribute.name == VFXAttribute.EventCount.name)
                 {
-                    var linkedOutCount = context.children.SelectMany(b => b.outputSlots.SelectMany(c => c.LinkedSlots)).Count();
+                    var linkedOutCount = context.allLinkedOutputSlot.Count();
                     for (uint i = 0; i < linkedOutCount; ++i)
                     {
-                        r.WriteFormat(" uint eventCount_{0} = 0u;", VFXCodeGeneratorHelper.GeneratePrefix(i));
+                        r.WriteFormat("uint eventCount_{0} = 0u;", VFXCodeGeneratorHelper.GeneratePrefix(i));
                     }
                 }
                 /* END WIP */
@@ -103,23 +103,7 @@ namespace UnityEditor.VFX
                 var name = string.Format("{0}_source", attribute.name);
                 if (context.contextType == VFXContextType.kInit)
                 {
-                    /* WIP PAUL */
-                    if (context.inputContexts.Any(o => o.contextType == VFXContextType.kSpawnerGPU))
-                    {
-                        var linkedSlot = context.inputContexts.First().inputSlots.First().LinkedSlots.First();
-                        var parentContext = (linkedSlot.owner as VFXBlock).GetParent();
-                        var data = parentContext.GetData() as VFXDataParticle;
-
-                        var loadCode = data.GetLoadAttributeCode(attribute, VFXAttributeLocation.Current);
-                        loadCode = loadCode.Replace("attributeBuffer", "sourceEventGPUAttributeBuffer"); //*Hack*
-                        loadCode = loadCode.Replace("index", "sourceGPUEventIndex"); //*Hack*
-                        r.WriteVariable(attribute.type, name, loadCode);
-                    }
-                    /* END WIP */
-                    else
-                    {
-                        r.WriteVariable(attribute.type, name, context.GetData().GetLoadAttributeCode(attribute, VFXAttributeLocation.Source));
-                    }
+                    r.WriteVariable(attribute.type, name, context.GetData().GetLoadAttributeCode(attribute, VFXAttributeLocation.Source));
                 }
                 else
                 {
@@ -260,24 +244,32 @@ namespace UnityEditor.VFX
         static private VFXShaderWriter GenerateComputeSourceIndex(VFXContext context)
         {
             var r = new VFXShaderWriter();
-            var spawnLinkCount = context.GetData().sourceCount;
-            r.WriteLine("int sourceIndex = 0;");
+            var spawnCountAttribute = new VFXAttribute("spawnCount", VFXValueType.kFloat);
+            if (context.GetData().IsSourceAttributeUsed(spawnCountAttribute))
+            {
+                var spawnLinkCount = context.GetData().sourceCount;
+                r.WriteLine("int sourceIndex = 0;");
 
-            if (spawnLinkCount <= 1)
-                r.WriteLine("/*//Loop with 1 iteration generate a wrong IL Assembly (and actually, useless code)");
+                if (spawnLinkCount <= 1)
+                    r.WriteLine("/*//Loop with 1 iteration generate a wrong IL Assembly (and actually, useless code)");
 
-            r.WriteLine("uint currentSumSpawnCount = 0u;");
-            r.WriteLineFormat("for (sourceIndex=0; sourceIndex<{0}; sourceIndex++)", spawnLinkCount);
-            r.EnterScope();
-            r.WriteLineFormat("currentSumSpawnCount += uint({0});", context.GetData().GetLoadAttributeCode(new VFXAttribute("spawnCount", UnityEngine.VFX.VFXValueType.kFloat), VFXAttributeLocation.Source));
-            r.WriteLine("if (id.x < currentSumSpawnCount)");
-            r.EnterScope();
-            r.WriteLine("break;");
-            r.ExitScope();
-            r.ExitScope();
+                r.WriteLine("uint currentSumSpawnCount = 0u;");
+                r.WriteLineFormat("for (sourceIndex=0; sourceIndex<{0}; sourceIndex++)", spawnLinkCount);
+                r.EnterScope();
+                r.WriteLineFormat("currentSumSpawnCount += uint({0});", context.GetData().GetLoadAttributeCode(spawnCountAttribute, VFXAttributeLocation.Source));
+                r.WriteLine("if (id.x < currentSumSpawnCount)");
+                r.EnterScope();
+                r.WriteLine("break;");
+                r.ExitScope();
+                r.ExitScope();
 
-            if (spawnLinkCount <= 1)
-                r.WriteLine("*/");
+                if (spawnLinkCount <= 1)
+                    r.WriteLine("*/");
+            }
+            else
+            {
+                /* context invalid or gpu event */
+            }
             return r;
         }
 
@@ -383,12 +375,10 @@ namespace UnityEditor.VFX
             globalDeclaration.WriteCBuffer(contextData.uniformMapper, "parameters");
             globalDeclaration.WriteTexture(contextData.uniformMapper);
 
-            /* Begin WIP */
-            var data = context.GetData() as VFXDataParticle;
-            var linkedEventOut = Enumerable.Empty<VFXSlot>().ToList();
-            if (data != null && data.IsAttributeLocal(VFXAttribute.EventCount))
+            /* Begin WIP PAUL */
+            var linkedEventOut = context.allLinkedOutputSlot.ToList();
+            if (context.GetData().IsAttributeLocal(VFXAttribute.EventCount))
             {
-                linkedEventOut = context.children.SelectMany(b => b.outputSlots.SelectMany(c => c.LinkedSlots)).ToList(); //this value should be stored in data
                 for (uint i = 0; i < (uint)linkedEventOut.Count; ++i)
                 {
                     var prefix = VFXCodeGeneratorHelper.GeneratePrefix(i);
@@ -456,24 +446,23 @@ namespace UnityEditor.VFX
                 }
 
                 /* WIP PAUL */
-                if (nameParameter.Contains("eventCount"))
+                if (nameParameter.Contains(VFXAttribute.EventCount.name))
                 {
                     blockCallFunction.WriteLine("eventCount = 0;");
                 }
                 /* END WIP */
                 blockCallFunction.WriteCallFunction(methodName, expressionParameter, nameParameter, modeParameter, contextData.gpuMapper, expressionToNameLocal);
                 /* WIP PAUL */
-                if (nameParameter.Contains("eventCount"))
+                if (nameParameter.Contains(VFXAttribute.EventCount.name))
                 {
                     foreach (var outputSlot in block.outputSlots.SelectMany(o => o.LinkedSlots))
                     {
                         var indexOf = linkedEventOut.IndexOf(outputSlot);
                         if (indexOf == -1)
-                            throw new InvalidOperationException("cannot retrieve output Slot index");
+                            throw new InvalidOperationException("Cannot retrieve output slot index");
                         blockCallFunction.WriteLineFormat("eventCount_{0} += eventCount;", VFXCodeGeneratorHelper.GeneratePrefix((uint)indexOf));
                     }
                 }
-
                 /* END WIP */
                 if (needScope)
                     blockCallFunction.ExitScope();

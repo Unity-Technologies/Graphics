@@ -42,8 +42,7 @@ void CSMain(uint3 id : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID)
 #endif
 			}
 			else
-			{	
-				//TODOPAUL : to see (one frame missing...)
+			{
 				${VFXStoreAttributes:{alive|eventCount}}
 				deadListOut.Append(index);
 			}
