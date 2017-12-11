@@ -35,7 +35,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (srpPath != null)
                 return Path.Combine(srpPath, "ScriptableRenderPipeline/HDRenderPipeline/");
             // If the SRPMARKER is not found, we assume that a package setup is used.
-            return "Packages/com.unity.render-pipelines.high-quality/";
+            return "Packages/com.unity.render-pipelines.high-definition/";
         }
 
         public static string GetPostProcessingPath()
