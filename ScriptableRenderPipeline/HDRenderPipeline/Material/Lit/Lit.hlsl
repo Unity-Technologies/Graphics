@@ -1169,6 +1169,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 #endif
     }
 
+    // Note: no fog attenuation along shadow rays for directional lights.
     attenuation *= shadow;
 
     [branch] if (lightData.cookieIndex >= 0)
