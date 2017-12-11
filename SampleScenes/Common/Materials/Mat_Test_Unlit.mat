@@ -8,9 +8,7 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: Mat_Test_Unlit
   m_Shader: {fileID: 4800000, guid: c4edd00ff2db5b24391a4fcb1762e459, type: 3}
-  m_ShaderKeywords: _ALBEDOAFFECTEMISSIVE_OFF _ALPHACUTOFFENABLE_OFF _DEPTHOFFSETENABLE_OFF
-    _DISTORTIONENABLE_OFF _DISTORTIONONLY_OFF _DOUBLESIDEDENABLE_OFF _ENABLESPECULAROCCLUSION_OFF
-    _ENABLEWIND_OFF _PREREFRACTIONPASS_OFF
+  m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0

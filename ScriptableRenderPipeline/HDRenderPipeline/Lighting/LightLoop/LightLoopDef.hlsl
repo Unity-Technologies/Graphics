@@ -75,17 +75,15 @@ struct LightLoopContext
 // ----------------------------------------------------------------------------
 
 // Used by directional and spot lights.
-// Returns the color in the RGB components, and the transparency (lack of occlusion) in A.
-float4 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, int index)
+float3 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, int index)
 {
-    return SAMPLE_TEXTURE2D_ARRAY_LOD(_CookieTextures, sampler_CookieTextures, coord, index, 0);
+    return SAMPLE_TEXTURE2D_ARRAY_LOD(_CookieTextures, sampler_CookieTextures, coord, index, 0).rgb;
 }
 
 // Used by point lights.
-// Returns the color in the RGB components, and the transparency (lack of occlusion) in A.
-float4 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, int index)
+float3 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, int index)
 {
-    return SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_CookieCubeTextures, sampler_CookieCubeTextures, coord, index, 0);
+    return SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_CookieCubeTextures, sampler_CookieCubeTextures, coord, index, 0).rgb;
 }
 
 //-----------------------------------------------------------------------------

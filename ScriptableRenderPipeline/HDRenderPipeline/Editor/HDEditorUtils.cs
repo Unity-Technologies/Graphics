@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -16,41 +18,42 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             { "HDRenderPipeline/Unlit", UnlitGUI.SetupMaterialKeywordsAndPass }
         };
 
-        public static string GetHDRenderPipelinePath()
+        // Note: This function returns null if used with a package setup.
+        static string GetScriptableRenderPipelinePath()
         {
             // User can create their own directory for SRP, so we need to find the current path that they use.
-            // We know that DefaultHDMaterial exist and we know where it is, let's use that to find the current directory.
-            var guid = AssetDatabase.FindAssets("DefaultHDMaterial t:material");
-            string path = AssetDatabase.GUIDToAssetPath(guid[0]);
-            path = Path.GetDirectoryName(path); // Asset is in HDRenderPipeline/RenderPipelineResources/DefaultHDMaterial.mat
-            path = path.Replace("RenderPipelineResources", ""); // Keep only path with HDRenderPipeline
-
-            return path;
+            // We do that using the SRPMARKER file.
+            var srpMarkerPath = Directory.GetFiles(Application.dataPath, "SRPMARKER", SearchOption.AllDirectories).FirstOrDefault();
+            if (srpMarkerPath != null)
+                return new Uri(Application.dataPath).MakeRelativeUri(new Uri(Directory.GetParent(srpMarkerPath).ToString())).ToString();
+            return null;
         }
 
-        // TODO: The following functions depend on HDRP, they should be made generic
-        public static string GetScriptableRenderPipelinePath()
+        public static string GetHDRenderPipelinePath()
         {
-            var hdrpPath = GetHDRenderPipelinePath();
-            var fullPath = Path.GetFullPath(hdrpPath + "../");
-            var relativePath = fullPath.Substring(fullPath.IndexOf("Assets"));
-            return relativePath.Replace("\\", "/") + "/";
+            var srpPath = GetScriptableRenderPipelinePath();
+            if (srpPath != null)
+                return Path.Combine(srpPath, "ScriptableRenderPipeline/HDRenderPipeline/");
+            // If the SRPMARKER is not found, we assume that a package setup is used.
+            return "Packages/com.unity.render-pipelines.high-definition/";
         }
 
         public static string GetPostProcessingPath()
         {
-            var hdrpPath = GetHDRenderPipelinePath();
-            var fullPath = Path.GetFullPath(hdrpPath + "../../PostProcessing/PostProcessing");
-            var relativePath = fullPath.Substring(fullPath.IndexOf("Assets"));
-            return relativePath.Replace("\\", "/") + "/";
+            var srpPath = GetScriptableRenderPipelinePath();
+            if (srpPath != null)
+                return Path.Combine(srpPath, "PostProcessing/PostProcessing/");
+            // If the SRPMARKER is not found, we assume that a package setup is used.
+            return "Packages/com.unity.postprocessing/";
         }
 
         public static string GetCorePath()
         {
-            var hdrpPath = GetHDRenderPipelinePath();
-            var fullPath = Path.GetFullPath(hdrpPath + "../Core");
-            var relativePath = fullPath.Substring(fullPath.IndexOf("Assets"));
-            return relativePath.Replace("\\", "/") + "/";
+            var srpPath = GetScriptableRenderPipelinePath();
+            if (srpPath != null)
+                return Path.Combine(srpPath, "ScriptableRenderPipeline/Core/");
+            // If the SRPMARKER is not found, we assume that a package setup is used.
+            return "Packages/com.unity.render-pipelines.core/";
         }
 
         public static bool ResetMaterialKeywords(Material material)

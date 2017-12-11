@@ -179,6 +179,7 @@ void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, float2 cen
         float  rcpPdf = _FilterKernels[profileID][i][iP];
         float3 weight = ComputeBilateralWeight(xy2, relZ, mmPerUnit, shapeParam, rcpPdf);
 
+        // Note: if the texture sample if off-screen, (z = 0) -> (viewZ = far) -> (weight ≈ 0).
         totalIrradiance += weight * irradiance;
         totalWeight     += weight;
     }
@@ -205,9 +206,14 @@ void StoreResult(uint2 pixelCoord, float3 irradiance)
 #pragma kernel SubsurfaceScattering
 
 [numthreads(GROUP_SIZE_2D, 1, 1)]
-void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
+void SubsurfaceScattering(uint3 groupId       : SV_GroupID,
                           uint  groupThreadId : SV_GroupThreadID)
 {
+    // We dispatch 4x swizzled 16x16 groups per a 32x32 macrotile.
+    // Therefore, we need to unswizzle. TODO: macrotile order.
+    uint2 groupOffset = DeinterleaveQuad(groupId.x);
+    uint2 groupCoord  = uint2(groupId.y * 2 + groupOffset.x, groupId.z * 2 + groupOffset.y);
+
     // Note: any factor of 64 is a suitable wave size for our algorithm.
     uint waveIndex = WaveReadFirstLane(groupThreadId / 64);
     uint laneIndex = groupThreadId % 64;
@@ -216,19 +222,19 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
     // Arrange threads in the Morton order to optimally match the memory layout of GCN tiles.
     uint  mortonCode  = groupThreadId;
     uint2 localCoord  = DecodeMorton2D(mortonCode);
-    uint2 tileAnchor  = groupId * GROUP_SIZE_1D;
-    uint2 pixelCoord  = tileAnchor + localCoord;
-    int2  cacheAnchor = (int2)tileAnchor - TEXTURE_CACHE_BORDER;
+    uint2 groupAnchor = groupCoord * GROUP_SIZE_1D;
+    uint2 pixelCoord  = groupAnchor + localCoord;
+    int2  cacheAnchor = (int2)groupAnchor - TEXTURE_CACHE_BORDER;
     uint2 cacheCoord  = localCoord + TEXTURE_CACHE_BORDER;
     float stencilRef  = STENCILLIGHTINGUSAGE_SPLIT_LIGHTING;
 
     [branch] if (groupThreadId == 0)
     {
         // Check whether the thread group needs to perform any work.
-        float s00 = LOAD_TEXTURE2D(_HTile, 2 * groupId + uint2(0, 0)).r;
-        float s10 = LOAD_TEXTURE2D(_HTile, 2 * groupId + uint2(1, 0)).r;
-        float s01 = LOAD_TEXTURE2D(_HTile, 2 * groupId + uint2(0, 1)).r;
-        float s11 = LOAD_TEXTURE2D(_HTile, 2 * groupId + uint2(1, 1)).r;
+        float s00 = LOAD_TEXTURE2D(_HTile, 2 * groupCoord + uint2(0, 0)).r;
+        float s10 = LOAD_TEXTURE2D(_HTile, 2 * groupCoord + uint2(1, 0)).r;
+        float s01 = LOAD_TEXTURE2D(_HTile, 2 * groupCoord + uint2(0, 1)).r;
+        float s11 = LOAD_TEXTURE2D(_HTile, 2 * groupCoord + uint2(1, 1)).r;
 
         // Perform the stencil test (reject at the tile rate).
         processGroup = (stencilRef == s00 || stencilRef == s10 || stencilRef == s01 || stencilRef == s11);
@@ -261,7 +267,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
     [branch] if (quadIndex < numBorderQuadsPerWave)
     {
         // Fetch another texel into the LDS.
-        uint2 startQuad = halfCacheWidthInQuads * uint2(waveIndex & 1, waveIndex >> 1);
+        uint2 startQuad = halfCacheWidthInQuads * DeinterleaveQuad(waveIndex);
 
         uint2 quadCoord;
 
@@ -289,8 +295,8 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
                 break;
         }
 
-        uint2  cacheCoord2 = 2 * (startQuad + quadCoord) + uint2(laneIndex & 1, (laneIndex >> 1) & 1);
-        int2   pixelCoord2 = (int2)(tileAnchor + cacheCoord2) - TEXTURE_CACHE_BORDER;
+        uint2  cacheCoord2 = 2 * (startQuad + quadCoord) + DeinterleaveQuad(laneIndex);
+        int2   pixelCoord2 = (int2)(groupAnchor + cacheCoord2) - TEXTURE_CACHE_BORDER;
         float3 irradiance2 = LOAD_TEXTURE2D(_IrradianceSource, pixelCoord2).rgb;
         float  viewZ2      = 0;
 
@@ -308,9 +314,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
     GroupMemoryBarrierWithGroupSync();
 #endif
 
-    bool isOffScreen = pixelCoord.x >= (uint)_ScreenSize.x || pixelCoord.y >= (uint)_ScreenSize.y;
-
-    [branch] if (!passedStencilTest || isOffScreen) { return; }
+    [branch] if (!passedStencilTest) { return; }
 
     PositionInputs posInput = GetPositionInput(pixelCoord, _ScreenSize.zw);
 

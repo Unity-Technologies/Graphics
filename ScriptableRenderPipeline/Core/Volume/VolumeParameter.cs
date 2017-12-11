@@ -105,6 +105,16 @@ namespace UnityEngine.Experimental.Rendering
             return string.Format("{0} ({1})", value, overrideState);
         }
 
+        public static bool operator ==(VolumeParameter<T> lhs, T rhs)
+        {
+            return lhs.value.Equals(rhs);
+        }
+
+        public static bool operator !=(VolumeParameter<T> lhs, T rhs)
+        {
+            return !(lhs == rhs);
+        }
+
         //
         // Implicit conversion; assuming the following:
         //

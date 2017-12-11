@@ -2,8 +2,9 @@ using System;
 using UnityEditor;
 using UnityEngine;
 using UnityEditor.Experimental.Rendering.LightweightPipeline;
+using UnityEngine.Experimental.Rendering;
 
-public class LightweightStandardSimpleLightingGUI : ShaderGUI
+public class LightweightStandardSimpleLightingGUI : LightweightShaderGUI
 {
     private const float kMinShininessValue = 0.01f;
     private MaterialProperty blendModeProp;
@@ -18,8 +19,6 @@ public class LightweightStandardSimpleLightingGUI : ShaderGUI
     private MaterialProperty bumpMapProp;
     private MaterialProperty emissionMapProp;
     private MaterialProperty emissionColorProp;
-
-    private MaterialEditor m_MaterialEditor;
 
     private static class Styles
     {
@@ -57,7 +56,7 @@ public class LightweightStandardSimpleLightingGUI : ShaderGUI
         public static string emissionColorLabel = "Emission Color";
     }
 
-    private void FindMaterialProperties(MaterialProperty[] properties)
+    public override void FindProperties(MaterialProperty[] properties)
     {
         blendModeProp = FindProperty("_Mode", properties);
         albedoMapProp = FindProperty("_MainTex", properties);
@@ -74,13 +73,8 @@ public class LightweightStandardSimpleLightingGUI : ShaderGUI
         emissionColorProp = FindProperty("_EmissionColor", properties);
     }
 
-    public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
+    public override void ShaderPropertiesGUI(Material material)
     {
-        Material material = materialEditor.target as Material;
-        m_MaterialEditor = materialEditor;
-
-        FindMaterialProperties(properties);
-
         EditorGUI.BeginChangeCheck();
         {
             DoBlendMode();
@@ -100,15 +94,54 @@ public class LightweightStandardSimpleLightingGUI : ShaderGUI
                 emissionMapProp.textureScaleAndOffset = albedoMapProp.textureScaleAndOffset; // Apply the main texture scale and offset to the emission texture as well, for Enlighten's sake
         }
         if (EditorGUI.EndChangeCheck())
-            LegacyBlinnPhongUpgrader.UpdateMaterialKeywords(material);
+        {
+            foreach (var obj in blendModeProp.targets)
+                MaterialChanged((Material)obj);
+        }
 
         EditorGUILayout.Space();
         EditorGUILayout.Space();
+    }
 
-        materialEditor.RenderQueueField();
+    public override void MaterialChanged(Material material)
+    {
+        material.shaderKeywords = null;
+        SetupMaterialBlendMode(material);
+        SetMaterialKeywords(material);
+    }
 
-        EditorGUILayout.Space();
-        EditorGUILayout.Space();
+    private void SetMaterialKeywords(Material material)
+    {
+        material.shaderKeywords = null;
+        SetupMaterialBlendMode(material);
+        UpdateMaterialSpecularSource(material);
+        CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture("_BumpMap"));
+
+        // A material's GI flag internally keeps track of whether emission is enabled at all, it's enabled but has no effect
+        // or is enabled and may be modified at runtime. This state depends on the values of the current flag and emissive color.
+        // The fixup routine makes sure that the material is in the correct state if/when changes are made to the mode or color.
+        MaterialEditor.FixupEmissiveFlag(material);
+        bool shouldEmissionBeEnabled = (material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.EmissiveIsBlack) == 0;
+        CoreUtils.SetKeyword(material, "_EMISSION", shouldEmissionBeEnabled);
+    }
+
+    private void UpdateMaterialSpecularSource(Material material)
+    {
+        SpecularSource specSource = (SpecularSource)material.GetFloat("_SpecSource");
+        if (specSource == SpecularSource.NoSpecular)
+        {
+            CoreUtils.SetKeyword(material, "_SPECGLOSSMAP", false);
+            CoreUtils.SetKeyword(material, "_SPECULAR_COLOR", false);
+            CoreUtils.SetKeyword(material, "_GLOSSINESS_FROM_BASE_ALPHA", false);
+        }
+        else
+        {
+            GlossinessSource glossSource = (GlossinessSource)material.GetFloat("_GlossinessSource");
+            bool hasGlossMap = material.GetTexture("_SpecGlossMap");
+            CoreUtils.SetKeyword(material, "_SPECGLOSSMAP", hasGlossMap);
+            CoreUtils.SetKeyword(material, "_SPECULAR_COLOR", !hasGlossMap);
+            CoreUtils.SetKeyword(material, "_GLOSSINESS_FROM_BASE_ALPHA", glossSource == GlossinessSource.BaseAlpha);
+        }
     }
 
     public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
@@ -127,7 +160,7 @@ public class LightweightStandardSimpleLightingGUI : ShaderGUI
             ConvertFromLegacy(material, oldShaderName);
         }
 
-        LegacyBlinnPhongUpgrader.UpdateMaterialKeywords(material);
+        StandardSimpleLightingUpgrader.UpdateMaterialKeywords(material);
     }
 
     private void DoBlendMode()
@@ -147,7 +180,8 @@ public class LightweightStandardSimpleLightingGUI : ShaderGUI
             int glossSource = (int)glossinessSourceProp.floatValue;
             m_MaterialEditor.TexturePropertySingleLine(Styles.albedoGlosinessLabels[glossSource], albedoMapProp,
                 albedoColorProp);
-            m_MaterialEditor.TextureScaleOffsetProperty(albedoMapProp);}
+            m_MaterialEditor.TextureScaleOffsetProperty(albedoMapProp);
+        }
         else
         {
             m_MaterialEditor.TexturePropertySingleLine(Styles.albedoAlphaLabel, albedoMapProp, albedoColorProp);
