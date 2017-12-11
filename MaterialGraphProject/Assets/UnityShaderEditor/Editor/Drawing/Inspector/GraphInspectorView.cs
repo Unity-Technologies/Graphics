@@ -9,19 +9,6 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
-    [Serializable]
-    class PersistentMesh
-    {
-        [SerializeField]
-        Mesh m_Mesh;
-
-        public Mesh mesh
-        {
-            get { return m_Mesh; }
-            set { m_Mesh = value; }
-        }
-    }
-
     public class GraphInspectorView : VisualElement, IDisposable
     {
         int m_SelectionHash;
@@ -41,15 +28,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         List<INode> m_SelectedNodes;
 
-        PersistentMesh m_PersistentMasterNodePreviewMesh;
+        Vector2 m_PreviewScrollPosition;
 
         public Action onUpdateAssetClick { get; set; }
         public Action onShowInProjectClick { get; set; }
 
         public GraphInspectorView(string assetName, PreviewManager previewManager, AbstractMaterialGraph graph)
         {
-            persistenceKey = "GraphInspector";
-
             m_Graph = graph;
             m_SelectedNodes = new List<INode>();
 
@@ -98,9 +83,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 }
                 bottomContainer.Add(propertiesContainer);
 
-              
-                m_PreviewTextureView = new PreviewTextureView {name = "preview", image = Texture2D.blackTexture};
+                m_PreviewTextureView = new PreviewTextureView { name = "preview", image = Texture2D.blackTexture };
+                m_PreviewTextureView.AddManipulator(new Draggable(OnMouseDrag, true));
+                m_PreviewTextureView.AddManipulator(new Scrollable(OnMouseScroll));
                 bottomContainer.Add(m_PreviewTextureView);
+
+                m_PreviewScrollPosition = new Vector2(0f, 0f);
 
                 m_PreviewMeshPicker = new ObjectField() { objectType = typeof(Mesh) };
                 m_PreviewMeshPicker.OnValueChanged(OnPreviewMeshChanged);
@@ -112,9 +100,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_PreviewRenderHandle = previewManager.masterRenderData;
             m_PreviewRenderHandle.onPreviewChanged += OnPreviewChanged;
 
+            m_PreviewMeshPicker.SetValueAndNotify(m_Graph.previewMesh);
+
             foreach (var property in m_Graph.properties)
                 m_PropertyItems.Add(new ShaderPropertyView(m_Graph, property));
-            
+
             // Nodes missing custom editors:
             // - PropertyNode
             // - SubGraphInputNode
@@ -128,6 +118,22 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         MasterNode masterNode
         {
             get { return m_PreviewRenderHandle.shaderData.node as MasterNode; }
+        }
+
+        void OnMouseDrag(Vector2 deltaMouse)
+        {
+            Vector2 previewSize = m_PreviewTextureView.contentRect.size;
+
+            m_PreviewScrollPosition -= deltaMouse * (Event.current.shift ? 3f : 1f) / Mathf.Min(previewSize.x, previewSize.y) * 140f;
+            m_PreviewScrollPosition.y = Mathf.Clamp(m_PreviewScrollPosition.y, -90f, 90f);
+            Quaternion previewRotation = Quaternion.Euler(m_PreviewScrollPosition.y, 0, 0) * Quaternion.Euler(0, m_PreviewScrollPosition.x, 0);
+            m_Graph.previewData.rotation = previewRotation;
+        }
+
+        void OnMouseScroll(float scrollDelta)
+        {
+            m_Graph.previewData.scale -= scrollDelta * .01f;
+            m_Graph.previewData.scale = Mathf.Clamp(m_Graph.previewData.scale, .1f, 4f);
         }
 
         void OnAddProperty()
@@ -157,34 +163,17 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         void OnPreviewMeshChanged(ChangeEvent<UnityEngine.Object> changeEvent)
         {
-            if (changeEvent.newValue == null)
-            {
-                m_PreviewRenderHandle.mesh = null;
-                m_PersistentMasterNodePreviewMesh.mesh = null;
-            }
-
             Mesh changedMesh = changeEvent.newValue as Mesh;
-
-            if (changedMesh)
-            {
-                m_PreviewRenderHandle.mesh = changedMesh;
-                m_PersistentMasterNodePreviewMesh.mesh = changedMesh;
-            }
 
             masterNode.onModified(masterNode, ModificationScope.Node);
 
-            SavePersistentData();
-        }
+            if (m_Graph.previewMesh != changedMesh)
+            {
+                m_Graph.previewData.rotation = Quaternion.identity;
+                m_Graph.previewData.scale = 1f;
+            }
 
-        public override void OnPersistentDataReady()
-        {
-            base.OnPersistentDataReady();
-
-            string key = GetFullHierarchicalPersistenceKey();
-
-            m_PersistentMasterNodePreviewMesh = GetOrCreatePersistentData<PersistentMesh>(m_PersistentMasterNodePreviewMesh, key);
-
-            m_PreviewMeshPicker.SetValueAndNotify(m_PersistentMasterNodePreviewMesh.mesh);
+            m_Graph.previewMesh = changedMesh;
         }
 
         public void UpdateSelection(IEnumerable<INode> nodes)
