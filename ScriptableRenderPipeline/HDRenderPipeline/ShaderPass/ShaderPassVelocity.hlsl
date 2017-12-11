@@ -6,9 +6,6 @@
 struct AttributesPass
 {
     float3 previousPositionOS : TEXCOORD4; // Contain previous transform position (in case of skinning for example)
-
-    // TODO: Caution - For now the tesselation doesn't displace along the normal with Velocity shader as the previous previous position
-    // conflict with the normal in the semantic. This need to be fix!
 };
 
 struct VaryingsPassToPS

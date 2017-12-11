@@ -220,6 +220,9 @@ CBUFFER_START(UnityVelocityPass)
     float4x4 unity_MatrixPreviousVP;
     float4x4 unity_MatrixPreviousM;
 	float4x4 unity_MatrixPreviousMI;
+    //X : Use last frame positions (right now skinned meshes are the only objects that use this
+    //Y : Force No Motion
+    //Z : Z bias value
     float4 unity_MotionVectorsParams;
 CBUFFER_END
 
