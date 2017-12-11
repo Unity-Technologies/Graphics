@@ -1,9 +1,9 @@
-#include "ShaderLibrary/SampleUVMapping.hlsl"
-#include "../MaterialUtilities.hlsl"
-
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
+#include "ShaderLibrary/SampleUVMapping.hlsl"
+#include "../MaterialUtilities.hlsl"
+#include "../Decal/DecalUtilities.hlsl"
 
 // TODO: move this function to commonLighting.hlsl once validated it work correctly
 float GetSpecularOcclusionFromBentAO(float3 V, float3 bentNormalWS, SurfaceData surfaceData)
@@ -231,7 +231,7 @@ void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
 #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-    LODDitheringTransition(posInput.unPositionSS, unity_LODFade.x);
+    LODDitheringTransition(posInput.positionSS, unity_LODFade.x);
 #endif
 
     ApplyDoubleSidedFlipOrMirror(input); // Apply double sided flip on the vertex normal
@@ -278,6 +278,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // This is use with anisotropic material
     surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
+
+    AddDecalContribution(posInput.positionSS, surfaceData);
 
     // Caution: surfaceData must be fully initialize before calling GetBuiltinData
     GetBuiltinData(input, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);

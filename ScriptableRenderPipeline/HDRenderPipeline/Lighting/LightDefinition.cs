@@ -37,7 +37,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public struct DirectionalLightData
     {
         public Vector3 positionWS;
-        public bool tileCookie;
+        public int tileCookie; // TODO: make it a bool
 
         public Vector3 color;
         public int shadowIndex; // -1 if unused
@@ -53,7 +53,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Vector2 fadeDistanceScaleAndBias; // Use with ShadowMask feature
         public float unused0;
-        public bool dynamicShadowCasterOnly; // Use with ShadowMask feature
+        public int dynamicShadowCasterOnly; // Use with ShadowMask feature // TODO: make it a bool
 
         public Vector4 shadowMaskSelector; // Use with ShadowMask feature
     };
@@ -79,7 +79,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float angleScale;  // Spot light
         public float angleOffset; // Spot light
         public float shadowDimmer;
-        public bool dynamicShadowCasterOnly; // Use with ShadowMask feature
+        public int dynamicShadowCasterOnly; // Use with ShadowMask feature // TODO: make it a bool
 
         public Vector4 shadowMaskSelector; // Use with ShadowMask feature
 

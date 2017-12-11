@@ -317,8 +317,7 @@ Shader "HDRenderPipeline/LayeredLit"
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
-    // #pragma enable_d3d11_debug_symbols
+    #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
     #pragma shader_feature _ALPHATEST_ON
     #pragma shader_feature _DEPTHOFFSET_ON
@@ -403,6 +402,11 @@ Shader "HDRenderPipeline/LayeredLit"
     #define SURFACE_GRADIENT
     // This shader support vertex modification
     #define HAVE_VERTEX_MODIFICATION
+
+    // If we use subsurface scattering, enable output split lighting (for forward pass)
+    #if defined(_MATID_SSS) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    #define OUTPUT_SPLIT_LIGHTING
+    #endif
 
     //-------------------------------------------------------------------------------------
     // Include
@@ -642,6 +646,13 @@ Shader "HDRenderPipeline/LayeredLit"
             Name "Forward" // Name is not used
             Tags{ "LightMode" = "Forward" } // This will be only for transparent object based on the RenderQueue index
 
+            Stencil
+            {
+                Ref[_StencilRef]
+                Comp Always
+                Pass Replace
+            }
+
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
             Cull[_CullMode]
@@ -670,6 +681,13 @@ Shader "HDRenderPipeline/LayeredLit"
         {
             Name "ForwardDebugDisplay" // Name is not used
             Tags{ "LightMode" = "ForwardDebugDisplay" } // This will be only for transparent object based on the RenderQueue index
+
+            Stencil
+            {
+                Ref[_StencilRef]
+                Comp Always
+                Pass Replace
+            }
 
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]

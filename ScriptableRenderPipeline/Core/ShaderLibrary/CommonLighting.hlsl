@@ -233,6 +233,12 @@ float SphericalCapIntersectionSolidArea(float cosC1, float cosC2, float cosB)
     return area;
 }
 
+// Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
+float ComputeWrappedDiffuseLighting(float NdotL, float w)
+{
+    return saturate((NdotL + w) / ((1 + w) * (1 + w)));
+}
+
 //-----------------------------------------------------------------------------
 // Helper functions
 //-----------------------------------------------------------------------------
@@ -290,6 +296,13 @@ float3x3 GetLocalFrame(float3 localZ)
 
     float3 localX = float3(c * x * a - 1, sz * b, c);
     float3 localY = float3(b, y * ya - sz, y);
+
+    return float3x3(localX, localY, localZ);
+}
+
+float3x3 GetLocalFrame(float3 localZ, float3 localX)
+{
+    float3 localY = cross(localZ, localX);
 
     return float3x3(localX, localY, localZ);
 }

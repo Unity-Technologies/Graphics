@@ -11,7 +11,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -140,10 +140,10 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
             {
                 // positionCS is SV_Position
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, uint2(input.positionCS.xy) / GetTileSize());
-                float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
+                float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.positionSS).x;
                 UpdatePositionInput(depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, posInput);
 
-                int2 pixelCoord = posInput.unPositionSS.xy;
+                int2 pixelCoord = posInput.positionSS.xy;
                 int2 tileCoord = (float2)pixelCoord / GetTileSize();
                 int2 mouseTileCoord = _MousePixelCoord / GetTileSize();
                 int2 offsetInTile = pixelCoord - tileCoord * GetTileSize();
@@ -172,7 +172,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
                 // Tile overlap counter
                 if (n >= 0)
                 {
-                    result = OverlayHeatMap(int2(posInput.unPositionSS.xy) & (GetTileSize() - 1), n);
+                    result = OverlayHeatMap(int2(posInput.positionSS.xy) & (GetTileSize() - 1), n);
                 }
 
 #ifdef SHOW_LIGHT_CATEGORIES
@@ -189,7 +189,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
                 if (tileCoord.y < LIGHTCATEGORY_COUNT && tileCoord.x < maxLights + 3)
                 {
                     PositionInputs mousePosInput = GetPositionInput(_MousePixelCoord, _ScreenSize.zw, mouseTileCoord);
-                    float depthMouse = LOAD_TEXTURE2D(_MainDepthTexture, mousePosInput.unPositionSS).x;
+                    float depthMouse = LOAD_TEXTURE2D(_MainDepthTexture, mousePosInput.positionSS).x;
                     UpdatePositionInput(depthMouse, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, mousePosInput);
 
                     uint category = (LIGHTCATEGORY_COUNT - 1) - tileCoord.y;

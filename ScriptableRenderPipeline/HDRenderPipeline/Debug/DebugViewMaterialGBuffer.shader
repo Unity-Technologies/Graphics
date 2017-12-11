@@ -8,7 +8,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -16,7 +16,6 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
             #pragma multi_compile _ SHADOWS_SHADOWMASK
 
             #include "ShaderLibrary/Common.hlsl"
-            #include "ShaderLibrary/Color.hlsl"
 
             // CAUTION: In case deferred lighting need to support various lighting model statically, we will require to do multicompile with different define like UNITY_MATERIAL_LIT
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
@@ -24,7 +23,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
             #define DEBUG_DISPLAY
             #include "../Debug/DebugDisplay.hlsl"
             #include "../Material/Material.hlsl"
-            
+
             #ifdef SHADOWS_SHADOWMASK
             TEXTURE2D(_ShadowMaskTexture);
             #endif
@@ -50,14 +49,14 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
             {
                 // input.positionCS is SV_Position
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
-                float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
+                float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.positionSS).x;
                 UpdatePositionInput(depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, posInput);
 
                 BSDFData bsdfData;
                 BakeLightingData bakeLightingData;
-                DECODE_FROM_GBUFFER(posInput.unPositionSS, UINT_MAX, bsdfData, bakeLightingData.bakeDiffuseLighting);
+                DECODE_FROM_GBUFFER(posInput.positionSS, UINT_MAX, bsdfData, bakeLightingData.bakeDiffuseLighting);
                 #ifdef SHADOWS_SHADOWMASK
-                DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.unPositionSS), bakeLightingData.bakeShadowMask);
+                DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.positionSS), bakeLightingData.bakeShadowMask);
                 #endif
 
                 // Init to not expected value

@@ -1,4 +1,4 @@
-﻿Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
+Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
 {
     SubShader
     {
@@ -11,7 +11,7 @@
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -42,7 +42,7 @@
             float4 Frag(Varyings input) : SV_Target
             {
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
-                float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
+                float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.positionSS).x;
                 UpdatePositionInput(depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, posInput);
 
                 return EvaluateAtmosphericScattering(posInput);

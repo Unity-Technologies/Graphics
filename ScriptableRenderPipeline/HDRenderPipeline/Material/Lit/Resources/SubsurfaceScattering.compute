@@ -19,8 +19,6 @@
 // Do not modify these.
 #include "../../../ShaderPass/ShaderPass.cs.hlsl"
 #define SHADERPASS            SHADERPASS_SUBSURFACE_SCATTERING
-#define MILLIMETERS_PER_METER 1000
-#define CENTIMETERS_PER_METER 100
 #define GROUP_SIZE_1D         16
 #define GROUP_SIZE_2D         (GROUP_SIZE_1D * GROUP_SIZE_1D)
 #define TEXTURE_CACHE_BORDER  2
@@ -36,18 +34,18 @@
 // Included headers
 //--------------------------------------------------------------------------------------------------
 
+#include "ShaderLibrary/Common.hlsl"
 #include "ShaderLibrary/Packing.hlsl"
+#include "ShaderLibrary\Fibonacci.hlsl"
 #include "ShaderLibrary/SpaceFillingCurves.hlsl"
 #include "../../../ShaderVariables.hlsl"
-#define UNITY_MATERIAL_LIT
-#include "../../../Material/Material.hlsl"
 #include "../../../Lighting/LightDefinition.cs.hlsl"
+#include "../../SubsurfaceScattering/SubsurfaceScattering.hlsl"
 
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs
 //--------------------------------------------------------------------------------------------------
 
-float4 _WorldScales[SSS_N_PROFILES];                             // Size of the world unit in meters (only the X component is used)
 float4 _FilterKernels[SSS_N_PROFILES][SSS_N_SAMPLES_NEAR_FIELD]; // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
 
 TEXTURE2D(_DepthTexture);                           // Z-buffer
@@ -86,10 +84,10 @@ float4 LoadSampleFromVideoMemory(int2 pixelCoord)
 }
 
 // Returns {irradiance, linearDepth}.
-float4 LoadSample(int2 pixelCoord, int2 cacheAnchor)
+float4 LoadSample(int2 pixelCoord, int2 cacheOffset)
 {
 #if SSS_USE_LDS_CACHE
-    int2 cacheCoord = pixelCoord - cacheAnchor;
+    int2 cacheCoord = pixelCoord - cacheOffset;
     bool isInCache  = max((uint)cacheCoord.x, (uint)cacheCoord.y) < TEXTURE_CACHE_SIZE_1D;
 
     [branch] if (isInCache)
@@ -144,7 +142,7 @@ float3 ComputeBilateralWeight(float xy2, float z, float mmPerUnit, float3 S, flo
 #endif
 }
 
-void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, float2 centerCoord, int2 cacheAnchor,
+void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, float2 centerCoord, int2 cacheOffset,
                     float3 shapeParam, float3 centerPosVS, float mmPerUnit, float2 pixelsPerMm,
                     float3 tangentX, float3 tangentY, float4x4 projMatrix,
                     inout float3 totalIrradiance, inout float3 totalWeight)
@@ -160,16 +158,16 @@ void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, float2 cen
     #if SSS_USE_TANGENT_PLANE
         float3 relPosVS   = vec.x * tangentX + vec.y * tangentY;
         float3 positionVS = centerPosVS + relPosVS;
-        float2 positionSS = ComputeScreenSpacePosition(positionCS, projMatrix);
+        float2 positionNDC = ComputeNormalizedDeviceCoordinates(positionCS, projMatrix);
 
-        position = (int2)(positionSS * _ScreenSize.xy);
+        position = (int2)(positionNDC * _ScreenSize.xy);
         xy2      = dot(relPosVS.xy, relPosVS.xy);
     #else
         position = (int2)(centerCoord + vec * pixelsPerMm);
         xy2      = r * r;
     #endif
 
-    float4 textureSample = LoadSample(position, cacheAnchor);
+    float4 textureSample = LoadSample(position, cacheOffset);
     float3 irradiance    = textureSample.rgb;
 
     // Check the results of the stencil test.
@@ -181,6 +179,7 @@ void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, float2 cen
         float  rcpPdf = _FilterKernels[profileID][i][iP];
         float3 weight = ComputeBilateralWeight(xy2, relZ, mmPerUnit, shapeParam, rcpPdf);
 
+        // Note: if the texture sample if off-screen, (z = 0) -> (viewZ = far) -> (weight ≈ 0).
         totalIrradiance += weight * irradiance;
         totalWeight     += weight;
     }
@@ -207,25 +206,29 @@ void StoreResult(uint2 pixelCoord, float3 irradiance)
 #pragma kernel SubsurfaceScattering
 
 [numthreads(GROUP_SIZE_2D, 1, 1)]
-void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
-                          uint  groupThreadId : SV_GroupThreadID)
+void SubsurfaceScattering(uint3 reorderedGroupId : SV_GroupID,
+                          uint  groupThreadId    : SV_GroupThreadID)
 {
     // Note: any factor of 64 is a suitable wave size for our algorithm.
     uint waveIndex = WaveReadFirstLane(groupThreadId / 64);
     uint laneIndex = groupThreadId % 64;
     uint quadIndex = laneIndex / 4;
 
+    // We dispatch 4x swizzled 16x16 groups per a 32x32 macrotile.
+    // Therefore, we need to reorder. TODO: macrotile order.
+    uint2 groupQuad = DeinterleaveQuad(reorderedGroupId.x);
+    uint2 groupId   = uint2(reorderedGroupId.y * 2 + groupQuad.x, reorderedGroupId.z * 2 + groupQuad.y);
+
     // Arrange threads in the Morton order to optimally match the memory layout of GCN tiles.
-    uint  mortonCode  = groupThreadId;
-    uint2 localCoord  = DecodeMorton2D(mortonCode);
-    uint2 tileAnchor  = groupId * GROUP_SIZE_1D;
-    uint2 pixelCoord  = tileAnchor + localCoord;
-    int2  cacheAnchor = (int2)tileAnchor - TEXTURE_CACHE_BORDER;
-    uint2 cacheCoord  = localCoord + TEXTURE_CACHE_BORDER;
-    float stencilRef  = STENCILLIGHTINGUSAGE_SPLIT_LIGHTING;
+    uint2 groupCoord  = DecodeMorton2D(groupThreadId);
+    uint2 groupOffset = groupId * GROUP_SIZE_1D;
+    uint2 pixelCoord  = groupOffset + groupCoord;
+    int2  cacheOffset = (int2)groupOffset - TEXTURE_CACHE_BORDER;
 
     [branch] if (groupThreadId == 0)
     {
+        float stencilRef = STENCILLIGHTINGUSAGE_SPLIT_LIGHTING;
+
         // Check whether the thread group needs to perform any work.
         float s00 = LOAD_TEXTURE2D(_HTile, 2 * groupId + uint2(0, 0)).r;
         float s10 = LOAD_TEXTURE2D(_HTile, 2 * groupId + uint2(1, 0)).r;
@@ -254,6 +257,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
     }
 
 #if SSS_USE_LDS_CACHE
+    uint2 cacheCoord = groupCoord + TEXTURE_CACHE_BORDER;
     // Populate the central region of the LDS cache.
     textureCache[Mad24(TEXTURE_CACHE_SIZE_1D, cacheCoord.y, cacheCoord.x)] = float4(centerIrradiance, centerViewZ);
 
@@ -263,7 +267,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
     [branch] if (quadIndex < numBorderQuadsPerWave)
     {
         // Fetch another texel into the LDS.
-        uint2 startQuad = halfCacheWidthInQuads * uint2(waveIndex & 1, waveIndex >> 1);
+        uint2 startQuad = halfCacheWidthInQuads * DeinterleaveQuad(waveIndex);
 
         uint2 quadCoord;
 
@@ -291,8 +295,8 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
                 break;
         }
 
-        uint2  cacheCoord2 = 2 * (startQuad + quadCoord) + uint2(laneIndex & 1, (laneIndex >> 1) & 1);
-        int2   pixelCoord2 = (int2)(tileAnchor + cacheCoord2) - TEXTURE_CACHE_BORDER;
+        uint2  cacheCoord2 = 2 * (startQuad + quadCoord) + DeinterleaveQuad(laneIndex);
+        int2   pixelCoord2 = (int2)(groupOffset + cacheCoord2) - TEXTURE_CACHE_BORDER;
         float3 irradiance2 = LOAD_TEXTURE2D(_IrradianceSource, pixelCoord2).rgb;
         float  viewZ2      = 0;
 
@@ -310,27 +314,24 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
     GroupMemoryBarrierWithGroupSync();
 #endif
 
-    bool isOffScreen = pixelCoord.x >= (uint)_ScreenSize.x || pixelCoord.y >= (uint)_ScreenSize.y;
+    [branch] if (!passedStencilTest) { return; }
 
-    [branch] if (!passedStencilTest || isOffScreen) { return; }
-
-    PositionInputs posInput = GetPositionInput(pixelCoord, _ScreenSize.zw);    
+    PositionInputs posInput = GetPositionInput(pixelCoord, _ScreenSize.zw);
 
     // The result of the stencil test allows us to statically determine the material type (SSS).
-    BSDFData bsdfData;
-    float3 unused;
-    DECODE_FROM_GBUFFER(pixelCoord, MATERIALFEATUREFLAGS_LIT_SSS, bsdfData, unused);
+    SSSData sssData;
+    DECODE_FROM_SSSBUFFER(posInput.positionSS, sssData);
 
-    int    profileID   = bsdfData.subsurfaceProfile;
-    float  distScale   = bsdfData.subsurfaceRadius;
+    int    profileID   = sssData.subsurfaceProfile;
+    float  distScale   = sssData.subsurfaceRadius;
     float3 shapeParam  = _ShapeParams[profileID].rgb;
     float  maxDistance = _ShapeParams[profileID].a;
 
     // Reconstruct the view-space position corresponding to the central sample.
-    float2 centerPosSS = posInput.positionSS;
-    float2 cornerPosSS = centerPosSS + 0.5 * _ScreenSize.zw;
-    float3 centerPosVS = ComputeViewSpacePosition(centerPosSS, centerDepth, UNITY_MATRIX_I_P);
-    float3 cornerPosVS = ComputeViewSpacePosition(cornerPosSS, centerDepth, UNITY_MATRIX_I_P);
+    float2 centerPosNDC = posInput.positionNDC;
+    float2 cornerPosNDC = centerPosNDC + 0.5 * _ScreenSize.zw;
+    float3 centerPosVS  = ComputeViewSpacePosition(centerPosNDC, centerDepth, UNITY_MATRIX_I_P);
+    float3 cornerPosVS  = ComputeViewSpacePosition(cornerPosNDC, centerDepth, UNITY_MATRIX_I_P);
 
     // Rescaling the filter is equivalent to inversely scaling the world.
     float mmPerUnit  = MILLIMETERS_PER_METER * (_WorldScales[profileID].x / distScale);
@@ -349,7 +350,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
     // divergence of execution across the warp.
     float maxDistInPixels = maxDistance * max(pixelsPerMm.x, pixelsPerMm.y);
 
-    float3 albedo = ApplyDiffuseTexturingMode(bsdfData);
+    float3 albedo = ApplyDiffuseTexturingMode(sssData.diffuseColor, profileID);
 
     [branch] if (distScale == 0 || maxDistInPixels < 1)
     {
@@ -364,10 +365,19 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
     float4x4 viewMatrix, projMatrix;
     GetLeftHandedViewSpaceMatrices(viewMatrix, projMatrix);
 
+    // TODO: Since we have moved to forward SSS, we don't support anymore a bsdfData.normalWS.
+    // Once we include normal+roughness rendering during the prepass, we will have a buffer to bind here and we will be able to reuse this part of the algorithm on demand.
+#if SSS_USE_TANGENT_PLANE
+    #error ThisWillNotCompile_SeeComment
     // Compute the tangent frame in view space.
     float3 normalVS = mul((float3x3)viewMatrix, bsdfData.normalWS);
     float3 tangentX = GetLocalFrame(normalVS)[0] * unitsPerMm;
     float3 tangentY = GetLocalFrame(normalVS)[1] * unitsPerMm;
+#else
+    float3 normalVS = float3(0, 0, 0);
+    float3 tangentX = float3(0, 0, 0);
+    float3 tangentY = float3(0, 0, 0);
+#endif
 
 #if SSS_DEBUG_NORMAL_VS
     // We expect the normal to be front-facing.
@@ -405,7 +415,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
     for (i = 1, n = SSS_N_SAMPLES_FAR_FIELD; i < n; i++)
     {
         // Integrate over the image or tangent plane in the view space.
-        EvaluateSample(i, n, profileID, iR, iP, pixelCoord + 0.5, cacheAnchor,
+        EvaluateSample(i, n, profileID, iR, iP, pixelCoord + 0.5, cacheOffset,
                        shapeParam, centerPosVS, mmPerUnit, pixelsPerMm,
                        tangentX, tangentY, projMatrix,
                        totalIrradiance, totalWeight);
@@ -421,7 +431,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
     for (i = SSS_N_SAMPLES_FAR_FIELD, n = SSS_N_SAMPLES_NEAR_FIELD; i < n; i++)
     {
         // Integrate over the image or tangent plane in the view space.
-        EvaluateSample(i, n, profileID, iR, iP, pixelCoord + 0.5, cacheAnchor,
+        EvaluateSample(i, n, profileID, iR, iP, pixelCoord + 0.5, cacheOffset,
                        shapeParam, centerPosVS, mmPerUnit, pixelsPerMm,
                        tangentX, tangentY, projMatrix,
                        totalIrradiance, totalWeight);

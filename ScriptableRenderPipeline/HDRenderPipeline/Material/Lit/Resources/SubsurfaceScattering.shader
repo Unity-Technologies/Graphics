@@ -23,7 +23,7 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal
             // #pragma enable_d3d11_debug_symbols
 
             #pragma vertex Vert
@@ -33,9 +33,7 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
 
             // Do not modify these.
             #include "../../../ShaderPass/ShaderPass.cs.hlsl"
-            #define SHADERPASS            SHADERPASS_SUBSURFACE_SCATTERING
-            #define MILLIMETERS_PER_METER 1000
-            #define CENTIMETERS_PER_METER 100
+            #define SHADERPASS SHADERPASS_SUBSURFACE_SCATTERING
 
             //-------------------------------------------------------------------------------------
             // Include
@@ -43,14 +41,12 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
 
             #include "ShaderLibrary/Common.hlsl"
             #include "../../../ShaderVariables.hlsl"
-            #define UNITY_MATERIAL_LIT // Needs to be defined before including Material.hlsl
-            #include "../../../Material/Material.hlsl"
+            #include "../../SubsurfaceScattering/SubsurfaceScattering.hlsl"
 
             //-------------------------------------------------------------------------------------
             // Inputs & outputs
             //-------------------------------------------------------------------------------------
 
-            float4 _WorldScales[SSS_N_PROFILES];                             // Size of the world unit in meters (only the X component is used)
             float4 _FilterKernelsBasic[SSS_N_PROFILES][SSS_BASIC_N_SAMPLES]; // RGB = weights, A = radial distance
             float4 _HalfRcpWeightedVariances[SSS_BASIC_N_SAMPLES];           // RGB for chromatic, A for achromatic
 
@@ -79,27 +75,23 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);                
+                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
 
-                // Note: When we are in this SubsurfaceScattering shader we know that we are a SSS material. This shader is strongly coupled with the deferred Lit.shader.
-                // We can use the material classification facility to help the compiler to know we use SSS material and optimize the code (and don't require to read gbuffer with materialId).
-                uint featureFlags = MATERIALFEATUREFLAGS_LIT_SSS;
+                // Note: When we are in this SubsurfaceScattering shader we know that we are a SSS material.
+                SSSData sssData;
+                DECODE_FROM_SSSBUFFER(posInput.positionSS, sssData);
 
-                BSDFData bsdfData;
-                float3 unused;
-                DECODE_FROM_GBUFFER(posInput.unPositionSS, featureFlags, bsdfData, unused);
-
-                int    profileID   = bsdfData.subsurfaceProfile;
-                float  distScale   = bsdfData.subsurfaceRadius;
+                int    profileID   = sssData.subsurfaceProfile;
+                float  distScale   = sssData.subsurfaceRadius;
                 float  maxDistance = _FilterKernelsBasic[profileID][SSS_BASIC_N_SAMPLES - 1].a;
 
                 // Take the first (central) sample.
                 // TODO: copy its neighborhood into LDS.
-                float2 centerPosition   = posInput.unPositionSS;
+                float2 centerPosition   = posInput.positionSS;
                 float3 centerIrradiance = LOAD_TEXTURE2D(_IrradianceSource, centerPosition).rgb;
 
                 // Reconstruct the view-space position.
-                float2 centerPosSS = posInput.positionSS;
+                float2 centerPosSS = posInput.positionNDC;
                 float2 cornerPosSS = centerPosSS + 0.5 * _ScreenSize.zw;
                 float  centerDepth = LOAD_TEXTURE2D(_MainDepthTexture, centerPosition).r;
                 float3 centerPosVS = ComputeViewSpacePosition(centerPosSS, centerDepth, UNITY_MATRIX_I_P);
@@ -131,14 +123,14 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
                 float  halfRcpVariance = _HalfRcpWeightedVariances[profileID].a;
             #endif
 
-            float3 albedo = ApplyDiffuseTexturingMode(bsdfData);
+            float3 albedo = ApplyDiffuseTexturingMode(sssData.diffuseColor, profileID);
 
             #ifndef SSS_FILTER_HORIZONTAL_AND_COMBINE
                 albedo = float3(1, 1, 1);
             #endif
 
                 // Take the first (central) sample.
-                float2 samplePosition   = posInput.unPositionSS;
+                float2 samplePosition   = posInput.positionSS;
                 float3 sampleWeight     = _FilterKernelsBasic[profileID][0].rgb;
                 float3 sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource, samplePosition).rgb;
 
@@ -168,7 +160,7 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
                 [unroll]
                 for (int i = 1; i < SSS_BASIC_N_SAMPLES; i++)
                 {
-                    samplePosition   = posInput.unPositionSS + rotatedDirection * _FilterKernelsBasic[profileID][i].a;
+                    samplePosition   = posInput.positionSS + rotatedDirection * _FilterKernelsBasic[profileID][i].a;
                     sampleWeight     = _FilterKernelsBasic[profileID][i].rgb;
                     sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource, samplePosition).rgb;
 
