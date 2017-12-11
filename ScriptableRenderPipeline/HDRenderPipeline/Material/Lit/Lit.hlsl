@@ -1145,10 +1145,10 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 
     [branch] if (lightData.shadowIndex >= 0)
     {
-#ifdef _SURFACE_TYPE_TRANSPARENT
-        shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, posInput.positionSS);
-#else
+#ifdef USE_DEFERRED_DIRECTIONAL_SHADOWS
         shadow = LOAD_TEXTURE2D(_DeferredShadowTexture, posInput.positionSS).x;
+#else
+        shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, posInput.positionSS);
 #endif
 
 #ifdef SHADOWS_SHADOWMASK
