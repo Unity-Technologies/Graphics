@@ -1,0 +1,9 @@
+{
+    "name": "com.unity.render-pipelines.lightweight.Runtime",
+    "references": [
+      "com.unity.render-pipelines.core.Runtime",
+      "com.unity.postprocessing.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": []
+}

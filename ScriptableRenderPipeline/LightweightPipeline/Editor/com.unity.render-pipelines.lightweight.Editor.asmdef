@@ -1,0 +1,14 @@
+{
+    "name": "com.unity.render-pipelines.lightweight.Editor",
+    "references": [
+      "com.unity.render-pipelines.core.Runtime",
+      "com.unity.render-pipelines.core.Editor",
+      "com.unity.render-pipelines.lightweight.Runtime",
+      "com.unity.postprocessing.Runtime",
+      "com.unity.postprocessing.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}
