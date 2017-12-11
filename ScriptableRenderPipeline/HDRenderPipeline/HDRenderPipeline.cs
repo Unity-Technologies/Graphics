@@ -303,22 +303,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        CommonSettings.Settings m_CommonSettings = CommonSettings.Settings.s_Defaultsettings;
-
         static public CustomSampler   GetSampler(CustomSamplerId id)
         {
             return m_samplers[(int)id];
-        }
-
-        public CommonSettings.Settings commonSettingsToUse
-        {
-            get
-            {
-                if (CommonSettingsSingleton.overrideSettings)
-                    return CommonSettingsSingleton.overrideSettings.settings;
-
-                return m_CommonSettings;
-            }
         }
 
         public HDRenderPipeline(HDRenderPipelineAsset asset)
@@ -679,12 +666,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void UpdateCommonSettings()
+        public void UpdateShadowSettings()
         {
-            var commonSettings = commonSettingsToUse;
+            var shadowSettings = VolumeManager.instance.GetComponent<HDShadowSettings>();
 
-            m_ShadowSettings.maxShadowDistance = commonSettings.shadowMaxDistance;
-            m_ShadowSettings.directionalLightNearPlaneOffset = commonSettings.shadowNearPlaneOffset;
+            m_ShadowSettings.maxShadowDistance = shadowSettings.maxShadowDistance;
+            //m_ShadowSettings.directionalLightNearPlaneOffset = commonSettings.shadowNearPlaneOffset;
         }
 
         public void ConfigureForShadowMask(bool enableBakeShadowMask, CommandBuffer cmd)
@@ -757,7 +744,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             ApplyDebugDisplaySettings(cmd);
-            UpdateCommonSettings();
+            UpdateShadowSettings();
 
             if (!m_IBLFilterGGX.IsInitialized())
                 m_IBLFilterGGX.Initialize(cmd);
