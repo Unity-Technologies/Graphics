@@ -318,33 +318,39 @@ namespace UnityEditor.VFX.UI
         {
             if (e.controller == controller)
             {
-                ControllerChanged();
+                ControllerChanged(e.change);
             }
         }
 
-        void ControllerChanged()
+        void ControllerChanged(int change)
         {
-            SyncNodes();
-            SyncEdges();
+            if (change == VFXViewPresenter.AnyThing)
+            {
+                SyncNodes();
+            }
+            SyncEdges(change);
 
             if (controller != null)
             {
-                var settings = GetRendererSettings();
-
-                m_ToggleCastShadows.on = settings.shadowCastingMode != ShadowCastingMode.Off;
-                m_ToggleCastShadows.SetEnabled(true);
-
-                m_ToggleMotionVectors.on = settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object;
-                m_ToggleMotionVectors.SetEnabled(true);
-
-                // if the asset dis destroy somehow, fox example if the user delete the asset, delete the presenter and update the window.
-                VFXAsset asset = controller.GetVFXAsset();
-                if (asset == null)
+                if (change == VFXViewPresenter.AnyThing)
                 {
-                    VFXViewPresenter.Manager.RemovePresenter(controller);
+                    var settings = GetRendererSettings();
 
-                    this.controller = null;
-                    return;
+                    m_ToggleCastShadows.on = settings.shadowCastingMode != ShadowCastingMode.Off;
+                    m_ToggleCastShadows.SetEnabled(true);
+
+                    m_ToggleMotionVectors.on = settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object;
+                    m_ToggleMotionVectors.SetEnabled(true);
+
+                    // if the asset dis destroy somehow, fox example if the user delete the asset, delete the presenter and update the window.
+                    VFXAsset asset = controller.GetVFXAsset();
+                    if (asset == null)
+                    {
+                        VFXViewPresenter.Manager.RemovePresenter(controller);
+
+                        this.controller = null;
+                        return;
+                    }
                 }
             }
             else
@@ -446,8 +452,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void SyncEdges()
+        void SyncEdges(int change)
         {
+            if (change != VFXViewPresenter.Change.flowEdge)
             {
                 var dataEdges = contentViewContainer.Query().Children<VisualElement>().Children<VFXDataEdge>().ToList().ToDictionary(t => t.controller, t => t);
                 if (controller == null)
@@ -475,6 +482,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
+            if (change != VFXViewPresenter.Change.dataEdge)
             {
                 var flowEdges = contentViewContainer.Query().Children<VisualElement>().Children<VFXFlowEdge>().ToList().ToDictionary(t => t.controller, t => t);
                 if (controller == null)

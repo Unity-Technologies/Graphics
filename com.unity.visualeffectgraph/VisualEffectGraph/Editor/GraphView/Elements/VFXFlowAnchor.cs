@@ -83,7 +83,6 @@ namespace UnityEditor.VFX.UI
             VFXFlowEdge flowEdge = edge as VFXFlowEdge;
             VFXFlowEdgePresenter edgePresenter = VFXFlowEdgePresenter.CreateInstance<VFXFlowEdgePresenter>();
             edgePresenter.Init(flowEdge.input.controller, flowEdge.output.controller);
-            flowEdge.controller = edgePresenter;
 
             view.controller.AddElement(edgePresenter);
         }

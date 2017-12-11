@@ -82,8 +82,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void RecreateNodeEdges()
+        public bool RecreateNodeEdges()
         {
+            bool changed = false;
             HashSet<VFXDataEdgePresenter> unusedEdges = new HashSet<VFXDataEdgePresenter>();
             foreach (var e in m_DataEdges)
             {
@@ -96,7 +97,7 @@ namespace UnityEditor.VFX.UI
                 var slotContainer = operatorPresenter.slotContainer;
                 foreach (var input in slotContainer.inputSlots)
                 {
-                    RecreateInputSlotEdge(unusedEdges, allLinkables, slotContainer, input);
+                    changed |= RecreateInputSlotEdge(unusedEdges, allLinkables, slotContainer, input);
                 }
             }
 
@@ -104,11 +105,25 @@ namespace UnityEditor.VFX.UI
             {
                 edge.OnRemoveFromGraph();
                 m_DataEdges.Remove(edge);
+                changed = true;
+            }
+
+            return changed;
+        }
+
+        public void DataEdgesMightHaveChanged()
+        {
+            bool change = RecreateNodeEdges();
+
+            if (change)
+            {
+                NotifyChange(Change.dataEdge);
             }
         }
 
-        public void RecreateInputSlotEdge(HashSet<VFXDataEdgePresenter> unusedEdges, VFXSlotContainerPresenter[] allLinkables, IVFXSlotContainer slotContainer, VFXSlot input)
+        public bool RecreateInputSlotEdge(HashSet<VFXDataEdgePresenter> unusedEdges, VFXSlotContainerPresenter[] allLinkables, IVFXSlotContainer slotContainer, VFXSlot input)
         {
+            bool changed = false;
             if (input.HasLink())
             {
                 var operatorPresenterFrom = allLinkables.FirstOrDefault(t => input.refSlot.owner == t.slotContainer);
@@ -132,6 +147,7 @@ namespace UnityEditor.VFX.UI
                             edgePresenter = CreateInstance<VFXDataEdgePresenter>();
                             edgePresenter.Init(anchorTo, anchorFrom);
                             m_DataEdges.Add(edgePresenter);
+                            changed = true;
                         }
                     }
                 }
@@ -139,8 +155,10 @@ namespace UnityEditor.VFX.UI
 
             foreach (VFXSlot subSlot in input.children)
             {
-                RecreateInputSlotEdge(unusedEdges, allLinkables, slotContainer, subSlot);
+                changed |= RecreateInputSlotEdge(unusedEdges, allLinkables, slotContainer, subSlot);
             }
+
+            return changed;
         }
 
         public IEnumerable<VFXContextPresenter> contexts
@@ -152,8 +170,25 @@ namespace UnityEditor.VFX.UI
             get { return m_SyncedModels.Values; }
         }
 
-        public void RecreateFlowEdges()
+        public void FlowEdgesMightHaveChanged()
         {
+            bool change = RecreateFlowEdges();
+
+            if (change)
+            {
+                NotifyChange(Change.flowEdge);
+            }
+        }
+
+        public class Change
+        {
+            public const int flowEdge = 1;
+            public const int dataEdge = 2;
+        }
+
+        bool RecreateFlowEdges()
+        {
+            bool changed = false;
             HashSet<VFXFlowEdgePresenter> unusedEdges = new HashSet<VFXFlowEdgePresenter>();
             foreach (var e in m_FlowEdges)
             {
@@ -184,6 +219,7 @@ namespace UnityEditor.VFX.UI
                             edgePresenter = CreateInstance<VFXFlowEdgePresenter>();
                             edgePresenter.Init(inputAnchor, outputAnchor);
                             m_FlowEdges.Add(edgePresenter);
+                            changed = true;
                         }
                     }
                 }
@@ -193,7 +229,10 @@ namespace UnityEditor.VFX.UI
             {
                 edge.OnRemoveFromGraph();
                 m_FlowEdges.Remove(edge);
+                changed = true;
             }
+
+            return changed;
         }
 
         private enum RecordEvent

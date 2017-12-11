@@ -87,6 +87,8 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
+            viewPresenter.FlowEdgesMightHaveChanged();
+
             base.ModelChanged(obj);
         }
 
