@@ -2,8 +2,6 @@
 // LightLoop
 // ----------------------------------------------------------------------------
 
-#include "TilePass.hlsl"
-
 void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout float3 diffuseLighting, inout float3 specularLighting)
 {
 #ifdef DEBUG_DISPLAY
