@@ -767,7 +767,7 @@ namespace UnityEngine.Experimental.Rendering
         abstract public void DisplayShadowMap(CommandBuffer cmd, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
     }
 
-    interface IShadowManager
+    public interface IShadowManager
     {
         // Warning: The shadowRequests array and shadowRequestsCount are modified by this function.
         //          When called the array contains the indices of lights requesting shadows,

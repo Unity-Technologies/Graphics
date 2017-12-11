@@ -757,6 +757,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.specularOcclusion = 1.0;
 #endif
 
+    AddDecalContribution(posInput.positionSS, surfaceData);
+
     GetBuiltinData(input, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
 }
 

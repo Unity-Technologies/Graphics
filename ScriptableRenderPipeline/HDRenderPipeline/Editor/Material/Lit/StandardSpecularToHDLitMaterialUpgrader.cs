@@ -1,9 +1,8 @@
-using NUnit.Framework;
 using UnityEngine;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    class StandardSpecularToHDLitMaterialUpgrader : MaterialUpgrader
+    public class StandardSpecularToHDLitMaterialUpgrader : MaterialUpgrader
     {
         public StandardSpecularToHDLitMaterialUpgrader() : this("Standard (Specular setup)", "HDRenderPipeline/Lit", LitGUI.SetupMaterialKeywordsAndPass) {}
 
@@ -39,30 +38,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             base.Convert(srcMaterial, dstMaterial);
             //@TODO: Find a good way of setting up keywords etc from properties.
             // Code should be shared with material UI code.
-        }
-
-        [Test]
-        public void UpgradeMaterial()
-        {
-            var newShader = Shader.Find("HDRenderPipeline/Lit");
-            var mat = new Material(Shader.Find("Standard (Specular setup)"));
-            var albedo = new Texture2D(1, 1);
-            var normals = new Texture2D(1, 1);
-            var baseScale = new Vector2(1, 1);
-            var color = Color.red;
-            mat.mainTexture = albedo;
-            mat.SetTexture("_BumpMap", normals);
-            mat.color = color;
-            mat.SetTextureScale("_MainTex", baseScale);
-
-            MaterialUpgrader.Upgrade(mat, this, MaterialUpgrader.UpgradeFlags.CleanupNonUpgradedProperties);
-
-            Assert.AreEqual(newShader, mat.shader);
-            Assert.AreEqual(albedo, mat.GetTexture("_BaseColorMap"));
-            Assert.AreEqual(color, mat.GetColor("_BaseColor"));
-            Assert.AreEqual(baseScale, mat.GetTextureScale("_BaseColorMap"));
-            Assert.AreEqual(normals, mat.GetTexture("_NormalMap"));
-            Assert.IsTrue(mat.IsKeywordEnabled("_NORMALMAP"));
         }
     }
 }

@@ -9,7 +9,7 @@ Material:
   m_Name: Layered_BlendColor
   m_Shader: {fileID: 4800000, guid: 81d02e8644315b742b154842a3a2f98c, type: 3}
   m_ShaderKeywords: _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _LAYEREDLIT_4_LAYERS _LAYER_MASK_VERTEX_COLOR_MUL
-    _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2
+    _MATID_SSS _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2
     _NORMALMAP_TANGENT_SPACE3
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
@@ -281,11 +281,51 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SubsurfaceRadiusMap0:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SubsurfaceRadiusMap1:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SubsurfaceRadiusMap2:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SubsurfaceRadiusMap3:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _TangentMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _ThicknessMap0:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ThicknessMap1:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ThicknessMap2:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ThicknessMap3:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AORemapMax0: 1
+    - _AORemapMax1: 1
+    - _AORemapMax2: 1
+    - _AORemapMax3: 1
+    - _AORemapMin0: 0
+    - _AORemapMin1: 0
+    - _AORemapMin2: 0
+    - _AORemapMin3: 0
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.122
     - _AlphaCutoffEnable: 0
@@ -299,7 +339,7 @@ Material:
     - _BlendUsingHeight3: 0
     - _BumpScale: 1
     - _CullMode: 2
-    - _Cutoff: 0.5
+    - _Cutoff: 0.122
     - _DepthOffsetEnable: 0
     - _DetailAOScale0: 1
     - _DetailAOScale1: 1
@@ -498,8 +538,16 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _StencilRef: 2
+    - _StencilRef: 1
     - _Stiffness: 1
+    - _SubsurfaceProfile0: 0
+    - _SubsurfaceProfile1: 0
+    - _SubsurfaceProfile2: 0
+    - _SubsurfaceProfile3: 0
+    - _SubsurfaceRadius0: 1
+    - _SubsurfaceRadius1: 1
+    - _SubsurfaceRadius2: 1
+    - _SubsurfaceRadius3: 1
     - _SurfaceType: 0
     - _TexWorldScale: 1
     - _TexWorldScale0: 1
@@ -507,6 +555,10 @@ Material:
     - _TexWorldScale2: 1
     - _TexWorldScale3: 1
     - _TexWorldScaleBlendMask: 1
+    - _Thickness0: 1
+    - _Thickness1: 1
+    - _Thickness2: 1
+    - _Thickness3: 1
     - _UVBase: 0
     - _UVBase0: 0
     - _UVBase1: 0
@@ -543,7 +595,7 @@ Material:
     - _BaseColor1: {r: 1, g: 0, b: 0, a: 1}
     - _BaseColor2: {r: 0, g: 1, b: 0, a: 1}
     - _BaseColor3: {r: 0, g: 0, b: 1, a: 1}
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 0, g: 0, b: 0, a: 1}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
@@ -552,6 +604,10 @@ Material:
     - _EmissiveColor2: {r: 0, g: 0, b: 0, a: 1}
     - _EmissiveColor3: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
+    - _ThicknessRemap0: {r: 0, g: 1, b: 0, a: 0}
+    - _ThicknessRemap1: {r: 0, g: 1, b: 0, a: 0}
+    - _ThicknessRemap2: {r: 0, g: 1, b: 0, a: 0}
+    - _ThicknessRemap3: {r: 0, g: 1, b: 0, a: 0}
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVDetailsMappingMask0: {r: 1, g: 0, b: 0, a: 0}
     - _UVDetailsMappingMask1: {r: 1, g: 0, b: 0, a: 0}

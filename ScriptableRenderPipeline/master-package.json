@@ -1,8 +1,8 @@
 {
-    "version": "0.1.12",
+    "version": "0.1.14",
     "unity": "2018.1",
     "dependencies": {
-        "com.unity.postprocessing": "0.1.4"
+        "com.unity.postprocessing": "0.1.5"
     },
     "subPackages": [
         "Core",

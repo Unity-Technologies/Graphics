@@ -227,10 +227,6 @@ void SubsurfaceScattering(uint3 groupId       : SV_GroupID,
     int2  cacheAnchor = (int2)groupAnchor - TEXTURE_CACHE_BORDER;
     uint2 cacheCoord  = localCoord + TEXTURE_CACHE_BORDER;
     float stencilRef  = STENCILLIGHTINGUSAGE_SPLIT_LIGHTING;
-    bool  isOffScreen = groupAnchor.x >= (uint)_ScreenSize.x ||
-                        groupAnchor.y >= (uint)_ScreenSize.y;
-
-    [branch] if (isOffScreen) { return; }
 
     [branch] if (groupThreadId == 0)
     {
