@@ -220,8 +220,7 @@ void SubsurfaceScattering(uint3 reorderedGroupId : SV_GroupID,
     uint2 groupId   = uint2(reorderedGroupId.y * 2 + groupQuad.x, reorderedGroupId.z * 2 + groupQuad.y);
 
     // Arrange threads in the Morton order to optimally match the memory layout of GCN tiles.
-    uint  mortonCode  = groupThreadId;
-    uint2 groupCoord  = DecodeMorton2D(mortonCode);
+    uint2 groupCoord  = DecodeMorton2D(groupThreadId);
     uint2 groupOffset = groupId * GROUP_SIZE_1D;
     uint2 pixelCoord  = groupOffset + groupCoord;
     int2  cacheOffset = (int2)groupOffset - TEXTURE_CACHE_BORDER;
