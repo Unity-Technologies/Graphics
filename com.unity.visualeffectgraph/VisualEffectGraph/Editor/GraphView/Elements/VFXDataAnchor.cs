@@ -189,9 +189,14 @@ namespace UnityEditor.VFX.UI
             VFXDataEdge dataEdge = edge as VFXDataEdge;
             VFXDataEdgePresenter edgePresenter = VFXDataEdgePresenter.CreateInstance<VFXDataEdgePresenter>();
             edgePresenter.Init(dataEdge.input.controller, dataEdge.output.controller);
-            dataEdge.controller = edgePresenter;
 
             view.controller.AddElement(edgePresenter);
+        }
+
+        public override void Disconnect(Edge edge)
+        {
+            base.Disconnect(edge);
+            UpdateCapColor();
         }
 
         void IEdgeConnectorListener.OnDropOutsidePort(Edge edge, Vector2 position)

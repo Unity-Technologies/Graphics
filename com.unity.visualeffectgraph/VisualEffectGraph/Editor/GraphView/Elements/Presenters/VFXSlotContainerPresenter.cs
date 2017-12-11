@@ -38,7 +38,6 @@ namespace UnityEditor.VFX.UI
             UpdateSlots(newAnchors, slotContainer.outputSlots, true, false);
             m_OutputPorts = newAnchors;
 
-            viewPresenter.DataEdgesMightHaveChanged();
             base.ModelChanged(obj);
         }
 

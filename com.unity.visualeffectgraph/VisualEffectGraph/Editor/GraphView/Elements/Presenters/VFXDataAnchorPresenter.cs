@@ -71,6 +71,8 @@ namespace UnityEditor.VFX.UI
                 UpdateHiddenRecursive(m_Hidden, true);
             }
             UpdateInfos();
+
+            sourceNode.viewPresenter.DataEdgesMightHaveChanged();
             NotifyChange(AnyThing);
         }
 

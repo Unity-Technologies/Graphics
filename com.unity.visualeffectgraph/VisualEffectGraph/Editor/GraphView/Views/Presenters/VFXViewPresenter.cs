@@ -113,6 +113,8 @@ namespace UnityEditor.VFX.UI
 
         public void DataEdgesMightHaveChanged()
         {
+            if (m_Syncing) return;
+
             bool change = RecreateNodeEdges();
 
             if (change)
@@ -124,6 +126,7 @@ namespace UnityEditor.VFX.UI
         public bool RecreateInputSlotEdge(HashSet<VFXDataEdgePresenter> unusedEdges, VFXSlotContainerPresenter[] allLinkables, IVFXSlotContainer slotContainer, VFXSlot input)
         {
             bool changed = false;
+            input.CleanupLinkedSlots();
             if (input.HasLink())
             {
                 var operatorPresenterFrom = allLinkables.FirstOrDefault(t => input.refSlot.owner == t.slotContainer);
@@ -172,6 +175,8 @@ namespace UnityEditor.VFX.UI
 
         public void FlowEdgesMightHaveChanged()
         {
+            if (m_Syncing) return;
+
             bool change = RecreateFlowEdges();
 
             if (change)
@@ -262,7 +267,7 @@ namespace UnityEditor.VFX.UI
             {
                 //Save concerned object
                 slotInput.Link(slotOuput);
-                RecreateNodeEdges();
+                DataEdgesMightHaveChanged();
             }
             edge.OnRemoveFromGraph();
         }
@@ -338,7 +343,7 @@ namespace UnityEditor.VFX.UI
                 while (slotToClean != null);
 
                 model.RemoveChild(operatorPresenter.model);
-                RecreateNodeEdges();
+                DataEdgesMightHaveChanged();
             }
             else if (element is VFXFlowEdgePresenter)
             {
@@ -679,8 +684,11 @@ namespace UnityEditor.VFX.UI
             SyncPresentersFromModel();
         }
 
+        bool m_Syncing;
+
         public void SyncPresentersFromModel()
         {
+            m_Syncing = true;
             var toRemove = m_SyncedModels.Keys.Except(model.children).ToList();
             foreach (var m in toRemove)
                 RemovePresentersFromModel(m, m_SyncedModels);
@@ -691,6 +699,8 @@ namespace UnityEditor.VFX.UI
 
             RecreateNodeEdges();
             RecreateFlowEdges();
+
+            m_Syncing = false;
         }
 
         private void AddPresentersFromModel(VFXModel model, Dictionary<VFXModel, VFXNodeController> syncedModels)

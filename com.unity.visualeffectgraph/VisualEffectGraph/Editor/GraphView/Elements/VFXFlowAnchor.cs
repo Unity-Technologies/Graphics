@@ -103,6 +103,12 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public override void Disconnect(Edge edge)
+        {
+            base.Disconnect(edge);
+            UpdateCapColor();
+        }
+
         void AddLinkedContext(VFXNodeProvider.Descriptor d, Vector2 mPos)
         {
             VFXView view = GetFirstAncestorOfType<VFXView>();

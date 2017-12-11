@@ -470,7 +470,16 @@ namespace UnityEditor.VFX.UI
 
                     foreach (var deletedController in deletedControllers)
                     {
-                        RemoveElement(dataEdges[deletedController]);
+                        var edge = dataEdges[deletedController];
+                        if (edge.input != null)
+                        {
+                            edge.input.Disconnect(edge);
+                        }
+                        if (edge.output != null)
+                        {
+                            edge.output.Disconnect(edge);
+                        }
+                        RemoveElement(edge);
                     }
 
                     foreach (var newController in controller.dataEdges.Except(dataEdges.Keys))
@@ -498,7 +507,16 @@ namespace UnityEditor.VFX.UI
 
                     foreach (var deletedController in deletedControllers)
                     {
-                        RemoveElement(flowEdges[deletedController]);
+                        var edge = flowEdges[deletedController];
+                        if (edge.input != null)
+                        {
+                            edge.input.Disconnect(edge);
+                        }
+                        if (edge.output != null)
+                        {
+                            edge.output.Disconnect(edge);
+                        }
+                        RemoveElement(edge);
                     }
 
                     foreach (var newController in controller.flowEdges.Except(flowEdges.Keys))
