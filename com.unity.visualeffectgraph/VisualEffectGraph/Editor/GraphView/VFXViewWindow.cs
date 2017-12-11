@@ -45,7 +45,7 @@ namespace  UnityEditor.VFX.UI
 
         public void LoadAsset(VFXAsset asset)
         {
-            VFXViewPresenter newPresenter = VFXViewPresenter.Manager.GetPresenter(asset);
+            VFXViewPresenter newPresenter = VFXViewPresenter.Manager.GetPresenter(asset, true);
 
             if (presenter != newPresenter)
             {
@@ -103,7 +103,7 @@ namespace  UnityEditor.VFX.UI
 
             if (selectedAsset != null)
             {
-                return VFXViewPresenter.Manager.GetPresenter(selectedAsset, false);
+                return VFXViewPresenter.Manager.GetPresenter(selectedAsset, true);
             }
             return null;
         }
@@ -164,6 +164,7 @@ namespace  UnityEditor.VFX.UI
                     this.presenter = newPresenter;
                     graphView.presenter = newPresenter;
                     newPresenter.useCount++;
+                    newPresenter.ForceReload();
                     if (presenter != null)
                         presenter.useCount--;
                 }

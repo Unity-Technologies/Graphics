@@ -22,7 +22,7 @@ VFXParameterUI #exposedNameContainer
 	flex-direction:row;
 }
 
-.VFXNodeUI.collapsed
+.VFXNodeUI.superCollapsed
 {
 height:30;
 width:-1;
@@ -32,13 +32,14 @@ width:-1;
 .VFXNodeUI #settings
 {
     max-height:0;
+    background-color:#393939;
 }
 .VFXNodeUI.expanded #settings
 {
     max-height:10000;
 }
 
-.VFXNodeUI.node.collapsed #node-border > #title
+.VFXNodeUI.node.superCollapsed #node-border > #title
 {
 	position-type:Relative;
 	position-left:0;
@@ -50,13 +51,13 @@ width:-1;
 	border-bottom-left-radius:2;
 	border-bottom-right-radius:2;
 }
-.VFXNodeUI.node.collapsed #node-border > #title > Label#title-label {
+.VFXNodeUI.node.superCollapsed #node-border > #title > Label#title-label {
 	margin-top:4;
 	margin-left:20;
 	margin-right:20;
 }
 
-.VFXNodeUI.node.collapsed .mainContainer, .VFXNodeUI.collapsed #contents, .VFXNodeUI.collapsed #contents > #top
+.VFXNodeUI.node.superCollapsed .mainContainer, .VFXNodeUI.superCollapsed #contents, .VFXNodeUI.superCollapsed #contents > #top
 {
 	position-type:Absolute;
 	position-left:0;
@@ -65,89 +66,67 @@ width:-1;
 	position-bottom:0;
 }
 
-.VFXNodeUI.collapsed #contents > #top > #input
+.VFXNodeUI.superCollapsed #contents > #top > #input
 {
 	padding-top:0;
 	padding-bottom:0;
     background-color:rgba(0,0,0,0);
     flex:1;
 }
-.VFXNodeUI.collapsed #contents > #top > #divider
+.VFXNodeUI.superCollapsed #contents > #top > #divider
 {
 	width:0;
     border-right:0;
 }
-.VFXNodeUI.collapsed #contents > #top > #middle
+.VFXNodeUI.superCollapsed #contents > #top > #middle
 {
     flex:0;
 }
-.VFXNodeUI.collapsed #contents > #top > #output
+.VFXNodeUI.superCollapsed #contents > #top > #output
 {
-    flex-grow:1;
-    flex:1;
+    flex-grow:0;
+    flex:0;
+    width:20;
     background-color:rgba(0,0,0,0);
 }
-.VFXNodeUI.node.collapsed #right #output
+.VFXNodeUI.node.superCollapsed #right #output
 {
 	align-self:flex-end;
 	width:16;
 }
 
-.VFXNodeUI.node.collapsed #right #rightBackground
-{
-	background-color:rgba(0,0,0,0);
-}
-
-.VFXNodeUI.node.collapsed #left #leftBackground
-{
-	background-color:rgba(0,0,0,0);
-}
-
-.VFXNodeUI.collapsed #type
+.VFXNodeUI.superCollapsed #type
 {
 	max-width:0;
 }
 
-.VFXNodeUI.collapsed.node > .mainContainer #right
-{
-	padding-left:0;
-	padding-right:0;
-	flex:1;
-}
-.VFXNodeUI.collapsed.node > .mainContainer #left
-{
-	padding-left:0;
-	padding-right:0;
-	flex:1;
-}
-
-.VFXNodeUI.collapsed #icon
+.VFXNodeUI.superCollapsed #icon
 {
 	max-width:0;
 }
-.VFXNodeUI.collapsed #IMGUI
+.VFXNodeUI.superCollapsed #IMGUI
 {
 	max-width:0;
 }
 
-.VFXNodeUI.collapsed #exposedNameContainer
+.VFXNodeUI.superCollapsed #exposedNameContainer
 {
 	max-width:0;
 }
-.VFXNodeUI.collapsed #exposedContainer
+.VFXNodeUI.superCollapsed #exposedContainer
 {
 	max-width:0;
 }
 
-.VFXNodeUI.collapsed .propertyrm
+.VFXNodeUI.superCollapsed .propertyrm
 {
 	max-width:0;
 }
-.VFXNodeUI.collapsed.node .mainContainer #left
+.VFXNodeUI.superCollapsed.node .mainContainer #left
 {
 	width:120;
 }
-.VFXNodeUI.collapsed.node .VFXDataAnchor
+.VFXNodeUI.superCollapsed.node .VFXDataAnchor
 {
 	position-type:Absolute;
 	position-left:0;
@@ -155,7 +134,7 @@ width:-1;
 	position-top:0;
 	position-bottom:0;
 }
-.VFXNodeUI.collapsed.node VFXOutputDataAnchor.VFXDataAnchor
+.VFXNodeUI.superCollapsed.node VFXOutputDataAnchor.VFXDataAnchor
 {
 	position-type:Absolute;
 	position-right:0;
@@ -163,12 +142,16 @@ width:-1;
 	position-top:0;
 	position-bottom:0;
 }
-.VFXNodeUI.collapsed.node .VFXDataAnchor #connector
+.VFXNodeUI.superCollapsed.node .VFXDataAnchor #connector
 {
 }
 
+.VFXNodeUI.superCollapsed.node .VFXDataAnchor #line
+{
+    background-color:rgba(0,0,0,0);
+}
 
-VFXOperatorUI.collapsed.VFXNodeUI.node .mainContainer > #middle
+VFXOperatorUI.superCollapsed.VFXNodeUI.node .mainContainer > #middle
 {
 	width:0;
 	height:0;

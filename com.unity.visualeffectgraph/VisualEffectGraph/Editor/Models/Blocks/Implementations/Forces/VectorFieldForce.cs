@@ -20,6 +20,9 @@ namespace UnityEditor.VFX.Block
             public float DragCoefficient;
         }
 
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Texture Data Layout : Actual Values, or Unsigned Normalized (Centered on Gray)")]
+        public TextureDataEncoding DataEncoding = TextureDataEncoding.Signed;
+
         public override string name { get { return "Vector Field Force"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdate; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
@@ -52,13 +55,16 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                string Source = @"
+                string Source = string.Format(@"
 float3 vectorFieldCoord = mul(InvFieldTransform, float4(position,1.0f)).xyz;
-float3 value = SampleTexture(VectorField, vectorFieldCoord + 0.5f).xyz * 2.0f - 1.0f;
+float3 value = SampleTexture(VectorField, vectorFieldCoord + 0.5f).xyz {0};
+
 value = mul(FieldTransform,float4(value,0.0f)).xyz * Intensity;
 float3 relativeForce = value - velocity;
 velocity += relativeForce * min(1.0,(DragCoefficient * deltaTime) / mass);
-";
+",
+                        DataEncoding == TextureDataEncoding.UnsignedNormalized ? "* 2.0f - 1.0f" : ""
+                        );
                 return Source;
             }
         }

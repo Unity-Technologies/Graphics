@@ -70,7 +70,7 @@ public class VFXSlotContainerEditor : Editor
 
         if (serializedObject.ApplyModifiedProperties())
         {
-            foreach (VFXContext context in targets.OfType<VFXContext>())
+            foreach (VFXModel context in targets.OfType<VFXModel>())
             {
                 // notify that something changed.
                 context.Invalidate(VFXModel.InvalidationCause.kSettingChanged);

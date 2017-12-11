@@ -24,7 +24,17 @@ namespace UnityEditor.VFX.UI
             m_ViewPresenter = viewPresenter;
 
             base.position = new Rect(model.position, Vector2.one);
+            base.expanded = !model.collapsed;
             UpdateTitle();
+        }
+
+        public override bool expanded
+        {
+            set
+            {
+                base.expanded = value;
+                model.collapsed = !base.expanded;
+            }
         }
 
         public virtual void UpdateTitle()

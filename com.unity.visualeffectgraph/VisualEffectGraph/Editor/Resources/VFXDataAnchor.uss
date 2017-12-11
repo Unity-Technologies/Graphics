@@ -53,7 +53,7 @@
 }
 
 
-.VFXDataAnchor.invisible
+.VFXDataAnchor.hidden
 {
 	max-height:0;
 	min-height:0;
@@ -61,7 +61,7 @@
 	Visible:false;
 }
 
-.VFXDataAnchor.invisible #connector
+.VFXDataAnchor.hidden #connector
 {
 	margin-top:-12;
 	border-left-width:0;

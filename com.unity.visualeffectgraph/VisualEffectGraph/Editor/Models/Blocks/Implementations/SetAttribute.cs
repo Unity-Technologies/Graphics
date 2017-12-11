@@ -25,18 +25,27 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeVariantWritable))]
     class SetAttribute : VFXBlock
     {
-        [VFXSetting]
-        [StringProvider(typeof(AttributeProvider))]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(WritableAttributeProvider))]
         public string attribute = VFXAttribute.All.First();
 
-        public override string name { get { return "Set Attribute " + attribute; } }
+        [VFXSetting]
+        public AttributeCompositionMode Composition = AttributeCompositionMode.Overwrite;
+
+        [VFXSetting]
+        public RandomMode Random = RandomMode.Off;
+
+        public override string name { get { return "Set " + attribute; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
         public override IEnumerable<VFXAttributeInfo> attributes
         {
             get
             {
-                return new List<VFXAttributeInfo>() { new VFXAttributeInfo(currentAttribute, VFXAttributeMode.Write) };
+                VFXAttributeMode attributeMode = (Composition != AttributeCompositionMode.Overwrite) ? VFXAttributeMode.ReadWrite : VFXAttributeMode.Write;
+                yield return new VFXAttributeInfo(currentAttribute, attributeMode);
+
+                if (Random != RandomMode.Off)
+                    yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
             }
         }
         static private string GenerateLocalAttributeName(string name)
@@ -49,7 +58,19 @@ namespace UnityEditor.VFX.Block
             get
             {
                 var attribute = currentAttribute;
-                return string.Format("{0} = {1};", attribute.name, GenerateLocalAttributeName(attribute.name));
+                string source = "";
+
+                if (Random == RandomMode.Off)
+                    source = VFXBlockUtility.GetRandomMacroString(Random, attribute, GenerateLocalAttributeName(attribute.name));
+                else
+                    source = VFXBlockUtility.GetRandomMacroString(Random, attribute, "Min", "Max");
+
+                if (Composition == AttributeCompositionMode.Blend)
+                    source = VFXBlockUtility.GetComposeString(Composition, attribute.name, source, "Blend");
+                else
+                    source = VFXBlockUtility.GetComposeString(Composition, attribute.name, source);
+
+                return source;
             }
         }
 
@@ -57,10 +78,20 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                if (currentAttribute.type == UnityEngine.VFX.VFXValueType.kFloat3 && currentAttribute.name == "color")
-                    yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), GenerateLocalAttributeName(currentAttribute.name)) { attributes = VFXPropertyAttribute.Create(new ShowAsColorAttribute()) }, currentAttribute.value.GetContent());
+                VFXPropertyAttribute[] attr = null;
+                if (currentAttribute.Equals(VFXAttribute.Color))
+                    attr = VFXPropertyAttribute.Create(new ShowAsColorAttribute());
+
+                if (Random == RandomMode.Off)
+                    yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), GenerateLocalAttributeName(currentAttribute.name)) { attributes = attr }, currentAttribute.value.GetContent());
                 else
-                    yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), GenerateLocalAttributeName(currentAttribute.name)), currentAttribute.value.GetContent());
+                {
+                    yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), "Min") { attributes = attr });
+                    yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), "Max") { attributes = attr }, currentAttribute.value.GetContent());
+                }
+
+                if (Composition == AttributeCompositionMode.Blend)
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "Blend"));
             }
         }
 

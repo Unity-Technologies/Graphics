@@ -361,7 +361,7 @@ namespace UnityEditor.VFX.UI
             var elements = view.graphElements.ToList();
 
 
-            List<VFXSlotContainerUI> newSlotContainerUIs = new List<VFXSlotContainerUI>();
+            List<VFXNodeUI> newSlotContainerUIs = new List<VFXNodeUI>();
             List<VFXContextUI> newContainerUIs = new List<VFXContextUI>();
 
             foreach (var slotContainer in newContexts)
@@ -370,7 +370,7 @@ namespace UnityEditor.VFX.UI
                 if (contextUI != null)
                 {
                     newSlotContainerUIs.Add(contextUI.ownData);
-                    newSlotContainerUIs.AddRange(contextUI.GetAllBlocks().Cast<VFXSlotContainerUI>());
+                    newSlotContainerUIs.AddRange(contextUI.GetAllBlocks().Cast<VFXNodeUI>());
                     newContainerUIs.Add(contextUI);
                     view.AddToSelection(contextUI);
                 }
@@ -388,7 +388,7 @@ namespace UnityEditor.VFX.UI
             // Simply selected all data edge with the context or slot container, they can be no other than the copied ones
             foreach (var dataEdge in elements.OfType<VFXDataEdge>())
             {
-                if (newSlotContainerUIs.Contains(dataEdge.input.GetFirstAncestorOfType<VFXSlotContainerUI>()))
+                if (newSlotContainerUIs.Contains(dataEdge.input.GetFirstAncestorOfType<VFXNodeUI>()))
                 {
                     view.AddToSelection(dataEdge);
                 }

@@ -187,6 +187,19 @@ namespace UnityEditor.VFX
             }
         }
 
+        public bool superCollapsed
+        {
+            get { return m_UISuperCollapsed; }
+            set
+            {
+                if (m_UISuperCollapsed != value)
+                {
+                    m_UISuperCollapsed = value;
+                    Invalidate(InvalidationCause.kUIChanged);
+                }
+            }
+        }
+
         public int GetNbChildren()
         {
             return m_Children.Count;
@@ -294,6 +307,8 @@ namespace UnityEditor.VFX
 
         [SerializeField]
         protected bool m_UICollapsed;
+        [SerializeField]
+        protected bool m_UISuperCollapsed;
     }
 
     abstract class VFXModel<ParentType, ChildrenType> : VFXModel

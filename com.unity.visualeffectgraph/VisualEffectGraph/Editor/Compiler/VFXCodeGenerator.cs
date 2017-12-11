@@ -348,7 +348,7 @@ namespace UnityEditor.VFX
             var blockCallFunction = new VFXShaderWriter();
             var blockDeclared = new HashSet<string>();
             var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
-            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToName).ToDictionary(s => s.Key, s => s.Value);
+            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
 
             foreach (var current in context.activeChildrenWithImplicit.Select((v, i) => new { block = v, blockIndex = i }))
             {

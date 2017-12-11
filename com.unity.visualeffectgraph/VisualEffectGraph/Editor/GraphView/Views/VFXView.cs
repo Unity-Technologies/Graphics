@@ -305,7 +305,7 @@ namespace UnityEditor.VFX.UI
         {
             VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>("Assets/VFXEditor/Editor/Templates/DefaultParticleSystem.asset");
 
-            VFXViewPresenter presenter = VFXViewPresenter.Manager.GetPresenter(asset);
+            VFXViewPresenter presenter = VFXViewPresenter.Manager.GetPresenter(asset, true);
             presenter.useCount++;
 
             object data = VFXCopyPaste.CreateCopy(presenter.allChildren);

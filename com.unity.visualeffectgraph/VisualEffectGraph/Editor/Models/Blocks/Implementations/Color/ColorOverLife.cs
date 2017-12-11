@@ -19,7 +19,7 @@ namespace UnityEditor.VFX.Block
         public AttributeCompositionMode AlphaComposition = AttributeCompositionMode.Scale;
 
 
-        public override string name { get { return "Color over Life"; } }
+        public override string name { get { return "Color / Alpha over Life"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdateAndOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
         public override IEnumerable<VFXAttributeInfo> attributes
@@ -85,8 +85,8 @@ namespace UnityEditor.VFX.Block
                 string outSource = @"
 float4 sampledColor = SampleGradient(gradient, age/lifetime);
 ";
-                if ((mode & ColorApplicationMode.Color) != 0) outSource += string.Format(VFXBlockUtility.GetComposeFormatString(ColorComposition), "color", "sampledColor.rgb", "BlendColor") + "\n";
-                if ((mode & ColorApplicationMode.Alpha) != 0) outSource += string.Format(VFXBlockUtility.GetComposeFormatString(AlphaComposition), "alpha", "sampledColor.a", "BlendAlpha") + "\n";
+                if ((mode & ColorApplicationMode.Color) != 0) outSource += VFXBlockUtility.GetComposeString(ColorComposition, "color", "sampledColor.rgb", "BlendColor") + "\n";
+                if ((mode & ColorApplicationMode.Alpha) != 0) outSource += VFXBlockUtility.GetComposeString(AlphaComposition, "alpha", "sampledColor.a", "BlendAlpha") + "\n";
 
                 return outSource;
             }

@@ -101,7 +101,7 @@ namespace UnityEditor.VFX.UIElements
         void OnColorClick()
         {
             if (enabledInHierarchy)
-                ColorPicker.Show(OnColorChanged, m_Value, m_ShowAlpha, true);
+                ColorPicker.Show(OnColorChanged, m_Value.gamma, m_ShowAlpha, true);
         }
 
         VisualElement CreateEyeDropper()
@@ -157,7 +157,7 @@ namespace UnityEditor.VFX.UIElements
 
         void OnColorChanged(Color color)
         {
-            SetValue(color);
+            SetValue(color.linear);
 
             if (m_EyeDroppperScheduler != null)
             {
@@ -172,7 +172,8 @@ namespace UnityEditor.VFX.UIElements
 
         protected override void ValueToGUI()
         {
-            m_ColorDisplay.style.backgroundColor = new Color(m_Value.r, m_Value.g, m_Value.b, 1);
+            Color displayedColor = (new Color(m_Value.r, m_Value.g, m_Value.b, 1)).gamma;
+            m_ColorDisplay.style.backgroundColor = displayedColor;
             m_AlphaDisplay.style.flex = m_Value.a;
             m_NotAlphaDisplay.style.flex = 1 - m_Value.a;
 

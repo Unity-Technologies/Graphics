@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXContextSlotContainerUI : VFXSlotContainerUI, IEdgeDrawerContainer
+    class VFXContextSlotContainerUI : VFXNodeUI, IEdgeDrawerContainer
     {
         public VFXContextSlotContainerUI()
         {

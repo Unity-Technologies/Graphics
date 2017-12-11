@@ -142,7 +142,7 @@ namespace UnityEditor.VFX.UI
                     break;
             }
 
-
+            /*
             RemoveFromClassList("hidden");
             RemoveFromClassList("invisible");
 
@@ -157,6 +157,14 @@ namespace UnityEditor.VFX.UI
             {
                 visible = true;
             }
+            */
+            // Temp fix until presenter are correct : need to update the visibility based on my own collaspsed.
+            VFXNodeUI node = GetFirstAncestorOfType<VFXNodeUI>();
+            if (node != null)
+            {
+                node.OnDataChanged();
+            }
+
 
             if (presenter.direction == Direction.Output)
                 m_ConnectorText.text = presenter.name;

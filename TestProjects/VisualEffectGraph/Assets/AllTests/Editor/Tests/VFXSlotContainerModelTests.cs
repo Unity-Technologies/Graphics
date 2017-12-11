@@ -41,6 +41,13 @@ namespace UnityEditor.VFX.Test
                 public float f = 2.0f;
             }
 
+            public class InputProperties3
+            {
+                [ShowAsColor]
+                public Vector3 v = Vector3.one;
+                public float f = 2.0f;
+            }
+
             private static IEnumerable<VFXPropertyWithValue> ProceduralProperties()
             {
                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector3), "v"));
@@ -57,6 +64,7 @@ namespace UnityEditor.VFX.Test
                         case 1:     return PropertiesFromType("InputProperties2");
                         case 2:     return PropertiesFromType("InputProperties1").Concat(PropertiesFromType("InputProperties2"));
                         case 3:     return ProceduralProperties();
+                        case 5:     return PropertiesFromType("InputProperties3");
                         default:    return PropertiesFromSlots(inputSlots);
                     }
                 }
@@ -184,6 +192,13 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(1, model.GetInputSlot(0).GetNbLinks());
             Assert.AreEqual(new VFXProperty(typeof(Vector2), "v2"), model.GetInputSlot(1).property);
             Assert.AreEqual(Vector2.zero, model.GetInputSlot(1).value);
+
+
+            model.SetSettingValue("slotSetting", 1);
+            Assert.IsTrue(model.GetInputSlot(0).property.attributes.Length == 0);
+
+            model.SetSettingValue("slotSetting", 5);
+            Assert.IsTrue(model.GetInputSlot(0).property.attributes.Length == 1);
         }
     }
 }

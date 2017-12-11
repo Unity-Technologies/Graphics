@@ -62,7 +62,7 @@ namespace UnityEditor.VFX.Block
             {
                 string outSource = string.Format(@"
 float sampledCurve = SampleCurve(curve, age/lifetime);
-{0}", string.Format(VFXBlockUtility.GetComposeFormatString(composition), "size", "sampledCurve", "Blend"));
+{0}", VFXBlockUtility.GetComposeString(composition, "size", "sampledCurve", "Blend"));
 
                 return outSource;
             }
