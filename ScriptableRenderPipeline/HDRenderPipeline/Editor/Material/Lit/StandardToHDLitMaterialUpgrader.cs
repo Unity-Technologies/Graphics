@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    class StandardToHDLitMaterialUpgrader : MaterialUpgrader
+    public class StandardToHDLitMaterialUpgrader : MaterialUpgrader
     {
         public StandardToHDLitMaterialUpgrader() : this("Standard", "HDRenderPipeline/Lit", LitGUI.SetupMaterialKeywordsAndPass) {}
 
