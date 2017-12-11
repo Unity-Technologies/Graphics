@@ -303,9 +303,15 @@ namespace UnityEditor.VFX.UI
 
             this.serializeGraphElements = SerializeElements;
             this.unserializeAndPaste = UnserializeAndPasteElements;
+            this.deleteSelection = Delete;
 
             RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
             RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
+        }
+
+        void Delete(string cmd, AskUser askUser)
+        {
+            controller.Remove(selection.OfType<IControlledElement>().Select(t => t.controller));
         }
 
         void OnControllerChanged(ControllerChangedEvent e)
@@ -383,7 +389,20 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return contentViewContainer.Query().Children<VisualElement>().Children<GraphElement>().ToList().Cast<IControlledElement>().Where(t => t.controller is VFXNodeController).ToDictionary(t => t.controller as VFXNodeController, t => t as GraphElement);
+                Dictionary<VFXNodeController, GraphElement> dic = new Dictionary<VFXNodeController, GraphElement>();
+                foreach (var layer in contentViewContainer.Children())
+                {
+                    foreach (var graphElement in layer.Children())
+                    {
+                        if (graphElement is IControlledElement && (graphElement as IControlledElement).controller is VFXNodeController)
+                        {
+                            dic[(graphElement as IControlledElement).controller as VFXNodeController] = graphElement as GraphElement;
+                        }
+                    }
+                }
+
+
+                return dic;
             }
         }
 

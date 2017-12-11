@@ -262,7 +262,17 @@ namespace UnityEditor.VFX.UI
             edge.OnRemoveFromGraph();
         }
 
-        public virtual void RemoveElement(Controller element)
+        public void Remove(IEnumerable<Controller> removedControllers)
+        {
+            var removed = removedControllers.ToArray();
+
+            foreach (var controller in removed)
+            {
+                RemoveElement(controller);
+            }
+        }
+
+        public void RemoveElement(Controller element)
         {
             if (element is VFXContextPresenter)
             {

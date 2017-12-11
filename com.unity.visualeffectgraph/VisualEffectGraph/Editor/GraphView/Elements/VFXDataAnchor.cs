@@ -78,6 +78,11 @@ namespace UnityEditor.VFX.UI
             simple
         }
 
+        public override bool collapsed
+        {
+            get { return !controller.expandedInHierachy; }
+        }
+
         public static Texture2D GetTypeIcon(Type type, IconType iconType)
         {
             string suffix = "";
@@ -122,42 +127,45 @@ namespace UnityEditor.VFX.UI
         {
             if (e.controller == controller)
             {
-                SelfChange();
+                SelfChange(e.change);
             }
         }
 
-        public virtual void SelfChange()
+        public virtual void SelfChange(int change)
         {
-            if (controller.connected)
-                AddToClassList("connected");
-            else
-                RemoveFromClassList("connected");
-
-
-            // update the css type of the class
-            foreach (var cls in VFXTypeDefinition.GetTypeCSSClasses())
+            if (change != VFXDataAnchorPresenter.Change.hidden)
             {
-                m_ConnectorBox.RemoveFromClassList(cls);
-                RemoveFromClassList(cls);
+                if (controller.connected)
+                    AddToClassList("connected");
+                else
+                    RemoveFromClassList("connected");
+
+
+                // update the css type of the class
+                foreach (var cls in VFXTypeDefinition.GetTypeCSSClasses())
+                {
+                    m_ConnectorBox.RemoveFromClassList(cls);
+                    RemoveFromClassList(cls);
+                }
+
+                string className = VFXTypeDefinition.GetTypeCSSClass(controller.portType);
+                AddToClassList(className);
+                m_ConnectorBox.AddToClassList(className);
+
+                AddToClassList("EdgeConnector");
+
+                switch (controller.direction)
+                {
+                    case Direction.Input:
+                        AddToClassList("Input");
+                        break;
+                    case Direction.Output:
+                        AddToClassList("Output");
+                        break;
+                }
+
+                portName = "";
             }
-
-            string className = VFXTypeDefinition.GetTypeCSSClass(controller.portType);
-            AddToClassList(className);
-            m_ConnectorBox.AddToClassList(className);
-
-            AddToClassList("EdgeConnector");
-
-            switch (controller.direction)
-            {
-                case Direction.Input:
-                    AddToClassList("Input");
-                    break;
-                case Direction.Output:
-                    AddToClassList("Output");
-                    break;
-            }
-
-            portName = "";
 
             if (controller.expandedInHierachy)
             {

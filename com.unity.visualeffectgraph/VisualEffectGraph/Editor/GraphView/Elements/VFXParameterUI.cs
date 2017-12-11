@@ -59,6 +59,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        protected virtual bool syncInput
+        {
+            get { return false; }
+        }
+
         protected override void SelfChange()
         {
             base.SelfChange();

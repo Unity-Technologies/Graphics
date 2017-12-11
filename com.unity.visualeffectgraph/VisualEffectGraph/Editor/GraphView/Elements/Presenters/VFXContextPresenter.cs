@@ -50,7 +50,6 @@ namespace UnityEditor.VFX.UI
             if (viewPresenter != null)
             {
                 UnregisterAnchors();
-                viewPresenter.RemoveInvalidateDelegate(model, OnModelInvalidate);
             }
         }
 
@@ -62,13 +61,14 @@ namespace UnityEditor.VFX.UI
                 viewPresenter.UnregisterFlowAnchorPresenter(anchor);
         }
 
-        void DataChanged(UnityEngine.Object obj)
+        protected void DataChanged(UnityEngine.Object obj)
         {
             NotifyChange(AnyThing);
         }
 
         protected override void ModelChanged(UnityEngine.Object obj)
         {
+            SyncPresenters();
             // make sure we listen to the right data
             if (m_DataHandle == null && context.GetData() != null)
             {
@@ -90,7 +90,7 @@ namespace UnityEditor.VFX.UI
             base.ModelChanged(obj);
         }
 
-        protected override void OnDisable()
+        public override void OnDisable()
         {
             if (m_DataHandle != null)
             {
@@ -134,7 +134,6 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            viewPresenter.AddInvalidateDelegate(model, OnModelInvalidate);
             SyncPresenters();
         }
 
@@ -142,12 +141,6 @@ namespace UnityEditor.VFX.UI
         {
             base.ForceUpdate();
             m_SlotPresenter.ForceUpdate();
-        }
-
-        private void OnModelInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
-        {
-            if (model == this.model && cause == VFXModel.InvalidationCause.kStructureChanged)
-                SyncPresenters();
         }
 
         public void AddBlock(int index, VFXBlock block)
@@ -199,6 +192,11 @@ namespace UnityEditor.VFX.UI
                     presenter.ForceUpdate();
                 }
                 m_NewPresenters.Add(presenter);
+            }
+
+            foreach (var deletedPresenter in m_BlockPresenters.Except(m_NewPresenters))
+            {
+                deletedPresenter.OnDisable();
             }
             m_BlockPresenters = m_NewPresenters;
         }

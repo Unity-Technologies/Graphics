@@ -23,7 +23,7 @@ namespace  UnityEditor.VFX.UI
                 { Event.KeyboardEvent("a"), view.FrameAll },
                 { Event.KeyboardEvent("f"), view.FrameSelection },
                 { Event.KeyboardEvent("o"), view.FrameOrigin },
-                { Event.KeyboardEvent("delete"), view.DeleteSelection },
+                //{ Event.KeyboardEvent("delete"), view.DeleteSelection },
                 { Event.KeyboardEvent("^#>"), view.FramePrev },
                 { Event.KeyboardEvent("^>"), view.FrameNext },
                 {Event.KeyboardEvent("c"), view.CloneModels},         // TEST

@@ -119,10 +119,10 @@ namespace UnityEditor.VFX.UI
             NotifyChange(AnyThing);
         }
 
-        protected override VFXDataAnchorPresenter AddDataAnchor(VFXSlot slot, bool input)
+        protected override VFXDataAnchorPresenter AddDataAnchor(VFXSlot slot, bool input, bool hidden)
         {
             var anchor = VFXParameterOutputDataAnchorPresenter.CreateInstance<VFXParameterOutputDataAnchorPresenter>();
-            anchor.Init(slot, this);
+            anchor.Init(slot, this, hidden);
             anchor.portType = slot.property.type;
             return anchor;
         }

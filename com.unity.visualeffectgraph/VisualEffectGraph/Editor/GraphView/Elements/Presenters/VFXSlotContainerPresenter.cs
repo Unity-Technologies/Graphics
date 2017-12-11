@@ -53,7 +53,7 @@ namespace UnityEditor.VFX.UI
 
                     if (propPresenter == null)
                     {
-                        propPresenter = AddDataAnchor(slot, input);
+                        propPresenter = AddDataAnchor(slot, input, !expanded);
                     }
                     newAnchors.Add(propPresenter);
 
@@ -82,7 +82,7 @@ namespace UnityEditor.VFX.UI
             return result;
         }
 
-        protected virtual VFXDataAnchorPresenter AddDataAnchor(VFXSlot slot, bool input)
+        protected virtual VFXDataAnchorPresenter AddDataAnchor(VFXSlot slot, bool input, bool hidden)
         {
             return null;
         }

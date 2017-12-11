@@ -39,14 +39,14 @@ namespace UnityEditor.VFX.UI
 
         public Type portType { get; set; }
 
-        public void Init(VFXSlot model, VFXSlotContainerPresenter scPresenter)
+        public void Init(VFXSlot model, VFXSlotContainerPresenter scPresenter, bool hidden)
         {
             base.Init(model);
             m_SourceNode = scPresenter;
+            m_Hidden = hidden;
+            m_Collapsed = model.collapsed;
 
             portType = model.property.type;
-
-            UpdateHidden();
 
             if (model.GetMasterSlot() != null && model.GetMasterSlot() != model)
             {
@@ -59,35 +59,47 @@ namespace UnityEditor.VFX.UI
             ModelChanged(obj);
         }
 
+        bool m_Collapsed;
+
         protected override void ModelChanged(UnityEngine.Object obj)
         {
-            UpdateHidden();
+            if (model.collapsed != m_Collapsed)
+            {
+                m_Collapsed = model.collapsed;
+                UpdateHiddenRecursive(m_Hidden, true);
+            }
             UpdateInfos();
             NotifyChange(AnyThing);
         }
 
-        void OnDisable()
+        public override void OnDisable()
         {
             if (m_MasterSlotHandle != null)
             {
                 DataWatchService.sharedInstance.RemoveWatch(m_MasterSlotHandle);
             }
+            base.OnDisable();
         }
 
-        private void UpdateHidden()
+        public class Change
         {
-            m_Hidden = false;
+            public const int hidden = 1;
+        }
 
-
-            VFXSlot parent = model.GetParent();
-            while (parent != null)
+        private void UpdateHiddenRecursive(bool parentCollapsed, bool firstLevel)
+        {
+            bool changed = m_Hidden != parentCollapsed;
+            if (changed || firstLevel)
             {
-                if (parent.collapsed)
+                m_Hidden = parentCollapsed;
+
+                var ports = (direction == Direction.Input) ? m_SourceNode.inputPorts : m_SourceNode.outputPorts;
+                foreach (var element in model.children.Select(t => ports.First(u => u.model == t)))
                 {
-                    m_Hidden = true;
-                    break;
+                    element.UpdateHiddenRecursive(m_Hidden || !expandedSelf, false);
                 }
-                parent = parent.GetParent();
+                if (changed && !firstLevel) //Do not notify on first level as it will be done by the called
+                    NotifyChange((int)Change.hidden);
             }
         }
 

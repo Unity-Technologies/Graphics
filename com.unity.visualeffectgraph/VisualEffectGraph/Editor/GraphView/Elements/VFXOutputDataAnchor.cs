@@ -51,9 +51,9 @@ namespace UnityEditor.VFX.UI
 
         VisualElement[] m_Lines;
 
-        public override void SelfChange()
+        public override void SelfChange(int change)
         {
-            base.SelfChange();
+            base.SelfChange(change);
             VFXDataAnchorPresenter presenter = controller;
 
             if (presenter.depth != 0 && m_Lines == null)

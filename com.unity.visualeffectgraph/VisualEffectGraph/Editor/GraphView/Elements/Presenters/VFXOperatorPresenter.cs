@@ -8,7 +8,7 @@ namespace UnityEditor.VFX.UI
 {
     class VFXOperatorPresenter : VFXSlotContainerPresenter
     {
-        protected override VFXDataAnchorPresenter AddDataAnchor(VFXSlot slot, bool input)
+        protected override VFXDataAnchorPresenter AddDataAnchor(VFXSlot slot, bool input, bool hidden)
         {
             VFXOperatorAnchorPresenter anchor;
             if (input)
@@ -19,7 +19,7 @@ namespace UnityEditor.VFX.UI
             {
                 anchor = CreateInstance<VFXOutputOperatorAnchorPresenter>();
             }
-            anchor.Init(slot, this);
+            anchor.Init(slot, this, hidden);
 
             anchor.portType = VFXOperatorAnchorPresenter.GetDisplayAnchorType(slot);
 

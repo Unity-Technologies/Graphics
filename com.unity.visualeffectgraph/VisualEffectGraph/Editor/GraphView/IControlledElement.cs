@@ -87,7 +87,7 @@ namespace UnityEditor.VFX.UI
             m_Handle = DataWatchService.sharedInstance.AddWatch(m_Model, ModelChanged);
         }
 
-        protected virtual void OnDisable()
+        public virtual void OnDisable()
         {
             DataWatchService.sharedInstance.RemoveWatch(m_Handle);
         }
@@ -113,6 +113,13 @@ namespace UnityEditor.VFX.UI
         public Controller controller;
 
         public int change;
+        protected override void Init()
+        {
+            base.Init();
+            flags = EventFlags.Bubbles | EventFlags.Capturable;
+            controller = null;
+            change = 0;
+        }
     }
 
     interface IControlledElement

@@ -151,9 +151,9 @@ namespace UnityEditor.VFX.UI
 
         Type m_EditedType;
 
-        public override void SelfChange()
+        public override void SelfChange(int change)
         {
-            base.SelfChange();
+            base.SelfChange(change);
 
             VFXDataAnchorPresenter presenter = controller;
 

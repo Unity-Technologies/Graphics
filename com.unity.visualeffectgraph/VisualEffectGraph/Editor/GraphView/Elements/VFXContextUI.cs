@@ -588,17 +588,14 @@ namespace UnityEditor.VFX.UI
             }
             foreach (var blockPresenter in blockPresenters)
             {
-                if (blockPresenter.block != null)
+                VFXBlockUI blockUI;
+                if (blocksUIs.TryGetValue(blockPresenter, out blockUI))
                 {
-                    VFXBlockUI blockUI;
-                    if (blocksUIs.TryGetValue(blockPresenter, out blockUI))
-                    {
-                        m_BlockContainer.Add(blockUI);
-                    }
-                    else
-                    {
-                        InstantiateBlock(blockPresenter);
-                    }
+                    m_BlockContainer.Add(blockUI);
+                }
+                else
+                {
+                    InstantiateBlock(blockPresenter);
                 }
             }
         }

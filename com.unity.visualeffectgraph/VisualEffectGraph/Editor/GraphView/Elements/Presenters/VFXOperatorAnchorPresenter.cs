@@ -8,11 +8,6 @@ namespace UnityEditor.VFX.UI
 {
     abstract class VFXOperatorAnchorPresenter : VFXDataAnchorPresenter
     {
-        public new void Init(VFXSlot model, VFXSlotContainerPresenter scPresenter)
-        {
-            base.Init(model, scPresenter);
-        }
-
         public static System.Type GetDisplayAnchorType(VFXSlot slot)
         {
             System.Type newAnchorType = slot.property.type;

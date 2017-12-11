@@ -11,12 +11,6 @@ namespace UnityEditor.VFX.UI
         {
             get { return VFXContextSlotContainerPresenter.IsTypeExpandable(portType); }
         }
-
-
-        public void Init(VFXSlot model, VFXContextSlotContainerPresenter scPresenter)
-        {
-            base.Init(model, scPresenter);
-        }
     }
 
     class VFXContextDataInputAnchorPresenter : VFXContextDataAnchorPresenter
