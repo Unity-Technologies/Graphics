@@ -122,6 +122,10 @@ void UpdateLightingHierarchyWeights(inout float hierarchyWeight, inout float wei
 
 #include "Builtin/BuiltinData.hlsl"
 
+#if defined(LIGHTLOOP_SINGLE_PASS) || defined(LIGHTLOOP_TILE_PASS)
+#include "../Lighting/LightEvaluation.hlsl" // Depends on LightLoopDef and BuiltinData, shared by different materials and light loops
+#endif
+
 //-----------------------------------------------------------------------------
 // Material definition
 //-----------------------------------------------------------------------------
