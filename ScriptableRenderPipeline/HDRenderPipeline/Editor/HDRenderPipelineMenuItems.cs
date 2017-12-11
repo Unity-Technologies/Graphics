@@ -254,7 +254,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             GameObjectUtility.SetParentAndAlign(sceneSettings, menuCommand.context as GameObject);
             Undo.RegisterCreatedObjectUndo(sceneSettings, "Create " + sceneSettings.name);
             Selection.activeObject = sceneSettings;
-            sceneSettings.AddComponent<SceneSettings>();
+            var volume = sceneSettings.AddComponent<Volume>();
+            var visualEnv = volume.Add<VisualEnvironment>(true);
+            visualEnv.skyType.value = SkyType.ProceduralSky;
         }
 
         class DoCreateNewAsset<TAssetType> : ProjectWindowCallback.EndNameEditAction where TAssetType : ScriptableObject
@@ -268,15 +270,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        class DoCreateNewAssetCommonSettings : DoCreateNewAsset<CommonSettings> {}
         class DoCreateNewAssetSubsurfaceScatteringSettings : DoCreateNewAsset<SubsurfaceScatteringSettings> {}
-
-        [MenuItem("Assets/Create/Render Pipeline/High Definition/Common Settings", priority = CoreUtils.assetCreateMenuPriority2)]
-        static void MenuCreateCommonSettings()
-        {
-            var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetCommonSettings>(), "New CommonSettings.asset", icon, null);
-        }
 
         [MenuItem("Assets/Create/Render Pipeline/High Definition/Subsurface Scattering Settings", priority = CoreUtils.assetCreateMenuPriority2)]
         static void MenuCreateSubsurfaceScatteringProfile()
