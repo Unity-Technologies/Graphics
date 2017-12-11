@@ -210,18 +210,44 @@ float3x3 GetRotationMatrix(float3 axis,float angle)
     const float y = axis.y;
     const float z = axis.z;
 
-    return float3x3(t * x * x + c,      t * x * y - s * z,  t * x * z + s * y,
-                    t * x * y + s * z,  t * y * y + c,      t * y * z - s * x,
-                    t * x * z - s * y,  t * y * z + s * x,  t * z * z + c);
+    return float3x3(t * x * x + c,      t * x * y + s * z,  t * x * z - s * y,
+                    t * x * y - s * z,  t * y * y + c,      t * y * z + s * x,
+                    t * x * z + s * y,  t * y * z - s * x,  t * z * z + c);
 }
 
-float4x4 GetPrimitiveToVFXMatrix(float3 side,float3 up,float3 front,float3 angle,float3 pivot,float3 size,float3 pos)
+float3x3 GetEulerMatrix(float3 angles)
 {
-    float3x3 rot = GetRotationMatrix(up,radians(angle.y));
-    rot = mul(rot,GetRotationMatrix(side,radians(angle.x)));
-    rot = mul(rot,GetRotationMatrix(front,radians(angle.z)));
-    rot = mul(rot,transpose(float3x3(side * size.x,up * size.y,front * size.z)));
-    pos -= pivot * size;
+    float3 s,c;
+    sincos(angles, s, c);
+
+    return float3x3(c.y * c.z + s.x * s.y * s.z,    c.z * s.x * s.y - c.y * s.z,    c.x * s.y,
+                    c.x * s.z,                      c.x * c.z,                      -s.x,
+                    -c.z * s.y + c.y * s.x * s.z,   c.y * c.z * s.x + s.y * s.z,    c.x * c.y);
+}
+
+float4x4 GetPrimitiveToVFXMatrix(float3 side,float3 up,float3 front,float3 angles,float3 pivot,float3 size,float3 pos)
+{
+
+    float3x3 rot = GetEulerMatrix(radians(angles));
+
+    /*float3x3 rot = GetRotationMatrix(up,radians(angles.y));
+    rot = mul(rot,GetRotationMatrix(side,radians(angles.x)));
+    rot = mul(rot,GetRotationMatrix(front,radians(angles.z)));*/
+
+    rot = mul(transpose(float3x3(side * size.x,up * size.y,front * size.z)),rot);
+    pos -= mul(rot,pivot);
+    return float4x4(
+        float4(rot[0],pos.x),
+        float4(rot[1],pos.y),
+        float4(rot[2],pos.z),
+        float4(0,0,0,1));
+}
+
+float4x4 GetVFXToPrimitiveMatrix(float3 side,float3 up,float3 front,float3 angles,float3 pivot,float3 size,float3 pos)
+{
+    float3x3 rot = float3x3(side / size.x,up / size.y,front / size.z);
+    rot = mul(GetEulerMatrix(radians(-angles)),rot);
+    pos = pivot - mul(rot,pos);
     return float4x4(
         float4(rot[0],pos.x),
         float4(rot[1],pos.y),
@@ -233,7 +259,7 @@ float3 TransformInElementSpace(float3 offsets,float3 side,float3 up,float3 front
 {
     offsets -= pivot;
     offsets *= size;
-    float3 tOffsets = mul(rot,side * offsets.x + up * offsets.y + front * offsets.z);
+    float3 tOffsets = mul(side * offsets.x + up * offsets.y + front * offsets.z,rot);
     return tOffsets;
 }
 
