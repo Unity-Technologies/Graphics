@@ -150,12 +150,12 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
         // Loop over 1 or 2 light clusters.
         for (int cluster = 0; cluster < 2; cluster++)
         {
-            float tMin = max(t0, clusterDepths[cluster] * ray.ratioLenToZ);
+            float tMin = max(t0, ray.ratioLenToZ * clusterDepths[cluster]);
             float tMax = t1;
 
             if (cluster == 0 && (clusterIndices[0] != clusterIndices[1]))
             {
-                tMax = min(t1, clusterDepths[1] * ray.ratioLenToZ);
+                tMax = min(t1, ray.ratioLenToZ * clusterDepths[1]);
             }
     #else
             float tMin = t0;
@@ -164,27 +164,21 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
 
             if (featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
             {
+                uint punctualLightStart;
                 uint punctualLightCount;
 
             #ifdef LIGHTLOOP_TILE_PASS
-                uint punctualLightStart;
                 GetCountAndStartCluster(tileCoord, clusterIndices[cluster], LIGHTCATEGORY_PUNCTUAL,
                                         punctualLightStart, punctualLightCount);
             #else
+                punctualLightStart = 0;
                 punctualLightCount = _PunctualLightCount;
             #endif // LIGHTLOOP_TILE_PASS
 
                 // TODO: since lights are sorted, make a while loop per light type.
                 for (uint i = 0; i < punctualLightCount; ++i)
                 {
-                #ifdef LIGHTLOOP_TILE_PASS
-                    uint punctualLightIndex = FetchIndex(punctualLightStart, i);
-                #else
-                    uint punctualLightIndex = i;
-                #endif // LIGHTLOOP_TILE_PASS
-
-                    // Fetch the light.
-                    LightData lightData = _LightDatas[punctualLightIndex];
+                    LightData lightData = FetchLight(punctualLightStart, i);
                     int       lightType = lightData.lightType;
 
                     // TODO...
@@ -256,6 +250,9 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
             // The voxel is completely inside the light cluster.
             if (clusterIndices[0] == clusterIndices[1]) break;
         }
+
+        clusterIndices[0] = clusterIndices[1];
+        clusterDepths[0]  = clusterDepths[1];
     #endif // LIGHTLOOP_TILE_PASS
 
         // Compute the transmittance up to the start of the interval.
@@ -274,11 +271,6 @@ void FillVolumetricLightingBuffer(Ray ray, uint2 voxelCoord, uint2 tileCoord)
         opticalDepth += 0.5 * extinction * dt;
 
         t0 = t1;
-
-    #ifdef LIGHTLOOP_TILE_PASS
-        clusterIndices[0] = clusterIndices[1];
-        clusterDepths[0]  = clusterDepths[1];
-    #endif // LIGHTLOOP_TILE_PASS
     }
 }
 
@@ -295,11 +287,10 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
     uint quadIndex = laneIndex / 4;
 
     // Arrange threads in the Morton order to optimally match the memory layout of GCN tiles.
-    uint  mortonCode = groupThreadId;
-    uint2 localCoord = DecodeMorton2D(mortonCode);
-    uint2 groupCoord = groupId * GROUP_SIZE_1D;
-    uint2 voxelCoord = groupCoord + localCoord;
-    uint2 tileCoord  = voxelCoord * VBUFFER_TILE_SIZE / TILE_SIZE_CLUSTERED;
+    uint2 groupCoord  = DecodeMorton2D(groupThreadId);
+    uint2 groupOffset = groupId * GROUP_SIZE_1D;
+    uint2 voxelCoord  = groupOffset + groupCoord;
+    uint2 tileCoord   = voxelCoord * VBUFFER_TILE_SIZE / TILE_SIZE_CLUSTERED;
 
     uint voxelsPerClusterTile = Sq((uint)(TILE_SIZE_CLUSTERED / VBUFFER_TILE_SIZE));
 
@@ -319,12 +310,15 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
     float2 sampleCoord = voxelCoord + 0.5;
 
     // Compute the ray direction s.t. its ViewSpaceZ = 1.
-    float3 dir = -mul(float3(sampleCoord, 1), (float3x3)_VBufferCoordToViewDirWS);
+    float3 dir    = -mul(float3(sampleCoord, 1), (float3x3)_VBufferCoordToViewDirWS);
+    float  lenSq  = dot(dir, dir);
+    float  lenRcp = rsqrt(lenSq);
+    float  len    = lenSq * lenRcp;
 
     Ray ray;
     ray.originWS    = GetCurrentViewPosition();
-    ray.ratioLenToZ = length(dir);
-    ray.directionWS = normalize(dir);
+    ray.ratioLenToZ = len;
+    ray.directionWS = dir * lenRcp;
 
     FillVolumetricLightingBuffer(ray, voxelCoord, tileCoord);
 }
