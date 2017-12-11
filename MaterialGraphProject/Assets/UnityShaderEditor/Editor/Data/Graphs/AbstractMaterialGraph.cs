@@ -22,6 +22,15 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         List<Guid> m_RemovedProperties = new List<Guid>();
 
+        [NonSerialized]
+        public InspectorPreviewData previewData = new InspectorPreviewData();
+
+        public Mesh previewMesh
+        {
+            get { return previewData.mesh; }
+            set { previewData.mesh = value; }
+        }
+
         public IEnumerable<IShaderProperty> properties
         {
             get { return m_Properties; }
@@ -570,5 +579,13 @@ struct GraphVertexInput
             configuredTextures = shaderProperties.GetConfiguredTexutres();
             return finalShader.GetShaderString(0);
         }
+    }
+
+
+    public class InspectorPreviewData
+    {
+        public Mesh mesh;
+        public Quaternion rotation = Quaternion.identity;
+        public float scale = 1f;
     }
 }
