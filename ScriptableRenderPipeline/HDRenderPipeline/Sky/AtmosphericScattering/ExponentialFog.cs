@@ -12,7 +12,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private readonly static int m_ExpFogParam = Shader.PropertyToID("_ExpFogParameters");
 
         // Exponential fog
-        public ClampedFloatParameter fogDistance = new ClampedFloatParameter { value = 100.0f, min = 0.0f, clampMode = ParameterClampMode.Min };
+        public MinFloatParameter fogDistance = new MinFloatParameter(100.0f, 0.0f);
 
         public override void PushShaderParameters(CommandBuffer cmd, RenderingDebugSettings renderingDebug)
         {

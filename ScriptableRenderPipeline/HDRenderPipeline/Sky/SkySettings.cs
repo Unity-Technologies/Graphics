@@ -3,28 +3,42 @@ using System;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [Serializable]
-    public sealed class SkyResolutionParameter : VolumeParameter<SkyResolution> { }
+    public sealed class SkyResolutionParameter : VolumeParameter<SkyResolution>
+    {
+        public SkyResolutionParameter(SkyResolution val, bool overrideState = false)
+            : base(val, overrideState)
+        {
+
+        }
+    }
 
     [Serializable]
-    public sealed class EnvUpdateParameter : VolumeParameter<EnvironementUpdateMode> { }
+    public sealed class EnvUpdateParameter : VolumeParameter<EnvironementUpdateMode>
+    {
+        public EnvUpdateParameter(EnvironementUpdateMode val, bool overrideState = false)
+            : base(val, overrideState)
+        {
+
+        }
+    }
 
     public abstract class SkySettings : VolumeComponent
     {
 
         [Tooltip("Rotation of the sky.")]
-        public ClampedFloatParameter    rotation = new ClampedFloatParameter { value = 0.0f, min = 0.0f, max = 360.0f };
+        public ClampedFloatParameter    rotation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
         [Tooltip("Exposure of the sky in EV.")]
-        public FloatParameter           exposure = new FloatParameter { value = 0.0f };
+        public FloatParameter           exposure = new FloatParameter(0.0f);
         [Tooltip("Intensity multiplier for the sky.")]
-        public ClampedFloatParameter    multiplier = new ClampedFloatParameter { value = 1.0f, min = 0.0f, clampMode = ParameterClampMode.Min };
+        public MinFloatParameter        multiplier = new MinFloatParameter(1.0f, 0.0f);
         [Tooltip("Resolution of the environment lighting generated from the sky.")]
-        public SkyResolutionParameter   resolution = new SkyResolutionParameter { value = SkyResolution.SkyResolution256 };
+        public SkyResolutionParameter   resolution = new SkyResolutionParameter(SkyResolution.SkyResolution256);
         [Tooltip("Specify how the environment lighting should be updated.")]
-        public EnvUpdateParameter       updateMode = new EnvUpdateParameter { value = EnvironementUpdateMode.OnChanged };
+        public EnvUpdateParameter       updateMode = new EnvUpdateParameter(EnvironementUpdateMode.OnChanged);
         [Tooltip("If environment update is set to realtime, period in seconds at which it is updated (0.0 means every frame).")]
-        public ClampedFloatParameter    updatePeriod = new ClampedFloatParameter { value = 0.0f, min = 0.0f, clampMode = ParameterClampMode.Min };
+        public MinFloatParameter        updatePeriod = new MinFloatParameter(0.0f, 0.0f);
         [Tooltip("If a lighting override cubemap is provided, this cubemap will be used to compute lighting instead of the result from the visible sky.")]
-        public CubemapParameter         lightingOverride = new CubemapParameter { value = null };
+        public CubemapParameter         lightingOverride = new CubemapParameter(null);
 
         public override int GetHashCode()
         {

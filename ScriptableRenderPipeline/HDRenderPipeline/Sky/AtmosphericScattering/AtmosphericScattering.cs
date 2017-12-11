@@ -6,28 +6,9 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+    // Keep this class first in the file. Otherwise it seems that the script type is not registered properly.
     public abstract class AtmosphericScattering : VolumeComponent
     {
-        [GenerateHLSL]
-        public enum FogType
-        {
-            None,
-            Linear,
-            Exponential
-        }
-        [Serializable]
-        public sealed class FogTypeParameter : VolumeParameter<FogType> { }
-
-
-         [GenerateHLSL]
-        public enum FogColorMode
-        {
-            ConstantColor,
-            SkyColor,
-        }
-        [Serializable]
-        public sealed class FogColorParameter : VolumeParameter<FogColorMode> { }
-
         private readonly static int m_TypeParam = Shader.PropertyToID("_AtmosphericScatteringType");
         // Fog Color
         private readonly static int m_ColorModeParam = Shader.PropertyToID("_FogColorMode");
@@ -38,14 +19,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Fog Color
         public FogColorParameter        colorMode = new FogColorParameter { value = FogColorMode.SkyColor };
         [Tooltip("Constant Fog Color")]
-        public ColorParameter           color = new ColorParameter { value = Color.grey };
-        public ClampedFloatParameter    density = new ClampedFloatParameter { value = 1.0f, min = 0.0f, max = 1.0f };
+        public ColorParameter           color = new ColorParameter(Color.grey);
+        public ClampedFloatParameter    density = new ClampedFloatParameter(1.0f, 0.0f, 1.0f );
         [Tooltip("Maximum mip map used for mip fog (0 being lowest and 1 highest mip).")]
-        public ClampedFloatParameter mipFogMaxMip = new ClampedFloatParameter { value = 1.0f, min = 0.0F, max = 1.0f };
+        public ClampedFloatParameter mipFogMaxMip = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
         [Tooltip("Distance at which minimum mip of blurred sky texture is used as fog color.")]
-        public ClampedFloatParameter mipFogNear = new ClampedFloatParameter { value = 0.0f, min = 0.0f, clampMode = ParameterClampMode.Min };
+        public MinFloatParameter mipFogNear = new MinFloatParameter(0.0f, 0.0f);
         [Tooltip("Distance at which maximum mip of blurred sky texture is used as fog color.")]
-        public ClampedFloatParameter mipFogFar = new ClampedFloatParameter { value = 1000.0f, min = 0.0f, clampMode = ParameterClampMode.Min };
+        public MinFloatParameter mipFogFar = new MinFloatParameter(1000.0f, 0.0f);
 
         public abstract void PushShaderParameters(CommandBuffer cmd, RenderingDebugSettings renderingDebug);
 
@@ -68,4 +49,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
     }
 
+    [GenerateHLSL]
+    public enum FogType
+    {
+        None,
+        Linear,
+        Exponential
+    }
+    [Serializable]
+    public sealed class FogTypeParameter : VolumeParameter<FogType>
+    {
+        public FogTypeParameter(FogType value, bool overrideState = false)
+            : base(value, overrideState)
+        {
+        }
+    }
+
+
+    [GenerateHLSL]
+    public enum FogColorMode
+    {
+        ConstantColor,
+        SkyColor,
+    }
+    [Serializable]
+    public sealed class FogColorParameter : VolumeParameter<FogColorMode> { }
 }
