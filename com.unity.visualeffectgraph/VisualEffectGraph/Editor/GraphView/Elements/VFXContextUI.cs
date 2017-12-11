@@ -499,20 +499,15 @@ namespace UnityEditor.VFX.UI
         {
             VFXContextPresenter presenter = controller;
 
-            HashSet<VFXContextUI> contexts = new HashSet<VFXContextUI>();
+            HashSet<VFXContextPresenter> contexts = new HashSet<VFXContextPresenter>();
             foreach (var draggedBlock in draggedBlocks)
             {
-                contexts.Add(draggedBlock.context);
+                contexts.Add(draggedBlock.context.controller);
             }
 
             using (var growContext = new GrowContext(this))
             {
                 presenter.BlocksDropped(blockPresenter, after, draggedBlocks.Select(t => t.controller), copy);
-
-                foreach (var context in contexts)
-                {
-                    context.OnDataChanged();
-                }
             }
         }
 
@@ -625,8 +620,7 @@ namespace UnityEditor.VFX.UI
 
             void IDisposable.Dispose()
             {
-                m_Context.OnDataChanged();
-
+                DataWatchService.sharedInstance.PollNativeData();
                 (m_Context.panel as BaseVisualElementPanel).ValidateLayout();
 
                 m_Context.GetFirstAncestorOfType<VFXView>().PushUnderContext(m_Context, m_Context.layout.size.y - m_PrevSize);

@@ -922,7 +922,6 @@ namespace UnityEditor.VFX.UI
             foreach (var c in contexts)
             {
                 c.controller.position = c.GetPosition().min + new Vector2(0, size);
-                c.OnDataChanged();
             }
         }
     }

@@ -11,11 +11,6 @@ using System.Collections.ObjectModel;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXGraphViewPresenter : GraphViewPresenter
-    {
-        public VFXViewPresenter m_RealPresenter;
-    }
-    [Serializable]
     internal partial class VFXViewPresenter : Controller<VFXGraph>
     {
         private int m_UseCount;
@@ -30,21 +25,6 @@ namespace UnityEditor.VFX.UI
                     Manager.RemovePresenter(this);
                     this.OnDisable();
                 }
-            }
-        }
-
-        VFXGraphViewPresenter m_Presenter;
-
-        public VFXGraphViewPresenter graphViewPresenter
-        {
-            get
-            {
-                if (m_Presenter == null)
-                {
-                    m_Presenter = CreateInstance<VFXGraphViewPresenter>();
-                    m_Presenter.m_RealPresenter = this;
-                }
-                return m_Presenter;
             }
         }
 

@@ -80,9 +80,9 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
-        public override void OnDataChanged()
+        protected override void SelfChange()
         {
-            base.OnDataChanged();
+            base.SelfChange();
 
             if (superCollapsed)
             {
@@ -110,14 +110,6 @@ namespace UnityEditor.VFX.UI
             get { return base.controller as VFXOperatorPresenter; }
         }
 
-
-        protected virtual void SelfChange()
-        {
-            base.SelfChange();
-            var presenter = controller;
-            if (presenter == null || presenter.Operator == null)
-                return;
-        }
 
         public override void GetPreferedWidths(ref float labelWidth, ref float controlWidth)
         {

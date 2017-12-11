@@ -269,16 +269,6 @@ namespace UnityEditor.VFX.UI
             };
         }
 
-        public override void OnDataChanged()
-        {
-            base.OnDataChanged();
-
-
-            VFXEdgeControl edgeControl = this.edgeControl as VFXEdgeControl;
-
-            edgeControl.outputColor = edgeControl.inputColor = GetPresenter<EdgePresenter>().selected ? selectedColor : defaultColor;
-        }
-
         public new VFXFlowAnchor input
         {
             get { return base.input as VFXFlowAnchor; }

@@ -66,7 +66,6 @@ namespace UnityEditor.VFX.Test
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
 
             VFXView view = window.graphView;
-            view.presenter = m_ViewPresenter.graphViewPresenter;
 
             view.ClearSelection();
             foreach (var element in view.Query().OfType<GraphElement>().ToList().OfType<ISelectable>())

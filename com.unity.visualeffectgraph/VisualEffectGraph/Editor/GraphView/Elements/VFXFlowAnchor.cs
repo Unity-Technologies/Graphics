@@ -45,28 +45,30 @@ namespace UnityEditor.VFX.UI
             AddToClassList("EdgeConnector");
         }
 
-        public override void OnDataChanged()
+        void OnChange(ControllerChangedEvent e)
         {
-            base.OnDataChanged();
-            m_ConnectorText.text = "";
-
-            VFXFlowAnchorPresenter presenter = controller;
-
-            if (presenter.connected)
-                AddToClassList("connected");
-            else
-                RemoveFromClassList("connected");
-
-            switch (presenter.direction)
+            if (e.controller == controller)
             {
-                case Direction.Input:
-                    RemoveFromClassList("Output");
-                    AddToClassList("Input");
-                    break;
-                case Direction.Output:
-                    RemoveFromClassList("Input");
-                    AddToClassList("Output");
-                    break;
+                m_ConnectorText.text = "";
+
+                VFXFlowAnchorPresenter presenter = controller;
+
+                if (presenter.connected)
+                    AddToClassList("connected");
+                else
+                    RemoveFromClassList("connected");
+
+                switch (presenter.direction)
+                {
+                    case Direction.Input:
+                        RemoveFromClassList("Output");
+                        AddToClassList("Input");
+                        break;
+                    case Direction.Output:
+                        RemoveFromClassList("Input");
+                        AddToClassList("Output");
+                        break;
+                }
             }
         }
 
