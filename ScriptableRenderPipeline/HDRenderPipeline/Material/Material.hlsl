@@ -19,6 +19,10 @@
 // - _BLENDMODE_PRESERVE_SPECULAR_LIGHTING for correct lighting when blend mode are use with a Lit material
 // - _ENABLE_FOG_ON_TRANSPARENT if fog is enable on transparent surface
 
+#ifndef _SURFACE_TYPE_TRANSPARENT
+#define USE_DEFERRED_DIRECTIONAL_SHADOWS // Deferred shadows are always enabled for opaque objects
+#endif
+
 //-----------------------------------------------------------------------------
 // ApplyBlendMode function
 //-----------------------------------------------------------------------------
