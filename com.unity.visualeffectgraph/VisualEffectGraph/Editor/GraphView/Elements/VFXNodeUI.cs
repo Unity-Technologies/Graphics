@@ -122,13 +122,6 @@ namespace UnityEditor.VFX.UI
 
         void SyncAnchors(ReadOnlyCollection<VFXDataAnchorPresenter> ports, VisualElement container)
         {
-            var wrongChildren = container.Children().Where(t => !(t is VFXDataAnchor)).ToArray();
-
-            if (wrongChildren.Length > 0)
-            {
-                Debug.LogError("Toto");
-            }
-
             var existingAnchors = container.Children().Cast<VFXDataAnchor>().ToDictionary(t => t.controller, t => t);
 
             var deletedControllers = existingAnchors.Keys.Except(ports);

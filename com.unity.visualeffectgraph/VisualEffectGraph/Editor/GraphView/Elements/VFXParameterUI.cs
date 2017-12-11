@@ -59,7 +59,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        protected virtual bool syncInput
+        protected override bool syncInput
         {
             get { return false; }
         }
