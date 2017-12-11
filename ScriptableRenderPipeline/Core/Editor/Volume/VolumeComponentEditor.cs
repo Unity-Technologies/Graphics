@@ -21,11 +21,11 @@ namespace UnityEditor.Experimental.Rendering
 
     public class VolumeComponentEditor
     {
-        internal VolumeComponent target { get; private set; }
-        internal SerializedObject serializedObject { get; private set; }
+        public VolumeComponent target { get; private set; }
+        public SerializedObject serializedObject { get; private set; }
 
-        internal SerializedProperty baseProperty;
-        internal SerializedProperty activeProperty;
+        public SerializedProperty baseProperty { get; internal set; }
+        public SerializedProperty activeProperty { get; internal set; }
 
         Editor m_Inspector;
         List<SerializedDataParameter> m_Parameters;
