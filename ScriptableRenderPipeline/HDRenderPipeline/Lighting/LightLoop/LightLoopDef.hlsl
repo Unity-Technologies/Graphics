@@ -39,15 +39,12 @@ StructuredBuffer<ShadowData>           _ShadowDatas;
 
 // Used by directional and spot lights
 TEXTURE2D_ARRAY(_CookieTextures);
-SAMPLER(sampler_CookieTextures);
 
 // Used by point lights
 TEXTURECUBE_ARRAY_ABSTRACT(_CookieCubeTextures);
-SAMPLER(sampler_CookieCubeTextures);
 
 // Use texture array for reflection (or LatLong 2D array for mobile)
 TEXTURECUBE_ARRAY_ABSTRACT(_EnvTextures);
-SAMPLER(sampler_EnvTextures);
 
 TEXTURE2D(_DeferredShadowTexture);
 
@@ -77,13 +74,13 @@ struct LightLoopContext
 // Used by directional and spot lights.
 float3 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, int index)
 {
-    return SAMPLE_TEXTURE2D_ARRAY_LOD(_CookieTextures, sampler_CookieTextures, coord, index, 0).rgb;
+    return SAMPLE_TEXTURE2D_ARRAY_LOD(_CookieTextures, s_linear_clamp_sampler, coord, index, 0).rgb;
 }
 
 // Used by point lights.
 float3 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, int index)
 {
-    return SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_CookieCubeTextures, sampler_CookieCubeTextures, coord, index, 0).rgb;
+    return SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_CookieCubeTextures, s_linear_clamp_sampler, coord, index, 0).rgb;
 }
 
 //-----------------------------------------------------------------------------
@@ -100,7 +97,7 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
     // This code will be inlined as lightLoopContext is hardcoded in the light loop
     if (lightLoopContext.sampleReflection == SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES)
     {
-        return SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvTextures, sampler_EnvTextures, texCoord, index, lod);
+        return SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvTextures, s_trilinear_clamp_sampler, texCoord, index, lod);
     }
     else // SINGLE_PASS_SAMPLE_SKY
     {
