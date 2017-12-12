@@ -18,10 +18,10 @@ namespace UnityEditor.ShaderGraph
 
         static string Unity_Checkerboard(
             [Slot(0, Binding.MeshUV0)] Vector2 UV,
-            [Slot(1, Binding.None, 0.2f, 0.2f, 0.2f, 1f)] Color ColorA,
-            [Slot(2, Binding.None, 0.7f, 0.7f, 0.7f, 1f)] Color ColorB,
+            [Slot(1, Binding.None, 0.2f, 0.2f, 0.2f, 1f)] ColorRGB ColorA,
+            [Slot(2, Binding.None, 0.7f, 0.7f, 0.7f, 1f)] ColorRGB ColorB,
             [Slot(3, Binding.None, 1f, 1f, 1f, 1f)] Vector2 Frequency,
-            [Slot(4, Binding.None)] out Vector4 Out)
+            [Slot(4, Binding.None)] out Vector3 Out)
         {
             Out = Vector2.zero;
             return
@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph
     {precision}2 blend_out = saturate(scale / 3);
     {precision}2 vector_alpha = clamp(distance3 * scale.xy * blend_out.xy, -1.0, 1.0);
     {precision} alpha = saturate(vector_alpha.x * vector_alpha.y);
-    Out = lerp(ColorA, ColorB, alpha.xxxx);
+    Out = lerp(ColorA, ColorB, alpha.xxx);
 }";
         }
     }
