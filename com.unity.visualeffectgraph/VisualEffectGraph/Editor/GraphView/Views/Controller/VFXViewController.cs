@@ -555,7 +555,7 @@ namespace UnityEditor.VFX.UI
 
         private void AddVFXModel(Vector2 pos, VFXModel model)
         {
-            graph.position = pos;
+            model.position = pos;
             this.graph.AddChild(model);
         }
 
@@ -591,15 +591,6 @@ namespace UnityEditor.VFX.UI
             m_SyncedModels.Clear();
             m_DataEdges.Clear();
             m_FlowEdges.Clear();
-
-            foreach (var pair in m_registeredEvent)
-            {
-                foreach (var evt in pair.Value)
-                {
-                    pair.Key.onInvalidateDelegate -= evt;
-                }
-            }
-            m_registeredEvent.Clear();
         }
 
         private Dictionary<VFXModel, List<VFXModel.InvalidateEvent>> m_registeredEvent = new Dictionary<VFXModel, List<VFXModel.InvalidateEvent>>();
