@@ -18,6 +18,8 @@ namespace UnityEditor.VFX
 
     struct VFXAttribute
     {
+        public static readonly float kDefaultSize = 0.1f;
+
         public static readonly VFXAttribute Seed                = new VFXAttribute("seed", VFXValueType.kUint);
         public static readonly VFXAttribute OldPosition         = new VFXAttribute("oldPosition", VFXValueType.kFloat3);
         public static readonly VFXAttribute Position            = new VFXAttribute("position", VFXValueType.kFloat3);
@@ -25,7 +27,9 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute Color               = new VFXAttribute("color", VFXValue.Constant(Vector3.one));
         public static readonly VFXAttribute Alpha               = new VFXAttribute("alpha", VFXValue.Constant(1.0f));
         public static readonly VFXAttribute Phase               = new VFXAttribute("phase", VFXValueType.kFloat);
-        public static readonly VFXAttribute Size                = new VFXAttribute("size", VFXValue.Constant(new Vector2(0.1f, 0.1f)));
+        public static readonly VFXAttribute SizeX               = new VFXAttribute("sizeX", VFXValue.Constant(kDefaultSize));
+        public static readonly VFXAttribute SizeY               = new VFXAttribute("sizeY", VFXValue.Constant(kDefaultSize));
+        public static readonly VFXAttribute SizeZ               = new VFXAttribute("sizeZ", VFXValue.Constant(kDefaultSize));
         public static readonly VFXAttribute Lifetime            = new VFXAttribute("lifetime", VFXValueType.kFloat);
         public static readonly VFXAttribute Age                 = new VFXAttribute("age", VFXValueType.kFloat);
         public static readonly VFXAttribute Angle               = new VFXAttribute("angle", VFXValueType.kFloat);
@@ -75,6 +79,10 @@ namespace UnityEditor.VFX
 
         public static VFXAttribute Find(string attributeName)
         {
+            // TODO temp to avoid error
+            if (attributeName == "size")
+                attributeName = "sizeX";
+
             if (!AllAttribute.Any(e => e.name == attributeName))
             {
                 throw new Exception(string.Format("Unable to find attribute expression : {0}", attributeName));

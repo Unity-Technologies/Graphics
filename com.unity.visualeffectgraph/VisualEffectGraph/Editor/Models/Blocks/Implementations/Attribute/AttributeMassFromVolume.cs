@@ -15,8 +15,9 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Mass, VFXAttributeMode.Write);
+                foreach (var size in VFXBlockUtility.GetReadableSizeAttributes(GetData()))
+                    yield return size;
             }
         }
 
@@ -38,12 +39,13 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                return @"
-float xy = size.x * size.y;
-float z = (size.x + size.y) * 0.5f;
-float radiusCubed = xy * z * 0.125f;
+                string size = VFXBlockUtility.GetSizeVector(GetData());
+
+                return string.Format(@"
+float3 size = {0};
+float radiusCubed = size.x * size.y * size.z * 0.125f;
 mass = (4.0f / 3.0f) * UNITY_PI * radiusCubed * Density;
-";
+", size);
             }
         }
     }

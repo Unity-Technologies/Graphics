@@ -24,9 +24,9 @@ namespace UnityEditor.VFX.Block
                 yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Read);
 
                 if (composition == AttributeCompositionMode.Overwrite)
-                    yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.Write);
+                    yield return new VFXAttributeInfo(VFXAttribute.SizeX, VFXAttributeMode.Write);
                 else
-                    yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.ReadWrite);
+                    yield return new VFXAttributeInfo(VFXAttribute.SizeX, VFXAttributeMode.ReadWrite);
             }
         }
 
@@ -62,7 +62,7 @@ namespace UnityEditor.VFX.Block
             {
                 string outSource = string.Format(@"
 float sampledCurve = SampleCurve(curve, age/lifetime);
-{0}", VFXBlockUtility.GetComposeString(composition, "size", "sampledCurve", "Blend"));
+{0}", VFXBlockUtility.GetComposeString(composition, "sizeX", "sampledCurve", "Blend"));
 
                 return outSource;
             }

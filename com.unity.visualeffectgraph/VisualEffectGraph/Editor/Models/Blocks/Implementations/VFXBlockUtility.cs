@@ -70,5 +70,29 @@ namespace UnityEditor.VFX.Block
 
             return "RAND" + ((size != 1) ? size.ToString() : "");
         }
+
+        public static IEnumerable<VFXAttributeInfo> GetReadableSizeAttributes(VFXData data, int nbComponents = 3)
+        {
+            if (nbComponents < 1 || nbComponents > 3)
+                throw new ArgumentException("NbComponents must be between 1 and 3");
+
+            if (nbComponents >= 1)
+                yield return new VFXAttributeInfo(VFXAttribute.SizeX, VFXAttributeMode.Read);
+            if (nbComponents >= 2 && data.IsCurrentAttributeUsed(VFXAttribute.SizeY))
+                yield return new VFXAttributeInfo(VFXAttribute.SizeY, VFXAttributeMode.Read);
+            if (nbComponents >= 3 && data.IsCurrentAttributeUsed(VFXAttribute.SizeZ))
+                yield return new VFXAttributeInfo(VFXAttribute.SizeY, VFXAttributeMode.Read);
+        }
+
+        public static string GetSizeVector(VFXData data, int nbComponents = 3)
+        {
+            if (nbComponents < 1 || nbComponents > 3)
+                throw new ArgumentException("NbComponents must be between 1 and 3");
+
+            string sizeX = nbComponents >= 1 && data.IsCurrentAttributeUsed(VFXAttribute.SizeX) ? "sizeX" : VFXAttribute.kDefaultSize.ToString();
+            string sizeY = nbComponents >= 2 && data.IsCurrentAttributeUsed(VFXAttribute.SizeY) ? "sizeY" : "sizeX";
+            string sizeZ = nbComponents >= 3 && data.IsCurrentAttributeUsed(VFXAttribute.SizeZ) ? "sizeZ" : string.Format("min({0},{1})", sizeX, sizeY);
+            return string.Format("float3({0},{1},{2})", sizeX, sizeY, sizeZ);
+        }
     }
 }

@@ -32,5 +32,12 @@ namespace UnityEditor.VFX
         public virtual IEnumerable<VFXNamedExpression> parameters { get { return GetExpressionsFromSlots(this); }}
         public virtual IEnumerable<string> includes { get { return Enumerable.Empty<string>(); } }
         public virtual string source { get { return null; } }
+
+        protected VFXData GetData()
+        {
+            if (GetParent() != null)
+                return GetParent().GetData();
+            return null;
+        }
     }
 }

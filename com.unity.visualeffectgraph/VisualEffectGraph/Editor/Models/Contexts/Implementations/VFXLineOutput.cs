@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.VFX.Block;
 using UnityEngine;
 using UnityEngine.VFX;
 
@@ -25,12 +26,14 @@ namespace UnityEditor.VFX
 
                 if (targetFromAttributes)
                 {
-                    yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.Read);
                     yield return new VFXAttributeInfo(VFXAttribute.Pivot, VFXAttributeMode.Read);
                     yield return new VFXAttributeInfo(VFXAttribute.Angle, VFXAttributeMode.Read);
                     yield return new VFXAttributeInfo(VFXAttribute.Up, VFXAttributeMode.Read);
                     yield return new VFXAttributeInfo(VFXAttribute.Side, VFXAttributeMode.Read);
                     yield return new VFXAttributeInfo(VFXAttribute.Front, VFXAttributeMode.Read);
+
+                    foreach (var size in VFXBlockUtility.GetReadableSizeAttributes(GetData()))
+                        yield return size;
 
                     yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.ReadWrite);
                     yield return new VFXAttributeInfo(VFXAttribute.TargetPosition, VFXAttributeMode.Write);

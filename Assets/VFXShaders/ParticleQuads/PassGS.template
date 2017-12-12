@@ -33,7 +33,9 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_P
 			float frameIndex = texIndex - frameBlend;
 			#endif
 			
-			float4x4 primitiveToVFX = GetPrimitiveToVFXMatrix(side,up,front,float3(0,0,angle),pivot,float3(size,1.0f),position);
+			${VFXLoadSize}
+			
+			float4x4 primitiveToVFX = GetPrimitiveToVFXMatrix(side,up,front,float3(0,0,angle),pivot,size,position);
 			
 			[unroll]
 			for (int id = 0; id < 4; ++id)
