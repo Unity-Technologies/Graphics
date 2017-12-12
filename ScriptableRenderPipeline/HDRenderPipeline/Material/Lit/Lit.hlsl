@@ -1105,6 +1105,8 @@ float3 EvaluateTransmission(BSDFData bsdfData, float NdotL, float NdotV, float a
     return intensity * bsdfData.transmittance;
 }
 
+#include "../../Lighting/LightEvaluation.hlsl"
+
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Directional
 //-----------------------------------------------------------------------------
