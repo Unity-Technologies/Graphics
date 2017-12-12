@@ -74,12 +74,14 @@ struct LightLoopContext
 // Used by directional and spot lights.
 float3 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, int index)
 {
+    // TODO: add MIP maps to combat aliasing?
     return SAMPLE_TEXTURE2D_ARRAY_LOD(_CookieTextures, s_linear_clamp_sampler, coord, index, 0).rgb;
 }
 
 // Used by point lights.
 float3 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, int index)
 {
+    // TODO: add MIP maps to combat aliasing?
     return SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_CookieCubeTextures, s_linear_clamp_sampler, coord, index, 0).rgb;
 }
 
