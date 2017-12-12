@@ -255,8 +255,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Undo.RegisterCreatedObjectUndo(sceneSettings, "Create " + sceneSettings.name);
             Selection.activeObject = sceneSettings;
             var volume = sceneSettings.AddComponent<Volume>();
+            volume.isGlobal = true;
+            volume.Add<HDShadowSettings>(true);
             var visualEnv = volume.Add<VisualEnvironment>(true);
             visualEnv.skyType.value = SkyType.ProceduralSky;
+            visualEnv.fogType.value = FogType.Exponential;
+            volume.Add<ProceduralSky>(true);
+            volume.Add<ExponentialFog>(true);
         }
 
         class DoCreateNewAsset<TAssetType> : ProjectWindowCallback.EndNameEditAction where TAssetType : ScriptableObject
