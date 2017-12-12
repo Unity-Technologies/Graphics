@@ -309,7 +309,7 @@ namespace UnityEditor.Graphing
             {
                 if (!ContainsNodeGuid(edge.outputSlot.nodeGuid) || !ContainsNodeGuid(edge.inputSlot.nodeGuid))
                 {
-                    Debug.LogWarningFormat("Added edge is invalid: {0} -> {1}", edge.outputSlot.nodeGuid, edge.inputSlot.nodeGuid);
+                    Debug.LogWarningFormat("Added edge is invalid: {0} -> {1}\n{2}", edge.outputSlot.nodeGuid, edge.inputSlot.nodeGuid, Environment.StackTrace);
                     m_AddedEdges.Remove(edge);
                 }
             }
