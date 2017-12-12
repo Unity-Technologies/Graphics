@@ -38,10 +38,6 @@ TEXTURE2D(_GBufferTexture3);
 // #define LIT_DIFFUSE_LAMBERT_BRDF
 #define LIT_USE_GGX_ENERGY_COMPENSATION
 
-// Sampler use by area light, gaussian pyramid, ambient occlusion etc...
-SamplerState s_linear_clamp_sampler;
-SamplerState s_trilinear_clamp_sampler;
-
 // Rough refraction texture
 // Color pyramid (width, height, lodcount, Unused)
 TEXTURE2D(_GaussianPyramidColorTexture);

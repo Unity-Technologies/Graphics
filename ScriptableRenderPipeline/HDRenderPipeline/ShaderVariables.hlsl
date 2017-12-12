@@ -192,6 +192,14 @@ CBUFFER_END
 
 // ----------------------------------------------------------------------------
 
+// These are the samplers available in the HDRenderPipeline.
+// Avoid declaring extra samplers as they are 4x SGPR each on GCN.
+SAMPLER(s_linear_clamp_sampler);
+SAMPLER(s_linear_repeat_sampler);
+SAMPLER(s_trilinear_clamp_sampler);
+
+// ----------------------------------------------------------------------------
+
 TEXTURE2D_FLOAT(_MainDepthTexture);
 SAMPLER(sampler_MainDepthTexture);
 
