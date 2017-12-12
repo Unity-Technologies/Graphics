@@ -59,8 +59,8 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_DDX_Default(
-            [Slot(0, Binding.None)] Vector1 In,
-            [Slot(1, Binding.None)] out Vector1 Out)
+            [Slot(0, Binding.None)] DynamicDimensionVector In,
+            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
@@ -71,8 +71,8 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_DDX_Coarse(
-            [Slot(0, Binding.None)] Vector1 In,
-            [Slot(1, Binding.None)] out Vector1 Out)
+            [Slot(0, Binding.None)] DynamicDimensionVector In,
+            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
@@ -83,8 +83,8 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_DDX_Fine(
-            [Slot(0, Binding.None)] Vector1 In,
-            [Slot(1, Binding.None)] out Vector1 Out)
+            [Slot(0, Binding.None)] DynamicDimensionVector In,
+            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
                 @"
