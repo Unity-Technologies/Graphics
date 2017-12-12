@@ -920,6 +920,8 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 #define USE_DEFERRED_DIRECTIONAL_SHADOWS // Deferred shadows are always enabled for opaque objects
 #endif
 
+#include "../../Lighting/LightEvaluation.hlsl"
+
 //-----------------------------------------------------------------------------
 // Lighting structure for light accumulation
 //-----------------------------------------------------------------------------
@@ -1100,8 +1102,6 @@ float3 EvaluateTransmission(BSDFData bsdfData, float NdotL, float NdotV, float a
 
     return intensity * bsdfData.transmittance;
 }
-
-#include "../../Lighting/LightEvaluation.hlsl"
 
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Directional
