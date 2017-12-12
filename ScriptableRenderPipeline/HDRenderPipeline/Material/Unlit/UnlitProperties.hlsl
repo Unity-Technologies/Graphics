@@ -1,14 +1,14 @@
 float4  _UnlitColor;
 TEXTURE2D(_UnlitColorMap);
-SAMPLER2D(sampler_UnlitColorMap);
+SAMPLER(sampler_UnlitColorMap);
 float4 _UnlitColorMap_ST;
 
 TEXTURE2D(_DistortionVectorMap);
-SAMPLER2D(sampler_DistortionVectorMap);
+SAMPLER(sampler_DistortionVectorMap);
 
 float3 _EmissiveColor;
 TEXTURE2D(_EmissiveColorMap);
-SAMPLER2D(sampler_EmissiveColorMap);
+SAMPLER(sampler_EmissiveColorMap);
 float4 _EmissiveColorMap_ST;
 
 float _EmissiveIntensity;
