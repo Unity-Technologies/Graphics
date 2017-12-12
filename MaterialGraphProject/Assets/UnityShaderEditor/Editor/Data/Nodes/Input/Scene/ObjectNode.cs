@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Scene", "Object")]
-    public class ObjectNode : AbstractMaterialNode
+    public sealed class ObjectNode : AbstractMaterialNode
     {
         const string kOutputSlotName = "Position";
         const string kOutputSlot1Name = "Scale";
@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public sealed override void UpdateNodeAfterDeserialization()
+        public override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Vector3MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector3.zero));
             AddSlot(new Vector3MaterialSlot(OutputSlot1Id, kOutputSlot1Name, kOutputSlot1Name, SlotType.Output, Vector3.zero));

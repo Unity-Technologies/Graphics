@@ -2,7 +2,7 @@ using System;
 using System.Text;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph
+/*namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     public class Sampler2DShaderProperty : AbstractShaderProperty<object>
@@ -32,4 +32,4 @@ namespace UnityEditor.ShaderGraph
             return default(PreviewProperty);
         }
     }
-}
+}*/

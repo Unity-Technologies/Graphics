@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using System.Collections.Generic;
 
-namespace UnityEditor.ShaderGraph
+/*namespace UnityEditor.ShaderGraph
 {
     public enum SceneDepthMode
     {
@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph
     };
 
     [Title("Input", "Scene", "Scene Depth")]
-    public class SceneDepthNode : AbstractMaterialNode, IGenerateProperties, IGeneratesBodyCode, IMayRequireScreenPosition
+    public sealed class SceneDepthNode : AbstractMaterialNode, IGenerateProperties, IGeneratesBodyCode, IMayRequireScreenPosition
     {
         const string kUVSlotName = "UV";
         const string kOutputSlotName = "Out";
@@ -51,7 +51,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public sealed override void UpdateNodeAfterDeserialization()
+        public override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new ScreenPositionMaterialSlot(UVSlotId, kUVSlotName, kUVSlotName));
             AddSlot(new Vector1MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, 0));
@@ -109,4 +109,4 @@ namespace UnityEditor.ShaderGraph
             return uvSlot.RequiresScreenPosition();
         }
     }
-}
+}*/
