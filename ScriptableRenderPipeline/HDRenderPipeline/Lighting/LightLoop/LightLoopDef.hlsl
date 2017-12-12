@@ -39,15 +39,15 @@ StructuredBuffer<ShadowData>           _ShadowDatas;
 
 // Used by directional and spot lights
 TEXTURE2D_ARRAY(_CookieTextures);
-SAMPLER2D(sampler_CookieTextures);
+SAMPLER(sampler_CookieTextures);
 
 // Used by point lights
 TEXTURECUBE_ARRAY_ABSTRACT(_CookieCubeTextures);
-SAMPLERCUBE_ABSTRACT(sampler_CookieCubeTextures);
+SAMPLER(sampler_CookieCubeTextures);
 
 // Use texture array for reflection (or LatLong 2D array for mobile)
 TEXTURECUBE_ARRAY_ABSTRACT(_EnvTextures);
-SAMPLERCUBE_ABSTRACT(sampler_EnvTextures);
+SAMPLER(sampler_EnvTextures);
 
 TEXTURE2D(_DeferredShadowTexture);
 

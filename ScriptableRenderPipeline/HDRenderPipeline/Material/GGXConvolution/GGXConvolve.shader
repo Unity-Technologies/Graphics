@@ -23,7 +23,7 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
             #include "GGXConvolution.cs.hlsl"
 
             TEXTURECUBE(_MainTex);
-            SAMPLERCUBE(sampler_MainTex);
+            SAMPLER(sampler_MainTex);
 
             TEXTURE2D_FLOAT(_GgxIblSamples);
 
