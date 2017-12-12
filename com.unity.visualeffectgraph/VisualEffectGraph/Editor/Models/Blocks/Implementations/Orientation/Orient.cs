@@ -30,9 +30,9 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                yield return new VFXAttributeInfo(VFXAttribute.Front, VFXAttributeMode.Write);
-                yield return new VFXAttributeInfo(VFXAttribute.Side, VFXAttributeMode.Write);
-                yield return new VFXAttributeInfo(VFXAttribute.Up, VFXAttributeMode.Write);
+                yield return new VFXAttributeInfo(VFXAttribute.AxisX, VFXAttributeMode.Write);
+                yield return new VFXAttributeInfo(VFXAttribute.AxisY, VFXAttributeMode.Write);
+                yield return new VFXAttributeInfo(VFXAttribute.AxisZ, VFXAttributeMode.Write);
                 if (mode != Mode.FixedOrientation && mode != Mode.FaceCameraPlane)
                     yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
                 if (mode == Mode.AlongVelocity)
@@ -71,46 +71,46 @@ namespace UnityEditor.VFX.Block
                     case Mode.FaceCameraPlane:
                         return @"
 float3x3 viewRot = GetVFXToViewRotMatrix();
-side = viewRot[0].xyz;
-up = viewRot[1].xyz;
-front = -viewRot[2].xyz;
+axisX = viewRot[0].xyz;
+axisY = viewRot[1].xyz;
+axisZ = -viewRot[2].xyz;
 ";
 
                     case Mode.FaceCameraPosition:
                         return @"
-front = normalize(position - GetViewVFXPosition());
-side = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,front));
-up = cross(front,side);
+axisZ = normalize(position - GetViewVFXPosition());
+axisX = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,axisZ));
+axisY = cross(axisZ,axisX);
 ";
 
                     case Mode.LookAtPosition:
                         return @"
-front = normalize(position - Position_position);
-side = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,front));
-up = cross(front,side);
+axisZ = normalize(position - Position_position);
+axisX = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,axisZ));
+axisY = cross(axisZ,axisX);
 ";
 
                     case Mode.FixedOrientation:
                         return @"
-front = Front;
-side = normalize(cross(Up,front));
-up = cross(front,side);
+axisZ = Front;
+axisX = normalize(cross(Up,axisZ));
+axisY = cross(axisZ,axisX);
 ";
 
                     case Mode.FixedAxis:
                         return @"
-up = Up;
-front = position - GetViewVFXPosition();
-side = normalize(cross(up,front));
-front = cross(side,up);
+axisY = Up;
+axisZ = position - GetViewVFXPosition();
+axisX = normalize(cross(axisY,axisZ));
+axisZ = cross(axisX,axisY);
 ";
 
                     case Mode.AlongVelocity:
                         return @"
-up = normalize(velocity);
-front = position - GetViewVFXPosition();
-side = normalize(cross(up,front));
-front = cross(side,up);
+axisY = normalize(velocity);
+axisZ = position - GetViewVFXPosition();
+axisX = normalize(cross(axisY,axisZ));
+axisZ = cross(axisX,axisY);
 ";
 
                     default:

@@ -39,9 +39,9 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute TexIndex            = new VFXAttribute("texIndex", VFXValueType.kFloat);
         public static readonly VFXAttribute Pivot               = new VFXAttribute("pivot", VFXValueType.kFloat3);
         public static readonly VFXAttribute ParticleId          = new VFXAttribute("particleId", VFXValueType.kUint);
-        public static readonly VFXAttribute Front               = new VFXAttribute("front", VFXValue.Constant(Vector3.forward));
-        public static readonly VFXAttribute Side                = new VFXAttribute("side", VFXValue.Constant(Vector3.right));
-        public static readonly VFXAttribute Up                  = new VFXAttribute("up", VFXValue.Constant(Vector3.up));
+        public static readonly VFXAttribute AxisX               = new VFXAttribute("axisX", VFXValue.Constant(Vector3.right));
+        public static readonly VFXAttribute AxisY               = new VFXAttribute("axisY", VFXValue.Constant(Vector3.up));
+        public static readonly VFXAttribute AxisZ               = new VFXAttribute("axisZ", VFXValue.Constant(Vector3.forward));
         public static readonly VFXAttribute Alive               = new VFXAttribute("alive", VFXValue.Constant(true));
         public static readonly VFXAttribute Mass                = new VFXAttribute("mass", VFXValue.Constant(1.0f));
         public static readonly VFXAttribute TargetPosition      = new VFXAttribute("targetPosition", VFXValueType.kFloat3);

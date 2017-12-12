@@ -30,9 +30,9 @@ namespace UnityEditor.VFX
                     yield return new VFXAttributeInfo(VFXAttribute.AngleX, VFXAttributeMode.Read);
                     yield return new VFXAttributeInfo(VFXAttribute.AngleY, VFXAttributeMode.Read);
                     yield return new VFXAttributeInfo(VFXAttribute.AngleZ, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.Up, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.Side, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.Front, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.AxisX, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.AxisY, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.AxisZ, VFXAttributeMode.Read);
 
                     foreach (var size in VFXBlockUtility.GetReadableSizeAttributes(GetData()))
                         yield return size;
