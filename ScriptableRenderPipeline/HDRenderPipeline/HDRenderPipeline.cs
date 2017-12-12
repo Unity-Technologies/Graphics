@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine.Rendering;
 using System;
 using System.Diagnostics;
@@ -1550,13 +1550,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var mipSize = size;
                 for (int i = 0; i < lodCount; i++)
                 {
+                    int srcMipSize = mipSize;
                     mipSize >>= 1;
 
                     cmd.ReleaseTemporaryRT(HDShaderIDs._DepthPyramidMips[i + 1]);
                     cmd.GetTemporaryRT(HDShaderIDs._DepthPyramidMips[i + 1], mipSize, mipSize, 0, FilterMode.Bilinear, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear, 1, true);
                     cmd.SetComputeTextureParam(m_DepthPyramidCS, m_DepthPyramidKernel, "_Source", HDShaderIDs._DepthPyramidMips[i]);
                     cmd.SetComputeTextureParam(m_DepthPyramidCS, m_DepthPyramidKernel, "_Result", HDShaderIDs._DepthPyramidMips[i + 1]);
-                    cmd.SetComputeVectorParam(m_DepthPyramidCS, "_Size", new Vector4(mipSize, mipSize, 1f / mipSize, 1f / mipSize));
+                    cmd.SetComputeVectorParam(m_DepthPyramidCS, "_SrcSize", new Vector4(srcMipSize, srcMipSize, 1f / srcMipSize, 1f / srcMipSize));
                     cmd.DispatchCompute(m_DepthPyramidCS, m_DepthPyramidKernel, mipSize / 8, mipSize / 8, 1);
                     cmd.CopyTexture(HDShaderIDs._DepthPyramidMips[i + 1], 0, 0, m_DepthPyramidBufferRT, 0, i + 1);
                 }

@@ -38,6 +38,7 @@
 CBUFFER_START(UnityPerCamera)
     // Time (t = time since current level load) values from Unity
     float4 _Time; // (t/20, t, t*2, t*3)
+    float4 _LastTime; // Last frame time (t/20, t, t*2, t*3)
     float4 _SinTime; // sin(t/8), sin(t/4), sin(t/2), sin(t)
     float4 _CosTime; // cos(t/8), cos(t/4), cos(t/2), cos(t)
     float4 unity_DeltaTime; // dt, 1/dt, smoothdt, 1/smoothdt
@@ -192,18 +193,25 @@ CBUFFER_END
 
 // ----------------------------------------------------------------------------
 
-TEXTURE2D_FLOAT(_MainDepthTexture);
-SAMPLER2D(sampler_MainDepthTexture);
+// These are the samplers available in the HDRenderPipeline.
+// Avoid declaring extra samplers as they are 4x SGPR each on GCN.
+SAMPLER(s_linear_clamp_sampler);
+SAMPLER(s_trilinear_clamp_sampler);
+
+// ----------------------------------------------------------------------------
+
+TEXTURE2D(_MainDepthTexture);
+SAMPLER(sampler_MainDepthTexture);
 
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
-SAMPLER2D(samplerunity_Lightmap);
+SAMPLER(samplerunity_Lightmap);
 // Dual or directional lightmap (always used with unity_Lightmap, so can share sampler)
 TEXTURE2D(unity_LightmapInd);
 
 // Dynamic GI lightmap
 TEXTURE2D(unity_DynamicLightmap);
-SAMPLER2D(samplerunity_DynamicLightmap);
+SAMPLER(samplerunity_DynamicLightmap);
 
 TEXTURE2D(unity_DynamicDirectionality);
 
@@ -211,13 +219,17 @@ TEXTURE2D(unity_DynamicDirectionality);
 TEXTURE2D(unity_ShadowMask);
 
 // TODO: Change code here so probe volume use only one transform instead of all this parameters!
-TEXTURE3D_FLOAT(unity_ProbeVolumeSH);
-SAMPLER3D(samplerunity_ProbeVolumeSH);
+TEXTURE3D(unity_ProbeVolumeSH);
+SAMPLER(samplerunity_ProbeVolumeSH);
 
 CBUFFER_START(UnityVelocityPass)
     float4x4 unity_MatrixNonJitteredVP;
     float4x4 unity_MatrixPreviousVP;
     float4x4 unity_MatrixPreviousM;
+	float4x4 unity_MatrixPreviousMI;
+    //X : Use last frame positions (right now skinned meshes are the only objects that use this
+    //Y : Force No Motion
+    //Z : Z bias value
     float4 unity_MotionVectorsParams;
 CBUFFER_END
 
