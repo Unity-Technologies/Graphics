@@ -5,11 +5,11 @@ using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
-    public class ColorRGBAMaterialSlot : Vector4MaterialSlot
+    public class ColorRGBMaterialSlot : Vector3MaterialSlot
     {
-        public ColorRGBAMaterialSlot() {}
+        public ColorRGBMaterialSlot() {}
 
-        public ColorRGBAMaterialSlot(
+        public ColorRGBMaterialSlot(
             int slotId,
             string displayName,
             string shaderOutputName,
@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph
 
         public override VisualElement InstantiateControl()
         {
-            return new ColorRGBASlotControlView(this);
+            return new ColorRGBSlotControlView(this);
         }
     }
 }

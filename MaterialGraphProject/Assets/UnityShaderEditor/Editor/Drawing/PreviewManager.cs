@@ -341,8 +341,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (masterRenderData.shaderData != null && m_DirtyPreviews.Contains(masterRenderData.shaderData.node.guid))
                 m_RenderList3D.Add(masterRenderData);
 
+            m_RenderList3D.Sort((data1, data2) => data1.shaderData.shader.GetInstanceID().CompareTo(data2.shaderData.shader.GetInstanceID()));
+            m_RenderList2D.Sort((data1, data2) => data1.shaderData.shader.GetInstanceID().CompareTo(data2.shaderData.shader.GetInstanceID()));
+
             var time = Time.realtimeSinceStartup;
             EditorUtility.SetCameraAnimateMaterialsTime(m_SceneResources.camera, time);
+
             m_SceneResources.light0.enabled = true;
             m_SceneResources.light0.intensity = 1.0f;
             m_SceneResources.light0.transform.rotation = Quaternion.Euler(50f, 50f, 0);
@@ -355,7 +359,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_SceneResources.camera.transform.rotation = Quaternion.identity;
             m_SceneResources.camera.orthographicSize = 1;
             m_SceneResources.camera.orthographic = true;
-            m_RenderList2D.Sort((data1, data2) => data1.shaderData.shader.GetInstanceID().CompareTo(data2.shaderData.shader.GetInstanceID()));
+
             foreach (var renderData in m_RenderList2D)
             {
                 int outputId;
@@ -381,7 +385,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_SceneResources.camera.transform.position = -Vector3.forward * 5;
             m_SceneResources.camera.transform.rotation = Quaternion.identity;
             m_SceneResources.camera.orthographic = false;
-            m_RenderList3D.Sort((data1, data2) => data1.shaderData.shader.GetInstanceID().CompareTo(data2.shaderData.shader.GetInstanceID()));
+
             foreach (var renderData in m_RenderList3D)
             {
                 int outputId;
@@ -394,8 +398,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 RenderTexture.active = renderData.renderTexture;
                 GL.Clear(true, true, Color.black);
                 Graphics.Blit(Texture2D.whiteTexture, renderData.renderTexture, m_SceneResources.checkerboardMaterial);
-                var mesh = renderData.mesh ?? m_SceneResources.sphere;
-                Graphics.DrawMesh(mesh, Matrix4x4.TRS(-mesh.bounds.center, Quaternion.identity, Vector3.one), m_PreviewMaterial, 1, m_SceneResources.camera, 0, m_PreviewPropertyBlock, ShadowCastingMode.Off, false, null, false);
+                var mesh = (renderData == masterRenderData && m_Graph.previewMesh) ? m_Graph.previewMesh :  m_SceneResources.sphere;
+                Quaternion rotation = (renderData == masterRenderData) ? m_Graph.previewData.rotation : Quaternion.identity;
+                float scale = (renderData == masterRenderData) ? m_Graph.previewData.scale : 1f;
+                Graphics.DrawMesh(mesh, Matrix4x4.TRS(-mesh.bounds.center, rotation, Vector3.one * scale), m_PreviewMaterial, 1, m_SceneResources.camera, 0, m_PreviewPropertyBlock, ShadowCastingMode.Off, false, null, false);
                 var previousUseSRP = Unsupported.useScriptableRenderPipeline;
                 Unsupported.useScriptableRenderPipeline = renderData.shaderData.node is IMasterNode;
                 m_SceneResources.camera.Render();
@@ -586,7 +592,6 @@ Shader ""hidden/preview""
     public class PreviewRenderData
     {
         public PreviewShaderData shaderData { get; set; }
-        public Mesh mesh { get; set; }
         public RenderTexture renderTexture { get; set; }
         public Texture texture { get; set; }
         public OnPreviewChanged onPreviewChanged;
