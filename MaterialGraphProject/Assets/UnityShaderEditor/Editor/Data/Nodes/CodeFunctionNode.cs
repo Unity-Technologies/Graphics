@@ -144,7 +144,7 @@ namespace UnityEditor.ShaderGraph
             }
             if (t == typeof(ColorRGB))
             {
-                return SlotValueType.Vector4;
+                return SlotValueType.Vector3;
             }
             if (t == typeof(Texture2D))
             {
@@ -198,7 +198,7 @@ namespace UnityEditor.ShaderGraph
                 else if (attribute.binding == Binding.None && !par.IsOut && par.ParameterType == typeof(ColorRGBA))
                     s = new ColorRGBAMaterialSlot(attribute.slotId, par.Name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, hidden: attribute.hidden);
                 else if (attribute.binding == Binding.None && !par.IsOut && par.ParameterType == typeof(ColorRGB))
-                    s = new ColorRGBMaterialSlot(attribute.slotId, par.Name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector3.zero, hidden: attribute.hidden);
+                    s = new ColorRGBMaterialSlot(attribute.slotId, par.Name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, hidden: attribute.hidden);
                 else if (attribute.binding == Binding.None || par.IsOut)
                     s = MaterialSlot.CreateMaterialSlot(
                             ConvertTypeToSlotValueType(par),
