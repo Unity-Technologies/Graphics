@@ -2,7 +2,7 @@
 Pass
 {
     Name "ForwardUnlit"
-    Tags { "LightMode" = "ForwardOnly" }
+    Tags { "LightMode" = "${LightMode}" }
 
     ${Tags}
     ${Blending}
@@ -28,11 +28,9 @@ Pass
     #include "../../ShaderPass/FragInputs.hlsl"
     #include "../../ShaderPass/ShaderPass.cs.hlsl"
 
-    #define SHADERPASS SHADERPASS_FORWARD_UNLIT
+    ${Defines}
     
     #include "../../Material/Material.hlsl"
-
-    ${Defines}
 
     // This include will define the various Attributes/Varyings structure
     #include "../../ShaderPass/VaryingMesh.hlsl"
@@ -72,7 +70,7 @@ Pass
         builtinData.depthOffset = 0.0;
     }
 
-    #include "../../ShaderPass/ShaderPassForwardUnlit.hlsl"
+    #include "../../ShaderPass/${ShaderPassInclude}.hlsl"
 
     ENDHLSL
 }

@@ -99,7 +99,7 @@ namespace UnityEditor.ShaderGraph
             }
             else
             {
-                result = string.Format("{0}4 {1} = UNITY_SAMPLE_TEX2D({2},{3});"
+                result = string.Format("{0}4 {1} = SAMPLE_TEXTURE2D({2}, sampler{2}, {3});"
                         , precision
                         , GetVariableNameForSlot(OutputSlotRGBAId)
                         , GetSlotValue(TextureInputId, generationMode)
