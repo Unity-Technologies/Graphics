@@ -242,7 +242,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         File.WriteAllText(Application.dataPath + "/../UberShader.shader", (m_UberShaderString ?? "null").Replace("UnityEngine.MaterialGraph", "Generated"));
                         var message = "RecreateUberShader: " + Environment.NewLine + m_UberShaderString;
                         bool uberShaderHasError = false;
-                        if (MaterialGraphAsset.ShaderHasError(m_UberShader))
+                        if (ShaderUtil.GetShaderErrorCount(m_UberShader) > 0)
                         {
                             Debug.LogWarning(message);
                             ShaderUtil.ClearShaderErrors(m_UberShader);
@@ -476,7 +476,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Debug output
             var message = "RecreateShader: " + node.GetVariableNameForNode() + Environment.NewLine + shaderData.shaderString;
-            if (MaterialGraphAsset.ShaderHasError(shaderData.shader))
+            if (ShaderUtil.GetShaderErrorCount(shaderData.shader) > 0)
             {
                 shaderData.hasError = true;
                 Debug.LogWarning(message);

@@ -684,11 +684,15 @@ SubShader
 
     Pass
     {
-        CGPROGRAM
+        HLSLPROGRAM
+        #define USE_LEGACY_UNITY_MATRIX_VARIABLES
+        #include ""Common.hlsl""
+
+        #include ""ShaderVariables.hlsl""
+        #include ""ShaderVariablesFunctions.hlsl""
+
         #pragma vertex vert
         #pragma fragment frag
-
-        #include ""UnityCG.cginc""
 
         struct GraphVertexOutput
         {
@@ -701,12 +705,13 @@ SubShader
             v = PopulateVertexData(v);
 
             GraphVertexOutput o;
-            o.position = UnityObjectToClipPos(v.vertex);
+            float3 positionWS = TransformObjectToWorld(v.vertex);
+            o.position = TransformWorldToHClip(positionWS);
             ${VertexShader}
             return o;
         }
 
-        fixed4 frag (GraphVertexOutput IN) : SV_Target
+        float4 frag (GraphVertexOutput IN) : SV_Target
         {
             ${LocalPixelShader}
 
@@ -716,7 +721,7 @@ SubShader
             SurfaceDescription surf = PopulateSurfaceData(surfaceInput);
             ${SurfaceOutputRemap}
         }
-        ENDCG
+        ENDHLSL
     }
 }";
     }

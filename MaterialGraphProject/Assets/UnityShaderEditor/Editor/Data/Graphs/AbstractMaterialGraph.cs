@@ -456,7 +456,7 @@ struct GraphVertexInput
      float4 color : COLOR;
      float4 texcoord0 : TEXCOORD0;
      float4 lightmapUV : TEXCOORD1;
-     UNITY_VERTEX_INPUT_INSTANCE_ID
+     //UNITY_VERTEX_INPUT_INSTANCE_ID
 };";
 
             surfaceInputs.AddShaderChunk("struct SurfaceInputs{", false);
@@ -559,8 +559,12 @@ struct GraphVertexInput
             finalShader.Deindent();
             finalShader.AddShaderChunk("}", false);
 
-            finalShader.AddShaderChunk("CGINCLUDE", false);
-            finalShader.AddShaderChunk("#include \"UnityCG.cginc\"", false);
+            finalShader.AddShaderChunk("HLSLINCLUDE", false);
+            finalShader.AddShaderChunk("#define USE_LEGACY_UNITY_MATRIX_VARIABLES", false);
+            finalShader.AddShaderChunk("#include \"Common.hlsl\"", false);
+            finalShader.AddShaderChunk("#include \"ShaderVariables.hlsl\"", false);
+            finalShader.AddShaderChunk("#include \"ShaderVariablesFunctions.hlsl\"", false);
+            
             finalShader.AddShaderChunk(shaderFunctionVisitor.GetShaderString(2), false);
             finalShader.AddShaderChunk(graphVertexInput, false);
             finalShader.AddShaderChunk(surfaceInputs.GetShaderString(2), false);
@@ -568,7 +572,7 @@ struct GraphVertexInput
             finalShader.AddShaderChunk(shaderProperties.GetPropertiesDeclaration(2), false);
             finalShader.AddShaderChunk(vertexShader.GetShaderString(2), false);
             finalShader.AddShaderChunk(surfaceDescriptionFunction.GetShaderString(2), false);
-            finalShader.AddShaderChunk("ENDCG", false);
+            finalShader.AddShaderChunk("ENDHLSL", false);
 
             finalShader.AddShaderChunk(ShaderGenerator.GetPreviewSubShader(node, requirements), false);
 
