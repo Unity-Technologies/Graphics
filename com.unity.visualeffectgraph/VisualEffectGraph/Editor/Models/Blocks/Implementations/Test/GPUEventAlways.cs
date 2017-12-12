@@ -4,10 +4,10 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block.Test
 {
-    [VFXInfo(category = "Tests")]
+    [VFXInfo(category = "GPUEvent")]
     class GPUEventAlways : VFXBlock
     {
-        public override string name { get { return "GPU Event"; } }
+        public override string name { get { return "Trigger Event Always"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdate; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
 

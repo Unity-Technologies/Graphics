@@ -4,10 +4,10 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block.Test
 {
-    [VFXInfo(category = "Tests")]
+    [VFXInfo(category = "GPUEvent")]
     class GPUEventOnDie : VFXBlock
     {
-        public override string name { get { return "GPU Event On Die"; } }
+        public override string name { get { return "Trigger Event On Die"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdate; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
 
@@ -17,6 +17,7 @@ namespace UnityEditor.VFX.Block.Test
             {
                 yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.EventCount, VFXAttributeMode.ReadWrite);
             }
         }
@@ -46,7 +47,7 @@ namespace UnityEditor.VFX.Block.Test
             get
             {
                 return
-                    @"if (age + deltaTime > lifetime)
+                    @"if (age + deltaTime > lifetime || !alive)
 {
     eventCount += count;
 }
