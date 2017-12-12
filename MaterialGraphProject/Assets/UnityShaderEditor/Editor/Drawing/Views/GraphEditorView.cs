@@ -269,7 +269,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var nodeView = port.node as MaterialNodeView;
             if (nodeView == null)
                 return;
-            var offset = port.connectorBox.parent.ChangeCoordinatesTo(nodeView.mainContainer, port.connectorBox.layout.center);
+            var offset = nodeView.mainContainer.WorldToLocal(port.GetGlobalCenter() + new Vector3(3f, 3f, 0f));
             var position = nodeView.GetPosition();
             position.position -= offset;
             nodeView.SetPosition(position);
