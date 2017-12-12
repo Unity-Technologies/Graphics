@@ -235,10 +235,9 @@ namespace UnityEditor.VFX
 
         public void ComputeLayer()
         {
-            if (!m_DependenciesIn.Any()
-                &&  !m_DependenciesOut.Any())
+            if (!m_DependenciesIn.Any() && !m_DependenciesOut.Any())
             {
-                m_Layer = uint.MaxValue;
+                m_Layer = uint.MaxValue; //Completely independent system
             }
             else
             {

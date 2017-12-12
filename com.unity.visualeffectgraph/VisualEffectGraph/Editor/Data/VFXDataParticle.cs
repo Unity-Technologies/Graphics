@@ -206,6 +206,14 @@ namespace UnityEditor.VFX
             }
         }
 
+        public VFXGPUBufferDesc attributeBufferDesc
+        {
+            get
+            {
+                return m_layoutAttributeCurrent.GetBufferDesc(capacity);
+            }
+        }
+
         public CoordinateSpace space
         {
             get { return m_Space; }
@@ -410,10 +418,6 @@ namespace UnityEditor.VFX
 
                 bufferMappings.Clear();
 
-                var gpuTarget = context.allLinkedOutputSlot.SelectMany(o => (o.owner as VFXContext).outputContexts)
-                    .Select(o => eventBuffer[o.GetData()])
-                    .ToArray();                                         //*still a bit hacky*
-
                 if (attributeBufferIndex != -1)
                     bufferMappings.Add(new VFXMapping(attributeBufferIndex, "attributeBuffer"));
                 if (eventGPUFrom != -1 && context.contextType == VFXContextType.kInit)
@@ -434,13 +438,13 @@ namespace UnityEditor.VFX
                     bufferMappings.Add(new VFXMapping(indirectBufferIndex, "indirectBuffer"));
                 }
 
-                if (gpuTarget != null)
+                var gpuTarget = context.allLinkedOutputSlot.SelectMany(o => (o.owner as VFXContext).outputContexts)
+                    .Select(o => eventBuffer[o.GetData()])
+                    .ToArray();
+                for (uint indexTarget = 0; indexTarget < (uint)gpuTarget.Length; ++indexTarget)
                 {
-                    for (uint indexTarget = 0; indexTarget < (uint)gpuTarget.Length; ++indexTarget)
-                    {
-                        var prefix = VFXCodeGeneratorHelper.GeneratePrefix(indexTarget);
-                        bufferMappings.Add(new VFXMapping(gpuTarget[indexTarget], string.Format("eventListOut_{0}", prefix)));
-                    }
+                    var prefix = VFXCodeGeneratorHelper.GeneratePrefix(indexTarget);
+                    bufferMappings.Add(new VFXMapping(gpuTarget[indexTarget], string.Format("eventListOut_{0}", prefix)));
                 }
 
                 uniformMappings.Clear();
@@ -479,9 +483,9 @@ namespace UnityEditor.VFX
         [SerializeField]
         private CoordinateSpace m_Space;
         [NonSerialized]
-        public StructureOfArrayProvider m_layoutAttributeCurrent = new StructureOfArrayProvider(); //TODOPAUL : public is temporary
+        private StructureOfArrayProvider m_layoutAttributeCurrent = new StructureOfArrayProvider();
         [NonSerialized]
-        public StructureOfArrayProvider m_layoutAttributeSource = new StructureOfArrayProvider();
+        private StructureOfArrayProvider m_layoutAttributeSource = new StructureOfArrayProvider();
         [NonSerialized]
         private bool m_ownAttributeSourceBuffer;
     }

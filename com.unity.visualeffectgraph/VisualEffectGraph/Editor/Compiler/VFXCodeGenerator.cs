@@ -95,7 +95,7 @@ namespace UnityEditor.VFX
                 r.WriteLine();
             }
 
-            //< Source Attribute
+            //< Source Attribute (default temporary behavior, source is always the initial current value except for init context)
             foreach (var attribute in attributesSource.Select(o => o.attrib))
             {
                 var name = string.Format("{0}_source", attribute.name);

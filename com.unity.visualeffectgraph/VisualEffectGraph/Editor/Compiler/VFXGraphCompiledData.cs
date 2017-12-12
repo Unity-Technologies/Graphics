@@ -480,6 +480,32 @@ namespace UnityEditor.VFX
             }
         }
 
+        public void FillDependentBuffer(IEnumerable<VFXData> compilableData, List<VFXGPUBufferDesc> bufferDescs, Dictionary<VFXData, int> attributeBufferDictionnary, Dictionary<VFXData, int> eventGpuBufferDictionnary)
+        {
+            foreach (var data in compilableData.OfType<VFXDataParticle>())
+            {
+                int attributeBufferIndex = -1;
+                if (data.attributeBufferSize > 0)
+                {
+                    attributeBufferIndex = bufferDescs.Count;
+                    bufferDescs.Add(data.attributeBufferDesc);
+                }
+                attributeBufferDictionnary.Add(data, attributeBufferIndex);
+            }
+
+            //Prepare GPU event buffer
+            foreach (var data in compilableData.SelectMany(o => o.dependenciesOut).Distinct().OfType<VFXDataParticle>())
+            {
+                var eventBufferIndex = -1;
+                if (data.capacity > 0)
+                {
+                    eventBufferIndex = bufferDescs.Count;
+                    bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = data.capacity });
+                }
+                eventGpuBufferDictionnary.Add(data, eventBufferIndex);
+            }
+        }
+
         public void Compile()
         {
             Profiler.BeginSample("VFXEditor.CompileAsset");
@@ -568,33 +594,9 @@ namespace UnityEditor.VFX
                 var eventDescs = new List<VFXEventDesc>();
                 FillEvent(eventDescs, contextSpawnToSpawnInfo, compilableContexts);
 
-                //Compute all eventGPU desc
-                /* WIP : Begin */
-                //Prepare all attribute buffer
                 var attributeBufferDictionnary = new Dictionary<VFXData, int>();
-                foreach (var data in compilableData.OfType<VFXDataParticle>())
-                {
-                    int attributeBufferIndex = -1;
-                    if (data.attributeBufferSize > 0)
-                    {
-                        attributeBufferIndex = bufferDescs.Count;
-                        bufferDescs.Add(data.m_layoutAttributeCurrent.GetBufferDesc(data.capacity));
-                    }
-                    attributeBufferDictionnary.Add(data, attributeBufferIndex);
-                }
-
-                //Prepare GPU event buffer
-                var eventBufferDictionnary = new Dictionary<VFXData, int>();
-                foreach (var data in compilableData.SelectMany(o => o.dependenciesOut).Distinct().OfType<VFXDataParticle>())
-                {
-                    var eventBufferIndex = -1;
-                    if (data.capacity > 0)
-                    {
-                        eventBufferIndex = bufferDescs.Count;
-                        bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = data.capacity });
-                    }
-                    eventBufferDictionnary.Add(data, eventBufferIndex);
-                }
+                var eventGpuBufferDictionnary = new Dictionary<VFXData, int>();
+                FillDependentBuffer(compilableData, bufferDescs, attributeBufferDictionnary, eventGpuBufferDictionnary);
 
                 var contextSpawnToBufferIndex = contextSpawnToSpawnInfo.Select(o => new { o.Key, o.Value.bufferIndex }).ToDictionary(o => o.Key, o => o.bufferIndex);
                 foreach (var data in compilableData.OfType<VFXDataParticle>())
@@ -605,9 +607,8 @@ namespace UnityEditor.VFX
                         contextToCompiledData,
                         contextSpawnToBufferIndex,
                         attributeBufferDictionnary,
-                        eventBufferDictionnary);
+                        eventGpuBufferDictionnary);
                 }
-                /* WIP : End */
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Setting up systems", 9 / nbSteps);
                 m_Graph.vfxAsset.SetSystems(systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray());
