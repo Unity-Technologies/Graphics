@@ -36,7 +36,7 @@
 
 #include "ShaderLibrary/Common.hlsl"
 #include "ShaderLibrary/Packing.hlsl"
-#include "ShaderLibrary\Fibonacci.hlsl"
+#include "ShaderLibrary/Sampling/Fibonacci.hlsl"
 #include "ShaderLibrary/SpaceFillingCurves.hlsl"
 #include "../../../ShaderVariables.hlsl"
 #include "../../../Lighting/LightDefinition.cs.hlsl"
