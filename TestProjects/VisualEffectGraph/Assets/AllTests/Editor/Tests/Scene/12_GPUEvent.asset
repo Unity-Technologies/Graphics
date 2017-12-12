@@ -1472,7 +1472,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Vector2, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"x":0.8999999761581421,"y":3.0}'
+      m_SerializableObject: '{"x":0.0,"y":2.0}'
   m_Property:
     name: period
     m_serializedType:
@@ -2130,6 +2130,25 @@ MonoBehaviour:
   m_Direction: 1
   m_LinkedSlots:
   - {fileID: 114794120055081234}
+--- !u!114 &114153851162872140
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d03231f387e7ed54d888c74e4e13228e, type: 3}
+  m_Name: SubpixelAA
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 114416953837160164}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 0
+  m_UISuperCollapsed: 0
+  m_InputSlots: []
+  m_OutputSlots: []
+  m_Disabled: 0
 --- !u!114 &114156282932507496
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2839,6 +2858,25 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
+--- !u!114 &114201001466530178
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d03231f387e7ed54d888c74e4e13228e, type: 3}
+  m_Name: SubpixelAA
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 114272229002993876}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 0
+  m_UISuperCollapsed: 0
+  m_InputSlots: []
+  m_OutputSlots: []
+  m_Disabled: 0
 --- !u!114 &114201183421727740
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3965,6 +4003,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 114356243218434714}
   - {fileID: 114584441511560990}
+  - {fileID: 114201001466530178}
   m_UIPosition: {x: 3361.236, y: 1333.4136}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
@@ -5928,6 +5967,25 @@ MonoBehaviour:
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
+--- !u!114 &114396715122599606
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d03231f387e7ed54d888c74e4e13228e, type: 3}
+  m_Name: SubpixelAA
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 114430979239462776}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 0
+  m_UISuperCollapsed: 0
+  m_InputSlots: []
+  m_OutputSlots: []
+  m_Disabled: 0
 --- !u!114 &114397526926468464
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6273,6 +6331,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114392740513520712}
   m_Children:
   - {fileID: 114569980495256262}
+  - {fileID: 114153851162872140}
   m_UIPosition: {x: -563.25494, y: 1033.2502}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
@@ -6507,6 +6566,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 114222386642569498}
   - {fileID: 114761720430998208}
+  - {fileID: 114396715122599606}
   m_UIPosition: {x: 1250.755, y: 1799.713}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
@@ -8232,6 +8292,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 114265407519955500}
   - {fileID: 114943212855768206}
+  - {fileID: 114983748966225380}
   m_UIPosition: {x: 1715.3442, y: 2211.5684}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
@@ -8275,7 +8336,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 0.9
+      m_SerializableObject: 0.8
   m_Property:
     name: Min
     m_serializedType:
@@ -15409,6 +15470,25 @@ MonoBehaviour:
   m_Direction: 0
   m_LinkedSlots:
   - {fileID: 114167328222992148}
+--- !u!114 &114983748966225380
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d03231f387e7ed54d888c74e4e13228e, type: 3}
+  m_Name: SubpixelAA
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 114529765849112544}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 0
+  m_UISuperCollapsed: 0
+  m_InputSlots: []
+  m_OutputSlots: []
+  m_Disabled: 0
 --- !u!114 &114986360245845100
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17102,9 +17182,9 @@ VFXAsset:
       - m_ExpressionIndex: 89
         m_Value: 1
       - m_ExpressionIndex: 90
-        m_Value: 3
+        m_Value: 2
       - m_ExpressionIndex: 91
-        m_Value: 0.9
+        m_Value: 0
       - m_ExpressionIndex: 92
         m_Value: 0
       - m_ExpressionIndex: 93
@@ -17196,7 +17276,7 @@ VFXAsset:
       - m_ExpressionIndex: 155
         m_Value: 1.1
       - m_ExpressionIndex: 160
-        m_Value: 0.9
+        m_Value: 0.8
       - m_ExpressionIndex: 161
         m_Value: 0.005
       - m_ExpressionIndex: 167
@@ -17910,7 +17990,7 @@ VFXAsset:
       - index: 67
         nameId: uniform_g
       params: []
-      processor: {fileID: 7200000, guid: 6c15496b32147cc49bad8d66190ec35d, type: 3}
+      processor: {fileID: 7200000, guid: 05e423c897b3d6d4082df081770e95ea, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -17933,7 +18013,7 @@ VFXAsset:
       - index: 163
         nameId: uniform_count_d
       params: []
-      processor: {fileID: 7200000, guid: 6da06bb6467a6d4448df32bd7d9d18e5, type: 3}
+      processor: {fileID: 7200000, guid: 04465991be196874a8da8ca23ae1d6ab, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -17952,7 +18032,7 @@ VFXAsset:
         nameId: sortPriority
       - index: 1
         nameId: indirectDraw
-      processor: {fileID: 4800000, guid: 58a538b7c08e797478074ed7645c814d, type: 3}
+      processor: {fileID: 4800000, guid: 298b388f2db225d428f56f02543e1193, type: 3}
     layer: 0
   - type: 1
     flags: 7
@@ -18010,7 +18090,7 @@ VFXAsset:
       - index: 174
         nameId: uniform_DirectionBlend_e
       params: []
-      processor: {fileID: 7200000, guid: d593a2780f632304fa664ec9ee3acad3, type: 3}
+      processor: {fileID: 7200000, guid: 876d861a12e94fa4c91bdd958a4ae793, type: 3}
     - type: 805306368
       buffers:
       - index: 1
@@ -18033,7 +18113,7 @@ VFXAsset:
       - index: 183
         nameId: uniform_count_d
       params: []
-      processor: {fileID: 7200000, guid: 6ef27f022e5d094479a2e622a8ae4604, type: 3}
+      processor: {fileID: 7200000, guid: 49920d854f91e184887d5a7d8a1c3951, type: 3}
     - type: 1073741826
       buffers:
       - index: 1
@@ -18050,7 +18130,7 @@ VFXAsset:
         nameId: sortPriority
       - index: 1
         nameId: indirectDraw
-      processor: {fileID: 4800000, guid: 63a442b97cc8e6341bfd083c9dc29385, type: 3}
+      processor: {fileID: 4800000, guid: 71df2c36e4756744c9b0ea05d7a0249e, type: 3}
     layer: 1
   - type: 1
     flags: 7
@@ -18110,7 +18190,7 @@ VFXAsset:
       - index: 69
         nameId: uniform_l
       params: []
-      processor: {fileID: 7200000, guid: a77e1fb70a856b648a9b76a304e0c34e, type: 3}
+      processor: {fileID: 7200000, guid: d947e079b48beb940aea44c0ae5d3cd3, type: 3}
     - type: 805306368
       buffers:
       - index: 2
@@ -18125,7 +18205,7 @@ VFXAsset:
       - index: 45
         nameId: uniform_deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: f87bf4e8e360cad44bbc77ad3fa54d1c, type: 3}
+      processor: {fileID: 7200000, guid: 169348e02a9bf2248881c0ffc2b5c32f, type: 3}
     - type: 1073741826
       buffers:
       - index: 2
@@ -18146,7 +18226,7 @@ VFXAsset:
         nameId: sortPriority
       - index: 1
         nameId: indirectDraw
-      processor: {fileID: 4800000, guid: 1b13eeab5eae63e49a1a271a564fe4fc, type: 3}
+      processor: {fileID: 4800000, guid: 8588e4a96fee3c940859f419a51672c1, type: 3}
     layer: 2
   - type: 1
     flags: 7
@@ -18196,7 +18276,7 @@ VFXAsset:
       - index: 192
         nameId: uniform_MaxValue_e
       params: []
-      processor: {fileID: 7200000, guid: 06afaabbf46b7cb4c82b49e13a1d5bef, type: 3}
+      processor: {fileID: 7200000, guid: 76d98541354656b4cb0f02d77913a88d, type: 3}
     - type: 805306368
       buffers:
       - index: 3
@@ -18211,7 +18291,7 @@ VFXAsset:
       - index: 45
         nameId: uniform_deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: c5cac71d45c83174b976df525174233a, type: 3}
+      processor: {fileID: 7200000, guid: 5c7921b72007da243b0f53c84aaff84e, type: 3}
     - type: 1073741826
       buffers:
       - index: 3
@@ -18238,7 +18318,7 @@ VFXAsset:
         nameId: sortPriority
       - index: 1
         nameId: indirectDraw
-      processor: {fileID: 4800000, guid: 191156d87998a0948a426068630c6c6d, type: 3}
+      processor: {fileID: 4800000, guid: 6a2a380ea71f0e642b7b5baf8fcfee03, type: 3}
     layer: 2
   - type: 1
     flags: 7
@@ -18294,7 +18374,7 @@ VFXAsset:
       - index: 167
         nameId: uniform_MaxValue_f
       params: []
-      processor: {fileID: 7200000, guid: 204a733728a7a294d9f27f9282850f0d, type: 3}
+      processor: {fileID: 7200000, guid: 4e13578972812314c8bcda8c38013978, type: 3}
     - type: 805306368
       buffers:
       - index: 4
@@ -18309,7 +18389,7 @@ VFXAsset:
       - index: 45
         nameId: uniform_deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: 9b00875c3cee8694994a2e7d7212d374, type: 3}
+      processor: {fileID: 7200000, guid: 83822fba94521104382ff9f22157ed5d, type: 3}
     - type: 1073741826
       buffers:
       - index: 4
@@ -18336,7 +18416,7 @@ VFXAsset:
         nameId: sortPriority
       - index: 1
         nameId: indirectDraw
-      processor: {fileID: 4800000, guid: 4586580546bfa0048903b2019bdc2d37, type: 3}
+      processor: {fileID: 4800000, guid: 2460728d84d0699468f6008b91a3ef10, type: 3}
     layer: 1
   m_Events:
   - name: OnStart

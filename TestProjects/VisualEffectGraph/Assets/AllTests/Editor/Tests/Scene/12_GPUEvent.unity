@@ -208,7 +208,7 @@ GameObject:
   - component: {fileID: 508265865}
   - component: {fileID: 508265864}
   m_Layer: 0
-  m_Name: VFX
+  m_Name: VFX_A
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -222,8 +222,8 @@ VFXComponent:
   m_GameObject: {fileID: 508265863}
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 673d5614ee7737242a5bf6f474b0fdfd, type: 2}
-  m_StartSeed: 0
-  m_ResetSeedOnStart: 1
+  m_StartSeed: 317456563
+  m_ResetSeedOnStart: 0
   m_PropertySheet:
     m_Float:
       m_Array: []
@@ -260,6 +260,130 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &949358382
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 949358384}
+  - component: {fileID: 949358383}
+  m_Layer: 0
+  m_Name: VFX_C
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!2083052967 &949358383
+VFXComponent:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 949358382}
+  m_Enabled: 0
+  m_Asset: {fileID: 8926484042661614526, guid: 673d5614ee7737242a5bf6f474b0fdfd, type: 2}
+  m_StartSeed: 605247960
+  m_ResetSeedOnStart: 0
+  m_PropertySheet:
+    m_Float:
+      m_Array: []
+    m_Vector2f:
+      m_Array: []
+    m_Vector3f:
+      m_Array: []
+    m_Vector4f:
+      m_Array: []
+    m_Uint:
+      m_Array: []
+    m_Int:
+      m_Array: []
+    m_Matrix4x4f:
+      m_Array: []
+    m_AnimationCurve:
+      m_Array: []
+    m_Gradient:
+      m_Array: []
+    m_NamedObject:
+      m_Array: []
+    m_Bool:
+      m_Array: []
+--- !u!4 &949358384
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 949358382}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1861949043
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 1861949045}
+  - component: {fileID: 1861949044}
+  m_Layer: 0
+  m_Name: VFX_D
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!2083052967 &1861949044
+VFXComponent:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1861949043}
+  m_Enabled: 0
+  m_Asset: {fileID: 8926484042661614526, guid: 673d5614ee7737242a5bf6f474b0fdfd, type: 2}
+  m_StartSeed: 213004878
+  m_ResetSeedOnStart: 0
+  m_PropertySheet:
+    m_Float:
+      m_Array: []
+    m_Vector2f:
+      m_Array: []
+    m_Vector3f:
+      m_Array: []
+    m_Vector4f:
+      m_Array: []
+    m_Uint:
+      m_Array: []
+    m_Int:
+      m_Array: []
+    m_Matrix4x4f:
+      m_Array: []
+    m_AnimationCurve:
+      m_Array: []
+    m_Gradient:
+      m_Array: []
+    m_NamedObject:
+      m_Array: []
+    m_Bool:
+      m_Array: []
+--- !u!4 &1861949045
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1861949043}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2046279429
 GameObject:
   m_ObjectHideFlags: 0
@@ -270,7 +394,7 @@ GameObject:
   - component: {fileID: 2046279431}
   - component: {fileID: 2046279430}
   m_Layer: 0
-  m_Name: VFX (1)
+  m_Name: VFX_B
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -282,10 +406,10 @@ VFXComponent:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 2046279429}
-  m_Enabled: 1
+  m_Enabled: 0
   m_Asset: {fileID: 8926484042661614526, guid: 673d5614ee7737242a5bf6f474b0fdfd, type: 2}
-  m_StartSeed: 0
-  m_ResetSeedOnStart: 1
+  m_StartSeed: 191792753
+  m_ResetSeedOnStart: 0
   m_PropertySheet:
     m_Float:
       m_Array: []

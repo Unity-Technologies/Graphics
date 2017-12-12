@@ -243,7 +243,7 @@ namespace UnityEditor.VFX
         {
             var r = new VFXShaderWriter();
             var spawnCountAttribute = new VFXAttribute("spawnCount", VFXValueType.kFloat);
-            if (context.GetData().IsSourceAttributeUsed(spawnCountAttribute))
+            if (!context.GetData().dependenciesIn.Any())
             {
                 var spawnLinkCount = context.GetData().sourceCount;
                 r.WriteLine("int sourceIndex = 0;");

@@ -6,11 +6,12 @@ RWByteAddressBuffer attributeBuffer;
 ByteAddressBuffer sourceAttributeBuffer;
 
 CBUFFER_START(initParams)
-    uint nbSpawned;			// Numbers of particle spawned (0 if VFX_USE_SPAWNER_FROM_GPU)
-    uint spawnIndex;		// Index of the first particle spawned (0 if VFX_USE_SPAWNER_FROM_GPU)
+    uint nbSpawned;					// Numbers of particle spawned (undefined if VFX_USE_SPAWNER_FROM_GPU)
+    uint spawnIndex;				// Index of the first particle spawned (undefined if VFX_USE_SPAWNER_FROM_GPU)
     
-    uint offsetInAdditionalOutput; // Only with SPAWNER_FROM_GPU
+    uint offsetInAdditionalOutput; 	// Only with SPAWNER_FROM_GPU
     uint systemSeed;
+	uint nbMax;						// Only with SPAWNER_FROM_GPU
 CBUFFER_END
 
 #if VFX_USE_ALIVE_CURRENT
@@ -38,8 +39,8 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 
 #if VFX_USE_ALIVE_CURRENT
     maxThreadId = min(maxThreadId, deadListCount.Load(0x0));
-#else
-    maxThreadId = min(maxThreadId, maxParticleCount);
+#elif VFX_USE_SPAWNER_FROM_GPU
+    maxThreadId = min(maxThreadId, nbMax); //otherwise, nbSpawned already clamped on CPU
 #endif
 
     if (id.x < maxThreadId)
