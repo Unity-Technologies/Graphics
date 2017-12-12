@@ -107,7 +107,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public static bool operator ==(VolumeParameter<T> lhs, T rhs)
         {
-            return lhs.value.Equals(rhs);
+            return lhs.value != null && lhs.value.Equals(rhs);
         }
 
         public static bool operator !=(VolumeParameter<T> lhs, T rhs)
