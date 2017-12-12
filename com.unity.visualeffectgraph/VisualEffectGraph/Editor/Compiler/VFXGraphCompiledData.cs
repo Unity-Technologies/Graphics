@@ -583,15 +583,17 @@ namespace UnityEditor.VFX
                     attributeBufferDictionnary.Add(data, attributeBufferIndex);
                 }
 
-                //Prepare GPU event buffer (out buffer)
-                var gpuEventBufferDictionnary = new Dictionary<VFXData, int>();
-
-                //simplify this ! TODOPAUL
-                foreach (var dataParticle in compilableData.Where(o => o.layer != uint.MaxValue).SelectMany(o => o.dependenciesOut).Distinct().OfType<VFXDataParticle>())
+                //Prepare GPU event buffer
+                var eventBufferDictionnary = new Dictionary<VFXData, int>();
+                foreach (var data in compilableData.SelectMany(o => o.dependenciesOut).Distinct().OfType<VFXDataParticle>())
                 {
-                    var index = bufferDescs.Count;
-                    bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = dataParticle.capacity });
-                    gpuEventBufferDictionnary.Add(dataParticle, index);
+                    var eventBufferIndex = -1;
+                    if (data.capacity > 0)
+                    {
+                        eventBufferIndex = bufferDescs.Count;
+                        bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = data.capacity });
+                    }
+                    eventBufferDictionnary.Add(data, eventBufferIndex);
                 }
 
                 var contextSpawnToBufferIndex = contextSpawnToSpawnInfo.Select(o => new { o.Key, o.Value.bufferIndex }).ToDictionary(o => o.Key, o => o.bufferIndex);
@@ -603,7 +605,7 @@ namespace UnityEditor.VFX
                         contextToCompiledData,
                         contextSpawnToBufferIndex,
                         attributeBufferDictionnary,
-                        gpuEventBufferDictionnary);
+                        eventBufferDictionnary);
                 }
                 /* WIP : End */
 

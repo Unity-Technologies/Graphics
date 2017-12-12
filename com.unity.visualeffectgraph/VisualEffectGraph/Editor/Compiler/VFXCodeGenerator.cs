@@ -84,16 +84,14 @@ namespace UnityEditor.VFX
                     r.WriteVariable(attribute.type, name, attribute.value.GetCodeString(null));
                 }
 
-                /* WIP PAUL */
                 if (attribute.name == VFXAttribute.EventCount.name)
                 {
                     var linkedOutCount = context.allLinkedOutputSlot.Count();
                     for (uint i = 0; i < linkedOutCount; ++i)
                     {
-                        r.WriteFormat("uint eventCount_{0} = 0u;", VFXCodeGeneratorHelper.GeneratePrefix(i));
+                        r.WriteFormat("uint {0}_{1} = 0u;", attribute.name, VFXCodeGeneratorHelper.GeneratePrefix(i));
                     }
                 }
-                /* END WIP */
                 r.WriteLine();
             }
 
@@ -122,7 +120,9 @@ namespace UnityEditor.VFX
             return r;
         }
 
-        static private StringBuilder GenerateStoreAttribute(string matching, VFXContext context)
+        private const string eventListOutName = "eventListOut";
+
+        static private StringBuilder GenerateStoreAttribute(string matching, VFXContext context, uint linkedOutCount)
         {
             var r = new StringBuilder();
             var regex = new Regex(matching);
@@ -137,18 +137,16 @@ namespace UnityEditor.VFX
                 r.AppendLine(";");
             }
 
-            /* WIP PAUL */
-            if (regex.IsMatch("eventCount"))
+            var eventCountName = VFXAttribute.EventCount.name;
+            if (regex.IsMatch(eventCountName))
             {
-                var linkedOutCount = context.children.SelectMany(b => b.outputSlots.SelectMany(c => c.LinkedSlots)).Count(); //TODOPAUL (stop recomputing this !)
                 for (uint i = 0; i < linkedOutCount; ++i)
                 {
                     var prefix = VFXCodeGeneratorHelper.GeneratePrefix(i);
-                    r.AppendFormat("for (uint i_{0} = 0; i_{0} < eventCount_{0}; ++i_{0}) eventListOut_{0}.Append(index);", prefix);
+                    r.AppendFormat("for (uint i = 0; i < {1}_{0}; ++i) {2}_{0}.Append(index);", prefix, eventCountName, eventListOutName);
                     r.AppendLine();
                 }
             }
-            /* END WIP */
             return r;
         }
 
@@ -375,17 +373,8 @@ namespace UnityEditor.VFX
             globalDeclaration.WriteCBuffer(contextData.uniformMapper, "parameters");
             globalDeclaration.WriteTexture(contextData.uniformMapper);
 
-            /* Begin WIP PAUL */
             var linkedEventOut = context.allLinkedOutputSlot.ToList();
-            if (context.GetData().IsAttributeLocal(VFXAttribute.EventCount))
-            {
-                for (uint i = 0; i < (uint)linkedEventOut.Count; ++i)
-                {
-                    var prefix = VFXCodeGeneratorHelper.GeneratePrefix(i);
-                    globalDeclaration.WriteLineFormat("AppendStructuredBuffer<uint> eventListOut_{0};", prefix);
-                }
-            }
-            /* End WIP */
+            globalDeclaration.WriteEventBuffer(eventListOutName, linkedEventOut.Count);
 
             //< Block processor
             var blockFunction = new VFXShaderWriter();
@@ -537,7 +526,7 @@ namespace UnityEditor.VFX
             //< Store Attribute
             if (stringBuilder.ToString().Contains("${VFXStoreAttributes}"))
             {
-                var storeAttribute = GenerateStoreAttribute(".*", context);
+                var storeAttribute = GenerateStoreAttribute(".*", context, (uint)linkedEventOut.Count);
                 ReplaceMultiline(stringBuilder, "${VFXStoreAttributes}", storeAttribute);
             }
 
@@ -545,7 +534,7 @@ namespace UnityEditor.VFX
             {
                 var str = match.Groups[0].Value;
                 var pattern = match.Groups[1].Value;
-                var storeAttributes = GenerateStoreAttribute(pattern, context);
+                var storeAttributes = GenerateStoreAttribute(pattern, context, (uint)linkedEventOut.Count);
                 ReplaceMultiline(stringBuilder, str, storeAttributes);
             }
 
