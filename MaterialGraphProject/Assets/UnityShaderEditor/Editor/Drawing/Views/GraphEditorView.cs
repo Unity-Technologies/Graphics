@@ -19,6 +19,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         AbstractMaterialGraph m_Graph;
         PreviewManager m_PreviewManager;
         SearchWindowProvider m_SearchWindowProvider;
+        EdgeConnectorListener m_EdgeConnectorListener;
 
         public Action onUpdateAssetClick
         {
@@ -57,7 +58,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         public GraphEditorView(EditorWindow editorWindow, AbstractMaterialGraph graph, string assetName)
         {
             m_Graph = graph;
-            m_SearchWindowProvider = ScriptableObject.CreateInstance<SearchWindowProvider>();
             AddStyleSheetPath("Styles/MaterialGraph");
 
             previewManager = new PreviewManager(graph);
@@ -80,9 +80,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.graphViewChanged = GraphViewChanged;
             }
 
+            m_SearchWindowProvider = ScriptableObject.CreateInstance<SearchWindowProvider>();
             m_SearchWindowProvider.Initialize(editorWindow, m_Graph, m_GraphView);
             m_GraphView.nodeCreationRequest = (c) => SearchWindow.Open(new SearchWindowContext(c.screenMousePosition), m_SearchWindowProvider);
-            //m_GraphView.AddManipulator(new NodeCreator(m_SearchWindowProvider));
+
+            m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph);
 
             foreach (var node in graph.GetNodes<INode>())
                 AddNode(node);
@@ -122,6 +124,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     drawState.position = element.layout;
                     node.drawState = drawState;
                 }
+            }
+
+            if (graphViewChange.elementsToRemove != null)
+            {
+                m_Graph.owner.RegisterCompleteObjectUndo("Remove Elements");
+                m_Graph.RemoveElements(graphViewChange.elementsToRemove.OfType<MaterialNodeView>().Select(v => (INode) v.node),
+                    graphViewChange.elementsToRemove.OfType<Edge>().Select(e => (IEdge) e.userData));
             }
 
             return graphViewChange;
@@ -202,7 +211,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var nodeView = new MaterialNodeView { userData = node };
             m_GraphView.AddElement(nodeView);
-            nodeView.Initialize(node as AbstractMaterialNode, m_PreviewManager);
+            nodeView.Initialize(node as AbstractMaterialNode, m_PreviewManager, m_EdgeConnectorListener);
             node.onModified += OnNodeChanged;
         }
 
