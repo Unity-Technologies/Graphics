@@ -14,21 +14,18 @@ namespace UnityEditor.VFX.UI
 
         public override VFXSlotContainerController slotContainerController { get { return m_SlotController; } }
 
-        [SerializeField]
         private List<VFXBlockController> m_BlockControllers = new List<VFXBlockController>();
         public IEnumerable<VFXBlockController> blockControllers
         {
             get { return m_BlockControllers; }
         }
 
-        [SerializeField]
         protected List<VFXFlowAnchorController> m_FlowInputAnchors = new List<VFXFlowAnchorController>();
         public ReadOnlyCollection<VFXFlowAnchorController> flowInputAnchors
         {
             get { return m_FlowInputAnchors.AsReadOnly(); }
         }
 
-        [SerializeField]
         protected List<VFXFlowAnchorController> m_FlowOutputAnchors = new List<VFXFlowAnchorController>();
         public ReadOnlyCollection<VFXFlowAnchorController> flowOutputAnchors
         {
@@ -37,7 +34,6 @@ namespace UnityEditor.VFX.UI
 
         VFXContextSlotContainerController m_SlotController;
 
-        [SerializeField]
         IDataWatchHandle m_DataHandle;
 
         public override void OnDisable()

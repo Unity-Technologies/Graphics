@@ -136,7 +136,6 @@ namespace UnityEditor.VFX.UI
             get { return base.allChildren.Concat(m_Settings.Cast<Controller>()); }
         }
 
-        [SerializeField]
         private VFXSettingController[] m_Settings;
     }
 }

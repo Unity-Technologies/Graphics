@@ -106,7 +106,6 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        [SerializeField]
         VFXPropertyAttribute[] m_Attributes;
 
         public virtual void UpdateInfos()

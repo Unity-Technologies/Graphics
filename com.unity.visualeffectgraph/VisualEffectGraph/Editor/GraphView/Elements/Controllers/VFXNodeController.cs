@@ -17,13 +17,10 @@ namespace UnityEditor.VFX.UI
 
         public abstract VFXSlotContainerController slotContainerController { get; }
 
-        [SerializeField]
         VFXViewController m_ViewController;
 
-        [SerializeField]
         protected List<VFXDataAnchorController> m_InputPorts = new List<VFXDataAnchorController>();
 
-        [SerializeField]
         protected List<VFXDataAnchorController> m_OutputPorts = new List<VFXDataAnchorController>();
 
         public ReadOnlyCollection<VFXDataAnchorController> inputPorts

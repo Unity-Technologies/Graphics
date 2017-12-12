@@ -8,7 +8,6 @@ namespace UnityEditor.VFX.UI
 {
     class VFXSettingController : Controller, IPropertyRMProvider
     {
-        [SerializeField]
         IVFXSlotContainer m_Owner;
         public IVFXSlotContainer owner { get { return m_Owner; } }
 

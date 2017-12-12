@@ -69,10 +69,8 @@ namespace UnityEditor.VFX.UI
 
     abstract class Controller<T> : Controller where T : UnityEngine.Object
     {
-        [SerializeField]
         T m_Model;
 
-        [SerializeField]
         IDataWatchHandle m_Handle;
 
 

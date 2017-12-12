@@ -7,12 +7,10 @@ namespace UnityEditor.VFX.UI
 {
     abstract class VFXFlowAnchorController : Controller, IVFXAnchorController
     {
-        [SerializeField]
         VFXContextController m_Context;
         public VFXContext owner { get { return m_Context.context; } }
         public VFXContextController context { get { return m_Context; } }
 
-        [SerializeField]
         private int m_SlotIndex;
         public int slotIndex { get { return m_SlotIndex; } }
 

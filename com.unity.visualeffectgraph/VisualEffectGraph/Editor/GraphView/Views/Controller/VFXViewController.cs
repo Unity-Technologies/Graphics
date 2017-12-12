@@ -740,7 +740,6 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        [SerializeField]
         private VFXGraph m_Graph;
 
         IDataWatchHandle m_GraphHandle;
