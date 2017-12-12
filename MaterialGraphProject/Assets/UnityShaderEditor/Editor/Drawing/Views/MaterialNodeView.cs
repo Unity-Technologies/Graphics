@@ -19,14 +19,16 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_PreviewContainer;
         List<Attacher> m_Attachers;
         VisualElement m_ControlsDivider;
+        IEdgeConnectorListener m_ConnectorListener;
 
-        public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager)
+        public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener)
         {
             AddToClassList("MaterialNode");
 
             if (inNode == null)
                 return;
 
+            m_ConnectorListener = connectorListener;
             node = inNode;
             persistenceKey = node.guid.ToString();
             UpdateTitle();
@@ -254,7 +256,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (slot.hidden)
                     continue;
 
-                var port = InstantiatePort(Orientation.Horizontal, slot.isInputSlot ? Direction.Input : Direction.Output, null);
+                var port = ShaderPort.Create(Orientation.Horizontal, slot.isInputSlot ? Direction.Input : Direction.Output, null, m_ConnectorListener);
                 port.portName = slot.displayName;
                 port.userData = slot;
                 port.visualClass = slot.concreteValueType.ToClassName();
