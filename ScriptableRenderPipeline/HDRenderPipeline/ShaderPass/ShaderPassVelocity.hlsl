@@ -5,10 +5,7 @@
 // Available semantic start from TEXCOORD4
 struct AttributesPass
 {
-    float3 previousPositionOS : NORMAL; // Contain previous transform position (in case of skinning for example)
-
-    // TODO: Caution - For now the tesselation doesn't displace along the normal with Velocity shader as the previous previous position
-    // conflict with the normal in the semantic. This need to be fix!
+    float3 previousPositionOS : TEXCOORD4; // Contain previous transform position (in case of skinning for example)
 };
 
 struct VaryingsPassToPS
@@ -77,17 +74,58 @@ VaryingsPassToDS InterpolateWithBaryCoordsPassToDS(VaryingsPassToDS input0, Vary
 #define VARYINGS_NEED_PASS
 #include "VertMesh.hlsl"
 
+// Transforms normal from object to world space
+float3 TransformPreviousObjectToWorldNormal(float3 normalOS)
+{
+#ifdef UNITY_ASSUME_UNIFORM_SCALING
+    return normalize(mul((float3x3)unity_MatrixPreviousM, normalOS));
+#else
+    // Normal need to be multiply by inverse transpose
+    // mul(IT_M, norm) => mul(norm, I_M) => {dot(norm, I_M.col0), dot(norm, I_M.col1), dot(norm, I_M.col2)}
+    return normalize(mul(normalOS, (float3x3)unity_MatrixPreviousMI));
+#endif
+}
+
+void VelocityPositionZBias(VaryingsToPS input)
+{
+	#if defined(UNITY_REVERSED_Z)
+		input.vmesh.positionCS.z -= unity_MotionVectorsParams.z * input.vmesh.positionCS.w;
+	#else
+		input.vmesh.positionCS.z += unity_MotionVectorsParams.z * input.vmesh.positionCS.w;
+	#endif
+}
+
 PackedVaryingsType Vert(AttributesMesh inputMesh,
                         AttributesPass inputPass)
 {
     VaryingsType varyingsType;
     varyingsType.vmesh = VertMesh(inputMesh);
 
+#if !defined(TESSELLATION_ON)
+	VelocityPositionZBias(varyingsType);
+#endif
+
     // It is not possible to correctly generate the motion vector for tesselated geometry as tessellation parameters can change
     // from one frame to another (adaptative, lod) + in Unity we only receive information for one non tesselated vertex.
     // So motion vetor will be based on interpolate previous position at vertex level instead.
-    varyingsType.vpass.positionCS = mul(_NonJitteredViewProjMatrix, mul(unity_ObjectToWorld, float4(inputMesh.positionOS, 1.0)));
-    varyingsType.vpass.previousPositionCS = mul(_PrevViewProjMatrix, mul(unity_MatrixPreviousM, unity_MotionVectorsParams.x ? float4(inputPass.previousPositionOS, 1.0) : float4(inputMesh.positionOS, 1.0)));
+	varyingsType.vpass.positionCS = mul(_NonJitteredViewProjMatrix, float4(varyingsType.vmesh.positionWS, 1.0));
+
+	//Need to apply any vertex animation to the previous worldspace position, if we want it to show up in the velocity buffer
+	float3 previousPositionWS = mul(unity_MatrixPreviousM, unity_MotionVectorsParams.x ? float4(inputPass.previousPositionOS, 1.0) : float4(inputMesh.positionOS, 1.0)).xyz;
+	#ifdef ATTRIBUTES_NEED_NORMAL
+		float3 normalWS = TransformPreviousObjectToWorldNormal(inputMesh.normalOS);
+	#else
+		float3 normalWS = float3(0.0, 0.0, 0.0);
+	#endif
+		
+	#if defined(HAVE_VERTEX_MODIFICATION)
+		ApplyVertexModification(inputMesh, normalWS, previousPositionWS, _LastTime);
+	#endif
+	
+	//Need this since we are using the current position from VertMesh()
+	previousPositionWS = GetCameraRelativePositionWS(previousPositionWS);
+	
+	varyingsType.vpass.previousPositionCS = mul(_PrevViewProjMatrix, float4(previousPositionWS, 1.0));
 
     return PackVaryingsType(varyingsType);
 }
@@ -99,6 +137,8 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
     VaryingsToPS output;
 
     output.vmesh = VertMeshTesselation(input.vmesh);
+
+	VelocityPositionZBias(output);
 
     output.vpass.positionCS = input.vpass.positionCS;
     output.vpass.previousPositionCS = input.vpass.previousPositionCS;
