@@ -15,7 +15,7 @@ namespace UnityEngine.Experimental.Rendering
 
         internal ReadOnlyCollection<VolumeParameter> parameters { get; private set; }
 
-        void OnEnable()
+        protected virtual void OnEnable()
         {
             // Automatically grab all fields of type VolumeParameter for this instance
             parameters = this.GetType()
@@ -25,6 +25,10 @@ namespace UnityEngine.Experimental.Rendering
                 .Select(t => (VolumeParameter)t.GetValue(this))
                 .ToList()
                 .AsReadOnly();
+        }
+
+        protected virtual void OnDisable()
+        {
         }
 
         public void SetAllOverridesTo(bool state)
