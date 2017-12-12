@@ -15,23 +15,21 @@ namespace UnityEditor.VFX.UI
         {
             if (input)
             {
-                VFXContextDataInputAnchorPresenter anchorPresenter = CreateInstance<VFXContextDataInputAnchorPresenter>();
-                anchorPresenter.Init(slot, this, hidden);
+                VFXContextDataInputAnchorController anchorController = new VFXContextDataInputAnchorController(slot, this, hidden);
 
-                return anchorPresenter;
+                return anchorController;
             }
             return null;
         }
 
-        public void Init(VFXModel model, VFXContextController contextPresenter)
+        public VFXContextSlotContainerController(VFXModel model, VFXContextController contextController) : base(model, contextController.viewController)
         {
-            m_ContextPresenter = contextPresenter;
-            base.Init(model, contextPresenter.viewController);
+            m_ContextController = contextController;
         }
 
         public VFXContextController contextController
         {
-            get { return m_ContextPresenter; }
+            get { return m_ContextController; }
         }
 
         public static bool IsTypeExpandable(System.Type type)
@@ -49,6 +47,6 @@ namespace UnityEditor.VFX.UI
             return typeof(ISpaceable).IsAssignableFrom(type) && field.Name == "space";
         }
 
-        protected VFXContextController m_ContextPresenter;
+        protected VFXContextController m_ContextController;
     }
 }

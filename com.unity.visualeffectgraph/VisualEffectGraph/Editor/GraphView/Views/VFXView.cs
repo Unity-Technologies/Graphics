@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.UI
         void OnMouseUp(MouseUpEvent evt)
         {
             if (!VFXComponentEditor.s_IsEditingAsset)
-                Selection.activeObject = m_View.controller.GetVFXAsset();
+                Selection.activeObject = m_View.controller.model;
         }
     }
 
@@ -343,7 +343,7 @@ namespace UnityEditor.VFX.UI
                     m_ToggleMotionVectors.SetEnabled(true);
 
                     // if the asset dis destroy somehow, fox example if the user delete the asset, delete the controller and update the window.
-                    VFXAsset asset = controller.GetVFXAsset();
+                    VFXAsset asset = controller.model;
                     if (asset == null)
                     {
                         VFXViewController.Manager.RemoveController(controller);
@@ -537,7 +537,7 @@ namespace UnityEditor.VFX.UI
         {
             if (controller != null)
             {
-                var asset = controller.GetVFXAsset();
+                var asset = controller.model;
                 if (asset != null)
                     return asset.rendererSettings;
             }
@@ -563,11 +563,11 @@ namespace UnityEditor.VFX.UI
         {
             if (controller != null)
             {
-                var asset = controller.GetVFXAsset();
+                var asset = controller.model;
                 if (asset != null)
                 {
                     asset.rendererSettings = settings;
-                    controller.model.SetExpressionGraphDirty();
+                    controller.graph.SetExpressionGraphDirty();
                 }
             }
         }
@@ -604,7 +604,7 @@ namespace UnityEditor.VFX.UI
 
         void OnCompile()
         {
-            var graph = controller.model;
+            var graph = controller.graph;
             graph.SetExpressionGraphDirty();
             graph.RecompileIfNeeded();
         }
@@ -633,14 +633,14 @@ namespace UnityEditor.VFX.UI
             foreach (var context in contexts)
             {
                 context.position = context.position + new Vector2(50, 50);
-                controller.model.AddChild(context);
+                controller.graph.AddChild(context);
             }
 
             var operators = selection.OfType<VFXNodeUI>().Select(p => p.controller.model.Clone<VFXSlotContainerModel<VFXModel, VFXModel>>());
             foreach (var op in operators)
             {
                 op.position = op.position + new Vector2(50, 50);
-                controller.model.AddChild(op);
+                controller.graph.AddChild(op);
             }
             return EventPropagation.Stop;
         }
@@ -655,21 +655,21 @@ namespace UnityEditor.VFX.UI
         public EventPropagation OutputToDot()
         {
             if (controller == null) return EventPropagation.Stop;
-            DotGraphOutput.DebugExpressionGraph(controller.model, VFXExpressionContextOption.None);
+            DotGraphOutput.DebugExpressionGraph(controller.graph, VFXExpressionContextOption.None);
             return EventPropagation.Stop;
         }
 
         public EventPropagation OutputToDotReduced()
         {
             if (controller == null) return EventPropagation.Stop;
-            DotGraphOutput.DebugExpressionGraph(controller.model, VFXExpressionContextOption.Reduction);
+            DotGraphOutput.DebugExpressionGraph(controller.graph, VFXExpressionContextOption.Reduction);
             return EventPropagation.Stop;
         }
 
         public EventPropagation OutputToDotConstantFolding()
         {
             if (controller == null) return EventPropagation.Stop;
-            DotGraphOutput.DebugExpressionGraph(controller.model, VFXExpressionContextOption.ConstantFolding);
+            DotGraphOutput.DebugExpressionGraph(controller.graph, VFXExpressionContextOption.ConstantFolding);
             return EventPropagation.Stop;
         }
 
@@ -701,13 +701,13 @@ namespace UnityEditor.VFX.UI
 
             if (startAnchor is VFXDataAnchor)
             {
-                var presenters = controller.GetCompatiblePorts((startAnchor as  VFXDataAnchor).controller, nodeAdapter);
-                return presenters.Select(t => (Port)GetDataAnchorByPresenter(t as VFXDataAnchorController)).ToList();
+                var controllers = controller.GetCompatiblePorts((startAnchor as  VFXDataAnchor).controller, nodeAdapter);
+                return controllers.Select(t => (Port)GetDataAnchorByController(t as VFXDataAnchorController)).ToList();
             }
             else
             {
-                var presenters = controller.GetCompatiblePorts((startAnchor as VFXFlowAnchor).controller, nodeAdapter);
-                return presenters.Select(t => (Port)GetFlowAnchorByPresenter(t as VFXFlowAnchorController)).ToList();
+                var controllers = controller.GetCompatiblePorts((startAnchor as VFXFlowAnchor).controller, nodeAdapter);
+                return controllers.Select(t => (Port)GetFlowAnchorByController(t as VFXFlowAnchorController)).ToList();
             }
         }
 
@@ -722,14 +722,14 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public VFXDataAnchor GetDataAnchorByPresenter(VFXDataAnchorController controller)
+        public VFXDataAnchor GetDataAnchorByController(VFXDataAnchorController controller)
         {
             if (controller == null)
                 return null;
             return GetAllDataAnchors(controller.direction == Direction.Input, controller.direction == Direction.Output).Where(t => t.controller == controller).FirstOrDefault();
         }
 
-        public VFXFlowAnchor GetFlowAnchorByPresenter(VFXFlowAnchorController controller)
+        public VFXFlowAnchor GetFlowAnchorByController(VFXFlowAnchorController controller)
         {
             if (controller == null)
                 return null;
@@ -766,7 +766,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public VFXDataEdge GetDataEdgeByPresenter(VFXDataEdgeController controller)
+        public VFXDataEdge GetDataEdgeByController(VFXDataEdgeController controller)
         {
             foreach (var layer in contentViewContainer.Children())
             {
@@ -857,9 +857,9 @@ namespace UnityEditor.VFX.UI
                 {
                     Selection.objects = objectSelected.ToArray();
                 }
-                else if (Selection.activeObject != controller.GetVFXAsset())
+                else if (Selection.activeObject != controller.model)
                 {
-                    Selection.activeObject = controller.GetVFXAsset();
+                    Selection.activeObject = controller.model;
                 }
             }
         }

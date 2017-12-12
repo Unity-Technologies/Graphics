@@ -22,16 +22,16 @@ namespace UnityEditor.VFX.UI
             m_SlotIndex = slotIndex;
         }
 
-        List<VFXFlowEdgePresenter> m_Connections = new List<VFXFlowEdgePresenter>();
+        List<VFXFlowEdgeController> m_Connections = new List<VFXFlowEdgeController>();
 
-        public virtual void Connect(VFXEdgeController edgePresenter)
+        public virtual void Connect(VFXEdgeController edgeController)
         {
-            m_Connections.Add(edgePresenter as VFXFlowEdgePresenter);
+            m_Connections.Add(edgeController as VFXFlowEdgeController);
         }
 
-        public virtual void Disconnect(VFXEdgeController edgePresenter)
+        public virtual void Disconnect(VFXEdgeController edgeController)
         {
-            m_Connections.Remove(edgePresenter as VFXFlowEdgePresenter);
+            m_Connections.Remove(edgeController as VFXFlowEdgeController);
         }
 
         public bool connected
@@ -47,7 +47,7 @@ namespace UnityEditor.VFX.UI
         public abstract Direction direction { get; }
         public Orientation orientation { get { return Orientation.Vertical; } }
 
-        public IEnumerable<VFXFlowEdgePresenter> connections { get { return m_Connections; } }
+        public IEnumerable<VFXFlowEdgeController> connections { get { return m_Connections; } }
 
         public override void ApplyChanges()
         {

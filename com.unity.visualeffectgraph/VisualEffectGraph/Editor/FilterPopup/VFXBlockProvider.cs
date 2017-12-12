@@ -94,10 +94,10 @@ namespace UnityEditor.VFX.UI
 
     class VFXBlockProvider : VFXAbstractProvider<VFXModelDescriptor<VFXBlock>>
     {
-        VFXContextController m_ContextPresenter;
+        VFXContextController m_ContextController;
         public VFXBlockProvider(VFXContextController context, Action<VFXModelDescriptor<VFXBlock>, Vector2> onAddBlock) : base(onAddBlock)
         {
-            m_ContextPresenter = context;
+            m_ContextController = context;
         }
 
         protected override string GetCategory(VFXModelDescriptor<VFXBlock> desc)
@@ -113,7 +113,7 @@ namespace UnityEditor.VFX.UI
         protected override IEnumerable<VFXModelDescriptor<VFXBlock>> GetDescriptors()
         {
             var blocks = new List<VFXModelDescriptor<VFXBlock>>(VFXLibrary.GetBlocks());
-            var filteredBlocks = blocks.Where(b => b.AcceptParent(m_ContextPresenter.model)).ToList();
+            var filteredBlocks = blocks.Where(b => b.AcceptParent(m_ContextController.model)).ToList();
             filteredBlocks.Sort((blockA, blockB) =>
                 {
                     var infoA = blockA.info;

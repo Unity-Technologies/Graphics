@@ -7,7 +7,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    partial class VFXViewController : Controller<VFXGraph>
+    partial class VFXViewController : Controller<VFXAsset>
     {
         public event System.Action onRecompileEvent;
         public void RecompileExpressionGraphIfNeeded()
@@ -55,7 +55,7 @@ namespace UnityEditor.VFX.UI
 
             m_ExpressionContext = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
             HashSet<Object> currentObjects = new HashSet<Object>();
-            model.CollectDependencies(currentObjects);
+            graph.CollectDependencies(currentObjects);
 
             int nbExpr = 0;
             foreach (var o in currentObjects)

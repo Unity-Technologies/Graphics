@@ -41,9 +41,8 @@ namespace UnityEditor.VFX.UI
 
         public Type portType { get; set; }
 
-        public void Init(VFXSlot model, VFXSlotContainerController sourceNode, bool hidden)
+        public VFXDataAnchorController(VFXSlot model, VFXSlotContainerController sourceNode, bool hidden) : base(model)
         {
-            base.Init(model);
             m_SourceNode = sourceNode;
             m_Hidden = hidden;
             m_Collapsed = model.collapsed;

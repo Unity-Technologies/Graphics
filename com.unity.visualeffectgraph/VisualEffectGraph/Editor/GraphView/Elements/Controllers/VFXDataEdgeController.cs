@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.UI
     {
         T m_Input;
         T m_Output;
-        public virtual void Init(T input, T output)
+        public VFXEdgeController(T input, T output)
         {
             if (input.direction != Direction.Input)
             {
@@ -35,14 +35,13 @@ namespace UnityEditor.VFX.UI
         public T input { get { return m_Input; } }
         public T output { get { return m_Output; } }
 
-        public override void OnRemoveFromGraph()
+        public override void OnDisable()
         {
-            base.OnRemoveFromGraph();
-
             if (m_Input != null)
                 m_Input.Disconnect(this);
             if (m_Output != null)
                 m_Output.Disconnect(this);
+            base.OnDisable();
         }
 
         public override void ApplyChanges()
@@ -52,7 +51,7 @@ namespace UnityEditor.VFX.UI
 
     internal class VFXDataEdgeController : VFXEdgeController<VFXDataAnchorController>
     {
-        public VFXDataEdgeController()
+        public VFXDataEdgeController(VFXDataAnchorController input, VFXDataAnchorController output) : base(input, output)
         {
         }
     }

@@ -9,6 +9,10 @@ namespace UnityEditor.VFX.UI
 {
     class VFXParameterOutputDataAnchorController : VFXDataAnchorController
     {
+        public VFXParameterOutputDataAnchorController(VFXSlot model, VFXSlotContainerController sourceNode, bool hidden) : base(model, sourceNode, hidden)
+        {
+        }
+
         public override Direction direction
         { get { return Direction.Output; } }
         public override string name
@@ -104,10 +108,8 @@ namespace UnityEditor.VFX.UI
 
         IDataWatchHandle m_SlotHandle;
 
-        public override void Init(VFXModel model, VFXViewController viewController)
+        public VFXParameterController(VFXModel model, VFXViewController viewController) : base(model, viewController)
         {
-            base.Init(model, viewController);
-
             m_CachedMinValue = parameter.m_Min != null ? parameter.m_Min.Get() : null;
             m_CachedMaxValue = parameter.m_Max != null ? parameter.m_Max.Get() : null;
 
@@ -121,8 +123,7 @@ namespace UnityEditor.VFX.UI
 
         protected override VFXDataAnchorController AddDataAnchor(VFXSlot slot, bool input, bool hidden)
         {
-            var anchor = VFXParameterOutputDataAnchorController.CreateInstance<VFXParameterOutputDataAnchorController>();
-            anchor.Init(slot, this, hidden);
+            var anchor = new VFXParameterOutputDataAnchorController(slot, this, hidden);
             anchor.portType = slot.property.type;
             return anchor;
         }

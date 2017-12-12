@@ -10,7 +10,7 @@ using UnityEditor.VFX;
 using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
-using FloatField = UnityEditor.VFX.UIElements.OldFloatField;
+using FloatField = UnityEditor.VFX.UIElements.LabeledField<UnityEditor.Experimental.UIElements.FloatField, float>;
 
 
 namespace UnityEditor.VFX.UI
@@ -40,16 +40,16 @@ namespace UnityEditor.VFX.UI
             fieldContainer.AddToClassList("fieldContainer");
 
             m_RFloatField = new FloatField("R");
-            m_RFloatField.OnValueChanged = OnValueChanged;
+            m_RFloatField.RegisterCallback<ChangeEvent<float>>(OnValueChanged);
 
             m_GFloatField = new FloatField("G");
-            m_GFloatField.OnValueChanged = OnValueChanged;
+            m_GFloatField.RegisterCallback<ChangeEvent<float>>(OnValueChanged);
 
             m_BFloatField = new FloatField("B");
-            m_BFloatField.OnValueChanged = OnValueChanged;
+            m_BFloatField.RegisterCallback<ChangeEvent<float>>(OnValueChanged);
 
             m_AFloatField = new FloatField("A");
-            m_AFloatField.OnValueChanged = OnValueChanged;
+            m_AFloatField.RegisterCallback<ChangeEvent<float>>(OnValueChanged);
 
             fieldContainer.Add(m_RFloatField);
             fieldContainer.Add(m_GFloatField);
@@ -76,9 +76,14 @@ namespace UnityEditor.VFX.UI
             OnValueChanged();
         }
 
+        public void OnValueChanged(ChangeEvent<float> e)
+        {
+            OnValueChanged();
+        }
+
         public void OnValueChanged()
         {
-            Color newValue = new Color(m_RFloatField.GetValue(), m_GFloatField.GetValue(), m_BFloatField.GetValue(), m_AFloatField.GetValue());
+            Color newValue = new Color(m_RFloatField.value, m_GFloatField.value, m_BFloatField.value, m_AFloatField.value);
             if (newValue != m_Value)
             {
                 m_Value = newValue;
@@ -109,10 +114,10 @@ namespace UnityEditor.VFX.UI
         public override void UpdateGUI()
         {
             m_ColorField.value = m_Value;
-            m_RFloatField.SetValue(m_Value.r);
-            m_GFloatField.SetValue(m_Value.g);
-            m_BFloatField.SetValue(m_Value.b);
-            m_AFloatField.SetValue(m_Value.a);
+            m_RFloatField.value = m_Value.r;
+            m_GFloatField.value = m_Value.g;
+            m_BFloatField.value = m_Value.b;
+            m_AFloatField.value = m_Value.a;
         }
 
         public override bool showsEverything { get { return true; } }

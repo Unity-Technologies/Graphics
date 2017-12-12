@@ -62,7 +62,7 @@ namespace UnityEditor.VFX.UI
             // consider only edges contained in the selection
 
             IEnumerable<VFXDataEdgeController> dataEdges = elements.OfType<VFXDataEdgeController>().Where(t => dataEdgeTargets.Contains((t.input as VFXDataAnchorController).sourceNode as VFXSlotContainerController) && dataEdgeTargets.Contains((t.output as VFXDataAnchorController).sourceNode as VFXSlotContainerController)).ToArray();
-            IEnumerable<VFXFlowEdgePresenter> flowEdges = elements.OfType<VFXFlowEdgePresenter>().Where(t =>
+            IEnumerable<VFXFlowEdgeController> flowEdges = elements.OfType<VFXFlowEdgeController>().Where(t =>
                     contexts.Contains((t.input as VFXFlowAnchorController).context) &&
                     contexts.Contains((t.output as VFXFlowAnchorController).context)
                     ).ToArray();
@@ -79,21 +79,21 @@ namespace UnityEditor.VFX.UI
             {
                 DataEdge copyPasteEdge = new DataEdge();
 
-                var inputPresenter = edge.input as VFXDataAnchorController;
-                var outputPresenter = edge.output as VFXDataAnchorController;
+                var inputController = edge.input as VFXDataAnchorController;
+                var outputController = edge.output as VFXDataAnchorController;
 
-                copyPasteEdge.input.slotPath = MakeSlotPath(inputPresenter.model, true);
+                copyPasteEdge.input.slotPath = MakeSlotPath(inputController.model, true);
 
-                if (inputPresenter.model.owner is VFXContext)
+                if (inputController.model.owner is VFXContext)
                 {
-                    VFXContext context = inputPresenter.model.owner as VFXContext;
+                    VFXContext context = inputController.model.owner as VFXContext;
                     copyPasteEdge.inputContext = true;
                     copyPasteEdge.input.targetIndex = System.Array.IndexOf(copiedContexts, context);
                     copyPasteEdge.inputBlockIndex = -1;
                 }
-                else if (inputPresenter.model.owner is VFXBlock)
+                else if (inputController.model.owner is VFXBlock)
                 {
-                    VFXBlock block = inputPresenter.model.owner as VFXBlock;
+                    VFXBlock block = inputController.model.owner as VFXBlock;
                     copyPasteEdge.inputContext = true;
                     copyPasteEdge.input.targetIndex = System.Array.IndexOf(copiedContexts, block.GetParent());
                     copyPasteEdge.inputBlockIndex = block.GetParent().GetIndex(block);
@@ -101,13 +101,13 @@ namespace UnityEditor.VFX.UI
                 else
                 {
                     copyPasteEdge.inputContext = false;
-                    copyPasteEdge.input.targetIndex = System.Array.IndexOf(copiedSlotContainers, inputPresenter.model.owner as VFXModel);
+                    copyPasteEdge.input.targetIndex = System.Array.IndexOf(copiedSlotContainers, inputController.model.owner as VFXModel);
                     copyPasteEdge.inputBlockIndex = -1;
                 }
 
 
-                copyPasteEdge.output.slotPath = MakeSlotPath(outputPresenter.model, false);
-                copyPasteEdge.output.targetIndex = System.Array.IndexOf(copiedSlotContainers, outputPresenter.model.owner as VFXModel);
+                copyPasteEdge.output.slotPath = MakeSlotPath(outputController.model, false);
+                copyPasteEdge.output.targetIndex = System.Array.IndexOf(copiedSlotContainers, outputController.model.owner as VFXModel);
 
                 copyData.dataEdges[cpt++] = copyPasteEdge;
             }
@@ -119,13 +119,13 @@ namespace UnityEditor.VFX.UI
             {
                 FlowEdge copyPasteEdge = new FlowEdge();
 
-                var inputPresenter = edge.input as VFXFlowAnchorController;
-                var outputPresenter = edge.output as VFXFlowAnchorController;
+                var inputController = edge.input as VFXFlowAnchorController;
+                var outputController = edge.output as VFXFlowAnchorController;
 
-                copyPasteEdge.input.contextIndex = System.Array.IndexOf(copiedContexts, inputPresenter.owner);
-                copyPasteEdge.input.flowIndex = inputPresenter.slotIndex;
-                copyPasteEdge.output.contextIndex = System.Array.IndexOf(copiedContexts, outputPresenter.owner);
-                copyPasteEdge.output.flowIndex = outputPresenter.slotIndex;
+                copyPasteEdge.input.contextIndex = System.Array.IndexOf(copiedContexts, inputController.owner);
+                copyPasteEdge.input.flowIndex = inputController.slotIndex;
+                copyPasteEdge.output.contextIndex = System.Array.IndexOf(copiedContexts, outputController.owner);
+                copyPasteEdge.output.flowIndex = outputController.slotIndex;
 
                 copyData.flowEdges[cpt++] = copyPasteEdge;
             }
@@ -290,7 +290,7 @@ namespace UnityEditor.VFX.UI
 
         static void PasteNodes(VFXView view, Vector2 pasteOffset, Data copyData)
         {
-            var graph = view.controller.model;
+            var graph = view.controller.graph;
 
             List<VFXContext> newContexts = new List<VFXContext>(copyData.contexts.Length);
 

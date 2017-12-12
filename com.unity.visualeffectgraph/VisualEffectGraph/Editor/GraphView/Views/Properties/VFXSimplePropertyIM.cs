@@ -248,42 +248,7 @@ namespace UnityEditor.VFX.UI
             return value;
         }
     }
-    /*
-    class VFXColorPropertyIM : VFXPropertyIM<Color>
-    {
-        public override Color OnParameterGUI(VFXDataAnchorPresenter controller, Color value, string label)
-        {
-            GUILayout.BeginHorizontal();
-            Label(controller, label);
-            Color startValue = value;
-            Color color = EditorGUILayout.ColorField(new GUIContent(""), value, true, true, true, new ColorPickerHDRConfig(-10, 10, -10, 10));
-            GUILayout.EndHorizontal();
-            GUILayout.BeginHorizontal();
-            GUILayout.Space((controller.depth + 1) * depthOffset);
-            GUILayout.Label("r", GUILayout.Height(VFXDataGUIStyles.instance.lineHeight));
-            value.r = EditorGUILayout.FloatField(value.r, GUILayout.Height(VFXDataGUIStyles.instance.lineHeight));
-            GUILayout.Label("g", GUILayout.Height(VFXDataGUIStyles.instance.lineHeight));
-            value.g = EditorGUILayout.FloatField(value.g, GUILayout.Height(VFXDataGUIStyles.instance.lineHeight));
-            GUILayout.Label("b", GUILayout.Height(VFXDataGUIStyles.instance.lineHeight));
-            value.b = EditorGUILayout.FloatField(value.b, GUILayout.Height(VFXDataGUIStyles.instance.lineHeight));
-            GUILayout.Label("a", GUILayout.Height(VFXDataGUIStyles.instance.lineHeight));
-            value.a = EditorGUILayout.FloatField(value.a, GUILayout.Height(VFXDataGUIStyles.instance.lineHeight));
-            GUILayout.EndHorizontal();
 
-            return startValue != value ? value : color;
-        }
-
-        public override Color OnParameterGUI(Rect rect, Color value, string label)
-        {
-            Label(rect, label);
-            rect.xMin += m_LabelWidth;
-
-            Color color = EditorGUI.ColorField(rect, new GUIContent(""), value, true, true, true, new ColorPickerHDRConfig(-10, 10, -10, 10));
-
-
-            return color;
-        }
-    }*/
     class VFXAnimationCurvePropertyIM : VFXPropertyIM<AnimationCurve>
     {
         public override bool isNumeric { get { return false; } }

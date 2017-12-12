@@ -7,14 +7,22 @@ namespace UnityEditor.VFX.UI
 {
     abstract class VFXContextDataAnchorController : VFXDataAnchorController
     {
+        public VFXContextDataAnchorController(VFXSlot model, VFXSlotContainerController sourceNode, bool hidden) : base(model, sourceNode, hidden)
+        {
+        }
+
         public override bool expandable
         {
             get { return VFXContextSlotContainerController.IsTypeExpandable(portType); }
         }
     }
 
-    class VFXContextDataInputAnchorPresenter : VFXContextDataAnchorController
+    class VFXContextDataInputAnchorController : VFXContextDataAnchorController
     {
+        public VFXContextDataInputAnchorController(VFXSlot model, VFXSlotContainerController sourceNode, bool hidden) : base(model, sourceNode, hidden)
+        {
+        }
+
         public override Direction direction
         {
             get
@@ -24,8 +32,12 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXContextDataOutputAnchorPresenter : VFXContextDataAnchorController
+    class VFXContextDataOutputAnchorController : VFXContextDataAnchorController
     {
+        public VFXContextDataOutputAnchorController(VFXSlot model, VFXSlotContainerController sourceNode, bool hidden) : base(model, sourceNode, hidden)
+        {
+        }
+
         public override Direction direction
         {
             get

@@ -36,9 +36,8 @@ namespace UnityEditor.VFX.UI
             get { return m_OutputPorts.AsReadOnly(); }
         }
 
-        public virtual void Init(VFXModel model, VFXViewController viewController)
+        public VFXNodeController(VFXModel model, VFXViewController viewController) : base(model)
         {
-            base.Init(model);
             m_ViewController = viewController;
         }
 

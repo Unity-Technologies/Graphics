@@ -10,30 +10,23 @@ namespace UnityEditor.VFX.UI
     {
         protected override VFXDataAnchorController AddDataAnchor(VFXSlot slot, bool input, bool hidden)
         {
-            VFXOperatorAnchorPresenter anchor;
+            VFXOperatorAnchorController anchor;
             if (input)
             {
-                anchor = CreateInstance<VFXInputOperatorAnchorPresenter>();
+                anchor = new VFXInputOperatorAnchorController(slot, this, hidden);
             }
             else
             {
-                anchor = CreateInstance<VFXOutputOperatorAnchorPresenter>();
+                anchor = new VFXOutputOperatorAnchorController(slot, this, hidden);
             }
-            anchor.Init(slot, this, hidden);
 
-            anchor.portType = VFXOperatorAnchorPresenter.GetDisplayAnchorType(slot);
+            anchor.portType = VFXOperatorAnchorController.GetDisplayAnchorType(slot);
 
-            if (slot.GetExpression() == null)
-            {
-                //TRISTAN
-                //anchor.name = "Empty";
-            }
             return anchor;
         }
 
-        public override void Init(VFXModel model, VFXViewController viewPresenter)
+        public VFXOperatorController(VFXModel model, VFXViewController viewController) : base(model, viewController)
         {
-            base.Init(model, viewPresenter);
         }
 
         public VFXOperator Operator

@@ -15,7 +15,7 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     public class VFXCopyPasteTests
     {
-        VFXViewController m_ViewPresenter;
+        VFXViewController m_ViewController;
 
         const string testAssetName = "Assets/TmpTests/VFXGraph1.asset";
 
@@ -34,7 +34,7 @@ namespace UnityEditor.VFX.Test
 
             AssetDatabase.CreateAsset(asset, testAssetName);
 
-            m_ViewPresenter = VFXViewController.Manager.GetController(asset);
+            m_ViewController = VFXViewController.Manager.GetController(asset);
 
             m_StartUndoGroupId = Undo.GetCurrentGroup();
         }
@@ -51,26 +51,26 @@ namespace UnityEditor.VFX.Test
         {
             var initContextDesc = VFXLibrary.GetContexts().Where(t => t.name == "Initialize").First();
 
-            var newContext = m_ViewPresenter.AddVFXContext(new Vector2(100, 100), initContextDesc);
+            var newContext = m_ViewController.AddVFXContext(new Vector2(100, 100), initContextDesc);
 
-            m_ViewPresenter.ApplyChanges();
+            m_ViewController.ApplyChanges();
 
-            Assert.AreEqual(m_ViewPresenter.allChildren.Where(t => t is VFXContextController).Count(), 1);
+            Assert.AreEqual(m_ViewController.allChildren.Where(t => t is VFXContextController).Count(), 1);
 
-            var contextPresenter = m_ViewPresenter.allChildren.OfType<VFXContextController>().First();
+            var contextController = m_ViewController.allChildren.OfType<VFXContextController>().First();
 
-            Assert.AreEqual(contextPresenter.model, newContext);
+            Assert.AreEqual(contextController.model, newContext);
 
             var flipBookBlockDesc = VFXLibrary.GetBlocks().First(t => t.name == "Flipbook Set TexIndex");
 
-            contextPresenter.AddBlock(0, flipBookBlockDesc.CreateInstance());
+            contextController.AddBlock(0, flipBookBlockDesc.CreateInstance());
 
-            m_ViewPresenter.ApplyChanges();
+            m_ViewController.ApplyChanges();
 
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
 
             VFXView view = window.graphView;
-            view.controller = m_ViewPresenter;
+            view.controller = m_ViewController;
 
             view.ClearSelection();
             foreach (var element in view.Query().OfType<GraphElement>().ToList().OfType<ISelectable>())
@@ -83,7 +83,7 @@ namespace UnityEditor.VFX.Test
             AABox originalBounds = new AABox() { center = Vector3.one, size = Vector3.one * 10 };
             boundsSlot.value = originalBounds;
 
-            VFXBlock flipBookBlock = m_ViewPresenter.contexts.First().blockControllers.First().block;
+            VFXBlock flipBookBlock = m_ViewController.contexts.First().blockControllers.First().block;
             VFXSlot minValueSlot = flipBookBlock.GetInputSlot(0);
 
 
@@ -125,17 +125,17 @@ namespace UnityEditor.VFX.Test
         {
             var crossOperatorDesc = VFXLibrary.GetOperators().Where(t => t.name == "Cross Product").First();
 
-            var newOperator = m_ViewPresenter.AddVFXOperator(new Vector2(100, 100), crossOperatorDesc);
+            var newOperator = m_ViewController.AddVFXOperator(new Vector2(100, 100), crossOperatorDesc);
 
-            m_ViewPresenter.ApplyChanges();
-            var operatorPresenter = m_ViewPresenter.allChildren.OfType<VFXOperatorController>().First();
+            m_ViewController.ApplyChanges();
+            var operatorController = m_ViewController.allChildren.OfType<VFXOperatorController>().First();
 
-            Assert.AreEqual(operatorPresenter.model, newOperator);
+            Assert.AreEqual(operatorController.model, newOperator);
 
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
 
             VFXView view = window.graphView;
-            view.controller = m_ViewPresenter;
+            view.controller = m_ViewController;
 
             view.ClearSelection();
             foreach (var element in view.Query().OfType<GraphElement>().ToList().OfType<ISelectable>())
@@ -196,7 +196,7 @@ namespace UnityEditor.VFX.Test
 
             view.CopySelectionCallback();
 
-            view.controller = m_ViewPresenter;
+            view.controller = m_ViewController;
 
             view.PasteCallback();
 
@@ -268,27 +268,27 @@ namespace UnityEditor.VFX.Test
         {
             var initContextDesc = VFXLibrary.GetContexts().Where(t => t.name == "Initialize").First();
 
-            var newContext = m_ViewPresenter.AddVFXContext(new Vector2(100, 100), initContextDesc);
+            var newContext = m_ViewController.AddVFXContext(new Vector2(100, 100), initContextDesc);
 
-            m_ViewPresenter.ApplyChanges();
-            Assert.AreEqual(m_ViewPresenter.allChildren.Where(t => t is VFXContextController).Count(), 1);
+            m_ViewController.ApplyChanges();
+            Assert.AreEqual(m_ViewController.allChildren.Where(t => t is VFXContextController).Count(), 1);
 
-            var contextPresenter = m_ViewPresenter.allChildren.OfType<VFXContextController>().First();
+            var contextController = m_ViewController.allChildren.OfType<VFXContextController>().First();
 
-            Assert.AreEqual(contextPresenter.model, newContext);
+            Assert.AreEqual(contextController.model, newContext);
 
             var flipBookBlockDesc = VFXLibrary.GetBlocks().First(t => t.name == "Flipbook Set TexIndex");
 
-            contextPresenter.AddBlock(0, flipBookBlockDesc.CreateInstance());
+            contextController.AddBlock(0, flipBookBlockDesc.CreateInstance());
 
-            var newBlock = contextPresenter.context.children.First();
+            var newBlock = contextController.context.children.First();
 
-            m_ViewPresenter.ApplyChanges();
+            m_ViewController.ApplyChanges();
 
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
 
             VFXView view = window.graphView;
-            view.controller = m_ViewPresenter;
+            view.controller = m_ViewController;
 
             view.ClearSelection();
             foreach (var element in view.Query().OfType<VFXBlockUI>().ToList().OfType<ISelectable>())
@@ -296,7 +296,7 @@ namespace UnityEditor.VFX.Test
                 view.AddToSelection(element);
             }
 
-            VFXBlock flipBookBlock = m_ViewPresenter.contexts.First().blockControllers.First().block;
+            VFXBlock flipBookBlock = m_ViewController.contexts.First().blockControllers.First().block;
             VFXSlot minValueSlot = flipBookBlock.GetInputSlot(0);
 
             float originalMinValue = 123.456f;
@@ -323,7 +323,7 @@ namespace UnityEditor.VFX.Test
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
 
             VFXView view = window.graphView;
-            view.controller = m_ViewPresenter;
+            view.controller = m_ViewController;
 
             view.CreateTemplateSystem(Vector2.zero);
         }

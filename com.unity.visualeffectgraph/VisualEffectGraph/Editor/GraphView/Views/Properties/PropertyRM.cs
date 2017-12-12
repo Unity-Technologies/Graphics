@@ -253,7 +253,6 @@ namespace UnityEditor.VFX.UI
 
         protected void NotifyValueChanged()
         {
-            //m_Presenter.SetPropertyValue(GetValue());
             m_Provider.value = GetValue();
         }
 

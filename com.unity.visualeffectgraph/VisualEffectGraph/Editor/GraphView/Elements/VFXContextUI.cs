@@ -543,14 +543,13 @@ namespace UnityEditor.VFX.UI
             if (block == null)
                 return;
 
-            VFXContextController contextPresenter = controller;
-            contextPresenter.RemoveBlock(block.controller.block);
+            controller.RemoveBlock(block.controller.block);
         }
 
-        private void InstantiateBlock(VFXBlockController blockPresenter)
+        private void InstantiateBlock(VFXBlockController blockController)
         {
             var blockUI = new VFXBlockUI();
-            blockUI.controller = blockPresenter;
+            blockUI.controller = blockController;
 
             m_BlockContainer.Add(blockUI);
         }

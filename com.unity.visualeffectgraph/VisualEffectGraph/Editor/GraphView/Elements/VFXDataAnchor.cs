@@ -123,9 +123,9 @@ namespace UnityEditor.VFX.UI
         {
             VFXView view = GetFirstAncestorOfType<VFXView>();
 
-            foreach (var edgePresenter in controller.connections)
+            foreach (var edgeController in controller.connections)
             {
-                VFXDataEdge edge = view.GetDataEdgeByPresenter(edgePresenter as VFXDataEdgeController);
+                VFXDataEdge edge = view.GetDataEdgeByController(edgeController as VFXDataEdgeController);
                 if (edge != null)
                     yield return edge;
             }
@@ -195,10 +195,9 @@ namespace UnityEditor.VFX.UI
         {
             VFXView view = graphView as VFXView;
             VFXDataEdge dataEdge = edge as VFXDataEdge;
-            VFXDataEdgeController edgePresenter = VFXDataEdgeController.CreateInstance<VFXDataEdgeController>();
-            edgePresenter.Init(dataEdge.input.controller, dataEdge.output.controller);
+            VFXDataEdgeController edgeController = new VFXDataEdgeController(dataEdge.input.controller, dataEdge.output.controller);
 
-            view.controller.AddElement(edgePresenter);
+            view.controller.AddElement(edgeController);
         }
 
         public override void Disconnect(Edge edge)
@@ -212,7 +211,7 @@ namespace UnityEditor.VFX.UI
             VFXSlot startSlot = controller.model;
 
             VFXView view = this.GetFirstAncestorOfType<VFXView>();
-            VFXViewController viewPresenter = view.controller;
+            VFXViewController viewController = view.controller;
 
 
             VFXNodeUI endNode = null;
@@ -226,19 +225,19 @@ namespace UnityEditor.VFX.UI
 
             if (endNode != null)
             {
-                VFXSlotContainerController nodePresenter = endNode.controller.slotContainerController;
+                VFXSlotContainerController nodeController = endNode.controller.slotContainerController;
 
-                var compatibleAnchors = nodePresenter.viewController.GetCompatiblePorts(controller, null);
+                var compatibleAnchors = nodeController.viewController.GetCompatiblePorts(controller, null);
 
-                if (nodePresenter != null)
+                if (nodeController != null)
                 {
-                    IVFXSlotContainer slotContainer = nodePresenter.slotContainer;
+                    IVFXSlotContainer slotContainer = nodeController.slotContainer;
                     if (controller.direction == Direction.Input)
                     {
                         foreach (var outputSlot in slotContainer.outputSlots)
                         {
-                            var endPresenter = nodePresenter.outputPorts.First(t => t.model == outputSlot);
-                            if (compatibleAnchors.Contains(endPresenter))
+                            var endController = nodeController.outputPorts.First(t => t.model == outputSlot);
+                            if (compatibleAnchors.Contains(endController))
                             {
                                 startSlot.Link(outputSlot);
                                 break;
@@ -249,8 +248,8 @@ namespace UnityEditor.VFX.UI
                     {
                         foreach (var inputSlot in slotContainer.inputSlots)
                         {
-                            var endPresenter = nodePresenter.inputPorts.First(t => t.model == inputSlot);
-                            if (compatibleAnchors.Contains(endPresenter))
+                            var endController = nodeController.inputPorts.First(t => t.model == inputSlot);
+                            if (compatibleAnchors.Contains(endController))
                             {
                                 inputSlot.Link(startSlot);
                                 break;
@@ -264,7 +263,7 @@ namespace UnityEditor.VFX.UI
                 VFXModelDescriptorParameters parameterDesc = VFXLibrary.GetParameters().FirstOrDefault(t => t.name == controller.portType.UserFriendlyName());
                 if (parameterDesc != null)
                 {
-                    VFXParameter parameter = viewPresenter.AddVFXParameter(view.contentViewContainer.GlobalToBound(position) - new Vector2(360, 0), parameterDesc);
+                    VFXParameter parameter = viewController.AddVFXParameter(view.contentViewContainer.GlobalToBound(position) - new Vector2(360, 0), parameterDesc);
                     startSlot.Link(parameter.outputSlots[0]);
                 }
             }

@@ -49,7 +49,7 @@ namespace  UnityEditor.VFX.UI
         }
         public void LoadAsset(VFXAsset asset)
         {
-            if (graphView.controller == null || graphView.controller.GetVFXAsset() != asset)
+            if (graphView.controller == null || graphView.controller.model != asset)
             {
                 graphView.controller = VFXViewController.Manager.GetController(asset, true);
             }
@@ -125,7 +125,7 @@ namespace  UnityEditor.VFX.UI
 
                 VFXViewController controller = graphView.controller;
 
-                if (controller == null || controller.GetVFXAsset() != objs[0] as VFXAsset)
+                if (controller == null || controller.model != objs[0] as VFXAsset)
                 {
                     graphView.controller = VFXViewController.Manager.GetController(objs[0] as VFXAsset);
                 }
@@ -155,8 +155,8 @@ namespace  UnityEditor.VFX.UI
             VFXViewController controller = graphView.controller;
             if (controller != null)
             {
-                var graph = controller.model;
-                if (graph != null)
+                var graph = controller.graph;
+                if (graph != null && graph.vfxAsset != null)
                 {
                     var filename = System.IO.Path.GetFileName(m_DisplayedAssetPath);
                     if (!graph.saved)

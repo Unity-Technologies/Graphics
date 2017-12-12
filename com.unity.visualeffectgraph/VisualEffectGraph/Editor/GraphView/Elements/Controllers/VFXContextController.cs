@@ -45,12 +45,18 @@ namespace UnityEditor.VFX.UI
             base.OnEnable();
         }
 
-        public override void OnRemoveFromGraph()
+        public override void OnDisable()
         {
             if (viewController != null)
             {
                 UnregisterAnchors();
             }
+            if (m_DataHandle != null)
+            {
+                DataWatchService.sharedInstance.RemoveWatch(m_DataHandle);
+            }
+
+            base.OnDisable();
         }
 
         private void UnregisterAnchors()
@@ -92,33 +98,17 @@ namespace UnityEditor.VFX.UI
             base.ModelChanged(obj);
         }
 
-        public override void OnDisable()
-        {
-            if (m_DataHandle != null)
-            {
-                DataWatchService.sharedInstance.RemoveWatch(m_DataHandle);
-            }
-
-            base.OnDisable();
-        }
-
-        public override void Init(VFXModel model, VFXViewController viewController)
+        public VFXContextController(VFXModel model, VFXViewController viewController) : base(model, viewController)
         {
             UnregisterAnchors();
 
-            m_SlotController = CreateInstance<VFXContextSlotContainerController>();
-            m_InputPorts.Clear();
-            m_OutputPorts.Clear();
-
-            base.Init(model, viewController);
-
-            m_SlotController.Init(model, this);
+            m_SlotController = new VFXContextSlotContainerController(model, this);
 
             if (context.inputType != VFXDataType.kNone)
             {
                 for (int slot = 0; slot < context.inputFlowSlot.Length; ++slot)
                 {
-                    var inAnchor = CreateInstance<VFXFlowInputAnchorController>();
+                    var inAnchor = new VFXFlowInputAnchorController();
                     inAnchor.Init(this, slot);
                     m_FlowInputAnchors.Add(inAnchor);
                     viewController.RegisterFlowAnchorController(inAnchor);
@@ -129,7 +119,7 @@ namespace UnityEditor.VFX.UI
             {
                 for (int slot = 0; slot < context.outputFlowSlot.Length; ++slot)
                 {
-                    var outAnchor = CreateInstance<VFXFlowOutputAnchorController>();
+                    var outAnchor = new VFXFlowOutputAnchorController();
                     outAnchor.Init(this, slot);
                     m_FlowOutputAnchors.Add(outAnchor);
                     viewController.RegisterFlowAnchorController(outAnchor);
@@ -189,8 +179,7 @@ namespace UnityEditor.VFX.UI
                 var newController = m_BlockControllers.Find(p => p.model == block);
                 if (newController == null) // If the controller does not exist for this model, create it
                 {
-                    newController = CreateInstance<VFXBlockController>();
-                    newController.Init(block, this);
+                    newController = new VFXBlockController(block, this);
                     newController.ForceUpdate();
                 }
                 m_NewControllers.Add(newController);

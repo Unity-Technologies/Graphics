@@ -16,14 +16,14 @@ using UnityEditorInternal;
 [CustomEditor(typeof(VFXAsset))]
 public class VFXAssetEditor : Editor
 {
-    VFXViewController m_Presenter;
+    VFXViewController m_Controller;
     void OnEnable()
     {
         VFXAsset asset = (VFXAsset)target;
         if (asset.graph != null)
         {
-            m_Presenter = VFXViewController.Manager.GetController(asset);
-            m_Presenter.useCount++;
+            m_Controller = VFXViewController.Manager.GetController(asset);
+            m_Controller.useCount++;
         }
 
         m_AdvDictionary.Clear();
@@ -31,10 +31,10 @@ public class VFXAssetEditor : Editor
 
     void OnDisable()
     {
-        if (m_Presenter != null)
+        if (m_Controller != null)
         {
-            m_Presenter.useCount--;
-            m_Presenter = null;
+            m_Controller.useCount--;
+            m_Controller = null;
         }
     }
 
@@ -59,16 +59,16 @@ public class VFXAssetEditor : Editor
     public override void OnInspectorGUI()
     {
         VFXAsset asset = (VFXAsset)target;
-        if (asset.graph != null && m_Presenter == null)
+        if (asset.graph != null && m_Controller == null)
         {
-            m_Presenter = VFXViewController.Manager.GetController(asset);
-            m_Presenter.useCount++;
+            m_Controller = VFXViewController.Manager.GetController(asset);
+            m_Controller.useCount++;
         }
-        if (m_Presenter == null)
+        if (m_Controller == null)
             return;
 
 
-        var newList = m_Presenter.allChildren.OfType<VFXParameterController>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
+        var newList = m_Controller.allChildren.OfType<VFXParameterController>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
         if (list == null || !ArraysEquals(newList, m_ExposedList))
         {
             m_ExposedList = newList;

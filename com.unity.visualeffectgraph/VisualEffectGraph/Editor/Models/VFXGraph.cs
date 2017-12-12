@@ -96,8 +96,11 @@ namespace UnityEditor.VFX
             }
             set
             {
-                m_Owner = value;
-                m_ExpressionGraphDirty = true;
+                if (m_Owner != value)
+                {
+                    m_Owner = value;
+                    m_ExpressionGraphDirty = true;
+                }
             }
         }
 

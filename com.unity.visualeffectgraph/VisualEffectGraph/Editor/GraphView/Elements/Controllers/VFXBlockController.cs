@@ -11,9 +11,8 @@ namespace UnityEditor.VFX.UI
 {
     class VFXBlockController : VFXContextSlotContainerController
     {
-        public void Init(VFXBlock model, VFXContextController contextPresenter)
+        public VFXBlockController(VFXBlock model, VFXContextController contextController) : base(model, contextController)
         {
-            base.Init(model, contextPresenter);
         }
 
         public VFXBlock block

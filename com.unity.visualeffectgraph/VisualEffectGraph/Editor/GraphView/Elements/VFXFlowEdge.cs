@@ -190,7 +190,7 @@ namespace UnityEditor.VFX.UI
     }
 
 
-    internal class VFXFlowEdge : Edge, IControlledElement<VFXFlowEdgePresenter>
+    internal class VFXFlowEdge : Edge, IControlledElement<VFXFlowEdgeController>
     {
         public VFXFlowEdge()
         {
@@ -211,7 +211,7 @@ namespace UnityEditor.VFX.UI
             {
                 VFXView view = GetFirstAncestorOfType<VFXView>();
 
-                var newInput = view.GetFlowAnchorByPresenter(controller.input);
+                var newInput = view.GetFlowAnchorByController(controller.input);
 
                 if (base.input != newInput)
                 {
@@ -223,7 +223,7 @@ namespace UnityEditor.VFX.UI
                     base.input.Connect(this);
                 }
 
-                var newOutput = view.GetFlowAnchorByPresenter(controller.output);
+                var newOutput = view.GetFlowAnchorByController(controller.output);
 
                 if (base.output != newOutput)
                 {
@@ -238,12 +238,12 @@ namespace UnityEditor.VFX.UI
             edgeControl.UpdateLayout();
         }
 
-        VFXFlowEdgePresenter m_Controller;
+        VFXFlowEdgeController m_Controller;
         Controller IControlledElement.controller
         {
             get { return m_Controller; }
         }
-        public VFXFlowEdgePresenter controller
+        public VFXFlowEdgeController controller
         {
             get { return m_Controller; }
             set

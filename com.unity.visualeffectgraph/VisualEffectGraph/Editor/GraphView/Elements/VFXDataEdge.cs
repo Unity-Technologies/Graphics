@@ -57,7 +57,7 @@ namespace UnityEditor.VFX.UI
             {
                 VFXView view = GetFirstAncestorOfType<VFXView>();
 
-                var newInput = view.GetDataAnchorByPresenter(controller.input);
+                var newInput = view.GetDataAnchorByController(controller.input);
 
                 if (base.input != newInput)
                 {
@@ -69,7 +69,7 @@ namespace UnityEditor.VFX.UI
                     base.input.Connect(this);
                 }
 
-                var newOutput = view.GetDataAnchorByPresenter(controller.output);
+                var newOutput = view.GetDataAnchorByController(controller.output);
 
                 if (base.output != newOutput)
                 {

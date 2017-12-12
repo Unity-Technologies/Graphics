@@ -9,19 +9,8 @@ namespace UnityEditor.VFX.UI
 {
     public abstract class Controller
     {
-        public static T CreateInstance<T>() where T : new()
-        {
-            return new T();
-        }
-
-        public static Controller CreateInstance(Type t)
-        {
-            return System.Activator.CreateInstance(t) as Controller;
-        }
-
         public virtual void OnEnable()
         {
-            //hideFlags = HideFlags.HideAndDontSave;
         }
 
         public virtual void OnDisable()
@@ -30,10 +19,6 @@ namespace UnityEditor.VFX.UI
             {
                 element.OnDisable();
             }
-        }
-
-        public virtual void OnRemoveFromGraph()
-        {
         }
 
         public void RegisterHandler(IEventHandler handler)
@@ -95,7 +80,7 @@ namespace UnityEditor.VFX.UI
         IDataWatchHandle m_Handle;
 
 
-        public virtual void Init(T model)
+        public Controller(T model)
         {
             m_Model = model;
 
@@ -126,6 +111,10 @@ namespace UnityEditor.VFX.UI
 
     abstract class VFXController<T> : Controller<T> where T : VFXModel
     {
+        public VFXController(T model) : base(model)
+        {
+        }
+
         public virtual string name
         {
             get

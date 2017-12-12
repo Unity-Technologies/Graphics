@@ -11,18 +11,16 @@ namespace UnityEditor.VFX.UI
 {
     class VFXSlotContainerController : VFXNodeController
     {
-        public override void Init(VFXModel model, VFXViewController viewPresenter)
+        public VFXSlotContainerController(VFXModel model, VFXViewController viewController) : base(model, viewController)
         {
-            base.Init(model, viewPresenter);
-
             var settings = model.GetSettings(true);
             m_Settings = new VFXSettingController[settings.Count()];
             int cpt = 0;
             foreach (var setting in settings)
             {
-                var settingPresenter = new VFXSettingController();
-                settingPresenter.Init(this.slotContainer, setting.Name, setting.FieldType);
-                m_Settings[cpt++] = settingPresenter;
+                var settingController = new VFXSettingController();
+                settingController.Init(this.slotContainer, setting.Name, setting.FieldType);
+                m_Settings[cpt++] = settingController;
             }
         }
 
@@ -50,13 +48,13 @@ namespace UnityEditor.VFX.UI
             {
                 foreach (VFXSlot slot in slots)
                 {
-                    VFXDataAnchorController propPresenter = GetPropertyPresenter(slot, input);
+                    VFXDataAnchorController propController = GetPropertyController(slot, input);
 
-                    if (propPresenter == null)
+                    if (propController == null)
                     {
-                        propPresenter = AddDataAnchor(slot, input, !expanded);
+                        propController = AddDataAnchor(slot, input, !expanded);
                     }
-                    newAnchors.Add(propPresenter);
+                    newAnchors.Add(propController);
 
                     if (!typeof(ISpaceable).IsAssignableFrom(slot.property.type) || slot.children.Count() != 1)
                     {
@@ -71,7 +69,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public VFXDataAnchorController GetPropertyPresenter(VFXSlot slot, bool input)
+        public VFXDataAnchorController GetPropertyController(VFXSlot slot, bool input)
         {
             VFXDataAnchorController result = null;
 
