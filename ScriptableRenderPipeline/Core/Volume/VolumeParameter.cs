@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
@@ -42,7 +43,7 @@ namespace UnityEngine.Experimental.Rendering
     }
 
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
-    public class VolumeParameter<T> : VolumeParameter
+    public class VolumeParameter<T> : VolumeParameter, IEquatable<VolumeParameter<T>>
     {
         [SerializeField]
         protected T m_Value;
@@ -107,12 +108,37 @@ namespace UnityEngine.Experimental.Rendering
 
         public static bool operator ==(VolumeParameter<T> lhs, T rhs)
         {
-            return lhs.value.Equals(rhs);
+            return lhs != null && lhs.value != null && lhs.value.Equals(rhs);
         }
 
         public static bool operator !=(VolumeParameter<T> lhs, T rhs)
         {
             return !(lhs == rhs);
+        }
+
+        public bool Equals(VolumeParameter<T> other)
+        {
+            if (ReferenceEquals(null, other))
+                return false;
+
+            if (ReferenceEquals(this, other))
+                return true;
+
+            return EqualityComparer<T>.Default.Equals(m_Value, other.m_Value);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj))
+                return false;
+
+            if (ReferenceEquals(this, obj))
+                return true;
+
+            if (obj.GetType() != GetType())
+                return false;
+
+            return Equals((VolumeParameter<T>)obj);
         }
 
         //
