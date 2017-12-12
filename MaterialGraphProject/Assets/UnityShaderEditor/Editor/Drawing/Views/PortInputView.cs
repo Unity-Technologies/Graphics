@@ -33,6 +33,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_SlotType = slot.concreteValueType;
             AddToClassList("type" + m_SlotType);
 
+            m_EdgeControl = new EdgeControl
+            {
+                @from = new Vector2(212f - 21f, 11.5f),
+                to = new Vector2(212f, 11.5f),
+                edgeWidth = 2,
+                pickingMode = PickingMode.Ignore
+            };
+            Add(m_EdgeControl);
+
             m_Container = new VisualElement { name = "container" };
             {
                 m_Control = m_Slot.InstantiateControl();
@@ -46,15 +55,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Container.Add(slotElement);
             }
             Add(m_Container);
-
-            m_EdgeControl = new EdgeControl
-            {
-                @from = new Vector2(212f - 21f, 11.5f),
-                to = new Vector2(212f, 11.5f),
-                edgeWidth = 2,
-                pickingMode = PickingMode.Ignore
-            };
-            Add(m_EdgeControl);
 
             m_Container.visible = m_EdgeControl.visible = m_Control != null;
             m_Container.clippingOptions = ClippingOptions.ClipAndCacheContents;

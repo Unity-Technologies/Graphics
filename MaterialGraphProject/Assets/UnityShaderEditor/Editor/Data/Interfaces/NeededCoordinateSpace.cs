@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph
 
         public static string ToVariableName(this CoordinateSpace space, InterpolatorType type)
         {
-            var index = (int)space * s_SpaceCount + (int)type;
+            var index = (int)space + (int)type * s_SpaceCount;
             if (string.IsNullOrEmpty(s_VariableNames[index]))
                 s_VariableNames[index] = string.Format("{0}Space{1}", space, type);
             return s_VariableNames[index];

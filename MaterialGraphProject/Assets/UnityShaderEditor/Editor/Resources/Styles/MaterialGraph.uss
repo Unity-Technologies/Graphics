@@ -27,7 +27,12 @@ MaterialGraphView {
 
 MaterialNodeView #previewContainer,
 MaterialNodeView #controls {
-    background-color: #393939;
+    background-color: rgba(63, 63, 63, 0.8);
+}
+
+MaterialNodeView #controls.notEmpty {
+    padding-top: 4;
+    padding-bottom: 4;
 }
 
 MaterialNodeView #previewContainer > #preview  {
@@ -121,6 +126,20 @@ PortInputView {
     justify-content: flex-end;
 }
 
+PortInputView > #container {
+    background-color: rgba(63, 63, 63, 0.8);
+    flex-direction: row;
+    align-items: center;
+    padding-left: 8;
+    margin-right: 12;
+    border-left-width: 1;
+    border-top-width: 1;
+    border-right-width: 1;
+    border-bottom-width: 1;
+    border-color: rgba(25, 25, 25, 0.8);
+    border-radius: 2;
+}
+
 PortInputView > #container > #slot {
     width: 8;
     height: 8;
@@ -205,20 +224,6 @@ PortInputView.typeVector1 {
     edge-color: #84E4E7;
 }
 
-PortInputView > #container {
-    background-color: #393939;
-    flex-direction: row;
-    align-items: center;
-    padding-left: 8;
-    margin-right: 12;
-    border-left-width: 1;
-    border-top-width: 1;
-    border-right-width: 1;
-    border-bottom-width: 1;
-    border-color: rgba(25, 25, 25, 0.8);
-    border-radius: 2;
-}
-
 TextureSlotControlView {
     flex-direction: row;
     align-items: center;
@@ -237,13 +242,13 @@ MultiFloatSlotControlView {
     align-items: center;
 }
 
-MultiFloatSlotControlView > Label {
+MultiFloatSlotControlView > #dummy > Label {
     margin-left: 0;
     margin-right: 0;
     cursor: slide-arrow;
 }
 
-MultiFloatSlotControlView > DoubleField {
+MultiFloatSlotControlView > FloatField {
     width: 30;
     margin-left: 0;
     margin-right: 0;
@@ -478,39 +483,6 @@ IMGUISlotEditorView {
     padding-bottom: 2;
 }
 
-
-ToolbarView {
-    flex-direction: row;
-    border-color: rgb(32, 32, 32);
-    border-bottom-width: 1;
-}
-
-ToolbarSeparatorView {
-    background-color: rgb(32, 32, 32);
-    width: 1;
-}
-
-ToolbarSpaceView {
-    width: 5;
-}
-
-ToolbarButtonView {
-    font-size: 10;
-    text-color: rgb(180, 180, 180);
-    padding-top: 3;
-    padding-bottom: 3;
-    padding-left: 4;
-    padding-right: 4;
-}
-
-ToolbarButtonView:hover {
-    background-color: rgba(255, 255, 255, 0.25);
-}
-
-ToolbarButtonView:active {
-    background-color: rgba(0, 0, 0, 0.25);
-}
-
 ColorControlView {
     flex-direction: row;
 }
@@ -519,17 +491,17 @@ MultiFloatControlView {
     flex-direction: row;
     padding-left: 8;
     padding-right: 8;
-    padding-top: 8;
-    padding-bottom: 8;
+    padding-top: 4;
+    padding-bottom: 4;
 }
 
-MultiFloatControlView > Label {
+MultiFloatControlView > #dummy > Label {
     margin-left: 0;
     margin-right: 0;
     cursor: slide-arrow;
 }
 
-MultiFloatControlView > DoubleField {
+MultiFloatControlView > FloatField {
     margin-left: 0;
     margin-right: 0;
     min-width: 30;
@@ -552,8 +524,8 @@ EnumControlView > EnumField {
     flex: 1;
     margin-left: 0;
     margin-right: 8;
-    margin-top: 8;
-    margin-bottom: 8;
+    margin-top: 4;
+    margin-bottom: 4;
 }
 
 EnumControlView > Label {
@@ -563,13 +535,65 @@ EnumControlView > Label {
     padding-bottom: 0;
     margin-left: 8;
     margin-right: 8;
-    margin-top: 8;
-    margin-bottom: 8;
+    margin-top: 4;
+    margin-bottom: 4;
 }
 
 PropertyControlView {
     padding-left: 8;
     padding-right: 8;
-    padding-top: 8;
-    padding-bottom: 8;
+    padding-top: 4;
+    padding-bottom: 4;
+}
+
+EnumConversionControlView {
+    flex-direction: row;
+    padding-left: 8;
+    padding-right: 8;
+    padding-top: 4;
+    padding-bottom: 4;
+}
+
+EnumConversionControlView > EnumField {
+    flex: 1;
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+EnumConversionControlView > Label {
+    margin-left: 4;
+    margin-right: 4;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+FloatField {
+	min-height: 15;
+	margin-left: 4;
+	margin-top: 2;
+	margin-right: 4;
+	margin-bottom: 2;
+	padding-left: 3;
+	padding-top: 1;
+	padding-right: 3;
+	padding-bottom: 2;
+	slice-left: 3;
+	slice-top: 3;
+	slice-right: 3;
+	slice-bottom: 3;
+	selection-color: rgba(61,128,223,166);
+	cursor: text;
+	text-color: #B4B4B4;
+	background-image: resource("Builtin Skins/DarkSkin/Images/TextField.png");
+	cursor-color:#B4B4B4;
+}
+
+FloatField:focus {
+	background-image: resource("Builtin Skins/DarkSkin/Images/TextField focused.png");
 }

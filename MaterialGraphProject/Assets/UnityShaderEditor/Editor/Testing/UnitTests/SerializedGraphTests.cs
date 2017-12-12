@@ -389,7 +389,7 @@ namespace UnityEditor.Graphing.UnitTests
             Assert.AreEqual(6, node.GetSlots<ISlot>().Count());
             Assert.IsNotNull(node.GetSlotReference(TestableNode.Input0));
             Assert.IsNotNull(node.GetSlotReference(TestableNode.Output0));
-            Assert.Null(node.GetSlotReference(555));
+            Assert.Throws<ArgumentException>(() => node.GetSlotReference(555));
         }
 
         [Test]
@@ -671,7 +671,7 @@ namespace UnityEditor.Graphing.UnitTests
 
             Assert.AreEqual(1, graph.GetEdges(inputNode.GetSlotReference(TestableNode.Input0)).Count());
             Assert.AreEqual(1, graph.GetEdges(outputNode.GetSlotReference(TestableNode.Output0)).Count());
-            Assert.AreEqual(0, graph.GetEdges(outputNode.GetSlotReference(666)).Count());
+            Assert.Throws<ArgumentException>(() => outputNode.GetSlotReference(666));
         }
 
         [Test]
