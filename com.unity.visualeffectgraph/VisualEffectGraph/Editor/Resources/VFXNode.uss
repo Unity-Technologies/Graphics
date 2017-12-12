@@ -39,6 +39,11 @@ width:-1;
     max-height:10000;
 }
 
+.VFXNodeUI.node.superCollapsed #settings
+{
+    max-height:0;
+}
+
 .VFXNodeUI.node.superCollapsed #node-border > #title
 {
 	position-type:Relative;
@@ -84,6 +89,10 @@ width:-1;
 }
 .VFXNodeUI.superCollapsed #contents > #top > #output
 {
+	position-type:Absolute;
+	position-top:0;
+	position-bottom:0;
+	position-right:1;
     flex-grow:0;
     flex:0;
     width:20;
