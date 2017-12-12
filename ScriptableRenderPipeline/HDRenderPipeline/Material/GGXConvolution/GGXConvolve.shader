@@ -21,11 +21,11 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
             #include "ShaderLibrary/Common.hlsl"
             #include "ShaderLibrary/ImageBasedLighting.hlsl"
             #include "GGXConvolution.cs.hlsl"
+            #include "../../ShaderVariables.hlsl"
 
             TEXTURECUBE(_MainTex);
-            SAMPLERCUBE(sampler_MainTex);
 
-            TEXTURE2D_FLOAT(_GgxIblSamples);
+            TEXTURE2D(_GgxIblSamples);
 
             #ifdef USE_MIS
                 TEXTURE2D(_MarginalRowDensities);
@@ -67,7 +67,7 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
                 uint  sampleCount = GetIBLRuntimeFilterSampleCount(_Level);
 
             #ifdef USE_MIS
-                float4 val = IntegrateLD_MIS(TEXTURECUBE_PARAM(_MainTex, sampler_MainTex),
+                float4 val = IntegrateLD_MIS(TEXTURECUBE_PARAM(_MainTex, s_trilinear_clamp_sampler),
                                              _MarginalRowDensities, _ConditionalDensities,
                                              V, N,
                                              roughness,
@@ -77,7 +77,7 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
                                              1024,
                                              false);
             #else
-                float4 val = IntegrateLD(TEXTURECUBE_PARAM(_MainTex, sampler_MainTex),
+                float4 val = IntegrateLD(TEXTURECUBE_PARAM(_MainTex, s_trilinear_clamp_sampler),
                                          _GgxIblSamples,
                                          V, N,
                                          roughness,

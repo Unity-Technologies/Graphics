@@ -38,10 +38,6 @@ TEXTURE2D(_GBufferTexture3);
 // #define LIT_DIFFUSE_LAMBERT_BRDF
 #define LIT_USE_GGX_ENERGY_COMPENSATION
 
-// Sampler use by area light, gaussian pyramid, ambient occlusion etc...
-SamplerState s_linear_clamp_sampler;
-SamplerState s_trilinear_clamp_sampler;
-
 // Rough refraction texture
 // Color pyramid (width, height, lodcount, Unused)
 TEXTURE2D(_GaussianPyramidColorTexture);
@@ -788,7 +784,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     {
         // Note: this is a ad-hoc tweak.
         // TODO: we need a better hack.
-        float iblPerceptualRoughness = bsdfData.perceptualRoughness * saturate(1.2 - bsdfData.anisotropy);
+        float iblPerceptualRoughness = bsdfData.perceptualRoughness * saturate(1.2 - abs(bsdfData.anisotropy));
         float iblRoughness           = PerceptualRoughnessToRoughness(iblPerceptualRoughness);
         preLightData.iblDirWS        = GetSpecularDominantDir(N, iblR, iblRoughness, NdotV);
         preLightData.iblMipLevel     = PerceptualRoughnessToMipmapLevel(iblPerceptualRoughness);
@@ -923,6 +919,8 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 #ifndef _SURFACE_TYPE_TRANSPARENT
 #define USE_DEFERRED_DIRECTIONAL_SHADOWS // Deferred shadows are always enabled for opaque objects
 #endif
+
+#include "../../Lighting/LightEvaluation.hlsl"
 
 //-----------------------------------------------------------------------------
 // Lighting structure for light accumulation
