@@ -11,7 +11,7 @@ using UnityEditor.VFX.Block.Test;
 namespace UnityEditor.VFX.Test
 {
     [TestFixture]
-    public class VFXControlllersTests
+    public class VFXControllersTests
     {
         VFXViewController m_ViewController;
 
@@ -49,10 +49,10 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CascadedOperatorAdd()
         {
-            Func<IVFXSlotContainer, VFXSlotContainerController> fnFindControlller = delegate(IVFXSlotContainer slotContainer)
+            Func<IVFXSlotContainer, VFXSlotContainerController> fnFindController = delegate(IVFXSlotContainer slotContainer)
                 {
-                    var allControlller = m_ViewController.allChildren.OfType<VFXSlotContainerController>();
-                    return allControlller.FirstOrDefault(o => o.slotContainer == slotContainer);
+                    var allController = m_ViewController.allChildren.OfType<VFXSlotContainerController>();
+                    return allController.FirstOrDefault(o => o.slotContainer == slotContainer);
                 };
 
             var vector2Desc = VFXLibrary.GetParameters().FirstOrDefault(o => o.name == "Vector2");
@@ -66,23 +66,24 @@ namespace UnityEditor.VFX.Test
 
             m_ViewController.ApplyChanges();
 
-            var absControlller = fnFindControlller(abs);
-            var addControlller = fnFindControlller(add);
-            var edgeControlller = new VFXDataEdgeController(absControlller.inputPorts.First(), addControlller.outputPorts.First());
-            m_ViewController.AddElement(edgeControlller);
+            var absController = fnFindController(abs);
+            var addController = fnFindController(add);
+
+            var edgeController = new VFXDataEdgeController(absController.inputPorts.First(), addController.outputPorts.First());
+            m_ViewController.AddElement(edgeController);
             Assert.AreEqual(VFXValueType.kFloat, abs.outputSlots[0].GetExpression().valueType);
 
-            var vector2Controlller = fnFindControlller(vector2);
+            var vector2Controller = fnFindController(vector2);
             for (int i = 0; i < 4; ++i)
             {
-                edgeControlller = new VFXDataEdgeController(addControlller.inputPorts.First(), vector2Controlller.outputPorts.First());
-                m_ViewController.AddElement(edgeControlller);
+                edgeController = new VFXDataEdgeController(addController.inputPorts.First(), vector2Controller.outputPorts.First());
+                m_ViewController.AddElement(edgeController);
             }
 
             Assert.AreEqual(VFXValueType.kFloat2, add.outputSlots[0].GetExpression().valueType);
             Assert.AreEqual(VFXValueType.kFloat2, abs.outputSlots[0].GetExpression().valueType);
 
-            m_ViewController.RemoveElement(addControlller);
+            m_ViewController.RemoveElement(addController);
             Assert.AreEqual(VFXValueType.kFloat, abs.outputSlots[0].GetExpression().valueType);
         }
 
@@ -94,10 +95,10 @@ namespace UnityEditor.VFX.Test
                     m_ViewController.ForceReload();
                 };
 
-            Func<IVFXSlotContainer, VFXSlotContainerController> fnFindControlller = delegate(IVFXSlotContainer slotContainer)
+            Func<IVFXSlotContainer, VFXSlotContainerController> fnFindController = delegate(IVFXSlotContainer slotContainer)
                 {
-                    var allControlller = m_ViewController.allChildren.OfType<VFXSlotContainerController>();
-                    return allControlller.FirstOrDefault(o => o.slotContainer == slotContainer);
+                    var allController = m_ViewController.allChildren.OfType<VFXSlotContainerController>();
+                    return allController.FirstOrDefault(o => o.slotContainer == slotContainer);
                 };
 
             var absDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Absolute");
@@ -109,20 +110,20 @@ namespace UnityEditor.VFX.Test
             var appendDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "AppendVector");
             var append = m_ViewController.AddVFXOperator(new Vector2(300, 100), appendDesc); fnResync();
 
-            var edgeControlllerCos = new VFXDataEdgeController(fnFindControlller(cos).inputPorts.First(), fnFindControlller(append).outputPorts.First());
-            m_ViewController.AddElement(edgeControlllerCos); fnResync();
+            var edgeControllerCos = new VFXDataEdgeController(fnFindController(cos).inputPorts.First(), fnFindController(append).outputPorts.First());
+            m_ViewController.AddElement(edgeControllerCos); fnResync();
 
-            var edgeControlllerAppend_A = new VFXDataEdgeController(fnFindControlller(append).inputPorts.First(), fnFindControlller(abs).outputPorts.First());
-            m_ViewController.AddElement(edgeControlllerAppend_A); fnResync();
+            var edgeControllerAppend_A = new VFXDataEdgeController(fnFindController(append).inputPorts.First(), fnFindController(abs).outputPorts.First());
+            m_ViewController.AddElement(edgeControllerAppend_A); fnResync();
 
-            var edgeControlllerAppend_B = new VFXDataEdgeController(fnFindControlller(append).inputPorts[1], fnFindControlller(abs).outputPorts.First());
-            m_ViewController.AddElement(edgeControlllerAppend_B); fnResync();
+            var edgeControllerAppend_B = new VFXDataEdgeController(fnFindController(append).inputPorts[1], fnFindController(abs).outputPorts.First());
+            m_ViewController.AddElement(edgeControllerAppend_B); fnResync();
 
-            var edgeControlllerAppend_C = new VFXDataEdgeController(fnFindControlller(append).inputPorts[2], fnFindControlller(abs).outputPorts.First());
-            m_ViewController.AddElement(edgeControlllerAppend_C); fnResync();
+            var edgeControllerAppend_C = new VFXDataEdgeController(fnFindController(append).inputPorts[2], fnFindController(abs).outputPorts.First());
+            m_ViewController.AddElement(edgeControllerAppend_C); fnResync();
 
-            var edgeControlllerAppend_D = new VFXDataEdgeController(fnFindControlller(append).inputPorts[3], fnFindControlller(abs).outputPorts.First());
-            m_ViewController.AddElement(edgeControlllerAppend_D); fnResync();
+            var edgeControllerAppend_D = new VFXDataEdgeController(fnFindController(append).inputPorts[3], fnFindController(abs).outputPorts.First());
+            m_ViewController.AddElement(edgeControllerAppend_D); fnResync();
         }
 
         [Test]
@@ -143,10 +144,10 @@ namespace UnityEditor.VFX.Test
             for (int step = 1; step < totalSlotCount; step++)
             {
                 Undo.PerformUndo();
-                var vfxOperatorControlller = m_ViewController.allChildren.OfType<VFXOperatorController>().FirstOrDefault();
-                Assert.IsNotNull(vfxOperatorControlller);
+                var vfxOperatorController = m_ViewController.allChildren.OfType<VFXOperatorController>().FirstOrDefault();
+                Assert.IsNotNull(vfxOperatorController);
 
-                var slots = vfxOperatorControlller.Operator.inputSlots.Concat(vfxOperatorControlller.Operator.outputSlots).Reverse();
+                var slots = vfxOperatorController.Operator.inputSlots.Concat(vfxOperatorController.Operator.outputSlots).Reverse();
                 for (int i = 0; i < totalSlotCount; ++i)
                 {
                     var slot = slots.ElementAt(i);
@@ -157,10 +158,10 @@ namespace UnityEditor.VFX.Test
             for (int step = 1; step < totalSlotCount; step++)
             {
                 Undo.PerformRedo();
-                var vfxOperatorControlller = m_ViewController.allChildren.OfType<VFXOperatorController>().FirstOrDefault();
-                Assert.IsNotNull(vfxOperatorControlller);
+                var vfxOperatorController = m_ViewController.allChildren.OfType<VFXOperatorController>().FirstOrDefault();
+                Assert.IsNotNull(vfxOperatorController);
 
-                var slots = vfxOperatorControlller.Operator.inputSlots.Concat(vfxOperatorControlller.Operator.outputSlots);
+                var slots = vfxOperatorController.Operator.inputSlots.Concat(vfxOperatorController.Operator.outputSlots);
                 for (int i = 0; i < totalSlotCount; ++i)
                 {
                     var slot = slots.ElementAt(i);
@@ -183,16 +184,16 @@ namespace UnityEditor.VFX.Test
                 abs.position = position;
             }
 
-            Func<Type, VFXSlotContainerController> fnFindControlller = delegate(Type type)
+            Func<Type, VFXSlotContainerController> fnFindController = delegate(Type type)
                 {
                     m_ViewController.ApplyChanges();
-                    var allControlller = m_ViewController.allChildren.OfType<VFXSlotContainerController>();
-                    return allControlller.FirstOrDefault(o => type.IsInstanceOfType(o.slotContainer));
+                    var allController = m_ViewController.allChildren.OfType<VFXSlotContainerController>();
+                    return allController.FirstOrDefault(o => type.IsInstanceOfType(o.slotContainer));
                 };
 
             for (int i = 0; i < positions.Length; ++i)
             {
-                var currentAbs = fnFindControlller(typeof(VFXOperatorAbsolute));
+                var currentAbs = fnFindController(typeof(VFXOperatorAbsolute));
                 Assert.IsNotNull(currentAbs);
                 Assert.AreEqual(positions[positions.Length - i - 1].x, currentAbs.model.position.x);
                 Assert.AreEqual(positions[positions.Length - i - 1].y, currentAbs.model.position.y);
@@ -202,7 +203,7 @@ namespace UnityEditor.VFX.Test
             for (int i = 0; i < positions.Length; ++i)
             {
                 Undo.PerformRedo();
-                var currentAbs = fnFindControlller(typeof(VFXOperatorAbsolute));
+                var currentAbs = fnFindController(typeof(VFXOperatorAbsolute));
                 Assert.IsNotNull(currentAbs);
                 Assert.AreEqual(positions[i].x, currentAbs.model.position.x);
                 Assert.AreEqual(positions[i].y, currentAbs.model.position.y);
@@ -212,25 +213,25 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void UndoRedoAddOperator()
         {
-            Func<VFXSlotContainerController[]> fnAllOperatorControlller = delegate()
+            Func<VFXSlotContainerController[]> fnAllOperatorController = delegate()
                 {
                     m_ViewController.ApplyChanges();
-                    var allControlller = m_ViewController.allChildren.OfType<VFXSlotContainerController>();
-                    return allControlller.OfType<VFXOperatorController>().ToArray();
+                    var allController = m_ViewController.allChildren.OfType<VFXSlotContainerController>();
+                    return allController.OfType<VFXOperatorController>().ToArray();
                 };
 
 
             Action fnTestShouldExist = delegate()
                 {
-                    var allOperatorControlller = fnAllOperatorControlller();
-                    Assert.AreEqual(1, allOperatorControlller.Length);
-                    Assert.IsInstanceOf(typeof(VFXOperatorAbsolute), allOperatorControlller[0].model);
+                    var allOperatorController = fnAllOperatorController();
+                    Assert.AreEqual(1, allOperatorController.Length);
+                    Assert.IsInstanceOf(typeof(VFXOperatorAbsolute), allOperatorController[0].model);
                 };
 
             Action fnTestShouldNotExist = delegate()
                 {
-                    var allOperatorControlller = fnAllOperatorControlller();
-                    Assert.AreEqual(0, allOperatorControlller.Length);
+                    var allOperatorController = fnAllOperatorController();
+                    Assert.AreEqual(0, allOperatorController.Length);
                 };
 
             Undo.IncrementCurrentGroup();
@@ -244,7 +245,7 @@ namespace UnityEditor.VFX.Test
             fnTestShouldExist();
 
             Undo.IncrementCurrentGroup();
-            m_ViewController.RemoveElement(fnAllOperatorControlller()[0]);
+            m_ViewController.RemoveElement(fnAllOperatorController()[0]);
             fnTestShouldNotExist();
             Undo.PerformUndo();
             fnTestShouldExist();
@@ -255,11 +256,11 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void UndoRedoOperatorLinkSimple()
         {
-            Func<Type, VFXSlotContainerController> fnFindControlller = delegate(Type type)
+            Func<Type, VFXSlotContainerController> fnFindController = delegate(Type type)
                 {
                     m_ViewController.ApplyChanges();
-                    var allControlller = m_ViewController.allChildren.OfType<VFXSlotContainerController>();
-                    return allControlller.FirstOrDefault(o => type.IsInstanceOfType(o.slotContainer));
+                    var allController = m_ViewController.allChildren.OfType<VFXSlotContainerController>();
+                    return allController.FirstOrDefault(o => type.IsInstanceOfType(o.slotContainer));
                 };
 
             var cosDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Cosine");
@@ -268,8 +269,8 @@ namespace UnityEditor.VFX.Test
             var cos = m_ViewController.AddVFXOperator(new Vector2(0, 0), cosDesc);
             Undo.IncrementCurrentGroup();
             var sin = m_ViewController.AddVFXOperator(new Vector2(1, 1), sinDesc);
-            var cosControlller = fnFindControlller(typeof(VFXOperatorCosine));
-            var sinControlller = fnFindControlller(typeof(VFXOperatorSine));
+            var cosController = fnFindController(typeof(VFXOperatorCosine));
+            var sinController = fnFindController(typeof(VFXOperatorSine));
 
             Func<int> fnCountEdge = delegate()
                 {
@@ -279,39 +280,39 @@ namespace UnityEditor.VFX.Test
             Undo.IncrementCurrentGroup();
             Assert.AreEqual(0, fnCountEdge());
 
-            var edgeControlllerSin = new VFXDataEdgeController(sinControlller.inputPorts[0], cosControlller.outputPorts[0]);
-            m_ViewController.AddElement(edgeControlllerSin);
+            var edgeControllerSin = new VFXDataEdgeController(sinController.inputPorts[0], cosController.outputPorts[0]);
+            m_ViewController.AddElement(edgeControllerSin);
             Assert.AreEqual(1, fnCountEdge());
 
             Undo.PerformUndo();
             Assert.AreEqual(0, fnCountEdge());
-            Assert.NotNull(fnFindControlller(typeof(VFXOperatorCosine)));
-            Assert.NotNull(fnFindControlller(typeof(VFXOperatorSine)));
+            Assert.NotNull(fnFindController(typeof(VFXOperatorCosine)));
+            Assert.NotNull(fnFindController(typeof(VFXOperatorSine)));
         }
 
         [Test]
         public void UndoRedoOperatorLinkToBlock()
         {
-            Func<VFXContextController> fnFirstContextControlller = delegate()
+            Func<VFXContextController> fnFirstContextController = delegate()
                 {
                     m_ViewController.ApplyChanges();
                     return m_ViewController.allChildren.OfType<VFXContextController>().FirstOrDefault();
                 };
 
-            Func<Type, VFXSlotContainerController> fnFindControlller = delegate(Type type)
+            Func<Type, VFXSlotContainerController> fnFindController = delegate(Type type)
                 {
                     m_ViewController.ApplyChanges();
-                    var allControlller = m_ViewController.allChildren.OfType<VFXSlotContainerController>();
-                    return allControlller.FirstOrDefault(o => type.IsInstanceOfType(o.slotContainer));
+                    var allController = m_ViewController.allChildren.OfType<VFXSlotContainerController>();
+                    return allController.FirstOrDefault(o => type.IsInstanceOfType(o.slotContainer));
                 };
 
-            Func<VFXBlockController> fnFirstBlockControlller = delegate()
+            Func<VFXBlockController> fnFirstBlockController = delegate()
                 {
                     m_ViewController.ApplyChanges();
                     return m_ViewController.allChildren.OfType<VFXContextController>().SelectMany(t => t.blockControllers).FirstOrDefault();
                 };
 
-            Func<VFXDataEdgeController> fnFirstEdgeControlller = delegate()
+            Func<VFXDataEdgeController> fnFirstEdgeController = delegate()
                 {
                     m_ViewController.ApplyChanges();
                     return m_ViewController.allChildren.OfType<VFXDataEdgeController>().FirstOrDefault();
@@ -326,31 +327,31 @@ namespace UnityEditor.VFX.Test
             var update = m_ViewController.AddVFXContext(new Vector2(2, 2), contextUpdateDesc);
             var blockAttribute = blockAttributeDesc.CreateInstance();
             blockAttribute.SetSettingValue("attribute", "color");
-            fnFirstContextControlller().AddBlock(0, blockAttribute);
+            fnFirstContextController().AddBlock(0, blockAttribute);
 
-            var edgeControlller = new VFXDataEdgeController(fnFirstBlockControlller().inputPorts[0], fnFindControlller(typeof(VFXOperatorCosine)).outputPorts[0]);
-            m_ViewController.AddElement(edgeControlller);
+            var edgeController = new VFXDataEdgeController(fnFirstBlockController().inputPorts[0], fnFindController(typeof(VFXOperatorCosine)).outputPorts[0]);
+            m_ViewController.AddElement(edgeController);
             Undo.IncrementCurrentGroup();
 
-            m_ViewController.RemoveElement(fnFirstEdgeControlller());
-            Assert.IsNull(fnFirstEdgeControlller());
+            m_ViewController.RemoveElement(fnFirstEdgeController());
+            Assert.IsNull(fnFirstEdgeController());
             Undo.IncrementCurrentGroup();
 
             Undo.PerformUndo();
-            Assert.IsNotNull(fnFirstEdgeControlller());
+            Assert.IsNotNull(fnFirstEdgeController());
 
             Undo.PerformRedo();
-            Assert.IsNull(fnFirstEdgeControlller());
+            Assert.IsNull(fnFirstEdgeController());
         }
 
         [Test]
         public void UndoRedoOperatorLinkAdvanced()
         {
-            Func<Type, VFXSlotContainerController> fnFindControlller = delegate(Type type)
+            Func<Type, VFXSlotContainerController> fnFindController = delegate(Type type)
                 {
                     m_ViewController.ApplyChanges();
-                    var allControlller = m_ViewController.allChildren.OfType<VFXSlotContainerController>();
-                    return allControlller.FirstOrDefault(o => type.IsInstanceOfType(o.slotContainer));
+                    var allController = m_ViewController.allChildren.OfType<VFXSlotContainerController>();
+                    return allController.FirstOrDefault(o => type.IsInstanceOfType(o.slotContainer));
                 };
 
             Func<int> fnCountEdge = delegate()
@@ -372,26 +373,26 @@ namespace UnityEditor.VFX.Test
             var cos = m_ViewController.AddVFXOperator(new Vector2(3, 3), cosDesc);
             var sin = m_ViewController.AddVFXOperator(new Vector2(4, 4), sinDesc);
 
-            var absControlller = fnFindControlller(typeof(VFXOperatorAbsolute));
-            var appendControlller = fnFindControlller(typeof(VFXOperatorAppendVector));
-            var crossControlller = fnFindControlller(typeof(VFXOperatorCrossProduct));
+            var absController = fnFindController(typeof(VFXOperatorAbsolute));
+            var appendController = fnFindController(typeof(VFXOperatorAppendVector));
+            var crossController = fnFindController(typeof(VFXOperatorCrossProduct));
 
             for (int i = 0; i < 3; ++i)
             {
-                var edgeControlller = new VFXDataEdgeController(appendControlller.inputPorts[i], absControlller.outputPorts[0]);
-                m_ViewController.AddElement(edgeControlller);
+                var edgeController = new VFXDataEdgeController(appendController.inputPorts[i], absController.outputPorts[0]);
+                m_ViewController.AddElement(edgeController);
                 m_ViewController.ApplyChanges();
             }
 
-            var edgeControlllerCross = new VFXDataEdgeController(crossControlller.inputPorts[0], appendControlller.outputPorts[0]);
-            m_ViewController.AddElement(edgeControlllerCross);
+            var edgeControllerCross = new VFXDataEdgeController(crossController.inputPorts[0], appendController.outputPorts[0]);
+            m_ViewController.AddElement(edgeControllerCross);
 
             Undo.IncrementCurrentGroup();
             Assert.AreEqual(4, fnCountEdge());
-            Assert.IsInstanceOf(typeof(VFXSlotFloat3), (appendControlller.outputPorts[0] as VFXDataAnchorController).model);
+            Assert.IsInstanceOf(typeof(VFXSlotFloat3), (appendController.outputPorts[0] as VFXDataAnchorController).model);
 
             //Find last edge in append node
-            var referenceAnchor = appendControlller.inputPorts[2];
+            var referenceAnchor = appendController.inputPorts[2];
             m_ViewController.ApplyChanges();
             var edgeToDelete = m_ViewController.allChildren
                 .OfType<VFXDataEdgeController>()
@@ -404,37 +405,37 @@ namespace UnityEditor.VFX.Test
 
             m_ViewController.RemoveElement(edgeToDelete);
             Assert.AreEqual(2, fnCountEdge()); //cross should be implicitly disconnected ...
-            Assert.IsInstanceOf(typeof(VFXSlotFloat2), (appendControlller.outputPorts[0] as VFXDataAnchorController).model);
+            Assert.IsInstanceOf(typeof(VFXSlotFloat2), (appendController.outputPorts[0] as VFXDataAnchorController).model);
 
             Undo.PerformUndo();
             Assert.AreEqual(4, fnCountEdge()); //... and restored !
-            Assert.IsInstanceOf(typeof(VFXSlotFloat3), (fnFindControlller(typeof(VFXOperatorAppendVector)).outputPorts[0] as VFXDataAnchorController).model);
+            Assert.IsInstanceOf(typeof(VFXSlotFloat3), (fnFindController(typeof(VFXOperatorAppendVector)).outputPorts[0] as VFXDataAnchorController).model);
             Undo.PerformRedo();
             Assert.AreEqual(2, fnCountEdge());
-            Assert.IsInstanceOf(typeof(VFXSlotFloat2), (fnFindControlller(typeof(VFXOperatorAppendVector)).outputPorts[0] as VFXDataAnchorController).model);
+            Assert.IsInstanceOf(typeof(VFXSlotFloat2), (fnFindController(typeof(VFXOperatorAppendVector)).outputPorts[0] as VFXDataAnchorController).model);
 
             //Improve test connecting cos & sin => then try delete append
             Undo.PerformUndo();
             Undo.IncrementCurrentGroup();
             Assert.AreEqual(4, fnCountEdge());
-            Assert.IsInstanceOf(typeof(VFXSlotFloat3), (fnFindControlller(typeof(VFXOperatorAppendVector)).outputPorts[0] as VFXDataAnchorController).model);
+            Assert.IsInstanceOf(typeof(VFXSlotFloat3), (fnFindController(typeof(VFXOperatorAppendVector)).outputPorts[0] as VFXDataAnchorController).model);
 
-            var edgeControlllerCos = new VFXDataEdgeController(fnFindControlller(typeof(VFXOperatorCosine)).inputPorts[0], fnFindControlller(typeof(VFXOperatorAppendVector)).outputPorts[0]);
-            m_ViewController.AddElement(edgeControlllerCos);
+            var edgeControllerCos = new VFXDataEdgeController(fnFindController(typeof(VFXOperatorCosine)).inputPorts[0], fnFindController(typeof(VFXOperatorAppendVector)).outputPorts[0]);
+            m_ViewController.AddElement(edgeControllerCos);
             Assert.AreEqual(5, fnCountEdge());
 
-            var edgeControlllerSin = new VFXDataEdgeController(fnFindControlller(typeof(VFXOperatorSine)).inputPorts[0], fnFindControlller(typeof(VFXOperatorAppendVector)).outputPorts[0]);
-            m_ViewController.AddElement(edgeControlllerSin);
+            var edgeControllerSin = new VFXDataEdgeController(fnFindController(typeof(VFXOperatorSine)).inputPorts[0], fnFindController(typeof(VFXOperatorAppendVector)).outputPorts[0]);
+            m_ViewController.AddElement(edgeControllerSin);
             Assert.AreEqual(6, fnCountEdge());
 
-            m_ViewController.RemoveElement(fnFindControlller(typeof(VFXOperatorAppendVector)));
+            m_ViewController.RemoveElement(fnFindController(typeof(VFXOperatorAppendVector)));
             Assert.AreEqual(0, fnCountEdge());
         }
 
         [Test]
         public void UndoRedoOperatorSettings()
         {
-            Func<VFXOperatorController> fnFirstOperatorControlller = delegate()
+            Func<VFXOperatorController> fnFirstOperatorController = delegate()
                 {
                     m_ViewController.ApplyChanges();
                     return m_ViewController.allChildren.OfType<VFXOperatorController>().FirstOrDefault();
@@ -486,24 +487,24 @@ namespace UnityEditor.VFX.Test
             var maskList = new string[] { "xy", "yww", "xw", "z" };
             for (int i = 0; i < maskList.Length; ++i)
             {
-                var componentMaskControlller = fnFirstOperatorControlller();
+                var componentMaskController = fnFirstOperatorController();
                 Undo.IncrementCurrentGroup();
-                fnSetSetting(componentMaskControlller.model as VFXOperatorComponentMask, maskList[i]);
-                Assert.AreEqual(maskList[i], fnGetSetting(componentMaskControlller.model as VFXOperatorComponentMask));
+                fnSetSetting(componentMaskController.model as VFXOperatorComponentMask, maskList[i]);
+                Assert.AreEqual(maskList[i], fnGetSetting(componentMaskController.model as VFXOperatorComponentMask));
             }
 
             for (int i = maskList.Length - 1; i > 0; --i)
             {
                 Undo.PerformUndo();
-                var componentMaskControlller = fnFirstOperatorControlller();
-                Assert.AreEqual(maskList[i - 1], fnGetSetting(componentMaskControlller.model as VFXOperatorComponentMask));
+                var componentMaskController = fnFirstOperatorController();
+                Assert.AreEqual(maskList[i - 1], fnGetSetting(componentMaskController.model as VFXOperatorComponentMask));
             }
 
             for (int i = 0; i < maskList.Length - 1; ++i)
             {
                 Undo.PerformRedo();
-                var componentMaskControlller = fnFirstOperatorControlller();
-                Assert.AreEqual(maskList[i + 1], fnGetSetting(componentMaskControlller.model as VFXOperatorComponentMask));
+                var componentMaskController = fnFirstOperatorController();
+                Assert.AreEqual(maskList[i + 1], fnGetSetting(componentMaskController.model as VFXOperatorComponentMask));
             }
         }
 
@@ -514,38 +515,42 @@ namespace UnityEditor.VFX.Test
             var blockDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.modelType == typeof(AllType));
 
             var contextUpdate = m_ViewController.AddVFXContext(Vector2.one, contextUpdateDesc);
-            Func<VFXContextController> fnContextControlller = delegate()
+            Func<VFXContextController> fnContextController = delegate()
                 {
                     m_ViewController.ApplyChanges();
-                    var allContextControlller = m_ViewController.allChildren.OfType<VFXContextController>().ToArray();
-                    return allContextControlller.FirstOrDefault() as VFXContextController;
+                    var allContextController = m_ViewController.allChildren.OfType<VFXContextController>().ToArray();
+                    return allContextController.FirstOrDefault() as VFXContextController;
                 };
-            Assert.IsNotNull(fnContextControlller());
+            Assert.IsNotNull(fnContextController());
             //Creation
             Undo.IncrementCurrentGroup();
-            fnContextControlller().AddBlock(0, blockDesc.CreateInstance());
-            Assert.AreEqual(1, fnContextControlller().context.children.Count());
+            fnContextController().AddBlock(0, blockDesc.CreateInstance());
+            Assert.AreEqual(1, fnContextController().context.children.Count());
             Undo.PerformUndo();
-            Assert.AreEqual(0, fnContextControlller().context.children.Count());
+            Assert.AreEqual(0, fnContextController().context.children.Count());
 
             //Deletion
             var block = blockDesc.CreateInstance();
-            fnContextControlller().AddBlock(0, block);
-            Assert.AreEqual(1, fnContextControlller().context.children.Count());
+            fnContextController().AddBlock(0, block);
+            Assert.AreEqual(1, fnContextController().context.children.Count());
             Undo.IncrementCurrentGroup();
-            fnContextControlller().RemoveBlock(block);
-            Assert.AreEqual(0, fnContextControlller().context.children.Count());
+            fnContextController().RemoveBlock(block);
+            Assert.AreEqual(0, fnContextController().context.children.Count());
 
             Undo.PerformUndo();
-            Assert.IsNotNull(fnContextControlller());
-            Assert.AreEqual(1, fnContextControlller().context.children.Count());
-            Assert.IsInstanceOf(typeof(AllType), fnContextControlller().context.children.First());
+
+            m_ViewController.ApplyChanges();
+
+
+            Assert.IsNotNull(fnContextController());
+            Assert.AreEqual(1, fnContextController().context.children.Count());
+            Assert.IsInstanceOf(typeof(AllType), fnContextController().context.children.First());
         }
 
         [Test]
         public void UndoRedoContext()
         {
-            Func<VFXContextController> fnFirstContextControlller = delegate()
+            Func<VFXContextController> fnFirstContextController = delegate()
                 {
                     m_ViewController.ApplyChanges();
                     return m_ViewController.allChildren.OfType<VFXContextController>().FirstOrDefault() as VFXContextController;
@@ -555,26 +560,26 @@ namespace UnityEditor.VFX.Test
             Undo.IncrementCurrentGroup();
             m_ViewController.AddVFXContext(Vector2.zero, contextDesc);
 
-            Assert.NotNull(fnFirstContextControlller());
+            Assert.NotNull(fnFirstContextController());
             Undo.PerformUndo();
-            Assert.Null(fnFirstContextControlller(), "Fail Undo Create");
+            Assert.Null(fnFirstContextController(), "Fail Undo Create");
 
             Undo.IncrementCurrentGroup();
             m_ViewController.AddVFXContext(Vector2.zero, contextDesc);
-            Assert.NotNull(fnFirstContextControlller());
+            Assert.NotNull(fnFirstContextController());
 
             Undo.IncrementCurrentGroup();
-            m_ViewController.RemoveElement(fnFirstContextControlller());
-            Assert.Null(fnFirstContextControlller());
+            m_ViewController.RemoveElement(fnFirstContextController());
+            Assert.Null(fnFirstContextController());
 
             Undo.PerformUndo();
-            Assert.NotNull(fnFirstContextControlller(), "Fail Undo Delete");
+            Assert.NotNull(fnFirstContextController(), "Fail Undo Delete");
         }
 
         [Test]
         public void UndoRedoContextLinkMultiSlot()
         {
-            Func<VFXContextController[]> fnContextControlller = delegate()
+            Func<VFXContextController[]> fnContextController = delegate()
                 {
                     m_ViewController.ApplyChanges();
                     return m_ViewController.allChildren.OfType<VFXContextController>().Cast<VFXContextController>().ToArray();
@@ -582,13 +587,13 @@ namespace UnityEditor.VFX.Test
 
             Func<VFXContextController> fnSpawner = delegate()
                 {
-                    var controller = fnContextControlller();
+                    var controller = fnContextController();
                     return controller.FirstOrDefault(o => o.model.name.Contains("Spawner"));
                 };
 
             Func<string, VFXContextController> fnEvent = delegate(string name)
                 {
-                    var controller = fnContextControlller();
+                    var controller = fnContextController();
                     var allEvent = controller.Where(o => o.model.name.Contains("Event"));
                     return allEvent.FirstOrDefault(o => (o.model as VFXBasicEvent).eventName == name) as VFXContextController;
                 };
@@ -613,10 +618,10 @@ namespace UnityEditor.VFX.Test
             var contextEvent = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Event"));
 
             m_ViewController.AddVFXContext(new Vector2(1, 1), contextSpawner);
-            var eventStartControlller = m_ViewController.AddVFXContext(new Vector2(2, 2), contextEvent) as VFXBasicEvent;
-            var eventStopControlller = m_ViewController.AddVFXContext(new Vector2(3, 3), contextEvent) as VFXBasicEvent;
-            eventStartControlller.SetSettingValue("eventName", "Start");
-            eventStopControlller.SetSettingValue("eventName", "Stop");
+            var eventStartController = m_ViewController.AddVFXContext(new Vector2(2, 2), contextEvent) as VFXBasicEvent;
+            var eventStopController = m_ViewController.AddVFXContext(new Vector2(3, 3), contextEvent) as VFXBasicEvent;
+            eventStartController.SetSettingValue("eventName", "Start");
+            eventStopController.SetSettingValue("eventName", "Stop");
 
             //Creation
             var flowEdge = new VFXFlowEdgeController(fnSpawner().flowInputAnchors.ElementAt(0), fnStart().flowOutputAnchors.FirstOrDefault());
@@ -669,21 +674,21 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void UndoRedoContextLink()
         {
-            Func<VFXContextController[]> fnContextControlller = delegate()
+            Func<VFXContextController[]> fnContextController = delegate()
                 {
                     m_ViewController.ApplyChanges();
                     return m_ViewController.allChildren.OfType<VFXContextController>().Cast<VFXContextController>().ToArray();
                 };
 
-            Func<VFXContextController> fnInitializeControlller = delegate()
+            Func<VFXContextController> fnInitializeController = delegate()
                 {
-                    var controller = fnContextControlller();
+                    var controller = fnContextController();
                     return controller.FirstOrDefault(o => o.model.name.Contains("Init"));
                 };
 
-            Func<VFXContextController> fnUpdateControlller = delegate()
+            Func<VFXContextController> fnUpdateController = delegate()
                 {
-                    var controller = fnContextControlller();
+                    var controller = fnContextController();
                     return controller.FirstOrDefault(o => o.model.name.Contains("Update"));
                 };
 
@@ -700,7 +705,7 @@ namespace UnityEditor.VFX.Test
             var contextUpdate = m_ViewController.AddVFXContext(new Vector2(2, 2), contextUpdateDesc);
 
             //Creation
-            var flowEdge = new VFXFlowEdgeController(fnUpdateControlller().flowInputAnchors.FirstOrDefault(), fnInitializeControlller().flowOutputAnchors.FirstOrDefault());
+            var flowEdge = new VFXFlowEdgeController(fnUpdateController().flowInputAnchors.FirstOrDefault(), fnInitializeController().flowOutputAnchors.FirstOrDefault());
 
             Undo.IncrementCurrentGroup();
             m_ViewController.AddElement(flowEdge);
@@ -710,7 +715,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(0, fnFlowEdgeCount(), "Fail undo Create");
 
             //Deletion
-            flowEdge = new VFXFlowEdgeController(fnUpdateControlller().flowInputAnchors.FirstOrDefault(), fnInitializeControlller().flowOutputAnchors.FirstOrDefault());
+            flowEdge = new VFXFlowEdgeController(fnUpdateController().flowInputAnchors.FirstOrDefault(), fnInitializeController().flowOutputAnchors.FirstOrDefault());
             m_ViewController.AddElement(flowEdge);
             Assert.AreEqual(1, fnFlowEdgeCount());
 
@@ -738,8 +743,8 @@ namespace UnityEditor.VFX.Test
             crossProduct.outputSlots[0].children.ElementAt(1).Link(sin.inputSlots[0]);
             crossProduct.outputSlots[0].children.ElementAt(1).Link(cos.inputSlots[0]);
 
-            var crossControlller = m_ViewController.allChildren.OfType<VFXOperatorController>().First(o => o.model.name.Contains("Cross"));
-            m_ViewController.RemoveElement(crossControlller);
+            var crossController = m_ViewController.allChildren.OfType<VFXOperatorController>().First(o => o.model.name.Contains("Cross"));
+            m_ViewController.RemoveElement(crossController);
 
             Assert.IsFalse(cos.inputSlots[0].HasLink(true));
             Assert.IsFalse(sin.inputSlots[0].HasLink(true));

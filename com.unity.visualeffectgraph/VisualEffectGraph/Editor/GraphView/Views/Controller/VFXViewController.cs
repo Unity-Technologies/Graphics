@@ -51,6 +51,17 @@ namespace UnityEditor.VFX.UI
             base.OnEnable();
         }
 
+        public override void ApplyChanges()
+        {
+            ModelChanged(model);
+            GraphChanged(graph);
+
+            foreach (var controller in allChildren)
+            {
+                controller.ApplyChanges();
+            }
+        }
+
         public override void OnDisable()
         {
             RemoveInvalidateDelegate(graph, InvalidateExpressionGraph);
@@ -392,10 +403,12 @@ namespace UnityEditor.VFX.UI
             }
             if (m_Graph != model.GetOrCreateGraph())
             {
-                if (m_GraphHandle != null)
+                if (m_Graph != null)
                 {
                     DataWatchService.sharedInstance.RemoveWatch(m_GraphHandle);
                     m_GraphHandle = null;
+
+                    RemoveInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
                 }
 
                 m_Graph =  model.GetOrCreateGraph();
@@ -403,6 +416,8 @@ namespace UnityEditor.VFX.UI
                 if (m_Graph != null)
                 {
                     m_GraphHandle = DataWatchService.sharedInstance.AddWatch(m_Graph, GraphChanged);
+
+                    AddInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
                 }
             }
         }
@@ -648,7 +663,6 @@ namespace UnityEditor.VFX.UI
             Undo.willFlushUndoRecord += WillFlushUndoRecord;
 
 
-            AddInvalidateDelegate(graph, InvalidateExpressionGraph);
             InitializeUndoStack();
         }
 
@@ -661,21 +675,29 @@ namespace UnityEditor.VFX.UI
 
         bool m_Syncing;
 
-        public void SyncControllerFromModel()
+        public bool SyncControllerFromModel()
         {
             m_Syncing = true;
+            bool changed = false;
             var toRemove = m_SyncedModels.Keys.Except(graph.children).ToList();
             foreach (var m in toRemove)
+            {
                 RemoveControllersFromModel(m, m_SyncedModels);
+                changed = true;
+            }
 
             var toAdd = graph.children.Except(m_SyncedModels.Keys).ToList();
             foreach (var m in toAdd)
+            {
                 AddControllersFromModel(m, m_SyncedModels);
+                changed = true;
+            }
 
-            RecreateNodeEdges();
-            RecreateFlowEdges();
+            changed |= RecreateNodeEdges();
+            changed |= RecreateFlowEdges();
 
             m_Syncing = false;
+            return changed;
         }
 
         private void AddControllersFromModel(VFXModel model, Dictionary<VFXModel, VFXNodeController> syncedModels)
