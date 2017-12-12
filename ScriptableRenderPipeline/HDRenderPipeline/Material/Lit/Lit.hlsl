@@ -784,7 +784,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     {
         // Note: this is a ad-hoc tweak.
         // TODO: we need a better hack.
-        float iblPerceptualRoughness = bsdfData.perceptualRoughness * saturate(1.2 - bsdfData.anisotropy);
+        float iblPerceptualRoughness = bsdfData.perceptualRoughness * saturate(1.2 - abs(bsdfData.anisotropy));
         float iblRoughness           = PerceptualRoughnessToRoughness(iblPerceptualRoughness);
         preLightData.iblDirWS        = GetSpecularDominantDir(N, iblR, iblRoughness, NdotV);
         preLightData.iblMipLevel     = PerceptualRoughnessToMipmapLevel(iblPerceptualRoughness);
