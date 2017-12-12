@@ -1998,13 +1998,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114564606616422122}
   m_Children: []
-  m_UIPosition: {x: 4277.4873, y: 490.68033}
+  m_UIPosition: {x: 4274.4624, y: 499.75406}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 114830241465320948}
-  attribute: angle
+  attribute: angleZ
 --- !u!114 &114680032847959250
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3357,20 +3357,20 @@ VFXAsset:
       type: 1
       offset:
         bucket: 2500
-        structure: 1
+        structure: 3
         element: 0
     - name: alive
       type: 14
       offset:
-        bucket: 3000
-        structure: 2
-        element: 0
+        bucket: 2500
+        structure: 3
+        element: 1
     - name: age
       type: 1
       offset:
-        bucket: 3000
-        structure: 2
-        element: 1
+        bucket: 2500
+        structure: 3
+        element: 2
   - type: 1
     size: 1
     capacity: 1
@@ -3472,7 +3472,7 @@ VFXAsset:
       - index: 38
         nameId: uniform_Lifetime_c
       params: []
-      processor: {fileID: 7200000, guid: 0e6f800284116a84bb4aaa5a56fbaab9, type: 3}
+      processor: {fileID: 7200000, guid: d24b9e1782b6c9c4fad0a7ca691a9145, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -3487,7 +3487,7 @@ VFXAsset:
       - index: 3
         nameId: uniform_deltaTime_c
       params: []
-      processor: {fileID: 7200000, guid: d7248ba5778831d4196486e4bbb3835f, type: 3}
+      processor: {fileID: 7200000, guid: 0146300833ab97a4faddcac8aa6a3b01, type: 3}
     - type: 1073741827
       buffers:
       - index: 0
@@ -3510,7 +3510,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: fbbefa66e920e5c4ba1fbb69c39c1b28, type: 3}
+      processor: {fileID: 4800000, guid: 9ac0a0c7fb2670c47880443bda43a8fd, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000

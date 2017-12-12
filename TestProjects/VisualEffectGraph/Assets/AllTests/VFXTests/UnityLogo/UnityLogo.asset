@@ -8734,7 +8734,7 @@ VFXAsset:
       - index: 103
         nameId: uniform_Sphere_arc_d
       params: []
-      processor: {fileID: 7200000, guid: b5023f60f0352b74392300b1ff917bc9, type: 3}
+      processor: {fileID: 7200000, guid: 4703ce42c9895904d89f076daa369dec, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -8791,7 +8791,7 @@ VFXAsset:
       - index: 91
         nameId: texture_VectorField_e
       params: []
-      processor: {fileID: 7200000, guid: d399c4dc3f8080b43bc8a8ab82c8fa61, type: 3}
+      processor: {fileID: 7200000, guid: fae58055fceaf8747a785c18c9164c84, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -8830,7 +8830,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 17339345bd0d2d447b50dc0165e8aed9, type: 3}
+      processor: {fileID: 4800000, guid: 5f81a8b2b93938e41a5db126eafcf754, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000

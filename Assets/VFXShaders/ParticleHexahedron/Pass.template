@@ -30,9 +30,9 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 			${VFXLoadSize}
 			
 			float3x3 rot = GetEulerMatrix(radians(float3(angleX,angleY,angleZ)));
-			float4x4 primitiveToVFX = GetPrimitiveToVFXMatrix(axisX,axisY,axisZ,rot,pivot,size,position);
+			float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,rot,pivot,size,position);
 			
-			float3 vPos = mul(primitiveToVFX,float4(offsets,1.0f)).xyz;
+			float3 vPos = mul(elementToVFX,float4(offsets,1.0f)).xyz;
 			float3 vPosWS = TransformPositionVFXToWorld(vPos);
 			
 #ifdef VFX_VARYING_POSWS
