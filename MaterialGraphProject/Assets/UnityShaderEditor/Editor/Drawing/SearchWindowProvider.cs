@@ -17,6 +17,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         AbstractMaterialGraph m_Graph;
         GraphView m_GraphView;
         Texture2D m_Icon;
+        public Port connectedPort { get; set; }
 
         public void Initialize(EditorWindow editorWindow, AbstractMaterialGraph graph, GraphView graphView)
         {
@@ -39,33 +40,56 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        struct NestedEntry
+        struct NodeEntry
         {
             public string[] title;
-            public object userData;
+            public AbstractMaterialNode node;
+            public int compatibleSlotId;
         }
+
+        List<ISlot> m_Slots = new List<ISlot>();
 
         public List<SearchTreeEntry> CreateSearchTree(SearchWindowContext context)
         {
             // First build up temporary data structure containing group & title as an array of strings (the last one is the actual title) and associated node type.
-            var nestedEntries = new List<NestedEntry>();
+            var nodeEntries = new List<NodeEntry>();
             foreach (var type in Assembly.GetAssembly(typeof(AbstractMaterialNode)).GetTypes())
             {
                 if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(AbstractMaterialNode))))
                 {
                     var attrs = type.GetCustomAttributes(typeof(TitleAttribute), false) as TitleAttribute[];
                     if (attrs != null && attrs.Length > 0)
-                        nestedEntries.Add(new NestedEntry { title = attrs[0].title, userData = type });
+                    {
+                        var node = (AbstractMaterialNode) Activator.CreateInstance(type);
+                        var compatibleSlotId = -1;
+                        if (connectedPort != null)
+                        {
+                            compatibleSlotId = GetFirstCompatibleSlotId(node);
+                            if (compatibleSlotId == -1)
+                                continue;
+                        }
+                        nodeEntries.Add(new NodeEntry { title = attrs[0].title, node = node, compatibleSlotId = compatibleSlotId});
+                    }
                 }
             }
 
             foreach (var guid in AssetDatabase.FindAssets(string.Format("t:{0}", typeof(MaterialSubGraphAsset))))
             {
                 var asset = AssetDatabase.LoadAssetAtPath<MaterialSubGraphAsset>(AssetDatabase.GUIDToAssetPath(guid));
-                nestedEntries.Add(new NestedEntry
+                var node = Activator.CreateInstance<SubGraphNode>();
+                node.subGraphAsset = asset;
+                var compatibleSlotId = -1;
+                if (connectedPort != null)
+                {
+                    compatibleSlotId = GetFirstCompatibleSlotId(node);
+                    if (compatibleSlotId == -1)
+                        continue;
+                }
+                nodeEntries.Add(new NodeEntry
                 {
                     title = new[] { "Sub-graph Assets", asset.name },
-                    userData = asset
+                    node = node,
+                    compatibleSlotId = compatibleSlotId
                 });
             }
 
@@ -74,7 +98,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // - Art/BlendMode
             // - Art/Adjustments/ColorBalance
             // - Art/Adjustments/Contrast
-            nestedEntries.Sort((entry1, entry2) =>
+            nodeEntries.Sort((entry1, entry2) =>
             {
                 for (var i = 0; i < entry1.title.Length; i++)
                 {
@@ -103,15 +127,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                 new SearchTreeGroupEntry(new GUIContent("Create Node"), 0),
             };
 
-            foreach (var nestedEntry in nestedEntries)
+            foreach (var nodeEntry in nodeEntries)
             {
                 // `createIndex` represents from where we should add new group entries from the current entry's group path.
                 var createIndex = int.MaxValue;
 
                 // Compare the group path of the current entry to the current group path.
-                for (var i = 0; i < nestedEntry.title.Length - 1; i++)
+                for (var i = 0; i < nodeEntry.title.Length - 1; i++)
                 {
-                    var group = nestedEntry.title[i];
+                    var group = nodeEntry.title[i];
                     if (i >= groups.Count)
                     {
                         // The current group path matches a prefix of the current entry's group path, so we add the
@@ -132,32 +156,40 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 // Create new group entries as needed.
                 // If we don't need to modify the group path, `createIndex` will be `int.MaxValue` and thus the loop won't run.
-                for (var i = createIndex; i < nestedEntry.title.Length - 1; i++)
+                for (var i = createIndex; i < nodeEntry.title.Length - 1; i++)
                 {
-                    var group = nestedEntry.title[i];
+                    var group = nodeEntry.title[i];
                     groups.Add(group);
                     tree.Add(new SearchTreeGroupEntry(new GUIContent(group)) { level = i + 1 });
                 }
 
                 // Finally, add the actual entry.
-                tree.Add(new SearchTreeEntry(new GUIContent(nestedEntry.title.Last(), m_Icon)) { level = nestedEntry.title.Length, userData = nestedEntry.userData });
+                tree.Add(new SearchTreeEntry(new GUIContent(nodeEntry.title.Last(), m_Icon)) { level = nodeEntry.title.Length, userData = nodeEntry });
             }
 
             return tree;
         }
 
+        int GetFirstCompatibleSlotId(AbstractMaterialNode node)
+        {
+            var connectedSlot = (MaterialSlot)connectedPort.userData;
+            m_Slots.Clear();
+            node.GetSlots(m_Slots);
+            foreach (var slot in m_Slots)
+            {
+                var materialSlot = (MaterialSlot)slot;
+                if (materialSlot.IsCompatibleWith(connectedSlot))
+                {
+                    return materialSlot.id;
+                }
+            }
+            return -1;
+        }
+
         public bool OnSelectEntry(SearchTreeEntry entry, SearchWindowContext context)
         {
-            Type type;
-            var asset = entry.userData as MaterialSubGraphAsset;
-            if (asset != null)
-                type = typeof(SubGraphNode);
-            else
-                type = (Type)entry.userData;
-
-            var node = Activator.CreateInstance(type) as INode;
-            if (node == null)
-                return false;
+            var nodeEntry = (NodeEntry)entry.userData;
+            var node = nodeEntry.node;
 
             var drawState = node.drawState;
             var windowMousePosition = context.screenMousePosition - m_EditorWindow.position.position;
@@ -165,14 +197,19 @@ namespace UnityEditor.ShaderGraph.Drawing
             drawState.position = new Rect(graphMousePosition, Vector2.zero);
             node.drawState = drawState;
 
-            if (asset != null)
-            {
-                var subgraphNode = (SubGraphNode)node;
-                subgraphNode.subGraphAsset = asset;
-            }
-
             m_Graph.owner.RegisterCompleteObjectUndo("Add " + node.name);
             m_Graph.AddNode(node);
+
+            if (connectedPort != null)
+            {
+                var connectedSlot = (MaterialSlot)connectedPort.userData;
+                var connectedSlotReference = connectedSlot.owner.GetSlotReference(connectedSlot.id);
+                var compatibleSlotReference = node.GetSlotReference(nodeEntry.compatibleSlotId);
+
+                var fromReference = connectedSlot.isOutputSlot ? connectedSlotReference : compatibleSlotReference;
+                var toReference = connectedSlot.isOutputSlot ? compatibleSlotReference : connectedSlotReference;
+                m_Graph.Connect(fromReference, toReference);
+            }
 
             return true;
         }
