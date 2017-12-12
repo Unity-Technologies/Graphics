@@ -33,7 +33,7 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_P
 			float frameIndex = texIndex - frameBlend;
 			#endif
 			
-			float3x3 rot = GetRotationMatrix(front,radians(angle));
+			float4x4 primitiveToVFX = GetPrimitiveToVFXMatrix(side,up,front,float3(0,0,angle),pivot,float3(size,1.0f),position);
 			
 			[unroll]
 			for (int id = 0; id < 4; ++id)
@@ -42,10 +42,8 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_P
 				
 				o.VFX_VARYING_UV.x = float((id & 2) >> 1);
 				o.VFX_VARYING_UV.y = float(id & 1);
-				
-				float3 vPos = position;
-				vPos += TransformInElementSpace(float3(o.VFX_VARYING_UV.xy - 0.5f,0.0f),side,up,front,rot,pivot,float3(size,1.0f));
-				
+								
+				float3 vPos = mul(primitiveToVFX,float4(o.VFX_VARYING_UV.xy - 0.5f,0.0f,1.0f)).xyz;
 				o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
 
 				${VFXVertexCommonProcess}

@@ -46,7 +46,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114882977597121960}
   m_Children: []
-  m_UIPosition: {x: 674.3195, y: 590.52124}
+  m_UIPosition: {x: 281.0195, y: 546.8212}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -98,9 +98,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114882977597121960}
   m_Children: []
-  m_UIPosition: {x: 1212.9634, y: 743.25323}
+  m_UIPosition: {x: 876.01337, y: 731.75323}
   m_UICollapsed: 1
-  m_UISuperCollapsed: 0
+  m_UISuperCollapsed: 1
   m_InputSlots:
   - {fileID: 114835644323645870}
   - {fileID: 114849303064702680}
@@ -289,7 +289,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114882977597121960}
   m_Children: []
-  m_UIPosition: {x: -113.09381, y: 758.7898}
+  m_UIPosition: {x: -506.39383, y: 715.0898}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -770,9 +770,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114882977597121960}
   m_Children: []
-  m_UIPosition: {x: 1367, y: 806}
+  m_UIPosition: {x: 1149.65, y: 800.25}
   m_UICollapsed: 1
-  m_UISuperCollapsed: 0
+  m_UISuperCollapsed: 1
   m_InputSlots:
   - {fileID: 114774088737312600}
   - {fileID: 114440106970192908}
@@ -941,7 +941,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114882977597121960}
   m_Children: []
-  m_UIPosition: {x: 47, y: 421.1009}
+  m_UIPosition: {x: -346.30002, y: 377.40088}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -1023,7 +1023,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114882977597121960}
   m_Children: []
-  m_UIPosition: {x: -112.01051, y: 973.53326}
+  m_UIPosition: {x: -505.31052, y: 929.83325}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -1210,7 +1210,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114882977597121960}
   m_Children: []
-  m_UIPosition: {x: 593.09503, y: 949.4961}
+  m_UIPosition: {x: 199.79501, y: 905.7961}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -2356,7 +2356,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114882977597121960}
   m_Children: []
-  m_UIPosition: {x: 384.3743, y: 863.683}
+  m_UIPosition: {x: -8.9257145, y: 819.983}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -2458,7 +2458,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"x":0.0,"y":0.0,"z":0.10000000149011612}'
+      m_SerializableObject: '{"x":0.0,"y":0.0,"z":-0.10000000149011612}'
   m_Property:
     name: targetOffset
     m_serializedType:
@@ -2652,7 +2652,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114882977597121960}
   m_Children: []
-  m_UIPosition: {x: 681, y: 736}
+  m_UIPosition: {x: 287.69998, y: 692.3}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3963,7 +3963,7 @@ VFXAsset:
       - m_ExpressionIndex: 37
         m_Value: 10000
       - m_ExpressionIndex: 38
-        m_Value: 0.1
+        m_Value: -0.1
       - m_ExpressionIndex: 39
         m_Value: 1
       - m_ExpressionIndex: 50

@@ -27,9 +27,10 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 			offsets.z = float((id & 7) >> 2);
 			offsets = offsets * 2.0f - 1.0f;
 			
-			float3 vPos = position;
-			float3x3 rot = GetRotationMatrix(front,radians(angle));
-			vPos += TransformInElementSpace(offsets,side,up,front,rot,pivot,float3(size,min(size.x,size.y)));
+			float3x3 rot = GetEulerMatrix(float3(0,0,radians(angle)));
+			float4x4 primitiveToVFX = GetPrimitiveToVFXMatrix(side,up,front,float3(0,0,angle),pivot,float3(size,min(size.x,size.y)),position);
+			
+			float3 vPos = mul(primitiveToVFX,float4(offsets,1.0f)).xyz;
 			float3 vPosWS = TransformPositionVFXToWorld(vPos);
 			
 #ifdef VFX_VARYING_POSWS
@@ -39,7 +40,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 			o.VFX_VARYING_OFFSETS = offsets;
 #endif
 #if defined(VFX_VARYING_ROTX) && defined(VFX_VARYING_ROTY)
-			rot = mul(rot,transpose(float3x3(side,up,front)));
+			rot = mul(transpose(float3x3(side,up,front)),rot);
 			o.VFX_VARYING_ROTX = rot[0];
 			o.VFX_VARYING_ROTY = rot[1];
 #endif
@@ -74,7 +75,7 @@ float3 VFXCubeTransformNormalTS(float3 faceNormal,float3 normal)
 float3 VFXCubeTransformNormalWS(VFX_VARYING_PS_INPUTS i,float3 normal)
 {
 #if defined(VFX_VARYING_ROTX) && defined(VFX_VARYING_ROTY)
-	float3x3 rot = float3x3(i.rotX,i.rotY,cross(i.rotY,i.rotX));
+	float3x3 rot = float3x3(i.rotX,i.rotY,cross(i.rotX,i.rotY));
 	return mul(rot,normal);
 #else
 	return normal;

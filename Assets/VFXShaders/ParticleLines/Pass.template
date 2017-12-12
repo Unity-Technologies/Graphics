@@ -24,14 +24,12 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 				return o;
 			
 			float4x4 primitiveToVFX = GetPrimitiveToVFXMatrix(side,up,front,float3(0,0,angle),pivot,float3(size,1.0f),position);
-			// test inverse
-			//primitiveToVFX = mul(GetVFXToPrimitiveMatrix(side,up,front,float3(0,0,angle),pivot,float3(size,1.0f),position),primitiveToVFX);
-			//primitiveToVFX = mul(GetPrimitiveToVFXMatrix(side,up,front,float3(0,0,angle),pivot,float3(size,1.0f),position),primitiveToVFX);
+
 			#if TARGET_FROM_ATTRIBUTES			
-			position = mul(primitiveToVFX,float4(0,0,0,1));
+			position = mul(primitiveToVFX,float4(0,0,0,1)).xyz;
 			
 			${VFXLoadParameter:{targetOffset}}
-			targetPosition = mul(primitiveToVFX,float4(targetOffset,1));
+			targetPosition = mul(primitiveToVFX,float4(targetOffset,1)).xyz;
 			#endif
 				
 			float3 vPos = id & 1 ? targetPosition : position;
