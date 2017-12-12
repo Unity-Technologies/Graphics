@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.3661533, g: 0.3847445, b: 0.42534745, a: 1}
+  m_IndirectSpecularColor: {r: 0.07321051, g: 0.076927215, b: 0.08504366, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -557,13 +557,13 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 119984175}
-  m_LocalRotation: {x: -0, y: -0, z: 0.70710677, w: 0.7071068}
-  m_LocalPosition: {x: -2.429, y: -0.5, z: 0}
+  m_LocalRotation: {x: 0.059106357, y: -0.05910636, z: 0.7046321, w: 0.7046322}
+  m_LocalPosition: {x: -2.429, y: -2.11, z: -0.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1176110784}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90.00001}
+  m_LocalEulerAnglesHint: {x: 9.59, y: 0, z: 90.00001}
 --- !u!102 &119984177
 TextMesh:
   serializedVersion: 3
@@ -571,9 +571,9 @@ TextMesh:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 119984175}
-  m_Text: Spot Point
+  m_Text: ' Line  Rect. Spot Point'
   m_OffsetZ: 0
-  m_CharacterSize: 0.2
+  m_CharacterSize: 0.15
   m_LineSpacing: 1
   m_Anchor: 7
   m_Alignment: 1
@@ -828,7 +828,7 @@ Light:
   serializedVersion: 8
   m_Type: 2
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 3.14
+  m_Intensity: 1
   m_Range: 0.6
   m_SpotAngle: 140
   m_CookieSize: 10
@@ -1150,7 +1150,7 @@ Light:
   serializedVersion: 8
   m_Type: 2
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 3.14
+  m_Intensity: 1
   m_Range: 0.6
   m_SpotAngle: 140
   m_CookieSize: 10
@@ -2817,7 +2817,7 @@ Light:
   m_Type: 2
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
-  m_Range: 0.6
+  m_Range: 0.8
   m_SpotAngle: 140
   m_CookieSize: 10
   m_Shadows:
@@ -3861,7 +3861,7 @@ Light:
   m_Type: 2
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
-  m_Range: 0.7
+  m_Range: 0.8
   m_SpotAngle: 30
   m_CookieSize: 10
   m_Shadows:
@@ -3989,7 +3989,7 @@ Light:
   m_Type: 2
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
-  m_Range: 0.7
+  m_Range: 0.8
   m_SpotAngle: 30
   m_CookieSize: 10
   m_Shadows:
@@ -4511,7 +4511,7 @@ Light:
   m_Type: 2
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
-  m_Range: 0.6
+  m_Range: 0.8
   m_SpotAngle: 140
   m_CookieSize: 10
   m_Shadows:
@@ -5011,7 +5011,7 @@ Light:
   m_Type: 2
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
-  m_Range: 0.6
+  m_Range: 0.8
   m_SpotAngle: 140
   m_CookieSize: 10
   m_Shadows:
@@ -5173,7 +5173,7 @@ Light:
   m_Type: 2
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
-  m_Range: 0.7
+  m_Range: 0.8
   m_SpotAngle: 179
   m_CookieSize: 10
   m_Shadows:
@@ -6011,7 +6011,7 @@ Light:
   m_Type: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
-  m_Range: 0.6
+  m_Range: 0.7
   m_SpotAngle: 179
   m_CookieSize: 10
   m_Shadows:
@@ -6756,6 +6756,26 @@ Prefab:
       value: 
       objectReference: {fileID: 11400000, guid: 6afe60f7be788644f84fb8dc55566ff7,
         type: 2}
+    - target: {fileID: 114110876577682668, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 2}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 20109210616973140, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 2}
+      propertyPath: m_BackGroundColor.r
+      value: 0.2509804
+      objectReference: {fileID: 0}
+    - target: {fileID: 20109210616973140, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 2}
+      propertyPath: m_BackGroundColor.g
+      value: 0.2509804
+      objectReference: {fileID: 0}
+    - target: {fileID: 20109210616973140, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 2}
+      propertyPath: m_BackGroundColor.b
+      value: 0.2509804
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 2}
   m_IsPrefabParent: 0
@@ -8885,7 +8905,7 @@ Light:
   m_Type: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
-  m_Range: 0.6
+  m_Range: 0.7
   m_SpotAngle: 179
   m_CookieSize: 10
   m_Shadows:
@@ -9013,7 +9033,7 @@ Light:
   m_Type: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
-  m_Range: 0.6
+  m_Range: 0.7
   m_SpotAngle: 179
   m_CookieSize: 10
   m_Shadows:
@@ -9833,7 +9853,7 @@ Light:
   serializedVersion: 8
   m_Type: 2
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 3.14
+  m_Intensity: 1
   m_Range: 0.6
   m_SpotAngle: 140
   m_CookieSize: 10
