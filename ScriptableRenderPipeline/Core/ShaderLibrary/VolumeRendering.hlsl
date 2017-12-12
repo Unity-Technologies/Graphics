@@ -108,19 +108,19 @@ void ImportanceSamplePunctualLight(float rndVal, float3 lightPosition,
     float a    = tMin - originToLightProj;
     float b    = tMax - originToLightProj;
     float dSq  = rayToLightDistSq;
-    float d    = sqrt(dSq);
-    float dInv = rsqrt(dSq);
+    float dRcp = rsqrt(dSq);
+    float d    = dSq * dRcp;
 
     // TODO: optimize me. :-(
-    float theta0 = FastATan(a * dInv);
-    float theta1 = FastATan(b * dInv);
+    float theta0 = FastATan(a * dRcp);
+    float theta1 = FastATan(b * dRcp);
     float gamma  = theta1 - theta0;
     float theta  = lerp(theta0, theta1, rndVal);
     float t      = d * tan(theta);
 
     dist   = originToLightProj + t;
     rSq    = dSq + t * t;
-    rcpPdf = gamma * rSq * dInv;
+    rcpPdf = gamma * rSq * dRcp;
 }
 
 // Absorption coefficient from Disney: http://blog.selfshadow.com/publications/s2015-shading-course/burley/s2015_pbs_disney_bsdf_notes.pdf
@@ -129,9 +129,7 @@ float3 TransmittanceColorAtDistanceToAbsorption(float3 transmittanceColor, float
     return -log(transmittanceColor + FLT_EPS) / max(atDistance, FLT_EPS);
 }
 
-#ifndef USE_LEGACY_UNITY_SHADER_VARIABLES
-    #define VOLUMETRIC_LIGHTING_ENABLED
-#endif
+#define VOLUMETRIC_LIGHTING_ENABLED
 
 #ifdef PRESET_ULTRA
     // E.g. for 1080p: (1920/4)x(1080/4)x(256) = 33,177,600 voxels
