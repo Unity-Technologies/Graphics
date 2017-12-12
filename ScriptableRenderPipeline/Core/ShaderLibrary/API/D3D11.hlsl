@@ -30,11 +30,8 @@
 #define TEXTURE3D(textureName) Texture3D textureName
 #define RW_TEXTURE2D(type, textureName) RWTexture2D<type> textureName
 
-#define SAMPLER2D(samplerName) SamplerState samplerName
-#define SAMPLERCUBE(samplerName) SamplerState samplerName
-#define SAMPLER3D(samplerName) SamplerState samplerName
-#define SAMPLER2D_SHADOW(samplerName) SamplerComparisonState samplerName
-#define SAMPLERCUBE_SHADOW(samplerName) SamplerComparisonState samplerName
+#define SAMPLER(samplerName) SamplerState samplerName
+#define SAMPLER_CMP(samplerName) SamplerComparisonState samplerName
 
 #define TEXTURE2D_ARGS(textureName, samplerName) Texture2D textureName, SamplerState samplerName
 #define TEXTURE2D_ARRAY_ARGS(textureName, samplerName) Texture2DArray textureName, SamplerState samplerName
@@ -80,8 +77,8 @@
 #define TEXTURE2D_FLOAT TEXTURE2D
 #define TEXTURE3D_HALF TEXTURE3D
 #define TEXTURE3D_FLOAT TEXTURE3D
-#define SAMPLER2D_HALF SAMPLER2D
-#define SAMPLER2D_FLOAT SAMPLER2D
+#define SAMPLER_HALF SAMPLER
+#define SAMPLER_FLOAT SAMPLER
 
 #define LOAD_TEXTURE2D(textureName, unCoord2) textureName.Load(int3(unCoord2, 0))
 #define LOAD_TEXTURE2D_LOD(textureName, unCoord2, lod) textureName.Load(int3(unCoord2, lod))

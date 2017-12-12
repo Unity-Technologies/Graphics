@@ -18,7 +18,7 @@
             #pragma target 3.0
 
             TEXTURECUBE(_InputTex);
-            SAMPLERCUBE(sampler_InputTex);
+            SAMPLER(sampler_InputTex);
 
             float _FaceIndex;
             float _LoD;
