@@ -109,6 +109,9 @@ namespace UnityEditor.ShaderGraph
 
         protected abstract MethodInfo GetFunctionToConvert();
 
+        public class ColorRGBA { };
+        public class ColorRGB { };
+
         private static SlotValueType ConvertTypeToSlotValueType(ParameterInfo p)
         {
             Type t = p.ParameterType;
@@ -132,6 +135,14 @@ namespace UnityEditor.ShaderGraph
                 return SlotValueType.Vector4;
             }
             if (t == typeof(Color))
+            {
+                return SlotValueType.Vector4;
+            }
+            if (t == typeof(ColorRGBA))
+            {
+                return SlotValueType.Vector4;
+            }
+            if (t == typeof(ColorRGB))
             {
                 return SlotValueType.Vector4;
             }
@@ -183,7 +194,11 @@ namespace UnityEditor.ShaderGraph
 
                 MaterialSlot s;
                 if (attribute.binding == Binding.None && !par.IsOut && par.ParameterType == typeof(Color))
-                    s = new ColorMaterialSlot(attribute.slotId, par.Name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, hidden: attribute.hidden);
+                    s = new ColorRGBAMaterialSlot(attribute.slotId, par.Name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, hidden: attribute.hidden);
+                else if (attribute.binding == Binding.None && !par.IsOut && par.ParameterType == typeof(ColorRGBA))
+                    s = new ColorRGBAMaterialSlot(attribute.slotId, par.Name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, hidden: attribute.hidden);
+                else if (attribute.binding == Binding.None && !par.IsOut && par.ParameterType == typeof(ColorRGB))
+                    s = new ColorRGBMaterialSlot(attribute.slotId, par.Name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector3.zero, hidden: attribute.hidden);
                 else if (attribute.binding == Binding.None || par.IsOut)
                     s = MaterialSlot.CreateMaterialSlot(
                             ConvertTypeToSlotValueType(par),
