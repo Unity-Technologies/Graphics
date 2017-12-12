@@ -13,7 +13,7 @@ Shader "Hidden/BlitCubemap" {
             #include "ShaderLibrary/Common.hlsl"
 
             TEXTURECUBE(_MainTex);
-            SAMPLERCUBE(sampler_MainTex);
+            SAMPLER(sampler_MainTex);
             float _faceIndex;
 
             struct appdata_t {

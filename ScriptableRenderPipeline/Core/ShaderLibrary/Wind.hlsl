@@ -1,8 +1,8 @@
 // Globals
 TEXTURE2D(WIND_SETTINGS_TexNoise);
-SAMPLER2D(sampler_WIND_SETTINGS_TexNoise);
+SAMPLER(sampler_WIND_SETTINGS_TexNoise);
 TEXTURE2D(WIND_SETTINGS_TexGust);
-SAMPLER2D(sampler_WIND_SETTINGS_TexGust);
+SAMPLER(sampler_WIND_SETTINGS_TexGust);
 
 float4  WIND_SETTINGS_WorldDirectionAndSpeed;
 float   WIND_SETTINGS_FlexNoiseScale;
