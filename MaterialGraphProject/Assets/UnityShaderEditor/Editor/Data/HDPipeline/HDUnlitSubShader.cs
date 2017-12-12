@@ -7,9 +7,20 @@ namespace UnityEditor.ShaderGraph
 {
     public class HDUnlitSubShader
     {
-        Pass m_UnlitPass = new Pass()
+        struct Pass
         {
-            Name = "Unlit",
+            public string Name;
+            public string ShaderPassName;
+            public string ShaderPassInclude;
+            public List<int> VertexShaderSlots;
+            public List<int> PixelShaderSlots;
+        }
+
+        Pass m_UnlitPassForwardOnly = new Pass()
+        {
+            Name = "ForwardOnly",
+            ShaderPassName = "SHADERPASS_FORWARD_UNLIT",
+            ShaderPassInclude = "ShaderPassForwardUnlit",
             PixelShaderSlots = new List<int>()
             {
                 UnlitMasterNode.ColorSlotId,
@@ -17,14 +28,19 @@ namespace UnityEditor.ShaderGraph
             }
         };
 
-        struct Pass
+        Pass m_UnlitPassForwardDepthOnly = new Pass()
         {
-            public string Name;
-            public List<int> VertexShaderSlots;
-            public List<int> PixelShaderSlots;
-        }
+            Name = "DepthForwardOnly",
+            ShaderPassName = "SHADERPASS_DEPTH_ONLY",
+            ShaderPassInclude = "ShaderPassDepthOnly",
+            PixelShaderSlots = new List<int>()
+            {
+                UnlitMasterNode.ColorSlotId,
+                UnlitMasterNode.AlphaSlotId
+            }
+        };
 
-        private static string GetShaderPassFromTemplate(string template, UnlitMasterNode masterNode, Pass pass, GenerationMode mode)
+        private static string GetShaderPassFromTemplate(UnlitMasterNode masterNode, Pass pass, GenerationMode mode)
         {
             var surfaceDescriptionFunction = new ShaderGenerator();
             var surfaceDescriptionStruct = new ShaderGenerator();
@@ -50,6 +66,7 @@ namespace UnityEditor.ShaderGraph
 
 
             ShaderGenerator defines = new ShaderGenerator();
+            defines.AddShaderChunk(string.Format("#define SHADERPASS {0}", pass.ShaderPassName), true);
 
             if (requirements.requiresVertexColor)
                 surfaceInputs.AddShaderChunk(string.Format("float4 {0};", ShaderGeneratorNames.VertexColor), false);
@@ -140,7 +157,7 @@ namespace UnityEditor.ShaderGraph
                 reqs,
                 CoordinateSpace.World);*/
 
-            var templateLocation = ShaderGenerator.GetTemplatePath(template);
+            var templateLocation = ShaderGenerator.GetTemplatePath("HDUnlitPassForward.template");
 
             foreach (var slot in usedSlots)
             {
@@ -158,6 +175,8 @@ namespace UnityEditor.ShaderGraph
             resultPass = resultPass.Replace("${LocalPixelShader}", localPixelShader.GetShaderString(3));
             resultPass = resultPass.Replace("${SurfaceInputs}", localSurfaceInputs.GetShaderString(3));
             resultPass = resultPass.Replace("${SurfaceOutputRemap}", surfaceOutputRemap.GetShaderString(3));
+            resultPass = resultPass.Replace("${LightMode}", pass.Name);
+            resultPass = resultPass.Replace("${ShaderPassInclude}", pass.ShaderPassInclude);
 
             resultPass = resultPass.Replace("${Tags}", tagsVisitor.GetShaderString(2));
             resultPass = resultPass.Replace("${Blending}", blendingVisitor.GetShaderString(2));
@@ -178,17 +197,15 @@ namespace UnityEditor.ShaderGraph
 
             subShader.AddShaderChunk(
                 GetShaderPassFromTemplate(
-                    "HDUnlitPassForwardDepthOnly.template",
                     masterNode,
-                    m_UnlitPass,
+                    m_UnlitPassForwardDepthOnly,
                     mode),
                 true);
 
             subShader.AddShaderChunk(
                 GetShaderPassFromTemplate(
-                    "HDUnlitPassForward.template",
                     masterNode,
-                    m_UnlitPass,
+                    m_UnlitPassForwardOnly,
                     mode),
                 true);
 

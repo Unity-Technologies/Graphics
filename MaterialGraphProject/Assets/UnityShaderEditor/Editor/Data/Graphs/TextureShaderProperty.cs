@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetPropertyDeclarationString()
         {
-            return "UNITY_DECLARE_TEX2D(" + referenceName + ");";
+            return string.Format("TEXTURE2D({0});\nSAMPLER2D(sampler{0});", referenceName);
         }
 
         public override string GetInlinePropertyDeclarationString()
