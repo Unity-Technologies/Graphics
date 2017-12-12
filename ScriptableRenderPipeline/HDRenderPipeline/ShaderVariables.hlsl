@@ -199,7 +199,7 @@ SAMPLER(s_trilinear_clamp_sampler);
 
 // ----------------------------------------------------------------------------
 
-TEXTURE2D_FLOAT(_MainDepthTexture);
+TEXTURE2D(_MainDepthTexture);
 SAMPLER(sampler_MainDepthTexture);
 
 // Main lightmap
@@ -218,7 +218,7 @@ TEXTURE2D(unity_DynamicDirectionality);
 TEXTURE2D(unity_ShadowMask);
 
 // TODO: Change code here so probe volume use only one transform instead of all this parameters!
-TEXTURE3D_FLOAT(unity_ProbeVolumeSH);
+TEXTURE3D(unity_ProbeVolumeSH);
 SAMPLER(samplerunity_ProbeVolumeSH);
 
 CBUFFER_START(UnityVelocityPass)
