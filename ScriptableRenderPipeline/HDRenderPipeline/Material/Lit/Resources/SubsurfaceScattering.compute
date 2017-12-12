@@ -84,10 +84,10 @@ float4 LoadSampleFromVideoMemory(int2 pixelCoord)
 }
 
 // Returns {irradiance, linearDepth}.
-float4 LoadSample(int2 pixelCoord, int2 cacheAnchor)
+float4 LoadSample(int2 pixelCoord, int2 cacheOffset)
 {
 #if SSS_USE_LDS_CACHE
-    int2 cacheCoord = pixelCoord - cacheAnchor;
+    int2 cacheCoord = pixelCoord - cacheOffset;
     bool isInCache  = max((uint)cacheCoord.x, (uint)cacheCoord.y) < TEXTURE_CACHE_SIZE_1D;
 
     [branch] if (isInCache)
@@ -142,7 +142,7 @@ float3 ComputeBilateralWeight(float xy2, float z, float mmPerUnit, float3 S, flo
 #endif
 }
 
-void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, float2 centerCoord, int2 cacheAnchor,
+void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, float2 centerCoord, int2 cacheOffset,
                     float3 shapeParam, float3 centerPosVS, float mmPerUnit, float2 pixelsPerMm,
                     float3 tangentX, float3 tangentY, float4x4 projMatrix,
                     inout float3 totalIrradiance, inout float3 totalWeight)
@@ -167,7 +167,7 @@ void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, float2 cen
         xy2      = r * r;
     #endif
 
-    float4 textureSample = LoadSample(position, cacheAnchor);
+    float4 textureSample = LoadSample(position, cacheOffset);
     float3 irradiance    = textureSample.rgb;
 
     // Check the results of the stencil test.
@@ -206,35 +206,34 @@ void StoreResult(uint2 pixelCoord, float3 irradiance)
 #pragma kernel SubsurfaceScattering
 
 [numthreads(GROUP_SIZE_2D, 1, 1)]
-void SubsurfaceScattering(uint3 groupId       : SV_GroupID,
-                          uint  groupThreadId : SV_GroupThreadID)
+void SubsurfaceScattering(uint3 reorderedGroupId : SV_GroupID,
+                          uint  groupThreadId    : SV_GroupThreadID)
 {
-    // We dispatch 4x swizzled 16x16 groups per a 32x32 macrotile.
-    // Therefore, we need to unswizzle. TODO: macrotile order.
-    uint2 groupOffset = DeinterleaveQuad(groupId.x);
-    uint2 groupCoord  = uint2(groupId.y * 2 + groupOffset.x, groupId.z * 2 + groupOffset.y);
-
     // Note: any factor of 64 is a suitable wave size for our algorithm.
     uint waveIndex = WaveReadFirstLane(groupThreadId / 64);
     uint laneIndex = groupThreadId % 64;
     uint quadIndex = laneIndex / 4;
 
+    // We dispatch 4x swizzled 16x16 groups per a 32x32 macrotile.
+    // Therefore, we need to reorder. TODO: macrotile order.
+    uint2 groupQuad = DeinterleaveQuad(reorderedGroupId.x);
+    uint2 groupId   = uint2(reorderedGroupId.y * 2 + groupQuad.x, reorderedGroupId.z * 2 + groupQuad.y);
+
     // Arrange threads in the Morton order to optimally match the memory layout of GCN tiles.
-    uint  mortonCode  = groupThreadId;
-    uint2 localCoord  = DecodeMorton2D(mortonCode);
-    uint2 groupAnchor = groupCoord * GROUP_SIZE_1D;
-    uint2 pixelCoord  = groupAnchor + localCoord;
-    int2  cacheAnchor = (int2)groupAnchor - TEXTURE_CACHE_BORDER;
-    uint2 cacheCoord  = localCoord + TEXTURE_CACHE_BORDER;
-    float stencilRef  = STENCILLIGHTINGUSAGE_SPLIT_LIGHTING;
+    uint2 groupCoord  = DecodeMorton2D(groupThreadId);
+    uint2 groupOffset = groupId * GROUP_SIZE_1D;
+    uint2 pixelCoord  = groupOffset + groupCoord;
+    int2  cacheOffset = (int2)groupOffset - TEXTURE_CACHE_BORDER;
 
     [branch] if (groupThreadId == 0)
     {
+        float stencilRef = STENCILLIGHTINGUSAGE_SPLIT_LIGHTING;
+
         // Check whether the thread group needs to perform any work.
-        float s00 = LOAD_TEXTURE2D(_HTile, 2 * groupCoord + uint2(0, 0)).r;
-        float s10 = LOAD_TEXTURE2D(_HTile, 2 * groupCoord + uint2(1, 0)).r;
-        float s01 = LOAD_TEXTURE2D(_HTile, 2 * groupCoord + uint2(0, 1)).r;
-        float s11 = LOAD_TEXTURE2D(_HTile, 2 * groupCoord + uint2(1, 1)).r;
+        float s00 = LOAD_TEXTURE2D(_HTile, 2 * groupId + uint2(0, 0)).r;
+        float s10 = LOAD_TEXTURE2D(_HTile, 2 * groupId + uint2(1, 0)).r;
+        float s01 = LOAD_TEXTURE2D(_HTile, 2 * groupId + uint2(0, 1)).r;
+        float s11 = LOAD_TEXTURE2D(_HTile, 2 * groupId + uint2(1, 1)).r;
 
         // Perform the stencil test (reject at the tile rate).
         processGroup = (stencilRef == s00 || stencilRef == s10 || stencilRef == s01 || stencilRef == s11);
@@ -258,6 +257,7 @@ void SubsurfaceScattering(uint3 groupId       : SV_GroupID,
     }
 
 #if SSS_USE_LDS_CACHE
+    uint2 cacheCoord = groupCoord + TEXTURE_CACHE_BORDER;
     // Populate the central region of the LDS cache.
     textureCache[Mad24(TEXTURE_CACHE_SIZE_1D, cacheCoord.y, cacheCoord.x)] = float4(centerIrradiance, centerViewZ);
 
@@ -296,7 +296,7 @@ void SubsurfaceScattering(uint3 groupId       : SV_GroupID,
         }
 
         uint2  cacheCoord2 = 2 * (startQuad + quadCoord) + DeinterleaveQuad(laneIndex);
-        int2   pixelCoord2 = (int2)(groupAnchor + cacheCoord2) - TEXTURE_CACHE_BORDER;
+        int2   pixelCoord2 = (int2)(groupOffset + cacheCoord2) - TEXTURE_CACHE_BORDER;
         float3 irradiance2 = LOAD_TEXTURE2D(_IrradianceSource, pixelCoord2).rgb;
         float  viewZ2      = 0;
 
@@ -328,10 +328,10 @@ void SubsurfaceScattering(uint3 groupId       : SV_GroupID,
     float  maxDistance = _ShapeParams[profileID].a;
 
     // Reconstruct the view-space position corresponding to the central sample.
-    float2 centerPosSS = posInput.positionNDC;
-    float2 cornerPosSS = centerPosSS + 0.5 * _ScreenSize.zw;
-    float3 centerPosVS = ComputeViewSpacePosition(centerPosSS, centerDepth, UNITY_MATRIX_I_P);
-    float3 cornerPosVS = ComputeViewSpacePosition(cornerPosSS, centerDepth, UNITY_MATRIX_I_P);
+    float2 centerPosNDC = posInput.positionNDC;
+    float2 cornerPosNDC = centerPosNDC + 0.5 * _ScreenSize.zw;
+    float3 centerPosVS  = ComputeViewSpacePosition(centerPosNDC, centerDepth, UNITY_MATRIX_I_P);
+    float3 cornerPosVS  = ComputeViewSpacePosition(cornerPosNDC, centerDepth, UNITY_MATRIX_I_P);
 
     // Rescaling the filter is equivalent to inversely scaling the world.
     float mmPerUnit  = MILLIMETERS_PER_METER * (_WorldScales[profileID].x / distScale);
@@ -415,7 +415,7 @@ void SubsurfaceScattering(uint3 groupId       : SV_GroupID,
     for (i = 1, n = SSS_N_SAMPLES_FAR_FIELD; i < n; i++)
     {
         // Integrate over the image or tangent plane in the view space.
-        EvaluateSample(i, n, profileID, iR, iP, pixelCoord + 0.5, cacheAnchor,
+        EvaluateSample(i, n, profileID, iR, iP, pixelCoord + 0.5, cacheOffset,
                        shapeParam, centerPosVS, mmPerUnit, pixelsPerMm,
                        tangentX, tangentY, projMatrix,
                        totalIrradiance, totalWeight);
@@ -431,7 +431,7 @@ void SubsurfaceScattering(uint3 groupId       : SV_GroupID,
     for (i = SSS_N_SAMPLES_FAR_FIELD, n = SSS_N_SAMPLES_NEAR_FIELD; i < n; i++)
     {
         // Integrate over the image or tangent plane in the view space.
-        EvaluateSample(i, n, profileID, iR, iP, pixelCoord + 0.5, cacheAnchor,
+        EvaluateSample(i, n, profileID, iR, iP, pixelCoord + 0.5, cacheOffset,
                        shapeParam, centerPosVS, mmPerUnit, pixelsPerMm,
                        tangentX, tangentY, projMatrix,
                        totalIrradiance, totalWeight);
