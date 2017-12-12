@@ -19,16 +19,6 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public bool HasComponent<T>()
-        {
-            return HasComponent(typeof(T));
-        }
-
-        public bool HasComponent(Type type)
-        {
-            return components.ContainsKey(type);
-        }
-
         public T GetComponent<T>()
             where T : VolumeComponent
         {
