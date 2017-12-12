@@ -254,7 +254,10 @@ namespace UnityEditor.VFX
             switch (type)
             {
                 case VFXValueType.kTexture2D: return "VFXSampler2D";
+                case VFXValueType.kTexture2DArray: return "VFXSampler2DArray";
                 case VFXValueType.kTexture3D: return "VFXSampler3D";
+                case VFXValueType.kTextureCube: return "VFXSamplerCube";
+                case VFXValueType.kTextureCubeArray: return "VFXSamplerCubeArray";
 
                 default:
                     return VFXExpression.TypeToCode(type);
@@ -267,7 +270,10 @@ namespace UnityEditor.VFX
             switch (expression.valueType)
             {
                 case VFXValueType.kTexture2D:
-                case VFXValueType.kTexture3D: return string.Format("GetVFXSampler({0}, {1})", expressionName, ("sampler" + expressionName));
+                case VFXValueType.kTexture2DArray:
+                case VFXValueType.kTexture3D:
+                case VFXValueType.kTextureCube:
+                case VFXValueType.kTextureCubeArray: return string.Format("GetVFXSampler({0}, {1})", expressionName, ("sampler" + expressionName));
 
                 default:
                     return expressionName;

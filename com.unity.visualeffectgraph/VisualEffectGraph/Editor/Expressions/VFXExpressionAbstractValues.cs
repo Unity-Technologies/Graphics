@@ -177,7 +177,10 @@ namespace UnityEditor.VFX
             if (t == typeof(int)) return VFXValueType.kInt;
             if (t == typeof(uint)) return VFXValueType.kUint;
             if (t == typeof(Texture2D)) return VFXValueType.kTexture2D;
+            if (t == typeof(Texture2DArray)) return VFXValueType.kTexture2DArray;
             if (t == typeof(Texture3D)) return VFXValueType.kTexture3D;
+            if (t == typeof(Cubemap)) return VFXValueType.kTextureCube;
+            if (t == typeof(CubemapArray)) return VFXValueType.kTextureCubeArray;
             if (t == typeof(Matrix4x4)) return VFXValueType.kTransform;
             if (t == typeof(AnimationCurve)) return VFXValueType.kCurve;
             if (t == typeof(Gradient)) return VFXValueType.kColorGradient;
