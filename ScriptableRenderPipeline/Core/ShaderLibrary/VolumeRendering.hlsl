@@ -144,7 +144,7 @@ float3 TransmittanceColorAtDistanceToAbsorption(float3 transmittanceColor, float
 #endif // PRESET_ULTRA
 
 float4 GetInScatteredRadianceAndTransmittance(float2 positionNDC, float linearDepth,
-                                              TEXTURE3D(VBufferLighting), SAMPLER3D(linearClampSampler),
+                                              TEXTURE3D_ARGS(VBufferLighting, linearClampSampler),
                                               float2 VBufferScale, float4 VBufferDepthEncodingParams)
 {
     int   n = VBUFFER_SLICE_COUNT;
@@ -174,7 +174,7 @@ float4 GetInScatteredRadianceAndTransmittance(float2 positionNDC, float linearDe
 
 // A version without depth - returns the value for the far plane.
 float4 GetInScatteredRadianceAndTransmittance(float2 positionNDC,
-                                              TEXTURE3D(VBufferLighting), SAMPLER3D(linearClampSampler),
+                                              TEXTURE3D_ARGS(VBufferLighting, linearClampSampler),
                                               float2 VBufferScale)
 {
     // Account for the visible area of the VBuffer.

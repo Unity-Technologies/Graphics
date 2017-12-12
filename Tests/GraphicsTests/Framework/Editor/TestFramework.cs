@@ -23,12 +23,6 @@ namespace UnityEditor.Experimental.Rendering
             "RenderPipeline"
         };
 
-        private static readonly string[] s_PipelinePath =
-        {
-            "LightweightPipeline",
-            "HDRenderPipeline",
-        };
-
         // info that gets generated for use
         // in a dod way
         public struct TestInfo
@@ -48,37 +42,46 @@ namespace UnityEditor.Experimental.Rendering
 		// collect the scenes that we can use
         public static class CollectScenes
         {
-            public static IEnumerable scenes
+            public static IEnumerable HDScenes
             {
                 get
                 {
-                    var absoluteScenesPath = s_Path.Aggregate(s_RootPath, Path.Combine);
+                    return GetScenesForPipeline("HDRenderPipeline");
+                }
+            }
 
-                    foreach (var pipelinePath in s_PipelinePath)
+            public static IEnumerable LWScenes
+            {
+                get
+                {
+                    return GetScenesForPipeline("LightweightPipeline");
+                }
+            }
+
+            public static IEnumerable GetScenesForPipeline(string _pipelinePath)
+            {
+                var absoluteScenesPath = s_Path.Aggregate(s_RootPath, Path.Combine);
+
+                var filesPath = Path.Combine(absoluteScenesPath, _pipelinePath);
+
+                // find all the scenes
+                var allPaths = System.IO.Directory.GetFiles(filesPath, "*.unity", System.IO.SearchOption.AllDirectories);
+
+                // construct all the needed test infos
+                foreach (var path in allPaths)
+                {
+                    var p = new FileInfo(path);
+                    var split = s_Path.Aggregate("", Path.Combine);
+                    split = string.Format("{0}{1}", split, Path.DirectorySeparatorChar);
+                    var splitPaths = p.FullName.Split(new[] { split }, StringSplitOptions.RemoveEmptyEntries);
+
+                    yield return new TestInfo
                     {
-
-                        var filesPath = Path.Combine(absoluteScenesPath, pipelinePath);
-
-                        // find all the scenes
-                        var allPaths = System.IO.Directory.GetFiles(filesPath, "*.unity", System.IO.SearchOption.AllDirectories);
-
-                        // construct all the needed test infos
-                        foreach (var path in allPaths)
-                        {
-                            var p = new FileInfo(path);
-                            var split = s_Path.Aggregate("", Path.Combine);
-                            split = string.Format("{0}{1}", split, Path.DirectorySeparatorChar);
-                            var splitPaths = p.FullName.Split(new[] { split }, StringSplitOptions.RemoveEmptyEntries);
-
-                            yield return new TestInfo
-                            {
-                                name = p.Name,
-                                relativePath = splitPaths.Last(),
-                                threshold = 0.02f,
-                                frameWait = 100
-                            };
-                        }
-                    }
+                        name = p.Name,
+                        relativePath = splitPaths.Last(),
+                        threshold = 0.02f,
+                        frameWait = 100
+                    };
                 }
             }
         }
@@ -94,7 +97,18 @@ namespace UnityEditor.Experimental.Rendering
         }
 
         [UnityTest]
-        public IEnumerator TestScene([ValueSource(typeof(CollectScenes), "scenes")]TestInfo testInfo)
+        public IEnumerator HDRP_TestScene([ValueSource(typeof(CollectScenes), "HDScenes")]TestInfo testInfo)
+        {
+            return TestScene(testInfo);
+        }
+
+        [UnityTest]
+        public IEnumerator LWRP_TestScene([ValueSource(typeof(CollectScenes), "LWScenes")]TestInfo testInfo)
+        {
+            return TestScene(testInfo);
+        }
+
+        public IEnumerator TestScene(TestInfo testInfo)
         {
 			var prjRelativeGraphsPath = s_Path.Aggregate(s_RootPath, Path.Combine);
 			var filePath = Path.Combine(prjRelativeGraphsPath, testInfo.relativePath);

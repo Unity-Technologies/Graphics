@@ -20,7 +20,7 @@ Shader "Hidden/HDRenderPipeline/DebugDisplayLatlong"
             #include "ShaderLibrary/ImageBasedLighting.hlsl"
 
             TEXTURECUBE(_InputCubemap);
-            SAMPLERCUBE(sampler_InputCubemap);
+            SAMPLER(sampler_InputCubemap);
             float _Mipmap;
 
             struct Attributes
