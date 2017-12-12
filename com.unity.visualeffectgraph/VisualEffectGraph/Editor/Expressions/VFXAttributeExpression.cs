@@ -32,7 +32,9 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute SizeZ               = new VFXAttribute("sizeZ", VFXValue.Constant(kDefaultSize));
         public static readonly VFXAttribute Lifetime            = new VFXAttribute("lifetime", VFXValueType.kFloat);
         public static readonly VFXAttribute Age                 = new VFXAttribute("age", VFXValueType.kFloat);
-        public static readonly VFXAttribute Angle               = new VFXAttribute("angle", VFXValueType.kFloat);
+        public static readonly VFXAttribute AngleX              = new VFXAttribute("angleX", VFXValueType.kFloat);
+        public static readonly VFXAttribute AngleY              = new VFXAttribute("angleY", VFXValueType.kFloat);
+        public static readonly VFXAttribute AngleZ              = new VFXAttribute("angleZ", VFXValueType.kFloat);
         public static readonly VFXAttribute AngularVelocity     = new VFXAttribute("angularVelocity", VFXValueType.kFloat);
         public static readonly VFXAttribute TexIndex            = new VFXAttribute("texIndex", VFXValueType.kFloat);
         public static readonly VFXAttribute Pivot               = new VFXAttribute("pivot", VFXValueType.kFloat3);
@@ -82,6 +84,10 @@ namespace UnityEditor.VFX
             // TODO temp to avoid error
             if (attributeName == "size")
                 attributeName = "sizeX";
+
+            if (attributeName == "angle")
+                attributeName = "angleZ";
+
 
             if (!AllAttribute.Any(e => e.name == attributeName))
             {

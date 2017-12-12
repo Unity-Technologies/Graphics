@@ -125,29 +125,6 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
---- !u!114 &114085885132890078
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a971fa2e110a0ac42ac1d8dae408704b, type: 3}
-  m_Name: SetAttribute
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114911321011254540}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 0
-  m_UISuperCollapsed: 0
-  m_InputSlots:
-  - {fileID: 114485944634808706}
-  m_OutputSlots: []
-  m_Disabled: 0
-  attribute: angle
-  Composition: 0
-  Random: 0
 --- !u!114 &114117428237288382
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -626,6 +603,29 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
+--- !u!114 &114272371485863470
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a971fa2e110a0ac42ac1d8dae408704b, type: 3}
+  m_Name: SetAttribute
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 114911321011254540}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 0
+  m_UISuperCollapsed: 0
+  m_InputSlots:
+  - {fileID: 114986984578911784}
+  m_OutputSlots: []
+  m_Disabled: 0
+  attribute: angleZ
+  Composition: 0
+  Random: 0
 --- !u!114 &114283781044154516
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1379,39 +1379,6 @@ MonoBehaviour:
       m_Tooltip: The second operand.
   m_Direction: 0
   m_LinkedSlots: []
---- !u!114 &114485944634808706
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
-  m_Name: VFXSlotFloat
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114485944634808706}
-  m_MasterData:
-    m_Owner: {fileID: 114085885132890078}
-    m_Value:
-      m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
-          PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 0
-  m_Property:
-    name: Angle
-    m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-    attributes: []
-  m_Direction: 0
-  m_LinkedSlots:
-  - {fileID: 114772101669976220}
 --- !u!114 &114489193638112582
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2446,7 +2413,7 @@ MonoBehaviour:
     attributes: []
   m_Direction: 1
   m_LinkedSlots:
-  - {fileID: 114485944634808706}
+  - {fileID: 114986984578911784}
 --- !u!114 &114830241465320948
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2708,7 +2675,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114564606616422122}
   m_Children:
-  - {fileID: 114085885132890078}
+  - {fileID: 114272371485863470}
   m_UIPosition: {x: 5030.0645, y: 549.48425}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
@@ -2878,6 +2845,39 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
+--- !u!114 &114986984578911784
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: VFXSlotFloat
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 114986984578911784}
+  m_MasterData:
+    m_Owner: {fileID: 114272371485863470}
+    m_Value:
+      m_Type:
+        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+      m_SerializableObject: 0
+  m_Property:
+    name: AngleZ
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 0
+  m_LinkedSlots:
+  - {fileID: 114772101669976220}
 --- !u!114 &114988289777516988
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3353,24 +3353,24 @@ VFXAsset:
         bucket: 2000
         structure: 1
         element: 0
-    - name: angle
+    - name: angleZ
       type: 1
       offset:
         bucket: 2500
-        structure: 3
+        structure: 1
         element: 0
     - name: alive
       type: 14
       offset:
-        bucket: 2500
-        structure: 3
-        element: 1
+        bucket: 3000
+        structure: 2
+        element: 0
     - name: age
       type: 1
       offset:
-        bucket: 2500
-        structure: 3
-        element: 2
+        bucket: 3000
+        structure: 2
+        element: 1
   - type: 1
     size: 1
     capacity: 1
