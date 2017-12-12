@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.Test
 
             AssetDatabase.CreateAsset(asset, testAssetName);
 
-            m_ViewControlller = VFXViewController.Manager.GetController(asset);
+            m_ViewControlller = VFXViewController.GetController(asset);
 
             m_StartUndoGroupId = Undo.GetCurrentGroup();
         }

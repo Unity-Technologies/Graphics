@@ -121,7 +121,7 @@ namespace UnityEditor.VFX.Test
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
             window.Close();
             window = EditorWindow.GetWindow<VFXViewWindow>();
-            m_ViewController = VFXViewController.Manager.GetController(m_Asset, true);
+            m_ViewController = VFXViewController.GetController(m_Asset, true);
             window.graphView.controller = m_ViewController;
             //m_View = m_ViewControlller.View;
         }

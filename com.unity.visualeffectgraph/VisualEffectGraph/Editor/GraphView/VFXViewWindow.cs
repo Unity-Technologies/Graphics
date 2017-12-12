@@ -51,7 +51,7 @@ namespace  UnityEditor.VFX.UI
         {
             if (graphView.controller == null || graphView.controller.model != asset)
             {
-                graphView.controller = VFXViewController.Manager.GetController(asset, true);
+                graphView.controller = VFXViewController.GetController(asset, true);
             }
         }
 
@@ -85,7 +85,7 @@ namespace  UnityEditor.VFX.UI
             VFXAsset currentAsset = GetCurrentAsset();
             if (currentAsset != null)
             {
-                graphView.controller = VFXViewController.Manager.GetController(currentAsset, true);
+                graphView.controller = VFXViewController.GetController(currentAsset, true);
             }
 
             autoCompile = true;
@@ -127,7 +127,7 @@ namespace  UnityEditor.VFX.UI
 
                 if (controller == null || controller.model != objs[0] as VFXAsset)
                 {
-                    graphView.controller = VFXViewController.Manager.GetController(objs[0] as VFXAsset);
+                    graphView.controller = VFXViewController.GetController(objs[0] as VFXAsset);
                 }
             }
         }

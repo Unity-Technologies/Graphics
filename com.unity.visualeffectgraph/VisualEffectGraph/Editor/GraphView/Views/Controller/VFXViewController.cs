@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.UI
                 m_UseCount = value;
                 if (m_UseCount == 0)
                 {
-                    Manager.RemoveController(this);
+                    RemoveController(this);
                     this.OnDisable();
                 }
             }
@@ -582,36 +582,33 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public static class Manager
+        static Dictionary<VFXAsset, VFXViewController> s_Controllers = new Dictionary<VFXAsset, VFXViewController>();
+
+        public static VFXViewController GetController(VFXAsset asset, bool forceUpdate = false)
         {
-            static Dictionary<VFXAsset, VFXViewController> s_Controllers = new Dictionary<VFXAsset, VFXViewController>();
-
-            public static VFXViewController GetController(VFXAsset asset, bool forceUpdate = false)
+            VFXViewController controller;
+            if (!s_Controllers.TryGetValue(asset, out controller))
             {
-                VFXViewController controller;
-                if (!s_Controllers.TryGetValue(asset, out controller))
+                controller = new VFXViewController(asset);
+                s_Controllers[asset] = controller;
+            }
+            else
+            {
+                if (forceUpdate)
                 {
-                    controller = new VFXViewController(asset);
-                    s_Controllers[asset] = controller;
+                    controller.ForceReload();
                 }
-                else
-                {
-                    if (forceUpdate)
-                    {
-                        controller.ForceReload();
-                    }
-                }
-
-                return controller;
             }
 
-            static public void RemoveController(VFXViewController controller)
-            {
-                s_Controllers.Remove(controller.model);
-            }
+            return controller;
         }
 
-        public VFXViewController(VFXAsset vfx) : base(vfx)
+        static void RemoveController(VFXViewController controller)
+        {
+            s_Controllers.Remove(controller.model);
+        }
+
+        VFXViewController(VFXAsset vfx) : base(vfx)
         {
             Clear();
 

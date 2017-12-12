@@ -22,7 +22,7 @@ public class VFXAssetEditor : Editor
         VFXAsset asset = (VFXAsset)target;
         if (asset.graph != null)
         {
-            m_Controller = VFXViewController.Manager.GetController(asset);
+            m_Controller = VFXViewController.GetController(asset);
             m_Controller.useCount++;
         }
 
@@ -61,7 +61,7 @@ public class VFXAssetEditor : Editor
         VFXAsset asset = (VFXAsset)target;
         if (asset.graph != null && m_Controller == null)
         {
-            m_Controller = VFXViewController.Manager.GetController(asset);
+            m_Controller = VFXViewController.GetController(asset);
             m_Controller.useCount++;
         }
         if (m_Controller == null)

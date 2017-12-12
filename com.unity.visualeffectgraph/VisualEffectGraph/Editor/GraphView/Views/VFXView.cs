@@ -342,12 +342,11 @@ namespace UnityEditor.VFX.UI
                     m_ToggleMotionVectors.on = settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object;
                     m_ToggleMotionVectors.SetEnabled(true);
 
+
                     // if the asset dis destroy somehow, fox example if the user delete the asset, delete the controller and update the window.
                     VFXAsset asset = controller.model;
                     if (asset == null)
                     {
-                        VFXViewController.Manager.RemoveController(controller);
-
                         this.controller = null;
                         return;
                     }
@@ -549,7 +548,7 @@ namespace UnityEditor.VFX.UI
         {
             VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>("Assets/VFXEditor/Editor/Templates/DefaultParticleSystem.asset");
 
-            VFXViewController controller = VFXViewController.Manager.GetController(asset, true);
+            VFXViewController controller = VFXViewController.GetController(asset, true);
             controller.useCount++;
 
             object data = VFXCopyPaste.CreateCopy(controller.allChildren);

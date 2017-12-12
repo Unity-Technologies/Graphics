@@ -34,7 +34,7 @@ namespace UnityEditor.VFX.Test
 
             AssetDatabase.CreateAsset(asset, testAssetName);
 
-            m_ViewController = VFXViewController.Manager.GetController(asset);
+            m_ViewController = VFXViewController.GetController(asset);
 
             m_StartUndoGroupId = Undo.GetCurrentGroup();
         }
@@ -179,7 +179,7 @@ namespace UnityEditor.VFX.Test
         {
             VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>("Assets/VFXEditor/Editor/Tests/CopyPasteTest.asset");
 
-            VFXViewController controller = VFXViewController.Manager.GetController(asset, true);
+            VFXViewController controller = VFXViewController.GetController(asset, true);
 
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
             VFXView view = window.graphView;
