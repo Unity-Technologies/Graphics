@@ -9,7 +9,7 @@ using Delegate = System.Delegate;
 
 namespace UnityEditor.VFX.UI
 {
-    interface IValuePresenter
+    interface IValueController
     {
         object value { get; set; }
 
@@ -19,7 +19,7 @@ namespace UnityEditor.VFX.UI
 
     public class VFXValueGizmo
     {
-        static Dictionary<System.Type, System.Action<IValuePresenter, VFXComponent>> s_DrawFunctions;
+        static Dictionary<System.Type, System.Action<IValueController, VFXComponent>> s_DrawFunctions;
 
 
         const float handleSize = 0.1f;
@@ -27,7 +27,7 @@ namespace UnityEditor.VFX.UI
 
         static VFXValueGizmo()
         {
-            s_DrawFunctions = new Dictionary<System.Type, System.Action<IValuePresenter, VFXComponent>>();
+            s_DrawFunctions = new Dictionary<System.Type, System.Action<IValueController, VFXComponent>>();
 
             s_DrawFunctions[typeof(ArcCircle)] = OnDrawArcCircleDataAnchorGizmo;
             s_DrawFunctions[typeof(Sphere)] = OnDrawSphereDataAnchorGizmo;
@@ -50,7 +50,7 @@ namespace UnityEditor.VFX.UI
 
                     if (info != null)
                     {
-                        s_DrawFunctions[gizmoedType] = (System.Action<IValuePresenter, VFXComponent>)Delegate.CreateDelegate(typeof(System.Action<IValuePresenter, VFXComponent>), info);
+                        s_DrawFunctions[gizmoedType] = (System.Action<IValueController, VFXComponent>)Delegate.CreateDelegate(typeof(System.Action<IValueController, VFXComponent>), info);
                     }
                 }
             }
@@ -70,9 +70,9 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
-        static internal void Draw(IValuePresenter anchor, VFXComponent component)
+        static internal void Draw(IValueController anchor, VFXComponent component)
         {
-            System.Action<IValuePresenter, VFXComponent> func;
+            System.Action<IValueController, VFXComponent> func;
             if (s_DrawFunctions.TryGetValue(anchor.portType, out func))
             {
                 func(anchor, component);
@@ -150,7 +150,7 @@ namespace UnityEditor.VFX.UI
             return false;
         }
 
-        static void OnDrawPositionDataAnchorGizmo(IValuePresenter anchor, VFXComponent component)
+        static void OnDrawPositionDataAnchorGizmo(IValueController anchor, VFXComponent component)
         {
             Position pos = (Position)anchor.value;
 
@@ -160,7 +160,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static void OnDrawArcCircleDataAnchorGizmo(IValuePresenter anchor, VFXComponent component)
+        static void OnDrawArcCircleDataAnchorGizmo(IValueController anchor, VFXComponent component)
         {
             Matrix4x4 oldMatrix = Handles.matrix;
 
@@ -235,7 +235,7 @@ namespace UnityEditor.VFX.UI
             Handles.matrix = oldMatrix;
         }
 
-        static void OnDrawSphereDataAnchorGizmo(IValuePresenter anchor, VFXComponent component)
+        static void OnDrawSphereDataAnchorGizmo(IValueController anchor, VFXComponent component)
         {
             Sphere sphere = (Sphere)anchor.value;
 
@@ -276,7 +276,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static void OnDrawArcSphereDataAnchorGizmo(IValuePresenter anchor, VFXComponent component)
+        static void OnDrawArcSphereDataAnchorGizmo(IValueController anchor, VFXComponent component)
         {
             Matrix4x4 oldMatrix = Handles.matrix;
 
@@ -361,7 +361,7 @@ namespace UnityEditor.VFX.UI
             Handles.matrix = oldMatrix;
         }
 
-        static void OnDrawArcTorusDataAnchorGizmo(IValuePresenter anchor, VFXComponent component)
+        static void OnDrawArcTorusDataAnchorGizmo(IValueController anchor, VFXComponent component)
         {
             Matrix4x4 oldMatrix = Handles.matrix;
 
@@ -494,7 +494,7 @@ namespace UnityEditor.VFX.UI
                 Handles.CylinderHandleCap(controlID, Vector3.zero, Quaternion.identity, size, eventType);
         }
 
-        static void OnDrawAABoxDataAnchorGizmo(IValuePresenter anchor, VFXComponent component)
+        static void OnDrawAABoxDataAnchorGizmo(IValueController anchor, VFXComponent component)
         {
             AABox box = (AABox)anchor.value;
 
@@ -504,7 +504,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static void OnDrawOrientedBoxDataAnchorGizmo(IValuePresenter anchor, VFXComponent component)
+        static void OnDrawOrientedBoxDataAnchorGizmo(IValueController anchor, VFXComponent component)
         {
             OrientedBox box = (OrientedBox)anchor.value;
 
@@ -518,7 +518,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static void OnDrawPlaneDataAnchorGizmo(IValuePresenter anchor, VFXComponent component)
+        static void OnDrawPlaneDataAnchorGizmo(IValueController anchor, VFXComponent component)
         {
             Plane plane = (Plane)anchor.value;
 
@@ -551,7 +551,7 @@ namespace UnityEditor.VFX.UI
             EditorGUI.EndChangeCheck();
         }
 
-        static void OnDrawCylinderDataAnchorGizmo(IValuePresenter anchor, VFXComponent component)
+        static void OnDrawCylinderDataAnchorGizmo(IValueController anchor, VFXComponent component)
         {
             Cylinder cylinder = (Cylinder)anchor.value;
 
@@ -668,7 +668,7 @@ namespace UnityEditor.VFX.UI
             EditorGUI.EndChangeCheck();
         }
 
-        static bool OnDrawBoxDataAnchorGizmo(IValuePresenter anchor, VFXComponent component, CoordinateSpace space, ref Vector3 center, ref Vector3 size, Vector3 additionnalRotation)
+        static bool OnDrawBoxDataAnchorGizmo(IValueController anchor, VFXComponent component, CoordinateSpace space, ref Vector3 center, ref Vector3 size, Vector3 additionnalRotation)
         {
             var saveMatrix = Handles.matrix;
             if (space == CoordinateSpace.Local)
@@ -823,7 +823,7 @@ namespace UnityEditor.VFX.UI
             return changed;
         }
 
-        static void OnDrawArcConeDataAnchorGizmo(IValuePresenter anchor, VFXComponent component)
+        static void OnDrawArcConeDataAnchorGizmo(IValueController anchor, VFXComponent component)
         {
             ArcCone cone = (ArcCone)anchor.value;
 
@@ -964,7 +964,7 @@ namespace UnityEditor.VFX.UI
 
     class VFXPositionGizmo : VFXGizmo<Position>
     {
-        public static void OnDrawGizmo(IValuePresenter anchor, VFXComponent component)
+        public static void OnDrawGizmo(IValueController anchor, VFXComponent component)
         {
             Position pos = (Position)anchor.value;
 

@@ -9,18 +9,18 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXSlotContainerPresenter : VFXNodeController
+    class VFXSlotContainerController : VFXNodeController
     {
-        public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
+        public override void Init(VFXModel model, VFXViewController viewPresenter)
         {
             base.Init(model, viewPresenter);
 
             var settings = model.GetSettings(true);
-            m_Settings = new VFXSettingPresenter[settings.Count()];
+            m_Settings = new VFXSettingController[settings.Count()];
             int cpt = 0;
             foreach (var setting in settings)
             {
-                var settingPresenter = new VFXSettingPresenter();
+                var settingPresenter = new VFXSettingController();
                 settingPresenter.Init(this.slotContainer, setting.Name, setting.FieldType);
                 m_Settings[cpt++] = settingPresenter;
             }
@@ -29,28 +29,28 @@ namespace UnityEditor.VFX.UI
         protected override void ModelChanged(UnityEngine.Object obj)
         {
             var inputs = inputPorts;
-            List<VFXDataAnchorPresenter> newAnchors = new List<VFXDataAnchorPresenter>();
+            List<VFXDataAnchorController> newAnchors = new List<VFXDataAnchorController>();
 
             UpdateSlots(newAnchors, slotContainer.inputSlots, true, true);
 
             m_InputPorts = newAnchors;
-            newAnchors = new List<VFXDataAnchorPresenter>();
+            newAnchors = new List<VFXDataAnchorController>();
             UpdateSlots(newAnchors, slotContainer.outputSlots, true, false);
             m_OutputPorts = newAnchors;
 
             base.ModelChanged(obj);
         }
 
-        public override VFXSlotContainerPresenter slotContainerPresenter { get { return this; } }
+        public override VFXSlotContainerController slotContainerController { get { return this; } }
 
 
-        void UpdateSlots(List<VFXDataAnchorPresenter> newAnchors, IEnumerable<VFXSlot> slotList, bool expanded, bool input)
+        void UpdateSlots(List<VFXDataAnchorController> newAnchors, IEnumerable<VFXSlot> slotList, bool expanded, bool input)
         {
             VFXSlot[] slots = slotList.ToArray();
             {
                 foreach (VFXSlot slot in slots)
                 {
-                    VFXDataAnchorPresenter propPresenter = GetPropertyPresenter(slot, input);
+                    VFXDataAnchorController propPresenter = GetPropertyPresenter(slot, input);
 
                     if (propPresenter == null)
                     {
@@ -71,26 +71,26 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public VFXDataAnchorPresenter GetPropertyPresenter(VFXSlot slot, bool input)
+        public VFXDataAnchorController GetPropertyPresenter(VFXSlot slot, bool input)
         {
-            VFXDataAnchorPresenter result = null;
+            VFXDataAnchorController result = null;
 
             if (input)
-                result = inputPorts.Cast<VFXDataAnchorPresenter>().Where(t => t.model == slot).FirstOrDefault();
+                result = inputPorts.Cast<VFXDataAnchorController>().Where(t => t.model == slot).FirstOrDefault();
             else
-                result = outputPorts.Cast<VFXDataAnchorPresenter>().Where(t => t.model == slot).FirstOrDefault();
+                result = outputPorts.Cast<VFXDataAnchorController>().Where(t => t.model == slot).FirstOrDefault();
 
             return result;
         }
 
-        protected virtual VFXDataAnchorPresenter AddDataAnchor(VFXSlot slot, bool input, bool hidden)
+        protected virtual VFXDataAnchorController AddDataAnchor(VFXSlot slot, bool input, bool hidden)
         {
             return null;
         }
 
         public IVFXSlotContainer slotContainer { get { return model as IVFXSlotContainer; } }
 
-        public VFXSettingPresenter[] settings
+        public VFXSettingController[] settings
         {
             get { return m_Settings; }
         }
@@ -118,9 +118,9 @@ namespace UnityEditor.VFX.UI
 
         public virtual void DrawGizmos(VFXComponent component)
         {
-            foreach (VFXDataAnchorPresenter presenter in inputPorts.Cast<VFXDataAnchorPresenter>())
+            foreach (VFXDataAnchorController controller in inputPorts.Cast<VFXDataAnchorController>())
             {
-                presenter.DrawGizmo(component);
+                controller.DrawGizmo(component);
             }
         }
 
@@ -130,6 +130,6 @@ namespace UnityEditor.VFX.UI
         }
 
         [SerializeField]
-        private VFXSettingPresenter[] m_Settings;
+        private VFXSettingController[] m_Settings;
     }
 }

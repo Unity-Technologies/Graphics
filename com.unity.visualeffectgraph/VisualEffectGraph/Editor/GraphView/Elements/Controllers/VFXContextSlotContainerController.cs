@@ -9,9 +9,9 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXContextSlotContainerPresenter : VFXSlotContainerPresenter
+    class VFXContextSlotContainerController : VFXSlotContainerController
     {
-        protected override VFXDataAnchorPresenter AddDataAnchor(VFXSlot slot, bool input, bool hidden)
+        protected override VFXDataAnchorController AddDataAnchor(VFXSlot slot, bool input, bool hidden)
         {
             if (input)
             {
@@ -23,13 +23,13 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
-        public void Init(VFXModel model, VFXContextPresenter contextPresenter)
+        public void Init(VFXModel model, VFXContextController contextPresenter)
         {
             m_ContextPresenter = contextPresenter;
-            base.Init(model, contextPresenter.viewPresenter);
+            base.Init(model, contextPresenter.viewController);
         }
 
-        public VFXContextPresenter contextPresenter
+        public VFXContextController contextController
         {
             get { return m_ContextPresenter; }
         }
@@ -49,6 +49,6 @@ namespace UnityEditor.VFX.UI
             return typeof(ISpaceable).IsAssignableFrom(type) && field.Name == "space";
         }
 
-        protected VFXContextPresenter m_ContextPresenter;
+        protected VFXContextController m_ContextPresenter;
     }
 }

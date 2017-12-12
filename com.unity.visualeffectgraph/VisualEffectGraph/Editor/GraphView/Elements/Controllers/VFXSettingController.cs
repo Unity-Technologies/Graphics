@@ -6,7 +6,7 @@ using UnityEditor.Experimental.UIElements.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXSettingPresenter : Controller, IPropertyRMProvider
+    class VFXSettingController : Controller, IPropertyRMProvider
     {
         [SerializeField]
         IVFXSlotContainer m_Owner;

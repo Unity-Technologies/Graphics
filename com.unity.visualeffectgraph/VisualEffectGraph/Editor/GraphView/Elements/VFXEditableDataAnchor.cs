@@ -100,12 +100,12 @@ namespace UnityEditor.VFX.UI
 
 
         // TODO This is a workaround to avoid having a generic type for the anchor as generic types mess with USS.
-        public static new VFXEditableDataAnchor Create(VFXDataAnchorPresenter presenter, VFXNodeUI node)
+        public static new VFXEditableDataAnchor Create(VFXDataAnchorController controller, VFXNodeUI node)
         {
-            var anchor = new VFXEditableDataAnchor(presenter.orientation, presenter.direction, presenter.portType, node);
+            var anchor = new VFXEditableDataAnchor(controller.orientation, controller.direction, controller.portType, node);
 
             anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
-            anchor.controller = presenter;
+            anchor.controller = controller;
             anchor.AddManipulator(anchor.m_EdgeConnector);
             return anchor;
         }
@@ -133,13 +133,12 @@ namespace UnityEditor.VFX.UI
 
         void BuildProperty()
         {
-            VFXDataAnchorPresenter presenter = controller;
             if (m_PropertyRM != null)
             {
                 Remove(m_PropertyRM);
             }
 
-            m_PropertyRM = PropertyRM.Create(presenter, 100);
+            m_PropertyRM = PropertyRM.Create(controller, 100);
             if (m_PropertyRM != null)
             {
                 Add(m_PropertyRM);
@@ -155,12 +154,10 @@ namespace UnityEditor.VFX.UI
         {
             base.SelfChange(change);
 
-            VFXDataAnchorPresenter presenter = controller;
-
-            if (m_PropertyRM == null || !m_PropertyRM.IsCompatible(presenter))
+            if (m_PropertyRM == null || !m_PropertyRM.IsCompatible(controller))
             {
                 BuildProperty();
-                m_EditedType = presenter.portType;
+                m_EditedType = controller.portType;
             }
 
             OnRecompile();
@@ -168,10 +165,9 @@ namespace UnityEditor.VFX.UI
 
         public void OnRecompile()
         {
-            VFXDataAnchorPresenter presenter = controller;
-            if (m_PropertyRM != null && presenter != null)
+            if (m_PropertyRM != null && controller != null)
             {
-                m_PropertyRM.propertyEnabled = presenter.editable && presenter.expandedInHierachy;
+                m_PropertyRM.propertyEnabled = controller.editable && controller.expandedInHierachy;
                 m_PropertyRM.Update();
             }
         }

@@ -16,11 +16,11 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        public static new VFXBlockDataAnchor Create(VFXDataAnchorPresenter presenter, VFXNodeUI node)
+        public static new VFXBlockDataAnchor Create(VFXDataAnchorController controller, VFXNodeUI node)
         {
-            var anchor = new VFXBlockDataAnchor(presenter.orientation, presenter.direction, presenter.portType, node);
+            var anchor = new VFXBlockDataAnchor(controller.orientation, controller.direction, controller.portType, node);
             anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
-            anchor.controller = presenter;
+            anchor.controller = controller;
 
             anchor.AddManipulator(anchor.m_EdgeConnector);
             return anchor;

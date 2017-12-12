@@ -16,13 +16,13 @@ using UnityEditorInternal;
 [CustomEditor(typeof(VFXAsset))]
 public class VFXAssetEditor : Editor
 {
-    VFXViewPresenter m_Presenter;
+    VFXViewController m_Presenter;
     void OnEnable()
     {
         VFXAsset asset = (VFXAsset)target;
         if (asset.graph != null)
         {
-            m_Presenter = VFXViewPresenter.Manager.GetPresenter(asset);
+            m_Presenter = VFXViewController.Manager.GetController(asset);
             m_Presenter.useCount++;
         }
 
@@ -42,9 +42,9 @@ public class VFXAssetEditor : Editor
     {
     }
 
-    VFXParameterPresenter[] m_ExposedList;
+    VFXParameterController[] m_ExposedList;
 
-    bool ArraysEquals(VFXParameterPresenter[] a, VFXParameterPresenter[] b)
+    bool ArraysEquals(VFXParameterController[] a, VFXParameterController[] b)
     {
         if (b.Length != a.Length)
             return false;
@@ -61,18 +61,18 @@ public class VFXAssetEditor : Editor
         VFXAsset asset = (VFXAsset)target;
         if (asset.graph != null && m_Presenter == null)
         {
-            m_Presenter = VFXViewPresenter.Manager.GetPresenter(asset);
+            m_Presenter = VFXViewController.Manager.GetController(asset);
             m_Presenter.useCount++;
         }
         if (m_Presenter == null)
             return;
 
 
-        var newList = m_Presenter.allChildren.OfType<VFXParameterPresenter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
+        var newList = m_Presenter.allChildren.OfType<VFXParameterController>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
         if (list == null || !ArraysEquals(newList, m_ExposedList))
         {
             m_ExposedList = newList;
-            list = new ReorderableList(m_ExposedList, typeof(VFXParameterPresenter), true, false, false, false);
+            list = new ReorderableList(m_ExposedList, typeof(VFXParameterController), true, false, false, false);
             list.elementHeightCallback = GetExposedListElementHeight;
             list.drawElementCallback = DrawExposedListElement;
             list.drawHeaderCallback = DrawExposedHeader;
@@ -136,9 +136,9 @@ public class VFXAssetEditor : Editor
 
 
     ReorderableList list;
-    Dictionary<VFXParameterPresenter, ParamInfo> m_AdvDictionary = new Dictionary<VFXParameterPresenter, ParamInfo>();
+    Dictionary<VFXParameterController, ParamInfo> m_AdvDictionary = new Dictionary<VFXParameterController, ParamInfo>();
 
-    void OnParamGUI(Rect rect, VFXParameterPresenter parameter, int order)
+    void OnParamGUI(Rect rect, VFXParameterController parameter, int order)
     {
         GUILayout.BeginVertical();
 

@@ -51,7 +51,7 @@ namespace  UnityEditor.VFX.UI
         {
             if (graphView.controller == null || graphView.controller.GetVFXAsset() != asset)
             {
-                graphView.controller = VFXViewPresenter.Manager.GetPresenter(asset, true);
+                graphView.controller = VFXViewController.Manager.GetController(asset, true);
             }
         }
 
@@ -85,7 +85,7 @@ namespace  UnityEditor.VFX.UI
             VFXAsset currentAsset = GetCurrentAsset();
             if (currentAsset != null)
             {
-                graphView.controller = VFXViewPresenter.Manager.GetPresenter(currentAsset, true);
+                graphView.controller = VFXViewController.Manager.GetController(currentAsset, true);
             }
 
             autoCompile = true;
@@ -123,11 +123,11 @@ namespace  UnityEditor.VFX.UI
             {
                 m_DisplayedAssetPath = AssetDatabase.GetAssetPath(objs[0] as VFXAsset);
 
-                VFXViewPresenter presenter = graphView.controller;
+                VFXViewController controller = graphView.controller;
 
-                if (presenter == null || presenter.GetVFXAsset() != objs[0] as VFXAsset)
+                if (controller == null || controller.GetVFXAsset() != objs[0] as VFXAsset)
                 {
-                    graphView.controller = VFXViewPresenter.Manager.GetPresenter(objs[0] as VFXAsset);
+                    graphView.controller = VFXViewController.Manager.GetController(objs[0] as VFXAsset);
                 }
             }
         }
@@ -152,10 +152,10 @@ namespace  UnityEditor.VFX.UI
 
         void Update()
         {
-            VFXViewPresenter presenter = graphView.controller;
-            if (presenter != null)
+            VFXViewController controller = graphView.controller;
+            if (controller != null)
             {
-                var graph = presenter.model;
+                var graph = controller.model;
                 if (graph != null)
                 {
                     var filename = System.IO.Path.GetFileName(m_DisplayedAssetPath);
@@ -166,7 +166,7 @@ namespace  UnityEditor.VFX.UI
                     titleContent.text = filename;
                     graph.RecompileIfNeeded(!autoCompile);
                 }
-                presenter.RecompileExpressionGraphIfNeeded();
+                controller.RecompileExpressionGraphIfNeeded();
             }
         }
 

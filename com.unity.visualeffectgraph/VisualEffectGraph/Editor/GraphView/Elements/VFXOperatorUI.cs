@@ -97,9 +97,9 @@ namespace UnityEditor.VFX.UI
             inputContainer.parent.Insert(1, element);
         }
 
-        public new VFXOperatorPresenter controller
+        public new VFXOperatorController controller
         {
-            get { return base.controller as VFXOperatorPresenter; }
+            get { return base.controller as VFXOperatorController; }
         }
 
 

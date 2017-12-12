@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXParameterOutputDataAnchorPresenter : VFXDataAnchorPresenter
+    class VFXParameterOutputDataAnchorController : VFXDataAnchorController
     {
         public override Direction direction
         { get { return Direction.Output; } }
@@ -24,14 +24,14 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXSubParameterPresenter : IPropertyRMProvider, IValuePresenter
+    class VFXSubParameterController : IPropertyRMProvider, IValueController
     {
-        VFXParameterPresenter m_Parameter;
+        VFXParameterController m_Parameter;
         //int m_Field;
         FieldInfo m_FieldInfo;
 
 
-        public  VFXSubParameterPresenter(VFXParameterPresenter parameter, int field)
+        public  VFXSubParameterController(VFXParameterController parameter, int field)
         {
             m_Parameter = parameter;
             //m_Field = field;
@@ -98,15 +98,15 @@ namespace UnityEditor.VFX.UI
             }
         }
     }
-    class VFXParameterPresenter : VFXSlotContainerPresenter, IPropertyRMProvider, IValuePresenter
+    class VFXParameterController : VFXSlotContainerController, IPropertyRMProvider, IValueController
     {
-        VFXSubParameterPresenter[] m_SubPresenters;
+        VFXSubParameterController[] m_SubControllers;
 
         IDataWatchHandle m_SlotHandle;
 
-        public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
+        public override void Init(VFXModel model, VFXViewController viewController)
         {
-            base.Init(model, viewPresenter);
+            base.Init(model, viewController);
 
             m_CachedMinValue = parameter.m_Min != null ? parameter.m_Min.Get() : null;
             m_CachedMaxValue = parameter.m_Max != null ? parameter.m_Max.Get() : null;
@@ -119,9 +119,9 @@ namespace UnityEditor.VFX.UI
             NotifyChange(AnyThing);
         }
 
-        protected override VFXDataAnchorPresenter AddDataAnchor(VFXSlot slot, bool input, bool hidden)
+        protected override VFXDataAnchorController AddDataAnchor(VFXSlot slot, bool input, bool hidden)
         {
-            var anchor = VFXParameterOutputDataAnchorPresenter.CreateInstance<VFXParameterOutputDataAnchorPresenter>();
+            var anchor = VFXParameterOutputDataAnchorController.CreateInstance<VFXParameterOutputDataAnchorController>();
             anchor.Init(slot, this, hidden);
             anchor.portType = slot.property.type;
             return anchor;
@@ -132,9 +132,9 @@ namespace UnityEditor.VFX.UI
             get { return parameter.outputSlots[0].property.type.UserFriendlyName(); }
         }
 
-        public int CreateSubPresenters()
+        public int CreateSubControllers()
         {
-            if (m_SubPresenters == null)
+            if (m_SubControllers == null)
             {
                 System.Type type = portType;
 
@@ -148,22 +148,22 @@ namespace UnityEditor.VFX.UI
                     --count;
                 }
 
-                m_SubPresenters = new VFXSubParameterPresenter[count];
+                m_SubControllers = new VFXSubParameterController[count];
 
                 int startIndex = spaceable ? 1 : 0;
 
                 for (int i = startIndex; i < count + startIndex; ++i)
                 {
-                    m_SubPresenters[i - startIndex] = new VFXSubParameterPresenter(this, i);
+                    m_SubControllers[i - startIndex] = new VFXSubParameterController(this, i);
                 }
             }
 
-            return m_SubPresenters.Length;
+            return m_SubControllers.Length;
         }
 
-        public VFXSubParameterPresenter GetSubPresenter(int i)
+        public VFXSubParameterController GetSubController(int i)
         {
-            return m_SubPresenters[i];
+            return m_SubControllers[i];
         }
 
         public string exposedName
@@ -230,7 +230,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        // For the edition of Curve and Gradient to work the value must not be recreated each time. We now assume that changes happen only through the presenter (or, in the case of serialization, before the presenter is created)
+        // For the edition of Curve and Gradient to work the value must not be recreated each time. We now assume that changes happen only through the controller (or, in the case of serialization, before the controller is created)
         object m_CachedMinValue;
         object m_CachedMaxValue;
 
@@ -285,11 +285,11 @@ namespace UnityEditor.VFX.UI
         {
             VFXValueGizmo.Draw(this, component);
 
-            if (m_SubPresenters != null)
+            if (m_SubControllers != null)
             {
-                foreach (var presenter in m_SubPresenters)
+                foreach (var controller in m_SubControllers)
                 {
-                    VFXValueGizmo.Draw(presenter, component);
+                    VFXValueGizmo.Draw(controller, component);
                 }
             }
         }

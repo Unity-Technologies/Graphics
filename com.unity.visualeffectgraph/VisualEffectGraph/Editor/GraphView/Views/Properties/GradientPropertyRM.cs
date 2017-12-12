@@ -15,7 +15,7 @@ namespace UnityEditor.VFX.UI
 {
     class GradientPropertyRM : PropertyRM<Gradient>
     {
-        public GradientPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public GradientPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
             m_GradientField = new GradientField(m_Label);
             m_GradientField.RegisterCallback<ChangeEvent<Gradient>>(OnValueChanged);

@@ -6,7 +6,7 @@ using System;
 
 namespace UnityEditor.VFX.UI
 {
-    abstract class VFXOperatorAnchorPresenter : VFXDataAnchorPresenter
+    abstract class VFXOperatorAnchorPresenter : VFXDataAnchorController
     {
         public static System.Type GetDisplayAnchorType(VFXSlot slot)
         {

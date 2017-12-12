@@ -6,7 +6,7 @@ using UnityEditor.Experimental.UIElements.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
-    internal class VFXFlowEdgePresenter : VFXEdgeController<VFXFlowAnchorPresenter>
+    internal class VFXFlowEdgePresenter : VFXEdgeController<VFXFlowAnchorController>
     {
         public VFXFlowEdgePresenter()
         {

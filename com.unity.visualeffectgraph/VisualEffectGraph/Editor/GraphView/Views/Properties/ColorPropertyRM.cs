@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.UI
     class ColorPropertyRM : PropertyRM<Color>
     {
         VisualElement m_MainContainer;
-        public ColorPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public ColorPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
             m_MainContainer = new VisualElement();
 

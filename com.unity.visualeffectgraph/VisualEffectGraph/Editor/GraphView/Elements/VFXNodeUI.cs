@@ -10,9 +10,9 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXNodeUI : Node, IControlledElement<VFXSlotContainerPresenter>, IControlledElement<VFXNodeController>
+    class VFXNodeUI : Node, IControlledElement<VFXSlotContainerController>, IControlledElement<VFXNodeController>
     {
-        VFXSlotContainerPresenter m_Controller;
+        VFXSlotContainerController m_Controller;
         Controller IControlledElement.controller
         {
             get { return m_Controller; }
@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.UI
             get { return m_Controller; }
             set
             {
-                controller = value as VFXSlotContainerPresenter;
+                controller = value as VFXSlotContainerController;
             }
         }
         public override void UpdatePresenterPosition()
@@ -30,7 +30,7 @@ namespace UnityEditor.VFX.UI
             controller.position = GetPosition().position;
         }
 
-        public VFXSlotContainerPresenter controller
+        public VFXSlotContainerController controller
         {
             get { return m_Controller; }
             set
@@ -61,7 +61,7 @@ namespace UnityEditor.VFX.UI
             {
                 SelfChange();
             }
-            else if (e.controller is VFXDataAnchorPresenter)
+            else if (e.controller is VFXDataAnchorController)
             {
                 RefreshExpandedState();
             }
@@ -120,7 +120,7 @@ namespace UnityEditor.VFX.UI
             SyncAnchors(controller.outputPorts, outputContainer);
         }
 
-        void SyncAnchors(ReadOnlyCollection<VFXDataAnchorPresenter> ports, VisualElement container)
+        void SyncAnchors(ReadOnlyCollection<VFXDataAnchorController> ports, VisualElement container)
         {
             var existingAnchors = container.Children().Cast<VFXDataAnchor>().ToDictionary(t => t.controller, t => t);
 
@@ -134,7 +134,7 @@ namespace UnityEditor.VFX.UI
             foreach (var newController in ports.Except(existingAnchors.Keys))
             {
                 var newElement = InstantiateDataAnchor(newController, this);
-                (newElement as IControlledElement<VFXDataAnchorPresenter>).controller = newController;
+                (newElement as IControlledElement<VFXDataAnchorController>).controller = newController;
 
                 container.Add(newElement);
             }
@@ -184,18 +184,18 @@ namespace UnityEditor.VFX.UI
         }
 
 
-        public virtual VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorPresenter presenter, VFXNodeUI node)
+        public virtual VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorController controller, VFXNodeUI node)
         {
-            if (presenter.direction == Direction.Input)
+            if (controller.direction == Direction.Input)
             {
-                VFXEditableDataAnchor anchor = VFXEditableDataAnchor.Create(presenter, node);
-                presenter.sourceNode.viewPresenter.onRecompileEvent += anchor.OnRecompile;
+                VFXEditableDataAnchor anchor = VFXEditableDataAnchor.Create(controller, node);
+                controller.sourceNode.viewController.onRecompileEvent += anchor.OnRecompile;
 
                 return anchor;
             }
             else
             {
-                return VFXOutputDataAnchor.Create(presenter, node);
+                return VFXOutputDataAnchor.Create(controller, node);
             }
         }
 
@@ -203,7 +203,7 @@ namespace UnityEditor.VFX.UI
         {
             if (anchor is VFXEditableDataAnchor)
             {
-                controller.viewPresenter.onRecompileEvent -= (anchor as VFXEditableDataAnchor).OnRecompile;
+                controller.viewController.onRecompileEvent -= (anchor as VFXEditableDataAnchor).OnRecompile;
             }
         }
 
@@ -261,7 +261,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        protected void AddSetting(VFXSettingPresenter setting)
+        protected void AddSetting(VFXSettingController setting)
         {
             var rm = PropertyRM.Create(setting, 100);
             if (rm != null)
@@ -270,7 +270,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                Debug.LogErrorFormat("Cannot create presenter for {0}", setting.name);
+                Debug.LogErrorFormat("Cannot create controller for {0}", setting.name);
             }
         }
     }

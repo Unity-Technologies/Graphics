@@ -15,7 +15,7 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     public class VFXCopyPasteTests
     {
-        VFXViewPresenter m_ViewPresenter;
+        VFXViewController m_ViewPresenter;
 
         const string testAssetName = "Assets/TmpTests/VFXGraph1.asset";
 
@@ -34,7 +34,7 @@ namespace UnityEditor.VFX.Test
 
             AssetDatabase.CreateAsset(asset, testAssetName);
 
-            m_ViewPresenter = VFXViewPresenter.Manager.GetPresenter(asset);
+            m_ViewPresenter = VFXViewController.Manager.GetController(asset);
 
             m_StartUndoGroupId = Undo.GetCurrentGroup();
         }
@@ -55,9 +55,9 @@ namespace UnityEditor.VFX.Test
 
             m_ViewPresenter.ApplyChanges();
 
-            Assert.AreEqual(m_ViewPresenter.allChildren.Where(t => t is VFXContextPresenter).Count(), 1);
+            Assert.AreEqual(m_ViewPresenter.allChildren.Where(t => t is VFXContextController).Count(), 1);
 
-            var contextPresenter = m_ViewPresenter.allChildren.OfType<VFXContextPresenter>().First();
+            var contextPresenter = m_ViewPresenter.allChildren.OfType<VFXContextController>().First();
 
             Assert.AreEqual(contextPresenter.model, newContext);
 
@@ -83,7 +83,7 @@ namespace UnityEditor.VFX.Test
             AABox originalBounds = new AABox() { center = Vector3.one, size = Vector3.one * 10 };
             boundsSlot.value = originalBounds;
 
-            VFXBlock flipBookBlock = m_ViewPresenter.contexts.First().blockPresenters.First().block;
+            VFXBlock flipBookBlock = m_ViewPresenter.contexts.First().blockControllers.First().block;
             VFXSlot minValueSlot = flipBookBlock.GetInputSlot(0);
 
 
@@ -128,7 +128,7 @@ namespace UnityEditor.VFX.Test
             var newOperator = m_ViewPresenter.AddVFXOperator(new Vector2(100, 100), crossOperatorDesc);
 
             m_ViewPresenter.ApplyChanges();
-            var operatorPresenter = m_ViewPresenter.allChildren.OfType<VFXOperatorPresenter>().First();
+            var operatorPresenter = m_ViewPresenter.allChildren.OfType<VFXOperatorController>().First();
 
             Assert.AreEqual(operatorPresenter.model, newOperator);
 
@@ -179,12 +179,12 @@ namespace UnityEditor.VFX.Test
         {
             VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>("Assets/VFXEditor/Editor/Tests/CopyPasteTest.asset");
 
-            VFXViewPresenter presenter = VFXViewPresenter.Manager.GetPresenter(asset, true);
+            VFXViewController controller = VFXViewController.Manager.GetController(asset, true);
 
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
             VFXView view = window.graphView;
 
-            view.controller = presenter;
+            view.controller = controller;
 
             view.ClearSelection();
 
@@ -271,9 +271,9 @@ namespace UnityEditor.VFX.Test
             var newContext = m_ViewPresenter.AddVFXContext(new Vector2(100, 100), initContextDesc);
 
             m_ViewPresenter.ApplyChanges();
-            Assert.AreEqual(m_ViewPresenter.allChildren.Where(t => t is VFXContextPresenter).Count(), 1);
+            Assert.AreEqual(m_ViewPresenter.allChildren.Where(t => t is VFXContextController).Count(), 1);
 
-            var contextPresenter = m_ViewPresenter.allChildren.OfType<VFXContextPresenter>().First();
+            var contextPresenter = m_ViewPresenter.allChildren.OfType<VFXContextController>().First();
 
             Assert.AreEqual(contextPresenter.model, newContext);
 
@@ -296,7 +296,7 @@ namespace UnityEditor.VFX.Test
                 view.AddToSelection(element);
             }
 
-            VFXBlock flipBookBlock = m_ViewPresenter.contexts.First().blockPresenters.First().block;
+            VFXBlock flipBookBlock = m_ViewPresenter.contexts.First().blockControllers.First().block;
             VFXSlot minValueSlot = flipBookBlock.GetInputSlot(0);
 
             float originalMinValue = 123.456f;

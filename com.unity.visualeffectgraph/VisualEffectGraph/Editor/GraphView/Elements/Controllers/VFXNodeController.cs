@@ -12,34 +12,34 @@ namespace UnityEditor.VFX.UI
 {
     abstract class VFXNodeController : Controller<VFXModel>
     {
-        public VFXViewPresenter viewPresenter { get { return m_ViewPresenter; } }
+        public VFXViewController viewController { get { return m_ViewController; } }
 
 
-        public abstract VFXSlotContainerPresenter slotContainerPresenter { get; }
-
-        [SerializeField]
-        VFXViewPresenter m_ViewPresenter;
+        public abstract VFXSlotContainerController slotContainerController { get; }
 
         [SerializeField]
-        protected List<VFXDataAnchorPresenter> m_InputPorts = new List<VFXDataAnchorPresenter>();
+        VFXViewController m_ViewController;
 
         [SerializeField]
-        protected List<VFXDataAnchorPresenter> m_OutputPorts = new List<VFXDataAnchorPresenter>();
+        protected List<VFXDataAnchorController> m_InputPorts = new List<VFXDataAnchorController>();
 
-        public ReadOnlyCollection<VFXDataAnchorPresenter> inputPorts
+        [SerializeField]
+        protected List<VFXDataAnchorController> m_OutputPorts = new List<VFXDataAnchorController>();
+
+        public ReadOnlyCollection<VFXDataAnchorController> inputPorts
         {
             get { return m_InputPorts.AsReadOnly(); }
         }
 
-        public ReadOnlyCollection<VFXDataAnchorPresenter> outputPorts
+        public ReadOnlyCollection<VFXDataAnchorController> outputPorts
         {
             get { return m_OutputPorts.AsReadOnly(); }
         }
 
-        public virtual void Init(VFXModel model, VFXViewPresenter viewPresenter)
+        public virtual void Init(VFXModel model, VFXViewController viewController)
         {
             base.Init(model);
-            m_ViewPresenter = viewPresenter;
+            m_ViewController = viewController;
         }
 
         public virtual void ForceUpdate()

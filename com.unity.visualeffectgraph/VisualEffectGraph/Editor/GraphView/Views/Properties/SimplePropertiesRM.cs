@@ -61,7 +61,7 @@ namespace UnityEditor.VFX.UI
 {
     class UintPropertyRM : SimpleUIPropertyRM<uint, long>
     {
-        public UintPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public UintPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
 
@@ -93,7 +93,7 @@ namespace UnityEditor.VFX.UI
 
     class IntPropertyRM : SimpleUIPropertyRM<int, long>
     {
-        public IntPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public IntPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
 
@@ -124,7 +124,7 @@ namespace UnityEditor.VFX.UI
     }
     class EnumPropertyRM : SimplePropertyRM<int>
     {
-        public EnumPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public EnumPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
 
@@ -141,7 +141,7 @@ namespace UnityEditor.VFX.UI
 
     class FloatPropertyRM : SimpleUIPropertyRM<float, float>
     {
-        public FloatPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public FloatPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
 
@@ -171,7 +171,7 @@ namespace UnityEditor.VFX.UI
 
     class Vector4PropertyRM : SimpleUIPropertyRM<Vector4, Vector4>
     {
-        public Vector4PropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public Vector4PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
 
@@ -191,7 +191,7 @@ namespace UnityEditor.VFX.UI
 
     class Vector2PropertyRM : SimpleUIPropertyRM<Vector2, Vector2>
     {
-        public Vector2PropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public Vector2PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
 
@@ -212,7 +212,7 @@ namespace UnityEditor.VFX.UI
 
     class FlipBookPropertyRM : SimpleUIPropertyRM<FlipBook, FlipBook>
     {
-        public FlipBookPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public FlipBookPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
 
@@ -233,7 +233,7 @@ namespace UnityEditor.VFX.UI
 
     class StringPropertyRM : SimplePropertyRM<string>
     {
-        public StringPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public StringPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
 

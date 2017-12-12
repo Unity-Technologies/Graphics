@@ -9,13 +9,6 @@ namespace UnityEditor.VFX.UI
     {
         public static void OnDrawGizmo()
         {
-            /*VFXViewPresenter presenter = VFXViewPresenter.viewPresenter;
-            if (presenter.HasVFXAsset())
-            {
-                //var allBlocks = presenter.allChildren.OfType<VFXContextPresenter>().SelectMany(t => t.allChildren.OfType<VFXBlockPresenter>());
-
-                //Debug.Log("Blocks:"+allBlocks.Count());
-            }*/
         }
 
         public static void OnDrawComponentGizmo(Object component)
@@ -53,7 +46,7 @@ namespace UnityEditor.VFX.UI
                         VFXContextUI selectedContext = view.selection.OfType<VFXContextUI>().FirstOrDefault();
                         if (selectedContext != null)
                         {
-                            selectedContext.controller.slotContainerPresenter.DrawGizmos(comp);
+                            selectedContext.controller.slotContainerController.DrawGizmos(comp);
                         }
                     }
                 }

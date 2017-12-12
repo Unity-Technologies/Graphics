@@ -8,34 +8,34 @@ using System.Collections.ObjectModel;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXContextPresenter : VFXNodeController
+    class VFXContextController : VFXNodeController
     {
         public VFXContext context       { get { return model as VFXContext; } }
 
-        public override VFXSlotContainerPresenter slotContainerPresenter { get { return m_SlotPresenter; } }
+        public override VFXSlotContainerController slotContainerController { get { return m_SlotController; } }
 
         [SerializeField]
-        private List<VFXBlockPresenter> m_BlockPresenters = new List<VFXBlockPresenter>();
-        public IEnumerable<VFXBlockPresenter> blockPresenters
+        private List<VFXBlockController> m_BlockControllers = new List<VFXBlockController>();
+        public IEnumerable<VFXBlockController> blockControllers
         {
-            get { return m_BlockPresenters; }
+            get { return m_BlockControllers; }
         }
 
         [SerializeField]
-        protected List<VFXFlowAnchorPresenter> m_FlowInputAnchors = new List<VFXFlowAnchorPresenter>();
-        public ReadOnlyCollection<VFXFlowAnchorPresenter> flowInputAnchors
+        protected List<VFXFlowAnchorController> m_FlowInputAnchors = new List<VFXFlowAnchorController>();
+        public ReadOnlyCollection<VFXFlowAnchorController> flowInputAnchors
         {
             get { return m_FlowInputAnchors.AsReadOnly(); }
         }
 
         [SerializeField]
-        protected List<VFXFlowAnchorPresenter> m_FlowOutputAnchors = new List<VFXFlowAnchorPresenter>();
-        public ReadOnlyCollection<VFXFlowAnchorPresenter> flowOutputAnchors
+        protected List<VFXFlowAnchorController> m_FlowOutputAnchors = new List<VFXFlowAnchorController>();
+        public ReadOnlyCollection<VFXFlowAnchorController> flowOutputAnchors
         {
             get { return m_FlowOutputAnchors.AsReadOnly(); }
         }
 
-        VFXContextSlotContainerPresenter m_SlotPresenter;
+        VFXContextSlotContainerController m_SlotController;
 
         [SerializeField]
         IDataWatchHandle m_DataHandle;
@@ -47,7 +47,7 @@ namespace UnityEditor.VFX.UI
 
         public override void OnRemoveFromGraph()
         {
-            if (viewPresenter != null)
+            if (viewController != null)
             {
                 UnregisterAnchors();
             }
@@ -56,9 +56,9 @@ namespace UnityEditor.VFX.UI
         private void UnregisterAnchors()
         {
             foreach (var anchor in flowInputAnchors)
-                viewPresenter.UnregisterFlowAnchorPresenter(anchor);
+                viewController.UnregisterFlowAnchorController(anchor);
             foreach (var anchor in flowOutputAnchors)
-                viewPresenter.UnregisterFlowAnchorPresenter(anchor);
+                viewController.UnregisterFlowAnchorController(anchor);
         }
 
         protected void DataChanged(UnityEngine.Object obj)
@@ -68,7 +68,7 @@ namespace UnityEditor.VFX.UI
 
         protected override void ModelChanged(UnityEngine.Object obj)
         {
-            SyncPresenters();
+            SyncControllers();
             // make sure we listen to the right data
             if (m_DataHandle == null && context.GetData() != null)
             {
@@ -87,7 +87,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            viewPresenter.FlowEdgesMightHaveChanged();
+            viewController.FlowEdgesMightHaveChanged();
 
             base.ModelChanged(obj);
         }
@@ -102,26 +102,26 @@ namespace UnityEditor.VFX.UI
             base.OnDisable();
         }
 
-        public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
+        public override void Init(VFXModel model, VFXViewController viewController)
         {
             UnregisterAnchors();
 
-            m_SlotPresenter = CreateInstance<VFXContextSlotContainerPresenter>();
+            m_SlotController = CreateInstance<VFXContextSlotContainerController>();
             m_InputPorts.Clear();
             m_OutputPorts.Clear();
 
-            base.Init(model, viewPresenter);
+            base.Init(model, viewController);
 
-            m_SlotPresenter.Init(model, this);
+            m_SlotController.Init(model, this);
 
             if (context.inputType != VFXDataType.kNone)
             {
                 for (int slot = 0; slot < context.inputFlowSlot.Length; ++slot)
                 {
-                    var inAnchor = CreateInstance<VFXFlowInputAnchorPresenter>();
+                    var inAnchor = CreateInstance<VFXFlowInputAnchorController>();
                     inAnchor.Init(this, slot);
                     m_FlowInputAnchors.Add(inAnchor);
-                    viewPresenter.RegisterFlowAnchorPresenter(inAnchor);
+                    viewController.RegisterFlowAnchorController(inAnchor);
                 }
             }
 
@@ -129,20 +129,20 @@ namespace UnityEditor.VFX.UI
             {
                 for (int slot = 0; slot < context.outputFlowSlot.Length; ++slot)
                 {
-                    var outAnchor = CreateInstance<VFXFlowOutputAnchorPresenter>();
+                    var outAnchor = CreateInstance<VFXFlowOutputAnchorController>();
                     outAnchor.Init(this, slot);
                     m_FlowOutputAnchors.Add(outAnchor);
-                    viewPresenter.RegisterFlowAnchorPresenter(outAnchor);
+                    viewController.RegisterFlowAnchorController(outAnchor);
                 }
             }
 
-            SyncPresenters();
+            SyncControllers();
         }
 
         public override void ForceUpdate()
         {
             base.ForceUpdate();
-            m_SlotPresenter.ForceUpdate();
+            m_SlotController.ForceUpdate();
         }
 
         public void AddBlock(int index, VFXBlock block)
@@ -176,56 +176,56 @@ namespace UnityEditor.VFX.UI
             while (slotToClean != null);
         }
 
-        public int FindBlockIndexOf(VFXBlockPresenter presenter)
+        public int FindBlockIndexOf(VFXBlockController controller)
         {
-            return m_BlockPresenters.IndexOf(presenter);
+            return m_BlockControllers.IndexOf(controller);
         }
 
-        private void SyncPresenters()
+        private void SyncControllers()
         {
-            var m_NewPresenters = new List<VFXBlockPresenter>();
+            var m_NewControllers = new List<VFXBlockController>();
             foreach (var block in context.children)
             {
-                var presenter = m_BlockPresenters.Find(p => p.model == block);
-                if (presenter == null) // If the presenter does not exist for this model, create it
+                var newController = m_BlockControllers.Find(p => p.model == block);
+                if (newController == null) // If the controller does not exist for this model, create it
                 {
-                    presenter = CreateInstance<VFXBlockPresenter>();
-                    presenter.Init(block, this);
-                    presenter.ForceUpdate();
+                    newController = CreateInstance<VFXBlockController>();
+                    newController.Init(block, this);
+                    newController.ForceUpdate();
                 }
-                m_NewPresenters.Add(presenter);
+                m_NewControllers.Add(newController);
             }
 
-            foreach (var deletedPresenter in m_BlockPresenters.Except(m_NewPresenters))
+            foreach (var deletedController in m_BlockControllers.Except(m_NewControllers))
             {
-                deletedPresenter.OnDisable();
+                deletedController.OnDisable();
             }
-            m_BlockPresenters = m_NewPresenters;
+            m_BlockControllers = m_NewControllers;
         }
 
-        internal void BlocksDropped(VFXBlockPresenter blockPresenter, bool after, IEnumerable<VFXBlockPresenter> draggedBlocks, bool copy)
+        internal void BlocksDropped(VFXBlockController blockController, bool after, IEnumerable<VFXBlockController> draggedBlocks, bool copy)
         {
             //Sort draggedBlock in the order we want them to appear and not the selected order ( blocks in the same context should appear in the same order as they where relative to each other).
 
-            draggedBlocks = draggedBlocks.OrderBy(t => t.index).GroupBy(t => t.contextPresenter).SelectMany<IGrouping<VFXContextPresenter, VFXBlockPresenter>, VFXBlockPresenter>(t => t.Select(u => u));
+            draggedBlocks = draggedBlocks.OrderBy(t => t.index).GroupBy(t => t.contextController).SelectMany<IGrouping<VFXContextController, VFXBlockController>, VFXBlockController>(t => t.Select(u => u));
 
             int insertIndex;
 
-            if (blockPresenter != null)
+            if (blockController != null)
             {
-                insertIndex = blockPresenter.index;
+                insertIndex = blockController.index;
                 if (after) insertIndex++;
             }
             else if (after)
             {
-                insertIndex = blockPresenters.Count();
+                insertIndex = blockControllers.Count();
             }
             else
             {
                 insertIndex = 0;
             }
 
-            foreach (VFXBlockPresenter draggedBlock in draggedBlocks)
+            foreach (VFXBlockController draggedBlock in draggedBlocks)
             {
                 if (copy)
                 {
@@ -240,7 +240,7 @@ namespace UnityEditor.VFX.UI
 
         public override IEnumerable<Controller> allChildren
         {
-            get { return Enumerable.Repeat(m_SlotPresenter as Controller, 1).Concat(m_BlockPresenters.Cast<Controller>()); }
+            get { return Enumerable.Repeat(m_SlotController as Controller, 1).Concat(m_BlockControllers.Cast<Controller>()); }
         }
     }
 }

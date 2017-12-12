@@ -9,16 +9,16 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXDataAnchor : Port, IControlledElement<VFXDataAnchorPresenter>, IEdgeConnectorListener
+    class VFXDataAnchor : Port, IControlledElement<VFXDataAnchorController>, IEdgeConnectorListener
     {
         VisualElement m_ConnectorHighlight;
 
-        VFXDataAnchorPresenter m_Controller;
+        VFXDataAnchorController m_Controller;
         Controller IControlledElement.controller
         {
             get { return m_Controller; }
         }
-        public VFXDataAnchorPresenter controller
+        public VFXDataAnchorController controller
         {
             get { return m_Controller; }
             set
@@ -69,7 +69,7 @@ namespace UnityEditor.VFX.UI
             return new VisualElement();
         }
 
-        public static VFXDataAnchor Create(VFXDataAnchorPresenter controller, VFXNodeUI node)
+        public static VFXDataAnchor Create(VFXDataAnchorController controller, VFXNodeUI node)
         {
             var anchor = new VFXDataAnchor(controller.orientation, controller.direction, controller.portType, node);
             anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
@@ -125,7 +125,7 @@ namespace UnityEditor.VFX.UI
 
             foreach (var edgePresenter in controller.connections)
             {
-                VFXDataEdge edge = view.GetDataEdgeByPresenter(edgePresenter as VFXDataEdgePresenter);
+                VFXDataEdge edge = view.GetDataEdgeByPresenter(edgePresenter as VFXDataEdgeController);
                 if (edge != null)
                     yield return edge;
             }
@@ -141,7 +141,7 @@ namespace UnityEditor.VFX.UI
 
         public virtual void SelfChange(int change)
         {
-            if (change != VFXDataAnchorPresenter.Change.hidden)
+            if (change != VFXDataAnchorController.Change.hidden)
             {
                 if (controller.connected)
                     AddToClassList("connected");
@@ -195,7 +195,7 @@ namespace UnityEditor.VFX.UI
         {
             VFXView view = graphView as VFXView;
             VFXDataEdge dataEdge = edge as VFXDataEdge;
-            VFXDataEdgePresenter edgePresenter = VFXDataEdgePresenter.CreateInstance<VFXDataEdgePresenter>();
+            VFXDataEdgeController edgePresenter = VFXDataEdgeController.CreateInstance<VFXDataEdgeController>();
             edgePresenter.Init(dataEdge.input.controller, dataEdge.output.controller);
 
             view.controller.AddElement(edgePresenter);
@@ -212,7 +212,7 @@ namespace UnityEditor.VFX.UI
             VFXSlot startSlot = controller.model;
 
             VFXView view = this.GetFirstAncestorOfType<VFXView>();
-            VFXViewPresenter viewPresenter = view.controller;
+            VFXViewController viewPresenter = view.controller;
 
 
             VFXNodeUI endNode = null;
@@ -226,9 +226,9 @@ namespace UnityEditor.VFX.UI
 
             if (endNode != null)
             {
-                VFXSlotContainerPresenter nodePresenter = endNode.controller.slotContainerPresenter;
+                VFXSlotContainerController nodePresenter = endNode.controller.slotContainerController;
 
-                var compatibleAnchors = nodePresenter.viewPresenter.GetCompatiblePorts(controller, null);
+                var compatibleAnchors = nodePresenter.viewController.GetCompatiblePorts(controller, null);
 
                 if (nodePresenter != null)
                 {

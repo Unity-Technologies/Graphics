@@ -94,8 +94,8 @@ namespace UnityEditor.VFX.UI
 
     class VFXBlockProvider : VFXAbstractProvider<VFXModelDescriptor<VFXBlock>>
     {
-        VFXContextPresenter m_ContextPresenter;
-        public VFXBlockProvider(VFXContextPresenter context, Action<VFXModelDescriptor<VFXBlock>, Vector2> onAddBlock) : base(onAddBlock)
+        VFXContextController m_ContextPresenter;
+        public VFXBlockProvider(VFXContextController context, Action<VFXModelDescriptor<VFXBlock>, Vector2> onAddBlock) : base(onAddBlock)
         {
             m_ContextPresenter = context;
         }

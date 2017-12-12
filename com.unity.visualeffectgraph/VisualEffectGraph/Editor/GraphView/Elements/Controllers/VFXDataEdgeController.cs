@@ -10,7 +10,7 @@ namespace UnityEditor.VFX.UI
     {
     }
 
-    class VFXEdgeController<T> : VFXEdgeController where T : IVFXAnchorPresenter
+    class VFXEdgeController<T> : VFXEdgeController where T : IVFXAnchorController
     {
         T m_Input;
         T m_Output;
@@ -50,9 +50,9 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    internal class VFXDataEdgePresenter : VFXEdgeController<VFXDataAnchorPresenter>
+    internal class VFXDataEdgeController : VFXEdgeController<VFXDataAnchorController>
     {
-        public VFXDataEdgePresenter()
+        public VFXDataEdgeController()
         {
         }
     }

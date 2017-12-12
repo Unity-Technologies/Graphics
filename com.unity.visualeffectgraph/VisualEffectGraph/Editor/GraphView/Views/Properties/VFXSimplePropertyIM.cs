@@ -10,10 +10,10 @@ namespace UnityEditor.VFX.UI
 {
     class VFXFloatPropertyIM : VFXPropertyIM<float>
     {
-        public override float OnParameterGUI(VFXDataAnchorPresenter presenter, float value, string label)
+        public override float OnParameterGUI(VFXDataAnchorController controller, float value, string label)
         {
             GUILayout.BeginHorizontal();
-            Label(presenter, label);
+            Label(controller, label);
             value = EditorGUILayout.FloatField(value, GUILayout.Height(VFXDataGUIStyles.instance.lineHeight));
             GUILayout.EndHorizontal();
 
@@ -32,10 +32,10 @@ namespace UnityEditor.VFX.UI
     }
     class VFXIntPropertyIM : VFXPropertyIM<int>
     {
-        public override int OnParameterGUI(VFXDataAnchorPresenter presenter, int value, string label)
+        public override int OnParameterGUI(VFXDataAnchorController controller, int value, string label)
         {
             GUILayout.BeginHorizontal();
-            Label(presenter, label);
+            Label(controller, label);
             value = EditorGUILayout.IntField(value, GUILayout.Height(VFXDataGUIStyles.instance.lineHeight));
             GUILayout.EndHorizontal();
 
@@ -54,10 +54,10 @@ namespace UnityEditor.VFX.UI
     }
     class VFXUIntPropertyIM : VFXPropertyIM<uint>
     {
-        public override uint OnParameterGUI(VFXDataAnchorPresenter presenter, uint value, string label)
+        public override uint OnParameterGUI(VFXDataAnchorController controller, uint value, string label)
         {
             GUILayout.BeginHorizontal();
-            Label(presenter, label);
+            Label(controller, label);
             value = (uint)EditorGUILayout.IntField((int)value, GUILayout.Height(VFXDataGUIStyles.instance.lineHeight));
             GUILayout.EndHorizontal();
 
@@ -77,10 +77,10 @@ namespace UnityEditor.VFX.UI
 
     class VFXBoolPropertyIM : VFXPropertyIM<bool>
     {
-        public override bool OnParameterGUI(VFXDataAnchorPresenter presenter, bool value, string label)
+        public override bool OnParameterGUI(VFXDataAnchorController controller, bool value, string label)
         {
             GUILayout.BeginHorizontal();
-            Label(presenter, label);
+            Label(controller, label);
             value = EditorGUILayout.Toggle(value, GUILayout.Height(VFXDataGUIStyles.instance.lineHeight));
             GUILayout.EndHorizontal();
 
@@ -99,10 +99,10 @@ namespace UnityEditor.VFX.UI
     }
     class VFXVector3PropertyIM : VFXPropertyIM<Vector3>
     {
-        public override Vector3 OnParameterGUI(VFXDataAnchorPresenter presenter, Vector3 value, string label)
+        public override Vector3 OnParameterGUI(VFXDataAnchorController controller, Vector3 value, string label)
         {
             GUILayout.BeginHorizontal();
-            Label(presenter, label);
+            Label(controller, label);
             GUILayout.Label("x", GUILayout.Height(VFXDataGUIStyles.instance.lineHeight));
             value.x = EditorGUILayout.FloatField(value.x, GUILayout.Height(VFXDataGUIStyles.instance.lineHeight));
             GUILayout.Label("y", GUILayout.Height(VFXDataGUIStyles.instance.lineHeight));
@@ -148,10 +148,10 @@ namespace UnityEditor.VFX.UI
     }
     class VFXVector2PropertyIM : VFXPropertyIM<Vector2>
     {
-        public override Vector2 OnParameterGUI(VFXDataAnchorPresenter presenter, Vector2 value, string label)
+        public override Vector2 OnParameterGUI(VFXDataAnchorController controller, Vector2 value, string label)
         {
             GUILayout.BeginHorizontal();
-            Label(presenter, label);
+            Label(controller, label);
             GUILayout.Label("x", GUILayout.Height(VFXDataGUIStyles.instance.lineHeight));
             value.x = EditorGUILayout.FloatField(value.x, GUILayout.Height(VFXDataGUIStyles.instance.lineHeight));
             GUILayout.Label("y", GUILayout.Height(VFXDataGUIStyles.instance.lineHeight));
@@ -188,14 +188,14 @@ namespace UnityEditor.VFX.UI
     }
     class VFXVector4PropertyIM : VFXPropertyIM<Vector4>
     {
-        public override Vector4 OnParameterGUI(VFXDataAnchorPresenter presenter, Vector4 value, string label)
+        public override Vector4 OnParameterGUI(VFXDataAnchorController controller, Vector4 value, string label)
         {
             GUILayout.BeginHorizontal();
-            Label(presenter, label);
+            Label(controller, label);
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Space((presenter.depth + 1) * depthOffset);
+            GUILayout.Space((controller.depth + 1) * depthOffset);
             GUILayout.Label("x", GUILayout.Height(VFXDataGUIStyles.instance.lineHeight));
             value.x = EditorGUILayout.FloatField(value.x, GUILayout.Height(VFXDataGUIStyles.instance.lineHeight));
             GUILayout.Label("y", GUILayout.Height(VFXDataGUIStyles.instance.lineHeight));
@@ -251,15 +251,15 @@ namespace UnityEditor.VFX.UI
     /*
     class VFXColorPropertyIM : VFXPropertyIM<Color>
     {
-        public override Color OnParameterGUI(VFXDataAnchorPresenter presenter, Color value, string label)
+        public override Color OnParameterGUI(VFXDataAnchorPresenter controller, Color value, string label)
         {
             GUILayout.BeginHorizontal();
-            Label(presenter, label);
+            Label(controller, label);
             Color startValue = value;
             Color color = EditorGUILayout.ColorField(new GUIContent(""), value, true, true, true, new ColorPickerHDRConfig(-10, 10, -10, 10));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Space((presenter.depth + 1) * depthOffset);
+            GUILayout.Space((controller.depth + 1) * depthOffset);
             GUILayout.Label("r", GUILayout.Height(VFXDataGUIStyles.instance.lineHeight));
             value.r = EditorGUILayout.FloatField(value.r, GUILayout.Height(VFXDataGUIStyles.instance.lineHeight));
             GUILayout.Label("g", GUILayout.Height(VFXDataGUIStyles.instance.lineHeight));
@@ -287,10 +287,10 @@ namespace UnityEditor.VFX.UI
     class VFXAnimationCurvePropertyIM : VFXPropertyIM<AnimationCurve>
     {
         public override bool isNumeric { get { return false; } }
-        public override AnimationCurve OnParameterGUI(VFXDataAnchorPresenter presenter, AnimationCurve value, string label)
+        public override AnimationCurve OnParameterGUI(VFXDataAnchorController controller, AnimationCurve value, string label)
         {
             GUILayout.BeginHorizontal();
-            Label(presenter, label);
+            Label(controller, label);
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
@@ -313,10 +313,10 @@ namespace UnityEditor.VFX.UI
     class VFXGradientPropertyIM : VFXPropertyIM<Gradient>
     {
         public override bool isNumeric { get { return false; } }
-        public override Gradient OnParameterGUI(VFXDataAnchorPresenter presenter, Gradient value, string label)
+        public override Gradient OnParameterGUI(VFXDataAnchorController controller, Gradient value, string label)
         {
             GUILayout.BeginHorizontal();
-            Label(presenter, label);
+            Label(controller, label);
             value = EditorGUILayout.GradientField(value);
             GUILayout.EndHorizontal();
             return value;
@@ -333,10 +333,10 @@ namespace UnityEditor.VFX.UI
     class VFXObjectPropertyIM<T> : VFXPropertyIM<T> where T : Object
     {
         public override bool isNumeric { get { return false; } }
-        public override T OnParameterGUI(VFXDataAnchorPresenter presenter, T value, string label)
+        public override T OnParameterGUI(VFXDataAnchorController controller, T value, string label)
         {
             GUILayout.BeginHorizontal();
-            Label(presenter, label);
+            Label(controller, label);
             value = (T)EditorGUILayout.ObjectField(value, typeof(T), false);
             GUILayout.EndHorizontal();
             return value;

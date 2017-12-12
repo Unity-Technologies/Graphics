@@ -7,19 +7,19 @@ using UnityEditor.Experimental.UIElements.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
-    interface IVFXAnchorPresenter
+    interface IVFXAnchorController
     {
-        void Connect(VFXEdgeController edgePresenter);
-        void Disconnect(VFXEdgeController edgePresenter);
+        void Connect(VFXEdgeController edgeController);
+        void Disconnect(VFXEdgeController edgeController);
 
         Direction direction {get; }
     }
 
-    abstract class VFXDataAnchorPresenter : VFXController<VFXSlot>, IVFXAnchorPresenter, IPropertyRMProvider, IValuePresenter
+    abstract class VFXDataAnchorController : VFXController<VFXSlot>, IVFXAnchorController, IPropertyRMProvider, IValueController
     {
-        private VFXSlotContainerPresenter m_SourceNode;
+        private VFXSlotContainerController m_SourceNode;
 
-        public VFXSlotContainerPresenter sourceNode
+        public VFXSlotContainerController sourceNode
         {
             get
             {
@@ -41,10 +41,10 @@ namespace UnityEditor.VFX.UI
 
         public Type portType { get; set; }
 
-        public void Init(VFXSlot model, VFXSlotContainerPresenter scPresenter, bool hidden)
+        public void Init(VFXSlot model, VFXSlotContainerController sourceNode, bool hidden)
         {
             base.Init(model);
-            m_SourceNode = scPresenter;
+            m_SourceNode = sourceNode;
             m_Hidden = hidden;
             m_Collapsed = model.collapsed;
 
@@ -72,7 +72,7 @@ namespace UnityEditor.VFX.UI
             }
             UpdateInfos();
 
-            sourceNode.viewPresenter.DataEdgesMightHaveChanged();
+            sourceNode.viewController.DataEdgesMightHaveChanged();
             NotifyChange(AnyThing);
         }
 
@@ -129,11 +129,11 @@ namespace UnityEditor.VFX.UI
                 {
                     if (!editable)
                     {
-                        VFXViewPresenter presenter = m_SourceNode.viewPresenter;
+                        VFXViewController controller = m_SourceNode.viewController;
 
-                        if (presenter.CanGetEvaluatedContent(model))
+                        if (controller.CanGetEvaluatedContent(model))
                         {
-                            return VFXConverter.ConvertTo(presenter.GetEvaluatedContent(model), portType);
+                            return VFXConverter.ConvertTo(controller.GetEvaluatedContent(model), portType);
                         }
                     }
 
@@ -149,16 +149,16 @@ namespace UnityEditor.VFX.UI
         }
 
 
-        List<VFXDataEdgePresenter> m_Connections = new List<VFXDataEdgePresenter>();
+        List<VFXDataEdgeController> m_Connections = new List<VFXDataEdgeController>();
 
-        public virtual void Connect(VFXEdgeController edgePresenter)
+        public virtual void Connect(VFXEdgeController edgeController)
         {
-            m_Connections.Add(edgePresenter as VFXDataEdgePresenter);
+            m_Connections.Add(edgeController as VFXDataEdgeController);
         }
 
-        public virtual void Disconnect(VFXEdgeController edgePresenter)
+        public virtual void Disconnect(VFXEdgeController edgeController)
         {
-            m_Connections.Remove(edgePresenter as VFXDataEdgePresenter);
+            m_Connections.Remove(edgeController as VFXDataEdgeController);
         }
 
         public bool connected
@@ -166,7 +166,7 @@ namespace UnityEditor.VFX.UI
             get { return m_Connections.Count > 0; }
         }
 
-        public IEnumerable<VFXDataEdgePresenter> connections { get { return m_Connections; } }
+        public IEnumerable<VFXDataEdgeController> connections { get { return m_Connections; } }
 
         public abstract Direction direction { get; }
         public Orientation orientation { get { return Orientation.Horizontal; } }
@@ -196,7 +196,7 @@ namespace UnityEditor.VFX.UI
 
         public virtual bool expandable
         {
-            get { return VFXContextSlotContainerPresenter.IsTypeExpandable(portType); }
+            get { return VFXContextSlotContainerController.IsTypeExpandable(portType); }
         }
 
         public virtual string iconName

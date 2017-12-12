@@ -9,9 +9,9 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXBlockPresenter : VFXContextSlotContainerPresenter
+    class VFXBlockController : VFXContextSlotContainerController
     {
-        public void Init(VFXBlock model, VFXContextPresenter contextPresenter)
+        public void Init(VFXBlock model, VFXContextController contextPresenter)
         {
             base.Init(model, contextPresenter);
         }
@@ -23,7 +23,7 @@ namespace UnityEditor.VFX.UI
 
         public int index
         {
-            get { return contextPresenter.FindBlockIndexOf(this); }
+            get { return contextController.FindBlockIndexOf(this); }
         }
 
         bool ShouldIgnoreMember(Type type, FieldInfo field)

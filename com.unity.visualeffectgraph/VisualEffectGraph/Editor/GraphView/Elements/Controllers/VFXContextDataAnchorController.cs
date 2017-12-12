@@ -5,15 +5,15 @@ using UnityEditor.Experimental.UIElements.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
-    abstract class VFXContextDataAnchorPresenter : VFXDataAnchorPresenter
+    abstract class VFXContextDataAnchorController : VFXDataAnchorController
     {
         public override bool expandable
         {
-            get { return VFXContextSlotContainerPresenter.IsTypeExpandable(portType); }
+            get { return VFXContextSlotContainerController.IsTypeExpandable(portType); }
         }
     }
 
-    class VFXContextDataInputAnchorPresenter : VFXContextDataAnchorPresenter
+    class VFXContextDataInputAnchorPresenter : VFXContextDataAnchorController
     {
         public override Direction direction
         {
@@ -24,7 +24,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXContextDataOutputAnchorPresenter : VFXContextDataAnchorPresenter
+    class VFXContextDataOutputAnchorPresenter : VFXContextDataAnchorController
     {
         public override Direction direction
         {

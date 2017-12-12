@@ -15,14 +15,14 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    internal class VFXDataEdge : VFXEdge, IControlledElement<VFXDataEdgePresenter>
+    internal class VFXDataEdge : VFXEdge, IControlledElement<VFXDataEdgeController>
     {
-        VFXDataEdgePresenter m_Controller;
+        VFXDataEdgeController m_Controller;
         Controller IControlledElement.controller
         {
             get { return m_Controller; }
         }
-        public VFXDataEdgePresenter controller
+        public VFXDataEdgeController controller
         {
             get { return m_Controller; }
             set

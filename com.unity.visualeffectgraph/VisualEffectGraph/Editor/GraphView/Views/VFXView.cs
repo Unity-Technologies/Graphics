@@ -148,16 +148,16 @@ namespace UnityEditor.VFX.UI
     }
 
     //[StyleSheet("Assets/VFXEditor/Editor/GraphView/Views/")]
-    class VFXView : GraphView, IParameterDropTarget, IControlledElement<VFXViewPresenter>
+    class VFXView : GraphView, IParameterDropTarget, IControlledElement<VFXViewController>
     {
         VisualElement m_NoAssetLabel;
 
-        VFXViewPresenter m_Controller;
+        VFXViewController m_Controller;
         Controller IControlledElement.controller
         {
             get { return m_Controller; }
         }
-        public VFXViewPresenter controller
+        public VFXViewController controller
         {
             get { return m_Controller; }
             set
@@ -200,16 +200,16 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                Debug.LogErrorFormat("Add unknown presenter : {0}", d.modelDescriptor.GetType());
+                Debug.LogErrorFormat("Add unknown controller : {0}", d.modelDescriptor.GetType());
             }
             return null;
         }
 
         public VFXView()
         {
-            m_SlotContainerFactory[typeof(VFXContextPresenter)] = typeof(VFXContextUI);
-            m_SlotContainerFactory[typeof(VFXOperatorPresenter)] = typeof(VFXOperatorUI);
-            m_SlotContainerFactory[typeof(VFXParameterPresenter)] = typeof(VFXParameterUI);
+            m_SlotContainerFactory[typeof(VFXContextController)] = typeof(VFXContextUI);
+            m_SlotContainerFactory[typeof(VFXOperatorController)] = typeof(VFXOperatorUI);
+            m_SlotContainerFactory[typeof(VFXParameterController)] = typeof(VFXParameterUI);
 
             forceNotififcationOnAdd = true;
             SetupZoom(0.125f, 8);
@@ -324,7 +324,7 @@ namespace UnityEditor.VFX.UI
 
         void ControllerChanged(int change)
         {
-            if (change == VFXViewPresenter.AnyThing)
+            if (change == VFXViewController.AnyThing)
             {
                 SyncNodes();
             }
@@ -332,7 +332,7 @@ namespace UnityEditor.VFX.UI
 
             if (controller != null)
             {
-                if (change == VFXViewPresenter.AnyThing)
+                if (change == VFXViewController.AnyThing)
                 {
                     var settings = GetRendererSettings();
 
@@ -342,11 +342,11 @@ namespace UnityEditor.VFX.UI
                     m_ToggleMotionVectors.on = settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object;
                     m_ToggleMotionVectors.SetEnabled(true);
 
-                    // if the asset dis destroy somehow, fox example if the user delete the asset, delete the presenter and update the window.
+                    // if the asset dis destroy somehow, fox example if the user delete the asset, delete the controller and update the window.
                     VFXAsset asset = controller.GetVFXAsset();
                     if (asset == null)
                     {
-                        VFXViewPresenter.Manager.RemovePresenter(controller);
+                        VFXViewController.Manager.RemoveController(controller);
 
                         this.controller = null;
                         return;
@@ -454,7 +454,7 @@ namespace UnityEditor.VFX.UI
 
         void SyncEdges(int change)
         {
-            if (change != VFXViewPresenter.Change.flowEdge)
+            if (change != VFXViewController.Change.flowEdge)
             {
                 var dataEdges = contentViewContainer.Query().Children<VisualElement>().Children<VFXDataEdge>().ToList().ToDictionary(t => t.controller, t => t);
                 if (controller == null)
@@ -495,7 +495,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            if (change != VFXViewPresenter.Change.dataEdge)
+            if (change != VFXViewController.Change.dataEdge)
             {
                 var flowEdges = contentViewContainer.Query().Children<VisualElement>().Children<VFXFlowEdge>().ToList().ToDictionary(t => t.controller, t => t);
                 if (controller == null)
@@ -549,7 +549,7 @@ namespace UnityEditor.VFX.UI
         {
             VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>("Assets/VFXEditor/Editor/Templates/DefaultParticleSystem.asset");
 
-            VFXViewPresenter controller = VFXViewPresenter.Manager.GetPresenter(asset, true);
+            VFXViewController controller = VFXViewController.Manager.GetController(asset, true);
             controller.useCount++;
 
             object data = VFXCopyPaste.CreateCopy(controller.allChildren);
@@ -702,12 +702,12 @@ namespace UnityEditor.VFX.UI
             if (startAnchor is VFXDataAnchor)
             {
                 var presenters = controller.GetCompatiblePorts((startAnchor as  VFXDataAnchor).controller, nodeAdapter);
-                return presenters.Select(t => (Port)GetDataAnchorByPresenter(t as VFXDataAnchorPresenter)).ToList();
+                return presenters.Select(t => (Port)GetDataAnchorByPresenter(t as VFXDataAnchorController)).ToList();
             }
             else
             {
                 var presenters = controller.GetCompatiblePorts((startAnchor as VFXFlowAnchor).controller, nodeAdapter);
-                return presenters.Select(t => (Port)GetFlowAnchorByPresenter(t as VFXFlowAnchorPresenter)).ToList();
+                return presenters.Select(t => (Port)GetFlowAnchorByPresenter(t as VFXFlowAnchorController)).ToList();
             }
         }
 
@@ -722,18 +722,18 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public VFXDataAnchor GetDataAnchorByPresenter(VFXDataAnchorPresenter presenter)
+        public VFXDataAnchor GetDataAnchorByPresenter(VFXDataAnchorController controller)
         {
-            if (presenter == null)
+            if (controller == null)
                 return null;
-            return GetAllDataAnchors(presenter.direction == Direction.Input, presenter.direction == Direction.Output).Where(t => t.controller == presenter).FirstOrDefault();
+            return GetAllDataAnchors(controller.direction == Direction.Input, controller.direction == Direction.Output).Where(t => t.controller == controller).FirstOrDefault();
         }
 
-        public VFXFlowAnchor GetFlowAnchorByPresenter(VFXFlowAnchorPresenter presenter)
+        public VFXFlowAnchor GetFlowAnchorByPresenter(VFXFlowAnchorController controller)
         {
-            if (presenter == null)
+            if (controller == null)
                 return null;
-            return GetAllFlowAnchors(presenter.direction == Direction.Input, presenter.direction == Direction.Output).Where(t => t.controller == presenter).FirstOrDefault();
+            return GetAllFlowAnchors(controller.direction == Direction.Input, controller.direction == Direction.Output).Where(t => t.controller == controller).FirstOrDefault();
         }
 
         public IEnumerable<VFXDataAnchor> GetAllDataAnchors(bool input, bool output)
@@ -766,7 +766,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public VFXDataEdge GetDataEdgeByPresenter(VFXDataEdgePresenter presenter)
+        public VFXDataEdge GetDataEdgeByPresenter(VFXDataEdgeController controller)
         {
             foreach (var layer in contentViewContainer.Children())
             {
@@ -775,7 +775,7 @@ namespace UnityEditor.VFX.UI
                     if (element is VFXDataEdge)
                     {
                         VFXDataEdge candidate = element as VFXDataEdge;
-                        if (candidate.controller == presenter)
+                        if (candidate.controller == controller)
                             return candidate;
                     }
                 }
@@ -833,13 +833,13 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void IParameterDropTarget.OnDragUpdated(IMGUIEvent evt, VFXParameterPresenter parameter)
+        void IParameterDropTarget.OnDragUpdated(IMGUIEvent evt, VFXParameterController parameter)
         {
             //TODO : show that we accept the drag
             DragAndDrop.visualMode = DragAndDropVisualMode.Link;
         }
 
-        void IParameterDropTarget.OnDragPerform(IMGUIEvent evt, VFXParameterPresenter parameter)
+        void IParameterDropTarget.OnDragPerform(IMGUIEvent evt, VFXParameterController parameter)
         {
             if (controller == null) return;
             controller.AddVFXParameter(contentViewContainer.GlobalToBound(evt.imguiEvent.mousePosition), VFXLibrary.GetParameters().FirstOrDefault(t => t.name == parameter.portType.UserFriendlyName()));

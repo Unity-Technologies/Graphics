@@ -55,16 +55,16 @@ namespace UnityEditor.VFX.UI
         }
 
 
-        static void CopyNodes(Data copyData, IEnumerable<Controller> elements, IEnumerable<VFXContextPresenter> contexts, IEnumerable<VFXSlotContainerPresenter> slotContainers)
+        static void CopyNodes(Data copyData, IEnumerable<Controller> elements, IEnumerable<VFXContextController> contexts, IEnumerable<VFXSlotContainerController> slotContainers)
         {
-            IEnumerable<VFXSlotContainerPresenter> dataEdgeTargets = slotContainers.Concat(contexts.Select(t => t.slotContainerPresenter as VFXSlotContainerPresenter)).Concat(contexts.SelectMany(t => t.blockPresenters).Cast<VFXSlotContainerPresenter>()).ToArray();
+            IEnumerable<VFXSlotContainerController> dataEdgeTargets = slotContainers.Concat(contexts.Select(t => t.slotContainerController as VFXSlotContainerController)).Concat(contexts.SelectMany(t => t.blockControllers).Cast<VFXSlotContainerController>()).ToArray();
 
             // consider only edges contained in the selection
 
-            IEnumerable<VFXDataEdgePresenter> dataEdges = elements.OfType<VFXDataEdgePresenter>().Where(t => dataEdgeTargets.Contains((t.input as VFXDataAnchorPresenter).sourceNode as VFXSlotContainerPresenter) && dataEdgeTargets.Contains((t.output as VFXDataAnchorPresenter).sourceNode as VFXSlotContainerPresenter)).ToArray();
+            IEnumerable<VFXDataEdgeController> dataEdges = elements.OfType<VFXDataEdgeController>().Where(t => dataEdgeTargets.Contains((t.input as VFXDataAnchorController).sourceNode as VFXSlotContainerController) && dataEdgeTargets.Contains((t.output as VFXDataAnchorController).sourceNode as VFXSlotContainerController)).ToArray();
             IEnumerable<VFXFlowEdgePresenter> flowEdges = elements.OfType<VFXFlowEdgePresenter>().Where(t =>
-                    contexts.Contains((t.input as VFXFlowAnchorPresenter).context) &&
-                    contexts.Contains((t.output as VFXFlowAnchorPresenter).context)
+                    contexts.Contains((t.input as VFXFlowAnchorController).context) &&
+                    contexts.Contains((t.output as VFXFlowAnchorController).context)
                     ).ToArray();
 
 
@@ -79,8 +79,8 @@ namespace UnityEditor.VFX.UI
             {
                 DataEdge copyPasteEdge = new DataEdge();
 
-                var inputPresenter = edge.input as VFXDataAnchorPresenter;
-                var outputPresenter = edge.output as VFXDataAnchorPresenter;
+                var inputPresenter = edge.input as VFXDataAnchorController;
+                var outputPresenter = edge.output as VFXDataAnchorController;
 
                 copyPasteEdge.input.slotPath = MakeSlotPath(inputPresenter.model, true);
 
@@ -119,8 +119,8 @@ namespace UnityEditor.VFX.UI
             {
                 FlowEdge copyPasteEdge = new FlowEdge();
 
-                var inputPresenter = edge.input as VFXFlowAnchorPresenter;
-                var outputPresenter = edge.output as VFXFlowAnchorPresenter;
+                var inputPresenter = edge.input as VFXFlowAnchorController;
+                var outputPresenter = edge.output as VFXFlowAnchorController;
 
                 copyPasteEdge.input.contextIndex = System.Array.IndexOf(copiedContexts, inputPresenter.owner);
                 copyPasteEdge.input.flowIndex = inputPresenter.slotIndex;
@@ -135,9 +135,9 @@ namespace UnityEditor.VFX.UI
 
         public static object CreateCopy(IEnumerable<Controller> elements)
         {
-            IEnumerable<VFXContextPresenter> contexts = elements.OfType<VFXContextPresenter>();
-            IEnumerable<VFXSlotContainerPresenter> slotContainers = elements.Where(t => t is VFXOperatorPresenter || t is VFXParameterPresenter).Cast<VFXSlotContainerPresenter>();
-            IEnumerable<VFXBlockPresenter> blocks = elements.OfType<VFXBlockPresenter>();
+            IEnumerable<VFXContextController> contexts = elements.OfType<VFXContextController>();
+            IEnumerable<VFXSlotContainerController> slotContainers = elements.Where(t => t is VFXOperatorController || t is VFXParameterController).Cast<VFXSlotContainerController>();
+            IEnumerable<VFXBlockController> blocks = elements.OfType<VFXBlockController>();
 
             Data copyData = new Data();
 

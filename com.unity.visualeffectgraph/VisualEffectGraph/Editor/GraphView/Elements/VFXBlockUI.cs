@@ -13,9 +13,9 @@ namespace UnityEditor.VFX.UI
     {
         Toggle m_EnableToggle;
 
-        public new VFXBlockPresenter controller
+        public new VFXBlockController controller
         {
-            get { return base.controller as VFXBlockPresenter; }
+            get { return base.controller as VFXBlockController; }
             set { base.controller = value; }
         }
 
@@ -43,9 +43,7 @@ namespace UnityEditor.VFX.UI
 
         void OnToggleEnable()
         {
-            var presenter = controller;
-
-            presenter.block.enabled = !presenter.block.enabled;
+            controller.block.enabled = !controller.block.enabled;
         }
 
         // This function is a placeholder for common stuff to do before we delegate the action to the drop target
@@ -81,13 +79,12 @@ namespace UnityEditor.VFX.UI
         protected override void SelfChange()
         {
             base.SelfChange();
-            var presenter = controller;
 
-            m_EnableToggle.on = presenter.block.enabled;
+            m_EnableToggle.on = controller.block.enabled;
             if (inputContainer != null)
-                inputContainer.SetEnabled(presenter.block.enabled);
+                inputContainer.SetEnabled(controller.block.enabled);
             if (m_SettingsContainer != null)
-                m_SettingsContainer.SetEnabled(presenter.block.enabled);
+                m_SettingsContainer.SetEnabled(controller.block.enabled);
         }
 
         bool IDropTarget.CanAcceptDrop(List<ISelectable> selection)
@@ -111,8 +108,8 @@ namespace UnityEditor.VFX.UI
 
             IEnumerable<VFXBlockUI> draggedBlocksUI = selection.Select(t => t as VFXBlockUI).Where(t => t != null);
 
-            VFXBlockPresenter blockPresenter = controller;
-            VFXContextPresenter contextPresenter = blockPresenter.contextPresenter;
+            VFXBlockController blockPresenter = controller;
+            VFXContextController contextPresenter = blockPresenter.contextController;
 
             if (context.CanDrop(draggedBlocksUI, this))
             {

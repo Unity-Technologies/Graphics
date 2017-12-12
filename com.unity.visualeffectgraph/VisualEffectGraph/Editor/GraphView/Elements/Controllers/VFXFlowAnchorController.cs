@@ -5,18 +5,18 @@ using UnityEditor.Experimental.UIElements.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
-    abstract class VFXFlowAnchorPresenter : Controller, IVFXAnchorPresenter
+    abstract class VFXFlowAnchorController : Controller, IVFXAnchorController
     {
         [SerializeField]
-        VFXContextPresenter m_Context;
+        VFXContextController m_Context;
         public VFXContext owner { get { return m_Context.context; } }
-        public VFXContextPresenter context { get { return m_Context; } }
+        public VFXContextController context { get { return m_Context; } }
 
         [SerializeField]
         private int m_SlotIndex;
         public int slotIndex { get { return m_SlotIndex; } }
 
-        public void Init(VFXContextPresenter context, int slotIndex)
+        public void Init(VFXContextController context, int slotIndex)
         {
             m_Context = context;
             m_SlotIndex = slotIndex;
@@ -54,9 +54,9 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXFlowInputAnchorPresenter : VFXFlowAnchorPresenter
+    class VFXFlowInputAnchorController : VFXFlowAnchorController
     {
-        public VFXFlowInputAnchorPresenter()
+        public VFXFlowInputAnchorController()
         {
         }
 
@@ -73,9 +73,9 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXFlowOutputAnchorPresenter : VFXFlowAnchorPresenter
+    class VFXFlowOutputAnchorController : VFXFlowAnchorController
     {
-        public VFXFlowOutputAnchorPresenter()
+        public VFXFlowOutputAnchorController()
         {
         }
 

@@ -103,31 +103,6 @@ namespace UnityEditor.VFX
         protected void SetOuputSlotFromExpression(IEnumerable<VFXExpression> outputExpression)
         {
             var outputExpressionArray = outputExpression.ToArray();
-            /*if (outputExpressionQueue.Count > 0)
-            {
-                //TODOPAUL : Is it an hotfix ?
-                var current = outputExpressionQueue.First();
-                if (current.Length == outputExpressionArray.Length)
-                {
-                    bool sequenceEqual = true;
-                    for (int i = 0; i < current.Length; ++i)
-                    {
-                        var left = current[i];
-                        var right = outputExpressionArray[i];
-                        if (!left.Equals(right))
-                        {
-                            sequenceEqual = false;
-                            break;
-                        }
-                    }
-
-                    if (sequenceEqual)
-                    {
-                        //Adding twice the same outputExpressionArray (can happen due to a call to GetExpression from Reset in presenter)
-                        return;
-                    }
-                }
-            }*/
 
             outputExpressionQueue.Enqueue(outputExpressionArray);
 
