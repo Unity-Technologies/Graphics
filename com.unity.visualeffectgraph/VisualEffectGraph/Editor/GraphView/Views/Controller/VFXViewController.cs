@@ -46,11 +46,6 @@ namespace UnityEditor.VFX.UI
             get { return m_SyncedModels.Values.Cast<Controller>().Concat(m_DataEdges.Cast<Controller>()).Concat(m_FlowEdges.Cast<Controller>()); }
         }
 
-        protected new void OnEnable()
-        {
-            base.OnEnable();
-        }
-
         public override void ApplyChanges()
         {
             ModelChanged(model);

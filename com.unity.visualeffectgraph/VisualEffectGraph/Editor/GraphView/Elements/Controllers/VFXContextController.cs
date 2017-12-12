@@ -40,11 +40,6 @@ namespace UnityEditor.VFX.UI
         [SerializeField]
         IDataWatchHandle m_DataHandle;
 
-        protected new void OnEnable()
-        {
-            base.OnEnable();
-        }
-
         public override void OnDisable()
         {
             if (viewController != null)

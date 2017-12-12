@@ -9,10 +9,6 @@ namespace UnityEditor.VFX.UI
 {
     public abstract class Controller
     {
-        public virtual void OnEnable()
-        {
-        }
-
         public virtual void OnDisable()
         {
             foreach (var element in allChildren)
