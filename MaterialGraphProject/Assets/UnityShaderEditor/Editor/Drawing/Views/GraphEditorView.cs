@@ -125,7 +125,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         continue;
 
                     var drawState = node.drawState;
-                    drawState.position = element.layout;
+                    drawState.position = element.GetPosition();
                     node.drawState = drawState;
                 }
             }
@@ -274,7 +274,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             position.position -= offset;
             nodeView.SetPosition(position);
             var drawState = nodeView.node.drawState;
-            drawState.position = nodeView.layout;
+            drawState.position = position;
             nodeView.node.drawState = drawState;
             nodeView.Dirty(ChangeType.Repaint);
             port.Dirty(ChangeType.Repaint);
