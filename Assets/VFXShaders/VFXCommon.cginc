@@ -199,6 +199,13 @@ float SampleCurve(float4 curveData,float u)
 // Utils //
 ///////////
 
+float3x3 GetScaleMatrix(float3 scale)
+{
+    return float3x3(scale.x,    0,          0,
+                    0,          scale.y,    0,
+                    0,          0,          scale.z);
+}
+
 float3x3 GetRotationMatrix(float3 axis,float angle)
 {
     float2 sincosA;
@@ -227,12 +234,14 @@ float3x3 GetEulerMatrix(float3 angles)
 
 float4x4 GetPrimitiveToVFXMatrix(float3 side,float3 up,float3 front,float3x3 rot,float3 pivot,float3 size,float3 pos)
 {
-    rot = mul(transpose(float3x3(side * size.x,up * size.y,front * size.z)),rot);
-    pos -= mul(rot,pivot);
+    float3x3 rotAndScale = GetScaleMatrix(size);
+    rotAndScale = mul(rot,rotAndScale);
+    rotAndScale = mul(transpose(float3x3(side,up,front)),rotAndScale);
+    pos -= mul(rotAndScale,pivot);
     return float4x4(
-        float4(rot[0],pos.x),
-        float4(rot[1],pos.y),
-        float4(rot[2],pos.z),
+        float4(rotAndScale[0],pos.x),
+        float4(rotAndScale[1],pos.y),
+        float4(rotAndScale[2],pos.z),
         float4(0,0,0,1));
 }
 
@@ -244,13 +253,14 @@ float4x4 GetPrimitiveToVFXMatrix(float3 side,float3 up,float3 front,float3 angle
 
 float4x4 GetVFXToPrimitiveMatrix(float3 side,float3 up,float3 front,float3 angles,float3 pivot,float3 size,float3 pos)
 {
-    float3x3 rot = float3x3(side / size.x,up / size.y,front / size.z);
-    rot = mul(transpose(GetEulerMatrix(radians(angles))),rot);
-    pos = pivot - mul(rot,pos);
+    float3x3 rotAndScale = float3x3(side,up,front);
+    rotAndScale = mul(transpose(GetEulerMatrix(radians(angles))),rotAndScale);
+    rotAndScale = mul(GetScaleMatrix(1.0f / size),rotAndScale);
+    pos = pivot - mul(rotAndScale,pos);
     return float4x4(
-        float4(rot[0],pos.x),
-        float4(rot[1],pos.y),
-        float4(rot[2],pos.z),
+        float4(rotAndScale[0],pos.x),
+        float4(rotAndScale[1],pos.y),
+        float4(rotAndScale[2],pos.z),
         float4(0,0,0,1));
 }
 
