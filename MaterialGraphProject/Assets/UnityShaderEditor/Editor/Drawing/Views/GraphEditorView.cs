@@ -241,6 +241,43 @@ namespace UnityEditor.ShaderGraph.Drawing
             nodeView.Initialize(node as AbstractMaterialNode, m_PreviewManager, m_EdgeConnectorListener);
             node.onModified += OnNodeChanged;
             nodeView.Dirty(ChangeType.Repaint);
+
+            if (m_SearchWindowProvider.nodeNeedsRepositioning && m_SearchWindowProvider.targetSlotReference.nodeGuid.Equals(node.guid))
+            {
+                m_SearchWindowProvider.nodeNeedsRepositioning = false;
+                foreach (var element in nodeView.inputContainer.Union(nodeView.outputContainer))
+                {
+                    var port = element as ShaderPort;
+                    if (port == null)
+                        continue;
+                    var slot = (MaterialSlot)port.userData;
+                    if (slot.slotReference.Equals(m_SearchWindowProvider.targetSlotReference))
+                    {
+                        port.RegisterCallback<PostLayoutEvent>(RepositionNode);
+                        return;
+                    }
+                }
+            }
+        }
+
+        static void RepositionNode(PostLayoutEvent evt)
+        {
+            var port = evt.target as ShaderPort;
+            if (port == null)
+                return;
+            port.UnregisterCallback<PostLayoutEvent>(RepositionNode);
+            var nodeView = port.node as MaterialNodeView;
+            if (nodeView == null)
+                return;
+            var offset = port.connectorBox.parent.ChangeCoordinatesTo(nodeView.mainContainer, port.connectorBox.layout.center);
+            var position = nodeView.GetPosition();
+            position.position -= offset;
+            nodeView.SetPosition(position);
+            var drawState = nodeView.node.drawState;
+            drawState.position = nodeView.layout;
+            nodeView.node.drawState = drawState;
+            nodeView.Dirty(ChangeType.Repaint);
+            port.Dirty(ChangeType.Repaint);
         }
 
         Edge AddEdge(IEdge edge)

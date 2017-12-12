@@ -18,6 +18,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         GraphView m_GraphView;
         Texture2D m_Icon;
         public Port connectedPort { get; set; }
+        public bool nodeNeedsRepositioning { get; set; }
+        public SlotReference targetSlotReference { get; private set; }
+        public Vector2 targetPosition { get; private set; }
 
         public void Initialize(EditorWindow editorWindow, AbstractMaterialGraph graph, GraphView graphView)
         {
@@ -192,8 +195,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             var node = nodeEntry.node;
 
             var drawState = node.drawState;
-            var windowMousePosition = context.screenMousePosition - m_EditorWindow.position.position;
-            var graphMousePosition = m_EditorWindow.GetRootVisualContainer().ChangeCoordinatesTo(m_GraphView.contentViewContainer, windowMousePosition);
+            var windowMousePosition = m_EditorWindow.GetRootVisualContainer().ChangeCoordinatesTo(m_EditorWindow.GetRootVisualContainer().parent, context.screenMousePosition - m_EditorWindow.position.position);
+            var graphMousePosition = m_GraphView.contentViewContainer.WorldToLocal(windowMousePosition);
             drawState.position = new Rect(graphMousePosition, Vector2.zero);
             node.drawState = drawState;
 
@@ -209,6 +212,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var fromReference = connectedSlot.isOutputSlot ? connectedSlotReference : compatibleSlotReference;
                 var toReference = connectedSlot.isOutputSlot ? compatibleSlotReference : connectedSlotReference;
                 m_Graph.Connect(fromReference, toReference);
+
+                nodeNeedsRepositioning = true;
+                targetSlotReference = compatibleSlotReference;
+                targetPosition = graphMousePosition;
             }
 
             return true;

@@ -25,6 +25,13 @@ MaterialGraphView {
     background-color: rgb(20, 21, 21);
 }
 
+MaterialNodeView.graphElement.node.MaterialNode {
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
+}
+
 MaterialNodeView #previewContainer,
 MaterialNodeView #controls {
     background-color: rgba(63, 63, 63, 0.8);

@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
@@ -17,6 +18,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             };
             port.AddManipulator(port.m_EdgeConnector);
             return port;
+        }
+
+        public VisualElement connectorBox
+        {
+            get { return m_ConnectorBox; }
         }
     }
 }
