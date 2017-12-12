@@ -83,6 +83,7 @@ namespace UnityEngine.Experimental.Rendering
 
             var component = ScriptableObject.CreateInstance<T>();
             component.SetAllOverridesTo(overrides);
+            components.Add(component);
             isDirty = true;
             return component;
         }

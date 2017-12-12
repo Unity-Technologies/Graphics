@@ -119,10 +119,8 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                 LightLoop(V, posInput, preLightData, bsdfData, bakeLightingData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE, diffuseLighting, specularLighting);
 
             #ifdef VOLUMETRIC_LIGHTING_ENABLED
-                float4 volumetricLighting = GetInScatteredRadianceAndTransmittance(posInput.positionNDC,
-                                                                                   posInput.linearDepth,
-                                                                                   _VBufferLighting,
-                                                                                   s_linear_clamp_sampler,
+                float4 volumetricLighting = GetInScatteredRadianceAndTransmittance(posInput.positionNDC, posInput.linearDepth,
+                                                                                   TEXTURE3D_PARAM(_VBufferLighting, s_linear_clamp_sampler),
                                                                                    _VBufferResolutionAndScale.zw,
                                                                                    _VBufferDepthEncodingParams);
                 // TODO: apply volumetrics after SSS.

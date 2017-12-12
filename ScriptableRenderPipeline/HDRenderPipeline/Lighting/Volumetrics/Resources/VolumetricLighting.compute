@@ -20,10 +20,11 @@
 #include "../../../../Core/ShaderLibrary/SpaceFillingCurves.hlsl"
 #include "../../../../Core/ShaderLibrary/VolumeRendering.hlsl"
 
-#include "../VolumetricLighting.cs.hlsl"
-#define UNITY_MATERIAL_LIT // Need to be defined before including Material.hlsl
 #include "../../../ShaderVariables.hlsl"
-#include "../../../Lighting/Lighting.hlsl" // This includes Material.hlsl
+#include "../VolumetricLighting.cs.hlsl"
+#define UNITY_MATERIAL_VOLUMETRIC          // Define before including Lighting.hlsl and Material.hlsl
+#include "../../../Lighting/Lighting.hlsl" // Includes Material.hlsl
+#include "../../../Lighting/LightEvaluation.hlsl"
 
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs

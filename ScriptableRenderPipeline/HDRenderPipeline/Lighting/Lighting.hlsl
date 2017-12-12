@@ -25,13 +25,14 @@
 #include "../Lighting/LightLoop/LightLoopDef.hlsl"
 #endif
 
-// Shadow use samling function define in header above and must be include before Material.hlsl
-#include "../Material/Material.hlsl"
+#include "../Material/Material.hlsl" // Depends on LightLoopDef and shadows
 
-// LightLoop use evaluation BSDF function for light type define in Material.hlsl
-#if defined(LIGHTLOOP_SINGLE_PASS) || defined(LIGHTLOOP_TILE_PASS)
-#include "../Lighting/LightLoop/LightLoop.hlsl"
+// Volumetrics have their own light loop.
+#ifndef UNITY_MATERIAL_VOLUMETRIC
+	// LightLoop use evaluation BSDF function for light type define in Material.hlsl
+	#if defined(LIGHTLOOP_SINGLE_PASS) || defined(LIGHTLOOP_TILE_PASS)
+	#include "../Lighting/LightLoop/LightLoop.hlsl"
+	#endif
 #endif
-
 
 #endif // UNITY_LIGHTING_INCLUDED

@@ -154,10 +154,8 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     LightLoop(V, posInput, preLightData, bsdfData, bakeLightingData, featureFlags, diffuseLighting, specularLighting);
 
 #ifdef VOLUMETRIC_LIGHTING_ENABLED
-    float4 volumetricLighting = GetInScatteredRadianceAndTransmittance(posInput.positionNDC,
-                                                                       posInput.linearDepth,
-                                                                       _VBufferLighting,
-                                                                       s_linear_clamp_sampler,
+    float4 volumetricLighting = GetInScatteredRadianceAndTransmittance(posInput.positionNDC, posInput.linearDepth,
+                                                                       TEXTURE3D_PARAM(_VBufferLighting, s_linear_clamp_sampler),
                                                                        _VBufferResolutionAndScale.zw,
                                                                        _VBufferDepthEncodingParams);
     // TODO: apply volumetrics after SSS.
