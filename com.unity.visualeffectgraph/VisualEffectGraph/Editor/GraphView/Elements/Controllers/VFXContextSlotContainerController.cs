@@ -19,7 +19,12 @@ namespace UnityEditor.VFX.UI
 
                 return anchorController;
             }
-            return null;
+            else
+            {
+                VFXContextDataOutputAnchorController anchorController = new VFXContextDataOutputAnchorController(slot, this, hidden);
+
+                return anchorController;
+            }
         }
 
         public VFXContextSlotContainerController(VFXModel model, VFXContextController contextController) : base(model, contextController.viewController)
