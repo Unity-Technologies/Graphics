@@ -55,7 +55,7 @@ float3 GetPointAtDistance(Ray ray, float t)
 
 // Computes the in-scattered radiance along the ray.
 void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
-                                  PositionInputs posInput, Ray ray, uint2 voxelCoord, float4 depthParams)
+                                  PositionInputs posInput, Ray ray)
 {
     BakeLightingData unusedData;         // Unused, so define once
 
@@ -65,7 +65,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     float3 totalRadiance = 0;
     float  opticalDepth  = 0;
 
-    uint sliceCountHack = max(VBUFFER_SLICE_COUNT, (uint)depthParams.x); // Prevent unrolling...
+    uint sliceCountHack = max(VBUFFER_SLICE_COUNT, (uint)_VBufferDepthEncodingParams.x); // Prevent unrolling...
 
 #ifdef LIGHTLOOP_TILE_PASS
     // Our voxel is not necessarily completely inside a single light cluster.
@@ -81,7 +81,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     for (uint slice = 0; slice < sliceCountHack; slice++)
     {
         float e1 = slice * de + de; // (slice + 1) / sliceCount
-        float z1 = DecodeLogarithmicDepth(e1, depthParams);
+        float z1 = DecodeLogarithmicDepth(e1, _VBufferDepthEncodingParams);
         float t1 = ray.ratioLenToZ * z1;
         float dt = t1 - t0;
 
@@ -146,27 +146,27 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
             if (featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
             {
-                uint punctualLightStart;
-                uint punctualLightCount;
+                uint lightCount, lightStart;
 
             #ifdef LIGHTLOOP_TILE_PASS
                 GetCountAndStartCluster(posInput.tileCoord, clusterIndices[cluster], LIGHTCATEGORY_PUNCTUAL,
-                                        punctualLightStart, punctualLightCount);
+                                        lightStart, lightCount);
             #else
-                punctualLightStart = 0;
-                punctualLightCount = _PunctualLightCount;
+                lightCount = _PunctualLightCount;
+                lightStart = 0;
             #endif // LIGHTLOOP_TILE_PASS
 
                 // TODO: since lights are sorted, make a while loop per light type.
-                for (uint i = 0; i < punctualLightCount; ++i)
+                for (uint i = 0; i < lightCount; ++i)
                 {
-                    LightData lightData = FetchLight(punctualLightStart, i);
+                    LightData lightData = FetchLight(lightStart, i);
                     int       lightType = lightData.lightType;
 
                     // TODO...
                     if (lightType != GPULIGHTTYPE_POINT && lightType != GPULIGHTTYPE_SPOT) continue;
 
-                    float tEntr, tExit;
+                    float tEntr = tMin;
+                    float tExit = tMax;
 
                     if (lightType == GPULIGHTTYPE_SPOT)
                     {
@@ -178,11 +178,6 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                             continue;
                         }
                     }
-                    else
-                    {
-                        tEntr = tMin;
-                        tExit = tMax;
-                    }
 
                     float t, distSq, rcpPdf;
                     ImportanceSamplePunctualLight(rndVal, lightData.positionWS,
@@ -191,38 +186,18 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
                     posInput.positionWS = GetPointAtDistance(ray, t);
 
-                    // TODO: we could compute this data in ImportanceSamplePunctualLight().
                     float3 lightToSample = posInput.positionWS - lightData.positionWS;
                     float  dist          = sqrt(distSq);
-                    float3 L             = lightToSample * -rsqrt(distSq);
-                    float  intensity     = GetPunctualShapeAttenuation(lightData, L, distSq);
-                    float3 color         = lightData.color;
+                    float3 L             = -lightToSample * rsqrt(distSq);
 
-                    // TODO: heterogeneous medium.
-                    intensity *= TransmittanceHomogeneousMedium(extinction, dist);
+                    float3 color; float attenuation;
+                    EvaluateLight_Punctual(context, posInput, lightData, unusedData, 0, L, dist, distSq,
+                                           color, attenuation);
 
-                    [branch] if (lightData.shadowIndex >= 0)
-                    {
-                        // TODO: make projector lights cast shadows.
-                        float shadow = GetPunctualShadowAttenuation(context.shadowContext, posInput.positionWS,
-                                       float3(0, 0, 0), lightData.shadowIndex, float4(L, dist));
-
-                        intensity *= lerp(1, shadow, lightData.shadowDimmer);
-                    }
-
-                    // Projector lights always have cookies, so we can perform clipping inside the if().
-                    [branch] if (lightData.cookieIndex >= 0)
-                    {
-                        float4 cookie = EvaluateCookie_Punctual(context, lightData, lightToSample);
-
-                        color     *= cookie.rgb;
-                        intensity *= cookie.a;
-                    }
+                    float intensity = attenuation * rcpPdf;
 
                     // Compute transmittance from 't0' to 't'.
-                    float transmittance = TransmittanceHomogeneousMedium(extinction, t - t0);
-
-                    intensity *= transmittance * rcpPdf;
+                    intensity *= TransmittanceHomogeneousMedium(extinction, t - t0);
 
                     // Compute the amount of in-scattered radiance.
                     sampleRadiance += color * intensity;
@@ -247,7 +222,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         opticalDepth += 0.5 * extinction * dt;
 
         // Store the voxel data. TODO: reprojection of 'tc' (or 'centerWS').
-        _VBufferLighting[uint3(voxelCoord, slice)] = float4(totalRadiance, opticalDepth);
+        _VBufferLighting[uint3(posInput.positionSS, slice)] = float4(totalRadiance, opticalDepth);
 
         // Compute the optical depth up to the end of the interval.
         opticalDepth += 0.5 * extinction * dt;
@@ -307,9 +282,7 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
     context.shadowContext = InitShadowContext();
     uint featureFlags = 0xFFFFFFFF;
 
-    PositionInputs posInput;
-    ZERO_INITIALIZE(PositionInputs, posInput);
-    posInput.tileCoord = tileCoord;
+    PositionInputs posInput = GetPositionInput(voxelCoord, rcp(_VBufferResolutionAndScale.xy), tileCoord);
 
-    FillVolumetricLightingBuffer(context, featureFlags, posInput, ray, voxelCoord, _VBufferDepthEncodingParams);
+    FillVolumetricLightingBuffer(context, featureFlags, posInput, ray);
 }

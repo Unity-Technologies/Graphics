@@ -5,6 +5,7 @@
 // SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
 #include "Lit.cs.hlsl"
 #include "../SubsurfaceScattering/SubsurfaceScattering.hlsl"
+#include "../../../Core/ShaderLibrary/VolumeRendering.hlsl"
 
 // Define refraction keyword helpers
 #define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))

@@ -67,6 +67,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 #endif
     }
 
+    // Note: no fog attenuation along shadow rays for directional lights.
     attenuation *= shadow;
 
     [branch] if (lightData.cookieIndex >= 0)
@@ -164,6 +165,10 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
         shadow = lerp(1.0, shadow, lightData.shadowDimmer);
 #endif
     }
+
+#ifdef VOLUMETRIC_LIGHTING_ENABLED
+    shadow *= TransmittanceHomogeneousMedium(_GlobalFog_Extinction, dist);
+#endif
 
     attenuation *= shadow;
 
