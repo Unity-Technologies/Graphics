@@ -31,9 +31,18 @@ namespace UnityEditor.VFX.UI
 
             UpdateSlots(newAnchors, slotContainer.inputSlots, true, true);
 
+            foreach (var anchorController in m_InputPorts.Except(newAnchors))
+            {
+                anchorController.OnDisable();
+            }
             m_InputPorts = newAnchors;
             newAnchors = new List<VFXDataAnchorController>();
             UpdateSlots(newAnchors, slotContainer.outputSlots, true, false);
+
+            foreach (var anchorController in m_OutputPorts.Except(newAnchors))
+            {
+                anchorController.OnDisable();
+            }
             m_OutputPorts = newAnchors;
 
             base.ModelChanged(obj);

@@ -35,7 +35,6 @@ namespace UnityEditor.VFX.Test
             AssetDatabase.CreateAsset(asset, testAssetName);
 
             m_ViewController = VFXViewController.GetController(asset);
-
             m_StartUndoGroupId = Undo.GetCurrentGroup();
         }
 
@@ -189,7 +188,11 @@ namespace UnityEditor.VFX.Test
             view.ClearSelection();
 
 
-            foreach (var element in view.Query().OfType<GraphElement>().ToList().OfType<ISelectable>())
+            var originalElements = view.Query().OfType<GraphElement>().ToList().OfType<ISelectable>().ToArray();
+
+            Assert.AreNotEqual(originalElements.Length, 0);
+
+            foreach (var element in originalElements)
             {
                 view.AddToSelection(element);
             }
@@ -199,6 +202,8 @@ namespace UnityEditor.VFX.Test
             view.controller = m_ViewController;
 
             view.PasteCallback();
+
+            m_ViewController.ApplyChanges();
 
             VFXParameterUI[] parameters = view.Query().OfType<VFXParameterUI>().ToList().ToArray();
 

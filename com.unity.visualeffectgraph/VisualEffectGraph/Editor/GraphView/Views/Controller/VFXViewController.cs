@@ -62,18 +62,28 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override void OnDisable()
+        void GraphDestroyed()
         {
-            RemoveInvalidateDelegate(graph, InvalidateExpressionGraph);
-            ReleaseUndoStack();
-            Undo.undoRedoPerformed -= SynchronizeUndoRedoState;
-            Undo.willFlushUndoRecord -= WillFlushUndoRecord;
+            if (m_Graph != null)
+            {
+                RemoveInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
 
+                m_Graph = null;
+            }
             if (m_GraphHandle != null)
             {
                 DataWatchService.sharedInstance.RemoveWatch(m_GraphHandle);
                 m_GraphHandle = null;
             }
+        }
+
+        public override void OnDisable()
+        {
+            GraphDestroyed();
+            ReleaseUndoStack();
+            Undo.undoRedoPerformed -= SynchronizeUndoRedoState;
+            Undo.willFlushUndoRecord -= WillFlushUndoRecord;
+
             base.OnDisable();
         }
 
@@ -398,6 +408,8 @@ namespace UnityEditor.VFX.UI
             if (model == null)
             {
                 NotifyChange(Change.destroy);
+                GraphDestroyed();
+
                 RemoveController(this);
                 return;
             }
@@ -410,7 +422,6 @@ namespace UnityEditor.VFX.UI
 
                     RemoveInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
                 }
-
                 m_Graph =  model.GetOrCreateGraph();
 
                 if (m_Graph != null)
@@ -424,6 +435,8 @@ namespace UnityEditor.VFX.UI
 
         protected void GraphChanged(UnityEngine.Object obj)
         {
+            if (m_Graph == null) return; // OnModelChange or OnDisable will take care of that later
+
             SyncControllerFromModel();
 
             NotifyChange(AnyThing);
@@ -569,8 +582,12 @@ namespace UnityEditor.VFX.UI
 
         public void Clear()
         {
-            m_FlowAnchorController.Clear();
+            foreach (var element in allChildren)
+            {
+                element.OnDisable();
+            }
 
+            m_FlowAnchorController.Clear();
             m_SyncedModels.Clear();
             m_DataEdges.Clear();
             m_FlowEdges.Clear();
@@ -633,8 +650,11 @@ namespace UnityEditor.VFX.UI
 
         static void RemoveController(VFXViewController controller)
         {
-            controller.OnDisable();
-            s_Controllers.Remove(controller.model);
+            if (s_Controllers.ContainsKey(controller.model))
+            {
+                controller.OnDisable();
+                s_Controllers.Remove(controller.model);
+            }
         }
 
         VFXViewController(VFXAsset vfx) : base(vfx)
@@ -664,6 +684,7 @@ namespace UnityEditor.VFX.UI
 
 
             InitializeUndoStack();
+            GraphChanged(graph);
         }
 
         public void ForceReload()
@@ -682,14 +703,14 @@ namespace UnityEditor.VFX.UI
             var toRemove = m_SyncedModels.Keys.Except(graph.children).ToList();
             foreach (var m in toRemove)
             {
-                RemoveControllersFromModel(m, m_SyncedModels);
+                RemoveControllersFromModel(m);
                 changed = true;
             }
 
             var toAdd = graph.children.Except(m_SyncedModels.Keys).ToList();
             foreach (var m in toAdd)
             {
-                AddControllersFromModel(m, m_SyncedModels);
+                AddControllersFromModel(m);
                 changed = true;
             }
 
@@ -700,7 +721,7 @@ namespace UnityEditor.VFX.UI
             return changed;
         }
 
-        private void AddControllersFromModel(VFXModel model, Dictionary<VFXModel, VFXNodeController> syncedModels)
+        private void AddControllersFromModel(VFXModel model)
         {
             VFXNodeController newController = null;
             if (model is VFXOperator)
@@ -718,14 +739,19 @@ namespace UnityEditor.VFX.UI
 
             if (newController != null)
             {
-                syncedModels[model] = newController;
+                m_SyncedModels[model] = newController;
                 newController.ForceUpdate();
             }
         }
 
-        private void RemoveControllersFromModel(VFXModel model, Dictionary<VFXModel, VFXNodeController> syncedModels)
+        private void RemoveControllersFromModel(VFXModel model)
         {
-            syncedModels.Remove(model);
+            VFXNodeController controller = null;
+            if (m_SyncedModels.TryGetValue(model, out controller))
+            {
+                controller.OnDisable();
+                m_SyncedModels.Remove(model);
+            }
         }
 
         [SerializeField]

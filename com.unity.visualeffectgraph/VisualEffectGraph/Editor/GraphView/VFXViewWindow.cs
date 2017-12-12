@@ -153,19 +153,16 @@ namespace  UnityEditor.VFX.UI
         void Update()
         {
             VFXViewController controller = graphView.controller;
-            if (controller != null)
+            if (controller != null && controller.model != null && controller.graph != null)
             {
                 var graph = controller.graph;
-                if (graph != null && graph.vfxAsset != null)
+                var filename = System.IO.Path.GetFileName(m_DisplayedAssetPath);
+                if (!graph.saved)
                 {
-                    var filename = System.IO.Path.GetFileName(m_DisplayedAssetPath);
-                    if (!graph.saved)
-                    {
-                        filename += "*";
-                    }
-                    titleContent.text = filename;
-                    graph.RecompileIfNeeded(!autoCompile);
+                    filename += "*";
                 }
+                titleContent.text = filename;
+                graph.RecompileIfNeeded(!autoCompile);
                 controller.RecompileExpressionGraphIfNeeded();
             }
         }
