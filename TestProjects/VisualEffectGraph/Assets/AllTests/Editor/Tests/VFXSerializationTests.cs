@@ -393,11 +393,11 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void SerializeAttributeParameter()
         {
-            var testAttribute = "size";
+            var testAttribute = "sizeX";
             Action<VFXAttributeParameter, VFXAttributeLocation> test = delegate(VFXAttributeParameter parameter, VFXAttributeLocation location)
                 {
                     Assert.AreEqual(VFXExpressionOp.kVFXNoneOp, parameter.outputSlots[0].GetExpression().operation);
-                    Assert.AreEqual(VFXValueType.kFloat2, parameter.outputSlots[0].GetExpression().valueType);
+                    Assert.AreEqual(VFXValueType.kFloat, parameter.outputSlots[0].GetExpression().valueType);
                     Assert.IsInstanceOf(typeof(VFXAttributeExpression), parameter.outputSlots[0].GetExpression());
                     Assert.AreEqual(location, (parameter.outputSlots[0].GetExpression() as VFXAttributeExpression).attributeLocation);
                     Assert.AreEqual(testAttribute, (parameter.outputSlots[0].GetExpression() as VFXAttributeExpression).attributeName);
