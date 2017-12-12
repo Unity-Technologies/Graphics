@@ -11,6 +11,8 @@ namespace UnityEditor.Experimental.Rendering
         {
             return new[]
             {
+                Path.GetFullPath("Assets"),
+                Path.GetFullPath("Packages/com.unity.render-pipelines.core/ShaderLibrary"),
                 Path.GetFullPath("Packages/com.unity.render-pipelines.lightweight/Shaders"),
                 Path.GetFullPath("Packages/com.unity.render-pipelines.high-quality/Material/Unlit")
             };
