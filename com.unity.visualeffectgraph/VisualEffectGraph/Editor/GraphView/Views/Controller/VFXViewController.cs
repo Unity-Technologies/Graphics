@@ -23,7 +23,6 @@ namespace UnityEditor.VFX.UI
                 if (m_UseCount == 0)
                 {
                     RemoveController(this);
-                    this.OnDisable();
                 }
             }
         }
@@ -58,6 +57,12 @@ namespace UnityEditor.VFX.UI
             ReleaseUndoStack();
             Undo.undoRedoPerformed -= SynchronizeUndoRedoState;
             Undo.willFlushUndoRecord -= WillFlushUndoRecord;
+
+            if (m_GraphHandle != null)
+            {
+                DataWatchService.sharedInstance.RemoveWatch(m_GraphHandle);
+                m_GraphHandle = null;
+            }
             base.OnDisable();
         }
 
@@ -179,6 +184,8 @@ namespace UnityEditor.VFX.UI
         {
             public const int flowEdge = 1;
             public const int dataEdge = 2;
+
+            public const int destroy = 666;
         }
 
         bool RecreateFlowEdges()
@@ -377,6 +384,12 @@ namespace UnityEditor.VFX.UI
 
         protected override void ModelChanged(UnityEngine.Object obj)
         {
+            if (model == null)
+            {
+                NotifyChange(Change.destroy);
+                RemoveController(this);
+                return;
+            }
             if (m_Graph != model.GetOrCreateGraph())
             {
                 if (m_GraphHandle != null)
@@ -605,16 +618,14 @@ namespace UnityEditor.VFX.UI
 
         static void RemoveController(VFXViewController controller)
         {
+            controller.OnDisable();
             s_Controllers.Remove(controller.model);
         }
 
         VFXViewController(VFXAsset vfx) : base(vfx)
         {
-            Clear();
+            ModelChanged(vfx); // This will initialize the graph from the vfx asset.
 
-            InitializeUndoStack();
-
-            AddInvalidateDelegate(graph, InvalidateExpressionGraph);
 
             // First trigger
             RecompileExpressionGraphIfNeeded();
@@ -633,11 +644,12 @@ namespace UnityEditor.VFX.UI
             if (m_FlowAnchorController == null)
                 m_FlowAnchorController = new List<VFXFlowAnchorController>();
 
-            InitializeUndoStack();
             Undo.undoRedoPerformed += SynchronizeUndoRedoState;
             Undo.willFlushUndoRecord += WillFlushUndoRecord;
 
-            ModelChanged(vfx);
+
+            AddInvalidateDelegate(graph, InvalidateExpressionGraph);
+            InitializeUndoStack();
         }
 
         public void ForceReload()

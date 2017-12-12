@@ -324,6 +324,11 @@ namespace UnityEditor.VFX.UI
 
         void ControllerChanged(int change)
         {
+            if (change == VFXViewController.Change.destroy)
+            {
+                controller = null;
+                return;
+            }
             if (change == VFXViewController.AnyThing)
             {
                 SyncNodes();
