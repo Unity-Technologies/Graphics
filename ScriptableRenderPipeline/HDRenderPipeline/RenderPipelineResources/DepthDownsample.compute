@@ -3,10 +3,10 @@
 Texture2D<float> _Source;
 RWTexture2D<float> _Result;
 
-SamplerState sampler_LinearClamp;
+SamplerState sampler_PointClamp;    //TODO: could we use min-sampler instead of using ALU?
 
 CBUFFER_START(cb)
-    float4 _Size;
+float4 _SrcSize;
 CBUFFER_END
 
 #pragma kernel KMain
@@ -17,14 +17,11 @@ void KMain(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, u
     int2 threadUL = dispatchThreadId;
 
     // Downsample the block
-    float2 offset = float2(threadUL);
-    float p00 = _Source.SampleLevel(sampler_LinearClamp, (offset                   ) * _Size.zw, 0.0).x;
-    float p10 = _Source.SampleLevel(sampler_LinearClamp, (offset + float2(1.0, 0.0)) * _Size.zw, 0.0).x;
-    float p01 = _Source.SampleLevel(sampler_LinearClamp, (offset + float2(0.0, 1.0)) * _Size.zw, 0.0).x;
-    float p11 = _Source.SampleLevel(sampler_LinearClamp, (offset + float2(1.0, 1.0)) * _Size.zw, 0.0).x;
+    float2 offset = float2(threadUL) * 2.0f + 1.0f;
+    float4 depths = _Source.GatherRed(sampler_PointClamp, offset * _SrcSize.zw, 0.0);
 
-    float depth = min(min(min(p00, p01), p10), p11);
+    float minDepth = min(min(depths.x, depths.y), min(depths.z, depths.w));
 
     // Write to the final target
-    _Result[dispatchThreadId] = depth;
+    _Result[dispatchThreadId] = minDepth;
 }
