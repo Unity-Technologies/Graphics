@@ -20,7 +20,7 @@ ByteAddressBuffer deadListCount; // This is bad to use a SRV to fetch deadList c
 #endif
 
 #if VFX_USE_SPAWNER_FROM_GPU
-ConsumeStructuredBuffer<uint> eventList;
+StructuredBuffer<uint> eventList;
 Buffer<uint> inputAdditional;
 #endif
 
@@ -46,7 +46,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     if (id.x < maxThreadId)
     {
 #if VFX_USE_SPAWNER_FROM_GPU
-        int sourceIndex = eventList.Consume();
+        int sourceIndex = eventList[id.x];
 #endif
         uint particleIndex = id.x + currentSpawnIndex;
 		
