@@ -75,7 +75,7 @@ namespace UnityEditor.ShaderGraph
 
         protected int[] validSlots
         {
-            get { return new[] {InputSlotId, OutputSlotId}; }
+            get { return new[] { InputSlotId, OutputSlotId }; }
         }
 
         protected virtual MaterialSlot GetInputSlot()
