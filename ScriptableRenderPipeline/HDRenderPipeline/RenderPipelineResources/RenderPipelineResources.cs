@@ -10,7 +10,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Lighting resources
         public Shader deferredShader;
-        public Shader combineLightingPass;
         public ComputeShader gaussianPyramidCS;
         public ComputeShader depthPyramidCS;
         public ComputeShader copyChannelCS;

@@ -40,8 +40,8 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
             //-------------------------------------------------------------------------------------
 
             #include "ShaderLibrary/Common.hlsl"
-            #include "../../../ShaderVariables.hlsl"
-            #include "../../SubsurfaceScattering/SubsurfaceScattering.hlsl"
+            #include "../../ShaderVariables.hlsl"
+            #include "SubsurfaceScattering.hlsl"
 
             //-------------------------------------------------------------------------------------
             // Inputs & outputs
