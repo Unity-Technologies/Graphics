@@ -152,15 +152,18 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            visitor.AddShaderChunk(GetFunctionPrototype("In", "Red", "Green", "Blue", "Out"), false);
-            visitor.AddShaderChunk("{", false);
-            visitor.Indent();
+            var sg = new ShaderGenerator();
+            sg.AddShaderChunk(GetFunctionPrototype("In", "Red", "Green", "Blue", "Out"), false);
+            sg.AddShaderChunk("{", false);
+            sg.Indent();
 
-            visitor.AddShaderChunk(string.Format("Out = {0} (dot(In, Red), dot(In, Green), dot(In, Blue));",
+            sg.AddShaderChunk(string.Format("Out = {0} (dot(In, Red), dot(In, Green), dot(In, Blue));",
                     ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType)), true);
 
-            visitor.Deindent();
-            visitor.AddShaderChunk("}", false);
+            sg.Deindent();
+            sg.AddShaderChunk("}", false);
+
+            visitor.AddShaderChunk(sg.GetShaderString(0), true);
         }
     }
 }

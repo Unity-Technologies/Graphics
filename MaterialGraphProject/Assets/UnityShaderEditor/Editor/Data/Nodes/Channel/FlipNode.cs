@@ -176,12 +176,12 @@ namespace UnityEditor.ShaderGraph
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
             var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("In", "Flip", "Out"), true);
-            outputString.AddShaderChunk("{", true);
+            outputString.AddShaderChunk(GetFunctionPrototype("In", "Flip", "Out"), false);
+            outputString.AddShaderChunk("{", false);
             outputString.Indent();
-            outputString.AddShaderChunk("Out = abs(Flip - In);", true);
+            outputString.AddShaderChunk("Out = abs(Flip - In);", false);
             outputString.Deindent();
-            outputString.AddShaderChunk("}", true);
+            outputString.AddShaderChunk("}", false);
             visitor.AddShaderChunk(outputString.GetShaderString(0), true);
         }
     }

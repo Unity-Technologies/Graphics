@@ -86,24 +86,27 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            visitor.AddShaderChunk(GetFunctionPrototype("Texture", "Sampler", "UV", "Offset", "Strength", "Out"), true);
-            visitor.AddShaderChunk("{", true);
-            visitor.Indent();
+            var sg = new ShaderGenerator();
+            sg.AddShaderChunk(GetFunctionPrototype("Texture", "Sampler", "UV", "Offset", "Strength", "Out"), false);
+            sg.AddShaderChunk("{", false);
+            sg.Indent();
 
-            visitor.AddShaderChunk("Offset = pow(Offset, 3) * 0.1;", true);
-            visitor.AddShaderChunk(string.Format("{0}2 offsetU = float2(UV.x + Offset, UV.y);", precision), true);
-            visitor.AddShaderChunk(string.Format("{0}2 offsetV = float2(UV.x, UV.y + Offset);", precision), true);
+            sg.AddShaderChunk("Offset = pow(Offset, 3) * 0.1;", false);
+            sg.AddShaderChunk(string.Format("{0}2 offsetU = float2(UV.x + Offset, UV.y);", precision), false);
+            sg.AddShaderChunk(string.Format("{0}2 offsetV = float2(UV.x, UV.y + Offset);", precision), false);
 
-            visitor.AddShaderChunk(string.Format("{0} normalSample = Texture.Sample(Sampler, UV);", precision), true);
-            visitor.AddShaderChunk(string.Format("{0} uSample = Texture.Sample(Sampler, offsetU);", precision), true);
-            visitor.AddShaderChunk(string.Format("{0} vSample = Texture.Sample(Sampler, offsetV);", precision), true);
+            sg.AddShaderChunk(string.Format("{0} normalSample = Texture.Sample(Sampler, UV);", precision), false);
+            sg.AddShaderChunk(string.Format("{0} uSample = Texture.Sample(Sampler, offsetU);", precision), false);
+            sg.AddShaderChunk(string.Format("{0} vSample = Texture.Sample(Sampler, offsetV);", precision), false);
 
-            visitor.AddShaderChunk(string.Format("{0}3 va = float3(1, 0, (uSample - normalSample) * Strength);", precision), true);
-            visitor.AddShaderChunk(string.Format("{0}3 vb = float3(0, 1, (vSample - normalSample) * Strength);", precision), true);
-            visitor.AddShaderChunk("Out = normalize(cross(va, vb));", true);
+            sg.AddShaderChunk(string.Format("{0}3 va = float3(1, 0, (uSample - normalSample) * Strength);", precision), false);
+            sg.AddShaderChunk(string.Format("{0}3 vb = float3(0, 1, (vSample - normalSample) * Strength);", precision), false);
+            sg.AddShaderChunk("Out = normalize(cross(va, vb));", false);
 
-            visitor.Deindent();
-            visitor.AddShaderChunk("}", true);
+            sg.Deindent();
+            sg.AddShaderChunk("}", false);
+
+            visitor.AddShaderChunk(sg.GetShaderString(0), true);
         }
 
         public bool RequiresMeshUV(UVChannel channel)

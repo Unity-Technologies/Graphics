@@ -58,36 +58,39 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            visitor.AddShaderChunk(GetFunctionPrototype("ObjectSpacePosition", "Color", "Density"), false);
-            visitor.AddShaderChunk("{", false);
-            visitor.Indent();
+            var sg = new ShaderGenerator();
+            sg.AddShaderChunk(GetFunctionPrototype("ObjectSpacePosition", "Color", "Density"), false);
+            sg.AddShaderChunk("{", false);
+            sg.Indent();
 
-            visitor.AddShaderChunk("Color = unity_FogColor;", true);
+            sg.AddShaderChunk("Color = unity_FogColor;", false);
 
-            visitor.AddShaderChunk(string.Format("{0} clipZ_01 = UNITY_Z_0_FAR_FROM_CLIPSPACE(UnityObjectToClipPos(ObjectSpacePosition).z);", precision), true);
-            visitor.AddShaderChunk("#if defined(FOG_LINEAR)", true);
-            visitor.Indent();
-            visitor.AddShaderChunk(string.Format("{0} fogFactor = saturate(clipZ_01 * unity_FogParams.z + unity_FogParams.w);", precision), true);
-            visitor.AddShaderChunk("Density = fogFactor;", true);
-            visitor.Deindent();
-            visitor.AddShaderChunk("#elif defined(FOG_EXP)", true);
-            visitor.Indent();
-            visitor.AddShaderChunk(string.Format("{0} fogFactor = unity_FogParams.y * clipZ_01;", precision), true);
-            visitor.AddShaderChunk("Density = {2}(saturate(exp2(-fogFactor)));", true);
-            visitor.Deindent();
-            visitor.AddShaderChunk("#elif defined(FOG_EXP2)", true);
-            visitor.Indent();
-            visitor.AddShaderChunk(string.Format("{0} fogFactor = unity_FogParams.x * clipZ_01;", precision), true);
-            visitor.AddShaderChunk("Density = {2}(saturate(exp2(-fogFactor*fogFactor)));", true);
-            visitor.Deindent();
-            visitor.AddShaderChunk("#else", true);
-            visitor.Indent();
-            visitor.AddShaderChunk("Density = 0.0h;", true);
-            visitor.Deindent();
-            visitor.AddShaderChunk("#endif", true);
+            sg.AddShaderChunk(string.Format("{0} clipZ_01 = UNITY_Z_0_FAR_FROM_CLIPSPACE(UnityObjectToClipPos(ObjectSpacePosition).z);", precision), false);
+            sg.AddShaderChunk("#if defined(FOG_LINEAR)", false);
+            sg.Indent();
+            sg.AddShaderChunk(string.Format("{0} fogFactor = saturate(clipZ_01 * unity_FogParams.z + unity_FogParams.w);", precision), false);
+            sg.AddShaderChunk("Density = fogFactor;", false);
+            sg.Deindent();
+            sg.AddShaderChunk("#elif defined(FOG_EXP)", false);
+            sg.Indent();
+            sg.AddShaderChunk(string.Format("{0} fogFactor = unity_FogParams.y * clipZ_01;", precision), false);
+            sg.AddShaderChunk("Density = {2}(saturate(exp2(-fogFactor)));", false);
+            sg.Deindent();
+            sg.AddShaderChunk("#elif defined(FOG_EXP2)", false);
+            sg.Indent();
+            sg.AddShaderChunk(string.Format("{0} fogFactor = unity_FogParams.x * clipZ_01;", precision), false);
+            sg.AddShaderChunk("Density = {2}(saturate(exp2(-fogFactor*fogFactor)));", false);
+            sg.Deindent();
+            sg.AddShaderChunk("#else", false);
+            sg.Indent();
+            sg.AddShaderChunk("Density = 0.0h;", false);
+            sg.Deindent();
+            sg.AddShaderChunk("#endif", false);
 
-            visitor.Deindent();
-            visitor.AddShaderChunk("}", false);
+            sg.Deindent();
+            sg.AddShaderChunk("}", false);
+
+            visitor.AddShaderChunk(sg.GetShaderString(0), true);
         }
 
         public NeededCoordinateSpace RequiresPosition()

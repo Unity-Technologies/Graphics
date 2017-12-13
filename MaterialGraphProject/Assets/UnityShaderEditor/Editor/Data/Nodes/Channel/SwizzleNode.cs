@@ -162,8 +162,8 @@ namespace UnityEditor.ShaderGraph
         {
             ValidateChannelCount();
             var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("In", "Out"), true);
-            outputString.AddShaderChunk("{", true);
+            outputString.AddShaderChunk(GetFunctionPrototype("In", "Out"), false);
+            outputString.AddShaderChunk("{", false);
             outputString.Indent();
 
             outputString.AddShaderChunk(string.Format("Out = {0} ({1}, {2}, {3}, {4});",
@@ -171,10 +171,10 @@ namespace UnityEditor.ShaderGraph
                     kInputSlotName + m_ComponentList[m_RedChannel],
                     kInputSlotName + m_ComponentList[m_GreenChannel],
                     kInputSlotName + m_ComponentList[m_BlueChannel],
-                    kInputSlotName + m_ComponentList[m_AlphaChannel]), true);
+                    kInputSlotName + m_ComponentList[m_AlphaChannel]), false);
 
             outputString.Deindent();
-            outputString.AddShaderChunk("}", true);
+            outputString.AddShaderChunk("}", false);
 
             visitor.AddShaderChunk(outputString.GetShaderString(0), true);
         }
