@@ -216,7 +216,7 @@ namespace UnityEditor.Experimental.Rendering
         }
 
         // index is only used when we need to re-create a component in a specific spot (e.g. reset)
-        void CreateEditor(VolumeComponent settings, SerializedProperty property, int index = -1)
+        void CreateEditor(VolumeComponent settings, SerializedProperty property, int index = -1, bool forceOpen = false)
         {
             var settingsType = settings.GetType();
             Type editorType;
@@ -227,6 +227,9 @@ namespace UnityEditor.Experimental.Rendering
             var editor = (VolumeComponentEditor)Activator.CreateInstance(editorType);
             editor.Init(settings, this);
             editor.baseProperty = property.Copy();
+
+            if (forceOpen)
+                editor.baseProperty.isExpanded = true;
 
             if (index < 0)
                 m_Editors.Add(editor);
@@ -247,7 +250,7 @@ namespace UnityEditor.Experimental.Rendering
             effectProp.objectReferenceValue = component;
 
             // Create & store the internal editor object for this effect
-            CreateEditor(component, effectProp);
+            CreateEditor(component, effectProp, forceOpen: true);
 
             serializedObject.ApplyModifiedProperties();
         }
