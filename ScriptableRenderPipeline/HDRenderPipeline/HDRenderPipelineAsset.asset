@@ -11,7 +11,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
   m_Name: HDRenderPipelineAsset
   m_EditorClassIdentifier: 
-  m_RenderPipelineResources: {fileID: 11400000, guid: 42086e81f4f0c724f96f7f09cc995354,
+  m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
     type: 2}
   globalRenderingSettings:
     useForwardRenderingOnly: 0
@@ -23,7 +23,7 @@ MonoBehaviour:
     reflectionCubemapSize: 128
     reflectionCacheCompressed: 0
   sssSettings: {fileID: 11400000, guid: c4d57f106d34d0046a33b3e66da29a72, type: 2}
-  tileSettings:
+  lightLoopSettings:
     enableTileAndCluster: 1
     enableComputeLightEvaluation: 1
     enableComputeLightVariants: 1
