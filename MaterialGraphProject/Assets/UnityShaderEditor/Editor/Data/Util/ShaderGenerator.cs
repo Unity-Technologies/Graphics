@@ -3,35 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public static class ShaderGeneratorNames
-    {
-        private static string[] UV = {"uv0", "uv1", "uv2", "uv3"};
-        public static int UVCount = 4;
-
-        public const string ScreenPosition = "screenPosition";
-        public const string VertexColor = "vertexColor";
-
-
-        public static string GetUVName(this UVChannel channel)
-        {
-            return UV[(int)channel];
-        }
-    }
-
-    public enum UVChannel
-    {
-        uv0 = 0,
-        uv1 = 1,
-        uv2 = 2,
-        uv3 = 3,
-    }
-
     public class ShaderGenerator
     {
         private struct ShaderChunk
@@ -338,13 +314,13 @@ namespace UnityEditor.ShaderGraph
                 m_transforms[(int)CoordinateSpace.World, (int)CoordinateSpace.World] = new TransformDesc[] {};
                 m_transforms[(int)CoordinateSpace.Tangent, (int)CoordinateSpace.Tangent] = new TransformDesc[] {};
                 m_transforms[(int)CoordinateSpace.Object, (int)CoordinateSpace.World]
-                    = new TransformDesc[] {new TransformDesc("unity_ObjectToWorld")};
+                    = new TransformDesc[] {new TransformDesc(MatrixNames.Model)};
                 m_transforms[(int)CoordinateSpace.View, (int)CoordinateSpace.World]
-                    = new TransformDesc[] {new TransformDesc("UNITY_MATRIX_I_V")};
+                    = new TransformDesc[] {new TransformDesc(MatrixNames.ViewInverse) };
                 m_transforms[(int)CoordinateSpace.World, (int)CoordinateSpace.Object]
-                    = new TransformDesc[] {new TransformDesc("unity_WorldToObject")};
+                    = new TransformDesc[] {new TransformDesc(MatrixNames.ModelInverse)};
                 m_transforms[(int)CoordinateSpace.World, (int)CoordinateSpace.View]
-                    = new TransformDesc[] {new TransformDesc("UNITY_MATRIX_V")};
+                    = new TransformDesc[] {new TransformDesc(MatrixNames.View)};
                 for (var from = CoordinateSpace.Object; from != CoordinateSpace.Tangent; from++)
                 {
                     for (var to = CoordinateSpace.Object; to != CoordinateSpace.Tangent; to++)
@@ -501,7 +477,7 @@ namespace UnityEditor.ShaderGraph
             {
                 var name = preferedCoordinateSpace.ToVariableName(InterpolatorType.ViewDirection);
                 interpolators.AddShaderChunk(string.Format("float3 {0} : TEXCOORD{1};", name, interpolatorIndex), false);
-                vertexShader.AddShaderChunk(string.Format("o.{0} = {1};", name, ConvertBetweenSpace("ObjSpaceViewDir(v.vertex)", CoordinateSpace.Object, preferedCoordinateSpace, InputType.Vector)), false);
+                vertexShader.AddShaderChunk(string.Format("o.{0} = {1};", name, ConvertBetweenSpace("WorldSpaceViewDir(_WorldSpaceCameraPos.xyz, v.vertex)", CoordinateSpace.World, preferedCoordinateSpace, InputType.Vector)), false);
                 pixelShader.AddShaderChunk(string.Format("float3 {0} = normalize(IN.{0});", name), false);
                 interpolatorIndex++;
             }

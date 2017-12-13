@@ -586,6 +586,7 @@ struct GraphVertexInput
             finalShader.AddShaderChunk("HLSLINCLUDE", false);
             finalShader.AddShaderChunk("#define USE_LEGACY_UNITY_MATRIX_VARIABLES", false);
             finalShader.AddShaderChunk("#include \"Common.hlsl\"", false);
+            finalShader.AddShaderChunk("#include \"Packing.hlsl\"", false);
             finalShader.AddShaderChunk("#include \"ShaderVariables.hlsl\"", false);
             finalShader.AddShaderChunk("#include \"ShaderVariablesFunctions.hlsl\"", false);
             
