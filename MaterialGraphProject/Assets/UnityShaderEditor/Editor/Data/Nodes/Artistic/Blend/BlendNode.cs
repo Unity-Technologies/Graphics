@@ -100,7 +100,7 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    Out = B / (A + 0.000000000001);
+    Out = A / (B + 0.000000000001);
 }";
         }
 
@@ -298,7 +298,7 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    Out = B - A;
+    Out = A - B;
 }
 ";
         }
