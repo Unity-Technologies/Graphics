@@ -25,7 +25,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("Internal/HDRenderPipeline/Add \"Additional Camera Data\" (if not present)")]
+        [MenuItem("Internal/HDRenderPipeline/Add \"Additional Camera Data- Frame Settings\" (if not present)")]
         static void AddAdditionalCameraData()
         {
             var cameras = UnityObject.FindObjectsOfType(typeof(Camera)) as Camera[];
@@ -35,6 +35,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // Do not add a component if there already is one.
                 if (camera.GetComponent<HDAdditionalCameraData>() == null)
                     camera.gameObject.AddComponent<HDAdditionalCameraData>();
+
+                if (camera.GetComponent<FrameSettings>() == null)
+                    camera.gameObject.AddComponent<FrameSettings>();
             }
         }
 

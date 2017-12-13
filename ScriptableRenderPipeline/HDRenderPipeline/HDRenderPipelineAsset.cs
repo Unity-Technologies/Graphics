@@ -20,17 +20,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             set { m_RenderPipelineResources = value; }
         }
 
-        // NOTE: All those properties are public because of how HDRenderPipelineInspector retrieves those properties via serialization/reflection
-        // Doing it this way allows to change parameters name and still retrieve correct serialized values
-
-        // Global Renderer Settings
-        public GlobalRenderingSettings globalRenderingSettings = new GlobalRenderingSettings();
-        public GlobalTextureSettings globalTextureSettings = new GlobalTextureSettings();
         public SubsurfaceScatteringSettings sssSettings;
-        public LightLoopSettings lightLoopSettings = new LightLoopSettings();
-
-        // Shadow Settings
-        public ShadowInitParameters shadowInitParams = new ShadowInitParameters();
 
         // Default Material / Shader
         [SerializeField]

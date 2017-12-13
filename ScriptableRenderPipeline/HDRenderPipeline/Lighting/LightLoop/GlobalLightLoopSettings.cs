@@ -9,29 +9,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     // There is a dedicated RenderRenderPipelineSettings for each platform
 
     [Serializable]
-    public struct GlobalLightLoopSettings
+    public class GlobalLightLoopSettings
     {
-        public int spotCookieSize;
-        public int cookieTexArraySize;
-        public int pointCookieSize;
-        public int cubeCookieTexArraySize;
+        public int spotCookieSize = 128;
+        public int cookieTexArraySize = 16;
+        public int pointCookieSize = 512;
+        public int cubeCookieTexArraySize = 16;
 
-        public int reflectionProbeCacheSize;
-        public int reflectionCubemapSize;
-        public bool reflectionCacheCompressed;
-
-        public GlobalLightLoopSettings()
-        {
-            spotCookieSize              = 128;
-            cookieTexArraySize          = 16;
-
-            pointCookieSize             = 512;
-            cubeCookieTexArraySize      = 16;
-
-            reflectionProbeCacheSize    = 128;
-            reflectionCubemapSize       = 128;
-            reflectionCacheCompressed   = false;
-        }
+        public int reflectionProbeCacheSize = 128;
+        public int reflectionCubemapSize = 128;
+        public bool reflectionCacheCompressed = false;
     }
 }
 
