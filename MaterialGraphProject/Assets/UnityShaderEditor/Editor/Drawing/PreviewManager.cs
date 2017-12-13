@@ -338,8 +338,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_RenderList3D.Add(renderData);
             }
 
-            if (masterRenderData.shaderData != null && m_DirtyPreviews.Contains(masterRenderData.shaderData.node.guid))
-                m_RenderList3D.Add(masterRenderData);
+            if (masterRenderData.shaderData != null 
+                && masterRenderData.shaderData.shader != null
+                && m_DirtyPreviews.Contains(masterRenderData.shaderData.node.guid))
+                    m_RenderList3D.Add(masterRenderData);
 
             m_RenderList3D.Sort((data1, data2) => data1.shaderData.shader.GetInstanceID().CompareTo(data2.shaderData.shader.GetInstanceID()));
             m_RenderList2D.Sort((data1, data2) => data1.shaderData.shader.GetInstanceID().CompareTo(data2.shaderData.shader.GetInstanceID()));

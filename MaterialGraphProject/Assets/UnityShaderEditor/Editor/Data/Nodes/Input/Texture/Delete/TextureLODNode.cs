@@ -149,7 +149,7 @@ namespace UnityEditor.ShaderGraph
 
                string body = "tex2Dlod (" + propertyName + ", " + precision + "4(" + uvName + ".x," + uvName + ".y, 0," + lodName + "));";
                if (m_TextureType == TextureType.Bump)
-                   body = precision + "4(UnpackNormal(" + body + "), 0)";
+                   body = precision + "4(UnpackNormalmapRGorAG(" + body + "), 0)";
                visitor.AddShaderChunk(precision + "4 " + GetVariableNameForNode() + " = " + body + ";", true);
            }
 
