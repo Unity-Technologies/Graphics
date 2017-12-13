@@ -9,7 +9,7 @@ Shader "Hidden/CubemapColorMap" {
 
     #include "UnityCG.cginc"
 
-    TEXTURECUBE(_ColorMap);
+    TextureCube _ColorMap;
     int _MipIndex;
     SamplerState s_bilinear_clamp;
 
@@ -33,7 +33,7 @@ Shader "Hidden/CubemapColorMap" {
     }
 
     float4 Frag(v2f i) : SV_Target {
-        float3 col = SAMPLE_TEXTURECUBE_LOD(_ColorMap, s_bilinear_clamp, i.normalWS, _MipIndex).xyz;
+        float3 col = _ColorMap.SampleLevel(s_bilinear_clamp, i.normalWS, _MipIndex).xyz;
         return float4(col, 0.5);
     }
 
