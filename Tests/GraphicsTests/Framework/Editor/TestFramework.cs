@@ -46,7 +46,7 @@ namespace UnityEditor.Experimental.Rendering
             {
                 get
                 {
-                    return GetScenesForPipeline("HDRenderPipeline");
+                    return GetScenesForPipeline("HDRenderPipeline/Scenes");
                 }
             }
 
