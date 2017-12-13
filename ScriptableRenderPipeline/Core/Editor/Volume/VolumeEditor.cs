@@ -126,7 +126,7 @@ namespace UnityEditor.Experimental.Rendering
                 if (m_Editors.Count > 0)
                     CoreEditorUtils.DrawSplitter();
                 else
-                    EditorGUILayout.HelpBox("No override set on this volume.", MessageType.Info);
+                    EditorGUILayout.HelpBox("No override set on this volume. Drop a component here or use the Add button.", MessageType.Info);
 
                 EditorGUILayout.Space();
 
