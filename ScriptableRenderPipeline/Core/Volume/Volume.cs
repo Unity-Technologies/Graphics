@@ -172,7 +172,7 @@ namespace UnityEngine.Experimental.Rendering
             var scale = transform.localScale;
             var invScale = new Vector3(1f / scale.x, 1f / scale.y, 1f / scale.z);
             Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, scale);
-            Gizmos.color = new Color(0f, 1f, 0.1f, 0.6f);
+            Gizmos.color = new Color(0f, 1f, 0.1f, 0.35f);
 
             // Draw a separate gizmo for each collider
             foreach (var collider in colliders)
