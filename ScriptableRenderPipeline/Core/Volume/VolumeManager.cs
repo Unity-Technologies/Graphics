@@ -101,9 +101,7 @@ namespace UnityEngine.Experimental.Rendering
             // Look for existing cached layer masks and add it there if needed
             foreach (var kvp in m_SortedVolumes)
             {
-                var mask = kvp.Key;
-
-                if ((mask & (1 << layer)) != 0)
+                if ((kvp.Key & (1 << layer)) != 0)
                     kvp.Value.Add(volume);
             }
 
@@ -116,14 +114,33 @@ namespace UnityEngine.Experimental.Rendering
 
             foreach (var kvp in m_SortedVolumes)
             {
-                var mask = kvp.Key;
-
                 // Skip layer masks this volume doesn't belong to
-                if ((mask & (1 << layer)) == 0)
+                if ((kvp.Key & (1 << layer)) == 0)
                     continue;
 
                 kvp.Value.Remove(volume);
             }
+        }
+
+        public bool IsComponentActiveInMask<T>(LayerMask layerMask)
+            where T : VolumeComponent
+        {
+            int mask = layerMask.value;
+
+            foreach (var kvp in m_SortedVolumes)
+            {
+                if ((kvp.Key & mask) == 0)
+                    continue;
+
+                foreach (var volume in kvp.Value)
+                {
+                    T component;
+                    if (volume.TryGet(out component) && component.active)
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         internal void SetLayerDirty(int layer)
