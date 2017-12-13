@@ -1247,9 +1247,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderDBuffer(Vector3 cameraPos, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            // Currently disabled
-            return ;
-
             using (new ProfilingSample(cmd, "DBuffer", GetSampler(CustomSamplerId.DBuffer)))
             {
                 CoreUtils.SetRenderTarget(cmd, m_DbufferManager.GetDBuffers(), m_CameraDepthStencilBufferRT, ClearFlag.Color, CoreUtils.clearColorAllBlack);

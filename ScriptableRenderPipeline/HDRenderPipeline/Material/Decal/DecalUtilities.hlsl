@@ -5,7 +5,7 @@ DECLARE_DBUFFER_TEXTURE(_DBufferTexture);
 void AddDecalContribution(uint2 unPositionSS, inout SurfaceData surfaceData)
 {
     // Currently disabled
-#if 0
+#if 1
 	FETCH_DBUFFER(DBuffer, _DBufferTexture, unPositionSS);
 	DecalSurfaceData decalSurfaceData;
 	DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
