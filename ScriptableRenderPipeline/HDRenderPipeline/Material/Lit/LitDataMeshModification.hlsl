@@ -11,7 +11,7 @@ float3 GetVertexDisplacement(float3 positionWS, float3 normalWS, float2 texCoord
     return ComputePerVertexDisplacement(layerTexCoord, vertexColor, lod) * normalWS;
 }
 
-void ApplyVertexModification(AttributesMesh input, float3 normalWS, inout float3 positionWS)
+void ApplyVertexModification(AttributesMesh input, float3 normalWS, inout float3 positionWS, float4 time)
 {
 #if defined(_VERTEX_DISPLACEMENT)
 
@@ -46,7 +46,7 @@ void ApplyVertexModification(AttributesMesh input, float3 normalWS, inout float3
     
 #ifdef _VERTEX_WIND
     float3 rootWP = mul(GetObjectToWorldMatrix(), float4(0, 0, 0, 1)).xyz;
-    ApplyWindDisplacement(positionWS, normalWS, rootWP, _Stiffness, _Drag, _ShiverDrag, _ShiverDirectionality, _InitialBend, input.color.a, _Time);
+    ApplyWindDisplacement(positionWS, normalWS, rootWP, _Stiffness, _Drag, _ShiverDrag, _ShiverDirectionality, _InitialBend, input.color.a, time);
 #endif
 }
 

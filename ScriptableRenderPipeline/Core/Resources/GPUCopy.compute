@@ -10,14 +10,14 @@ CBUFFER_END
 
 RWTexture2D<float1> _Result1;
 
-Texture2D<float4> _Source4;
+TEXTURE2D(_Source4);
 
 
 #pragma kernel KSampleCopy4_1_x
 [numthreads(8, 8, 1)]
 void KSampleCopy4_1_x(uint2 dispatchThreadId : SV_DispatchThreadID)
 {
-    _Result1[dispatchThreadId] = _Source4.SampleLevel(sampler_LinearClamp, float2(dispatchThreadId) * _Size.zw, 0.0).x;
+    _Result1[dispatchThreadId] = SAMPLE_TEXTURE2D_LOD(_Source4, sampler_LinearClamp, float2(dispatchThreadId) * _Size.zw, 0.0).x;
 }
 
 
