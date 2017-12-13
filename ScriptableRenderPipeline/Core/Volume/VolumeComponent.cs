@@ -6,6 +6,18 @@ using System.Linq;
 
 namespace UnityEngine.Experimental.Rendering
 {
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    public sealed class VolumeComponentMenu : Attribute
+    {
+        public readonly string menu;
+        // TODO: Add support for component icons
+
+        public VolumeComponentMenu(string menu)
+        {
+            this.menu = menu;
+        }
+    }
+
     [Serializable]
     public class VolumeComponent : ScriptableObject
     {

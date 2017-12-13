@@ -37,7 +37,7 @@ namespace UnityEngine.Experimental.Rendering
         public VolumeStack stack { get; private set; }
 
         // Current list of tracked component types
-        IEnumerable<Type> m_BaseTypes;
+        public IEnumerable<Type> baseComponentTypes { get; private set; }
 
         // Max amount of layers available in Unity
         const int k_MaxLayerCount = 32;
@@ -77,12 +77,12 @@ namespace UnityEngine.Experimental.Rendering
         void ReloadBaseTypes()
         {
             // Grab all the component types we can find
-            m_BaseTypes = CoreUtils.GetAllAssemblyTypes()
+            baseComponentTypes = CoreUtils.GetAllAssemblyTypes()
                             .Where(t => t.IsSubclassOf(typeof(VolumeComponent)) && !t.IsAbstract);
 
             // Keep an instance of each type to be used in a virtual lowest priority global volume
             // so that we have a default state to fallback to when exiting volumes
-            foreach (var type in m_BaseTypes)
+            foreach (var type in baseComponentTypes)
             {
                 var inst = (VolumeComponent)ScriptableObject.CreateInstance(type);
                 m_ComponentsDefaultState.Add(inst);
@@ -91,7 +91,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public VolumeStack CreateStack()
         {
-            return new VolumeStack(m_BaseTypes);
+            return new VolumeStack(baseComponentTypes);
         }
 
         public void Register(Volume volume, int layer)
