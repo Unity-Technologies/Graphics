@@ -345,6 +345,33 @@ namespace UnityEditor.ShaderGraph
             surfaceDescriptionStruct.AddShaderChunk("};", false);
         }
 
+        internal static void GenerateApplicationVertexInputs(ShaderGraphRequirements graphRequiements, ShaderGenerator vertexInputs, int vertexInputStartIndex, int maxVertexInputs)
+        {
+            int vertexInputIndex = vertexInputStartIndex;
+
+            vertexInputs.AddShaderChunk("struct GraphVertexInput", false);
+            vertexInputs.AddShaderChunk("{", false);
+            vertexInputs.Indent();
+            vertexInputs.AddShaderChunk("float4 vertex : POSITION;", false);
+            vertexInputs.AddShaderChunk("float3 normal : NORMAL;", false);
+            vertexInputs.AddShaderChunk("float4 tangent : TANGENT;", false);
+
+            if (graphRequiements.requiresVertexColor)
+            {
+                vertexInputs.AddShaderChunk("float4 color : COLOR;", false);
+            }
+            
+            foreach (var channel in graphRequiements.requiresMeshUVs.Distinct())
+            {
+                vertexInputs.AddShaderChunk(string.Format("float4 texcoord{0} : TEXCOORD{1};", ((int)channel).ToString(), vertexInputIndex.ToString()), false);
+                vertexInputIndex++;
+            }
+
+            vertexInputs.AddShaderChunk("UNITY_VERTEX_INPUT_INSTANCE_ID", false);
+            vertexInputs.Deindent();
+            vertexInputs.AddShaderChunk("};", false);
+        }
+
         internal static void GenerateSurfaceDescription(
             List<INode> activeNodeList,
             AbstractMaterialNode masterNode,
@@ -465,23 +492,12 @@ namespace UnityEditor.ShaderGraph
         {
             bool isUber = node == null;
 
+            var vertexInputs = new ShaderGenerator();
             var vertexShader = new ShaderGenerator();
             var surfaceDescriptionFunction = new ShaderGenerator();
             var surfaceDescriptionStruct = new ShaderGenerator();
             var shaderFunctionVisitor = new ShaderGenerator();
             var surfaceInputs = new ShaderGenerator();
-
-            var graphVertexInput = @"
-struct GraphVertexInput
-{
-     float4 vertex : POSITION;
-     float3 normal : NORMAL;
-     float4 tangent : TANGENT;
-     float4 color : COLOR;
-     float4 texcoord0 : TEXCOORD0;
-     float4 lightmapUV : TEXCOORD1;
-     UNITY_VERTEX_INPUT_INSTANCE_ID
-};";
 
             surfaceInputs.AddShaderChunk("struct SurfaceInputs{", false);
             surfaceInputs.Indent();
@@ -502,6 +518,7 @@ struct GraphVertexInput
             }
 
             var requirements = GetRequirements(activeNodeList);
+            GenerateApplicationVertexInputs(requirements, vertexInputs, 0, 8);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, surfaceInputs);
@@ -586,7 +603,7 @@ struct GraphVertexInput
             finalShader.AddShaderChunk("CGINCLUDE", false);
             finalShader.AddShaderChunk("#include \"UnityCG.cginc\"", false);
             finalShader.AddShaderChunk(shaderFunctionVisitor.GetShaderString(2), false);
-            finalShader.AddShaderChunk(graphVertexInput, false);
+            finalShader.AddShaderChunk(vertexInputs.GetShaderString(2), false);
             finalShader.AddShaderChunk(surfaceInputs.GetShaderString(2), false);
             finalShader.AddShaderChunk(surfaceDescriptionStruct.GetShaderString(2), false);
             finalShader.AddShaderChunk(shaderProperties.GetPropertiesDeclaration(2), false);

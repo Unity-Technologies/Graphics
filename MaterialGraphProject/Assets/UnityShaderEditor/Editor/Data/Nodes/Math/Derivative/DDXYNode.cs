@@ -13,45 +13,12 @@ namespace UnityEditor.ShaderGraph
             name = "DDXY";
         }
 
-        [SerializeField]
-        private PartialDerivativePrecision m_PartialDerivativePrecision = PartialDerivativePrecision.Default;
-
-        [EnumControl("Precision")]
-        public PartialDerivativePrecision partialDerivativePrecision
-        {
-            get { return m_PartialDerivativePrecision; }
-            set
-            {
-                if (m_PartialDerivativePrecision == value)
-                    return;
-
-                m_PartialDerivativePrecision = value;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Graph);
-                }
-            }
-        }
-
-        string GetCurrentPrecision()
-        {
-            return System.Enum.GetName(typeof(PartialDerivativePrecision), m_PartialDerivativePrecision);
-        }
-
         protected override MethodInfo GetFunctionToConvert()
         {
-            switch (m_PartialDerivativePrecision)
-            {
-                case PartialDerivativePrecision.Fine:
-                    return GetType().GetMethod("Unity_DDXY_Fine", BindingFlags.Static | BindingFlags.NonPublic);
-                case PartialDerivativePrecision.Coarse:
-                    return GetType().GetMethod("Unity_DDXY_Coarse", BindingFlags.Static | BindingFlags.NonPublic);
-                default:
-                    return GetType().GetMethod("Unity_DDXY_Default", BindingFlags.Static | BindingFlags.NonPublic);
-            }
+            return GetType().GetMethod("Unity_DDXY", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_DDXY_Default(
+        static string Unity_DDXY(
             [Slot(0, Binding.None)] DynamicDimensionVector In,
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
@@ -59,30 +26,6 @@ namespace UnityEditor.ShaderGraph
                 @"
 {
     Out = abs(ddx(In) + ddy(In));
-}
-";
-        }
-
-        static string Unity_DDXY_Coarse(
-            [Slot(0, Binding.None)] DynamicDimensionVector In,
-            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
-        {
-            return
-                @"
-{
-    Out = abs(ddx_coarse(In) + ddy_coarse(In));
-}
-";
-        }
-
-        static string Unity_DDXY_Fine(
-            [Slot(0, Binding.None)] DynamicDimensionVector In,
-            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
-        {
-            return
-                @"
-{
-    Out = abs(ddx_fine(In) + ddy_fine(In));
 }
 ";
         }
