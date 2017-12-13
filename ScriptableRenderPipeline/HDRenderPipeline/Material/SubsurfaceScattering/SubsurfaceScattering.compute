@@ -17,7 +17,7 @@
 #define SSS_DEBUG_NORMAL_VS   0
 
 // Do not modify these.
-#include "../../../ShaderPass/ShaderPass.cs.hlsl"
+#include "../../ShaderPass/ShaderPass.cs.hlsl"
 #define SHADERPASS            SHADERPASS_SUBSURFACE_SCATTERING
 #define GROUP_SIZE_1D         16
 #define GROUP_SIZE_2D         (GROUP_SIZE_1D * GROUP_SIZE_1D)
@@ -38,9 +38,9 @@
 #include "ShaderLibrary/Packing.hlsl"
 #include "ShaderLibrary/Sampling/Fibonacci.hlsl"
 #include "ShaderLibrary/SpaceFillingCurves.hlsl"
-#include "../../../ShaderVariables.hlsl"
-#include "../../../Lighting/LightDefinition.cs.hlsl"
-#include "../../SubsurfaceScattering/SubsurfaceScattering.hlsl"
+#include "../../ShaderVariables.hlsl"
+#include "../../Lighting/LightDefinition.cs.hlsl"
+#include "SubsurfaceScattering.hlsl"
 
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs
@@ -49,7 +49,7 @@
 float4 _FilterKernels[SSS_N_PROFILES][SSS_N_SAMPLES_NEAR_FIELD]; // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
 
 TEXTURE2D(_DepthTexture);                           // Z-buffer
-TEXTURE2D(_HTile);                                  // DXGI_FORMAT_R8_UINT is not supported by Unity
+TEXTURE2D(_SSSHTile);                                  // DXGI_FORMAT_R8_UINT is not supported by Unity
 TEXTURE2D(_IrradianceSource);                       // Includes transmitted light
 
 #ifdef USE_INTERMEDIATE_BUFFER
@@ -230,10 +230,10 @@ void SubsurfaceScattering(uint3 reorderedGroupId : SV_GroupID,
         float stencilRef = STENCILLIGHTINGUSAGE_SPLIT_LIGHTING;
 
         // Check whether the thread group needs to perform any work.
-        float s00 = LOAD_TEXTURE2D(_HTile, 2 * groupId + uint2(0, 0)).r;
-        float s10 = LOAD_TEXTURE2D(_HTile, 2 * groupId + uint2(1, 0)).r;
-        float s01 = LOAD_TEXTURE2D(_HTile, 2 * groupId + uint2(0, 1)).r;
-        float s11 = LOAD_TEXTURE2D(_HTile, 2 * groupId + uint2(1, 1)).r;
+        float s00 = LOAD_TEXTURE2D(_SSSHTile, 2 * groupId + uint2(0, 0)).r;
+        float s10 = LOAD_TEXTURE2D(_SSSHTile, 2 * groupId + uint2(1, 0)).r;
+        float s01 = LOAD_TEXTURE2D(_SSSHTile, 2 * groupId + uint2(0, 1)).r;
+        float s11 = LOAD_TEXTURE2D(_SSSHTile, 2 * groupId + uint2(1, 1)).r;
 
         // Perform the stencil test (reject at the tile rate).
         processGroup = (stencilRef == s00 || stencilRef == s10 || stencilRef == s01 || stencilRef == s11);

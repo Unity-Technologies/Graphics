@@ -27,7 +27,6 @@
 #define GBUFFER_LIT_STANDARD_REGULAR_ID (0)
 #define GBUFFER_LIT_STANDARD_SPECULAR_COLOR_ID (1)
 #define DEFAULT_SPECULAR_VALUE (0.04)
-#define SKIN_SPECULAR_VALUE (0.028)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+RefractionMode:  static fields
