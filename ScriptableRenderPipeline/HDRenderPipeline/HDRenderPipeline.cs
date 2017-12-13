@@ -602,8 +602,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         cmd.CopyTexture(m_CameraDepthStencilBufferRT, m_CameraDepthBufferCopyRT);
                     }
                 }
-
-                cmd.SetGlobalTexture(HDShaderIDs._MainDepthTexture, GetDepthTexture());
             }
         }
 
@@ -770,6 +768,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
                     CopyDepthBufferIfNeeded(cmd);
+
+                    // Depth texture is now ready, bind it.
+                    cmd.SetGlobalTexture(HDShaderIDs._MainDepthTexture, GetDepthTexture());
 
                     RenderPyramidDepth(camera, cmd, renderContext, FullScreenDebugMode.DepthPyramid);
 
@@ -1164,11 +1165,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Currently disabled
             return ;
 
-            // We need to copy depth buffer texture if we want to bind it at this stage
-            CopyDepthBufferIfNeeded(cmd); // THe call will bind HDShaderIDs._MainDepthTexture
-
             using (new ProfilingSample(cmd, "DBuffer", GetSampler(CustomSamplerId.DBuffer)))
             {
+                // We need to copy depth buffer texture if we want to bind it at this stage
+                CopyDepthBufferIfNeeded(cmd);
+
+                // Depth texture is now ready, bind it.
+                cmd.SetGlobalTexture(HDShaderIDs._MainDepthTexture, GetDepthTexture());
+
                 CoreUtils.SetRenderTarget(cmd, m_DbufferManager.GetDBuffers(), m_CameraDepthStencilBufferRT, ClearFlag.Color, CoreUtils.clearColorAllBlack);
 				DecalSystem.instance.Render(renderContext, cameraPos, cmd);
             }
