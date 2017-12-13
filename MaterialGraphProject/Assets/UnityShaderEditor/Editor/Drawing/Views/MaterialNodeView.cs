@@ -87,9 +87,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Attachers = new List<Attacher>(node.GetInputSlots<MaterialSlot>().Count());
 
             AddSlots(node.GetSlots<MaterialSlot>());
-            expanded = node.drawState.expanded;
-            RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
             UpdateSlotAttachers();
+            base.expanded = node.drawState.expanded;
+            RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
             UpdatePortInputVisibilities();
 
             SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
