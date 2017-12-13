@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
@@ -78,6 +79,29 @@ namespace UnityEditor.ShaderGraph
 
             if (m_Properties.Contains(property))
                 return;
+
+            property.displayName = property.displayName.Trim();
+            if (m_Properties.Any(p => p.displayName == property.displayName))
+            {
+                var regex = new Regex(@"^" + Regex.Escape(property.displayName) + @" \((\d+)\)$");
+                var existingDuplicateNumbers = m_Properties.Select(p => regex.Match(p.displayName)).Where(m => m.Success).Select(m => int.Parse(m.Groups[1].Value)).Where(n => n > 0).ToList();
+
+                var duplicateNumber = 1;
+                existingDuplicateNumbers.Sort();
+                if (existingDuplicateNumbers.Any() && existingDuplicateNumbers.First() == 1)
+                {
+                    duplicateNumber = existingDuplicateNumbers.Last() + 1;
+                    for (var i = 1; i < existingDuplicateNumbers.Count; i++)
+                    {
+                        if (existingDuplicateNumbers[i - 1] != existingDuplicateNumbers[i] - 1)
+                        {
+                            duplicateNumber = existingDuplicateNumbers[i - 1] + 1;
+                            break;
+                        }
+                    }
+                }
+                property.displayName = string.Format("{0} ({1})", property.displayName, duplicateNumber);
+            }
 
             m_Properties.Add(property);
             m_AddedProperties.Add(property);
