@@ -6,6 +6,7 @@
 
 #include "ShaderLibrary/Common.hlsl"
 #include "ShaderLibrary/ImageBasedLighting.hlsl"
+#include "../../ShaderVariables.hlsl"
 
 /* --- Input --- */
 
@@ -13,7 +14,6 @@
 #define TEXTURE_WIDTH  2 * TEXTURE_HEIGHT // Equiareal texture map: phi = TWO_PI * (1.0 - u)
 
 TEXTURECUBE(envMap);                      // Input cubemap
-SAMPLERCUBE(sampler_envMap);
 
 /* --- Output --- */
 
@@ -103,8 +103,8 @@ void ComputeConditionalDensities(uint3 groupId       : SV_GroupID,
 
     float3 L1 = ConvertEquiarealToCubemap(u1, v);
     float3 L2 = ConvertEquiarealToCubemap(u2, v);
-    float3 c1 = SAMPLE_TEXTURECUBE_LOD(envMap, sampler_envMap, L1, 0).rgb;
-    float3 c2 = SAMPLE_TEXTURECUBE_LOD(envMap, sampler_envMap, L2, 0).rgb;
+    float3 c1 = SAMPLE_TEXTURECUBE_LOD(envMap, s_linear_clamp_sampler, L1, 0).rgb;
+    float3 c2 = SAMPLE_TEXTURECUBE_LOD(envMap, s_linear_clamp_sampler, L2, 0).rgb;
 
     // Compute the integral of the step function (row values).
     // TODO: process 4 texels per thread, and manually unroll.

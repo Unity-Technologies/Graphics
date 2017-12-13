@@ -1,12 +1,12 @@
-﻿#include "ShaderLibrary/Common.hlsl"
+#include "ShaderLibrary/Common.hlsl"
 #include "ShaderLibrary/BC6H.hlsl"
-#include "ShaderLibrary/Sampling.hlsl"
+#include "ShaderLibrary/Sampling/Sampling.hlsl"
 
 TextureCube<float4> _Source;
 RWTexture2DArray<uint4> _Target;
 int _MipIndex;
 
-SamplerState s_point_clamp;
+SAMPLER(s_point_clamp);
 
 static const uint2 kOffsets[] =
 {
@@ -37,7 +37,7 @@ void KEncodeFastCubemapMip(uint3 groupId : SV_GroupID, uint3 groupThreadId : SV_
     {
         nvc = CubemapTexelToNVC(topLeftSourceID + kOffsets[i], size);
         dir = CubemapTexelToDirection(nvc, faceId);
-        texels[i] = _Source.SampleLevel(s_point_clamp, dir, _MipIndex).rgb;
+        texels[i] = SAMPLE_TEXTURECUBE_LOD(_Source, s_point_clamp, dir, _MipIndex).rgb;
     }
 
     uint4 block = uint4(0, 0, 0, 0);
