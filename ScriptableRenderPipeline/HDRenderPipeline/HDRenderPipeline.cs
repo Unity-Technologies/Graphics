@@ -28,7 +28,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderTargetIdentifier[] m_ColorMRTs;
         RenderTargetIdentifier[] m_RTIDs = new RenderTargetIdentifier[k_MaxGbuffer];
 
-        //public void InitGBuffers(int width, int height, RenderPipelineMaterial deferredMaterial, bool enableBakeShadowMask, CommandBuffer cmd)
         public void InitGBuffers(RenderTextureDescriptor rtDesc, RenderPipelineMaterial deferredMaterial, bool enableBakeShadowMask, CommandBuffer cmd)
         {
             // Init Gbuffer description
@@ -98,17 +97,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderTargetIdentifier[] m_ColorMRTs;
         RenderTargetIdentifier[] m_RTIDs = new RenderTargetIdentifier[k_MaxDbuffer];
 
-        public void InitDBuffers(int width, int height,  CommandBuffer cmd)
+        public void InitDBuffers(RenderTextureDescriptor rtDesc,  CommandBuffer cmd)
         {            
             dbufferCount = Decal.GetMaterialDBufferCount();
             RenderTextureFormat[] rtFormat;
             RenderTextureReadWrite[] rtReadWrite;
             Decal.GetMaterialDBufferDescription(out rtFormat, out rtReadWrite);
 
+            rtDesc.depthBufferBits = 0;
+
             for (int dbufferIndex = 0; dbufferIndex < dbufferCount; ++dbufferIndex)
             {
                 cmd.ReleaseTemporaryRT(HDShaderIDs._DBufferTexture[dbufferIndex]);
-                cmd.GetTemporaryRT(HDShaderIDs._DBufferTexture[dbufferIndex], width, height, 0, FilterMode.Point, rtFormat[dbufferIndex], rtReadWrite[dbufferIndex]);
+
+                rtDesc.colorFormat = rtFormat[dbufferIndex];
+                rtDesc.sRGB = (rtReadWrite[dbufferIndex] != RenderTextureReadWrite.Linear);
+
+                cmd.GetTemporaryRT(HDShaderIDs._DBufferTexture[dbufferIndex], rtDesc, FilterMode.Point);
                 m_RTIDs[dbufferIndex] = new RenderTargetIdentifier(HDShaderIDs._DBufferTexture[dbufferIndex]);
             }
         }
@@ -1867,7 +1872,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     if (!camera.useForwardOnly)
                     {
-                        //m_GbufferManager.InitGBuffers(w, h, m_DeferredMaterial, enableBakeShadowMask, cmd);
                         m_GbufferManager.InitGBuffers(camera.renderTextureDesc, m_DeferredMaterial, enableBakeShadowMask, cmd);
                         m_SSSBufferManager.InitGBuffers(w, h, m_GbufferManager, cmd);
                     }
@@ -1877,7 +1881,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_SSSBufferManager.InitGBuffers(w, h, cmd);
                     }
 
-                    m_DbufferManager.InitDBuffers(w, h, cmd);
+                    m_DbufferManager.InitDBuffers(camera.renderTextureDesc, cmd);
 
                     CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.Depth);
                 }
