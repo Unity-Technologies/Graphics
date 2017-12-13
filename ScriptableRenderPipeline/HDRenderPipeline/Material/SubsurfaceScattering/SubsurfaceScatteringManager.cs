@@ -116,7 +116,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void SubsurfaceScatteringPass(HDCamera hdCamera, CommandBuffer cmd, SubsurfaceScatteringSettings sssParameters, DebugDisplaySettings debugDisplaySettings,
                                             RenderTargetIdentifier colorBufferRT, RenderTargetIdentifier diffuseBufferRT, RenderTargetIdentifier depthStencilBufferRT, RenderTargetIdentifier depthTextureRT)
         {
-            if (!debugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission)
+            if (m_sssSettings == null || !debugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission)
                 return;
 
             using (new ProfilingSample(cmd, "Subsurface Scattering", HDRenderPipeline.GetSampler(CustomSamplerId.SubsurfaceScattering)))
