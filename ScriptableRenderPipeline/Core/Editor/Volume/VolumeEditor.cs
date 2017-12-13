@@ -86,7 +86,7 @@ namespace UnityEditor.Experimental.Rendering
                 actualTarget.isDirty = false;
             }
 
-            using (var scope = new EditorGUILayout.VerticalScope())
+            using (var vscope = new EditorGUILayout.VerticalScope())
             {
                 EditorGUILayout.PropertyField(m_IsGlobal);
 
@@ -128,23 +128,25 @@ namespace UnityEditor.Experimental.Rendering
                 else
                     EditorGUILayout.HelpBox("No override set on this volume.", MessageType.Info);
 
-                using (new EditorGUILayout.HorizontalScope())
+                EditorGUILayout.Space();
+
+                using (var hscope = new EditorGUILayout.HorizontalScope())
                 {
-                    GUILayout.FlexibleSpace();
-
-                    //if (GUILayout.Button(CoreEditorUtils.GetContent("Add Component"), GUILayout.Width(230f), GUILayout.Height(24f)))
-                    //{
-
-                    //}
-
-                    GUILayout.FlexibleSpace();
+                    if (GUILayout.Button(CoreEditorUtils.GetContent("Add component overrides..."), EditorStyles.miniButton))
+                    {
+                        var r = hscope.rect;
+                        var pos = new Vector2(r.x + r.width / 2f, r.yMax + 18f);
+                        FilterWindow.Show(pos, new VolumeComponentProvider(actualTarget, this));
+                    }
                 }
+
+                EditorGUILayout.Space();
 
                 // Handle components drag'n'drop
                 var e = Event.current;
                 if (e.type == EventType.DragUpdated)
                 {
-                    if (IsDragValid(scope.rect, e.mousePosition))
+                    if (IsDragValid(vscope.rect, e.mousePosition))
                     {
                         DragAndDrop.visualMode = DragAndDropVisualMode.Link;
                         e.Use();
@@ -156,7 +158,7 @@ namespace UnityEditor.Experimental.Rendering
                 }
                 else if (e.type == EventType.DragPerform)
                 {
-                    if (IsDragValid(scope.rect, e.mousePosition))
+                    if (IsDragValid(vscope.rect, e.mousePosition))
                     {
                         DragAndDrop.AcceptDrag();
 
@@ -232,7 +234,7 @@ namespace UnityEditor.Experimental.Rendering
                 m_Editors[index] = editor;
         }
 
-        void AddComponent(Type type)
+        internal void AddComponent(Type type)
         {
             serializedObject.Update();
 
@@ -250,7 +252,7 @@ namespace UnityEditor.Experimental.Rendering
             serializedObject.ApplyModifiedProperties();
         }
 
-        void RemoveComponent(int id)
+        internal void RemoveComponent(int id)
         {
             // Huh. Hack to keep foldout state on the next element...
             bool nextFoldoutState = false;
@@ -290,7 +292,7 @@ namespace UnityEditor.Experimental.Rendering
 
         // Reset is done by deleting and removing the object from the list and adding a new one in
         // the same spot as it was before
-        void ResetComponent(Type type, int id)
+        internal void ResetComponent(Type type, int id)
         {
             // Remove from the cached editors list
             m_Editors[id].OnDisable();
@@ -321,7 +323,7 @@ namespace UnityEditor.Experimental.Rendering
             Undo.DestroyObjectImmediate(prevSettings);
         }
 
-        void MoveComponent(int id, int offset)
+        internal void MoveComponent(int id, int offset)
         {
             // Move components
             serializedObject.Update();
