@@ -115,10 +115,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnDestroy()
         {
-            if (graphObject.isDirty && EditorUtility.DisplayDialog("Shader Graph Might Have Been Modified", "Do you want to save the changes you made in the shader graph?", "Save", "Don't Save"))
-                UpdateAsset();
-            Undo.ClearUndo(graphObject);
-            DestroyImmediate(graphObject);
+            if (graphObject != null)
+            {
+                if (graphObject.isDirty && EditorUtility.DisplayDialog("Shader Graph Has Been Modified", "Do you want to save the changes you made in the shader graph?\n\nYour changes will be lost if you don't save them.", "Save", "Don't Save"))
+                    UpdateAsset();
+                Undo.ClearUndo(graphObject);
+                DestroyImmediate(graphObject);
+            }
             graphEditorView = null;
         }
 
