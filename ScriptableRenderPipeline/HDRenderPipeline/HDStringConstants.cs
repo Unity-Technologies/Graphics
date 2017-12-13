@@ -145,7 +145,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _ThicknessRemaps = Shader.PropertyToID("_ThicknessRemaps");
         public static readonly int _ShapeParams = Shader.PropertyToID("_ShapeParams");
         public static readonly int _HalfRcpVariancesAndWeights = Shader.PropertyToID("_HalfRcpVariancesAndWeights");
-        public static readonly int _TransmissionTints = Shader.PropertyToID("_TransmissionTints");
+        public static readonly int _TransmissionTintsAndFresnel0 = Shader.PropertyToID("_TransmissionTintsAndFresnel0");
         public static readonly int specularLightingUAV = Shader.PropertyToID("specularLightingUAV");
         public static readonly int diffuseLightingUAV = Shader.PropertyToID("diffuseLightingUAV");
 
