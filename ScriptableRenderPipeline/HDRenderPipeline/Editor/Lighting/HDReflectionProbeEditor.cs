@@ -3,6 +3,7 @@ using UnityEditor.AnimatedValues;
 using UnityEditor.Experimental.Rendering;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
 
@@ -16,11 +17,25 @@ namespace UnityEditor
         {
             internal SerializedProperty mode;
             internal SerializedProperty renderDynamicObjects;
+            internal SerializedProperty customBakedTexture; 
+            internal SerializedProperty refreshMode;
+            internal SerializedProperty timeSlicingMode;
+            internal SerializedProperty intensityMultiplier;
 
-            public SerializedReflectionProbe(ReflectionProbe target, SerializedObject so)
+            internal SerializedProperty influenceShape;
+
+            public SerializedReflectionProbe(SerializedObject so, SerializedObject addso)
             {
+                var o = new PropertyFetcher<HDAdditionalReflectionData>(addso);
+
                 mode = so.FindProperty("m_Mode");
+                customBakedTexture = so.FindProperty("m_CustomBakedTexture"); 
                 renderDynamicObjects = so.FindProperty("m_RenderDynamicObjects");
+                refreshMode = so.FindProperty("m_RefreshMode");
+                timeSlicingMode = so.FindProperty("m_TimeSlicingMode");
+                intensityMultiplier = so.FindProperty("m_IntensityMultiplier");
+
+                influenceShape = o.Find(d => d.m_InfluenceShape);
             }
         }
 
@@ -60,26 +75,38 @@ namespace UnityEditor
 
 
         SerializedReflectionProbe m_SerializedReflectionProbe;
-        ReflectionProbe m_ReflectionProbe;
+        SerializedObject m_AdditionalDataSerializedObject;
         UIState m_UIState = new UIState();
 
         void OnEnable()
         {
-            m_ReflectionProbe = (ReflectionProbe)target;
-            m_SerializedReflectionProbe = new SerializedReflectionProbe(m_ReflectionProbe, serializedObject);
-            m_UIState.Reset(Repaint, m_ReflectionProbe.mode);
+            var additionalData = CoreEditorUtils.GetAdditionalData<HDAdditionalReflectionData>(targets);
+            m_AdditionalDataSerializedObject = new SerializedObject(additionalData);
+            m_SerializedReflectionProbe = new SerializedReflectionProbe(serializedObject, m_AdditionalDataSerializedObject);
+            m_UIState.Reset(Repaint, (ReflectionProbeMode)m_SerializedReflectionProbe.mode.enumValueIndex);
         }
 
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
+            m_AdditionalDataSerializedObject.Update();
 
-            Drawer_ReflectionProbeMode(m_UIState, m_SerializedReflectionProbe);
-            Drawer_ModeSettings(m_UIState, m_SerializedReflectionProbe);
+            var s = m_UIState;
+            var p = m_SerializedReflectionProbe;
 
+            Drawer_ReflectionProbeMode(s, p);
+            Drawer_ModeSettings(s, p);
+            EditorGUILayout.Space();
+            Drawer_InfluenceShape(s, p);
+            Drawer_IntensityMultiplier(s, p);
+
+            m_AdditionalDataSerializedObject.ApplyModifiedProperties();
             serializedObject.ApplyModifiedProperties();
         }
+        static void Drawer_NOOP(UIState s, SerializedReflectionProbe p) { }
 
+
+        // Mode
         static readonly GUIContent[] k_Content_ReflectionProbeMode = { new GUIContent("Baked"), new GUIContent("Custom"), new GUIContent("Realtime") };
         static readonly int[] k_Content_ReflectionProbeModeValues = { (int)ReflectionProbeMode.Baked, (int)ReflectionProbeMode.Custom, (int)ReflectionProbeMode.Realtime };
         static void Drawer_ReflectionProbeMode(UIState s, SerializedReflectionProbe p)
@@ -88,9 +115,17 @@ namespace UnityEditor
             s.SetModeTarget(p.mode.intValue);
         }
 
-        static void Drawer_NOOP(UIState s, SerializedReflectionProbe p) { }
+        static void Drawer_InfluenceShape(UIState s, SerializedReflectionProbe p)
+        {
+            EditorGUILayout.PropertyField(p.influenceShape, CoreEditorUtils.GetContent("Shape"));
+        }
 
+        static void Drawer_IntensityMultiplier(UIState s, SerializedReflectionProbe p)
+        {
+            EditorGUILayout.PropertyField(p.intensityMultiplier, CoreEditorUtils.GetContent("Intensity"));
+        }
 
+        // Mode specific settings
         static void Drawer_ModeSettings(UIState s, SerializedReflectionProbe p)
         {
             for (var i = 0; i < k_ModeDrawers.Length; ++i)
@@ -109,8 +144,14 @@ namespace UnityEditor
         static void Drawer_ModeCustom(UIState s, SerializedReflectionProbe p)
         {
             EditorGUILayout.PropertyField(p.renderDynamicObjects, CoreEditorUtils.GetContent("Dynamic Objects|If enabled dynamic objects are also rendered into the cubemap"));
+
+            p.customBakedTexture.objectReferenceValue = EditorGUILayout.ObjectField(CoreEditorUtils.GetContent("Cubemap"), p.customBakedTexture.objectReferenceValue, typeof(Cubemap), false);
         }
 
-        static void Drawer_ModeRealtime(UIState s, SerializedReflectionProbe p) { }
+        static void Drawer_ModeRealtime(UIState s, SerializedReflectionProbe p)
+        {
+            EditorGUILayout.PropertyField(p.refreshMode, CoreEditorUtils.GetContent("Refresh Mode|Controls how this probe refreshes in the Player"));
+            EditorGUILayout.PropertyField(p.timeSlicingMode, CoreEditorUtils.GetContent("Time Slicing|If enabled this probe will update over several frames, to help reduce the impact on the frame rate"));
+        }
     }
 }

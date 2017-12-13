@@ -806,7 +806,7 @@ namespace UnityEditor
         }
 
         //Editing Gizmo
-        [DrawGizmo(GizmoType.Active)]
+        //[DrawGizmo(GizmoType.Active)]
         static void RenderGizmo(ReflectionProbe reflectionProbe, GizmoType gizmoType)
         {
             HDAdditionalReflectionData reflectionData = reflectionProbe.GetComponent<HDAdditionalReflectionData>();
@@ -828,7 +828,7 @@ namespace UnityEditor
             }
         }
 
-        [DrawGizmo(GizmoType.Selected)]
+        //[DrawGizmo(GizmoType.Selected)]
         static void DrawSelectedGizmo(ReflectionProbe reflectionProbe, GizmoType gizmoType)
         {
             Color oldColor = Gizmos.color;
@@ -872,7 +872,7 @@ namespace UnityEditor
             }
         }
 
-        [DrawGizmo(GizmoType.NonSelected)]
+        //[DrawGizmo(GizmoType.NonSelected)]
         static void DrawNonSelectedGizmo(ReflectionProbe reflectionProbe, GizmoType gizmoType)
         {
             var reflectionData = reflectionProbe.GetComponent<HDAdditionalReflectionData>();
