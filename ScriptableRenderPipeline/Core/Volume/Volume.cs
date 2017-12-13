@@ -78,10 +78,15 @@ namespace UnityEngine.Experimental.Rendering
         public T Add<T>(bool overrides = false)
             where T : VolumeComponent
         {
-            if (Has<T>())
+            return (T)Add(typeof(T), overrides);
+        }
+
+        public VolumeComponent Add(Type type, bool overrides = false)
+        {
+            if (Has(type))
                 throw new InvalidOperationException("Component already exists in the volume");
 
-            var component = ScriptableObject.CreateInstance<T>();
+            var component = (VolumeComponent)ScriptableObject.CreateInstance(type);
             component.SetAllOverridesTo(overrides);
             components.Add(component);
             isDirty = true;
@@ -91,8 +96,12 @@ namespace UnityEngine.Experimental.Rendering
         public void Remove<T>()
             where T : VolumeComponent
         {
+            Remove(typeof(T));
+        }
+
+        public void Remove(Type type)
+        {
             int toRemove = -1;
-            var type = typeof(T);
 
             for (int i = 0; i < components.Count; i++)
             {
@@ -113,8 +122,11 @@ namespace UnityEngine.Experimental.Rendering
         public bool Has<T>()
             where T : VolumeComponent
         {
-            var type = typeof(T);
+            return Has(typeof(T));
+        }
 
+        public bool Has(Type type)
+        {
             foreach (var component in components)
             {
                 if (component.GetType() == type)
