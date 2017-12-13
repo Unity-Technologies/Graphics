@@ -44,6 +44,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public TransmissionMode transmissionMode;
         public Vector2          thicknessRemap;             // X = min, Y = max (in millimeters)
         public float            worldScale;                 // Size of the world unit in meters
+        public float            fresnel0;                   // Fresnel0, 0.028 for skin
 
         // Old SSS Model >>>
         [ColorUsage(false, true)]
@@ -71,6 +72,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             transmissionMode   = TransmissionMode.None;
             thicknessRemap     = new Vector2(0f, 5f);
             worldScale         = 1f;
+            fresnel0           = 0.028f; // TYpical value for skin specular reflectance
 
             // Old SSS Model >>>
             scatterDistance1   = new Color(0.3f, 0.3f, 0.3f, 0f);
@@ -84,6 +86,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             thicknessRemap.y = Mathf.Max(thicknessRemap.y, 0f);
             thicknessRemap.x = Mathf.Clamp(thicknessRemap.x, 0f, thicknessRemap.y);
             worldScale       = Mathf.Max(worldScale, 0.001f);
+            fresnel0         = Mathf.Clamp(fresnel0, 0.0f, 0.1f);
 
             // Old SSS Model >>>
             scatterDistance1 = new Color
@@ -364,7 +367,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [NonSerialized] public Vector4[] thicknessRemaps;           // Remap: 0 = start, 1 = end - start
         [NonSerialized] public Vector4[] worldScales;               // X = meters per world unit; Y = world units per meter
         [NonSerialized] public Vector4[] shapeParams;               // RGB = S = 1 / D, A = filter radius
-        [NonSerialized] public Vector4[] transmissionTints;         // RGB = color, A = unused
+        [NonSerialized] public Vector4[] transmissionTintsAndFresnel0; // RGB = color, A = fresnel0
         [NonSerialized] public Vector4[] filterKernels;             // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
 
         // Old SSS Model >>>
@@ -406,7 +409,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ValidateArray(ref thicknessRemaps,   SssConstants.SSS_N_PROFILES);
             ValidateArray(ref worldScales,       SssConstants.SSS_N_PROFILES);
             ValidateArray(ref shapeParams,       SssConstants.SSS_N_PROFILES);
-            ValidateArray(ref transmissionTints, SssConstants.SSS_N_PROFILES);
+            ValidateArray(ref transmissionTintsAndFresnel0, SssConstants.SSS_N_PROFILES);
             ValidateArray(ref filterKernels,     SssConstants.SSS_N_PROFILES * SssConstants.SSS_N_SAMPLES_NEAR_FIELD);
 
             // Old SSS Model >>>
@@ -475,7 +478,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             worldScales[i]       = new Vector4(profiles[p].worldScale, 1.0f / profiles[p].worldScale, 0f, 0f);
             shapeParams[i]       = profiles[p].shapeParam;
             shapeParams[i].w     = profiles[p].maxRadius;
-            transmissionTints[i] = profiles[p].transmissionTint * 0.25f; // Premultiplied
+            transmissionTintsAndFresnel0[i] = new Vector4(profiles[p].transmissionTint.r * 0.25f, profiles[p].transmissionTint.g * 0.25f, profiles[p].transmissionTint.b * 0.25f, profiles[p].fresnel0); // Premultiplied
 
             for (int j = 0, n = SssConstants.SSS_N_SAMPLES_NEAR_FIELD; j < n; j++)
             {

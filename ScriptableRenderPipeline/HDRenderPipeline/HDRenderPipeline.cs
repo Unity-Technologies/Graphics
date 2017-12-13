@@ -578,11 +578,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetGlobalFloat(HDShaderIDs._TexturingModeFlags, *(float*)&texturingModeFlags);
                     cmd.SetGlobalFloat(HDShaderIDs._TransmissionFlags,  *(float*)&transmissionFlags);
                 }
-                cmd.SetGlobalVectorArray(HDShaderIDs._ThicknessRemaps,            sssParameters.thicknessRemaps);
-                cmd.SetGlobalVectorArray(HDShaderIDs._ShapeParams,                sssParameters.shapeParams);
-                cmd.SetGlobalVectorArray(HDShaderIDs._HalfRcpVariancesAndWeights, sssParameters.halfRcpVariancesAndWeights);
-                cmd.SetGlobalVectorArray(HDShaderIDs._TransmissionTints,          sssParameters.transmissionTints);
-                cmd.SetGlobalVectorArray(HDShaderIDs._WorldScales,                sssParameters.worldScales);
+                cmd.SetGlobalVectorArray(HDShaderIDs._ThicknessRemaps,              sssParameters.thicknessRemaps);
+                cmd.SetGlobalVectorArray(HDShaderIDs._ShapeParams,                  sssParameters.shapeParams);
+                cmd.SetGlobalVectorArray(HDShaderIDs._HalfRcpVariancesAndWeights,   sssParameters.halfRcpVariancesAndWeights);
+                cmd.SetGlobalVectorArray(HDShaderIDs._TransmissionTintsAndFresnel0, sssParameters.transmissionTintsAndFresnel0);
+                cmd.SetGlobalVectorArray(HDShaderIDs._WorldScales,                  sssParameters.worldScales);
             }
         }
 
