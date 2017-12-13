@@ -54,7 +54,7 @@ namespace UnityEditor.VFX.Block
                     source = string.Format(@"
 float2 size = {0};
 dragCoefficient *= size.x * size.y;
-", VFXBlockUtility.GetSizeVector(GetData(), 2));
+", VFXBlockUtility.GetSizeVector(GetParent(), 2));
                 }
 
                 return source + "velocity *= max(0.0,(1.0 - (dragCoefficient * deltaTime) / mass));";

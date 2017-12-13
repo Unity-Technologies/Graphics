@@ -39,13 +39,11 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                string size = VFXBlockUtility.GetSizeVector(GetData());
-
                 return string.Format(@"
 float3 size = {0};
 float radiusCubed = size.x * size.y * size.z * 0.125f;
 mass = (4.0f / 3.0f) * UNITY_PI * radiusCubed * Density;
-", size);
+", VFXBlockUtility.GetSizeVector(GetParent()));
             }
         }
     }

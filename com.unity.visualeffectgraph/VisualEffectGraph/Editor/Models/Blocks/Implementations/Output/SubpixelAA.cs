@@ -34,7 +34,7 @@ float minSize = clipPosW / (0.5f * min(UNITY_MATRIX_P[0][0] * _ScreenParams.x,-U
 float2 clampedSize = max(size,minSize);
 float fade = (size.x * size.y) / (clampedSize.x * clampedSize.y);
 alpha *= fade;
-size = clampedSize;", VFXBlockUtility.GetSizeVector(GetData(), 2));
+size = clampedSize;", VFXBlockUtility.GetSizeVector(GetParent(), 2));
             }
         }
     }

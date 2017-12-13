@@ -78,21 +78,28 @@ namespace UnityEditor.VFX.Block
 
             if (nbComponents >= 1)
                 yield return new VFXAttributeInfo(VFXAttribute.SizeX, VFXAttributeMode.Read);
-            if (nbComponents >= 2 && data.IsCurrentAttributeUsed(VFXAttribute.SizeY))
+            if (nbComponents >= 2 && data.IsCurrentAttributeWritten(VFXAttribute.SizeY))
                 yield return new VFXAttributeInfo(VFXAttribute.SizeY, VFXAttributeMode.Read);
-            if (nbComponents >= 3 && data.IsCurrentAttributeUsed(VFXAttribute.SizeZ))
+            if (nbComponents >= 3 && data.IsCurrentAttributeWritten(VFXAttribute.SizeZ))
                 yield return new VFXAttributeInfo(VFXAttribute.SizeY, VFXAttributeMode.Read);
         }
 
-        public static string GetSizeVector(VFXData data, int nbComponents = 3)
+        public static string GetSizeVector(VFXContext context, int nbComponents = 3)
         {
-            if (nbComponents < 1 || nbComponents > 3)
-                throw new ArgumentException("NbComponents must be between 1 and 3");
+            var data = context.GetData();
 
-            string sizeX = nbComponents >= 1 && data.IsCurrentAttributeUsed(VFXAttribute.SizeX) ? "sizeX" : VFXAttribute.kDefaultSize.ToString();
-            string sizeY = nbComponents >= 2 && data.IsCurrentAttributeUsed(VFXAttribute.SizeY) ? "sizeY" : "sizeX";
-            string sizeZ = nbComponents >= 3 && data.IsCurrentAttributeUsed(VFXAttribute.SizeZ) ? "sizeZ" : string.Format("min({0},{1})", sizeX, sizeY);
-            return string.Format("float3({0},{1},{2})", sizeX, sizeY, sizeZ);
+            string sizeX = data.IsCurrentAttributeRead(VFXAttribute.SizeX, context) ? "sizeX" : VFXAttribute.kDefaultSize.ToString();
+            string sizeY = nbComponents >= 2 && data.IsCurrentAttributeRead(VFXAttribute.SizeY, context) ? "sizeY" : "sizeX";
+            string sizeZ = nbComponents >= 3 && data.IsCurrentAttributeRead(VFXAttribute.SizeZ, context) ? "sizeZ" : string.Format("min({0},{1})", sizeX, sizeY);
+
+            switch (nbComponents)
+            {
+                case 1: return sizeX;
+                case 2: return string.Format("float2({0},{1})", sizeX, sizeY);
+                case 3: return string.Format("float3({0},{1},{2})", sizeX, sizeY, sizeZ);
+                default:
+                    throw new ArgumentException("NbComponents must be between 1 and 3");
+            }
         }
     }
 }
