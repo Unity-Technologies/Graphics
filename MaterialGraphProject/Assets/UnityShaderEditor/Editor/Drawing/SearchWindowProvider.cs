@@ -17,15 +17,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         AbstractMaterialGraph m_Graph;
         GraphView m_GraphView;
         Texture2D m_Icon;
-
-        const string k_Actions = "Actions";
-        const string k_AddNode = "Add Node";
-        const string k_ConvertToProperty = "Convert To Property";
-        const string k_ConvertToInlineNode = "Convert To Inline Node";
-        const string k_ConvertToSubgraph = "Convert To Sub-graph";
-        const string k_CopyShader = "Copy Shader To Clipboard";
-
-        public Action onConvertToSubgraphClick { get; set; }
+        public Port connectedPort { get; set; }
+        public bool nodeNeedsRepositioning { get; set; }
+        public SlotReference targetSlotReference { get; private set; }
+        public Vector2 targetPosition { get; private set; }
 
         public void Initialize(EditorWindow editorWindow, AbstractMaterialGraph graph, GraphView graphView)
         {
@@ -48,33 +43,56 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        struct NestedEntry
+        struct NodeEntry
         {
             public string[] title;
-            public object userData;
+            public AbstractMaterialNode node;
+            public int compatibleSlotId;
         }
+
+        List<ISlot> m_Slots = new List<ISlot>();
 
         public List<SearchTreeEntry> CreateSearchTree(SearchWindowContext context)
         {
             // First build up temporary data structure containing group & title as an array of strings (the last one is the actual title) and associated node type.
-            var nestedEntries = new List<NestedEntry>();
+            var nodeEntries = new List<NodeEntry>();
             foreach (var type in Assembly.GetAssembly(typeof(AbstractMaterialNode)).GetTypes())
             {
                 if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(AbstractMaterialNode))))
                 {
                     var attrs = type.GetCustomAttributes(typeof(TitleAttribute), false) as TitleAttribute[];
                     if (attrs != null && attrs.Length > 0)
-                        nestedEntries.Add(new NestedEntry { title = attrs[0].title, userData = type });
+                    {
+                        var node = (AbstractMaterialNode) Activator.CreateInstance(type);
+                        var compatibleSlotId = -1;
+                        if (connectedPort != null)
+                        {
+                            compatibleSlotId = GetFirstCompatibleSlotId(node);
+                            if (compatibleSlotId == -1)
+                                continue;
+                        }
+                        nodeEntries.Add(new NodeEntry { title = attrs[0].title, node = node, compatibleSlotId = compatibleSlotId});
+                    }
                 }
             }
 
             foreach (var guid in AssetDatabase.FindAssets(string.Format("t:{0}", typeof(MaterialSubGraphAsset))))
             {
                 var asset = AssetDatabase.LoadAssetAtPath<MaterialSubGraphAsset>(AssetDatabase.GUIDToAssetPath(guid));
-                nestedEntries.Add(new NestedEntry
+                var node = Activator.CreateInstance<SubGraphNode>();
+                node.subGraphAsset = asset;
+                var compatibleSlotId = -1;
+                if (connectedPort != null)
+                {
+                    compatibleSlotId = GetFirstCompatibleSlotId(node);
+                    if (compatibleSlotId == -1)
+                        continue;
+                }
+                nodeEntries.Add(new NodeEntry
                 {
                     title = new[] { "Sub-graph Assets", asset.name },
-                    userData = asset
+                    node = node,
+                    compatibleSlotId = compatibleSlotId
                 });
             }
 
@@ -83,7 +101,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // - Art/BlendMode
             // - Art/Adjustments/ColorBalance
             // - Art/Adjustments/Contrast
-            nestedEntries.Sort((entry1, entry2) =>
+            nodeEntries.Sort((entry1, entry2) =>
             {
                 for (var i = 0; i < entry1.title.Length; i++)
                 {
@@ -109,30 +127,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             // First item in the tree is the title of the window.
             var tree = new List<SearchTreeEntry>
             {
-                new SearchTreeGroupEntry(new GUIContent(k_Actions), 0),
-                new SearchTreeGroupEntry(new GUIContent(k_AddNode)) { level = 1 },
+                new SearchTreeGroupEntry(new GUIContent("Create Node"), 0),
             };
 
-            // Add in contextual node actions
-            var selection = m_GraphView.selection.OfType<MaterialNodeView>().Where(v => v.node != null).ToList();
-            if (selection.Any())
-                tree.Add(new SearchTreeEntry(new GUIContent(k_ConvertToSubgraph, m_Icon)) { level = 1 });
-            if (selection.Any(v => v.node is IPropertyFromNode))
-                tree.Add(new SearchTreeEntry(new GUIContent(k_ConvertToProperty, m_Icon)) { level = 1 });
-            if (selection.Any(v => v.node is PropertyNode))
-                tree.Add(new SearchTreeEntry(new GUIContent(k_ConvertToInlineNode, m_Icon)) { level = 1 });
-            if (selection.Count == 1 && selection.First().node.hasPreview)
-                tree.Add(new SearchTreeEntry(new GUIContent(k_CopyShader, m_Icon)) { level = 1 });
-
-            foreach (var nestedEntry in nestedEntries)
+            foreach (var nodeEntry in nodeEntries)
             {
                 // `createIndex` represents from where we should add new group entries from the current entry's group path.
                 var createIndex = int.MaxValue;
 
                 // Compare the group path of the current entry to the current group path.
-                for (var i = 0; i < nestedEntry.title.Length - 1; i++)
+                for (var i = 0; i < nodeEntry.title.Length - 1; i++)
                 {
-                    var group = nestedEntry.title[i];
+                    var group = nodeEntry.title[i];
                     if (i >= groups.Count)
                     {
                         // The current group path matches a prefix of the current entry's group path, so we add the
@@ -153,139 +159,64 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 // Create new group entries as needed.
                 // If we don't need to modify the group path, `createIndex` will be `int.MaxValue` and thus the loop won't run.
-                for (var i = createIndex; i < nestedEntry.title.Length - 1; i++)
+                for (var i = createIndex; i < nodeEntry.title.Length - 1; i++)
                 {
-                    var group = nestedEntry.title[i];
+                    var group = nodeEntry.title[i];
                     groups.Add(group);
-                    tree.Add(new SearchTreeGroupEntry(new GUIContent(group)) { level = i + 2 });
+                    tree.Add(new SearchTreeGroupEntry(new GUIContent(group)) { level = i + 1 });
                 }
 
                 // Finally, add the actual entry.
-                tree.Add(new SearchTreeEntry(new GUIContent(nestedEntry.title.Last(), m_Icon)) { level = nestedEntry.title.Length + 1, userData = nestedEntry.userData });
+                tree.Add(new SearchTreeEntry(new GUIContent(nodeEntry.title.Last(), m_Icon)) { level = nodeEntry.title.Length, userData = nodeEntry });
             }
 
             return tree;
         }
 
+        int GetFirstCompatibleSlotId(AbstractMaterialNode node)
+        {
+            var connectedSlot = (MaterialSlot)connectedPort.userData;
+            m_Slots.Clear();
+            node.GetSlots(m_Slots);
+            foreach (var slot in m_Slots)
+            {
+                var materialSlot = (MaterialSlot)slot;
+                if (materialSlot.IsCompatibleWith(connectedSlot))
+                {
+                    return materialSlot.id;
+                }
+            }
+            return -1;
+        }
+
         public bool OnSelectEntry(SearchTreeEntry entry, SearchWindowContext context)
         {
-            if (entry.name == k_ConvertToProperty)
-                return OnConvertToProperty();
-            if (entry.name == k_ConvertToInlineNode)
-                return OnConvertToInlineNode();
-            if (entry.name == k_ConvertToSubgraph)
-                return OnConvertToSubgraph();
-            if (entry.name == k_CopyShader)
-                return OnCopyShader();
-            return OnAddNode(entry, context);
-        }
-
-        bool OnCopyShader()
-        {
-            var copyFromNode = m_GraphView.selection.OfType<MaterialNodeView>().First().node;
-
-            List<PropertyCollector.TextureInfo> textureInfo;
-            var masterNode = copyFromNode as MasterNode;
-            if (masterNode != null)
-            {
-                var shader = masterNode.GetShader(GenerationMode.ForReals, masterNode.name, out textureInfo);
-                GUIUtility.systemCopyBuffer = shader;
-            }
-            else
-            {
-                PreviewMode previewMode;
-                FloatShaderProperty outputIdProperty;
-                var shader = m_Graph.GetShader(copyFromNode, GenerationMode.ForReals, copyFromNode.name, out textureInfo, out previewMode, out outputIdProperty);
-                GUIUtility.systemCopyBuffer = shader;
-            }
-
-            return true;
-        }
-
-        bool OnConvertToSubgraph()
-        {
-            if (onConvertToSubgraphClick != null) onConvertToSubgraphClick();
-            return true;
-        }
-
-        static List<IEdge> s_TempEdges = new List<IEdge>();
-
-        bool OnConvertToProperty()
-        {
-            if (m_GraphView == null)
-                return false;
-
-            var selectedNodeViews = m_GraphView.selection.OfType<MaterialNodeView>().Select(x => x.node).ToList();
-            foreach (var node in selectedNodeViews)
-            {
-                if (!(node is IPropertyFromNode))
-                    continue;
-
-                var converter = node as IPropertyFromNode;
-                var prop = converter.AsShaderProperty();
-                m_Graph.AddShaderProperty(prop);
-
-                var propNode = new PropertyNode();
-                propNode.drawState = node.drawState;
-                m_Graph.AddNode(propNode);
-                propNode.propertyGuid = prop.guid;
-
-                var oldSlot = node.FindSlot<MaterialSlot>(converter.outputSlotId);
-                var newSlot = propNode.FindSlot<MaterialSlot>(PropertyNode.OutputSlotId);
-
-                s_TempEdges.Clear();
-                m_Graph.GetEdges(oldSlot.slotReference, s_TempEdges);
-                foreach (var edge in s_TempEdges)
-                    m_Graph.Connect(newSlot.slotReference, edge.inputSlot);
-
-                m_Graph.RemoveNode(node);
-            }
-
-            return true;
-        }
-
-        bool OnConvertToInlineNode()
-        {
-            if (m_GraphView == null)
-                return false;
-
-            var selectedNodeViews = m_GraphView.selection.OfType<MaterialNodeView>()
-                .Select(x => x.node)
-                .OfType<PropertyNode>();
-
-            foreach (var propNode in selectedNodeViews)
-                ((AbstractMaterialGraph)propNode.owner).ReplacePropertyNodeWithConcreteNode(propNode);
-
-            return true;
-        }
-
-        bool OnAddNode(SearchTreeEntry entry, SearchWindowContext context)
-        {
-            Type type;
-            var asset = entry.userData as MaterialSubGraphAsset;
-            if (asset != null)
-                type = typeof(SubGraphNode);
-            else
-                type = (Type)entry.userData;
-
-            var node = Activator.CreateInstance(type) as INode;
-            if (node == null)
-                return false;
+            var nodeEntry = (NodeEntry)entry.userData;
+            var node = nodeEntry.node;
 
             var drawState = node.drawState;
-            var windowMousePosition = context.screenMousePosition - m_EditorWindow.position.position;
-            var graphMousePosition = m_EditorWindow.GetRootVisualContainer().ChangeCoordinatesTo(m_GraphView.contentViewContainer, windowMousePosition);
+            var windowMousePosition = m_EditorWindow.GetRootVisualContainer().ChangeCoordinatesTo(m_EditorWindow.GetRootVisualContainer().parent, context.screenMousePosition - m_EditorWindow.position.position);
+            var graphMousePosition = m_GraphView.contentViewContainer.WorldToLocal(windowMousePosition);
             drawState.position = new Rect(graphMousePosition, Vector2.zero);
             node.drawState = drawState;
 
-            if (asset != null)
-            {
-                var subgraphNode = (SubGraphNode)node;
-                subgraphNode.subGraphAsset = asset;
-            }
-
             m_Graph.owner.RegisterCompleteObjectUndo("Add " + node.name);
             m_Graph.AddNode(node);
+
+            if (connectedPort != null)
+            {
+                var connectedSlot = (MaterialSlot)connectedPort.userData;
+                var connectedSlotReference = connectedSlot.owner.GetSlotReference(connectedSlot.id);
+                var compatibleSlotReference = node.GetSlotReference(nodeEntry.compatibleSlotId);
+
+                var fromReference = connectedSlot.isOutputSlot ? connectedSlotReference : compatibleSlotReference;
+                var toReference = connectedSlot.isOutputSlot ? compatibleSlotReference : connectedSlotReference;
+                m_Graph.Connect(fromReference, toReference);
+
+                nodeNeedsRepositioning = true;
+                targetSlotReference = compatibleSlotReference;
+                targetPosition = graphMousePosition;
+            }
 
             return true;
         }
