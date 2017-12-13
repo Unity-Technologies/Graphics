@@ -57,7 +57,7 @@ float3 GetPointAtDistance(Ray ray, float t)
 void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                                   PositionInputs posInput, Ray ray)
 {
-    BakeLightingData unusedData;         // Unused, so define once
+    BakeLightingData unused;             // Unused, so define once
 
     float z0 = 0, t0 = 0;                // Start at the origin of the ray
     float de = rcp(VBUFFER_SLICE_COUNT); // Log-encoded distance between slices
@@ -115,10 +115,13 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                 float3 L = -lightData.forward; // Lights point backwards in Unity
 
                 float3 color; float attenuation;
-                EvaluateLight_Directional(context, posInput, lightData, unusedData, 0, L,
+                EvaluateLight_Directional(context, posInput, lightData, unused, 0, L,
                                           color, attenuation);
 
                 float intensity = attenuation * weight;
+
+                // Compute transmittance from 't0' to 't'.
+                intensity *= TransmittanceHomogeneousMedium(extinction, tOffset);
 
                 // Compute the amount of in-scattered radiance.
                 sampleRadiance += intensity * color;
@@ -156,55 +159,85 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                 lightStart = 0;
             #endif // LIGHTLOOP_TILE_PASS
 
-                // TODO: since lights are sorted, make a while loop per light type.
-                for (uint i = 0; i < lightCount; ++i)
+                if (lightCount > 0)
                 {
-                    LightData lightData = FetchLight(lightStart, i);
-                    int       lightType = lightData.lightType;
+                    LightData lightData = FetchLight(lightStart, 0);
 
-                    // TODO...
-                    if (lightType != GPULIGHTTYPE_POINT && lightType != GPULIGHTTYPE_SPOT) continue;
+                    uint i = 0, last = lightCount - 1;
 
-                    float tEntr = tMin;
-                    float tExit = tMax;
-
-                    if (lightType == GPULIGHTTYPE_SPOT)
+                    // Box lights require special handling (see the next while loop).
+                    while (i <= last && lightData.lightType != GPULIGHTTYPE_PROJECTOR_BOX)
                     {
-                        if (!ConeRayIntersect(ray.originWS, ray.directionWS,
-                                              lightData.positionWS, lightData.forward,
-                                              lightData.right, lightData.up,
-                                              tMin, tMax, tEntr, tExit))
+                        float tEntr = tMin;
+                        float tExit = tMax;
+
+                        bool sampleLight = true;
+
+                        // Perform ray-cone intersection for pyramid and spot lights.
+                        if (lightData.lightType != GPULIGHTTYPE_POINT)
                         {
-                            continue;
+                            // 'lightData.right' and 'lightData.up' vectors are pre-scaled on the CPU
+                            // s.t. if you were to place them at the distance of 1 directly in front
+                            // of the light, they would give you the "footprint" of the light.
+                            float3 coneAxisX = lightData.right;
+                            float3 coneAxisY = lightData.up;
+
+                            if (lightData.lightType == GPULIGHTTYPE_PROJECTOR_PYRAMID)
+                            {
+                                // For spot lights, the cone fit is exact.
+                                // For pyramid lights, however, this is the "inscribed" cone
+                                // (contained within the pyramid), and we want to intersect
+                                // the "escribed" cone (which contains the pyramid).
+                                // Therefore, we have to scale the radii by the sqrt(2).
+                                // TODO: pre-scale this on the CPU.
+                                coneAxisX *= rsqrt(2);
+                                coneAxisY *= rsqrt(2);
+                            }
+
+                            sampleLight = ConeRayIntersect(ray.originWS, ray.directionWS,
+                                                           lightData.positionWS, lightData.forward,
+                                                           coneAxisX, coneAxisY,
+                                                           tMin, tMax, tEntr, tExit);
                         }
+
+                        if (sampleLight)
+                        {
+                            float t, distSq, rcpPdf;
+                            ImportanceSamplePunctualLight(rndVal, lightData.positionWS,
+                                                          ray.originWS, ray.directionWS,
+                                                          tEntr, tExit, t, distSq, rcpPdf);
+
+                            posInput.positionWS = GetPointAtDistance(ray, t);
+
+                            float3 lightToSample = posInput.positionWS - lightData.positionWS;
+                            float  dist          = sqrt(distSq);
+                            float3 L             = -lightToSample * rsqrt(distSq);
+
+                            float3 color; float attenuation;
+                            EvaluateLight_Punctual(context, posInput, lightData, unused, 0, L, dist, distSq,
+                                                   color, attenuation);
+
+                            float intensity = attenuation * rcpPdf;
+
+                            // Compute transmittance from 't0' to 't'.
+                            intensity *= TransmittanceHomogeneousMedium(extinction, t - t0);
+
+                            // Compute the amount of in-scattered radiance.
+                            sampleRadiance += color * intensity;
+                        }
+
+                        lightData = FetchLight(lightStart, min(++i, last));
                     }
 
-                    float t, distSq, rcpPdf;
-                    ImportanceSamplePunctualLight(rndVal, lightData.positionWS,
-                                                  ray.originWS, ray.directionWS,
-                                                  tEntr, tExit, t, distSq, rcpPdf);
-
-                    posInput.positionWS = GetPointAtDistance(ray, t);
-
-                    float3 lightToSample = posInput.positionWS - lightData.positionWS;
-                    float  dist          = sqrt(distSq);
-                    float3 L             = -lightToSample * rsqrt(distSq);
-
-                    float3 color; float attenuation;
-                    EvaluateLight_Punctual(context, posInput, lightData, unusedData, 0, L, dist, distSq,
-                                           color, attenuation);
-
-                    float intensity = attenuation * rcpPdf;
-
-                    // Compute transmittance from 't0' to 't'.
-                    intensity *= TransmittanceHomogeneousMedium(extinction, t - t0);
-
-                    // Compute the amount of in-scattered radiance.
-                    sampleRadiance += color * intensity;
+                    while (i <= last)
+                    {
+                        lightData = FetchLight(lightStart, min(++i, last));
+                        lightData.lightType = GPULIGHTTYPE_PROJECTOR_BOX;
+                    }
                 }
             }
     #ifdef LIGHTLOOP_TILE_PASS
-            // The voxel is completely inside the light cluster.
+            // Check whether the voxel is completely inside the light cluster.
             if (clusterIndices[0] == clusterIndices[1]) break;
         }
 
@@ -212,7 +245,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         clusterDepths[0]  = clusterDepths[1];
     #endif // LIGHTLOOP_TILE_PASS
 
-        // Compute the transmittance up to the start of the interval.
+        // Compute the transmittance from the camera to 't0'.
         float transmittance = Transmittance(opticalDepth);
 
         // Integral{a, b}{Transmittance(0, t) * Li(t) dt} = Transmittance(0, a) * Integral{a, b}{Transmittance(0, t - a) * Li(t) dt}.
