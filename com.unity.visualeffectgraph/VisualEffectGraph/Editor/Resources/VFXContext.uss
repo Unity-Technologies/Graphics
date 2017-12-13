@@ -187,7 +187,7 @@ VFXContextUI BlockContainer {
 	font-size:12;
 	margin-top: 0;
 	margin-bottom: 0;
-	-border-radius:4;
+	padding-top:3;
 }
 
 VFXContextUI > #icon
