@@ -550,6 +550,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         };
 #endif
 
+        // TODO: We need to respect QualitySettings.activeColorSpace 
+
         RenderTexture CreateRenderTexture(HDCamera hdCamera, int depthBufferBits, RenderTextureFormat format, RenderTextureReadWrite readWrite = RenderTextureReadWrite.Default)
         {
             var localDesc = hdCamera.renderTextureDesc;
@@ -577,12 +579,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.GetTemporaryRT(nameID, localDesc, filter);
         }
 
-        void CreateDepthStencilBuffer(Camera camera)
+        void CreateDepthStencilBuffer(HDCamera hdCamera)
         {
+            var camera = hdCamera.camera;
+
             if (m_CameraDepthStencilBuffer != null)
                 m_CameraDepthStencilBuffer.Release();
 
             m_CameraDepthStencilBuffer = new RenderTexture(camera.pixelWidth, camera.pixelHeight, 24, RenderTextureFormat.Depth);
+            //m_CameraDepthStencilBuffer = CreateRenderTexture(hdCamera, 24, RenderTextureFormat.Depth);
             m_CameraDepthStencilBuffer.filterMode = FilterMode.Point;
             m_CameraDepthStencilBuffer.Create();
             m_CameraDepthStencilBufferRT = new RenderTargetIdentifier(m_CameraDepthStencilBuffer);
@@ -593,6 +598,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_CameraDepthBufferCopy.Release();
 
                 m_CameraDepthBufferCopy = new RenderTexture(camera.pixelWidth, camera.pixelHeight, 24, RenderTextureFormat.Depth);
+                //m_CameraDepthBufferCopy = CreateRenderTexture(hdCamera, 24, RenderTextureFormat.Depth);
                 m_CameraDepthBufferCopy.filterMode = FilterMode.Point;
                 m_CameraDepthBufferCopy.Create();
                 m_CameraDepthBufferCopyRT = new RenderTargetIdentifier(m_CameraDepthBufferCopy);
@@ -604,6 +610,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_CameraStencilBufferCopy.Release();
 
                 m_CameraStencilBufferCopy = new RenderTexture(camera.pixelWidth, camera.pixelHeight, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear); // DXGI_FORMAT_R8_UINT is not supported by Unity
+                //m_CameraStencilBufferCopy = CreateRenderTexture(hdCamera, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear); // DXGI_FORMAT_R8_UINT is not supported by Unity
                 m_CameraStencilBufferCopy.filterMode = FilterMode.Point;
                 m_CameraStencilBufferCopy.Create();
                 m_CameraStencilBufferCopyRT = new RenderTargetIdentifier(m_CameraStencilBufferCopy);
@@ -616,6 +623,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // We use 8x8 tiles in order to match the native GCN HTile as closely as possible.
                 m_HTile = new RenderTexture((camera.pixelWidth + 7) / 8, (camera.pixelHeight + 7) / 8, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear); // DXGI_FORMAT_R8_UINT is not supported by Unity
+                //var desc = hdCamera.renderTextureDesc;
+                //desc.width = (desc.width + 7) / 8;
+                //desc.height = (desc.height + 7) / 8;
+                //desc.depthBufferBits = 0;
+                //desc.colorFormat = RenderTextureFormat.R8;
+                //desc.sRGB = false;
+                //m_HTile = new RenderTexture((camera.pixelWidth + 7) / 8, (camera.pixelHeight + 7) / 8, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear); // DXGI_FORMAT_R8_UINT is not supported by Unity
                 m_HTile.filterMode = FilterMode.Point;
                 m_HTile.enableRandomWrite = true;
                 m_HTile.Create();
@@ -624,8 +638,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         }
 
-        void Resize(Camera camera)
+        void Resize(HDCamera hdCamera)
         {
+            var camera = hdCamera.camera;
+
             // TODO: Detect if renderdoc just load and force a resize in this case, as often renderdoc require to realloc resource.
 
             // TODO: This is the wrong way to handle resize/allocation. We can have several different camera here, mean that the loop on camera will allocate and deallocate
@@ -637,7 +653,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool resolutionChanged = camera.pixelWidth != m_CurrentWidth || camera.pixelHeight != m_CurrentHeight;
 
             if (resolutionChanged || m_CameraDepthStencilBuffer == null)
-                CreateDepthStencilBuffer(camera);
+                CreateDepthStencilBuffer(hdCamera);
 
             if (resolutionChanged || m_LightLoop.NeedResize())
             {
@@ -856,7 +872,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     var hdCamera = HDCamera.Get(camera, postProcessLayer, m_Asset.globalRenderingSettings, stereoActive);
                     m_LightLoop.UpdateRenderingPathState(hdCamera.useForwardOnly);
 
-                    Resize(camera);
+                    Resize(hdCamera);
 
                     renderContext.SetupCameraProperties(camera);
 
