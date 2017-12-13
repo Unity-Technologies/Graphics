@@ -70,7 +70,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 newAsset.debugFullScreenShader = Load<Shader>(HDRenderPipelinePath + "Debug/DebugFullScreen.Shader");
 
                 newAsset.deferredShader = Load<Shader>(HDRenderPipelinePath + "Lighting/Deferred.Shader");
-                newAsset.subsurfaceScatteringCS = Load<ComputeShader>(HDRenderPipelinePath + "Material/Lit/Resources/SubsurfaceScattering.compute");
                 newAsset.gaussianPyramidCS = Load<ComputeShader>(PostProcessingPath + "Shaders/Builtins/GaussianDownsample.compute");
                 newAsset.depthPyramidCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipelineResources/DepthDownsample.compute");
                 newAsset.copyChannelCS = Load<ComputeShader>(CorePath + "Resources/GPUCopy.compute");
@@ -87,12 +86,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 newAsset.deferredDirectionalShadowComputeShader = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/DeferredDirectionalShadow.compute");
 
-                // SceneSettings
+                // SubsurfaceScattering
                 // These shaders don't need to be reference by RenderPipelineResource as they are not use at runtime (only to draw in editor)
                 // instance.drawSssProfile = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(HDRenderPipelinePath + "SceneSettings/DrawSssProfile.shader");
                 // instance.drawTransmittanceGraphShader = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(HDRenderPipelinePath + "SceneSettings/DrawTransmittanceGraph.shader");
 
+                newAsset.subsurfaceScatteringCS = Load<ComputeShader>(HDRenderPipelinePath + "Material/SubsurfaceScattering/SubsurfaceScattering.compute");
+                newAsset.subsurfaceScattering = Load<Shader>(HDRenderPipelinePath + "Material/SubsurfaceScattering/SubsurfaceScattering.shader");
+                newAsset.combineLighting = Load<Shader>(HDRenderPipelinePath + "Material/SubsurfaceScattering/CombineLighting.shader");
+
+                // General
                 newAsset.cameraMotionVectors = Load<Shader>(HDRenderPipelinePath + "RenderPipelineResources/CameraMotionVectors.shader");
+                newAsset.copyStencilBuffer = Load<Shader>(HDRenderPipelinePath + "RenderPipelineResources/copyStencilBuffer.shader");
 
                 // Sky
                 newAsset.blitCubemap = Load<Shader>(HDRenderPipelinePath + "Sky/BlitCubemap.shader");

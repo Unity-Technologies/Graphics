@@ -214,7 +214,7 @@ void FillMaterialIdSssData(int subsurfaceProfile, float radius, float thickness,
         if (_UseDisneySSS != 0)
         {
             bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParams[subsurfaceProfile].rgb,
-                                                                _TransmissionTints[subsurfaceProfile].rgb,
+                                                                _TransmissionTintsAndFresnel0[subsurfaceProfile].rgb,
                                                                 bsdfData.thickness, bsdfData.subsurfaceRadius);
         }
         else
@@ -223,7 +223,7 @@ void FillMaterialIdSssData(int subsurfaceProfile, float radius, float thickness,
                                                                  _HalfRcpVariancesAndWeights[subsurfaceProfile][0].a,
                                                                  _HalfRcpVariancesAndWeights[subsurfaceProfile][1].rgb,
                                                                  _HalfRcpVariancesAndWeights[subsurfaceProfile][1].a,
-                                                                 _TransmissionTints[subsurfaceProfile].rgb,
+                                                                 _TransmissionTintsAndFresnel0[subsurfaceProfile].rgb,
                                                                  bsdfData.thickness, bsdfData.subsurfaceRadius);
         }
     }
@@ -351,7 +351,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     else if (bsdfData.materialId == MATERIALID_LIT_SSS)
     {
         bsdfData.diffuseColor = surfaceData.baseColor;
-        bsdfData.fresnel0     = SKIN_SPECULAR_VALUE; // TODO: take from the SSS profile
+        bsdfData.fresnel0     = _TransmissionTintsAndFresnel0[surfaceData.subsurfaceProfile].a;
         uint transmissionMode = BitFieldExtract(asuint(_TransmissionFlags), 2u, 2u * surfaceData.subsurfaceProfile);
 
         FillMaterialIdSssData(surfaceData.subsurfaceProfile,
@@ -552,7 +552,7 @@ void DecodeFromGBuffer(
             radius            = sssData.subsurfaceRadius;
             thickness         = inGBuffer2.g;
 
-            dielectricF0      = SKIN_SPECULAR_VALUE; // TODO: take from the SSS profile
+            dielectricF0      = _TransmissionTintsAndFresnel0[subsurfaceProfile].a;
         }
 
         FillMaterialIdSssData(subsurfaceProfile, radius, thickness, transmissionMode, bsdfData);
