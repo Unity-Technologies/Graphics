@@ -114,13 +114,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             serializedObject.Update();
 
-            using (var scope = new EditorGUI.ChangeCheckScope())
-            {
-                EditorGUILayout.PropertyField(m_UseDisneySSS, s_Styles.useDisneySSS);
-
-                if (scope.changed && m_HDPipeline != null)
-                    m_HDPipeline.CreateSssMaterials();
-            }
+            EditorGUILayout.PropertyField(m_UseDisneySSS, s_Styles.useDisneySSS);
 
             EditorGUILayout.Space();
 
