@@ -262,6 +262,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static DebugDisplaySettings s_NeutralDebugDisplaySettings = new DebugDisplaySettings();
         DebugDisplaySettings m_CurrentDebugDisplaySettings;
 
+        FrameSettings m_FrameSettings;
+
         int m_DebugFullScreenTempRT;
         bool m_FullScreenDebugPushed;
 
@@ -646,6 +648,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             foreach (var camera in cameras)
             {
+                var cameraFrameSettings = camera.GetComponent<FrameSettings>();
+                m_FrameSettings = FrameSettings.InitializeFrameSettings(RenderPipelineSettings.GetGlobalFrameSettings(), cameraFrameSettings, null);
+
                 // This is the main command buffer used for the frame.
                 var cmd = CommandBufferPool.Get("");
 

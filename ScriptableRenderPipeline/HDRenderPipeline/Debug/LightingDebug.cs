@@ -48,8 +48,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool                 displaySkyReflection = false;
         public float                skyReflectionMipmap = 0.0f;
 
-        public LightLoopSettings.TileClusterDebug tileClusterDebug = LightLoopSettings.TileClusterDebug.None;
-        public LightLoopSettings.TileClusterCategoryDebug tileClusterDebugByCategory = LightLoopSettings.TileClusterCategoryDebug.Punctual;
+        public LightLoop.TileClusterDebug tileClusterDebug = LightLoop.TileClusterDebug.None;
+        public LightLoop.TileClusterCategoryDebug tileClusterDebugByCategory = LightLoop.TileClusterCategoryDebug.Punctual;
 
         public void OnValidate()
         {
