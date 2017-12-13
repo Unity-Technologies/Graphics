@@ -118,10 +118,8 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                 EvaluateLight_Directional(context, posInput, lightData, unused, 0, L,
                                           color, attenuation);
 
+                // Note: the 'weight' accounts for transmittance from 't0' to 't'.
                 float intensity = attenuation * weight;
-
-                // Compute transmittance from 't0' to 't'.
-                intensity *= TransmittanceHomogeneousMedium(extinction, tOffset);
 
                 // Compute the amount of in-scattered radiance.
                 sampleRadiance += intensity * color;
