@@ -8,9 +8,11 @@ using System.Text;
 using UnityEditor;
 using UnityEditor.Experimental.AssetImporters;
 
-[ScriptedImporter(1, "shadergraph")]
+[ScriptedImporter(1, ShaderGraphImporter.ShaderGraphExtension)]
 public class ShaderGraphImporter : ScriptedImporter
 {
+    public const string ShaderGraphExtension = "shadergraph";
+
     private string errorShader = @"
 Shader ""Hidden/GraphErrorShader2""
 {
@@ -99,5 +101,33 @@ Shader ""Hidden/GraphErrorShader2""
         }
         configuredTextures = new List<PropertyCollector.TextureInfo>();
         return null;
+    }
+}
+
+class ShaderGraphAssetPostProcessor : AssetPostprocessor
+{
+    static void RegisterShaders(string[] paths)
+    {
+        foreach (var path in paths)
+        {
+            if (!path.EndsWith(ShaderGraphImporter.ShaderGraphExtension, StringComparison.InvariantCultureIgnoreCase))
+                continue;
+
+            var mainObj = AssetDatabase.LoadMainAssetAtPath(path);
+            if (mainObj is Shader)
+                ShaderUtil.RegisterShader((Shader)mainObj);
+
+            var objs = AssetDatabase.LoadAllAssetRepresentationsAtPath(path);
+            foreach (var obj in objs)
+            {
+                if (obj is Shader)
+                    ShaderUtil.RegisterShader((Shader)obj);
+            }
+        }
+    }
+
+    static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
+    {
+        RegisterShaders(importedAssets);
     }
 }
