@@ -532,7 +532,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool resolutionChanged = camera.pixelWidth != m_CurrentWidth || camera.pixelHeight != m_CurrentHeight;
 
             if (resolutionChanged || m_CameraDepthStencilBuffer == null)
+            {
                 CreateDepthStencilBuffer(camera);
+                m_SSSBufferManager.Resize(camera);
+            }
 
             if (resolutionChanged || m_LightLoop.NeedResize())
             {

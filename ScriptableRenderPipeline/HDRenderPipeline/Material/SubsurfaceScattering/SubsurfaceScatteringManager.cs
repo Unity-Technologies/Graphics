@@ -20,17 +20,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ComputeShader m_SubsurfaceScatteringCS;
         int m_SubsurfaceScatteringKernel;
         Material m_CombineLightingPass;
-        readonly int m_SSSHTileBuffer;
-        readonly RenderTargetIdentifier m_SSSHTileBufferRT;
+
+        RenderTexture m_HTile;
+        RenderTargetIdentifier m_HTileRT;
         // End Disney SSS Model
 
         // Jimenez SSS Model
         Material m_SssVerticalFilterPass;
         Material m_SssHorizontalFilterAndCombinePass;
-        // Jimenez on some platform need an extra buffer
+        // End Jimenez SSS Model
+
+        // Jimenez need an extra buffer and Disney need one for some platform
         readonly int m_CameraFilteringBuffer;
         readonly RenderTargetIdentifier m_CameraFilteringBufferRT;
-        // End Jimenez SSS Model
 
         // This is use to be able to read stencil value in compute shader
         Material m_CopyStencilForSplitLighting;
@@ -40,10 +42,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public SubsurfaceScatteringManager()
         {
             m_SSSBuffer0RT = new RenderTargetIdentifier(m_SSSBuffer0);
-
-            // Use with Disney
-            m_SSSHTileBuffer = HDShaderIDs._SSSHTile;
-            m_SSSHTileBufferRT = new RenderTargetIdentifier(m_SSSHTileBuffer);
 
             // Use with Jimenez
             m_CameraFilteringBuffer = HDShaderIDs._CameraFilteringBuffer;
@@ -102,12 +100,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             CoreUtils.Destroy(m_CopyStencilForSplitLighting);
         }
 
+        public void Resize(Camera camera)
+        {
+            // We must use a RenderTexture and not GetTemporaryRT() as currently Unity only aloow to bind a RenderTexture for a UAV in a pixel shader
+            // We use 8x8 tiles in order to match the native GCN HTile as closely as possible.
+            m_HTile = new RenderTexture((camera.pixelWidth + 7) / 8, (camera.pixelHeight + 7) / 8, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear); // DXGI_FORMAT_R8_UINT is not supported by Unity
+            m_HTile.filterMode = FilterMode.Point;
+            m_HTile.enableRandomWrite = true;
+            m_HTile.Create();
+            m_HTileRT = new RenderTargetIdentifier(m_HTile);
+        }
+
         bool NeedTemporarySubsurfaceBuffer()
         {
+            // Caution: need to be in sync with SubsurfaceScattering.cs USE_INTERMEDIATE_BUFFER (Can't make a keyword as it is a compute shader)
             // Typed UAV loads from FORMAT_R16G16B16A16_FLOAT is an optional feature of Direct3D 11.
             // Most modern GPUs support it. We can avoid performing a costly copy in this case.
             // TODO: test/implement for other platforms.
-            return  SystemInfo.graphicsDeviceType != GraphicsDeviceType.PlayStation4 &&
+            return SystemInfo.graphicsDeviceType != GraphicsDeviceType.PlayStation4 &&
                     SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOne &&
                     SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOneD3D12;
         }
@@ -121,25 +131,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, "Subsurface Scattering", HDRenderPipeline.GetSampler(CustomSamplerId.SubsurfaceScattering)))
             {
+                int w = hdCamera.camera.pixelWidth;
+                int h = hdCamera.camera.pixelHeight;
+
+                // For Jimenez we always need an extra buffer, for Disney it depends on platform
+                if (!m_sssSettings.useDisneySSS ||
+                    (m_sssSettings.useDisneySSS && NeedTemporarySubsurfaceBuffer()))
+                {
+                    // Caution: must be same format as m_CameraSssDiffuseLightingBuffer
+                    cmd.ReleaseTemporaryRT(m_CameraFilteringBuffer);
+                    cmd.GetTemporaryRT(m_CameraFilteringBuffer, w, h, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
+                                                                                                                                                                        // Clear the SSS filtering target
+                    using (new ProfilingSample(cmd, "Clear SSS filtering target", HDRenderPipeline.GetSampler(CustomSamplerId.ClearSSSFilteringTarget)))
+                    {
+                        CoreUtils.SetRenderTarget(cmd, m_CameraFilteringBufferRT, ClearFlag.Color, CoreUtils.clearColorAllBlack);
+                    }
+                }
+
                 if (m_sssSettings.useDisneySSS)
                 {
-                    int w = hdCamera.camera.pixelWidth;
-                    int h = hdCamera.camera.pixelHeight;
-
                     using (new ProfilingSample(cmd, "HTile for SSS", HDRenderPipeline.GetSampler(CustomSamplerId.HTileForSSS)))
                     {
                         // Currently, Unity does not offer a way to access the GCN HTile even on PS4 and Xbox One.
                         // Therefore, it's computed in a pixel shader, and optimized to only contain the SSS bit.
+                        CoreUtils.SetRenderTarget(cmd, m_HTileRT, ClearFlag.Color, CoreUtils.clearColorAllBlack);
 
-                        // Caution: must be same format as m_CameraSssDiffuseLightingBuffer
-                        cmd.ReleaseTemporaryRT(m_SSSHTileBuffer);
-                        // Note: DXGI_FORMAT_R8_UINT is not supported by Unity
-                        // We use 8x8 tiles in order to match the native GCN HTile as closely as possible.
-                        cmd.GetTemporaryRT(m_SSSHTileBuffer, (w + 7) / 8, (h + 7) / 8, 0, FilterMode.Point, RenderTextureFormat.R8, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
-
-                        CoreUtils.SetRenderTarget(cmd, m_SSSHTileBufferRT, ClearFlag.Color, CoreUtils.clearColorAllBlack);
-
-                        cmd.SetRandomWriteTarget(1, m_SSSHTileBufferRT);
+                        cmd.SetRandomWriteTarget(1, m_HTile);
                         // Generate HTile for the split lighting stencil usage. Don't write into stencil texture (shaderPassId = 2)
                         // Use ShaderPassID 1 => "Pass 2 - Export HTILE for stencilRef to output"
                         CoreUtils.SetRenderTarget(cmd, depthStencilBufferRT); // No need for color buffer here
@@ -163,7 +180,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, HDShaderIDs._ShapeParams,        sssParameters.shapeParams);
 
                     cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._DepthTexture,       depthTextureRT);
-                    cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._SSSHTile,           m_SSSHTileBufferRT);
+                    cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._SSSHTile,           m_HTileRT);
                     cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._IrradianceSource,   diffuseBufferRT);
 
                     for (int i = 0; i < sssBufferCount; ++i)
