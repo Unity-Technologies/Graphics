@@ -111,6 +111,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_HTileRT = new RenderTargetIdentifier(m_HTile);
         }
 
+        public void PushGlobalParams(CommandBuffer cmd, SubsurfaceScatteringSettings sssParameters, DebugDisplaySettings debugDisplaySettings)
+        {
+            // Broadcast SSS parameters to all shaders.
+            cmd.SetGlobalInt(HDShaderIDs._EnableSSSAndTransmission, debugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission ? 1 : 0);
+            cmd.SetGlobalInt(HDShaderIDs._UseDisneySSS, sssParameters.useDisneySSS ? 1 : 0);
+            unsafe
+            {
+                // Warning: Unity is not able to losslessly transfer integers larger than 2^24 to the shader system.
+                // Therefore, we bitcast uint to float in C#, and bitcast back to uint in the shader.
+                uint texturingModeFlags = sssParameters.texturingModeFlags;
+                uint transmissionFlags = sssParameters.transmissionFlags;
+                cmd.SetGlobalFloat(HDShaderIDs._TexturingModeFlags, *(float*)&texturingModeFlags);
+                cmd.SetGlobalFloat(HDShaderIDs._TransmissionFlags, *(float*)&transmissionFlags);
+            }
+            cmd.SetGlobalVectorArray(HDShaderIDs._ThicknessRemaps, sssParameters.thicknessRemaps);
+            cmd.SetGlobalVectorArray(HDShaderIDs._ShapeParams, sssParameters.shapeParams);
+            cmd.SetGlobalVectorArray(HDShaderIDs._HalfRcpVariancesAndWeights, sssParameters.halfRcpVariancesAndWeights);
+            cmd.SetGlobalVectorArray(HDShaderIDs._TransmissionTintsAndFresnel0, sssParameters.transmissionTintsAndFresnel0);
+            cmd.SetGlobalVectorArray(HDShaderIDs._WorldScales, sssParameters.worldScales);
+        }
+
         bool NeedTemporarySubsurfaceBuffer()
         {
             // Caution: need to be in sync with SubsurfaceScattering.cs USE_INTERMEDIATE_BUFFER (Can't make a keyword as it is a compute shader)
