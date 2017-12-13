@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using Node = UnityEditor.Experimental.UIElements.GraphView.Node;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -19,14 +20,16 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_PreviewContainer;
         List<Attacher> m_Attachers;
         VisualElement m_ControlsDivider;
+        IEdgeConnectorListener m_ConnectorListener;
 
-        public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager)
+        public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener)
         {
             AddToClassList("MaterialNode");
 
             if (inNode == null)
                 return;
 
+            m_ConnectorListener = connectorListener;
             node = inNode;
             persistenceKey = node.guid.ToString();
             UpdateTitle();
@@ -86,6 +89,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddSlots(node.GetSlots<MaterialSlot>());
             expanded = node.drawState.expanded;
             RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
+            UpdateSlotAttachers();
             UpdatePortInputVisibilities();
 
             SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
@@ -120,6 +124,37 @@ namespace UnityEditor.ShaderGraph.Drawing
                 UpdateControls();
                 UpdatePortInputVisibilities();
                 RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
+            }
+        }
+
+        public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        {
+            if (evt.target is Node)
+                evt.menu.AppendAction("Copy shader", ConvertToShader, ConvertToShaderStatus);
+            base.BuildContextualMenu(evt);
+        }
+
+        ContextualMenu.MenuAction.StatusFlags ConvertToShaderStatus(EventBase eventBase)
+        {
+            return node.hasPreview ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Hidden;
+        }
+
+        void ConvertToShader(EventBase eventBase)
+        {
+            List<PropertyCollector.TextureInfo> textureInfo;
+            var masterNode = node as MasterNode;
+            if (masterNode != null)
+            {
+                var shader = masterNode.GetShader(GenerationMode.ForReals, masterNode.name, out textureInfo);
+                GUIUtility.systemCopyBuffer = shader;
+            }
+            else
+            {
+                PreviewMode previewMode;
+                FloatShaderProperty outputIdProperty;
+                var graph = (AbstractMaterialGraph)node.owner;
+                var shader = graph.GetShader(node, GenerationMode.ForReals, node.name, out textureInfo, out previewMode, out outputIdProperty);
+                GUIUtility.systemCopyBuffer = shader;
             }
         }
 
@@ -162,8 +197,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             UpdateTitle();
             if (node.hasPreview)
                 UpdatePreviewExpandedState(node.previewExpanded);
-            expanded = node.drawState.expanded;
 
+            base.expanded = node.drawState.expanded;
             // Update slots to match node modification
             if (scope == ModificationScope.Topological)
             {
@@ -206,6 +241,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     outputContainer.Sort((x, y) => slots.IndexOf(x.userData as MaterialSlot) - slots.IndexOf(y.userData as MaterialSlot));
             }
 
+            UpdateControls();
+            RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
+            UpdateSlotAttachers();
             UpdatePortInputVisibilities();
 
             foreach (var control in m_ControlViews)
@@ -223,19 +261,25 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (slot.hidden)
                     continue;
 
-                var port = InstantiatePort(Orientation.Horizontal, slot.isInputSlot ? Direction.Input : Direction.Output, null);
+                var port = ShaderPort.Create(Orientation.Horizontal, slot.isInputSlot ? Direction.Input : Direction.Output, null, m_ConnectorListener);
                 port.portName = slot.displayName;
                 port.userData = slot;
                 port.visualClass = slot.concreteValueType.ToClassName();
 
                 if (slot.isOutputSlot)
-                {
                     outputContainer.Add(port);
-                }
                 else
-                {
                     inputContainer.Add(port);
-                    var portInputView = new PortInputView(slot);
+            }
+        }
+
+        void UpdateSlotAttachers()
+        {
+            foreach (var port in inputContainer.OfType<Port>())
+            {
+                if (!m_Attachers.Any(a => a.target == port))
+                {
+                    var portInputView = new PortInputView((MaterialSlot)port.userData);
                     Add(portInputView);
                     mainContainer.BringToFront();
                     m_Attachers.Add(new Attacher(portInputView, port, SpriteAlignment.LeftCenter) { distance = -8f });

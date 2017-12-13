@@ -16,3 +16,4 @@ MaterialGraphProject/Packages/*
 MaterialGraphProject/GeneratedShader.shader
 MaterialGraphProject/UberShader.shader
 !MaterialGraphProject/Packages/manifest.json
+.npmrc

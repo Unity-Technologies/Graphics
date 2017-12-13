@@ -19,6 +19,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         AbstractMaterialGraph m_Graph;
         PreviewManager m_PreviewManager;
         SearchWindowProvider m_SearchWindowProvider;
+        EdgeConnectorListener m_EdgeConnectorListener;
 
         public Action onUpdateAssetClick
         {
@@ -28,8 +29,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public Action onConvertToSubgraphClick
         {
-            get { return m_SearchWindowProvider.onConvertToSubgraphClick; }
-            set { m_SearchWindowProvider.onConvertToSubgraphClick = value; }
+            get { return m_GraphView.onConvertToSubgraphClick; }
+            set { m_GraphView.onConvertToSubgraphClick = value; }
         }
 
         public Action onShowInProjectClick
@@ -57,7 +58,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         public GraphEditorView(EditorWindow editorWindow, AbstractMaterialGraph graph, string assetName)
         {
             m_Graph = graph;
-            m_SearchWindowProvider = ScriptableObject.CreateInstance<SearchWindowProvider>();
             AddStyleSheetPath("Styles/MaterialGraph");
 
             previewManager = new PreviewManager(graph);
@@ -67,8 +67,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView = new MaterialGraphView(graph) { name = "GraphView", persistenceKey = "MaterialGraphView" };
                 m_GraphView.SetupZoom(ContentZoomer.DefaultMinScale, ContentZoomer.DefaultMaxScale);
                 m_GraphView.AddManipulator(new ContentDragger());
-                m_GraphView.AddManipulator(new RectangleSelector());
                 m_GraphView.AddManipulator(new SelectionDragger());
+                m_GraphView.AddManipulator(new RectangleSelector());
                 m_GraphView.AddManipulator(new ClickSelector());
                 m_GraphView.AddManipulator(new GraphDropTarget(graph));
                 content.Add(m_GraphView);
@@ -80,9 +80,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.graphViewChanged = GraphViewChanged;
             }
 
+            m_SearchWindowProvider = ScriptableObject.CreateInstance<SearchWindowProvider>();
             m_SearchWindowProvider.Initialize(editorWindow, m_Graph, m_GraphView);
-            m_GraphView.nodeCreationRequest = (c) => SearchWindow.Open(new SearchWindowContext(c.screenMousePosition), m_SearchWindowProvider);
-            //m_GraphView.AddManipulator(new NodeCreator(m_SearchWindowProvider));
+            m_GraphView.nodeCreationRequest = (c) =>
+            {
+                m_SearchWindowProvider.connectedPort = null;
+                SearchWindow.Open(new SearchWindowContext(c.screenMousePosition), m_SearchWindowProvider);
+            };
+
+            m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider);
 
             foreach (var node in graph.GetNodes<INode>())
                 AddNode(node);
@@ -119,10 +125,40 @@ namespace UnityEditor.ShaderGraph.Drawing
                         continue;
 
                     var drawState = node.drawState;
-                    drawState.position = element.layout;
+                    drawState.position = element.GetPosition();
                     node.drawState = drawState;
                 }
             }
+
+            var nodesToUpdate = m_NodeViewHashSet;
+            nodesToUpdate.Clear();
+
+            if (graphViewChange.elementsToRemove != null)
+            {
+                m_Graph.owner.RegisterCompleteObjectUndo("Remove Elements");
+                m_Graph.RemoveElements(graphViewChange.elementsToRemove.OfType<MaterialNodeView>().Select(v => (INode) v.node),
+                    graphViewChange.elementsToRemove.OfType<Edge>().Select(e => (IEdge) e.userData));
+                foreach (var edge in graphViewChange.elementsToRemove.OfType<Edge>())
+                {
+                    if (edge.input != null)
+                    {
+                        var materialNodeView = edge.input.node as MaterialNodeView;
+                        if (materialNodeView != null)
+                            nodesToUpdate.Add(materialNodeView);
+                    }
+                    if (edge.output != null)
+                    {
+                        var materialNodeView = edge.output.node as MaterialNodeView;
+                        if (materialNodeView != null)
+                            nodesToUpdate.Add(materialNodeView);
+                    }
+                }
+            }
+
+            foreach (var node in nodesToUpdate)
+                node.UpdatePortInputVisibilities();
+
+            UpdateEdgeColors(nodesToUpdate);
 
             return graphViewChange;
         }
@@ -202,8 +238,46 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var nodeView = new MaterialNodeView { userData = node };
             m_GraphView.AddElement(nodeView);
-            nodeView.Initialize(node as AbstractMaterialNode, m_PreviewManager);
+            nodeView.Initialize(node as AbstractMaterialNode, m_PreviewManager, m_EdgeConnectorListener);
             node.onModified += OnNodeChanged;
+            nodeView.Dirty(ChangeType.Repaint);
+
+            if (m_SearchWindowProvider.nodeNeedsRepositioning && m_SearchWindowProvider.targetSlotReference.nodeGuid.Equals(node.guid))
+            {
+                m_SearchWindowProvider.nodeNeedsRepositioning = false;
+                foreach (var element in nodeView.inputContainer.Union(nodeView.outputContainer))
+                {
+                    var port = element as ShaderPort;
+                    if (port == null)
+                        continue;
+                    var slot = (MaterialSlot)port.userData;
+                    if (slot.slotReference.Equals(m_SearchWindowProvider.targetSlotReference))
+                    {
+                        port.RegisterCallback<PostLayoutEvent>(RepositionNode);
+                        return;
+                    }
+                }
+            }
+        }
+
+        static void RepositionNode(PostLayoutEvent evt)
+        {
+            var port = evt.target as ShaderPort;
+            if (port == null)
+                return;
+            port.UnregisterCallback<PostLayoutEvent>(RepositionNode);
+            var nodeView = port.node as MaterialNodeView;
+            if (nodeView == null)
+                return;
+            var offset = nodeView.mainContainer.WorldToLocal(port.GetGlobalCenter() + new Vector3(3f, 3f, 0f));
+            var position = nodeView.GetPosition();
+            position.position -= offset;
+            nodeView.SetPosition(position);
+            var drawState = nodeView.node.drawState;
+            drawState.position = position;
+            nodeView.node.drawState = drawState;
+            nodeView.Dirty(ChangeType.Repaint);
+            port.Dirty(ChangeType.Repaint);
         }
 
         Edge AddEdge(IEdge edge)
