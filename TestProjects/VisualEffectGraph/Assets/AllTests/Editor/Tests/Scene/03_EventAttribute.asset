@@ -3901,7 +3901,7 @@ VFXAsset:
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 10
+      data[3]: 13
     - op: 26
       valueIndex: 16
       data[0]: 7
@@ -3937,7 +3937,7 @@ VFXAsset:
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 11
+      data[3]: 14
     - op: 33
       valueIndex: 25
       data[0]: 13
@@ -3955,7 +3955,7 @@ VFXAsset:
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 11
+      data[3]: 14
     - op: 0
       valueIndex: 28
       data[0]: -1
@@ -4485,7 +4485,7 @@ VFXAsset:
         structure: 8
         element: 0
     - name: alive
-      type: 14
+      type: 17
       offset:
         bucket: 851968
         structure: 8
@@ -4729,7 +4729,7 @@ VFXAsset:
       - index: 55
         nameId: uniform_DirectionBlend_g
       params: []
-      processor: {fileID: 7200000, guid: 9ca717810f3a3564f97ce2cc47a76a42, type: 3}
+      processor: {fileID: 7200000, guid: 2ea306ab357b8614cb3f09f1283ba536, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -4740,7 +4740,7 @@ VFXAsset:
       - index: 56
         nameId: uniform_deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: f162a4f9320d38649b050f14ac38f15a, type: 3}
+      processor: {fileID: 7200000, guid: abe959f3aab306e4791aaeadc299acb8, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -4757,7 +4757,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 53d10a73dcb8fac4fa7b1eef1475768a, type: 3}
+      processor: {fileID: 4800000, guid: 83518dbda198b3d43b60c627b8635888, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 0000000001000000

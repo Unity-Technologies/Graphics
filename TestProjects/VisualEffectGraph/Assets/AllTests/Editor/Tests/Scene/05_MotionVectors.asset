@@ -4600,7 +4600,7 @@ VFXAsset:
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 11
+      data[3]: 14
     - op: 0
       valueIndex: 39
       data[0]: -1
@@ -5059,7 +5059,7 @@ VFXAsset:
         structure: 8
         element: 0
     - name: alive
-      type: 14
+      type: 17
       offset:
         bucket: 0
         structure: 8
@@ -5201,7 +5201,7 @@ VFXAsset:
       - index: 75
         nameId: uniform_Sphere_radius_f
       params: []
-      processor: {fileID: 7200000, guid: d097d10e900b5924aaabed4568e65465, type: 3}
+      processor: {fileID: 7200000, guid: 62644a8580c10e94ebab2dd7586dafc3, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5234,7 +5234,7 @@ VFXAsset:
       - index: 60
         nameId: uniform_Force_d
       params: []
-      processor: {fileID: 7200000, guid: b6f714c68d790784089f95a62cb3ebf1, type: 3}
+      processor: {fileID: 7200000, guid: 1509863c91cd59c4997b045898eb3475, type: 3}
     - type: 1073741824
       buffers:
       - index: 0
@@ -5247,7 +5247,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 0799e2b5725df924cb0b9c2766e5ce2c, type: 3}
+      processor: {fileID: 4800000, guid: 6aff3292b0ccee044b2b997554eb14dd, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000

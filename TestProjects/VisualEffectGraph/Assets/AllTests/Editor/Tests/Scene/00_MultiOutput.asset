@@ -2283,7 +2283,7 @@ VFXAsset:
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 10
+      data[3]: 13
     - op: 0
       valueIndex: 2
       data[0]: -1
@@ -2579,7 +2579,7 @@ VFXAsset:
         structure: 4
         element: 0
     - name: alive
-      type: 14
+      type: 17
       offset:
         bucket: 458752
         structure: 4
@@ -2677,7 +2677,7 @@ VFXAsset:
       - index: 23
         nameId: uniform_Velocity_c
       params: []
-      processor: {fileID: 7200000, guid: 52439d2a8a2476b4a9192436e50aeb51, type: 3}
+      processor: {fileID: 7200000, guid: 898b8092146d72e43b47f7deae66420c, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -2692,7 +2692,7 @@ VFXAsset:
       - index: 26
         nameId: uniform_deltaTime_c
       params: []
-      processor: {fileID: 7200000, guid: 1b9477a5212728d4ebc89e99aeb6839d, type: 3}
+      processor: {fileID: 7200000, guid: ddd58938bc1692740a04a513d5cb9465, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -2703,7 +2703,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 86ed34001435b48448e84b9a1564e903, type: 3}
+      processor: {fileID: 4800000, guid: 797eb21b273fcb2468618b7d2b9157f9, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -2716,7 +2716,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: d6124f4ec9b8cdd4495689d54df10235, type: 3}
+      processor: {fileID: 4800000, guid: 97bdfa97d846e67408c69051ed57d77f, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -2731,7 +2731,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: ab378cd9b49623647ab534e4ff07ca61, type: 3}
+      processor: {fileID: 4800000, guid: a2d4d9cf2d098fd4c9bddbc41693df27, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000

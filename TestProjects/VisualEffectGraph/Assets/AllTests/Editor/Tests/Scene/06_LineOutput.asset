@@ -3607,7 +3607,7 @@ VFXAsset:
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 11
+      data[3]: 14
     - op: 0
       valueIndex: 4
       data[0]: -1
@@ -3619,7 +3619,7 @@ VFXAsset:
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 11
+      data[3]: 14
     - op: 39
       valueIndex: 6
       data[0]: 5
@@ -4158,14 +4158,14 @@ VFXAsset:
       - index: 51
         nameId: uniform_Sphere_arc_c
       params: []
-      processor: {fileID: 7200000, guid: 9983445f7a3bc4a4abbcca47a9351f94, type: 3}
+      processor: {fileID: 7200000, guid: 0a3329e6545bf2b469004a55a34d5716, type: 3}
     - type: 805306368
       buffers:
       - index: 0
         nameId: attributeBuffer
       values: []
       params: []
-      processor: {fileID: 7200000, guid: 834b3f6aa316ed943a2a272dd2773cb3, type: 3}
+      processor: {fileID: 7200000, guid: a56a3b8e04578ea44bad5e9e05a74aea, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -4184,7 +4184,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 1f53a7b5540775b49bd8b80bd81766de, type: 3}
+      processor: {fileID: 4800000, guid: 7528c966f9912464d826ff97d75cdf33, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000

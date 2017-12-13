@@ -3900,7 +3900,7 @@ VFXAsset:
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 11
+      data[3]: 14
     - op: 0
       valueIndex: 48
       data[0]: -1
@@ -4056,7 +4056,7 @@ VFXAsset:
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 8
+      data[3]: 9
     - op: 2
       valueIndex: 112
       data[0]: 49
@@ -4315,7 +4315,7 @@ VFXAsset:
         structure: 8
         element: 0
     - name: alive
-      type: 14
+      type: 17
       offset:
         bucket: 0
         structure: 8
@@ -4449,7 +4449,7 @@ VFXAsset:
       - index: 63
         nameId: texture_attributeMap_c
       params: []
-      processor: {fileID: 7200000, guid: e5339642739c7fc47abdc7654225dc06, type: 3}
+      processor: {fileID: 7200000, guid: 0de9684e694fc16488b34ee13176d937, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -4472,7 +4472,7 @@ VFXAsset:
       - index: 61
         nameId: texture_VectorField_b
       params: []
-      processor: {fileID: 7200000, guid: f4acb6756701c47439c48358a5e07800, type: 3}
+      processor: {fileID: 7200000, guid: 8f205a2388b41be44b4b993cd892f7fb, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -4509,7 +4509,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 9cff0a7929545a44bb897f7668b575c8, type: 3}
+      processor: {fileID: 4800000, guid: ccf4099ecd50338499712877f0d6445e, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000
