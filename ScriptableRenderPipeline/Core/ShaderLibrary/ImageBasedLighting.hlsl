@@ -4,7 +4,7 @@
 #include "CommonLighting.hlsl"
 #include "CommonMaterial.hlsl"
 #include "BSDF.hlsl"
-#include "Sampling.hlsl"
+#include "Sampling/Sampling.hlsl"
 
 #ifndef UNITY_SPECCUBE_LOD_STEPS
     #define UNITY_SPECCUBE_LOD_STEPS 6
