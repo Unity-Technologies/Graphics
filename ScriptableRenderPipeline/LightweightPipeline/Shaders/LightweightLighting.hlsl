@@ -1,15 +1,11 @@
 #ifndef LIGHTWEIGHT_LIGHTING_INCLUDED
 #define LIGHTWEIGHT_LIGHTING_INCLUDED
 
-#include "LightweightCore.cginc"
-#include "LightweightShadows.cginc"
+#include "LightweightCore.hlsl"
+#include "LightweightShadows.hlsl"
+#include "ShaderLibrary\ImageBasedLighting.hlsl"
 
-#define PI 3.14159265359f
 #define kDieletricSpec half4(0.04, 0.04, 0.04, 1.0 - 0.04) // standard dielectric reflectivity coef at incident angle (= 4%)
-
-#ifndef UNITY_SPECCUBE_LOD_STEPS
-#define UNITY_SPECCUBE_LOD_STEPS 6
-#endif
 
 #ifdef NO_ADDITIONAL_LIGHTS
 #undef _ADDITIONAL_LIGHTS
@@ -156,7 +152,7 @@ half CookieAttenuation(float3 worldPos)
 
 // Matches Unity Vanila attenuation
 // Attenuation smoothly decreases to light range.
-half DistanceAttenuation(half3 distanceSqr, half4 distanceAttenuation)
+half DistanceAttenuation(half distanceSqr, half4 distanceAttenuation)
 {
     // We use a shared distance attenuation for additional directional and puctual lights
     // for directional lights attenuation will be 1
@@ -205,7 +201,7 @@ inline half GetMainLightDirectionAndRealtimeAttenuation(LightInput lightInput, h
 {
 #ifdef _MAIN_DIRECTIONAL_LIGHT
     // Light pos holds normalized light dir
-    lightDirection = lightInput.pos;
+    lightDirection = lightInput.pos.xyz;
     half attenuation = 1.0;
 #else
     half attenuation = GetLightDirectionAndRealtimeAttenuation(lightInput, normalWS, positionWS, lightDirection);
@@ -277,13 +273,19 @@ half3 GlossyEnvironmentReflection(half3 viewDirectionWS, half3 normalWS, half pe
     half3 reflectVector = reflect(-viewDirectionWS, normalWS);
 
 #if !defined(_GLOSSYREFLECTIONS_OFF)
-    half roughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
-    half mip = roughness * UNITY_SPECCUBE_LOD_STEPS;
-    half4 rgbm = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectVector, mip);
-    return DecodeHDR(rgbm, unity_SpecCube0_HDR) * occlusion;
+    half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
+    half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
+
+#if !defined(UNITY_USE_NATIVE_HDR)
+    half3 irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
+#else
+    half3 irradiance = encodedIrradiance.rbg;
 #endif
 
-    return _GlossyEnvironmentColor * occlusion;
+    return irradiance * occlusion;
+#endif
+
+    return _GlossyEnvironmentColor.rgb * occlusion;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -312,7 +314,7 @@ half4 LightweightFragmentPBR(float3 positionWS, half3 normalWS, half3 viewDirect
     half3 indirectSpecular = GlossyEnvironmentReflection(viewDirectionWS, normalWS, brdfData.perceptualRoughness, occlusion);
 
     half roughness2 = brdfData.roughness * brdfData.roughness;
-    half fresnelTerm = _Pow4(1.0 - saturate(dot(normalWS, viewDirectionWS)));
+    half fresnelTerm = Pow4(1.0 - saturate(dot(normalWS, viewDirectionWS)));
     half3 color = LightweightEnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, roughness2, fresnelTerm);
 
     half mainLightAtten = MixRealtimeAndBakedOcclusion(realtimeMainLightAtten, bakedOcclusion, mainLight.distanceAttenuation);
@@ -377,8 +379,7 @@ half4 LightweightFragmentLambert(float3 positionWS, half3 normalWS, half3 viewDi
 
     // Computes Fog Factor per vextex
     ApplyFog(finalColor, fogFactor);
-    half4 color = half4(finalColor, alpha);
-    return OUTPUT_COLOR(color);
+    return half4(finalColor, alpha);
 }
 
 half4 LightweightFragmentBlinnPhong(float3 positionWS, half3 normalWS, half3 viewDirectionWS,
@@ -419,7 +420,6 @@ half4 LightweightFragmentBlinnPhong(float3 positionWS, half3 normalWS, half3 vie
 
     // Computes Fog Factor per vextex
     ApplyFog(finalColor, fogFactor);
-    half4 color = half4(finalColor, alpha);
-    return OUTPUT_COLOR(color);
+    return half4(finalColor, alpha);
 }
 #endif

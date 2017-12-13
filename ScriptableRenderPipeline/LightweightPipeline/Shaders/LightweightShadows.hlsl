@@ -1,7 +1,8 @@
 #ifndef LIGHTWEIGHT_SHADOWS_INCLUDED
 #define LIGHTWEIGHT_SHADOWS_INCLUDED
 
-#include "LightweightInput.cginc"
+#include "LightweightInput.hlsl"
+#include "ShaderLibrary\Common.hlsl"
 
 #define MAX_SHADOW_CASCADES 4
 
@@ -19,7 +20,13 @@
 #define LIGHTWEIGHT_SHADOW_ATTENUATION(posWorld, vertexNormal, shadowDir) 1.0h
 #endif
 
-UNITY_DECLARE_SHADOWMAP(_ShadowMap);
+// TODO: replace with TEXTURE2D_SHADOW as soon as all APIs defined it.
+#if !defined(SHADER_API_GLES) && !defined(SHADER_API_GLES3)
+#define TEXTURE2D_SHADOW(tex) TEXTURE2D(tex);
+#endif
+
+TEXTURE2D_SHADOW(_ShadowMap);
+SAMPLER2D_SHADOW(sampler_ShadowMap);
 float4x4 _WorldToShadow[MAX_SHADOW_CASCADES];
 float4 _DirShadowSplitSpheres[MAX_SHADOW_CASCADES];
 half4 _ShadowOffset0;
@@ -47,15 +54,15 @@ inline half SampleShadowmap(float4 shadowCoord)
 #if defined(_SOFT_SHADOWS) || defined(_SOFT_SHADOWS_CASCADES)
     // 4-tap hardware comparison
     half4 attenuation;
-    attenuation.x = UNITY_SAMPLE_SHADOW(_ShadowMap, coord + _ShadowOffset0.xyz);
-    attenuation.y = UNITY_SAMPLE_SHADOW(_ShadowMap, coord + _ShadowOffset1.xyz);
-    attenuation.z = UNITY_SAMPLE_SHADOW(_ShadowMap, coord + _ShadowOffset2.xyz);
-    attenuation.w = UNITY_SAMPLE_SHADOW(_ShadowMap, coord + _ShadowOffset3.xyz);
+    attenuation.x = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, coord + _ShadowOffset0.xyz);
+    attenuation.y = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, coord + _ShadowOffset1.xyz);
+    attenuation.z = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, coord + _ShadowOffset2.xyz);
+    attenuation.w = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, coord + _ShadowOffset3.xyz);
     lerp(attenuation, 1.0, _ShadowData.xxxx);
     return dot(attenuation, 0.25);
 #else
     // 1-tap hardware comparison
-    half attenuation = UNITY_SAMPLE_SHADOW(_ShadowMap, coord);
+    half attenuation = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, coord);
     return lerp(attenuation, 1.0, _ShadowData.x);
 #endif
 }
@@ -73,9 +80,9 @@ inline half ComputeCascadeIndex(float3 wpos)
     vDirShadowSplitSphereSqRadii.y = _DirShadowSplitSpheres[1].w;
     vDirShadowSplitSphereSqRadii.z = _DirShadowSplitSpheres[2].w;
     vDirShadowSplitSphereSqRadii.w = _DirShadowSplitSpheres[3].w;
-    fixed4 weights = fixed4(distances2 < vDirShadowSplitSphereSqRadii);
+    half4 weights = half4(distances2 < vDirShadowSplitSphereSqRadii);
     weights.yzw = saturate(weights.yzw - weights.xyz);
-    return 4 - dot(weights, fixed4(4, 3, 2, 1));
+    return 4 - dot(weights, half4(4, 3, 2, 1));
 }
 
 inline half ComputeShadowAttenuation(float3 posWorld, half3 vertexNormal, half3 shadowDir)
