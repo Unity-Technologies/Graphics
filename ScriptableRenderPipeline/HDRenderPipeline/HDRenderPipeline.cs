@@ -550,6 +550,33 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         };
 #endif
 
+        RenderTexture CreateRenderTexture(HDCamera hdCamera, int depthBufferBits, RenderTextureFormat format, RenderTextureReadWrite readWrite = RenderTextureReadWrite.Default)
+        {
+            var localDesc = hdCamera.renderTextureDesc;
+            localDesc.depthBufferBits = depthBufferBits;
+            localDesc.colorFormat = format;
+            localDesc.sRGB = (readWrite != RenderTextureReadWrite.Linear);
+
+            // TODO: Explicit MSAA support will come in later
+
+            return new RenderTexture(localDesc);
+
+        }
+
+        void CreateTemporaryRT(CommandBuffer cmd, int nameID, HDCamera hdCamera,
+            int depthBufferBits, FilterMode filter, RenderTextureFormat format, 
+            RenderTextureReadWrite readWrite = RenderTextureReadWrite.Default, int msaaSamples = 1, bool enableRandomWrite = false)
+        {
+            var localDesc = hdCamera.renderTextureDesc;
+            localDesc.depthBufferBits = depthBufferBits;
+            localDesc.colorFormat = format;
+            localDesc.sRGB = (readWrite != RenderTextureReadWrite.Linear);
+            localDesc.msaaSamples = msaaSamples;
+            localDesc.enableRandomWrite = enableRandomWrite;
+
+            cmd.GetTemporaryRT(nameID, localDesc, filter);
+        }
+
         void CreateDepthStencilBuffer(Camera camera)
         {
             if (m_CameraDepthStencilBuffer != null)

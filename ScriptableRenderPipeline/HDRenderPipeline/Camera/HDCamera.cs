@@ -167,6 +167,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             tempDesc.depthBufferBits = 0;
             tempDesc.autoGenerateMips = false;
             tempDesc.useMipMap = false;
+            tempDesc.enableRandomWrite = false;
             tempDesc.memoryless = RenderTextureMemoryless.None;
 
             renderTextureDesc = tempDesc;
