@@ -279,6 +279,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 if (prop != null)
                 {
+                    var materialGraph = (AbstractMaterialGraph)graphObject.graph;
+                    var fromPropertyNode = fromNode as PropertyNode;
+                    var fromProperty = fromPropertyNode != null ? materialGraph.properties.FirstOrDefault(p => p.guid == fromPropertyNode.propertyGuid) : null;
+                    prop.displayName = fromProperty != null ? fromProperty.displayName : fromNode.name;
                     subGraph.AddShaderProperty(prop);
                     var propNode = new PropertyNode();
                     {
