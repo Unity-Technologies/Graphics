@@ -179,6 +179,9 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
+        VFXNodeProvider m_NodeProvider;
+
+
         public VFXView()
         {
             forceNotififcationOnAdd = true;
@@ -186,16 +189,16 @@ namespace UnityEditor.VFX.UI
 
             //this.AddManipulator(new SelectionSetter(this));
             this.AddManipulator(new ContentDragger());
-            this.AddManipulator(new RectangleSelector());
             this.AddManipulator(new SelectionDragger());
-            this.AddManipulator(new ClickSelector());
+            this.AddManipulator(new RectangleSelector());
+            this.AddManipulator(new FreehandSelector());
 
             this.AddManipulator(new ParameterDropper());
 
             var bg = new GridBackground() { name = "VFXBackgroundGrid" };
             Insert(0, bg);
 
-            this.AddManipulator(new FilterPopup(new VFXNodeProvider((d, mPos) => AddNode(d, mPos)), null));
+            m_NodeProvider = new VFXNodeProvider((d, mPos) => AddNode(d, mPos));
 
             typeFactory[typeof(VFXParameterPresenter)] = typeof(VFXParameterUI);
             typeFactory[typeof(VFXOperatorPresenter)] = typeof(VFXOperatorUI);
@@ -286,6 +289,12 @@ namespace UnityEditor.VFX.UI
 
             this.serializeGraphElements = SerializeElements;
             this.unserializeAndPaste = UnserializeAndPasteElements;
+            this.nodeCreationRequest = OnCreateNode;
+        }
+
+        void OnCreateNode(NodeCreationContext ctx)
+        {
+            VFXFilterWindow.Show(GUIUtility.ScreenToGUIPoint(ctx.screenMousePosition), m_NodeProvider);
         }
 
         VFXRendererSettings GetRendererSettings()
@@ -710,6 +719,11 @@ namespace UnityEditor.VFX.UI
 
         public readonly Vector2 defaultPasteOffset = new Vector2(100, 100);
         public Vector2 pasteOffset = Vector2.zero;
+
+        protected internal override bool canCopySelection
+        {
+            get { return selection.OfType<VFXNodeUI>().Any() || selection.OfType<GroupNode>().Any() || selection.OfType<VFXContextUI>().Any(); }
+        }
 
         string SerializeElements(IEnumerable<GraphElement> elements)
         {
