@@ -33,7 +33,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         public DebugLightingMode    debugLightingMode = DebugLightingMode.None;
-        public bool                 enableShadows = true;
         public ShadowMapDebugMode   shadowDebugMode = ShadowMapDebugMode.None;
         public bool                 shadowDebugUseSelection = false;
         public uint                 shadowMapIndex = 0;

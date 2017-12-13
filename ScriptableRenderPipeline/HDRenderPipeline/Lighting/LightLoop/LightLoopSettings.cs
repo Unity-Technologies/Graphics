@@ -1,3 +1,6 @@
+using System;
+using UnityEngine;
+
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [Serializable]
@@ -14,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableBigTilePrepass;
 
         // Setup by system
-        public bool isFTPLEnabled;
+        public bool isFptlEnabled;
 
         public LightLoopSettings()
         {
@@ -26,38 +29,39 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             enableFptlForForwardOpaque = true;
             enableBigTilePrepass = true;
 
-            isFTPLEnabled = true;
+            isFptlEnabled = true;
         }
 
         // aggregateFrameSettings already contain the aggregation of RenderPipelineSettings and FrameSettings (regular and/or debug)
-        static public LightLoopSettings InitializeLightLoopSettings(FrameSettings aggregateFrameSettings, RenderPipelineSettings renderPipelineSettings, FrameSettings frameSettings, FrameSettings debugSettings = null)
+        static public LightLoopSettings InitializeLightLoopSettings(Camera camera, FrameSettings aggregateFrameSettings,
+                                                                    GlobalFrameSettings globalFrameSettings, FrameSettings frameSettings, FrameSettings debugSettings)
         {
-            LightLoopSettings aggregate;
+            LightLoopSettings aggregate = new LightLoopSettings();
 
-            aggregate.enableTileAndCluster          = frameSettings.enableTileAndCluster;
-            aggregate.enableComputeLightEvaluation  = frameSettings.enableComputeLightEvaluation;
-            aggregate.enableComputeLightVariants    = frameSettings.enableComputeLightVariants;
-            aggregate.enableComputeMaterialVariants = frameSettings.enableComputeMaterialVariants;
-            aggregate.enableFptlForForwardOpaque    = frameSettings.enableFptlForForwardOpaque;
-            aggregate.enableBigTilePrepass          = frameSettings.enableBigTilePrepass;
+            aggregate.enableTileAndCluster          = frameSettings.lightLoopSettings.enableTileAndCluster;
+            aggregate.enableComputeLightEvaluation  = frameSettings.lightLoopSettings.enableComputeLightEvaluation;
+            aggregate.enableComputeLightVariants    = frameSettings.lightLoopSettings.enableComputeLightVariants;
+            aggregate.enableComputeMaterialVariants = frameSettings.lightLoopSettings.enableComputeMaterialVariants;
+            aggregate.enableFptlForForwardOpaque    = frameSettings.lightLoopSettings.enableFptlForForwardOpaque;
+            aggregate.enableBigTilePrepass          = frameSettings.lightLoopSettings.enableBigTilePrepass;
 
             // Don't take into account debug settings for reflection probe or preview
-            if (debugSettings != null && !camera.cameraType == CameraType.Reflection && camera.cameraType != CameraType.Preview)
+            if (debugSettings != null && camera.cameraType != CameraType.Reflection && camera.cameraType != CameraType.Preview)
             {
-                aggregate.enableTileAndCluster          = aggregate.enableTileAndCluster && debugSettings.enableTileAndCluster;
-                aggregate.enableComputeLightEvaluation  = aggregate.enableComputeLightEvaluation && debugSettings.enableComputeLightEvaluation;
-                aggregate.enableComputeLightVariants    = aggregate.enableComputeLightVariants && debugSettings.enableComputeLightVariants;
-                aggregate.enableComputeMaterialVariants = aggregate.enableComputeMaterialVariants && debugSettings.enableComputeMaterialVariants;
-                aggregate.enableFptlForForwardOpaque    = aggregate.enableFptlForForwardOpaque && debugSettings.enableFptlForForwardOpaque;
-                aggregate.enableBigTilePrepass          = aggregate.enableBigTilePrepass && debugSettings.enableBigTilePrepass;
+                aggregate.enableTileAndCluster          = aggregate.enableTileAndCluster && debugSettings.lightLoopSettings.enableTileAndCluster;
+                aggregate.enableComputeLightEvaluation  = aggregate.enableComputeLightEvaluation && debugSettings.lightLoopSettings.enableComputeLightEvaluation;
+                aggregate.enableComputeLightVariants    = aggregate.enableComputeLightVariants && debugSettings.lightLoopSettings.enableComputeLightVariants;
+                aggregate.enableComputeMaterialVariants = aggregate.enableComputeMaterialVariants && debugSettings.lightLoopSettings.enableComputeMaterialVariants;
+                aggregate.enableFptlForForwardOpaque    = aggregate.enableFptlForForwardOpaque && debugSettings.lightLoopSettings.enableFptlForForwardOpaque;
+                aggregate.enableBigTilePrepass          = aggregate.enableBigTilePrepass && debugSettings.lightLoopSettings.enableBigTilePrepass;
             }
 
             // Deferred opaque are always using Fptl. Forward opaque can use Fptl or Cluster, transparent use cluster.
             // When MSAA is enabled we disable Fptl as it become expensive compare to cluster
             // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
-            aggregate.enableFptlForForwardOpaque = aggregate.enableFptlForForwardOpaque && aggregateFrameSettings.enableMSAA;
+            aggregate.enableFptlForForwardOpaque = aggregate.enableFptlForForwardOpaque && aggregateFrameSettings.renderSettings.enableMSAA;
             // If Deferred, enable Fptl. If we are forward renderer only and not using Fptl for forward opaque, disable Fptl
-            aggregate.isFTPLEnabled = !aggregateFrameSettings.enableForwardRenderingOnly || aggregate.enableFptlForForwardOpaque;
+            aggregate.isFptlEnabled = !aggregateFrameSettings.renderSettings.enableForwardRenderingOnly || aggregate.enableFptlForForwardOpaque;
 
             return aggregate;
         }
