@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    Out = abs(ddx(In) + ddy(In));
+    Out = abs(ddx(In)) + abs(ddy(In));
 }
 ";
         }
