@@ -100,7 +100,7 @@ bool SolveQuadraticEquation(float a, float b, float c, out float2 roots)
     return (d >= 0);
 }
 
-// 'coneAxisX' and 'coneAxisY' should be pre-scaled by by cot(halfAngle).
+// Can support cones with an elliptic base: pre-scale 'coneAxisX' and 'coneAxisY' by (h/r_x) and (h/r_y).
 // Returns parametric distances 'tEntr' and 'tExit' along the ray,
 // subject to constraints 'tMin' and 'tMax'.
 bool ConeRayIntersect(float3 rayOrigin,  float3 rayDirection,
