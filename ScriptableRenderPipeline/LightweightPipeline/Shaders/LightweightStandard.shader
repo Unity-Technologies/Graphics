@@ -64,7 +64,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
 
-            CGPROGRAM
+            HLSLPROGRAM
             #pragma target 3.0
 
             // -------------------------------------
@@ -83,19 +83,19 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             #pragma multi_compile _MAIN_DIRECTIONAL_LIGHT _MAIN_SPOT_LIGHT
             #pragma multi_compile _ _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
-            #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
+            #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ENABLED STEREO_MULTIVIEW_ENABLED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ _HARD_SHADOWS _SOFT_SHADOWS _HARD_SHADOWS_CASCADES _SOFT_SHADOWS_CASCADES
             #pragma multi_compile _ _VERTEX_LIGHTS
 
             #pragma multi_compile_fog
-            #pragma multi_compile_instancing
 
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
-            #include "LightweightPassLit.cginc"
-            ENDCG
+
+            #include "LightweightPassLit.hlsl"
+            ENDHLSL
         }
 
         Pass
@@ -104,14 +104,13 @@ Shader "LightweightPipeline/Standard (Physically Based)"
 
             ZWrite On ZTest LEqual
 
-            CGPROGRAM
+            HLSLPROGRAM
             #pragma target 2.0
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
 
-            #include "UnityCG.cginc"
-            #include "LightweightPassShadow.cginc"
-            ENDCG
+            #include "LightweightPassShadow.hlsl"
+            ENDHLSL
         }
 
         Pass
@@ -121,23 +120,23 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             ZWrite On
             ColorMask 0
 
-            CGPROGRAM
+            HLSLPROGRAM
             #pragma target 2.0
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "UnityCG.cginc"
+            #include "LightweightCore.hlsl"
 
             float4 vert(float4 pos : POSITION) : SV_POSITION
             {
-                return UnityObjectToClipPos(pos);
+                return TransformObjectToHClip(pos.xyz);
             }
 
             half4 frag() : SV_TARGET
             {
                 return 0;
             }
-            ENDCG
+            ENDHLSL
         }
 
         // This pass it not used during regular rendering, only for lightmap baking.
@@ -147,7 +146,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
 
             Cull Off
 
-            CGPROGRAM
+            HLSLPROGRAM
             #pragma vertex LightweightVertexMeta
             #pragma fragment LightweightFragmentMeta
 
@@ -158,10 +157,11 @@ Shader "LightweightPipeline/Standard (Physically Based)"
 
             #pragma shader_feature _SPECGLOSSMAP
 
-            #include "LightweightPassMeta.cginc"
-            ENDCG
+            #include "LightweightPassMeta.hlsl"
+            ENDHLSL
         }
+
     }
-    FallBack "Hidden/InternalErrorShader"
+    //FallBack "Hidden/InternalErrorShader"
     CustomEditor "LightweightStandardGUI"
 }

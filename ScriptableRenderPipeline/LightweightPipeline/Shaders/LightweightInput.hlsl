@@ -6,7 +6,7 @@
 struct LightInput
 {
     float4 pos;
-    half4 color;
+    half3 color;
     half4 distanceAttenuation;
     half4 spotDirection;
     half4 spotAttenuation;
@@ -15,7 +15,7 @@ struct LightInput
 // Main light initialized without indexing
 #define INITIALIZE_MAIN_LIGHT(light) \
     light.pos = _MainLightPosition; \
-    light.color = _MainLightColor; \
+    light.color = _MainLightColor.rgb; \
     light.distanceAttenuation = _MainLightDistanceAttenuation; \
     light.spotDirection = _MainLightSpotDir; \
     light.spotAttenuation = _MainLightSpotAttenuation
@@ -26,7 +26,7 @@ struct LightInput
     int index = (i < 4) ? i : i - 4; \
     int lightIndex = indices[index]; \
     light.pos = _AdditionalLightPosition[lightIndex]; \
-    light.color = _AdditionalLightColor[lightIndex]; \
+    light.color = _AdditionalLightColor[lightIndex].rgb; \
     light.distanceAttenuation = _AdditionalLightDistanceAttenuation[lightIndex]; \
     light.spotDirection = _AdditionalLightSpotDir[lightIndex]; \
     light.spotAttenuation = _AdditionalLightSpotAttenuation[lightIndex]

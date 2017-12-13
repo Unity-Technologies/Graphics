@@ -1,22 +1,14 @@
 #ifndef LIGHTWEIGHT_PIPELINE_CORE_INCLUDED
 #define LIGHTWEIGHT_PIPELINE_CORE_INCLUDED
 
-#include "UnityCG.cginc"
-
-#if defined(UNITY_COLORSPACE_GAMMA)
-    #define LIGHTWEIGHT_GAMMA_TO_LINEAR(gammaColor) gammaColor * gammaColor
-    #define LIGHTWEIGHT_LINEAR_TO_GAMMA(linColor) sqrt(linColor)
-    #define OUTPUT_COLOR(color) half4(LIGHTWEIGHT_LINEAR_TO_GAMMA(color.rgb), color.a)
-#else
-    #define LIGHTWEIGHT_GAMMA_TO_LINEAR(color) color
-    #define LIGHTWEIGHT_LINEAR_TO_GAMMA(color) color
-    #define OUTPUT_COLOR(color) color
-#endif
+#include "ShaderVariables\LightweightShaderVariables.hlsl"
+#include "ShaderLibrary\Common.hlsl"
+#include "ShaderLibrary\EntityLighting.hlsl"
 
 #ifdef _NORMALMAP
     #define OUTPUT_NORMAL(IN, OUT) OutputTangentToWorld(IN.tangent, IN.normal, OUT.tangent, OUT.binormal, OUT.normal)
 #else
-    #define OUTPUT_NORMAL(IN, OUT) OUT.normal = UnityObjectToWorldNormal(IN.normal)
+    #define OUTPUT_NORMAL(IN, OUT) OUT.normal = TransformObjectToWorldNormal(IN.normal)
 #endif
 
 #ifdef LIGHTMAP_ON
@@ -27,12 +19,29 @@
     #define OUTPUT_SH(normalWS, OUT) OUT.xyz = EvaluateSHPerVertex(normalWS)
 #endif
 
-half _Pow4(half x)
+#if defined(UNITY_REVERSED_Z)
+    #if UNITY_REVERSED_Z == 1
+    //D3d with reversed Z => z clip range is [near, 0] -> remapping to [0, far]
+    //max is required to protect ourselves from near plane not being correct/meaningfull in case of oblique matrices.
+    #define UNITY_Z_0_FAR_FROM_CLIPSPACE(coord) max(((1.0-(coord)/_ProjectionParams.y)*_ProjectionParams.z),0)
+#else
+    //GL with reversed z => z clip range is [near, -far] -> should remap in theory but dont do it in practice to save some perf (range is close enough)
+    #define UNITY_Z_0_FAR_FROM_CLIPSPACE(coord) max(-(coord), 0)
+    #endif
+#elif UNITY_UV_STARTS_AT_TOP
+    //D3d without reversed z => z clip range is [0, far] -> nothing to do
+    #define UNITY_Z_0_FAR_FROM_CLIPSPACE(coord) (coord)
+#else
+    //Opengl => z clip range is [-near, far] -> should remap in theory but dont do it in practice to save some perf (range is close enough)
+    #define UNITY_Z_0_FAR_FROM_CLIPSPACE(coord) (coord)
+#endif
+
+half Pow4(half x)
 {
     return x * x * x * x;
 }
 
-half _LerpOneTo(half b, half t)
+half LerpOneTo(half b, half t)
 {
     half oneMinusT = 1 - t;
     return oneMinusT + b * t;
@@ -77,13 +86,28 @@ half3 UnpackNormalScale(half4 packednormal, half bumpScale)
 #endif
 }
 
+half3 SampleSH(half3 normalWS)
+{
+    // LPPV is not supported in Ligthweight Pipeline
+    float4 SHCoefficients[7];
+    SHCoefficients[0] = unity_SHAr;
+    SHCoefficients[1] = unity_SHAg;
+    SHCoefficients[2] = unity_SHAb;
+    SHCoefficients[3] = unity_SHBr;
+    SHCoefficients[4] = unity_SHBg;
+    SHCoefficients[5] = unity_SHBb;
+    SHCoefficients[6] = unity_SHC;
+
+    return SampleSH9(SHCoefficients, normalWS);
+}
+
 half3 EvaluateSHPerVertex(half3 normalWS)
 {
 #if defined(EVALUATE_SH_VERTEX)
-    return max(half3(0, 0, 0), ShadeSH9(half4(normalWS, 1.0)));
+    return max(half3(0, 0, 0), SampleSH(normalWS));
 #elif defined(EVALUATE_SH_MIXED)
     // no max since this is only L2 contribution
-    return SHEvalLinearL2(half4(normalWS, 1.0));
+    return SHEvalLinearL2(normalWS, unity_SHBr, unity_SHBg, unity_SHBb, unity_SHC);
 #endif
 
     // Fully per-pixel. Nothing to compute.
@@ -93,39 +117,48 @@ half3 EvaluateSHPerVertex(half3 normalWS)
 half3 EvaluateSHPerPixel(half3 L2Term, half3 normalWS)
 {
 #ifdef EVALUATE_SH_MIXED
-    return max(half3(0, 0, 0), L2Term + SHEvalLinearL0L1(half4(normalWS, 1.0)));
+    half3 L0L1Term = SHEvalLinearL0L1(normalWS, unity_SHAr, unity_SHAg, unity_SHAb);
+    return max(half3(0, 0, 0), L2Term + L0L1Term);
 #endif
 
     // Default: Evaluate SH fully per-pixel
-    return max(half3(0, 0, 0), ShadeSH9(half4(normalWS, 1.0)));
-}
-
-half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
-{
-    half4 encodedBakedColor = UNITY_SAMPLE_TEX2D(unity_Lightmap, lightmapUV);
-    half3 bakedColor = DecodeLightmap(encodedBakedColor);
-
-#if DIRLIGHTMAP_COMBINED
-    half4 bakedDirection = UNITY_SAMPLE_TEX2D_SAMPLER(unity_LightmapInd, unity_Lightmap, lightmapUV);
-    bakedColor = DecodeDirectionalLightmap(bakedColor, bakedDirection, normalWS);
-#endif
-
-    return bakedColor;
+    return max(half3(0, 0, 0), SampleSH(normalWS));
 }
 
 half3 SampleGI(float4 sampleData, half3 normalWS)
 {
-#if LIGHTMAP_ON
-    return SampleLightmap(sampleData.xy, normalWS);
+#ifdef LIGHTMAP_ON
+
+    // Only baked GI is sample as dynamic GI is not supported in Lightweight
+#ifdef UNITY_LIGHTMAP_FULL_HDR
+    bool encodedLightmap = false;
+#else
+    bool encodedLightmap = true;
 #endif
 
+    // The shader library sample lightmap functions transform the lightmap uv coords to apply bias and scale.
+    // However, lightweight pipeline already transformed those coords in vertex. We pass half4(1, 1, 0, 0) and
+    // the compiler will optimize the transform away.
+    half4 transformCoords = half4(1, 1, 0, 0);
+
+#ifdef DIRLIGHTMAP_COMBINED
+    return SampleDirectionalLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap),
+        TEXTURE2D_PARAM(unity_LightmapInd, samplerunity_Lightmap),
+        sampleData.xy, transformCoords, normalWS, encodedLightmap);
+#else
+    return SampleSingleLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap), sampleData.xy, transformCoords, encodedLightmap);
+#endif
+
+#endif // LIGHTMAP_ON
+
+    // If lightmap is not enabled we sample GI from SH
     return EvaluateSHPerPixel(sampleData.xyz, normalWS);
 }
 
 void OutputTangentToWorld(half4 vertexTangent, half3 vertexNormal, out half3 tangentWS, out half3 binormalWS, out half3 normalWS)
 {
-    half sign = vertexTangent.w * unity_WorldTransformParams.w;
-    normalWS = normalize(UnityObjectToWorldNormal(vertexNormal));
+    half sign = vertexTangent.w * GetOddNegativeScale();
+    normalWS = TransformObjectToWorldNormal(vertexNormal);
     tangentWS = normalize(mul((half3x3)unity_ObjectToWorld, vertexTangent.xyz));
     binormalWS = cross(normalWS, tangentWS) * sign;
 }

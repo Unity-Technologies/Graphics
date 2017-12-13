@@ -72,6 +72,8 @@
 #include "API/Metal.hlsl"
 #elif defined(SHADER_API_VULKAN)
 #include "API/Vulkan.hlsl"
+#elif defined(SHADER_API_GLES3)
+#include "API/GLES3.hlsl"
 #else
 #error unsupported shader api
 #endif

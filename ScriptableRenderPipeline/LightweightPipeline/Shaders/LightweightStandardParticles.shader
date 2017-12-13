@@ -55,7 +55,7 @@ Shader "LightweightPipeline/Particles/Standard"
         Pass
         {
             Tags {"LightMode" = "LightweightForward"}
-            CGPROGRAM
+            HLSLPROGRAM
             #pragma vertex ParticlesLitVertex
             #pragma fragment ParticlesLitFragment
             #pragma multi_compile __ SOFTPARTICLES_ON
@@ -69,65 +69,23 @@ Shader "LightweightPipeline/Particles/Standard"
             #pragma shader_feature _FADING_ON
             #pragma shader_feature _REQUIRE_UV2
 
-            #define NO_LIGHTMAP
-            #define NO_ADDITIONAL_LIGHTS
-
-            #include "UnityStandardParticles.cginc"
-            #include "LightweightLighting.cginc"
-
-            struct VertexOutputLit
-            {
-                half4 color                     : COLOR;
-                float2 texcoord                 : TEXCOORD0;
-#if _NORMALMAP
-                half3 tangent                   : TEXCOORD1;
-                half3 binormal                  : TEXCOORD2;
-                half3 normal                    : TEXCOORD3;
-#else
-                half3 normal                    : TEXCOORD1;
-#endif
-
-#if defined(_FLIPBOOK_BLENDING)
-                float3 texcoord2AndBlend        : TEXCOORD4;
-#endif
-#if defined(SOFTPARTICLES_ON) || defined(_FADING_ON)
-                float4 projectedPosition        : TEXCOORD5;
-#endif
-                float4 posWS                    : TEXCOORD6; // xyz: position; w = fogFactor;
-                float4 clipPos                  : SV_POSITION;
-            };
-
-            void InitializeSurfaceData(VertexOutputLit IN, out SurfaceOutputStandard surfaceData)
-            {
-                Input input;
-                input.color = IN.color;
-                input.texcoord = IN.texcoord;
-#if defined(_FLIPBOOK_BLENDING)
-                input.texcoord2AndBlend = IN.texcoord2AndBlend;
-#endif
-#if defined(SOFTPARTICLES_ON) || defined(_FADING_ON)
-                input.projectedPosition = IN.projectedPosition;
-#endif
-
-                // No distortion Support
-                surfaceData.Normal = half3(0, 0, 1);
-                surfaceData.Occlusion = 1.0;
-                surf(input, surfaceData);
-            }
+            #include "LightweightParticle.hlsl"
+            #include "LightweightLighting.hlsl"
 
             VertexOutputLit ParticlesLitVertex(appdata_particles v)
             {
                 VertexOutputLit o;
-                float4 clipPosition = UnityObjectToClipPos(v.vertex);
+                float4 clipPosition = TransformObjectToHClip(v.vertex.xyz);
 
 #if _NORMALMAP
                 OutputTangentToWorld(v.tangent, v.normal, o.tangent, o.binormal, o.normal);
 #else
-                o.normal = normalize(UnityObjectToWorldNormal(v.normal));
+                o.normal = normalize(TransformObjectToWorldNormal(v.normal));
 #endif
                 o.color = v.color;
-                o.posWS.xyz = mul(unity_ObjectToWorld, v.vertex).xyz;
-                o.posWS.w = ComputeFogFactor(clipPosition.z);
+                o.posWS.xyz = TransformObjectToWorld(v.vertex.xyz).xyz;
+                o.clipPos = TransformWorldToHClip(o.posWS.xyz);
+                o.posWS.w = ComputeFogFactor(o.clipPos.z);
                 vertTexcoord(v, o);
                 vertFading(o);
                 o.clipPos = clipPosition;
@@ -136,7 +94,7 @@ Shader "LightweightPipeline/Particles/Standard"
 
             half4 ParticlesLitFragment(VertexOutputLit IN) : SV_Target
             {
-                SurfaceOutputStandard surfaceData;
+                SurfaceData surfaceData;
                 InitializeSurfaceData(IN, surfaceData);
 
                 float3 positionWS = IN.posWS.xyz;
@@ -144,21 +102,22 @@ Shader "LightweightPipeline/Particles/Standard"
                 half fogFactor = IN.posWS.w;
 
 #if _NORMALMAP
-                half3 normalWS = TangentToWorldNormal(surfaceData.Normal, IN.tangent, IN.binormal, IN.normal);
+                half3 normalWS = TangentToWorldNormal(surfaceData.normal, IN.tangent, IN.binormal, IN.normal);
 #else
                 half3 normalWS = normalize(IN.normal);
 #endif
 
                 half3 zero = half3(0.0, 0.0, 0.0);
-                half4 color = LightweightFragmentPBR(positionWS, normalWS, viewDirWS, /*indirectDiffuse*/ zero, /*vertex lighting*/ zero, surfaceData.Albedo,
-                    surfaceData.Metallic, /* specularColor */ zero, surfaceData.Smoothness, surfaceData.Occlusion, surfaceData.Emission, surfaceData.Alpha);
+                half4 color = LightweightFragmentPBR(positionWS, normalWS, viewDirWS, /*indirectDiffuse*/ zero, /*vertex lighting*/ zero, surfaceData.albedo,
+                    surfaceData.metallic, /* specularColor */ zero, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
                 ApplyFog(color.rgb, fogFactor);
-                return OUTPUT_COLOR(color);
+                return color;
             }
-            ENDCG
+
+            ENDHLSL
         }
     }
 
-    Fallback "LightweightPipeline/Unlit"
+    Fallback "LightweightPipeline/Particles/Standard Unlit"
     CustomEditor "LightweightStandardParticlesShaderGUI"
 }

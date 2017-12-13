@@ -24,16 +24,16 @@ Shader "LightweightPipeline/Standard Unlit"
 
         Pass
         {
-            CGPROGRAM
+            HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
+            #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ENABLE STEREO_MULTIVIEW_ENABLE
             #pragma multi_compile_fog
             #pragma shader_feature _SAMPLE_GI
             #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON
 
-            #include "LightweightCore.cginc"
-            #include "LightweightSurfaceInput.cginc"
+            #include "LightweightCore.hlsl"
+            #include "LightweightSurfaceInput.hlsl"
 
             struct VertexInput
             {
@@ -41,7 +41,6 @@ Shader "LightweightPipeline/Standard Unlit"
                 float2 uv           : TEXCOORD0;
                 float2 lightmapUV   : TEXCOORD1;
                 float3 normal       : NORMAL;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct VertexOutput
@@ -56,17 +55,13 @@ Shader "LightweightPipeline/Standard Unlit"
     #endif
 #endif
                 float4 vertex : SV_POSITION;
-                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             VertexOutput vert(VertexInput v)
             {
                 VertexOutput o = (VertexOutput)0;
 
-                UNITY_SETUP_INSTANCE_ID(v);
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-
-                o.vertex = UnityObjectToClipPos(v.vertex);
+                o.vertex = TransformObjectToHClip(v.vertex.xyz);
                 o.uv0AndFogCoord.xy = TRANSFORM_TEX(v.uv, _MainTex);
                 o.uv0AndFogCoord.z = ComputeFogFactor(o.vertex.z);
 
@@ -79,10 +74,10 @@ Shader "LightweightPipeline/Standard Unlit"
                 return o;
             }
 
-            fixed4 frag(VertexOutput IN) : SV_Target
+            half4 frag(VertexOutput IN) : SV_Target
             {
                 half2 uv = IN.uv0AndFogCoord.xy;
-                half4 texColor = tex2D(_MainTex, uv);
+                half4 texColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
                 half3 color = texColor.rgb * _Color.rgb;
                 half alpha = texColor.a * _Color.a;
 
@@ -99,12 +94,12 @@ Shader "LightweightPipeline/Standard Unlit"
                 ApplyFog(color, IN.uv0AndFogCoord.z);
 
 #ifdef _ALPHABLEND_ON
-                return fixed4(color, alpha);
+                return half4(color, alpha);
 #else
-                return fixed4(color, 1.0);
+                return half4(color, 1.0);
 #endif
             }
-            ENDCG
+            ENDHLSL
         }
     }
     CustomEditor "LightweightUnlitGUI"
