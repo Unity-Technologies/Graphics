@@ -232,22 +232,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float unused2;
     };
 
-    [Serializable]
-    public class LightLoopSettings
+    public class LightLoop
     {
-        public bool enableTileAndCluster; // For debug / test
-        public bool enableComputeLightEvaluation;
-        public bool enableComputeLightVariants;
-        public bool enableComputeMaterialVariants;
-        // Deferred opaque always use FPTL, forward opaque can use FPTL or cluster, transparent always use cluster
-        // When MSAA is enabled, we only support cluster (Fptl is too slow with MSAA), and we don't support MSAA for deferred path (mean it is ok to keep fptl)
-        public bool enableFptlForForwardOpaque;
-
-        // clustered light list specific buffers and data begin
-        public bool enableBigTilePrepass;
-
-        public bool enableAsyncCompute;
-
         public enum TileClusterDebug : int
         {
             None,
@@ -267,22 +253,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EnvironmentAndAreaAndPunctual = 7
         };
 
-        public LightLoopSettings()
-        {
-            enableTileAndCluster = true;
-            enableComputeLightEvaluation = true;
-            enableComputeLightVariants = true;
-            enableComputeMaterialVariants = true;
-
-            enableFptlForForwardOpaque = true;
-            enableBigTilePrepass = true;
-
-            enableAsyncCompute = false;
-        }
-    }
-
-    public class LightLoop
-    {
         public const int k_MaxDirectionalLightsOnScreen = 4;
         public const int k_MaxPunctualLightsOnScreen    = 512;
         public const int k_MaxAreaLightsOnScreen        = 64;
@@ -301,13 +271,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static Cubemap m_DefaultTextureCube;
 
         ReflectionProbeCache m_ReflectionProbeCache;
-        int m_ReflectionProbeCacheSize = 128;
         TextureCache2D m_CookieTexArray;
-        int m_CookieTexArraySize = 16;
         TextureCacheCubemap m_CubeCookieTexArray;
-        int m_CubeCookieTexArraySize = 16;
 
-        LightingSettings m_LightingSettings = new LightingSettings();
+        FrameSettings m_FrameSettings = new FrameSettings();
 
         public class LightList
         {
@@ -2130,7 +2097,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, "Tiled/cluster Lighting Debug", HDRenderPipeline.GetSampler(CustomSamplerId.TPTiledLightingDebug)))
             {
-                if (lightingDebug.tileClusterDebug != LightLoopSettings.TileClusterDebug.None)
+                if (lightingDebug.tileClusterDebug != LightLoop.TileClusterDebug.None)
                 {
 
                     int w = hdCamera.camera.pixelWidth;
@@ -2149,7 +2116,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
 
                     // Debug tiles
-                    if (lightingDebug.tileClusterDebug == LightLoopSettings.TileClusterDebug.FeatureVariants)
+                    if (lightingDebug.tileClusterDebug == LightLoop.TileClusterDebug.FeatureVariants)
                     {
                         if (GetFeatureVariantsEnabled())
                         {
@@ -2168,7 +2135,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     else // tile or cluster
                     {
-                        bool bUseClustered = lightingDebug.tileClusterDebug == LightLoopSettings.TileClusterDebug.Cluster;
+                        bool bUseClustered = lightingDebug.tileClusterDebug == LightLoop.TileClusterDebug.Cluster;
 
                         // lightCategories
                         m_DebugViewTilesMaterial.SetInt(HDShaderIDs._ViewTilesFlags, (int)lightingDebug.tileClusterDebugByCategory);
