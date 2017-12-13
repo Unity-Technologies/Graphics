@@ -20,15 +20,9 @@ MonoBehaviour:
   debugFullScreenShader: {fileID: 4800000, guid: e874aca2df8300a488258738c31f85cf,
     type: 3}
   deferredShader: {fileID: 4800000, guid: 00dd221e34a6ab349a1196b0f2fab693, type: 3}
-  screenSpaceAmbientOcclusionShader: {fileID: 4800000, guid: cf0db7f5267ad944dbf4326b7102c9ca,
-    type: 3}
-  subsurfaceScatteringCS: {fileID: 7200000, guid: b06a7993621def248addd55d0fe931b1,
-    type: 3}
-  volumetricLightingCS: {fileID: 7200000, guid: 799166e2ee6a4b041bba9e74f6942097,
-    type: 3}
   gaussianPyramidCS: {fileID: 7200000, guid: 6dba4103d23a7904fbc49099355aff3e, type: 3}
   depthPyramidCS: {fileID: 7200000, guid: 64a553bb564274041906f78ffba955e4, type: 3}
-  copyChannelCS: {fileID: 7200000, guid: a68d8aaeb0956234d94e389f196381ee, type: 3}
+  copyChannelCS: {fileID: 7200000, guid: a4d45eda75e8e474dbe24a31f741f3b4, type: 3}
   applyDistortionCS: {fileID: 7200000, guid: 2fa6c0e3fe6dc3145a4156f21913fe5c, type: 3}
   clearDispatchIndirectShader: {fileID: 7200000, guid: fc1f553acb80a6446a32d33e403d0656,
     type: 3}
@@ -48,7 +42,13 @@ MonoBehaviour:
     type: 3}
   deferredDirectionalShadowComputeShader: {fileID: 7200000, guid: fbde6fae193b2a94e9fd97c163c204f4,
     type: 3}
+  subsurfaceScatteringCS: {fileID: 7200000, guid: b06a7993621def248addd55d0fe931b1,
+    type: 3}
+  subsurfaceScattering: {fileID: 4800000, guid: 867b36db983aa0548889a66f8d685ff6,
+    type: 3}
+  combineLighting: {fileID: 4800000, guid: 2e37131331fbdca449b1a2bc47a639ca, type: 3}
   cameraMotionVectors: {fileID: 4800000, guid: 035941b63024d1943af48811c1db20d9, type: 3}
+  copyStencilBuffer: {fileID: 4800000, guid: 3d1574f1cdfa0ce4995f9bc79ed7f8ec, type: 3}
   blitCubemap: {fileID: 4800000, guid: d05913e251bed7a4992c921c62e1b647, type: 3}
   buildProbabilityTables: {fileID: 7200000, guid: b9f26cf340afe9145a699753531b2a4c,
     type: 3}
