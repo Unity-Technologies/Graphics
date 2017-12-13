@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using Node = UnityEditor.Experimental.UIElements.GraphView.Node;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -88,6 +89,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddSlots(node.GetSlots<MaterialSlot>());
             expanded = node.drawState.expanded;
             RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
+            UpdateSlotAttachers();
             UpdatePortInputVisibilities();
 
             SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
@@ -195,8 +197,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             UpdateTitle();
             if (node.hasPreview)
                 UpdatePreviewExpandedState(node.previewExpanded);
-            expanded = node.drawState.expanded;
 
+            base.expanded = node.drawState.expanded;
             // Update slots to match node modification
             if (scope == ModificationScope.Topological)
             {
@@ -239,6 +241,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     outputContainer.Sort((x, y) => slots.IndexOf(x.userData as MaterialSlot) - slots.IndexOf(y.userData as MaterialSlot));
             }
 
+            UpdateControls();
+            RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
+            UpdateSlotAttachers();
             UpdatePortInputVisibilities();
 
             foreach (var control in m_ControlViews)
@@ -262,13 +267,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                 port.visualClass = slot.concreteValueType.ToClassName();
 
                 if (slot.isOutputSlot)
-                {
                     outputContainer.Add(port);
-                }
                 else
-                {
                     inputContainer.Add(port);
-                    var portInputView = new PortInputView(slot);
+            }
+        }
+
+        void UpdateSlotAttachers()
+        {
+            foreach (var port in inputContainer.OfType<Port>())
+            {
+                if (!m_Attachers.Any(a => a.target == port))
+                {
+                    var portInputView = new PortInputView((MaterialSlot)port.userData);
                     Add(portInputView);
                     mainContainer.BringToFront();
                     m_Attachers.Add(new Attacher(portInputView, port, SpriteAlignment.LeftCenter) { distance = -8f });
