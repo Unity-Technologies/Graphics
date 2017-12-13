@@ -38,9 +38,9 @@
 #include "ShaderLibrary/Packing.hlsl"
 #include "ShaderLibrary/Sampling/Fibonacci.hlsl"
 #include "ShaderLibrary/SpaceFillingCurves.hlsl"
-#include "../../../ShaderVariables.hlsl"
-#include "../../../Lighting/LightDefinition.cs.hlsl"
-#include "../../SubsurfaceScattering/SubsurfaceScattering.hlsl"
+#include "../../ShaderVariables.hlsl"
+#include "../../Lighting/LightDefinition.cs.hlsl"
+#include "SubsurfaceScattering.hlsl"
 
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs
