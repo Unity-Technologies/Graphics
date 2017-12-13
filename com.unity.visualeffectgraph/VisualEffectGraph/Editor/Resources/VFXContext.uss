@@ -160,6 +160,11 @@ VFXContextUI > * >#Title {
 	
 }
 
+VFXContextUI *
+{
+	font-size:11;
+}
+
 
 VFXContextUI .VFXNodeUI.VFXContextSlotContainerUI
 {
