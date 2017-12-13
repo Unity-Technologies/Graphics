@@ -12,6 +12,13 @@ using UnityEditor;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+    //static void GetScreenSpaceTemporaryRT(CommandBuffer cmd, int nameID,
+    //                                        int depthBufferBits = 0, RenderTextureFormat colorFormat = RenderTextureFormat.Default, RenderTextureReadWrite readWrite = RenderTextureReadWrite.Default,
+    //                                        FilterMode filter = FilterMode.Bilinear, int widthOverride = 0, int heightOverride = 0)
+    //{
+
+    //}
+
     public class GBufferManager
     {
         public const int k_MaxGbuffer = 8;
@@ -21,7 +28,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderTargetIdentifier[] m_ColorMRTs;
         RenderTargetIdentifier[] m_RTIDs = new RenderTargetIdentifier[k_MaxGbuffer];
 
-        public void InitGBuffers(int width, int height, RenderPipelineMaterial deferredMaterial, bool enableBakeShadowMask, CommandBuffer cmd)
+        //public void InitGBuffers(int width, int height, RenderPipelineMaterial deferredMaterial, bool enableBakeShadowMask, CommandBuffer cmd)
+        public void InitGBuffers(RenderTextureDescriptor rtDesc, RenderPipelineMaterial deferredMaterial, bool enableBakeShadowMask, CommandBuffer cmd)
         {
             // Init Gbuffer description
             gbufferCount = deferredMaterial.GetMaterialGBufferCount();
@@ -29,17 +37,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RenderTextureReadWrite[] rtReadWrite;
             deferredMaterial.GetMaterialGBufferDescription(out rtFormat, out rtReadWrite);
 
+            rtDesc.depthBufferBits = 0;
+
             for (int gbufferIndex = 0; gbufferIndex < gbufferCount; ++gbufferIndex)
             {
                 cmd.ReleaseTemporaryRT(HDShaderIDs._GBufferTexture[gbufferIndex]);
-                cmd.GetTemporaryRT(HDShaderIDs._GBufferTexture[gbufferIndex], width, height, 0, FilterMode.Point, rtFormat[gbufferIndex], rtReadWrite[gbufferIndex]);
+
+                rtDesc.colorFormat = rtFormat[gbufferIndex];
+                rtDesc.sRGB = (rtReadWrite[gbufferIndex] != RenderTextureReadWrite.Linear);
+
+                cmd.GetTemporaryRT(HDShaderIDs._GBufferTexture[gbufferIndex], rtDesc, FilterMode.Point);
                 m_RTIDs[gbufferIndex] = new RenderTargetIdentifier(HDShaderIDs._GBufferTexture[gbufferIndex]);
             }
 
             if (enableBakeShadowMask)
             {
                 cmd.ReleaseTemporaryRT(HDShaderIDs._ShadowMaskTexture);
-                cmd.GetTemporaryRT(HDShaderIDs._ShadowMaskTexture, width, height, 0, FilterMode.Point, Builtin.GetShadowMaskBufferFormat(), Builtin.GetShadowMaskBufferReadWrite());
+
+                rtDesc.colorFormat = Builtin.GetShadowMaskBufferFormat();
+                rtDesc.sRGB = (Builtin.GetShadowMaskBufferReadWrite() != RenderTextureReadWrite.Linear);
+
+                cmd.GetTemporaryRT(HDShaderIDs._ShadowMaskTexture, rtDesc, FilterMode.Point);
                 m_RTIDs[gbufferCount++] = new RenderTargetIdentifier(HDShaderIDs._ShadowMaskTexture);
             }
 
@@ -47,7 +65,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // If velocity is in GBuffer then it is in the last RT. Assign a different name to it.
                 cmd.ReleaseTemporaryRT(HDShaderIDs._VelocityTexture);
-                cmd.GetTemporaryRT(HDShaderIDs._VelocityTexture, width, height, 0, FilterMode.Point, Builtin.GetVelocityBufferFormat(), Builtin.GetVelocityBufferReadWrite());
+
+                rtDesc.colorFormat = Builtin.GetVelocityBufferFormat();
+                rtDesc.sRGB = (Builtin.GetVelocityBufferReadWrite() != RenderTextureReadWrite.Linear);
+
+                cmd.GetTemporaryRT(HDShaderIDs._VelocityTexture, rtDesc, FilterMode.Point);
                 m_RTIDs[gbufferCount++] = new RenderTargetIdentifier(HDShaderIDs._VelocityTexture);
             }
         }
@@ -1845,7 +1867,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     if (!camera.useForwardOnly)
                     {
-                        m_GbufferManager.InitGBuffers(w, h, m_DeferredMaterial, enableBakeShadowMask, cmd);
+                        //m_GbufferManager.InitGBuffers(w, h, m_DeferredMaterial, enableBakeShadowMask, cmd);
+                        m_GbufferManager.InitGBuffers(camera.renderTextureDesc, m_DeferredMaterial, enableBakeShadowMask, cmd);
                         m_SSSBufferManager.InitGBuffers(w, h, m_GbufferManager, cmd);
                     }
                     else

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -29,6 +30,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get { return nonJitteredProjMatrix * viewMatrix; }
         }
+
+        public RenderTextureDescriptor renderTextureDesc { get; private set; }
 
         // Always true for cameras that just got added to the pool - needed for previous matrices to
         // avoid one-frame jumps/hiccups with temporal effects (motion blur, TAA...)
@@ -129,7 +132,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             projMatrix = gpuProj;
             nonJitteredProjMatrix = gpuNonJitteredProj;
             cameraPos = pos;
-            screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
 
             // Warning: near and far planes appear to be broken.
             GeometryUtility.CalculateFrustumPlanes(viewProjMatrix, frustumPlanes);
@@ -148,6 +150,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             stereoEnabled = stereoActive && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
             useForwardOnly = globalRenderingSettings.ShouldUseForwardRenderingOnly() || stereoEnabled;
+
+            RenderTextureDescriptor tempDesc;
+            if (stereoEnabled)
+            {
+                screenSize = new Vector4(XRSettings.eyeTextureWidth, XRSettings.eyeTextureHeight, 1.0f / XRSettings.eyeTextureWidth, 1.0f / XRSettings.eyeTextureHeight);
+                tempDesc = XRSettings.eyeTextureDesc;
+            }
+            else
+            {
+                screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
+                tempDesc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
+            }
+
+            tempDesc.msaaSamples = 1; // will be updated later, deferred will always set to 1
+            tempDesc.depthBufferBits = 0;
+            tempDesc.autoGenerateMips = false;
+            tempDesc.useMipMap = false;
+            tempDesc.memoryless = RenderTextureMemoryless.None;
+
+            renderTextureDesc = tempDesc;
         }
 
         public void Reset()
