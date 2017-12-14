@@ -35,14 +35,14 @@
 #if defined(UNITY_ENABLE_NATIVE_SHADOWS_LOOKUPS)
 #define SHADOW2D_TEXTURE_AND_SAMPLER sampler2DShadow
 #define SHADOWCUBE_TEXTURE_AND_SAMPLER samplerCUBEShadow
-#define SHADOW2D_SAMPLE(textureName, coord3) shadow2D(textureName, coord3)
-#define SHADOW3D_SAMPLE(textureName, coord4) ((texCUBE(tex,(coord4).xyz) < (coord4).w) ? 0.0 : 1.0)
+#define SHADOW2D_SAMPLE(textureName, samplerName, coord3) shadow2D(textureName, coord3)
+#define SHADOW3D_SAMPLE(textureName, samplerName, coord4) ((texCUBE(textureName,(coord4).xyz) < (coord4).w) ? 0.0 : 1.0)
 #else
 // emulate hardware comparison
 #define SHADOW2D_TEXTURE_AND_SAMPLER sampler2D_float
 #define SHADOWCUBE_TEXTURE_AND_SAMPLER samplerCUBE_float
-#define SHADOW2D_SAMPLE(textureName, coord3) ((SAMPLE_DEPTH_TEXTURE(textureName, coord3.xy) < coord3.z) ? 0.0 : 1.0)
-#define SHADOW3D_SAMPLE(textureName, coord4) ((texCUBE(tex,(coord4).xyz).r < (coord4).w) ? 0.0 : 1.0)
+#define SHADOW2D_SAMPLE(textureName, samplerName, coord3) ((SAMPLE_DEPTH_TEXTURE(textureName, samplerName, (coord3).xy) < (coord3).z) ? 0.0 : 1.0)
+#define SHADOW3D_SAMPLE(textureName, samplerName, coord4) ((texCUBE(textureName,(coord4).xyz).r < (coord4).w) ? 0.0 : 1.0)
 #endif
 
 // Texture util abstraction
@@ -106,9 +106,9 @@
 #define SAMPLE_TEXTURECUBE_ARRAY_LOD(textureName, samplerName, coord3, index, lod) SAMPLE_TEXTURECUBE_LOD(textureName, samplerName, coord3, lod)
 #define SAMPLE_TEXTURECUBE_ARRAY_BIAS(textureName, samplerName, coord3, index, bias) SAMPLE_TEXTURECUBE_BIAS(textureName, samplerName, coord3, bias)
 #define SAMPLE_TEXTURE3D(textureName, samplerName, coord3) tex3D(textureName, coord3)
-#define SAMPLE_TEXTURE2D_SHADOW(textureName, samplerName, coord3) SHADOW2D_SAMPLE(textureName, coord3)
+#define SAMPLE_TEXTURE2D_SHADOW(textureName, samplerName, coord3) SHADOW2D_SAMPLE(textureName, samplerName, coord3)
 #define SAMPLE_TEXTURE2D_ARRAY_SHADOW(textureName, samplerName, coord3, index) SAMPLE_TEXTURECUBE_SHADOW(textureName, samplerName, float4(coord3.xy, index, coord3.w))
-#define SAMPLE_TEXTURECUBE_SHADOW(textureName, samplerName, coord4) SHADOW3D_SAMPLE(textureName, coord4)
+#define SAMPLE_TEXTURECUBE_SHADOW(textureName, samplerName, coord4) SHADOW3D_SAMPLE(textureName, samplerName, coord4)
 #define SAMPLE_TEXTURECUBE_ARRAY_SHADOW(textureName, samplerName, coord4, index) SAMPLE_TEXTURECUBE_SHADOW(textureName, samplerName, coord4)
 
 #define SAMPLE_DEPTH_TEXTURE(textureName, samplerName, coord2) SAMPLE_TEXTURE2D(textureName, samplerName, coord2).r
