@@ -222,7 +222,75 @@ namespace UnityEditor.VFX
 
         public override bool CanBeCompiled()
         {
-            return m_Owners.Count > 1 && m_Owners[0].contextType == VFXContextType.kInit && m_Owners[0].inputContexts.Count() > 0;
+            if (m_Owners.Count < 1)
+                return false;
+
+            if (m_Owners[0].contextType != VFXContextType.kInit)
+                return false;
+
+            var firstSpawnInput = m_Owners[0].inputContexts.FirstOrDefault();
+            if (firstSpawnInput == null)
+                return false;
+
+            if (firstSpawnInput.contextType == VFXContextType.kSpawner)
+                return true;
+
+            Func<VFXSlot, VFXContext> contextOwnerFromSlot = delegate(VFXSlot slot)
+                {
+                    if (slot.owner is VFXBlock)
+                    {
+                        var block = slot.owner as VFXBlock;
+                        if (block.enabled)
+                        {
+                            return block.GetParent();
+                        }
+                    }
+                    else if (slot.owner is VFXContext)
+                    {
+                        return slot.owner as VFXContext;
+                    }
+                    return null;
+                };
+
+            if (m_Owners.Last().contextType != VFXContextType.kOutput)
+            {
+                //< Check at least one output dependency is valid
+                if (m_Owners.Where(o => o.allLinkedOutputSlot.Where(s =>
+                    {
+                        var context = contextOwnerFromSlot(s);
+                        if (context != null && context.outputContexts.Where(c => c.CanBeCompiled()).Any())
+                        {
+                            return true;
+                        }
+                        return false;
+                    }).Any())
+                    .Any())
+                {
+                    return true;
+                }
+            }
+
+            if (firstSpawnInput.contextType == VFXContextType.kSpawnerGPU)
+            {
+                //< Check at least one input dependency is valid
+                if (firstSpawnInput.allLinkedInputSlot.Where(s =>
+                    {
+                        if (s.owner is VFXBlock)
+                        {
+                            var block = (s.owner as VFXBlock);
+                            return block.enabled && block.GetParent().CanBeCompiled();
+                        }
+                        else if (s.owner is VFXContext)
+                        {
+                            return (s.owner as VFXContext).CanBeCompiled();
+                        }
+                        return false;
+                    }).Any())
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public override void GenerateAttributeLayout()
