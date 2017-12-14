@@ -347,7 +347,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected void ShaderSSSInputGUI(Material material, int layerIndex)
         {
             var hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-            var sssSettings = hdPipeline.sssSettings;
+            var sssSettings = hdPipeline.GetCurrentSssSettings();
 
             if (sssSettings == null)
             {
@@ -356,7 +356,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             // TODO: Optimize me
-            var profiles = hdPipeline.sssSettings.profiles;
+            var profiles = sssSettings.profiles;
             var names = new GUIContent[profiles.Length + 1];
             names[0] = new GUIContent("None");
 

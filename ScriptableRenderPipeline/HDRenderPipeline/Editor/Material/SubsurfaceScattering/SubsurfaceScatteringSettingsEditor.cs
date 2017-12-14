@@ -111,7 +111,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CheckStyles();
 
             // Display a warning if this settings asset is not currently in use
-            if (m_HDPipeline == null || m_HDPipeline.sssSettings != m_Target)
+            if (m_HDPipeline == null || m_HDPipeline.GetCurrentSssSettings() != m_Target)
                 EditorGUILayout.HelpBox("These profiles aren't currently in use, assign this asset to the HD render pipeline asset to use them.", MessageType.Warning);
 
             serializedObject.Update();

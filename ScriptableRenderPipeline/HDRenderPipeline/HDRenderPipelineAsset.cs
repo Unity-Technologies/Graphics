@@ -21,7 +21,34 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         public FrameSettings defaultFrameSettings = new FrameSettings(); // This are the defaultFrameSettings for all the camera and apply to sceneView
-        public SubsurfaceScatteringSettings sssSettings;
+
+        [SerializeField]
+        GlobalFrameSettings m_globalFrameSettings;
+        public GlobalFrameSettings globalFrameSettings
+        {
+            // TODO: This function must return the current globalFrameSettings for the given platform
+            // If nothing is define we return a default value
+            get
+            {
+                if (m_globalFrameSettings == null)
+                {
+                    if (m_defaultGlobalFrameSettings == null)
+                        m_defaultGlobalFrameSettings = ScriptableObject.CreateInstance<GlobalFrameSettings>(); // TODO: where to destroy this ?
+
+                    m_globalFrameSettings = m_defaultGlobalFrameSettings;
+                }
+
+                return m_globalFrameSettings;
+            }
+
+            set { m_globalFrameSettings = value; }
+        }
+
+        GlobalFrameSettings m_defaultGlobalFrameSettings;
+
+        [SerializeField]
+        SubsurfaceScatteringSettings m_sssSettings;
+
 
         // Default Material / Shader
         [SerializeField]

@@ -437,10 +437,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return (outputSplitLighting) | (lightLoopTilePass << 1) | (shadowMask << 2) | (debugDisplay << 3);
         }
 
-        public void Build(  RenderPipelineResources renderPipelineResources,
-                            ShadowInitParameters shadowInit, ShadowSettings shadowSettings, IBLFilterGGX iblFilterGGX)
+        public void Build(HDRenderPipelineAsset hdAsset, ShadowSettings shadowSettings, IBLFilterGGX iblFilterGGX)
         {
-            m_Resources = renderPipelineResources;
+            m_Resources = hdAsset.renderPipelineResources;
 
             m_lightList = new LightList();
             m_lightList.Allocate();
@@ -450,7 +449,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_EnvLightDatas = new ComputeBuffer(k_MaxEnvLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
             s_shadowDatas = new ComputeBuffer(k_MaxCascadeCount + k_MaxShadowOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(ShadowData)));
 
-            GlobalLightLoopSettings gLightLoopSettings = RenderPipelineSettings.GetGlobalFrameSettings().lightLoopSettings;
+            GlobalLightLoopSettings gLightLoopSettings = hdAsset.globalFrameSettings.lightLoopSettings;
             m_CookieTexArray = new TextureCache2D();
             m_CookieTexArray.AllocTextureArray(gLightLoopSettings.cookieTexArraySize, gLightLoopSettings.spotCookieSize, gLightLoopSettings.spotCookieSize, TextureFormat.RGBA32, true);
             m_CubeCookieTexArray = new TextureCacheCubemap();
@@ -540,7 +539,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             UnityEditor.SceneView.onSceneGUIDelegate += OnSceneGUI;
 #endif
 
-            InitShadowSystem(shadowInit, shadowSettings);
+            InitShadowSystem(hdAsset.globalFrameSettings.shadowInitParams, shadowSettings);
         }
 
         public void Cleanup()

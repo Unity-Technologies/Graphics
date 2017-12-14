@@ -11,6 +11,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedProperty m_DefaultDiffuseMaterial;
         SerializedProperty m_DefaultShader;
 
+        // Global Frame Settings
+        SerializedProperty m_GlobalFrameSettings;
+
         // LightLoop settings
         SerializedProperty m_enableTileAndCluster;
         SerializedProperty m_enableSplitLightEvaluation;
@@ -34,6 +37,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_RenderPipelineResources = properties.Find("m_RenderPipelineResources");
             m_DefaultDiffuseMaterial = properties.Find("m_DefaultDiffuseMaterial");
             m_DefaultShader = properties.Find("m_DefaultShader");
+
+            // Global FrameSettings
+            m_GlobalFrameSettings = properties.Find(x => x.globalFrameSettings);
 
             // LightLoop settings
             m_enableTileAndCluster = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableTileAndCluster);
@@ -114,20 +120,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
         }
 
-        void SssSettingsUI(HDRenderPipelineAsset renderContext)
-        {
-            EditorGUILayout.Space();
-            EditorGUILayout.PropertyField(m_SubsurfaceScatteringSettings, s_Styles.sssSettings);
-        }
-
         void SettingsUI(HDRenderPipelineAsset renderContext)
         {
             EditorGUILayout.LabelField(s_Styles.settingsLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
 
+            EditorGUILayout.PropertyField(m_GlobalFrameSettings, s_Styles.globalFrameSettings);
+
             RendereringSettingsUI(renderContext);
             LightLoopSettingsUI(renderContext);
-            SssSettingsUI(renderContext);
+
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(m_SubsurfaceScatteringSettings, s_Styles.sssSettings);
 
             EditorGUI.indentLevel--;
         }
