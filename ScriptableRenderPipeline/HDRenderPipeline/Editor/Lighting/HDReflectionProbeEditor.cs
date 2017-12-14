@@ -22,9 +22,8 @@ namespace UnityEditor.Experimental.Rendering
             m_SerializedReflectionProbe = new SerializedReflectionProbe(serializedObject, m_AdditionalDataSerializedObject);
             m_UIState.Reset(
                 this,
-                Repaint, 
-                m_SerializedReflectionProbe.mode.intValue,
-                m_SerializedReflectionProbe.influenceShape.intValue);
+                Repaint,
+                m_SerializedReflectionProbe);
         }
 
         public override void OnInspectorGUI()
@@ -35,8 +34,9 @@ namespace UnityEditor.Experimental.Rendering
             var s = m_UIState;
             var p = m_SerializedReflectionProbe;
 
-            Draw(k_PrimarySection, s, p, this);
+            k_PrimarySection.Draw(s, p, this);
             k_InfluenceVolumeSection.Draw(s, p, this);
+            k_SeparateProjectionVolumeSection.Draw(s, p, this);
 
             PerformOperations(s, p, this);
 
