@@ -13,7 +13,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rotation: 160
   exposure: 0
-  multiplier: 1
+  multiplier: 0.2
   resolution: 256
   updateMode: 0
   updatePeriod: 0
