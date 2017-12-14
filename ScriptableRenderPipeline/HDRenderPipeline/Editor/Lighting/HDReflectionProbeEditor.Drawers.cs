@@ -1,13 +1,83 @@
-﻿using UnityEditor.Experimental.Rendering;
-using UnityEditorInternal;
+﻿using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
-namespace UnityEditor
+namespace UnityEditor.Experimental.Rendering
 {
+    using CED = CoreEditorDrawer<HDReflectionProbeEditor.UIState, HDReflectionProbeEditor.SerializedReflectionProbe>;
+
     partial class HDReflectionProbeEditor
     {
+        static readonly CED.IDrawer k_Drawer_Space = CED.Action(Drawer_Space);
+        static readonly CED.IDrawer k_Drawer_NOOP = CED.Action(Drawer_NOOP);
+
+
         static void Drawer_NOOP(UIState s, SerializedReflectionProbe p, Editor owner) { }
+        static void Drawer_Space(UIState s, SerializedReflectionProbe p, Editor owner) { EditorGUILayout.Space(); }
+
+        #region Sections
+        static readonly CED.IDrawer k_InfluenceVolumeSection = CED.FoldoutGroup(
+            "Influence volume settings",
+            (s, p, o) => p.blendDistance,
+            CED.FadeGroup(
+                (s, p, o, i) => s.GetShapeFaded((ReflectionInfluenceShape)i),
+                CED.Action(Drawer_InfluenceBoxSettings),      // Box
+                CED.Action(Drawer_InfluenceSphereSettings)    // Sphere
+            ),
+            CED.Action(Drawer_UseSeparateProjectionVolume)
+        );
+
+        static readonly CED.IDrawer[] k_PrimarySection =
+        {
+            CED.Action(Drawer_ReflectionProbeMode),
+            CED.FadeGroup((s, p, o, i) => s.GetModeFaded((ReflectionProbeMode)i), 
+                k_Drawer_NOOP,                                      // Baked
+                CED.Action(Drawer_ModeSettingsRealtime),      // Realtime
+                CED.Action(Drawer_ModeSettingsCustom)         // Custom
+            ),
+            k_Drawer_Space,
+            CED.Action(Drawer_InfluenceShape),
+            CED.Action(Drawer_IntensityMultiplier),
+            k_Drawer_Space,
+            CED.Action(Drawer_Toolbar),
+            k_Drawer_Space
+        };
+
+        void Draw(CED.IDrawer[] drawers, UIState s, SerializedReflectionProbe p, Editor owner)
+        {
+            for (var i = 0; i < drawers.Length; i++)
+                drawers[i].Draw(s, p, owner);
+        }
+        #endregion
+
+        static void Drawer_InfluenceBoxSettings(UIState s, SerializedReflectionProbe p, Editor owner)
+        {
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(p.boxSize, CoreEditorUtils.GetContent("Box Size|The size of the box in which the reflections will be applied to objects. The value is not affected by the Transform of the Game Object."));
+            EditorGUILayout.PropertyField(p.boxOffset, CoreEditorUtils.GetContent("Box Offset|The center of the box in which the reflections will be applied to objects. The value is relative to the position of the Game Object."));
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                var center = p.boxSize.vector3Value;
+                var size = p.boxOffset.vector3Value;
+                if (ValidateAABB((ReflectionProbe)p.so.targetObject, ref center, ref size))
+                {
+                    p.boxOffset.vector3Value = center;
+                    p.boxSize.vector3Value = size;
+                }
+            }
+        }
+
+        static void Drawer_InfluenceSphereSettings(UIState s, SerializedReflectionProbe p, Editor owner)
+        {
+            EditorGUILayout.PropertyField(p.influenceSphereRadius, CoreEditorUtils.GetContent("Radius"));
+        }
+
+        static void Drawer_UseSeparateProjectionVolume(UIState s, SerializedReflectionProbe p, Editor owner)
+        {
+            EditorGUILayout.PropertyField(p.useSeparateProjectionVolume);
+        }
 
         #region Field Drawers
         static readonly GUIContent[] k_Content_ReflectionProbeMode = { new GUIContent("Baked"), new GUIContent("Custom"), new GUIContent("Realtime") };
@@ -22,7 +92,12 @@ namespace UnityEditor
 
         static void Drawer_InfluenceShape(UIState s, SerializedReflectionProbe p, Editor owner)
         {
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = p.influenceShape.hasMultipleDifferentValues;
             EditorGUILayout.PropertyField(p.influenceShape, CoreEditorUtils.GetContent("Shape"));
+            EditorGUI.showMixedValue = false;
+            if (EditorGUI.EndChangeCheck())
+                s.SetShapeTarget(p.influenceShape.intValue);
         }
 
         static void Drawer_IntensityMultiplier(UIState s, SerializedReflectionProbe p, Editor owner)
@@ -36,7 +111,6 @@ namespace UnityEditor
         {
             EditMode.SceneViewEditMode.ReflectionProbeBox,
             EditMode.SceneViewEditMode.GridBox,
-            EditMode.SceneViewEditMode.Collider,
             EditMode.SceneViewEditMode.ReflectionProbeOrigin
         };
         static GUIContent[] s_Toolbar_Contents = null;
@@ -46,21 +120,12 @@ namespace UnityEditor
             {
                 return s_Toolbar_Contents ?? (s_Toolbar_Contents = new []
                 {
-                    EditorGUIUtility.IconContent("d_EditCollider", "|Modify the influence volume of the reflection probe."),
-                    EditorGUIUtility.IconContent("d_PreMatCube", "|Modify the projection volume of the reflection probe."),
-                    EditorGUIUtility.IconContent("d_Navigation", "|Fit the reflection probe volume to the surrounding colliders."),
+                    EditorGUIUtility.IconContent("EditCollider", "|Modify the influence volume of the reflection probe."),
+                    EditorGUIUtility.IconContent("PreMatCube", "|Modify the projection volume of the reflection probe."),
                     EditorGUIUtility.IconContent("MoveTool", "|Move the selected objects.")
                 });
             }
         }
-        const string k_BaseSceneEditingToolText = "<color=grey>Probe Scene Editing Mode:</color> \n";
-        static readonly GUIContent[] k_ToolNames =
-        {
-            new GUIContent(k_BaseSceneEditingToolText + "Box Influence Bounds", ""),
-            new GUIContent(k_BaseSceneEditingToolText + "Box Projection Bounds", ""),
-            new GUIContent(k_BaseSceneEditingToolText + "Fit Projection Volume", ""),
-            new GUIContent(k_BaseSceneEditingToolText + "Probe Origin", "")
-        };
         static readonly Bounds k_BoundsZero = new Bounds();
         static Bounds DummyBound() { return k_BoundsZero; }
         static Editor s_LastInteractedEditor = null;
@@ -80,55 +145,25 @@ namespace UnityEditor
             if (EditorGUI.EndChangeCheck())
                 s_LastInteractedEditor = owner;
 
+            if (GUILayout.Button(EditorGUIUtility.IconContent("Navigation", "|Fit the reflection probe volume to the surrounding colliders.")))
+                s.AddOperation(Operation.FitVolumeToSurroundings);
+
             if (oldEditMode != EditMode.editMode)
             {
                 switch (EditMode.editMode)
                 {
                     case EditMode.SceneViewEditMode.ReflectionProbeOrigin:
-                        s.shouldUpdateOldLocalSpace = true;
+                        s.AddOperation(Operation.UpdateOldLocalSpace);
                         break;
                 }
-                // HDRP if (Toolbar.get != null)
-                // HDRP  Toolbar.get.Repaint();
             }
 
             GUILayout.FlexibleSpace();
-            GUILayout.EndHorizontal();
-
-            // Info box for tools
-            GUILayout.BeginHorizontal();
-            GUILayout.Space(EditorGUIUtility.labelWidth);
-            GUILayout.BeginVertical(EditorStyles.helpBox);
-            var helpText = k_BaseSceneEditingToolText;
-            if (s.sceneViewEditing)
-            {
-                var index = ArrayUtility.IndexOf(k_Toolbar_SceneViewEditModes, EditMode.editMode);
-                if (index >= 0)
-                    helpText = k_ToolNames[index].text;
-            }
-            GUILayout.Label(helpText, EditorStyles.miniLabel);
-            GUILayout.EndVertical();
-            GUILayout.Space(EditorGUIUtility.fieldWidth);
             GUILayout.EndHorizontal();
         }
         #endregion
 
         #region Mode Specific Settings
-        static void Drawer_ModeSettings(UIState s, SerializedReflectionProbe p, Editor owner)
-        {
-            for (var i = 0; i < k_ModeDrawers.Length; ++i)
-            {
-                if (EditorGUILayout.BeginFadeGroup(s.GetModeFaded((ReflectionProbeMode)i)))
-                {
-                    ++EditorGUI.indentLevel;
-                    k_ModeDrawers[i](s, p, owner);
-                    --EditorGUI.indentLevel;
-                }
-                EditorGUILayout.EndFadeGroup();
-            }
-        }
-
-        static readonly Drawer[] k_ModeDrawers = { Drawer_NOOP, Drawer_ModeSettingsRealtime , Drawer_ModeSettingsCustom };
         static void Drawer_ModeSettingsCustom(UIState s, SerializedReflectionProbe p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.renderDynamicObjects, CoreEditorUtils.GetContent("Dynamic Objects|If enabled dynamic objects are also rendered into the cubemap"));
