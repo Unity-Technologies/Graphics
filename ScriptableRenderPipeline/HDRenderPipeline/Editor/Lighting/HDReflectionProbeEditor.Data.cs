@@ -25,8 +25,11 @@ namespace UnityEditor.Experimental.Rendering
             internal SerializedProperty boxOffset;
             
             internal SerializedProperty influenceShape;
-            internal SerializedProperty influenceSphereRadius;
+            internal SerializedProperty influenceSphereRadius; 
             internal SerializedProperty useSeparateProjectionVolume;
+            internal SerializedProperty boxReprojectionVolumeSize;
+            internal SerializedProperty boxReprojectionVolumeCenter;
+            internal SerializedProperty sphereReprojectionVolumeRadius;
 
             public SerializedReflectionProbe(SerializedObject so, SerializedObject addso)
             {
@@ -45,6 +48,9 @@ namespace UnityEditor.Experimental.Rendering
                 influenceShape = addso.Find((HDAdditionalReflectionData d) => d.m_InfluenceShape);
                 influenceSphereRadius = addso.Find((HDAdditionalReflectionData d) => d.m_InfluenceSphereRadius);
                 useSeparateProjectionVolume = addso.Find((HDAdditionalReflectionData d) => d.m_UseSeparateProjectionVolume);
+                boxReprojectionVolumeSize = addso.Find((HDAdditionalReflectionData d) => d.m_BoxReprojectionVolumeSize);
+                boxReprojectionVolumeCenter = addso.Find((HDAdditionalReflectionData d) => d.m_BoxReprojectionVolumeCenter);
+                sphereReprojectionVolumeRadius = addso.Find((HDAdditionalReflectionData d) => d.m_SphereReprojectionVolumeRadius);
             }
         }
 
@@ -63,7 +69,7 @@ namespace UnityEditor.Experimental.Rendering
 
             Editor owner { get; set; }
             Operation operations { get; set; }
-
+            public AnimBool useSeparateProjectionVolumeDisplay { get; private set; }
             public bool HasOperation(Operation op) { return (operations & op) == op; }
             public void ClearOperation(Operation op) { operations &= ~op; }
             public void AddOperation(Operation op) { operations |= op; }
@@ -86,9 +92,13 @@ namespace UnityEditor.Experimental.Rendering
                     m_ModeSettingsDisplays[i] = new AnimBool();
                 for (var i = 0; i < m_InfluenceShapeDisplays.Length; i++)
                     m_InfluenceShapeDisplays[i] = new AnimBool();
+                useSeparateProjectionVolumeDisplay = new AnimBool();
             }
 
-            internal void Reset(Editor owner, UnityAction repaint, int modeValue, int shapeValue)
+            internal void Reset(
+                Editor owner, 
+                UnityAction repaint, 
+                SerializedReflectionProbe p)
             {
                 this.owner = owner;
                 operations = 0;
@@ -97,15 +107,19 @@ namespace UnityEditor.Experimental.Rendering
                 {
                     m_ModeSettingsDisplays[i].valueChanged.RemoveAllListeners();
                     m_ModeSettingsDisplays[i].valueChanged.AddListener(repaint);
-                    m_ModeSettingsDisplays[i].value = modeValue == i;
+                    m_ModeSettingsDisplays[i].value = p.mode.intValue == i;
                 }
 
                 for (var i = 0; i < m_InfluenceShapeDisplays.Length; i++)
                 {
                     m_InfluenceShapeDisplays[i].valueChanged.RemoveAllListeners();
                     m_InfluenceShapeDisplays[i].valueChanged.AddListener(repaint);
-                    m_InfluenceShapeDisplays[i].value = shapeValue == i;
+                    m_InfluenceShapeDisplays[i].value = p.influenceShape.intValue == i;
                 }
+
+                useSeparateProjectionVolumeDisplay.valueChanged.RemoveAllListeners();
+                useSeparateProjectionVolumeDisplay.valueChanged.AddListener(repaint);
+                useSeparateProjectionVolumeDisplay.value = p.useSeparateProjectionVolume.boolValue;
             }
 
             public float GetModeFaded(ReflectionProbeMode mode)

@@ -1,4 +1,6 @@
-﻿namespace UnityEditor.Experimental.Rendering
+﻿using System.Collections.Generic;
+
+namespace UnityEditor.Experimental.Rendering
 {
     public static class CoreEditorDrawer<TUIState, TData>
     {
@@ -11,22 +13,23 @@
         public delegate float FloatGetter(TUIState s, TData p, Editor owner, int i);
         public delegate SerializedProperty SerializedPropertyGetter(TUIState s, TData p, Editor o);
 
+        public static readonly IDrawer space = Action((state, data, owner) => EditorGUILayout.Space());
+        public static readonly IDrawer noop = Action((state, data, owner) => { });
 
         public static IDrawer Action(params ActionDrawer[] drawers)
         {
             return new ActionDrawerInternal(drawers);
         }
 
-        public static IDrawer FadeGroup(FloatGetter fadeGetter, params IDrawer[] groupDrawers)
+        public static IDrawer FadeGroup(FloatGetter fadeGetter, bool indent, params IDrawer[] groupDrawers)
         {
-            return new FadeGroupsDrawerInternal(fadeGetter, groupDrawers);
+            return new FadeGroupsDrawerInternal(fadeGetter, indent, groupDrawers);
         }
 
-        public static IDrawer FoldoutGroup(string title, SerializedPropertyGetter root, params IDrawer[] bodies)
+        public static IDrawer FoldoutGroup(string title, SerializedPropertyGetter root, bool indent, params IDrawer[] bodies)
         {
-            return new FoldoutDrawerInternal(title, root, bodies);
+            return new FoldoutDrawerInternal(title, root, indent, bodies);
         }
-
 
         class ActionDrawerInternal : IDrawer
         {
@@ -47,11 +50,13 @@
         {
             IDrawer[] groupDrawers;
             FloatGetter getter;
+            bool indent;
 
-            public FadeGroupsDrawerInternal(FloatGetter getter, params IDrawer[] groupDrawers)
+            public FadeGroupsDrawerInternal(FloatGetter getter, bool indent, params IDrawer[] groupDrawers)
             {
                 this.groupDrawers = groupDrawers;
                 this.getter = getter;
+                this.indent = indent;
             }
 
             void IDrawer.Draw(TUIState s, TData p, Editor owner)
@@ -60,9 +65,11 @@
                 {
                     if (EditorGUILayout.BeginFadeGroup(getter(s, p, owner, i)))
                     {
-                        ++EditorGUI.indentLevel;
+                        if (indent)
+                            ++EditorGUI.indentLevel;
                         groupDrawers[i].Draw(s, p, owner);
-                        --EditorGUI.indentLevel;
+                        if (indent)
+                            --EditorGUI.indentLevel;
                     }
                     EditorGUILayout.EndFadeGroup();
                 }
@@ -74,12 +81,14 @@
             IDrawer[] bodies;
             SerializedPropertyGetter root;
             string title;
+            bool indent;
 
-            public FoldoutDrawerInternal(string title, SerializedPropertyGetter root, params IDrawer[] bodies)
+            public FoldoutDrawerInternal(string title, SerializedPropertyGetter root, bool indent, params IDrawer[] bodies)
             {
                 this.title = title;
                 this.root = root;
                 this.bodies = bodies;
+                this.indent = indent;
             }
 
             public void Draw(TUIState s, TData p, Editor owner)
@@ -89,12 +98,23 @@
                 r.isExpanded = CoreEditorUtils.DrawHeaderFoldout(title, r.isExpanded);
                 if (r.isExpanded)
                 {
-                    ++EditorGUI.indentLevel;
+                    if (indent)
+                        ++EditorGUI.indentLevel;
                     for (var i = 0; i < bodies.Length; i++)
                         bodies[i].Draw(s, p, owner);
-                    --EditorGUI.indentLevel;
+                    if (indent)
+                        --EditorGUI.indentLevel;
                 }
             }
+        }
+    }
+
+    public static class CoreEditorDrawersExtensions
+    {
+        public static void Draw<TUIState, TData>(this IEnumerable<CoreEditorDrawer<TUIState, TData>.IDrawer> drawers, TUIState s, TData p, Editor o)
+        {
+            foreach (var drawer in drawers)
+                drawer.Draw(s, p, o);
         }
     }
 }

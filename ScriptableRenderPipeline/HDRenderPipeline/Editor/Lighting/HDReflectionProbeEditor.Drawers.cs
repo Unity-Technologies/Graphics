@@ -9,10 +9,6 @@ namespace UnityEditor.Experimental.Rendering
 
     partial class HDReflectionProbeEditor
     {
-        static readonly CED.IDrawer k_Drawer_Space = CED.Action(Drawer_Space);
-        static readonly CED.IDrawer k_Drawer_NOOP = CED.Action(Drawer_NOOP);
-
-
         static void Drawer_NOOP(UIState s, SerializedReflectionProbe p, Editor owner) { }
         static void Drawer_Space(UIState s, SerializedReflectionProbe p, Editor owner) { EditorGUILayout.Space(); }
 
@@ -20,35 +16,48 @@ namespace UnityEditor.Experimental.Rendering
         static readonly CED.IDrawer k_InfluenceVolumeSection = CED.FoldoutGroup(
             "Influence volume settings",
             (s, p, o) => p.blendDistance,
+            true,
             CED.FadeGroup(
                 (s, p, o, i) => s.GetShapeFaded((ReflectionInfluenceShape)i),
+                false,
                 CED.Action(Drawer_InfluenceBoxSettings),      // Box
                 CED.Action(Drawer_InfluenceSphereSettings)    // Sphere
             ),
             CED.Action(Drawer_UseSeparateProjectionVolume)
         );
 
+        static readonly CED.IDrawer k_SeparateProjectionVolumeSection = CED.FadeGroup(
+            (s, p, o, i) => s.useSeparateProjectionVolumeDisplay.faded,
+            false,
+            CED.FoldoutGroup(
+                "Reprojection volume settings",
+                (s, p, o) => p.useSeparateProjectionVolume,
+                true,
+                CED.FadeGroup(
+                    (s, p, o, i) => s.GetShapeFaded((ReflectionInfluenceShape)i),
+                    false,
+                    CED.Action(Drawer_ProjectionBoxSettings), // Box
+                    CED.Action(Drawer_ProjectionSphereSettings) // Sphere
+                )
+            )
+        );
+
         static readonly CED.IDrawer[] k_PrimarySection =
         {
             CED.Action(Drawer_ReflectionProbeMode),
             CED.FadeGroup((s, p, o, i) => s.GetModeFaded((ReflectionProbeMode)i), 
-                k_Drawer_NOOP,                                      // Baked
+                true,
+                CED.noop,                                      // Baked
                 CED.Action(Drawer_ModeSettingsRealtime),      // Realtime
                 CED.Action(Drawer_ModeSettingsCustom)         // Custom
             ),
-            k_Drawer_Space,
+            CED.space,
             CED.Action(Drawer_InfluenceShape),
             CED.Action(Drawer_IntensityMultiplier),
-            k_Drawer_Space,
+            CED.space,
             CED.Action(Drawer_Toolbar),
-            k_Drawer_Space
+            CED.space
         };
-
-        void Draw(CED.IDrawer[] drawers, UIState s, SerializedReflectionProbe p, Editor owner)
-        {
-            for (var i = 0; i < drawers.Length; i++)
-                drawers[i].Draw(s, p, owner);
-        }
         #endregion
 
         static void Drawer_InfluenceBoxSettings(UIState s, SerializedReflectionProbe p, Editor owner)
@@ -69,6 +78,17 @@ namespace UnityEditor.Experimental.Rendering
             }
         }
 
+        static void Drawer_ProjectionBoxSettings(UIState s, SerializedReflectionProbe p, Editor owner)
+        {
+            EditorGUILayout.PropertyField(p.boxReprojectionVolumeSize);
+            EditorGUILayout.PropertyField(p.boxReprojectionVolumeCenter);
+        }
+
+        static void Drawer_ProjectionSphereSettings(UIState s, SerializedReflectionProbe p, Editor owner)
+        {
+            EditorGUILayout.PropertyField(p.sphereReprojectionVolumeRadius);
+        }
+
         static void Drawer_InfluenceSphereSettings(UIState s, SerializedReflectionProbe p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.influenceSphereRadius, CoreEditorUtils.GetContent("Radius"));
@@ -77,6 +97,7 @@ namespace UnityEditor.Experimental.Rendering
         static void Drawer_UseSeparateProjectionVolume(UIState s, SerializedReflectionProbe p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.useSeparateProjectionVolume);
+            s.useSeparateProjectionVolumeDisplay.target = p.useSeparateProjectionVolume.boolValue;
         }
 
         #region Field Drawers
