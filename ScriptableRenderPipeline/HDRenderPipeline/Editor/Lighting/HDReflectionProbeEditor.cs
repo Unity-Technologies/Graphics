@@ -17,8 +17,6 @@ namespace UnityEditor.Experimental.Rendering
         SerializedObject m_AdditionalDataSerializedObject;
         UIState m_UIState = new UIState();
 
-        Matrix4x4 m_OldLocalSpace = Matrix4x4.identity;
-
         void OnEnable()
         {
             var additionalData = CoreEditorUtils.GetAdditionalData<HDAdditionalReflectionData>(targets);
@@ -53,10 +51,10 @@ namespace UnityEditor.Experimental.Rendering
             HideAdditionalComponents(false);
         }
 
-        void PerformOperations(UIState s, SerializedReflectionProbe p, HDReflectionProbeEditor o)
+        static void PerformOperations(UIState s, SerializedReflectionProbe p, HDReflectionProbeEditor o)
         {
             if (s.HasAndClearOperation(Operation.UpdateOldLocalSpace))
-                UpdateOldLocalSpace();
+                s.UpdateOldLocalSpace((ReflectionProbe)p.so.targetObject);
         }
 
         void HideAdditionalComponents(bool visible)
@@ -76,14 +74,9 @@ namespace UnityEditor.Experimental.Rendering
             }
         }
 
-        void UpdateOldLocalSpace()
-        {
-            m_OldLocalSpace = GetLocalSpace((ReflectionProbe)target);
-        }
-
         static Matrix4x4 GetLocalSpace(ReflectionProbe probe)
         {
-            Vector3 t = probe.transform.position;
+            var t = probe.transform.position;
             return Matrix4x4.TRS(t, GetLocalSpaceRotation(probe), Vector3.one);
         }
 

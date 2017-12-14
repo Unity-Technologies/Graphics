@@ -34,6 +34,7 @@ namespace UnityEditor.Experimental.Rendering
             "Influence volume settings",
             (s, p, o) => p.blendDistance,
             true,
+            CED.Action(Drawer_DistanceBlend),
             CED.FadeGroup(
                 (s, p, o, i) => s.GetShapeFaded((ReflectionInfluenceShape)i),
                 false,
@@ -181,6 +182,11 @@ namespace UnityEditor.Experimental.Rendering
         }
 
         #region Influence Volume
+        static void Drawer_DistanceBlend(UIState s, SerializedReflectionProbe p, Editor owner)
+        {
+            EditorGUILayout.PropertyField(p.blendDistance, CoreEditorUtils.GetContent("Blend Distance|Area around the probe where it is blended with other probes. Only used in deferred probes."));
+        }
+
         static void Drawer_InfluenceBoxSettings(UIState s, SerializedReflectionProbe p, Editor owner)
         {
             EditorGUI.BeginChangeCheck();

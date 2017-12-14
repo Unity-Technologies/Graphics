@@ -1,7 +1,8 @@
 ﻿using System;
 using UnityEditor.AnimatedValues;
-using UnityEditor.Experimental.Rendering;
+using UnityEditor.IMGUI.Controls;
 using UnityEditorInternal;
+using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -88,6 +89,14 @@ namespace UnityEditor.Experimental.Rendering
             public void ClearOperation(Operation op) { operations &= ~op; }
             public void AddOperation(Operation op) { operations |= op; }
 
+            public BoxBoundsHandle boxInfluenceBoundsHandle = new BoxBoundsHandle();
+            public BoxBoundsHandle boxProjectionBoundsHandle = new BoxBoundsHandle();
+            public BoxBoundsHandle boxBlendHandle = new BoxBoundsHandle();
+            public SphereBoundsHandle influenceSphereHandle = new SphereBoundsHandle();
+            public SphereBoundsHandle projectionSphereHandle = new SphereBoundsHandle();
+            public SphereBoundsHandle sphereBlendHandle = new SphereBoundsHandle();
+            public Matrix4x4 oldLocalSpace = Matrix4x4.identity;
+
             public bool HasAndClearOperation(Operation op)
             {
                 var has = HasOperation(op);
@@ -162,6 +171,11 @@ namespace UnityEditor.Experimental.Rendering
             {
                 return editMode == EditMode.SceneViewEditMode.ReflectionProbeBox || editMode == EditMode.SceneViewEditMode.Collider || editMode == EditMode.SceneViewEditMode.GridBox ||
                     editMode == EditMode.SceneViewEditMode.ReflectionProbeOrigin;
+            }
+
+            internal void UpdateOldLocalSpace(ReflectionProbe target)
+            {
+                oldLocalSpace = GetLocalSpace(target);
             }
         }
     }
