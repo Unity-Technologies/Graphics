@@ -61,22 +61,14 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
-        public string propertyName
-        {
-            get { return string.Format("{0}_{1}_Uniform", name, GetVariableNameForNode()); }
-        }
-
         public override string GetVariableNameForSlot(int slotId)
         {
-            return propertyName;
+            return GetVariableNameForNode();
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            //if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
-            //    return;
-
-            visitor.AddShaderChunk(precision + "3x3 " + propertyName + " = " + precision + "3x3 (" + m_Row0.x + ", " + m_Row0.y + ", " + m_Row0.z + ", " + m_Row1.x + ", " + m_Row1.y + ", " + m_Row1.z + ", " + m_Row2.x + ", " + m_Row2.y + ", " + m_Row2.z + ");", true);
+            visitor.AddShaderChunk(precision + "3x3 " + GetVariableNameForNode() + " = " + precision + "3x3 (" + m_Row0.x + ", " + m_Row0.y + ", " + m_Row0.z + ", " + m_Row1.x + ", " + m_Row1.y + ", " + m_Row1.z + ", " + m_Row2.x + ", " + m_Row2.y + ", " + m_Row2.z + ");", true);
         }
 
         [SerializeField]

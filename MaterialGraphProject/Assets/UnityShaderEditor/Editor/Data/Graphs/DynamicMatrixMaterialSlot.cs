@@ -69,10 +69,39 @@ namespace UnityEditor.ShaderGraph
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
         {
+            if (!generationMode.IsPreview())
+                return;
+
+            var matOwner = owner as AbstractMaterialNode;
+            if (matOwner == null)
+                throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
+
+            IShaderProperty property;
+            switch (concreteValueType)
+            {
+                case ConcreteSlotValueType.Matrix4:
+                    property = new Matrix4ShaderProperty();
+                    break;
+                case ConcreteSlotValueType.Matrix3:
+                    property = new Matrix3ShaderProperty();
+                    break;
+                case ConcreteSlotValueType.Matrix2:
+                    property = new Matrix2ShaderProperty();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            property.overrideReferenceName = matOwner.GetVariableNameForSlot(id);
+            property.generatePropertyBlock = false;
+            properties.AddShaderProperty(property);
         }
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)
         {
+            var slot = foundSlot as DynamicMatrixMaterialSlot;
+            if (slot != null)
+                value = slot.value;
         }
     }
 }

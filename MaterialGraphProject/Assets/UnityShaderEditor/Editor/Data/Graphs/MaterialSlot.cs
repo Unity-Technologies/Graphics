@@ -135,15 +135,19 @@ namespace UnityEditor.ShaderGraph
             {
                 case SlotValueType.SamplerState:
                     return inputType == SlotValueType.SamplerState;
+                case SlotValueType.DynamicMatrix:
                 case SlotValueType.Matrix4:
                     return inputType == SlotValueType.Matrix4
                         || inputType == SlotValueType.Matrix3
-                        || inputType == SlotValueType.Matrix2;
+                        || inputType == SlotValueType.Matrix2
+                        || inputType == SlotValueType.DynamicMatrix;
                 case SlotValueType.Matrix3:
                     return inputType == SlotValueType.Matrix3
-                        || inputType == SlotValueType.Matrix2;
+                        || inputType == SlotValueType.Matrix2
+                        || inputType == SlotValueType.DynamicMatrix;
                 case SlotValueType.Matrix2:
-                    return inputType == SlotValueType.Matrix2;
+                    return inputType == SlotValueType.Matrix2
+                        || inputType == SlotValueType.DynamicMatrix;
                 case SlotValueType.Texture2D:
                     return inputType == SlotValueType.Texture2D;
                 case SlotValueType.Cubemap:

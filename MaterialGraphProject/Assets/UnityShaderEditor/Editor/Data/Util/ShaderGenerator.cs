@@ -199,6 +199,10 @@ namespace UnityEditor.ShaderGraph
                         default:
                             return kErrorString;
                     }
+                case ConcreteSlotValueType.Matrix3:
+                    return rawOutput;
+                case ConcreteSlotValueType.Matrix2:
+                    return rawOutput;
                 default:
                     return kErrorString;
             }
