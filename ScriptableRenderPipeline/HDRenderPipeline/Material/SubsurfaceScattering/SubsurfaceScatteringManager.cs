@@ -41,6 +41,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public SubsurfaceScatteringManager()
         {
+            m_SSSBuffer0 = HDShaderIDs._SSSBufferTexture[0];
             m_SSSBuffer0RT = new RenderTargetIdentifier(m_SSSBuffer0);
 
             // Use with Jimenez

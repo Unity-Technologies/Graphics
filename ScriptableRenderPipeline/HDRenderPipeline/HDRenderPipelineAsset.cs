@@ -20,6 +20,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             set { m_RenderPipelineResources = value; }
         }
 
+        public FrameSettings defaultFrameSettings = new FrameSettings(); // This are the defaultFrameSettings for all the camera and apply to sceneView
         public SubsurfaceScatteringSettings sssSettings;
 
         // Default Material / Shader

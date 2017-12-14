@@ -35,7 +35,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent shadowsAtlasHeight = new GUIContent("Atlas Height");
 
             // Tile pass Settings
-            public readonly GUIContent tileLightLoopSettings = new GUIContent("Tile Light Loop Settings");
+            public readonly GUIContent lightLoopSettings = new GUIContent("Light Loop Settings");
             public readonly GUIContent enableTileAndCluster = new GUIContent("Tile/Clustered");
             public readonly GUIContent enableComputeLightEvaluation = new GUIContent("Compute Light Evaluation");
             public readonly GUIContent enableComputeLightVariants = new GUIContent("Compute Light Variants");
