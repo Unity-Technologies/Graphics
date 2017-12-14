@@ -100,7 +100,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_PreviewRenderHandle = previewManager.masterRenderData;
             m_PreviewRenderHandle.onPreviewChanged += OnPreviewChanged;
 
-            m_PreviewMeshPicker.SetValueAndNotify(m_Graph.previewMesh);
+            m_PreviewMeshPicker.SetValueAndNotify(m_Graph.previewData.mesh);
 
             foreach (var property in m_Graph.properties)
                 m_PropertyItems.Add(new ShaderPropertyView(m_Graph, property));
@@ -167,13 +167,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
             masterNode.onModified(masterNode, ModificationScope.Node);
 
-            if (m_Graph.previewMesh != changedMesh)
+            if (m_Graph.previewData.mesh != changedMesh)
             {
                 m_Graph.previewData.rotation = Quaternion.identity;
                 m_Graph.previewData.scale = 1f;
             }
 
-            m_Graph.previewMesh = changedMesh;
+            m_Graph.previewData.mesh = changedMesh;
         }
 
         public void UpdateSelection(IEnumerable<INode> nodes)
