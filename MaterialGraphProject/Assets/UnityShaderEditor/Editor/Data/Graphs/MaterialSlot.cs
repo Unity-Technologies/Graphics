@@ -76,6 +76,8 @@ namespace UnityEditor.ShaderGraph
             {
                 case SlotValueType.SamplerState:
                     return new SamplerStateMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden);
+                case SlotValueType.DynamicMatrix:
+                    return new DynamicMatrixMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden);
                 case SlotValueType.Matrix4:
                     return new Matrix4MaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden);
                 case SlotValueType.Matrix3:
