@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
@@ -6,6 +7,12 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     public class Matrix2MaterialSlot : MaterialSlot
     {
+        [SerializeField]
+        private Matrix4x4 m_Value;
+
+        [SerializeField]
+        private Matrix4x4 m_DefaultValue;
+
         public Matrix2MaterialSlot()
         {
         }
@@ -21,19 +28,58 @@ namespace UnityEditor.ShaderGraph
         {
         }
 
+        public Matrix4x4 defaultValue { get { return m_DefaultValue; } }
+
+        public Matrix4x4 value
+        {
+            get { return m_Value; }
+            set { m_Value = value; }
+        }
+
         protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
         {
             return precision + "2x2 (1,0,0,1)";
         }
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
-        {}
-
-        public override void CopyValuesFrom(MaterialSlot foundSlot)
         {
+            if (!generationMode.IsPreview())
+                return;
+
+            var matOwner = owner as AbstractMaterialNode;
+            if (matOwner == null)
+                throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
+
+            var property = new Matrix2ShaderProperty()
+            {
+                overrideReferenceName = matOwner.GetVariableNameForSlot(id),
+                generatePropertyBlock = false,
+                value = value
+            };
+            properties.AddShaderProperty(property);
+        }
+
+        public override PreviewProperty GetPreviewProperty(string name)
+        {
+            var pp = new PreviewProperty
+            {
+                name = name,
+                propType = ConvertConcreteSlotValueTypeToPropertyType(concreteValueType),
+                vector4Value = new Vector4(value.GetRow(0).x, value.GetRow(0).y, 0, 0),
+                floatValue = value.GetRow(0).x,
+                colorValue = new Vector4(value.GetRow(0).x, value.GetRow(0).x, 0, 0)
+            };
+            return pp;
         }
 
         public override SlotValueType valueType { get { return SlotValueType.Matrix2; } }
         public override ConcreteSlotValueType concreteValueType { get { return ConcreteSlotValueType.Matrix2; } }
+
+        public override void CopyValuesFrom(MaterialSlot foundSlot)
+        {
+            var slot = foundSlot as Matrix2MaterialSlot;
+            if (slot != null)
+                value = slot.value;
+        }
     }
 }
