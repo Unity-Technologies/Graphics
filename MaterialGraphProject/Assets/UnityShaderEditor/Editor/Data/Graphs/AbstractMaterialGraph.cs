@@ -228,6 +228,18 @@ namespace UnityEditor.ShaderGraph
             };
             result[worldPosNode] = SerializationHelper.GetTypeSerializableAsString(typeof(PositionNode));
 
+            var sampleTexture2DNode = new SerializationHelper.TypeSerializationInfo
+            {
+                fullName = "UnityEditor.ShaderGraph.Texture2DNode"
+            };
+            result[sampleTexture2DNode] = SerializationHelper.GetTypeSerializableAsString(typeof(SampleTexture2DNode));
+
+            var sampleCubemapNode = new SerializationHelper.TypeSerializationInfo
+            {
+                fullName = "UnityEditor.ShaderGraph.CubemapNode"
+            };
+            result[sampleCubemapNode] = SerializationHelper.GetTypeSerializableAsString(typeof(SampleCubemapNode));
+
             return result;
         }
 
