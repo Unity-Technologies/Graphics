@@ -6,8 +6,8 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input", "Texture", "Cubemap")]
-    public class CubemapNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireViewDirection, IMayRequireNormal
+    [Title("Input", "Texture", "Sample Cubemap")]
+    public class SampleCubemapNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireViewDirection, IMayRequireNormal
     {
         public const int OutputSlotId = 0;
         public const int CubemapInputId = 1;
@@ -23,9 +23,9 @@ namespace UnityEditor.ShaderGraph
 
         public override bool hasPreview { get { return true; } }
 
-        public CubemapNode()
+        public SampleCubemapNode()
         {
-            name = "Cubemap";
+            name = "Sample Cubemap";
             UpdateNodeAfterDeserialization();
         }
 
