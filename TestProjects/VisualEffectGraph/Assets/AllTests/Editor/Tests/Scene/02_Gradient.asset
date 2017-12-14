@@ -1714,7 +1714,7 @@ MonoBehaviour:
   - {fileID: 114597739427807632}
   m_exposedName: initialGradient
   m_exposed: 1
-  m_order: 0
+  m_order: 1
   m_Min:
     m_Type:
       m_SerializableType: 
