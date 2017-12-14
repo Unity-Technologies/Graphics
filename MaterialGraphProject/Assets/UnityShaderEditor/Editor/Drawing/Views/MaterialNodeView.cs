@@ -204,10 +204,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var slots = node.GetSlots<MaterialSlot>().ToList();
 
-                var anchorsToRemove = new List<VisualElement>();
-                foreach (var anchor in inputContainer.Children())
-                    if (!slots.Contains(anchor.userData as MaterialSlot))
-                        anchorsToRemove.Add(anchor);
+                var anchorsToRemove = inputContainer.Children().ToList();
                 foreach (var anchorElement in anchorsToRemove)
                 {
                     inputContainer.Remove(anchorElement);
@@ -220,10 +217,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
 
-                anchorsToRemove.Clear();
-                foreach (var anchor in outputContainer.Children())
-                    if (!slots.Contains(anchor.userData as MaterialSlot))
-                        anchorsToRemove.Add(anchor);
+                anchorsToRemove = outputContainer.Children().ToList();
                 foreach (var ve in anchorsToRemove)
                     outputContainer.Remove(ve);
 
@@ -233,7 +227,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     port.portName = slot.displayName;
                 }
 
-                AddSlots(slots.Except(inputContainer.Children().Concat(outputContainer.Children()).Select(data => data.userData as MaterialSlot)));
+                AddSlots(slots);
 
                 if (inputContainer.childCount > 0)
                     inputContainer.Sort((x, y) => slots.IndexOf(x.userData as MaterialSlot) - slots.IndexOf(y.userData as MaterialSlot));

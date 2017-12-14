@@ -99,13 +99,13 @@ namespace UnityEditor.ShaderGraph
         public sealed override void UpdateNodeAfterDeserialization()
         {
             name = "PBR Master";
-            AddSlot(new Vector3MaterialSlot(AlbedoSlotId, AlbedoSlotName, AlbedoSlotName, SlotType.Input, new Vector4(0.5f, 0.5f, 0.5f), ShaderStage.Fragment));
+            AddSlot(new ColorRGBMaterialSlot(AlbedoSlotId, AlbedoSlotName, AlbedoSlotName, SlotType.Input, Color.grey, ShaderStage.Fragment));
             AddSlot(new Vector3MaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, SlotType.Input, new Vector3(0, 0, 1), ShaderStage.Fragment));
-            AddSlot(new Vector3MaterialSlot(EmissionSlotId, EmissionSlotName, EmissionSlotName, SlotType.Input, Vector3.zero, ShaderStage.Fragment));
+            AddSlot(new ColorRGBMaterialSlot(EmissionSlotId, EmissionSlotName, EmissionSlotName, SlotType.Input, Color.black, ShaderStage.Fragment));
             if (model == Model.Metallic)
                 AddSlot(new Vector1MaterialSlot(MetallicSlotId, MetallicSlotName, MetallicSlotName, SlotType.Input, 0, ShaderStage.Fragment));
             else
-                AddSlot(new Vector3MaterialSlot(SpecularSlotId, SpecularSlotName, SpecularSlotName, SlotType.Input, Vector3.zero, ShaderStage.Fragment));
+                AddSlot(new ColorRGBMaterialSlot(SpecularSlotId, SpecularSlotName, SpecularSlotName, SlotType.Input, Color.grey, ShaderStage.Fragment));
             AddSlot(new Vector1MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, 0.5f, ShaderStage.Fragment));
             AddSlot(new Vector1MaterialSlot(OcclusionSlotId, OcclusionSlotName, OcclusionSlotName, SlotType.Input, 1f, ShaderStage.Fragment));
             AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1f, ShaderStage.Fragment));
@@ -122,7 +122,7 @@ namespace UnityEditor.ShaderGraph
                 SmoothnessSlotId,
                 OcclusionSlotId,
                 AlphaSlotId
-            });
+            }, true);
         }
 
         public override string GetShader(GenerationMode mode, string outputName, out List<PropertyCollector.TextureInfo> configuredTextures)
