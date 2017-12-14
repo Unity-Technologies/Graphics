@@ -83,7 +83,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Vector4 shadowMaskSelector; // Use with ShadowMask feature
 
-        public Vector2 size;      // Used by area and pyramid projector lights
+        public Vector2 size;        // Used by area (X = length, Y = width) and box projector lights (X = range)
         public GPULightType lightType;
         public float minRoughness;  // This is use to give a small "area" to punctual light, as if we have a light with a radius.
     };
