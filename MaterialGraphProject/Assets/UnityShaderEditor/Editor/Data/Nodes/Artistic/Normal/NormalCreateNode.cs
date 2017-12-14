@@ -17,12 +17,12 @@ namespace UnityEditor.ShaderGraph
         public const int StrengthInputId = 4;
         public const int OutputSlotId = 5;
 
-        const string kTextureInputName = "Texture";
-        const string kUVInputName = "UV";
-        const string kSamplerInputName = "Sampler";
-        const string kOffsetInputName = "Offset";
-        const string kStrengthInputName = "Strength";
-        const string kOutputSlotName = "Out";
+        const string k_TextureInputName = "Texture";
+        const string k_UVInputName = "UV";
+        const string k_SamplerInputName = "Sampler";
+        const string k_OffsetInputName = "Offset";
+        const string k_StrengthInputName = "Strength";
+        const string k_OutputSlotName = "Out";
 
         public NormalCreateNode()
         {
@@ -39,33 +39,22 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new Texture2DInputMaterialSlot(TextureInputId, kTextureInputName, kTextureInputName));
-            AddSlot(new UVMaterialSlot(UVInputId, kUVInputName, kUVInputName, UVChannel.uv0));
-            AddSlot(new SamplerStateMaterialSlot(SamplerInputId, kSamplerInputName, kSamplerInputName, SlotType.Input));
-            AddSlot(new Vector1MaterialSlot(OffsetInputId, kOffsetInputName, kOffsetInputName, SlotType.Input, 0.5f));
-            AddSlot(new Vector1MaterialSlot(StrengthInputId, kStrengthInputName, kStrengthInputName, SlotType.Input, 8f));
-            AddSlot(new Vector3MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector3.zero));
+            AddSlot(new Texture2DInputMaterialSlot(TextureInputId, k_TextureInputName, k_TextureInputName));
+            AddSlot(new UVMaterialSlot(UVInputId, k_UVInputName, k_UVInputName, UVChannel.uv0));
+            AddSlot(new SamplerStateMaterialSlot(SamplerInputId, k_SamplerInputName, k_SamplerInputName, SlotType.Input));
+            AddSlot(new Vector1MaterialSlot(OffsetInputId, k_OffsetInputName, k_OffsetInputName, SlotType.Input, 0.5f));
+            AddSlot(new Vector1MaterialSlot(StrengthInputId, k_StrengthInputName, k_StrengthInputName, SlotType.Input, 8f));
+            AddSlot(new Vector3MaterialSlot(OutputSlotId, k_OutputSlotName, k_OutputSlotName, SlotType.Output, Vector3.zero));
             RemoveSlotsNameNotMatching(new[] { TextureInputId, UVInputId, SamplerInputId, OffsetInputId, StrengthInputId, OutputSlotId });
-        }
-
-        string GetFunctionPrototype(string textureIn, string samplerIn, string uvIn, string offsetIn, string strengthIn, string argOut)
-        {
-            return string.Format("void {0} ({1} {2}, {3} {4}, {5} {6}, {7} {8}, {9} {10}, out {11} {12})", GetFunctionName(),
-                ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(TextureInputId).concreteValueType), textureIn,
-                ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(SamplerInputId).concreteValueType), samplerIn,
-                ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(UVInputId).concreteValueType), uvIn,
-                ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(OffsetInputId).concreteValueType), offsetIn,
-                ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(StrengthInputId).concreteValueType), strengthIn,
-                ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), argOut);
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            string textureValue = GetSlotValue(TextureInputId, generationMode);
-            string uvValue = GetSlotValue(UVInputId, generationMode);
-            string offsetValue = GetSlotValue(OffsetInputId, generationMode);
-            string strengthValue = GetSlotValue(StrengthInputId, generationMode);
-            string outputValue = GetSlotValue(OutputSlotId, generationMode);
+            var textureValue = GetSlotValue(TextureInputId, generationMode);
+            var uvValue = GetSlotValue(UVInputId, generationMode);
+            var offsetValue = GetSlotValue(OffsetInputId, generationMode);
+            var strengthValue = GetSlotValue(StrengthInputId, generationMode);
+            var outputValue = GetSlotValue(OutputSlotId, generationMode);
 
             var samplerSlot = FindInputSlot<MaterialSlot>(SamplerInputId);
             var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
@@ -75,38 +64,39 @@ namespace UnityEditor.ShaderGraph
             else
                 samplerValue = string.Format("sampler{0}", GetSlotValue(TextureInputId, generationMode));
 
-            visitor.AddShaderChunk(string.Format("{0} {1};", ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), GetVariableNameForSlot(OutputSlotId)), true);
-            visitor.AddShaderChunk(GetFunctionCallBody(textureValue, samplerValue, uvValue, offsetValue, strengthValue, outputValue), true);
-        }
+            var sb = new ShaderStringBuilder();
+            sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision), GetVariableNameForSlot(OutputSlotId));
+            sb.AppendLine("{0}({1}, {2}, {3}, {4}, {5}, {6});", GetFunctionName(), textureValue, samplerValue, uvValue, offsetValue, strengthValue, outputValue);
 
-        string GetFunctionCallBody(string textureValue, string samplerValue, string uvValue, string offsetValue, string strengthValue, string outputValue)
-        {
-            return GetFunctionName() + " (" + textureValue + ", " + samplerValue + ", " + uvValue + ", " + offsetValue + ", " + strengthValue + ", " + outputValue + ");";
+            visitor.AddShaderChunk(sb.ToString(), false);
         }
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            var sg = new ShaderGenerator();
-            sg.AddShaderChunk(GetFunctionPrototype("Texture", "Sampler", "UV", "Offset", "Strength", "Out"), false);
-            sg.AddShaderChunk("{", false);
-            sg.Indent();
+            var sb = new ShaderStringBuilder();
+            sb.AppendLine("void {0}({1} Texture, {2} Sampler, {3} UV, {4} Offset, {5} Strength, out {6} Out)", GetFunctionName(),
+                FindInputSlot<MaterialSlot>(TextureInputId).concreteValueType.ToString(precision),
+                FindInputSlot<MaterialSlot>(SamplerInputId).concreteValueType.ToString(precision),
+                FindInputSlot<MaterialSlot>(UVInputId).concreteValueType.ToString(precision),
+                FindInputSlot<MaterialSlot>(OffsetInputId).concreteValueType.ToString(precision),
+                FindInputSlot<MaterialSlot>(StrengthInputId).concreteValueType.ToString(precision),
+                FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision));
+            using (sb.BlockScope())
+            {
+                sb.AppendLine("Offset = pow(Offset, 3) * 0.1;");
+                sb.AppendLine("{0}2 offsetU = float2(UV.x + Offset, UV.y);", precision);
+                sb.AppendLine("{0}2 offsetV = float2(UV.x, UV.y + Offset);", precision);
 
-            sg.AddShaderChunk("Offset = pow(Offset, 3) * 0.1;", false);
-            sg.AddShaderChunk(string.Format("{0}2 offsetU = float2(UV.x + Offset, UV.y);", precision), false);
-            sg.AddShaderChunk(string.Format("{0}2 offsetV = float2(UV.x, UV.y + Offset);", precision), false);
+                sb.AppendLine("{0} normalSample = Texture.Sample(Sampler, UV);", precision);
+                sb.AppendLine("{0} uSample = Texture.Sample(Sampler, offsetU);", precision);
+                sb.AppendLine("{0} vSample = Texture.Sample(Sampler, offsetV);", precision);
 
-            sg.AddShaderChunk(string.Format("{0} normalSample = Texture.Sample(Sampler, UV);", precision), false);
-            sg.AddShaderChunk(string.Format("{0} uSample = Texture.Sample(Sampler, offsetU);", precision), false);
-            sg.AddShaderChunk(string.Format("{0} vSample = Texture.Sample(Sampler, offsetV);", precision), false);
+                sb.AppendLine("{0}3 va = float3(1, 0, (uSample - normalSample) * Strength);", precision);
+                sb.AppendLine("{0}3 vb = float3(0, 1, (vSample - normalSample) * Strength);", precision);
+                sb.AppendLine("Out = normalize(cross(va, vb));");
+            }
 
-            sg.AddShaderChunk(string.Format("{0}3 va = float3(1, 0, (uSample - normalSample) * Strength);", precision), false);
-            sg.AddShaderChunk(string.Format("{0}3 vb = float3(0, 1, (vSample - normalSample) * Strength);", precision), false);
-            sg.AddShaderChunk("Out = normalize(cross(va, vb));", false);
-
-            sg.Deindent();
-            sg.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(sg.GetShaderString(0), true);
+            visitor.AddShaderChunk(sb.ToString(), true);
         }
 
         public bool RequiresMeshUV(UVChannel channel)

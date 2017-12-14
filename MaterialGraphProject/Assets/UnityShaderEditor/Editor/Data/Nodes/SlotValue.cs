@@ -78,5 +78,10 @@ namespace UnityEditor.ShaderGraph
         {
             return k_ConcreteSlotValueTypeClassNames[(int)type];
         }
+
+        public static string ToString(this ConcreteSlotValueType type, AbstractMaterialNode.OutputPrecision precision)
+        {
+            return AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(precision, type);
+        }
     }
 }
