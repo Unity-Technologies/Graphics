@@ -89,7 +89,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e34c98127e05d340ba44a1d4a734454, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_CommonSettings: {fileID: 0}
+  m_CommonSettings: {fileID: 11400000, guid: 23b7439fe7a306c4889c52e465f40911, type: 2}
   m_SkySettings: {fileID: 11400000, guid: 55214718938e62442b0f5673994ee7b7, type: 2}
 --- !u!114 &114270329781043846
 MonoBehaviour:
