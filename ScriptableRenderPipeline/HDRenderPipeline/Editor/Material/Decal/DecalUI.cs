@@ -13,6 +13,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static GUIContent baseColorText = new GUIContent("Base Color + Blend", "Albedo (RGB) and Blend Factor (A)");
             public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (BC7/BC5/DXT5(nm))");
+			public static GUIContent MSHMapText = new GUIContent("Metal Smoothness Height Map", "Metal(R) Smoothness(G) Height(B) ");
             public static GUIContent decalBlendText = new GUIContent("Decal Blend", "Combines with Base Color (A)");
         }
 
@@ -21,6 +22,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected MaterialProperty normalMap = new MaterialProperty();
         protected const string kNormalMap = "_NormalMap";
+
+		protected MaterialProperty MSHMap = new MaterialProperty();
+		protected const string kMSHMap = "_MSHMap";
 
         protected MaterialProperty decalBlend = new MaterialProperty();
         protected const string kDecalBlend = "_DecalBlend";
@@ -35,6 +39,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             baseColorMap = FindProperty(kBaseColorMap, props);
             normalMap = FindProperty(kNormalMap, props);
+			MSHMap = FindProperty(kMSHMap, props);
             decalBlend = FindProperty(kDecalBlend, props);
         }
 
@@ -44,6 +49,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             CoreUtils.SetKeyword(material, "_COLORMAP", material.GetTexture(kBaseColorMap));
             CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap));
+			CoreUtils.SetKeyword(material, "_MSHMAP", material.GetTexture(kMSHMap));
         }
 
         protected void SetupMaterialKeywordsAndPassInternal(Material material)
@@ -66,6 +72,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap);
                 m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap);
+				m_MaterialEditor.TexturePropertySingleLine(Styles.MSHMapText, MSHMap);
                 m_MaterialEditor.ShaderProperty(decalBlend, Styles.decalBlendText);
 
                 EditorGUI.indentLevel--;
