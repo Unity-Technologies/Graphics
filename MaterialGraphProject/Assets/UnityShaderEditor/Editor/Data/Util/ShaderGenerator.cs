@@ -575,8 +575,8 @@ namespace UnityEditor.ShaderGraph
             if (graphRequiements.requiresScreenPosition)
                 surfaceInputs.AddShaderChunk(string.Format("surfaceInput.{0} = {0};", ShaderGeneratorNames.ScreenPosition), false);
 
-            foreach (var channel in combinedRequierments.requiresMeshUVs.Distinct())
-                surfaceInputs.AddShaderChunk(string.Format("surfaceInput.{0}  ={0};", channel.GetUVName()), false);
+            foreach (var channel in graphRequiements.requiresMeshUVs.Distinct())
+                surfaceInputs.AddShaderChunk(string.Format("surfaceInput.{0} = {0};", channel.GetUVName()), false);
         }
 
         public enum Dimension

@@ -64,7 +64,7 @@ Pass
 		float4 clipPos = mul(UNITY_MATRIX_VP, lwWorldPos);
 
 #ifdef LIGHTMAP_ON
-		o.lightmapUV.zw = v.lightmapUV * unity_LightmapST.xy + unity_LightmapST.zw;
+		o.lightmapUV.zw = v.texcoord1 * unity_LightmapST.xy + unity_LightmapST.zw;
 #else
 		o.vertexSH = half4(EvaluateSHPerVertex(lwWNormal), 0.0);
 #endif
