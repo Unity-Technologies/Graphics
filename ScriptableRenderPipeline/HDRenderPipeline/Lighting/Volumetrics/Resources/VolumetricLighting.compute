@@ -234,18 +234,14 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                         light.lightType = GPULIGHTTYPE_PROJECTOR_BOX;
 
                         // Convert the box light from OBB to AABB.
-                        // TODO: precompute all of this.
-                        float invHalfWidth  = rsqrt(dot(light.right, light.right));
-                        float invHalfHeight = rsqrt(dot(light.right, light.right));
-                        float depth         = rsqrt(light.invSqrAttenuationRadius);
-
-                        float3x3 rotMat = float3x3(light.right * invHalfWidth, light.up * invHalfHeight, light.forward); // Normalize
+                        // 'light.right' and 'light.up' vectors are pre-scaled on the CPU by (2/w) and (2/h).
+                        float3x3 rotMat = float3x3(light.right, light.up, light.forward);
 
                         float3 o = mul(rotMat, ray.originWS - light.positionWS);
                         float3 d = mul(rotMat, ray.directionWS);
 
-                        float3 boxPt0 = float3(-invHalfWidth, -invHalfHeight, 0);
-                        float3 boxPt1 = float3( invHalfWidth,  invHalfHeight, depth);
+                        float3 boxPt0 = float3(-1, -1, 0);
+                        float3 boxPt1 = float3( 1,  1, rsqrt(light.invSqrAttenuationRadius));
 
                         float tEntr, tExit;
 
