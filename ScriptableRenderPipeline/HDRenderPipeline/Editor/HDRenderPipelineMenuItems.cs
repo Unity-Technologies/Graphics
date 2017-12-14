@@ -272,6 +272,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         class DoCreateNewAssetHDRISkySettings : DoCreateNewAsset<HDRISkySettings> {}
         class DoCreateNewAssetProceduralSkySettings : DoCreateNewAsset<ProceduralSkySettings> {}
         class DoCreateNewAssetSubsurfaceScatteringSettings : DoCreateNewAsset<SubsurfaceScatteringSettings> {}
+        class DoCreateNewAssetGlobalFrameSettings : DoCreateNewAsset<GlobalFrameSettings> { }
+
+        [MenuItem("Assets/Create/Render Pipeline/High Definition/Global Frame Settings", priority = CoreUtils.assetCreateMenuPriority2)]
+        static void MenuCreateGlobalFrameSettings()
+        {
+            var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetGlobalFrameSettings>(), "New Global Frame Settings.asset", icon, null);
+        }
 
         [MenuItem("Assets/Create/Render Pipeline/High Definition/Common Settings", priority = CoreUtils.assetCreateMenuPriority2)]
         static void MenuCreateCommonSettings()
@@ -300,6 +308,5 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetProceduralSkySettings>(), "New ProceduralSkySettings.asset", icon, null);
         }
-
     }
 }

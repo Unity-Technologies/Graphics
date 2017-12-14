@@ -135,6 +135,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         readonly HDRenderPipelineAsset m_Asset;
 
+        public SubsurfaceScatteringSettings GetCurrentSssSettings()
+        {
+            return m_Asset.sssSettings;
+        }
+
         readonly RenderPipelineMaterial m_DeferredMaterial;
         readonly List<RenderPipelineMaterial> m_MaterialList = new List<RenderPipelineMaterial>();
 
@@ -268,26 +273,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_DebugFullScreenTempRT;
         bool m_FullScreenDebugPushed;
 
-        SubsurfaceScatteringSettings m_InternalSSSAsset;
-        public SubsurfaceScatteringSettings sssSettings
-        {
-            get
-            {
-                // If no SSS asset is set, build / reuse an internal one for simplicity
-                var asset = m_Asset.sssSettings;
-
-                if (asset == null)
-                {
-                    if (m_InternalSSSAsset == null)
-                        m_InternalSSSAsset = ScriptableObject.CreateInstance<SubsurfaceScatteringSettings>();
-
-                    asset = m_InternalSSSAsset;
-                }
-
-                return asset;
-            }
-        }
-
         CommonSettings.Settings m_CommonSettings = CommonSettings.Settings.s_Defaultsettings;
         SkySettings m_SkySettings = null;
 
@@ -344,7 +329,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CameraSssDiffuseLightingBuffer   = HDShaderIDs._CameraSssDiffuseLightingBuffer;
             m_CameraSssDiffuseLightingBufferRT = new RenderTargetIdentifier(m_CameraSssDiffuseLightingBuffer);
 
-            m_SSSBufferManager.Build(asset.renderPipelineResources, asset.sssSettings);
+            m_SSSBufferManager.Build(asset);
 
             // Initialize various compute shader resources
             m_applyDistortionKernel = m_applyDistortionCS.FindKernel("KMain");
@@ -383,13 +368,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DeferredShadowBuffer = HDShaderIDs._DeferredShadowTexture;
             m_DeferredShadowBufferRT = new RenderTargetIdentifier(m_DeferredShadowBuffer);
 
-            m_MaterialList.ForEach(material => material.Build(asset.renderPipelineResources));
+            m_MaterialList.ForEach(material => material.Build(asset));
 
             m_IBLFilterGGX = new IBLFilterGGX(asset.renderPipelineResources);
 
-            m_LightLoop.Build(asset.renderPipelineResources, RenderPipelineSettings.GetGlobalFrameSettings().shadowInitParams, m_ShadowSettings, m_IBLFilterGGX);
+            m_LightLoop.Build(asset, m_ShadowSettings, m_IBLFilterGGX);
 
-            m_SkyManager.Build(asset.renderPipelineResources, m_IBLFilterGGX);
+            m_SkyManager.Build(asset, m_IBLFilterGGX);
             m_SkyManager.skySettings = skySettingsToUse;
 
             m_DebugDisplaySettings.RegisterDebug(m_debugSettings);
@@ -436,7 +421,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void OnSceneLoad()
         {
             // Recreate the textures which went NULL
-            m_MaterialList.ForEach(material => material.Build(m_Asset.renderPipelineResources));
+            m_MaterialList.ForEach(material => material.Build(m_Asset));
         }
 
         public override void Dispose()
@@ -455,7 +440,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             CoreUtils.Destroy(m_DebugDisplayLatlong);
             CoreUtils.Destroy(m_DebugFullScreen);
             CoreUtils.Destroy(m_ErrorMaterial);
-            CoreUtils.Destroy(m_InternalSSSAsset);
 
             m_SSSBufferManager.Cleanup();
             m_SkyManager.Cleanup();
@@ -636,7 +620,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // First, get aggregate of frame settings base on global settings, camera frame settings and debug settings
                 var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
                 // Note: the scene view camera will never have additionalCameraData
-                m_FrameSettings = FrameSettings.InitializeFrameSettings(    camera, RenderPipelineSettings.GetGlobalFrameSettings(),
+                m_FrameSettings = FrameSettings.InitializeFrameSettings(    camera, m_Asset.globalFrameSettings,
                                                                             (additionalCameraData && additionalCameraData.renderingPath != HDAdditionalCameraData.RenderingPath.Default) ? additionalCameraData.frameSettings : m_Asset.defaultFrameSettings,
                                                                             (camera.cameraType != CameraType.Preview && camera.cameraType != CameraType.Preview) ? m_debugSettings : null);
 
@@ -706,7 +690,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     renderContext.SetupCameraProperties(camera);
 
-                    PushGlobalParams(hdCamera, cmd, sssSettings);
+                    PushGlobalParams(hdCamera, cmd, m_Asset.sssSettings);
 
                     // TODO: Find a correct place to bind these material textures
                     // We have to bind the material specific global parameters in this mode
@@ -778,9 +762,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         {
                             GPUFence startFence = cmd.CreateGPUFence();
                             renderContext.ExecuteCommandBuffer(cmd);
-                            // TODO: check that 2 line below can be replace by cmd.Clear() (reset the command buffer instead of recreating it)
-                            //CommandBufferPool.Release(cmd);
-                            //cmd = CommandBufferPool.Get("");
                             cmd.Clear();
 
                             buildGPULightListsCompleteFence = m_LightLoop.BuildGPULightListsAsyncBegin(camera, renderContext, m_CameraDepthStencilBufferRT, m_CameraStencilBufferCopyRT, startFence);
@@ -839,7 +820,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         RenderForwardError(m_CullResults, camera, renderContext, cmd, ForwardPass.Opaque);
 
                         // SSS pass here handle both SSS material from deferred and forward
-                        m_SSSBufferManager.SubsurfaceScatteringPass(hdCamera, cmd, sssSettings, m_FrameSettings,
+                        m_SSSBufferManager.SubsurfaceScatteringPass(hdCamera, cmd, m_Asset.sssSettings, m_FrameSettings,
                                                                     m_CameraColorBufferRT, m_CameraSssDiffuseLightingBufferRT, m_CameraDepthStencilBufferRT, GetDepthTexture());
 
                         RenderSky(hdCamera, cmd);

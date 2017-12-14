@@ -72,24 +72,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_RTIDs[index];
         }
 
-        public void Build(RenderPipelineResources renderPipelineResources, SubsurfaceScatteringSettings sssSettings)
+        public void Build(HDRenderPipelineAsset hdAsset)
         {
-            m_sssSettings = sssSettings;
+            m_sssSettings = hdAsset.sssSettings;
             // Disney SSS (compute + combine)
-            m_SubsurfaceScatteringCS = renderPipelineResources.subsurfaceScatteringCS;
+            m_SubsurfaceScatteringCS = hdAsset.renderPipelineResources.subsurfaceScatteringCS;
             m_SubsurfaceScatteringKernel = m_SubsurfaceScatteringCS.FindKernel("SubsurfaceScattering");
-            m_CombineLightingPass = CoreUtils.CreateEngineMaterial(renderPipelineResources.combineLighting);
+            m_CombineLightingPass = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.combineLighting);
 
             // Jimenez SSS Model (shader)
-            m_SssVerticalFilterPass = CoreUtils.CreateEngineMaterial(renderPipelineResources.subsurfaceScattering);
+            m_SssVerticalFilterPass = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.subsurfaceScattering);
             m_SssVerticalFilterPass.DisableKeyword("SSS_FILTER_HORIZONTAL_AND_COMBINE");
             m_SssVerticalFilterPass.SetFloat(HDShaderIDs._DstBlend, (float)BlendMode.Zero);
 
-            m_SssHorizontalFilterAndCombinePass = CoreUtils.CreateEngineMaterial(renderPipelineResources.subsurfaceScattering);
+            m_SssHorizontalFilterAndCombinePass = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.subsurfaceScattering);
             m_SssHorizontalFilterAndCombinePass.EnableKeyword("SSS_FILTER_HORIZONTAL_AND_COMBINE");
             m_SssHorizontalFilterAndCombinePass.SetFloat(HDShaderIDs._DstBlend, (float)BlendMode.One);
 
-            m_CopyStencilForSplitLighting = CoreUtils.CreateEngineMaterial(renderPipelineResources.copyStencilBuffer);
+            m_CopyStencilForSplitLighting = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.copyStencilBuffer);
             m_CopyStencilForSplitLighting.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.SplitLighting);
         }
 
