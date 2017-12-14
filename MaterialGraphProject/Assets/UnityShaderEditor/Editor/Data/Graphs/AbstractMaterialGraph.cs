@@ -24,12 +24,12 @@ namespace UnityEditor.ShaderGraph
         List<Guid> m_RemovedProperties = new List<Guid>();
 
         [NonSerialized]
-        public InspectorPreviewData previewData = new InspectorPreviewData();
+        InspectorPreviewData m_PreviewData = new InspectorPreviewData();
 
-        public Mesh previewMesh
+        public InspectorPreviewData previewData
         {
-            get { return previewData.mesh; }
-            set { previewData.mesh = value; }
+            get { return m_PreviewData; }
+            set { m_PreviewData = value; }
         }
 
         public IEnumerable<IShaderProperty> properties
