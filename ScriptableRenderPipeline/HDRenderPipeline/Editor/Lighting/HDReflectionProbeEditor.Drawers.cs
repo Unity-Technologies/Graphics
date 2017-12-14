@@ -1,6 +1,7 @@
 ﻿using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering
@@ -9,10 +10,24 @@ namespace UnityEditor.Experimental.Rendering
 
     partial class HDReflectionProbeEditor
     {
-        static void Drawer_NOOP(UIState s, SerializedReflectionProbe p, Editor owner) { }
-        static void Drawer_Space(UIState s, SerializedReflectionProbe p, Editor owner) { EditorGUILayout.Space(); }
-
         #region Sections
+        static readonly CED.IDrawer[] k_PrimarySection =
+        {
+            CED.Action(Drawer_ReflectionProbeMode),
+            CED.FadeGroup((s, p, o, i) => s.GetModeFaded((ReflectionProbeMode)i),
+                true,
+                CED.noop,                                      // Baked
+                CED.Action(Drawer_ModeSettingsRealtime),      // Realtime
+                CED.Action(Drawer_ModeSettingsCustom)         // Custom
+            ),
+            CED.space,
+            CED.Action(Drawer_InfluenceShape),
+            CED.Action(Drawer_IntensityMultiplier),
+            CED.space,
+            CED.Action(Drawer_Toolbar),
+            CED.space
+        };
+
         static readonly CED.IDrawer k_InfluenceVolumeSection = CED.FoldoutGroup(
             "Influence volume settings",
             (s, p, o) => p.blendDistance,
@@ -42,24 +57,28 @@ namespace UnityEditor.Experimental.Rendering
             )
         );
 
-        static readonly CED.IDrawer[] k_PrimarySection =
-        {
-            CED.Action(Drawer_ReflectionProbeMode),
-            CED.FadeGroup((s, p, o, i) => s.GetModeFaded((ReflectionProbeMode)i), 
-                true,
-                CED.noop,                                      // Baked
-                CED.Action(Drawer_ModeSettingsRealtime),      // Realtime
-                CED.Action(Drawer_ModeSettingsCustom)         // Custom
-            ),
-            CED.space,
-            CED.Action(Drawer_InfluenceShape),
-            CED.Action(Drawer_IntensityMultiplier),
-            CED.space,
-            CED.Action(Drawer_Toolbar),
-            CED.space
-        };
+        static readonly CED.IDrawer k_CaptureSection = CED.FoldoutGroup(
+            "Capture settings",
+            (s, p, o) => p.shadowDistance,
+            true,
+            CED.Action(Drawer_CaptureSettings)
+        );
         #endregion
 
+        static void Drawer_CaptureSettings(UIState s, SerializedReflectionProbe p, Editor owner)
+        {
+            var renderPipelineAsset = (HDRenderPipelineAsset)GraphicsSettings.renderPipelineAsset;
+            p.resolution.intValue = renderPipelineAsset.globalTextureSettings.reflectionCubemapSize;
+            EditorGUILayout.LabelField(CoreEditorUtils.GetContent("Resolution"), CoreEditorUtils.GetContent(p.resolution.intValue.ToString()));
+
+            EditorGUILayout.PropertyField(p.shadowDistance);
+            EditorGUILayout.PropertyField(p.cullingMask);
+            EditorGUILayout.PropertyField(p.useOcclusionCulling);
+            EditorGUILayout.PropertyField(p.nearClip);
+            EditorGUILayout.PropertyField(p.farClip);
+        }
+
+        #region Influence Volume
         static void Drawer_InfluenceBoxSettings(UIState s, SerializedReflectionProbe p, Editor owner)
         {
             EditorGUI.BeginChangeCheck();
@@ -78,6 +97,19 @@ namespace UnityEditor.Experimental.Rendering
             }
         }
 
+        static void Drawer_InfluenceSphereSettings(UIState s, SerializedReflectionProbe p, Editor owner)
+        {
+            EditorGUILayout.PropertyField(p.influenceSphereRadius, CoreEditorUtils.GetContent("Radius"));
+        }
+        #endregion
+
+        #region Projection Volume
+        static void Drawer_UseSeparateProjectionVolume(UIState s, SerializedReflectionProbe p, Editor owner)
+        {
+            EditorGUILayout.PropertyField(p.useSeparateProjectionVolume);
+            s.useSeparateProjectionVolumeDisplay.target = p.useSeparateProjectionVolume.boolValue;
+        }
+
         static void Drawer_ProjectionBoxSettings(UIState s, SerializedReflectionProbe p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.boxReprojectionVolumeSize);
@@ -88,17 +120,7 @@ namespace UnityEditor.Experimental.Rendering
         {
             EditorGUILayout.PropertyField(p.sphereReprojectionVolumeRadius);
         }
-
-        static void Drawer_InfluenceSphereSettings(UIState s, SerializedReflectionProbe p, Editor owner)
-        {
-            EditorGUILayout.PropertyField(p.influenceSphereRadius, CoreEditorUtils.GetContent("Radius"));
-        }
-
-        static void Drawer_UseSeparateProjectionVolume(UIState s, SerializedReflectionProbe p, Editor owner)
-        {
-            EditorGUILayout.PropertyField(p.useSeparateProjectionVolume);
-            s.useSeparateProjectionVolumeDisplay.target = p.useSeparateProjectionVolume.boolValue;
-        }
+        #endregion
 
         #region Field Drawers
         static readonly GUIContent[] k_Content_ReflectionProbeMode = { new GUIContent("Baked"), new GUIContent("Custom"), new GUIContent("Realtime") };
