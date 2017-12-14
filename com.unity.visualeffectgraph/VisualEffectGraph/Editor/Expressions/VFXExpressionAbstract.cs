@@ -223,8 +223,9 @@ namespace UnityEditor.VFX
         // Get the operands for the runtime evaluation
         public int[] GetOperands(VFXExpressionGraph graph)
         {
+            var addOperands = additionnalOperands;
             var parentsIndex = parents.Select(p => graph == null ? -1 : graph.GetFlattenedIndex(p)).ToArray();
-            if (parentsIndex.Length + additionnalOperands.Length > 4)
+            if (parentsIndex.Length + addOperands.Length > 4)
                 throw new Exception("Too much parameter for expression : " + this);
 
             var data = new int[] { -1, -1, -1, -1};
@@ -233,9 +234,9 @@ namespace UnityEditor.VFX
                 data[i] = parentsIndex[i];
             }
 
-            for (int i = 0; i < additionnalOperands.Length; ++i)
+            for (int i = 0; i < addOperands.Length; ++i)
             {
-                data[data.Length - additionnalOperands.Length + i] = additionnalOperands[i];
+                data[data.Length - addOperands.Length + i] = addOperands[i];
             }
             return data;
         }
@@ -275,11 +276,14 @@ namespace UnityEditor.VFX
             if (m_Flags != other.m_Flags)
                 return false;
 
-            if (other.additionnalOperands.Length != additionnalOperands.Length)
+            var operands = additionnalOperands;
+            var otherOperands = other.additionnalOperands;
+
+            if (operands.Length != otherOperands.Length)
                 return false;
 
-            for (int i = 0; i < additionnalOperands.Length; ++i)
-                if (additionnalOperands[i] != other.additionnalOperands[i])
+            for (int i = 0; i < operands.Length; ++i)
+                if (operands[i] != otherOperands[i])
                     return false;
 
             var thisParents = parents;
@@ -307,8 +311,9 @@ namespace UnityEditor.VFX
             for (int i = 0; i < parents.Length; ++i)
                 hash = (hash * 397) ^ parents[i].GetHashCode(); // 397 taken from resharper
 
-            for (int i = 0; i < additionnalOperands.Length; ++i)
-                hash = (hash * 397) ^ additionnalOperands[i].GetHashCode();
+            var operands = additionnalOperands;
+            for (int i = 0; i < operands.Length; ++i)
+                hash = (hash * 397) ^ operands[i].GetHashCode();
 
             hash = (hash * 397) ^ m_Flags.GetHashCode();
             hash = (hash * 397) ^ valueType.GetHashCode();
