@@ -6123,7 +6123,7 @@ VFXAsset:
       - index: 57
         nameId: uniform_Lifetime_e
       params: []
-      processor: {fileID: 7200000, guid: e17bb5f2871d46942a6b596187ab7e46, type: 3}
+      processor: {fileID: 7200000, guid: a9402d8bd3096194c8db4ea57e3f9f38, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -6134,7 +6134,7 @@ VFXAsset:
       - index: 66
         nameId: uniform_deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: adcba99bfb60ef24fb50b14b7363543f, type: 3}
+      processor: {fileID: 7200000, guid: 6f4ed87a6499e7f47ba178a1a98dd5be, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -6167,7 +6167,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: ec0ebec7c77d7614d9cf533935a7ada4, type: 3}
+      processor: {fileID: 4800000, guid: c305773fe91082544bd84cc4ac4d4c0a, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -6200,7 +6200,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: fde97ad691d313543a48cfa3772cece2, type: 3}
+      processor: {fileID: 4800000, guid: 986dec605684fb143b24f9a19a94ddca, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000
