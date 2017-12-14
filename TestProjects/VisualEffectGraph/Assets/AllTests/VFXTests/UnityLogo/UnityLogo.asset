@@ -7923,7 +7923,7 @@ VFXAsset:
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 11
+      data[3]: 14
     - op: 29
       valueIndex: 52
       data[0]: 27
@@ -8169,7 +8169,7 @@ VFXAsset:
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 11
+      data[3]: 14
     - op: 0
       valueIndex: 131
       data[0]: -1
@@ -8235,13 +8235,13 @@ VFXAsset:
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 8
+      data[3]: 9
     - op: 0
       valueIndex: 162
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 8
+      data[3]: 9
     - op: 39
       valueIndex: 164
       data[0]: 80
@@ -8618,7 +8618,7 @@ VFXAsset:
         structure: 8
         element: 4
     - name: alive
-      type: 14
+      type: 17
       offset:
         bucket: 6000000
         structure: 8

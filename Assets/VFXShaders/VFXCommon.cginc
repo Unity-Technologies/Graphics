@@ -22,9 +22,27 @@ struct VFXSampler2D
     SamplerState s;
 };
 
+struct VFXSampler2DArray
+{
+    Texture2DArray t;
+    SamplerState s;
+};
+
 struct VFXSampler3D
 {
     Texture3D t;
+    SamplerState s;
+};
+
+struct VFXSamplerCube
+{
+    TextureCube t;
+    SamplerState s;
+};
+
+struct VFXSamplerCubeArray
+{
+    TextureCubeArray t;
     SamplerState s;
 };
 
@@ -40,16 +58,31 @@ float3x3 GetVFXToViewRotMatrix()                { return mul(VFXGetWorldToViewRo
 float3 GetViewVFXPosition()                     { return mul(VFXGetWorldToObjectMatrix(),float4(VFXGetViewWorldPosition(),1.0f)).xyz; }
 #endif
 
-#define VFX_SAMPLER(name) GetVFXSampler(texture_##name,samplertexture_##name)
+#define VFX_SAMPLER(name) GetVFXSampler(##name,sampler##name)
 
-float4 SampleTexture(VFXSampler2D s,float2 coords)
+float4 SampleTexture(VFXSampler2D s,float2 coords,float level = 0.0f)
 {
-    return s.t.SampleLevel(s.s,coords,0.0f);
+    return s.t.SampleLevel(s.s,coords, level);
 }
 
-float4 SampleTexture(VFXSampler3D s,float3 coords)
+float4 SampleTexture(VFXSampler2DArray s,float2 coords,float slice,float level = 0.0f)
 {
-    return s.t.SampleLevel(s.s,coords,0.0f);
+    return s.t.SampleLevel(s.s,float3(coords,slice),level);
+}
+
+float4 SampleTexture(VFXSampler3D s,float3 coords,float level = 0.0f)
+{
+    return s.t.SampleLevel(s.s,coords,level);
+}
+
+float4 SampleTexture(VFXSamplerCube s,float3 coords,float level = 0.0f)
+{
+    return s.t.SampleLevel(s.s,coords,level);
+}
+
+float4 SampleTexture(VFXSamplerCubeArray s,float3 coords,float slice,float level = 0.0f)
+{
+    return s.t.SampleLevel(s.s,float4(coords,slice),level);
 }
 
 VFXSampler2D GetVFXSampler(Texture2D t,SamplerState s)
@@ -60,9 +93,33 @@ VFXSampler2D GetVFXSampler(Texture2D t,SamplerState s)
     return vfxSampler;
 }
 
+VFXSampler2DArray GetVFXSampler(Texture2DArray t,SamplerState s)
+{
+    VFXSampler2DArray vfxSampler;
+    vfxSampler.t = t;
+    vfxSampler.s = s;
+    return vfxSampler;
+}
+
 VFXSampler3D GetVFXSampler(Texture3D t,SamplerState s)
 {
     VFXSampler3D vfxSampler;
+    vfxSampler.t = t;
+    vfxSampler.s = s;
+    return vfxSampler;
+}
+
+VFXSamplerCube GetVFXSampler(TextureCube t,SamplerState s)
+{
+    VFXSamplerCube vfxSampler;
+    vfxSampler.t = t;
+    vfxSampler.s = s;
+    return vfxSampler;
+}
+
+VFXSamplerCubeArray GetVFXSampler(TextureCubeArray t,SamplerState s)
+{
+    VFXSamplerCubeArray vfxSampler;
     vfxSampler.t = t;
     vfxSampler.s = s;
     return vfxSampler;

@@ -1562,7 +1562,7 @@ VFXAsset:
         structure: 4
         element: 0
     - name: alive
-      type: 14
+      type: 17
       offset:
         bucket: 524288
         structure: 4

@@ -40,6 +40,7 @@ VFXView #VFXBackgroundGrid {
 .toolbarItem
 {
 	text-color:#ababab;
+	font-size:11;
 }
 
 Button.toolbarItem

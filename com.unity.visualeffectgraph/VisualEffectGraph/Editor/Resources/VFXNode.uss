@@ -32,11 +32,16 @@ width:-1;
 .VFXNodeUI #settings
 {
     max-height:0;
-    background-color:#393939;
+    background-color: rgba(63,63,63,0.8);
 }
 .VFXNodeUI.expanded #settings
 {
     max-height:10000;
+}
+
+.VFXNodeUI.node.superCollapsed #settings
+{
+    max-height:0;
 }
 
 .VFXNodeUI.node.superCollapsed #node-border > #title
@@ -84,6 +89,10 @@ width:-1;
 }
 .VFXNodeUI.superCollapsed #contents > #top > #output
 {
+	position-type:Absolute;
+	position-top:0;
+	position-bottom:0;
+	position-right:1;
     flex-grow:0;
     flex:0;
     width:20;
