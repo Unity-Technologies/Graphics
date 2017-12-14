@@ -11,8 +11,8 @@ namespace UnityEditor.ShaderGraph
         Normal
     };
 
-    [Title("Input", "Texture", "Texture 2D")]
-    public class Texture2DNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
+    [Title("Input", "Texture", "Sample Texture 2D")]
+    public class SampleTexture2DNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
         public const int OutputSlotRGBAId = 0;
         public const int OutputSlotRId = 4;
@@ -34,9 +34,9 @@ namespace UnityEditor.ShaderGraph
 
         public override bool hasPreview { get { return true; } }
 
-        public Texture2DNode()
+        public SampleTexture2DNode()
         {
-            name = "Texture 2D";
+            name = "Sample Texture 2D";
             UpdateNodeAfterDeserialization();
         }
 
