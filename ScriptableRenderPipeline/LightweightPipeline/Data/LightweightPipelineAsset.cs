@@ -1,3 +1,6 @@
+using UnityEditor;
+using UnityEditor.ProjectWindowCallback;
+
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public enum ShadowCascades
@@ -32,7 +35,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public class LightweightPipelineAsset : RenderPipelineAsset
     {
-        public static readonly string[] m_SearchPaths = {"Assets", "Packages/com.unity.render-pipelines"};
+        public static readonly string[] m_SearchPaths = {"Assets", "Packages/com.unity.render-pipelines.lightweight"};
 
         // Default values set when a new LightweightPipeline asset is created
         [SerializeField] private int m_MaxPixelLights = 4;
@@ -58,44 +61,49 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private Material m_DefaultParticleMaterial;
         [SerializeField] private Material m_DefaultTerrainMaterial;
 
-        [UnityEditor.MenuItem("Assets/Create/Render Pipeline/Lightweight/Pipeline Asset", priority = CoreUtils.assetCreateMenuPriority1)]
+        [MenuItem("Assets/Create/Render Pipeline/Lightweight/Pipeline Asset", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateLightweightPipeline()
         {
-            var instance = CreateInstance<LightweightPipelineAsset>();
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateLightweightPipelineAsset>(),
+                "LightweightAsset.asset", null, null);
+        }
 
-            string[] guids = UnityEditor.AssetDatabase.FindAssets("LightweightPipelineResource t:scriptableobject", m_SearchPaths);
-            LightweightPipelineResource resourceAsset = null;
-            foreach (string guid in guids)
+        class CreateLightweightPipelineAsset : EndNameEditAction
+        {
+            public override void Action(int instanceId, string pathName, string resourceFile)
             {
-                string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
-                resourceAsset = UnityEditor.AssetDatabase.LoadAssetAtPath<LightweightPipelineResource>(path);
+                var instance = CreateInstance<LightweightPipelineAsset>();
+
+                string[] guids = AssetDatabase.FindAssets("LightweightPipelineResource t:scriptableobject", m_SearchPaths);
+                LightweightPipelineResource resourceAsset = null;
+                foreach (string guid in guids)
+                {
+                    string path = AssetDatabase.GUIDToAssetPath(guid);
+                    resourceAsset = AssetDatabase.LoadAssetAtPath<LightweightPipelineResource>(path);
+                    if (resourceAsset != null)
+                        break;
+                }
+
+                // There's currently an issue that prevents FindAssets from find resources withing the package folder.
+                if (resourceAsset == null)
+                {
+                    string path = "Packages/com.unity.render-pipelines.lightweight/Data/LightweightPipelineResource.asset";
+                    resourceAsset = AssetDatabase.LoadAssetAtPath<LightweightPipelineResource>(path);
+                }
+
                 if (resourceAsset != null)
-                    break;
+                {
+                    instance.m_DefaultMaterial = resourceAsset.DefaultMaterial;
+                    instance.m_DefaultParticleMaterial = resourceAsset.DefaultParticleMaterial;
+                    instance.m_DefaultTerrainMaterial = resourceAsset.DefaultTerrainMaterial;
+                }
+
+                instance.m_DefaultShader = Shader.Find(LightweightShaderUtils.GetShaderPath(ShaderPathID.STANDARD_PBS));
+                instance.m_BlitShader = Shader.Find(LightweightShaderUtils.GetShaderPath(ShaderPathID.HIDDEN_BLIT));
+                instance.m_CopyDepthShader = Shader.Find(LightweightShaderUtils.GetShaderPath(ShaderPathID.HIDDEN_DEPTH_COPY));
+
+                AssetDatabase.CreateAsset(instance, pathName);
             }
-
-            // There's currently an issue that prevents FindAssets from find resources withing the package folder.
-            if (resourceAsset == null)
-            {
-                string path = "Packages/com.unity.render-pipelines.lightweight/Data/LightweightPipelineResource.asset";
-                resourceAsset = UnityEditor.AssetDatabase.LoadAssetAtPath<LightweightPipelineResource>(path);
-            }
-
-            if (resourceAsset != null)
-            {
-                instance.m_DefaultMaterial = resourceAsset.DefaultMaterial;
-                instance.m_DefaultParticleMaterial = resourceAsset.DefaultParticleMaterial;
-                instance.m_DefaultTerrainMaterial = resourceAsset.DefaultTerrainMaterial;
-            }
-
-            instance.m_DefaultShader = Shader.Find(LightweightShaderUtils.GetShaderPath(ShaderPathID.STANDARD_PBS));
-            instance.m_BlitShader = Shader.Find(LightweightShaderUtils.GetShaderPath(ShaderPathID.HIDDEN_BLIT));
-            instance.m_CopyDepthShader = Shader.Find(LightweightShaderUtils.GetShaderPath(ShaderPathID.HIDDEN_DEPTH_COPY));
-
-            string assetPath = UnityEditor.EditorUtility.SaveFilePanelInProject("Save Lightweight Asset", "LightweightAsset", "asset",
-                    "Please enter a file name to save the asset to");
-
-            if (assetPath.Length > 0)
-                UnityEditor.AssetDatabase.CreateAsset(instance, assetPath);
         }
 
 #endif
