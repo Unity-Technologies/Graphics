@@ -63,6 +63,13 @@ namespace UnityEditor.Experimental.Rendering
             true,
             CED.Action(Drawer_CaptureSettings)
         );
+
+        static readonly CED.IDrawer k_AdditionalSection = CED.FoldoutGroup(
+            "Additional settings",
+            (s, p, o) => p.dimmer,
+            true,
+            CED.Action(Drawer_AdditionalSettings)
+        );
         #endregion
 
         static void Drawer_CaptureSettings(UIState s, SerializedReflectionProbe p, Editor owner)
@@ -76,6 +83,22 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUILayout.PropertyField(p.useOcclusionCulling);
             EditorGUILayout.PropertyField(p.nearClip);
             EditorGUILayout.PropertyField(p.farClip);
+        }
+
+        static void Drawer_AdditionalSettings(UIState s, SerializedReflectionProbe p, Editor owner)
+        {
+            EditorGUILayout.PropertyField(p.dimmer);
+
+            if (p.so.targetObjects.Length == 1)
+            {
+                var probe = (ReflectionProbe)p.so.targetObject;
+                if (probe.mode == ReflectionProbeMode.Custom && probe.customBakedTexture != null)
+                {
+                    var cubemap = probe.customBakedTexture as Cubemap;
+                    if (cubemap && cubemap.mipmapCount == 1)
+                        EditorGUILayout.HelpBox("No mipmaps in the cubemap, Smoothness value in Standard shader will be ignored.", MessageType.Warning);
+                }
+            }
         }
 
         #region Influence Volume
