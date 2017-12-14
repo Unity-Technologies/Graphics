@@ -31,11 +31,12 @@ namespace UnityEditor.Experimental.Rendering
             internal SerializedProperty farClip;
 
             internal SerializedProperty influenceShape;
-            internal SerializedProperty influenceSphereRadius; 
+            internal SerializedProperty influenceSphereRadius;
             internal SerializedProperty useSeparateProjectionVolume;
             internal SerializedProperty boxReprojectionVolumeSize;
             internal SerializedProperty boxReprojectionVolumeCenter;
             internal SerializedProperty sphereReprojectionVolumeRadius;
+            internal SerializedProperty dimmer;
 
             public SerializedReflectionProbe(SerializedObject so, SerializedObject addso)
             {
@@ -63,6 +64,7 @@ namespace UnityEditor.Experimental.Rendering
                 boxReprojectionVolumeSize = addso.Find((HDAdditionalReflectionData d) => d.m_BoxReprojectionVolumeSize);
                 boxReprojectionVolumeCenter = addso.Find((HDAdditionalReflectionData d) => d.m_BoxReprojectionVolumeCenter);
                 sphereReprojectionVolumeRadius = addso.Find((HDAdditionalReflectionData d) => d.m_SphereReprojectionVolumeRadius);
+                dimmer = addso.Find((HDAdditionalReflectionData d) => d.m_Dimmer);
             }
         }
 
