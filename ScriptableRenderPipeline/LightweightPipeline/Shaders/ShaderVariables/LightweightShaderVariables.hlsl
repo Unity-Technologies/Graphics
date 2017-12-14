@@ -197,9 +197,7 @@ CBUFFER_END
 
 // ----------------------------------------------------------------------------
 
-TEXTURE2D_FLOAT(_MainDepthTexture);
-SAMPLER2D(sampler_MainDepthTexture);
-
+// Unity specific
 TEXTURECUBE(unity_SpecCube0);
 SAMPLERCUBE(samplerunity_SpecCube0);
 
@@ -211,6 +209,11 @@ TEXTURE2D(unity_LightmapInd);
 
 // We can have shadowMask only if we have lightmap, so no sampler
 TEXTURE2D(unity_ShadowMask);
+
+// Lightweight Pipeline Specific
+TEXTURE2D(_MainLightCookie);
+SAMPLER2D(sampler_MainLightCookie);
+
 
 // ----------------------------------------------------------------------------
 
