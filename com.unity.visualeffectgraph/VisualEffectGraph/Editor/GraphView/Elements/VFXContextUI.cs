@@ -143,24 +143,6 @@ namespace UnityEditor.VFX.UI
             Add(m_FlowOutputConnectorContainer);
 
             m_InsideContainer.Add(m_Footer);
-            /*
-            m_NodeContainer.AddManipulator(new ContextualMenu((evt, customData) =>
-            {
-                var menu = new GenericMenu();
-
-                // Needs to have the model here to filter compatible node blocks
-                var contextType = GetPresenter<VFXContextPresenter>().Model.ContextType;
-                foreach (var desc in VFXLibrary.GetBlocks())
-                    if ((desc.CompatibleContexts & contextType) != 0)
-                        menu.AddItem(new GUIContent(desc.Name), false,
-                                     contentView => AddBlock(-1, desc),
-                                     this);
-
-                menu.ShowAsContext();
-                return EventPropagation.Continue;
-            }));
-            */
-
             m_NodeContainer.Add(m_InsideContainer);
             typeFactory = new GraphViewTypeFactory();
             typeFactory[typeof(VFXBlockPresenter)] = typeof(VFXBlockUI);
@@ -176,6 +158,8 @@ namespace UnityEditor.VFX.UI
             Add(new VisualElement() { name = "icon" });
 
             clippingOptions = VisualElement.ClippingOptions.NoClipping;
+
+            this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
         }
 
         void OnSpace()
@@ -427,33 +411,6 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
-
-
-            // Does not guarantee correct ordering
-            /*var blocks = m_BlockContainer.children.OfType<VFXBlockUI>().ToList();
-
-            // Process removals
-            foreach (var c in blocks)
-            {
-                // been removed?
-                var nb = c as VFXBlockUI;
-                var block = contextPresenter.blockPresenters.OfType<VFXBlockPresenter>().FirstOrDefault(a => a == nb.GetPresenter<VFXBlockPresenter>());
-                if (block == null)
-                {
-                    m_BlockContainer.RemoveFromSelection(nb);
-                    m_BlockContainer.RemoveChild(nb);
-                }
-            }
-
-            // Process additions
-            foreach (var blockPresenter in contextPresenter.blockPresenters)
-            {
-                var block = blocks.OfType<VFXBlockUI>().FirstOrDefault(a => a.GetPresenter<VFXBlockPresenter>() == blockPresenter);
-                if (block == null)
-                {
-                    InstantiateBlock(blockPresenter);
-                }
-            }*/
         }
 
         Texture2D GetIconForVFXType(VFXDataType type)
@@ -509,6 +466,23 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        void OnCreateBlock(EventBase evt)
+        {
+            Vector2 referencePosition;
+            if (evt is IMouseEvent)
+            {
+                referencePosition = (evt as IMouseEvent).mousePosition;
+            }
+            else
+            {
+                referencePosition = Vector2.zero;
+            }
+
+            VFXFilterWindow.Show(referencePosition, m_BlockProvider);
+        }
+
+        VFXBlockProvider m_BlockProvider = null;
+
         public override void OnDataChanged()
         {
             base.OnDataChanged();
@@ -517,13 +491,12 @@ namespace UnityEditor.VFX.UI
             if (presenter == null || presenter.context == null)
                 return;
 
-            if (m_PopupManipulator == null)
+            if (m_BlockProvider == null)
             {
-                m_PopupManipulator = new FilterPopup(new VFXBlockProvider(presenter, (d, mPos) =>
+                m_BlockProvider = new VFXBlockProvider(presenter, (d, mPos) =>
                     {
                         AddBlock(mPos, d);
-                    }));
-                m_NodeContainer.AddManipulator(m_PopupManipulator);
+                    });
             }
 
 
@@ -678,6 +651,15 @@ namespace UnityEditor.VFX.UI
                 {
                     yield return anchor;
                 }
+        }
+
+        public virtual void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        {
+            if (evt.target is VFXContextUI || evt.target is VFXBlockUI)
+            {
+                evt.menu.AppendAction("Create Block", OnCreateBlock, e => ContextualMenu.MenuAction.StatusFlags.Normal);
+                evt.menu.AppendSeparator();
+            }
         }
     }
 }

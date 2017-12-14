@@ -225,7 +225,7 @@ namespace UnityEditor.VFX.UI
                         foreach (var inputSlot in slotContainer.inputSlots)
                         {
                             var endPresenter = nodePresenter.allChildren.OfType<VFXDataAnchorPresenter>().First(t => t.model == inputSlot);
-                            if (compatibleAnchors.Contains(endPresenter))
+                            if (compatibleAnchors.Contains(endPresenter) && !endPresenter.connected)
                             {
                                 inputSlot.Link(startSlot);
                                 break;

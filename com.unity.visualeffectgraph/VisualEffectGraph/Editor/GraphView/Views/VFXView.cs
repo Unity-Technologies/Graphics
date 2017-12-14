@@ -785,5 +785,23 @@ namespace UnityEditor.VFX.UI
                 c.OnDataChanged();
             }
         }
+
+        public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        {
+            if (evt.target is VFXContextUI)
+            {
+                evt.menu.AppendAction("Cut", (e) => { CutSelectionCallback(); },
+                    (e) => { return canCutSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
+                evt.menu.AppendAction("Copy", (e) => { CopySelectionCallback(); },
+                    (e) => { return canCopySelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
+            }
+            base.BuildContextualMenu(evt);
+            /*
+            if (evt.target is UIElements.GraphView.GraphView)
+            {
+                evt.menu.AppendAction("Paste", (e) => { PasteCallback(); },
+                    (e) => { return canPaste ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
+            }*/
+        }
     }
 }
