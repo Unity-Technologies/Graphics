@@ -45,17 +45,14 @@ namespace UnityEditor.ShaderGraph
             }
         };
 
-        private static void GenerateApplicationVertexInputs(ShaderGraphRequirements graphRequiements, ShaderGenerator vertexInputs, int vertexInputStartIndex, int maxVertexInputs)
+        private static void GenerateApplicationVertexInputs(ShaderGraphRequirements graphRequiements, ShaderGenerator vertexInputs)
         {
-            int vertexInputIndex = vertexInputStartIndex;
-
             vertexInputs.AddShaderChunk("struct GraphVertexInput", false);
             vertexInputs.AddShaderChunk("{", false);
             vertexInputs.Indent();
             vertexInputs.AddShaderChunk("float4 vertex : POSITION;", false);
             vertexInputs.AddShaderChunk("float3 normal : NORMAL;", false);
             vertexInputs.AddShaderChunk("float4 tangent : TANGENT;", false);
-            vertexInputs.AddShaderChunk("float4 lightmapUV : TEXCOORD0;", false);
 
             if (graphRequiements.requiresVertexColor)
             {
@@ -63,10 +60,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             foreach (var channel in graphRequiements.requiresMeshUVs.Distinct())
-            {
-                vertexInputs.AddShaderChunk(string.Format("float4 texcoord{0} : TEXCOORD{1};", ((int)channel).ToString(), vertexInputIndex.ToString()), false);
-                vertexInputIndex++;
-            }
+                vertexInputs.AddShaderChunk(string.Format("float4 texcoord{0} : TEXCOORD{0};", (int)channel), false);
 
             vertexInputs.AddShaderChunk("UNITY_VERTEX_INPUT_INSTANCE_ID", false);
             vertexInputs.Deindent();
@@ -91,7 +85,16 @@ namespace UnityEditor.ShaderGraph
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots);
 
             var requirements = AbstractMaterialGraph.GetRequirements(activeNodeList);
-            GenerateApplicationVertexInputs(requirements, vertexInputs, 1, 8);
+
+            var modelRequiements = ShaderGraphRequirements.none;
+            modelRequiements.requiresNormal |= NeededCoordinateSpace.World;
+            modelRequiements.requiresTangent |= NeededCoordinateSpace.World;
+            modelRequiements.requiresBitangent |= NeededCoordinateSpace.World;
+            modelRequiements.requiresPosition |= NeededCoordinateSpace.World;
+            modelRequiements.requiresViewDir |= NeededCoordinateSpace.World;
+            modelRequiements.requiresMeshUVs.Add(UVChannel.uv1);
+
+            GenerateApplicationVertexInputs(requirements.Union(modelRequiements), vertexInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, surfaceInputs);
@@ -166,13 +169,6 @@ namespace UnityEditor.ShaderGraph
             var localSurfaceInputs = new ShaderGenerator();
             var surfaceOutputRemap = new ShaderGenerator();
 
-            var reqs = ShaderGraphRequirements.none;
-            reqs.requiresNormal |= NeededCoordinateSpace.World;
-            reqs.requiresTangent |= NeededCoordinateSpace.World;
-            reqs.requiresBitangent |= NeededCoordinateSpace.World;
-            reqs.requiresPosition |= NeededCoordinateSpace.World;
-            reqs.requiresViewDir |= NeededCoordinateSpace.World;
-
             ShaderGenerator.GenerateStandardTransforms(
                 3,
                 10,
@@ -181,7 +177,7 @@ namespace UnityEditor.ShaderGraph
                 localPixelShader,
                 localSurfaceInputs,
                 requirements,
-                reqs,
+                modelRequiements,
                 CoordinateSpace.World);
 
             ShaderGenerator defines = new ShaderGenerator();
