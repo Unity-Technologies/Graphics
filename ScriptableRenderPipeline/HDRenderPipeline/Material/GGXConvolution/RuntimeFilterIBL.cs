@@ -23,11 +23,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         RenderPipelineResources m_RenderPipelinesResources;
 
-        public bool supportMis
-        {
-            get { return !TextureCache.isMobileBuildTarget; }
-        }
-
         public IBLFilterGGX(RenderPipelineResources renderPipelinesResources)
         {
             m_RenderPipelinesResources = renderPipelinesResources;
@@ -46,7 +41,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ComputeGgxIblSampleDataKernel = m_ComputeGgxIblSampleDataCS.FindKernel("ComputeGgxIblSampleData");
             }
 
-            if (!m_BuildProbabilityTablesCS && supportMis)
+            if (!m_BuildProbabilityTablesCS)
             {
                 m_BuildProbabilityTablesCS   = m_RenderPipelinesResources.buildProbabilityTables;
                 m_ConditionalDensitiesKernel = m_BuildProbabilityTablesCS.FindKernel("ComputeConditionalDensities");
