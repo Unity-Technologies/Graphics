@@ -167,12 +167,6 @@ namespace UnityEditor.Experimental.Rendering
                     m_InfluenceShapeDisplays[i].target = i == value;
             }
 
-            static bool IsReflectionProbeEditMode(EditMode.SceneViewEditMode editMode)
-            {
-                return editMode == EditMode.SceneViewEditMode.ReflectionProbeBox || editMode == EditMode.SceneViewEditMode.Collider || editMode == EditMode.SceneViewEditMode.GridBox ||
-                    editMode == EditMode.SceneViewEditMode.ReflectionProbeOrigin;
-            }
-
             internal void UpdateOldLocalSpace(ReflectionProbe target)
             {
                 oldLocalSpace = GetLocalSpace(target);
