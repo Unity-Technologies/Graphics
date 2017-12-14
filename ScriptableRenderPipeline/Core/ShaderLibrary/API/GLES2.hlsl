@@ -14,13 +14,40 @@
 #define CBUFFER_START(name)
 #define CBUFFER_END
 
-// Define missing mappings
 #define uint int
+#define uint1 int1
+#define uint2 int2
+#define uint3 int3
+#define uint4 int4
+
+#define min16uint int
+#define min16uint1 int1
+#define min16uint2 int2
+#define min16uint3 int3
+#define min16uint4 int4
+
+#define uint1x1 int1x1
+#define uint1x2 int1x2
+#define uint1x3 int1x3
+#define uint1x4 int1x4
+#define uint2x1 int2x1
+#define uint2x2 int2x2
+#define uint2x3 int2x3
+#define uint2x4 int2x4
+#define uint3x1 int3x1
+#define uint3x2 int3x2
+#define uint3x3 int3x3
+#define uint3x4 int3x4
+#define uint4x1 int4x1
+#define uint4x2 int4x2
+#define uint4x3 int4x3
+#define uint4x4 int4x4
+
 #define rcp(x) 1.0 / x
 #define ddx_fine ddx
 #define ddy_fine ddy
 #define asfloat
-#define asuint
+#define asuint(x) asint(x)
 #define f32tof16
 #define f16tof32
 
