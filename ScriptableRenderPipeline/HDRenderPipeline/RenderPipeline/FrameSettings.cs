@@ -3,10 +3,8 @@ using UnityEngine;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    // FrameSettings contain settings for a given camera / render. This settings can change from one frame to the other
-    [DisallowMultipleComponent, ExecuteInEditMode]
-    [RequireComponent(typeof(Camera))]
-    public class FrameSettings : MonoBehaviour
+    [Serializable]
+    public class FrameSettings
     {
         // The settings here are per frame settings.
         // Each camera must have its own per frame settings

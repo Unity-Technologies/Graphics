@@ -261,8 +261,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         DebugDisplaySettings m_DebugDisplaySettings = new DebugDisplaySettings();
         static DebugDisplaySettings s_NeutralDebugDisplaySettings = new DebugDisplaySettings();
         DebugDisplaySettings m_CurrentDebugDisplaySettings;
-    
-        static FrameSettings s_NeutralFrameSettings = new FrameSettings();
+
         FrameSettings m_debugSettings = new FrameSettings();
         FrameSettings m_FrameSettings; // Init every frame
 
@@ -393,7 +392,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyManager.Build(asset.renderPipelineResources, m_IBLFilterGGX);
             m_SkyManager.skySettings = skySettingsToUse;
 
-            m_DebugDisplaySettings.RegisterDebug();
+            m_DebugDisplaySettings.RegisterDebug(m_debugSettings);
             m_DebugFullScreenTempRT = HDShaderIDs._DebugFullScreenTexture;
 
 
@@ -405,23 +404,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             InitializeRenderStateBlocks();
-
-            RegisterDebug();
-        }
-
-        void RegisterDebug()
-        {
-            // These need to be Runtime Only because those values are held by the HDRenderPipeline asset so if user change them through the editor debug menu they might change the value in the asset without noticing it.
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Forward Only", () => m_debugSettings.renderSettings.enableForwardRenderingOnly, (value) => m_debugSettings.renderSettings.enableForwardRenderingOnly = (bool)value, DebugItemFlag.RuntimeOnly);
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Deferred Depth Prepass", () => m_debugSettings.renderSettings.enableDepthPrepassWithDeferredRendering, (value) => m_debugSettings.renderSettings.enableDepthPrepassWithDeferredRendering = (bool)value, DebugItemFlag.RuntimeOnly);
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Deferred Depth Prepass ATest Only", () => m_debugSettings.renderSettings.enableAlphaTestOnlyInDeferredPrepass, (value) => m_debugSettings.renderSettings.enableAlphaTestOnlyInDeferredPrepass = (bool)value, DebugItemFlag.RuntimeOnly);
-
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Tile/Cluster", () => m_debugSettings.lightLoopSettings.enableTileAndCluster, (value) => m_debugSettings.lightLoopSettings.enableTileAndCluster = (bool)value, DebugItemFlag.RuntimeOnly);
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Big Tile", () => m_debugSettings.lightLoopSettings.enableBigTilePrepass, (value) => m_debugSettings.lightLoopSettings.enableBigTilePrepass = (bool)value, DebugItemFlag.RuntimeOnly);
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Compute Lighting", () => m_debugSettings.lightLoopSettings.enableComputeLightEvaluation, (value) => m_debugSettings.lightLoopSettings.enableComputeLightEvaluation = (bool)value, DebugItemFlag.RuntimeOnly);
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Light Classification", () => m_debugSettings.lightLoopSettings.enableComputeLightVariants, (value) => m_debugSettings.lightLoopSettings.enableComputeLightVariants = (bool)value, DebugItemFlag.RuntimeOnly);
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Material Classification", () => m_debugSettings.lightLoopSettings.enableComputeMaterialVariants, (value) => m_debugSettings.lightLoopSettings.enableComputeMaterialVariants = (bool)value, DebugItemFlag.RuntimeOnly);
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Async Compute", () => m_debugSettings.renderSettings.enableAsyncCompute, (value) => m_debugSettings.renderSettings.enableAsyncCompute = (bool)value, DebugItemFlag.RuntimeOnly);
         }
 
         void InitializeDebugMaterials()
@@ -652,13 +634,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     continue;
 
                 // First, get aggregate of frame settings base on global settings, camera frame settings and debug settings
-                var cameraFrameSettings = camera.GetComponent<FrameSettings>(); // This will create Default FrameSettings if it doesn't exist
-                if (cameraFrameSettings == null)
-                {
-                    // Provide a default one
-                    cameraFrameSettings = s_NeutralFrameSettings;
-                }
-                m_FrameSettings = FrameSettings.InitializeFrameSettings(camera, RenderPipelineSettings.GetGlobalFrameSettings(), cameraFrameSettings, null);
+                var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
+                // Note: the scene view camera will never have additionalCameraData
+                m_FrameSettings = FrameSettings.InitializeFrameSettings(    camera, RenderPipelineSettings.GetGlobalFrameSettings(),
+                                                                            (additionalCameraData && additionalCameraData.renderingPath != HDAdditionalCameraData.RenderingPath.Default) ? additionalCameraData.frameSettings : m_Asset.defaultFrameSettings,
+                                                                            (camera.cameraType != CameraType.Preview && camera.cameraType != CameraType.Preview) ? m_debugSettings : null);
 
                 // This is the main command buffer used for the frame.
                 var cmd = CommandBufferPool.Get("");
@@ -720,7 +700,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     var postProcessLayer = camera.GetComponent<PostProcessLayer>();
-                    var hdCamera = HDCamera.Get(camera, postProcessLayer);                    
+                    var hdCamera = HDCamera.Get(camera, postProcessLayer);
 
                     Resize(camera);
 
@@ -732,8 +712,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // We have to bind the material specific global parameters in this mode
                     m_MaterialList.ForEach(material => material.Bind());
 
-                    var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
-                    if (additionalCameraData && additionalCameraData.renderingPath == RenderingPathHDRP.Unlit)
+                    if (additionalCameraData && additionalCameraData.renderingPath == HDAdditionalCameraData.RenderingPath.Unlit)
                     {
                         // TODO: Add another path dedicated to planar reflection / real time cubemap that implement simpler lighting
                         // It is up to the users to only send unlit object for this camera path
@@ -799,8 +778,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         {
                             GPUFence startFence = cmd.CreateGPUFence();
                             renderContext.ExecuteCommandBuffer(cmd);
-                            CommandBufferPool.Release(cmd);
-                            cmd = CommandBufferPool.Get("");
+                            // TODO: check that 2 line below can be replace by cmd.Clear() (reset the command buffer instead of recreating it)
+                            //CommandBufferPool.Release(cmd);
+                            //cmd = CommandBufferPool.Get("");
+                            cmd.Clear();
 
                             buildGPULightListsCompleteFence = m_LightLoop.BuildGPULightListsAsyncBegin(camera, renderContext, m_CameraDepthStencilBufferRT, m_CameraStencilBufferCopyRT, startFence);
                         }
@@ -1169,8 +1150,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderDBuffer(Vector3 cameraPos, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            // Currently disabled
-            return ;
+            if (!m_FrameSettings.renderSettings.enableDBuffer)
+                return ;
 
             using (new ProfilingSample(cmd, "DBuffer", GetSampler(CustomSamplerId.DBuffer)))
             {

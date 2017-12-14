@@ -11,6 +11,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedProperty m_DefaultDiffuseMaterial;
         SerializedProperty m_DefaultShader;
 
+        // LightLoop settings
+        SerializedProperty m_enableTileAndCluster;
+        SerializedProperty m_enableSplitLightEvaluation;
+        SerializedProperty m_enableComputeLightEvaluation;
+        SerializedProperty m_enableComputeLightVariants;
+        SerializedProperty m_enableComputeMaterialVariants;
+        SerializedProperty m_enableFptlForForwardOpaque;
+        SerializedProperty m_enableBigTilePrepass;
+
+        // Rendering Settings
+        SerializedProperty m_RenderingUseForwardOnly;
+        SerializedProperty m_RenderingUseDepthPrepass;
+        SerializedProperty m_RenderingUseDepthPrepassAlphaTestOnly;
+        SerializedProperty m_enableAsyncCompute;
+
         // Subsurface Scattering Settings
         SerializedProperty m_SubsurfaceScatteringSettings;
 
@@ -19,6 +34,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_RenderPipelineResources = properties.Find("m_RenderPipelineResources");
             m_DefaultDiffuseMaterial = properties.Find("m_DefaultDiffuseMaterial");
             m_DefaultShader = properties.Find("m_DefaultShader");
+
+            // LightLoop settings
+            m_enableTileAndCluster = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableTileAndCluster);
+            m_enableComputeLightEvaluation = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableComputeLightEvaluation);
+            m_enableComputeLightVariants = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableComputeLightVariants);
+            m_enableComputeMaterialVariants = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableComputeMaterialVariants);
+            m_enableFptlForForwardOpaque = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableFptlForForwardOpaque);
+            m_enableBigTilePrepass = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableBigTilePrepass);
+
+            // Rendering Settings
+            m_enableAsyncCompute = properties.Find(x => x.defaultFrameSettings.renderSettings.enableAsyncCompute);
+            m_RenderingUseForwardOnly = properties.Find(x => x.defaultFrameSettings.renderSettings.enableForwardRenderingOnly);
+            m_RenderingUseDepthPrepass = properties.Find(x => x.defaultFrameSettings.renderSettings.enableDepthPrepassWithDeferredRendering);
+            m_RenderingUseDepthPrepassAlphaTestOnly = properties.Find(x => x.defaultFrameSettings.renderSettings.enableAlphaTestOnlyInDeferredPrepass);
 
             // Subsurface Scattering Settings
             m_SubsurfaceScatteringSettings = properties.Find(x => x.sssSettings);
@@ -32,8 +61,62 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 method.Invoke(asset, new object[0]);
         }
 
+        void LightLoopSettingsUI(HDRenderPipelineAsset renderContext)
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(s_Styles.lightLoopSettings);
+            EditorGUI.indentLevel++;
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(m_enableTileAndCluster, s_Styles.enableTileAndCluster);
+            if (m_enableTileAndCluster.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_enableBigTilePrepass, s_Styles.enableBigTilePrepass);
+                // Allow to disable cluster for forward opaque when in forward only (option have no effect when MSAA is enabled)
+                // Deferred opaque are always tiled
+                EditorGUILayout.PropertyField(m_enableFptlForForwardOpaque, s_Styles.enableFptlForForwardOpaque);
+                EditorGUILayout.PropertyField(m_enableComputeLightEvaluation, s_Styles.enableComputeLightEvaluation);
+                if (m_enableComputeLightEvaluation.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(m_enableComputeLightVariants, s_Styles.enableComputeLightVariants);
+                    EditorGUILayout.PropertyField(m_enableComputeMaterialVariants, s_Styles.enableComputeMaterialVariants);
+                    EditorGUI.indentLevel--;
+                }
+            }
+            if (EditorGUI.EndChangeCheck())
+            {
+                HackSetDirty(renderContext); // Repaint
+            }
+            EditorGUI.indentLevel--;
+        }
+
+        void RendereringSettingsUI(HDRenderPipelineAsset renderContext)
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(s_Styles.renderingSettingsLabel);
+            EditorGUI.indentLevel++;
+
+            EditorGUILayout.PropertyField(m_RenderingUseForwardOnly, s_Styles.useForwardRenderingOnly);
+            if (!m_RenderingUseForwardOnly.boolValue) // If we are deferred
+            {
+                EditorGUILayout.PropertyField(m_RenderingUseDepthPrepass, s_Styles.useDepthPrepassWithDeferredRendering);
+                if (m_RenderingUseDepthPrepass.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(m_RenderingUseDepthPrepassAlphaTestOnly, s_Styles.renderAlphaTestOnlyInDeferredPrepass);
+                    EditorGUI.indentLevel--;
+                }
+            }
+
+            EditorGUILayout.PropertyField(m_enableAsyncCompute, s_Styles.enableAsyncCompute);
+
+            EditorGUI.indentLevel--;
+        }
+
         void SssSettingsUI(HDRenderPipelineAsset renderContext)
         {
+            EditorGUILayout.Space();
             EditorGUILayout.PropertyField(m_SubsurfaceScatteringSettings, s_Styles.sssSettings);
         }
 
@@ -42,6 +125,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.LabelField(s_Styles.settingsLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
 
+            RendereringSettingsUI(renderContext);
+            LightLoopSettingsUI(renderContext);
             SssSettingsUI(renderContext);
 
             EditorGUI.indentLevel--;
