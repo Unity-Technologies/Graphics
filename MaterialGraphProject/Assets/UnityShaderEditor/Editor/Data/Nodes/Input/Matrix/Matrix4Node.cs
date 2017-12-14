@@ -71,25 +71,14 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
-        public string propertyName
+        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            get
-            {
-                return string.Format("{0}_{1}_Uniform", name, GetVariableNameForNode());
-            }
+            visitor.AddShaderChunk(precision + "4x4 " + GetVariableNameForNode() + " = " + precision + "4x4 (" + row0.x + ", " + row0.y + ", " + row0.z + ", " + row0.w + ", " + m_Row1.x + ", " + m_Row1.y + ", " + m_Row1.z + ", " + m_Row1.w + ", " + m_Row2.x + ", " + m_Row2.y + ", " + m_Row2.z + ", " + m_Row2.w + ", " + m_Row3.x + ", " + m_Row3.y + ", " + m_Row3.z + ", " + m_Row3.w + ");", true);
         }
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return propertyName;
-        }
-
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            //if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
-            //    return;
-
-            visitor.AddShaderChunk(precision + "4x4 " + propertyName + " = " + precision + "4x4 (" + row0.x + ", " + row0.y + ", " + row0.z + ", " + row0.w + ", " + m_Row1.x + ", " + m_Row1.y + ", " + m_Row1.z + ", " + m_Row1.w + ", " + m_Row2.x + ", " + m_Row2.y + ", " + m_Row2.z + ", " + m_Row2.w + ", " + m_Row3.x + ", " + m_Row3.y + ", " + m_Row3.z + ", " + m_Row3.w + ");", true);
+            return GetVariableNameForNode();
         }
 
         [SerializeField]
