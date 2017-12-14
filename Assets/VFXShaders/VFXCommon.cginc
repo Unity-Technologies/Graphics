@@ -232,11 +232,11 @@ float3x3 GetEulerMatrix(float3 angles)
                     -c.z * s.y + c.y * s.x * s.z,   c.y * c.z * s.x + s.y * s.z,    c.x * c.y);
 }
 
-float4x4 GetElementToVFXMatrix(float3 side,float3 up,float3 front,float3x3 rot,float3 pivot,float3 size,float3 pos)
+float4x4 GetElementToVFXMatrix(float3 axisX,float3 axisY,float3 axisZ,float3x3 rot,float3 pivot,float3 size,float3 pos)
 {
-    float3x3 rotAndScale = GetScaleMatrix(size);
+    float3x3 rotAndScale = GetScaleMatrix(size * 0.5f);
     rotAndScale = mul(rot,rotAndScale);
-    rotAndScale = mul(transpose(float3x3(side,up,front)),rotAndScale);
+    rotAndScale = mul(transpose(float3x3(axisX,axisY,axisZ)),rotAndScale);
     pos -= mul(rotAndScale,pivot);
     return float4x4(
         float4(rotAndScale[0],pos.x),
@@ -245,17 +245,17 @@ float4x4 GetElementToVFXMatrix(float3 side,float3 up,float3 front,float3x3 rot,f
         float4(0,0,0,1));
 }
 
-float4x4 GetElementToVFXMatrix(float3 side,float3 up,float3 front,float3 angles,float3 pivot,float3 size,float3 pos)
+float4x4 GetElementToVFXMatrix(float3 axisX,float3 axisY,float3 axisZ,float3 angles,float3 pivot,float3 size,float3 pos)
 {
     float3x3 rot = GetEulerMatrix(radians(angles));
-    return GetElementToVFXMatrix(side,up,front,rot,pivot,size,pos);
+    return GetElementToVFXMatrix(axisX,axisY,axisZ,rot,pivot,size,pos);
 }
 
-float4x4 GetVFXToElementMatrix(float3 side,float3 up,float3 front,float3 angles,float3 pivot,float3 size,float3 pos)
+float4x4 GetVFXToElementMatrix(float3 axisX,float3 axisY,float3 axisZ,float3 angles,float3 pivot,float3 size,float3 pos)
 {
-    float3x3 rotAndScale = float3x3(side,up,front);
+    float3x3 rotAndScale = float3x3(axisX,axisY,axisZ);
     rotAndScale = mul(transpose(GetEulerMatrix(radians(angles))),rotAndScale);
-    rotAndScale = mul(GetScaleMatrix(1.0f / size),rotAndScale);
+    rotAndScale = mul(GetScaleMatrix(2.0f / size),rotAndScale);
     pos = pivot - mul(rotAndScale,pos);
     return float4x4(
         float4(rotAndScale[0],pos.x),

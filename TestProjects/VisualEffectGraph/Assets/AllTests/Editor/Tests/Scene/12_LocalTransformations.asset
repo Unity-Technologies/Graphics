@@ -516,7 +516,7 @@ MonoBehaviour:
     attributes: []
   m_Direction: 1
   m_LinkedSlots:
-  - {fileID: 114742077906713596}
+  - {fileID: 114883480731355362}
 --- !u!114 &114146409071264604
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -602,7 +602,7 @@ MonoBehaviour:
     attributes: []
   m_Direction: 1
   m_LinkedSlots:
-  - {fileID: 114883480731355362}
+  - {fileID: 114733244951243014}
 --- !u!114 &114154120009596150
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -709,7 +709,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114605905450444768}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
+  m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 114775855032888852}
@@ -1255,7 +1255,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114200456888616874}
   m_Children: []
-  m_UIPosition: {x: 3395.1917, y: 2198.3196}
+  m_UIPosition: {x: 3425.0916, y: 2140.8193}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots:
@@ -1624,7 +1624,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114200456888616874}
   m_Children: []
-  m_UIPosition: {x: 3148.6895, y: 2118.2974}
+  m_UIPosition: {x: 3144.0894, y: 2107.9473}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots:
@@ -2108,7 +2108,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114605905450444768}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
+  m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 114532162094585516}
@@ -2240,7 +2240,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"m_Components":[0.5]}'
+      m_SerializableObject: '{"m_Components":[2.0]}'
   m_Property:
     name: b
     m_serializedType:
@@ -2524,7 +2524,7 @@ MonoBehaviour:
   - {fileID: 114483038149180362}
   - {fileID: 114163767341736536}
   - {fileID: 114146409071264604}
-  m_UIPosition: {x: 3650.7249, y: 1461.2261}
+  m_UIPosition: {x: 3595.525, y: 1380.7261}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3065,7 +3065,7 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots:
-  - {fileID: 114976585386164944}
+  - {fileID: 114153129811020258}
 --- !u!114 &114735142616569410
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3128,7 +3128,7 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots:
-  - {fileID: 114137356790581338}
+  - {fileID: 114976585386164944}
 --- !u!114 &114743603130244124
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3578,7 +3578,7 @@ MonoBehaviour:
   - {fileID: 114035107686816486}
   - {fileID: 114881672630147704}
   - {fileID: 114077051982172570}
-  m_UIPosition: {x: 3748.4636, y: 2056.9897}
+  m_UIPosition: {x: 3741.5637, y: 2163.9397}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -3829,7 +3829,7 @@ MonoBehaviour:
       m_Tooltip: The first operand.
   m_Direction: 0
   m_LinkedSlots:
-  - {fileID: 114153129811020258}
+  - {fileID: 114137356790581338}
 --- !u!114 &114905136463582108
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4292,7 +4292,7 @@ MonoBehaviour:
     attributes: []
   m_Direction: 1
   m_LinkedSlots:
-  - {fileID: 114733244951243014}
+  - {fileID: 114742077906713596}
 --- !u!114 &114985276073251000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4397,22 +4397,22 @@ VFXAsset:
   m_Graph: {fileID: 114200456888616874}
   m_Expressions:
     m_Expressions:
-    - op: 0
+    - op: 14
       valueIndex: 0
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 1
-    - op: 14
+      data[3]: -1
+    - op: 0
       valueIndex: 1
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: -1
+      data[3]: 1
     - op: 27
       valueIndex: 2
-      data[0]: 1
-      data[1]: 0
+      data[0]: 0
+      data[1]: 1
       data[2]: -1
       data[3]: 1
     - op: 0
@@ -4433,7 +4433,7 @@ VFXAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 19
+    - op: 18
       valueIndex: 6
       data[0]: 2
       data[1]: -1
@@ -4637,10 +4637,10 @@ VFXAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 18
+    - op: 27
       valueIndex: 40
-      data[0]: 2
-      data[1]: -1
+      data[0]: 6
+      data[1]: 5
       data[2]: -1
       data[3]: 1
     - op: 0
@@ -4649,10 +4649,10 @@ VFXAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 27
+    - op: 19
       valueIndex: 42
-      data[0]: 6
-      data[1]: 5
+      data[0]: 2
+      data[1]: -1
       data[2]: -1
       data[3]: 1
     - op: 0
@@ -4796,8 +4796,8 @@ VFXAsset:
     - op: 2
       valueIndex: 74
       data[0]: 13
-      data[1]: 7
-      data[2]: 10
+      data[1]: 8
+      data[2]: 7
       data[3]: -1
     - op: 0
       valueIndex: 77
@@ -4885,7 +4885,7 @@ VFXAsset:
       data[3]: -1
     - op: 2
       valueIndex: 102
-      data[0]: 8
+      data[0]: 10
       data[1]: 12
       data[2]: 23
       data[3]: -1
@@ -4949,22 +4949,22 @@ VFXAsset:
   m_PropertySheet:
     m_Float:
       m_Array:
-      - m_ExpressionIndex: 0
+      - m_ExpressionIndex: 1
         m_Value: 9
       - m_ExpressionIndex: 3
         m_Value: 0
       - m_ExpressionIndex: 4
         m_Value: 6.2831855
       - m_ExpressionIndex: 5
-        m_Value: 0.5
+        m_Value: 2
       - m_ExpressionIndex: 7
-        m_Value: 0
+        m_Value: 1
       - m_ExpressionIndex: 8
         m_Value: 0
       - m_ExpressionIndex: 9
         m_Value: 0
       - m_ExpressionIndex: 10
-        m_Value: 1
+        m_Value: 0
       - m_ExpressionIndex: 11
         m_Value: 0
       - m_ExpressionIndex: 12

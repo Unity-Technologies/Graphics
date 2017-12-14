@@ -1746,7 +1746,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.AnimationCurve, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"frames":[{"time":0.0,"value":-0.022216796875,"inTangent":0.0,"outTangent":0.0,"tangentMode":0},{"time":0.24414092302322389,"value":0.910831093788147,"inTangent":0.7191486954689026,"outTangent":0.7191486954689026,"tangentMode":0},{"time":0.6559159159660339,"value":1.0578079223632813,"inTangent":-0.4346717298030853,"outTangent":-0.4346717298030853,"tangentMode":0},{"time":0.998235821723938,"value":-0.02692323923110962,"inTangent":-0.2591516375541687,"outTangent":-0.2591516375541687,"tangentMode":0}],"preWrapMode":8,"postWrapMode":8}'
+      m_SerializableObject: '{"frames":[{"time":0.0007902085781097412,"value":-0.0026307106018066408,"inTangent":0.0,"outTangent":0.0,"tangentMode":0},{"time":0.22101843357086183,"value":1.8229103088378907,"inTangent":1.346845030784607,"outTangent":1.346845030784607,"tangentMode":0},{"time":0.6926422715187073,"value":1.9080854654312134,"inTangent":-0.7738160490989685,"outTangent":-0.7738160490989685,"tangentMode":0},{"time":1.0007902383804322,"value":-0.007581114768981934,"inTangent":0.0,"outTangent":0.0,"tangentMode":0}],"preWrapMode":8,"postWrapMode":8}'
   m_Property:
     name: curve
     m_serializedType:
@@ -3290,8 +3290,8 @@ VFXAsset:
           serializedVersion: 2
           m_Curve:
           - serializedVersion: 3
-            time: 0
-            value: -0.022216797
+            time: 0.0007902086
+            value: -0.0026307106
             inSlope: 0
             outSlope: 0
             tangentMode: 0
@@ -3299,28 +3299,28 @@ VFXAsset:
             inWeight: 0
             outWeight: 0
           - serializedVersion: 3
-            time: 0.24414092
-            value: 0.9108311
-            inSlope: 0.7191487
-            outSlope: 0.7191487
+            time: 0.22101843
+            value: 1.8229103
+            inSlope: 1.346845
+            outSlope: 1.346845
             tangentMode: 0
             weightedMode: 0
             inWeight: 0
             outWeight: 0
           - serializedVersion: 3
-            time: 0.6559159
-            value: 1.0578079
-            inSlope: -0.43467173
-            outSlope: -0.43467173
+            time: 0.6926423
+            value: 1.9080855
+            inSlope: -0.77381605
+            outSlope: -0.77381605
             tangentMode: 0
             weightedMode: 0
             inWeight: 0
             outWeight: 0
           - serializedVersion: 3
-            time: 0.9982358
-            value: -0.02692324
-            inSlope: -0.25915164
-            outSlope: -0.25915164
+            time: 1.0007902
+            value: -0.007581115
+            inSlope: 0
+            outSlope: 0
             tangentMode: 0
             weightedMode: 0
             inWeight: 0

@@ -81,7 +81,7 @@ namespace UnityEditor.VFX.Block
             if (nbComponents >= 2 && data.IsCurrentAttributeWritten(VFXAttribute.SizeY))
                 yield return new VFXAttributeInfo(VFXAttribute.SizeY, VFXAttributeMode.Read);
             if (nbComponents >= 3 && data.IsCurrentAttributeWritten(VFXAttribute.SizeZ))
-                yield return new VFXAttributeInfo(VFXAttribute.SizeY, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.SizeZ, VFXAttributeMode.Read);
         }
 
         public static string GetSizeVector(VFXContext context, int nbComponents = 3)
