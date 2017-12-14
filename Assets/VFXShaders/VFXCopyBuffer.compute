@@ -1,0 +1,24 @@
+#pragma kernel CSVFXCopyBuffer
+
+#include "HLSLSupport.cginc"
+
+CBUFFER_START(Uniform)
+	uint destOffset;
+	uint fromOffset;
+	uint size;
+CBUFFER_END
+
+ByteAddressBuffer fromBuffer;
+RWByteAddressBuffer destBuffer;
+
+#define NB_THREADS_PER_GROUP 64
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSVFXCopyBuffer(uint3 id : SV_DispatchThreadID)
+{
+	if (id.x < size)
+	{
+		uint address = id.x << 2;
+		uint load = fromBuffer.Load(address + fromOffset);
+		destBuffer.Store(address + destOffset, load);
+	}
+}
