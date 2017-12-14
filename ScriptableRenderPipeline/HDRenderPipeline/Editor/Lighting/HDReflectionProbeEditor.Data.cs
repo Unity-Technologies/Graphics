@@ -16,14 +16,20 @@ namespace UnityEditor.Experimental.Rendering
 
             internal SerializedProperty mode;
             internal SerializedProperty renderDynamicObjects;
-            internal SerializedProperty customBakedTexture; 
+            internal SerializedProperty customBakedTexture;
             internal SerializedProperty refreshMode;
             internal SerializedProperty timeSlicingMode;
             internal SerializedProperty intensityMultiplier;
             internal SerializedProperty blendDistance;
             internal SerializedProperty boxSize;
             internal SerializedProperty boxOffset;
-            
+            internal SerializedProperty resolution;
+            internal SerializedProperty shadowDistance;
+            internal SerializedProperty cullingMask;
+            internal SerializedProperty useOcclusionCulling;
+            internal SerializedProperty nearClip;
+            internal SerializedProperty farClip;
+
             internal SerializedProperty influenceShape;
             internal SerializedProperty influenceSphereRadius; 
             internal SerializedProperty useSeparateProjectionVolume;
@@ -36,14 +42,20 @@ namespace UnityEditor.Experimental.Rendering
                 this.so = so;
 
                 mode = so.FindProperty("m_Mode");
-                customBakedTexture = so.FindProperty("m_CustomBakedTexture"); 
+                customBakedTexture = so.FindProperty("m_CustomBakedTexture");
                 renderDynamicObjects = so.FindProperty("m_RenderDynamicObjects");
                 refreshMode = so.FindProperty("m_RefreshMode");
                 timeSlicingMode = so.FindProperty("m_TimeSlicingMode");
-                intensityMultiplier = so.FindProperty("m_IntensityMultiplier"); 
+                intensityMultiplier = so.FindProperty("m_IntensityMultiplier");
                 blendDistance = so.FindProperty("m_BlendDistance");
                 boxSize = so.FindProperty("m_BoxSize");
                 boxOffset = so.FindProperty("m_BoxOffset");
+                resolution = so.FindProperty("m_Resolution");
+                shadowDistance = so.FindProperty("m_ShadowDistance");
+                cullingMask = so.FindProperty("m_CullingMask");
+                useOcclusionCulling = so.FindProperty("m_UseOcclusionCulling");
+                nearClip = so.FindProperty("m_NearClip");
+                farClip = so.FindProperty("m_FarClip");
 
                 influenceShape = addso.Find((HDAdditionalReflectionData d) => d.m_InfluenceShape);
                 influenceSphereRadius = addso.Find((HDAdditionalReflectionData d) => d.m_InfluenceSphereRadius);
