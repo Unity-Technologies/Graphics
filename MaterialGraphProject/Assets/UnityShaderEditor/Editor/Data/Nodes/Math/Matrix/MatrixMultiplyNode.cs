@@ -2,7 +2,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math", "Matrix", "MultiplyMatrix")]
+    [Title("Math", "Matrix", "Multiply Matrix")]
     public class MatrixMultiplyNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
         protected const string kInputSlot1ShaderName = "Input1";
@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph
 
         public MatrixMultiplyNode()
         {
-            name = "MultiplyMatrix";
+            name = "Multiply Matrix";
             UpdateNodeAfterDeserialization();
         }
 
