@@ -45,6 +45,21 @@ namespace UnityEditor.ShaderGraph
         protected struct DynamicDimensionVector
         {}
 
+        protected struct ColorRGBA
+        {}
+
+        protected struct ColorRGB
+        {}
+
+        protected struct Matrix3x3
+        {}
+
+        protected struct Matrix2x2
+        {}
+
+        protected struct DynamicDimensionMatrix
+        { }
+
         protected enum Binding
         {
             None,
@@ -109,9 +124,6 @@ namespace UnityEditor.ShaderGraph
 
         protected abstract MethodInfo GetFunctionToConvert();
 
-        public class ColorRGBA { };
-        public class ColorRGB { };
-
         private static SlotValueType ConvertTypeToSlotValueType(ParameterInfo p)
         {
             Type t = p.ParameterType;
@@ -165,6 +177,18 @@ namespace UnityEditor.ShaderGraph
             if (t == typeof(Matrix4x4))
             {
                 return SlotValueType.Matrix4;
+            }
+            if (t == typeof(Matrix3x3))
+            {
+                return SlotValueType.Matrix3;
+            }
+            if (t == typeof(Matrix2x2))
+            {
+                return SlotValueType.Matrix2;
+            }
+            if (t == typeof(DynamicDimensionMatrix))
+            {
+                return SlotValueType.DynamicMatrix;
             }
             throw new ArgumentException("Unsupported type " + t);
         }

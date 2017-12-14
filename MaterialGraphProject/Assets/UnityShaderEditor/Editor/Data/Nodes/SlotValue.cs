@@ -6,6 +6,7 @@ namespace UnityEditor.ShaderGraph
     public enum SlotValueType
     {
         SamplerState,
+        DynamicMatrix,
         Matrix4,
         Matrix3,
         Matrix2,
