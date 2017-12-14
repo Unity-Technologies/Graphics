@@ -5181,7 +5181,7 @@ VFXAsset:
       - index: 60
         nameId: uniform_j
       params: []
-      processor: {fileID: 7200000, guid: 6656ea23e886f50409c5b43328d4692f, type: 3}
+      processor: {fileID: 7200000, guid: 1ae384ab84904b94b940d2435c2db9f6, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5208,7 +5208,7 @@ VFXAsset:
       - index: 67
         nameId: uniform_gradient_d
       params: []
-      processor: {fileID: 7200000, guid: a325a73bbb3e6604fa02a8d6008a6d77, type: 3}
+      processor: {fileID: 7200000, guid: d13d5cbbae9ff2147b2e6cc51c71eeb1, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -5221,7 +5221,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: c3fb412cd2f88d14cb5cdd9ee10a5b12, type: 3}
+      processor: {fileID: 4800000, guid: 0ae49485a705e8d4db7e748c2bb77a4f, type: 3}
     - type: 1073741824
       buffers:
       - index: 0
@@ -5238,7 +5238,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 778c47ced9fd33749821ce80d2e100b6, type: 3}
+      processor: {fileID: 4800000, guid: 1c5d12d491e69a54982def4e0edd2591, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -5257,7 +5257,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: c8247e7c01fe93e4ba2fffa1e3d3a947, type: 3}
+      processor: {fileID: 4800000, guid: f8802474814919249a6cf873507cd127, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000

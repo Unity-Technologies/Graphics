@@ -3469,7 +3469,7 @@ VFXAsset:
       - index: 34
         nameId: uniform_Alpha_e
       params: []
-      processor: {fileID: 7200000, guid: d786752fda99f5c4ebc1cec1ca3bca86, type: 3}
+      processor: {fileID: 7200000, guid: 9df379138d979824c9e7cc59c49ef641, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -3480,7 +3480,7 @@ VFXAsset:
       - index: 33
         nameId: uniform_deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: 957fc3c95f12cbc42ad6c856f8fd8e3d, type: 3}
+      processor: {fileID: 7200000, guid: e73ae00d8b9ac6a4fa65f243db711ea6, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -3499,7 +3499,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 3ac9d666657518d498be736448dcd146, type: 3}
+      processor: {fileID: 4800000, guid: 83299017e214e1b4fbd38475c22e2857, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000

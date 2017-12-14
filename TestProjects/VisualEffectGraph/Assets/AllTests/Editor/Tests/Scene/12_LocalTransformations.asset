@@ -5153,7 +5153,7 @@ VFXAsset:
         structure: 4
         element: 2
     - name: alive
-      type: 14
+      type: 17
       offset:
         bucket: 851968
         structure: 4
@@ -5265,7 +5265,7 @@ VFXAsset:
       - index: 82
         nameId: uniform_Sphere_arc_e
       params: []
-      processor: {fileID: 7200000, guid: 32b36c0444291cb4b96c8e595dbd3624, type: 3}
+      processor: {fileID: 7200000, guid: 804855cc3df6af5428d2786d6075452a, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5284,7 +5284,7 @@ VFXAsset:
       - index: 51
         nameId: uniform_deltaTime_f
       params: []
-      processor: {fileID: 7200000, guid: ff70f2a03750ad046b6c9112b9caebc6, type: 3}
+      processor: {fileID: 7200000, guid: 2983de265daa5bc4dadda640ac5a3d22, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -5303,7 +5303,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 6941611b93565f540b65b4afa30d7b04, type: 3}
+      processor: {fileID: 4800000, guid: 67eee60eedb092f4184a7f9d9a69b410, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -5322,7 +5322,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: c182cfce01059d24391257a225f47ef5, type: 3}
+      processor: {fileID: 4800000, guid: 302f57b1cd39b9b40886e88dcaa27122, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -5341,7 +5341,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 71391eb639c1fd644ab829aed5880099, type: 3}
+      processor: {fileID: 4800000, guid: 07902871c388da240b0b89620ef5c8cc, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -5358,7 +5358,7 @@ VFXAsset:
       params:
       - index: -1
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 76ada46bfeb7f364fa14254035c1e855, type: 3}
+      processor: {fileID: 4800000, guid: 11256d54af1800c4a9687bb400ec1266, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000
