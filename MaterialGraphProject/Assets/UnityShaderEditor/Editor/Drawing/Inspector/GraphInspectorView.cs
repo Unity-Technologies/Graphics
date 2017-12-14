@@ -128,12 +128,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_PreviewScrollPosition.y = Mathf.Clamp(m_PreviewScrollPosition.y, -90f, 90f);
             Quaternion previewRotation = Quaternion.Euler(m_PreviewScrollPosition.y, 0, 0) * Quaternion.Euler(0, m_PreviewScrollPosition.x, 0);
             m_Graph.previewData.rotation = previewRotation;
+
+            masterNode.onModified(masterNode, ModificationScope.Node);
         }
 
         void OnMouseScroll(float scrollDelta)
         {
             m_Graph.previewData.scale -= scrollDelta * .01f;
             m_Graph.previewData.scale = Mathf.Clamp(m_Graph.previewData.scale, .1f, 4f);
+
+            masterNode.onModified(masterNode, ModificationScope.Node);
         }
 
         void OnAddProperty()
