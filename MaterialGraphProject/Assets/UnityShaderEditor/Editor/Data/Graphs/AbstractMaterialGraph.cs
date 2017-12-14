@@ -109,17 +109,17 @@ namespace UnityEditor.ShaderGraph
 
         public void RemoveShaderProperty(Guid guid)
         {
+            var propertyNodes = GetNodes<PropertyNode>().Where(x => x.propertyGuid == guid).ToList();
+            foreach (var propNode in propertyNodes)
+                ReplacePropertyNodeWithConcreteNode(propNode);
+
             RemoveShaderPropertyNoValidate(guid);
+
             ValidateGraph();
         }
 
         void RemoveShaderPropertyNoValidate(Guid guid)
         {
-            var propertyNodes = GetNodes<PropertyNode>().Where(x => x.propertyGuid == guid).ToList();
-
-            foreach (var propNode in propertyNodes)
-                ReplacePropertyNodeWithConcreteNode(propNode);
-
             if (m_Properties.RemoveAll(x => x.guid == guid) > 0)
                 m_RemovedProperties.Add(guid);
         }
@@ -360,7 +360,7 @@ namespace UnityEditor.ShaderGraph
             {
                 vertexInputs.AddShaderChunk("float4 color : COLOR;", false);
             }
-            
+
             foreach (var channel in graphRequiements.requiresMeshUVs.Distinct())
             {
                 vertexInputs.AddShaderChunk(string.Format("float4 texcoord{0} : TEXCOORD{1};", ((int)channel).ToString(), vertexInputIndex.ToString()), false);
