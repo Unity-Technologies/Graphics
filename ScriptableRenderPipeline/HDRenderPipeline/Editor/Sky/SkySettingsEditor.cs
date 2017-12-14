@@ -13,7 +13,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SerializedDataParameter m_SkyRotation;
         SerializedDataParameter m_EnvUpdateMode;
         SerializedDataParameter m_EnvUpdatePeriod;
-        SerializedDataParameter m_LightingOverride;
+
+        SerializedProperty      m_UseForBaking;
 
         public override void OnEnable()
         {
@@ -25,7 +26,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyRotation = Unpack(o.Find(x => x.rotation));
             m_EnvUpdateMode = Unpack(o.Find(x => x.updateMode));
             m_EnvUpdatePeriod = Unpack(o.Find(x => x.updatePeriod));
-            m_LightingOverride = Unpack(o.Find(x => x.lightingOverride));
+            m_UseForBaking = o.Find(x => x.useForBaking);
         }
 
         protected void CommonSkySettingsGUI()
@@ -42,7 +43,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 PropertyField(m_EnvUpdatePeriod);
                 EditorGUI.indentLevel--;
             }
-            PropertyField(m_LightingOverride);
+
+            using(var scope = new EditorGUI.ChangeCheckScope())
+            {
+                EditorGUILayout.PropertyField(m_UseForBaking);
+                if(scope.changed)
+                {
+                    (target as SkySettings).OnValidate();
+                }
+            }
         }
     }
 }

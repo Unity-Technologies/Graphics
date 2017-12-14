@@ -1688,7 +1688,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_LightLoopSettings.enableAsyncCompute;
         }
 
-        public void BuildGPULightListsCommon(Camera camera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT)
+        public void BuildGPULightListsCommon(Camera camera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, bool skyEnabled)
         {
             cmd.BeginSample("Build Light List");
 
@@ -1777,7 +1777,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         baseFeatureFlags |= (uint)LightFeatureFlags.Directional;
                     }
-                    if (Shader.GetGlobalInt(HDShaderIDs._EnvLightSkyEnabled) != 0)
+                    if (skyEnabled)
                     {
                         baseFeatureFlags |= (uint)LightFeatureFlags.Sky;
                     }
@@ -1834,20 +1834,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.EndSample("Build Light List");
         }
 
-        public void BuildGPULightLists(Camera camera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT)
+        public void BuildGPULightLists(Camera camera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, bool skyEnabled)
         {
             cmd.SetRenderTarget(BuiltinRenderTextureType.None);
 
-            BuildGPULightListsCommon(camera, cmd, cameraDepthBufferRT, stencilTextureRT);
+            BuildGPULightListsCommon(camera, cmd, cameraDepthBufferRT, stencilTextureRT, skyEnabled);
             PushGlobalParams(camera, cmd);
         }
 
-        public GPUFence BuildGPULightListsAsyncBegin(Camera camera, ScriptableRenderContext renderContext, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, GPUFence startFence)
+        public GPUFence BuildGPULightListsAsyncBegin(Camera camera, ScriptableRenderContext renderContext, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, GPUFence startFence, bool skyEnabled)
         {
             var cmd = CommandBufferPool.Get("Build light list");
             cmd.WaitOnGPUFence(startFence);
 
-            BuildGPULightListsCommon(camera, cmd, cameraDepthBufferRT, stencilTextureRT);
+            BuildGPULightListsCommon(camera, cmd, cameraDepthBufferRT, stencilTextureRT, skyEnabled);
             GPUFence completeFence = cmd.CreateGPUFence();
             renderContext.ExecuteCommandBufferAsync(cmd, ComputeQueueType.Background);
             CommandBufferPool.Release(cmd);
@@ -1983,10 +1983,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             string singlePassName = "SinglePass - Deferred Lighting Pass";
             string SinglePassMRTName = "SinglePass - Deferred Lighting Pass MRT";
 
-            // TODO: Check if we can remove this, when I test I can't
-			Texture skyTexture = Shader.GetGlobalTexture(HDShaderIDs._SkyTexture);
-			float skyTextureMipCount = Shader.GetGlobalFloat(HDShaderIDs._SkyTextureMipCount);
-
             string sLabel = m_LightLoopSettings.enableTileAndCluster ?
                 (options.outputSplitLighting ? tilePassMRTName : tilePassName) :
                 (options.outputSplitLighting ? SinglePassMRTName : singlePassName);
@@ -2041,10 +2037,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // TODO: Is it possible to setup this outside the loop ? Can figure out how, get this: Property (specularLightingUAV) at kernel index (21) is not set
                         cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, colorBuffers[0]);
                         cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.diffuseLightingUAV,  colorBuffers[1]);
-
-                        // TODO: Check if we can remove this, when I test I can't
-                        cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._SkyTexture, skyTexture ? skyTexture : m_DefaultTextureCube);
-                        cmd.SetComputeFloatParam(deferredComputeShader, HDShaderIDs._SkyTextureMipCount, skyTextureMipCount);
 
                         // always do deferred lighting in blocks of 16x16 (not same as tiled light size)
 

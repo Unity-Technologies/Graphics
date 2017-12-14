@@ -69,7 +69,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             CoreUtils.DrawFullScreen(builtinParams.commandBuffer, m_SkyProceduralMaterial, m_PropertyBlock, renderForCubemap ? 0 : 1);
         }
 
-        public override bool IsSkyValid()
+        public override bool IsValid()
         {
             return true;
         }

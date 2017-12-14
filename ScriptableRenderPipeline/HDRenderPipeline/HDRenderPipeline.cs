@@ -551,8 +551,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // TODO: This is the wrong way to handle resize/allocation. We can have several different camera here, mean that the loop on camera will allocate and deallocate
             // the below buffer which is bad. Best is to have a set of buffer for each camera that is persistent and reallocate resource if need
             // For now consider we have only one camera that go to this code, the main one.
-            m_SkyManager.Resize(camera.nearClipPlane, camera.farClipPlane); // TODO: Also a bad naming, here we just want to realloc texture if skyparameters change (useful for lookdev)
-
             bool resolutionChanged = camera.pixelWidth != m_CurrentWidth || camera.pixelHeight != m_CurrentHeight;
 
             if (resolutionChanged || m_CameraDepthStencilBuffer == null)
@@ -576,16 +574,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd, "Push Global Parameters", GetSampler(CustomSamplerId.PushGlobalParameters)))
             {
                 hdCamera.SetupGlobalParams(cmd);
-
-                if (m_SkyManager.IsSkyValid())
-                {
-                    m_SkyManager.SetGlobalSkyTexture(cmd);
-                    cmd.SetGlobalInt(HDShaderIDs._EnvLightSkyEnabled, 1);
-                }
-                else
-                {
-                    cmd.SetGlobalInt(HDShaderIDs._EnvLightSkyEnabled, 0);
-                }
 
                 // Broadcast SSS parameters to all shaders.
                 cmd.SetGlobalInt(HDShaderIDs._EnableSSSAndTransmission, m_CurrentDebugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission ? 1 : 0);
@@ -819,16 +807,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             InitAndClearBuffer(hdCamera, enableBakeShadowMask, cmd);
 
-                    RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd, true);
+            RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd, true);
 
-                    RenderVelocity(m_CullResults, hdCamera, renderContext, cmd);
+            RenderVelocity(m_CullResults, hdCamera, renderContext, cmd);
 
-                    RenderDBuffer(hdCamera.cameraPos, renderContext, cmd);
+            RenderDBuffer(hdCamera.cameraPos, renderContext, cmd);
 
             RenderGBuffer(m_CullResults, hdCamera, renderContext, cmd);
 
             // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
             CopyDepthBufferIfNeeded(cmd);
+
+            // Caution: We require sun light here as some skies use the sun light to render, it means that UpdateSkyEnvironment must be called after PrepareLightsForGPU.
+            // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
+            UpdateSkyEnvironment(hdCamera, cmd);
 
             RenderPyramidDepth(camera, cmd, renderContext, FullScreenDebugMode.DepthPyramid);
 
@@ -853,7 +845,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     CommandBufferPool.Release(cmd);
                     cmd = CommandBufferPool.Get("");
 
-                    buildGPULightListsCompleteFence = m_LightLoop.BuildGPULightListsAsyncBegin(camera, renderContext, m_CameraDepthStencilBufferRT, m_CameraStencilBufferCopyRT, startFence);
+                    buildGPULightListsCompleteFence = m_LightLoop.BuildGPULightListsAsyncBegin(camera, renderContext, m_CameraDepthStencilBufferRT, m_CameraStencilBufferCopyRT, startFence, m_SkyManager.IsSkyValid());
                 }
 
                 using (new ProfilingSample(cmd, "Render shadows", GetSampler(CustomSamplerId.RenderShadows)))
@@ -895,14 +887,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     using (new ProfilingSample(cmd, "Build Light list", GetSampler(CustomSamplerId.BuildLightList)))
                     {
-                        m_LightLoop.BuildGPULightLists(camera, cmd, m_CameraDepthStencilBufferRT, m_CameraStencilBufferCopyRT);
+                        m_LightLoop.BuildGPULightLists(camera, cmd, m_CameraDepthStencilBufferRT, m_CameraStencilBufferCopyRT, m_SkyManager.IsSkyValid());
                     }
                 }
-
-                // Caution: We require sun light here as some sky use the sun light to render, mean UpdateSkyEnvironment
-                // must be call after BuildGPULightLists.
-                // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
-                UpdateSkyEnvironment(hdCamera, cmd);
 
                 RenderDeferredLighting(hdCamera, cmd);
 
