@@ -178,7 +178,7 @@ namespace UnityEditor.Experimental.Rendering
 
                 EditorUtility.SetDirty(p);
 
-                s.AddOperation(Operation.UpdateOldLocalSpace);
+                s.UpdateOldLocalSpace(p);
             }
         }
 
