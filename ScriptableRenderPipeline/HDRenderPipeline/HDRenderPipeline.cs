@@ -552,17 +552,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // TODO: We need to respect QualitySettings.activeColorSpace 
 
-        RenderTexture CreateRenderTexture(HDCamera hdCamera, int depthBufferBits, RenderTextureFormat format, RenderTextureReadWrite readWrite = RenderTextureReadWrite.Default)
+        RenderTexture CreateRenderTexture(HDCamera hdCamera, int depthBufferBits, RenderTextureFormat format, 
+                                          RenderTextureReadWrite readWrite = RenderTextureReadWrite.Default,
+                                          int widthOverride = 0, int heightOverride = 0)
         {
             var localDesc = hdCamera.renderTextureDesc;
             localDesc.depthBufferBits = depthBufferBits;
             localDesc.colorFormat = format;
             localDesc.sRGB = (readWrite != RenderTextureReadWrite.Linear);
-
             // TODO: Explicit MSAA support will come in later
+            if (widthOverride > 0)
+                localDesc.width = widthOverride;
+            if (heightOverride > 0)
+                localDesc.height = heightOverride;
 
             return new RenderTexture(localDesc);
-
         }
 
         void CreateTemporaryRT(CommandBuffer cmd, int nameID, HDCamera hdCamera,
@@ -586,8 +590,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_CameraDepthStencilBuffer != null)
                 m_CameraDepthStencilBuffer.Release();
 
-            m_CameraDepthStencilBuffer = new RenderTexture(camera.pixelWidth, camera.pixelHeight, 24, RenderTextureFormat.Depth);
-            //m_CameraDepthStencilBuffer = CreateRenderTexture(hdCamera, 24, RenderTextureFormat.Depth);
+            m_CameraDepthStencilBuffer = CreateRenderTexture(hdCamera, 24, RenderTextureFormat.Depth);
             m_CameraDepthStencilBuffer.filterMode = FilterMode.Point;
             m_CameraDepthStencilBuffer.Create();
             m_CameraDepthStencilBufferRT = new RenderTargetIdentifier(m_CameraDepthStencilBuffer);
@@ -597,8 +600,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_CameraDepthBufferCopy != null)
                     m_CameraDepthBufferCopy.Release();
 
-                m_CameraDepthBufferCopy = new RenderTexture(camera.pixelWidth, camera.pixelHeight, 24, RenderTextureFormat.Depth);
-                //m_CameraDepthBufferCopy = CreateRenderTexture(hdCamera, 24, RenderTextureFormat.Depth);
+                m_CameraDepthBufferCopy = CreateRenderTexture(hdCamera, 24, RenderTextureFormat.Depth);
                 m_CameraDepthBufferCopy.filterMode = FilterMode.Point;
                 m_CameraDepthBufferCopy.Create();
                 m_CameraDepthBufferCopyRT = new RenderTargetIdentifier(m_CameraDepthBufferCopy);
@@ -609,8 +611,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_CameraStencilBufferCopy != null)
                     m_CameraStencilBufferCopy.Release();
 
-                m_CameraStencilBufferCopy = new RenderTexture(camera.pixelWidth, camera.pixelHeight, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear); // DXGI_FORMAT_R8_UINT is not supported by Unity
-                //m_CameraStencilBufferCopy = CreateRenderTexture(hdCamera, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear); // DXGI_FORMAT_R8_UINT is not supported by Unity
+                m_CameraStencilBufferCopy = CreateRenderTexture(hdCamera, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear); // DXGI_FORMAT_R8_UINT is not supported by Unity
                 m_CameraStencilBufferCopy.filterMode = FilterMode.Point;
                 m_CameraStencilBufferCopy.Create();
                 m_CameraStencilBufferCopyRT = new RenderTargetIdentifier(m_CameraStencilBufferCopy);
@@ -622,14 +623,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_HTile.Release();
 
                 // We use 8x8 tiles in order to match the native GCN HTile as closely as possible.
-                m_HTile = new RenderTexture((camera.pixelWidth + 7) / 8, (camera.pixelHeight + 7) / 8, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear); // DXGI_FORMAT_R8_UINT is not supported by Unity
-                //var desc = hdCamera.renderTextureDesc;
-                //desc.width = (desc.width + 7) / 8;
-                //desc.height = (desc.height + 7) / 8;
-                //desc.depthBufferBits = 0;
-                //desc.colorFormat = RenderTextureFormat.R8;
-                //desc.sRGB = false;
-                //m_HTile = new RenderTexture((camera.pixelWidth + 7) / 8, (camera.pixelHeight + 7) / 8, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear); // DXGI_FORMAT_R8_UINT is not supported by Unity
+                var desc = hdCamera.renderTextureDesc;
+                m_HTile = CreateRenderTexture(hdCamera, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear, ((desc.width + 7) / 8), ((desc.height + 7) / 8)); // DXGI_FORMAT_R8_UINT is not supported by Unity
                 m_HTile.filterMode = FilterMode.Point;
                 m_HTile.enableRandomWrite = true;
                 m_HTile.Create();
