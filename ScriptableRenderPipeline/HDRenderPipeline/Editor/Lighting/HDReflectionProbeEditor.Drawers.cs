@@ -179,14 +179,6 @@ namespace UnityEditor.Experimental.Rendering
             GUILayout.FlexibleSpace();
             EditorGUILayout.EndHorizontal();
         }
-        //static void OnBakeCustomButton(object data)
-        //{
-        //    var mode = (int)data;
-
-        //    var p = target as ReflectionProbe;
-        //    if (mode == 0)
-        //        BakeCustomReflectionProbe(p, false, true);
-        //}
 
         #region Influence Volume
         static void Drawer_InfluenceBoxSettings(UIState s, SerializedReflectionProbe p, Editor owner)
