@@ -67,7 +67,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 #endif
     }
 
-    // Note: no fog attenuation along shadow rays for directional lights.
+    // Note: no volumetric attenuation along shadow rays for directional/box lights.
     attenuation *= shadow;
 
     [branch] if (lightData.cookieIndex >= 0)
@@ -167,7 +167,11 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     }
 
 #ifdef VOLUMETRIC_LIGHTING_ENABLED
-    shadow *= TransmittanceHomogeneousMedium(_GlobalFog_Extinction, dist);
+    // Note: no volumetric attenuation along shadow rays for directional/box lights.
+    [flatten] if (lightData.lightType != GPULIGHTTYPE_PROJECTOR_BOX)
+    {
+        shadow *= TransmittanceHomogeneousMedium(_GlobalFog_Extinction, dist);
+    }
 #endif
 
     attenuation *= shadow;

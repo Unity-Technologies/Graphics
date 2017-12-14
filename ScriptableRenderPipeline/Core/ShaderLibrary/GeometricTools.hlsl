@@ -103,11 +103,11 @@ bool SolveQuadraticEquation(float a, float b, float c, out float2 roots)
 // Can support cones with an elliptic base: pre-scale 'coneAxisX' and 'coneAxisY' by (h/r_x) and (h/r_y).
 // Returns parametric distances 'tEntr' and 'tExit' along the ray,
 // subject to constraints 'tMin' and 'tMax'.
-bool ConeRayIntersect(float3 rayOrigin,  float3 rayDirection,
+bool IntersectRayCone(float3 rayOrigin,  float3 rayDirection,
                       float3 coneOrigin, float3 coneDirection,
                       float3 coneAxisX,  float3 coneAxisY,
                       float tMin, float tMax,
-                      inout float tEntr, inout float tExit)
+                      out float tEntr, out float tExit)
 {
     // Inverse transform the ray into a coordinate system with the cone at the origin facing along the Z axis.
     float3x3 rotMat = float3x3(coneAxisX, coneAxisY, coneDirection);
@@ -147,6 +147,30 @@ bool ConeRayIntersect(float3 rayOrigin,  float3 rayDirection,
     if (tEntr == tExit) { hit = false; }
 
     return hit;
+}
+
+// This implementation does not attempt to explicitly handle NaNs.
+// Ref: https://tavianator.com/fast-branchless-raybounding-box-intersections-part-2-nans/
+bool IntersectRayAABB(float3 rayOrigin, float3 rayDirection,
+                      float3 boxPt0, float3 boxPt1,
+                      float tMin, float tMax,
+                      out float tEntr, out float tExit)
+{
+    float3 rayDirInv = rcp(rayDirection); // Could be precomputed
+
+    tEntr = tMin;
+    tExit = tMax;
+
+    for (int i = 0; i < 3; ++i)
+    {
+        float t0 = boxPt0[i] * rayDirInv[i] - (rayOrigin[i] * rayDirInv[i]);
+        float t1 = boxPt1[i] * rayDirInv[i] - (rayOrigin[i] * rayDirInv[i]);
+
+        tEntr = max(tEntr, min(t0, t1)); // Farthest entry
+        tExit = min(tExit, max(t0, t1)); // Nearest exit
+    }
+
+    return tEntr < tExit;
 }
 
 //-----------------------------------------------------------------------------
