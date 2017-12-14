@@ -138,13 +138,14 @@ namespace UnityEditor.Graphing
             }
         }
 
-        public void RemoveSlotsNameNotMatching(IEnumerable<int> slotIds)
+        public void RemoveSlotsNameNotMatching(IEnumerable<int> slotIds, bool supressWarnings = false)
         {
             var invalidSlots = m_Slots.Select(x => x.id).Except(slotIds);
 
             foreach (var invalidSlot in invalidSlots.ToArray())
             {
-                Debug.LogWarningFormat("Removing Invalid MaterialSlot: {0}", invalidSlot);
+                if (!supressWarnings)
+                    Debug.LogWarningFormat("Removing Invalid MaterialSlot: {0}", invalidSlot);
                 RemoveSlot(invalidSlot);
             }
         }

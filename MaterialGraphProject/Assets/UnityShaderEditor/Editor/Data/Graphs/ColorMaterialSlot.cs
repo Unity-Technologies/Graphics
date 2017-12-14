@@ -1,3 +1,4 @@
+using System;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Slots;
 using UnityEngine;
@@ -24,6 +25,47 @@ namespace UnityEditor.ShaderGraph
         public override VisualElement InstantiateControl()
         {
             return new ColorRGBASlotControlView(this);
+        }
+
+        protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
+        {
+            return string.Format("IsGammaSpace() ? {0}4({1}, {2}, {3}, {4}) : {0}4 (GammaToLinearSpace({0}3({1}, {2}, {3})), {4})"
+                , precision
+                , value.x
+                , value.y
+                , value.z
+                , value.w);
+        }
+
+        public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
+        {
+            if (!generationMode.IsPreview())
+                return;
+
+            var matOwner = owner as AbstractMaterialNode;
+            if (matOwner == null)
+                throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
+
+            var property = new ColorShaderProperty()
+            {
+                overrideReferenceName = matOwner.GetVariableNameForSlot(id),
+                generatePropertyBlock = false,
+                value = value
+            };
+            properties.AddShaderProperty(property);
+        }
+
+        public override PreviewProperty GetPreviewProperty(string name)
+        {
+            var pp = new PreviewProperty
+            {
+                name = name,
+                propType = PropertyType.Color,
+                vector4Value = new Vector4(value.x, value.y, value.z, value.w),
+                floatValue = value.x,
+                colorValue = new Vector4(value.x, value.x, value.z, value.w),
+            };
+            return pp;
         }
     }
 }
