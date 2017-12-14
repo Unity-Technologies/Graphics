@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
-namespace UnityEditor
+namespace UnityEditor.Experimental.Rendering
 {
     [CustomEditorForRenderPipeline(typeof(ReflectionProbe), typeof(HDRenderPipelineAsset))]
     [CanEditMultipleObjects]
@@ -20,7 +20,11 @@ namespace UnityEditor
             var additionalData = CoreEditorUtils.GetAdditionalData<HDAdditionalReflectionData>(targets);
             m_AdditionalDataSerializedObject = new SerializedObject(additionalData);
             m_SerializedReflectionProbe = new SerializedReflectionProbe(serializedObject, m_AdditionalDataSerializedObject);
-            m_UIState.Reset(this, Repaint, m_SerializedReflectionProbe.mode.intValue);
+            m_UIState.Reset(
+                this,
+                Repaint, 
+                m_SerializedReflectionProbe.mode.intValue,
+                m_SerializedReflectionProbe.influenceShape.intValue);
         }
 
         public override void OnInspectorGUI()
@@ -31,25 +35,20 @@ namespace UnityEditor
             var s = m_UIState;
             var p = m_SerializedReflectionProbe;
 
-            Drawer_ReflectionProbeMode(s, p, this);
-            Drawer_ModeSettings(s, p, this);
-            EditorGUILayout.Space();
-            Drawer_InfluenceShape(s, p, this);
-            Drawer_IntensityMultiplier(s, p, this);
+            Draw(k_PrimarySection, s, p, this);
+            k_InfluenceVolumeSection.Draw(s, p, this);
 
-            Drawer_Toolbar(s, p, this);
-
-            if (s.shouldUpdateOldLocalSpace)
-            {
-                s.shouldUpdateOldLocalSpace = false;
-                UpdateOldLocalSpace();
-            }
+            PerformOperations(s, p, this);
 
             m_AdditionalDataSerializedObject.ApplyModifiedProperties();
             serializedObject.ApplyModifiedProperties();
         }
 
-
+        void PerformOperations(UIState s, SerializedReflectionProbe p, HDReflectionProbeEditor o)
+        {
+            if (s.HasAndClearOperation(Operation.UpdateOldLocalSpace))
+                UpdateOldLocalSpace();
+        }
 
         void UpdateOldLocalSpace()
         {
@@ -69,6 +68,25 @@ namespace UnityEditor
                 return probe.transform.rotation;
             else
                 return Quaternion.identity;
+        }
+
+        // Ensures that probe's AABB encapsulates probe's position
+        // Returns true, if center or size was modified
+        static bool ValidateAABB(ReflectionProbe p, ref Vector3 center, ref Vector3 size)
+        {
+            var localSpace = GetLocalSpace(p);
+            var localTransformPosition = localSpace.inverse.MultiplyPoint3x4(p.transform.position);
+
+            var b = new Bounds(center, size);
+
+            if (b.Contains(localTransformPosition))
+                return false;
+
+            b.Encapsulate(localTransformPosition);
+
+            center = b.center;
+            size = b.size;
+            return true;
         }
     }
 }
