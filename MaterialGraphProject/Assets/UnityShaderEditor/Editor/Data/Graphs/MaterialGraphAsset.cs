@@ -11,7 +11,9 @@ namespace UnityEditor.ShaderGraph
     {
         public static bool ShaderHasError(Shader shader)
         {
-            return ShaderUtil.GetShaderErrorCount(shader) > 0;
+            var hasErrorsCall = typeof(ShaderUtil).GetMethod("GetShaderErrorCount", BindingFlags.Static | BindingFlags.NonPublic);
+            var result = hasErrorsCall.Invoke(null, new object[] { shader });
+            return (int)result != 0;
         }
     }
 }
