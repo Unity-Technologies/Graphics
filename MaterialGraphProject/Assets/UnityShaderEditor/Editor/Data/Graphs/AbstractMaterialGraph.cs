@@ -24,12 +24,12 @@ namespace UnityEditor.ShaderGraph
         List<Guid> m_RemovedProperties = new List<Guid>();
 
         [NonSerialized]
-        public InspectorPreviewData previewData = new InspectorPreviewData();
+        InspectorPreviewData m_PreviewData = new InspectorPreviewData();
 
-        public Mesh previewMesh
+        public InspectorPreviewData previewData
         {
-            get { return previewData.mesh; }
-            set { previewData.mesh = value; }
+            get { return m_PreviewData; }
+            set { m_PreviewData = value; }
         }
 
         public IEnumerable<IShaderProperty> properties
@@ -360,7 +360,7 @@ namespace UnityEditor.ShaderGraph
             {
                 vertexInputs.AddShaderChunk("float4 color : COLOR;", false);
             }
-            
+
             foreach (var channel in graphRequiements.requiresMeshUVs.Distinct())
             {
                 vertexInputs.AddShaderChunk(string.Format("float4 texcoord{0} : TEXCOORD{1};", ((int)channel).ToString(), vertexInputIndex.ToString()), false);
