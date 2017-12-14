@@ -57,10 +57,11 @@ float3 GetPointAtDistance(Ray ray, float t)
 void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                                   PositionInputs posInput, Ray ray)
 {
-    BakeLightingData unused;             // Unused, so define once
+    BakeLightingData unused;                    // Unused, so define once
 
-    float z0 = 0, t0 = 0;                // Start at the origin of the ray
-    float de = rcp(VBUFFER_SLICE_COUNT); // Log-encoded distance between slices
+    float z0 = _VBufferDepthEncodingParams.x;   // Start integration from the near plane
+    float t0 = ray.ratioLenToZ * z0;
+    float de = rcp(VBUFFER_SLICE_COUNT);        // Log-encoded distance between slices
 
     float3 totalRadiance = 0;
     float  opticalDepth  = 0;
