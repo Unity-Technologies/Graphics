@@ -137,20 +137,13 @@ namespace UnityEditor.ShaderGraph
                 alphaChannel = TextureChannel.Red;
         }
 
-        string GetFunctionPrototype(string inArg, string outArg)
-        {
-            return string.Format("void {0} ({1} {2}, out {3} {4})", GetFunctionName(),
-                ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType), inArg,
-                ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), outArg);
-        }
-
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
             ValidateChannelCount();
             string inputValue = GetSlotValue(InputSlotId, generationMode);
             string outputValue = GetSlotValue(OutputSlotId, generationMode);
-            visitor.AddShaderChunk(string.Format("{0} {1};", ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), GetVariableNameForSlot(OutputSlotId)), true);
-            visitor.AddShaderChunk(GetFunctionCallBody(inputValue, outputValue), true);
+            visitor.AddShaderChunk(string.Format("{0} {1};", FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision), GetVariableNameForSlot(OutputSlotId)), false);
+            visitor.AddShaderChunk(GetFunctionCallBody(inputValue, outputValue), false);
         }
 
         string GetFunctionCallBody(string inputValue, string outputValue)
@@ -161,22 +154,14 @@ namespace UnityEditor.ShaderGraph
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
             ValidateChannelCount();
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("In", "Out"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
+            var sb = new ShaderStringBuilder();
+            sb.AppendLine("void {0} ({1} In, out {2} Out)", GetFunctionName(), FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToString(precision), FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision));
+            using (sb.BlockScope())
+            {
+                sb.AppendLine("Out = {0}({1}{2}, {1}{3}, {1}{4}, {1}{5});", FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision), kInputSlotName, m_ComponentList[m_RedChannel], m_ComponentList[m_GreenChannel], m_ComponentList[m_BlueChannel], m_ComponentList[m_AlphaChannel]);
+            }
 
-            outputString.AddShaderChunk(string.Format("Out = {0} ({1}, {2}, {3}, {4});",
-                    ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType),
-                    kInputSlotName + m_ComponentList[m_RedChannel],
-                    kInputSlotName + m_ComponentList[m_GreenChannel],
-                    kInputSlotName + m_ComponentList[m_BlueChannel],
-                    kInputSlotName + m_ComponentList[m_AlphaChannel]), false);
-
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+            visitor.AddShaderChunk(sb.ToString(), true);
         }
     }
 }

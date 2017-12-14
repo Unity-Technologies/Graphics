@@ -69,33 +69,22 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        string GetFunctionPrototype(string argIn, string argRed, string argGreen, string argBlue, string argOut)
-        {
-            return string.Format("void {0} ({1} {2}, {3} {4}, {3} {5}, {3} {6}, out {7} {8})", GetFunctionName(),
-                ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType), argIn,
-                precision + "3", argRed, argGreen, argBlue,
-                ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), argOut);
-        }
-
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            string inputValue = GetSlotValue(InputSlotId, generationMode);
-            string outputValue = GetSlotValue(OutputSlotId, generationMode);
-            visitor.AddShaderChunk(string.Format("{0} {1};", ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType), GetVariableNameForSlot(OutputSlotId)), true);
+            var sb = new ShaderStringBuilder();
+            var inputValue = GetSlotValue(InputSlotId, generationMode);
+            var outputValue = GetSlotValue(OutputSlotId, generationMode);
 
+            sb.AppendLine("{0} {1};", ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType), GetVariableNameForSlot(OutputSlotId));
             if (!generationMode.IsPreview())
             {
-                visitor.AddShaderChunk(string.Format("{0}3 _{1}_Red = {0}3 ({2}, {3}, {4});", precision, GetVariableNameForNode(), channelMixer.outRed[0], channelMixer.outRed[1], channelMixer.outRed[2]), true);
-                visitor.AddShaderChunk(string.Format("{0}3 _{1}_Green = {0}3 ({2}, {3}, {4});", precision, GetVariableNameForNode(), channelMixer.outGreen[0], channelMixer.outGreen[1], channelMixer.outGreen[2]), true);
-                visitor.AddShaderChunk(string.Format("{0}3 _{1}_Blue = {0}3 ({2}, {3}, {4});", precision, GetVariableNameForNode(), channelMixer.outBlue[0], channelMixer.outBlue[1], channelMixer.outBlue[2]), true);
+                sb.AppendLine("{0}3 _{1}_Red = {0}3 ({2}, {3}, {4});", precision, GetVariableNameForNode(), channelMixer.outRed[0], channelMixer.outRed[1], channelMixer.outRed[2]);
+                sb.AppendLine("{0}3 _{1}_Green = {0}3 ({2}, {3}, {4});", precision, GetVariableNameForNode(), channelMixer.outGreen[0], channelMixer.outGreen[1], channelMixer.outGreen[2]);
+                sb.AppendLine("{0}3 _{1}_Blue = {0}3 ({2}, {3}, {4});", precision, GetVariableNameForNode(), channelMixer.outBlue[0], channelMixer.outBlue[1], channelMixer.outBlue[2]);
             }
+            sb.AppendLine("{0}({1}, _{2}_Red, _{2}_Green, _{2}_Blue, {3});", GetFunctionName(), inputValue, GetVariableNameForNode(), outputValue);
 
-            visitor.AddShaderChunk(GetFunctionCallBody(inputValue, string.Format("_{0}_Red", GetVariableNameForNode()), string.Format("_{0}_Green", GetVariableNameForNode()), string.Format("_{0}_Blue", GetVariableNameForNode()), outputValue), true);
-        }
-
-        string GetFunctionCallBody(string inputValue, string red, string green, string blue, string outputValue)
-        {
-            return GetFunctionName() + " (" + inputValue + ", " + red + ", " + green + ", " + blue + ", " + outputValue + ");";
+            visitor.AddShaderChunk(sb.ToString(), false);
         }
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
@@ -152,18 +141,20 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            var sg = new ShaderGenerator();
-            sg.AddShaderChunk(GetFunctionPrototype("In", "Red", "Green", "Blue", "Out"), false);
-            sg.AddShaderChunk("{", false);
-            sg.Indent();
+            var sb = new ShaderStringBuilder();
 
-            sg.AddShaderChunk(string.Format("Out = {0} (dot(In, Red), dot(In, Green), dot(In, Blue));",
-                    ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType)), true);
+            sb.AppendLine("void {0} ({1} In, {2}3 Red, {2}3 Green, {2}3 Blue, out {3} Out)",
+                GetFunctionName(),
+                FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToString(precision),
+                precision,
+                FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision));
+            using (sb.BlockScope())
+            {
+                sb.AppendLine("Out = {0}(dot(In, Red), dot(In, Green), dot(In, Blue));",
+                    FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision));
+            }
 
-            sg.Deindent();
-            sg.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(sg.GetShaderString(0), true);
+            visitor.AddShaderChunk(sb.ToString(), true);
         }
     }
 }
