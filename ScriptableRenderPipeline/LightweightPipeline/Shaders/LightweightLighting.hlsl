@@ -139,11 +139,11 @@ half CookieAttenuation(float3 worldPos)
 #ifdef _MAIN_LIGHT_COOKIE
 #ifdef _MAIN_DIRECTIONAL_LIGHT
     float2 cookieUV = mul(_WorldToLight, float4(worldPos, 1.0)).xy;
-    return tex2D(_MainLightCookie, cookieUV).a;
+    return SAMPLE_TEXTURE2D(_MainLightCookie, sampler_MainLightCookie, cookieUV).a;
 #elif defined(_MAIN_SPOT_LIGHT)
     float4 projPos = mul(_WorldToLight, float4(worldPos, 1.0));
     float2 cookieUV = projPos.xy / projPos.w + 0.5;
-    return tex2D(_MainLightCookie, cookieUV).a;
+    return SAMPLE_TEXTURE2D(_MainLightCookie, sampler_MainLightCookie, cookieUV).a;
 #endif // POINT LIGHT cookie not supported
 #endif
 

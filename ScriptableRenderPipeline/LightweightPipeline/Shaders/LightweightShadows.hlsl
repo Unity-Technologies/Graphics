@@ -22,7 +22,7 @@
 
 // TODO: replace with TEXTURE2D_SHADOW as soon as all APIs defined it.
 #if !defined(SHADER_API_GLES) && !defined(SHADER_API_GLES3)
-#define TEXTURE2D_SHADOW(tex) TEXTURE2D(tex);
+#define TEXTURE2D_SHADOW(textureName) Texture2D textureName
 #endif
 
 TEXTURE2D_SHADOW(_ShadowMap);

@@ -56,8 +56,6 @@ half4 _AdditionalLightSpotDir[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightSpotAttenuation[MAX_VISIBLE_LIGHTS];
 CBUFFER_END
 
-sampler2D _MainLightCookie;
-
 // These are set internally by the engine upon request by RendererConfiguration.
 // Check GetRendererSettings in LightweightPipeline.cs
 CBUFFER_START(_PerObject)

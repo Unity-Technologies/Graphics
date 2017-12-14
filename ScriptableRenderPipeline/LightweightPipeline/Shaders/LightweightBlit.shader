@@ -9,9 +9,11 @@ Shader "Hidden/LightweightPipeline/Blit"
         {
             Tags { "LightMode" = "LightweightForward"}
 
-            CGPROGRAM
+            HLSLPROGRAM
             #pragma vertex Vertex
             #pragma fragment Fragment
+
+            #include "LightweightCore.hlsl"
 
             struct VertexInput
             {
@@ -25,22 +27,23 @@ Shader "Hidden/LightweightPipeline/Blit"
                 half2 uv        : TEXCOORD0;
             };
 
-            sampler2D _BlitTex;
+            TEXTURE2D(_BlitTex);
+            SAMPLER2D(sampler_BlitTex);
 
             VertexOutput Vertex(VertexInput i)
             {
                 VertexOutput o;
-                o.pos = half4(i.vertex.xyz, 1.0);
+                o.pos = TransformObjectToHClip(i.vertex.xyz);
                 o.uv = i.uv;
                 return o;
             }
 
-            fixed4 Fragment(VertexOutput i) : SV_Target
+            half4 Fragment(VertexOutput i) : SV_Target
             {
-                fixed4 col = tex2D(_BlitTex, i.uv);
+                half4 col = SAMPLE_TEXTURE2D(_BlitTex, sampler_BlitTex, i.uv);
                 return col;
             }
-            ENDCG
+            ENDHLSL
         }
     }
 }

@@ -1,5 +1,4 @@
-// This file assume SHADER_API_GLES3 is defined
-// Same as GLCore
+// This file assume SHADER_API_GLCORE is defined
 
 #define UNITY_UV_STARTS_AT_TOP 0
 #define UNITY_REVERSED_Z 0
