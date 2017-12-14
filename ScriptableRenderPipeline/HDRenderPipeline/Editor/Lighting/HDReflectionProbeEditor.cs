@@ -1,7 +1,9 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.Experimental.Rendering;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
@@ -13,9 +15,28 @@ namespace UnityEditor.Experimental.Rendering
     [CanEditMultipleObjects]
     partial class HDReflectionProbeEditor : Editor
     {
+        static Dictionary<ReflectionProbe, HDReflectionProbeEditor> s_ReflectionProbeEditors = new Dictionary<ReflectionProbe, HDReflectionProbeEditor>();
+
+        static HDReflectionProbeEditor GetEditorFor(ReflectionProbe p)
+        {
+            HDReflectionProbeEditor e;
+            if (s_ReflectionProbeEditors.TryGetValue(p, out e) 
+                && e != null 
+                && !e.Equals(null)
+                && ArrayUtility.IndexOf(e.targets, p) != -1)
+                return e;
+
+            return null;
+        }
+
         SerializedReflectionProbe m_SerializedReflectionProbe;
         SerializedObject m_AdditionalDataSerializedObject;
         UIState m_UIState = new UIState();
+
+        public bool sceneViewEditing
+        {
+            get { return IsReflectionProbeEditMode(EditMode.editMode) && EditMode.IsOwner(this); }
+        }
 
         void OnEnable()
         {
@@ -26,6 +47,12 @@ namespace UnityEditor.Experimental.Rendering
                 this,
                 Repaint,
                 m_SerializedReflectionProbe);
+
+            foreach (var t in targets)
+            {
+                var p = (ReflectionProbe)t;
+                s_ReflectionProbeEditors[p] = this;
+            }
         }
 
         public override void OnInspectorGUI()
@@ -169,6 +196,12 @@ namespace UnityEditor.Experimental.Rendering
                 }
             }
             return false;
+        }
+
+        static bool IsReflectionProbeEditMode(EditMode.SceneViewEditMode editMode)
+        {
+            return editMode == EditMode.SceneViewEditMode.ReflectionProbeBox || editMode == EditMode.SceneViewEditMode.Collider || editMode == EditMode.SceneViewEditMode.GridBox ||
+                editMode == EditMode.SceneViewEditMode.ReflectionProbeOrigin;
         }
 
         static MethodInfo k_Lightmapping_BakeReflectionProbeSnapshot = typeof(UnityEditor.Lightmapping).GetMethod("BakeReflectionProbeSnapshot", BindingFlags.Static | BindingFlags.NonPublic);
