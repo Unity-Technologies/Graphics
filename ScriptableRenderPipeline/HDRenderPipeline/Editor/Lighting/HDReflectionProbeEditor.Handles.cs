@@ -12,9 +12,6 @@ namespace UnityEditor.Experimental.Rendering
 
         void OnSceneGUI()
         {
-            serializedObject.Update();
-            m_AdditionalDataSerializedObject.Update();
-
             var s = m_UIState;
             var p = m_SerializedReflectionProbe;
             var o = this;
@@ -45,9 +42,6 @@ namespace UnityEditor.Experimental.Rendering
 
             if (EditorGUI.EndChangeCheck())
                 Repaint();
-
-            serializedObject.ApplyModifiedProperties();
-            m_AdditionalDataSerializedObject.ApplyModifiedProperties();
         }
 
         static void Handle_InfluenceBoxEditing(UIState s, SerializedReflectionProbe sp, Editor o)
