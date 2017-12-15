@@ -95,7 +95,7 @@ void EncodeIntoDBuffer( DecalSurfaceData surfaceData,
 {
 	outDBuffer0 = surfaceData.baseColor;
 	outDBuffer1 = surfaceData.normalWS;	
-	outDBuffer2 = surfaceData.MSH;	
+	outDBuffer2 = surfaceData.mask;	
 }
 
 void DecodeFromDBuffer(
@@ -109,6 +109,6 @@ void DecodeFromDBuffer(
 	surfaceData.baseColor = inDBuffer0;
 	surfaceData.normalWS.xyz = inDBuffer1.xyz * 2.0f - 1.0f;
 	surfaceData.normalWS.w = inDBuffer1.w;
-	surfaceData.MSH = inDBuffer2;
+	surfaceData.mask = inDBuffer2;
 }
 

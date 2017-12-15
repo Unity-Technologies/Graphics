@@ -4,7 +4,7 @@ Shader "HDRenderPipeline/Decal"
     {      
         _BaseColorMap("BaseColorMap", 2D) = "white" {}
 		_NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
-		_MSHMap("MSHMap", 2D) = "white" {}    
+		_MaskMap("MaskMap", 2D) = "white" {}    
 		_DecalBlend("_DecalBlend", Range(0.0, 1.0)) = 0.5
     }
 
@@ -19,7 +19,7 @@ Shader "HDRenderPipeline/Decal"
     //-------------------------------------------------------------------------------------
 	#pragma shader_feature _COLORMAP
 	#pragma shader_feature _NORMALMAP
-	#pragma shader_feature _MSHMAP
+	#pragma shader_feature _MASKMAP
 
 
     //-------------------------------------------------------------------------------------
