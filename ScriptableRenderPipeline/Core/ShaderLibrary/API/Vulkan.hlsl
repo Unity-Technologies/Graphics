@@ -5,7 +5,7 @@
 #define UNITY_NEAR_CLIP_VALUE (1.0)
 // This value will not go through any matrix projection convertion
 #define UNITY_RAW_FAR_CLIP_VALUE (0.0)
-#define FRONT_FACE_SEMATIC SV_IsFrontFace
+#define FRONT_FACE_SEMANTIC SV_IsFrontFace
 #define FRONT_FACE_TYPE bool
 #define IS_FRONT_VFACE(VAL, FRONT, BACK) ((VAL) ? (FRONT) : (BACK))
 
