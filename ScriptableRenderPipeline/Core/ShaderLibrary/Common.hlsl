@@ -87,16 +87,30 @@
 // Unsigned integer bit field extraction.
 // Note that the intrinsic itself generates a vector instruction.
 // Wrap this function with WaveReadFirstLane() to get scalar output.
-uint BitFieldExtract(uint data, uint numBits, uint offset)
+uint BitFieldExtract(uint data, uint offset, uint numBits)
 {
-    uint mask = UINT_MAX >> (32u - numBits);
+    uint mask = (1u << numBits) - 1u;
     return (data >> offset) & mask;
 }
 #endif // INTRINSIC_BITFIELD_EXTRACT
 
+#ifndef INTRINSIC_BITFIELD_EXTRACT_SIGN_EXTEND
+// Integer bit field extraction with sign extension.
+// Note that the intrinsic itself generates a vector instruction.
+// Wrap this function with WaveReadFirstLane() to get scalar output.
+int BitFieldExtractSignExtend(int data, uint offset, uint numBits)
+{
+    int  shifted = data >> offset;      // Sign-extending (arithmetic) shift
+    int  signBit = shifted & (1u << (numBits - 1u));
+    uint mask    = (1u << numBits) - 1u;
+
+    return -signBit | (shifted & mask); // Use 2-complement for negation to replicate the sign bit
+}
+#endif // INTRINSIC_BITFIELD_EXTRACT_SIGN_EXTEND
+
 bool IsBitSet(uint data, uint offset)
 {
-    return BitFieldExtract(data, 1u, offset) != 0;
+    return BitFieldExtract(data, offset, 1u) != 0;
 }
 
 void SetBit(inout uint data, uint offset)
