@@ -21,7 +21,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             #include "../ShaderVariables.hlsl"
 
             TEXTURE2D(_DebugFullScreenTexture);
-            SAMPLER2D(sampler_DebugFullScreenTexture);
+            SAMPLER(sampler_DebugFullScreenTexture);
             float _FullScreenDebugMode;
 
             struct Attributes
