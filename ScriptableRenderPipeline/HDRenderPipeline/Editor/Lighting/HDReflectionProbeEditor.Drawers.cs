@@ -24,7 +24,7 @@ namespace UnityEditor.Experimental.Rendering
             ),
             CED.space,
             CED.Action(Drawer_InfluenceShape),
-            CED.Action(Drawer_IntensityMultiplier),
+            //CED.Action(Drawer_IntensityMultiplier),
             CED.space,
             CED.Action(Drawer_Toolbar),
             CED.space
@@ -364,7 +364,7 @@ namespace UnityEditor.Experimental.Rendering
                 case ReflectionInfluenceShape.Box:
                 {
                     var size = p.boxSize.vector3Value;
-                    var v = Mathf.Max(size.x, Mathf.Max(size.y, size.z));
+                    var v = Mathf.Min(size.x, Mathf.Min(size.y, size.z));
                     return v * 0.5f;
                 }
             }
