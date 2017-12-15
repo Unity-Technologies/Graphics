@@ -45,10 +45,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector3 forward;
         public int cookieIndex; // -1 if unused
 
-        public Vector3 right;   // Rescaled by (2 / shapeLength)
+        public Vector3 right;   // Rescaled by (2 / shapeWidth)
         public float specularScale;
 
-        public Vector3 up;      // Rescaled by (2 / shapeWidth)
+        public Vector3 up;      // Rescaled by (2 / shapeHeight)
         public float diffuseScale;
 
         public Vector2 fadeDistanceScaleAndBias; // Use with ShadowMask feature
@@ -70,10 +70,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector3 forward;
         public int cookieIndex; // -1 if unused
 
-        public Vector3 right;   // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeLength)
+        public Vector3 right;   // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeWidth)
         public float specularScale;
 
-        public Vector3 up;      // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeWidth)
+        public Vector3 up;      // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeHeight)
         public float diffuseScale;
 
         public float angleScale;  // Spot light
@@ -83,7 +83,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Vector4 shadowMaskSelector; // Use with ShadowMask feature
 
-        public Vector2 size;        // Used by area (X = length, Y = width) and box projector lights (X = range)
+        public Vector2 size;        // Used by area (X = length or width, Y = height) and box projector lights (X = range (depth))
         public GPULightType lightType;
         public float minRoughness;  // This is use to give a small "area" to punctual light, as if we have a light with a radius.
     };
