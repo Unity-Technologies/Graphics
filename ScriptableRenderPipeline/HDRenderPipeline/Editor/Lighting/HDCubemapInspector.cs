@@ -12,7 +12,7 @@ class HDCubemapInspector : Editor
         Rotating = 2
     }
 
-    static GUIContent s_MipMapLow, s_MipMapHigh, s_CurveKeyframeSelected, s_CurveKeyframeSemiSelectedOverlay, s_RGBMIcon;
+    static GUIContent s_MipMapLow, s_MipMapHigh, s_ExposureHigh, s_ExposureLow, s_RGBMIcon;
     static GUIStyle s_PreButton, s_PreSlider, s_PreSliderThumb, s_PreLabel;
     static Mesh s_SphereMesh;
 
@@ -89,15 +89,14 @@ class HDCubemapInspector : Editor
     {
         GUI.enabled = true;
 
+        GUILayout.Box(s_ExposureLow, s_PreLabel, GUILayout.MaxWidth(20));
+        GUI.changed = false;
+        previewExposure = GUILayout.HorizontalSlider(previewExposure, -10f, 10f, GUILayout.MaxWidth(80));
+        GUILayout.Space(5);
         GUILayout.Box(s_MipMapHigh, s_PreLabel, GUILayout.MaxWidth(20));
         GUI.changed = false;
         mipLevelPreview = GUILayout.HorizontalSlider(mipLevelPreview, 0, ((Cubemap)target).mipmapCount, GUILayout.MaxWidth(80));
         GUILayout.Box(s_MipMapLow, s_PreLabel, GUILayout.MaxWidth(20));
-        GUILayout.Space(5);
-        GUILayout.Box(s_CurveKeyframeSemiSelectedOverlay, s_PreLabel, GUILayout.MaxWidth(20));
-        GUI.changed = false;
-        previewExposure = GUILayout.HorizontalSlider(previewExposure, -10f, 10f, GUILayout.MaxWidth(80));
-        GUILayout.Box(s_CurveKeyframeSelected, s_PreLabel, GUILayout.MaxWidth(20));
     }
 
     void InitPreview()
@@ -160,8 +159,8 @@ class HDCubemapInspector : Editor
     {
         s_MipMapLow = EditorGUIUtility.IconContent("PreTextureMipMapLow");
         s_MipMapHigh = EditorGUIUtility.IconContent("PreTextureMipMapHigh");
-        s_CurveKeyframeSelected = EditorGUIUtility.IconContent("d_curvekeyframeselected");
-        s_CurveKeyframeSemiSelectedOverlay = EditorGUIUtility.IconContent("d_curvekeyframesemiselectedoverlay");
+        s_ExposureHigh = EditorGUIUtility.IconContent("SceneViewLighting");
+        s_ExposureLow = EditorGUIUtility.IconContent("SceneViewLighting");
         s_RGBMIcon = EditorGUIUtility.IconContent("PreMatLight1"); // TODO: proper icon for RGBM preview mode
         s_PreButton = "preButton";
         s_PreSlider = "preSlider";
