@@ -11,7 +11,7 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
             #pragma multi_compile _ USE_MIS
 
@@ -21,11 +21,11 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
             #include "ShaderLibrary/Common.hlsl"
             #include "ShaderLibrary/ImageBasedLighting.hlsl"
             #include "GGXConvolution.cs.hlsl"
+            #include "../../ShaderVariables.hlsl"
 
             TEXTURECUBE(_MainTex);
-            SAMPLERCUBE(sampler_MainTex);
 
-            TEXTURE2D_FLOAT(_GgxIblSamples);
+            TEXTURE2D(_GgxIblSamples);
 
             #ifdef USE_MIS
                 TEXTURE2D(_MarginalRowDensities);
@@ -67,7 +67,7 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
                 uint  sampleCount = GetIBLRuntimeFilterSampleCount(_Level);
 
             #ifdef USE_MIS
-                float4 val = IntegrateLD_MIS(TEXTURECUBE_PARAM(_MainTex, sampler_MainTex),
+                float4 val = IntegrateLD_MIS(TEXTURECUBE_PARAM(_MainTex, s_trilinear_clamp_sampler),
                                              _MarginalRowDensities, _ConditionalDensities,
                                              V, N,
                                              roughness,
@@ -77,7 +77,7 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
                                              1024,
                                              false);
             #else
-                float4 val = IntegrateLD(TEXTURECUBE_PARAM(_MainTex, sampler_MainTex),
+                float4 val = IntegrateLD(TEXTURECUBE_PARAM(_MainTex, s_trilinear_clamp_sampler),
                                          _GgxIblSamples,
                                          V, N,
                                          roughness,

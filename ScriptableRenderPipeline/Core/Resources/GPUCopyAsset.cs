@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -90,7 +90,7 @@ namespace UnityEngine.Experimental.Rendering
                     k_KernelSize.ToString(), k_KernelSize.ToString()));
                 cck.AppendLine(string.Format(@"void {0}(uint2 dispatchThreadId : SV_DispatchThreadID)", kernelName));
                 cck.AppendLine("{");
-                cck.AppendLine(string.Format("    _Result{0}[dispatchThreadId] = _Source{1}.SampleLevel(sampler_LinearClamp, float2(dispatchThreadId) * _Size.zw, 0.0).{2};",
+                cck.AppendLine(string.Format("    _Result{0}[dispatchThreadId] = SAMPLE_TEXTURE2D_LOD(_Source{1}, sampler_LinearClamp, float2(dispatchThreadId) * _Size.zw, 0.0).{2};",
                     o.targetChannel.ToString(), o.sourceChannel.ToString(), o.subscript));
                 cck.AppendLine("}");
                 cck.AppendLine();

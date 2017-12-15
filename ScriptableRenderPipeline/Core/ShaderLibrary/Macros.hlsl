@@ -9,13 +9,11 @@
 // Some platform don't support cubemap array so we fallback on 2D latlong
 #ifdef  UNITY_NO_CUBEMAP_ARRAY
 #define TEXTURECUBE_ARRAY_ABSTRACT TEXTURE2D_ARRAY
-#define SAMPLERCUBE_ABSTRACT SAMPLER2D
 #define TEXTURECUBE_ARRAY_ARGS_ABSTRACT TEXTURE2D_ARRAY_ARGS
 #define TEXTURECUBE_ARRAY_PARAM_ABSTRACT TEXTURE2D_ARRAY_PARAM
 #define SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(textureName, samplerName, coord3, index, lod) SAMPLE_TEXTURE2D_ARRAY_LOD(textureName, samplerName, DirectionToLatLongCoordinate(coord3), index, lod)
 #else
 #define TEXTURECUBE_ARRAY_ABSTRACT TEXTURECUBE_ARRAY
-#define SAMPLERCUBE_ABSTRACT SAMPLERCUBE
 #define TEXTURECUBE_ARRAY_ARGS_ABSTRACT TEXTURECUBE_ARRAY_ARGS
 #define TEXTURECUBE_ARRAY_PARAM_ABSTRACT TEXTURECUBE_ARRAY_PARAM
 #define SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(textureName, samplerName, coord3, index, lod) SAMPLE_TEXTURECUBE_ARRAY_LOD(textureName, samplerName, coord3, index, lod)
@@ -40,7 +38,6 @@
 #define FLT_EPS     5.960464478e-8  // 2^-24, machine epsilon: 1 + EPS = 1 (half of the ULP for 1)
 #define FLT_MIN     1.175494351e-38 // Minimum representable positive floating-point number
 #define FLT_MAX     3.402823466e+38 // Maximum representable floating-point number
-#define FLT_NAN     asfloat(0xFFFFFFFF)
 #define HALF_MIN    6.103515625e-5  // 2^-14, the same value for 10, 11 and 16-bit: https://www.khronos.org/opengl/wiki/Small_Float_Formats
 #define HALF_MAX    65504.0
 #define UINT_MAX    0xFFFFFFFFu

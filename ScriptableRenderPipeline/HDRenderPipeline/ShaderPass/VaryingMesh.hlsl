@@ -84,7 +84,7 @@ struct PackedVaryingsMeshToPS
 #endif
 
 #if defined(VARYINGS_NEED_CULLFACE) && SHADER_STAGE_FRAGMENT
-    FRONT_FACE_TYPE cullFace : FRONT_FACE_SEMATIC;
+    FRONT_FACE_TYPE cullFace : FRONT_FACE_SEMANTIC;
 #endif
 };
 

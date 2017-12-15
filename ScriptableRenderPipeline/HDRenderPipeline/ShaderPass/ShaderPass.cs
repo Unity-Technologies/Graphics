@@ -18,6 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         LightTransport,
         Shadows,
         SubsurfaceScattering,
-        VolumetricLighting
+        VolumetricLighting,
+        DBuffer
     }
 }

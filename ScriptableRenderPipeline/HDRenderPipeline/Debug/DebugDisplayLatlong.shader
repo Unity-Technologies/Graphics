@@ -11,7 +11,7 @@ Shader "Hidden/HDRenderPipeline/DebugDisplayLatlong"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -20,7 +20,7 @@ Shader "Hidden/HDRenderPipeline/DebugDisplayLatlong"
             #include "ShaderLibrary/ImageBasedLighting.hlsl"
 
             TEXTURECUBE(_InputCubemap);
-            SAMPLERCUBE(sampler_InputCubemap);
+            SAMPLER(sampler_InputCubemap);
             float _Mipmap;
 
             struct Attributes
