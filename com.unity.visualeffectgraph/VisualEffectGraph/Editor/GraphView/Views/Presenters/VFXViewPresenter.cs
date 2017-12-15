@@ -638,12 +638,14 @@ namespace UnityEditor.VFX.UI
             {
                 RemoveInvalidateDelegate(m_Graph, SyncPresentersFromModel);
                 RemoveInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
+                RemoveInvalidateDelegate(m_Graph, IncremenentGraphUndoRedoState);
             }
 
             m_Graph = m_VFXAsset.GetOrCreateGraph();
 
             AddInvalidateDelegate(m_Graph, SyncPresentersFromModel);
             AddInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
+            AddInvalidateDelegate(m_Graph, IncremenentGraphUndoRedoState);
 
             // First trigger
             RecompileExpressionGraphIfNeeded();
@@ -676,6 +678,7 @@ namespace UnityEditor.VFX.UI
                 {
                     RemoveInvalidateDelegate(m_Graph, SyncPresentersFromModel);
                     RemoveInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
+                    RemoveInvalidateDelegate(m_Graph, IncremenentGraphUndoRedoState);
                 }
 
                 m_VFXAsset = vfx == null ? new VFXAsset() : vfx;
@@ -684,13 +687,10 @@ namespace UnityEditor.VFX.UI
 
                 AddInvalidateDelegate(m_Graph, SyncPresentersFromModel);
                 AddInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
+                AddInvalidateDelegate(m_Graph, IncremenentGraphUndoRedoState);
 
                 // First trigger
                 RecompileExpressionGraphIfNeeded();
-
-
-                // Doesn't work for some reason
-                //View.FrameAll();
 
 #if ENABLE_VIEW_3D_PRESENTER
                 if (presenter != null)
