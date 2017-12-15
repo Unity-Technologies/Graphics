@@ -86,8 +86,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         protected override void OnDisable()
         {
+            m_BakingSkySettings.Remove(this);
             base.OnDisable();
-            OnValidate();
         }
 
         public void OnValidate()

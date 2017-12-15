@@ -44,8 +44,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         int                     m_LastFrameUpdated = -1;
         bool                    m_UpdateRequired =false;
-        bool                    m_NeedUpdateSkyMaterialFromBaking = false;
         bool                    m_NeedUpdateRealtimeEnv = false;
+        bool                    m_NeedUpdateBakingSky = false;
 
         // This is the sky used for rendering in the main view. It will also be used for lighting if no lighting override sky is setup.
         // Ambient Probe: Only for real time GI (otherwise we use the baked one)
@@ -166,26 +166,33 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void UpdateEnvironment(HDCamera camera, Light sunLight, CommandBuffer cmd)
         {
+            // WORKAROUND for building the player.
+            // When building the player, for some reason we end up in a state where frameCount is not updated but all currently setup shader texture are reset to null
+            // resulting in a rendering error (compute shader property not bound) that makes the player building fails...
+            // So we just check if the texture is bound here so that we can setup a pink one to avoid the error without breaking half the world.
+            if(Shader.GetGlobalTexture(HDShaderIDs._SkyTexture) == null)
+                cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, CoreUtils.magentaCubeTexture);
+
             if (m_LastFrameUpdated == Time.frameCount)
                 return;
 
-            // Both m_NeedUpdateSkyMaterialFromBaking and m_NeedUpdateRealtimeEnv are done here because we need to wait for one frame that the command buffer is executed before using the resulting textures.
-            if(m_NeedUpdateSkyMaterialFromBaking)
+            // This is done here because we need to wait for one frame that the command buffer is executed before using the resulting textures.
+            if (m_NeedUpdateBakingSky)
             {
-                using (new ProfilingSample(cmd, "DynamicGI.UpdateEnvironment"))
-                {
-                    // Here we update the global SkyMaterial so that it uses our baking sky cubemap. This way, next time the GI is baked, the right sky will be present.
-                    float intensity = m_BakingSky.IsValid() ? 1.0f : 0.0f; // Eliminate all diffuse if we don't have a skybox (meaning for now the background is black in HDRP)
-                    m_StandardSkyboxMaterial.SetTexture("_Tex", m_BakingSky.cubemapRT);
-                    RenderSettings.skybox = m_StandardSkyboxMaterial; // Setup this material as the default to be use in RenderSettings
-                    RenderSettings.ambientIntensity = intensity;
-                    RenderSettings.ambientMode = AmbientMode.Skybox; // Force skybox for our HDRI
-                    RenderSettings.reflectionIntensity = intensity;
-                    RenderSettings.customReflection = null;
-                    DynamicGI.UpdateEnvironment();
+                // Here we update the global SkyMaterial so that it uses our baking sky cubemap. This way, next time the GI is baked, the right sky will be present.
+                float intensity = m_BakingSky.IsValid() ? 1.0f : 0.0f; // Eliminate all diffuse if we don't have a skybox (meaning for now the background is black in HDRP)
+                m_StandardSkyboxMaterial.SetTexture("_Tex", m_BakingSky.cubemapRT);
+                RenderSettings.skybox = m_StandardSkyboxMaterial; // Setup this material as the default to be use in RenderSettings
+                RenderSettings.ambientIntensity = intensity;
+                RenderSettings.ambientMode = AmbientMode.Skybox; // Force skybox for our HDRI
+                RenderSettings.reflectionIntensity = intensity;
+                RenderSettings.customReflection = null;
 
-                    m_NeedUpdateSkyMaterialFromBaking = false;
-                }
+                // Strictly speaking, this should not be necessary, but it helps avoiding inconsistent behavior in the editor
+                // where the GI system sometimes update the ambient probe and sometime does not...
+                DynamicGI.UpdateEnvironment();
+
+                m_NeedUpdateBakingSky = false;
             }
 
             if(m_NeedUpdateRealtimeEnv)
@@ -197,7 +204,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             UpdateCurrentSkySettings();
 
-            m_NeedUpdateSkyMaterialFromBaking = m_BakingSky.UpdateEnvironment(camera, sunLight, m_UpdateRequired, cmd);
+            m_NeedUpdateBakingSky = m_BakingSky.UpdateEnvironment(camera, sunLight, m_UpdateRequired, cmd);
             if(m_LightingOverrideSky.IsValid())
             {
                 m_NeedUpdateRealtimeEnv = m_LightingOverrideSky.UpdateEnvironment(camera, sunLight, m_UpdateRequired, cmd);
