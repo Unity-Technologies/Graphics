@@ -405,7 +405,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (renderData == masterRenderData)
                 {
                     previewTransform *= Matrix4x4.Rotate(rotation);
-                    previewTransform *= Matrix4x4.Scale(Vector3.one * 1f / mesh.bounds.extents.magnitude);
+                    previewTransform *= Matrix4x4.Scale(Vector3.one * (Vector3.one).magnitude / mesh.bounds.size.magnitude);
                     previewTransform *= Matrix4x4.Translate(-mesh.bounds.center);
                 }
 
