@@ -3,17 +3,6 @@
 #ifndef LIGHTWEIGHT_SHADER_VARIABLES_INCLUDED
 #define LIGHTWEIGHT_SHADER_VARIABLES_INCLUDED
 
-#include "ShaderLibrary/Common.hlsl"
-
-// CAUTION:
-// Currently the shaders compiler always include regualr Unity shaderVariables, so I get a conflict here were UNITY_SHADER_VARIABLES_INCLUDED is already define, this need to be fixed.
-// As I haven't change the variables name yet, I simply don't define anything, and I put the transform function at the end of the file outside the guard header.
-// This need to be fixed.
-
-#if defined (DIRECTIONAL_COOKIE) || defined (DIRECTIONAL)
-#define USING_DIRECTIONAL_LIGHT
-#endif
-
 #if defined(UNITY_SINGLE_PASS_STEREO) || defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
 #define USING_STEREO_MATRICES
 #endif
@@ -248,8 +237,5 @@ float4x4 OptimizeProjectionMatrix(float4x4 M)
     M._12_42 = 0;
     return M;
 }
-
-#include "ShaderVariables/LightweightShaderVariablesCamera.hlsl"
-#include "ShaderVariables/LightweightShaderVariablesFunctions.hlsl"
 
 #endif // LIGHTWEIGHT_SHADER_VARIABLES_INCLUDED

@@ -73,8 +73,8 @@ Shader "LightweightPipeline/Particles/Standard"
             #pragma shader_feature _FADING_ON
             #pragma shader_feature _REQUIRE_UV2
 
-            #include "LightweightParticle.hlsl"
-            #include "LightweightLighting.hlsl"
+            #include "LightweightShaderLibrary/Particles.hlsl"
+            #include "LightweightShaderLibrary/Lighting.hlsl"
 
             VertexOutputLit ParticlesLitVertex(appdata_particles v)
             {

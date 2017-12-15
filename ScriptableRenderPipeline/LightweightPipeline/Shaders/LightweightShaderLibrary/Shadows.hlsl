@@ -2,7 +2,6 @@
 #define LIGHTWEIGHT_SHADOWS_INCLUDED
 
 #include "ShaderLibrary\Common.hlsl"
-#include "LightweightInput.hlsl"
 
 #define MAX_SHADOW_CASCADES 4
 
@@ -27,6 +26,8 @@
 
 TEXTURE2D_SHADOW(_ShadowMap);
 SAMPLER2D_SHADOW(sampler_ShadowMap);
+
+CBUFFER_START(_ShadowBuffer)
 float4x4 _WorldToShadow[MAX_SHADOW_CASCADES];
 float4 _DirShadowSplitSpheres[MAX_SHADOW_CASCADES];
 half4 _ShadowOffset0;
@@ -34,6 +35,7 @@ half4 _ShadowOffset1;
 half4 _ShadowOffset2;
 half4 _ShadowOffset3;
 half4 _ShadowData; // (x: 1.0 - shadowStrength, y: bias, z: normal bias, w: near plane offset)
+CBUFFER_END
 
 float ApplyDepthBias(float clipZ)
 {

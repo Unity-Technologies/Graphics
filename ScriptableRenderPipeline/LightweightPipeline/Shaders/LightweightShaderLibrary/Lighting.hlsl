@@ -1,12 +1,11 @@
 #ifndef LIGHTWEIGHT_LIGHTING_INCLUDED
 #define LIGHTWEIGHT_LIGHTING_INCLUDED
 
-#include "ShaderLibrary\Common.hlsl"
-#include "ShaderLibrary\ImageBasedLighting.hlsl"
-#include "LightweightCore.hlsl"
-#include "LightweightShadows.hlsl"
-
-#define kDieletricSpec half4(0.04, 0.04, 0.04, 1.0 - 0.04) // standard dielectric reflectivity coef at incident angle (= 4%)
+#include "ShaderLibrary/Common.hlsl"
+#include "ShaderLibrary/EntityLighting.hlsl"
+#include "ShaderLibrary/ImageBasedLighting.hlsl"
+#include "Core.hlsl"
+#include "Shadows.hlsl"
 
 #ifdef NO_ADDITIONAL_LIGHTS
 #undef _ADDITIONAL_LIGHTS
@@ -15,7 +14,7 @@
 // If lightmap is not defined than we evaluate GI (ambient + probes) from SH
 // We might do it fully or partially in vertex to save shader ALU
 #if !defined(LIGHTMAP_ON)
-    #if SHADER_TARGET < 30
+    #ifdef SHADER_API_GLES
         // Evaluates SH fully in vertex
         #define EVALUATE_SH_VERTEX
     #else
@@ -24,9 +23,180 @@
     #endif
 #endif
 
+#ifdef LIGHTMAP_ON
+    #define OUTPUT_LIGHTMAP_UV(lightmapUV, lightmapScaleOffset, OUT) OUT.xy = lightmapUV.xy * lightmapScaleOffset.xy + lightmapScaleOffset.zw;
+    #define OUTPUT_SH(normalWS, OUT)
+#else
+    #define OUTPUT_LIGHTMAP_UV(lightmapUV, lightmapScaleOffset, OUT)
+    #define OUTPUT_SH(normalWS, OUT) OUT.xyz = SampleSHVertex(normalWS)
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
+//                          Light Helpers                                    //
+///////////////////////////////////////////////////////////////////////////////
+struct LightInput
+{
+    float4 position;
+    half3 color;
+    half4 distanceAttenuation;
+    half4 spotDirection;
+    half4 spotAttenuation;
+};
+
+LightInput GetMainLight()
+{
+    LightInput light;
+    light.position = _MainLightPosition;
+    light.color = _MainLightColor.rgb;
+    light.distanceAttenuation = _MainLightDistanceAttenuation;
+    light.spotDirection = _MainLightSpotDir;
+    light.spotAttenuation = _MainLightSpotAttenuation;
+    return light;
+}
+
+LightInput GetLight(int i)
+{
+    LightInput light;
+    half4 indices = (i < 4) ? unity_4LightIndices0 : unity_4LightIndices1;
+    int index = (i < 4) ? i : i - 4;
+    int lightIndex = indices[index];
+    light.position = _AdditionalLightPosition[lightIndex];
+    light.color = _AdditionalLightColor[lightIndex].rgb;
+    light.distanceAttenuation = _AdditionalLightDistanceAttenuation[lightIndex];
+    light.spotDirection = _AdditionalLightSpotDir[lightIndex];
+    light.spotAttenuation = _AdditionalLightSpotAttenuation[lightIndex];
+    return light;
+}
+
+half GetPixelLightCount()
+{
+    return min(_AdditionalLightCount.x, unity_LightIndicesOffsetAndCount.y);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//                      Global Illumination                                  //
+///////////////////////////////////////////////////////////////////////////////
+
+// Samples SH L0, L1 and L2 terms
+half3 SampleSH(half3 normalWS)
+{
+    // LPPV is not supported in Ligthweight Pipeline
+    float4 SHCoefficients[7];
+    SHCoefficients[0] = unity_SHAr;
+    SHCoefficients[1] = unity_SHAg;
+    SHCoefficients[2] = unity_SHAb;
+    SHCoefficients[3] = unity_SHBr;
+    SHCoefficients[4] = unity_SHBg;
+    SHCoefficients[5] = unity_SHBb;
+    SHCoefficients[6] = unity_SHC;
+
+    return SampleSH9(SHCoefficients, normalWS);
+}
+
+// SH Vertex Evaluation. Depending on target SH sampling might be
+// done completely per vertex or mixed with L2 term per vertex and L0, L1
+// per pixel. See SampleSHPixel
+half3 SampleSHVertex(half3 normalWS)
+{
+#if defined(EVALUATE_SH_VERTEX)
+    return max(half3(0, 0, 0), SampleSH(normalWS));
+#elif defined(EVALUATE_SH_MIXED)
+    // no max since this is only L2 contribution
+    return SHEvalLinearL2(normalWS, unity_SHBr, unity_SHBg, unity_SHBb, unity_SHC);
+#endif
+
+    // Fully per-pixel. Nothing to compute.
+    return half3(0.0, 0.0, 0.0);
+}
+
+// SH Pixel Evaluation. Depending on target SH sampling might be done
+// mixed or fully in pixel. See SampleSHVertex
+half3 SampleSHPixel(half3 L2Term, half3 normalWS)
+{
+#ifdef EVALUATE_SH_MIXED
+    half3 L0L1Term = SHEvalLinearL0L1(normalWS, unity_SHAr, unity_SHAg, unity_SHAb);
+    return max(half3(0, 0, 0), L2Term + L0L1Term);
+#endif
+
+    // Default: Evaluate SH fully per-pixel
+    return max(half3(0, 0, 0), SampleSH(normalWS));
+}
+
+// Sample baked lightmap. Non-Direction and Directional if available.
+// Realtime GI is not supported.
+half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
+{
+#ifdef UNITY_LIGHTMAP_FULL_HDR
+    bool encodedLightmap = false;
+#else
+    bool encodedLightmap = true;
+#endif
+
+    // The shader library sample lightmap functions transform the lightmap uv coords to apply bias and scale.
+    // However, lightweight pipeline already transformed those coords in vertex. We pass half4(1, 1, 0, 0) and
+    // the compiler will optimize the transform away.
+    half4 transformCoords = half4(1, 1, 0, 0);
+
+#ifdef DIRLIGHTMAP_COMBINED
+    return SampleDirectionalLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap),
+        TEXTURE2D_PARAM(unity_LightmapInd, samplerunity_Lightmap),
+        lightmapUV, transformCoords, normalWS, encodedLightmap);
+#else
+    return SampleSingleLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap), lightmapUV, transformCoords, encodedLightmap);
+#endif
+}
+
+// We either sample GI from baked lightmap or from probes.
+// If lightmap: sampleData.xy = lightmapUV
+// If probe: sampleData.xyz = L2 SH terms
+half3 SampleGI(float4 sampleData, half3 normalWS)
+{
+#ifdef LIGHTMAP_ON
+    return SampleLightmap(sampleData.xy, normalWS);
+#endif
+
+    // If lightmap is not enabled we sample GI from SH
+    return SampleSHPixel(sampleData.xyz, normalWS);
+}
+
+half3 DiffuseGI(half3 indirectDiffuse, half3 lambert, half mainLightRealtimeAttenuation, half occlusion)
+{
+    // If shadows and mixed subtractive mode is enabled we need to remove direct
+    // light contribution from lightmap from occluded pixels so we can have dynamic objects
+    // casting shadows onto static correctly.
+#if defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_ON) && defined(_SHADOWS)
+    indirectDiffuse = SubtractDirectMainLightFromLightmap(indirectDiffuse, mainLightRealtimeAttenuation, lambert);
+#endif
+
+    return indirectDiffuse * occlusion;
+}
+
+half3 GlossyEnvironmentReflection(half3 viewDirectionWS, half3 normalWS, half perceptualRoughness, half occlusion)
+{
+    half3 reflectVector = reflect(-viewDirectionWS, normalWS);
+
+#if !defined(_GLOSSYREFLECTIONS_OFF)
+    half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
+    half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
+
+#if !defined(UNITY_USE_NATIVE_HDR)
+    half3 irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
+#else
+    half3 irradiance = encodedIrradiance.rbg;
+#endif
+
+    return irradiance * occlusion;
+#endif // GLOSSY_REFLECTIONS
+
+    return _GlossyEnvironmentColor.rgb * occlusion;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 //                         BRDF Functions                                    //
 ///////////////////////////////////////////////////////////////////////////////
+
+#define kDieletricSpec half4(0.04, 0.04, 0.04, 1.0 - 0.04) // standard dielectric reflectivity coef at incident angle (= 4%)
+
 struct BRDFData
 {
     half3 diffuse;
@@ -84,7 +254,7 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
 #endif
 }
 
-half3 LightweightEnvironmentBRDF(BRDFData brdfData, half3 indirectDiffuse, half3 indirectSpecular, half roughness2, half fresnelTerm)
+half3 EnvironmentBRDF(BRDFData brdfData, half3 indirectDiffuse, half3 indirectSpecular, half roughness2, half fresnelTerm)
 {
     half3 c = indirectDiffuse * brdfData.diffuse;
     float surfaceReduction = 1.0 / (roughness2 + 1.0);
@@ -98,7 +268,7 @@ half3 LightweightEnvironmentBRDF(BRDFData brdfData, half3 indirectDiffuse, half3
 // * NDF [Modified] GGX
 // * Modified Kelemen and Szirmay-​Kalos for Visibility term
 // * Fresnel approximated with 1/LdotH
-half3 LightweightDirectBDRF(BRDFData brdfData, half roughness2, half3 normal, half3 lightDirection, half3 viewDir)
+half3 DirectBDRF(BRDFData brdfData, half roughness2, half3 normal, half3 lightDirection, half3 viewDir)
 {
 #ifndef _SPECULARHIGHLIGHTS_OFF
     half3 halfDir = SafeNormalize(lightDirection + viewDir);
@@ -188,7 +358,7 @@ half SpotAttenuation(half3 spotDirection, half3 lightDirection, half4 spotAttenu
 
 inline half GetLightDirectionAndRealtimeAttenuation(LightInput lightInput, half3 normal, float3 worldPos, out half3 lightDirection)
 {
-    float3 posToLightVec = lightInput.pos.xyz - worldPos * lightInput.pos.w;
+    float3 posToLightVec = lightInput.position.xyz - worldPos * lightInput.position.w;
     float distanceSqr = max(dot(posToLightVec, posToLightVec), 0.001);
 
     // normalized light dir
@@ -202,7 +372,7 @@ inline half GetMainLightDirectionAndRealtimeAttenuation(LightInput lightInput, h
 {
 #ifdef _MAIN_DIRECTIONAL_LIGHT
     // Light pos holds normalized light dir
-    lightDirection = lightInput.pos.xyz;
+    lightDirection = lightInput.position.xyz;
     half attenuation = 1.0;
 #else
     half attenuation = GetLightDirectionAndRealtimeAttenuation(lightInput, normalWS, positionWS, lightDirection);
@@ -241,8 +411,7 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
     int vertexLightEnd = min(_AdditionalLightCount.y, unity_LightIndicesOffsetAndCount.y);
     for (int lightIter = vertexLightStart; lightIter < vertexLightEnd; ++lightIter)
     {
-        LightInput light;
-        INITIALIZE_LIGHT(light, lightIter);
+        LightInput light = GetLight(lightIter);
 
         half3 lightDirection;
         half atten = GetLightDirectionAndRealtimeAttenuation(light, normalWS, positionWS, lightDirection);
@@ -252,41 +421,6 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
 #endif
 
     return vertexLightColor;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-//                      Global Illumination                                  //
-///////////////////////////////////////////////////////////////////////////////
-half3 DiffuseGI(half3 indirectDiffuse, half3 lambert, half mainLightRealtimeAttenuation, half occlusion)
-{
-    // If shadows and mixed subtractive mode is enabled we need to remove direct
-    // light contribution from lightmap from occluded pixels so we can have dynamic objects
-    // casting shadows onto static correctly.
-#if defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_ON) && defined(_SHADOWS)
-    indirectDiffuse = SubtractDirectMainLightFromLightmap(indirectDiffuse, mainLightRealtimeAttenuation, lambert);
-#endif
-
-    return indirectDiffuse * occlusion;
-}
-
-half3 GlossyEnvironmentReflection(half3 viewDirectionWS, half3 normalWS, half perceptualRoughness, half occlusion)
-{
-    half3 reflectVector = reflect(-viewDirectionWS, normalWS);
-
-#if !defined(_GLOSSYREFLECTIONS_OFF)
-    half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
-    half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
-
-#if !defined(UNITY_USE_NATIVE_HDR)
-    half3 irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
-#else
-    half3 irradiance = encodedIrradiance.rbg;
-#endif
-
-    return irradiance * occlusion;
-#endif
-
-    return _GlossyEnvironmentColor.rgb * occlusion;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -303,8 +437,7 @@ half4 LightweightFragmentPBR(float3 positionWS, half3 normalWS, half3 viewDirect
 
     half3 lightDirectionWS;
 
-    LightInput mainLight;
-    INITIALIZE_MAIN_LIGHT(mainLight);
+    LightInput mainLight = GetMainLight();
 
     // No distance fade.
     half realtimeMainLightAtten = GetMainLightDirectionAndRealtimeAttenuation(mainLight, normalWS, positionWS, lightDirectionWS);
@@ -316,27 +449,25 @@ half4 LightweightFragmentPBR(float3 positionWS, half3 normalWS, half3 viewDirect
 
     half roughness2 = brdfData.roughness * brdfData.roughness;
     half fresnelTerm = Pow4(1.0 - saturate(dot(normalWS, viewDirectionWS)));
-    half3 color = LightweightEnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, roughness2, fresnelTerm);
+    half3 color = EnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, roughness2, fresnelTerm);
 
     half mainLightAtten = MixRealtimeAndBakedOcclusion(realtimeMainLightAtten, bakedOcclusion, mainLight.distanceAttenuation);
     radiance *= mainLightAtten;
 
-    color += LightweightDirectBDRF(brdfData, roughness2, normalWS, lightDirectionWS, viewDirectionWS) * radiance;
+    color += DirectBDRF(brdfData, roughness2, normalWS, lightDirectionWS, viewDirectionWS) * radiance;
     color += vertexLighting * brdfData.diffuse;
 
 #ifdef _ADDITIONAL_LIGHTS
-    int pixelLightCount = min(_AdditionalLightCount.x, unity_LightIndicesOffsetAndCount.y);
+    int pixelLightCount = GetPixelLightCount();
     for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
     {
-        LightInput light;
-        INITIALIZE_LIGHT(light, lightIter);
-
+        LightInput light = GetLight(lightIter);
         half lightAttenuation = GetLightDirectionAndRealtimeAttenuation(light, normalWS, positionWS, lightDirectionWS);
         lightAttenuation = MixRealtimeAndBakedOcclusion(lightAttenuation, bakedOcclusion, light.distanceAttenuation);
 
         half NdotL = saturate(dot(normalWS, lightDirectionWS));
         half3 radiance = light.color * (lightAttenuation * NdotL);
-        color += LightweightDirectBDRF(brdfData, roughness2, normalWS, lightDirectionWS, viewDirectionWS) * radiance;
+        color += DirectBDRF(brdfData, roughness2, normalWS, lightDirectionWS, viewDirectionWS) * radiance;
     }
 #endif
 
@@ -350,8 +481,7 @@ half4 LightweightFragmentLambert(float3 positionWS, half3 normalWS, half3 viewDi
     half4 bakedOcclusion = half4(0, 0, 0, 0);
     half3 lightDirection;
 
-    LightInput mainLight;
-    INITIALIZE_MAIN_LIGHT(mainLight);
+    LightInput mainLight = GetMainLight();
     half realtimeMainLightAtten = GetMainLightDirectionAndRealtimeAttenuation(mainLight, normalWS, positionWS, lightDirection);
     half3 NdotL = saturate(dot(normalWS, lightDirection));
     half3 lambert = mainLight.color * NdotL;
@@ -362,12 +492,10 @@ half4 LightweightFragmentLambert(float3 positionWS, half3 normalWS, half3 viewDi
     half3 diffuseColor = lambert * mainLightAtten + indirectDiffuse;
 
 #ifdef _ADDITIONAL_LIGHTS
-    int pixelLightCount = min(_AdditionalLightCount.x, unity_LightIndicesOffsetAndCount.y);
+    int pixelLightCount = GetPixelLightCount();
     for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
     {
-        LightInput light;
-        INITIALIZE_LIGHT(light, lightIter);
-
+        LightInput light = GetLight(lightIter);
         half lightAttenuation = GetLightDirectionAndRealtimeAttenuation(light, normalWS, positionWS, lightDirection);
         lightAttenuation = MixRealtimeAndBakedOcclusion(lightAttenuation, bakedOcclusion, light.distanceAttenuation);
 
@@ -389,8 +517,7 @@ half4 LightweightFragmentBlinnPhong(float3 positionWS, half3 normalWS, half3 vie
     half4 bakedOcclusion = half4(0, 0, 0, 0);
     half3 lightDirection;
 
-    LightInput mainLight;
-    INITIALIZE_MAIN_LIGHT(mainLight);
+    LightInput mainLight = GetMainLight();
     half realtimeMainLightAtten = GetMainLightDirectionAndRealtimeAttenuation(mainLight, normalWS, positionWS, lightDirection);
     half3 NdotL = saturate(dot(normalWS, lightDirection));
     half3 lambert = mainLight.color * NdotL;
@@ -402,11 +529,10 @@ half4 LightweightFragmentBlinnPhong(float3 positionWS, half3 normalWS, half3 vie
     half3 specularColor = LightingSpecular(mainLight.color * mainLightAtten, lightDirection, normalWS, viewDirectionWS, specularGloss, shininess);
 
 #ifdef _ADDITIONAL_LIGHTS
-    int pixelLightCount = min(_AdditionalLightCount.x, unity_LightIndicesOffsetAndCount.y);
+    int pixelLightCount = GetPixelLightCount();
     for (int lightIter = 0; lightIter < pixelLightCount; ++lightIter)
     {
-        LightInput light;
-        INITIALIZE_LIGHT(light, lightIter);
+        LightInput light = GetLight(lightIter);
         half lightAttenuation = GetLightDirectionAndRealtimeAttenuation(light, normalWS, positionWS, lightDirection);
         lightAttenuation = MixRealtimeAndBakedOcclusion(lightAttenuation, bakedOcclusion, light.distanceAttenuation);
 

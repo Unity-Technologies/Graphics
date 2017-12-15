@@ -1,8 +1,8 @@
 #ifndef LIGHTWEIGHT_PASS_LIT_INCLUDED
 #define LIGHTWEIGHT_PASS_LIT_INCLUDED
 
-#include "LightweightSurfaceInput.hlsl"
-#include "LightweightLighting.hlsl"
+#include "LightweightShaderLibrary/InputSurface.hlsl"
+#include "LightweightShaderLibrary/Lighting.hlsl"
 
 struct LightweightVertexInput
 {
@@ -29,7 +29,6 @@ struct LightweightVertexOutput
     half4 fogFactorAndVertexLight   : TEXCOORD7; // x: fogFactor, yzw: vertex light
 
     float4 clipPos                  : SV_POSITION;
-    //UNITY_VERTEX_OUTPUT_STEREO
 };
 
 ///////////////////////////////////////////////////////////////////////////////

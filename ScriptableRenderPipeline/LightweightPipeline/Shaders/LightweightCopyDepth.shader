@@ -16,7 +16,7 @@ Shader "Hidden/LightweightPipeline/CopyDepth"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "LightweightCore.hlsl"
+            #include "LightweightShaderLibrary/Core.hlsl"
 
             TEXTURE2D_FLOAT(_CameraDepthTexture);
             SAMPLER2D(sampler_CameraDepthTexture);

@@ -117,7 +117,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "LightweightCore.hlsl"
+            #include "LightweightShaderLibrary/Core.hlsl"
 
             float4 vert(float4 pos : POSITION) : SV_POSITION
             {
