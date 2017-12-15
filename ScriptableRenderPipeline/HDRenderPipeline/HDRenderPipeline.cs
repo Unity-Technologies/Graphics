@@ -282,7 +282,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static DebugDisplaySettings s_NeutralDebugDisplaySettings = new DebugDisplaySettings();
         DebugDisplaySettings m_CurrentDebugDisplaySettings;
 
-        FrameSettings m_debugSettings = new FrameSettings();
         FrameSettings m_FrameSettings; // Init every frame
 
         int m_DebugFullScreenTempRT;
@@ -392,7 +391,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyManager.Build(asset, m_IBLFilterGGX);
             m_SkyManager.skySettings = skySettingsToUse;
 
-            m_DebugDisplaySettings.RegisterDebug(m_debugSettings, m_Asset.defaultFrameSettings);
+            m_DebugDisplaySettings.RegisterDebug(m_Asset.GetEffectiveDefaultFrameSettings());
             m_DebugFullScreenTempRT = HDShaderIDs._DebugFullScreenTexture;
 
 
@@ -636,8 +635,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
                 // Note: the scene view camera will never have additionalCameraData
                 m_FrameSettings = FrameSettings.InitializeFrameSettings(    camera, m_Asset.GetGlobalFrameSettings(),
-                                                                            (additionalCameraData && additionalCameraData.renderingPath != HDAdditionalCameraData.RenderingPath.Default) ? additionalCameraData.frameSettings : m_Asset.defaultFrameSettings,
-                                                                            (camera.cameraType != CameraType.Preview && camera.cameraType != CameraType.Preview) ? m_debugSettings : null);
+                                                                            (additionalCameraData && additionalCameraData.renderingPath != HDAdditionalCameraData.RenderingPath.Default) ? additionalCameraData.GetEffectiveFrameSettings() : m_Asset.GetEffectiveDefaultFrameSettings());
 
                 // This is the main command buffer used for the frame.
                 var cmd = CommandBufferPool.Get("");

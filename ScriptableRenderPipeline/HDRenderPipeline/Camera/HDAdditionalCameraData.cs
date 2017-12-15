@@ -13,7 +13,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         };
 
         public RenderingPath    renderingPath;
-        public FrameSettings    frameSettings = new FrameSettings();
+
+        // To be able to turn on/off FrameSettings properties at runtime for debugging purpose without affecting the original one
+        // we create a runtime copy (m_effectiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
+        public FrameSettings frameSettings = new FrameSettings(); // Serialize frameSettings
+
+        // Not serialized, not visible
+        FrameSettings m_effectiveFrameSettings = new FrameSettings();
+        public FrameSettings GetEffectiveFrameSettings()
+        {
+            return m_effectiveFrameSettings;
+        }
 
         Camera                  m_camera;
 
@@ -25,6 +35,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // What should be done is just in our Post process we convert to sRGB and store in a linear 10bit, but require C++ change...
             m_camera = GetComponent<Camera>();
             m_camera.allowHDR = false;
+
+            m_effectiveFrameSettings = frameSettings;
         }
     }
 }

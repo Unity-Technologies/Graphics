@@ -20,12 +20,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             set { m_RenderPipelineResources = value; }
         }
 
+        // To be able to turn on/off FrameSettings properties at runtime for debugging purpose without affecting the original one
+        // we create a runtime copy (m_effectiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
         public FrameSettings defaultFrameSettings = new FrameSettings(); // This are the defaultFrameSettings for all the camera and apply to sceneView
+        // Not serialized, not visible
+        FrameSettings m_defaultEffectiveFrameSettings = new FrameSettings();
+
+        public FrameSettings GetEffectiveDefaultFrameSettings()
+        {
+            return m_defaultEffectiveFrameSettings;
+        }
 
         // Store the various GlobalFrameSettings for each platform (for now only one)
         public GlobalFrameSettings globalFrameSettings = new GlobalFrameSettings();
 
-        // Return the current use GlobalFrameSettings (i.e for the current platform
+        // Return the current use GlobalFrameSettings (i.e for the current platform)
         public GlobalFrameSettings GetGlobalFrameSettings()
         {
             return globalFrameSettings;
@@ -99,6 +108,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void OnValidate()
         {
+            // Modification of defaultFrameSettings in the inspector will call OnValidate().
+            // At this time we copy the settings to those effectively used
+            m_defaultEffectiveFrameSettings = defaultFrameSettings.deepCopy();
         }
     }
 }

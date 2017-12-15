@@ -59,7 +59,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Init a FrameSettings from renderpipeline settings, frame settings and debug settings (if any)
         // This will aggregate the various option
-        static public FrameSettings InitializeFrameSettings(Camera camera, GlobalFrameSettings globalFrameSettings, FrameSettings frameSettings, FrameSettings debugSettings)
+        static public FrameSettings InitializeFrameSettings(Camera camera, GlobalFrameSettings globalFrameSettings, FrameSettings frameSettings)
         {
             FrameSettings aggregate = new FrameSettings();
 
@@ -109,38 +109,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.renderSettings.enableMaterialDisplayDebug                 = false;
             aggregate.renderSettings.enableShadowMask                           = globalFrameSettings.lightingSettings.supportShadowMask;
 
-            // Don't display any debug information in reflection probe or preview
-            if (debugSettings != null && camera.cameraType != CameraType.Reflection && camera.cameraType != CameraType.Preview)
-            {
-                // Ignore diffuseGlobalDimmer and specularGlobalDimmer
-                aggregate.lightingSettings.enableShadow                             = aggregate.lightingSettings.enableShadow && debugSettings.lightingSettings.enableShadow;
-                aggregate.lightingSettings.enableSSR                                = aggregate.lightingSettings.enableSSR && debugSettings.lightingSettings.enableSSR;
-                aggregate.lightingSettings.enableSSAO                               = aggregate.lightingSettings.enableSSAO && debugSettings.lightingSettings.enableSSAO;
-                aggregate.lightingSettings.enableSSSAndTransmission                 = aggregate.lightingSettings.enableSSSAndTransmission && debugSettings.lightingSettings.enableSSSAndTransmission;
-
-                aggregate.renderSettings.enableForwardRenderingOnly                 = aggregate.renderSettings.enableForwardRenderingOnly && debugSettings.renderSettings.enableForwardRenderingOnly;
-                aggregate.renderSettings.enableDepthPrepassWithDeferredRendering    = aggregate.renderSettings.enableDepthPrepassWithDeferredRendering && debugSettings.renderSettings.enableDepthPrepassWithDeferredRendering;
-                aggregate.renderSettings.enableAlphaTestOnlyInDeferredPrepass       = aggregate.renderSettings.enableAlphaTestOnlyInDeferredPrepass && debugSettings.renderSettings.enableAlphaTestOnlyInDeferredPrepass;
-
-                aggregate.renderSettings.enableTransparentPrePass                   = aggregate.renderSettings.enableTransparentPrePass && debugSettings.renderSettings.enableTransparentPrePass;
-                aggregate.renderSettings.enableMotionVectors                        = aggregate.renderSettings.enableMotionVectors && debugSettings.renderSettings.enableMotionVectors;
-                aggregate.renderSettings.enableDBuffer                              = aggregate.renderSettings.enableDBuffer && debugSettings.renderSettings.enableDBuffer;
-                aggregate.renderSettings.enableAtmosphericScattering                = aggregate.renderSettings.enableAtmosphericScattering && debugSettings.renderSettings.enableAtmosphericScattering;
-                aggregate.renderSettings.enableRoughRefraction                      = aggregate.renderSettings.enableRoughRefraction && debugSettings.renderSettings.enableRoughRefraction;
-                aggregate.renderSettings.enableTransparentPostPass                  = aggregate.renderSettings.enableTransparentPostPass && debugSettings.renderSettings.enableTransparentPostPass;
-                aggregate.renderSettings.enableDistortion                           = aggregate.renderSettings.enableDistortion && debugSettings.renderSettings.enableDistortion;
-                aggregate.renderSettings.enablePostprocess                          = aggregate.renderSettings.enablePostprocess && debugSettings.renderSettings.enablePostprocess;
-
-                aggregate.renderSettings.enableStereo                               = aggregate.renderSettings.enableStereo && debugSettings.renderSettings.enableStereo && UnityEngine.XR.XRSettings.isDeviceActive;
-                aggregate.renderSettings.enableAsyncCompute                         = aggregate.renderSettings.enableAsyncCompute && debugSettings.renderSettings.enableAsyncCompute;
-
-                aggregate.renderSettings.enableOpaqueObjects                        = aggregate.renderSettings.enableOpaqueObjects && debugSettings.renderSettings.enableOpaqueObjects;
-                aggregate.renderSettings.enableTransparentObjects                   = aggregate.renderSettings.enableTransparentObjects && debugSettings.renderSettings.enableTransparentObjects;
-
-                // ignore for enableMaterialDisplayDebug and enableShadowMask
-            }
-
-            aggregate.lightLoopSettings = LightLoopSettings.InitializeLightLoopSettings(camera, aggregate, globalFrameSettings, frameSettings, debugSettings);
+            aggregate.lightLoopSettings = LightLoopSettings.InitializeLightLoopSettings(camera, aggregate, globalFrameSettings, frameSettings);
 
             return aggregate;
         }
