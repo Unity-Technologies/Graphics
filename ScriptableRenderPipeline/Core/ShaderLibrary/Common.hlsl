@@ -264,7 +264,7 @@ float FastATanPos(float x)
     return (x < 1.0) ? poly : HALF_PI - poly;
 }
 
-#if (SHADER_TARGET >= 50)
+#if (SHADER_TARGET >= 45)
 uint FastLog2(uint x)
 {
     return firstbithigh(x) - 1u;
