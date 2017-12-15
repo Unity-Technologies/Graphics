@@ -135,9 +135,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         readonly HDRenderPipelineAsset m_Asset;
 
-        public SubsurfaceScatteringSettings GetCurrentSssSettings()
+        SubsurfaceScatteringSettings m_InternalSSSAsset;
+        public SubsurfaceScatteringSettings sssSettings
         {
-            return m_Asset.sssSettings;
+            get
+            {
+                // If no SSS asset is set, build / reuse an internal one for simplicity
+                var asset = m_Asset.sssSettings;
+
+                if (asset == null)
+                {
+                    if (m_InternalSSSAsset == null)
+                        m_InternalSSSAsset = ScriptableObject.CreateInstance<SubsurfaceScatteringSettings>();
+
+                    asset = m_InternalSSSAsset;
+                }
+
+                return asset;
+            }
         }
 
         readonly RenderPipelineMaterial m_DeferredMaterial;
@@ -377,7 +392,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyManager.Build(asset, m_IBLFilterGGX);
             m_SkyManager.skySettings = skySettingsToUse;
 
-            m_DebugDisplaySettings.RegisterDebug(m_debugSettings);
+            m_DebugDisplaySettings.RegisterDebug(m_debugSettings, m_Asset.defaultFrameSettings);
             m_DebugFullScreenTempRT = HDShaderIDs._DebugFullScreenTexture;
 
 
@@ -620,7 +635,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // First, get aggregate of frame settings base on global settings, camera frame settings and debug settings
                 var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
                 // Note: the scene view camera will never have additionalCameraData
-                m_FrameSettings = FrameSettings.InitializeFrameSettings(    camera, m_Asset.globalFrameSettings,
+                m_FrameSettings = FrameSettings.InitializeFrameSettings(    camera, m_Asset.GetGlobalFrameSettings(),
                                                                             (additionalCameraData && additionalCameraData.renderingPath != HDAdditionalCameraData.RenderingPath.Default) ? additionalCameraData.frameSettings : m_Asset.defaultFrameSettings,
                                                                             (camera.cameraType != CameraType.Preview && camera.cameraType != CameraType.Preview) ? m_debugSettings : null);
 
@@ -690,7 +705,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     renderContext.SetupCameraProperties(camera);
 
-                    PushGlobalParams(hdCamera, cmd, m_Asset.sssSettings);
+                    PushGlobalParams(hdCamera, cmd, sssSettings);
 
                     // TODO: Find a correct place to bind these material textures
                     // We have to bind the material specific global parameters in this mode
@@ -820,7 +835,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         RenderForwardError(m_CullResults, camera, renderContext, cmd, ForwardPass.Opaque);
 
                         // SSS pass here handle both SSS material from deferred and forward
-                        m_SSSBufferManager.SubsurfaceScatteringPass(hdCamera, cmd, m_Asset.sssSettings, m_FrameSettings,
+                        m_SSSBufferManager.SubsurfaceScatteringPass(hdCamera, cmd, sssSettings, m_FrameSettings,
                                                                     m_CameraColorBufferRT, m_CameraSssDiffuseLightingBufferRT, m_CameraDepthStencilBufferRT, GetDepthTexture());
 
                         RenderSky(hdCamera, cmd);

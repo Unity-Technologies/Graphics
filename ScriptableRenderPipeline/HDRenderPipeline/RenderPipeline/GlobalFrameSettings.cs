@@ -6,7 +6,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     // GlobalFrameSettings represent settings that are immutable at runtime.
     // There is a dedicated RenderRenderPipelineSettings for each platform
     [Serializable]
-    public class GlobalFrameSettings : ScriptableObject
+    public class GlobalFrameSettings
     {
         [Serializable]
         public class GlobalLightingSettings

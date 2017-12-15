@@ -347,7 +347,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected void ShaderSSSInputGUI(Material material, int layerIndex)
         {
             var hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-            var sssSettings = hdPipeline.GetCurrentSssSettings();
+            var sssSettings = hdPipeline.sssSettings;
 
             if (sssSettings == null)
             {

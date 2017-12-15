@@ -449,7 +449,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_EnvLightDatas = new ComputeBuffer(k_MaxEnvLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
             s_shadowDatas = new ComputeBuffer(k_MaxCascadeCount + k_MaxShadowOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(ShadowData)));
 
-            GlobalLightLoopSettings gLightLoopSettings = hdAsset.globalFrameSettings.lightLoopSettings;
+            GlobalLightLoopSettings gLightLoopSettings = hdAsset.GetGlobalFrameSettings().lightLoopSettings;
             m_CookieTexArray = new TextureCache2D();
             m_CookieTexArray.AllocTextureArray(gLightLoopSettings.cookieTexArraySize, gLightLoopSettings.spotCookieSize, gLightLoopSettings.spotCookieSize, TextureFormat.RGBA32, true);
             m_CubeCookieTexArray = new TextureCacheCubemap();
@@ -539,7 +539,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             UnityEditor.SceneView.onSceneGUIDelegate += OnSceneGUI;
 #endif
 
-            InitShadowSystem(hdAsset.globalFrameSettings.shadowInitParams, shadowSettings);
+            InitShadowSystem(hdAsset.GetGlobalFrameSettings().shadowInitParams, shadowSettings);
         }
 
         public void Cleanup()

@@ -16,6 +16,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public readonly GUIContent globalFrameSettings = new GUIContent("Global Frame Settings");
 
+            // Shadow Settings
+            public readonly GUIContent supportDBuffer = new GUIContent("Support Decal buffer");
+            public readonly GUIContent supportMSAA = new GUIContent("Support MSAA");
+            // Shadow Settings
+            public readonly GUIContent shadowSettings = new GUIContent("Shadow Settings");
+            public readonly GUIContent shadowsAtlasWidth = new GUIContent("Atlas Width");
+            public readonly GUIContent shadowsAtlasHeight = new GUIContent("Atlas Height");
+            // LightLoop Settings
+            public readonly GUIContent textureSettings = new GUIContent("LightLoop Settings");
+            public readonly GUIContent spotCookieSize = new GUIContent("Spot Cookie Size");
+            public readonly GUIContent pointCookieSize = new GUIContent("Point Cookie Size");
+            public readonly GUIContent reflectionCubemapSize = new GUIContent("Reflection Cubemap Size");
+            public readonly GUIContent reflectionCacheCompressed = new GUIContent("Compress Reflection Probe Cache");
+
+            public readonly GUIContent defaultFrameSettings = new GUIContent("Default Frame Settings");
+
             // Rendering Settings
             public readonly GUIContent renderingSettingsLabel = new GUIContent("Rendering Settings");
             public readonly GUIContent useForwardRenderingOnly = new GUIContent("Use Forward Rendering Only");
