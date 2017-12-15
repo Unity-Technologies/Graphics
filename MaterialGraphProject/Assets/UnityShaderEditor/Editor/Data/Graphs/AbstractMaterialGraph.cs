@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         List<Guid> m_RemovedProperties = new List<Guid>();
 
-        [NonSerialized]
+        [SerializeField]
         InspectorPreviewData m_PreviewData = new InspectorPreviewData();
 
         public InspectorPreviewData previewData
@@ -634,11 +634,15 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
-
+    [Serializable]
     public class InspectorPreviewData
     {
-        public Mesh mesh;
+        public SerializableMesh serializedMesh = new SerializableMesh();
+
+        [NonSerialized]
         public Quaternion rotation = Quaternion.identity;
+
+        [NonSerialized]
         public float scale = 1f;
     }
 }
