@@ -12,8 +12,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector4 baseColor;
             [SurfaceDataAttributes("Normal", true)]
             public Vector4 normalWS;
-            [SurfaceDataAttributes("Metal Smoothness Height", true)]
-            public Vector4 MSH; 
+            [SurfaceDataAttributes("Mask", true)]
+            public Vector4 mask; 
         };
 
         [GenerateHLSL(PackingRules.Exact)]
