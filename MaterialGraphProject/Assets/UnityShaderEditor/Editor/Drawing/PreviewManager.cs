@@ -400,13 +400,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 Graphics.Blit(Texture2D.whiteTexture, renderData.renderTexture, m_SceneResources.checkerboardMaterial);
                 var mesh = (renderData == masterRenderData && m_Graph.previewData.serializedMesh.mesh) ? m_Graph.previewData.serializedMesh.mesh :  m_SceneResources.sphere;
                 Quaternion rotation = (renderData == masterRenderData) ? m_Graph.previewData.rotation : Quaternion.identity;
-                float scale = (renderData == masterRenderData) ? m_Graph.previewData.scale : 1f;
                 Matrix4x4 previewTransform = Matrix4x4.identity;
 
                 if (renderData == masterRenderData)
                 {
                     previewTransform *= Matrix4x4.Rotate(rotation);
-                    previewTransform *= Matrix4x4.Scale(Vector3.one * scale * .75f / mesh.bounds.extents.magnitude);
+                    previewTransform *= Matrix4x4.Scale(Vector3.one * 1f / mesh.bounds.extents.magnitude);
                     previewTransform *= Matrix4x4.Translate(-mesh.bounds.center);
                 }
 
