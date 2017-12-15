@@ -1,3 +1,4 @@
+using System;
 using ICSharpCode.NRefactory;
 using ICSharpCode.NRefactory.Visitors;
 using ICSharpCode.NRefactory.Ast;
@@ -41,7 +42,7 @@ namespace UnityEditor.Experimental.Rendering
             s_TypeName = new Dictionary<string, ShaderTypeGenerator>();
 
             // Iterate over assemblyList, discover all applicable types with fully qualified names
-            var assemblyList = AssemblyEnumerator.EnumerateReferencedAssemblies(Assembly.GetCallingAssembly());
+            var assemblyList = AppDomain.CurrentDomain.GetAssemblies().ToList();
 
             foreach (var assembly in assemblyList)
             {
@@ -258,70 +259,5 @@ namespace UnityEditor.Experimental.Rendering
                 return null;
             }
         }
-    }
-
-    // Helper class to recursively enumerate assemblies referenced by the calling assembly, including unloaded ones
-    static class AssemblyEnumerator
-    {
-        public static List<Assembly> EnumerateReferencedAssemblies(Assembly assembly)
-        {
-            Dictionary<string, Assembly> referenced = assembly.GetReferencedAssembliesRecursive();
-            referenced[GetName(assembly.FullName)] = assembly;
-            return referenced.Values.ToList();
-        }
-
-        public static Dictionary<string, Assembly> GetReferencedAssembliesRecursive(this Assembly assembly)
-        {
-            s_Assemblies = new Dictionary<string, Assembly>();
-            InternalGetDependentAssembliesRecursive(assembly);
-
-            // Skip assemblies from GAC (@TODO:  any reason we'd want to include them?)
-            var keysToRemove = s_Assemblies.Values.Where(
-                    o => o.GlobalAssemblyCache == true).ToList();
-
-            foreach (var k in keysToRemove)
-            {
-                s_Assemblies.Remove(GetName(k.FullName));
-            }
-
-            return s_Assemblies;
-        }
-
-        private static void InternalGetDependentAssembliesRecursive(Assembly assembly)
-        {
-            // Load assemblies with newest versions first.
-            var referencedAssemblies = assembly.GetReferencedAssemblies()
-                .OrderByDescending(o => o.Version);
-
-            foreach (var r in referencedAssemblies)
-            {
-                if (string.IsNullOrEmpty(assembly.FullName))
-                {
-                    continue;
-                }
-
-                if (s_Assemblies.ContainsKey(GetName(r.FullName)))
-                    continue;
-
-                try
-                {
-                    // Ensure that the assembly is loaded
-                    var a = Assembly.Load(r.FullName);
-                    s_Assemblies[GetName(a.FullName)] = a;
-                    InternalGetDependentAssembliesRecursive(a);
-                }
-                catch
-                {
-                    // Missing dll, ignore.
-                }
-            }
-        }
-
-        static string GetName(string name)
-        {
-            return name.Split(',')[0];
-        }
-
-        static Dictionary<string, Assembly> s_Assemblies;
     }
 }

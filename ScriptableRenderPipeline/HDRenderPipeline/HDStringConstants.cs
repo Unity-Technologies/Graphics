@@ -145,7 +145,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _ThicknessRemaps = Shader.PropertyToID("_ThicknessRemaps");
         public static readonly int _ShapeParams = Shader.PropertyToID("_ShapeParams");
         public static readonly int _HalfRcpVariancesAndWeights = Shader.PropertyToID("_HalfRcpVariancesAndWeights");
-        public static readonly int _TransmissionTints = Shader.PropertyToID("_TransmissionTints");
+        public static readonly int _TransmissionTintsAndFresnel0 = Shader.PropertyToID("_TransmissionTintsAndFresnel0");
         public static readonly int specularLightingUAV = Shader.PropertyToID("specularLightingUAV");
         public static readonly int diffuseLightingUAV = Shader.PropertyToID("diffuseLightingUAV");
 
@@ -176,6 +176,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _DstBlend = Shader.PropertyToID("_DstBlend");
 
         public static readonly int _HTile = Shader.PropertyToID("_HTile");
+        public static readonly int _SSSHTile = Shader.PropertyToID("_SSSHTile");
         public static readonly int _StencilTexture = Shader.PropertyToID("_StencilTexture");
 
         public static readonly int _ViewMatrix = Shader.PropertyToID("_ViewMatrix");
@@ -210,13 +211,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int[] _DBufferTexture =
         {
-            Shader.PropertyToID("_DBufferTexture0"), 
+            Shader.PropertyToID("_DBufferTexture0"),
             Shader.PropertyToID("_DBufferTexture1"),
             Shader.PropertyToID("_DBufferTexture2"),
             Shader.PropertyToID("_DBufferTexture3")
         };
 
-        public static readonly int[] _SSSBufferTexture = 
+        public static readonly int[] _SSSBufferTexture =
         {
             Shader.PropertyToID("_SSSBufferTexture0"),
             Shader.PropertyToID("_SSSBufferTexture1"),

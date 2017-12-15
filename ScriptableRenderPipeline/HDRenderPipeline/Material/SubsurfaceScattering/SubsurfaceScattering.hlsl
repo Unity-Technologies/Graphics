@@ -19,7 +19,7 @@ float4 _HalfRcpVariancesAndWeights[SSS_N_PROFILES][2]; // 2x Gaussians in RGB, A
 // Use float4 to avoid any packing issue between compute and pixel shaders
 float4  _ThicknessRemaps[SSS_N_PROFILES];   // R: start, G = end - start, BA unused
 float4 _ShapeParams[SSS_N_PROFILES];        // RGB = S = 1 / D, A = filter radius
-float4 _TransmissionTints[SSS_N_PROFILES];  // RGB = 1/4 * color, A = unused
+float4 _TransmissionTintsAndFresnel0[SSS_N_PROFILES];  // RGB = 1/4 * color, A = fresnel0
 float4 _WorldScales[SSS_N_PROFILES];        // X = meters per world unit; Y = world units per meter
 CBUFFER_END
 

@@ -215,7 +215,7 @@ void FillMaterialIdSssData(int subsurfaceProfile, float radius, float thickness,
         if (_UseDisneySSS != 0)
         {
             bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParams[subsurfaceProfile].rgb,
-                                                                _TransmissionTints[subsurfaceProfile].rgb,
+                                                                _TransmissionTintsAndFresnel0[subsurfaceProfile].rgb,
                                                                 bsdfData.thickness, bsdfData.subsurfaceRadius);
         }
         else
@@ -224,7 +224,7 @@ void FillMaterialIdSssData(int subsurfaceProfile, float radius, float thickness,
                                                                  _HalfRcpVariancesAndWeights[subsurfaceProfile][0].a,
                                                                  _HalfRcpVariancesAndWeights[subsurfaceProfile][1].rgb,
                                                                  _HalfRcpVariancesAndWeights[subsurfaceProfile][1].a,
-                                                                 _TransmissionTints[subsurfaceProfile].rgb,
+                                                                 _TransmissionTintsAndFresnel0[subsurfaceProfile].rgb,
                                                                  bsdfData.thickness, bsdfData.subsurfaceRadius);
         }
     }
@@ -352,8 +352,8 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     else if (bsdfData.materialId == MATERIALID_LIT_SSS)
     {
         bsdfData.diffuseColor = surfaceData.baseColor;
-        bsdfData.fresnel0     = SKIN_SPECULAR_VALUE; // TODO: take from the SSS profile
-        uint transmissionMode = BitFieldExtract(asuint(_TransmissionFlags), 2u, 2u * surfaceData.subsurfaceProfile);
+        bsdfData.fresnel0     = _TransmissionTintsAndFresnel0[surfaceData.subsurfaceProfile].a;
+        uint transmissionMode = BitFieldExtract(asuint(_TransmissionFlags), 2u * surfaceData.subsurfaceProfile, 2u);
 
         FillMaterialIdSssData(surfaceData.subsurfaceProfile,
                               surfaceData.subsurfaceRadius,
@@ -549,11 +549,11 @@ void DecodeFromGBuffer(
             DecodeFromSSSBuffer(inGBuffer0, positionSS, sssData);
 
             subsurfaceProfile = sssData.subsurfaceProfile;
-            transmissionMode  = BitFieldExtract(asuint(_TransmissionFlags), 2u, 2u * subsurfaceProfile);
+            transmissionMode  = BitFieldExtract(asuint(_TransmissionFlags), 2u * subsurfaceProfile, 2u);
             radius            = sssData.subsurfaceRadius;
             thickness         = inGBuffer2.g;
 
-            dielectricF0      = SKIN_SPECULAR_VALUE; // TODO: take from the SSS profile
+            dielectricF0      = _TransmissionTintsAndFresnel0[subsurfaceProfile].a;
         }
 
         FillMaterialIdSssData(subsurfaceProfile, radius, thickness, transmissionMode, bsdfData);
@@ -1064,14 +1064,19 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 // we need to push the shading position back to avoid self-shadowing problems.
 float3 ComputeThicknessDisplacement(BSDFData bsdfData, float3 L, float NdotL)
 {
-    // Compute the thickness in world units along the normal.
-    float thicknessInMeters = bsdfData.thickness * METERS_PER_MILLIMETER;
-    float thicknessInUnits  = thicknessInMeters * _WorldScales[bsdfData.subsurfaceProfile].y;
+    float displacement = 0;
 
-    // Compute the thickness in world units along the light vector.
-    float unprojectedThickness = thicknessInUnits / -NdotL;
+    [flatten] if (bsdfData.useThickObjectMode && NdotL < 0)
+    {
+        // Compute the thickness in world units along the normal.
+        float thicknessInMeters = bsdfData.thickness * METERS_PER_MILLIMETER;
+        float thicknessInUnits  = thicknessInMeters * _WorldScales[bsdfData.subsurfaceProfile].y;
 
-    return unprojectedThickness * L;
+        // Compute the thickness in world units along the light vector.
+        displacement = thicknessInUnits / -NdotL;
+    }
+
+    return displacement * L;
 }
 
 // Currently, we only model diffuse transmission. Specular transmission is not yet supported.
@@ -1120,10 +1125,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     float3 L     = -lightData.forward; // Lights point backward in Unity
     float  NdotL = dot(N, L);
 
-    [flatten] if (bsdfData.useThickObjectMode && NdotL < 0)
-    {
-        posInput.positionWS += ComputeThicknessDisplacement(bsdfData, L, NdotL);
-    }
+    posInput.positionWS += ComputeThicknessDisplacement(bsdfData, L, NdotL);
 
     float3 color; float attenuation;
     EvaluateLight_Directional(lightLoopContext, posInput, lightData, bakeLightingData, N, L,
@@ -1131,7 +1133,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     float intensity = attenuation * saturate(NdotL);
 
-    [branch] if (intensity > 0.0)
+    [branch] if (intensity > 0)
     {
         BSDF(V, L, posInput.positionWS, preLightData, bsdfData, lighting.diffuse, lighting.specular);
 
@@ -1139,7 +1141,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
         lighting.specular *= intensity * lightData.specularScale;
     }
 
-    [flatten] if (bsdfData.enableTransmission)
+    [branch] if (bsdfData.enableTransmission)
     {
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         lighting.diffuse += EvaluateTransmission(bsdfData, NdotL, preLightData.NdotV, attenuation * lightData.diffuseScale);
@@ -1174,10 +1176,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     float3 L       = unL * distRcp;
     float  NdotL   = dot(N, L);
 
-    [flatten] if (bsdfData.useThickObjectMode && NdotL < 0)
-    {
-        posInput.positionWS += ComputeThicknessDisplacement(bsdfData, L, NdotL);
-    }
+    posInput.positionWS += ComputeThicknessDisplacement(bsdfData, L, NdotL);
 
     float3 color; float attenuation;
     EvaluateLight_Punctual(lightLoopContext, posInput, lightData, bakeLightingData, N, L, dist, distSq,
@@ -1185,7 +1184,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
 
     float intensity = attenuation * saturate(NdotL);
 
-    [branch] if (intensity > 0.0)
+    [branch] if (intensity > 0)
     {
         // Simulate a sphere light with this hack.
         bsdfData.roughnessT = max(bsdfData.roughnessT, lightData.minRoughness);
@@ -1197,7 +1196,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
         lighting.specular *= intensity * lightData.specularScale;
     }
 
-    [flatten] if (bsdfData.enableTransmission)
+    [branch] if (bsdfData.enableTransmission)
     {
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         lighting.diffuse += EvaluateTransmission(bsdfData, NdotL, preLightData.NdotV, attenuation * lightData.diffuseScale);
