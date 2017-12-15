@@ -66,7 +66,7 @@ namespace UnityEditor.Experimental.Rendering
             k_InfluenceVolumeSection.Draw(s, p, this);
             k_SeparateProjectionVolumeSection.Draw(s, p, this);
             k_CaptureSection.Draw(s, p, this);
-            k_AdditionalSection.Draw(s, p, this);
+            //k_AdditionalSection.Draw(s, p, this);
             k_BakingActions.Draw(s, p, this);
 
             PerformOperations(s, p, this);
@@ -109,11 +109,10 @@ namespace UnityEditor.Experimental.Rendering
 
         static Quaternion GetLocalSpaceRotation(ReflectionProbe probe)
         {
-            bool supportsRotation = (SupportedRenderingFeatures.active.reflectionProbeSupportFlags & SupportedRenderingFeatures.ReflectionProbeSupportFlags.Rotation) != 0;
-            if (supportsRotation)
-                return probe.transform.rotation;
-            else
-                return Quaternion.identity;
+            var supportsRotation = (SupportedRenderingFeatures.active.reflectionProbeSupportFlags & SupportedRenderingFeatures.ReflectionProbeSupportFlags.Rotation) != 0;
+            return supportsRotation 
+                ? probe.transform.rotation 
+                : Quaternion.identity;
         }
 
         // Ensures that probe's AABB encapsulates probe's position

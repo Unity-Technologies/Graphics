@@ -1,4 +1,4 @@
-using UnityEngine.Rendering;
+﻿using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System;
 
@@ -1140,6 +1140,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool GetEnvLightData(CommandBuffer cmd, Camera camera, VisibleReflectionProbe probe)
         {
+            var additionalData = probe.probe.GetComponent<HDAdditionalReflectionData>();
+
             // For now we won't display real time probe when rendering one.
             // TODO: We may want to display last frame result but in this case we need to be careful not to update the atlas before all realtime probes are rendered (for frame coherency).
             // Unfortunately we don't have this information at the moment.
@@ -1156,18 +1158,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // CAUTION: localToWorld is the transform for the widget of the reflection probe. i.e the world position of the point use to do the cubemap capture (mean it include the local offset)
             envLightData.positionWS = probe.localToWorld.GetColumn(3);
 
-            // TODO: Support sphere influence in UI
-            if (probe.boxProjection == 0)
+            if (additionalData != null)
             {
-                envLightData.envShapeType = EnvShapeType.Box;
-                // If user request to have no projection, then setup a high number for minProjectionDistance
-                // this will mimic infinite shape projection
-                envLightData.minProjectionDistance = 65504.0f;
+                envLightData.minProjectionDistance = 0;
+                switch (additionalData.influenceShape)
+                {
+                    case ReflectionInfluenceShape.Box: envLightData.envShapeType = EnvShapeType.Box; break;
+                    case ReflectionInfluenceShape.Sphere: envLightData.envShapeType = EnvShapeType.Sphere; break;
+                }
             }
             else
             {
-                envLightData.envShapeType = EnvShapeType.Box;
-                envLightData.minProjectionDistance = 0.0f;
+                if (probe.boxProjection == 0)
+                {
+                    envLightData.envShapeType = EnvShapeType.Box;
+                    // If user request to have no projection, then setup a high number for minProjectionDistance
+                    // this will mimic infinite shape projection
+                    envLightData.minProjectionDistance = 65504.0f;
+                }
+                else
+                {
+                    envLightData.envShapeType = EnvShapeType.Box;
+                    envLightData.minProjectionDistance = 0.0f;
+                }
             }
 
             // remove scale from the matrix (Scale in this matrix is use to scale the widget)
