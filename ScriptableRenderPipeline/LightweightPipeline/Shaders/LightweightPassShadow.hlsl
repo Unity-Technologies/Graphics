@@ -1,7 +1,7 @@
 #ifndef LIGHTWEIGHT_PASS_SHADOW_INCLUDED
 #define LIGHTWEIGHT_PASS_SHADOW_INCLUDED
 
-#include "LightweightCore.hlsl"
+#include "LightweightShaderLibrary/Core.hlsl"
 
 float4 ShadowPassVertex(float4 pos : POSITION) : SV_POSITION
 {

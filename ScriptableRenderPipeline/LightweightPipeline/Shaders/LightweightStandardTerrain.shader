@@ -54,7 +54,7 @@ Shader "LightweightPipeline/Standard Terrain"
             #pragma multi_compile __ _TERRAIN_NORMAL_MAP
             #pragma multi_compile_fog
 
-            #include "LightweightLighting.hlsl"
+            #include "LightweightShaderLibrary/Lighting.hlsl"
 
             CBUFFER_START(_Terrain)
             half _Metallic0;
@@ -213,7 +213,7 @@ Shader "LightweightPipeline/Standard Terrain"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "LightweightCore.hlsl"
+            #include "LightweightShaderLibrary/Core.hlsl"
 
             float4 vert(float4 pos : POSITION) : SV_POSITION
             {

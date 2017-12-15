@@ -1,22 +1,13 @@
 #ifndef LIGHTWEIGHT_PIPELINE_CORE_INCLUDED
 #define LIGHTWEIGHT_PIPELINE_CORE_INCLUDED
 
-#include "ShaderLibrary\Common.hlsl"
-#include "ShaderLibrary\EntityLighting.hlsl"
-#include "ShaderVariables\LightweightShaderVariables.hlsl"
+#include "ShaderLibrary/Common.hlsl"
+#include "Input.hlsl"
 
 #ifdef _NORMALMAP
     #define OUTPUT_NORMAL(IN, OUT) OutputTangentToWorld(IN.tangent, IN.normal, OUT.tangent, OUT.binormal, OUT.normal)
 #else
     #define OUTPUT_NORMAL(IN, OUT) OUT.normal = TransformObjectToWorldNormal(IN.normal)
-#endif
-
-#ifdef LIGHTMAP_ON
-    #define OUTPUT_LIGHTMAP_UV(lightmapUV, lightmapScaleOffset, OUT) OUT.xy = lightmapUV.xy * lightmapScaleOffset.xy + lightmapScaleOffset.zw;
-    #define OUTPUT_SH(normalWS, OUT)
-#else
-    #define OUTPUT_LIGHTMAP_UV(lightmapUV, lightmapScaleOffset, OUT)
-    #define OUTPUT_SH(normalWS, OUT) OUT.xyz = EvaluateSHPerVertex(normalWS)
 #endif
 
 #if defined(UNITY_REVERSED_Z)
@@ -81,7 +72,6 @@ half3 UnpackNormalRGB(half4 packedNormal, half bumpScale)
     return normal;
 }
 
-
 half3 UnpackNormal(half4 packedNormal)
 {
     // Compiler will optimize the scale away
@@ -99,78 +89,6 @@ half3 UnpackNormalScale(half4 packedNormal, half bumpScale)
 #else
     return UnpackNormalmapRGorAG(packedNormal, bumpScale);
 #endif
-}
-
-half3 SampleSH(half3 normalWS)
-{
-    // LPPV is not supported in Ligthweight Pipeline
-    float4 SHCoefficients[7];
-    SHCoefficients[0] = unity_SHAr;
-    SHCoefficients[1] = unity_SHAg;
-    SHCoefficients[2] = unity_SHAb;
-    SHCoefficients[3] = unity_SHBr;
-    SHCoefficients[4] = unity_SHBg;
-    SHCoefficients[5] = unity_SHBb;
-    SHCoefficients[6] = unity_SHC;
-
-    return SampleSH9(SHCoefficients, normalWS);
-}
-
-half3 EvaluateSHPerVertex(half3 normalWS)
-{
-#if defined(EVALUATE_SH_VERTEX)
-    return max(half3(0, 0, 0), SampleSH(normalWS));
-#elif defined(EVALUATE_SH_MIXED)
-    // no max since this is only L2 contribution
-    return SHEvalLinearL2(normalWS, unity_SHBr, unity_SHBg, unity_SHBb, unity_SHC);
-#endif
-
-    // Fully per-pixel. Nothing to compute.
-    return half3(0.0, 0.0, 0.0);
-}
-
-half3 EvaluateSHPerPixel(half3 L2Term, half3 normalWS)
-{
-#ifdef EVALUATE_SH_MIXED
-    half3 L0L1Term = SHEvalLinearL0L1(normalWS, unity_SHAr, unity_SHAg, unity_SHAb);
-    return max(half3(0, 0, 0), L2Term + L0L1Term);
-#endif
-
-    // Default: Evaluate SH fully per-pixel
-    return max(half3(0, 0, 0), SampleSH(normalWS));
-}
-
-half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
-{
-    // Only baked GI is sample as dynamic GI is not supported in Lightweight
-#ifdef UNITY_LIGHTMAP_FULL_HDR
-    bool encodedLightmap = false;
-#else
-    bool encodedLightmap = true;
-#endif
-
-    // The shader library sample lightmap functions transform the lightmap uv coords to apply bias and scale.
-    // However, lightweight pipeline already transformed those coords in vertex. We pass half4(1, 1, 0, 0) and
-    // the compiler will optimize the transform away.
-    half4 transformCoords = half4(1, 1, 0, 0);
-
-#ifdef DIRLIGHTMAP_COMBINED
-    return SampleDirectionalLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap),
-        TEXTURE2D_PARAM(unity_LightmapInd, samplerunity_Lightmap),
-        lightmapUV, transformCoords, normalWS, encodedLightmap);
-#else
-    return SampleSingleLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap), lightmapUV, transformCoords, encodedLightmap);
-#endif
-}
-
-half3 SampleGI(float4 sampleData, half3 normalWS)
-{
-#ifdef LIGHTMAP_ON
-    return SampleLightmap(sampleData.xy, normalWS);
-#endif // LIGHTMAP_ON
-
-    // If lightmap is not enabled we sample GI from SH
-    return EvaluateSHPerPixel(sampleData.xyz, normalWS);
 }
 
 void OutputTangentToWorld(half4 vertexTangent, half3 vertexNormal, out half3 tangentWS, out half3 binormalWS, out half3 normalWS)

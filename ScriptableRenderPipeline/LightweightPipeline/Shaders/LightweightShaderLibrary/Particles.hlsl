@@ -1,5 +1,5 @@
-#include "LightweightCore.hlsl"
-#include "LightweightSurfaceInput.hlsl"
+#include "Core.hlsl"
+#include "InputSurface.hlsl"
 
 #if defined (_COLORADDSUBDIFF_ON)
 half4 _ColorAddSubDiff;

@@ -15,7 +15,7 @@ Shader "Hidden/LightweightPipeline/Blit"
             #pragma vertex Vertex
             #pragma fragment Fragment
 
-            #include "LightweightCore.hlsl"
+            #include "LightweightShaderLibrary/Core.hlsl"
 
             struct VertexInput
             {

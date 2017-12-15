@@ -3,34 +3,6 @@
 
 #define MAX_VISIBLE_LIGHTS 16
 
-struct LightInput
-{
-    float4 pos;
-    half3 color;
-    half4 distanceAttenuation;
-    half4 spotDirection;
-    half4 spotAttenuation;
-};
-
-// Main light initialized without indexing
-#define INITIALIZE_MAIN_LIGHT(light) \
-    light.pos = _MainLightPosition; \
-    light.color = _MainLightColor.rgb; \
-    light.distanceAttenuation = _MainLightDistanceAttenuation; \
-    light.spotDirection = _MainLightSpotDir; \
-    light.spotAttenuation = _MainLightSpotAttenuation
-
-// Indexing might have a performance hit for old mobile hardware
-#define INITIALIZE_LIGHT(light, i) \
-    half4 indices = (i < 4) ? unity_4LightIndices0 : unity_4LightIndices1; \
-    int index = (i < 4) ? i : i - 4; \
-    int lightIndex = indices[index]; \
-    light.pos = _AdditionalLightPosition[lightIndex]; \
-    light.color = _AdditionalLightColor[lightIndex].rgb; \
-    light.distanceAttenuation = _AdditionalLightDistanceAttenuation[lightIndex]; \
-    light.spotDirection = _AdditionalLightSpotDir[lightIndex]; \
-    light.spotAttenuation = _AdditionalLightSpotAttenuation[lightIndex]
-
 ///////////////////////////////////////////////////////////////////////////////
 //                      Constant Buffers                                     //
 ///////////////////////////////////////////////////////////////////////////////
@@ -63,5 +35,26 @@ half4 unity_LightIndicesOffsetAndCount;
 half4 unity_4LightIndices0;
 half4 unity_4LightIndices1;
 CBUFFER_END
+
+#define UNITY_MATRIX_M     unity_ObjectToWorld
+#define UNITY_MATRIX_I_M   unity_WorldToObject
+#define UNITY_MATRIX_V     unity_MatrixV
+#define UNITY_MATRIX_I_V   unity_MatrixInvV
+#define UNITY_MATRIX_P     OptimizeProjectionMatrix(glstate_matrix_projection)
+#define UNITY_MATRIX_I_P   ERROR_UNITY_MATRIX_I_P_IS_NOT_DEFINED
+#define UNITY_MATRIX_VP    unity_MatrixVP
+#define UNITY_MATRIX_I_VP  ERROR_UNITY_MATRIX_I_VP_IS_NOT_DEFINED
+#define UNITY_MATRIX_MV    mul(UNITY_MATRIX_V, UNITY_MATRIX_M)
+#define UNITY_MATRIX_T_MV  transpose(UNITY_MATRIX_MV)
+#define UNITY_MATRIX_IT_MV transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V))
+#define UNITY_MATRIX_MVP   mul(UNITY_MATRIX_VP, UNITY_MATRIX_M)
+
+#include "InputBuiltin.hlsl"
+#include "CoreFunctions.hlsl"
+
+float3 GetCameraPosition()
+{
+    return _WorldSpaceCameraPos;
+}
 
 #endif

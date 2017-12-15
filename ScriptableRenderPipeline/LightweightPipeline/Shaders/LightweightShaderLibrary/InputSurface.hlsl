@@ -1,7 +1,7 @@
 #ifndef LIGHTWEIGHT_SURFACE_INPUT_INCLUDED
 #define LIGHTWEIGHT_SURFACE_INPUT_INCLUDED
 
-#include "LightweightCore.hlsl"
+#include "Core.hlsl"
 #include "ShaderLibrary/Packing.hlsl"
 
 #ifdef _SPECULAR_SETUP
