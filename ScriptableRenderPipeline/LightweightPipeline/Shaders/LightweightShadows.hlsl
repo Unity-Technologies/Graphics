@@ -1,8 +1,8 @@
 #ifndef LIGHTWEIGHT_SHADOWS_INCLUDED
 #define LIGHTWEIGHT_SHADOWS_INCLUDED
 
-#include "LightweightInput.hlsl"
 #include "ShaderLibrary\Common.hlsl"
+#include "LightweightInput.hlsl"
 
 #define MAX_SHADOW_CASCADES 4
 

@@ -60,6 +60,8 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             ZWrite[_ZWrite]
 
             HLSLPROGRAM
+            // Required to compile gles 2.0 with standard srp library
+            #pragma prefer_hlslcc gles
             #pragma target 3.0
             #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON
             #pragma shader_feature _ _SPECGLOSSMAP _SPECULAR_COLOR
@@ -71,7 +73,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             #pragma multi_compile _MAIN_DIRECTIONAL_LIGHT _MAIN_SPOT_LIGHT
             #pragma multi_compile _ _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
-            #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ENABLED STEREO_MULTIVIEW_ENABLED
+            #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ _HARD_SHADOWS _SOFT_SHADOWS _HARD_SHADOWS_CASCADES _SOFT_SHADOWS_CASCADES
@@ -91,6 +93,8 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             ZWrite On ZTest LEqual
 
             HLSLPROGRAM
+            // Required to compile gles 2.0 with standard srp library
+            #pragma prefer_hlslcc gles
             #pragma target 2.0
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
@@ -107,6 +111,8 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             ColorMask 0
 
             HLSLPROGRAM
+            // Required to compile gles 2.0 with standard srp library
+            #pragma prefer_hlslcc gles
             #pragma target 2.0
             #pragma vertex vert
             #pragma fragment frag
@@ -133,7 +139,8 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             Cull Off
 
             HLSLPROGRAM
-            #define UNITY_SETUP_BRDF_INPUT SpecularSetup
+            // Required to compile gles 2.0 with standard srp library
+            #pragma prefer_hlslcc gles
             #pragma vertex LightweightVertexMeta
             #pragma fragment LightweightFragmentMetaSimple
 

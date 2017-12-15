@@ -34,11 +34,13 @@ Shader "LightweightPipeline/Standard Terrain"
         {
             Tags { "LightMode" = "LightweightForward" }
             HLSLPROGRAM
+            // Required to compile gles 2.0 with standard srp library
+            #pragma prefer_hlslcc gles
             #pragma target 3.0
 
             #pragma vertex SplatmapVert
             #pragma fragment SpatmapFragment
-            
+
             #pragma multi_compile _ _MAIN_LIGHT_COOKIE
             #pragma multi_compile _MAIN_DIRECTIONAL_LIGHT _MAIN_SPOT_LIGHT
             #pragma multi_compile _ _ADDITIONAL_LIGHTS
@@ -71,7 +73,7 @@ Shader "LightweightPipeline/Standard Terrain"
 
             sampler2D _Control;
             sampler2D _Splat0, _Splat1, _Splat2, _Splat3;
-            
+
 #ifdef _TERRAIN_NORMAL_MAP
             sampler2D _Normal0, _Normal1, _Normal2, _Normal3;
 #endif
@@ -205,6 +207,8 @@ Shader "LightweightPipeline/Standard Terrain"
             ColorMask 0
 
             HLSLPROGRAM
+            // Required to compile gles 2.0 with standard srp library
+            #pragma prefer_hlslcc gles
             #pragma target 2.0
             #pragma vertex vert
             #pragma fragment frag

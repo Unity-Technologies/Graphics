@@ -1,9 +1,10 @@
 #ifndef LIGHTWEIGHT_LIGHTING_INCLUDED
 #define LIGHTWEIGHT_LIGHTING_INCLUDED
 
+#include "ShaderLibrary\Common.hlsl"
+#include "ShaderLibrary\ImageBasedLighting.hlsl"
 #include "LightweightCore.hlsl"
 #include "LightweightShadows.hlsl"
-#include "ShaderLibrary\ImageBasedLighting.hlsl"
 
 #define kDieletricSpec half4(0.04, 0.04, 0.04, 1.0 - 0.04) // standard dielectric reflectivity coef at incident angle (= 4%)
 
