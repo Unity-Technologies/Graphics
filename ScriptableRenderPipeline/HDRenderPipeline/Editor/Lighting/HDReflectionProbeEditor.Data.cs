@@ -59,13 +59,13 @@ namespace UnityEditor.Experimental.Rendering
                 nearClip = so.FindProperty("m_NearClip");
                 farClip = so.FindProperty("m_FarClip");
 
-                influenceShape = addso.Find((HDAdditionalReflectionData d) => d.m_InfluenceShape);
-                influenceSphereRadius = addso.Find((HDAdditionalReflectionData d) => d.m_InfluenceSphereRadius);
-                useSeparateProjectionVolume = addso.Find((HDAdditionalReflectionData d) => d.m_UseSeparateProjectionVolume);
-                boxReprojectionVolumeSize = addso.Find((HDAdditionalReflectionData d) => d.m_BoxReprojectionVolumeSize);
-                boxReprojectionVolumeCenter = addso.Find((HDAdditionalReflectionData d) => d.m_BoxReprojectionVolumeCenter);
-                sphereReprojectionVolumeRadius = addso.Find((HDAdditionalReflectionData d) => d.m_SphereReprojectionVolumeRadius);
-                dimmer = addso.Find((HDAdditionalReflectionData d) => d.m_Dimmer);
+                influenceShape = addso.Find((HDAdditionalReflectionData d) => d.influenceShape);
+                influenceSphereRadius = addso.Find((HDAdditionalReflectionData d) => d.influenceSphereRadius);
+                useSeparateProjectionVolume = addso.Find((HDAdditionalReflectionData d) => d.useSeparateProjectionVolume);
+                boxReprojectionVolumeSize = addso.Find((HDAdditionalReflectionData d) => d.boxReprojectionVolumeSize);
+                boxReprojectionVolumeCenter = addso.Find((HDAdditionalReflectionData d) => d.boxReprojectionVolumeCenter);
+                sphereReprojectionVolumeRadius = addso.Find((HDAdditionalReflectionData d) => d.sphereReprojectionVolumeRadius);
+                dimmer = addso.Find((HDAdditionalReflectionData d) => d.dimmer);
             }
         }
 
