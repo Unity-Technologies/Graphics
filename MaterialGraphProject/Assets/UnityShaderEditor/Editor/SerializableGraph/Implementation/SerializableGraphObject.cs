@@ -52,7 +52,7 @@ namespace UnityEditor.Graphing
             if (graph == null)
                 graph = deserializedGraph;
             else
-                m_DeserializedGraph = deserializedGraph; // graph.ReplaceWith(m_DeserializedGraph);
+                m_DeserializedGraph = deserializedGraph;
         }
 
         void Validate()
