@@ -191,6 +191,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             m_LightShape = (LightShape)EditorGUILayout.Popup(s_Styles.shape, (int)m_LightShape, s_Styles.shapeNames);
 
+            if (m_LightShape != LightShape.Directional)
+                settings.DrawRange(false);
+
             // LightShape is HD specific, it need to drive LightType from the original LightType
             // when it make sense, so the GI is still in sync with the light shape
             switch (m_LightShape)
@@ -270,7 +273,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             settings.DrawColor();
             settings.DrawIntensity();
             settings.DrawBounceIntensity();
-            settings.DrawRange(false);
             settings.DrawLightmapping();
 
             // No cookie with area light (maybe in future textured area light ?)
