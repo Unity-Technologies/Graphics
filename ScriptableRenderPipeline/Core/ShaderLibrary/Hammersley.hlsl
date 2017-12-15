@@ -4,8 +4,7 @@
 // Ref: http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
 uint ReverseBits32(uint bits)
 {
-// TODO: this intrinsic is unavailable outside compute. This is a Unity shader compiler bug.
-#if (SHADER_TARGET >= 50) && (SHADER_STAGE_COMPUTE != 0)
+#if (SHADER_TARGET >= 50)
     return reversebits(bits);
 #else
     bits = (bits << 16) | (bits >> 16);

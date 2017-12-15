@@ -264,11 +264,10 @@ float FastATanPos(float x)
     return (x < 1.0) ? poly : HALF_PI - poly;
 }
 
-// TODO: this intrinsic is unavailable outside compute. This is a Unity shader compiler bug.
-#if (SHADER_TARGET >= 50) && (SHADER_STAGE_COMPUTE != 0)
+#if (SHADER_TARGET >= 50)
 uint FastLog2(uint x)
 {
-    return firstbithigh(x) – 1u;
+    return firstbithigh(x) - 1u;
 }
 #endif
 
