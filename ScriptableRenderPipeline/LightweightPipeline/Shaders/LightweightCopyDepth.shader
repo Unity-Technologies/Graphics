@@ -18,8 +18,8 @@ Shader "Hidden/LightweightPipeline/CopyDepth"
 
             #include "LightweightShaderLibrary/Core.hlsl"
 
-            TEXTURE2D_FLOAT(_CameraDepthTexture);
-            SAMPLER2D(sampler_CameraDepthTexture);
+            TEXTURE2D(_CameraDepthTexture);
+            SAMPLER(sampler_CameraDepthTexture);
 
             struct VertexInput
             {

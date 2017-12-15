@@ -188,11 +188,11 @@ CBUFFER_END
 
 // Unity specific
 TEXTURECUBE(unity_SpecCube0);
-SAMPLERCUBE(samplerunity_SpecCube0);
+SAMPLER(samplerunity_SpecCube0);
 
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
-SAMPLER2D(samplerunity_Lightmap);
+SAMPLER(samplerunity_Lightmap);
 // Dual or directional lightmap (always used with unity_Lightmap, so can share sampler)
 TEXTURE2D(unity_LightmapInd);
 
@@ -201,7 +201,7 @@ TEXTURE2D(unity_ShadowMask);
 
 // Lightweight Pipeline Specific
 TEXTURE2D(_MainLightCookie);
-SAMPLER2D(sampler_MainLightCookie);
+SAMPLER(sampler_MainLightCookie);
 
 
 // ----------------------------------------------------------------------------

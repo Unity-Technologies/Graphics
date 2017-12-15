@@ -30,7 +30,7 @@ Shader "Hidden/LightweightPipeline/Blit"
             };
 
             TEXTURE2D(_BlitTex);
-            SAMPLER2D(sampler_BlitTex);
+            SAMPLER(sampler_BlitTex);
 
             VertexOutput Vertex(VertexInput i)
             {
