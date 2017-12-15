@@ -264,15 +264,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             else
             {
-                if (m_SkyParametersHash != 0 && m_SupportsConvolution)
+                if (m_SkyParametersHash != 0)
                 {
-                    using (new ProfilingSample(cmd, "Reset Sky Environment"))
+                    if(m_SupportsConvolution)
                     {
                         CoreUtils.ClearCubemap(cmd, m_SkyboxGGXCubemapRT, Color.black, true);
-
-                        m_SkyParametersHash = 0;
-                        result = true;
                     }
+
+                    m_SkyParametersHash = 0;
+                    result = true;
                 }
             }
 

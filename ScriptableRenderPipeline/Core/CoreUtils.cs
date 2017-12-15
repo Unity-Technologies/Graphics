@@ -50,6 +50,57 @@ namespace UnityEngine.Experimental.Rendering
         public const int assetCreateMenuPriority1 = 230;
         public const int assetCreateMenuPriority2 = 241;
 
+        static Cubemap m_BlackCubeTexture;
+        public static Cubemap blackCubeTexture
+        {
+            get
+            {
+                if (m_BlackCubeTexture == null)
+                {
+                    m_BlackCubeTexture = new Cubemap(1, TextureFormat.ARGB32, false);
+                    for (int i = 0; i < 6; ++i)
+                        m_BlackCubeTexture.SetPixel((CubemapFace)i, 0, 0, Color.black);
+                    m_BlackCubeTexture.Apply();
+                }
+
+                return m_BlackCubeTexture;
+            }
+        }
+
+        static Cubemap m_MagentaCubeTexture;
+        public static Cubemap magentaCubeTexture
+        {
+            get
+            {
+                if (m_MagentaCubeTexture == null)
+                {
+                    m_MagentaCubeTexture = new Cubemap(1, TextureFormat.ARGB32, false);
+                    for (int i = 0; i < 6; ++i)
+                        m_MagentaCubeTexture.SetPixel((CubemapFace)i, 0, 0, Color.magenta);
+                    m_MagentaCubeTexture.Apply();
+                }
+
+                return m_MagentaCubeTexture;
+            }
+        }
+
+        static Cubemap m_WhiteCubeTexture;
+        public static Cubemap whiteCubeTexture
+        {
+            get
+            {
+                if (m_WhiteCubeTexture == null)
+                {
+                    m_WhiteCubeTexture = new Cubemap(1, TextureFormat.ARGB32, false);
+                    for (int i = 0; i < 6; ++i)
+                        m_WhiteCubeTexture.SetPixel((CubemapFace)i, 0, 0, Color.white);
+                    m_WhiteCubeTexture.Apply();
+                }
+
+                return m_WhiteCubeTexture;
+            }
+        }
+
         // Render Target Management.
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
         {
