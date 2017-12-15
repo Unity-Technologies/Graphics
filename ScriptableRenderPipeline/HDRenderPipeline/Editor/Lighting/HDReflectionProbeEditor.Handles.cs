@@ -125,19 +125,19 @@ namespace UnityEditor.Experimental.Rendering
                 if (influenceChanged || EditorGUI.EndChangeCheck())
                 {
                     Undo.RecordObject(reflectionData, "Modified Reflection influence volume");
-                    var center = s.influenceSphereHandle.center;
-                    var influenceRadius =s.influenceSphereHandle.radius;
+                    var center = p.center;
+                    var influenceRadius = s.influenceSphereHandle.radius;
                     var blendRadius = influenceChanged
-                        ? influenceRadius - p.blendDistance * 2
+                        ? Mathf.Max(influenceRadius - p.blendDistance * 2, 0)
                         : s.sphereBlendHandle.radius;
 
                     var radius = Vector3.one * influenceRadius;
-
+                    
                     ValidateAABB(p, ref center, ref radius);
                     influenceRadius = radius.x;
                     var blendDistance = (influenceRadius - blendRadius) * 0.5f;
 
-                    reflectionData.influenceSphereRadius = radius.x;
+                    reflectionData.influenceSphereRadius = influenceRadius;
                     p.blendDistance = blendDistance;
                     EditorUtility.SetDirty(p);
                     EditorUtility.SetDirty(reflectionData);
