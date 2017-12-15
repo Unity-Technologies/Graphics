@@ -18,8 +18,10 @@ namespace UnityEditor.VFX.Block
             {
                 yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Alpha, VFXAttributeMode.ReadWrite);
-                foreach (var size in VFXBlockUtility.GetReadableSizeAttributes(GetData(), 2))
-                    yield return size;
+
+                yield return new VFXAttributeInfo(VFXAttribute.SizeX, VFXAttributeMode.ReadWrite);
+                if (GetData().IsCurrentAttributeWritten(VFXAttribute.SizeY))
+                    yield return new VFXAttributeInfo(VFXAttribute.SizeY, VFXAttributeMode.ReadWrite);
             }
         }
 
@@ -34,7 +36,10 @@ float minSize = clipPosW / (0.5f * min(UNITY_MATRIX_P[0][0] * _ScreenParams.x,-U
 float2 clampedSize = max(size,minSize);
 float fade = (size.x * size.y) / (clampedSize.x * clampedSize.y);
 alpha *= fade;
-size = clampedSize;", VFXBlockUtility.GetSizeVector(GetParent(), 2));
+size = clampedSize;
+{1}",
+                    VFXBlockUtility.GetSizeVector(GetParent(), 2),
+                    VFXBlockUtility.SetSizesFromVector(GetParent(), "size", 2));
             }
         }
     }
