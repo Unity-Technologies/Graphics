@@ -12,8 +12,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedProperty m_DefaultShader;
 
         // Global Frame Settings
-        SerializedProperty m_GlobalFrameSettings;
+        // Global Render settings
+        SerializedProperty m_supportDBuffer;
+        SerializedProperty m_supportMSAA;
+        // Global Shadow settings
+        SerializedProperty m_ShadowAtlasWidth;
+        SerializedProperty m_ShadowAtlasHeight;
+        // Global LightLoop settings
+        SerializedProperty m_SpotCookieSize;
+        SerializedProperty m_PointCookieSize;
+        SerializedProperty m_ReflectionCubemapSize;
+        SerializedProperty m_ReflectionCacheCompressed;
 
+        // FrameSettings
         // LightLoop settings
         SerializedProperty m_enableTileAndCluster;
         SerializedProperty m_enableSplitLightEvaluation;
@@ -22,7 +33,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedProperty m_enableComputeMaterialVariants;
         SerializedProperty m_enableFptlForForwardOpaque;
         SerializedProperty m_enableBigTilePrepass;
-
         // Rendering Settings
         SerializedProperty m_RenderingUseForwardOnly;
         SerializedProperty m_RenderingUseDepthPrepass;
@@ -39,8 +49,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_DefaultShader = properties.Find("m_DefaultShader");
 
             // Global FrameSettings
-            m_GlobalFrameSettings = properties.Find(x => x.globalFrameSettings);
+            // Global Render settings
+            m_supportDBuffer = properties.Find(x => x.globalFrameSettings.renderSettings.supportDBuffer);
+            m_supportMSAA = properties.Find(x => x.globalFrameSettings.renderSettings.supportMSAA);
+            // Global Shadow settings
+            m_ShadowAtlasWidth = properties.Find(x => x.globalFrameSettings.shadowInitParams.shadowAtlasWidth);
+            m_ShadowAtlasHeight = properties.Find(x => x.globalFrameSettings.shadowInitParams.shadowAtlasHeight);
+            // Global LightLoop settings
+            m_SpotCookieSize = properties.Find(x => x.globalFrameSettings.lightLoopSettings.spotCookieSize);
+            m_PointCookieSize = properties.Find(x => x.globalFrameSettings.lightLoopSettings.pointCookieSize);
+            m_ReflectionCubemapSize = properties.Find(x => x.globalFrameSettings.lightLoopSettings.reflectionCubemapSize);
+            m_ReflectionCacheCompressed = properties.Find(x => x.globalFrameSettings.lightLoopSettings.reflectionCacheCompressed);
 
+            // FrameSettings
             // LightLoop settings
             m_enableTileAndCluster = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableTileAndCluster);
             m_enableComputeLightEvaluation = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableComputeLightEvaluation);
@@ -48,7 +69,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_enableComputeMaterialVariants = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableComputeMaterialVariants);
             m_enableFptlForForwardOpaque = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableFptlForForwardOpaque);
             m_enableBigTilePrepass = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableBigTilePrepass);
-
             // Rendering Settings
             m_enableAsyncCompute = properties.Find(x => x.defaultFrameSettings.renderSettings.enableAsyncCompute);
             m_RenderingUseForwardOnly = properties.Find(x => x.defaultFrameSettings.renderSettings.enableForwardRenderingOnly);
@@ -67,7 +87,55 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 method.Invoke(asset, new object[0]);
         }
 
-        void LightLoopSettingsUI(HDRenderPipelineAsset renderContext)
+        void GlobalLightLoopSettingsUI(HDRenderPipelineAsset hdAsset)
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(s_Styles.textureSettings);
+            EditorGUI.indentLevel++;
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(m_SpotCookieSize, s_Styles.spotCookieSize);
+            EditorGUILayout.PropertyField(m_PointCookieSize, s_Styles.pointCookieSize);
+            EditorGUILayout.PropertyField(m_ReflectionCubemapSize, s_Styles.reflectionCubemapSize);
+            // Commented out until we have proper realtime BC6H compression
+            //EditorGUILayout.PropertyField(m_ReflectionCacheCompressed, s_Styles.reflectionCacheCompressed);
+            if (EditorGUI.EndChangeCheck())
+            {
+                HackSetDirty(hdAsset); // Repaint
+            }
+            EditorGUI.indentLevel--;
+        }
+
+        void GlobalRenderSettingsUI(HDRenderPipelineAsset hdAsset)
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(s_Styles.renderingSettingsLabel);
+            EditorGUI.indentLevel++;
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(m_supportDBuffer, s_Styles.supportDBuffer);
+            EditorGUILayout.PropertyField(m_supportMSAA, s_Styles.supportMSAA);
+            if (EditorGUI.EndChangeCheck())
+            {
+                HackSetDirty(hdAsset); // Repaint
+            }
+            EditorGUI.indentLevel--;
+        }
+
+        void GlobalShadowSettingsUI(HDRenderPipelineAsset hdAsset)
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(s_Styles.shadowSettings);
+            EditorGUI.indentLevel++;
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(m_ShadowAtlasWidth, s_Styles.shadowsAtlasWidth);
+            EditorGUILayout.PropertyField(m_ShadowAtlasHeight, s_Styles.shadowsAtlasHeight);
+            if (EditorGUI.EndChangeCheck())
+            {
+                HackSetDirty(hdAsset); // Repaint
+            }
+            EditorGUI.indentLevel--;
+        }
+
+        void LightLoopSettingsUI(HDRenderPipelineAsset hdAsset)
         {
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(s_Styles.lightLoopSettings);
@@ -92,12 +160,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             if (EditorGUI.EndChangeCheck())
             {
-                HackSetDirty(renderContext); // Repaint
+                HackSetDirty(hdAsset); // Repaint
             }
             EditorGUI.indentLevel--;
         }
 
-        void RendereringSettingsUI(HDRenderPipelineAsset renderContext)
+        void RendereringSettingsUI(HDRenderPipelineAsset hdAsset)
         {
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(s_Styles.renderingSettingsLabel);
@@ -120,20 +188,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
         }
 
-        void SettingsUI(HDRenderPipelineAsset renderContext)
+        void SettingsUI(HDRenderPipelineAsset hdAsset)
         {
             EditorGUILayout.LabelField(s_Styles.settingsLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
 
-            EditorGUILayout.PropertyField(m_GlobalFrameSettings, s_Styles.globalFrameSettings);
+            EditorGUILayout.LabelField(s_Styles.globalFrameSettings, EditorStyles.boldLabel);
 
-            RendereringSettingsUI(renderContext);
-            LightLoopSettingsUI(renderContext);
+            GlobalRenderSettingsUI(hdAsset);
+            GlobalShadowSettingsUI(hdAsset);
+            GlobalLightLoopSettingsUI(hdAsset);
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(s_Styles.defaultFrameSettings, EditorStyles.boldLabel);
+
+            RendereringSettingsUI(hdAsset);
+            LightLoopSettingsUI(hdAsset);
+
+            EditorGUI.indentLevel--;
 
             EditorGUILayout.Space();
             EditorGUILayout.PropertyField(m_SubsurfaceScatteringSettings, s_Styles.sssSettings);
-
-            EditorGUI.indentLevel--;
         }
 
         protected override void OnEnable()

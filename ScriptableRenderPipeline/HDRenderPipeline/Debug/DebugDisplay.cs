@@ -125,7 +125,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             lightingDebugSettings.debugLightingMode = value;
         }
 
-        public void RegisterDebug(FrameSettings debugSettings)
+        public void RegisterDebug(FrameSettings debugSettings, FrameSettings defaultFrameSettings)
         {
             DebugMenuManager.instance.AddDebugItem<float>("Display Stats", "Frame Rate", () => 1.0f / Time.smoothDeltaTime, null, DebugItemFlag.DynamicDisplay);
             DebugMenuManager.instance.AddDebugItem<float>("Display Stats", "Frame Time (ms)", () => Time.smoothDeltaTime * 1000.0f, null, DebugItemFlag.DynamicDisplay);
@@ -155,25 +155,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, LightLoop.TileClusterDebug>(kTileClusterDebug,() => lightingDebugSettings.tileClusterDebug, (value) => lightingDebugSettings.tileClusterDebug = (LightLoop.TileClusterDebug)value);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, LightLoop.TileClusterCategoryDebug>(kTileClusterCategoryDebug,() => lightingDebugSettings.tileClusterDebugByCategory, (value) => lightingDebugSettings.tileClusterDebugByCategory = (LightLoop.TileClusterCategoryDebug)value);
 
-            DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Display Opaque",() => debugSettings.renderSettings.enableOpaqueObjects, (value) => debugSettings.renderSettings.enableOpaqueObjects = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Display Transparency",() => debugSettings.renderSettings.enableTransparentObjects, (value) => debugSettings.renderSettings.enableTransparentObjects = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Enable Opaque", () => debugSettings.renderSettings.enableOpaqueObjects, (value) => debugSettings.renderSettings.enableOpaqueObjects = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Enable Transparent", () => debugSettings.renderSettings.enableTransparentObjects, (value) => debugSettings.renderSettings.enableTransparentObjects = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Enable Atmospheric Scattering",() => debugSettings.renderSettings.enableAtmosphericScattering, (value) => debugSettings.renderSettings.enableAtmosphericScattering = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Enable Distortion",() => debugSettings.renderSettings.enableDistortion, (value) => debugSettings.renderSettings.enableDistortion = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Allow Stereo Rendering",() => debugSettings.renderSettings.enableStereo, (value) => debugSettings.renderSettings.enableStereo = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Enable Stereo Rendering",() => debugSettings.renderSettings.enableStereo, (value) => debugSettings.renderSettings.enableStereo = (bool)value);
             DebugMenuManager.instance.AddDebugItem<int>("Rendering", kFullScreenDebugMode, () => (int)fullScreenDebugMode, (value) => fullScreenDebugMode = (FullScreenDebugMode)value, DebugItemFlag.None, new DebugItemHandlerIntEnum(DebugDisplaySettings.renderingFullScreenDebugStrings, DebugDisplaySettings.renderingFullScreenDebugValues));
 
+            // Following settings are overwrite of defaultFrameSettings instead of using debugSettings as otherwise we can't have a correct rendering (as debugSettings will always be enabled)
             // These need to be Runtime Only because those values are held by the HDRenderPipeline asset so if user change them through the editor debug menu they might change the value in the asset without noticing it.
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Forward Only", () => debugSettings.renderSettings.enableForwardRenderingOnly, (value) => debugSettings.renderSettings.enableForwardRenderingOnly = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Deferred Depth Prepass", () => debugSettings.renderSettings.enableDepthPrepassWithDeferredRendering, (value) => debugSettings.renderSettings.enableDepthPrepassWithDeferredRendering = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Deferred Depth Prepass ATest Only", () => debugSettings.renderSettings.enableAlphaTestOnlyInDeferredPrepass, (value) => debugSettings.renderSettings.enableAlphaTestOnlyInDeferredPrepass = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Forward Only", () => defaultFrameSettings.renderSettings.enableForwardRenderingOnly, (value) => debugSettings.renderSettings.enableForwardRenderingOnly = (bool)value, DebugItemFlag.RuntimeOnly);
+            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Deferred Depth Prepass", () => defaultFrameSettings.renderSettings.enableDepthPrepassWithDeferredRendering, (value) => debugSettings.renderSettings.enableDepthPrepassWithDeferredRendering = (bool)value, DebugItemFlag.RuntimeOnly);
+            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Deferred Depth Prepass ATest Only", () => defaultFrameSettings.renderSettings.enableAlphaTestOnlyInDeferredPrepass, (value) => debugSettings.renderSettings.enableAlphaTestOnlyInDeferredPrepass = (bool)value, DebugItemFlag.RuntimeOnly);
 
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Tile/Cluster", () => debugSettings.lightLoopSettings.enableTileAndCluster, (value) => debugSettings.lightLoopSettings.enableTileAndCluster = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Big Tile", () => debugSettings.lightLoopSettings.enableBigTilePrepass, (value) => debugSettings.lightLoopSettings.enableBigTilePrepass = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Compute Lighting", () => debugSettings.lightLoopSettings.enableComputeLightEvaluation, (value) => debugSettings.lightLoopSettings.enableComputeLightEvaluation = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Light Classification", () => debugSettings.lightLoopSettings.enableComputeLightVariants, (value) => debugSettings.lightLoopSettings.enableComputeLightVariants = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Material Classification", () => debugSettings.lightLoopSettings.enableComputeMaterialVariants, (value) => debugSettings.lightLoopSettings.enableComputeMaterialVariants = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Tile/Cluster", () => defaultFrameSettings.lightLoopSettings.enableTileAndCluster, (value) => debugSettings.lightLoopSettings.enableTileAndCluster = (bool)value, DebugItemFlag.RuntimeOnly);
+            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Big Tile", () => defaultFrameSettings.lightLoopSettings.enableBigTilePrepass, (value) => debugSettings.lightLoopSettings.enableBigTilePrepass = (bool)value, DebugItemFlag.RuntimeOnly);
+            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Compute Lighting", () => defaultFrameSettings.lightLoopSettings.enableComputeLightEvaluation, (value) => debugSettings.lightLoopSettings.enableComputeLightEvaluation = (bool)value, DebugItemFlag.RuntimeOnly);
+            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Light Classification", () => defaultFrameSettings.lightLoopSettings.enableComputeLightVariants, (value) => debugSettings.lightLoopSettings.enableComputeLightVariants = (bool)value, DebugItemFlag.RuntimeOnly);
+            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Material Classification", () => defaultFrameSettings.lightLoopSettings.enableComputeMaterialVariants, (value) => debugSettings.lightLoopSettings.enableComputeMaterialVariants = (bool)value, DebugItemFlag.RuntimeOnly);
 
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Async Compute", () => debugSettings.renderSettings.enableAsyncCompute, (value) => debugSettings.renderSettings.enableAsyncCompute = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Async Compute", () => debugSettings.renderSettings.enableAsyncCompute, (value) => debugSettings.renderSettings.enableAsyncCompute = (bool)value, DebugItemFlag.RuntimeOnly);
         }
 
         public void OnValidate()

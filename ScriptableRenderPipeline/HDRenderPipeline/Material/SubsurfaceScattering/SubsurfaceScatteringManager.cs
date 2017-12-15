@@ -37,8 +37,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // This is use to be able to read stencil value in compute shader
         Material m_CopyStencilForSplitLighting;
 
-        SubsurfaceScatteringSettings m_sssSettings;
-
         public SubsurfaceScatteringManager()
         {
             m_SSSBuffer0 = HDShaderIDs._SSSBufferTexture[0];
@@ -74,7 +72,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Build(HDRenderPipelineAsset hdAsset)
         {
-            m_sssSettings = hdAsset.sssSettings;
             // Disney SSS (compute + combine)
             m_SubsurfaceScatteringCS = hdAsset.renderPipelineResources.subsurfaceScatteringCS;
             m_SubsurfaceScatteringKernel = m_SubsurfaceScatteringCS.FindKernel("SubsurfaceScattering");
@@ -148,7 +145,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void SubsurfaceScatteringPass(HDCamera hdCamera, CommandBuffer cmd, SubsurfaceScatteringSettings sssParameters, FrameSettings frameSettings,
                                             RenderTargetIdentifier colorBufferRT, RenderTargetIdentifier diffuseBufferRT, RenderTargetIdentifier depthStencilBufferRT, RenderTargetIdentifier depthTextureRT)
         {
-            if (m_sssSettings == null || !frameSettings.lightingSettings.enableSSSAndTransmission)
+            if (sssParameters == null || !frameSettings.lightingSettings.enableSSSAndTransmission)
                 return;
 
             using (new ProfilingSample(cmd, "Subsurface Scattering", HDRenderPipeline.GetSampler(CustomSamplerId.SubsurfaceScattering)))
@@ -157,8 +154,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int h = hdCamera.camera.pixelHeight;
 
                 // For Jimenez we always need an extra buffer, for Disney it depends on platform
-                if (!m_sssSettings.useDisneySSS ||
-                    (m_sssSettings.useDisneySSS && NeedTemporarySubsurfaceBuffer()))
+                if (!sssParameters.useDisneySSS ||
+                    (sssParameters.useDisneySSS && NeedTemporarySubsurfaceBuffer()))
                 {
                     // Caution: must be same format as m_CameraSssDiffuseLightingBuffer
                     cmd.ReleaseTemporaryRT(m_CameraFilteringBuffer);
@@ -170,7 +167,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
 
-                if (m_sssSettings.useDisneySSS)
+                if (sssParameters.useDisneySSS)
                 {
                     using (new ProfilingSample(cmd, "HTile for SSS", HDRenderPipeline.GetSampler(CustomSamplerId.HTileForSSS)))
                     {
