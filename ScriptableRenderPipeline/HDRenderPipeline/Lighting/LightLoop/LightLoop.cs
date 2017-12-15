@@ -837,7 +837,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             lightData.right = light.light.transform.right;
 
             lightDimensions.x = additionalLightData.shapeLength;
-            lightDimensions.x = additionalLightData.shapeWidth;
+            lightDimensions.y = additionalLightData.shapeWidth;
             lightDimensions.z = light.range;
 
             if (lightData.lightType == GPULightType.ProjectorBox)
