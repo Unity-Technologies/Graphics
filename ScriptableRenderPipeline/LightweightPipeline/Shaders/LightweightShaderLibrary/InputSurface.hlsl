@@ -25,12 +25,12 @@ half4 _EmissionColor;
 half _Shininess;
 CBUFFER_END
 
-TEXTURE2D(_MainTex); SAMPLER2D(sampler_MainTex);
-TEXTURE2D(_MetallicGlossMap); SAMPLER2D(sampler_MetallicGlossMap);
-TEXTURE2D(_SpecGlossMap); SAMPLER2D(sampler_SpecGlossMap);
-TEXTURE2D(_BumpMap); SAMPLER2D(sampler_BumpMap);
-TEXTURE2D(_OcclusionMap); SAMPLER2D(sampler_OcclusionMap);
-TEXTURE2D(_EmissionMap); SAMPLER2D(sampler_EmissionMap);
+TEXTURE2D(_MainTex); SAMPLER(sampler_MainTex);
+TEXTURE2D(_MetallicGlossMap); SAMPLER(sampler_MetallicGlossMap);
+TEXTURE2D(_SpecGlossMap); SAMPLER(sampler_SpecGlossMap);
+TEXTURE2D(_BumpMap); SAMPLER(sampler_BumpMap);
+TEXTURE2D(_OcclusionMap); SAMPLER(sampler_OcclusionMap);
+TEXTURE2D(_EmissionMap); SAMPLER(sampler_EmissionMap);
 
 // Must match Lightweigth ShaderGraph master node
 struct SurfaceData

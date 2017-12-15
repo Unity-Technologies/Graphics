@@ -78,38 +78,40 @@
 
 // Texture abstraction
 
-#define TEXTURE2D(textureName) sampler2D textureName
-#define TEXTURE2D_ARRAY(textureName) samplerCUBE textureName // No support to texture2DArray
-#define TEXTURECUBE(textureName) samplerCUBE textureName
-#define TEXTURECUBE_ARRAY(textureName) samplerCUBE textureName // No supoport to textureCubeArray and can't emulate with texture2DArray
-#define TEXTURE3D(textureName) sampler3D textureName
-#define TEXTURE2D_SHADOW(textureName) SHADOW2D_TEXTURE_AND_SAMPLER textureName
-#define TEXTURECUBE_SHADOW(textureName) SHADOWCUBE_TEXTURE_AND_SAMPLER textureName
-#define RW_TEXTURE2D(type, textureNam)
+#define TEXTURE2D(textureName)                          sampler2D textureName
+#define TEXTURE2D_ARRAY(textureName)                    samplerCUBE textureName // No support to texture2DArray
+#define TEXTURECUBE(textureName)                        samplerCUBE textureName
+#define TEXTURECUBE_ARRAY(textureName)                  samplerCUBE textureName // No supoport to textureCubeArray and can't emulate with texture2DArray
+#define TEXTURE3D(textureName)                          sampler3D textureName
 
-#define SAMPLER2D(samplerName)
-#define SAMPLERCUBE(samplerName)
-#define SAMPLER3D(samplerName)
-#define SAMPLER2D_SHADOW(samplerName)
-#define SAMPLERCUBE_SHADOW(samplerName)
+#define TEXTURE2D_SHADOW(textureName)                   SHADOW2D_TEXTURE_AND_SAMPLER textureName
+#define TEXTURE2D_ARRAY_SHADOW(textureName)             TEXTURECUBE_SHADOW(textureName) // No support to texture array
+#define TEXTURECUBE_SHADOW(textureName)                 SHADOWCUBE_TEXTURE_AND_SAMPLER textureName
+#define TEXTURECUBE_ARRAY_SHADOW(textureName)           TEXTURECUBE_SHADOW(textureName) // No support to texture array
 
-#define TEXTURE2D_ARGS(textureName, samplerName) sampler2D textureName
-#define TEXTURE2D_ARRAY_ARGS(textureName, samplerName) samplerCUBE textureName
-#define TEXTURECUBE_ARGS(textureName, samplerName) samplerCUBE textureName
-#define TEXTURECUBE_ARRAY_ARGS(textureName, samplerName) samplerCUBE textureName
-#define TEXTURE3D_ARGS(textureName, samplerName) sampler3D textureName
-#define TEXTURE2D_SHADOW_ARGS(textureName, samplerName) SHADOW2D_TEXTURE_AND_SAMPLER textureName
-#define TEXTURE2D_ARRAY_SHADOW_ARGS(textureName, samplerName) SHADOWCUBE_TEXTURE_AND_SAMPLER textureName
-#define TEXTURECUBE_SHADOW_ARGS(textureName, samplerName) SHADOWCUBE_TEXTURE_AND_SAMPLER textureName
+#define RW_TEXTURE2D(type, textureNam)                  ERROR_ON_UNSUPPORTED_FUNCTION(RWTexture2D)
+#define RW_TEXTURE3D(type, textureNam)                  ERROR_ON_UNSUPPORTED_FUNCTION(RWTexture3D)
 
-#define TEXTURE2D_PARAM(textureName, samplerName) textureName
-#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName) textureName
-#define TEXTURECUBE_PARAM(textureName, samplerName) textureName
-#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName) textureName
-#define TEXTURE3D_PARAM(textureName, samplerName) textureName
-#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName) textureName
-#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName) textureName
-#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName) textureName
+#define SAMPLER(samplerName)
+#define SAMPLER_CMP(samplerName)
+
+#define TEXTURE2D_ARGS(textureName, samplerName)                sampler2D textureName
+#define TEXTURE2D_ARRAY_ARGS(textureName, samplerName)          samplerCUBE textureName
+#define TEXTURECUBE_ARGS(textureName, samplerName)              samplerCUBE textureName
+#define TEXTURECUBE_ARRAY_ARGS(textureName, samplerName)        samplerCUBE textureName
+#define TEXTURE3D_ARGS(textureName, samplerName)                sampler3D textureName
+#define TEXTURE2D_SHADOW_ARGS(textureName, samplerName)         SHADOW2D_TEXTURE_AND_SAMPLER textureName
+#define TEXTURE2D_ARRAY_SHADOW_ARGS(textureName, samplerName)   SHADOWCUBE_TEXTURE_AND_SAMPLER textureName
+#define TEXTURECUBE_SHADOW_ARGS(textureName, samplerName)       SHADOWCUBE_TEXTURE_AND_SAMPLER textureName
+
+#define TEXTURE2D_PARAM(textureName, samplerName)               textureName
+#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)         textureName
+#define TEXTURECUBE_PARAM(textureName, samplerName)             textureName
+#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)       textureName
+#define TEXTURE3D_PARAM(textureName, samplerName)               textureName
+#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)        textureName
+#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)  textureName
+#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)      textureName
 
 #define SAMPLE_TEXTURE2D(textureName, samplerName, coord2) tex2D(textureName, coord2)
 
@@ -133,6 +135,7 @@
 #define SAMPLE_TEXTURECUBE_ARRAY_LOD(textureName, samplerName, coord3, index, lod) SAMPLE_TEXTURECUBE_LOD(textureName, samplerName, coord3, lod)
 #define SAMPLE_TEXTURECUBE_ARRAY_BIAS(textureName, samplerName, coord3, index, bias) SAMPLE_TEXTURECUBE_BIAS(textureName, samplerName, coord3, bias)
 #define SAMPLE_TEXTURE3D(textureName, samplerName, coord3) tex3D(textureName, coord3)
+
 #define SAMPLE_TEXTURE2D_SHADOW(textureName, samplerName, coord3) SHADOW2D_SAMPLE(textureName, samplerName, coord3)
 #define SAMPLE_TEXTURE2D_ARRAY_SHADOW(textureName, samplerName, coord3, index) SAMPLE_TEXTURECUBE_SHADOW(textureName, samplerName, float4(coord3.xy, index, coord3.w))
 #define SAMPLE_TEXTURECUBE_SHADOW(textureName, samplerName, coord4) SHADOW3D_SAMPLE(textureName, samplerName, coord4)
@@ -141,22 +144,15 @@
 #define SAMPLE_DEPTH_TEXTURE(textureName, samplerName, coord2) SAMPLE_TEXTURE2D(textureName, samplerName, coord2).r
 #define SAMPLE_DEPTH_TEXTURE_LOD(textureName, samplerName, coord2, lod) SAMPLE_TEXTURE2D_LOD(textureName, samplerName, coord2, lod).r
 
-#define TEXTURE2D_HALF TEXTURE2D
-#define TEXTURE2D_FLOAT TEXTURE2D
-#define TEXTURE3D_HALF TEXTURE3D
-#define TEXTURE3D_FLOAT TEXTURE3D
-#define SAMPLER2D_HALF SAMPLER2D
-#define SAMPLER2D_FLOAT SAMPLER2D
-
-#define LOAD_TEXTURE2D(textureName, unCoord2) #error LOAD_TEXTURE not supported in GLES2
-#define LOAD_TEXTURE2D_LOD(textureName, unCoord2, lod) #error LOAD_TEXTURE not supported in GLES2
-#define LOAD_TEXTURE2D_MSAA(textureName, unCoord2, sampleIndex) #error LOAD_TEXTURE not supported in GLES2
-#define LOAD_TEXTURE2D_ARRAY(textureName, unCoord2, index) #error LOAD_TEXTURE not supported in GLES2
-#define LOAD_TEXTURE2D_ARRAY_LOD(textureName, unCoord2, index, lod) #error LOAD_TEXTURE not supported in GLES2
+#define LOAD_TEXTURE2D(textureName, unCoord2)                       ERROR_ON_UNSUPPORTED_FUNCTION(texelFetch)
+#define LOAD_TEXTURE2D_LOD(textureName, unCoord2, lod)              ERROR_ON_UNSUPPORTED_FUNCTION(texelFetchLod)
+#define LOAD_TEXTURE2D_MSAA(textureName, unCoord2, sampleIndex)     ERROR_ON_UNSUPPORTED_FUNCTION(texelFetchBias)
+#define LOAD_TEXTURE2D_ARRAY(textureName, unCoord2, index)          ERROR_ON_UNSUPPORTED_FUNCTION(texelFetchArray)
+#define LOAD_TEXTURE2D_ARRAY_LOD(textureName, unCoord2, index, lod) ERROR_ON_UNSUPPORTED_FUNCTION(texelFetchLodArray)
 
 // Gather not supported. Fallabck to regular texture sampling.
-#define GATHER_TEXTURE2D(textureName, samplerName, coord2) SAMPLE_TEXTURE2D(textureName, samplerName, coord2)
-#define GATHER_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index) SAMPLE_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index)
-#define GATHER_TEXTURECUBE(textureName, samplerName, coord3) SAMPLE_TEXTURECUBE(textureName, samplerName, coord3)
-#define GATHER_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index) SAMPLE_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index)
+#define GATHER_TEXTURE2D(textureName, samplerName, coord2)                  SAMPLE_TEXTURE2D(textureName, samplerName, coord2)
+#define GATHER_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index)     SAMPLE_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index)
+#define GATHER_TEXTURECUBE(textureName, samplerName, coord3)                SAMPLE_TEXTURECUBE(textureName, samplerName, coord3)
+#define GATHER_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index)   SAMPLE_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index)
 
