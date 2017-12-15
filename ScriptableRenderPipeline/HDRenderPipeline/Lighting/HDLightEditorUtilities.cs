@@ -97,7 +97,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             var additionalLightData = spherelight.GetComponent<HDAdditionalLightData>();
             if (additionalLightData == null) return;
-            Gizmos.DrawSphere(spherelight.transform.position, additionalLightData.shapeLength);
+            Gizmos.DrawSphere(spherelight.transform.position, additionalLightData.shapeWidth);
             if (spherelight.shadows != LightShadows.None) Gizmos.DrawWireSphere(spherelight.transform.position, spherelight.shadowNearPlane);
             Gizmos.DrawWireSphere(spherelight.transform.position, spherelight.range);
         }
@@ -224,10 +224,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             else // Ortho frustum
             {
-                //DrawLightOrthoFrustum(Vector3.zero, additionalLightData.shapeLength, additionalLightData.shapeWidth, frustumlight.range, 0.0f);
+                //DrawLightOrthoFrustum(Vector3.zero, additionalLightData.shapeWidth, additionalLightData.shapeHeight, frustumlight.range, 0.0f);
 
                 Vector3 frustumCenter = new Vector3(0.0f, 0.0f, 0.5f * frustumlight.range);
-                Vector3 frustumsize = new Vector3(additionalLightData.shapeLength, additionalLightData.shapeWidth, frustumlight.range);
+                Vector3 frustumsize = new Vector3(additionalLightData.shapeWidth, additionalLightData.shapeHeight, frustumlight.range);
                 Gizmos.DrawWireCube(frustumCenter, frustumsize);
             }
             Gizmos.matrix = Matrix4x4.identity;
