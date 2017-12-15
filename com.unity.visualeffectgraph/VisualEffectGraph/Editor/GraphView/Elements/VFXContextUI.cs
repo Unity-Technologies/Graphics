@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXContextUI : GraphElement, IControlledElement<VFXContextController>, IControlledElement<VFXNodeController>, IDropTarget, IEdgeDrawerContainer
+    class VFXContextUI : GraphElement, IControlledElement<VFXContextController>, IControlledElement<VFXNodeController>, IDropTarget
     {
         // TODO: Unused except for debugging
         const string RectColorProperty = "rect-color";
@@ -47,8 +47,6 @@ namespace UnityEditor.VFX.UI
         VisualElement               m_DragDisplay;
 
         VFXContextSlotContainerUI   m_OwnData;
-
-        EdgeDrawer                  m_EdgeDrawer;
 
         protected GraphViewTypeFactory typeFactory { get; set; }
 
@@ -109,13 +107,12 @@ namespace UnityEditor.VFX.UI
                 style.positionLeft = controller.position.x;
                 style.positionTop = controller.position.y;
 
-                if (m_PopupManipulator == null)
+                if (m_BlockProvider == null)
                 {
-                    m_PopupManipulator = new FilterPopup(new VFXBlockProvider(controller, (d, mPos) =>
+                    m_BlockProvider = new VFXBlockProvider(controller, (d, mPos) =>
                         {
                             AddBlock(mPos, d);
-                        }));
-                    m_NodeContainer.AddManipulator(m_PopupManipulator);
+                        });
                 }
 
 
@@ -306,23 +303,6 @@ namespace UnityEditor.VFX.UI
             Add(m_FlowOutputConnectorContainer);
 
             m_InsideContainer.Add(m_Footer);
-            /*
-            m_NodeContainer.AddManipulator(new ContextualMenu((evt, customData) =>
-            {
-                var menu = new GenericMenu();
-
-                // Needs to have the model here to filter compatible node blocks
-                var contextType = controller.Model.ContextType;
-                foreach (var desc in VFXLibrary.GetBlocks())
-                    if ((desc.CompatibleContexts & contextType) != 0)
-                        menu.AddItem(new GUIContent(desc.Name), false,
-                                     contentView => AddBlock(-1, desc),
-                                     this);
-
-                menu.ShowAsContext();
-                return EventPropagation.Continue;
-            }));
-            */
 
             m_NodeContainer.Add(m_InsideContainer);
 
@@ -334,29 +314,15 @@ namespace UnityEditor.VFX.UI
 
             Add(new VisualElement() { name = "icon" });
 
-            m_EdgeDrawer = new VFXContextEdgeDrawer();
-
-            m_EdgeDrawer.style.positionType = PositionType.Absolute;
-            m_EdgeDrawer.style.positionLeft = 0;
-            m_EdgeDrawer.style.positionRight = 0;
-            m_EdgeDrawer.style.positionBottom = 0;
-            m_EdgeDrawer.style.positionTop = 0;
-            m_InsideContainer.Add(m_EdgeDrawer);
-            m_EdgeDrawer.element = this;
-
             clippingOptions = VisualElement.ClippingOptions.NoClipping;
 
             RegisterCallback<ControllerChangedEvent>(OnChange);
+            this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
         }
 
         public override void UpdatePresenterPosition()
         {
             controller.position = GetPosition().position;
-        }
-
-        void IEdgeDrawerContainer.EdgeDirty()
-        {
-            m_EdgeDrawer.Dirty(ChangeType.Repaint);
         }
 
         void OnSpace()
@@ -639,7 +605,22 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        FilterPopup m_PopupManipulator;
+        void OnCreateBlock(EventBase evt)
+        {
+            Vector2 referencePosition;
+            if (evt is IMouseEvent)
+            {
+                referencePosition = (evt as IMouseEvent).mousePosition;
+            }
+            else
+            {
+                referencePosition = Vector2.zero;
+            }
+
+            VFXFilterWindow.Show(referencePosition, m_BlockProvider);
+        }
+
+        VFXBlockProvider m_BlockProvider = null;
 
         internal override void DoRepaint(IStylePainter painter)
         {
@@ -683,6 +664,15 @@ namespace UnityEditor.VFX.UI
                 {
                     yield return anchor;
                 }
+        }
+
+        public virtual void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        {
+            if (evt.target is VFXContextUI || evt.target is VFXBlockUI)
+            {
+                evt.menu.AppendAction("Create Block", OnCreateBlock, e => ContextualMenu.MenuAction.StatusFlags.Normal);
+                evt.menu.AppendSeparator();
+            }
         }
     }
 }

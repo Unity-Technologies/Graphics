@@ -36,9 +36,9 @@ VFXContextSlotContainerUI.VFXContextSlotContainerUI
 	margin-bottom:0;
 }
 
-VFXContextSlotContainerUI.VFXContextSlotContainerUI #contents
+VFXContextSlotContainerUI.VFXContextSlotContainerUI #settings
 {
-	background-color:#414141;
+	background-color:rgba(0,0,0,0);
 }
 
 VFXContextSlotContainerUI.VFXNodeUI #pane
@@ -63,12 +63,18 @@ VFXContextUI #Inside
 	border-right:2;
 }
 
-VFXContextUI #Header
+
+VFXContextUI #Header,VFXContextUI #Footer
 {
-	background-color:#414141;
-	border-radius:2;
+	background-color:rgba(90,90,90,0.8);
 	padding-top:10;
 	padding-bottom:10;
+}
+
+VFXContextUI #Header
+{
+	background-color:rgba(90,90,90,0.8);
+	border-radius:2;
 }
 
 VFXContextUI #HeaderContainer
@@ -81,11 +87,8 @@ VFXContextUI #HeaderContainer
 VFXContextUI #Footer
 {
 	flex-direction:row;
-	padding-top:10;
-	padding-bottom:10;
 	border-radius:2;
 	justify-content:center;
-	background-color:#414141;
 	margin-bottom:1;
 }
 
@@ -160,6 +163,11 @@ VFXContextUI > * >#Title {
 	
 }
 
+VFXContextUI *
+{
+	font-size:11;
+}
+
 
 VFXContextUI .VFXNodeUI.VFXContextSlotContainerUI
 {
@@ -187,7 +195,7 @@ VFXContextUI BlockContainer {
 	font-size:12;
 	margin-top: 0;
 	margin-bottom: 0;
-	-border-radius:4;
+	padding-top:3;
 }
 
 VFXContextUI > #icon

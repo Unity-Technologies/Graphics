@@ -71,7 +71,7 @@ Pass
 #if VFX_USE_RIM_LIGHT
 		float3 normal = VFXCubeGetLocalNormal(i);	
 #if VFX_USE_NORMAL_MAP
-		float3 n = VFXGetTextureNormal(VFX_SAMPLER(normalMap),VFXCubeGetUV(i));
+		float3 n = VFXGetTextureNormal(VFX_SAMPLER(texture_normalMap),VFXCubeGetUV(i));
 		normal = VFXCubeTransformNormalTS(normal,n);
 #endif
 		normal = VFXCubeTransformNormalWS(i,normal);

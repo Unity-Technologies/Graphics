@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXBlockUI : VFXContextSlotContainerUI, IDropTarget, IEdgeDrawerContainer
+    class VFXBlockUI : VFXContextSlotContainerUI, IDropTarget
     {
         Toggle m_EnableToggle;
 
@@ -17,15 +17,6 @@ namespace UnityEditor.VFX.UI
         {
             get { return base.controller as VFXBlockController; }
             set { base.controller = value; }
-        }
-
-
-        void IEdgeDrawerContainer.EdgeDirty()
-        {
-            VFXContextUI contextUI = GetFirstAncestorOfType<VFXContextUI>();
-
-            if (contextUI != null)
-                (contextUI as IEdgeDrawerContainer).EdgeDirty();
         }
 
         public VFXBlockUI()
@@ -37,8 +28,6 @@ namespace UnityEditor.VFX.UI
             titleContainer.shadow.Insert(0, m_EnableToggle);
 
             capabilities &= ~Capabilities.Ascendable;
-
-            edgeDrawer.RemoveFromHierarchy();
         }
 
         void OnToggleEnable()

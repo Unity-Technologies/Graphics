@@ -20,8 +20,10 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 			o.VFX_VARYING_UV.x = float(id & 1);
 			o.VFX_VARYING_UV.y = float((id & 2) >> 1);
 			
-			float3 vPos = position;
-			vPos += TransformInElementSpace(float3(o.VFX_VARYING_UV.xy - 0.5f,0.0f),side,up,front,angle,pivot,float3(size,1.0f));
+			${VFXLoadSize}
+			
+			float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);
+			float3 vPos = mul(elementToVFX,float4(o.VFX_VARYING_UV.xy * 2.0f - 1.0f,0.0f,1.0f)).xyz;
 
 			o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
 

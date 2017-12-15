@@ -201,7 +201,8 @@ namespace UnityEditor.VFX.UI
             bool justClosed = nowMilliSeconds < s_LastClosedTime + 50;
             if (!justClosed)
             {
-                Event.current.Use();
+                if (Event.current != null)
+                    Event.current.Use();
                 if (s_FilterWindow == null)
                 {
                     s_FilterWindow = ScriptableObject.CreateInstance<VFXFilterWindow>();

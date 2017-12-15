@@ -61,7 +61,10 @@ namespace UnityEditor.VFX
                 case VFXValueType.kInt: return "int";
                 case VFXValueType.kUint: return "uint";
                 case VFXValueType.kTexture2D: return "Texture2D";
+                case VFXValueType.kTexture2DArray: return "Texture2DArray";
                 case VFXValueType.kTexture3D: return "Texture3D";
+                case VFXValueType.kTextureCube: return "TextureCube";
+                case VFXValueType.kTextureCubeArray: return "TextureCubeArray";
                 case VFXValueType.kTransform: return "float4x4";
                 case VFXValueType.kBool: return "bool";
             }
@@ -96,7 +99,10 @@ namespace UnityEditor.VFX
                 case VFXValueType.kInt: return typeof(int);
                 case VFXValueType.kUint: return typeof(uint);
                 case VFXValueType.kTexture2D: return typeof(Texture2D);
+                case VFXValueType.kTexture2DArray: return typeof(Texture2DArray);
                 case VFXValueType.kTexture3D: return typeof(Texture3D);
+                case VFXValueType.kTextureCube: return typeof(Cubemap);
+                case VFXValueType.kTextureCubeArray: return typeof(CubemapArray);
                 case VFXValueType.kTransform: return typeof(Matrix4x4);
                 case VFXValueType.kMesh: return typeof(Mesh);
                 case VFXValueType.kCurve: return typeof(AnimationCurve);
@@ -117,7 +123,10 @@ namespace UnityEditor.VFX
                 case VFXValueType.kInt:
                 case VFXValueType.kUint:
                 case VFXValueType.kTexture2D:
+                case VFXValueType.kTexture2DArray:
                 case VFXValueType.kTexture3D:
+                case VFXValueType.kTextureCube:
+                case VFXValueType.kTextureCubeArray:
                 case VFXValueType.kTransform:
                 case VFXValueType.kBool:
                     return true;
@@ -131,7 +140,10 @@ namespace UnityEditor.VFX
             switch (type)
             {
                 case VFXValueType.kTexture2D:
+                case VFXValueType.kTexture2DArray:
                 case VFXValueType.kTexture3D:
+                case VFXValueType.kTextureCube:
+                case VFXValueType.kTextureCubeArray:
                     return true;
             }
 
@@ -211,8 +223,9 @@ namespace UnityEditor.VFX
         // Get the operands for the runtime evaluation
         public int[] GetOperands(VFXExpressionGraph graph)
         {
+            var addOperands = additionnalOperands;
             var parentsIndex = parents.Select(p => graph == null ? -1 : graph.GetFlattenedIndex(p)).ToArray();
-            if (parentsIndex.Length + additionnalOperands.Length > 4)
+            if (parentsIndex.Length + addOperands.Length > 4)
                 throw new Exception("Too much parameter for expression : " + this);
 
             var data = new int[] { -1, -1, -1, -1};
@@ -221,9 +234,9 @@ namespace UnityEditor.VFX
                 data[i] = parentsIndex[i];
             }
 
-            for (int i = 0; i < additionnalOperands.Length; ++i)
+            for (int i = 0; i < addOperands.Length; ++i)
             {
-                data[data.Length - additionnalOperands.Length + i] = additionnalOperands[i];
+                data[data.Length - addOperands.Length + i] = addOperands[i];
             }
             return data;
         }
@@ -263,11 +276,14 @@ namespace UnityEditor.VFX
             if (m_Flags != other.m_Flags)
                 return false;
 
-            if (other.additionnalOperands.Length != additionnalOperands.Length)
+            var operands = additionnalOperands;
+            var otherOperands = other.additionnalOperands;
+
+            if (operands.Length != otherOperands.Length)
                 return false;
 
-            for (int i = 0; i < additionnalOperands.Length; ++i)
-                if (additionnalOperands[i] != other.additionnalOperands[i])
+            for (int i = 0; i < operands.Length; ++i)
+                if (operands[i] != otherOperands[i])
                     return false;
 
             var thisParents = parents;
@@ -295,8 +311,9 @@ namespace UnityEditor.VFX
             for (int i = 0; i < parents.Length; ++i)
                 hash = (hash * 397) ^ parents[i].GetHashCode(); // 397 taken from resharper
 
-            for (int i = 0; i < additionnalOperands.Length; ++i)
-                hash = (hash * 397) ^ additionnalOperands[i].GetHashCode();
+            var operands = additionnalOperands;
+            for (int i = 0; i < operands.Length; ++i)
+                hash = (hash * 397) ^ operands[i].GetHashCode();
 
             hash = (hash * 397) ^ m_Flags.GetHashCode();
             hash = (hash * 397) ^ valueType.GetHashCode();

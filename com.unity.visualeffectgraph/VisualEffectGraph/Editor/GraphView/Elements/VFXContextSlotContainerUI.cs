@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXContextSlotContainerUI : VFXNodeUI, IEdgeDrawerContainer
+    class VFXContextSlotContainerUI : VFXNodeUI
     {
         public VFXContextSlotContainerUI()
         {
@@ -59,11 +59,6 @@ namespace UnityEditor.VFX.UI
         public VFXContextUI context
         {
             get {return this.GetFirstAncestorOfType<VFXContextUI>(); }
-        }
-
-        public void EdgeDirty()
-        {
-            (context as IEdgeDrawerContainer).EdgeDirty();
         }
     }
 }

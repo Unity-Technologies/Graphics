@@ -249,7 +249,7 @@ namespace UnityEditor.VFX.UI
                         foreach (var inputSlot in slotContainer.inputSlots)
                         {
                             var endController = nodeController.inputPorts.First(t => t.model == inputSlot);
-                            if (compatibleAnchors.Contains(endController))
+                            if (compatibleAnchors.Contains(endController) && !endController.connected)
                             {
                                 inputSlot.Link(startSlot);
                                 break;
