@@ -30,6 +30,7 @@ namespace UnityEditor.Experimental.Rendering
             internal SerializedProperty useOcclusionCulling;
             internal SerializedProperty nearClip;
             internal SerializedProperty farClip;
+            internal SerializedProperty boxProjection;
 
             internal SerializedProperty influenceShape;
             internal SerializedProperty influenceSphereRadius;
@@ -58,6 +59,7 @@ namespace UnityEditor.Experimental.Rendering
                 useOcclusionCulling = so.FindProperty("m_UseOcclusionCulling");
                 nearClip = so.FindProperty("m_NearClip");
                 farClip = so.FindProperty("m_FarClip");
+                boxProjection = so.FindProperty("m_BoxProjection");
 
                 influenceShape = addso.Find((HDAdditionalReflectionData d) => d.influenceShape);
                 influenceSphereRadius = addso.Find((HDAdditionalReflectionData d) => d.influenceSphereRadius);

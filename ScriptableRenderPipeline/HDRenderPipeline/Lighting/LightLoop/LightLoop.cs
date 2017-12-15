@@ -1163,7 +1163,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 envLightData.minProjectionDistance = 0;
                 switch (additionalData.influenceShape)
                 {
-                    case ReflectionInfluenceShape.Box: envLightData.envShapeType = EnvShapeType.Box; break;
+                    case ReflectionInfluenceShape.Box:
+                    {
+                        envLightData.envShapeType = EnvShapeType.Box;
+                        if (probe.boxProjection != 0)
+                            envLightData.minProjectionDistance = 65504.0f;
+                        break;
+                    }
                     case ReflectionInfluenceShape.Sphere: envLightData.envShapeType = EnvShapeType.Sphere; break;
                 }
             }

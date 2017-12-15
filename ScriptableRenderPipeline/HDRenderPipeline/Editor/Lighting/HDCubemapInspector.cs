@@ -12,44 +12,47 @@ class HDCubemapInspector : Editor
         Rotating = 2
     }
 
+    static GUIContent s_MipMapLow, s_MipMapHigh, s_CurveKeyframeSelected, s_CurveKeyframeSemiSelectedOverlay, s_RGBMIcon;
+    static GUIStyle s_PreButton, s_PreSlider, s_PreSliderThumb, s_PreLabel;
     static Mesh s_SphereMesh;
-    Material m_ReflectiveMaterial;
-    public float m_PreviewExposure = 0f;
-    public float m_MipLevelPreview = 0f;
-    PreviewRenderUtility m_PreviewUtility;
 
+    static Mesh sphereMesh
+    {
+        get { return s_SphereMesh ?? (s_SphereMesh = Resources.GetBuiltinResource(typeof(Mesh), "New-Sphere.fbx") as Mesh); }
+    }
+
+    Material m_ReflectiveMaterial;
+    PreviewRenderUtility m_PreviewUtility;
     float m_CameraPhi = 0.75f;
     float m_CameraTheta = 0.5f;
     float m_CameraDistance = 2.0f;
-
     NavMode m_NavMode = NavMode.None;
     Vector2 m_PreviousMousePosition = Vector2.zero;
 
-    static GUIContent s_MipMapLow, s_MipMapHigh, s_CurveKeyframeSelected, s_CurveKeyframeSemiSelectedOverlay, s_RGBMIcon;
-    static GUIStyle s_PreButton, s_PreSlider, s_PreSliderThumb, s_PreLabel;
+    public float previewExposure = 0f;
+    public float mipLevelPreview = 0f;
+
+    void Awake()
+    {
+        m_ReflectiveMaterial = new Material(Shader.Find("Debug/ReflectionProbePreview"))
+        {
+            hideFlags = HideFlags.HideAndDontSave
+        };
+        InitIcons();
+    }
 
     void OnEnable()
     {
         if (m_PreviewUtility == null)
-        {
             InitPreview();
-            InitIcons();
-        }
 
-        m_ReflectiveMaterial = new Material(Shader.Find("Debug/ReflectionProbePreview"));
         m_ReflectiveMaterial.SetTexture("_Cubemap", target as Texture);
-        m_ReflectiveMaterial.hideFlags = HideFlags.HideAndDontSave;
     }
 
     void OnDisable()
     {
         if (m_PreviewUtility != null)
             m_PreviewUtility.Cleanup();
-    }
-
-    static Mesh sphereMesh
-    {
-        get { return s_SphereMesh ?? (s_SphereMesh = Resources.GetBuiltinResource(typeof(Mesh), "New-Sphere.fbx") as Mesh); }
     }
 
     public override bool HasPreviewGUI()
@@ -61,8 +64,8 @@ class HDCubemapInspector : Editor
     {
         if(m_ReflectiveMaterial != null)
         {
-            m_ReflectiveMaterial.SetFloat("_Exposure", m_PreviewExposure);
-            m_ReflectiveMaterial.SetFloat("_MipLevel", m_MipLevelPreview);
+            m_ReflectiveMaterial.SetFloat("_Exposure", previewExposure);
+            m_ReflectiveMaterial.SetFloat("_MipLevel", mipLevelPreview);
         }
 
         if(m_PreviewUtility == null)
@@ -82,6 +85,21 @@ class HDCubemapInspector : Editor
         }
     }
 
+    public override void OnPreviewSettings()
+    {
+        GUI.enabled = true;
+
+        GUILayout.Box(s_MipMapHigh, s_PreLabel, GUILayout.MaxWidth(20));
+        GUI.changed = false;
+        mipLevelPreview = GUILayout.HorizontalSlider(mipLevelPreview, 0, ((Cubemap)target).mipmapCount, GUILayout.MaxWidth(80));
+        GUILayout.Box(s_MipMapLow, s_PreLabel, GUILayout.MaxWidth(20));
+        GUILayout.Space(5);
+        GUILayout.Box(s_CurveKeyframeSemiSelectedOverlay, s_PreLabel, GUILayout.MaxWidth(20));
+        GUI.changed = false;
+        previewExposure = GUILayout.HorizontalSlider(previewExposure, -10f, 10f, GUILayout.MaxWidth(80));
+        GUILayout.Box(s_CurveKeyframeSelected, s_PreLabel, GUILayout.MaxWidth(20));
+    }
+
     void InitPreview()
     {
         m_PreviewUtility = new PreviewRenderUtility(false, true);
@@ -93,35 +111,7 @@ class HDCubemapInspector : Editor
         //m_PreviewUtility.camera.clearFlags = CameraClearFlags.Skybox;
     }
 
-    static void InitIcons()
-    {
-        s_MipMapLow = EditorGUIUtility.IconContent("PreTextureMipMapLow");
-        s_MipMapHigh = EditorGUIUtility.IconContent("PreTextureMipMapHigh");
-        s_CurveKeyframeSelected = EditorGUIUtility.IconContent("d_curvekeyframeselected");
-        s_CurveKeyframeSemiSelectedOverlay = EditorGUIUtility.IconContent("d_curvekeyframesemiselectedoverlay");
-        s_RGBMIcon = EditorGUIUtility.IconContent("PreMatLight1"); // TODO: proper icon for RGBM preview mode
-        s_PreButton = "preButton";
-        s_PreSlider = "preSlider";
-        s_PreSliderThumb = "preSliderThumb";
-        s_PreLabel = "preLabel";
-    }
-
-    public override void OnPreviewSettings()
-    {
-        GUI.enabled = true;
-
-        GUILayout.Box(s_MipMapHigh, s_PreLabel, GUILayout.MaxWidth(20));
-        GUI.changed = false;
-        m_MipLevelPreview = GUILayout.HorizontalSlider(m_MipLevelPreview, 0, ((Cubemap)target).mipmapCount, GUILayout.MaxWidth(80));
-        GUILayout.Box(s_MipMapLow, s_PreLabel, GUILayout.MaxWidth(20));
-        GUILayout.Space(5);
-        GUILayout.Box(s_CurveKeyframeSemiSelectedOverlay, s_PreLabel,GUILayout.MaxWidth(20));
-        GUI.changed = false;
-        m_PreviewExposure = GUILayout.HorizontalSlider(m_PreviewExposure, -10f, 10f, GUILayout.MaxWidth(80));
-        GUILayout.Box(s_CurveKeyframeSelected, s_PreLabel, GUILayout.MaxWidth(20));
-    }
-
-    public bool HandleMouse(Rect Viewport)
+    bool HandleMouse(Rect Viewport)
     {
         var result = false;
 
@@ -159,10 +149,23 @@ class HDCubemapInspector : Editor
         return result;
     }
 
-    private void UpdateCamera()
+    void UpdateCamera()
     {
         var pos = new Vector3(Mathf.Sin(m_CameraPhi) * Mathf.Cos(m_CameraTheta), Mathf.Cos(m_CameraPhi), Mathf.Sin(m_CameraPhi) * Mathf.Sin(m_CameraTheta)) * m_CameraDistance;
         m_PreviewUtility.camera.transform.position = pos;
         m_PreviewUtility.camera.transform.LookAt(Vector3.zero);
+    }
+
+    static void InitIcons()
+    {
+        s_MipMapLow = EditorGUIUtility.IconContent("PreTextureMipMapLow");
+        s_MipMapHigh = EditorGUIUtility.IconContent("PreTextureMipMapHigh");
+        s_CurveKeyframeSelected = EditorGUIUtility.IconContent("d_curvekeyframeselected");
+        s_CurveKeyframeSemiSelectedOverlay = EditorGUIUtility.IconContent("d_curvekeyframesemiselectedoverlay");
+        s_RGBMIcon = EditorGUIUtility.IconContent("PreMatLight1"); // TODO: proper icon for RGBM preview mode
+        s_PreButton = "preButton";
+        s_PreSlider = "preSlider";
+        s_PreSliderThumb = "preSliderThumb";
+        s_PreLabel = "preLabel";
     }
 }
