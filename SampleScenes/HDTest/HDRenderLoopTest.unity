@@ -13918,7 +13918,7 @@ GameObject:
   m_IsActive: 1
 --- !u!114 &1640077384
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1640077383}
@@ -13935,8 +13935,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 1
   spotLightShape: 0
-  shapeWidth: 2
-  shapeHeight: 0.5
+  shapeWidth: 4
+  shapeHeight: 2
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
@@ -13974,7 +13974,7 @@ Light:
     serializedVersion: 2
     m_Bits: 4294967295
   m_Lightmapping: 4
-  m_AreaSize: {x: 1, y: 1}
+  m_AreaSize: {x: 4, y: 2}
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
@@ -13997,7 +13997,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 90.00001}
 --- !u!114 &1640077387
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1640077383}

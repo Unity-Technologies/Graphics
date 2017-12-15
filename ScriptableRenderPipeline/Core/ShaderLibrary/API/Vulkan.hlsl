@@ -1,9 +1,10 @@
 // This file assume SHADER_API_VULKAN is defined
+// TODO: This is a straight copy from D3D11.hlsl. Go through all this stuff and adjust where needed.
 
 #define UNITY_UV_STARTS_AT_TOP 1
 #define UNITY_REVERSED_Z 1
 #define UNITY_NEAR_CLIP_VALUE (1.0)
-// This value will not go through any matrix projection convertion
+// This value will not go through any matrix projection conversion
 #define UNITY_RAW_FAR_CLIP_VALUE (0.0)
 #define FRONT_FACE_SEMANTIC SV_IsFrontFace
 #define FRONT_FACE_TYPE bool
