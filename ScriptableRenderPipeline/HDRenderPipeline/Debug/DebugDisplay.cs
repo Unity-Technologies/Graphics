@@ -125,7 +125,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             lightingDebugSettings.debugLightingMode = value;
         }
 
-        public void RegisterDebug(FrameSettings debugSettings, FrameSettings defaultFrameSettings)
+        public void RegisterDebug(FrameSettings defaultFrameSettings)
         {
             DebugMenuManager.instance.AddDebugItem<float>("Display Stats", "Frame Rate", () => 1.0f / Time.smoothDeltaTime, null, DebugItemFlag.DynamicDisplay);
             DebugMenuManager.instance.AddDebugItem<float>("Display Stats", "Frame Time (ms)", () => Time.smoothDeltaTime * 1000.0f, null, DebugItemFlag.DynamicDisplay);
@@ -136,8 +136,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugMenuManager.instance.AddDebugItem<Attributes.DebugViewProperties>("Material", "Properties", () => materialDebugSettings.debugViewProperties, (value) => SetDebugViewProperties((Attributes.DebugViewProperties)value));
             DebugMenuManager.instance.AddDebugItem<int>("Material", "GBuffer",() => materialDebugSettings.debugViewGBuffer, (value) => SetDebugViewGBuffer((int)value), DebugItemFlag.None, new DebugItemHandlerIntEnum(MaterialDebugSettings.debugViewMaterialGBufferStrings, MaterialDebugSettings.debugViewMaterialGBufferValues));
 
-            DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Enable Subsurface Scattering", () => debugSettings.lightingSettings.enableSSSAndTransmission, (value) => debugSettings.lightingSettings.enableSSSAndTransmission = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, bool>(kEnableShadowDebug, () => debugSettings.lightingSettings.enableShadow, (value) => debugSettings.lightingSettings.enableShadow = (bool)value);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, ShadowMapDebugMode>(kShadowDebugMode, () => lightingDebugSettings.shadowDebugMode, (value) => lightingDebugSettings.shadowDebugMode = (ShadowMapDebugMode)value);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, bool>(kShadowSelectionDebug, () => lightingDebugSettings.shadowDebugUseSelection, (value) => lightingDebugSettings.shadowDebugUseSelection = (bool)value, DebugItemFlag.EditorOnly);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, uint>(kShadowMapIndexDebug, () => lightingDebugSettings.shadowMapIndex, (value) => lightingDebugSettings.shadowMapIndex = (uint)value, DebugItemFlag.None, new DebugItemHandlerShadowIndex(1));
@@ -155,26 +153,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, LightLoop.TileClusterDebug>(kTileClusterDebug,() => lightingDebugSettings.tileClusterDebug, (value) => lightingDebugSettings.tileClusterDebug = (LightLoop.TileClusterDebug)value);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, LightLoop.TileClusterCategoryDebug>(kTileClusterCategoryDebug,() => lightingDebugSettings.tileClusterDebugByCategory, (value) => lightingDebugSettings.tileClusterDebugByCategory = (LightLoop.TileClusterCategoryDebug)value);
 
-            DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Enable Opaque", () => debugSettings.renderSettings.enableOpaqueObjects, (value) => debugSettings.renderSettings.enableOpaqueObjects = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Enable Transparent", () => debugSettings.renderSettings.enableTransparentObjects, (value) => debugSettings.renderSettings.enableTransparentObjects = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Enable Atmospheric Scattering",() => debugSettings.renderSettings.enableAtmosphericScattering, (value) => debugSettings.renderSettings.enableAtmosphericScattering = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Enable Distortion",() => debugSettings.renderSettings.enableDistortion, (value) => debugSettings.renderSettings.enableDistortion = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Enable Stereo Rendering",() => debugSettings.renderSettings.enableStereo, (value) => debugSettings.renderSettings.enableStereo = (bool)value);
             DebugMenuManager.instance.AddDebugItem<int>("Rendering", kFullScreenDebugMode, () => (int)fullScreenDebugMode, (value) => fullScreenDebugMode = (FullScreenDebugMode)value, DebugItemFlag.None, new DebugItemHandlerIntEnum(DebugDisplaySettings.renderingFullScreenDebugStrings, DebugDisplaySettings.renderingFullScreenDebugValues));
 
-            // Following settings are overwrite of defaultFrameSettings instead of using debugSettings as otherwise we can't have a correct rendering (as debugSettings will always be enabled)
-            // These need to be Runtime Only because those values are held by the HDRenderPipeline asset so if user change them through the editor debug menu they might change the value in the asset without noticing it.
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Forward Only", () => defaultFrameSettings.renderSettings.enableForwardRenderingOnly, (value) => debugSettings.renderSettings.enableForwardRenderingOnly = (bool)value, DebugItemFlag.RuntimeOnly);
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Deferred Depth Prepass", () => defaultFrameSettings.renderSettings.enableDepthPrepassWithDeferredRendering, (value) => debugSettings.renderSettings.enableDepthPrepassWithDeferredRendering = (bool)value, DebugItemFlag.RuntimeOnly);
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Deferred Depth Prepass ATest Only", () => defaultFrameSettings.renderSettings.enableAlphaTestOnlyInDeferredPrepass, (value) => debugSettings.renderSettings.enableAlphaTestOnlyInDeferredPrepass = (bool)value, DebugItemFlag.RuntimeOnly);
+            DebugMenuManager.instance.AddDebugItem<bool>("Default Framesettings", "Enable Subsurface Scattering", () => defaultFrameSettings.lightingSettings.enableSSSAndTransmission, (value) => defaultFrameSettings.lightingSettings.enableSSSAndTransmission = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>("Default Framesettings", "EnableShadow", () => defaultFrameSettings.lightingSettings.enableShadow, (value) => defaultFrameSettings.lightingSettings.enableShadow = (bool)value);
 
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Tile/Cluster", () => defaultFrameSettings.lightLoopSettings.enableTileAndCluster, (value) => debugSettings.lightLoopSettings.enableTileAndCluster = (bool)value, DebugItemFlag.RuntimeOnly);
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Big Tile", () => defaultFrameSettings.lightLoopSettings.enableBigTilePrepass, (value) => debugSettings.lightLoopSettings.enableBigTilePrepass = (bool)value, DebugItemFlag.RuntimeOnly);
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Compute Lighting", () => defaultFrameSettings.lightLoopSettings.enableComputeLightEvaluation, (value) => debugSettings.lightLoopSettings.enableComputeLightEvaluation = (bool)value, DebugItemFlag.RuntimeOnly);
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Light Classification", () => defaultFrameSettings.lightLoopSettings.enableComputeLightVariants, (value) => debugSettings.lightLoopSettings.enableComputeLightVariants = (bool)value, DebugItemFlag.RuntimeOnly);
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Material Classification", () => defaultFrameSettings.lightLoopSettings.enableComputeMaterialVariants, (value) => debugSettings.lightLoopSettings.enableComputeMaterialVariants = (bool)value, DebugItemFlag.RuntimeOnly);
+            DebugMenuManager.instance.AddDebugItem<bool>("Default Framesettings", "Enable Opaque", () => defaultFrameSettings.renderSettings.enableOpaqueObjects, (value) => defaultFrameSettings.renderSettings.enableOpaqueObjects = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>("Default Framesettings", "Enable Transparent", () => defaultFrameSettings.renderSettings.enableTransparentObjects, (value) => defaultFrameSettings.renderSettings.enableTransparentObjects = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>("Default Framesettings", "Enable Atmospheric Scattering",() => defaultFrameSettings.renderSettings.enableAtmosphericScattering, (value) => defaultFrameSettings.renderSettings.enableAtmosphericScattering = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>("Default Framesettings", "Enable Distortion",() => defaultFrameSettings.renderSettings.enableDistortion, (value) => defaultFrameSettings.renderSettings.enableDistortion = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>("Default Framesettings", "Enable Stereo Rendering",() => defaultFrameSettings.renderSettings.enableStereo, (value) => defaultFrameSettings.renderSettings.enableStereo = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>("Default Framesettings", "Enable Async Compute", () => defaultFrameSettings.renderSettings.enableAsyncCompute, (value) => defaultFrameSettings.renderSettings.enableAsyncCompute = (bool)value);
 
-            DebugMenuManager.instance.AddDebugItem<bool>("HDRP", "Enable Async Compute", () => debugSettings.renderSettings.enableAsyncCompute, (value) => debugSettings.renderSettings.enableAsyncCompute = (bool)value, DebugItemFlag.RuntimeOnly);
+            DebugMenuManager.instance.AddDebugItem<bool>("Default Framesettings", "Forward Only", () => defaultFrameSettings.renderSettings.enableForwardRenderingOnly, (value) => defaultFrameSettings.renderSettings.enableForwardRenderingOnly = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>("Default Framesettings", "Deferred Depth Prepass", () => defaultFrameSettings.renderSettings.enableDepthPrepassWithDeferredRendering, (value) => defaultFrameSettings.renderSettings.enableDepthPrepassWithDeferredRendering = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>("Default Framesettings", "Deferred Depth Prepass ATest Only", () => defaultFrameSettings.renderSettings.enableAlphaTestOnlyInDeferredPrepass, (value) => defaultFrameSettings.renderSettings.enableAlphaTestOnlyInDeferredPrepass = (bool)value);
+
+            DebugMenuManager.instance.AddDebugItem<bool>("Default Framesettings", "Enable Tile/Cluster", () => defaultFrameSettings.lightLoopSettings.enableTileAndCluster, (value) => defaultFrameSettings.lightLoopSettings.enableTileAndCluster = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>("Default Framesettings", "Enable Big Tile", () => defaultFrameSettings.lightLoopSettings.enableBigTilePrepass, (value) => defaultFrameSettings.lightLoopSettings.enableBigTilePrepass = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>("Default Framesettings", "Enable Compute Lighting", () => defaultFrameSettings.lightLoopSettings.enableComputeLightEvaluation, (value) => defaultFrameSettings.lightLoopSettings.enableComputeLightEvaluation = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>("Default Framesettings", "Enable Light Classification", () => defaultFrameSettings.lightLoopSettings.enableComputeLightVariants, (value) => defaultFrameSettings.lightLoopSettings.enableComputeLightVariants = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>("Default Framesettings", "Enable Material Classification", () => defaultFrameSettings.lightLoopSettings.enableComputeMaterialVariants, (value) => defaultFrameSettings.lightLoopSettings.enableComputeMaterialVariants = (bool)value);
         }
 
         public void OnValidate()

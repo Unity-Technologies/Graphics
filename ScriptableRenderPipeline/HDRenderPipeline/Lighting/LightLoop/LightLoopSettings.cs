@@ -34,7 +34,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // aggregateFrameSettings already contain the aggregation of RenderPipelineSettings and FrameSettings (regular and/or debug)
         static public LightLoopSettings InitializeLightLoopSettings(Camera camera, FrameSettings aggregateFrameSettings,
-                                                                    GlobalFrameSettings globalFrameSettings, FrameSettings frameSettings, FrameSettings debugSettings)
+                                                                    GlobalFrameSettings globalFrameSettings, FrameSettings frameSettings)
         {
             LightLoopSettings aggregate = new LightLoopSettings();
 
@@ -44,17 +44,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enableComputeMaterialVariants = frameSettings.lightLoopSettings.enableComputeMaterialVariants;
             aggregate.enableFptlForForwardOpaque    = frameSettings.lightLoopSettings.enableFptlForForwardOpaque;
             aggregate.enableBigTilePrepass          = frameSettings.lightLoopSettings.enableBigTilePrepass;
-
-            // Don't take into account debug settings for reflection probe or preview
-            if (debugSettings != null && camera.cameraType != CameraType.Reflection && camera.cameraType != CameraType.Preview)
-            {
-                aggregate.enableTileAndCluster          = aggregate.enableTileAndCluster && debugSettings.lightLoopSettings.enableTileAndCluster;
-                aggregate.enableComputeLightEvaluation  = aggregate.enableComputeLightEvaluation && debugSettings.lightLoopSettings.enableComputeLightEvaluation;
-                aggregate.enableComputeLightVariants    = aggregate.enableComputeLightVariants && debugSettings.lightLoopSettings.enableComputeLightVariants;
-                aggregate.enableComputeMaterialVariants = aggregate.enableComputeMaterialVariants && debugSettings.lightLoopSettings.enableComputeMaterialVariants;
-                aggregate.enableFptlForForwardOpaque    = aggregate.enableFptlForForwardOpaque && debugSettings.lightLoopSettings.enableFptlForForwardOpaque;
-                aggregate.enableBigTilePrepass          = aggregate.enableBigTilePrepass && debugSettings.lightLoopSettings.enableBigTilePrepass;
-            }
 
             // Deferred opaque are always using Fptl. Forward opaque can use Fptl or Cluster, transparent use cluster.
             // When MSAA is enabled we disable Fptl as it become expensive compare to cluster
