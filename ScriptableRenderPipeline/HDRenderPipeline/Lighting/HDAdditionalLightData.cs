@@ -55,13 +55,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Only for Rectangle/Line/box projector lights
         [Range(0.0f, 20.0f)]
-        [FormerlySerializedAs("lightLength")]
-        public float shapeLength = 0.5f;
+        [FormerlySerializedAs("lightWidth")]
+        public float shapeWidth = 0.5f;
 
         // Only for Rectangle/box projector lights
         [Range(0.0f, 20.0f)]
-        [FormerlySerializedAs("lightWidth")]
-        public float shapeWidth = 0.5f;
+        [FormerlySerializedAs("lightHeight")]
+        public float shapeHeight = 0.5f;
 
         // Only for pyramid projector
         public float aspectRatio = 1.0f;
