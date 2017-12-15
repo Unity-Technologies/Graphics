@@ -139,13 +139,18 @@ namespace UnityEditor.Experimental.Rendering
 
                             var probe = p.so.targetObject as ReflectionProbe;
                             if (mode == 0)
+                            {
                                 BakeCustomReflectionProbe(probe, false, true);
+                                ResetProbeSceneTextureInMaterial(probe);
+                            }
                         },
                         GUILayout.ExpandWidth(true)))
                     {
-                        BakeCustomReflectionProbe((ReflectionProbe)p.so.targetObject, true, true);
+                        var probe = (ReflectionProbe)p.so.targetObject;
+                        BakeCustomReflectionProbe(probe, true, true);
+                        ResetProbeSceneTextureInMaterial(probe);
                         GUIUtility.ExitGUI();
-                    }
+                        }
                     break;
                 }
 
@@ -161,11 +166,16 @@ namespace UnityEditor.Experimental.Rendering
                             {
                                 var mode = (int)data;
                                 if (mode == 0)
+                                {
                                     BakeAllReflectionProbesSnapshots();
+                                    ResetAllProbeSceneTextureInMaterial();
+                                }
                             },
                             GUILayout.ExpandWidth(true)))
                         {
-                            BakeReflectionProbeSnapshot((ReflectionProbe)p.so.targetObject);
+                            var probe = (ReflectionProbe)p.so.targetObject;
+                            BakeReflectionProbeSnapshot(probe);
+                            ResetProbeSceneTextureInMaterial(probe);
                             GUIUtility.ExitGUI();
                         }
 

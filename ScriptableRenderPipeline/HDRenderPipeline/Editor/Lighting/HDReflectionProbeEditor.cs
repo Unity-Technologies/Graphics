@@ -2,7 +2,6 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using UnityEditor.Experimental.Rendering;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -87,6 +86,7 @@ namespace UnityEditor.Experimental.Rendering
         void HideAdditionalComponents(bool visible)
         {
             var adds = CoreEditorUtils.GetAdditionalData<HDAdditionalReflectionData>(targets);
+            var flags = visible ? HideFlags.None : HideFlags.HideInInspector;
             for (var i = 0 ; i < targets.Length; ++i)
             {
                 var target = targets[i];
@@ -95,9 +95,9 @@ namespace UnityEditor.Experimental.Rendering
                 var meshRenderer = p.GetComponent<MeshRenderer>();
                 var meshFilter = p.GetComponent<MeshFilter>();
 
-                addData.hideFlags = visible ? HideFlags.None : HideFlags.HideInInspector;
-                meshRenderer.hideFlags = visible ? HideFlags.None : HideFlags.HideInInspector;
-                meshFilter.hideFlags = visible ? HideFlags.None : HideFlags.HideInInspector;
+                addData.hideFlags = flags;
+                meshRenderer.hideFlags = flags;
+                meshFilter.hideFlags = flags;
             }
         }
 
@@ -133,6 +133,30 @@ namespace UnityEditor.Experimental.Rendering
             center = b.center;
             size = b.size;
             return true;
+        }
+
+        static bool IsCollidingWithOtherProbes(string targetPath, ReflectionProbe targetProbe, out ReflectionProbe collidingProbe)
+        {
+            ReflectionProbe[] probes = FindObjectsOfType<ReflectionProbe>().ToArray();
+            collidingProbe = null;
+            foreach (var probe in probes)
+            {
+                if (probe == targetProbe || probe.customBakedTexture == null)
+                    continue;
+                string path = AssetDatabase.GetAssetPath(probe.customBakedTexture);
+                if (path == targetPath)
+                {
+                    collidingProbe = probe;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        static bool IsReflectionProbeEditMode(EditMode.SceneViewEditMode editMode)
+        {
+            return editMode == EditMode.SceneViewEditMode.ReflectionProbeBox || editMode == EditMode.SceneViewEditMode.Collider || editMode == EditMode.SceneViewEditMode.GridBox ||
+                editMode == EditMode.SceneViewEditMode.ReflectionProbeOrigin;
         }
 
         static void BakeCustomReflectionProbe(ReflectionProbe probe, bool usePreviousAssetPath, bool custom)
@@ -180,30 +204,6 @@ namespace UnityEditor.Experimental.Rendering
             EditorUtility.ClearProgressBar();
         }
 
-        static bool IsCollidingWithOtherProbes(string targetPath, ReflectionProbe targetProbe, out ReflectionProbe collidingProbe)
-        {
-            ReflectionProbe[] probes = FindObjectsOfType<ReflectionProbe>().ToArray();
-            collidingProbe = null;
-            foreach (var probe in probes)
-            {
-                if (probe == targetProbe || probe.customBakedTexture == null)
-                    continue;
-                string path = AssetDatabase.GetAssetPath(probe.customBakedTexture);
-                if (path == targetPath)
-                {
-                    collidingProbe = probe;
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        static bool IsReflectionProbeEditMode(EditMode.SceneViewEditMode editMode)
-        {
-            return editMode == EditMode.SceneViewEditMode.ReflectionProbeBox || editMode == EditMode.SceneViewEditMode.Collider || editMode == EditMode.SceneViewEditMode.GridBox ||
-                editMode == EditMode.SceneViewEditMode.ReflectionProbeOrigin;
-        }
-
         static MethodInfo k_Lightmapping_BakeReflectionProbeSnapshot = typeof(UnityEditor.Lightmapping).GetMethod("BakeReflectionProbeSnapshot", BindingFlags.Static | BindingFlags.NonPublic);
         static bool BakeReflectionProbeSnapshot(ReflectionProbe probe)
         {
@@ -214,6 +214,21 @@ namespace UnityEditor.Experimental.Rendering
         static bool BakeAllReflectionProbesSnapshots()
         {
             return (bool)k_Lightmapping_BakeAllReflectionProbesSnapshots.Invoke(null, new object[0]);
+        }
+
+        static void ResetProbeSceneTextureInMaterial(ReflectionProbe p)
+        {
+            var renderer = p.GetComponent<Renderer>();
+            renderer.sharedMaterial.SetTexture(_Cubemap, p.texture);
+        }
+
+        static void ResetAllProbeSceneTextureInMaterial()
+        {
+            foreach (var data in HDAdditionalReflectionData.AllDatas)
+            {
+                var p = data.GetComponent<ReflectionProbe>();
+                ResetProbeSceneTextureInMaterial(p);
+            }
         }
     }
 }
