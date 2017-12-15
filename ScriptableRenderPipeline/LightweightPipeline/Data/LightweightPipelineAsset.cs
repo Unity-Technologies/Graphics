@@ -1,5 +1,7 @@
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
+#endif
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
@@ -105,7 +107,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 AssetDatabase.CreateAsset(instance, pathName);
             }
         }
-
 #endif
 
         protected override IRenderPipeline InternalCreatePipeline()

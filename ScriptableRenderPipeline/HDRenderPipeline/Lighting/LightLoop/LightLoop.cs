@@ -721,8 +721,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Light direction for directional is opposite to the forward direction
             directionalLightData.forward = light.light.transform.forward;
             // Rescale for cookies and windowing.
-            directionalLightData.up         = light.light.transform.up    * 2 / additionalData.shapeWidth;
-            directionalLightData.right      = light.light.transform.right * 2 / additionalData.shapeLength;
+            directionalLightData.up         = light.light.transform.up    * 2 / additionalData.shapeHeight;
+            directionalLightData.right      = light.light.transform.right * 2 / additionalData.shapeWidth;
             directionalLightData.positionWS = light.light.transform.position;
             directionalLightData.color = GetLightColor(light);
             directionalLightData.diffuseScale = additionalData.affectDiffuse ? diffuseDimmer : 0.0f;
@@ -787,7 +787,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return 1.0f - Mathf.Clamp01(distanceToCamera * scale + bias);
         }
 
-        public bool GetLightData(CommandBuffer cmd, ShadowSettings shadowSettings, Camera camera, GPULightType gpuLightType, VisibleLight light, HDAdditionalLightData additionalLightData, AdditionalShadowData additionalshadowData, int lightIndex)
+        public bool GetLightData(CommandBuffer cmd, ShadowSettings shadowSettings, Camera camera, GPULightType gpuLightType,
+                                 VisibleLight light, HDAdditionalLightData additionalLightData, AdditionalShadowData additionalshadowData,
+                                 int lightIndex, ref Vector3 lightDimensions)
         {
             var lightData = new LightData();
 
@@ -802,21 +804,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             lightData.up = light.light.transform.up;
             lightData.right = light.light.transform.right;
 
-            lightData.size = new Vector2(additionalLightData.shapeLength, additionalLightData.shapeWidth);
+            lightDimensions.x = additionalLightData.shapeWidth;
+            lightDimensions.y = additionalLightData.shapeHeight;
+            lightDimensions.z = light.range;
 
             if (lightData.lightType == GPULightType.ProjectorBox)
             {
+                lightData.size.x = light.range;
+
                 // Rescale for cookies and windowing.
-                lightData.right *= 2.0f / additionalLightData.shapeLength;
-                lightData.up    *= 2.0f / additionalLightData.shapeWidth;
+                lightData.right *= 2.0f / additionalLightData.shapeWidth;
+                lightData.up    *= 2.0f / additionalLightData.shapeHeight;
             }
             else if (lightData.lightType == GPULightType.ProjectorPyramid)
             {
                 // Get width and height for the current frustum
                 var spotAngle = light.spotAngle;
 
-                float frustumHeight;
-                float frustumWidth;
+                float frustumWidth, frustumHeight;
+
                 if (additionalLightData.aspectRatio >= 1.0f)
                 {
                     frustumHeight = 2.0f * Mathf.Tan(spotAngle * 0.5f * Mathf.Deg2Rad);
@@ -828,7 +834,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     frustumHeight = frustumWidth / additionalLightData.aspectRatio;
                 }
 
-                lightData.size = new Vector2(frustumWidth, frustumHeight);
+                // Adjust based on the new parametrization.
+                lightDimensions.x = frustumWidth;
+                lightDimensions.y = frustumHeight;
 
                 // Rescale for cookies and windowing.
                 lightData.right *= 2.0f / frustumWidth;
@@ -858,6 +866,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // These are the neutral values allowing GetAngleAnttenuation in shader code to return 1.0
                 lightData.angleScale = 0.0f;
                 lightData.angleOffset = 1.0f;
+            }
+
+            if (lightData.lightType == GPULightType.Rectangle || lightData.lightType == GPULightType.Line)
+            {
+                lightData.size = new Vector2(additionalLightData.shapeWidth, additionalLightData.shapeHeight);
             }
 
             float distanceToCamera = (lightData.positionWS - camera.transform.position).magnitude;
@@ -934,10 +947,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // TODO: we should be able to do this calculation only with LightData without VisibleLight light, but for now pass both
-        public void GetLightVolumeDataAndBound(LightCategory lightCategory, GPULightType gpuLightType, LightVolumeType lightVolumeType, VisibleLight light, LightData lightData, Matrix4x4 worldToView)
+        public void GetLightVolumeDataAndBound(LightCategory lightCategory, GPULightType gpuLightType, LightVolumeType lightVolumeType,
+                                               VisibleLight light, LightData lightData, Vector3 lightDimensions, Matrix4x4 worldToView)
         {
             // Then Culling side
-            var range = light.range;
+            var range = lightDimensions.z;
             var lightToWorld = light.localToWorld;
             Vector3 positionWS = lightData.positionWS;
             Vector3 positionVS = worldToView.MultiplyPoint(positionWS);
@@ -972,7 +986,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (gpuLightType == GPULightType.ProjectorPyramid)
                 {
-                    Vector3 lightPosToProjWindowCorner = (0.5f * lightData.size.x) * vx + (0.5f * lightData.size.y) * vy + 1.0f * vz;
+                    Vector3 lightPosToProjWindowCorner = (0.5f * lightDimensions.x) * vx + (0.5f * lightDimensions.y) * vy + 1.0f * vz;
                     cs = Vector3.Dot(vz, Vector3.Normalize(lightPosToProjWindowCorner));
                     si = Mathf.Sqrt(1.0f - cs * cs);
                 }
@@ -1037,7 +1051,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             else if (gpuLightType == GPULightType.Line)
             {
-                Vector3 dimensions = new Vector3(lightData.size.x + 2 * range, 2 * range, 2 * range); // Omni-directional
+                Vector3 dimensions = new Vector3(lightDimensions.x + 2 * range, 2 * range, 2 * range); // Omni-directional
                 Vector3 extents = 0.5f * dimensions;
 
                 bound.center = positionVS;
@@ -1051,13 +1065,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightVolumeData.lightAxisX = xAxisVS;
                 lightVolumeData.lightAxisY = yAxisVS;
                 lightVolumeData.lightAxisZ = zAxisVS;
-                lightVolumeData.boxInnerDist = new Vector3(lightData.size.x, 0, 0);
+                lightVolumeData.boxInnerDist = new Vector3(lightDimensions.x, 0, 0);
                 lightVolumeData.boxInvRange.Set(1.0f / range, 1.0f / range, 1.0f / range);
                 lightVolumeData.featureFlags = (uint)LightFeatureFlags.Area;
             }
             else if (gpuLightType == GPULightType.Rectangle)
             {
-                Vector3 dimensions = new Vector3(lightData.size.x + 2 * range, lightData.size.y + 2 * range, range); // One-sided
+                Vector3 dimensions = new Vector3(lightDimensions.x + 2 * range, lightDimensions.y + 2 * range, range); // One-sided
                 Vector3 extents = 0.5f * dimensions;
                 Vector3 centerVS = positionVS + extents.z * zAxisVS;
 
@@ -1078,7 +1092,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             else if (gpuLightType == GPULightType.ProjectorBox)
             {
-                Vector3 dimensions  = new Vector3(lightData.size.x, lightData.size.y, range);  // One-sided
+                Vector3 dimensions  = new Vector3(lightDimensions.x, lightDimensions.y, range);  // One-sided
                 Vector3 extents = 0.5f * dimensions;
                 Vector3 centerVS = positionVS + extents.z * zAxisVS;
 
@@ -1449,8 +1463,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         continue;
                     }
 
+                    Vector3 lightDimensions = new Vector3(); // X = length or width, Y = height, Z = range (depth)
+
                     // Punctual, area, projector lights - the rendering side.
-                    if (GetLightData(cmd, shadowSettings, camera, gpuLightType, light, additionalLightData, additionalShadowData, lightIndex))
+                    if (GetLightData(cmd, shadowSettings, camera, gpuLightType, light, additionalLightData, additionalShadowData, lightIndex, ref lightDimensions))
                     {
                         switch (lightCategory)
                         {
@@ -1466,7 +1482,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
 
                         // Then culling side. Must be call in this order as we pass the created Light data to the function
-                        GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], worldToView);
+                        GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, worldToView);
 
                         // We make the light position camera-relative as late as possible in order
                         // to allow the preceding code to work with the absolute world space coordinates.
