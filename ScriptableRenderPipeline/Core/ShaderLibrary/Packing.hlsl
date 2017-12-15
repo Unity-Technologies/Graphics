@@ -1,6 +1,8 @@
 #ifndef UNITY_PACKING_INCLUDED
 #define UNITY_PACKING_INCLUDED
 
+#if !defined(SHADER_API_GLES)
+
 //-----------------------------------------------------------------------------
 // Normal packing
 //-----------------------------------------------------------------------------
@@ -436,5 +438,7 @@ float UnpackFloatFromR8G8(float2 f)
     uint cb = (hi << 8) + lo;
     return PackShort(cb);
 }
+
+#endif // SHADER_API_GLES
 
 #endif // UNITY_PACKING_INCLUDED
