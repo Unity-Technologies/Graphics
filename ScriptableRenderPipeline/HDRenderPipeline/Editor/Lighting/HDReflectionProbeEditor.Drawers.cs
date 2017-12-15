@@ -320,8 +320,8 @@ namespace UnityEditor.Experimental.Rendering
 
             EditMode.DoInspectorToolbar(k_Toolbar_SceneViewEditModes, toolbar_Contents, getBounds, owner);
 
-            if (GUILayout.Button(EditorGUIUtility.IconContent("Navigation", "|Fit the reflection probe volume to the surrounding colliders.")))
-                s.AddOperation(Operation.FitVolumeToSurroundings);
+            //if (GUILayout.Button(EditorGUIUtility.IconContent("Navigation", "|Fit the reflection probe volume to the surrounding colliders.")))
+            //    s.AddOperation(Operation.FitVolumeToSurroundings);
 
             if (oldEditMode != EditMode.editMode)
             {
