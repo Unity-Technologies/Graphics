@@ -10,11 +10,16 @@ Shader "Hidden/LightweightPipeline/CopyDepth"
             ZTest Always
             ZWrite On
 
-            CGPROGRAM
+            HLSLPROGRAM
+            // Required to compile gles 2.0 with standard srp library
+            #pragma prefer_hlslcc gles
             #pragma vertex vert
             #pragma fragment frag
 
-            sampler2D_float _CameraDepthTexture;
+            #include "LightweightShaderLibrary/Core.hlsl"
+
+            TEXTURE2D_FLOAT(_CameraDepthTexture);
+            SAMPLER2D(sampler_CameraDepthTexture);
 
             struct VertexInput
             {
@@ -32,15 +37,15 @@ Shader "Hidden/LightweightPipeline/CopyDepth"
             {
                 VertexOutput o;
                 o.uv = i.uv;
-                o.position = UnityObjectToClipPos(i.vertex);
+                o.position = TransformObjectToHClip(i.vertex.xyz);
                 return o;
             }
 
             float frag(VertexOutput i) : SV_Depth
             {
-                return tex2D(_CameraDepthTexture, i.uv).r;
+                return SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, i.uv);
             }
-            ENDCG
+            ENDHLSL
         }
     }
 }
