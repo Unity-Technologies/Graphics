@@ -1,4 +1,5 @@
-﻿using UnityEditorInternal;
+﻿using System;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
@@ -6,8 +7,8 @@ namespace UnityEditor.Experimental.Rendering
 {
     partial class HDReflectionProbeEditor
     {
-        internal static Color k_GizmoReflectionProbe = new Color(0xFF / 255f, 0xE5 / 255f, 0x94 / 255f, 0x80 / 255f);
-        internal static Color k_GizmoReflectionProbeDisabled = new Color(0x99 / 255f, 0x89 / 255f, 0x59 / 255f, 0x60 / 255f);
+        internal static Color k_GizmoReflectionProbe = new Color(0xFF / 255f, 0xE5 / 255f, 0x94 / 255f, 0x20 / 255f);
+        internal static Color k_GizmoReflectionProbeDisabled = new Color(0x99 / 255f, 0x89 / 255f, 0x59 / 255f, 0x10 / 255f);
         internal static Color k_GizmoHandleReflectionProbe = new Color(0xFF / 255f, 0xE5 / 255f, 0xAA / 255f, 0xFF / 255f);
 
         void OnSceneGUI()
@@ -63,11 +64,12 @@ namespace UnityEditor.Experimental.Rendering
                 {
                     Undo.RecordObject(p, "Modified Reflection Probe AABB");
                     var center = s.boxInfluenceBoundsHandle.center;
-                    var size = s.boxInfluenceBoundsHandle.size;
-                    var blendDistance = ((p.size.x - s.boxBlendHandle.size.x) / 2 + (p.size.y - s.boxBlendHandle.size.y) / 2 + (p.size.z - s.boxBlendHandle.size.z) / 2) / 3;
-                    ValidateAABB(p, ref center, ref size);
+                    var influenceSize = s.boxInfluenceBoundsHandle.size;
+                    var blendSize = s.boxBlendHandle.size;
+                    ValidateAABB(p, ref center, ref influenceSize);
+                    var blendDistance = ((influenceSize.x - blendSize.x) * 0.5f + (influenceSize.y - blendSize.y) * 0.5f + (influenceSize.z - blendSize.z) * 0.5f) / 3;
                     p.center = center;
-                    p.size = size;
+                    p.size = influenceSize;
                     p.blendDistance = Mathf.Max(blendDistance, 0);
                     EditorUtility.SetDirty(p);
                 }
@@ -118,9 +120,15 @@ namespace UnityEditor.Experimental.Rendering
                 {
                     Undo.RecordObject(reflectionData, "Modified Reflection influence volume");
                     var center = s.influenceSphereHandle.center;
-                    var radius = new Vector3(s.influenceSphereHandle.radius, s.influenceSphereHandle.radius, s.influenceSphereHandle.radius);
-                    var blendDistance = (s.influenceSphereHandle.radius - s.sphereBlendHandle.radius) / 2;
+                    var influenceRadius = Mathf.Max(s.influenceSphereHandle.radius, s.sphereBlendHandle.radius);
+                    var blendRadius = Mathf.Min(s.influenceSphereHandle.radius, s.sphereBlendHandle.radius);
+
+                    var radius = Vector3.one * influenceRadius;
+
                     ValidateAABB(p, ref center, ref radius);
+                    influenceRadius = radius.x;
+                    var blendDistance = (influenceRadius - blendRadius) * 0.5f;
+
                     reflectionData.influenceSphereRadius = radius.x;
                     p.blendDistance = blendDistance;
                     EditorUtility.SetDirty(p);
@@ -201,9 +209,7 @@ namespace UnityEditor.Experimental.Rendering
                 if (reflectionData.influenceShape == ReflectionInfluenceShape.Box)
                     Gizmos.DrawCube(reflectionProbe.center, -1f * reflectionProbe.size);
                 if (reflectionData.influenceShape == ReflectionInfluenceShape.Sphere)
-                {
                     Gizmos.DrawSphere(reflectionProbe.center, reflectionData.influenceSphereRadius);
-                }
                     
                 Gizmos.matrix = Matrix4x4.identity;
                 Gizmos.color = oldColor;
