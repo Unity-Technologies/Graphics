@@ -59,15 +59,19 @@ namespace UnityEditor.Experimental.Rendering
 
                 EditorGUI.BeginChangeCheck();
                 s.boxInfluenceBoundsHandle.DrawHandle();
+                var influenceChanged = EditorGUI.EndChangeCheck();
+                EditorGUI.BeginChangeCheck();
                 s.boxBlendHandle.DrawHandle();
-                if (EditorGUI.EndChangeCheck())
+                if (influenceChanged || EditorGUI.EndChangeCheck())
                 {
                     Undo.RecordObject(p, "Modified Reflection Probe AABB");
                     var center = s.boxInfluenceBoundsHandle.center;
                     var influenceSize = s.boxInfluenceBoundsHandle.size;
                     var blendSize = s.boxBlendHandle.size;
                     ValidateAABB(p, ref center, ref influenceSize);
-                    var blendDistance = ((influenceSize.x - blendSize.x) * 0.5f + (influenceSize.y - blendSize.y) * 0.5f + (influenceSize.z - blendSize.z) * 0.5f) / 3;
+                    var blendDistance = influenceChanged
+                        ? p.blendDistance
+                        : ((influenceSize.x - blendSize.x) * 0.5f + (influenceSize.y - blendSize.y) * 0.5f + (influenceSize.z - blendSize.z) * 0.5f) / 3;
                     p.center = center;
                     p.size = influenceSize;
                     p.blendDistance = Mathf.Max(blendDistance, 0);
@@ -115,13 +119,17 @@ namespace UnityEditor.Experimental.Rendering
 
                 EditorGUI.BeginChangeCheck();
                 s.influenceSphereHandle.DrawHandle();
+                var influenceChanged = EditorGUI.EndChangeCheck();
+                EditorGUI.BeginChangeCheck();
                 s.sphereBlendHandle.DrawHandle();
-                if (EditorGUI.EndChangeCheck())
+                if (influenceChanged || EditorGUI.EndChangeCheck())
                 {
                     Undo.RecordObject(reflectionData, "Modified Reflection influence volume");
                     var center = s.influenceSphereHandle.center;
-                    var influenceRadius = Mathf.Max(s.influenceSphereHandle.radius, s.sphereBlendHandle.radius);
-                    var blendRadius = Mathf.Min(s.influenceSphereHandle.radius, s.sphereBlendHandle.radius);
+                    var influenceRadius =s.influenceSphereHandle.radius;
+                    var blendRadius = influenceChanged
+                        ? influenceRadius - p.blendDistance * 2
+                        : s.sphereBlendHandle.radius;
 
                     var radius = Vector3.one * influenceRadius;
 
