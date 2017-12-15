@@ -101,5 +101,24 @@ namespace UnityEditor.VFX.Block
                     throw new ArgumentException("NbComponents must be between 1 and 3");
             }
         }
+
+        public static string SetSizesFromVector(VFXContext context, string vector, int nbComponents = 3)
+        {
+            if (nbComponents < 1 || nbComponents > 3)
+                throw new ArgumentException("NbComponents must be between 1 and 3");
+
+            var data = context.GetData();
+
+            string res = string.Empty;
+
+            if (nbComponents >= 1 && data.IsCurrentAttributeWritten(VFXAttribute.SizeX, context))
+                res += "sizeX = size.x;\n";
+            if (nbComponents >= 2 && data.IsCurrentAttributeWritten(VFXAttribute.SizeY, context))
+                res += "sizeY = size.y;\n";
+            if (nbComponents >= 3 && data.IsCurrentAttributeWritten(VFXAttribute.SizeZ, context))
+                res += "sizeZ = size.z;";
+
+            return res;
+        }
     }
 }
