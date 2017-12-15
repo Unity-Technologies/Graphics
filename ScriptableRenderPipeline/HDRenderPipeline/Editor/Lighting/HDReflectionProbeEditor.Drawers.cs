@@ -312,7 +312,7 @@ namespace UnityEditor.Experimental.Rendering
                 foreach (var targetObject in p.so.targetObjects)
                 {
                     var rp = (ReflectionProbe)targetObject;
-                    var b = rp.GetComponent<Renderer>().bounds;
+                    var b = rp.bounds;
                     bounds.Encapsulate(b);
                 }
                 return bounds;

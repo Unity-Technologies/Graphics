@@ -1141,6 +1141,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool GetEnvLightData(CommandBuffer cmd, Camera camera, VisibleReflectionProbe probe)
         {
             var additionalData = probe.probe.GetComponent<HDAdditionalReflectionData>();
+            var extents = probe.bounds.extents;
 
             // For now we won't display real time probe when rendering one.
             // TODO: We may want to display last frame result but in this case we need to be careful not to update the atlas before all realtime probes are rendered (for frame coherency).
@@ -1166,11 +1167,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     case ReflectionInfluenceShape.Box:
                     {
                         envLightData.envShapeType = EnvShapeType.Box;
-                        if (probe.boxProjection != 0)
+                        if (probe.boxProjection == 0)
                             envLightData.minProjectionDistance = 65504.0f;
                         break;
                     }
-                    case ReflectionInfluenceShape.Sphere: envLightData.envShapeType = EnvShapeType.Sphere; break;
+                    case ReflectionInfluenceShape.Sphere:
+                        envLightData.envShapeType = EnvShapeType.Sphere;
+                        extents = Vector3.one * additionalData.influenceSphereRadius;
+                        break;
                 }
             }
             else
@@ -1203,7 +1207,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // probe.bounds.extents is BoxSize / 2
             float maxBlendDist = Mathf.Min(probe.bounds.extents.x, Mathf.Min(probe.bounds.extents.y, probe.bounds.extents.z));
             float blendDistance = Mathf.Min(maxBlendDist, probe.blendDistance);
-            envLightData.innerDistance = probe.bounds.extents - new Vector3(blendDistance, blendDistance, blendDistance);
+            envLightData.innerDistance = extents - new Vector3(blendDistance, blendDistance, blendDistance);
             envLightData.envIndex = envIndex;
             envLightData.offsetLS = probe.center; // center is misnamed, it is the offset (in local space) from center of the bounding box to the cubemap capture point
             envLightData.blendDistance = blendDistance;
