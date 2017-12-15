@@ -352,7 +352,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     {
         bsdfData.diffuseColor = surfaceData.baseColor;
         bsdfData.fresnel0     = _TransmissionTintsAndFresnel0[surfaceData.subsurfaceProfile].a;
-        uint transmissionMode = BitFieldExtract(asuint(_TransmissionFlags), 2u, 2u * surfaceData.subsurfaceProfile);
+        uint transmissionMode = BitFieldExtract(asuint(_TransmissionFlags), 2u * surfaceData.subsurfaceProfile, 2u);
 
         FillMaterialIdSssData(surfaceData.subsurfaceProfile,
                               surfaceData.subsurfaceRadius,
@@ -548,7 +548,7 @@ void DecodeFromGBuffer(
             DecodeFromSSSBuffer(inGBuffer0, positionSS, sssData);
 
             subsurfaceProfile = sssData.subsurfaceProfile;
-            transmissionMode  = BitFieldExtract(asuint(_TransmissionFlags), 2u, 2u * subsurfaceProfile);
+            transmissionMode  = BitFieldExtract(asuint(_TransmissionFlags), 2u * subsurfaceProfile, 2u);
             radius            = sssData.subsurfaceRadius;
             thickness         = inGBuffer2.g;
 
