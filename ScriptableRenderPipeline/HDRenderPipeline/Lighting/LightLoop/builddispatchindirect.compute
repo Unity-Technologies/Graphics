@@ -3,6 +3,7 @@
 #include "ShaderLibrary/Common.hlsl"
 #include "LightLoop.cs.hlsl"
 
+#include "../../ShaderVariables.hlsl"
 #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
 #include "../../Material/Material.hlsl" // This includes Material.hlsl
 

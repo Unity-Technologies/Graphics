@@ -110,22 +110,15 @@ VaryingsMeshType VertMesh(AttributesMesh input)
 
     // TODO: deal with camera center rendering and instancing (This is the reason why we always perform two  steps transform to clip space + instancing matrix)
 
-    // This code is disabled for velocity pass for now because at the moment we cannot have Normals with the velocity pass (this attributes holds last frame data)
-    // TODO: Remove the velocity pass test when velocity is properly handled.
-#if defined(HAVE_VERTEX_MODIFICATION) && (SHADERPASS != SHADERPASS_VELOCITY)
-    ApplyVertexModification(input, normalWS, positionWS);
+#if defined(HAVE_VERTEX_MODIFICATION)
+    ApplyVertexModification(input, normalWS, positionWS, _Time);
 #endif
 
     positionWS = GetCameraRelativePositionWS(positionWS);
 
 #ifdef TESSELLATION_ON
     output.positionWS = positionWS;
-    // TODO: TEMP: Velocity has a flow as it doens't have normal. This need to be fix. In the mean time, generate fix normal so compiler doesn't complain - When fix, think to also enable ATTRIBUTES_NEED_NORMAL in LitVelocityPass.hlsl
-    #if (SHADERPASS == SHADERPASS_VELOCITY)
-    output.normalWS = float3(0.0, 0.0, 1.0);
-    #else
     output.normalWS = normalWS;
-    #endif
     #if defined(VARYINGS_NEED_TANGENT_TO_WORLD) || defined(VARYINGS_DS_NEED_TANGENT)
     output.tangentWS = tangentWS;
     #endif
