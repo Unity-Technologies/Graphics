@@ -6038,11 +6038,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114231982420006628}
   m_Children:
-  - {fileID: 114339316502548226}
   - {fileID: 114960292096840950}
   - {fileID: 114979820233979056}
   - {fileID: 114499711304107428}
   - {fileID: 114207204345386022}
+  - {fileID: 114339316502548226}
   m_UIPosition: {x: 360.46024, y: 2265.129}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
@@ -8069,11 +8069,11 @@ VFXAsset:
         nameId: attributeBuffer
       values:
       - index: 89
-        nameId: uniform_SizeX_d
+        nameId: uniform_SizeX_c
       - index: 92
-        nameId: uniform_SizeY_e
+        nameId: uniform_SizeY_d
       - index: 91
-        nameId: uniform_gradient_f
+        nameId: uniform_gradient_e
       - index: 35
         nameId: uniform_e
       - index: 1
