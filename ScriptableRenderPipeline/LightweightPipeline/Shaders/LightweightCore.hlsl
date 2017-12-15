@@ -60,29 +60,44 @@ half3 SafeNormalize(half3 inVec)
     return inVec * rsqrt(dp3);
 }
 
-half3 UnpackNormalScale(half4 packednormal, half bumpScale)
+// Unpack normal as DXT5nm (1, y, 1, x) or BC5 (x, y, 0, 1)
+// Note neutral texture like "bump" is (0, 0, 1, 1) to work with both plain RGB normal and DXT5nm/BC5
+half3 UnpackNormalmapRGorAG(half4 packedNormal, half bumpScale)
 {
-#if defined(UNITY_NO_DXT5nm)
-    half3 normal = packednormal.xyz * 2 - 1;
-#if (SHADER_TARGET >= 30)
-    // SM2.0: instruction count limitation
-    // SM2.0: normal scaler is not supported
-    normal.xy *= bumpScale;
-#endif
-    return normal;
-#else
     // This do the trick
-    packednormal.x *= packednormal.w;
+    packedNormal.x *= packedNormal.w;
 
     half3 normal;
-    normal.xy = (packednormal.xy * 2 - 1);
-#if (SHADER_TARGET >= 30)
-    // SM2.0: instruction count limitation
-    // SM2.0: normal scaler is not supported
+    normal.xy = packedNormal.xy * 2 - 1;
     normal.xy *= bumpScale;
-#endif
-    normal.z = sqrt(1.0 - saturate(dot(normal.xy, normal.xy)));
+    normal.z = sqrt(1 - saturate(dot(normal.xy, normal.xy)));
     return normal;
+}
+
+half3 UnpackNormalRGB(half4 packedNormal, half bumpScale)
+{
+    half3 normal = packedNormal.xyz * 2 - 1;
+    normal.xy *= bumpScale;
+    return normal;
+}
+
+
+half3 UnpackNormal(half4 packedNormal)
+{
+    // Compiler will optimize the scale away
+#if defined(UNITY_NO_DXT5nm)
+    return UnpackNormalRGB(packedNormal, 1.0)
+#else
+    return UnpackNormalmapRGorAG(packedNormal, 1.0);
+#endif
+}
+
+half3 UnpackNormalScale(half4 packedNormal, half bumpScale)
+{
+#if defined(UNITY_NO_DXT5nm)
+    return UnpackNormalRGB(packedNormal, bumpScale)
+#else
+    return UnpackNormalmapRGorAG(packedNormal, bumpScale);
 #endif
 }
 
@@ -125,10 +140,8 @@ half3 EvaluateSHPerPixel(half3 L2Term, half3 normalWS)
     return max(half3(0, 0, 0), SampleSH(normalWS));
 }
 
-half3 SampleGI(float4 sampleData, half3 normalWS)
+half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
 {
-#ifdef LIGHTMAP_ON
-
     // Only baked GI is sample as dynamic GI is not supported in Lightweight
 #ifdef UNITY_LIGHTMAP_FULL_HDR
     bool encodedLightmap = false;
@@ -144,11 +157,16 @@ half3 SampleGI(float4 sampleData, half3 normalWS)
 #ifdef DIRLIGHTMAP_COMBINED
     return SampleDirectionalLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap),
         TEXTURE2D_PARAM(unity_LightmapInd, samplerunity_Lightmap),
-        sampleData.xy, transformCoords, normalWS, encodedLightmap);
+        lightmapUV, transformCoords, normalWS, encodedLightmap);
 #else
-    return SampleSingleLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap), sampleData.xy, transformCoords, encodedLightmap);
+    return SampleSingleLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap), lightmapUV, transformCoords, encodedLightmap);
 #endif
+}
 
+half3 SampleGI(float4 sampleData, half3 normalWS)
+{
+#ifdef LIGHTMAP_ON
+    return SampleLightmap(sampleData.xy, normalWS);
 #endif // LIGHTMAP_ON
 
     // If lightmap is not enabled we sample GI from SH
