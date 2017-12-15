@@ -1,4 +1,4 @@
-﻿Shader "Hidden/CubemapColorMap" {
+Shader "Hidden/CubemapColorMap" {
     Properties {
         _ColorMap("Color", Cube) = "white" {}
         _MipIndex("Mip Index", Int) = 0
