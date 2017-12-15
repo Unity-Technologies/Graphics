@@ -3,7 +3,6 @@
 
 #include "LightweightCore.hlsl"
 #include "ShaderLibrary/Packing.hlsl"
-#include "ShaderLibrary/SampleUVMapping.hlsl"
 
 #ifdef _SPECULAR_SETUP
 #define SAMPLE_METALLICSPECULAR(uv) SAMPLE_TEXTURE2D(_SpecGlossMap, sampler_SpecGlossMap, uv)

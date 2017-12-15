@@ -1,9 +1,9 @@
 #ifndef LIGHTWEIGHT_PIPELINE_CORE_INCLUDED
 #define LIGHTWEIGHT_PIPELINE_CORE_INCLUDED
 
-#include "ShaderVariables\LightweightShaderVariables.hlsl"
 #include "ShaderLibrary\Common.hlsl"
 #include "ShaderLibrary\EntityLighting.hlsl"
+#include "ShaderVariables\LightweightShaderVariables.hlsl"
 
 #ifdef _NORMALMAP
     #define OUTPUT_NORMAL(IN, OUT) OutputTangentToWorld(IN.tangent, IN.normal, OUT.tangent, OUT.binormal, OUT.normal)
@@ -86,7 +86,7 @@ half3 UnpackNormal(half4 packedNormal)
 {
     // Compiler will optimize the scale away
 #if defined(UNITY_NO_DXT5nm)
-    return UnpackNormalRGB(packedNormal, 1.0)
+    return UnpackNormalRGB(packedNormal, 1.0);
 #else
     return UnpackNormalmapRGorAG(packedNormal, 1.0);
 #endif
@@ -95,7 +95,7 @@ half3 UnpackNormal(half4 packedNormal)
 half3 UnpackNormalScale(half4 packedNormal, half bumpScale)
 {
 #if defined(UNITY_NO_DXT5nm)
-    return UnpackNormalRGB(packedNormal, bumpScale)
+    return UnpackNormalRGB(packedNormal, bumpScale);
 #else
     return UnpackNormalmapRGorAG(packedNormal, bumpScale);
 #endif

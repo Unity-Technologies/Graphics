@@ -1,3 +1,5 @@
+// No support to Distortion
+// No support to Shadows
 Shader "LightweightPipeline/Particles/Standard Unlit"
 {
     Properties
@@ -52,32 +54,6 @@ Shader "LightweightPipeline/Particles/Standard Unlit"
             ZWrite[_ZWrite]
             Cull[_Cull]
             ColorMask RGB
-
-
-            Pass
-            {
-                Name "ShadowCaster"
-                Tags{"LightMode" = "ShadowCaster"}
-
-                BlendOp Add
-                Blend One Zero
-                ZWrite On
-                Cull Off
-
-                CGPROGRAM
-                #pragma target 2.5
-
-                #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
-                #pragma shader_feature _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
-                #pragma shader_feature _REQUIRE_UV2
-                #pragma multi_compile_shadowcaster
-
-                #pragma vertex vertParticleShadowCaster
-                #pragma fragment fragParticleShadowCaster
-
-                #include "UnityStandardParticleShadow.cginc"
-                ENDCG
-            }
 
             Pass
             {
