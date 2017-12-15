@@ -30,7 +30,7 @@ namespace UnityEditor.Graphing.UnitTests
         public void TestCanAddNodeToBaseMaterialGraph()
         {
             var graph = new TestMaterialGraph();
-            var node = new SerializableNode();
+            var node = new TestNode();
             node.name = "Test Node";
             graph.AddNode(node);
 
@@ -43,7 +43,7 @@ namespace UnityEditor.Graphing.UnitTests
         public void TestCanRemoveNodeFromBaseMaterialGraph()
         {
             var graph = new TestMaterialGraph();
-            var node = new SerializableNode();
+            var node = new TestNode();
             node.name = "Test Node";
             graph.AddNode(node);
             Assert.AreEqual(1, graph.GetNodes<INode>().Count());
@@ -55,7 +55,7 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestCanModifyNodeDrawState()
         {
-            var node = new SerializableNode();
+            var node = new TestNode();
             node.name = "Test Node";
 
             var drawState = node.drawState;
@@ -69,7 +69,7 @@ namespace UnityEditor.Graphing.UnitTests
             Assert.IsFalse(node.drawState.expanded);
         }
 
-        private class SetErrorNode : SerializableNode
+        private class SetErrorNode : TestNode
         {
             public void SetError()
             {
@@ -95,13 +95,13 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestNodeGUIDCanBeRewritten()
         {
-            var node = new SerializableNode();
+            var node = new TestNode();
             var guid = node.guid;
             var newGuid = node.RewriteGuid();
             Assert.AreNotEqual(guid, newGuid);
         }
 
-        public class TestableNode : SerializableNode
+        public class TestableNode : TestNode
         {
             public const int Input0 = 0;
             public const int Input1 = 1;
@@ -148,7 +148,7 @@ namespace UnityEditor.Graphing.UnitTests
             Assert.AreEqual(inputNode, graph.GetNodes<INode>().FirstOrDefault());
         }
 
-        private class NoDeleteNode : SerializableNode
+        private class NoDeleteNode : TestNode
         {
             public override bool canDeleteNode { get { return false; } }
         }
@@ -166,7 +166,7 @@ namespace UnityEditor.Graphing.UnitTests
             Assert.AreEqual(1, graph.GetNodes<INode>().Count());
         }
 
-        private class OnEnableNode : SerializableNode, IOnAssetEnabled
+        private class OnEnableNode : TestNode, IOnAssetEnabled
         {
             public bool called = false;
             public void OnEnable()
@@ -192,7 +192,7 @@ namespace UnityEditor.Graphing.UnitTests
         public void TestCanFindNodeInBaseMaterialGraph()
         {
             var graph = new TestMaterialGraph();
-            var node = new SerializableNode();
+            var node = new TestNode();
             graph.AddNode(node);
 
             Assert.AreEqual(1, graph.GetNodes<INode>().Count());
@@ -201,10 +201,10 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestCanAddSlotToSerializableNode()
+        public void TestCanAddSlotToTestNode()
         {
             var graph = new TestMaterialGraph();
-            var node = new SerializableNode();
+            var node = new TestNode();
             node.AddSlot(new SerializableSlot(0, "output", SlotType.Output));
             node.AddSlot(new SerializableSlot(1, "input", SlotType.Input));
             node.name = "Test Node";
@@ -220,19 +220,19 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestCanNotAddNullSlotToSerializableNode()
+        public void TestCanNotAddNullSlotToTestNode()
         {
-            var node = new SerializableNode();
+            var node = new TestNode();
             node.AddSlot(null);
             node.name = "Test Node";
             Assert.AreEqual(0, node.GetOutputSlots<ISlot>().Count());
         }
 
         [Test]
-        public void TestCanRemoveSlotFromSerializableNode()
+        public void TestCanRemoveSlotFromTestNode()
         {
             var graph = new TestMaterialGraph();
-            var node = new SerializableNode();
+            var node = new TestNode();
             node.AddSlot(new SerializableSlot(0, "output", SlotType.Output));
             node.AddSlot(new SerializableSlot(1, "input", SlotType.Input));
             graph.AddNode(node);
@@ -249,7 +249,7 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestCanRemoveSlotsWithNonMathingNameFromSerializableNode()
+        public void TestCanRemoveSlotsWithNonMathingNameFromTestNode()
         {
             var graph = new TestMaterialGraph();
             var node = new TestableNode();
@@ -271,10 +271,10 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestCanNotAddDuplicateSlotToSerializableNode()
+        public void TestCanNotAddDuplicateSlotToTestNode()
         {
             var graph = new TestMaterialGraph();
-            var node = new SerializableNode();
+            var node = new TestNode();
             node.AddSlot(new SerializableSlot(0, "output", SlotType.Output));
             node.AddSlot(new SerializableSlot(0, "output", SlotType.Output));
             node.name = "Test Node";
@@ -288,10 +288,10 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestCanUpdateDisplaynameByReaddingSlotToSerializableNode()
+        public void TestCanUpdateDisplaynameByReaddingSlotToTestNode()
         {
             var graph = new TestMaterialGraph();
-            var node = new SerializableNode();
+            var node = new TestNode();
             node.AddSlot(new SerializableSlot(0, "output", SlotType.Output));
             node.AddSlot(new SerializableSlot(0, "output_updated", SlotType.Output));
             node.name = "Test Node";
@@ -311,7 +311,7 @@ namespace UnityEditor.Graphing.UnitTests
         public void TestCanUpdateSlotPriority()
         {
             var graph = new TestMaterialGraph();
-            var node = new SerializableNode();
+            var node = new TestNode();
             node.AddSlot(new SerializableSlot(0, "output", SlotType.Output, 0));
             node.name = "Test Node";
             graph.AddNode(node);
@@ -329,10 +329,10 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestCanUpdateSlotPriorityByReaddingSlotToSerializableNode()
+        public void TestCanUpdateSlotPriorityByReaddingSlotToTestNode()
         {
             var graph = new TestMaterialGraph();
-            var node = new SerializableNode();
+            var node = new TestNode();
             node.AddSlot(new SerializableSlot(0, "output", SlotType.Output, 0));
             node.AddSlot(new SerializableSlot(0, "output", SlotType.Output, 5));
             node.name = "Test Node";
@@ -351,7 +351,7 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestCanUpdateSlotDisplayName()
         {
-            var node = new SerializableNode();
+            var node = new TestNode();
             node.AddSlot(new SerializableSlot(0, "output", SlotType.Output));
             node.name = "Test Node";
 
@@ -367,7 +367,7 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestCanFindSlotOnSerializableNode()
+        public void TestCanFindSlotOnTestNode()
         {
             var node = new TestableNode();
 
@@ -383,7 +383,7 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestCanFindSlotReferenceOnSerializableNode()
+        public void TestCanFindSlotReferenceOnTestNode()
         {
             var node = new TestableNode();
 
@@ -553,7 +553,7 @@ namespace UnityEditor.Graphing.UnitTests
             var outputNode = new TestableNode();
             graph.AddNode(outputNode);
 
-            var inputNode = new SerializableNode();
+            var inputNode = new TestNode();
             graph.AddNode(inputNode);
 
             Assert.AreEqual(2, graph.GetNodes<INode>().Count());

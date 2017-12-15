@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph
     }
 
     [Serializable]
-    public abstract class AbstractMaterialNode : SerializableNode, IGenerateProperties
+    public abstract class AbstractMaterialNode : INode, ISerializationCallbackReceiver, IGenerateProperties
     {
         protected static List<MaterialSlot> s_TempSlots = new List<MaterialSlot>();
         protected static List<IEdge> s_TempEdges = new List<IEdge>();
@@ -30,16 +30,64 @@ namespace UnityEditor.ShaderGraph
         }
 
         [NonSerialized]
+        private Guid m_Guid;
+
+        [SerializeField]
+        private string m_GuidSerialized;
+
+        [SerializeField]
+        private string m_Name;
+
+        [SerializeField]
+        private DrawState m_DrawState;
+
+        [NonSerialized]
+        private List<ISlot> m_Slots = new List<ISlot>();
+
+        [SerializeField]
+        List<SerializationHelper.JSONSerializedElement> m_SerializableSlots = new List<SerializationHelper.JSONSerializedElement>();
+
+        [NonSerialized]
         private bool m_HasError;
+
+        public IGraph owner { get; set; }
+
+        public OnNodeModified onModified { get; set; }
+
+        public Guid guid
+        {
+            get { return m_Guid; }
+        }
+
+        public string name
+        {
+            get { return m_Name; }
+            set { m_Name = value; }
+        }
+
+        public virtual bool canDeleteNode
+        {
+            get { return true; }
+        }
+
+        public DrawState drawState
+        {
+            get { return m_DrawState; }
+            set
+            {
+                m_DrawState = value;
+                if (onModified != null)
+                    onModified(this, ModificationScope.Node);
+            }
+        }
+
+        private OutputPrecision m_OutputPrecision = OutputPrecision.@float;
 
         public OutputPrecision precision
         {
             get { return m_OutputPrecision; }
             set { m_OutputPrecision = value; }
         }
-
-        //[SerializeField]
-        private OutputPrecision m_OutputPrecision = OutputPrecision.@float;
 
         [SerializeField]
         bool m_PreviewExpanded = true;
@@ -88,7 +136,7 @@ namespace UnityEditor.ShaderGraph
             get { return true; }
         }
 
-        public override bool hasError
+        public virtual bool hasError
         {
             get { return m_HasError; }
             protected set { m_HasError = value; }
@@ -114,7 +162,42 @@ namespace UnityEditor.ShaderGraph
 
         protected AbstractMaterialNode()
         {
+            m_DrawState.expanded = true;
+            m_Guid = Guid.NewGuid();
             version = 0;
+        }
+
+        public Guid RewriteGuid()
+        {
+            m_Guid = Guid.NewGuid();
+            return m_Guid;
+        }
+
+        public void GetInputSlots<T>(List<T> foundSlots) where T : ISlot
+        {
+            foreach (var slot in m_Slots)
+            {
+                if (slot.isInputSlot && slot is T)
+                    foundSlots.Add((T)slot);
+            }
+        }
+
+        public void GetOutputSlots<T>(List<T> foundSlots) where T : ISlot
+        {
+            foreach (var slot in m_Slots)
+            {
+                if (slot.isOutputSlot && slot is T)
+                    foundSlots.Add((T)slot);
+            }
+        }
+
+        public void GetSlots<T>(List<T> foundSlots) where T : ISlot
+        {
+            foreach (var slot in m_Slots)
+            {
+                if (slot is T)
+                    foundSlots.Add((T)slot);
+            }
         }
 
         public virtual void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
@@ -198,7 +281,7 @@ namespace UnityEditor.ShaderGraph
             return ConcreteSlotValueType.Vector1;
         }
 
-        public override void ValidateNode()
+        public virtual void ValidateNode()
         {
             var isInError = false;
 
@@ -423,7 +506,7 @@ namespace UnityEditor.ShaderGraph
             return new string(arr);
         }
 
-        public sealed override void AddSlot(ISlot slot)
+        public void AddSlot(ISlot slot)
         {
             if (!(slot is MaterialSlot))
                 throw new ArgumentException(string.Format("Trying to add slot {0} to Material node {1}, but it is not a {2}", slot, this, typeof(MaterialSlot)));
@@ -433,12 +516,119 @@ namespace UnityEditor.ShaderGraph
 
             // this will remove the old slot and add a new one
             // if an old one was found. This allows updating values
-            base.AddSlot(slot);
+            m_Slots.RemoveAll(x => x.id == slot.id);
+            m_Slots.Add(slot);
+            slot.owner = this;
+
+            if (onModified != null)
+            {
+                onModified(this, ModificationScope.Topological);
+            }
 
             if (foundSlot == null)
                 return;
 
             addingSlot.CopyValuesFrom(foundSlot);
         }
+
+        public void RemoveSlot(int slotId)
+        {
+            // Remove edges that use this slot
+            // no owner can happen after creation
+            // but before added to graph
+            if (owner != null)
+            {
+                var edges = owner.GetEdges(GetSlotReference(slotId));
+
+                foreach (var edge in edges.ToArray())
+                    owner.RemoveEdge(edge);
+            }
+
+            //remove slots
+            m_Slots.RemoveAll(x => x.id == slotId);
+
+            if (onModified != null)
+            {
+                onModified(this, ModificationScope.Topological);
+            }
+        }
+
+        public void RemoveSlotsNameNotMatching(IEnumerable<int> slotIds, bool supressWarnings = false)
+        {
+            var invalidSlots = m_Slots.Select(x => x.id).Except(slotIds);
+
+            foreach (var invalidSlot in invalidSlots.ToArray())
+            {
+                if (!supressWarnings)
+                    Debug.LogWarningFormat("Removing Invalid MaterialSlot: {0}", invalidSlot);
+                RemoveSlot(invalidSlot);
+            }
+        }
+
+        public SlotReference GetSlotReference(int slotId)
+        {
+            var slot = FindSlot<ISlot>(slotId);
+            if (slot == null)
+                throw new ArgumentException("Slot could not be found", "slotId");
+            return new SlotReference(guid, slotId);
+        }
+
+        public T FindSlot<T>(int slotId) where T : ISlot
+        {
+            foreach (var slot in m_Slots)
+            {
+                if (slot.id == slotId && slot is T)
+                    return (T)slot;
+            }
+            return default(T);
+        }
+
+        public T FindInputSlot<T>(int slotId) where T : ISlot
+        {
+            foreach (var slot in m_Slots)
+            {
+                if (slot.isInputSlot && slot.id == slotId && slot is T)
+                    return (T)slot;
+            }
+            return default(T);
+        }
+
+        public T FindOutputSlot<T>(int slotId) where T : ISlot
+        {
+            foreach (var slot in m_Slots)
+            {
+                if (slot.isOutputSlot && slot.id == slotId && slot is T)
+                    return (T)slot;
+            }
+            return default(T);
+        }
+
+        public virtual IEnumerable<ISlot> GetInputsWithNoConnection()
+        {
+            return this.GetInputSlots<ISlot>().Where(x => !owner.GetEdges(GetSlotReference(x.id)).Any());
+        }
+
+        public virtual void OnBeforeSerialize()
+        {
+            m_GuidSerialized = m_Guid.ToString();
+            m_SerializableSlots = SerializationHelper.Serialize<ISlot>(m_Slots);
+        }
+
+        public virtual void OnAfterDeserialize()
+        {
+            if (!string.IsNullOrEmpty(m_GuidSerialized))
+                m_Guid = new Guid(m_GuidSerialized);
+            else
+                m_Guid = Guid.NewGuid();
+
+            m_Slots = SerializationHelper.Deserialize<ISlot>(m_SerializableSlots, null);
+            m_SerializableSlots = null;
+            foreach (var s in m_Slots)
+                s.owner = this;
+            UpdateNodeAfterDeserialization();
+        }
+
+        public virtual void UpdateNodeAfterDeserialization()
+        {}
     }
 }
