@@ -10,8 +10,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Lighting resources
         public Shader deferredShader;
-        public Shader combineLightingPass;
-        public ComputeShader subsurfaceScatteringCS;
         public ComputeShader gaussianPyramidCS;
         public ComputeShader depthPyramidCS;
         public ComputeShader copyChannelCS;
@@ -29,12 +27,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ComputeShader deferredDirectionalShadowComputeShader;
         public ComputeShader volumetricLightingCS;
 
-        // SceneSettings
+        // Subsurface scattering
         // These shaders don't need to be reference by RenderPipelineResource as they are not use at runtime (only to draw in editor)
         // public Shader drawSssProfile;
         // public Shader drawTransmittanceGraphShader;
 
+        public ComputeShader subsurfaceScatteringCS; // Disney SSS
+        public Shader subsurfaceScattering; // Jimenez SSS
+        public Shader combineLighting;
+
+        // General
         public Shader cameraMotionVectors;
+        public Shader copyStencilBuffer;
 
         // Sky
         public Shader blitCubemap;

@@ -35,11 +35,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent   profileMinMaxThickness = new GUIContent("Min-Max Thickness (mm)", "Shows the values of the thickness remap below (in millimeters).");
             public readonly GUIContent   profileThicknessRemap  = new GUIContent("Thickness Remap (mm)", "Remaps the thickness parameter from [0, 1] to the desired range (in millimeters).");
             public readonly GUIContent   profileWorldScale      = new GUIContent("World Scale", "Size of the world unit in meters.");
-            // Old SSS Model >>>
+            public readonly GUIContent   profileFresnel0        = new GUIContent("Specular", "Fraction of light reflected at the normal angle of incidence. Typical skin value is 0.028");
+            // Jimenez SSS Model
             public readonly GUIContent   profileScatterDistance1 = new GUIContent("Scattering Distance #1", "The radius (in centimeters) of the 1st Gaussian filter, one per color channel. Alpha is ignored. The blur is energy-preserving, so a wide filter results in a large area with small contributions of individual samples. Smaller values increase the sharpness.");
             public readonly GUIContent   profileScatterDistance2 = new GUIContent("Scattering Distance #2", "The radius (in centimeters) of the 2nd Gaussian filter, one per color channel. Alpha is ignored. The blur is energy-preserving, so a wide filter results in a large area with small contributions of individual samples. Smaller values increase the sharpness.");
             public readonly GUIContent   profileLerpWeight       = new GUIContent("Filter Interpolation", "Controls linear interpolation between the two Gaussian filters.");
-            // <<< Old SSS Model
+            // End Jimenez SSS Model
             public readonly GUIStyle     centeredMiniBoldLabel     = new GUIStyle(GUI.skin.label);
 
             public Styles()

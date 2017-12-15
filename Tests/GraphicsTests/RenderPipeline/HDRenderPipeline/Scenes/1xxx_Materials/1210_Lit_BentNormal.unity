@@ -3704,8 +3704,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 0
   spotLightShape: 2
-  shapeLength: 2.5
-  shapeWidth: 4.51
+  shapeWidth: 2.5
+  shapeHeight: 4.51
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1

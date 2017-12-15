@@ -87,16 +87,30 @@
 // Unsigned integer bit field extraction.
 // Note that the intrinsic itself generates a vector instruction.
 // Wrap this function with WaveReadFirstLane() to get scalar output.
-uint BitFieldExtract(uint data, uint numBits, uint offset)
+uint BitFieldExtract(uint data, uint offset, uint numBits)
 {
-    uint mask = UINT_MAX >> (32u - numBits);
+    uint mask = (1u << numBits) - 1u;
     return (data >> offset) & mask;
 }
 #endif // INTRINSIC_BITFIELD_EXTRACT
 
+#ifndef INTRINSIC_BITFIELD_EXTRACT_SIGN_EXTEND
+// Integer bit field extraction with sign extension.
+// Note that the intrinsic itself generates a vector instruction.
+// Wrap this function with WaveReadFirstLane() to get scalar output.
+int BitFieldExtractSignExtend(int data, uint offset, uint numBits)
+{
+    int  shifted = data >> offset;      // Sign-extending (arithmetic) shift
+    int  signBit = shifted & (1u << (numBits - 1u));
+    uint mask    = (1u << numBits) - 1u;
+
+    return -signBit | (shifted & mask); // Use 2-complement for negation to replicate the sign bit
+}
+#endif // INTRINSIC_BITFIELD_EXTRACT_SIGN_EXTEND
+
 bool IsBitSet(uint data, uint offset)
 {
-    return BitFieldExtract(data, 1u, offset) != 0;
+    return BitFieldExtract(data, offset, 1u) != 0;
 }
 
 void SetBit(inout uint data, uint offset)
@@ -255,6 +269,13 @@ float FastATanPos(float x)
     return (x < 1.0) ? poly : HALF_PI - poly;
 }
 
+#if (SHADER_TARGET >= 45)
+uint FastLog2(uint x)
+{
+    return firstbithigh(x) - 1u;
+}
+#endif
+
 // 4 VGPR, 16 FR (12 FR, 1 QR), 2 scalar
 // input [-infinity, infinity] and output [-PI/2, PI/2]
 float FastATan(float x)
@@ -262,21 +283,6 @@ float FastATan(float x)
     float t0 = FastATanPos(abs(x));
     return (x < 0.0) ? -t0 : t0;
 }
-
-// Same as smoothstep except it assume 0, 1 interval for x
-float Smoothstep01(float x)
-{
-    return x * x * (3.0 - (2.0 * x));
-}
-
-static const float3x3 k_identity3x3 = {1.0, 0.0, 0.0,
-                                       0.0, 1.0, 0.0,
-                                       0.0, 0.0, 1.0};
-
-static const float4x4 k_identity4x4 = {1.0, 0.0, 0.0, 0.0,
-                                       0.0, 1.0, 0.0, 0.0,
-                                       0.0, 0.0, 1.0, 0.0,
-                                       0.0, 0.0, 0.0, 1.0};
 
 // Using pow often result to a warning like this
 // "pow(f, e) will not work for negative f, use abs(f) or conditionally handle negative values if you expect them"
@@ -317,6 +323,12 @@ float FastSign(float s, bool ignoreNegZero = true)
 float3 Orthonormalize(float3 tangent, float3 normal)
 {
     return normalize(tangent - dot(tangent, normal) * normal);
+}
+
+// Same as smoothstep except it assume 0, 1 interval for x
+float Smoothstep01(float x)
+{
+    return x * x * (3.0 - (2.0 * x));
 }
 
 // ----------------------------------------------------------------------------
@@ -427,6 +439,15 @@ float DecodeLogarithmicDepth(float d, float4 encodingParams)
 // ----------------------------------------------------------------------------
 // Space transformations
 // ----------------------------------------------------------------------------
+
+static const float3x3 k_identity3x3 = {1, 0, 0,
+                                       0, 1, 0,
+                                       0, 0, 1};
+
+static const float4x4 k_identity4x4 = {1, 0, 0, 0,
+                                       0, 1, 0, 0,
+                                       0, 0, 1, 0,
+                                       0, 0, 0, 1};
 
 // Use case examples:
 // (position = positionCS) => (clipSpaceTransform = use default)

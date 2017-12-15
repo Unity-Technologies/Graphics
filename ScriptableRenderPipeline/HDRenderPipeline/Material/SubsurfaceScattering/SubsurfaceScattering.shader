@@ -32,7 +32,7 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
             #pragma multi_compile _ SSS_FILTER_HORIZONTAL_AND_COMBINE
 
             // Do not modify these.
-            #include "../../../ShaderPass/ShaderPass.cs.hlsl"
+            #include "../../ShaderPass/ShaderPass.cs.hlsl"
             #define SHADERPASS SHADERPASS_SUBSURFACE_SCATTERING
 
             //-------------------------------------------------------------------------------------
@@ -40,8 +40,8 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
             //-------------------------------------------------------------------------------------
 
             #include "ShaderLibrary/Common.hlsl"
-            #include "../../../ShaderVariables.hlsl"
-            #include "../../SubsurfaceScattering/SubsurfaceScattering.hlsl"
+            #include "../../ShaderVariables.hlsl"
+            #include "SubsurfaceScattering.hlsl"
 
             //-------------------------------------------------------------------------------------
             // Inputs & outputs
