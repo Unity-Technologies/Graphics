@@ -240,8 +240,9 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                         float3 o = mul(rotMat, ray.originWS - light.positionWS);
                         float3 d = mul(rotMat, ray.directionWS);
 
+                        float  range  = light.size.x;
                         float3 boxPt0 = float3(-1, -1, 0);
-                        float3 boxPt1 = float3( 1,  1, rsqrt(light.invSqrAttenuationRadius));
+                        float3 boxPt1 = float3( 1,  1, range);
 
                         float tEntr, tExit;
 
