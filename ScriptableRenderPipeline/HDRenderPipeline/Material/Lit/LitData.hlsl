@@ -1,9 +1,9 @@
-#include "ShaderLibrary/SampleUVMapping.hlsl"
-#include "../MaterialUtilities.hlsl"
-
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
+#include "ShaderLibrary/Sampling/SampleUVMapping.hlsl"
+#include "../MaterialUtilities.hlsl"
+#include "../Decal/DecalUtilities.hlsl"
 
 // TODO: move this function to commonLighting.hlsl once validated it work correctly
 float GetSpecularOcclusionFromBentAO(float3 V, float3 bentNormalWS, SurfaceData surfaceData)
@@ -278,6 +278,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // This is use with anisotropic material
     surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
+
+    AddDecalContribution(posInput.positionSS, surfaceData);
 
     // Caution: surfaceData must be fully initialize before calling GetBuiltinData
     GetBuiltinData(input, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);

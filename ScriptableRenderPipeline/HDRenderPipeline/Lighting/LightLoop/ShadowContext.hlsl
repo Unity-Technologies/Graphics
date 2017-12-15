@@ -10,16 +10,16 @@
 #include "ShaderLibrary/Shadow/Shadow.hlsl"
 
 TEXTURE2D_ARRAY(_ShadowmapExp_VSM_0);
-SAMPLER2D(sampler_ShadowmapExp_VSM_0);
+SAMPLER(sampler_ShadowmapExp_VSM_0);
 
 TEXTURE2D_ARRAY(_ShadowmapExp_VSM_1);
-SAMPLER2D(sampler_ShadowmapExp_VSM_1);
+SAMPLER(sampler_ShadowmapExp_VSM_1);
 
 TEXTURE2D_ARRAY(_ShadowmapExp_VSM_2);
-SAMPLER2D(sampler_ShadowmapExp_VSM_2);
+SAMPLER(sampler_ShadowmapExp_VSM_2);
 
 TEXTURE2D_ARRAY(_ShadowmapExp_PCF);
-SAMPLER2D_SHADOW(sampler_ShadowmapExp_PCF);
+SAMPLER_CMP(sampler_ShadowmapExp_PCF);
 
 StructuredBuffer<ShadowData>	_ShadowDatasExp;
 StructuredBuffer<int4>			_ShadowPayloads;

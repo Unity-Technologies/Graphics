@@ -6,14 +6,14 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyHDRI"
     #pragma fragment Frag
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
+    #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
     #include "ShaderLibrary/Common.hlsl"
     #include "ShaderLibrary/Color.hlsl"
     #include "ShaderLibrary/CommonLighting.hlsl"
 
     TEXTURECUBE(_Cubemap);
-    SAMPLERCUBE(sampler_Cubemap);
+    SAMPLER(sampler_Cubemap);
 
     float4   _SkyParam; // x exposure, y multiplier, z rotation
     float4x4 _PixelCoordToViewDirWS; // Actually just 3x3, but Unity can only set 4x4
