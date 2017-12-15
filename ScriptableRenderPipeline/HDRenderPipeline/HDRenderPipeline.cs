@@ -294,7 +294,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             return m_samplers[(int)id];
         }
-
         public CommonSettings.Settings commonSettingsToUse
         {
             get
@@ -393,7 +392,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_DebugDisplaySettings.RegisterDebug(m_Asset.GetEffectiveDefaultFrameSettings());
             m_DebugFullScreenTempRT = HDShaderIDs._DebugFullScreenTexture;
-
 
             // Init all samplers
             for (int i = 0; i < (int)CustomSamplerId.Max; i++)
@@ -1035,6 +1033,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderDistortion(CommandBuffer cmd, RenderPipelineResources resources)
         {
+            if (!m_FrameSettings.renderSettings.enableDistortion)
+                return;
+
             using (new ProfilingSample(cmd, "ApplyDistortion", GetSampler(CustomSamplerId.ApplyDistortion)))
             {
                 var size = new Vector4(m_CurrentWidth, m_CurrentHeight, 1f / m_CurrentWidth, 1f / m_CurrentHeight);
@@ -1094,10 +1095,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            // Render transparent depth prepass after opaque one
-            using (new ProfilingSample(cmd, "Transparent Depth Prepass", GetSampler(CustomSamplerId.TransparentDepthPrepass)))
+            if (m_FrameSettings.renderSettings.enableTransparentPrePass)
             {
-                RenderTransparentRenderList(cull, camera, renderContext, cmd, m_TransparentDepthPrePassNames);
+                // Render transparent depth prepass after opaque one
+                using (new ProfilingSample(cmd, "Transparent Depth Prepass", GetSampler(CustomSamplerId.TransparentDepthPrepass)))
+                {
+                    RenderTransparentRenderList(cull, camera, renderContext, cmd, m_TransparentDepthPrePassNames);
+                }
             }
         }
 
@@ -1194,7 +1198,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void RenderSSAO(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext, PostProcessLayer postProcessLayer)
         {
             // Apply SSAO from PostProcessLayer
-            if (postProcessLayer != null && postProcessLayer.enabled)
+            if (m_FrameSettings.lightingSettings.enableSSAO && postProcessLayer != null && postProcessLayer.enabled)
             {
                 var settings = postProcessLayer.GetSettings<AmbientOcclusion>();
 
@@ -1351,6 +1355,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderTransparentDepthPostPass(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, ForwardPass pass)
         {
+            if (m_FrameSettings.renderSettings.enableTransparentPostPass)
+                return;
+
             using (new ProfilingSample(cmd, "Render Transparent Depth Post ", GetSampler(CustomSamplerId.TransparentDepthPostPass)))
             {
                 CoreUtils.SetRenderTarget(cmd, m_CameraDepthStencilBufferRT);
@@ -1360,6 +1367,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderVelocity(CullResults cullResults, HDCamera hdcam, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
+            if (!m_FrameSettings.renderSettings.enableMotionVectors)
+                return;
+
             using (new ProfilingSample(cmd, "Velocity", GetSampler(CustomSamplerId.Velocity)))
             {
                 // If opaque velocity have been render during GBuffer no need to render it here
@@ -1491,7 +1501,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             using (new ProfilingSample(cmd, "Post-processing", GetSampler(CustomSamplerId.PostProcessing)))
             {
-                if (CoreUtils.IsPostProcessingActive(layer))
+                if (m_FrameSettings.renderSettings.enablePostprocess && CoreUtils.IsPostProcessingActive(layer))
                 {
                     // Note: Here we don't use GetDepthTexture() to get the depth texture but m_CameraDepthStencilBuffer as the Forward transparent pass can
                     // write extra data to deal with DOF/MB
