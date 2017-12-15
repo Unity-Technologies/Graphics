@@ -113,13 +113,13 @@ namespace UnityEditor.Graphing.UnitTests
 
             public TestableNode()
             {
-                AddSlot(new SerializableSlot(Input0, "Input", SlotType.Input));
-                AddSlot(new SerializableSlot(Input1, "Input", SlotType.Input));
-                AddSlot(new SerializableSlot(Input2, "Input", SlotType.Input));
+                AddSlot(new TestSlot(Input0, "Input", SlotType.Input));
+                AddSlot(new TestSlot(Input1, "Input", SlotType.Input));
+                AddSlot(new TestSlot(Input2, "Input", SlotType.Input));
 
-                AddSlot(new SerializableSlot(Output0, "Output", SlotType.Output));
-                AddSlot(new SerializableSlot(Output1, "Output", SlotType.Output));
-                AddSlot(new SerializableSlot(Output2, "Output", SlotType.Output));
+                AddSlot(new TestSlot(Output0, "Output", SlotType.Output));
+                AddSlot(new TestSlot(Output1, "Output", SlotType.Output));
+                AddSlot(new TestSlot(Output2, "Output", SlotType.Output));
             }
         }
 
@@ -205,8 +205,8 @@ namespace UnityEditor.Graphing.UnitTests
         {
             var graph = new TestMaterialGraph();
             var node = new TestNode();
-            node.AddSlot(new SerializableSlot(0, "output", SlotType.Output));
-            node.AddSlot(new SerializableSlot(1, "input", SlotType.Input));
+            node.AddSlot(new TestSlot(0, "output", SlotType.Output));
+            node.AddSlot(new TestSlot(1, "input", SlotType.Input));
             node.name = "Test Node";
             graph.AddNode(node);
 
@@ -233,8 +233,8 @@ namespace UnityEditor.Graphing.UnitTests
         {
             var graph = new TestMaterialGraph();
             var node = new TestNode();
-            node.AddSlot(new SerializableSlot(0, "output", SlotType.Output));
-            node.AddSlot(new SerializableSlot(1, "input", SlotType.Input));
+            node.AddSlot(new TestSlot(0, "output", SlotType.Output));
+            node.AddSlot(new TestSlot(1, "input", SlotType.Input));
             graph.AddNode(node);
 
             Assert.AreEqual(2, node.GetSlots<ISlot>().Count());
@@ -275,8 +275,8 @@ namespace UnityEditor.Graphing.UnitTests
         {
             var graph = new TestMaterialGraph();
             var node = new TestNode();
-            node.AddSlot(new SerializableSlot(0, "output", SlotType.Output));
-            node.AddSlot(new SerializableSlot(0, "output", SlotType.Output));
+            node.AddSlot(new TestSlot(0, "output", SlotType.Output));
+            node.AddSlot(new TestSlot(0, "output", SlotType.Output));
             node.name = "Test Node";
             graph.AddNode(node);
 
@@ -292,8 +292,8 @@ namespace UnityEditor.Graphing.UnitTests
         {
             var graph = new TestMaterialGraph();
             var node = new TestNode();
-            node.AddSlot(new SerializableSlot(0, "output", SlotType.Output));
-            node.AddSlot(new SerializableSlot(0, "output_updated", SlotType.Output));
+            node.AddSlot(new TestSlot(0, "output", SlotType.Output));
+            node.AddSlot(new TestSlot(0, "output_updated", SlotType.Output));
             node.name = "Test Node";
             graph.AddNode(node);
 
@@ -312,7 +312,7 @@ namespace UnityEditor.Graphing.UnitTests
         {
             var graph = new TestMaterialGraph();
             var node = new TestNode();
-            node.AddSlot(new SerializableSlot(0, "output", SlotType.Output, 0));
+            node.AddSlot(new TestSlot(0, "output", SlotType.Output, 0));
             node.name = "Test Node";
             graph.AddNode(node);
 
@@ -333,8 +333,8 @@ namespace UnityEditor.Graphing.UnitTests
         {
             var graph = new TestMaterialGraph();
             var node = new TestNode();
-            node.AddSlot(new SerializableSlot(0, "output", SlotType.Output, 0));
-            node.AddSlot(new SerializableSlot(0, "output", SlotType.Output, 5));
+            node.AddSlot(new TestSlot(0, "output", SlotType.Output, 0));
+            node.AddSlot(new TestSlot(0, "output", SlotType.Output, 5));
             node.name = "Test Node";
             graph.AddNode(node);
 
@@ -352,7 +352,7 @@ namespace UnityEditor.Graphing.UnitTests
         public void TestCanUpdateSlotDisplayName()
         {
             var node = new TestNode();
-            node.AddSlot(new SerializableSlot(0, "output", SlotType.Output));
+            node.AddSlot(new TestSlot(0, "output", SlotType.Output));
             node.name = "Test Node";
 
             Assert.AreEqual(0, node.GetInputSlots<ISlot>().Count());
