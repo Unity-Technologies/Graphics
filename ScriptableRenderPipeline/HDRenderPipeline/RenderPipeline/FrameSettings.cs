@@ -39,7 +39,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public bool enableDistortion = true;
             public bool enablePostprocess = true;
 
-
             public bool enableStereo = false;
             public bool enableAsyncCompute = false;
 
@@ -56,6 +55,45 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public LightingSettings lightingSettings = new LightingSettings();
         public RenderSettings renderSettings = new RenderSettings();
         public LightLoopSettings lightLoopSettings = new LightLoopSettings();
+
+        public void CopyTo(FrameSettings frameSettings)
+        {
+            frameSettings.lightingSettings.enableShadow             = this.lightingSettings.enableShadow;
+            frameSettings.lightingSettings.enableSSR                = this.lightingSettings.enableSSR;
+            frameSettings.lightingSettings.enableSSAO               = this.lightingSettings.enableSSAO;
+            frameSettings.lightingSettings.enableSSSAndTransmission = this.lightingSettings.enableSSSAndTransmission;
+
+            frameSettings.lightingSettings.diffuseGlobalDimmer      = this.lightingSettings.diffuseGlobalDimmer;
+            frameSettings.lightingSettings.specularGlobalDimmer     = this.lightingSettings.specularGlobalDimmer;
+
+            frameSettings.renderSettings.enableForwardRenderingOnly                 = this.renderSettings.enableForwardRenderingOnly;
+            frameSettings.renderSettings.enableDepthPrepassWithDeferredRendering    = this.renderSettings.enableDepthPrepassWithDeferredRendering;
+            frameSettings.renderSettings.enableAlphaTestOnlyInDeferredPrepass       = this.renderSettings.enableAlphaTestOnlyInDeferredPrepass;
+
+            frameSettings.renderSettings.enableTransparentPrePass       = this.renderSettings.enableTransparentPrePass;
+            frameSettings.renderSettings.enableMotionVectors            = this.renderSettings.enableMotionVectors;
+            frameSettings.renderSettings.enableDBuffer                  = this.renderSettings.enableDBuffer;
+            frameSettings.renderSettings.enableAtmosphericScattering    = this.renderSettings.enableAtmosphericScattering;
+            frameSettings.renderSettings.enableRoughRefraction          = this.renderSettings.enableRoughRefraction;
+            frameSettings.renderSettings.enableTransparentPostPass      = this.renderSettings.enableTransparentPostPass;
+            frameSettings.renderSettings.enableDistortion               = this.renderSettings.enableDistortion;
+            frameSettings.renderSettings.enablePostprocess              = this.renderSettings.enablePostprocess;
+
+            frameSettings.renderSettings.enableStereo                   = this.renderSettings.enableStereo;
+            frameSettings.renderSettings.enableForwardRenderingOnly     = this.renderSettings.enableForwardRenderingOnly;
+
+            frameSettings.renderSettings.enableOpaqueObjects            = this.renderSettings.enableOpaqueObjects;
+            frameSettings.renderSettings.enableTransparentObjects       = this.renderSettings.enableTransparentObjects;
+
+            frameSettings.renderSettings.enableAsyncCompute             = this.renderSettings.enableAsyncCompute;
+
+            frameSettings.renderSettings.enableMSAA                     = this.renderSettings.enableMSAA;
+
+            frameSettings.renderSettings.enableMaterialDisplayDebug     = this.renderSettings.enableMaterialDisplayDebug;
+            frameSettings.renderSettings.enableShadowMask               = this.renderSettings.enableShadowMask;
+
+            this.lightLoopSettings.CopyTo(frameSettings.lightLoopSettings);
+        }
 
         // Init a FrameSettings from renderpipeline settings, frame settings and debug settings (if any)
         // This will aggregate the various option

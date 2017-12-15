@@ -7,29 +7,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class LightLoopSettings
     {
         // Setup by the users
-        public bool enableTileAndCluster;
-        public bool enableComputeLightEvaluation;
-        public bool enableComputeLightVariants;
-        public bool enableComputeMaterialVariants;
+        public bool enableTileAndCluster = true;
+        public bool enableComputeLightEvaluation = true;
+        public bool enableComputeLightVariants = true;
+        public bool enableComputeMaterialVariants = true;
         // Deferred opaque always use FPTL, forward opaque can use FPTL or cluster, transparent always use cluster
         // When MSAA is enabled, we only support cluster (Fptl is too slow with MSAA), and we don't support MSAA for deferred path (mean it is ok to keep fptl)
-        public bool enableFptlForForwardOpaque;
-        public bool enableBigTilePrepass;
+        public bool enableFptlForForwardOpaque = true;
+        public bool enableBigTilePrepass = true;
 
         // Setup by system
-        public bool isFptlEnabled;
+        public bool isFptlEnabled = true;
 
-        public LightLoopSettings()
+        public void CopyTo(LightLoopSettings lightLoopSettings)
         {
-            enableTileAndCluster = true;
-            enableComputeLightEvaluation = true;
-            enableComputeLightVariants = true;
-            enableComputeMaterialVariants = true;
+            lightLoopSettings.enableTileAndCluster          = this.enableTileAndCluster;
+            lightLoopSettings.enableComputeLightEvaluation  = this.enableComputeLightEvaluation;
+            lightLoopSettings.enableComputeLightVariants    = this.enableComputeLightVariants;
+            lightLoopSettings.enableComputeMaterialVariants = this.enableComputeMaterialVariants;
 
-            enableFptlForForwardOpaque = true;
-            enableBigTilePrepass = true;
+            lightLoopSettings.enableFptlForForwardOpaque    = this.enableFptlForForwardOpaque;
+            lightLoopSettings.enableBigTilePrepass          = this.enableBigTilePrepass;
 
-            isFptlEnabled = true;
+            lightLoopSettings.isFptlEnabled                 = this.isFptlEnabled;
         }
 
         // aggregateFrameSettings already contain the aggregation of RenderPipelineSettings and FrameSettings (regular and/or debug)
