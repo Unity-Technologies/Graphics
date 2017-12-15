@@ -264,14 +264,14 @@ float4 UnpackQuat(float4 packedQuat)
 // Packs an integer stored using at most 'numBits' into a [0..1] float.
 float PackInt(uint i, uint numBits)
 {
-    uint maxInt = UINT_MAX >> (32u - numBits);
+    uint maxInt = (1u << numBits) - 1u;
     return saturate(i * rcp(maxInt));
 }
 
 // Unpacks a [0..1] float into an integer of size 'numBits'.
 uint UnpackInt(float f, uint numBits)
 {
-    uint maxInt = UINT_MAX >> (32u - numBits);
+    uint maxInt = (1u << numBits) - 1u;
     return (uint)(f * maxInt + 0.5); // Round instead of truncating
 }
 
@@ -302,7 +302,7 @@ uint UnpackShort(float f)
 // Packs 8 lowermost bits of a [0..65535] integer into a [0..1] float.
 float PackShortLo(uint i)
 {
-    uint lo = BitFieldExtract(i, 8u, 0u);
+    uint lo = BitFieldExtract(i, 0u, 8u);
     return PackInt(lo, 8);
 }
 
@@ -399,29 +399,32 @@ void UnpackFloatInt16bit(float val, float maxi, out float f, out int i)
 //-----------------------------------------------------------------------------
 
 // src must be between 0.0 and 1.0
-uint PackFloatToUInt(float src, uint numBits, uint offset)
+uint PackFloatToUInt(float src, uint offset, uint numBits)
 {
     return UnpackInt(src, numBits) << offset;
 }
 
-float UnpackUIntToFloat(uint src, uint numBits, uint offset)
+float UnpackUIntToFloat(uint src, uint offset, uint numBits)
 {
-    uint maxInt = UINT_MAX >> (32u - numBits);
-    return float(BitFieldExtract(src, numBits, offset)) * rcp(maxInt);
+    uint maxInt = (1u << numBits) - 1u;
+    return float(BitFieldExtract(src, offset, numBits)) * rcp(maxInt);
 }
 
 uint PackToR10G10B10A2(float4 rgba)
 {
-    return (PackFloatToUInt(rgba.x, 10, 0) | PackFloatToUInt(rgba.y, 10, 10) | PackFloatToUInt(rgba.z, 10, 20) | PackFloatToUInt(rgba.w, 2, 30));
+    return (PackFloatToUInt(rgba.x, 0,  10) |
+            PackFloatToUInt(rgba.y, 10, 10) |
+            PackFloatToUInt(rgba.z, 20, 10) |
+            PackFloatToUInt(rgba.w, 30, 2));
 }
 
 float4 UnpackFromR10G10B10A2(uint rgba)
 {
     float4 ouput;
-    ouput.x = UnpackUIntToFloat(rgba, 10, 0);
+    ouput.x = UnpackUIntToFloat(rgba, 0,  10);
     ouput.y = UnpackUIntToFloat(rgba, 10, 10);
-    ouput.z = UnpackUIntToFloat(rgba, 10, 20);
-    ouput.w = UnpackUIntToFloat(rgba, 2, 30);
+    ouput.z = UnpackUIntToFloat(rgba, 20, 10);
+    ouput.w = UnpackUIntToFloat(rgba, 30, 2);
     return ouput;
 }
 
