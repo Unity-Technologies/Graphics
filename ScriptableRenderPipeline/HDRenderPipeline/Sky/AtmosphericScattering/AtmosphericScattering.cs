@@ -62,12 +62,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return type != FogType.None;
         }
 
-        public void PushShaderParameters(CommandBuffer cmd, RenderingDebugSettings renderingDebug)
+        public void PushShaderParameters(CommandBuffer cmd, FrameSettings frameSettings)
         {
-            if(renderingDebug.enableAtmosphericScattering)
+            if(frameSettings.renderSettings.enableAtmosphericScattering)
                 cmd.SetGlobalFloat(m_TypeParam, (float)type);
             else
                 cmd.SetGlobalFloat(m_TypeParam, (float)FogType.None);
+
             // Fog Color
             cmd.SetGlobalFloat(m_ColorModeParam, (float)colorMode);
             cmd.SetGlobalColor(m_FogColorParam, fogColor);

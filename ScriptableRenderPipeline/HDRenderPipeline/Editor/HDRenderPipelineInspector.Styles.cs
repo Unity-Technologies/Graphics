@@ -14,35 +14,41 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public readonly GUIContent settingsLabel = new GUIContent("Settings");
 
-            // Rendering Settings
-            public readonly GUIContent renderingSettingsLabel = new GUIContent("Rendering Settings");
-            public readonly GUIContent useForwardRenderingOnly = new GUIContent("Use Forward Rendering Only");
-            public readonly GUIContent useDepthPrepassWithDeferredRendering = new GUIContent("Use Depth Prepass with Deferred rendering");
-            public readonly GUIContent renderAlphaTestOnlyInDeferredPrepass = new GUIContent("Alpha Test Only");
+            public readonly GUIContent globalFrameSettings = new GUIContent("Global Frame Settings");
 
-            // Texture Settings
-            public readonly GUIContent textureSettings = new GUIContent("Texture Settings");
+            // Shadow Settings
+            public readonly GUIContent supportDBuffer = new GUIContent("Support Decal buffer");
+            public readonly GUIContent supportMSAA = new GUIContent("Support MSAA");
+            // Shadow Settings
+            public readonly GUIContent shadowSettings = new GUIContent("Shadow Settings");
+            public readonly GUIContent shadowsAtlasWidth = new GUIContent("Atlas Width");
+            public readonly GUIContent shadowsAtlasHeight = new GUIContent("Atlas Height");
+            // LightLoop Settings
+            public readonly GUIContent textureSettings = new GUIContent("LightLoop Settings");
             public readonly GUIContent spotCookieSize = new GUIContent("Spot Cookie Size");
             public readonly GUIContent pointCookieSize = new GUIContent("Point Cookie Size");
             public readonly GUIContent reflectionCubemapSize = new GUIContent("Reflection Cubemap Size");
             public readonly GUIContent reflectionCacheCompressed = new GUIContent("Compress Reflection Probe Cache");
 
-            public readonly GUIContent sssSettings = new GUIContent("Subsurface Scattering Settings");
+            public readonly GUIContent defaultFrameSettings = new GUIContent("Default Frame Settings");
 
-            // Shadow Settings
-            public readonly GUIContent shadowSettings = new GUIContent("Shadow Settings");
-            public readonly GUIContent shadowsAtlasWidth = new GUIContent("Atlas Width");
-            public readonly GUIContent shadowsAtlasHeight = new GUIContent("Atlas Height");
+            // Rendering Settings
+            public readonly GUIContent renderingSettingsLabel = new GUIContent("Rendering Settings");
+            public readonly GUIContent useForwardRenderingOnly = new GUIContent("Use Forward Rendering Only");
+            public readonly GUIContent useDepthPrepassWithDeferredRendering = new GUIContent("Use Depth Prepass with Deferred rendering");
+            public readonly GUIContent renderAlphaTestOnlyInDeferredPrepass = new GUIContent("Alpha Test Only");
+            public readonly GUIContent enableAsyncCompute = new GUIContent("Enable Async Compute");
 
-            // Tile pass Settings
-            public readonly GUIContent tileLightLoopSettings = new GUIContent("Tile Light Loop Settings");
+            // LightLoop Settings
+            public readonly GUIContent lightLoopSettings = new GUIContent("Light Loop Settings");
             public readonly GUIContent enableTileAndCluster = new GUIContent("Tile/Clustered");
             public readonly GUIContent enableComputeLightEvaluation = new GUIContent("Compute Light Evaluation");
             public readonly GUIContent enableComputeLightVariants = new GUIContent("Compute Light Variants");
             public readonly GUIContent enableComputeMaterialVariants = new GUIContent("Compute Material Variants");
             public readonly GUIContent enableFptlForForwardOpaque = new GUIContent("Fptl for forward opaque");
             public readonly GUIContent enableBigTilePrepass = new GUIContent("Big tile prepass");
-            public readonly GUIContent enableAsyncCompute = new GUIContent("Enable Async Compute");
+
+            public readonly GUIContent sssSettings = new GUIContent("Subsurface Scattering Settings");
         }
 
         static Styles s_Styles;
