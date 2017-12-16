@@ -390,7 +390,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyManager.Build(asset, m_IBLFilterGGX);
             m_SkyManager.skySettings = skySettingsToUse;
 
-            m_DebugDisplaySettings.RegisterDebug(m_Asset.GetEffectiveDefaultFrameSettings());
+            m_DebugDisplaySettings.RegisterDebug();
+            FrameSettings.RegisterDebug("Default Camera", m_Asset.GetEffectiveDefaultFrameSettings());
             m_DebugFullScreenTempRT = HDShaderIDs._DebugFullScreenTexture;
 
             // Init all samplers
@@ -734,7 +735,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     bool enableBakeShadowMask;
                     using (new ProfilingSample(cmd, "TP_PrepareLightsForGPU", GetSampler(CustomSamplerId.TPPrepareLightsForGPU)))
                     {
-                        enableBakeShadowMask = m_LightLoop.PrepareLightsForGPU(cmd, m_ShadowSettings, m_CullResults, camera);
+                        enableBakeShadowMask = m_LightLoop.PrepareLightsForGPU(cmd, m_ShadowSettings, m_CullResults, camera) && m_FrameSettings.renderSettings.enableShadowMask;
                     }
                     ConfigureForShadowMask(enableBakeShadowMask, cmd);
 
@@ -846,33 +847,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.Transparent);
                         RenderForwardError(m_CullResults, camera, renderContext, cmd, ForwardPass.Transparent);
 
-                        // Fill depth buffer to reduce artifact for transparent object
+                        // Fill depth buffer to reduce artifact for transparent object during postprocess
                         RenderTransparentDepthPostPass(m_CullResults, camera, renderContext, cmd, ForwardPass.Transparent);
 
                         PushFullScreenDebugTexture(cmd, m_CameraColorBuffer, camera, renderContext, FullScreenDebugMode.NanTracker);
 
-                        // Planar and real time cubemap doesn't need post process and render in FP16
-                        if (camera.cameraType == CameraType.Reflection)
-                        {
-                            using (new ProfilingSample(cmd, "Blit to final RT", GetSampler(CustomSamplerId.BlitToFinalRT)))
-                            {
-                                // Simple blit
-                                cmd.Blit(m_CameraColorBufferRT, BuiltinRenderTextureType.CameraTarget);
-                            }
-                        }
-                        else
-                        {
-                            RenderGaussianPyramidColor(camera, cmd, renderContext, FullScreenDebugMode.FinalColorPyramid);
+                        RenderGaussianPyramidColor(camera, cmd, renderContext, FullScreenDebugMode.FinalColorPyramid);
 
-                            // TODO: Check with VFX team.
-                            // Rendering distortion here have off course lot of artifact.
-                            // But resolving at each objects that write in distortion is not possible (need to sort transparent, render those that do not distort, then resolve, then etc...)
-                            // Instead we chose to apply distortion at the end after we cumulate distortion vector and desired blurriness.
-                            AccumulateDistortion(m_CullResults, camera, renderContext, cmd);
-                            RenderDistortion(cmd, m_Asset.renderPipelineResources);
+                        AccumulateDistortion(m_CullResults, camera, renderContext, cmd);
+                        RenderDistortion(cmd, m_Asset.renderPipelineResources);
 
-                            RenderPostProcesses(hdCamera, cmd, postProcessLayer);
-                        }
+                        RenderFinal(hdCamera, cmd, postProcessLayer);
                     }
 
                     RenderDebug(hdCamera, cmd);
@@ -1403,6 +1388,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderGaussianPyramidColor(Camera camera, CommandBuffer cmd, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
         {
+            if (debugMode == FullScreenDebugMode.PreRefractionColorPyramid)
+            {
+                if (!m_FrameSettings.renderSettings.enableRoughRefraction)
+                    return;
+            }
+            else if (debugMode == FullScreenDebugMode.FinalColorPyramid)
+            {
+                // TODO: This final Gaussian pyramid can be reuse by Bloom and SSR in the future, so disable it only if there is no postprocess AND no distortion
+                if (!m_FrameSettings.renderSettings.enableDistortion && !m_FrameSettings.renderSettings.enablePostprocess && !m_FrameSettings.lightingSettings.enableSSR)
+                    return;
+            }
+
             using (new ProfilingSample(cmd, "Gaussian Pyramid Color", GetSampler(CustomSamplerId.GaussianPyramidColor)))
             {
                 int w = camera.pixelWidth;
@@ -1497,11 +1494,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderPostProcesses(HDCamera hdcamera, CommandBuffer cmd, PostProcessLayer layer)
+        void RenderFinal(HDCamera hdcamera, CommandBuffer cmd, PostProcessLayer layer)
         {
-            using (new ProfilingSample(cmd, "Post-processing", GetSampler(CustomSamplerId.PostProcessing)))
+            if (m_FrameSettings.renderSettings.enablePostprocess && CoreUtils.IsPostProcessingActive(layer))
             {
-                if (m_FrameSettings.renderSettings.enablePostprocess && CoreUtils.IsPostProcessingActive(layer))
+                using (new ProfilingSample(cmd, "Post-processing", GetSampler(CustomSamplerId.PostProcessing)))
                 {
                     // Note: Here we don't use GetDepthTexture() to get the depth texture but m_CameraDepthStencilBuffer as the Forward transparent pass can
                     // write extra data to deal with DOF/MB
@@ -1519,8 +1516,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     layer.Render(context);
                 }
-                else
+            }
+            else
+            {
+                using (new ProfilingSample(cmd, "Blit to final RT", GetSampler(CustomSamplerId.BlitToFinalRT)))
                 {
+                    // Simple blit
                     cmd.Blit(m_CameraColorBufferRT, BuiltinRenderTextureType.CameraTarget);
                 }
             }
