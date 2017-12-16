@@ -11,6 +11,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedProperty m_DefaultDiffuseMaterial;
         SerializedProperty m_DefaultShader;
 
+        // Global Frame Settings
+        // Global Render settings
+        SerializedProperty m_supportDBuffer;
+        SerializedProperty m_supportMSAA;
+        // Global Shadow settings
+        SerializedProperty m_ShadowAtlasWidth;
+        SerializedProperty m_ShadowAtlasHeight;
+        // Global LightLoop settings
+        SerializedProperty m_SpotCookieSize;
+        SerializedProperty m_PointCookieSize;
+        SerializedProperty m_ReflectionCubemapSize;
+        SerializedProperty m_ReflectionCacheCompressed;
+
+        // FrameSettings
         // LightLoop settings
         SerializedProperty m_enableTileAndCluster;
         SerializedProperty m_enableSplitLightEvaluation;
@@ -19,25 +33,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedProperty m_enableComputeMaterialVariants;
         SerializedProperty m_enableFptlForForwardOpaque;
         SerializedProperty m_enableBigTilePrepass;
-        SerializedProperty m_enableAsyncCompute;
-
         // Rendering Settings
         SerializedProperty m_RenderingUseForwardOnly;
         SerializedProperty m_RenderingUseDepthPrepass;
         SerializedProperty m_RenderingUseDepthPrepassAlphaTestOnly;
+        SerializedProperty m_enableAsyncCompute;
 
         // Subsurface Scattering Settings
         SerializedProperty m_SubsurfaceScatteringSettings;
-
-        // Shadow Settings
-        SerializedProperty m_ShadowAtlasWidth;
-        SerializedProperty m_ShadowAtlasHeight;
-
-        // Texture Settings
-        SerializedProperty m_SpotCookieSize;
-        SerializedProperty m_PointCookieSize;
-        SerializedProperty m_ReflectionCubemapSize;
-        SerializedProperty m_ReflectionCacheCompressed;
 
         void InitializeProperties()
         {
@@ -45,29 +48,32 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_DefaultDiffuseMaterial = properties.Find("m_DefaultDiffuseMaterial");
             m_DefaultShader = properties.Find("m_DefaultShader");
 
-            // Tile settings
-            m_enableTileAndCluster = properties.Find(x => x.lightLoopSettings.enableTileAndCluster);
-            m_enableComputeLightEvaluation = properties.Find(x => x.lightLoopSettings.enableComputeLightEvaluation);
-            m_enableComputeLightVariants = properties.Find(x => x.lightLoopSettings.enableComputeLightVariants);
-            m_enableComputeMaterialVariants = properties.Find(x => x.lightLoopSettings.enableComputeMaterialVariants);
-            m_enableFptlForForwardOpaque = properties.Find(x => x.lightLoopSettings.enableFptlForForwardOpaque);
-            m_enableBigTilePrepass = properties.Find(x => x.lightLoopSettings.enableBigTilePrepass);
-            m_enableAsyncCompute = properties.Find(x => x.lightLoopSettings.enableAsyncCompute);
+            // Global FrameSettings
+            // Global Render settings
+            m_supportDBuffer = properties.Find(x => x.globalFrameSettings.renderSettings.supportDBuffer);
+            m_supportMSAA = properties.Find(x => x.globalFrameSettings.renderSettings.supportMSAA);
+            // Global Shadow settings
+            m_ShadowAtlasWidth = properties.Find(x => x.globalFrameSettings.shadowInitParams.shadowAtlasWidth);
+            m_ShadowAtlasHeight = properties.Find(x => x.globalFrameSettings.shadowInitParams.shadowAtlasHeight);
+            // Global LightLoop settings
+            m_SpotCookieSize = properties.Find(x => x.globalFrameSettings.lightLoopSettings.spotCookieSize);
+            m_PointCookieSize = properties.Find(x => x.globalFrameSettings.lightLoopSettings.pointCookieSize);
+            m_ReflectionCubemapSize = properties.Find(x => x.globalFrameSettings.lightLoopSettings.reflectionCubemapSize);
+            m_ReflectionCacheCompressed = properties.Find(x => x.globalFrameSettings.lightLoopSettings.reflectionCacheCompressed);
 
-            // Shadow settings
-            m_ShadowAtlasWidth = properties.Find(x => x.shadowInitParams.shadowAtlasWidth);
-            m_ShadowAtlasHeight = properties.Find(x => x.shadowInitParams.shadowAtlasHeight);
-
-            // Texture settings
-            m_SpotCookieSize = properties.Find(x => x.globalTextureSettings.spotCookieSize);
-            m_PointCookieSize = properties.Find(x => x.globalTextureSettings.pointCookieSize);
-            m_ReflectionCubemapSize = properties.Find(x => x.globalTextureSettings.reflectionCubemapSize);
-            m_ReflectionCacheCompressed = properties.Find(x => x.globalTextureSettings.reflectionCacheCompressed);
-
-            // Rendering settings
-            m_RenderingUseForwardOnly = properties.Find(x => x.globalRenderingSettings.useForwardRenderingOnly);
-            m_RenderingUseDepthPrepass = properties.Find(x => x.globalRenderingSettings.useDepthPrepassWithDeferredRendering);
-            m_RenderingUseDepthPrepassAlphaTestOnly = properties.Find(x => x.globalRenderingSettings.renderAlphaTestOnlyInDeferredPrepass);
+            // FrameSettings
+            // LightLoop settings
+            m_enableTileAndCluster = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableTileAndCluster);
+            m_enableComputeLightEvaluation = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableComputeLightEvaluation);
+            m_enableComputeLightVariants = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableComputeLightVariants);
+            m_enableComputeMaterialVariants = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableComputeMaterialVariants);
+            m_enableFptlForForwardOpaque = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableFptlForForwardOpaque);
+            m_enableBigTilePrepass = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableBigTilePrepass);
+            // Rendering Settings
+            m_enableAsyncCompute = properties.Find(x => x.defaultFrameSettings.renderSettings.enableAsyncCompute);
+            m_RenderingUseForwardOnly = properties.Find(x => x.defaultFrameSettings.renderSettings.enableForwardRenderingOnly);
+            m_RenderingUseDepthPrepass = properties.Find(x => x.defaultFrameSettings.renderSettings.enableDepthPrepassWithDeferredRendering);
+            m_RenderingUseDepthPrepassAlphaTestOnly = properties.Find(x => x.defaultFrameSettings.renderSettings.enableAlphaTestOnlyInDeferredPrepass);
 
             // Subsurface Scattering Settings
             m_SubsurfaceScatteringSettings = properties.Find(x => x.sssSettings);
@@ -81,24 +87,68 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 method.Invoke(asset, new object[0]);
         }
 
-        void TileSettingsUI(HDRenderPipelineAsset renderContext)
+        void GlobalLightLoopSettingsUI(HDRenderPipelineAsset hdAsset)
         {
             EditorGUILayout.Space();
-
-            EditorGUILayout.LabelField(s_Styles.tileLightLoopSettings);
+            EditorGUILayout.LabelField(s_Styles.textureSettings);
             EditorGUI.indentLevel++;
             EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(m_SpotCookieSize, s_Styles.spotCookieSize);
+            EditorGUILayout.PropertyField(m_PointCookieSize, s_Styles.pointCookieSize);
+            EditorGUILayout.PropertyField(m_ReflectionCubemapSize, s_Styles.reflectionCubemapSize);
+            // Commented out until we have proper realtime BC6H compression
+            //EditorGUILayout.PropertyField(m_ReflectionCacheCompressed, s_Styles.reflectionCacheCompressed);
+            if (EditorGUI.EndChangeCheck())
+            {
+                HackSetDirty(hdAsset); // Repaint
+            }
+            EditorGUI.indentLevel--;
+        }
 
+        void GlobalRenderSettingsUI(HDRenderPipelineAsset hdAsset)
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(s_Styles.renderingSettingsLabel);
+            EditorGUI.indentLevel++;
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(m_supportDBuffer, s_Styles.supportDBuffer);
+            EditorGUILayout.PropertyField(m_supportMSAA, s_Styles.supportMSAA);
+            if (EditorGUI.EndChangeCheck())
+            {
+                HackSetDirty(hdAsset); // Repaint
+            }
+            EditorGUI.indentLevel--;
+        }
+
+        void GlobalShadowSettingsUI(HDRenderPipelineAsset hdAsset)
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(s_Styles.shadowSettings);
+            EditorGUI.indentLevel++;
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(m_ShadowAtlasWidth, s_Styles.shadowsAtlasWidth);
+            EditorGUILayout.PropertyField(m_ShadowAtlasHeight, s_Styles.shadowsAtlasHeight);
+            if (EditorGUI.EndChangeCheck())
+            {
+                HackSetDirty(hdAsset); // Repaint
+            }
+            EditorGUI.indentLevel--;
+        }
+
+        void LightLoopSettingsUI(HDRenderPipelineAsset hdAsset)
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(s_Styles.lightLoopSettings);
+            EditorGUI.indentLevel++;
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_enableTileAndCluster, s_Styles.enableTileAndCluster);
             if (m_enableTileAndCluster.boolValue)
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_enableBigTilePrepass, s_Styles.enableBigTilePrepass);
-
-                // Allow to disable cluster for foward opaque when in forward only (option have no effect when MSAA is enabled)
+                // Allow to disable cluster for forward opaque when in forward only (option have no effect when MSAA is enabled)
                 // Deferred opaque are always tiled
                 EditorGUILayout.PropertyField(m_enableFptlForForwardOpaque, s_Styles.enableFptlForForwardOpaque);
-
                 EditorGUILayout.PropertyField(m_enableComputeLightEvaluation, s_Styles.enableComputeLightEvaluation);
                 if (m_enableComputeLightEvaluation.boolValue)
                 {
@@ -107,54 +157,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     EditorGUILayout.PropertyField(m_enableComputeMaterialVariants, s_Styles.enableComputeMaterialVariants);
                     EditorGUI.indentLevel--;
                 }
-                EditorGUILayout.PropertyField(m_enableAsyncCompute, s_Styles.enableAsyncCompute);
             }
-
             if (EditorGUI.EndChangeCheck())
             {
-                HackSetDirty(renderContext); // Repaint
+                HackSetDirty(hdAsset); // Repaint
             }
             EditorGUI.indentLevel--;
         }
 
-        void SssSettingsUI(HDRenderPipelineAsset renderContext)
-        {
-            EditorGUILayout.PropertyField(m_SubsurfaceScatteringSettings, s_Styles.sssSettings);
-        }
-
-        void SettingsUI(HDRenderPipelineAsset renderContext)
-        {
-            EditorGUILayout.LabelField(s_Styles.settingsLabel, EditorStyles.boldLabel);
-            EditorGUI.indentLevel++;
-
-            SssSettingsUI(renderContext);
-            ShadowSettingsUI(renderContext);
-            TextureSettingsUI(renderContext);
-            RendereringSettingsUI(renderContext);
-            TileSettingsUI(renderContext);
-
-            EditorGUI.indentLevel--;
-        }
-
-        void ShadowSettingsUI(HDRenderPipelineAsset renderContext)
-        {
-            EditorGUILayout.Space();
-
-            EditorGUILayout.LabelField(s_Styles.shadowSettings);
-            EditorGUI.indentLevel++;
-            EditorGUI.BeginChangeCheck();
-
-            EditorGUILayout.PropertyField(m_ShadowAtlasWidth, s_Styles.shadowsAtlasWidth);
-            EditorGUILayout.PropertyField(m_ShadowAtlasHeight, s_Styles.shadowsAtlasHeight);
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                HackSetDirty(renderContext); // Repaint
-            }
-            EditorGUI.indentLevel--;
-        }
-
-        void RendereringSettingsUI(HDRenderPipelineAsset renderContext)
+        void RendereringSettingsUI(HDRenderPipelineAsset hdAsset)
         {
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(s_Styles.renderingSettingsLabel);
@@ -164,7 +175,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (!m_RenderingUseForwardOnly.boolValue) // If we are deferred
             {
                 EditorGUILayout.PropertyField(m_RenderingUseDepthPrepass, s_Styles.useDepthPrepassWithDeferredRendering);
-                if(m_RenderingUseDepthPrepass.boolValue)
+                if (m_RenderingUseDepthPrepass.boolValue)
                 {
                     EditorGUI.indentLevel++;
                     EditorGUILayout.PropertyField(m_RenderingUseDepthPrepassAlphaTestOnly, s_Styles.renderAlphaTestOnlyInDeferredPrepass);
@@ -172,29 +183,32 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
+            EditorGUILayout.PropertyField(m_enableAsyncCompute, s_Styles.enableAsyncCompute);
+
             EditorGUI.indentLevel--;
         }
 
-        void TextureSettingsUI(HDRenderPipelineAsset renderContext)
+        void SettingsUI(HDRenderPipelineAsset hdAsset)
         {
-            EditorGUILayout.Space();
-
-            EditorGUILayout.LabelField(s_Styles.textureSettings);
+            EditorGUILayout.LabelField(s_Styles.settingsLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
-            EditorGUI.BeginChangeCheck();
 
-            EditorGUILayout.PropertyField(m_SpotCookieSize, s_Styles.spotCookieSize);
-            EditorGUILayout.PropertyField(m_PointCookieSize, s_Styles.pointCookieSize);
-            EditorGUILayout.PropertyField(m_ReflectionCubemapSize, s_Styles.reflectionCubemapSize);
-            
-            // Commented ou until we have proper realtime BC6H compression
-            //EditorGUILayout.PropertyField(m_ReflectionCacheCompressed, s_Styles.reflectionCacheCompressed);
+            EditorGUILayout.LabelField(s_Styles.globalFrameSettings, EditorStyles.boldLabel);
 
-            if (EditorGUI.EndChangeCheck())
-            {
-                HackSetDirty(renderContext); // Repaint
-            }
+            GlobalRenderSettingsUI(hdAsset);
+            GlobalShadowSettingsUI(hdAsset);
+            GlobalLightLoopSettingsUI(hdAsset);
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(s_Styles.defaultFrameSettings, EditorStyles.boldLabel);
+
+            RendereringSettingsUI(hdAsset);
+            LightLoopSettingsUI(hdAsset);
+
             EditorGUI.indentLevel--;
+
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(m_SubsurfaceScatteringSettings, s_Styles.sssSettings);
         }
 
         protected override void OnEnable()
@@ -215,7 +229,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUILayout.LabelField(s_Styles.defaults, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(m_RenderPipelineResources, s_Styles.renderPipelineResources);            
+            EditorGUILayout.PropertyField(m_RenderPipelineResources, s_Styles.renderPipelineResources);
             EditorGUILayout.PropertyField(m_DefaultDiffuseMaterial, s_Styles.defaultDiffuseMaterial);
             EditorGUILayout.PropertyField(m_DefaultShader, s_Styles.defaultShader);
             EditorGUI.indentLevel--;

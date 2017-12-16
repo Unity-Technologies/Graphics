@@ -300,6 +300,5 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetProceduralSkySettings>(), "New ProceduralSkySettings.asset", icon, null);
         }
-
     }
 }
