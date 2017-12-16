@@ -82,7 +82,9 @@ Shader "HDRenderPipeline/LitTessellation"
 
         [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+        _AlphaCutoffPrepass("_AlphaCutoffPrepass", Range(0.0, 1.0)) = 0.5
         _AlphaCutoffPostpass("_AlphaCutoffPostpass", Range(0.0, 1.0)) = 0.5
+        [ToggleOff] _TransparentDepthPrepassEnable("_TransparentDepthPrepassEnable", Float) = 0.0
         [ToggleOff] _TransparentBackfaceEnable("_TransparentBackfaceEnable", Float) = 0.0
         [ToggleOff] _TransparentDepthPostpassEnable("_TransparentDepthPostpassEnable", Float) = 0.0
 
@@ -506,6 +508,33 @@ Shader "HDRenderPipeline/LitTessellation"
             ENDHLSL
         }
 
+        // Caution: Order of pass mater. It should be:
+        // TransparentDepthPrepass, TransparentBackface, Forward/ForwardOnly, TransparentDepthPostpass
+        Pass
+        {
+            Name "TransparentDepthPrepass"
+            Tags{ "LightMode" = "TransparentDepthPrepass" }
+
+            Cull[_CullMode]
+            ZWrite On
+            ColorMask 0
+
+            HLSLPROGRAM
+
+            #pragma hull Hull
+            #pragma domain Domain
+
+            #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #define CUTOFF_TRANSPARENT_DEPTH_PREPASS
+            #include "../../ShaderVariables.hlsl"
+            #include "../../Material/Material.hlsl"
+            #include "ShaderPass/LitDepthPass.hlsl"
+            #include "LitData.hlsl"
+            #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
+
+            ENDHLSL
+        }
+
         Pass
         {
             Name "TransparentBackface"
@@ -628,6 +657,9 @@ Shader "HDRenderPipeline/LitTessellation"
             ColorMask 0
 
             HLSLPROGRAM
+
+            #pragma hull Hull
+            #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #define CUTOFF_TRANSPARENT_DEPTH_POSTPASS
