@@ -183,7 +183,9 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     // Perform alha test very early to save performance (a killed pixel will not sample textures)
 #if defined(_ALPHATEST_ON) && !defined(LAYERED_LIT_SHADER)
     float alphaCutoff = _AlphaCutoff;
-    #ifdef CUTOFF_TRANSPARENT_DEPTH_POSTPASS
+    #ifdef CUTOFF_TRANSPARENT_DEPTH_PREPASS
+    alphaCutoff = _AlphaCutoffPrepass;
+    #elif defined(CUTOFF_TRANSPARENT_DEPTH_POSTPASS)
     alphaCutoff = _AlphaCutoffPostpass;
     #endif
     DoAlphaTest(alpha, alphaCutoff);
@@ -207,7 +209,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.baseColor = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base)).rgb * ADD_IDX(_BaseColor).rgb;
 #ifdef _DETAIL_MAP_IDX
     // Use overlay blend mode for detail abledo: (base < 0.5 ? (2.0 * base * blend) : (1.0 - 2.0 * (1.0 - base) * (1.0 - blend)))
-    float3 baseColorOverlay = (detailAlbedo < 0.5) ? 
+    float3 baseColorOverlay = (detailAlbedo < 0.5) ?
                                 surfaceData.baseColor * PositivePow(2.0 * detailAlbedo, ADD_IDX(_DetailAlbedoScale)) :
                                 1.0 - (1.0 - surfaceData.baseColor) * PositivePow(2.0 * (1.0 - detailAlbedo), ADD_IDX(_DetailAlbedoScale));
     // Lerp with details mask
@@ -313,7 +315,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.atDistance = _ATDistance;
     // Thickness already defined with SSS (from both thickness and thicknessMap)
     surfaceData.thickness *= _ThicknessMultiplier;
-    // Rough refraction don't use opacity. Instead we use opacity as a transmittance mask. 
+    // Rough refraction don't use opacity. Instead we use opacity as a transmittance mask.
     surfaceData.transmittanceMask = 1.0 - alpha;
     alpha = 1.0;
 #else
