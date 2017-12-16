@@ -1340,7 +1340,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderTransparentDepthPostPass(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, ForwardPass pass)
         {
-            if (m_FrameSettings.renderSettings.enableTransparentPostPass)
+            if (!m_FrameSettings.renderSettings.enableTransparentPostPass)
                 return;
 
             using (new ProfilingSample(cmd, "Render Transparent Depth Post ", GetSampler(CustomSamplerId.TransparentDepthPostPass)))
