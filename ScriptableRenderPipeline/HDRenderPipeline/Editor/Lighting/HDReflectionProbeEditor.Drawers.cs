@@ -80,7 +80,7 @@ namespace UnityEditor.Experimental.Rendering
         static void Drawer_CaptureSettings(UIState s, SerializedReflectionProbe p, Editor owner)
         {
             var renderPipelineAsset = (HDRenderPipelineAsset)GraphicsSettings.renderPipelineAsset;
-            p.resolution.intValue = renderPipelineAsset.globalTextureSettings.reflectionCubemapSize;
+            p.resolution.intValue = renderPipelineAsset.GetGlobalFrameSettings().lightLoopSettings.reflectionCubemapSize;
             EditorGUILayout.LabelField(CoreEditorUtils.GetContent("Resolution"), CoreEditorUtils.GetContent(p.resolution.intValue.ToString()));
 
             EditorGUILayout.PropertyField(p.shadowDistance);
@@ -132,7 +132,7 @@ namespace UnityEditor.Experimental.Rendering
                 case ReflectionProbeMode.Custom:
                 {
                     if (ButtonWithDropdownList(
-                        CoreEditorUtils.GetContent("Bake|Bakes Reflection Probe's cubemap, overwriting the existing cubemap texture asset (if any)."), k_BakeCustomOptionText, 
+                        CoreEditorUtils.GetContent("Bake|Bakes Reflection Probe's cubemap, overwriting the existing cubemap texture asset (if any)."), k_BakeCustomOptionText,
                         data =>
                         {
                             var mode = (int)data;
@@ -276,7 +276,7 @@ namespace UnityEditor.Experimental.Rendering
         #endregion
 
         #region Toolbar
-        static readonly EditMode.SceneViewEditMode[] k_Toolbar_SceneViewEditModes = 
+        static readonly EditMode.SceneViewEditMode[] k_Toolbar_SceneViewEditModes =
         {
             EditMode.SceneViewEditMode.ReflectionProbeBox,
             //EditMode.SceneViewEditMode.GridBox,
