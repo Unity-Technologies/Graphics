@@ -25,7 +25,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_effectiveFrameSettings;
         }
 
-        Camera                  m_camera;
+        bool isRegisterDebug = false;
+        Camera m_camera;
 
         void OnEnable()
         {
@@ -36,7 +37,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_camera = GetComponent<Camera>();
             m_camera.allowHDR = false;
 
-            m_effectiveFrameSettings = frameSettings;
+            frameSettings.CopyTo(m_effectiveFrameSettings);
+
+            if (!isRegisterDebug)
+            {
+                FrameSettings.RegisterDebug(m_camera.name, GetEffectiveFrameSettings());
+                isRegisterDebug = true;
+            }
         }
     }
 }
