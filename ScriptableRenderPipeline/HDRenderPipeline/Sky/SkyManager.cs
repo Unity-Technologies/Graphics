@@ -199,16 +199,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RebuildSkyMatrices(nearPlane, farPlane);
         }
 
-        public void Build(RenderPipelineResources renderPipelineResources, IBLFilterGGX iblFilterGGX)
+        public void Build(HDRenderPipelineAsset hdAsset, IBLFilterGGX iblFilterGGX)
         {
             m_iblFilterGgx = iblFilterGGX;
 
             // TODO: We need to have an API to send our sky information to Enlighten. For now use a workaround through skybox/cubemap material...
-            m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(renderPipelineResources.skyboxCubemap);
+            m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.skyboxCubemap);
 
-            m_BlitCubemapMaterial = CoreUtils.CreateEngineMaterial(renderPipelineResources.blitCubemap);
+            m_BlitCubemapMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.blitCubemap);
 
-            m_OpaqueAtmScatteringMaterial = CoreUtils.CreateEngineMaterial(renderPipelineResources.opaqueAtmosphericScattering);
+            m_OpaqueAtmScatteringMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.opaqueAtmosphericScattering);
 
             m_CurrentUpdateTime = 0.0f;
         }
@@ -370,14 +370,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void RenderSky(HDCamera camera, Light sunLight, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, CommandBuffer cmd, DebugDisplaySettings debugSettings)
+        public void RenderSky(HDCamera camera, Light sunLight, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, CommandBuffer cmd, FrameSettings m_frameSettings)
         {
             using (new ProfilingSample(cmd, "Sky Pass"))
             {
                 if (IsSkyValid())
                 {
                     // Rendering the sky is the first time in the frame where we need fog parameters so we push them here for the whole frame.
-                    m_SkySettings.atmosphericScatteringSettings.PushShaderParameters(cmd, debugSettings.renderingDebugSettings);
+                    m_SkySettings.atmosphericScatteringSettings.PushShaderParameters(cmd, m_frameSettings);
 
                     m_BuiltinParameters.commandBuffer = cmd;
                     m_BuiltinParameters.sunLight = sunLight;
