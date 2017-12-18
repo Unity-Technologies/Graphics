@@ -8,53 +8,6 @@ namespace UnityEditor.ShaderGraph
 {
     static class GraphUtil
     {
-        internal static ShaderGraphRequirements GetRequirements(List<INode> nodes)
-        {
-            NeededCoordinateSpace requiresNormal = nodes.OfType<IMayRequireNormal>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresNormal());
-            NeededCoordinateSpace requiresBitangent = nodes.OfType<IMayRequireBitangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresBitangent());
-            NeededCoordinateSpace requiresTangent = nodes.OfType<IMayRequireTangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresTangent());
-            NeededCoordinateSpace requiresViewDir = nodes.OfType<IMayRequireViewDirection>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresViewDirection());
-            NeededCoordinateSpace requiresPosition = nodes.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition());
-            bool requiresScreenPosition = nodes.OfType<IMayRequireScreenPosition>().Any(x => x.RequiresScreenPosition());
-            bool requiresVertexColor = nodes.OfType<IMayRequireVertexColor>().Any(x => x.RequiresVertexColor());
-
-            var meshUV = new List<UVChannel>();
-            for (int uvIndex = 0; uvIndex < ShaderGeneratorNames.UVCount; ++uvIndex)
-            {
-                var channel = (UVChannel)uvIndex;
-                if (nodes.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV(channel)))
-                    meshUV.Add(channel);
-            }
-
-            // if anything needs tangentspace we have make
-            // sure to have our othonormal basis!
-            var compoundSpaces = requiresBitangent | requiresNormal | requiresPosition
-                | requiresTangent | requiresViewDir | requiresPosition
-                | requiresNormal;
-
-            var needsTangentSpace = (compoundSpaces & NeededCoordinateSpace.Tangent) > 0;
-            if (needsTangentSpace)
-            {
-                requiresBitangent |= NeededCoordinateSpace.Object;
-                requiresNormal |= NeededCoordinateSpace.Object;
-                requiresTangent |= NeededCoordinateSpace.Object;
-            }
-
-            var reqs = new ShaderGraphRequirements()
-            {
-                requiresNormal = requiresNormal,
-                requiresBitangent = requiresBitangent,
-                requiresTangent = requiresTangent,
-                requiresViewDir = requiresViewDir,
-                requiresPosition = requiresPosition,
-                requiresScreenPosition = requiresScreenPosition,
-                requiresVertexColor = requiresVertexColor,
-                requiresMeshUVs = meshUV
-            };
-
-            return reqs;
-        }
-
         internal static void GenerateApplicationVertexInputs(ShaderGraphRequirements graphRequiements, ShaderGenerator vertexInputs, int vertexInputStartIndex, int maxVertexInputs)
         {
             int vertexInputIndex = vertexInputStartIndex;
@@ -127,8 +80,8 @@ namespace UnityEditor.ShaderGraph
                 NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, node);
             }
 
-            var requirements = GraphUtil.GetRequirements(activeNodeList);
-            GraphUtil.GenerateApplicationVertexInputs(requirements, vertexInputs, 0, 8);
+            var requirements = ShaderGraphRequirements.FromNodes(activeNodeList);
+            GenerateApplicationVertexInputs(requirements, vertexInputs, 0, 8);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, surfaceInputs);
