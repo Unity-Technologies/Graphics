@@ -18,6 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Plane[] frustumPlanes;
         public Vector4[] frustumPlaneEquations;
         public Camera camera;
+        public uint taaFrameIndex;
         public PostProcessRenderContext postprocessRenderContext;
 
         public Matrix4x4 viewProjMatrix
@@ -123,6 +124,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 isFirstFrame = false;
+
+                const uint taaFrameCount = 8;
+                taaFrameIndex = taaEnabled ? (uint)Time.renderedFrameCount % taaFrameCount : 0; 
+            }
+            else
+            {
+                // Warning: in the Game View, outside of the Play Mode, the counter gets stuck on a random frame.
+                // In this case, reset the frame index to 0.
+                taaFrameIndex = 0;
             }
 
             viewMatrix = gpuView;
@@ -203,6 +213,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalVector(HDShaderIDs._ScreenSize, screenSize);
             cmd.SetGlobalMatrix(HDShaderIDs._PrevViewProjMatrix, prevViewProjMatrix);
             cmd.SetGlobalVectorArray(HDShaderIDs._FrustumPlanes, frustumPlaneEquations);
+            cmd.SetGlobalInt(HDShaderIDs._TaaFrameIndex, (int)taaFrameIndex);
         }
 
         // Does not modify global settings. Used for shadows, low res. rendering, etc.
@@ -219,6 +230,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             material.SetVector(HDShaderIDs._ScreenSize, screenSize);
             material.SetMatrix(HDShaderIDs._PrevViewProjMatrix, prevViewProjMatrix);
             material.SetVectorArray(HDShaderIDs._FrustumPlanes, frustumPlaneEquations);
+            material.SetInt(HDShaderIDs._TaaFrameIndex, (int)taaFrameIndex);
         }
 
         // TODO: We should set all the value below globally and not let it under the control of Unity,
