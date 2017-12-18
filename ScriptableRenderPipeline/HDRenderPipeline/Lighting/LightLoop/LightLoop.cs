@@ -64,7 +64,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var varianceInit3 = varianceInit;
             varianceInit3.baseInit.shadowmapFormat = ShadowVariance.GetFormat( true, false, true );
 
-            m_Shadowmaps = new ShadowmapBase[] { new ShadowVariance( ref varianceInit ), new ShadowVariance( ref varianceInit2 ), new ShadowVariance( ref varianceInit3 ), new ShadowAtlas( ref atlasInit ) };
+            m_Shadowmaps = new ShadowmapBase[] { new ShadowVariance(ref varianceInit), new ShadowVariance(ref varianceInit2), new ShadowVariance(ref varianceInit3), new ShadowAtlas(ref atlasInit) };
 
             ShadowContext.SyncDel syncer = (ShadowContext sc) =>
                 {
@@ -87,14 +87,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     RenderTargetIdentifier[] tex;
                     sc.GetTex2DArrays(out tex, out offset, out count);
 
-                        // bind buffers
-                        cb.SetGlobalBuffer(HDShaderIDs._ShadowDatasExp, s_ShadowDataBuffer);
-                        cb.SetGlobalBuffer(HDShaderIDs._ShadowPayloads, s_ShadowPayloadBuffer);
-                        // bind textures
-                        cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_VSM_0, tex[0]);
-                        cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_VSM_1, tex[1]);
-                        cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_VSM_2, tex[2]);
-                        cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_PCF, tex[3]);
+                    // bind buffers
+                    cb.SetGlobalBuffer(HDShaderIDs._ShadowDatasExp, s_ShadowDataBuffer);
+                    cb.SetGlobalBuffer(HDShaderIDs._ShadowPayloads, s_ShadowPayloadBuffer);
+                    // bind textures
+                    cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_VSM_0, tex[0]);
+                    cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_VSM_1, tex[1]);
+                    cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_VSM_2, tex[2]);
+                    cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_PCF, tex[3]);
 
                     // TODO: Currently samplers are hard coded in ShadowContext.hlsl, so we can't really set them here
                 };
@@ -471,7 +471,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_GlobalLightListAtomic = new ComputeBuffer(1, sizeof(uint));
             }
 
-                s_GenListPerBigTileKernel = buildPerBigTileLightListShader.FindKernel("BigTileLightListGen");
+            s_GenListPerBigTileKernel = buildPerBigTileLightListShader.FindKernel("BigTileLightListGen");
 
             s_BuildDispatchIndirectKernel = buildDispatchIndirectShader.FindKernel("BuildDispatchIndirect");
             s_ClearDispatchIndirectKernel = clearDispatchIndirectShader.FindKernel("ClearDispatchIndirect");
@@ -587,14 +587,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     for (int shadowMask = 0; shadowMask < 2; ++shadowMask)
                     {
-                            for (int debugDisplay = 0; debugDisplay < 2; ++debugDisplay)
-                            {
+                        for (int debugDisplay = 0; debugDisplay < 2; ++debugDisplay)
+                        {
                             int index = GetDeferredLightingMaterialIndex(outputSplitLighting, lightLoopTilePass, shadowMask, debugDisplay);
                             CoreUtils.Destroy(m_deferredLightingMaterial[index]);
-                            }
                         }
                     }
                 }
+            }
 
             CoreUtils.Destroy(m_DebugViewTilesMaterial);
         }
@@ -614,7 +614,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(m_FrameSettings.lightLoopSettings.enableBigTilePrepass ? "TileLightListGen_SrcBigTile_FeatureFlags" : "TileLightListGen_FeatureFlags");
             }
             else
-        {
+            {
                 s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(m_FrameSettings.lightLoopSettings.enableBigTilePrepass ? "TileLightListGen_SrcBigTile" : "TileLightListGen");
             }
 
@@ -1257,7 +1257,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool PrepareLightsForGPU(CommandBuffer cmd, ShadowSettings shadowSettings, CullResults cullResults, Camera camera)
         {
             using (new ProfilingSample(cmd, "Prepare Lights For GPU"))
-        {
+            {
 
             // If any light require it, we need to enabled bake shadow mask feature
             m_enableBakeShadowMask = false;
@@ -1820,7 +1820,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_LightVolumeDataBuffer.SetData(m_lightList.lightVolumes);
         }
 
-            void PushGlobalParams(Camera camera, CommandBuffer cmd)
+        void PushGlobalParams(Camera camera, CommandBuffer cmd)
         {
             using (new ProfilingSample(cmd, "Push Global Parameters", HDRenderPipeline.GetSampler(CustomSamplerId.TPPushGlobalParameters)))
             {
@@ -1852,7 +1852,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, s_BigTileLightList);
 
                 // Cluster
-            {
+                {
                     cmd.SetGlobalFloat(HDShaderIDs.g_fClustScale, m_ClustScale);
                     cmd.SetGlobalFloat(HDShaderIDs.g_fClustBase, k_ClustLogBase);
                     cmd.SetGlobalFloat(HDShaderIDs.g_fNearPlane, camera.nearClipPlane);
@@ -1861,11 +1861,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetGlobalInt(HDShaderIDs.g_isLogBaseBufferEnabled, k_UseDepthBuffer ? 1 : 0);
 
                     cmd.SetGlobalBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, s_PerVoxelOffset);
-                if (k_UseDepthBuffer)
-                {
+                    if (k_UseDepthBuffer)
+                    {
                         cmd.SetGlobalBuffer(HDShaderIDs.g_logBaseBuffer, s_PerTileLogBaseTweak);
-            }
-        }
+                    }
+                }
             }
         }
 

@@ -12,9 +12,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public MinFloatParameter fogDistance = new MinFloatParameter(200.0f, 0.0f);
 
-        public override void PushShaderParameters(CommandBuffer cmd, RenderingDebugSettings renderingDebug)
+        public override void PushShaderParameters(CommandBuffer cmd, FrameSettings frameSettings)
         {
-            PushShaderParametersCommon(cmd, FogType.Exponential, renderingDebug);
+            PushShaderParametersCommon(cmd, FogType.Exponential, frameSettings);
             cmd.SetGlobalVector(m_ExpFogParam, new Vector4(Mathf.Max(0.0f, fogDistance), 0.0f, 0.0f, 0.0f));
         }
     }

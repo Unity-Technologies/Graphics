@@ -605,8 +605,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (!m_IBLFilterGGX.IsInitialized())
                     m_IBLFilterGGX.Initialize(cmd);
 
-                    foreach (var material in m_MaterialList)
-                        material.RenderInit(cmd);
+                foreach (var material in m_MaterialList)
+                    material.RenderInit(cmd);
 
                 using (new ProfilingSample(cmd, "HDRenderPipeline::Render", GetSampler(CustomSamplerId.HDRenderPipelineRender)))
                 {
@@ -741,7 +741,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             renderContext.ExecuteCommandBuffer(cmd);
                             cmd.Clear();
 
-                    buildGPULightListsCompleteFence = m_LightLoop.BuildGPULightListsAsyncBegin(camera, renderContext, m_CameraDepthStencilBufferRT, m_CameraStencilBufferCopyRT, startFence, m_SkyManager.IsSkyValid());
+                            buildGPULightListsCompleteFence = m_LightLoop.BuildGPULightListsAsyncBegin(camera, renderContext, m_CameraDepthStencilBufferRT, m_CameraStencilBufferCopyRT, startFence, m_SkyManager.IsSkyValid());
                         }
 
                         using (new ProfilingSample(cmd, "Render shadows", GetSampler(CustomSamplerId.RenderShadows)))
@@ -782,7 +782,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         {
                             using (new ProfilingSample(cmd, "Build Light list", GetSampler(CustomSamplerId.BuildLightList)))
                             {
-                        m_LightLoop.BuildGPULightLists(camera, cmd, m_CameraDepthStencilBufferRT, m_CameraStencilBufferCopyRT, m_SkyManager.IsSkyValid());
+                                m_LightLoop.BuildGPULightLists(camera, cmd, m_CameraDepthStencilBufferRT, m_CameraStencilBufferCopyRT, m_SkyManager.IsSkyValid());
                             }
                         }
 
@@ -1054,12 +1054,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (m_FrameSettings.enableTransparentPrePass)
             {
-            // Render transparent depth prepass after opaque one
-            using (new ProfilingSample(cmd, "Transparent Depth Prepass", GetSampler(CustomSamplerId.TransparentDepthPrepass)))
-            {
-                RenderTransparentRenderList(cull, camera, renderContext, cmd, m_TransparentDepthPrePassNames);
+                // Render transparent depth prepass after opaque one
+                using (new ProfilingSample(cmd, "Transparent Depth Prepass", GetSampler(CustomSamplerId.TransparentDepthPrepass)))
+                {
+                    RenderTransparentRenderList(cull, camera, renderContext, cmd, m_TransparentDepthPrePassNames);
+                }
             }
-        }
         }
 
         // RenderGBuffer do the gbuffer pass. This is solely call with deferred. If we use a depth prepass, then the depth prepass will perform the alpha testing for opaque apha tested and we don't need to do it anymore
@@ -1106,7 +1106,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void RenderDBuffer(Vector3 cameraPos, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             if (!m_FrameSettings.enableDBuffer)
-            return ;
+                return;
 
             using (new ProfilingSample(cmd, "DBuffer", GetSampler(CustomSamplerId.DBuffer)))
             {
@@ -1213,11 +1213,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Rendering the sky is the first time in the frame where we need fog parameters so we push them here for the whole frame.
             var visualEnv = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-            visualEnv.PushFogShaderParameters(cmd, m_DebugDisplaySettings.renderingDebugSettings);
+            visualEnv.PushFogShaderParameters(cmd, m_FrameSettings);
 
             m_SkyManager.RenderSky(hdCamera, m_LightLoop.GetCurrentSunLight(), m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, cmd);
-            if(visualEnv.fogType != FogType.None)
-            m_SkyManager.RenderOpaqueAtmosphericScattering(cmd);
+            if (visualEnv.fogType != FogType.None)
+                m_SkyManager.RenderOpaqueAtmosphericScattering(cmd);
         }
 
         public Texture2D ExportSkyToTexture()
@@ -1368,7 +1368,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (debugMode == FullScreenDebugMode.PreRefractionColorPyramid)
             {
                 if (!m_FrameSettings.enableRoughRefraction)
-                return;
+                    return;
             }
             else if (debugMode == FullScreenDebugMode.FinalColorPyramid)
             {
