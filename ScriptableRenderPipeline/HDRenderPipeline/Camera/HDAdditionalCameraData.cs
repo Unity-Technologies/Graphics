@@ -5,28 +5,53 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class HDAdditionalCameraData : MonoBehaviour
     {
         // This struct allow to add specialized path in HDRenderPipeline (can be use to render mini map or planar reflection etc...)
+        // A rendering path is the list of rendering pass that will be executed at runtime and depends on the associated FrameSettings
+        // Default is the default rendering path define by the HDRendeRPipelineAsset FrameSettings.
+        // Custom allow users to define the FrameSettigns for this path
+        // Then enum can contain either preset of FrameSettings or hard coded path
+        // Unlit below is a hard coded path (a path that can't be implemented only with FrameSettings)
         public enum RenderingPath
         {
             Default,
-            Unlit,  // Preset
-            Custom  // Fine grained
+            Custom,  // Fine grained
+            Unlit  // Hard coded path
         };
 
         public RenderingPath    renderingPath;
 
         // To be able to turn on/off FrameSettings properties at runtime for debugging purpose without affecting the original one
-        // we create a runtime copy (m_effectiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
-        public FrameSettings frameSettings = new FrameSettings(); // Serialize frameSettings
+        // we create a runtime copy (m_ActiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
+        public FrameSettings serializedFrameSettings = new FrameSettings(); // Serialize frameSettings
 
         // Not serialized, not visible
-        FrameSettings m_effectiveFrameSettings = new FrameSettings();
-        public FrameSettings GetEffectiveFrameSettings()
+        FrameSettings m_FrameSettings = new FrameSettings();
+        public FrameSettings GetFrameSettings()
         {
-            return m_effectiveFrameSettings;
+            return m_FrameSettings;
         }
 
         bool isRegisterDebug = false;
         Camera m_camera;
+        string m_CameraRegisterName;
+
+        void RegisterDebug()
+        {
+            if (!isRegisterDebug)
+            {
+                FrameSettings.RegisterDebug(m_camera.name, GetFrameSettings());
+                m_CameraRegisterName = m_camera.name;
+                isRegisterDebug = true;
+            }
+        }
+
+        void UnRegisterDebug()
+        {
+            if (isRegisterDebug)
+            {
+                FrameSettings.UnRegisterDebug(m_CameraRegisterName);
+                isRegisterDebug = false;
+            }
+        }
 
         void OnEnable()
         {
@@ -37,13 +62,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_camera = GetComponent<Camera>();
             m_camera.allowHDR = false;
 
-            frameSettings.CopyTo(m_effectiveFrameSettings);
+            serializedFrameSettings.CopyTo(m_FrameSettings);
 
-            if (!isRegisterDebug)
+            RegisterDebug();
+        }
+
+        void Update()
+        {
+#if UNITY_EDITOR
+            if (m_camera.name != m_CameraRegisterName)
             {
-                FrameSettings.RegisterDebug(m_camera.name, GetEffectiveFrameSettings());
-                isRegisterDebug = true;
+                UnRegisterDebug();
+                RegisterDebug();
             }
+#endif
+        }
+
+        void OnValidate()
+        {
+            // Modification of frameSettings in the inspector will call OnValidate().
+            // We do a copy of the settings to those effectively used
+            serializedFrameSettings.CopyTo(m_FrameSettings);
+        }
+
+        void OnDisable()
+        {
+            UnRegisterDebug();
         }
     }
 }
