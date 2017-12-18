@@ -28,6 +28,7 @@ namespace UnityEditor.VFX.UI
             titleContainer.shadow.Insert(0, m_EnableToggle);
 
             capabilities &= ~Capabilities.Ascendable;
+            capabilities |= Capabilities.Selectable;
 
             RegisterCallback<MouseDownEvent>(OnMouseDown, Capture.Capture);
         }
