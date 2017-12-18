@@ -81,6 +81,11 @@ namespace UnityEditor.VFX.UI
             VFXFlowEdge flowEdge = edge as VFXFlowEdge;
             VFXFlowEdgeController edgeController = new VFXFlowEdgeController(flowEdge.input.controller, flowEdge.output.controller);
 
+            if (flowEdge.controller != null)
+            {
+                view.controller.RemoveElement(flowEdge.controller);
+            }
+
             view.controller.AddElement(edgeController);
         }
 
@@ -140,6 +145,12 @@ namespace UnityEditor.VFX.UI
                 {
                     endContext = node;
                 }
+            }
+
+            VFXFlowEdge flowEdge  = edge as VFXFlowEdge;
+            if (flowEdge.controller != null)
+            {
+                view.controller.RemoveElement(flowEdge.controller);
             }
 
             if (endContext != null)
