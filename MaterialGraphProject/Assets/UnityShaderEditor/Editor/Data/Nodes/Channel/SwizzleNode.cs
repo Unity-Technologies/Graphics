@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
@@ -24,11 +25,6 @@ namespace UnityEditor.ShaderGraph
             get { return true; }
         }
 
-        string GetFunctionName()
-        {
-            return "Unity_Swizzle_" + precision + "_" + GuidEncoder.Encode(guid);
-        }
-
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new DynamicVectorMaterialSlot(InputSlotId, kInputSlotName, kInputSlotName, SlotType.Input, Vector4.zero));
@@ -36,16 +32,16 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { InputSlotId, OutputSlotId });
         }
 
-        static Dictionary<TextureChannel, string> m_ComponentList = new Dictionary<TextureChannel, string>
+        static Dictionary<TextureChannel, string> s_ComponentList = new Dictionary<TextureChannel, string>
         {
-            {TextureChannel.Red, ".r" },
-            {TextureChannel.Green, ".g" },
-            {TextureChannel.Blue, ".b" },
-            {TextureChannel.Alpha, ".a" },
+            {TextureChannel.Red, "r" },
+            {TextureChannel.Green, "g" },
+            {TextureChannel.Blue, "b" },
+            {TextureChannel.Alpha, "a" },
         };
 
         [SerializeField]
-        private TextureChannel m_RedChannel;
+        TextureChannel m_RedChannel;
 
         [ChannelEnumControl("Red Out")]
         public TextureChannel redChannel
@@ -59,13 +55,13 @@ namespace UnityEditor.ShaderGraph
                 m_RedChannel = value;
                 if (onModified != null)
                 {
-                    onModified(this, ModificationScope.Graph);
+                    onModified(this, ModificationScope.Node);
                 }
             }
         }
 
         [SerializeField]
-        private TextureChannel m_GreenChannel;
+        TextureChannel m_GreenChannel;
 
         [ChannelEnumControl("Green Out")]
         public TextureChannel greenChannel
@@ -79,13 +75,13 @@ namespace UnityEditor.ShaderGraph
                 m_GreenChannel = value;
                 if (onModified != null)
                 {
-                    onModified(this, ModificationScope.Graph);
+                    onModified(this, ModificationScope.Node);
                 }
             }
         }
 
         [SerializeField]
-        private TextureChannel m_BlueChannel;
+        TextureChannel m_BlueChannel;
 
         [ChannelEnumControl("Blue Out")]
         public TextureChannel blueChannel
@@ -99,13 +95,13 @@ namespace UnityEditor.ShaderGraph
                 m_BlueChannel = value;
                 if (onModified != null)
                 {
-                    onModified(this, ModificationScope.Graph);
+                    onModified(this, ModificationScope.Node);
                 }
             }
         }
 
         [SerializeField]
-        private TextureChannel m_AlphaChannel;
+        TextureChannel m_AlphaChannel;
 
         [ChannelEnumControl("Alpha Out")]
         public TextureChannel alphaChannel
@@ -119,14 +115,14 @@ namespace UnityEditor.ShaderGraph
                 m_AlphaChannel = value;
                 if (onModified != null)
                 {
-                    onModified(this, ModificationScope.Graph);
+                    onModified(this, ModificationScope.Node);
                 }
             }
         }
 
         void ValidateChannelCount()
         {
-            int channelCount = (int)SlotValueHelper.GetChannelCount(FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType);
+            var channelCount = (int)SlotValueHelper.GetChannelCount(FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType);
             if ((int)redChannel >= channelCount)
                 redChannel = TextureChannel.Red;
             if ((int)greenChannel >= channelCount)
@@ -140,27 +136,72 @@ namespace UnityEditor.ShaderGraph
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
             ValidateChannelCount();
-            string inputValue = GetSlotValue(InputSlotId, generationMode);
-            string outputValue = GetSlotValue(OutputSlotId, generationMode);
-            visitor.AddShaderChunk(string.Format("{0} {1};", FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision), GetVariableNameForSlot(OutputSlotId)), false);
-            visitor.AddShaderChunk(GetFunctionCallBody(inputValue, outputValue), false);
+            var outputSlotType = FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision);
+            var outputName = GetVariableNameForSlot(OutputSlotId);
+            var inputValue = GetSlotValue(InputSlotId, generationMode);
+            var inputValueType = FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType;
+            if (generationMode == GenerationMode.ForReals)
+                visitor.AddShaderChunk(string.Format("{0} {1} = {2}.{3}{4}{5}{6};", outputSlotType, outputName, inputValue, s_ComponentList[m_RedChannel], s_ComponentList[m_GreenChannel], s_ComponentList[m_BlueChannel], s_ComponentList[m_AlphaChannel]), false);
+            else
+                visitor.AddShaderChunk(string.Format("{0} {1} = {0}(Unity_Swizzle_Select_{4}({3}, {2}, 0), Unity_Swizzle_Select_{4}({3}, {2}, 1), Unity_Swizzle_Select_{4}({3}, {2}, 2), Unity_Swizzle_Select_{4}({3}, {2}, 3));",
+                    outputSlotType,
+                    outputName,
+                    GetVariableNameForNode(),
+                    inputValue,
+                    inputValueType.ToString(precision)), false);
         }
 
-        string GetFunctionCallBody(string inputValue, string outputValue)
+        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
-            return GetFunctionName() + " (" + inputValue + ", " + outputValue + ");";
+            base.CollectShaderProperties(properties, generationMode);
+            if (generationMode != GenerationMode.Preview)
+                return;
+            properties.AddShaderProperty(new FloatShaderProperty
+            {
+                overrideReferenceName = GetVariableNameForNode(),
+                generatePropertyBlock = false
+            });
+        }
+
+        public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
+        {
+            base.CollectPreviewMaterialProperties(properties);
+            var value = ((int)redChannel) | ((int)greenChannel << 2) | ((int)blueChannel << 4) | ((int)alphaChannel << 6);
+            properties.Add(new PreviewProperty
+            {
+                name = GetVariableNameForNode(),
+                propType = PropertyType.Float,
+                floatValue = value
+            });
         }
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            ValidateChannelCount();
+            if (generationMode != GenerationMode.Preview)
+                return;
+
             var sb = new ShaderStringBuilder();
-            sb.AppendLine("void {0} ({1} In, out {2} Out)", GetFunctionName(), FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToString(precision), FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision));
+            var valueType = FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType;
+            sb.AppendLine("float Unity_Swizzle_Select_{0}({0} Value, int Swizzle, int Channel)", valueType.ToString(precision));
             using (sb.BlockScope())
             {
-                sb.AppendLine("Out = {0}({1}{2}, {1}{3}, {1}{4}, {1}{5});", FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision), kInputSlotName, m_ComponentList[m_RedChannel], m_ComponentList[m_GreenChannel], m_ComponentList[m_BlueChannel], m_ComponentList[m_AlphaChannel]);
+                if (valueType == ConcreteSlotValueType.Vector1)
+                {
+                    sb.AppendLine("return Value;");
+                }
+                else
+                {
+                    sb.AppendLine("int index = (Swizzle >> (2 * Channel)) & 3;");
+                    sb.AppendLine("if (index == 0) return Value.r;");
+                    if (valueType == ConcreteSlotValueType.Vector2 || valueType == ConcreteSlotValueType.Vector3 || valueType == ConcreteSlotValueType.Vector4)
+                        sb.AppendLine("if (index == 1) return Value.g;");
+                    if (valueType == ConcreteSlotValueType.Vector3 || valueType == ConcreteSlotValueType.Vector4)
+                        sb.AppendLine("if (index == 2) return Value.b;");
+                    if (valueType == ConcreteSlotValueType.Vector4)
+                        sb.AppendLine("if (index == 3) return Value.a;");
+                    sb.AppendLine("return 0;");
+                }
             }
-
             visitor.AddShaderChunk(sb.ToString(), true);
         }
     }
