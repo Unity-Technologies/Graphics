@@ -419,11 +419,20 @@ namespace UnityEditor.VFX
             foreach (var additionnalDefine in context.additionalDefines)
                 globalIncludeContent.WriteLineFormat("#define {0} 1", additionnalDefine);
 
+            var renderPipePath = VFXManager.renderPipeSettingsPath;
+
+            string renderPipeCommon = "Assets/VFXShaders/Common/VFXCommonCompute.cginc";
+            string renderPipePasses = null;
+            if (!context.codeGeneratorCompute && !string.IsNullOrEmpty(renderPipePath))
+            {
+                renderPipeCommon = "Assets/" + renderPipePath + "/VFXCommon.cginc";
+                renderPipePasses = "Assets/" + renderPipePath + "/VFXPasses.template";
+            }
+
             globalIncludeContent.WriteLine();
-            var passesRemap = context.renderLoopPasses;
-            if (passesRemap != null)
-                globalIncludeContent.Write(GetFlattenedTemplateContent("Assets/" + passesRemap, new List<string>(), context.additionalDefines));
-            globalIncludeContent.WriteLine("#include \"Assets/" + context.renderLoopCommonInclude + "\"");
+            if (renderPipePasses != null)
+                globalIncludeContent.Write(GetFlattenedTemplateContent(renderPipePasses, new List<string>(), context.additionalDefines));
+            globalIncludeContent.WriteLine("#include \"" + renderPipeCommon + "\"");
 
             if (context.GetData() is ISpaceable)
             {

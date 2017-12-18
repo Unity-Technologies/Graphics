@@ -36,8 +36,6 @@ namespace UnityEditor.VFX
         protected VFXAbstractParticleOutput() : base(VFXContextType.kOutput, VFXDataType.kParticle, VFXDataType.kNone) {}
 
         public override bool codeGeneratorCompute { get { return false; } }
-        public override string renderLoopCommonInclude { get { return !HDRP ? "VFXShaders/RenderPipeline/Legacy/VFXCommonLegacy.cginc" : "VFXShaders/RenderPipeline/HDRP/VFXCommonHDRP.hlsl"; } }
-        public override string renderLoopPasses { get { return !HDRP ? "VFXShaders/RenderPipeline/Legacy/VFXPassesLegacy.template" : "VFXShaders/RenderPipeline/HDRP/VFXPassesHDRP.template"; } }
 
         protected virtual IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
         {
