@@ -61,10 +61,18 @@ Shader "Hidden/HDRenderPipeline/CameraMotionVectors"
 
     SubShader
     {
-        Cull Off ZWrite Off ZTest Always
-
         Pass
         {
+            // We will perform camera motion velocity only where there is no object velocity
+            Stencil
+            {
+                Ref  128 // StencilBitMask.ObjectVelocity
+                Comp NotEqual
+                Pass Keep
+            }
+
+            Cull Off ZWrite Off ZTest Always
+
             HLSLPROGRAM
 
                 #pragma vertex Vert

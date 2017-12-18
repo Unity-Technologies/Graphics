@@ -431,6 +431,14 @@ Shader "HDRenderPipeline/Lit"
             Name "Motion Vectors"
             Tags{ "LightMode" = "MotionVectors" } // Caution, this need to be call like this to setup the correct parameters by C++ (legacy Unity)
 
+            // If velocity pass (motion vectors) is enabled we tag the stencil so it don't perform CameraMotionVelocity
+            Stencil
+            {
+                Ref  128 // StencilBitMask.ObjectVelocity
+                Comp Always
+                Pass Replace
+            }
+
             Cull[_CullMode]
 
             ZWrite Off // TODO: Test Z equal here.

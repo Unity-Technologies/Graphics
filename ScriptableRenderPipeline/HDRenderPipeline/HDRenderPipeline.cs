@@ -247,7 +247,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public enum StencilBitMask
         {
             Clear    = 0,                    // 0x0
-            Lighting = 3,                    // 0x3  - 2 bit
+            Lighting = 7,                    // 0x7  - 3 bit
+            ObjectVelocity = 128,            // 1 bit
             All      = 255                   // 0xFF - 8 bit
         }
 
@@ -735,7 +736,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd, true);
 
-                    RenderVelocity(m_CullResults, hdCamera, renderContext, cmd);
+                    RenderObjectsVelocity(m_CullResults, hdCamera, renderContext, cmd);
 
                     RenderDBuffer(hdCamera.cameraPos, renderContext, cmd);
 
@@ -743,6 +744,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
                     CopyDepthBufferIfNeeded(cmd);
+
+                    RenderCameraVelocity(m_CullResults, hdCamera, renderContext, cmd);
 
                     // Depth texture is now ready, bind it.
                     cmd.SetGlobalTexture(HDShaderIDs._MainDepthTexture, GetDepthTexture());
@@ -1354,7 +1357,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderVelocity(CullResults cullResults, HDCamera hdcam, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        void RenderObjectsVelocity(CullResults cullResults, HDCamera hdcam, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             if (!m_FrameSettings.enableMotionVectors || !m_FrameSettings.enableObjectMotionVectors)
                 return;
@@ -1368,14 +1371,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int w = (int)hdcam.screenSize.x;
                 int h = (int)hdcam.screenSize.y;
 
+                cmd.SetRenderTarget(m_VelocityBufferRT, m_CameraDepthStencilBufferRT);
+
+                RenderOpaqueRenderList(cullResults, hdcam.camera, renderContext, cmd, HDShaderPassNames.s_MotionVectorsName, RendererConfiguration.PerObjectMotionVectors);
+            }
+        }
+
+        void RenderCameraVelocity(CullResults cullResults, HDCamera hdcam, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        {
+            if (!m_FrameSettings.enableMotionVectors)
+                return;
+
+            using (new ProfilingSample(cmd, "Velocity", GetSampler(CustomSamplerId.Velocity)))
+            {
+                // These flags are still required in SRP or the engine won't compute previous model matrices...
+                // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
+                hdcam.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
+
+                int w = (int)hdcam.screenSize.x;
+                int h = (int)hdcam.screenSize.y;
+
+                // TODO: This is not safe ? as we don't use cmd buffer we can have a dealy no ?
                 m_CameraMotionVectorsMaterial.SetVector(HDShaderIDs._CameraPosDiff, hdcam.prevCameraPos - hdcam.cameraPos);
 
                 cmd.ReleaseTemporaryRT(m_VelocityBuffer);
                 cmd.GetTemporaryRT(m_VelocityBuffer, w, h, 0, FilterMode.Point, Builtin.GetVelocityBufferFormat(), Builtin.GetVelocityBufferReadWrite());
                 CoreUtils.DrawFullScreen(cmd, m_CameraMotionVectorsMaterial, m_VelocityBufferRT, null, 0);
-                cmd.SetRenderTarget(m_VelocityBufferRT, m_CameraDepthStencilBufferRT);
-
-                RenderOpaqueRenderList(cullResults, hdcam.camera, renderContext, cmd, HDShaderPassNames.s_MotionVectorsName, RendererConfiguration.PerObjectMotionVectors);
 
                 PushFullScreenDebugTexture(cmd, m_VelocityBuffer, hdcam.camera, renderContext, FullScreenDebugMode.MotionVectors);
             }
@@ -1653,6 +1674,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     m_DbufferManager.InitDBuffers(w, h, cmd);
+
+                    if (m_FrameSettings.enableMotionVectors || m_FrameSettings.enableObjectMotionVectors)
+                    {
+                        // Note: We don't need to clear this buffer, it will be fill entirely by the rendering into the velocity buffer
+                        cmd.ReleaseTemporaryRT(m_VelocityBuffer);
+                        cmd.GetTemporaryRT(m_VelocityBuffer, w, h, 0, FilterMode.Point, Builtin.GetVelocityBufferFormat(), Builtin.GetVelocityBufferReadWrite());
+                    }
 
                     CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.Depth);
                 }
