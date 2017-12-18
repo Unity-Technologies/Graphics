@@ -148,14 +148,23 @@ void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, float2 cen
                     float3 tangentX, float3 tangentY, float4x4 projMatrix,
                     inout float3 totalIrradiance, inout float3 totalWeight)
 {
-    float  r   = _FilterKernels[profileID][i][iR];
+    float r   = _FilterKernels[profileID][i][iR];
     // The relative sample position is known at the compile time.
-    float  phi = SampleDiskFibonacci(i, n).y;
+    float phi = SampleDiskFibonacci(i, n).y;
 #if (SSS_TAA_INTEGRATION != 0)
     // Note that we repeat the pattern twice during the TAA cycle to reduce flickering.
-    phi += VanDerCorputBase2(_TaaFrameIndex % 4) * TWO_PI;
-#endif
+    float psi = VanDerCorputBase2(_TaaFrameIndex % 4) * TWO_PI;
+
+    // The angle 'psi' is loop-invariant. All the trigonometry is done only once.
+    // cos(a + b) = cos(a) * cos(b) - sin(a) * sin(b)
+    // sin(a + b) = sin(a) * cos(b) + cos(a) * sin(b)
+    float  cosSum = cos(phi) * cos(psi) - sin(phi) * sin(psi);
+    float  sinSum = sin(phi) * cos(psi) + cos(phi) * sin(psi);
+
+    float2 vec = r * float2(cosSum, sinSum);
+#else
     float2 vec = r * float2(cos(phi), sin(phi));
+#endif
 
     // Compute the screen-space position and the squared distance (in mm) in the image plane.
     int2 position; float xy2;
