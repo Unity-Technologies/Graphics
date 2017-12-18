@@ -6,11 +6,18 @@ namespace UnityEngine.Experimental.Rendering
     public sealed class VolumeStack : IDisposable
     {
         // Holds the state of _all_ component types you can possibly add on volumes
-        public readonly Dictionary<Type, VolumeComponent> components;
+        public Dictionary<Type, VolumeComponent> components;
 
-        internal VolumeStack(IEnumerable<Type> baseTypes)
+        internal VolumeStack()
         {
-            components = new Dictionary<Type, VolumeComponent>();
+        }
+
+        internal void Reload(IEnumerable<Type> baseTypes)
+        {
+            if (components == null)
+                components = new Dictionary<Type, VolumeComponent>();
+            else
+                components.Clear();
 
             foreach (var type in baseTypes)
             {
