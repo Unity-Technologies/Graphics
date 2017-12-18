@@ -74,8 +74,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 content.Add(m_GraphView);
 
                 m_GraphInspectorView = new GraphInspectorView(assetName, previewManager, graph) { name = "inspector" };
+                m_GraphInspectorView.AddManipulator(new Draggable(OnMouseDrag, true));
                 m_GraphView.onSelectionChanged += m_GraphInspectorView.UpdateSelection;
-                content.Add(m_GraphInspectorView);
+                m_GraphView.Add(m_GraphInspectorView);
 
                 m_GraphView.graphViewChanged = GraphViewChanged;
             }
@@ -97,6 +98,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddEdge(edge);
 
             Add(content);
+        }
+
+        void OnMouseDrag(Vector2 mouseDelta)
+        {
+            Vector2 normalizedDelta = mouseDelta / 2f;
+
+            m_GraphInspectorView.style.positionRight -= normalizedDelta.x;
+            m_GraphInspectorView.style.positionBottom -= normalizedDelta.y;
         }
 
         GraphViewChange GraphViewChanged(GraphViewChange graphViewChange)
