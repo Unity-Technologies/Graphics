@@ -124,8 +124,6 @@ namespace UnityEditor.VFX.UI
                 pickingMode = PickingMode.Ignore
             };
 
-            m_BlockContainer.AddManipulator(new ClickSelector());
-
             m_InsideContainer.Add(m_BlockContainer);
 
 
