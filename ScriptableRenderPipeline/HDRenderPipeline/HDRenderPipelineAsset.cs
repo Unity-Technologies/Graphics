@@ -22,20 +22,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // To be able to turn on/off FrameSettings properties at runtime for debugging purpose without affecting the original one
         // we create a runtime copy (m_ActiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
-        public FrameSettings defaultFrameSettings = new FrameSettings(); // This are the defaultFrameSettings for all the camera and apply to sceneView, public to be visible in the inspector
+        public FrameSettings serializedFrameSettings = new FrameSettings(); // This are the defaultFrameSettings for all the camera and apply to sceneView, public to be visible in the inspector
         // Not serialized, not visible, the settings effectively used
-        FrameSettings m_DefaultActiveFrameSettings = new FrameSettings();
+        FrameSettings m_FrameSettings = new FrameSettings();
 
-        public FrameSettings GetActiveDefaultFrameSettings()
+        public FrameSettings GetFrameSettings()
         {
-            return m_DefaultActiveFrameSettings;
+            return m_FrameSettings;
         }
 
         public void OnValidate()
         {
             // Modification of defaultFrameSettings in the inspector will call OnValidate().
             // We do a copy of the settings to those effectively used
-            defaultFrameSettings.CopyTo(m_DefaultActiveFrameSettings);
+            serializedFrameSettings.CopyTo(m_FrameSettings);
         }
 
         // Store the various RenderPipelineSettings for each platform (for now only one)

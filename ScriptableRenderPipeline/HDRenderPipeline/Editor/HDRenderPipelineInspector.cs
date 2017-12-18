@@ -63,17 +63,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // FrameSettings
             // LightLoop settings
-            m_enableTileAndCluster = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableTileAndCluster);
-            m_enableComputeLightEvaluation = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableComputeLightEvaluation);
-            m_enableComputeLightVariants = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableComputeLightVariants);
-            m_enableComputeMaterialVariants = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableComputeMaterialVariants);
-            m_enableFptlForForwardOpaque = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableFptlForForwardOpaque);
-            m_enableBigTilePrepass = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableBigTilePrepass);
+            m_enableTileAndCluster = properties.Find(x => x.serializedFrameSettings.lightLoopSettings.enableTileAndCluster);
+            m_enableComputeLightEvaluation = properties.Find(x => x.serializedFrameSettings.lightLoopSettings.enableComputeLightEvaluation);
+            m_enableComputeLightVariants = properties.Find(x => x.serializedFrameSettings.lightLoopSettings.enableComputeLightVariants);
+            m_enableComputeMaterialVariants = properties.Find(x => x.serializedFrameSettings.lightLoopSettings.enableComputeMaterialVariants);
+            m_enableFptlForForwardOpaque = properties.Find(x => x.serializedFrameSettings.lightLoopSettings.enableFptlForForwardOpaque);
+            m_enableBigTilePrepass = properties.Find(x => x.serializedFrameSettings.lightLoopSettings.enableBigTilePrepass);
             // Rendering Settings
-            m_enableAsyncCompute = properties.Find(x => x.defaultFrameSettings.enableAsyncCompute);
-            m_RenderingUseForwardOnly = properties.Find(x => x.defaultFrameSettings.enableForwardRenderingOnly);
-            m_RenderingUseDepthPrepass = properties.Find(x => x.defaultFrameSettings.enableDepthPrepassWithDeferredRendering);
-            m_RenderingUseDepthPrepassAlphaTestOnly = properties.Find(x => x.defaultFrameSettings.enableAlphaTestOnlyInDeferredPrepass);
+            m_enableAsyncCompute = properties.Find(x => x.serializedFrameSettings.enableAsyncCompute);
+            m_RenderingUseForwardOnly = properties.Find(x => x.serializedFrameSettings.enableForwardRenderingOnly);
+            m_RenderingUseDepthPrepass = properties.Find(x => x.serializedFrameSettings.enableDepthPrepassWithDeferredRendering);
+            m_RenderingUseDepthPrepassAlphaTestOnly = properties.Find(x => x.serializedFrameSettings.enableAlphaTestOnlyInDeferredPrepass);
 
             // Subsurface Scattering Settings
             m_SubsurfaceScatteringSettings = properties.Find(x => x.sssSettings);

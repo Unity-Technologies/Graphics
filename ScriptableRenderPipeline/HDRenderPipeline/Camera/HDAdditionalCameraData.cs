@@ -21,13 +21,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // To be able to turn on/off FrameSettings properties at runtime for debugging purpose without affecting the original one
         // we create a runtime copy (m_ActiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
-        public FrameSettings frameSettings = new FrameSettings(); // Serialize frameSettings
+        public FrameSettings serializedFrameSettings = new FrameSettings(); // Serialize frameSettings
 
         // Not serialized, not visible
-        FrameSettings m_ActiveFrameSettings = new FrameSettings();
-        public FrameSettings GetActiveFrameSettings()
+        FrameSettings m_FrameSettings = new FrameSettings();
+        public FrameSettings GetFrameSettings()
         {
-            return m_ActiveFrameSettings;
+            return m_FrameSettings;
         }
 
         bool isRegisterDebug = false;
@@ -38,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (!isRegisterDebug)
             {
-                FrameSettings.RegisterDebug(m_camera.name, GetActiveFrameSettings());
+                FrameSettings.RegisterDebug(m_camera.name, GetFrameSettings());
                 m_CameraRegisterName = m_camera.name;
                 isRegisterDebug = true;
             }
@@ -62,7 +62,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_camera = GetComponent<Camera>();
             m_camera.allowHDR = false;
 
-            frameSettings.CopyTo(m_ActiveFrameSettings);
+            serializedFrameSettings.CopyTo(m_FrameSettings);
 
             RegisterDebug();
         }
@@ -82,7 +82,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Modification of frameSettings in the inspector will call OnValidate().
             // We do a copy of the settings to those effectively used
-            frameSettings.CopyTo(m_ActiveFrameSettings);
+            serializedFrameSettings.CopyTo(m_FrameSettings);
         }
 
         void OnDisable()

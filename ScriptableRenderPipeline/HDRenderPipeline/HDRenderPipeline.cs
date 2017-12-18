@@ -391,7 +391,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyManager.skySettings = skySettingsToUse;
 
             m_DebugDisplaySettings.RegisterDebug();
-            FrameSettings.RegisterDebug("Default Camera", m_Asset.GetActiveDefaultFrameSettings());
+            FrameSettings.RegisterDebug("Default Camera", m_Asset.GetFrameSettings());
             m_DebugFullScreenTempRT = HDShaderIDs._DebugFullScreenTexture;
 
             // Init all samplers
@@ -634,7 +634,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
                 // Note: the scene view camera will never have additionalCameraData
                 m_FrameSettings = FrameSettings.InitializeFrameSettings(    camera, m_Asset.GetRenderPipelineSettings(),
-                                                                            (additionalCameraData && additionalCameraData.renderingPath != HDAdditionalCameraData.RenderingPath.Default) ? additionalCameraData.GetActiveFrameSettings() : m_Asset.GetActiveDefaultFrameSettings());
+                                                                            (additionalCameraData && additionalCameraData.renderingPath != HDAdditionalCameraData.RenderingPath.Default) ? additionalCameraData.GetFrameSettings() : m_Asset.GetFrameSettings());
 
                 // This is the main command buffer used for the frame.
                 var cmd = CommandBufferPool.Get("");
