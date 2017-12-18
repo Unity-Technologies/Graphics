@@ -34,29 +34,20 @@ namespace UnityEditor.ShaderGraph
 
     public static class SlotValueHelper
     {
-        public enum ChannelCount
-        {
-            Zero = 0,
-            One = 1,
-            Two = 2,
-            Three = 3,
-            Four = 4,
-        }
-
-        public static ChannelCount GetChannelCount(ConcreteSlotValueType type)
+        public static int GetChannelCount(ConcreteSlotValueType type)
         {
             switch (type)
             {
                 case ConcreteSlotValueType.Vector4:
-                    return ChannelCount.Four;
+                    return 4;
                 case ConcreteSlotValueType.Vector3:
-                    return ChannelCount.Three;
+                    return 3;
                 case ConcreteSlotValueType.Vector2:
-                    return ChannelCount.Two;
+                    return 2;
                 case ConcreteSlotValueType.Vector1:
-                    return ChannelCount.One;
+                    return 1;
                 default:
-                    return ChannelCount.Zero;
+                    return 0;
             }
         }
 
