@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Graphing.IntegrationTests
 {
@@ -215,18 +216,18 @@ namespace UnityEditor.Graphing.IntegrationTests
         [Test]
         public void TestSerializableSlotCanSerialize()
         {
-            var toSerialize = new List<SerializableSlot>()
+            var toSerialize = new List<MaterialSlot>()
             {
-                new SerializableSlot(0, "InSlot", SlotType.Input, 0),
-                new SerializableSlot(1, "OutSlot", SlotType.Output, 5),
+                new TestSlot(0, "InSlot", SlotType.Input, 0),
+                new TestSlot(1, "OutSlot", SlotType.Output, 5),
             };
 
-            var serialized = SerializationHelper.Serialize<SerializableSlot>(toSerialize);
-            var loaded = SerializationHelper.Deserialize<SerializableSlot>(serialized, null);
+            var serialized = SerializationHelper.Serialize<MaterialSlot>(toSerialize);
+            var loaded = SerializationHelper.Deserialize<MaterialSlot>(serialized, null);
             Assert.AreEqual(2, loaded.Count);
 
-            Assert.IsInstanceOf<SerializableSlot>(loaded[0]);
-            Assert.IsInstanceOf<SerializableSlot>(loaded[1]);
+            Assert.IsInstanceOf<MaterialSlot>(loaded[0]);
+            Assert.IsInstanceOf<MaterialSlot>(loaded[1]);
 
             Assert.AreEqual(0, loaded[0].id);
             Assert.AreEqual("InSlot", loaded[0].displayName);

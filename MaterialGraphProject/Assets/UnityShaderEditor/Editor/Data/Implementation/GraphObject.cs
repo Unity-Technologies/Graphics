@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.Graphing
 {
-    public class SerializableGraphObject : ScriptableObject, IGraphObject, ISerializationCallbackReceiver
+    public class GraphObject : ScriptableObject, IGraphObject, ISerializationCallbackReceiver
     {
         [SerializeField]
         SerializationHelper.JSONSerializedElement m_SerializedGraph;
@@ -52,7 +52,7 @@ namespace UnityEditor.Graphing
             if (graph == null)
                 graph = deserializedGraph;
             else
-                m_DeserializedGraph = deserializedGraph; // graph.ReplaceWith(m_DeserializedGraph);
+                m_DeserializedGraph = deserializedGraph;
         }
 
         void Validate()
