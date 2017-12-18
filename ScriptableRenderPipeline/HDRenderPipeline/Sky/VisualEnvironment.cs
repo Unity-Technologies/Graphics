@@ -24,13 +24,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 case FogType.Linear:
                     {
-                        var fogSettings = VolumeManager.instance.GetComponent<LinearFog>();
+                        var fogSettings = VolumeManager.instance.stack.GetComponent<LinearFog>();
                         fogSettings.PushShaderParameters(cmd, renderingDebug);
                         break;
                     }
                 case FogType.Exponential:
                     {
-                        var fogSettings = VolumeManager.instance.GetComponent<ExponentialFog>();
+                        var fogSettings = VolumeManager.instance.stack.GetComponent<ExponentialFog>();
                         fogSettings.PushShaderParameters(cmd, renderingDebug);
                         break;
                     }
