@@ -6,6 +6,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Serializable]
     public class LightLoopSettings
     {
+        public static string kEnableTileCluster = "Enable Tile/Cluster";
+        public static string kEnableBigTile = "Enable Big Tile";
+        public static string kEnableComputeLighting = "Enable Compute Lighting";
+        public static string kEnableLightclassification = "Enable Light Classification";
+        public static string kEnableMaterialClassification = "Enable Material Classification";
+
         // Setup by the users
         public bool enableTileAndCluster = true;
         public bool enableComputeLightEvaluation = true;
@@ -34,7 +40,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // aggregateFrameSettings already contain the aggregation of RenderPipelineSettings and FrameSettings (regular and/or debug)
         static public LightLoopSettings InitializeLightLoopSettings(Camera camera, FrameSettings aggregateFrameSettings,
-                                                                    GlobalFrameSettings globalFrameSettings, FrameSettings frameSettings)
+                                                                    RenderPipelineSettings renderPipelineSettings, FrameSettings frameSettings)
         {
             LightLoopSettings aggregate = new LightLoopSettings();
 
@@ -48,11 +54,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Deferred opaque are always using Fptl. Forward opaque can use Fptl or Cluster, transparent use cluster.
             // When MSAA is enabled we disable Fptl as it become expensive compare to cluster
             // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
-            aggregate.enableFptlForForwardOpaque = aggregate.enableFptlForForwardOpaque && aggregateFrameSettings.renderSettings.enableMSAA;
+            aggregate.enableFptlForForwardOpaque = aggregate.enableFptlForForwardOpaque && aggregateFrameSettings.enableMSAA;
             // If Deferred, enable Fptl. If we are forward renderer only and not using Fptl for forward opaque, disable Fptl
-            aggregate.isFptlEnabled = !aggregateFrameSettings.renderSettings.enableForwardRenderingOnly || aggregate.enableFptlForForwardOpaque;
+            aggregate.isFptlEnabled = !aggregateFrameSettings.enableForwardRenderingOnly || aggregate.enableFptlForForwardOpaque;
 
             return aggregate;
+        }
+
+        static public void RegisterDebug(String menuName, LightLoopSettings lightLoopSettings)
+        {
+            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableTileCluster, () => lightLoopSettings.enableTileAndCluster, (value) => lightLoopSettings.enableTileAndCluster = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableBigTile, () => lightLoopSettings.enableBigTilePrepass, (value) => lightLoopSettings.enableBigTilePrepass = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableComputeLighting, () => lightLoopSettings.enableComputeLightEvaluation, (value) => lightLoopSettings.enableComputeLightEvaluation = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableLightclassification, () => lightLoopSettings.enableComputeLightVariants, (value) => lightLoopSettings.enableComputeLightVariants = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableMaterialClassification, () => lightLoopSettings.enableComputeMaterialVariants, (value) => lightLoopSettings.enableComputeMaterialVariants = (bool)value);
+        }
+
+        static public void UnRegisterDebug(String menuName)
+        {
+            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableTileCluster);
+            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableBigTile);
+            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableComputeLighting);
+            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableLightclassification);
+            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableMaterialClassification);
         }
     }
 }

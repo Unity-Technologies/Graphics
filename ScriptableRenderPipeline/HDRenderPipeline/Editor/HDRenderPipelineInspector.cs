@@ -50,30 +50,30 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Global FrameSettings
             // Global Render settings
-            m_supportDBuffer = properties.Find(x => x.globalFrameSettings.renderSettings.supportDBuffer);
-            m_supportMSAA = properties.Find(x => x.globalFrameSettings.renderSettings.supportMSAA);
+            m_supportDBuffer = properties.Find(x => x.renderPipelineSettings.supportDBuffer);
+            m_supportMSAA = properties.Find(x => x.renderPipelineSettings.supportMSAA);
             // Global Shadow settings
-            m_ShadowAtlasWidth = properties.Find(x => x.globalFrameSettings.shadowInitParams.shadowAtlasWidth);
-            m_ShadowAtlasHeight = properties.Find(x => x.globalFrameSettings.shadowInitParams.shadowAtlasHeight);
+            m_ShadowAtlasWidth = properties.Find(x => x.renderPipelineSettings.shadowInitParams.shadowAtlasWidth);
+            m_ShadowAtlasHeight = properties.Find(x => x.renderPipelineSettings.shadowInitParams.shadowAtlasHeight);
             // Global LightLoop settings
-            m_SpotCookieSize = properties.Find(x => x.globalFrameSettings.lightLoopSettings.spotCookieSize);
-            m_PointCookieSize = properties.Find(x => x.globalFrameSettings.lightLoopSettings.pointCookieSize);
-            m_ReflectionCubemapSize = properties.Find(x => x.globalFrameSettings.lightLoopSettings.reflectionCubemapSize);
-            m_ReflectionCacheCompressed = properties.Find(x => x.globalFrameSettings.lightLoopSettings.reflectionCacheCompressed);
+            m_SpotCookieSize = properties.Find(x => x.renderPipelineSettings.lightLoopSettings.spotCookieSize);
+            m_PointCookieSize = properties.Find(x => x.renderPipelineSettings.lightLoopSettings.pointCookieSize);
+            m_ReflectionCubemapSize = properties.Find(x => x.renderPipelineSettings.lightLoopSettings.reflectionCubemapSize);
+            m_ReflectionCacheCompressed = properties.Find(x => x.renderPipelineSettings.lightLoopSettings.reflectionCacheCompressed);
 
             // FrameSettings
             // LightLoop settings
-            m_enableTileAndCluster = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableTileAndCluster);
-            m_enableComputeLightEvaluation = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableComputeLightEvaluation);
-            m_enableComputeLightVariants = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableComputeLightVariants);
-            m_enableComputeMaterialVariants = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableComputeMaterialVariants);
-            m_enableFptlForForwardOpaque = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableFptlForForwardOpaque);
-            m_enableBigTilePrepass = properties.Find(x => x.defaultFrameSettings.lightLoopSettings.enableBigTilePrepass);
+            m_enableTileAndCluster = properties.Find(x => x.serializedFrameSettings.lightLoopSettings.enableTileAndCluster);
+            m_enableComputeLightEvaluation = properties.Find(x => x.serializedFrameSettings.lightLoopSettings.enableComputeLightEvaluation);
+            m_enableComputeLightVariants = properties.Find(x => x.serializedFrameSettings.lightLoopSettings.enableComputeLightVariants);
+            m_enableComputeMaterialVariants = properties.Find(x => x.serializedFrameSettings.lightLoopSettings.enableComputeMaterialVariants);
+            m_enableFptlForForwardOpaque = properties.Find(x => x.serializedFrameSettings.lightLoopSettings.enableFptlForForwardOpaque);
+            m_enableBigTilePrepass = properties.Find(x => x.serializedFrameSettings.lightLoopSettings.enableBigTilePrepass);
             // Rendering Settings
-            m_enableAsyncCompute = properties.Find(x => x.defaultFrameSettings.renderSettings.enableAsyncCompute);
-            m_RenderingUseForwardOnly = properties.Find(x => x.defaultFrameSettings.renderSettings.enableForwardRenderingOnly);
-            m_RenderingUseDepthPrepass = properties.Find(x => x.defaultFrameSettings.renderSettings.enableDepthPrepassWithDeferredRendering);
-            m_RenderingUseDepthPrepassAlphaTestOnly = properties.Find(x => x.defaultFrameSettings.renderSettings.enableAlphaTestOnlyInDeferredPrepass);
+            m_enableAsyncCompute = properties.Find(x => x.serializedFrameSettings.enableAsyncCompute);
+            m_RenderingUseForwardOnly = properties.Find(x => x.serializedFrameSettings.enableForwardRenderingOnly);
+            m_RenderingUseDepthPrepass = properties.Find(x => x.serializedFrameSettings.enableDepthPrepassWithDeferredRendering);
+            m_RenderingUseDepthPrepassAlphaTestOnly = properties.Find(x => x.serializedFrameSettings.enableAlphaTestOnlyInDeferredPrepass);
 
             // Subsurface Scattering Settings
             m_SubsurfaceScatteringSettings = properties.Find(x => x.sssSettings);
@@ -193,7 +193,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.LabelField(s_Styles.settingsLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
 
-            EditorGUILayout.LabelField(s_Styles.globalFrameSettings, EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(s_Styles.renderPipelineSettings, EditorStyles.boldLabel);
 
             GlobalRenderSettingsUI(hdAsset);
             GlobalShadowSettingsUI(hdAsset);

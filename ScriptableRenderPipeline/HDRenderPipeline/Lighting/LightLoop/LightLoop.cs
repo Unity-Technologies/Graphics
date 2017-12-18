@@ -425,7 +425,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool GetFeatureVariantsEnabled()
         {
-            return !m_FrameSettings.renderSettings.enableForwardRenderingOnly && m_FrameSettings.lightLoopSettings.isFptlEnabled && m_FrameSettings.lightLoopSettings.enableComputeLightEvaluation &&
+            return !m_FrameSettings.enableForwardRenderingOnly && m_FrameSettings.lightLoopSettings.isFptlEnabled && m_FrameSettings.lightLoopSettings.enableComputeLightEvaluation &&
                     (m_FrameSettings.lightLoopSettings.enableComputeLightVariants || m_FrameSettings.lightLoopSettings.enableComputeMaterialVariants);
         }
 
@@ -449,7 +449,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_EnvLightDatas = new ComputeBuffer(k_MaxEnvLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
             s_shadowDatas = new ComputeBuffer(k_MaxCascadeCount + k_MaxShadowOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(ShadowData)));
 
-            GlobalLightLoopSettings gLightLoopSettings = hdAsset.GetGlobalFrameSettings().lightLoopSettings;
+            GlobalLightLoopSettings gLightLoopSettings = hdAsset.GetRenderPipelineSettings().lightLoopSettings;
             m_CookieTexArray = new TextureCache2D();
             m_CookieTexArray.AllocTextureArray(gLightLoopSettings.cookieTexArraySize, gLightLoopSettings.spotCookieSize, gLightLoopSettings.spotCookieSize, TextureFormat.RGBA32, true);
             m_CubeCookieTexArray = new TextureCacheCubemap();
@@ -539,7 +539,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             UnityEditor.SceneView.onSceneGUIDelegate += OnSceneGUI;
 #endif
 
-            InitShadowSystem(hdAsset.GetGlobalFrameSettings().shadowInitParams, shadowSettings);
+            InitShadowSystem(hdAsset.GetRenderPipelineSettings().shadowInitParams, shadowSettings);
         }
 
         public void Cleanup()
@@ -713,8 +713,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             var directionalLightData = new DirectionalLightData();
 
-            float diffuseDimmer = m_FrameSettings.lightingSettings.diffuseGlobalDimmer * additionalData.lightDimmer;
-            float specularDimmer = m_FrameSettings.lightingSettings.specularGlobalDimmer * additionalData.lightDimmer;
+            float diffuseDimmer = m_FrameSettings.diffuseGlobalDimmer * additionalData.lightDimmer;
+            float specularDimmer = m_FrameSettings.specularGlobalDimmer * additionalData.lightDimmer;
             if (diffuseDimmer  <= 0.0f && specularDimmer <= 0.0f)
                 return false;
 
@@ -877,8 +877,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float distanceFade = ComputeLinearDistanceFade(distanceToCamera, additionalLightData.fadeDistance);
             float lightScale = additionalLightData.lightDimmer * distanceFade;
 
-            lightData.diffuseScale = additionalLightData.affectDiffuse ? lightScale * m_FrameSettings.lightingSettings.diffuseGlobalDimmer : 0.0f;
-            lightData.specularScale = additionalLightData.affectSpecular ? lightScale * m_FrameSettings.lightingSettings.specularGlobalDimmer : 0.0f;
+            lightData.diffuseScale = additionalLightData.affectDiffuse ? lightScale * m_FrameSettings.diffuseGlobalDimmer : 0.0f;
+            lightData.specularScale = additionalLightData.affectSpecular ? lightScale * m_FrameSettings.specularGlobalDimmer : 0.0f;
 
             if (lightData.diffuseScale <= 0.0f && lightData.specularScale <= 0.0f)
                 return false;
@@ -2023,7 +2023,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         // If SSS is disable, do lighting for both split lighting and no split lighting
                         // This is for debug purpose, so fine to use immediate material mode here to modify render state
-                        if (!m_FrameSettings.lightingSettings.enableSSSAndTransmission)
+                        if (!m_FrameSettings.enableSSSAndTransmission)
                         {
                             currentLightingMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.NoLighting);
                             currentLightingMaterial.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.NotEqual);
