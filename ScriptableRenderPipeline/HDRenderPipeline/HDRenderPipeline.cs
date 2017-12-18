@@ -42,14 +42,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.GetTemporaryRT(HDShaderIDs._ShadowMaskTexture, width, height, 0, FilterMode.Point, Builtin.GetShadowMaskBufferFormat(), Builtin.GetShadowMaskBufferReadWrite());
                 m_RTIDs[gbufferCount++] = new RenderTargetIdentifier(HDShaderIDs._ShadowMaskTexture);
             }
-
-            if (ShaderConfig.s_VelocityInGbuffer == 1)
-            {
-                // If velocity is in GBuffer then it is in the last RT. Assign a different name to it.
-                cmd.ReleaseTemporaryRT(HDShaderIDs._VelocityTexture);
-                cmd.GetTemporaryRT(HDShaderIDs._VelocityTexture, width, height, 0, FilterMode.Point, Builtin.GetVelocityBufferFormat(), Builtin.GetVelocityBufferReadWrite());
-                m_RTIDs[gbufferCount++] = new RenderTargetIdentifier(HDShaderIDs._VelocityTexture);
-            }
         }
 
         public RenderTargetIdentifier[] GetGBuffers()
@@ -1352,20 +1344,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderVelocity(CullResults cullResults, HDCamera hdcam, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            if (!m_FrameSettings.renderSettings.enableMotionVectors)
+            if (!m_FrameSettings.renderSettings.enableMotionVectors || !m_FrameSettings.renderSettings.enableObjectMotionVectors)
                 return;
 
             using (new ProfilingSample(cmd, "Velocity", GetSampler(CustomSamplerId.Velocity)))
             {
-                // If opaque velocity have been render during GBuffer no need to render it here
-                // TODO: Currently we can't render velocity vector into GBuffer, neither during forward pass (in case of forward opaque), so it is always a separate pass
-                // Note that we if we have forward only opaque with deferred rendering, it must also support the rendering of velocity vector to be correct with following test.
-                if ((ShaderConfig.s_VelocityInGbuffer == 1))
-                {
-                    Debug.LogWarning("Velocity in Gbuffer is currently not supported");
-                    return;
-                }
-
                 // These flags are still required in SRP or the engine won't compute previous model matrices...
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
                 hdcam.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;

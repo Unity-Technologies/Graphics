@@ -31,7 +31,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public bool enableAlphaTestOnlyInDeferredPrepass = false;
 
             public bool enableTransparentPrePass = true;
-            public bool enableMotionVectors = true;
+            public bool enableMotionVectors = true; // Enable/disable whole motion vectors pass (Camera + Object).
+            public bool enableObjectMotionVectors = true;
             public bool enableDBuffer = true;
             public bool enableAtmosphericScattering = true;
             public bool enableRoughRefraction = true; // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable rough refraction ?
@@ -71,6 +72,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             frameSettings.renderSettings.enableTransparentPrePass = this.renderSettings.enableTransparentPrePass;
             frameSettings.renderSettings.enableMotionVectors = this.renderSettings.enableMotionVectors;
+            frameSettings.renderSettings.enableObjectMotionVectors = this.renderSettings.enableObjectMotionVectors;
             frameSettings.renderSettings.enableDBuffer = this.renderSettings.enableDBuffer;
             frameSettings.renderSettings.enableAtmosphericScattering = this.renderSettings.enableAtmosphericScattering;
             frameSettings.renderSettings.enableRoughRefraction = this.renderSettings.enableRoughRefraction;
@@ -124,6 +126,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             aggregate.renderSettings.enableTransparentPrePass = frameSettings.renderSettings.enableTransparentPrePass;
             aggregate.renderSettings.enableMotionVectors = camera.cameraType == CameraType.Reflection ? false : frameSettings.renderSettings.enableMotionVectors;
+            aggregate.renderSettings.enableObjectMotionVectors = camera.cameraType == CameraType.Reflection ? false : frameSettings.renderSettings.enableObjectMotionVectors;
             aggregate.renderSettings.enableDBuffer = frameSettings.renderSettings.enableDBuffer && globalFrameSettings.renderSettings.supportDBuffer;
             aggregate.renderSettings.enableAtmosphericScattering = frameSettings.renderSettings.enableAtmosphericScattering;
             aggregate.renderSettings.enableRoughRefraction = frameSettings.renderSettings.enableRoughRefraction;
@@ -164,6 +167,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, "Enable Transparent Prepass", () => frameSettings.renderSettings.enableTransparentPrePass, (value) => frameSettings.renderSettings.enableTransparentPrePass = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, "Enable Motion Vectors", () => frameSettings.renderSettings.enableMotionVectors, (value) => frameSettings.renderSettings.enableMotionVectors = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>(menuName, "Enable Object Motion Vectors", () => frameSettings.renderSettings.enableObjectMotionVectors, (value) => frameSettings.renderSettings.enableObjectMotionVectors = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, "Enable DBuffer", () => frameSettings.renderSettings.enableDBuffer, (value) => frameSettings.renderSettings.enableDBuffer = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, "Enable Atmospheric Scattering", () => frameSettings.renderSettings.enableAtmosphericScattering, (value) => frameSettings.renderSettings.enableAtmosphericScattering = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, "Enable Rough Refraction", () => frameSettings.renderSettings.enableRoughRefraction, (value) => frameSettings.renderSettings.enableRoughRefraction = (bool)value);
