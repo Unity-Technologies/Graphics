@@ -41,8 +41,8 @@ namespace UnityEditor.ShaderGraph
             var activeNodeList = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots);
 
-            var requirements = AbstractMaterialGraph.GetRequirements(activeNodeList);
-            AbstractMaterialGraph.GenerateApplicationVertexInputs(requirements, vertexInputs, 0, 8);
+            var requirements = GraphUtil.GetRequirements(activeNodeList);
+            GraphUtil.GenerateApplicationVertexInputs(requirements, vertexInputs, 0, 8);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, surfaceInputs);
@@ -74,13 +74,13 @@ namespace UnityEditor.ShaderGraph
                 if (slot != null)
                     slots.Add(slot);
             }
-            AbstractMaterialGraph.GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, slots, true);
+            GraphUtil.GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, slots, true);
 
             var usedSlots = new List<MaterialSlot>();
             foreach (var id in pass.PixelShaderSlots)
                 usedSlots.Add(masterNode.FindSlot<MaterialSlot>(id));
 
-            AbstractMaterialGraph.GenerateSurfaceDescription(
+            GraphUtil.GenerateSurfaceDescription(
                 activeNodeList,
                 masterNode,
                 masterNode.owner as AbstractMaterialGraph,

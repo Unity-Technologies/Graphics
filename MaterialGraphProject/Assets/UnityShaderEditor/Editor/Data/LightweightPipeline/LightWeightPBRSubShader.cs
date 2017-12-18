@@ -84,7 +84,7 @@ namespace UnityEditor.ShaderGraph
             var activeNodeList = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots);
 
-            var requirements = AbstractMaterialGraph.GetRequirements(activeNodeList);
+            var requirements = GraphUtil.GetRequirements(activeNodeList);
 
             var modelRequiements = ShaderGraphRequirements.none;
             modelRequiements.requiresNormal |= NeededCoordinateSpace.World;
@@ -122,13 +122,13 @@ namespace UnityEditor.ShaderGraph
             var slots = new List<MaterialSlot>();
             foreach (var id in pass.PixelShaderSlots)
                 slots.Add(masterNode.FindSlot<MaterialSlot>(id));
-            AbstractMaterialGraph.GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, slots, true);
+            GraphUtil.GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, slots, true);
 
             var usedSlots = new List<MaterialSlot>();
             foreach (var id in pass.PixelShaderSlots)
                 usedSlots.Add(masterNode.FindSlot<MaterialSlot>(id));
 
-            AbstractMaterialGraph.GenerateSurfaceDescription(
+            GraphUtil.GenerateSurfaceDescription(
                 activeNodeList,
                 masterNode,
                 masterNode.owner as AbstractMaterialGraph,
