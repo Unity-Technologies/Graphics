@@ -84,7 +84,7 @@ namespace UnityEditor.ShaderGraph
             var activeNodeList = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots);
 
-            var requirements = GraphUtil.GetRequirements(activeNodeList);
+            var requirements = ShaderGraphRequirements.FromNodes(activeNodeList);
 
             var modelRequiements = ShaderGraphRequirements.none;
             modelRequiements.requiresNormal |= NeededCoordinateSpace.World;
