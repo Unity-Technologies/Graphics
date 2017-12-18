@@ -108,7 +108,7 @@ int BitFieldExtractSignExtend(int data, uint offset, uint numBits)
 }
 #endif // INTRINSIC_BITFIELD_EXTRACT_SIGN_EXTEND
 
-#ifdef INTRINSIC_BITFIELD_INSERT
+#ifndef INTRINSIC_BITFIELD_INSERT
 // Inserts the bits indicated by 'mask' from 'src' into 'dst'.
 uint BitFieldInsert(uint mask, uint src, uint dst)
 {
