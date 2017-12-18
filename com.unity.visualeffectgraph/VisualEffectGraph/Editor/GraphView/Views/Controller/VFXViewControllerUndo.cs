@@ -165,7 +165,7 @@ namespace UnityEditor.VFX.UI
                 try
                 {
                     var cloneGraph = m_graphUndoStack.GetCopyCurrentGraphState();
-                    m_VFXAsset.graph = cloneGraph;
+                    model.graph = cloneGraph;
                     cloneGraph.UpdateSubAssets();
                     m_reentrant = true;
                     ExpressionGraphDirty = true;
