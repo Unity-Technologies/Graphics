@@ -8,7 +8,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     // Keep this class first in the file. Otherwise it seems that the script type is not registered properly.
     public abstract class AtmosphericScattering : VolumeComponent
-    {
+        {
         private readonly static int m_TypeParam = Shader.PropertyToID("_AtmosphericScatteringType");
         // Fog Color
         private readonly static int m_ColorModeParam = Shader.PropertyToID("_FogColorMode");
@@ -35,9 +35,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalFloat(m_TypeParam, (float)FogType.None);
         }
 
-        public void PushShaderParametersCommon(CommandBuffer cmd, FogType type, RenderingDebugSettings renderingDebug)
+        public void PushShaderParametersCommon(CommandBuffer cmd, FrameSettings frameSettings)
         {
-            if(renderingDebug.enableAtmosphericScattering)
+            if(frameSettings.enableAtmosphericScattering)
                 cmd.SetGlobalFloat(m_TypeParam, (float)type);
             else
                 cmd.SetGlobalFloat(m_TypeParam, (float)FogType.None);
