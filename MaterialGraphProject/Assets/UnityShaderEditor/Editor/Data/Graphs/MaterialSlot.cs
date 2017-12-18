@@ -1,26 +1,61 @@
 using System;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEngine.Experimental.UIElements;
 
+[assembly: InternalsVisibleTo("com.unity.shadergraph.EditorTests")]
+
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public abstract class MaterialSlot : SerializableSlot
+    public abstract class MaterialSlot : ISlot
     {
+        const string k_NotInit =  "Not Initilaized";
+
+        [SerializeField]
+        int m_Id;
+
+        [SerializeField]
+        string m_DisplayName = k_NotInit;
+
+        [SerializeField]
+        SlotType m_SlotType = SlotType.Input;
+
+        [SerializeField]
+        int m_Priority = int.MaxValue;
+
+        [SerializeField]
+        bool m_Hidden;
+
         [SerializeField]
         string m_ShaderOutputName;
 
         [SerializeField]
         ShaderStage m_ShaderStage;
 
-        private bool m_HasError;
+        bool m_HasError;
 
         protected MaterialSlot() {}
 
         protected MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
-            : base(slotId, displayName, slotType, hidden)
         {
+            m_Id = slotId;
+            m_DisplayName = displayName;
+            m_SlotType = slotType;
+            m_Hidden = hidden;
+            m_ShaderOutputName = shaderOutputName;
+            this.shaderStage = shaderStage;
+        }
+
+        protected MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, int priority, ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
+        {
+            m_Id = slotId;
+            m_DisplayName = displayName;
+            m_SlotType = slotType;
+            m_Priority = priority;
+            m_Hidden = hidden;
             m_ShaderOutputName = shaderOutputName;
             this.shaderStage = shaderStage;
         }
@@ -59,15 +94,15 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public override string displayName
+        public virtual string displayName
         {
-            get { return base.displayName + ConcreteSlotValueTypeAsString(concreteValueType); }
-            set { base.displayName = value; }
+            get { return m_DisplayName + ConcreteSlotValueTypeAsString(concreteValueType); }
+            set { m_DisplayName = value; }
         }
 
         public string RawDisplayName()
         {
-            return base.displayName;
+            return m_DisplayName;
         }
 
         public static MaterialSlot CreateMaterialSlot(SlotValueType type, int slotId, string displayName, string shaderOutputName, SlotType slotType, Vector4 defaultValue, ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
@@ -103,6 +138,59 @@ namespace UnityEditor.ShaderGraph
             }
 
             throw new ArgumentOutOfRangeException("type", type, null);
+        }
+
+        public SlotReference slotReference
+        {
+            get { return new SlotReference(owner.guid, m_Id); }
+        }
+
+        public INode owner { get; set; }
+
+        public bool hidden
+        {
+            get { return m_Hidden; }
+            set { m_Hidden = value; }
+        }
+
+        public int id
+        {
+            get { return m_Id; }
+        }
+
+        public int priority
+        {
+            get { return m_Priority; }
+            set { m_Priority = value; }
+        }
+
+        public bool isInputSlot
+        {
+            get { return m_SlotType == SlotType.Input; }
+        }
+
+        public bool isOutputSlot
+        {
+            get { return m_SlotType == SlotType.Output; }
+        }
+
+        public SlotType slotType
+        {
+            get { return m_SlotType; }
+        }
+
+        public bool isConnected
+        {
+            get
+            {
+                // node and graph respectivly
+                if (owner == null || owner.owner == null)
+                    return false;
+
+                var graph = owner.owner;
+                var edges = graph.GetEdges(slotReference);
+                return edges.Any();
+            }
         }
 
         public abstract SlotValueType valueType { get; }
@@ -236,5 +324,31 @@ namespace UnityEditor.ShaderGraph
         }
 
         public abstract void CopyValuesFrom(MaterialSlot foundSlot);
+
+        bool Equals(MaterialSlot other)
+        {
+            return m_Id == other.m_Id && owner.guid.Equals(other.owner.guid);
+        }
+
+        public bool Equals(ISlot other)
+        {
+            return Equals(other as object);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((MaterialSlot)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (m_Id * 397) ^ (owner != null ? owner.GetHashCode() : 0);
+            }
+        }
     }
 }
