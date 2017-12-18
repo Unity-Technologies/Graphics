@@ -1,4 +1,6 @@
-// This file assume SHADER_API_GLES is defined
+#ifndef SHADER_API_GLES
+#error GLES.hlsl should not be included if SHADER_API_GLES is not defined
+#endif
 
 #define UNITY_UV_STARTS_AT_TOP 0
 #define UNITY_REVERSED_Z 0
@@ -63,13 +65,13 @@
 #define SHADOW2D_TEXTURE_AND_SAMPLER sampler2DShadow
 #define SHADOWCUBE_TEXTURE_AND_SAMPLER samplerCUBEShadow
 #define SHADOW2D_SAMPLE(textureName, samplerName, coord3) shadow2D(textureName, coord3)
-#define SHADOW3D_SAMPLE(textureName, samplerName, coord4) ((texCUBE(textureName,(coord4).xyz) < (coord4).w) ? 0.0 : 1.0)
+#define SHADOWCUBE_SAMPLE(textureName, samplerName, coord4) ((texCUBE(textureName,(coord4).xyz) < (coord4).w) ? 0.0 : 1.0)
 #else
 // emulate hardware comparison
 #define SHADOW2D_TEXTURE_AND_SAMPLER sampler2D_float
 #define SHADOWCUBE_TEXTURE_AND_SAMPLER samplerCUBE_float
 #define SHADOW2D_SAMPLE(textureName, samplerName, coord3) ((SAMPLE_DEPTH_TEXTURE(textureName, samplerName, (coord3).xy) < (coord3).z) ? 0.0 : 1.0)
-#define SHADOW3D_SAMPLE(textureName, samplerName, coord4) ((texCUBE(textureName,(coord4).xyz).r < (coord4).w) ? 0.0 : 1.0)
+#define SHADOWCUBE_SAMPLE(textureName, samplerName, coord4) ((texCUBE(textureName,(coord4).xyz).r < (coord4).w) ? 0.0 : 1.0)
 #endif
 
 // Texture util abstraction
@@ -138,21 +140,20 @@
 
 #define SAMPLE_TEXTURE2D_SHADOW(textureName, samplerName, coord3) SHADOW2D_SAMPLE(textureName, samplerName, coord3)
 #define SAMPLE_TEXTURE2D_ARRAY_SHADOW(textureName, samplerName, coord3, index) SAMPLE_TEXTURECUBE_SHADOW(textureName, samplerName, float4(coord3.xy, index, coord3.w))
-#define SAMPLE_TEXTURECUBE_SHADOW(textureName, samplerName, coord4) SHADOW3D_SAMPLE(textureName, samplerName, coord4)
+#define SAMPLE_TEXTURECUBE_SHADOW(textureName, samplerName, coord4) SHADOWCUBE_SAMPLE(textureName, samplerName, coord4)
 #define SAMPLE_TEXTURECUBE_ARRAY_SHADOW(textureName, samplerName, coord4, index) SAMPLE_TEXTURECUBE_SHADOW(textureName, samplerName, coord4)
 
 #define SAMPLE_DEPTH_TEXTURE(textureName, samplerName, coord2) SAMPLE_TEXTURE2D(textureName, samplerName, coord2).r
 #define SAMPLE_DEPTH_TEXTURE_LOD(textureName, samplerName, coord2, lod) SAMPLE_TEXTURE2D_LOD(textureName, samplerName, coord2, lod).r
 
-#define LOAD_TEXTURE2D(textureName, unCoord2)                       ERROR_ON_UNSUPPORTED_FUNCTION(texelFetch)
-#define LOAD_TEXTURE2D_LOD(textureName, unCoord2, lod)              ERROR_ON_UNSUPPORTED_FUNCTION(texelFetchLod)
-#define LOAD_TEXTURE2D_MSAA(textureName, unCoord2, sampleIndex)     ERROR_ON_UNSUPPORTED_FUNCTION(texelFetchBias)
-#define LOAD_TEXTURE2D_ARRAY(textureName, unCoord2, index)          ERROR_ON_UNSUPPORTED_FUNCTION(texelFetchArray)
-#define LOAD_TEXTURE2D_ARRAY_LOD(textureName, unCoord2, index, lod) ERROR_ON_UNSUPPORTED_FUNCTION(texelFetchLodArray)
+#define LOAD_TEXTURE2D(textureName, unCoord2)                       half4(0, 0, 0, 0) // Not supported
+#define LOAD_TEXTURE2D_LOD(textureName, unCoord2, lod)              half4(0, 0, 0, 0) // Not supported
+#define LOAD_TEXTURE2D_MSAA(textureName, unCoord2, sampleIndex)     half4(0, 0, 0, 0) // Not supported
+#define LOAD_TEXTURE2D_ARRAY(textureName, unCoord2, index)          half4(0, 0, 0, 0) // Not supported
+#define LOAD_TEXTURE2D_ARRAY_LOD(textureName, unCoord2, index, lod) half4(0, 0, 0, 0) // Not supported
 
-// Gather not supported. Fallabck to regular texture sampling.
-#define GATHER_TEXTURE2D(textureName, samplerName, coord2)                  SAMPLE_TEXTURE2D(textureName, samplerName, coord2)
-#define GATHER_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index)     SAMPLE_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index)
-#define GATHER_TEXTURECUBE(textureName, samplerName, coord3)                SAMPLE_TEXTURECUBE(textureName, samplerName, coord3)
-#define GATHER_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index)   SAMPLE_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index)
-
+// Gather not supported. Fallback to regular texture sampling.
+#define GATHER_TEXTURE2D(textureName, samplerName, coord2)                  SAMPLE_TEXTURE2D(textureName, samplerName, coord2).rrrr
+#define GATHER_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index)     SAMPLE_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index).rrrr
+#define GATHER_TEXTURECUBE(textureName, samplerName, coord3)                SAMPLE_TEXTURECUBE(textureName, samplerName, coord3).rrrr
+#define GATHER_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index)   SAMPLE_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index).rrrr

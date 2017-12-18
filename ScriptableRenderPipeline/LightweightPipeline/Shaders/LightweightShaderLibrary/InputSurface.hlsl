@@ -3,6 +3,7 @@
 
 #include "Core.hlsl"
 #include "ShaderLibrary/Packing.hlsl"
+#include "ShaderLibrary/CommonMaterial.hlsl"
 
 #ifdef _SPECULAR_SETUP
 #define SAMPLE_METALLICSPECULAR(uv) SAMPLE_TEXTURE2D(_SpecGlossMap, sampler_SpecGlossMap, uv)
@@ -126,7 +127,7 @@ half Occlusion(float2 uv)
     return SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, uv).g;
 #else
     half occ = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, uv).g;
-    return LerpOneTo(occ, _OcclusionStrength);
+    return LerpWhiteTo(occ, _OcclusionStrength);
 #endif
 #else
     return 1.0;

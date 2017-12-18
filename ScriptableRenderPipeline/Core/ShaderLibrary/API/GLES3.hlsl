@@ -1,4 +1,6 @@
-// This file assume SHADER_API_GLES3 is defined
+#ifndef SHADER_API_GLES3
+#error GLES.hlsl should not be included if SHADER_API_GLES3 is not defined
+#endif
 
 #define UNITY_UV_STARTS_AT_TOP 0
 #define UNITY_REVERSED_Z 0
@@ -101,9 +103,9 @@
 #define GATHER_TEXTURECUBE(textureName, samplerName, coord3)                textureName.Gather(samplerName, coord3)
 #define GATHER_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index)   textureName.Gather(samplerName, float4(coord3, index))
 #else
-#define GATHER_TEXTURE2D(textureName, samplerName, coord2)                  SAMPLE_TEXTURE2D(textureName, samplerName, coord2)
-#define GATHER_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index)     SAMPLE_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index)
-#define GATHER_TEXTURECUBE(textureName, samplerName, coord3)                SAMPLE_TEXTURECUBE(textureName, samplerName, coord3)
-#define GATHER_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index)   SAMPLE_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index)
+#define GATHER_TEXTURE2D(textureName, samplerName, coord2)                  SAMPLE_TEXTURE2D(textureName, samplerName, coord2).rrrr
+#define GATHER_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index)     SAMPLE_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index).rrrr
+#define GATHER_TEXTURECUBE(textureName, samplerName, coord3)                SAMPLE_TEXTURECUBE(textureName, samplerName, coord3).rrrr
+#define GATHER_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index)   SAMPLE_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index).rrrr
 #endif
 
