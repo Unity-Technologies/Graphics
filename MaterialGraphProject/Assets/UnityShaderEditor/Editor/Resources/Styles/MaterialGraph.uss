@@ -333,6 +333,11 @@ GraphInspectorView {
     background-color: rgb(56, 56, 56);
     flex-direction: column;
     justify-content: space-between;
+    position-type: absolute;
+    position-right: 0;
+    position-bottom: 0;
+    width: 400;
+    height: 800;
 }
 
 GraphInspectorView > #top > #header {
