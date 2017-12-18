@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using UnityEditor.Compilation;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
@@ -440,35 +441,21 @@ namespace UnityEditor.ShaderGraph
         Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo> GetLegacyTypeRemapping()
         {
             var result = new Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo>();
-            var viewNode = new SerializationHelper.TypeSerializationInfo
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                fullName = "UnityEngine.MaterialGraph.ViewDirectionNode"
-            };
-            result[viewNode] = SerializationHelper.GetTypeSerializableAsString(typeof(ViewDirectionNode));
+                foreach (var type in assembly.GetTypes())
+                {
+                    if (type.IsAbstract)
+                        continue;
+                    foreach (var attribute in type.GetCustomAttributes(typeof(LegacyAttribute), false))
+                    {
+                        var legacyAttribute = (LegacyAttribute)attribute;
+                        var serializationInfo = new SerializationHelper.TypeSerializationInfo { fullName = legacyAttribute.fullName };
+                        result[serializationInfo] = SerializationHelper.GetTypeSerializableAsString(type);
+                    }
 
-            var normalNode = new SerializationHelper.TypeSerializationInfo
-            {
-                fullName = "UnityEngine.MaterialGraph.NormalNode"
-            };
-            result[normalNode] = SerializationHelper.GetTypeSerializableAsString(typeof(NormalVectorNode));
-
-            var worldPosNode = new SerializationHelper.TypeSerializationInfo
-            {
-                fullName = "UnityEngine.MaterialGraph.WorldPosNode"
-            };
-            result[worldPosNode] = SerializationHelper.GetTypeSerializableAsString(typeof(PositionNode));
-
-            var sampleTexture2DNode = new SerializationHelper.TypeSerializationInfo
-            {
-                fullName = "UnityEditor.ShaderGraph.Texture2DNode"
-            };
-            result[sampleTexture2DNode] = SerializationHelper.GetTypeSerializableAsString(typeof(SampleTexture2DNode));
-
-            var sampleCubemapNode = new SerializationHelper.TypeSerializationInfo
-            {
-                fullName = "UnityEditor.ShaderGraph.CubemapNode"
-            };
-            result[sampleCubemapNode] = SerializationHelper.GetTypeSerializableAsString(typeof(SampleCubemapNode));
+                }
+            }
 
             return result;
         }

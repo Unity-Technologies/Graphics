@@ -11,6 +11,7 @@ namespace UnityEditor.ShaderGraph
         Normal
     };
 
+    [Legacy("UnityEditor.ShaderGraph.Texture2DNode")]
     [Title("Input", "Texture", "Sample Texture 2D")]
     public class SampleTexture2DNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {

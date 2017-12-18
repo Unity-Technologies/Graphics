@@ -3,6 +3,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
+    [Legacy("UnityEngine.MaterialGraph.WorldPosNode")]
     [Title("Input", "Geometry", "Position")]
     public class PositionNode : GeometryNode, IMayRequirePosition
     {
