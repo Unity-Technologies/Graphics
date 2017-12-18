@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using UnityEditor.Graphing;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -73,6 +74,11 @@ namespace UnityEditor.ShaderGraph
                 propType = PropertyType.Color,
                 colorValue = value
             };
+        }
+
+        public override INode ToConcreteNode()
+        {
+            return new ColorNode { color = value };
         }
     }
 }
