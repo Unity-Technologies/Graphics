@@ -66,7 +66,7 @@ namespace UnityEditor.ShaderGraph
 
         void ValidateChannelCount()
         {
-            int channelCount = (int)SlotValueHelper.GetChannelCount(FindSlot<MaterialSlot>(InputSlotId).concreteValueType);
+            int channelCount = SlotValueHelper.GetChannelCount(FindSlot<MaterialSlot>(InputSlotId).concreteValueType);
             if ((int)channel >= channelCount)
                 channel = TextureChannel.Red;
         }
