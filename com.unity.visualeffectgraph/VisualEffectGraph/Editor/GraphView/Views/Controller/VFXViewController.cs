@@ -57,11 +57,12 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void GraphDestroyed()
+        void GraphLost()
         {
             if (m_Graph != null)
             {
                 RemoveInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
+                RemoveInvalidateDelegate(m_Graph, IncremenentGraphUndoRedoState);
 
                 m_Graph = null;
             }
@@ -74,7 +75,7 @@ namespace UnityEditor.VFX.UI
 
         public override void OnDisable()
         {
-            GraphDestroyed();
+            GraphLost();
             ReleaseUndoStack();
             Undo.undoRedoPerformed -= SynchronizeUndoRedoState;
             Undo.willFlushUndoRecord -= WillFlushUndoRecord;
@@ -403,7 +404,7 @@ namespace UnityEditor.VFX.UI
             if (model == null)
             {
                 NotifyChange(Change.destroy);
-                GraphDestroyed();
+                GraphLost();
 
                 RemoveController(this);
                 return;
@@ -412,10 +413,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (m_Graph != null)
                 {
-                    DataWatchService.sharedInstance.RemoveWatch(m_GraphHandle);
-                    m_GraphHandle = null;
-
-                    RemoveInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
+                    GraphLost();
                 }
                 m_Graph =  model.GetOrCreateGraph();
 
@@ -424,6 +422,7 @@ namespace UnityEditor.VFX.UI
                     m_GraphHandle = DataWatchService.sharedInstance.AddWatch(m_Graph, GraphChanged);
 
                     AddInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
+                    AddInvalidateDelegate(m_Graph, IncremenentGraphUndoRedoState);
                 }
             }
         }
