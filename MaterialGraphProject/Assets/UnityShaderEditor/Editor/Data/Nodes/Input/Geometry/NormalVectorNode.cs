@@ -3,6 +3,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
+    [Legacy("UnityEngine.MaterialGraph.NormalNode")]
     [Title("Input", "Geometry", "Normal Vector")]
     public class NormalVectorNode : GeometryNode, IMayRequireNormal
     {

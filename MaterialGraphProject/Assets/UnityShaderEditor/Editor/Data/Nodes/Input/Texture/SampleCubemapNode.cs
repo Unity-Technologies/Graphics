@@ -6,6 +6,7 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
+    [Legacy("UnityEditor.ShaderGraph.CubemapNode")]
     [Title("Input", "Texture", "Sample Cubemap")]
     public class SampleCubemapNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireViewDirection, IMayRequireNormal
     {
