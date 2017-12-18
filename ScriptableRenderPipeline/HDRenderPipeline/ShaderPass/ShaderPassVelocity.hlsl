@@ -110,7 +110,8 @@ PackedVaryingsType Vert(AttributesMesh inputMesh,
     // So motion vetor will be based on interpolate previous position at vertex level instead.
 	varyingsType.vpass.positionCS = mul(_NonJitteredViewProjMatrix, float4(varyingsType.vmesh.positionWS, 1.0));
 
-    bool forceNoMotion = unity_MotionVectorsParams.y > 0.0;
+    // Note: unity_MotionVectorsParams.y is 0 is forceNoMotion is enabled
+    bool forceNoMotion = unity_MotionVectorsParams.y == 0.0;
     if (forceNoMotion)
     {
         varyingsType.vpass.previousPositionCS = float4(0.0, 0.0, 0.0, 1.0);
@@ -161,7 +162,8 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
 float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
 {
-    bool forceNoMotion = unity_MotionVectorsParams.y > 0.0;
+    // Note: unity_MotionVectorsParams.y is 0 is forceNoMotion is enabled
+    bool forceNoMotion = unity_MotionVectorsParams.y == 0.0;
     if (forceNoMotion)
         return float4(0.0, 0.0, 0.0, 0.0);
 
