@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         string m_Selected;
 
         [SerializeField]
-        SerializableGraphObject m_GraphObject;
+        GraphObject m_GraphObject;
 
         [NonSerialized]
         bool m_HasError;
@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        SerializableGraphObject graphObject
+        GraphObject graphObject
         {
             get { return m_GraphObject; }
             set
@@ -426,7 +426,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 selectedGuid = newSelectionGuid;
 
                 var textGraph = File.ReadAllText(path, Encoding.UTF8);
-                graphObject = CreateInstance<SerializableGraphObject>();
+                graphObject = CreateInstance<GraphObject>();
                 graphObject.hideFlags = HideFlags.HideAndDontSave;
                 graphObject.graph = JsonUtility.FromJson(textGraph, graphType) as IGraph;
                 graphObject.graph.OnEnable();
