@@ -85,7 +85,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
                 m_PreviewTextureView = new PreviewTextureView { name = "preview", image = Texture2D.blackTexture };
                 m_PreviewTextureView.AddManipulator(new Draggable(OnMouseDrag, true));
-                m_PreviewTextureView.AddManipulator(new Scrollable(OnMouseScroll));
                 bottomContainer.Add(m_PreviewTextureView);
 
                 m_PreviewScrollPosition = new Vector2(0f, 0f);
@@ -100,7 +99,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_PreviewRenderHandle = previewManager.masterRenderData;
             m_PreviewRenderHandle.onPreviewChanged += OnPreviewChanged;
 
-            m_PreviewMeshPicker.SetValueAndNotify(m_Graph.previewData.mesh);
+            m_PreviewMeshPicker.SetValueAndNotify(m_Graph.previewData.serializedMesh.mesh);
 
             foreach (var property in m_Graph.properties)
                 m_PropertyItems.Add(new ShaderPropertyView(m_Graph, property));
@@ -128,14 +127,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_PreviewScrollPosition.y = Mathf.Clamp(m_PreviewScrollPosition.y, -90f, 90f);
             Quaternion previewRotation = Quaternion.Euler(m_PreviewScrollPosition.y, 0, 0) * Quaternion.Euler(0, m_PreviewScrollPosition.x, 0);
             m_Graph.previewData.rotation = previewRotation;
-
-            masterNode.onModified(masterNode, ModificationScope.Node);
-        }
-
-        void OnMouseScroll(float scrollDelta)
-        {
-            m_Graph.previewData.scale -= scrollDelta * .01f;
-            m_Graph.previewData.scale = Mathf.Clamp(m_Graph.previewData.scale, .1f, 4f);
 
             masterNode.onModified(masterNode, ModificationScope.Node);
         }
@@ -171,13 +162,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
             masterNode.onModified(masterNode, ModificationScope.Node);
 
-            if (m_Graph.previewData.mesh != changedMesh)
+            if (m_Graph.previewData.serializedMesh.mesh != changedMesh)
             {
                 m_Graph.previewData.rotation = Quaternion.identity;
-                m_Graph.previewData.scale = 1f;
             }
 
-            m_Graph.previewData.mesh = changedMesh;
+            m_Graph.previewData.serializedMesh.mesh = changedMesh;
         }
 
         public void UpdateSelection(IEnumerable<INode> nodes)

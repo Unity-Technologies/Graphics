@@ -109,7 +109,7 @@ namespace UnityEditor.ShaderGraph
 
         #endregion
 
-        [NonSerialized]
+        [SerializeField]
         InspectorPreviewData m_PreviewData = new InspectorPreviewData();
 
         public InspectorPreviewData previewData
@@ -958,11 +958,13 @@ namespace UnityEditor.ShaderGraph
             }
         }
     }
-
+    
+    [Serializable]
     public class InspectorPreviewData
     {
-        public Mesh mesh;
+        public SerializableMesh serializedMesh = new SerializableMesh();
+
+        [NonSerialized]
         public Quaternion rotation = Quaternion.identity;
-        public float scale = 1f;
     }
 }
