@@ -1357,48 +1357,41 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderObjectsVelocity(CullResults cullResults, HDCamera hdcam, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        void RenderObjectsVelocity(CullResults cullResults, HDCamera hdcamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             if (!m_FrameSettings.enableMotionVectors || !m_FrameSettings.enableObjectMotionVectors)
                 return;
 
-            using (new ProfilingSample(cmd, "Velocity", GetSampler(CustomSamplerId.Velocity)))
+            using (new ProfilingSample(cmd, "Objects Velocity", GetSampler(CustomSamplerId.ObjectsVelocity)))
             {
                 // These flags are still required in SRP or the engine won't compute previous model matrices...
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
-                hdcam.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
-
-                int w = (int)hdcam.screenSize.x;
-                int h = (int)hdcam.screenSize.y;
+                hdcamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
                 cmd.SetRenderTarget(m_VelocityBufferRT, m_CameraDepthStencilBufferRT);
 
-                RenderOpaqueRenderList(cullResults, hdcam.camera, renderContext, cmd, HDShaderPassNames.s_MotionVectorsName, RendererConfiguration.PerObjectMotionVectors);
+                RenderOpaqueRenderList(cullResults, hdcamera.camera, renderContext, cmd, HDShaderPassNames.s_MotionVectorsName, RendererConfiguration.PerObjectMotionVectors);
             }
         }
 
-        void RenderCameraVelocity(CullResults cullResults, HDCamera hdcam, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        void RenderCameraVelocity(CullResults cullResults, HDCamera hdcamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             if (!m_FrameSettings.enableMotionVectors)
                 return;
 
-            using (new ProfilingSample(cmd, "Velocity", GetSampler(CustomSamplerId.Velocity)))
+            using (new ProfilingSample(cmd, "Camera Velocity", GetSampler(CustomSamplerId.CameraVelocity)))
             {
                 // These flags are still required in SRP or the engine won't compute previous model matrices...
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
-                hdcam.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
+                hdcamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
-                int w = (int)hdcam.screenSize.x;
-                int h = (int)hdcam.screenSize.y;
+                // TODO: This is not safe ? as we don't use cmd buffer we can have a delay no ?
+                m_CameraMotionVectorsMaterial.SetVector(HDShaderIDs._CameraPosDiff, hdcamera.prevCameraPos - hdcamera.cameraPos);
 
-                // TODO: This is not safe ? as we don't use cmd buffer we can have a dealy no ?
-                m_CameraMotionVectorsMaterial.SetVector(HDShaderIDs._CameraPosDiff, hdcam.prevCameraPos - hdcam.cameraPos);
+                // Setup stencil buffer
+                CoreUtils.DrawFullScreen(cmd, m_CameraMotionVectorsMaterial, m_VelocityBufferRT, m_CameraDepthStencilBufferRT, null, 0);
 
-                cmd.ReleaseTemporaryRT(m_VelocityBuffer);
-                cmd.GetTemporaryRT(m_VelocityBuffer, w, h, 0, FilterMode.Point, Builtin.GetVelocityBufferFormat(), Builtin.GetVelocityBufferReadWrite());
-                CoreUtils.DrawFullScreen(cmd, m_CameraMotionVectorsMaterial, m_VelocityBufferRT, null, 0);
-
-                PushFullScreenDebugTexture(cmd, m_VelocityBuffer, hdcam.camera, renderContext, FullScreenDebugMode.MotionVectors);
+                PushFullScreenDebugTexture(cmd, m_VelocityBuffer, hdcamera.camera, renderContext, FullScreenDebugMode.MotionVectors);
             }
         }
 
