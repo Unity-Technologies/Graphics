@@ -329,9 +329,9 @@ namespace UnityEditor.ShaderGraph
                     {
                         if (type.IsAbstract)
                             continue;
-                        foreach (var attribute in type.GetCustomAttributes(typeof(LegacyAttribute), false))
+                        foreach (var attribute in type.GetCustomAttributes(typeof(FormerNameAttribute), false))
                         {
-                            var legacyAttribute = (LegacyAttribute)attribute;
+                            var legacyAttribute = (FormerNameAttribute)attribute;
                             var serializationInfo = new SerializationHelper.TypeSerializationInfo { fullName = legacyAttribute.fullName };
                             s_LegacyTypeRemapping[serializationInfo] = SerializationHelper.GetTypeSerializableAsString(type);
                         }

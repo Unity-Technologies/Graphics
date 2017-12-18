@@ -3,7 +3,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Legacy("UnityEngine.MaterialGraph.ViewDirectionNode")]
+    [FormerName("UnityEngine.MaterialGraph.ViewDirectionNode")]
     [Title("Input", "Geometry", "View Direction")]
     public class ViewDirectionNode : GeometryNode, IMayRequireViewDirection
     {
