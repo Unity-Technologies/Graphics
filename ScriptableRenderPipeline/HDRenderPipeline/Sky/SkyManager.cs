@@ -67,25 +67,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else
                     return m_VisualSky.reflectionTexture;
             }
-                }
+        }
 
         void UpdateCurrentSkySettings()
-                {
+        {
             SkySettings newSkySettings = null;
             var visualEnv = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
             switch (visualEnv.skyType.value)
-        {
-                case SkyType.HDRISky:
             {
+                case SkyType.HDRISky:
+                    {
                         newSkySettings = VolumeManager.instance.stack.GetComponent<HDRISky>();
                         break;
-            }
+                    }
                 case SkyType.ProceduralSky:
-            {
+                    {
                         newSkySettings = VolumeManager.instance.stack.GetComponent<ProceduralSky>();
                         break;
+                    }
             }
-        }
 
             m_VisualSky.skySettings = newSkySettings;
             m_BakingSky.skySettings = SkySettings.GetBakingSkySettings();
@@ -140,7 +140,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool IsSkyValid()
         {
             return m_VisualSky.IsValid();
-            }
+        }
 
 
         void BlitCubemap(CommandBuffer cmd, Cubemap source, RenderTexture dest)
@@ -194,7 +194,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // where the GI system sometimes update the ambient probe and sometime does not...
                     DynamicGI.UpdateEnvironment();
 
-                m_NeedUpdateBakingSky = false;
+                    m_NeedUpdateBakingSky = false;
             }
 
             if (m_NeedUpdateRealtimeEnv)
@@ -208,13 +208,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_NeedUpdateBakingSky = m_BakingSky.UpdateEnvironment(camera, sunLight, m_UpdateRequired, cmd);
             if (m_LightingOverrideSky.IsValid())
-                {
+            {
                 m_NeedUpdateRealtimeEnv = m_LightingOverrideSky.UpdateEnvironment(camera, sunLight, m_UpdateRequired, cmd);
             }
             else
-                    {
+            {
                 m_NeedUpdateRealtimeEnv = m_VisualSky.UpdateEnvironment(camera, sunLight, m_UpdateRequired, cmd);
-                        }
+            }
 
             m_UpdateRequired = false;
 
@@ -224,25 +224,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (IsSkyValid())
             {
                 cmd.SetGlobalInt(HDShaderIDs._EnvLightSkyEnabled, 1);
-                    }
+            }
             else
             {
                 cmd.SetGlobalInt(HDShaderIDs._EnvLightSkyEnabled, 0);
-                }
             }
+        }
 
         public void RenderSky(HDCamera camera, Light sunLight, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, CommandBuffer cmd)
         {
             m_VisualSky.RenderSky(camera, sunLight, colorBuffer, depthBuffer, cmd);
-            }
+        }
 
         public void RenderOpaqueAtmosphericScattering(CommandBuffer cmd)
         {
             using (new ProfilingSample(cmd, "Opaque Atmospheric Scattering"))
             {
-                    CoreUtils.DrawFullScreen(cmd, m_OpaqueAtmScatteringMaterial);
-                }
+                CoreUtils.DrawFullScreen(cmd, m_OpaqueAtmScatteringMaterial);
             }
+        }
 
         public Texture2D ExportSkyToTexture()
         {
