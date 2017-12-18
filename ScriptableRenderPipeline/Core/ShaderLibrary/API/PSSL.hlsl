@@ -1,6 +1,9 @@
 // This file assume SHADER_API_D3D11 is defined
 
 #define INTRINSIC_BITFIELD_EXTRACT
+#define BitFieldExtract __v_bfe_u32
+#define INTRINSIC_BITFIELD_EXTRACT_SIGN_EXTEND
+#define BitFieldExtractSignExtend __v_bfe_i32
 #define INTRINSIC_WAVEREADFIRSTLANE
 #define WaveReadFirstLane ReadFirstLane
 #define INTRINSIC_MAD24
@@ -15,7 +18,7 @@
 #define UNITY_NEAR_CLIP_VALUE (1.0)
 // This value will not go through any matrix projection convertion
 #define UNITY_RAW_FAR_CLIP_VALUE (0.0)
-#define FRONT_FACE_SEMATIC SV_IsFrontFace
+#define FRONT_FACE_SEMANTIC SV_IsFrontFace
 #define FRONT_FACE_TYPE bool
 #define IS_FRONT_VFACE(VAL, FRONT, BACK) ((VAL) ? (FRONT) : (BACK))
 

@@ -264,7 +264,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Lit() {}
 
-        public override void Build(RenderPipelineResources renderPipelineResources)
+        public override void Build(HDRenderPipelineAsset hdAsset)
         {
             m_InitPreFGD = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/PreIntegratedFGD");
 
