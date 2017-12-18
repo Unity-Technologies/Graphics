@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void AddingNonMaterialSlotToNodeThrows()
         {
-            Assert.Throws<ArgumentException>(() => m_NodeA.AddSlot(new SerializableSlot(0, string.Empty, SlotType.Input)));
+            Assert.Throws<ArgumentException>(() => m_NodeA.AddSlot(new TestSlot(0, string.Empty, SlotType.Input)));
         }
 
         [Test]
