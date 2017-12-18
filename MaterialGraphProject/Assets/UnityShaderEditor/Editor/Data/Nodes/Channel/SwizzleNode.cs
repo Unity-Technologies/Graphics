@@ -122,7 +122,7 @@ namespace UnityEditor.ShaderGraph
 
         void ValidateChannelCount()
         {
-            var channelCount = (int)SlotValueHelper.GetChannelCount(FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType);
+            var channelCount = SlotValueHelper.GetChannelCount(FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType);
             if ((int)redChannel >= channelCount)
                 redChannel = TextureChannel.Red;
             if ((int)greenChannel >= channelCount)
@@ -185,7 +185,8 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine("float Unity_Swizzle_Select_{0}({0} Value, int Swizzle, int Channel)", valueType.ToString(precision));
             using (sb.BlockScope())
             {
-                if (valueType == ConcreteSlotValueType.Vector1)
+                var channelCount = SlotValueHelper.GetChannelCount(valueType);
+                if (channelCount == 1)
                 {
                     sb.AppendLine("return Value;");
                 }
@@ -193,11 +194,11 @@ namespace UnityEditor.ShaderGraph
                 {
                     sb.AppendLine("int index = (Swizzle >> (2 * Channel)) & 3;");
                     sb.AppendLine("if (index == 0) return Value.r;");
-                    if (valueType == ConcreteSlotValueType.Vector2 || valueType == ConcreteSlotValueType.Vector3 || valueType == ConcreteSlotValueType.Vector4)
+                    if (channelCount >= 2)
                         sb.AppendLine("if (index == 1) return Value.g;");
-                    if (valueType == ConcreteSlotValueType.Vector3 || valueType == ConcreteSlotValueType.Vector4)
+                    if (channelCount >= 3)
                         sb.AppendLine("if (index == 2) return Value.b;");
-                    if (valueType == ConcreteSlotValueType.Vector4)
+                    if (channelCount == 4)
                         sb.AppendLine("if (index == 3) return Value.a;");
                     sb.AppendLine("return 0;");
                 }
