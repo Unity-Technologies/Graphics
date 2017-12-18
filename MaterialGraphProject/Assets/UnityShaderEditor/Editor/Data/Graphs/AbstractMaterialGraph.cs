@@ -438,28 +438,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo> GetLegacyTypeRemapping()
-        {
-            var result = new Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo>();
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                foreach (var type in assembly.GetTypes())
-                {
-                    if (type.IsAbstract)
-                        continue;
-                    foreach (var attribute in type.GetCustomAttributes(typeof(LegacyAttribute), false))
-                    {
-                        var legacyAttribute = (LegacyAttribute)attribute;
-                        var serializationInfo = new SerializationHelper.TypeSerializationInfo { fullName = legacyAttribute.fullName };
-                        result[serializationInfo] = SerializationHelper.GetTypeSerializableAsString(type);
-                    }
-
-                }
-            }
-
-            return result;
-        }
-
         public void ReplaceWith(IGraph other)
         {
             var otherMg = other as AbstractMaterialGraph;
@@ -523,7 +501,7 @@ namespace UnityEditor.ShaderGraph
         {
             // have to deserialize 'globals' before nodes
             m_Properties = SerializationHelper.Deserialize<IShaderProperty>(m_SerializedProperties, null);
-            var nodes = SerializationHelper.Deserialize<INode>(m_SerializableNodes, GetLegacyTypeRemapping());
+            var nodes = SerializationHelper.Deserialize<INode>(m_SerializableNodes, GraphUtil.GetLegacyTypeRemapping());
             m_Nodes = new Dictionary<Guid, INode>(nodes.Count);
             foreach (var node in nodes)
             {
