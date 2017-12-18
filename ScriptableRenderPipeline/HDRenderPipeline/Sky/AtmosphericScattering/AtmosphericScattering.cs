@@ -64,7 +64,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void PushShaderParameters(CommandBuffer cmd, FrameSettings frameSettings)
         {
-            if(frameSettings.renderSettings.enableAtmosphericScattering)
+            if(frameSettings.enableAtmosphericScattering)
                 cmd.SetGlobalFloat(m_TypeParam, (float)type);
             else
                 cmd.SetGlobalFloat(m_TypeParam, (float)FogType.None);
