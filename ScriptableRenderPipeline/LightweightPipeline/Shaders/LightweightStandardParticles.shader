@@ -19,9 +19,6 @@ Shader "LightweightPipeline/Particles/Standard"
         _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
 
-        _DistortionStrength("Strength", Float) = 1.0
-        _DistortionBlend("Blend", Range(0.0, 1.0)) = 0.5
-
         _SoftParticlesNearFadeDistance("Soft Particles Near Fade", Float) = 0.0
         _SoftParticlesFarFadeDistance("Soft Particles Far Fade", Float) = 1.0
         _CameraNearFadeDistance("Camera Near Fade", Float) = 1.0
@@ -31,7 +28,6 @@ Shader "LightweightPipeline/Particles/Standard"
         [HideInInspector] _Mode("__mode", Float) = 0.0
         [HideInInspector] _FlipbookMode("__flipbookmode", Float) = 0.0
         [HideInInspector] _LightingEnabled("__lightingenabled", Float) = 1.0
-        [HideInInspector] _DistortionEnabled("__distortionenabled", Float) = 0.0
         [HideInInspector] _EmissionEnabled("__emissionenabled", Float) = 0.0
         [HideInInspector] _BlendOp("__blendop", Float) = 0.0
         [HideInInspector] _SrcBlend("__src", Float) = 1.0
@@ -42,7 +38,6 @@ Shader "LightweightPipeline/Particles/Standard"
         [HideInInspector] _CameraFadingEnabled("__camerafadingenabled", Float) = 0.0
         [HideInInspector] _SoftParticleFadeParams("__softparticlefadeparams", Vector) = (0,0,0,0)
         [HideInInspector] _CameraFadeParams("__camerafadeparams", Vector) = (0,0,0,0)
-        [HideInInspector] _DistortionStrengthScaled("__distortionstrengthscaled", Float) = 0.0
     }
 
     SubShader

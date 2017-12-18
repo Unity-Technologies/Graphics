@@ -102,7 +102,7 @@ float4 SampleProbeOcclusion(TEXTURE3D_ARGS(SHVolumeTexture, SHVolumeSampler), fl
 // RGBM lightmaps are currently always gamma encoded, so we use a constant of range^2.2 = 5^2.2
 #define LIGHTMAP_RGBM_RANGE 34.493242f
 
-// DLRD lightmaps are currently alwasy gamma encoded, so we use a constant of 2.0^2.2 = 4.59
+// DLRD lightmaps are currently always gamma encoded, so we use a constant of 2.0^2.2 = 4.59
 #define LIGHTMAP_DLDR_RANGE 4.59f
 
 // TODO: This is the max value allowed for emissive (bad name - but keep for now to retrieve it) (It is 8^2.2 (gamma) and 8 is the limit of punctual light slider...), comme from UnityCg.cginc. Fix it!
@@ -130,18 +130,18 @@ float4 PackEmissiveRGBM(float3 rgb)
     return rgbm;
 }
 
-half3 UnpackLightmapRGBM(half4 rgbmInput)
+float3 UnpackLightmapRGBM(float4 rgbmInput)
 {
     // RGBM lightmaps are always gamma encoded for now, so decode with that in mind:
     return rgbmInput.rgb * pow(rgbmInput.a, 2.2f) * LIGHTMAP_RGBM_RANGE;
 }
 
-half3 UnpackLightmapDoubleLDR(half4 encodedColor)
+float3 UnpackLightmapDoubleLDR(float4 encodedColor)
 {
     return encodedColor.rgb * LIGHTMAP_DLDR_RANGE;
 }
 
-half3 DecodeLightmap(half4 encodedIlluminance)
+float3 DecodeLightmap(float4 encodedIlluminance)
 {
 #if defined(UNITY_LIGHTMAP_RGBM_ENCODING)
     return UnpackLightmapRGBM(encodedIlluminance);
@@ -150,10 +150,10 @@ half3 DecodeLightmap(half4 encodedIlluminance)
 #endif
 }
 
-half3 DecodeHDREnvironment(half4 encodedIrradiance, half4 decodeInstructions)
+float3 DecodeHDREnvironment(float4 encodedIrradiance, float4 decodeInstructions)
 {
     // Take into account texture alpha if decodeInstructions.w is true(the alpha value affects the RGB channels)
-    half alpha = max(decodeInstructions.w * (encodedIrradiance.a - 1.0) + 1.0, 0.0);
+    float alpha = max(decodeInstructions.w * (encodedIrradiance.a - 1.0) + 1.0, 0.0);
 
     // If Linear mode is not supported we can skip exponent part
     return (decodeInstructions.x * pow(alpha, decodeInstructions.y)) * encodedIrradiance.rgb;
@@ -167,7 +167,7 @@ float3 SampleSingleLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), float2
     // Remark: baked lightmap is RGBM for now, dynamic lightmap is RGB9E5
     if (encodedLightmap)
     {
-        half4 encodedIlluminance = SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgba;
+        float4 encodedIlluminance = SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgba;
         illuminance = DecodeLightmap(encodedIlluminance);
     }
     else

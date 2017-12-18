@@ -575,9 +575,16 @@ void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float4x4 viewP
 // ----------------------------------------------------------------------------
 
 // Normalize that account for vectors with zero length
+float3 SafeNormalize(float3 inVec)
+{
+    float dp3 = max(FLT_MIN, dot(inVec, inVec));
+    return inVec * rsqrt(dp3);
+}
+
+// Normalize that account for vectors with zero length
 half3 SafeNormalize(half3 inVec)
 {
-    half dp3 = max(1.e-4h, dot(inVec, inVec));
+    half dp3 = max(HALF_MIN, dot(inVec, inVec));
     return inVec * rsqrt(dp3);
 }
 

@@ -9,7 +9,7 @@
 
 // This value will not go through any matrix projection convertion
 #define UNITY_RAW_FAR_CLIP_VALUE (1.0)
-#define FRONT_FACE_SEMATIC VFACE
+#define FRONT_FACE_SEMANTIC VFACE
 #define FRONT_FACE_TYPE float
 #define IS_FRONT_VFACE(VAL, FRONT, BACK) ((VAL > 0.0) ? (FRONT) : (BACK))
 
