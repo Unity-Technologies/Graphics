@@ -574,6 +574,13 @@ void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float4x4 viewP
 // Misc utilities
 // ----------------------------------------------------------------------------
 
+// Normalize that account for vectors with zero length
+half3 SafeNormalize(half3 inVec)
+{
+    half dp3 = max(1.e-4h, dot(inVec, inVec));
+    return inVec * rsqrt(dp3);
+}
+
 // Generates a triangle in homogeneous clip space, s.t.
 // v0 = (-1, -1, 1), v1 = (3, -1, 1), v2 = (-1, 3, 1).
 float2 GetFullScreenTriangleTexCoord(uint vertexID)

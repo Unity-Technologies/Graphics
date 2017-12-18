@@ -141,7 +141,7 @@ half3 UnpackLightmapDoubleLDR(half4 encodedColor)
     return encodedColor.rgb * LIGHTMAP_DLDR_RANGE;
 }
 
-half3 DecodeHDRLightmap(half4 encodedIlluminance)
+half3 DecodeLightmap(half4 encodedIlluminance)
 {
 #if defined(UNITY_LIGHTMAP_RGBM_ENCODING)
     return UnpackLightmapRGBM(encodedIlluminance);
@@ -168,7 +168,7 @@ float3 SampleSingleLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), float2
     if (encodedLightmap)
     {
         half4 encodedIlluminance = SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgba;
-        illuminance = DecodeHDRLightmap(encodedIlluminance);
+        illuminance = DecodeLightmap(encodedIlluminance);
     }
     else
     {
@@ -195,7 +195,7 @@ float3 SampleDirectionalLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), T
     if (encodedLightmap)
     {
         half4 encodedIlluminance = SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgba;
-        illuminance = DecodeHDRLightmap(encodedIlluminance);
+        illuminance = DecodeLightmap(encodedIlluminance);
     }
     else
     {

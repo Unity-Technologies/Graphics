@@ -2,6 +2,7 @@
 #define LIGHTWEIGHT_PIPELINE_CORE_INCLUDED
 
 #include "ShaderLibrary/Common.hlsl"
+#include "ShaderLibrary/Packing.hlsl"
 #include "Input.hlsl"
 
 #ifdef _NORMALMAP
@@ -32,44 +33,11 @@ half Pow4(half x)
     return x * x * x * x;
 }
 
-half LerpOneTo(half b, half t)
-{
-    half oneMinusT = 1 - t;
-    return oneMinusT + b * t;
-}
-
 void AlphaDiscard(half alpha, half cutoff)
 {
 #ifdef _ALPHATEST_ON
     clip(alpha - cutoff);
 #endif
-}
-
-half3 SafeNormalize(half3 inVec)
-{
-    half dp3 = max(1.e-4h, dot(inVec, inVec));
-    return inVec * rsqrt(dp3);
-}
-
-// Unpack normal as DXT5nm (1, y, 1, x) or BC5 (x, y, 0, 1)
-// Note neutral texture like "bump" is (0, 0, 1, 1) to work with both plain RGB normal and DXT5nm/BC5
-half3 UnpackNormalmapRGorAG(half4 packedNormal, half bumpScale)
-{
-    // This do the trick
-    packedNormal.x *= packedNormal.w;
-
-    half3 normal;
-    normal.xy = packedNormal.xy * 2 - 1;
-    normal.xy *= bumpScale;
-    normal.z = sqrt(1 - saturate(dot(normal.xy, normal.xy)));
-    return normal;
-}
-
-half3 UnpackNormalRGB(half4 packedNormal, half bumpScale)
-{
-    half3 normal = packedNormal.xyz * 2 - 1;
-    normal.xy *= bumpScale;
-    return normal;
 }
 
 half3 UnpackNormal(half4 packedNormal)
