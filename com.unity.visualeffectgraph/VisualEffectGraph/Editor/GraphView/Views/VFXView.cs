@@ -565,9 +565,9 @@ namespace UnityEditor.VFX.UI
             VFXViewController controller = VFXViewController.GetController(asset, true);
             controller.useCount++;
 
-            object data = VFXCopyPaste.CreateCopy(controller.allChildren);
+            var data = VFXCopyPaste.SerializeElements(controller.allChildren);
 
-            VFXCopyPaste.PasteCopy(this, tPos, data);
+            VFXCopyPaste.UnserializeAndPasteElements(this, tPos, data);
 
             controller.useCount--;
         }
