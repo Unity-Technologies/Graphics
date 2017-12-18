@@ -568,7 +568,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void UpdateShadowSettings()
         {
-            var shadowSettings = VolumeManager.instance.GetComponent<HDShadowSettings>();
+            var shadowSettings = VolumeManager.instance.stack.GetComponent<HDShadowSettings>();
 
             m_ShadowSettings.maxShadowDistance = shadowSettings.maxShadowDistance;
             //m_ShadowSettings.directionalLightNearPlaneOffset = commonSettings.shadowNearPlaneOffset;
@@ -644,7 +644,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     ApplyDebugDisplaySettings(cmd);
-            UpdateShadowSettings();
+                    UpdateShadowSettings();
 
                     if (!m_IBLFilterGGX.IsInitialized())
                         m_IBLFilterGGX.Initialize(cmd);
@@ -1229,7 +1229,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void RenderSky(HDCamera hdCamera, CommandBuffer cmd)
         {
             // Rendering the sky is the first time in the frame where we need fog parameters so we push them here for the whole frame.
-            var visualEnv = VolumeManager.instance.GetComponent<VisualEnvironment>();
+            var visualEnv = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
             visualEnv.PushFogShaderParameters(cmd, m_DebugDisplaySettings.renderingDebugSettings);
 
             m_SkyManager.RenderSky(hdCamera, m_LightLoop.GetCurrentSunLight(), m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, cmd);
