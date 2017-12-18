@@ -54,6 +54,10 @@ namespace UnityEditor.VFX.UI
         class Data
         {
             public string serializedObjects;
+
+
+            public bool blocksOnly;
+
             [NonSerialized]
             public VFXContext[] contexts;
 
@@ -99,13 +103,12 @@ namespace UnityEditor.VFX.UI
 
         static ScriptableObject[] PrepareSerializedObjects(Data copyData)
         {
-            VFXMemorySerializer serializer = new VFXMemorySerializer();
             HashSet<UnityEngine.Object> objects = new HashSet<UnityEngine.Object>();
             copyData.CollectDependencies(objects);
 
             ScriptableObject[] allSerializedObjects = objects.OfType<ScriptableObject>().ToArray();
-            serializer.StoreObjects(allSerializedObjects);
-            copyData.serializedObjects = serializer.ToString();
+
+            copyData.serializedObjects = VFXMemorySerializer.StoreObjects(allSerializedObjects);
 
             return allSerializedObjects;
         }
@@ -215,6 +218,7 @@ namespace UnityEditor.VFX.UI
                 VFXBlock[] copiedBlocks = blocks.Select(t => t.block).ToArray();
                 copyData.blocks = copiedBlocks;
                 PrepareSerializedObjects(copyData);
+                copyData.blocksOnly = true;
             }
             else
             {
@@ -287,9 +291,7 @@ namespace UnityEditor.VFX.UI
         {
             var copyData = JsonUtility.FromJson<Data>(data);
 
-            VFXMemorySerializer serializer = new VFXMemorySerializer();
-            serializer.FromString(copyData.serializedObjects);
-            ScriptableObject[] allSerializedObjects = serializer.ExtractObjects(true);
+            ScriptableObject[] allSerializedObjects = VFXMemorySerializer.ExtractObjects(copyData.serializedObjects, true);
 
             copyData.contexts = allSerializedObjects.OfType<VFXContext>().ToArray();
             copyData.slotContainers = allSerializedObjects.OfType<IVFXSlotContainer>().Cast<VFXModel>().Where(t => !(t is VFXContext)).ToArray();
@@ -307,8 +309,9 @@ namespace UnityEditor.VFX.UI
         {
             Data copyData = (Data)data;
 
-            if (copyData.blocks != null && copyData.blocks.Length > 0)
+            if (copyData.blocksOnly)
             {
+                copyData.blocks = allSerializedObjects.OfType<VFXBlock>().ToArray();
                 PasteBlocks(view, copyData);
             }
             else
@@ -354,10 +357,12 @@ namespace UnityEditor.VFX.UI
 
             foreach (var block in copyData.blocks)
             {
-                var newBlock = block.Clone<VFXBlock>();
-                newBlocks.Add(newBlock);
+                newBlocks.Add(block);
 
-                targetModelContext.AddChild(newBlock, targetIndex, false); // only notify once after all blocks have been added
+                if (targetModelContext.AcceptChild(block, targetIndex))
+                {
+                    targetModelContext.AddChild(block, targetIndex, false); // only notify once after all blocks have been added
+                }
             }
 
             targetModelContext.Invalidate(VFXModel.InvalidationCause.kStructureChanged);
