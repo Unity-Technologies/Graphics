@@ -30,7 +30,7 @@
 
 half Pow4(half x)
 {
-    return x * x * x * x;
+    return (x * x) * (x * x);
 }
 
 void AlphaDiscard(half alpha, half cutoff)
