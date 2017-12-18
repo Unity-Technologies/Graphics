@@ -420,6 +420,9 @@ namespace UnityEditor.VFX
                 globalIncludeContent.WriteLineFormat("#define {0} 1", additionnalDefine);
 
             globalIncludeContent.WriteLine();
+            var passesRemap = context.renderLoopPasses;
+            if (passesRemap != null)
+                globalIncludeContent.Write(GetFlattenedTemplateContent("Assets/" + passesRemap, new List<string>(), context.additionalDefines));
             globalIncludeContent.WriteLine("#include \"Assets/" + context.renderLoopCommonInclude + "\"");
 
             if (context.GetData() is ISpaceable)
