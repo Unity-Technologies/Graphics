@@ -353,7 +353,7 @@ namespace UnityEditor.ShaderGraph
         {
             List<PropertyCollector.TextureInfo> configuredTextures;
             FloatShaderProperty outputIdProperty;
-            return graph.GetShader(node, GenerationMode.Preview, string.Format("hidden/preview/{0}", node.GetVariableNameForNode()), out configuredTextures, out previewMode, out outputIdProperty);
+            return graph.GetShader(node, GenerationMode.Preview, String.Format("hidden/preview/{0}", node.GetVariableNameForNode()), out configuredTextures, out previewMode, out outputIdProperty);
         }
 
         public static string GetUberPreviewShader(this AbstractMaterialGraph graph, Dictionary<Guid, int> ids, out FloatShaderProperty outputIdProperty)
@@ -361,6 +361,32 @@ namespace UnityEditor.ShaderGraph
             List<PropertyCollector.TextureInfo> configuredTextures;
             PreviewMode previewMode;
             return graph.GetShader(null, GenerationMode.Preview, "hidden/preview", out configuredTextures, out previewMode, out outputIdProperty, ids);
+        }
+
+        static Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo> s_LegacyTypeRemapping;
+
+        public static Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo> GetLegacyTypeRemapping()
+        {
+            if (s_LegacyTypeRemapping == null)
+            {
+                s_LegacyTypeRemapping = new Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo>();
+                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    foreach (var type in assembly.GetTypes())
+                    {
+                        if (type.IsAbstract)
+                            continue;
+                        foreach (var attribute in type.GetCustomAttributes(typeof(LegacyAttribute), false))
+                        {
+                            var legacyAttribute = (LegacyAttribute)attribute;
+                            var serializationInfo = new SerializationHelper.TypeSerializationInfo { fullName = legacyAttribute.fullName };
+                            s_LegacyTypeRemapping[serializationInfo] = SerializationHelper.GetTypeSerializableAsString(type);
+                        }
+                    }
+                }
+            }
+
+            return s_LegacyTypeRemapping;
         }
     }
 }
