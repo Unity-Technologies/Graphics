@@ -49,8 +49,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             using (new UnityEditor.EditorGUILayout.VerticalScope())
             {
-                m_DebugPanel.GetDebugItem(DebugDisplaySettings.kEnableShadowDebug).handler.OnEditorGUI();
-
                 DebugItem shadowDebug = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kShadowDebugMode);
                 shadowDebug.handler.OnEditorGUI();
                 if ((ShadowMapDebugMode)shadowDebug.GetValue() == ShadowMapDebugMode.VisualizeShadowMap)
