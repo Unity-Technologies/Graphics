@@ -333,6 +333,10 @@ GraphInspectorView {
     height: 800;
 }
 
+GraphInspectorView * {
+    font-size: 11;
+}
+
 GraphInspectorView > #top > #header {
     background-color: rgb(64, 64, 64);
     border-color: rgb(79, 79, 79);
