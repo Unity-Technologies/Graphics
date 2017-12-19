@@ -38,13 +38,14 @@ class HDCubemapInspector : Editor
         {
             hideFlags = HideFlags.HideAndDontSave
         };
-        InitIcons();
     }
 
     void OnEnable()
     {
         if (m_PreviewUtility == null)
             InitPreview();
+        if (s_MipMapLow == null)
+            InitIcons();
 
         m_ReflectiveMaterial.SetTexture("_Cubemap", target as Texture);
     }
@@ -87,6 +88,16 @@ class HDCubemapInspector : Editor
 
     public override void OnPreviewSettings()
     {
+        var mipmapCount = 0;
+        var cubemap = target as Cubemap;
+        var rt = target as RenderTexture;
+        if (cubemap != null)
+            mipmapCount = cubemap.mipmapCount;
+        if (rt != null)
+            mipmapCount = rt.useMipMap
+                ? (int)(Mathf.Log(Mathf.Max(rt.width, rt.height)) / Mathf.Log(2))
+                : 1;
+
         GUI.enabled = true;
 
         GUILayout.Box(s_ExposureLow, s_PreLabel, GUILayout.MaxWidth(20));
@@ -95,7 +106,7 @@ class HDCubemapInspector : Editor
         GUILayout.Space(5);
         GUILayout.Box(s_MipMapHigh, s_PreLabel, GUILayout.MaxWidth(20));
         GUI.changed = false;
-        mipLevelPreview = GUILayout.HorizontalSlider(mipLevelPreview, 0, ((Cubemap)target).mipmapCount, GUILayout.MaxWidth(80));
+        mipLevelPreview = GUILayout.HorizontalSlider(mipLevelPreview, 0, mipmapCount, GUILayout.MaxWidth(80));
         GUILayout.Box(s_MipMapLow, s_PreLabel, GUILayout.MaxWidth(20));
     }
 
@@ -107,7 +118,6 @@ class HDCubemapInspector : Editor
         m_PreviewUtility.camera.farClipPlane = 20.0f;
         m_PreviewUtility.camera.transform.position = new Vector3(0, 0, 2);
         m_PreviewUtility.camera.transform.LookAt(Vector3.zero);
-        //m_PreviewUtility.camera.clearFlags = CameraClearFlags.Skybox;
     }
 
     bool HandleMouse(Rect Viewport)
