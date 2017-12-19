@@ -20,13 +20,11 @@ namespace UnityEngine.Experimental.Rendering
         static readonly int _Size = Shader.PropertyToID("_Size");
         public void SampleCopyChannel_xyzw2x(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier target, Vector2 size)
             {
-                if (size.x < 8 || size.y < 8)
-                    Debug.LogWarning("Trying to copy a channel from a texture smaller than 8x* or *x8. ComputeShader cannot perform it.");
                 var s = new Vector4(size.x, size.y, 1f / size.x, 1f / size.y);
                 cmd.SetComputeVectorParam(m_Shader, _Size, s);
                 cmd.SetComputeTextureParam(m_Shader, k_SampleKernel_xyzw2x, _Source4, source);
                 cmd.SetComputeTextureParam(m_Shader, k_SampleKernel_xyzw2x, _Result1, target);
-                cmd.DispatchCompute(m_Shader, k_SampleKernel_xyzw2x, (int)(size.x) / 8, (int)(size.y) / 8, 1);
+                cmd.DispatchCompute(m_Shader, k_SampleKernel_xyzw2x, (int)Mathf.Max((size.x) / 8, 1), (int)Mathf.Max((size.y) / 8, 1), 1);
             }
 
     }
