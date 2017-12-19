@@ -38,13 +38,14 @@ class HDCubemapInspector : Editor
         {
             hideFlags = HideFlags.HideAndDontSave
         };
-        InitIcons();
     }
 
     void OnEnable()
     {
         if (m_PreviewUtility == null)
             InitPreview();
+        if (s_MipMapLow == null)
+            InitIcons();
 
         m_ReflectiveMaterial.SetTexture("_Cubemap", target as Texture);
     }

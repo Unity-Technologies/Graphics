@@ -32,6 +32,8 @@ namespace UnityEditor.Experimental.Rendering
         SerializedObject m_AdditionalDataSerializedObject;
         UIState m_UIState = new UIState();
 
+        int m_PositionHash = 0;
+
         public bool sceneViewEditing
         {
             get { return IsReflectionProbeEditMode(EditMode.editMode) && EditMode.IsOwner(this); }
