@@ -13,6 +13,9 @@ namespace UnityEditor.Experimental.Rendering
     {
         internal class SerializedReflectionProbe
         {
+            internal ReflectionProbe target;
+            internal HDAdditionalReflectionData targetData;
+
             internal SerializedObject so;
 
             internal SerializedProperty mode;
@@ -38,11 +41,14 @@ namespace UnityEditor.Experimental.Rendering
             internal SerializedProperty boxReprojectionVolumeSize;
             internal SerializedProperty boxReprojectionVolumeCenter;
             internal SerializedProperty sphereReprojectionVolumeRadius;
+            internal SerializedProperty blendNormalDistance;
             internal SerializedProperty dimmer;
 
             public SerializedReflectionProbe(SerializedObject so, SerializedObject addso)
             {
                 this.so = so;
+                target = (ReflectionProbe)so.targetObject;
+                targetData = target.GetComponent<HDAdditionalReflectionData>();
 
                 mode = so.FindProperty("m_Mode");
                 customBakedTexture = so.FindProperty("m_CustomBakedTexture");
@@ -68,6 +74,7 @@ namespace UnityEditor.Experimental.Rendering
                 boxReprojectionVolumeCenter = addso.Find((HDAdditionalReflectionData d) => d.boxReprojectionVolumeCenter);
                 sphereReprojectionVolumeRadius = addso.Find((HDAdditionalReflectionData d) => d.sphereReprojectionVolumeRadius);
                 dimmer = addso.Find((HDAdditionalReflectionData d) => d.dimmer);
+                blendNormalDistance = addso.Find((HDAdditionalReflectionData d) => d.blendNormalDistance);
             }
         }
 
@@ -93,9 +100,11 @@ namespace UnityEditor.Experimental.Rendering
             public BoxBoundsHandle boxInfluenceBoundsHandle = new BoxBoundsHandle();
             public BoxBoundsHandle boxProjectionBoundsHandle = new BoxBoundsHandle();
             public BoxBoundsHandle boxBlendHandle = new BoxBoundsHandle();
+            public BoxBoundsHandle boxBlendNormalHandle = new BoxBoundsHandle();
             public SphereBoundsHandle influenceSphereHandle = new SphereBoundsHandle();
             public SphereBoundsHandle projectionSphereHandle = new SphereBoundsHandle();
             public SphereBoundsHandle sphereBlendHandle = new SphereBoundsHandle();
+            public SphereBoundsHandle sphereBlendNormalHandle = new SphereBoundsHandle();
             public Matrix4x4 oldLocalSpace = Matrix4x4.identity;
 
             public bool HasAndClearOperation(Operation op)

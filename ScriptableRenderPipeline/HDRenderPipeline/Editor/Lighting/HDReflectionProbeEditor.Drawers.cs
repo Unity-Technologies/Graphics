@@ -44,6 +44,13 @@ namespace UnityEditor.Experimental.Rendering
             CED.Action(Drawer_UseSeparateProjectionVolume)*/
         );
 
+        static readonly CED.IDrawer k_InfluenceNormalVolumeSection = CED.FoldoutGroup(
+            "Influence normal volume settings",
+            (s, p, o) => p.blendNormalDistance,
+            true,
+            CED.Action(Drawer_DistanceBlendNormal)
+        );
+
         static readonly CED.IDrawer k_SeparateProjectionVolumeSection = CED.FadeGroup(
             (s, p, o, i) => s.useSeparateProjectionVolumeDisplay.faded,
             false,
@@ -96,7 +103,7 @@ namespace UnityEditor.Experimental.Rendering
 
             if (p.so.targetObjects.Length == 1)
             {
-                var probe = (ReflectionProbe)p.so.targetObject;
+                var probe = p.target;
                 if (probe.mode == ReflectionProbeMode.Custom && probe.customBakedTexture != null)
                 {
                     var cubemap = probe.customBakedTexture as Cubemap;
@@ -137,7 +144,7 @@ namespace UnityEditor.Experimental.Rendering
                         {
                             var mode = (int)data;
 
-                            var probe = p.so.targetObject as ReflectionProbe;
+                            var probe = p.target;
                             if (mode == 0)
                             {
                                 BakeCustomReflectionProbe(probe, false, true);
@@ -146,7 +153,7 @@ namespace UnityEditor.Experimental.Rendering
                         },
                         GUILayout.ExpandWidth(true)))
                     {
-                        var probe = (ReflectionProbe)p.so.targetObject;
+                        var probe = p.target;
                         BakeCustomReflectionProbe(probe, true, true);
                         ResetProbeSceneTextureInMaterial(probe);
                         GUIUtility.ExitGUI();
@@ -156,7 +163,7 @@ namespace UnityEditor.Experimental.Rendering
 
                 case ReflectionProbeMode.Baked:
                     {
-                        GUI.enabled = ((ReflectionProbe)p.so.targetObject).enabled;
+                        GUI.enabled = p.target.enabled;
 
                         // Bake button in non-continous mode
                         if (ButtonWithDropdownList(
@@ -170,7 +177,7 @@ namespace UnityEditor.Experimental.Rendering
                             },
                             GUILayout.ExpandWidth(true)))
                         {
-                            var probe = (ReflectionProbe)p.so.targetObject;
+                            var probe = p.target;
                             BakeReflectionProbeSnapshot(probe);
                             ResetProbeSceneTextureInMaterial(probe);
                             GUIUtility.ExitGUI();
@@ -194,6 +201,11 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUILayout.Slider(p.blendDistance, 0, CalculateMaxBlendDistance(s, p, owner), CoreEditorUtils.GetContent("Blend Distance|Area around the probe where it is blended with other probes. Only used in deferred probes."));
             EditorGUI.BeginChangeCheck();
         }
+        static void Drawer_DistanceBlendNormal(UIState s, SerializedReflectionProbe p, Editor owner)
+        {
+            EditorGUILayout.Slider(p.blendNormalDistance, 0, CalculateMaxBlendDistance(s, p, owner), CoreEditorUtils.GetContent("Blend Normal Distance|Area around the probe where the normals influence the probe. Only used in deferred probes."));
+            EditorGUI.BeginChangeCheck();
+        }
 
         static void Drawer_InfluenceBoxSettings(UIState s, SerializedReflectionProbe p, Editor owner)
         {
@@ -206,7 +218,7 @@ namespace UnityEditor.Experimental.Rendering
             {
                 var center = p.boxOffset.vector3Value;
                 var size = p.boxSize.vector3Value;
-                if (ValidateAABB((ReflectionProbe)p.so.targetObject, ref center, ref size))
+                if (ValidateAABB(p.target, ref center, ref size))
                 {
                     p.boxOffset.vector3Value = center;
                     p.boxSize.vector3Value = size;
@@ -277,7 +289,7 @@ namespace UnityEditor.Experimental.Rendering
         static readonly EditMode.SceneViewEditMode[] k_Toolbar_SceneViewEditModes =
         {
             EditMode.SceneViewEditMode.ReflectionProbeBox,
-            //EditMode.SceneViewEditMode.GridBox,
+            EditMode.SceneViewEditMode.Collider,
             EditMode.SceneViewEditMode.ReflectionProbeOrigin
         };
         static GUIContent[] s_Toolbar_Contents = null;
@@ -288,7 +300,7 @@ namespace UnityEditor.Experimental.Rendering
                 return s_Toolbar_Contents ?? (s_Toolbar_Contents = new []
                 {
                     EditorGUIUtility.IconContent("EditCollider", "|Modify the influence volume of the reflection probe."),
-                    //EditorGUIUtility.IconContent("PreMatCube", "|Modify the projection volume of the reflection probe."),
+                    EditorGUIUtility.IconContent("PreMatCube", "|Modify the influence normal volume of the reflection probe."),
                     EditorGUIUtility.IconContent("MoveTool", "|Move the selected objects.")
                 });
             }
@@ -326,7 +338,7 @@ namespace UnityEditor.Experimental.Rendering
                 switch (EditMode.editMode)
                 {
                     case EditMode.SceneViewEditMode.ReflectionProbeOrigin:
-                        s.UpdateOldLocalSpace((ReflectionProbe)p.so.targetObject);
+                        s.UpdateOldLocalSpace(p.target);
                         break;
                 }
             }

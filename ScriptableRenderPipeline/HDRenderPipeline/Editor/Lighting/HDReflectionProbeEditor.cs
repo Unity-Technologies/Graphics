@@ -74,6 +74,7 @@ namespace UnityEditor.Experimental.Rendering
 
             k_PrimarySection.Draw(s, p, this);
             k_InfluenceVolumeSection.Draw(s, p, this);
+            k_InfluenceNormalVolumeSection.Draw(s, p, this);
             k_SeparateProjectionVolumeSection.Draw(s, p, this);
             k_CaptureSection.Draw(s, p, this);
             k_AdditionalSection.Draw(s, p, this);

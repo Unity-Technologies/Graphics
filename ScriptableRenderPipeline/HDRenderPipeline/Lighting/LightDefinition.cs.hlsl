@@ -98,7 +98,7 @@ struct EnvLightData
     float3 right;
     float minProjectionDistance;
     float3 innerDistance;
-    float unused0;
+    float blendNormalDistance;
     float3 offsetLS;
     float dimmer;
 };
@@ -278,9 +278,9 @@ float3 GetInnerDistance(EnvLightData value)
 {
 	return value.innerDistance;
 }
-float GetUnused0(EnvLightData value)
+float GetBlendNormalDistance(EnvLightData value)
 {
-	return value.unused0;
+	return value.blendNormalDistance;
 }
 float3 GetOffsetLS(EnvLightData value)
 {

@@ -127,7 +127,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float minProjectionDistance;
 
         public Vector3 innerDistance;   // equivalent to volume scale
-        public float unused0;
+        public float blendNormalDistance;
 
         public Vector3 offsetLS;
         public float dimmer;
