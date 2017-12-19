@@ -56,15 +56,6 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyHDRI"
 
         float3 skyColor = ClampToFloat16Max(SAMPLE_TEXTURECUBE_LOD(_Cubemap, s_linear_clamp_sampler, dir, 0).rgb * exp2(_SkyParam.x) * _SkyParam.y);
 
-    #ifdef VOLUMETRIC_LIGHTING_ENABLED
-        PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
-        float4 volumetricLighting = GetInScatteredRadianceAndTransmittance(posInput.positionNDC,
-                                                                           TEXTURE3D_PARAM(_VBufferLighting, s_linear_clamp_sampler),
-                                                                           _VBufferResolutionAndScale.zw);
-        skyColor *= volumetricLighting.a;
-        skyColor += volumetricLighting.rgb;
-    #endif
-
         return float4(skyColor, 1.0);
     }
 

@@ -7,6 +7,10 @@
 #include "../SkyVariables.hlsl"
 #include "../../ShaderVariables.hlsl"
 
+#ifdef VOLUMETRIC_LIGHTING_ENABLED
+TEXTURE3D(_VBufferLighting);
+#endif
+
 CBUFFER_START(AtmosphericScattering)
 float   _AtmosphericScatteringType;
 // Common
@@ -52,22 +56,32 @@ float3 GetFogColor(PositionInputs posInput)
 // Returns fog color in rgb and fog factor in alpha.
 float4 EvaluateAtmosphericScattering(PositionInputs posInput)
 {
+#ifdef VOLUMETRIC_LIGHTING_ENABLED
+    return GetInScatteredRadianceAndTransmittance(posInput.positionNDC, posInput.linearDepth,
+                                                  TEXTURE3D_PARAM(_VBufferLighting, s_linear_clamp_sampler),
+                                                  _VBufferResolutionAndScale.zw,
+                                                  _VBufferDepthEncodingParams);
+#endif
+
+    float3 fogColor; float fogFactor;
+
     if (_AtmosphericScatteringType == FOGTYPE_EXPONENTIAL)
     {
-        float3 fogColor = GetFogColor(posInput);
-        float fogFactor = _FogDensity * (1.0f - TransmittanceHomogeneousMedium(1.0f / _ExpFogDistance, posInput.linearDepth));
-        return float4(fogColor, fogFactor);
+        fogColor  = GetFogColor(posInput);
+        fogFactor = _FogDensity * (1.0f - TransmittanceHomogeneousMedium(1.0f / _ExpFogDistance, posInput.linearDepth));
     }
     else if (_AtmosphericScatteringType == FOGTYPE_LINEAR)
     {
-        float3 fogColor = GetFogColor(posInput);
-        float fogFactor = _FogDensity * saturate((posInput.linearDepth - _LinearFogStart) * _LinearFogOneOverRange);
+        fogColor  = GetFogColor(posInput);
+        fogFactor = _FogDensity * saturate((posInput.linearDepth - _LinearFogStart) * _LinearFogOneOverRange);
         return float4(fogColor, fogFactor);
     }
     else // NONE
     {
         return float4(0.0, 0.0, 0.0, 0.0);
     }
+
+    return float4(fogColor * fogFactor, fogFactor); // Premultiplied alpha
 }
 
 

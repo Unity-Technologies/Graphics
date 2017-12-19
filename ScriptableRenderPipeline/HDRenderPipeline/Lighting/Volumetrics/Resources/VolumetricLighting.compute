@@ -30,8 +30,8 @@
 // Inputs & outputs
 //--------------------------------------------------------------------------------------------------
 
-RW_TEXTURE3D(float4, _VBufferLighting); // RGB = radiance, A = optical depth
-TEXTURE3D(_VBufferLightingPrev);        // RGB = radiance, A = optical depth
+RW_TEXTURE3D(float4, _VBufferLightingCurr); // RGB = radiance, A = optical depth
+TEXTURE3D(_VBufferLightingCurrPrev);        // RGB = radiance, A = optical depth
 
 CBUFFER_START(UnityVolumetricLighting)
     float4x4 _VBufferCoordToViewDirWS; // Actually just 3x3, but Unity can only set 4x4
@@ -291,7 +291,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         opticalDepth += 0.5 * extinction * dt;
 
         // Store the voxel data. TODO: reprojection of 'tc' (or 'centerWS').
-        _VBufferLighting[uint3(posInput.positionSS, slice)] = float4(totalRadiance, opticalDepth);
+        _VBufferLightingCurr[uint3(posInput.positionSS, slice)] = float4(totalRadiance, opticalDepth);
 
         // Compute the optical depth up to the end of the interval.
         opticalDepth += 0.5 * extinction * dt;

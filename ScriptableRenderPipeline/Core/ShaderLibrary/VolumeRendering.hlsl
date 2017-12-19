@@ -141,6 +141,7 @@ float3 TransmittanceColorAtDistanceToAbsorption(float3 transmittanceColor, float
     #define VBUFFER_SLICE_COUNT 128
 #endif // PRESET_ULTRA
 
+// Returns {volumetric radiance, opacity}.
 float4 GetInScatteredRadianceAndTransmittance(float2 positionNDC, float linearDepth,
                                               TEXTURE3D_ARGS(VBufferLighting, linearClampSampler),
                                               float2 VBufferScale, float4 VBufferDepthEncodingParams)
@@ -149,39 +150,37 @@ float4 GetInScatteredRadianceAndTransmittance(float2 positionNDC, float linearDe
     float z = linearDepth;
     float d = EncodeLogarithmicDepth(z, VBufferDepthEncodingParams);
 
-    // We cannot use hardware trilinear interpolation since the distance between slices is log-encoded.
-    // Therefore, we perform 2 bilinear taps.
-    // TODO: test the visual difference in practice.
-    float s0 = clamp(floor(d * n - 0.5), 0, n - 1); // TODO: somehow avoid the clamp...
-    float s1 = clamp( ceil(d * n - 0.5), 0, n - 1); // TODO: somehow avoid the clamp...
-    float d0 = s0 * rcp(n) + (0.5 * rcp(n));
-    float d1 = s1 * rcp(n) + (0.5 * rcp(n));
-    float z0 = DecodeLogarithmicDepth(d0, VBufferDepthEncodingParams);
-    float z1 = DecodeLogarithmicDepth(d1, VBufferDepthEncodingParams);
-
     // Account for the visible area of the VBuffer.
     float2 uv = positionNDC * VBufferScale;
 
-    // The sampler should clamp to edge.
-    float4 L0 = SAMPLE_TEXTURE3D_LOD(VBufferLighting, linearClampSampler, float3(uv, d0), 0);
-    float4 L1 = SAMPLE_TEXTURE3D_LOD(VBufferLighting, linearClampSampler, float3(uv, d1), 0);
-    float4 L  = lerp(L0, L1, saturate((z - z0) / (z1 - z0)));
+    float4 L;
 
-    return float4(L.rgb, Transmittance(L.a));
-}
+    if (d == 1)
+    {
+        // We are behind the far plane of the V-buffer.
+        // The sampler should clamp to edge.
+        L = SAMPLE_TEXTURE3D_LOD(VBufferLighting, linearClampSampler, float3(uv, 1), 0);
+    }
+    else
+    {
+        // We cannot use hardware trilinear interpolation since the distance between slices is log-encoded.
+        // Therefore, we perform 2 bilinear taps.
+        // TODO: test the visual difference in practice.
+        float s0 = floor(d * n - 0.5);
+        float s1 = ceil( d * n - 0.5);
+        float d0 = s0 * rcp(n) + (0.5 * rcp(n));
+        float d1 = s1 * rcp(n) + (0.5 * rcp(n));
+        float z0 = DecodeLogarithmicDepth(d0, VBufferDepthEncodingParams);
+        float z1 = DecodeLogarithmicDepth(d1, VBufferDepthEncodingParams);
 
-// A version without depth - returns the value for the far plane.
-float4 GetInScatteredRadianceAndTransmittance(float2 positionNDC,
-                                              TEXTURE3D_ARGS(VBufferLighting, linearClampSampler),
-                                              float2 VBufferScale)
-{
-    // Account for the visible area of the VBuffer.
-    float2 uv = positionNDC * VBufferScale;
+        // The sampler should clamp to edge.
+        float4 L0 = SAMPLE_TEXTURE3D_LOD(VBufferLighting, linearClampSampler, float3(uv, d0), 0);
+        float4 L1 = SAMPLE_TEXTURE3D_LOD(VBufferLighting, linearClampSampler, float3(uv, d1), 0);
 
-    // The sampler should clamp to edge.
-    float4 L = SAMPLE_TEXTURE3D_LOD(VBufferLighting, linearClampSampler, float3(uv, 1), 0);
+        L = lerp(L0, L1, saturate((z - z0) / (z1 - z0)));
+    }
 
-    return float4(L.rgb, Transmittance(L.a));
+    return float4(L.rgb, 1 - Transmittance(L.a));
 }
 
 #endif // UNITY_VOLUME_RENDERING_INCLUDED
