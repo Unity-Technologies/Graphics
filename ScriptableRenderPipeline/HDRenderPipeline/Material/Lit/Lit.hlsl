@@ -1678,7 +1678,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 #endif
 
     UpdateLightingHierarchyWeights(hierarchyWeight, weight);
-    envLighting *= weight;
+    envLighting *= weight * lightData.dimmer;
 
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
         lighting.specularReflected = envLighting * preLightData.specularFGD;

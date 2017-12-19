@@ -1159,6 +1159,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (probe.boxProjection == 0)
                     envLightData.minProjectionDistance = 65504.0f;
+
+                envLightData.dimmer = additionalData.dimmer;
             }
             else
             {
@@ -1174,6 +1176,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     envLightData.envShapeType = EnvShapeType.Box;
                     envLightData.minProjectionDistance = 0.0f;
                 }
+
+                envLightData.dimmer = 1;
             }
 
             // remove scale from the matrix (Scale in this matrix is use to scale the widget)
