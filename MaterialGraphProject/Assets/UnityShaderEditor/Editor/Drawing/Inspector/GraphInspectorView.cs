@@ -112,6 +112,18 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             {
                 // { typeof(AbstractSurfaceMasterNode), typeof(SurfaceMasterNodeEditorView) }
             };
+
+            var resizeHandle = new Label { name = "resize", text = "" };
+            resizeHandle.AddManipulator(new Draggable(OnResize));
+            Add(resizeHandle);
+        }
+
+        void OnResize(Vector2 resizeDelta)
+        {
+            Vector2 normalizedResizeDelta = resizeDelta / 2f;
+
+            style.width = Mathf.Max(style.width + normalizedResizeDelta.x, 60f);
+            style.height = Mathf.Max(style.height + normalizedResizeDelta.y, 60f);
         }
 
         MasterNode masterNode

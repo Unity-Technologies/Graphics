@@ -334,9 +334,9 @@ GraphInspectorView {
     flex-direction: column;
     justify-content: space-between;
     position-type: absolute;
-    position-right: 0;
-    position-bottom: 0;
-    width: 400;
+    position-left: 0;
+    position-top: 0;
+    width: 600;
     height: 800;
 }
 
@@ -409,6 +409,17 @@ GraphInspectorView > #bottom > #properties > #header > #addButton {
 
 GraphInspectorView > #bottom > #properties > #items {
     padding-bottom: 4;
+}
+
+GraphInspectorView > #resize {
+    cursor: resize-up-left;
+    align-self: flex-end;
+    background-color: rgb(0, 0, 127);
+    position-type: absolute;
+    width: 16;
+    height: 16;
+    position-right: 0;
+    position-bottom: 0;
 }
 
 ShaderPropertyView {
