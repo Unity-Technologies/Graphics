@@ -1671,13 +1671,19 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         F = Sq(-F * bsdfData.coatCoverage + 1.0);
     }
 
+    // When we are rough, we tend to see outward shifting of the reflection when at the boundary of the projection volume
+    // Also it appear like more sharp. To avoid these artifact and at the same time get better match to reference we lerp to original unmodified reflection.
+    // Formula is empirical.
+    float roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
+    R = lerp(R, preLightData.iblDirWS, saturate(smoothstep(0, 1, roughness * roughness)));
+
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, preLightData.iblMipLevel);
     envLighting += F * preLD.rgb;
 
 #endif
 
     UpdateLightingHierarchyWeights(hierarchyWeight, weight);
-    envLighting *= weight;
+    envLighting *= weight * lightData.dimmer;
 
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
         lighting.specularReflected = envLighting * preLightData.specularFGD;

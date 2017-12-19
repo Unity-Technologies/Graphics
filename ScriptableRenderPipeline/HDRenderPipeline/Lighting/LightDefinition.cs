@@ -130,7 +130,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float unused0;
 
         public Vector3 offsetLS;
-        public float unused1;
+        public float dimmer;
     };
 
     // Usage of StencilBits.Lighting on 2 bits.

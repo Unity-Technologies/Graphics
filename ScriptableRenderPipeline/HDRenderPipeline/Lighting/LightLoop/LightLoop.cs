@@ -721,8 +721,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Light direction for directional is opposite to the forward direction
             directionalLightData.forward = light.light.transform.forward;
             // Rescale for cookies and windowing.
-            directionalLightData.up         = light.light.transform.up    * 2 / additionalData.shapeHeight;
-            directionalLightData.right      = light.light.transform.right * 2 / additionalData.shapeWidth;
+            directionalLightData.right      = light.light.transform.right * 2 / Mathf.Max(additionalData.shapeWidth, 0.001f);
+            directionalLightData.up         = light.light.transform.up    * 2 / Mathf.Max(additionalData.shapeHeight, 0.001f);
             directionalLightData.positionWS = light.light.transform.position;
             directionalLightData.color = GetLightColor(light);
             directionalLightData.diffuseScale = additionalData.affectDiffuse ? diffuseDimmer : 0.0f;
@@ -813,8 +813,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.size.x = light.range;
 
                 // Rescale for cookies and windowing.
-                lightData.right *= 2.0f / additionalLightData.shapeWidth;
-                lightData.up    *= 2.0f / additionalLightData.shapeHeight;
+                lightData.right *= 2.0f / Mathf.Max(additionalLightData.shapeWidth, 0.001f);
+                lightData.up    *= 2.0f / Mathf.Max(additionalLightData.shapeHeight, 0.001f);
             }
             else if (lightData.lightType == GPULightType.ProjectorPyramid)
             {
@@ -1122,6 +1122,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool GetEnvLightData(CommandBuffer cmd, Camera camera, VisibleReflectionProbe probe)
         {
+            var additionalData = probe.probe.GetComponent<HDAdditionalReflectionData>();
+            var extents = probe.bounds.extents;
+
             // For now we won't display real time probe when rendering one.
             // TODO: We may want to display last frame result but in this case we need to be careful not to update the atlas before all realtime probes are rendered (for frame coherency).
             // Unfortunately we don't have this information at the moment.
@@ -1138,18 +1141,43 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // CAUTION: localToWorld is the transform for the widget of the reflection probe. i.e the world position of the point use to do the cubemap capture (mean it include the local offset)
             envLightData.positionWS = probe.localToWorld.GetColumn(3);
 
-            // TODO: Support sphere influence in UI
-            if (probe.boxProjection == 0)
+            if (additionalData != null)
             {
-                envLightData.envShapeType = EnvShapeType.Box;
-                // If user request to have no projection, then setup a high number for minProjectionDistance
-                // this will mimic infinite shape projection
-                envLightData.minProjectionDistance = 65504.0f;
+                envLightData.minProjectionDistance = 0;
+                switch (additionalData.influenceShape)
+                {
+                    case ReflectionInfluenceShape.Box:
+                    {
+                        envLightData.envShapeType = EnvShapeType.Box;
+                        break;
+                    }
+                    case ReflectionInfluenceShape.Sphere:
+                        envLightData.envShapeType = EnvShapeType.Sphere;
+                        extents = Vector3.one * additionalData.influenceSphereRadius;
+                        break;
+                }
+
+                if (probe.boxProjection == 0)
+                    envLightData.minProjectionDistance = 65504.0f;
+
+                envLightData.dimmer = additionalData.dimmer;
             }
             else
             {
-                envLightData.envShapeType = EnvShapeType.Box;
-                envLightData.minProjectionDistance = 0.0f;
+                if (probe.boxProjection == 0)
+                {
+                    envLightData.envShapeType = EnvShapeType.Box;
+                    // If user request to have no projection, then setup a high number for minProjectionDistance
+                    // this will mimic infinite shape projection
+                    envLightData.minProjectionDistance = 65504.0f;
+                }
+                else
+                {
+                    envLightData.envShapeType = EnvShapeType.Box;
+                    envLightData.minProjectionDistance = 0.0f;
+                }
+
+                envLightData.dimmer = 1;
             }
 
             // remove scale from the matrix (Scale in this matrix is use to scale the widget)
@@ -1166,7 +1194,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // probe.bounds.extents is BoxSize / 2
             float maxBlendDist = Mathf.Min(probe.bounds.extents.x, Mathf.Min(probe.bounds.extents.y, probe.bounds.extents.z));
             float blendDistance = Mathf.Min(maxBlendDist, probe.blendDistance);
-            envLightData.innerDistance = probe.bounds.extents - new Vector3(blendDistance, blendDistance, blendDistance);
+            envLightData.innerDistance = extents - new Vector3(blendDistance, blendDistance, blendDistance);
             envLightData.envIndex = envIndex;
             envLightData.offsetLS = probe.center; // center is misnamed, it is the offset (in local space) from center of the bounding box to the cubemap capture point
             envLightData.blendDistance = blendDistance;

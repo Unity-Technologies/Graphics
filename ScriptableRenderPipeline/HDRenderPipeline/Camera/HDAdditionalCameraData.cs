@@ -4,6 +4,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [RequireComponent(typeof(Camera))]
     public class HDAdditionalCameraData : MonoBehaviour
     {
+#pragma warning disable 414 // CS0414 The private field '...' is assigned but its value is never used
+        // We can't rely on Unity for our additional data, we need to version it ourself.
+        [SerializeField]
+        float m_Version = 1.0f;
+#pragma warning restore 414
+
         // This struct allow to add specialized path in HDRenderPipeline (can be use to render mini map or planar reflection etc...)
         // A rendering path is the list of rendering pass that will be executed at runtime and depends on the associated FrameSettings
         // Default is the default rendering path define by the HDRendeRPipelineAsset FrameSettings.
