@@ -104,6 +104,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             foreach (var property in m_Graph.properties)
                 m_PropertyItems.Add(new ShaderPropertyView(m_Graph, property));
 
+            var resizeHandle = new Label { name = "resize", text = "" };
+            resizeHandle.AddManipulator(new Draggable(OnResize));
+            Add(resizeHandle);
+
             // Nodes missing custom editors:
             // - PropertyNode
             // - SubGraphInputNode
@@ -112,10 +116,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             {
                 // { typeof(AbstractSurfaceMasterNode), typeof(SurfaceMasterNodeEditorView) }
             };
-
-            var resizeHandle = new Label { name = "resize", text = "" };
-            resizeHandle.AddManipulator(new Draggable(OnResize));
-            Add(resizeHandle);
         }
 
         void OnResize(Vector2 resizeDelta)
