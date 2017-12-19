@@ -110,34 +110,29 @@ namespace UnityEditor.VFX
             return !(model is VFXGraph); // Can hold any model except other VFXGraph
         }
 
-        public override T Clone<T>()
+        public string Backup()
         {
-            Profiler.BeginSample("VFXEditor.CloneGraph");
-            try
-            {
-                var from = children.ToArray();
-                var copy = from.Select(o => o.Clone<VFXModel>()).ToArray();
-                VFXSlot.ReproduceLinkedSlotFromHierachy(from, copy);
+            var dependencies = new HashSet<ScriptableObject>();
 
-                var associativeContext = VFXContext.BuildAssociativeContext(from, copy);
-                VFXContext.ReproduceLinkedFlowFromHiearchy(associativeContext);
-                VFXContext.ReproduceDataSettings(associativeContext);
+            dependencies.Add(this);
+            CollectDependencies(dependencies);
 
-                var clone = CreateInstance(GetType()) as VFXGraph;
-                clone.m_Children = new List<VFXModel>();
-                foreach (var model in copy)
-                {
-                    clone.AddChild(model, -1, false);
-                }
-                return clone as T;
-            }
-            finally
-            {
-                Profiler.EndSample();
-            }
+            return VFXMemorySerializer.StoreObjects(dependencies.Cast<ScriptableObject>().ToArray());
         }
 
-        public override void CollectDependencies(HashSet<Object> objs)
+        public void Restore(string str)
+        {
+            var scriptableObject = VFXMemorySerializer.ExtractObjects(str, false);
+
+            foreach (var model in scriptableObject.OfType<VFXModel>())
+            {
+                model.OnUnknownChange();
+            }
+
+            //m_CompiledData = new Co
+        }
+
+        public override void CollectDependencies(HashSet<ScriptableObject> objs)
         {
             Profiler.BeginSample("VFXEditor.CollectDependencies");
             try
@@ -218,7 +213,7 @@ namespace UnityEditor.VFX
                     var persistentObjects = new HashSet<Object>(AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(this)).Where(o => o is VFXModel || o is ComputeShader || o is Shader));
                     persistentObjects.Remove(this);
 
-                    var currentObjects = new HashSet<Object>();
+                    var currentObjects = new HashSet<ScriptableObject>();
                     CollectDependencies(currentObjects);
 
 #if USE_SHADER_AS_SUBASSET
@@ -250,7 +245,7 @@ namespace UnityEditor.VFX
 
                     // Remove sub assets that are not referenced anymore
                     foreach (var obj in persistentObjects)
-                        if (!currentObjects.Contains(obj))
+                        if (obj is ScriptableObject && !currentObjects.Contains(obj as ScriptableObject))
                         {
                             AssetDatabase.RemoveObject(obj);
                             modified = true;

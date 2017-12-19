@@ -1,6 +1,7 @@
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine;
+using UnityEngine.VFX;
 using System.Collections.Generic;
 using System.Linq;
 using System;
@@ -209,7 +210,13 @@ namespace UnityEditor.VFX.UI
             {
                 if (copy)
                 {
-                    this.AddBlock(insertIndex++, draggedBlock.block.Clone<VFXBlock>());
+                    var dependencies = new HashSet<ScriptableObject>();
+
+                    draggedBlock.block.CollectDependencies(dependencies);
+
+                    string str = VFXMemorySerializer.StoreObjects(dependencies.Cast<ScriptableObject>().ToArray());
+
+                    this.AddBlock(insertIndex++, VFXMemorySerializer.ExtractObjects(str, true).OfType<VFXBlock>().First());
                 }
                 else
                 {

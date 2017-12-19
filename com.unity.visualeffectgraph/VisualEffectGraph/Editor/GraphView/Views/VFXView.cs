@@ -640,24 +640,6 @@ namespace UnityEditor.VFX.UI
             return controller.AddVFXParameter(pos, desc);
         }
 
-        public EventPropagation CloneModels() // TEST clean that
-        {
-            var contexts = selection.OfType<VFXContextUI>().Select(p => p.controller.context.Clone<VFXContext>());
-            foreach (var context in contexts)
-            {
-                context.position = context.position + new Vector2(50, 50);
-                controller.graph.AddChild(context);
-            }
-
-            var operators = selection.OfType<VFXNodeUI>().Select(p => p.controller.model.Clone<VFXSlotContainerModel<VFXModel, VFXModel>>());
-            foreach (var op in operators)
-            {
-                op.position = op.position + new Vector2(50, 50);
-                controller.graph.AddChild(op);
-            }
-            return EventPropagation.Stop;
-        }
-
         public EventPropagation Resync()
         {
             if (controller != null)

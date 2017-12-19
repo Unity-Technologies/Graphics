@@ -492,7 +492,7 @@ namespace UnityEditor.VFX
                 string progressBarTitle = "Compiling VFX...";
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Collect dependencies", 0 / nbSteps);
-                var models = new HashSet<Object>();
+                var models = new HashSet<ScriptableObject>();
                 m_Graph.CollectDependencies(models);
                 var compilableContexts = models.OfType<VFXContext>().Where(c => c.CanBeCompiled());
                 var compilableData = models.OfType<VFXData>().Where(d => d.CanBeCompiled());

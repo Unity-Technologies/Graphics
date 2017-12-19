@@ -26,7 +26,6 @@ namespace  UnityEditor.VFX.UI
                 //{ Event.KeyboardEvent("delete"), view.DeleteSelection },
                 { Event.KeyboardEvent("^#>"), view.FramePrev },
                 { Event.KeyboardEvent("^>"), view.FrameNext },
-                {Event.KeyboardEvent("c"), view.CloneModels},         // TEST
                 {Event.KeyboardEvent("#r"), view.Resync},
                 {Event.KeyboardEvent("#d"), view.OutputToDot},
                 {Event.KeyboardEvent("^#d"), view.OutputToDotReduced},

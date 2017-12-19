@@ -64,7 +64,8 @@ namespace UnityEditor.VFX
                 {
                     var slot = GetOutputSlot(iSlot);
                     var expression = outputExpressionArray[iSlot];
-                    if (slot.property.type != VFXExpression.TypeToType(expression.valueType))
+                    var expressionType = VFXExpression.TypeToType(expression.valueType);
+                    if (slot.property.type != expressionType)
                     {
                         bOuputputLayoutChanged = true;
                         break;

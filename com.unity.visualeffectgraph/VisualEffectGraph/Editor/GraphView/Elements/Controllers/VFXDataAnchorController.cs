@@ -31,8 +31,6 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                if (model.GetExpression() == null)
-                    return "Empty";
                 return base.name;
             }
         }

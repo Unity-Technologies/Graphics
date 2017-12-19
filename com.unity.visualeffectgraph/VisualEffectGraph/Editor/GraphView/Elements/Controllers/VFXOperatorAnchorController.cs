@@ -16,8 +16,11 @@ namespace UnityEditor.VFX.UI
         {
             System.Type newAnchorType = slot.property.type;
 
-            if (newAnchorType != typeof(Color) && slot.GetExpression() != null)
-                newAnchorType = VFXExpression.TypeToType(slot.GetExpression().valueType);//model.property.type;
+            if (slot.direction == VFXSlot.Direction.kInput)
+            {
+                if (newAnchorType != typeof(Color) && slot.GetExpression() != null)
+                    newAnchorType = VFXExpression.TypeToType(slot.GetExpression().valueType);//model.property.type;
+            }
 
             return newAnchorType;
         }

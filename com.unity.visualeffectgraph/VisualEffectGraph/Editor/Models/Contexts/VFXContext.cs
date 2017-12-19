@@ -86,14 +86,6 @@ namespace UnityEditor.VFX
             m_UICollapsed = false;
         }
 
-        public override T Clone<T>()
-        {
-            var clone = base.Clone<T>() as VFXContext;
-            clone.m_InputFlowSlot = Enumerable.Range(0, m_InputFlowSlot.Count()).Select(_ => new VFXContextSlot()).ToArray();
-            clone.m_OutputFlowSlot = Enumerable.Range(0, m_OutputFlowSlot.Count()).Select(_ => new VFXContextSlot()).ToArray();
-            return clone as T;
-        }
-
         public virtual string codeGeneratorTemplate                     { get { return null; } }
         public virtual bool codeGeneratorCompute                        { get { return true; } }
         public virtual VFXContextType contextType                       { get { return m_ContextType; } }
@@ -113,7 +105,7 @@ namespace UnityEditor.VFX
             return m_Data != null && m_Data.CanBeCompiled();
         }
 
-        public override void CollectDependencies(HashSet<Object> objs)
+        public override void CollectDependencies(HashSet<ScriptableObject> objs)
         {
             base.CollectDependencies(objs);
             if (m_Data != null)
@@ -384,39 +376,6 @@ namespace UnityEditor.VFX
                 }
             }
             return associativeContext;
-        }
-
-        public static IEnumerable<VFXData> ReproduceDataSettings(List<KeyValuePair<VFXContext, VFXContext>> associativeContext)
-        {
-            var allDstData = associativeContext.Select(o => o.Value.GetData()).Where(o => o != null).Distinct();
-
-            foreach (var data in allDstData)
-            {
-                var srcData = associativeContext.First(c => c.Value == data.owners.First()).Key.GetData();
-                srcData.CopySettings(data);
-            }
-
-            return allDstData;
-        }
-
-        public static void ReproduceLinkedFlowFromHiearchy(List<KeyValuePair<VFXContext, VFXContext>> associativeContext)
-        {
-            for (int i = 0; i < associativeContext.Count(); ++i)
-            {
-                var from = associativeContext[i].Key;
-                var to = associativeContext[i].Value;
-                for (int slotIndex = 0; slotIndex < from.m_InputFlowSlot.Length; ++slotIndex)
-                {
-                    var slotInputFrom = from.m_InputFlowSlot[slotIndex];
-                    foreach (var link in slotInputFrom.link)
-                    {
-                        var refContext = associativeContext.FirstOrDefault(o => o.Key == link.context);
-                        if (refContext.Value == null)
-                            throw new NullReferenceException("ReproduceLinkedFlowFromHiearchy : Unable to retrieve reference for " + link);
-                        InnerLink(refContext.Value, to, link.slotIndex, slotIndex, false);
-                    }
-                }
-            }
         }
 
         // Not serialized nor exposed

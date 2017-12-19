@@ -46,28 +46,17 @@ namespace UnityEditor.VFX
             }
         }
 
-        public virtual void CollectDependencies(HashSet<UnityEngine.Object> objs)
+        public virtual void OnUnknownChange()
+        {
+        }
+
+        public virtual void CollectDependencies(HashSet<ScriptableObject> objs)
         {
             foreach (var child in children)
             {
                 objs.Add(child);
                 child.CollectDependencies(objs);
             }
-        }
-
-        public virtual T Clone<T>() where T : VFXModel
-        {
-            T clone = CreateInstance(GetType()) as T;
-
-            foreach (var child in children)
-            {
-                var cloneChild = child.Clone<VFXModel>();
-                clone.AddChild(cloneChild, -1, false);
-            }
-
-            clone.m_UICollapsed = m_UICollapsed;
-            clone.m_UIPosition = m_UIPosition;
-            return clone;
         }
 
         protected virtual void OnInvalidate(VFXModel model, InvalidationCause cause)
