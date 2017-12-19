@@ -2,6 +2,7 @@
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering
 {
@@ -16,6 +17,8 @@ namespace UnityEditor.Experimental.Rendering
             var s = m_UIState;
             var p = m_SerializedReflectionProbe;
             var o = this;
+
+            BakeRealtimeProbeIfPositionChanged(s, p, o);
 
             if (!s.sceneViewEditing)
                 return;
@@ -43,6 +46,35 @@ namespace UnityEditor.Experimental.Rendering
 
             if (EditorGUI.EndChangeCheck())
                 Repaint();
+
+        }
+
+        void BakeRealtimeProbeIfPositionChanged(UIState s, SerializedReflectionProbe sp, Editor o)
+        {
+            if (Application.isPlaying 
+                || ((ReflectionProbeMode)sp.mode.intValue) != ReflectionProbeMode.Realtime)
+            {
+                m_PositionHash = 0;
+                return;
+            }
+
+            var hash = 0;
+            for (var i = 0; i < sp.so.targetObjects.Length; i++)
+            {
+                var p = (ReflectionProbe)sp.so.targetObjects[i];
+                var tr = p.GetComponent<Transform>();
+                hash ^= tr.position.GetHashCode();
+            }
+
+            if (hash != m_PositionHash)
+            {
+                m_PositionHash = hash;
+                for (var i = 0; i < sp.so.targetObjects.Length; i++)
+                {
+                    var p = (ReflectionProbe)sp.so.targetObjects[i];
+                    p.RenderProbe();
+                }
+            }
         }
 
         static void Handle_InfluenceBoxEditing(UIState s, SerializedReflectionProbe sp, Editor o)
