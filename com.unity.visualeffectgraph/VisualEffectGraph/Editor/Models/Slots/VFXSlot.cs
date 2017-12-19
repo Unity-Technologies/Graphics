@@ -619,7 +619,7 @@ namespace UnityEditor.VFX
                 return "No Owner";
         }
 
-        private void InvalidateExpressionTree()
+        public void InvalidateExpressionTree()
         {
             var masterSlot = GetMasterSlot();
 
@@ -676,11 +676,6 @@ namespace UnityEditor.VFX
             output.m_LinkedSlots.Remove(input);
             if (input.m_LinkedSlots.Remove(output))
                 input.InvalidateExpressionTree();
-        }
-
-        protected virtual bool CanConvertFrom(VFXExpression expr)
-        {
-            return expr == null || DefaultExpr.valueType == expr.valueType;
         }
 
         protected virtual bool CanConvertFrom(Type type)

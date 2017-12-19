@@ -216,16 +216,20 @@ namespace UnityEditor.VFX
             return clone as T;
         }
 
+        protected virtual void ResyncSlots(bool notify)
+        {
+            bool changed = false;
+            changed |= SyncSlots(VFXSlot.Direction.kInput, false);
+            changed |= SyncSlots(VFXSlot.Direction.kOutput, false);
+            if (notify && changed)
+                Invalidate(InvalidationCause.kStructureChanged);
+        }
+
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
             if (model == this && cause == InvalidationCause.kSettingChanged)
-            {
-                bool notify = false;
-                notify |= SyncSlots(VFXSlot.Direction.kInput, false);
-                notify |= SyncSlots(VFXSlot.Direction.kOutput, false);
-                if (notify)
-                    Invalidate(InvalidationCause.kStructureChanged);
-            }
+                ResyncSlots(true);
+
             base.OnInvalidate(model, cause);
         }
 
@@ -234,35 +238,6 @@ namespace UnityEditor.VFX
             foreach (var master in slotContainer.inputSlots)
                 foreach (var slot in master.GetExpressionSlots())
                     yield return new VFXNamedExpression(slot.GetExpression(), slot.fullName);
-        }
-
-        static private VFXExpression GetExpressionFromObject(object value, VFXValue.Mode mode)
-        {
-            if (value is float)
-            {
-                return new VFXValue<float>((float)value, mode);
-            }
-            else if (value is Vector2)
-            {
-                return new VFXValue<Vector2>((Vector2)value, mode);
-            }
-            else if (value is Vector3)
-            {
-                return new VFXValue<Vector3>((Vector3)value, mode);
-            }
-            else if (value is Vector4)
-            {
-                return new VFXValue<Vector4>((Vector4)value, mode);
-            }
-            else if (value is FloatN)
-            {
-                return ((FloatN)value).ToVFXValue(mode);
-            }
-            else if (value is AnimationCurve)
-            {
-                return new VFXValue<AnimationCurve>(value as AnimationCurve, mode);
-            }
-            return null;
         }
 
         protected void InitSlotsFromProperties(IEnumerable<VFXPropertyWithValue> properties, VFXSlot.Direction direction)

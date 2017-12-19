@@ -17,11 +17,6 @@ namespace UnityEditor.VFX
                 ||  type == typeof(Color);
         }
 
-        sealed protected override bool CanConvertFrom(VFXExpression expr)
-        {
-            return base.CanConvertFrom(expr) || CanConvertFrom(VFXExpression.TypeToType(expr.valueType));
-        }
-
         sealed protected override VFXValue DefaultExpression()
         {
             return new VFXValue<Vector3>(Vector3.zero, VFXValue.Mode.FoldableVariable);
