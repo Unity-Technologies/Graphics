@@ -2,7 +2,7 @@
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
 #include "ShaderLibrary/Packing.hlsl"
-#include "ShaderLibrary/SampleUVMapping.hlsl"
+#include "ShaderLibrary/Sampling/SampleUVMapping.hlsl"
 
 void GetSurfaceData(float2 texCoordDS, out DecalSurfaceData surfaceData)
 {
@@ -10,7 +10,7 @@ void GetSurfaceData(float2 texCoordDS, out DecalSurfaceData surfaceData)
 	surfaceData.normalWS = float4(0,0,0,0);
 	float totalBlend = _DecalBlend;
 #if _COLORMAP
-	surfaceData.baseColor = SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, texCoordDS.xy); 
+	surfaceData.baseColor = SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, texCoordDS.xy);
 	totalBlend *= surfaceData.baseColor.w;
 	surfaceData.baseColor.w = totalBlend;
 #endif
