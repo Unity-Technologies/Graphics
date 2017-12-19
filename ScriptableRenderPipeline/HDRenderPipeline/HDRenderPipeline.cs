@@ -792,6 +792,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
                     }
 #endif
+                    // decal system needs to be updated with current camera
+                    DecalSystem.instance.Cull(camera);
 
                     using (new ProfilingSample(cmd, "CullResults.Cull", GetSampler(CustomSamplerId.CullResultsCull)))
                     {
@@ -850,7 +852,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     RenderVelocity(m_CullResults, hdCamera, renderContext, cmd);
 
-                    RenderDBuffer(hdCamera.cameraPos, renderContext, cmd);
+                    RenderDBuffer(hdCamera, renderContext, cmd);
 
                     RenderGBuffer(m_CullResults, hdCamera, renderContext, cmd);
 
@@ -1245,13 +1247,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderDBuffer(Vector3 cameraPos, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        void RenderDBuffer(HDCamera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             using (new ProfilingSample(cmd, "DBuffer", GetSampler(CustomSamplerId.DBuffer)))
             {
                 CoreUtils.SetRenderTarget(cmd, m_DbufferManager.GetDBuffers(), m_CameraDepthStencilBufferRT, ClearFlag.Color, CoreUtils.clearColorAllBlack);
                 cmd.SetGlobalTexture(HDShaderIDs._MainDepthTexture, GetDepthTexture());
-				DecalSystem.instance.Render(renderContext, cameraPos, cmd);
+				DecalSystem.instance.Render(renderContext, camera, cmd);
             }
         }
 

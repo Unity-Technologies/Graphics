@@ -17,42 +17,89 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        internal HashSet<DecalProjectorComponent> m_Decals = new HashSet<DecalProjectorComponent>();
+        internal List<DecalProjectorComponent> m_Decals = new List<DecalProjectorComponent>();
         Mesh m_DecalMesh;
-
+        CullingGroup m_CullingGroup;
+        private BoundingSphere[] m_BoundingSpheres;
+     
         public DecalSystem()
         {
-            m_DecalMesh = CoreUtils.CreateDecalMesh();
+            m_DecalMesh = CoreUtils.CreateDecalMesh();            
         }
 
-       
+        // updates bounding spheres for all decals, also refreshes cull indices
+        void UpdateCulling()
+        {
+            m_BoundingSpheres = new BoundingSphere[m_Decals.Count];
+            int cullIndex = 0;
+            foreach (var decal in m_Decals)
+            {
+                decal.CullIndex = cullIndex;
+                m_BoundingSpheres[cullIndex] = CoreUtils.GetDecalMeshBoundingSphere(decal.transform.localToWorldMatrix);
+                cullIndex++;
+            }           
+        }
+
+        // update bounding sphere for a single decal
+        public void UpdateCulling(DecalProjectorComponent decal)
+        {
+            int cullIndex = decal.CullIndex;
+            m_BoundingSpheres[cullIndex] = CoreUtils.GetDecalMeshBoundingSphere(decal.transform.localToWorldMatrix);
+        }
+
         public void AddDecal(DecalProjectorComponent d)
         {
-            // If no decal material assign, don't add it
-            if (d.m_Material == null)
-                return;
-
-            if (d.m_Material.GetTexture("_BaseColorMap") || d.m_Material.GetTexture("_NormalMap"))
+            if (d.CullIndex != DecalProjectorComponent.kInvalidIndex)
             {
                 RemoveDecal(d);
-                m_Decals.Add(d);
             }
+            d.CullIndex = m_Decals.Count;
+            m_Decals.Add(d);
+            UpdateCulling();
         }
 
         public void RemoveDecal(DecalProjectorComponent d)
         {
             m_Decals.Remove(d);
+            UpdateCulling();
         }
 
-        public void Render(ScriptableRenderContext renderContext, Vector3 cameraPos, CommandBuffer cmd)
+        public void Cull(Camera camera)
+        {
+            m_CullingGroup = new CullingGroup();
+            m_CullingGroup.targetCamera = camera;
+            m_CullingGroup.SetBoundingSpheres(m_BoundingSpheres);            
+        }
+
+        public void Render(ScriptableRenderContext renderContext, HDCamera camera, CommandBuffer cmd)
         {
             if (m_DecalMesh == null)
                 m_DecalMesh = CoreUtils.CreateDecalMesh();
-            foreach (var decal in m_Decals)
+
+            int numResults = 0;
+            int[] resultIndices = new int[m_Decals.Count];
+            numResults = m_CullingGroup.QueryIndices(true, resultIndices, 0);
+
+            for (int resultIndex = 0; resultIndex < numResults; resultIndex++)
             {
-				decal.UpdatePropertyBlock(cameraPos);
-                cmd.DrawMesh(m_DecalMesh, decal.transform.localToWorldMatrix, decal.m_Material, 0, 0, decal.GetPropertyBlock());
+                int decalIndex = resultIndices[resultIndex];
+
+                // If no decal material assigned, don't draw it
+                if (m_Decals[decalIndex].m_Material == null)
+                    continue;
+
+                // don't draw decals that do not have textures assigned
+                if (!m_Decals[decalIndex].m_Material.GetTexture("_BaseColorMap") && !m_Decals[decalIndex].m_Material.GetTexture("_NormalMap") &&
+                    !m_Decals[decalIndex].m_Material.GetTexture("_MaskMap"))
+                    continue;
+
+                m_Decals[decalIndex].UpdatePropertyBlock(camera.cameraPos);
+                cmd.DrawMesh(m_DecalMesh, m_Decals[decalIndex].transform.localToWorldMatrix, m_Decals[decalIndex].m_Material, 0, 0,
+                    m_Decals[decalIndex].GetPropertyBlock());
             }
+
+            m_CullingGroup.Dispose();
+            m_CullingGroup = null;
         }
     }
 }
