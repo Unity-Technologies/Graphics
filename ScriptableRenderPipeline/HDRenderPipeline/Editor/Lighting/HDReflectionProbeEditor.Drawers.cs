@@ -80,7 +80,7 @@ namespace UnityEditor.Experimental.Rendering
         static void Drawer_CaptureSettings(UIState s, SerializedReflectionProbe p, Editor owner)
         {
             var renderPipelineAsset = (HDRenderPipelineAsset)GraphicsSettings.renderPipelineAsset;
-            p.resolution.intValue = renderPipelineAsset.GetGlobalFrameSettings().lightLoopSettings.reflectionCubemapSize;
+            p.resolution.intValue = renderPipelineAsset.GetRenderPipelineSettings().lightLoopSettings.reflectionCubemapSize;
             EditorGUILayout.LabelField(CoreEditorUtils.GetContent("Resolution"), CoreEditorUtils.GetContent(p.resolution.intValue.ToString()));
 
             EditorGUILayout.PropertyField(p.shadowDistance);
