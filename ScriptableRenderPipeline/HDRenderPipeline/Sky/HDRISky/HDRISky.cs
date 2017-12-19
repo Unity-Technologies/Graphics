@@ -1,9 +1,10 @@
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [DisallowMultipleComponent]
-    public class HDRISkySettings : SkySettings
+    public class HDRISky : SkySettings
     {
-        public Cubemap skyHDRI;
+        [Tooltip("Cubemap used to render the sky.")]
+        public CubemapParameter skyHDRI = new CubemapParameter(null);
 
         public override SkyRenderer GetRenderer()
         {
@@ -16,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             unchecked
             {
-                hash = skyHDRI != null ? hash * 23 + skyHDRI.GetHashCode() : hash;
+                hash = skyHDRI.value != null ? hash * 23 + skyHDRI.GetHashCode() : hash;
             }
 
             return hash;

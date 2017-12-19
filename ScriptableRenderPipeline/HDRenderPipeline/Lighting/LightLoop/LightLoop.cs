@@ -1,4 +1,4 @@
-using UnityEngine.Rendering;
+﻿using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System;
 
@@ -64,7 +64,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var varianceInit3 = varianceInit;
             varianceInit3.baseInit.shadowmapFormat = ShadowVariance.GetFormat( true, false, true );
 
-            m_Shadowmaps = new ShadowmapBase[] { new ShadowVariance( ref varianceInit ), new ShadowVariance( ref varianceInit2 ), new ShadowVariance( ref varianceInit3 ), new ShadowAtlas( ref atlasInit ) };
+            m_Shadowmaps = new ShadowmapBase[] { new ShadowVariance(ref varianceInit), new ShadowVariance(ref varianceInit2), new ShadowVariance(ref varianceInit3), new ShadowAtlas(ref atlasInit) };
 
             ShadowContext.SyncDel syncer = (ShadowContext sc) =>
                 {
@@ -87,14 +87,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     RenderTargetIdentifier[] tex;
                     sc.GetTex2DArrays(out tex, out offset, out count);
 
-                        // bind buffers
-                        cb.SetGlobalBuffer(HDShaderIDs._ShadowDatasExp, s_ShadowDataBuffer);
-                        cb.SetGlobalBuffer(HDShaderIDs._ShadowPayloads, s_ShadowPayloadBuffer);
-                        // bind textures
-                        cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_VSM_0, tex[0]);
-                        cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_VSM_1, tex[1]);
-                        cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_VSM_2, tex[2]);
-                        cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_PCF, tex[3]);
+                    // bind buffers
+                    cb.SetGlobalBuffer(HDShaderIDs._ShadowDatasExp, s_ShadowDataBuffer);
+                    cb.SetGlobalBuffer(HDShaderIDs._ShadowPayloads, s_ShadowPayloadBuffer);
+                    // bind textures
+                    cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_VSM_0, tex[0]);
+                    cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_VSM_1, tex[1]);
+                    cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_VSM_2, tex[2]);
+                    cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_PCF, tex[3]);
 
                     // TODO: Currently samplers are hard coded in ShadowContext.hlsl, so we can't really set them here
                 };
@@ -587,14 +587,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     for (int shadowMask = 0; shadowMask < 2; ++shadowMask)
                     {
-                            for (int debugDisplay = 0; debugDisplay < 2; ++debugDisplay)
-                            {
+                        for (int debugDisplay = 0; debugDisplay < 2; ++debugDisplay)
+                        {
                             int index = GetDeferredLightingMaterialIndex(outputSplitLighting, lightLoopTilePass, shadowMask, debugDisplay);
                             CoreUtils.Destroy(m_deferredLightingMaterial[index]);
-                            }
                         }
                     }
                 }
+            }
 
             CoreUtils.Destroy(m_DebugViewTilesMaterial);
         }
@@ -1257,7 +1257,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool PrepareLightsForGPU(CommandBuffer cmd, ShadowSettings shadowSettings, CullResults cullResults, Camera camera)
         {
             using (new ProfilingSample(cmd, "Prepare Lights For GPU"))
-        {
+            {
 
             // If any light require it, we need to enabled bake shadow mask feature
             m_enableBakeShadowMask = false;
@@ -1555,19 +1555,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     if (GetEnvLightData(cmd, camera, probe))
                     {
-                        GetEnvLightVolumeDataAndBound(probe, lightVolumeType, worldToView);
+                    GetEnvLightVolumeDataAndBound(probe, lightVolumeType, worldToView);
 
-                        // We make the light position camera-relative as late as possible in order
-                        // to allow the preceding code to work with the absolute world space coordinates.
-                        if (ShaderConfig.s_CameraRelativeRendering != 0)
-                        {
-                            // Caution: 'EnvLightData.positionWS' is camera-relative after this point.
-                            int n = m_lightList.envLights.Count;
-                            EnvLightData envLightData = m_lightList.envLights[n - 1];
-                            envLightData.positionWS -= camPosWS;
-                            m_lightList.envLights[n - 1] = envLightData;
-                        }
+                    // We make the light position camera-relative as late as possible in order
+                    // to allow the preceding code to work with the absolute world space coordinates.
+                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                    {
+                        // Caution: 'EnvLightData.positionWS' is camera-relative after this point.
+                        int n = m_lightList.envLights.Count;
+                        EnvLightData envLightData = m_lightList.envLights[n - 1];
+                        envLightData.positionWS -= camPosWS;
+                        m_lightList.envLights[n - 1] = envLightData;
                     }
+                }
                 }
             }
 
@@ -1635,7 +1635,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, numTilesX, numTilesY, 1);
         }
 
-        public void BuildGPULightListsCommon(Camera camera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT)
+        public void BuildGPULightListsCommon(Camera camera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, bool skyEnabled)
         {
             cmd.BeginSample("Build Light List");
 
@@ -1724,7 +1724,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         baseFeatureFlags |= (uint)LightFeatureFlags.Directional;
                     }
-                    if (Shader.GetGlobalInt(HDShaderIDs._EnvLightSkyEnabled) != 0)
+                    if (skyEnabled)
                     {
                         baseFeatureFlags |= (uint)LightFeatureFlags.Sky;
                     }
@@ -1781,20 +1781,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.EndSample("Build Light List");
         }
 
-        public void BuildGPULightLists(Camera camera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT)
+        public void BuildGPULightLists(Camera camera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, bool skyEnabled)
         {
             cmd.SetRenderTarget(BuiltinRenderTextureType.None);
 
-            BuildGPULightListsCommon(camera, cmd, cameraDepthBufferRT, stencilTextureRT);
+            BuildGPULightListsCommon(camera, cmd, cameraDepthBufferRT, stencilTextureRT, skyEnabled);
             PushGlobalParams(camera, cmd);
         }
 
-        public GPUFence BuildGPULightListsAsyncBegin(Camera camera, ScriptableRenderContext renderContext, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, GPUFence startFence)
+        public GPUFence BuildGPULightListsAsyncBegin(Camera camera, ScriptableRenderContext renderContext, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, GPUFence startFence, bool skyEnabled)
         {
             var cmd = CommandBufferPool.Get("Build light list");
             cmd.WaitOnGPUFence(startFence);
 
-            BuildGPULightListsCommon(camera, cmd, cameraDepthBufferRT, stencilTextureRT);
+            BuildGPULightListsCommon(camera, cmd, cameraDepthBufferRT, stencilTextureRT, skyEnabled);
             GPUFence completeFence = cmd.CreateGPUFence();
             renderContext.ExecuteCommandBufferAsync(cmd, ComputeQueueType.Background);
             CommandBufferPool.Release(cmd);
@@ -1929,10 +1929,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             string singlePassName = "SinglePass - Deferred Lighting Pass";
             string SinglePassMRTName = "SinglePass - Deferred Lighting Pass MRT";
 
-            // TODO: Check if we can remove this, when I test I can't
-			Texture skyTexture = Shader.GetGlobalTexture(HDShaderIDs._SkyTexture);
-			float skyTextureMipCount = Shader.GetGlobalFloat(HDShaderIDs._SkyTextureMipCount);
-
             string sLabel = m_FrameSettings.lightLoopSettings.enableTileAndCluster ?
                 (options.outputSplitLighting ? tilePassMRTName : tilePassName) :
                 (options.outputSplitLighting ? SinglePassMRTName : singlePassName);
@@ -1987,10 +1983,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // TODO: Is it possible to setup this outside the loop ? Can figure out how, get this: Property (specularLightingUAV) at kernel index (21) is not set
                         cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, colorBuffers[0]);
                         cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.diffuseLightingUAV,  colorBuffers[1]);
-
-                        // TODO: Check if we can remove this, when I test I can't
-                        cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._SkyTexture, skyTexture ? skyTexture : m_DefaultTextureCube);
-                        cmd.SetComputeFloatParam(deferredComputeShader, HDShaderIDs._SkyTextureMipCount, skyTextureMipCount);
 
                         // always do deferred lighting in blocks of 16x16 (not same as tiled light size)
 

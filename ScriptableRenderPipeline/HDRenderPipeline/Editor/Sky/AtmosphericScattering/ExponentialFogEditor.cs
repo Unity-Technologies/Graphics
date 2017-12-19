@@ -1,0 +1,29 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEditor;
+using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEditor.Experimental.Rendering;
+
+namespace UnityEditor.Experimental.Rendering.HDPipeline
+{
+    [VolumeComponentEditor(typeof(ExponentialFog))]
+    public class ExponentialFogEditor : AtmosphericScatteringEditor
+    {
+        private SerializedDataParameter m_FogDistance;
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            var o = new PropertyFetcher<ExponentialFog>(serializedObject);
+
+            m_FogDistance = Unpack(o.Find(x => x.fogDistance));
+        }
+
+        public override void OnInspectorGUI()
+        {
+            base.OnInspectorGUI();
+            PropertyField(m_FogDistance);
+        }
+    }
+}
