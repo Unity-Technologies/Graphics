@@ -311,6 +311,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _VBufferCoordToViewDirWS    = Shader.PropertyToID("_VBufferCoordToViewDirWS");
         public static readonly int _VBufferDensity             = Shader.PropertyToID("_VBufferDensity");
         public static readonly int _VBufferLighting            = Shader.PropertyToID("_VBufferLighting");
+        public static readonly int _VBufferLightingCurr        = Shader.PropertyToID("_VBufferLightingCurr");
         public static readonly int _VBufferLightingPrev        = Shader.PropertyToID("_VBufferLightingPrev");
     }
 }
