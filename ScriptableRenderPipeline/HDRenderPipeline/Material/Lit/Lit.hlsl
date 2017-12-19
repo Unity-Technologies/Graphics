@@ -1670,6 +1670,8 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         F = Sq(-F * bsdfData.coatCoverage + 1.0);
     }
 
+    float roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
+    R = lerp(R, preLightData.iblDirWS, saturate(smoothstep(0, 1, roughness * roughness)));
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, preLightData.iblMipLevel);
     envLighting += F * preLD.rgb;
 
