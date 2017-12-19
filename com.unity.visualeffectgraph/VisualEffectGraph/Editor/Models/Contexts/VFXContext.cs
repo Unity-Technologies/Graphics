@@ -311,7 +311,7 @@ namespace UnityEditor.VFX
             return null;
         }
 
-        private void SetDefaultData(bool notify)
+        public void SetDefaultData(bool notify)
         {
             InnerSetData(VFXData.CreateDataType(ownedType), notify);
         }
