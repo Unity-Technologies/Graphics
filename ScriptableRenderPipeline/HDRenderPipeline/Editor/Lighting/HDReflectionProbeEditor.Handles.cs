@@ -135,7 +135,7 @@ namespace UnityEditor.Experimental.Rendering
                     
                     ValidateAABB(p, ref center, ref radius);
                     influenceRadius = radius.x;
-                    var blendDistance = (influenceRadius - blendRadius) * 0.5f;
+                    var blendDistance = Mathf.Max(0, (influenceRadius - blendRadius) * 0.5f);
 
                     reflectionData.influenceSphereRadius = influenceRadius;
                     p.blendDistance = blendDistance;
