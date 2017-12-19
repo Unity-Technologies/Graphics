@@ -104,8 +104,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             Vector2 normalizedDelta = mouseDelta / 2f;
 
-            m_GraphInspectorView.style.positionRight -= normalizedDelta.x;
-            m_GraphInspectorView.style.positionBottom -= normalizedDelta.y;
+            m_GraphInspectorView.style.positionLeft += normalizedDelta.x;
+            m_GraphInspectorView.style.positionTop += normalizedDelta.y;
         }
 
         GraphViewChange GraphViewChanged(GraphViewChange graphViewChange)
