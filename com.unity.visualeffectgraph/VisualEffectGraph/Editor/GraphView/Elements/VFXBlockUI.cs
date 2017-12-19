@@ -22,6 +22,27 @@ namespace UnityEditor.VFX.UI
             titleContainer.shadow.Insert(0, m_EnableToggle);
 
             capabilities &= ~Capabilities.Ascendable;
+
+            RegisterCallback<MouseDownEvent>(OnMouseDown, Capture.Capture);
+        }
+
+        void OnMouseDown(MouseDownEvent e)
+        {
+            VFXView view = this.GetFirstAncestorOfType<VFXView>();
+
+            if (view != null)
+            {
+                if (!e.shiftKey && !e.ctrlKey)
+                {
+                    view.ClearSelection();
+                }
+                if (IsSelected(view))
+                {
+                    view.RemoveFromSelection(this);
+                }
+                else
+                    view.AddToSelection(this);
+            }
         }
 
         void OnToggleEnable()
