@@ -7,7 +7,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Channel", "Swizzle")]
-    public class SwizzleNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
+    public class SwizzleNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         public SwizzleNode()
         {
@@ -140,15 +140,16 @@ namespace UnityEditor.ShaderGraph
             var outputName = GetVariableNameForSlot(OutputSlotId);
             var inputValue = GetSlotValue(InputSlotId, generationMode);
             var inputValueType = FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType;
-            if (generationMode == GenerationMode.ForReals)
+            if (inputValueType == ConcreteSlotValueType.Vector1)
+                visitor.AddShaderChunk(string.Format("{0} {1} = {2};", outputSlotType, outputName, inputValue), false);
+            else if (generationMode == GenerationMode.ForReals)
                 visitor.AddShaderChunk(string.Format("{0} {1} = {2}.{3}{4}{5}{6};", outputSlotType, outputName, inputValue, s_ComponentList[m_RedChannel], s_ComponentList[m_GreenChannel], s_ComponentList[m_BlueChannel], s_ComponentList[m_AlphaChannel]), false);
             else
-                visitor.AddShaderChunk(string.Format("{0} {1} = {0}(Unity_Swizzle_Select_{4}({3}, {2}, 0), Unity_Swizzle_Select_{4}({3}, {2}, 1), Unity_Swizzle_Select_{4}({3}, {2}, 2), Unity_Swizzle_Select_{4}({3}, {2}, 3));",
+                visitor.AddShaderChunk(string.Format("{0} {1} = {0}({3}[((int){2} >> 0) & 3], {3}[((int){2} >> 2) & 3], {3}[((int){2} >> 4) & 3], {3}[((int){2} >> 6) & 3]);",
                     outputSlotType,
                     outputName,
-                    GetVariableNameForNode(),
-                    inputValue,
-                    inputValueType.ToString(precision)), false);
+                    GetVariableNameForNode(), // Name of the uniform we encode swizzle values into
+                    inputValue), false);
         }
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
@@ -166,6 +167,7 @@ namespace UnityEditor.ShaderGraph
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
             base.CollectPreviewMaterialProperties(properties);
+            // Encode swizzle values into an integer
             var value = ((int)redChannel) | ((int)greenChannel << 2) | ((int)blueChannel << 4) | ((int)alphaChannel << 6);
             properties.Add(new PreviewProperty
             {
@@ -173,37 +175,6 @@ namespace UnityEditor.ShaderGraph
                 propType = PropertyType.Float,
                 floatValue = value
             });
-        }
-
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            if (generationMode != GenerationMode.Preview)
-                return;
-
-            var sb = new ShaderStringBuilder();
-            var valueType = FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType;
-            sb.AppendLine("float Unity_Swizzle_Select_{0}({0} Value, int Swizzle, int Channel)", valueType.ToString(precision));
-            using (sb.BlockScope())
-            {
-                var channelCount = SlotValueHelper.GetChannelCount(valueType);
-                if (channelCount == 1)
-                {
-                    sb.AppendLine("return Value;");
-                }
-                else
-                {
-                    sb.AppendLine("int index = (Swizzle >> (2 * Channel)) & 3;");
-                    sb.AppendLine("if (index == 0) return Value.r;");
-                    if (channelCount >= 2)
-                        sb.AppendLine("if (index == 1) return Value.g;");
-                    if (channelCount >= 3)
-                        sb.AppendLine("if (index == 2) return Value.b;");
-                    if (channelCount == 4)
-                        sb.AppendLine("if (index == 3) return Value.a;");
-                    sb.AppendLine("return 0;");
-                }
-            }
-            visitor.AddShaderChunk(sb.ToString(), true);
         }
     }
 }
