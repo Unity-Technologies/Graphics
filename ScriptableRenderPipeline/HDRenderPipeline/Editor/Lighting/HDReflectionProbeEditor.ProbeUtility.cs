@@ -10,6 +10,25 @@ namespace UnityEditor.Experimental.Rendering
         static Mesh s_SphereMesh;
         static int _Cubemap = Shader.PropertyToID("_Cubemap");
 
+        void ChangeVisibilityOfAllTargets(bool visibility)
+        {
+            for (var i = 0; i < targets.Length; ++i)
+            {
+                var p = (ReflectionProbe)targets[i];
+                ChangeVisibility(p, visibility);
+            }
+        }
+
+        void InitializeAllTargetProbes()
+        {
+            for (var i = 0; i < targets.Length; ++i)
+            {
+                var p = (ReflectionProbe)targets[i];
+                var a = (HDAdditionalReflectionData)m_AdditionalDataSerializedObject.targetObjects[i];
+                InitializeProbe(p, a);
+            }
+        }
+
 
         [InitializeOnLoadMethod]
         static void Initialize()

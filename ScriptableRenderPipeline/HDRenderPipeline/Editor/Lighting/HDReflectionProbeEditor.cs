@@ -53,22 +53,13 @@ namespace UnityEditor.Experimental.Rendering
                 s_ReflectionProbeEditors[p] = this;
             }
 
-            for (var i = 0; i < targets.Length; ++i)
-            {
-                var p = (ReflectionProbe)targets[i];
-                var a = additionalData[i];
-                InitializeProbe(p, a);
-                ChangeVisibility(p, true);
-            }
+            InitializeAllTargetProbes();
+            ChangeVisibilityOfAllTargets(true);
         }
 
         void OnDisable()
         {
-            for (var i = 0; i < targets.Length; ++i)
-            {
-                var p = (ReflectionProbe)targets[i];
-                ChangeVisibility(p, false);
-            }
+            ChangeVisibilityOfAllTargets(false);
         }
 
         public override void OnInspectorGUI()
