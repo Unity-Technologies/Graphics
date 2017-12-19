@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.36615324, g: 0.38474482, b: 0.42534763, a: 1}
+  m_IndirectSpecularColor: {r: 0.36615342, g: 0.38474455, b: 0.42534748, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -54,11 +54,10 @@ LightmapSettings:
     m_EnableBakedLightmaps: 1
     m_EnableRealtimeLightmaps: 1
   m_LightmapEditorSettings:
-    serializedVersion: 9
+    serializedVersion: 10
     m_Resolution: 2
     m_BakeResolution: 40
-    m_TextureWidth: 1024
-    m_TextureHeight: 1024
+    m_AtlasSize: 1024
     m_AO: 0
     m_AOMaxDistance: 1
     m_CompAOExponent: 1
@@ -88,6 +87,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaDirect: 0.5
     m_PVRFilteringAtrousPositionSigmaIndirect: 2
     m_PVRFilteringAtrousPositionSigmaAO: 1
+    m_ShowResolutionOverlay: 1
   m_LightingDataAsset: {fileID: 0}
   m_UseShadowmask: 1
 --- !u!196 &4
@@ -176,6 +176,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
   m_StaticBatchInfo:
@@ -296,6 +297,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 168084394}
   m_StaticBatchInfo:
@@ -388,7 +390,7 @@ Transform:
   - {fileID: 1263545622}
   - {fileID: 434073008}
   m_Father: {fileID: 0}
-  m_RootOrder: 6
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &84459664
 GameObject:
@@ -433,6 +435,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 793428983}
   m_StaticBatchInfo:
@@ -743,11 +746,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -813,6 +818,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -890,7 +897,7 @@ Transform:
   - {fileID: 241851052}
   - {fileID: 199720009}
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &106203884
 GameObject:
@@ -935,6 +942,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 1622321449}
   m_StaticBatchInfo:
@@ -1062,11 +1070,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -1132,6 +1142,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -1374,6 +1386,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2090293738}
   m_StaticBatchInfo:
@@ -1445,6 +1458,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 1187185123}
   m_StaticBatchInfo:
@@ -1516,6 +1530,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 496587266}
   m_StaticBatchInfo:
@@ -1587,6 +1602,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 116757437}
   m_StaticBatchInfo:
@@ -1714,11 +1730,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -1784,6 +1802,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -2050,6 +2070,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
   m_StaticBatchInfo:
@@ -2135,6 +2156,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
   m_StaticBatchInfo:
@@ -2199,6 +2221,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 761033287}
   m_StaticBatchInfo:
@@ -2270,6 +2293,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: e504fc2b639838141816a581d66ec7e3, type: 2}
   m_StaticBatchInfo:
@@ -2524,6 +2548,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 87946233}
   m_StaticBatchInfo:
@@ -2595,6 +2620,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 107815175}
   m_StaticBatchInfo:
@@ -2870,6 +2896,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
   m_StaticBatchInfo:
@@ -2934,6 +2961,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 1506131249}
   m_StaticBatchInfo:
@@ -3026,6 +3054,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
   m_StaticBatchInfo:
@@ -3230,6 +3259,53 @@ Material:
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UnlitColor: {r: 0.7529412, g: 0.7529412, b: 0.7529412, a: 0}
+--- !u!1 &368757038
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 368757040}
+  - component: {fileID: 368757039}
+  m_Layer: 0
+  m_Name: HDRP_Default_Sky
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &368757039
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 368757038}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isGlobal: 1
+  priority: 0
+  blendDistance: 0
+  weight: 1
+  components:
+  - {fileID: 1081792836}
+  - {fileID: 1440711728}
+--- !u!4 &368757040
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 368757038}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -4.945982, y: 3.5591245, z: -6.423647}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &393437625
 Prefab:
   m_ObjectHideFlags: 0
@@ -3267,7 +3343,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4415619047076708, guid: e6be141ec19d3554489da286b19b90b2, type: 2}
       propertyPath: m_RootOrder
-      value: 3
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 23096287020260212, guid: e6be141ec19d3554489da286b19b90b2,
         type: 2}
@@ -3324,6 +3400,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 1184041375}
   m_StaticBatchInfo:
@@ -3416,6 +3493,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
   m_StaticBatchInfo:
@@ -3480,6 +3558,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 1598111607}
   m_StaticBatchInfo:
@@ -3551,6 +3630,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 1151312669}
   m_StaticBatchInfo:
@@ -3678,11 +3758,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -3748,6 +3830,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -3863,11 +3947,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -3933,6 +4019,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -4358,6 +4446,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 1762955632}
   m_StaticBatchInfo:
@@ -4429,6 +4518,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 1549633670}
   m_StaticBatchInfo:
@@ -4500,6 +4590,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 6f532381911597e4f9afdbab7c534ef6, type: 2}
   m_StaticBatchInfo:
@@ -4571,6 +4662,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2125709962}
   m_StaticBatchInfo:
@@ -4810,7 +4902,7 @@ Transform:
   - {fileID: 63168071}
   - {fileID: 1625450702}
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!21 &616171365
 Material:
@@ -4911,11 +5003,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -4981,6 +5075,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -5081,7 +5177,7 @@ Transform:
   - {fileID: 1542526303}
   - {fileID: 257862830}
   m_Father: {fileID: 0}
-  m_RootOrder: 7
+  m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &749245062
 Prefab:
@@ -5747,6 +5843,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 1054917805}
   m_StaticBatchInfo:
@@ -5818,6 +5915,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 1930277451}
   m_StaticBatchInfo:
@@ -6072,6 +6170,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 1267435654}
   m_StaticBatchInfo:
@@ -6143,6 +6242,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 853466526}
   m_StaticBatchInfo:
@@ -6214,6 +6314,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 1527676754}
   m_StaticBatchInfo:
@@ -6309,6 +6410,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
   m_StaticBatchInfo:
@@ -6394,6 +6496,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
   m_StaticBatchInfo:
@@ -6514,11 +6617,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -6584,6 +6689,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -6826,6 +6933,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 243115195}
   m_StaticBatchInfo:
@@ -6918,6 +7026,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
   m_StaticBatchInfo:
@@ -7165,6 +7274,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 483189201}
   m_StaticBatchInfo:
@@ -7261,6 +7371,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
   m_StaticBatchInfo:
@@ -7325,6 +7436,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 616171365}
   m_StaticBatchInfo:
@@ -7396,6 +7508,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 1897155643}
   m_StaticBatchInfo:
@@ -7467,6 +7580,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 1877921902}
   m_StaticBatchInfo:
@@ -7559,6 +7673,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
   m_StaticBatchInfo:
@@ -7623,6 +7738,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 499384186}
   m_StaticBatchInfo:
@@ -7750,11 +7866,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -7820,6 +7938,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -7866,6 +7986,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: eeafcacbee7af5c4d9f75570a6dfdcc8, type: 2}
   m_StaticBatchInfo:
@@ -7905,7 +8026,7 @@ Transform:
   m_LocalScale: {x: 1.2, y: 9.802377, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1077095947
 GameObject:
@@ -7950,6 +8071,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 1127845673}
   m_StaticBatchInfo:
@@ -8161,6 +8283,24 @@ Material:
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UnlitColor: {r: 0.7529412, g: 0.7529412, b: 0.7529412, a: 0}
+--- !u!114 &1081792836
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d7593b3a9277ac4696b20006c21dde2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  active: 1
+  skyType:
+    m_OverrideState: 1
+    m_Value: 1
+  fogType:
+    m_OverrideState: 1
+    m_Value: 0
 --- !u!1 &1116561096
 GameObject:
   m_ObjectHideFlags: 0
@@ -8204,6 +8344,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 1081175497}
   m_StaticBatchInfo:
@@ -8331,11 +8472,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -8401,6 +8544,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -8460,6 +8605,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 353566085}
   m_StaticBatchInfo:
@@ -8531,6 +8677,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 550511827}
   m_StaticBatchInfo:
@@ -8622,7 +8769,7 @@ Transform:
   - {fileID: 345582645}
   - {fileID: 106203885}
   m_Father: {fileID: 0}
-  m_RootOrder: 9
+  m_RootOrder: 10
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1143949346
 GameObject:
@@ -8667,6 +8814,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 778553701}
   m_StaticBatchInfo:
@@ -8761,6 +8909,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
   m_StaticBatchInfo:
@@ -9395,6 +9544,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
   m_StaticBatchInfo:
@@ -9480,6 +9630,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
   m_StaticBatchInfo:
@@ -9544,6 +9695,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 812104079}
   m_StaticBatchInfo:
@@ -9636,6 +9788,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
   m_StaticBatchInfo:
@@ -9883,6 +10036,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 100842014}
   m_StaticBatchInfo:
@@ -9975,6 +10129,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
   m_StaticBatchInfo:
@@ -10095,11 +10250,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -10165,6 +10322,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -10224,6 +10383,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 1611523654}
   m_StaticBatchInfo:
@@ -10671,11 +10831,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -10741,6 +10903,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -10821,6 +10985,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
   m_StaticBatchInfo:
@@ -10885,6 +11050,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 1757381580}
   m_StaticBatchInfo:
@@ -10980,6 +11146,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
   m_StaticBatchInfo:
@@ -11227,6 +11394,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: e504fc2b639838141816a581d66ec7e3, type: 2}
   m_StaticBatchInfo:
@@ -11298,6 +11466,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 1251215285}
   m_StaticBatchInfo:
@@ -11369,6 +11538,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 1318088485}
   m_StaticBatchInfo:
@@ -11461,6 +11631,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
   m_StaticBatchInfo:
@@ -11482,6 +11653,44 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+--- !u!114 &1440711728
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59b6606ef2548734bb6d11b9d160bc7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  active: 1
+  rotation:
+    m_OverrideState: 1
+    m_Value: 160
+    min: 0
+    max: 360
+  exposure:
+    m_OverrideState: 1
+    m_Value: 0
+  multiplier:
+    m_OverrideState: 1
+    m_Value: 1
+    min: 0
+  resolution:
+    m_OverrideState: 1
+    m_Value: 256
+  updateMode:
+    m_OverrideState: 1
+    m_Value: 0
+  updatePeriod:
+    m_OverrideState: 1
+    m_Value: 0
+    min: 0
+  useForBaking: 1
+  skyHDRI:
+    m_OverrideState: 1
+    m_Value: {fileID: 8900000, guid: fb0bf2eac2381484187ba8a68cdca165, type: 3}
 --- !u!1 &1455055732
 GameObject:
   m_ObjectHideFlags: 0
@@ -11525,6 +11734,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 6f532381911597e4f9afdbab7c534ef6, type: 2}
   m_StaticBatchInfo:
@@ -11596,6 +11806,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 311625243}
   m_StaticBatchInfo:
@@ -11667,6 +11878,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 1753668000}
   m_StaticBatchInfo:
@@ -11759,6 +11971,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
   m_StaticBatchInfo:
@@ -11879,11 +12092,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -11949,6 +12164,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -12008,6 +12225,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 1337807608}
   m_StaticBatchInfo:
@@ -12262,6 +12480,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 6f532381911597e4f9afdbab7c534ef6, type: 2}
   m_StaticBatchInfo:
@@ -12354,6 +12573,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
   m_StaticBatchInfo:
@@ -12418,6 +12638,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 472984932}
   m_StaticBatchInfo:
@@ -12545,11 +12766,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -12615,6 +12838,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -12730,11 +12955,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -12800,6 +13027,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -13246,7 +13475,7 @@ Transform:
   - {fileID: 524327357}
   - {fileID: 2018281418}
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!21 &1622321449
 Material:
@@ -13347,11 +13576,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -13417,6 +13648,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 4
@@ -13688,6 +13921,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 842939422}
   m_StaticBatchInfo:
@@ -13942,6 +14176,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 167424331}
   m_StaticBatchInfo:
@@ -14034,6 +14269,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
   m_StaticBatchInfo:
@@ -14154,11 +14390,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -14224,6 +14462,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -14522,11 +14762,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -14592,6 +14834,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -14672,6 +14916,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
   m_StaticBatchInfo:
@@ -14759,6 +15004,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
   m_StaticBatchInfo:
@@ -14879,11 +15125,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -14949,6 +15197,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -15033,6 +15283,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
   m_StaticBatchInfo:
@@ -15118,6 +15369,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
   m_StaticBatchInfo:
@@ -15182,6 +15434,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 954605725}
   m_StaticBatchInfo:
@@ -15643,6 +15896,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
   m_StaticBatchInfo:
@@ -15707,6 +15961,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 1390125804}
   m_StaticBatchInfo:
@@ -15834,11 +16089,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -15904,6 +16161,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -15963,6 +16222,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 1685646225}
   m_StaticBatchInfo:
@@ -16034,6 +16294,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2013592281}
   m_StaticBatchInfo:
@@ -16169,6 +16430,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2024583271}
   m_StaticBatchInfo:
@@ -16240,6 +16502,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 1609343921}
   m_StaticBatchInfo:
@@ -16494,6 +16757,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 1804406932}
   m_StaticBatchInfo:
@@ -16748,6 +17012,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 6f532381911597e4f9afdbab7c534ef6, type: 2}
   m_StaticBatchInfo:
@@ -16804,7 +17069,7 @@ Transform:
   - {fileID: 1991717742}
   - {fileID: 1632440057}
   m_Father: {fileID: 0}
-  m_RootOrder: 8
+  m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!21 &2090293738
 Material:
@@ -16905,11 +17170,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -16975,6 +17242,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -17034,6 +17303,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 6f532381911597e4f9afdbab7c534ef6, type: 2}
   m_StaticBatchInfo:
