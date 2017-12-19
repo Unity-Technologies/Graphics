@@ -1161,6 +1161,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     envLightData.minProjectionDistance = 65504.0f;
 
                 envLightData.dimmer = additionalData.dimmer;
+                envLightData.blendNormalDistance = additionalData.blendNormalDistance;
             }
             else
             {
@@ -1178,6 +1179,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 envLightData.dimmer = 1;
+                envLightData.blendNormalDistance = 0;
             }
 
             // remove scale from the matrix (Scale in this matrix is use to scale the widget)
