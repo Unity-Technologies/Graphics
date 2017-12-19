@@ -17,6 +17,7 @@ EnvLightData InitSkyEnvLightData(int envIndex)
     output.offsetLS      = float3(0.0, 0.0, 0.0);
     output.innerDistance = float3(0.0, 0.0, 0.0);
     output.blendDistance = 1.0;
+    output.dimmer        = 1.0;
 
     return output;
 }

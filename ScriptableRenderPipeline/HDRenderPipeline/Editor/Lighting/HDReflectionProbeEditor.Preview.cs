@@ -15,7 +15,7 @@ namespace UnityEditor.Experimental.Rendering
             if (ValidPreviewSetup())
             {
                 Editor editor = m_CubemapEditor;
-                CreateCachedEditor(((ReflectionProbe)target).texture, null, ref editor);
+                CreateCachedEditor(((ReflectionProbe)target).texture, typeof(HDCubemapInspector), ref editor);
                 m_CubemapEditor = editor as HDCubemapInspector;
             }
 
