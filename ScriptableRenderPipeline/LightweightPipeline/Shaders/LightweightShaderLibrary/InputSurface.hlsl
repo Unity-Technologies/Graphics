@@ -1,12 +1,14 @@
 #ifndef LIGHTWEIGHT_SURFACE_INPUT_INCLUDED
 #define LIGHTWEIGHT_SURFACE_INPUT_INCLUDED
 
-#include "LightweightCore.cginc"
+#include "Core.hlsl"
+#include "ShaderLibrary/Packing.hlsl"
+#include "ShaderLibrary/CommonMaterial.hlsl"
 
 #ifdef _SPECULAR_SETUP
-#define SAMPLE_METALLICSPECULAR(uv) tex2D(_SpecGlossMap, uv)
+#define SAMPLE_METALLICSPECULAR(uv) SAMPLE_TEXTURE2D(_SpecGlossMap, sampler_SpecGlossMap, uv)
 #else
-#define SAMPLE_METALLICSPECULAR(uv) tex2D(_MetallicGlossMap, uv)
+#define SAMPLE_METALLICSPECULAR(uv) SAMPLE_TEXTURE2D(_MetallicGlossMap, sampler_MetallicGlossMap, uv)
 #endif
 
 CBUFFER_START(MaterialProperties)
@@ -24,12 +26,12 @@ half4 _EmissionColor;
 half _Shininess;
 CBUFFER_END
 
-sampler2D _MainTex;
-sampler2D _MetallicGlossMap;
-sampler2D _SpecGlossMap;
-sampler2D _BumpMap;
-sampler2D _OcclusionMap;
-sampler2D _EmissionMap;
+TEXTURE2D(_MainTex); SAMPLER(sampler_MainTex);
+TEXTURE2D(_MetallicGlossMap); SAMPLER(sampler_MetallicGlossMap);
+TEXTURE2D(_SpecGlossMap); SAMPLER(sampler_SpecGlossMap);
+TEXTURE2D(_BumpMap); SAMPLER(sampler_BumpMap);
+TEXTURE2D(_OcclusionMap); SAMPLER(sampler_OcclusionMap);
+TEXTURE2D(_EmissionMap); SAMPLER(sampler_EmissionMap);
 
 // Must match Lightweigth ShaderGraph master node
 struct SurfaceData
@@ -65,7 +67,7 @@ inline half Alpha(half albedoAlpha)
 half3 Normal(float2 uv)
 {
 #if _NORMALMAP
-    return UnpackNormalScale(tex2D(_BumpMap, uv), _BumpScale);
+    return UnpackNormalScale(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uv), _BumpScale);
 #else
     return half3(0.0h, 0.0h, 1.0h);
 #endif
@@ -75,8 +77,8 @@ half4 SpecularGloss(half2 uv, half alpha)
 {
     half4 specularGloss = half4(0, 0, 0, 1);
 #ifdef _SPECGLOSSMAP
-    specularGloss = tex2D(_SpecGlossMap, uv);
-    specularGloss.rgb = LIGHTWEIGHT_GAMMA_TO_LINEAR(specularGloss.rgb);
+    specularGloss = SAMPLE_TEXTURE2D(_SpecGlossMap, sampler_SpecGlossMap, uv);
+    specularGloss.rgb = specularGloss.rgb;
 #elif defined(_SPECULAR_COLOR)
     specularGloss = _SpecColor;
 #endif
@@ -122,10 +124,10 @@ half Occlusion(float2 uv)
 #if (SHADER_TARGET < 30)
     // SM20: instruction count limitation
     // SM20: simpler occlusion
-    return tex2D(_OcclusionMap, uv).g;
+    return SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, uv).g;
 #else
-    half occ = tex2D(_OcclusionMap, uv).g;
-    return _LerpOneTo(occ, _OcclusionStrength);
+    half occ = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, uv).g;
+    return LerpWhiteTo(occ, _OcclusionStrength);
 #endif
 #else
     return 1.0;
@@ -137,16 +139,16 @@ half3 Emission(float2 uv)
 #ifndef _EMISSION
     return 0;
 #else
-    return LIGHTWEIGHT_GAMMA_TO_LINEAR(tex2D(_EmissionMap, uv).rgb) * _EmissionColor.rgb;
+    return SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, uv).rgb * _EmissionColor.rgb;
 #endif
 }
 
 inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfaceData)
 {
-    half4 albedoAlpha = tex2D(_MainTex, uv);
+    half4 albedoAlpha = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
 
-    half4 specGloss = MetallicSpecGloss(uv, albedoAlpha);
-    outSurfaceData.albedo = LIGHTWEIGHT_GAMMA_TO_LINEAR(albedoAlpha.rgb) * _Color.rgb;
+    half4 specGloss = MetallicSpecGloss(uv, albedoAlpha.a);
+    outSurfaceData.albedo = albedoAlpha.rgb * _Color.rgb;
 
 #if _SPECULAR_SETUP
     outSurfaceData.metallic = 1.0h;
