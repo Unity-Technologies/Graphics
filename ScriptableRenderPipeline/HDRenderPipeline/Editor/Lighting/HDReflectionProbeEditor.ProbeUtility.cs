@@ -19,15 +19,6 @@ namespace UnityEditor.Experimental.Rendering
                 hideFlags = HideFlags.HideAndDontSave
             };
             s_SphereMesh = Resources.GetBuiltinResource(typeof(Mesh), "New-Sphere.fbx") as Mesh;
-
-            HDAdditionalReflectionData.OnNewItem += OnNewProbe;
-            foreach (var data in HDAdditionalReflectionData.AllDatas)
-                OnNewProbe(data);
-        }
-
-        static void OnNewProbe(HDAdditionalReflectionData value)
-        {
-            InitializeProbe(value.GetComponent<ReflectionProbe>(), value);
         }
 
         static void InitializeProbe(ReflectionProbe p, HDAdditionalReflectionData data)
@@ -37,10 +28,16 @@ namespace UnityEditor.Experimental.Rendering
 
             meshFilter.sharedMesh = s_SphereMesh;
 
-            var material = Object.Instantiate(s_PreviewMaterial);
-            material.SetTexture(_Cubemap, p.texture);
-            material.hideFlags = HideFlags.HideAndDontSave;
-            meshRenderer.material = material;
+            var material = meshRenderer.sharedMaterial;
+            if (material == null 
+                || material == s_PreviewMaterial 
+                || material.shader != s_PreviewMaterial.shader)
+            {
+                material = Object.Instantiate(s_PreviewMaterial);
+                material.SetTexture(_Cubemap, p.texture);
+                material.hideFlags = HideFlags.HideAndDontSave;
+                meshRenderer.material = material;
+            }
 
             meshRenderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
             meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;

@@ -1149,8 +1149,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     case ReflectionInfluenceShape.Box:
                     {
                         envLightData.envShapeType = EnvShapeType.Box;
-                        if (probe.boxProjection == 0)
-                            envLightData.minProjectionDistance = 65504.0f;
                         break;
                     }
                     case ReflectionInfluenceShape.Sphere:
@@ -1158,6 +1156,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         extents = Vector3.one * additionalData.influenceSphereRadius;
                         break;
                 }
+
+                if (probe.boxProjection == 0)
+                    envLightData.minProjectionDistance = 65504.0f;
             }
             else
             {

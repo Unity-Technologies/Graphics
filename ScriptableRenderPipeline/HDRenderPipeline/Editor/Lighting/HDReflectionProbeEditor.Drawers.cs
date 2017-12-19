@@ -166,10 +166,7 @@ namespace UnityEditor.Experimental.Rendering
                             {
                                 var mode = (int)data;
                                 if (mode == 0)
-                                {
                                     BakeAllReflectionProbesSnapshots();
-                                    ResetAllProbeSceneTextureInMaterial();
-                                }
                             },
                             GUILayout.ExpandWidth(true)))
                         {
@@ -220,6 +217,7 @@ namespace UnityEditor.Experimental.Rendering
         static void Drawer_InfluenceSphereSettings(UIState s, SerializedReflectionProbe p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.influenceSphereRadius, CoreEditorUtils.GetContent("Radius"));
+            EditorGUILayout.PropertyField(p.boxProjection, CoreEditorUtils.GetContent("Sphere Projection|Sphere projection causes reflections to appear to change based on the object's position within the probe's sphere, while still using a single probe as the source of the reflection. This works well for reflections on objects that are moving through enclosed spaces such as corridors and rooms. Setting sphere projection to False and the cubemap reflection will be treated as coming from infinitely far away. Note that this feature can be globally disabled from Graphics Settings -> Tier Settings"));
         }
         #endregion
 
@@ -328,7 +326,7 @@ namespace UnityEditor.Experimental.Rendering
                 switch (EditMode.editMode)
                 {
                     case EditMode.SceneViewEditMode.ReflectionProbeOrigin:
-                        s.AddOperation(Operation.UpdateOldLocalSpace);
+                        s.UpdateOldLocalSpace((ReflectionProbe)p.so.targetObject);
                         break;
                 }
             }
