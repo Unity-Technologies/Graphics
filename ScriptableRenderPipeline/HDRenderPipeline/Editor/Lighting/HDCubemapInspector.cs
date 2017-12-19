@@ -12,8 +12,8 @@ class HDCubemapInspector : Editor
         Rotating = 2
     }
 
-    static GUIContent s_MipMapLow, s_MipMapHigh, s_ExposureHigh, s_ExposureLow, s_RGBMIcon;
-    static GUIStyle s_PreButton, s_PreSlider, s_PreSliderThumb, s_PreLabel;
+    static GUIContent s_MipMapLow, s_MipMapHigh, s_ExposureLow;
+    static GUIStyle s_PreLabel;
     static Mesh s_SphereMesh;
 
     static Mesh sphereMesh
@@ -44,8 +44,6 @@ class HDCubemapInspector : Editor
     {
         if (m_PreviewUtility == null)
             InitPreview();
-        if (s_MipMapLow == null)
-            InitIcons();
 
         m_ReflectiveMaterial.SetTexture("_Cubemap", target as Texture);
     }
@@ -63,7 +61,7 @@ class HDCubemapInspector : Editor
 
     public override void OnPreviewGUI(Rect r, GUIStyle background)
     {
-        if(m_ReflectiveMaterial != null)
+        if (m_ReflectiveMaterial != null)
         {
             m_ReflectiveMaterial.SetFloat("_Exposure", previewExposure);
             m_ReflectiveMaterial.SetFloat("_MipLevel", mipLevelPreview);
@@ -88,6 +86,9 @@ class HDCubemapInspector : Editor
 
     public override void OnPreviewSettings()
     {
+        if (s_MipMapLow == null)
+            InitIcons();
+
         var mipmapCount = 0;
         var cubemap = target as Cubemap;
         var rt = target as RenderTexture;
@@ -169,12 +170,7 @@ class HDCubemapInspector : Editor
     {
         s_MipMapLow = EditorGUIUtility.IconContent("PreTextureMipMapLow");
         s_MipMapHigh = EditorGUIUtility.IconContent("PreTextureMipMapHigh");
-        s_ExposureHigh = EditorGUIUtility.IconContent("SceneViewLighting");
         s_ExposureLow = EditorGUIUtility.IconContent("SceneViewLighting");
-        s_RGBMIcon = EditorGUIUtility.IconContent("PreMatLight1"); // TODO: proper icon for RGBM preview mode
-        s_PreButton = "preButton";
-        s_PreSlider = "preSlider";
-        s_PreSliderThumb = "preSliderThumb";
         s_PreLabel = "preLabel";
     }
 }
