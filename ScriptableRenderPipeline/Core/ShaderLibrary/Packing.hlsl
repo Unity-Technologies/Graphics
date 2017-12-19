@@ -21,11 +21,16 @@ float3 UnpackNormalMaxComponent(float3 n)
 // return float between [-1, 1]
 float2 PackNormalOctEncode(float3 n)
 {
-    float l1norm    = dot(abs(n), 1.0);
-    float2 res0     = n.xy * (1.0 / l1norm);
+    //float l1norm    = dot(abs(n), 1.0);
+    //float2 res0     = n.xy * (1.0 / l1norm);
 
-    float2 val      = 1.0 - abs(res0.yx);
-    return (n.zz < float2(0.0, 0.0) ? (res0 >= 0.0 ? val : -val) : res0);
+    //float2 val      = 1.0 - abs(res0.yx);
+    //return (n.zz < float2(0.0, 0.0) ? (res0 >= 0.0 ? val : -val) : res0);
+
+    // Optimized version of above code:
+    n *= rcp(dot(abs(n), 1.0));
+    float t = saturate(-n.z);
+    return n.xy + (n.xy >= 0.0 ? t : -t);
 }
 
 float3 UnpackNormalOctEncode(float2 f)
