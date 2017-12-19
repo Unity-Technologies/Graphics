@@ -148,5 +148,64 @@ namespace UnityEditor.Graphing
             }
             return shaderStage;
         }
+
+        public static string GetSlotDimension(ConcreteSlotValueType slotValue)
+        {
+            switch (slotValue)
+            {
+                case ConcreteSlotValueType.Vector1:
+                    return String.Empty;
+                case ConcreteSlotValueType.Vector2:
+                    return "2";
+                case ConcreteSlotValueType.Vector3:
+                    return "3";
+                case ConcreteSlotValueType.Vector4:
+                    return "4";
+                case ConcreteSlotValueType.Matrix2:
+                    return "2x2";
+                case ConcreteSlotValueType.Matrix3:
+                    return "3x3";
+                case ConcreteSlotValueType.Matrix4:
+                    return "4x4";
+                default:
+                    return "Error";
+            }
+        }
+
+        public static string ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision p, ConcreteSlotValueType slotValue)
+        {
+            switch (slotValue)
+            {
+                case ConcreteSlotValueType.Vector1:
+                    return p.ToString();
+                case ConcreteSlotValueType.Vector2:
+                    return p + "2";
+                case ConcreteSlotValueType.Vector3:
+                    return p + "3";
+                case ConcreteSlotValueType.Vector4:
+                    return p + "4";
+                case ConcreteSlotValueType.Texture2D:
+                    return "Texture2D";
+                case ConcreteSlotValueType.Cubemap:
+                    return "Cubemap";
+                case ConcreteSlotValueType.Matrix2:
+                    return "Matrix2x2";
+                case ConcreteSlotValueType.Matrix3:
+                    return "Matrix3x3";
+                case ConcreteSlotValueType.Matrix4:
+                    return "Matrix4x4";
+                case ConcreteSlotValueType.SamplerState:
+                    return "SamplerState";
+                default:
+                    return "Error";
+            }
+        }
+
+        public static string GetHLSLSafeName(string input)
+        {
+            char[] arr = input.ToCharArray();
+            arr = Array.FindAll<char>(arr, (c => (Char.IsLetterOrDigit(c))));
+            return new string(arr);
+        }
     }
 }

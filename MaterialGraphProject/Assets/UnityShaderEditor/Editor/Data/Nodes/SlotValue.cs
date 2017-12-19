@@ -1,4 +1,5 @@
 using System;
+using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -72,7 +73,7 @@ namespace UnityEditor.ShaderGraph
 
         public static string ToString(this ConcreteSlotValueType type, AbstractMaterialNode.OutputPrecision precision)
         {
-            return AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(precision, type);
+            return NodeUtils.ConvertConcreteSlotValueTypeToString(precision, type);
         }
     }
 }

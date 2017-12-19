@@ -173,8 +173,7 @@ namespace UnityEditor.ShaderGraph
             else if (requiresTangentTransform)
                 visitor.AddShaderChunk("float3x3 " + targetTransformString + " = float3x3(" + tangentTransformSpace + "SpaceTangent, " + tangentTransformSpace + "SpaceBiTangent, " + tangentTransformSpace + "SpaceNormal);", true);
 
-            visitor.AddShaderChunk(string.Format("{0} {1} = {2};",
-                    ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType),
+            visitor.AddShaderChunk(string.Format("{0} {1} = {2};", NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType),
                     GetVariableNameForSlot(OutputSlotId),
                     transformString), true);
         }

@@ -316,13 +316,13 @@ namespace UnityEditor.ShaderGraph
 
         private string GetParamTypeName(MaterialSlot slot)
         {
-            return ConvertConcreteSlotValueTypeToString(precision, slot.concreteValueType);
+            return NodeUtils.ConvertConcreteSlotValueTypeToString(precision, slot.concreteValueType);
         }
 
         private string GetFunctionName()
         {
             var function = GetFunctionToConvert();
-            return function.Name + "_" + (function.IsStatic ? string.Empty : GuidEncoder.Encode(guid) + "_") + precision + (this.GetSlots<DynamicVectorMaterialSlot>().Select(s => GetSlotDimension(s.concreteValueType)).FirstOrDefault() ?? "");
+            return function.Name + "_" + (function.IsStatic ? string.Empty : GuidEncoder.Encode(guid) + "_") + precision + (this.GetSlots<DynamicVectorMaterialSlot>().Select(s => NodeUtils.GetSlotDimension(s.concreteValueType)).FirstOrDefault() ?? "");
         }
 
         private string GetFunctionHeader()
@@ -372,7 +372,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var slot in s_TempSlots)
             {
                 var toReplace = string.Format("{{slot{0}dimension}}", slot.id);
-                var replacement = GetSlotDimension(slot.concreteValueType);
+                var replacement = NodeUtils.GetSlotDimension(slot.concreteValueType);
                 result = result.Replace(toReplace, replacement);
             }
             return result;
