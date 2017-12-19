@@ -1,8 +1,8 @@
 #ifndef LIGHTWEIGHT_PASS_LIT_INCLUDED
 #define LIGHTWEIGHT_PASS_LIT_INCLUDED
 
-#include "LightweightSurfaceInput.cginc"
-#include "LightweightLighting.cginc"
+#include "LightweightShaderLibrary/InputSurface.hlsl"
+#include "LightweightShaderLibrary/Lighting.hlsl"
 
 struct LightweightVertexInput
 {
@@ -11,14 +11,13 @@ struct LightweightVertexInput
     float4 tangent : TANGENT;
     float2 texcoord : TEXCOORD0;
     float2 lightmapUV : TEXCOORD1;
-    UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct LightweightVertexOutput
 {
     float2 uv                       : TEXCOORD0;
     float4 lightmapUVOrVertexSH     : TEXCOORD1; // holds either lightmapUV or vertex SH. depending on LIGHTMAP_ON
-    float4 posWS                    : TEXCOORD2;
+    float3 posWS                    : TEXCOORD2;
     half3  normal                   : TEXCOORD3;
 
 #if _NORMALMAP
@@ -30,7 +29,6 @@ struct LightweightVertexOutput
     half4 fogFactorAndVertexLight   : TEXCOORD7; // x: fogFactor, yzw: vertex light
 
     float4 clipPos                  : SV_POSITION;
-    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -42,14 +40,11 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
 {
     LightweightVertexOutput o = (LightweightVertexOutput)0;
 
-    UNITY_SETUP_INSTANCE_ID(v);
-    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-
     o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);
 
-    o.posWS = mul(unity_ObjectToWorld, v.vertex);
-    o.clipPos = mul(UNITY_MATRIX_VP, o.posWS);
-    o.viewDir = SafeNormalize(_WorldSpaceCameraPos - o.posWS.xyz);
+    o.posWS = TransformObjectToWorld(v.vertex.xyz);
+    o.clipPos = TransformWorldToHClip(o.posWS);
+    o.viewDir = SafeNormalize(_WorldSpaceCameraPos - o.posWS);
 
     // initializes o.normal and if _NORMALMAP also o.tangent and o.binormal
     OUTPUT_NORMAL(v, o);
@@ -60,7 +55,7 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     OUTPUT_LIGHTMAP_UV(v.lightmapUV, unity_LightmapST, o.lightmapUVOrVertexSH);
     OUTPUT_SH(o.normal, o.lightmapUVOrVertexSH);
 
-    half3 vertexLight = VertexLighting(o.posWS.xyz, o.normal);
+    half3 vertexLight = VertexLighting(o.posWS, o.normal);
     half fogFactor = ComputeFogFactor(o.clipPos.z);
     o.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
@@ -82,11 +77,11 @@ half4 LitPassFragment(LightweightVertexOutput IN) : SV_Target
     half3 indirectDiffuse = SampleGI(IN.lightmapUVOrVertexSH, normalWS);
     float fogFactor = IN.fogFactorAndVertexLight.x;
 
-    half4 color = LightweightFragmentPBR(IN.posWS, normalWS, IN.viewDir, indirectDiffuse, IN.fogFactorAndVertexLight.yzw, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
+    half4 color = LightweightFragmentPBR(IN.posWS.xyz, normalWS, IN.viewDir, indirectDiffuse, IN.fogFactorAndVertexLight.yzw, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
 
     // Computes fog factor per-vertex
     ApplyFog(color.rgb, fogFactor);
-    return OUTPUT_COLOR(color);
+    return color;
 }
 
 // Used for StandardSimpleLighting shader
@@ -94,8 +89,8 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
 {
     float2 uv = IN.uv;
 
-    half4 diffuseAlpha = tex2D(_MainTex, uv);
-    half3 diffuse = LIGHTWEIGHT_GAMMA_TO_LINEAR(diffuseAlpha.rgb) * _Color.rgb;
+    half4 diffuseAlpha = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
+    half3 diffuse = diffuseAlpha.rgb * _Color.rgb;
 
 #ifdef _GLOSSINESS_FROM_BASE_ALPHA
     half alpha = _Color.a;
