@@ -26,6 +26,9 @@ Material:
   - TransparentDepthPrepass
   - META
   - SHADOWCASTER
+  - TransparentBackface
+  - TransparentBackfaceDebugDisplay
+  - TransparentDepthPostpass
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:

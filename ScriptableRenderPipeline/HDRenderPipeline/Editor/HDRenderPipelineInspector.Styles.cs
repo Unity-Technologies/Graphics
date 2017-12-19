@@ -4,7 +4,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public sealed partial class HDRenderPipelineInspector
     {
-        // TODO: missing tooltips
         sealed class Styles
         {
             public readonly GUIContent defaults = new GUIContent("Defaults");
@@ -14,9 +13,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public readonly GUIContent settingsLabel = new GUIContent("Settings");
 
-            public readonly GUIContent globalFrameSettings = new GUIContent("Global Frame Settings");
+            public readonly GUIContent renderPipelineSettings = new GUIContent("Render Pipeline Settings");
 
-            // Shadow Settings
             public readonly GUIContent supportDBuffer = new GUIContent("Support Decal buffer");
             public readonly GUIContent supportMSAA = new GUIContent("Support MSAA");
             // Shadow Settings

@@ -188,7 +188,8 @@ CBUFFER_START(UnityPerFrame)
     int unity_StereoEyeIndex;
 #endif
 
-    float4 unity_ShadowColor;
+    float3 unity_ShadowColor;
+    uint _TaaFrameIndex;      // [0, 7]
 CBUFFER_END
 
 // ----------------------------------------------------------------------------
