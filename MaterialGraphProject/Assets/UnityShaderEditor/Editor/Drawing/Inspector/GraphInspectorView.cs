@@ -150,16 +150,31 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 normalizedResizeDelta.y = 0f;
             }
 
+            Vector2 newSize = new Vector2();
+            Vector2 newPosition = new Vector2(style.positionLeft, style.positionTop);
+
             if (moveWhileResize)
             {
-                style.positionLeft += normalizedResizeDelta.x;
-                style.positionTop += normalizedResizeDelta.y;
+                newPosition.x = style.positionLeft + normalizedResizeDelta.x;
+                newPosition.y = style.positionTop + normalizedResizeDelta.y;
 
                 normalizedResizeDelta *= -1f;
             }
 
-            style.width = Mathf.Max(style.width + normalizedResizeDelta.x, 60f);
-            style.height = Mathf.Max(style.height + normalizedResizeDelta.y, 60f);
+            newSize.x = Mathf.Max(style.width + normalizedResizeDelta.x, 60f);
+            newSize.y = Mathf.Max(style.height + normalizedResizeDelta.y, 60f);
+
+            if (newSize.x > 60f)
+            {
+                style.positionLeft = newPosition.x;
+                style.width = Mathf.Max(style.width + normalizedResizeDelta.x, 60f);
+            }
+
+            if (newSize.y > 60f)
+            {
+                style.positionTop = newPosition.y;
+                style.height = Mathf.Max(style.height + normalizedResizeDelta.y, 60f);
+            }
         }
 
         MasterNode masterNode
