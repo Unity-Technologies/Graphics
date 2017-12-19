@@ -109,20 +109,13 @@ MaterialNodeView #previewContainer.expanded > #expand {
 }
 
 MaterialNodeView > #resize {
-    background-color: rgb(0, 0, 255);
+    background-image : resource("GraphView/Nodes/NodeChevronLeft.png");
     position-type: absolute;
     position-right: 5;
     position-bottom: 5;
     width: 10;
     height: 10;
-}
-
-MaterialNodeView > #resize:hover {
-    background-color: rgb(0, 127, 127);
-}
-
-MaterialNodeView > #resize:active {
-    background-color: rgb(0, 225, 25);
+    cursor: resize-up-left;
 }
 
 PortInputView {
@@ -365,8 +358,12 @@ GraphInspectorView > #top > #content > #selectionCount {
     padding-bottom: 10;
 }
 
+GraphInspectorView > #bottom {
+    margin-bottom: 20;
+}
+
 GraphInspectorView > #bottom > #preview {
-    height: 400;
+    max-height: 400;
     background-color: rgb(79, 79, 79);
 }
 
@@ -413,8 +410,7 @@ GraphInspectorView > #bottom > #properties > #items {
 
 GraphInspectorView > #resize {
     cursor: resize-up-left;
-    align-self: flex-end;
-    background-color: rgb(0, 0, 127);
+    background-image : resource("GraphView/Nodes/NodeChevronLeft.png");
     position-type: absolute;
     width: 16;
     height: 16;
