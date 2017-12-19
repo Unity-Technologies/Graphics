@@ -28,7 +28,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         MaterialPropertyBlock m_PreviewPropertyBlock;
         PreviewSceneResources m_SceneResources;
         Texture2D m_ErrorTexture;
-        const bool k_UberShaderEnabled = true;
         Shader m_UberShader;
         string m_UberShaderString;
         Dictionary<Guid, int> m_UberShaderIds;
@@ -215,7 +214,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var node = m_Graph.GetNodeFromGuid(guid);
                     if (node == null)
                         continue;
-                    if (!k_UberShaderEnabled || node is IMasterNode)
+                    if (node is IMasterNode)
                         masterNodes.Add(node);
                     else
                         uberNodes.Add(node);

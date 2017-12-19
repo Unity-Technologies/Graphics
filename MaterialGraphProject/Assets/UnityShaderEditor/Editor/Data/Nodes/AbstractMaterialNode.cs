@@ -152,7 +152,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if (m_NameForDefaultVariableName != name || m_GuidForDefaultVariableName != guid)
                 {
-                    m_DefaultVariableName = string.Format("{0}_{1}", GetHLSLSafeName(name), GuidEncoder.Encode(guid));
+                    m_DefaultVariableName = string.Format("{0}_{1}", NodeUtils.GetHLSLSafeName(name), GuidEncoder.Encode(guid));
                     m_NameForDefaultVariableName = name;
                     m_GuidForDefaultVariableName = guid;
                 }
@@ -415,58 +415,6 @@ namespace UnityEditor.ShaderGraph
             return false;
         }
 
-        public static string GetSlotDimension(ConcreteSlotValueType slotValue)
-        {
-            switch (slotValue)
-            {
-                case ConcreteSlotValueType.Vector1:
-                    return string.Empty;
-                case ConcreteSlotValueType.Vector2:
-                    return "2";
-                case ConcreteSlotValueType.Vector3:
-                    return "3";
-                case ConcreteSlotValueType.Vector4:
-                    return "4";
-                case ConcreteSlotValueType.Matrix2:
-                    return "2x2";
-                case ConcreteSlotValueType.Matrix3:
-                    return "3x3";
-                case ConcreteSlotValueType.Matrix4:
-                    return "4x4";
-                default:
-                    return "Error";
-            }
-        }
-
-        public static string ConvertConcreteSlotValueTypeToString(OutputPrecision p, ConcreteSlotValueType slotValue)
-        {
-            switch (slotValue)
-            {
-                case ConcreteSlotValueType.Vector1:
-                    return p.ToString();
-                case ConcreteSlotValueType.Vector2:
-                    return p + "2";
-                case ConcreteSlotValueType.Vector3:
-                    return p + "3";
-                case ConcreteSlotValueType.Vector4:
-                    return p + "4";
-                case ConcreteSlotValueType.Texture2D:
-                    return "Texture2D";
-                case ConcreteSlotValueType.Cubemap:
-                    return "Cubemap";
-                case ConcreteSlotValueType.Matrix2:
-                    return "Matrix2x2";
-                case ConcreteSlotValueType.Matrix3:
-                    return "Matrix3x3";
-                case ConcreteSlotValueType.Matrix4:
-                    return "Matrix4x4";
-                case ConcreteSlotValueType.SamplerState:
-                    return "SamplerState";
-                default:
-                    return "Error";
-            }
-        }
-
         public virtual void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
             s_TempSlots.Clear();
@@ -491,19 +439,12 @@ namespace UnityEditor.ShaderGraph
             var slot = FindSlot<MaterialSlot>(slotId);
             if (slot == null)
                 throw new ArgumentException(string.Format("Attempting to use MaterialSlot({0}) on node of type {1} where this slot can not be found", slotId, this), "slotId");
-            return string.Format("_{0}_{1}", GetVariableNameForNode(), GetHLSLSafeName(slot.shaderOutputName));
+            return string.Format("_{0}_{1}", GetVariableNameForNode(), NodeUtils.GetHLSLSafeName(slot.shaderOutputName));
         }
 
         public virtual string GetVariableNameForNode()
         {
             return defaultVariableName;
-        }
-
-        public static string GetHLSLSafeName(string input)
-        {
-            char[] arr = input.ToCharArray();
-            arr = Array.FindAll<char>(arr, (c => (char.IsLetterOrDigit(c))));
-            return new string(arr);
         }
 
         public void AddSlot(ISlot slot)
