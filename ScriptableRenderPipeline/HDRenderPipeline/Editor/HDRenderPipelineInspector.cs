@@ -22,7 +22,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedProperty m_SpotCookieSize;
         SerializedProperty m_PointCookieSize;
         SerializedProperty m_ReflectionCubemapSize;
-        SerializedProperty m_ReflectionCacheCompressed;
+        // Commented out until we have proper realtime BC6H compression
+        //SerializedProperty m_ReflectionCacheCompressed;
 
         // FrameSettings
         // LightLoop settings
@@ -56,10 +57,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_ShadowAtlasWidth = properties.Find(x => x.renderPipelineSettings.shadowInitParams.shadowAtlasWidth);
             m_ShadowAtlasHeight = properties.Find(x => x.renderPipelineSettings.shadowInitParams.shadowAtlasHeight);
             // Global LightLoop settings
+
             m_SpotCookieSize = properties.Find(x => x.renderPipelineSettings.lightLoopSettings.spotCookieSize);
             m_PointCookieSize = properties.Find(x => x.renderPipelineSettings.lightLoopSettings.pointCookieSize);
             m_ReflectionCubemapSize = properties.Find(x => x.renderPipelineSettings.lightLoopSettings.reflectionCubemapSize);
-            m_ReflectionCacheCompressed = properties.Find(x => x.renderPipelineSettings.lightLoopSettings.reflectionCacheCompressed);
+            // Commented out until we have proper realtime BC6H compression
+            //m_ReflectionCacheCompressed = properties.Find(x => x.globalFrameSettings.lightLoopSettings.reflectionCacheCompressed);
 
             // FrameSettings
             // LightLoop settings
