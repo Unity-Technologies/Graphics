@@ -18,6 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Plane[] frustumPlanes;
         public Vector4[] frustumPlaneEquations;
         public Camera camera;
+        public uint taaFrameIndex;
         public PostProcessRenderContext postprocessRenderContext;
 
         public Matrix4x4 viewProjMatrix
@@ -33,9 +34,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Always true for cameras that just got added to the pool - needed for previous matrices to
         // avoid one-frame jumps/hiccups with temporal effects (motion blur, TAA...)
         public bool isFirstFrame { get; private set; }
-
-        public bool useForwardOnly { get; private set; }
-        public bool stereoEnabled { get; private set; }
 
         public Vector4 invProjParam
         {
@@ -78,7 +76,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Reset();
         }
 
-        public void Update(PostProcessLayer postProcessLayer, GlobalRenderingSettings globalRenderingSettings, bool stereoActive)
+        public void Update(PostProcessLayer postProcessLayer)
         {
             // If TAA is enabled projMatrix will hold a jittered projection matrix. The original,
             // non-jittered projection matrix can be accessed via nonJitteredProjMatrix.
@@ -123,6 +121,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 isFirstFrame = false;
+
+                const uint taaFrameCount = 8;
+                taaFrameIndex = taaEnabled ? (uint)Time.renderedFrameCount % taaFrameCount : 0; 
+            }
+            else
+            {
+                // Warning: in the Game View, outside of the Play Mode, the counter gets stuck on a random frame.
+                // In this case, reset the frame index to 0.
+                taaFrameIndex = 0;
             }
 
             viewMatrix = gpuView;
@@ -145,21 +152,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frustumPlaneEquations[5] = new Vector4(-camera.transform.forward.x, -camera.transform.forward.y, -camera.transform.forward.z,  Vector3.Dot(camera.transform.forward, relPos) + camera.farClipPlane);
 
             m_LastFrameActive = Time.frameCount;
-
-            stereoEnabled = stereoActive && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
-            useForwardOnly = globalRenderingSettings.ShouldUseForwardRenderingOnly() || stereoEnabled;
         }
 
         public void Reset()
         {
             m_LastFrameActive = -1;
             isFirstFrame = true;
-            stereoEnabled = false;
-            useForwardOnly = false;
         }
 
         // Grab the HDCamera tied to a given Camera and update it.
-        public static HDCamera Get(Camera camera, PostProcessLayer postProcessLayer, GlobalRenderingSettings globalRenderingSettings, bool stereoActive)
+        public static HDCamera Get(Camera camera, PostProcessLayer postProcessLayer)
         {
             HDCamera hdcam;
 
@@ -169,7 +171,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_Cameras.Add(camera, hdcam);
             }
 
-            hdcam.Update(postProcessLayer, globalRenderingSettings, stereoActive);
+            hdcam.Update(postProcessLayer);
             return hdcam;
         }
 
@@ -203,6 +205,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalVector(HDShaderIDs._ScreenSize, screenSize);
             cmd.SetGlobalMatrix(HDShaderIDs._PrevViewProjMatrix, prevViewProjMatrix);
             cmd.SetGlobalVectorArray(HDShaderIDs._FrustumPlanes, frustumPlaneEquations);
+            cmd.SetGlobalInt(HDShaderIDs._TaaFrameIndex, (int)taaFrameIndex);
         }
 
         // Does not modify global settings. Used for shadows, low res. rendering, etc.
@@ -219,6 +222,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             material.SetVector(HDShaderIDs._ScreenSize, screenSize);
             material.SetMatrix(HDShaderIDs._PrevViewProjMatrix, prevViewProjMatrix);
             material.SetVectorArray(HDShaderIDs._FrustumPlanes, frustumPlaneEquations);
+            material.SetInt(HDShaderIDs._TaaFrameIndex, (int)taaFrameIndex);
         }
 
         // TODO: We should set all the value below globally and not let it under the control of Unity,

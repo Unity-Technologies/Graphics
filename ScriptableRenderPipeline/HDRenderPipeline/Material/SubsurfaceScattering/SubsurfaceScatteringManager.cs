@@ -37,10 +37,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // This is use to be able to read stencil value in compute shader
         Material m_CopyStencilForSplitLighting;
 
-        SubsurfaceScatteringSettings m_sssSettings;
-
         public SubsurfaceScatteringManager()
         {
+            m_SSSBuffer0 = HDShaderIDs._SSSBufferTexture[0];
             m_SSSBuffer0RT = new RenderTargetIdentifier(m_SSSBuffer0);
 
             // Use with Jimenez
@@ -71,24 +70,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_RTIDs[index];
         }
 
-        public void Build(RenderPipelineResources renderPipelineResources, SubsurfaceScatteringSettings sssSettings)
+        public void Build(HDRenderPipelineAsset hdAsset)
         {
-            m_sssSettings = sssSettings;
             // Disney SSS (compute + combine)
-            m_SubsurfaceScatteringCS = renderPipelineResources.subsurfaceScatteringCS;
+            m_SubsurfaceScatteringCS = hdAsset.renderPipelineResources.subsurfaceScatteringCS;
             m_SubsurfaceScatteringKernel = m_SubsurfaceScatteringCS.FindKernel("SubsurfaceScattering");
-            m_CombineLightingPass = CoreUtils.CreateEngineMaterial(renderPipelineResources.combineLighting);
+            m_CombineLightingPass = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.combineLighting);
 
             // Jimenez SSS Model (shader)
-            m_SssVerticalFilterPass = CoreUtils.CreateEngineMaterial(renderPipelineResources.subsurfaceScattering);
+            m_SssVerticalFilterPass = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.subsurfaceScattering);
             m_SssVerticalFilterPass.DisableKeyword("SSS_FILTER_HORIZONTAL_AND_COMBINE");
             m_SssVerticalFilterPass.SetFloat(HDShaderIDs._DstBlend, (float)BlendMode.Zero);
 
-            m_SssHorizontalFilterAndCombinePass = CoreUtils.CreateEngineMaterial(renderPipelineResources.subsurfaceScattering);
+            m_SssHorizontalFilterAndCombinePass = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.subsurfaceScattering);
             m_SssHorizontalFilterAndCombinePass.EnableKeyword("SSS_FILTER_HORIZONTAL_AND_COMBINE");
             m_SssHorizontalFilterAndCombinePass.SetFloat(HDShaderIDs._DstBlend, (float)BlendMode.One);
 
-            m_CopyStencilForSplitLighting = CoreUtils.CreateEngineMaterial(renderPipelineResources.copyStencilBuffer);
+            m_CopyStencilForSplitLighting = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.copyStencilBuffer);
             m_CopyStencilForSplitLighting.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.SplitLighting);
         }
 
@@ -111,10 +109,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_HTileRT = new RenderTargetIdentifier(m_HTile);
         }
 
-        public void PushGlobalParams(CommandBuffer cmd, SubsurfaceScatteringSettings sssParameters, DebugDisplaySettings debugDisplaySettings)
+        public void PushGlobalParams(CommandBuffer cmd, SubsurfaceScatteringSettings sssParameters, FrameSettings frameSettings)
         {
             // Broadcast SSS parameters to all shaders.
-            cmd.SetGlobalInt(HDShaderIDs._EnableSSSAndTransmission, debugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission ? 1 : 0);
+            cmd.SetGlobalInt(HDShaderIDs._EnableSSSAndTransmission, frameSettings.enableSSSAndTransmission ? 1 : 0);
             cmd.SetGlobalInt(HDShaderIDs._UseDisneySSS, sssParameters.useDisneySSS ? 1 : 0);
             unsafe
             {
@@ -144,10 +142,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Combines specular lighting and diffuse lighting with subsurface scattering.
-        public void SubsurfaceScatteringPass(HDCamera hdCamera, CommandBuffer cmd, SubsurfaceScatteringSettings sssParameters, DebugDisplaySettings debugDisplaySettings,
+        public void SubsurfaceScatteringPass(HDCamera hdCamera, CommandBuffer cmd, SubsurfaceScatteringSettings sssParameters, FrameSettings frameSettings,
                                             RenderTargetIdentifier colorBufferRT, RenderTargetIdentifier diffuseBufferRT, RenderTargetIdentifier depthStencilBufferRT, RenderTargetIdentifier depthTextureRT)
         {
-            if (m_sssSettings == null || !debugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission)
+            if (sssParameters == null || !frameSettings.enableSSSAndTransmission)
                 return;
 
             using (new ProfilingSample(cmd, "Subsurface Scattering", HDRenderPipeline.GetSampler(CustomSamplerId.SubsurfaceScattering)))
@@ -156,8 +154,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int h = hdCamera.camera.pixelHeight;
 
                 // For Jimenez we always need an extra buffer, for Disney it depends on platform
-                if (!m_sssSettings.useDisneySSS ||
-                    (m_sssSettings.useDisneySSS && NeedTemporarySubsurfaceBuffer()))
+                if (!sssParameters.useDisneySSS ||
+                    (sssParameters.useDisneySSS && NeedTemporarySubsurfaceBuffer()))
                 {
                     // Caution: must be same format as m_CameraSssDiffuseLightingBuffer
                     cmd.ReleaseTemporaryRT(m_CameraFilteringBuffer);
@@ -169,7 +167,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
 
-                if (m_sssSettings.useDisneySSS)
+                if (sssParameters.useDisneySSS)
                 {
                     using (new ProfilingSample(cmd, "HTile for SSS", HDRenderPipeline.GetSampler(CustomSamplerId.HTileForSSS)))
                     {

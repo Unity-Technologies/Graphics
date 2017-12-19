@@ -1,4 +1,4 @@
-using UnityEngine.Rendering;
+﻿using UnityEngine.Rendering;
 using System;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -38,215 +38,110 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public class SkyManager
     {
-        RenderTexture           m_SkyboxCubemapRT;
-        RenderTexture           m_SkyboxGGXCubemapRT;
-        RenderTexture           m_SkyboxMarginalRowCdfRT;
-        RenderTexture           m_SkyboxConditionalCdfRT;
-
         Material                m_StandardSkyboxMaterial; // This is the Unity standard skybox material. Used to pass the correct cubemap to Enlighten.
         Material                m_BlitCubemapMaterial;
         Material                m_OpaqueAtmScatteringMaterial;
 
-        IBLFilterGGX            m_iblFilterGgx;
-
-        Vector4                 m_CubemapScreenSize;
-        Matrix4x4[]             m_facePixelCoordToViewDirMatrices   = new Matrix4x4[6];
-        Matrix4x4[]             m_faceCameraInvViewProjectionMatrix = new Matrix4x4[6];
-
-        BuiltinSkyParameters    m_BuiltinParameters = new BuiltinSkyParameters();
-        SkyRenderer             m_Renderer;
-        int                     m_SkyParametersHash = -1;
-        bool                    m_NeedLowLevelUpdateEnvironment;
-        int                     m_UpdatedFramesRequired = 2; // The first frame after the scene load is currently not rendered correctly
-        float                   m_CurrentUpdateTime;
         int                     m_LastFrameUpdated = -1;
+        bool                    m_UpdateRequired =false;
+        bool                    m_NeedUpdateRealtimeEnv = false;
+        bool                    m_NeedUpdateBakingSky = false;
 
-        bool                    m_useMIS = false;
+        // This is the sky used for rendering in the main view. It will also be used for lighting if no lighting override sky is setup.
+        // Ambient Probe: Only for real time GI (otherwise we use the baked one)
+        // Reflection Probe : Always used and updated depending on the OnChanged/Realtime flags.
+        SkyRenderingContext    m_VisualSky;
+        // This is optional and is used only to compute ambient probe and sky reflection for 
+        // Ambient Probe: Only for real time GI (otherwise we use the baked one)
+        // Reflection Probe : Always used and updated depending on the OnChanged/Realtime flags.
+        SkyRenderingContext    m_LightingOverrideSky;
+        // This is mandatory when using baked GI. This sky is used to setup the global Skybox material used by the GI system to bake sky GI.
+        SkyRenderingContext    m_BakingSky;
 
-        SkySettings m_SkySettings;
-        public SkySettings skySettings
+        public Texture skyReflection
         {
-            set
+            get
             {
-                if (m_SkySettings == value)
-                    return;
-
-                if (m_Renderer != null)
-                {
-                    m_Renderer.Cleanup();
-                    m_Renderer = null;
-                }
-
-                m_SkyParametersHash = -1;
-                m_SkySettings = value;
-                m_UpdatedFramesRequired = 2;
-
-                if (value != null)
-                {
-                    m_Renderer = value.GetRenderer();
-                    m_Renderer.Build();
-                }
+                if (m_LightingOverrideSky.skySettings != null)
+                    return m_LightingOverrideSky.reflectionTexture;
+                else
+                    return m_VisualSky.reflectionTexture;
             }
-            get { return m_SkySettings; }
         }
 
-        public Texture skyReflection { get { return m_SkyboxGGXCubemapRT; } }
-
-        void RebuildTextures(SkySettings skySettings)
+        void UpdateCurrentSkySettings()
         {
-            int resolution = 256;
-
-            // Parameters not set yet. We need them for the resolution.
-            if (skySettings != null)
-                resolution = (int)skySettings.resolution;
-
-            if ((m_SkyboxCubemapRT != null) && (m_SkyboxCubemapRT.width != resolution))
+            SkySettings newSkySettings = null;
+            var visualEnv = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
+            switch (visualEnv.skyType.value)
             {
-                CoreUtils.Destroy(m_SkyboxCubemapRT);
-                CoreUtils.Destroy(m_SkyboxGGXCubemapRT);
-                CoreUtils.Destroy(m_SkyboxMarginalRowCdfRT);
-                CoreUtils.Destroy(m_SkyboxConditionalCdfRT);
-
-                m_SkyboxCubemapRT = null;
-                m_SkyboxGGXCubemapRT = null;
-                m_SkyboxMarginalRowCdfRT = null;
-                m_SkyboxConditionalCdfRT = null;
-            }
-
-            if (m_SkyboxCubemapRT == null)
-            {
-                m_SkyboxCubemapRT = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear)
-                {
-                    dimension = TextureDimension.Cube,
-                    useMipMap = true,
-                    autoGenerateMips = false, // We will generate regular mipmap for filtered importance sampling manually
-                    filterMode = FilterMode.Trilinear
-                };
-                m_SkyboxCubemapRT.Create();
-
-                m_SkyboxGGXCubemapRT = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear)
-                {
-                    dimension = TextureDimension.Cube,
-                    useMipMap = true,
-                    autoGenerateMips = false,
-                    filterMode = FilterMode.Trilinear
-                };
-                m_SkyboxGGXCubemapRT.Create();
-
-                if (m_useMIS)
-                {
-                    int width  = (int)LightSamplingParameters.TextureWidth;
-                    int height = (int)LightSamplingParameters.TextureHeight;
-
-                    // + 1 because we store the value of the integral of the cubemap at the end of the texture.
-                    m_SkyboxMarginalRowCdfRT = new RenderTexture(height + 1, 1, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear)
+                case SkyType.HDRISky:
                     {
-                        useMipMap = false,
-                        autoGenerateMips = false,
-                        enableRandomWrite = true,
-                        filterMode = FilterMode.Point
-                    };
-                    m_SkyboxMarginalRowCdfRT.Create();
-
-                    // TODO: switch the format to R16 (once it's available) to save some bandwidth.
-                    m_SkyboxConditionalCdfRT = new RenderTexture(width, height, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear)
+                        newSkySettings = VolumeManager.instance.stack.GetComponent<HDRISky>();
+                        break;
+                    }
+                case SkyType.ProceduralSky:
                     {
-                        useMipMap = false,
-                        autoGenerateMips = false,
-                        enableRandomWrite = true,
-                        filterMode = FilterMode.Point
-                    };
-                    m_SkyboxConditionalCdfRT.Create();
-                }
-
-                m_UpdatedFramesRequired = 2; // Special case. Even if update mode is set to OnDemand, we need to regenerate the environment after destroying the texture.
-                m_LastFrameUpdated = -1;
+                        newSkySettings = VolumeManager.instance.stack.GetComponent<ProceduralSky>();
+                        break;
+                    }
             }
 
-            m_CubemapScreenSize = new Vector4((float)resolution, (float)resolution, 1.0f / (float)resolution, 1.0f / (float)resolution);
-        }
+            m_VisualSky.skySettings = newSkySettings;
+            m_BakingSky.skySettings = SkySettings.GetBakingSkySettings();
+            m_LightingOverrideSky.skySettings = null;
 
-        void RebuildSkyMatrices(float nearPlane, float farPlane)
-        {
-            if (!m_SkySettings) return;
-
-            var cubeProj = Matrix4x4.Perspective(90.0f, 1.0f, nearPlane, farPlane);
-
-            for (int i = 0; i < 6; ++i)
-            {
-                var lookAt      = Matrix4x4.LookAt(Vector3.zero, CoreUtils.lookAtList[i], CoreUtils.upVectorList[i]);
-                var worldToView = lookAt * Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)); // Need to scale -1.0 on Z to match what is being done in the camera.wolrdToCameraMatrix API. ...
-                var screenSize  = new Vector4((int)m_SkySettings.resolution, (int)m_SkySettings.resolution, 1.0f / (int)m_SkySettings.resolution, 1.0f / (int)m_SkySettings.resolution);
-
-                m_facePixelCoordToViewDirMatrices[i]   = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(0.5f * Mathf.PI, screenSize, worldToView, true);
-                m_faceCameraInvViewProjectionMatrix[i] = HDUtils.GetViewProjectionMatrix(lookAt, cubeProj).inverse;
-            }
+            UpdateRenderData();
         }
 
         // Sets the global MIP-mapped cubemap '_SkyTexture' in the shader.
         // The texture being set is the sky (environment) map pre-convolved with GGX.
         public void SetGlobalSkyTexture(CommandBuffer cmd)
         {
-            cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, m_SkyboxGGXCubemapRT);
-            float mipCount = Mathf.Clamp(Mathf.Log((float)m_SkyboxGGXCubemapRT.width, 2.0f) + 1, 0.0f, 6.0f);
+            cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, skyReflection);
+            float mipCount = Mathf.Clamp(Mathf.Log((float)skyReflection.width, 2.0f) + 1, 0.0f, 6.0f);
             cmd.SetGlobalFloat(HDShaderIDs._SkyTextureMipCount, mipCount);
         }
 
-        public void Resize(float nearPlane, float farPlane)
+        public void UpdateRenderData()
         {
-            // When loading RenderDoc, RenderTextures will go null
-            RebuildTextures(skySettings);
-            RebuildSkyMatrices(nearPlane, farPlane);
+            m_BakingSky.RebuildTextures();
+            m_VisualSky.RebuildTextures();
+            m_LightingOverrideSky.RebuildTextures();
+
+            m_LastFrameUpdated = -1;
         }
 
-        public void Build(RenderPipelineResources renderPipelineResources, IBLFilterGGX iblFilterGGX)
+        public void Build(HDRenderPipelineAsset hdAsset, IBLFilterGGX iblFilterGGX)
         {
-            m_iblFilterGgx = iblFilterGGX;
+            // For now, both these rendering context will allocate render textures
+            // In theory, when we have a lighting override we don't need any cubemaps from the visual sky so we could avoid allocating them
+            m_VisualSky = new SkyRenderingContext(true, iblFilterGGX);
+            m_LightingOverrideSky = new SkyRenderingContext(true, iblFilterGGX);
+            // Here we don't need convolution supports because this sky will never need to generate it (only sky cubemap for GI system)
+            m_BakingSky = new SkyRenderingContext(false, iblFilterGGX);
 
-            // TODO: We need to have an API to send our sky information to Enlighten. For now use a workaround through skybox/cubemap material...
-            m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(renderPipelineResources.skyboxCubemap);
+            m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.skyboxCubemap);
 
-            m_BlitCubemapMaterial = CoreUtils.CreateEngineMaterial(renderPipelineResources.blitCubemap);
+            m_BlitCubemapMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.blitCubemap);
 
-            m_OpaqueAtmScatteringMaterial = CoreUtils.CreateEngineMaterial(renderPipelineResources.opaqueAtmosphericScattering);
-
-            m_CurrentUpdateTime = 0.0f;
+            m_OpaqueAtmScatteringMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.opaqueAtmosphericScattering);
         }
 
         public void Cleanup()
         {
             CoreUtils.Destroy(m_StandardSkyboxMaterial);
-            CoreUtils.Destroy(m_SkyboxCubemapRT);
-            CoreUtils.Destroy(m_SkyboxGGXCubemapRT);
-            CoreUtils.Destroy(m_SkyboxMarginalRowCdfRT);
-            CoreUtils.Destroy(m_SkyboxConditionalCdfRT);
 
-            if (m_Renderer != null)
-                m_Renderer.Cleanup();
+            m_BakingSky.Cleanup();
+            m_VisualSky.Cleanup();
+            m_LightingOverrideSky.Cleanup();
         }
 
         public bool IsSkyValid()
         {
-            return m_Renderer != null && m_Renderer.IsSkyValid();
+            return m_VisualSky.IsValid();
         }
 
-        void RenderSkyToCubemap(BuiltinSkyParameters builtinParams, SkySettings skySettings, RenderTexture target)
-        {
-            for (int i = 0; i < 6; ++i)
-            {
-                builtinParams.pixelCoordToViewDirMatrix = m_facePixelCoordToViewDirMatrices[i];
-                builtinParams.invViewProjMatrix = m_faceCameraInvViewProjectionMatrix[i];
-                builtinParams.colorBuffer = target;
-                builtinParams.depthBuffer = BuiltinSkyParameters.nullRT;
-
-                CoreUtils.SetRenderTarget(builtinParams.commandBuffer, target, ClearFlag.None, 0, (CubemapFace)i);
-                m_Renderer.RenderSky(builtinParams, true);
-            }
-
-            // Generate mipmap for our cubemap
-            Debug.Assert(target.autoGenerateMips == false);
-            builtinParams.commandBuffer.GenerateMips(target);
-        }
 
         void BlitCubemap(CommandBuffer cmd, Cubemap source, RenderTexture dest)
         {
@@ -265,161 +160,99 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.GenerateMips(dest);
         }
 
-        void RenderCubemapGGXConvolution(CommandBuffer cmd, Texture input, RenderTexture target)
-        {
-            using (new ProfilingSample(cmd, "Update Env: GGX Convolution"))
-            {
-                if (m_useMIS && m_iblFilterGgx.supportMis)
-                    m_iblFilterGgx.FilterCubemapMIS(cmd, input, target, m_SkyboxConditionalCdfRT, m_SkyboxMarginalRowCdfRT);
-                else
-                    m_iblFilterGgx.FilterCubemap(cmd, input, target);
-            }
-        }
-
         public void RequestEnvironmentUpdate()
         {
-            m_UpdatedFramesRequired = Math.Max(m_UpdatedFramesRequired, 1);
+            m_UpdateRequired = true;
         }
+
 
         public void UpdateEnvironment(HDCamera camera, Light sunLight, CommandBuffer cmd)
         {
+            // WORKAROUND for building the player.
+            // When building the player, for some reason we end up in a state where frameCount is not updated but all currently setup shader texture are reset to null
+            // resulting in a rendering error (compute shader property not bound) that makes the player building fails...
+            // So we just check if the texture is bound here so that we can setup a pink one to avoid the error without breaking half the world.
+            if (Shader.GetGlobalTexture(HDShaderIDs._SkyTexture) == null)
+                cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, CoreUtils.magentaCubeTexture);
+
             if (m_LastFrameUpdated == Time.frameCount)
                 return;
 
-            m_LastFrameUpdated = Time.frameCount;
-
-            // We need one frame delay for this update to work since DynamicGI.UpdateEnvironment is executed directly but the renderloop is not (so we need to wait for the sky texture to be rendered first)
-            if (m_NeedLowLevelUpdateEnvironment)
+            // This is done here because we need to wait for one frame that the command buffer is executed before using the resulting textures.
+            if (m_NeedUpdateBakingSky)
             {
-                using (new ProfilingSample(cmd, "DynamicGI.UpdateEnvironment"))
-                {
-                    // TODO: Properly send the cubemap to Enlighten. Currently workaround is to set the cubemap in a Skybox/cubemap material
-                    float intensity = IsSkyValid() ? 1.0f : 0.0f; // Eliminate all diffuse if we don't have a skybox (meaning for now the background is black in HDRP)
-                    m_StandardSkyboxMaterial.SetTexture("_Tex", m_SkyboxCubemapRT);
+                // Here we update the global SkyMaterial so that it uses our baking sky cubemap. This way, next time the GI is baked, the right sky will be present.
+                float intensity = m_BakingSky.IsValid() ? 1.0f : 0.0f; // Eliminate all diffuse if we don't have a skybox (meaning for now the background is black in HDRP)
+                m_StandardSkyboxMaterial.SetTexture("_Tex", m_BakingSky.cubemapRT);
                     RenderSettings.skybox = m_StandardSkyboxMaterial; // Setup this material as the default to be use in RenderSettings
                     RenderSettings.ambientIntensity = intensity;
                     RenderSettings.ambientMode = AmbientMode.Skybox; // Force skybox for our HDRI
                     RenderSettings.reflectionIntensity = intensity;
                     RenderSettings.customReflection = null;
+
+                // Strictly speaking, this should not be necessary, but it helps avoiding inconsistent behavior in the editor
+                // where the GI system sometimes update the ambient probe and sometime does not...
                     DynamicGI.UpdateEnvironment();
 
-                    m_NeedLowLevelUpdateEnvironment = false;
-                }
+                    m_NeedUpdateBakingSky = false;
             }
 
-            if (IsSkyValid())
+            if (m_NeedUpdateRealtimeEnv)
             {
-                m_CurrentUpdateTime += Time.deltaTime;
+                // TODO: Here we need to do that in case we are using real time GI. Unfortunately we don't have a way to check that atm.
+                //DynamicGI.SetEnvironmentData();
+                m_NeedUpdateRealtimeEnv = false;
+            }
 
-                m_BuiltinParameters.commandBuffer = cmd;
-                m_BuiltinParameters.sunLight = sunLight;
-                m_BuiltinParameters.screenSize = m_CubemapScreenSize;
-                m_BuiltinParameters.cameraPosWS = camera.camera.transform.position;
+            UpdateCurrentSkySettings();
 
-                int sunHash = 0;
-                if(sunLight != null)
-                    sunHash = (sunLight.GetHashCode() * 23 + sunLight.transform.position.GetHashCode()) * 23 + sunLight.transform.rotation.GetHashCode();
-                int skyHash = sunHash * 23 + skySettings.GetHashCode();
-
-                if (m_UpdatedFramesRequired > 0 ||
-                    (skySettings.updateMode == EnvironementUpdateMode.OnChanged && skyHash != m_SkyParametersHash) ||
-                    (skySettings.updateMode == EnvironementUpdateMode.Realtime && m_CurrentUpdateTime > skySettings.updatePeriod))
-                {
-                    using (new ProfilingSample(cmd, "Sky Environment Pass"))
-                    {
-                        using (new ProfilingSample(cmd, "Update Env: Generate Lighting Cubemap"))
-                        {
-                            // Render sky into a cubemap - doesn't happen every frame, can be controlled
-                            // Note that m_SkyboxCubemapRT is created with auto-generate mipmap, it mean that here we have also our mipmap correctly box filtered for importance sampling.
-                            if(m_SkySettings.lightingOverride == null)
-                                RenderSkyToCubemap(m_BuiltinParameters, skySettings, m_SkyboxCubemapRT);
-                            // In case the user overrides the lighting, we already have a cubemap ready but we need to blit it anyway for potential resize and so that we can generate proper mipmaps for enlighten.
-                            else
-                                BlitCubemap(cmd, m_SkySettings.lightingOverride, m_SkyboxCubemapRT);
-                        }
-
-                        // Convolve downsampled cubemap
-                        RenderCubemapGGXConvolution(cmd, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
-
-                        m_NeedLowLevelUpdateEnvironment = true;
-                        m_UpdatedFramesRequired--;
-                        m_SkyParametersHash = skyHash;
-                        m_CurrentUpdateTime = 0.0f;
-                        #if UNITY_EDITOR
-                        // In the editor when we change the sky we want to make the GI dirty so when baking again the new sky is taken into account.
-                        // Changing the hash of the rendertarget allow to say that GI is dirty
-                        m_SkyboxCubemapRT.imageContentsHash = new Hash128((uint)skySettings.GetHashCode(), 0, 0, 0);
-                        #endif
-                    }
-                }
+            m_NeedUpdateBakingSky = m_BakingSky.UpdateEnvironment(camera, sunLight, m_UpdateRequired, cmd);
+            if (m_LightingOverrideSky.IsValid())
+            {
+                m_NeedUpdateRealtimeEnv = m_LightingOverrideSky.UpdateEnvironment(camera, sunLight, m_UpdateRequired, cmd);
             }
             else
             {
-                if (m_SkyParametersHash != 0)
-                {
-                    using (new ProfilingSample(cmd, "Reset Sky Environment"))
-                    {
-                        // Clear temp cubemap and redo GGX from black and then feed it to enlighten for default light probe.
-                        CoreUtils.ClearCubemap(cmd, m_SkyboxCubemapRT, Color.black);
-                        RenderCubemapGGXConvolution(cmd, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
+                m_NeedUpdateRealtimeEnv = m_VisualSky.UpdateEnvironment(camera, sunLight, m_UpdateRequired, cmd);
+            }
 
-                        m_SkyParametersHash = 0;
-                        m_NeedLowLevelUpdateEnvironment = true;
-                    }
-                }
+            m_UpdateRequired = false;
+
+            m_LastFrameUpdated = Time.frameCount;
+
+            SetGlobalSkyTexture(cmd);
+            if (IsSkyValid())
+            {
+                cmd.SetGlobalInt(HDShaderIDs._EnvLightSkyEnabled, 1);
+            }
+            else
+            {
+                cmd.SetGlobalInt(HDShaderIDs._EnvLightSkyEnabled, 0);
             }
         }
 
-        public void RenderSky(HDCamera camera, Light sunLight, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, CommandBuffer cmd, DebugDisplaySettings debugSettings)
+        public void RenderSky(HDCamera camera, Light sunLight, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, CommandBuffer cmd)
         {
-            using (new ProfilingSample(cmd, "Sky Pass"))
-            {
-                if (IsSkyValid())
-                {
-                    // Rendering the sky is the first time in the frame where we need fog parameters so we push them here for the whole frame.
-                    m_SkySettings.atmosphericScatteringSettings.PushShaderParameters(cmd, debugSettings.renderingDebugSettings);
-
-                    m_BuiltinParameters.commandBuffer = cmd;
-                    m_BuiltinParameters.sunLight = sunLight;
-                    m_BuiltinParameters.pixelCoordToViewDirMatrix = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(camera.camera.fieldOfView * Mathf.Deg2Rad, camera.screenSize, camera.viewMatrix, false);
-                    m_BuiltinParameters.invViewProjMatrix = camera.viewProjMatrix.inverse;
-                    m_BuiltinParameters.screenSize = camera.screenSize;
-                    m_BuiltinParameters.cameraPosWS = camera.camera.transform.position;
-                    m_BuiltinParameters.colorBuffer = colorBuffer;
-                    m_BuiltinParameters.depthBuffer = depthBuffer;
-
-                    m_Renderer.SetRenderTargets(m_BuiltinParameters);
-                    m_Renderer.RenderSky(m_BuiltinParameters, false);
-                }
-            }
+            m_VisualSky.RenderSky(camera, sunLight, colorBuffer, depthBuffer, cmd);
         }
 
         public void RenderOpaqueAtmosphericScattering(CommandBuffer cmd)
         {
             using (new ProfilingSample(cmd, "Opaque Atmospheric Scattering"))
             {
-                if(skySettings != null && skySettings.atmosphericScatteringSettings.NeedFogRendering())
-                {
-                    CoreUtils.DrawFullScreen(cmd, m_OpaqueAtmScatteringMaterial);
-                }
+                CoreUtils.DrawFullScreen(cmd, m_OpaqueAtmScatteringMaterial);
             }
         }
 
         public Texture2D ExportSkyToTexture()
         {
-            if(m_Renderer == null)
+            if (!m_VisualSky.IsValid())
             {
-                Debug.LogError("Cannot export sky to a texture, no SkyRenderer is setup.");
+                Debug.LogError("Cannot export sky to a texture, no Sky is setup.");
                 return null;
             }
 
-            if(m_SkySettings == null)
-            {
-                Debug.LogError("Cannot export sky to a texture, no Sky settings are setup.");
-                return null;
-            }
-
-            int resolution = (int)m_SkySettings.resolution;
+            int resolution = (int)m_VisualSky.skySettings.resolution.value;
 
             var tempRT = new RenderTexture(resolution * 6, resolution, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear)
             {
@@ -441,14 +274,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int offset = 0;
             for (int i = 0; i < 6; ++i)
             {
-                UnityEngine.Graphics.SetRenderTarget(m_SkyboxCubemapRT, 0, (CubemapFace)i);
+                UnityEngine.Graphics.SetRenderTarget(m_VisualSky.cubemapRT, 0, (CubemapFace)i);
                 temp.ReadPixels(new Rect(0, 0, resolution, resolution), offset, 0);
                 temp.Apply();
                 offset += resolution;
             }
 
             // Flip texture.
-            // Temporarily disabled until proper API reaches trunk
             UnityEngine.Graphics.Blit(temp, tempRT, new Vector2(1.0f, -1.0f), new Vector2(0.0f, 0.0f));
 
             result.ReadPixels(new Rect(0, 0, resolution * 6, resolution), 0, 0);

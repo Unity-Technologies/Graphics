@@ -66,7 +66,7 @@
 #elif defined(SHADER_API_PSSL)
 #include "API/PSSL.hlsl"
 #elif defined(SHADER_API_XBOXONE)
-#include "API/XBoneOne.hlsl"
+#include "API/XBoxOne.hlsl"
 #elif defined(SHADER_API_METAL)
 #include "API/Metal.hlsl"
 #elif defined(SHADER_API_VULKAN)
@@ -107,6 +107,14 @@ int BitFieldExtractSignExtend(int data, uint offset, uint numBits)
     return -signBit | (shifted & mask); // Use 2-complement for negation to replicate the sign bit
 }
 #endif // INTRINSIC_BITFIELD_EXTRACT_SIGN_EXTEND
+
+#ifndef INTRINSIC_BITFIELD_INSERT
+// Inserts the bits indicated by 'mask' from 'src' into 'dst'.
+uint BitFieldInsert(uint mask, uint src, uint dst)
+{
+    return (src & mask) | (dst & ~mask);
+}
+#endif // INTRINSIC_BITFIELD_INSERT
 
 bool IsBitSet(uint data, uint offset)
 {

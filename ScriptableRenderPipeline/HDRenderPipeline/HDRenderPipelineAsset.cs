@@ -20,17 +20,35 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             set { m_RenderPipelineResources = value; }
         }
 
-        // NOTE: All those properties are public because of how HDRenderPipelineInspector retrieves those properties via serialization/reflection
-        // Doing it this way allows to change parameters name and still retrieve correct serialized values
+        // To be able to turn on/off FrameSettings properties at runtime for debugging purpose without affecting the original one
+        // we create a runtime copy (m_ActiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
+        public FrameSettings serializedFrameSettings = new FrameSettings(); // This are the defaultFrameSettings for all the camera and apply to sceneView, public to be visible in the inspector
+        // Not serialized, not visible, the settings effectively used
+        FrameSettings m_FrameSettings = new FrameSettings();
 
-        // Global Renderer Settings
-        public GlobalRenderingSettings globalRenderingSettings = new GlobalRenderingSettings();
-        public GlobalTextureSettings globalTextureSettings = new GlobalTextureSettings();
+        public FrameSettings GetFrameSettings()
+        {
+            return m_FrameSettings;
+        }
+
+        public void OnValidate()
+        {
+            // Modification of defaultFrameSettings in the inspector will call OnValidate().
+            // We do a copy of the settings to those effectively used
+            serializedFrameSettings.CopyTo(m_FrameSettings);
+        }
+
+        // Store the various RenderPipelineSettings for each platform (for now only one)
+        public RenderPipelineSettings renderPipelineSettings = new RenderPipelineSettings();
+
+        // Return the current use RenderPipelineSettings (i.e for the current platform)
+        public RenderPipelineSettings GetRenderPipelineSettings()
+        {
+            return renderPipelineSettings;
+        }
+
+        [SerializeField]
         public SubsurfaceScatteringSettings sssSettings;
-        public LightLoopSettings lightLoopSettings = new LightLoopSettings();
-
-        // Shadow Settings
-        public ShadowInitParameters shadowInitParams = new ShadowInitParameters();
 
         // Default Material / Shader
         [SerializeField]
@@ -93,10 +111,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override Material GetDefault2DMaterial()
         {
             return null;
-        }
-
-        public void OnValidate()
-        {
         }
     }
 }
