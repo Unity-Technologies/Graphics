@@ -322,7 +322,7 @@ namespace UnityEditor.ShaderGraph
         private string GetFunctionName()
         {
             var function = GetFunctionToConvert();
-            return function.Name + "_" + (function.IsStatic ? string.Empty : GuidEncoder.Encode(guid) + "_") + precision;
+            return function.Name + "_" + (function.IsStatic ? string.Empty : GuidEncoder.Encode(guid) + "_") + precision + (this.GetSlots<DynamicVectorMaterialSlot>().Select(s => GetSlotDimension(s.concreteValueType)).FirstOrDefault() ?? "");
         }
 
         private string GetFunctionHeader()
@@ -378,10 +378,13 @@ namespace UnityEditor.ShaderGraph
             return result;
         }
 
-        public virtual void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
+        public virtual void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            string function = GetFunctionHeader() + GetFunctionBody(GetFunctionToConvert());
-            visitor.AddShaderChunk(function, true);
+            registry.ProvideFunction(GetFunctionName(), s =>
+            {
+                s.AppendLine(GetFunctionHeader());
+                s.AppendLines(GetFunctionBody(GetFunctionToConvert()).Trim('\r', '\n', '\t', ' '));
+            });
         }
 
         private static SlotAttribute GetSlotAttribute([NotNull] ParameterInfo info)

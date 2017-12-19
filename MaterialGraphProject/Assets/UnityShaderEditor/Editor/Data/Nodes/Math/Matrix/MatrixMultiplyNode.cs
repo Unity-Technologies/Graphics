@@ -102,5 +102,17 @@ namespace UnityEditor.ShaderGraph
 
             visitor.AddShaderChunk(outputString.GetShaderString(0), true);
         }
+
+        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
+        {
+            registry.ProvideFunction(GetFunctionName(), s =>
+            {
+                s.AppendLine(GetFunctionPrototype("arg1", "arg2"));
+                using (s.BlockScope())
+                {
+                    s.AppendLine("return mul(arg1, arg2);");
+                }
+            });
+        }
     }
 }

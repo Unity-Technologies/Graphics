@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+﻿using System;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
@@ -92,33 +92,32 @@ namespace UnityEditor.ShaderGraph
             return GetFunctionName() + " (" + inputValue + ", " + outputValue + ");";
         }
 
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            ValidateChannelCount();
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("In", "Out"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-
-            switch (channel)
+            registry.ProvideFunction(GetFunctionName(), s =>
             {
-                case TextureChannel.Green:
-                    outputString.AddShaderChunk("Out = In.yyyy;", false);
-                    break;
-                case TextureChannel.Blue:
-                    outputString.AddShaderChunk("Out = In.zzzz;", false);
-                    break;
-                case TextureChannel.Alpha:
-                    outputString.AddShaderChunk("Out = In.wwww;", false);
-                    break;
-                default:
-                    outputString.AddShaderChunk("Out = In.xxxx;", false);
-                    break;
-            }
-
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+                s.AppendLine(GetFunctionPrototype("In", "Out"));
+                using (s.BlockScope())
+                {
+                    switch (channel)
+                    {
+                        case TextureChannel.Green:
+                            s.AppendLine("Out = In.yyyy;");
+                            break;
+                        case TextureChannel.Blue:
+                            s.AppendLine("Out = In.zzzz;");
+                            break;
+                        case TextureChannel.Alpha:
+                            s.AppendLine("Out = In.wwww;");
+                            break;
+                        case TextureChannel.Red:
+                            s.AppendLine("Out = In.xxxx;");
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                }
+            });
         }
     }
 }

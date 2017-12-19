@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph
             var vertexShader = new ShaderGenerator();
             var surfaceDescriptionFunction = new ShaderGenerator();
             var surfaceDescriptionStruct = new ShaderGenerator();
-            var shaderFunctionVisitor = new ShaderGenerator();
+            var functionRegistry = new FunctionRegistry(2);
             var surfaceInputs = new ShaderGenerator();
 
             surfaceInputs.AddShaderChunk("struct SurfaceInputs{", false);
@@ -144,7 +144,7 @@ namespace UnityEditor.ShaderGraph
                 node,
                 graph,
                 surfaceDescriptionFunction,
-                shaderFunctionVisitor,
+                functionRegistry,
                 shaderProperties,
                 requirements,
                 mode,
@@ -165,7 +165,7 @@ namespace UnityEditor.ShaderGraph
 
             finalShader.AddShaderChunk("CGINCLUDE", false);
             finalShader.AddShaderChunk("#include \"UnityCG.cginc\"", false);
-            finalShader.AddShaderChunk(shaderFunctionVisitor.GetShaderString(2), false);
+            finalShader.AddShaderChunk(functionRegistry.ToString(), false);
             finalShader.AddShaderChunk(vertexInputs.GetShaderString(2), false);
             finalShader.AddShaderChunk(surfaceInputs.GetShaderString(2), false);
             finalShader.AddShaderChunk(surfaceDescriptionStruct.GetShaderString(2), false);
@@ -207,7 +207,7 @@ namespace UnityEditor.ShaderGraph
             AbstractMaterialNode masterNode,
             AbstractMaterialGraph graph,
             ShaderGenerator surfaceDescriptionFunction,
-            ShaderGenerator shaderFunctionVisitor,
+            FunctionRegistry functionRegistry,
             PropertyCollector shaderProperties,
             ShaderGraphRequirements requirements,
             GenerationMode mode,
@@ -253,7 +253,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
             {
                 if (activeNode is IGeneratesFunction)
-                    (activeNode as IGeneratesFunction).GenerateNodeFunction(shaderFunctionVisitor, mode);
+                    (activeNode as IGeneratesFunction).GenerateNodeFunction(functionRegistry, mode);
                 if (activeNode is IGeneratesBodyCode)
                     (activeNode as IGeneratesBodyCode).GenerateNodeCode(surfaceDescriptionFunction, mode);
                 if (masterNode == null && activeNode.hasPreview)

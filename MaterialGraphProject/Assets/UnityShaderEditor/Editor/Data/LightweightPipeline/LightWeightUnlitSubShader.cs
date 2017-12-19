@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph
             var surfaceVertexShader = new ShaderGenerator();
             var surfaceDescriptionFunction = new ShaderGenerator();
             var surfaceDescriptionStruct = new ShaderGenerator();
-            var shaderFunctionVisitor = new ShaderGenerator();
+            var functionRegistry = new FunctionRegistry(2);
             var surfaceInputs = new ShaderGenerator();
 
             var shaderProperties = new PropertyCollector();
@@ -85,7 +85,7 @@ namespace UnityEditor.ShaderGraph
                 masterNode,
                 masterNode.owner as AbstractMaterialGraph,
                 surfaceDescriptionFunction,
-                shaderFunctionVisitor,
+                functionRegistry,
                 shaderProperties,
                 requirements,
                 mode,
@@ -96,7 +96,7 @@ namespace UnityEditor.ShaderGraph
                 usedSlots);
 
             var graph = new ShaderGenerator();
-            graph.AddShaderChunk(shaderFunctionVisitor.GetShaderString(2), false);
+            graph.AddShaderChunk(functionRegistry.ToString(), false);
             graph.AddShaderChunk(vertexInputs.GetShaderString(2), false);
             graph.AddShaderChunk(surfaceInputs.GetShaderString(2), false);
             graph.AddShaderChunk(surfaceDescriptionStruct.GetShaderString(2), false);
