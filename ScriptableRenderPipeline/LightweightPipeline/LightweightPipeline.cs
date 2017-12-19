@@ -171,6 +171,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_Asset = asset;
 
             BuildShadowSettings();
+            SetRenderingFeatures();
+            GraphicsSettings.lightsUseLinearIntensity = true;
 
             PerFrameBuffer._GlossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
             PerFrameBuffer._SubtractiveShadowColor = Shader.PropertyToID("_SubtractiveShadowColor");
@@ -229,14 +231,28 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CoreUtils.Destroy(m_BlitMaterial);
         }
 
+        private void SetRenderingFeatures()
+        {
+#if UNITY_EDITOR
+            SupportedRenderingFeatures.active = new SupportedRenderingFeatures()
+            {
+                reflectionProbeSupportFlags = SupportedRenderingFeatures.ReflectionProbeSupportFlags.None,
+                defaultMixedLightingMode = SupportedRenderingFeatures.LightmapMixedBakeMode.Subtractive,
+                supportedMixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeMode.Subtractive,
+                supportedLightmapBakeTypes = LightmapBakeType.Baked | LightmapBakeType.Mixed,
+                supportedLightmapsModes = LightmapsMode.CombinedDirectional | LightmapsMode.NonDirectional,
+                rendererSupportsLightProbeProxyVolumes = false,
+                rendererSupportsMotionVectors = false,
+                rendererSupportsReceiveShadows = true,
+                rendererSupportsReflectionProbes = true
+            };
+#endif
+        }
+
         CullResults m_CullResults;
         public override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
             base.Render(context, cameras);
-
-            // TODO: This is at the moment required for all pipes. We should not implicitly change user project settings
-            // instead this should be forced when using SRP, since all SRP use linear lighting.
-            GraphicsSettings.lightsUseLinearIntensity = true;
 
             SetupPerFrameShaderConstants();
 
