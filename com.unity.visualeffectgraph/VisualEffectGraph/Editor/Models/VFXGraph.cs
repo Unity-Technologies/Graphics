@@ -73,6 +73,7 @@ namespace UnityEditor.VFX
                 g = ScriptableObject.CreateInstance<VFXGraph>();
                 g.name = "VFXGraph";
                 asset.graph = g;
+                ((VFXGraph)g).UpdateSubAssets();
             }
 
             VFXGraph graph = (VFXGraph)g;
@@ -96,8 +97,11 @@ namespace UnityEditor.VFX
             }
             set
             {
-                m_Owner = value;
-                m_ExpressionGraphDirty = true;
+                if (m_Owner != value)
+                {
+                    m_Owner = value;
+                    m_ExpressionGraphDirty = true;
+                }
             }
         }
 
@@ -186,7 +190,6 @@ namespace UnityEditor.VFX
                 float stepCount = 1;
 #endif
                 EditorUtility.DisplayProgressBar("Saving...", "UpdateSubAssets", (++currentStep) / stepCount);
-                UpdateSubAssets();
                 m_saved = true;
             }
             catch (Exception e)

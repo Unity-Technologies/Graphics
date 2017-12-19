@@ -10,23 +10,23 @@ namespace UnityEditor.VFX.UI
 {
     abstract class VFXPropertyIM
     {
-        public bool OnGUI(VFXDataAnchorPresenter presenter)
+        public bool OnGUI(VFXDataAnchorController controller)
         {
             EditorGUI.BeginChangeCheck();
 
-            if (!presenter.editable)
+            if (!controller.editable)
             {
                 GUI.enabled = false;
             }
 
-            object result = DoOnGUI(presenter);
+            object result = DoOnGUI(controller);
 
 
             GUI.enabled = true;
 
             if (EditorGUI.EndChangeCheck())
             {
-                presenter.SetPropertyValue(result);
+                controller.SetPropertyValue(result);
 
                 return true;
             }
@@ -43,7 +43,7 @@ namespace UnityEditor.VFX.UI
 
         public virtual bool isNumeric { get { return true; } }
 
-        protected abstract object DoOnGUI(VFXDataAnchorPresenter presenter);
+        protected abstract object DoOnGUI(VFXDataAnchorController controller);
         protected abstract object DoOnGUI(Rect rect, string label, object value);
 
 
@@ -91,27 +91,27 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void Label(VFXDataAnchorPresenter presenter, string label)
+        public void Label(VFXDataAnchorController controller, string label)
         {
-            if (presenter != null && presenter.depth > 0)
-                GUILayout.Space(presenter.depth * depthOffset);
+            if (controller != null && controller.depth > 0)
+                GUILayout.Space(controller.depth * depthOffset);
             GUILayout.BeginVertical();
             GUILayout.Space(3);
 
-            if (presenter != null)
+            if (controller != null)
             {
-                if (presenter.expandable)
+                if (controller.expandable)
                 {
-                    bool expanded = presenter.expanded;
-                    if (GUILayout.Toggle(presenter.expanded, "", VFXDataGUIStyles.instance.GetGUIStyleForExpandableType(presenter.portType), GUILayout.Width(iconSize), GUILayout.Height(iconSize)) != expanded)
+                    bool expanded = controller.expandedSelf;
+                    if (GUILayout.Toggle(controller.expandedSelf, "", VFXDataGUIStyles.instance.GetGUIStyleForExpandableType(controller.portType), GUILayout.Width(iconSize), GUILayout.Height(iconSize)) != expanded)
                     {
                         if (!expanded)
                         {
-                            presenter.ExpandPath();
+                            controller.ExpandPath();
                         }
                         else
                         {
-                            presenter.RetractPath();
+                            controller.RetractPath();
                         }
 
                         // remove the change check to avoid property being regarded as modified
@@ -121,7 +121,7 @@ namespace UnityEditor.VFX.UI
                 }
                 else
                 {
-                    GUILayout.Label("", VFXDataGUIStyles.instance.GetGUIStyleForType(presenter.portType), GUILayout.Width(iconSize), GUILayout.Height(iconSize));
+                    GUILayout.Label("", VFXDataGUIStyles.instance.GetGUIStyleForType(controller.portType), GUILayout.Width(iconSize), GUILayout.Height(iconSize));
                 }
             }
             GUILayout.EndVertical();
@@ -140,9 +140,9 @@ namespace UnityEditor.VFX.UI
 
     abstract class VFXPropertyIM<T> : VFXPropertyIM
     {
-        protected override object DoOnGUI(VFXDataAnchorPresenter presenter)
+        protected override object DoOnGUI(VFXDataAnchorController controller)
         {
-            return OnParameterGUI(presenter, (T)presenter.value, presenter.name);
+            return OnParameterGUI(controller, (T)controller.value, controller.name);
         }
 
         protected override object DoOnGUI(Rect rect, string label, object value)
@@ -150,17 +150,17 @@ namespace UnityEditor.VFX.UI
             return OnParameterGUI(rect, (T)value, label);
         }
 
-        public abstract T OnParameterGUI(VFXDataAnchorPresenter presenter, T value, string label);
+        public abstract T OnParameterGUI(VFXDataAnchorController controller, T value, string label);
         public abstract T OnParameterGUI(Rect rect, T value, string label);
     }
 
     class VFXDefaultPropertyIM : VFXPropertyIM
     {
         public override bool isNumeric { get { return false; } }
-        protected override object DoOnGUI(VFXDataAnchorPresenter presenter)
+        protected override object DoOnGUI(VFXDataAnchorController controller)
         {
             GUILayout.BeginHorizontal();
-            Label(presenter, presenter.name);
+            Label(controller, controller.name);
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 

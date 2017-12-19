@@ -190,10 +190,74 @@ namespace UnityEditor.VFX.UI
     }
 
 
-    internal class VFXFlowEdge : Edge
+    internal class VFXFlowEdge : Edge, IControlledElement<VFXFlowEdgeController>
     {
         public VFXFlowEdge()
         {
+            RegisterCallback<ControllerChangedEvent>(OnChange);
+        }
+
+        protected virtual void OnChange(ControllerChangedEvent e)
+        {
+            if (e.controller == controller)
+            {
+                SelfChange();
+            }
+        }
+
+        protected virtual void SelfChange()
+        {
+            if (controller != null)
+            {
+                VFXView view = GetFirstAncestorOfType<VFXView>();
+
+                var newInput = view.GetFlowAnchorByController(controller.input);
+
+                if (base.input != newInput)
+                {
+                    if (base.input != null)
+                    {
+                        base.input.Disconnect(this);
+                    }
+                    base.input = newInput;
+                    base.input.Connect(this);
+                }
+
+                var newOutput = view.GetFlowAnchorByController(controller.output);
+
+                if (base.output != newOutput)
+                {
+                    if (base.output != null)
+                    {
+                        base.output.Disconnect(this);
+                    }
+                    base.output = newOutput;
+                    base.output.Connect(this);
+                }
+            }
+            edgeControl.UpdateLayout();
+        }
+
+        VFXFlowEdgeController m_Controller;
+        Controller IControlledElement.controller
+        {
+            get { return m_Controller; }
+        }
+        public VFXFlowEdgeController controller
+        {
+            get { return m_Controller; }
+            set
+            {
+                if (m_Controller != null)
+                {
+                    m_Controller.UnregisterHandler(this);
+                }
+                m_Controller = value;
+                if (m_Controller != null)
+                {
+                    m_Controller.RegisterHandler(this);
+                }
+            }
         }
 
         protected override EdgeControl CreateEdgeControl()
@@ -205,14 +269,13 @@ namespace UnityEditor.VFX.UI
             };
         }
 
-        public override void OnDataChanged()
+        public new VFXFlowAnchor input
         {
-            base.OnDataChanged();
-
-
-            VFXEdgeControl edgeControl = this.edgeControl as VFXEdgeControl;
-
-            edgeControl.outputColor = edgeControl.inputColor = GetPresenter<EdgePresenter>().selected ? selectedColor : defaultColor;
+            get { return base.input as VFXFlowAnchor; }
+        }
+        public new VFXFlowAnchor output
+        {
+            get { return base.output as VFXFlowAnchor; }
         }
     }
 }

@@ -9,13 +9,6 @@ namespace UnityEditor.VFX.UI
     {
         public static void OnDrawGizmo()
         {
-            /*VFXViewPresenter presenter = VFXViewPresenter.viewPresenter;
-            if (presenter.HasVFXAsset())
-            {
-                //var allBlocks = presenter.allChildren.OfType<VFXContextPresenter>().SelectMany(t => t.allChildren.OfType<VFXBlockPresenter>());
-
-                //Debug.Log("Blocks:"+allBlocks.Count());
-            }*/
         }
 
         public static void OnDrawComponentGizmo(Object component)
@@ -31,7 +24,7 @@ namespace UnityEditor.VFX.UI
 
             if (selectedBlock != null)
             {
-                selectedBlock.GetPresenter<VFXBlockPresenter>().DrawGizmos(comp);
+                selectedBlock.controller.DrawGizmos(comp);
             }
             else
             {
@@ -39,21 +32,21 @@ namespace UnityEditor.VFX.UI
 
                 if (selectedOperator != null)
                 {
-                    selectedOperator.GetPresenter<VFXSlotContainerPresenter>().DrawGizmos(comp);
+                    selectedOperator.controller.DrawGizmos(comp);
                 }
                 else
                 {
                     VFXParameterUI selectedParameter = view.selection.OfType<VFXParameterUI>().FirstOrDefault();
                     if (selectedParameter != null)
                     {
-                        selectedParameter.GetPresenter<VFXSlotContainerPresenter>().DrawGizmos(comp);
+                        selectedParameter.controller.DrawGizmos(comp);
                     }
                     else
                     {
                         VFXContextUI selectedContext = view.selection.OfType<VFXContextUI>().FirstOrDefault();
                         if (selectedContext != null)
                         {
-                            selectedContext.GetPresenter<VFXContextPresenter>().slotPresenter.DrawGizmos(comp);
+                            selectedContext.controller.slotContainerController.DrawGizmos(comp);
                         }
                     }
                 }

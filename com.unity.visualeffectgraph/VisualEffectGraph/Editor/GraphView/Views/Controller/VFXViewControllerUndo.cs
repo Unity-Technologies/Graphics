@@ -74,7 +74,7 @@ namespace UnityEditor.VFX.UI
         private int m_lastGraphUndoCursor;
     }
 
-    partial class VFXViewPresenter : GraphViewPresenter
+    partial class VFXViewController : Controller<VFXAsset>
     {
         [NonSerialized]
         private bool m_reentrant;
@@ -83,7 +83,7 @@ namespace UnityEditor.VFX.UI
 
         private void InitializeUndoStack()
         {
-            m_graphUndoStack = new VFXGraphUndoStack(m_Graph);
+            m_graphUndoStack = new VFXGraphUndoStack(graph);
         }
 
         private void ReleaseUndoStack()
@@ -91,9 +91,19 @@ namespace UnityEditor.VFX.UI
             m_graphUndoStack = null;
         }
 
-        private void IncremenentGraphState()
+        public void IncremenentGraphUndoRedoState(VFXModel model, VFXModel.InvalidationCause cause)
         {
-            if (!m_reentrant && m_graphUndoStack != null)
+            if (cause != VFXModel.InvalidationCause.kStructureChanged &&
+                cause != VFXModel.InvalidationCause.kConnectionChanged &&
+                cause != VFXModel.InvalidationCause.kParamChanged &&
+                cause != VFXModel.InvalidationCause.kSettingChanged &&
+                cause != VFXModel.InvalidationCause.kUIChanged)
+                return;
+
+            if (m_reentrant)
+                throw new InvalidOperationException("Reentrant undo/redo, this is not supposed to happen!");
+
+            if (m_graphUndoStack != null)
             {
                 if (m_graphUndoStack == null)
                 {
@@ -121,7 +131,7 @@ namespace UnityEditor.VFX.UI
             m_InLiveModification = false;
             if (m_graphUndoStack.IsDirtyState())
             {
-                m_graphUndoStack.FlushAndPushGraphState(m_Graph);
+                m_graphUndoStack.FlushAndPushGraphState(graph);
                 m_graphUndoStack.CleanDirtyState();
             }
         }
@@ -137,7 +147,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (m_graphUndoStack.IsDirtyState())
                 {
-                    m_graphUndoStack.FlushAndPushGraphState(m_Graph);
+                    m_graphUndoStack.FlushAndPushGraphState(graph);
                     m_graphUndoStack.CleanDirtyState();
                 }
             }
@@ -155,7 +165,8 @@ namespace UnityEditor.VFX.UI
                 try
                 {
                     var cloneGraph = m_graphUndoStack.GetCopyCurrentGraphState();
-                    m_VFXAsset.graph = cloneGraph;
+                    model.graph = cloneGraph;
+                    cloneGraph.UpdateSubAssets();
                     m_reentrant = true;
                     ExpressionGraphDirty = true;
                     ForceReload();
@@ -166,7 +177,7 @@ namespace UnityEditor.VFX.UI
                 {
                     Debug.LogError(e);
                     Undo.ClearAll();
-                    m_graphUndoStack = new VFXGraphUndoStack(m_Graph);
+                    m_graphUndoStack = new VFXGraphUndoStack(graph);
                 }
             }
         }

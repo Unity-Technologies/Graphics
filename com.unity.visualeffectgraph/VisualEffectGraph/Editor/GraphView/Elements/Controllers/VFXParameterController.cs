@@ -1,25 +1,41 @@
 using System;
 using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEngine.Experimental.UIElements;
 using UnityEngine;
 using System.Reflection;
 using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXParameterOutputDataAnchorPresenter : VFXDataAnchorPresenter
+    class VFXParameterOutputDataAnchorController : VFXDataAnchorController
     {
+        public VFXParameterOutputDataAnchorController(VFXSlot model, VFXSlotContainerController sourceNode, bool hidden) : base(model, sourceNode, hidden)
+        {
+        }
+
         public override Direction direction
         { get { return Direction.Output; } }
+        public override string name
+        {
+            get
+            {
+                if (model.IsMasterSlot())
+                {
+                    return model.property.type.UserFriendlyName();
+                }
+                return base.name;
+            }
+        }
     }
 
-    class VFXSubParameterPresenter : IPropertyRMProvider, IValuePresenter
+    class VFXSubParameterController : IPropertyRMProvider, IValueController
     {
-        VFXParameterPresenter m_Parameter;
+        VFXParameterController m_Parameter;
         //int m_Field;
         FieldInfo m_FieldInfo;
 
 
-        public  VFXSubParameterPresenter(VFXParameterPresenter parameter, int field)
+        public  VFXSubParameterController(VFXParameterController parameter, int field)
         {
             m_Parameter = parameter;
             //m_Field = field;
@@ -86,35 +102,40 @@ namespace UnityEditor.VFX.UI
             }
         }
     }
-    class VFXParameterPresenter : VFXSlotContainerPresenter, IPropertyRMProvider, IValuePresenter
+    class VFXParameterController : VFXSlotContainerController, IPropertyRMProvider, IValueController
     {
-        VFXSubParameterPresenter[] m_SubPresenters;
-        public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
-        {
-            base.Init(model, viewPresenter);
+        VFXSubParameterController[] m_SubControllers;
 
+        IDataWatchHandle m_SlotHandle;
+
+        public VFXParameterController(VFXModel model, VFXViewController viewController) : base(model, viewController)
+        {
             m_CachedMinValue = parameter.m_Min != null ? parameter.m_Min.Get() : null;
             m_CachedMaxValue = parameter.m_Max != null ? parameter.m_Max.Get() : null;
+
+            m_SlotHandle = DataWatchService.sharedInstance.AddWatch(parameter.outputSlots[0], OnSlotChanged);
         }
 
-        protected override VFXDataAnchorPresenter AddDataAnchor(VFXSlot slot, bool input)
+        void OnSlotChanged(UnityEngine.Object obj)
         {
-            var anchor = VFXParameterOutputDataAnchorPresenter.CreateInstance<VFXParameterOutputDataAnchorPresenter>();
-            anchor.Init(slot, this);
+            NotifyChange(AnyThing);
+        }
+
+        protected override VFXDataAnchorController AddDataAnchor(VFXSlot slot, bool input, bool hidden)
+        {
+            var anchor = new VFXParameterOutputDataAnchorController(slot, this, hidden);
             anchor.portType = slot.property.type;
-            if (slot.IsMasterSlot())
-                anchor.name = slot.property.type.UserFriendlyName();
             return anchor;
         }
 
-        public override void UpdateTitle()
+        public override string title
         {
-            title = parameter.outputSlots[0].property.type.UserFriendlyName();
+            get { return parameter.outputSlots[0].property.type.UserFriendlyName(); }
         }
 
-        public int CreateSubPresenters()
+        public int CreateSubControllers()
         {
-            if (m_SubPresenters == null)
+            if (m_SubControllers == null)
             {
                 System.Type type = portType;
 
@@ -128,22 +149,22 @@ namespace UnityEditor.VFX.UI
                     --count;
                 }
 
-                m_SubPresenters = new VFXSubParameterPresenter[count];
+                m_SubControllers = new VFXSubParameterController[count];
 
                 int startIndex = spaceable ? 1 : 0;
 
                 for (int i = startIndex; i < count + startIndex; ++i)
                 {
-                    m_SubPresenters[i - startIndex] = new VFXSubParameterPresenter(this, i);
+                    m_SubControllers[i - startIndex] = new VFXSubParameterController(this, i);
                 }
             }
 
-            return m_SubPresenters.Length;
+            return m_SubControllers.Length;
         }
 
-        public VFXSubParameterPresenter GetSubPresenter(int i)
+        public VFXSubParameterController GetSubController(int i)
         {
-            return m_SubPresenters[i];
+            return m_SubControllers[i];
         }
 
         public string exposedName
@@ -210,7 +231,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        // For the edition of Curve and Gradient to work the value must not be recreated each time. We now assume that changes happen only through the presenter (or, in the case of serialization, before the presenter is created)
+        // For the edition of Curve and Gradient to work the value must not be recreated each time. We now assume that changes happen only through the controller (or, in the case of serialization, before the controller is created)
         object m_CachedMinValue;
         object m_CachedMaxValue;
 
@@ -261,20 +282,15 @@ namespace UnityEditor.VFX.UI
             throw new NotImplementedException();
         }
 
-        public override UnityEngine.Object[] GetObjectsToWatch()
-        {
-            return new UnityEngine.Object[] { this, model, parameter.outputSlots[0] };
-        }
-
         public override void DrawGizmos(VFXComponent component)
         {
             VFXValueGizmo.Draw(this, component);
 
-            if (m_SubPresenters != null)
+            if (m_SubControllers != null)
             {
-                foreach (var presenter in m_SubPresenters)
+                foreach (var controller in m_SubControllers)
                 {
-                    VFXValueGizmo.Draw(presenter, component);
+                    VFXValueGizmo.Draw(controller, component);
                 }
             }
         }

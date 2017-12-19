@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.UI
         void OnMouseUp(MouseUpEvent evt)
         {
             if (!VFXComponentEditor.s_IsEditingAsset)
-                Selection.activeObject = m_View.GetPresenter<VFXViewPresenter>().GetVFXAsset();
+                Selection.activeObject = m_View.controller.model;
         }
     }
 
@@ -148,11 +148,37 @@ namespace UnityEditor.VFX.UI
     }
 
     //[StyleSheet("Assets/VFXEditor/Editor/GraphView/Views/")]
-    class VFXView : GraphView, IParameterDropTarget
+    class VFXView : GraphView, IParameterDropTarget, IControlledElement<VFXViewController>
     {
         VisualElement m_NoAssetLabel;
 
-
+        VFXViewController m_Controller;
+        Controller IControlledElement.controller
+        {
+            get { return m_Controller; }
+        }
+        public VFXViewController controller
+        {
+            get { return m_Controller; }
+            set
+            {
+                if (m_Controller != value)
+                {
+                    if (m_Controller != null)
+                    {
+                        m_Controller.UnregisterHandler(this);
+                        m_Controller.useCount--;
+                    }
+                    m_Controller = value;
+                    if (m_Controller != null)
+                    {
+                        m_Controller.RegisterHandler(this);
+                        m_Controller.useCount++;
+                    }
+                    NewControllerSet();
+                }
+            }
+        }
         public VFXModel AddNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
         {
             Vector2 tPos = this.ChangeCoordinatesTo(contentViewContainer, mPos);
@@ -174,7 +200,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                Debug.LogErrorFormat("Add unknown presenter : {0}", d.modelDescriptor.GetType());
+                Debug.LogErrorFormat("Add unknown controller : {0}", d.modelDescriptor.GetType());
             }
             return null;
         }
@@ -184,6 +210,10 @@ namespace UnityEditor.VFX.UI
 
         public VFXView()
         {
+            m_SlotContainerFactory[typeof(VFXContextController)] = typeof(VFXContextUI);
+            m_SlotContainerFactory[typeof(VFXOperatorController)] = typeof(VFXOperatorUI);
+            m_SlotContainerFactory[typeof(VFXParameterController)] = typeof(VFXParameterUI);
+
             forceNotififcationOnAdd = true;
             SetupZoom(0.125f, 8);
 
@@ -199,19 +229,6 @@ namespace UnityEditor.VFX.UI
             Insert(0, bg);
 
             m_NodeProvider = new VFXNodeProvider((d, mPos) => AddNode(d, mPos));
-
-            typeFactory[typeof(VFXParameterPresenter)] = typeof(VFXParameterUI);
-            typeFactory[typeof(VFXOperatorPresenter)] = typeof(VFXOperatorUI);
-            typeFactory[typeof(VFXContextPresenter)] = typeof(VFXContextUI);
-            typeFactory[typeof(VFXFlowEdgePresenter)] = typeof(VFXFlowEdge);
-            typeFactory[typeof(VFXDataEdgePresenter)] = typeof(VFXDataEdge);
-            typeFactory[typeof(VFXFlowInputAnchorPresenter)] = typeof(VFXFlowAnchor);
-            typeFactory[typeof(VFXFlowOutputAnchorPresenter)] = typeof(VFXFlowAnchor);
-            typeFactory[typeof(VFXContextDataInputAnchorPresenter)] = typeof(VFXDataAnchor);
-            typeFactory[typeof(VFXContextDataOutputAnchorPresenter)] = typeof(VFXDataAnchor);
-            typeFactory[typeof(VFXInputOperatorAnchorPresenter)] = typeof(VFXDataAnchor);
-            typeFactory[typeof(VFXOutputOperatorAnchorPresenter)] = typeof(VFXDataAnchor);
-            typeFactory[typeof(Preview3DPresenter)] = typeof(Preview3D);
 
             AddStyleSheetPath("PropertyRM");
             AddStyleSheetPath("VFXContext");
@@ -289,7 +306,239 @@ namespace UnityEditor.VFX.UI
 
             this.serializeGraphElements = SerializeElements;
             this.unserializeAndPaste = UnserializeAndPasteElements;
+            this.deleteSelection = Delete;
             this.nodeCreationRequest = OnCreateNode;
+
+            RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
+            RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
+        }
+
+        void Delete(string cmd, AskUser askUser)
+        {
+            controller.Remove(selection.OfType<IControlledElement>().Select(t => t.controller));
+        }
+
+        void OnControllerChanged(ControllerChangedEvent e)
+        {
+            if (e.controller == controller)
+            {
+                ControllerChanged(e.change);
+            }
+        }
+
+        void ControllerChanged(int change)
+        {
+            if (change == VFXViewController.Change.destroy)
+            {
+                controller = null;
+                return;
+            }
+            if (change == VFXViewController.AnyThing)
+            {
+                SyncNodes();
+            }
+            SyncEdges(change);
+
+            if (controller != null)
+            {
+                if (change == VFXViewController.AnyThing)
+                {
+                    var settings = GetRendererSettings();
+
+                    m_ToggleCastShadows.on = settings.shadowCastingMode != ShadowCastingMode.Off;
+                    m_ToggleCastShadows.SetEnabled(true);
+
+                    m_ToggleMotionVectors.on = settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object;
+                    m_ToggleMotionVectors.SetEnabled(true);
+
+
+                    // if the asset dis destroy somehow, fox example if the user delete the asset, delete the controller and update the window.
+                    VFXAsset asset = controller.model;
+                    if (asset == null)
+                    {
+                        this.controller = null;
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                m_ToggleCastShadows.SetEnabled(false);
+                m_ToggleMotionVectors.SetEnabled(false);
+            }
+
+            // needed if some or all the selection has been deleted, so we no longer show the deleted object in the inspector.
+            SelectionUpdated();
+        }
+
+        void OnAttachToPanel(AttachToPanelEvent e)
+        {
+            BaseVisualElementPanel panel = this.panel as BaseVisualElementPanel;
+
+            panel.scheduler.ScheduleOnce(t => { panel.ValidateLayout(); FrameAll(); }, 100);
+        }
+
+        void NewControllerSet()
+        {
+            if (controller != null)
+            {
+                m_NoAssetLabel.RemoveFromHierarchy();
+
+                BaseVisualElementPanel panel = this.panel as BaseVisualElementPanel;
+                if (panel != null)
+                    panel.scheduler.ScheduleOnce(t => { panel.ValidateLayout(); FrameAll(); }, 100);
+
+                pasteOffset = Vector2.zero; // if we change asset we want to paste exactly at the same place as the original asset the first time.
+            }
+            else
+            {
+                if (m_NoAssetLabel.parent == null)
+                {
+                    Add(m_NoAssetLabel);
+                }
+            }
+        }
+
+        Dictionary<VFXNodeController, GraphElement> rootSlotContainers
+        {
+            get
+            {
+                Dictionary<VFXNodeController, GraphElement> dic = new Dictionary<VFXNodeController, GraphElement>();
+                foreach (var layer in contentViewContainer.Children())
+                {
+                    foreach (var graphElement in layer.Children())
+                    {
+                        if (graphElement is IControlledElement && (graphElement as IControlledElement).controller is VFXNodeController)
+                        {
+                            dic[(graphElement as IControlledElement).controller as VFXNodeController] = graphElement as GraphElement;
+                        }
+                    }
+                }
+
+
+                return dic;
+            }
+        }
+
+
+        private class SlotContainerFactory : BaseTypeFactory<VFXNodeController, GraphElement>
+        {
+            protected override GraphElement InternalCreate(Type valueType)
+            {
+                return (GraphElement)System.Activator.CreateInstance(valueType);
+            }
+        }
+        private SlotContainerFactory m_SlotContainerFactory = new SlotContainerFactory();
+
+
+        void SyncNodes()
+        {
+            var controlledElements = rootSlotContainers;
+
+            if (controller == null)
+            {
+                foreach (var element in controlledElements.Values)
+                {
+                    RemoveElement(element);
+                }
+            }
+            else
+            {
+                var deletedControllers = controlledElements.Keys.Except(controller.nodes);
+
+                foreach (var deletedController in deletedControllers)
+                {
+                    RemoveElement(controlledElements[deletedController]);
+                }
+
+                foreach (var newController in controller.nodes.Except(controlledElements.Keys))
+                {
+                    var newElement = m_SlotContainerFactory.Create(newController);
+                    AddElement(newElement);
+                    (newElement as IControlledElement<VFXNodeController>).controller = newController;
+                }
+            }
+        }
+
+        void SyncEdges(int change)
+        {
+            if (change != VFXViewController.Change.flowEdge)
+            {
+                var dataEdges = contentViewContainer.Query().Children<VisualElement>().Children<VFXDataEdge>().ToList().ToDictionary(t => t.controller, t => t);
+                if (controller == null)
+                {
+                    foreach (var element in dataEdges.Values)
+                    {
+                        RemoveElement(element);
+                    }
+                }
+                else
+                {
+                    var deletedControllers = dataEdges.Keys.Except(controller.dataEdges);
+
+                    foreach (var deletedController in deletedControllers)
+                    {
+                        var edge = dataEdges[deletedController];
+                        if (edge.input != null)
+                        {
+                            edge.input.Disconnect(edge);
+                        }
+                        if (edge.output != null)
+                        {
+                            edge.output.Disconnect(edge);
+                        }
+                        RemoveElement(edge);
+                    }
+
+                    foreach (var newController in controller.dataEdges.Except(dataEdges.Keys))
+                    {
+                        var newElement = new VFXDataEdge();
+                        AddElement(newElement);
+                        newElement.controller = newController;
+                        if (newElement.input != null)
+                            newElement.input.node.RefreshExpandedState();
+                        if (newElement.output != null)
+                            newElement.output.node.RefreshExpandedState();
+                    }
+                }
+            }
+
+            if (change != VFXViewController.Change.dataEdge)
+            {
+                var flowEdges = contentViewContainer.Query().Children<VisualElement>().Children<VFXFlowEdge>().ToList().ToDictionary(t => t.controller, t => t);
+                if (controller == null)
+                {
+                    foreach (var element in flowEdges.Values)
+                    {
+                        RemoveElement(element);
+                    }
+                }
+                else
+                {
+                    var deletedControllers = flowEdges.Keys.Except(controller.flowEdges);
+
+                    foreach (var deletedController in deletedControllers)
+                    {
+                        var edge = flowEdges[deletedController];
+                        if (edge.input != null)
+                        {
+                            edge.input.Disconnect(edge);
+                        }
+                        if (edge.output != null)
+                        {
+                            edge.output.Disconnect(edge);
+                        }
+                        RemoveElement(edge);
+                    }
+
+                    foreach (var newController in controller.flowEdges.Except(flowEdges.Keys))
+                    {
+                        var newElement = new VFXFlowEdge();
+                        AddElement(newElement);
+                        newElement.controller = newController;
+                    }
+                }
+            }
         }
 
         void OnCreateNode(NodeCreationContext ctx)
@@ -299,10 +548,9 @@ namespace UnityEditor.VFX.UI
 
         VFXRendererSettings GetRendererSettings()
         {
-            var presenter = GetPresenter<VFXViewPresenter>();
-            if (presenter != null)
+            if (controller != null)
             {
-                var asset = presenter.GetVFXAsset();
+                var asset = controller.model;
                 if (asset != null)
                     return asset.rendererSettings;
             }
@@ -314,26 +562,25 @@ namespace UnityEditor.VFX.UI
         {
             VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>("Assets/VFXEditor/Editor/Templates/DefaultParticleSystem.asset");
 
-            VFXViewPresenter presenter = VFXViewPresenter.Manager.GetPresenter(asset, true);
-            presenter.useCount++;
+            VFXViewController controller = VFXViewController.GetController(asset, true);
+            controller.useCount++;
 
-            object data = VFXCopyPaste.CreateCopy(presenter.allChildren);
+            object data = VFXCopyPaste.CreateCopy(controller.allChildren);
 
             VFXCopyPaste.PasteCopy(this, tPos, data);
 
-            presenter.useCount--;
+            controller.useCount--;
         }
 
         void SetRendererSettings(VFXRendererSettings settings)
         {
-            var presenter = GetPresenter<VFXViewPresenter>();
-            if (presenter != null)
+            if (controller != null)
             {
-                var asset = presenter.GetVFXAsset();
+                var asset = controller.model;
                 if (asset != null)
                 {
                     asset.rendererSettings = settings;
-                    presenter.GetGraph().SetExpressionGraphDirty();
+                    controller.graph.SetExpressionGraphDirty();
                 }
             }
         }
@@ -370,73 +617,72 @@ namespace UnityEditor.VFX.UI
 
         void OnCompile()
         {
-            var graph = GetPresenter<VFXViewPresenter>().GetGraph();
+            var graph = controller.graph;
             graph.SetExpressionGraphDirty();
             graph.RecompileIfNeeded();
         }
 
         VFXContext AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
         {
-            if (presenter == null) return null;
-            return GetPresenter<VFXViewPresenter>().AddVFXContext(pos, desc);
+            if (controller == null) return null;
+            return controller.AddVFXContext(pos, desc);
         }
 
         VFXOperator AddVFXOperator(Vector2 pos, VFXModelDescriptor<VFXOperator> desc)
         {
-            if (presenter == null) return null;
-            return GetPresenter<VFXViewPresenter>().AddVFXOperator(pos, desc);
+            if (controller == null) return null;
+            return controller.AddVFXOperator(pos, desc);
         }
 
         VFXParameter AddVFXParameter(Vector2 pos, VFXModelDescriptorParameters desc)
         {
-            if (presenter == null) return null;
-            return GetPresenter<VFXViewPresenter>().AddVFXParameter(pos, desc);
+            if (controller == null) return null;
+            return controller.AddVFXParameter(pos, desc);
         }
 
         public EventPropagation CloneModels() // TEST clean that
         {
-            var contexts = selection.OfType<VFXContextUI>().Select(p => p.GetPresenter<VFXContextPresenter>().context.Clone<VFXContext>());
+            var contexts = selection.OfType<VFXContextUI>().Select(p => p.controller.context.Clone<VFXContext>());
             foreach (var context in contexts)
             {
                 context.position = context.position + new Vector2(50, 50);
-                GetPresenter<VFXViewPresenter>().GetGraph().AddChild(context);
+                controller.graph.AddChild(context);
             }
 
-            var operators = selection.OfType<Node>().Select(p => p.GetPresenter<VFXSlotContainerPresenter>().model.Clone<VFXSlotContainerModel<VFXModel, VFXModel>>());
+            var operators = selection.OfType<VFXNodeUI>().Select(p => p.controller.model.Clone<VFXSlotContainerModel<VFXModel, VFXModel>>());
             foreach (var op in operators)
             {
                 op.position = op.position + new Vector2(50, 50);
-                GetPresenter<VFXViewPresenter>().GetGraph().AddChild(op);
+                controller.graph.AddChild(op);
             }
             return EventPropagation.Stop;
         }
 
         public EventPropagation Resync()
         {
-            var presenter = GetPresenter<VFXViewPresenter>();
-            if (presenter != null)
-                presenter.ForceReload();
+            if (controller != null)
+                controller.ForceReload();
             return EventPropagation.Stop;
         }
 
         public EventPropagation OutputToDot()
         {
-            if (presenter == null) return EventPropagation.Stop;
-            DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraph(), VFXExpressionContextOption.None);
+            if (controller == null) return EventPropagation.Stop;
+            DotGraphOutput.DebugExpressionGraph(controller.graph, VFXExpressionContextOption.None);
             return EventPropagation.Stop;
         }
 
         public EventPropagation OutputToDotReduced()
         {
-            if (presenter == null) return EventPropagation.Stop;
-            DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraph(), VFXExpressionContextOption.Reduction);
+            if (controller == null) return EventPropagation.Stop;
+            DotGraphOutput.DebugExpressionGraph(controller.graph, VFXExpressionContextOption.Reduction);
             return EventPropagation.Stop;
         }
 
         public EventPropagation OutputToDotConstantFolding()
         {
-            if (presenter == null) return EventPropagation.Stop;
-            DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraph(), VFXExpressionContextOption.ConstantFolding);
+            if (controller == null) return EventPropagation.Stop;
+            DotGraphOutput.DebugExpressionGraph(controller.graph, VFXExpressionContextOption.ConstantFolding);
             return EventPropagation.Stop;
         }
 
@@ -463,18 +709,18 @@ namespace UnityEditor.VFX.UI
 
         public override List<Port> GetCompatiblePorts(Port startAnchor, NodeAdapter nodeAdapter)
         {
-            VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
-            if (presenter == null) return null;
+            if (controller == null) return null;
 
-            var presenters = presenter.GetCompatiblePorts(startAnchor.GetPresenter<PortPresenter>(), nodeAdapter);
 
             if (startAnchor is VFXDataAnchor)
             {
-                return presenters.Select(t => (Port)GetDataAnchorByPresenter(t as VFXDataAnchorPresenter)).ToList();
+                var controllers = controller.GetCompatiblePorts((startAnchor as  VFXDataAnchor).controller, nodeAdapter);
+                return controllers.Select(t => (Port)GetDataAnchorByController(t as VFXDataAnchorController)).ToList();
             }
             else
             {
-                return presenters.Select(t => (Port)GetFlowAnchorByPresenter(t as VFXFlowAnchorPresenter)).ToList();
+                var controllers = controller.GetCompatiblePorts((startAnchor as VFXFlowAnchor).controller, nodeAdapter);
+                return controllers.Select(t => (Port)GetFlowAnchorByController(t as VFXFlowAnchorController)).ToList();
             }
         }
 
@@ -489,80 +735,18 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        VFXViewPresenter m_OldPresenter;
-
-        public override void OnDataChanged()
+        public VFXDataAnchor GetDataAnchorByController(VFXDataAnchorController controller)
         {
-            base.OnDataChanged();
-            VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
-
-            if (presenter != null)
-            {
-                var settings = GetRendererSettings();
-
-                m_ToggleCastShadows.on = settings.shadowCastingMode != ShadowCastingMode.Off;
-                m_ToggleCastShadows.SetEnabled(true);
-
-                m_ToggleMotionVectors.on = settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object;
-                m_ToggleMotionVectors.SetEnabled(true);
-
-                // if the asset dis destroy somehow, fox example if the user delete the asset, delete the presenter and update the window.
-                VFXAsset asset = presenter.GetVFXAsset();
-                if (asset == null)
-                {
-                    VFXViewPresenter.Manager.RemovePresenter(presenter);
-
-                    VFXViewWindow.currentWindow.presenter = null;
-                    this.presenter = null; // this recall OnDataChanged recursively;
-                    return;
-                }
-            }
-            else
-            {
-                m_ToggleCastShadows.SetEnabled(false);
-                m_ToggleMotionVectors.SetEnabled(false);
-            }
-
-            if (presenter != null)
-            {
-                m_NoAssetLabel.RemoveFromHierarchy();
-            }
-            else
-            {
-                if (m_NoAssetLabel.parent == null)
-                {
-                    Add(m_NoAssetLabel);
-                }
-            }
-
-            if (m_OldPresenter != presenter && panel != null)
-            {
-                BaseVisualElementPanel panel = this.panel as BaseVisualElementPanel;
-
-
-                panel.scheduler.ScheduleOnce(t => { panel.ValidateLayout(); FrameAll(); }, 100);
-
-                m_OldPresenter = presenter;
-
-                pasteOffset = Vector2.zero; // if we change asset we want to paste exactly at the same place as the original asset the first time.
-            }
-
-            // needed if some or all the selection has been deleted, so we no longer show the deleted object in the inspector.
-            SelectionUpdated();
+            if (controller == null)
+                return null;
+            return GetAllDataAnchors(controller.direction == Direction.Input, controller.direction == Direction.Output).Where(t => t.controller == controller).FirstOrDefault();
         }
 
-        public VFXDataAnchor GetDataAnchorByPresenter(VFXDataAnchorPresenter presenter)
+        public VFXFlowAnchor GetFlowAnchorByController(VFXFlowAnchorController controller)
         {
-            if (presenter == null)
+            if (controller == null)
                 return null;
-            return GetAllDataAnchors(presenter.direction == Direction.Input, presenter.direction == Direction.Output).Where(t => t.presenter == presenter).FirstOrDefault();
-        }
-
-        public VFXFlowAnchor GetFlowAnchorByPresenter(VFXFlowAnchorPresenter presenter)
-        {
-            if (presenter == null)
-                return null;
-            return GetAllFlowAnchors(presenter.direction == Direction.Input, presenter.direction == Direction.Output).Where(t => t.presenter == presenter).FirstOrDefault();
+            return GetAllFlowAnchors(controller.direction == Direction.Input, controller.direction == Direction.Output).Where(t => t.controller == controller).FirstOrDefault();
         }
 
         public IEnumerable<VFXDataAnchor> GetAllDataAnchors(bool input, bool output)
@@ -595,7 +779,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public VFXDataEdge GetDataEdgeByPresenter(VFXDataEdgePresenter presenter)
+        public VFXDataEdge GetDataEdgeByController(VFXDataEdgeController controller)
         {
             foreach (var layer in contentViewContainer.Children())
             {
@@ -604,7 +788,7 @@ namespace UnityEditor.VFX.UI
                     if (element is VFXDataEdge)
                     {
                         VFXDataEdge candidate = element as VFXDataEdge;
-                        if (candidate.presenter == presenter)
+                        if (candidate.controller == controller)
                             return candidate;
                     }
                 }
@@ -662,34 +846,33 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void IParameterDropTarget.OnDragUpdated(IMGUIEvent evt, VFXParameterPresenter parameter)
+        void IParameterDropTarget.OnDragUpdated(IMGUIEvent evt, VFXParameterController parameter)
         {
             //TODO : show that we accept the drag
             DragAndDrop.visualMode = DragAndDropVisualMode.Link;
         }
 
-        void IParameterDropTarget.OnDragPerform(IMGUIEvent evt, VFXParameterPresenter parameter)
+        void IParameterDropTarget.OnDragPerform(IMGUIEvent evt, VFXParameterController parameter)
         {
-            VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
-            if (presenter == null) return;
-            presenter.AddVFXParameter(contentViewContainer.GlobalToBound(evt.imguiEvent.mousePosition), VFXLibrary.GetParameters().FirstOrDefault(t => t.name == parameter.portType.UserFriendlyName()));
+            if (controller == null) return;
+            controller.AddVFXParameter(contentViewContainer.GlobalToBound(evt.imguiEvent.mousePosition), VFXLibrary.GetParameters().FirstOrDefault(t => t.name == parameter.portType.UserFriendlyName()));
         }
 
         void SelectionUpdated()
         {
-            if (presenter == null) return;
+            if (controller == null) return;
 
             if (!VFXComponentEditor.s_IsEditingAsset)
             {
-                var objectSelected = selection.OfType<GraphElement>().Select(t => t.GetPresenter<VFXNodePresenter>()).Where(t => t != null);
+                var objectSelected = selection.OfType<VFXNodeUI>().Select(t => t.controller.model).Concat(selection.OfType<VFXContextUI>().Select(t => t.controller.model)).Where(t => t != null);
 
                 if (objectSelected.Count() > 0)
                 {
-                    Selection.objects = objectSelected.Select(t => t.model).ToArray();
+                    Selection.objects = objectSelected.ToArray();
                 }
-                else if (Selection.activeObject != GetPresenter<VFXViewPresenter>().GetVFXAsset())
+                else if (Selection.activeObject != controller.model)
                 {
-                    Selection.activeObject = GetPresenter<VFXViewPresenter>().GetVFXAsset();
+                    Selection.activeObject = controller.model;
                 }
             }
         }
@@ -725,10 +908,15 @@ namespace UnityEditor.VFX.UI
             get { return selection.OfType<VFXNodeUI>().Any() || selection.OfType<GroupNode>().Any() || selection.OfType<VFXContextUI>().Any(); }
         }
 
+        IEnumerable<Controller> ElementsToController(IEnumerable<GraphElement> elements)
+        {
+            return elements.OfType<IControlledElement>().Select(t => t.controller);
+        }
+
         string SerializeElements(IEnumerable<GraphElement> elements)
         {
             pasteOffset = defaultPasteOffset;
-            return VFXCopyPaste.SerializeElements(elements.Select(t => t.presenter));
+            return VFXCopyPaste.SerializeElements(ElementsToController(elements));
         }
 
         void UnserializeAndPasteElements(string operationName, string data)
@@ -781,8 +969,7 @@ namespace UnityEditor.VFX.UI
 
             foreach (var c in contexts)
             {
-                c.presenter.position = new Rect(c.GetPosition().min + new Vector2(0, size), c.GetPosition().size);
-                c.OnDataChanged();
+                c.controller.position = c.GetPosition().min + new Vector2(0, size);
             }
         }
 

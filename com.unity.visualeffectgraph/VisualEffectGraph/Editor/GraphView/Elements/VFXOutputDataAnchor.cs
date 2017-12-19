@@ -11,12 +11,12 @@ namespace UnityEditor.VFX.UI
     partial class VFXOutputDataAnchor : VFXDataAnchor
     {
         // TODO This is a workaround to avoid having a generic type for the anchor as generic types mess with USS.
-        public static new VFXOutputDataAnchor Create(VFXDataAnchorPresenter presenter)
+        public static new VFXOutputDataAnchor Create(VFXDataAnchorController controller, VFXNodeUI node)
         {
-            var anchor = new VFXOutputDataAnchor(presenter.orientation, presenter.direction, presenter.portType);
+            var anchor = new VFXOutputDataAnchor(controller.orientation, controller.direction, controller.portType, node);
 
             anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
-            anchor.presenter = presenter;
+            anchor.controller = controller;
             anchor.AddManipulator(anchor.m_EdgeConnector);
             return anchor;
         }
@@ -24,7 +24,7 @@ namespace UnityEditor.VFX.UI
         Texture2D[] m_Icons;
         VisualElement m_Icon;
 
-        protected VFXOutputDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type) : base(anchorOrientation, anchorDirection, type)
+        protected VFXOutputDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type, VFXNodeUI node) : base(anchorOrientation, anchorDirection, type, node)
         {
             m_Icon = new VisualElement()
             {
@@ -37,30 +37,27 @@ namespace UnityEditor.VFX.UI
 
         void OnToggleExpanded()
         {
-            VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
-
-            if (presenter.expanded)
+            if (controller.expandedSelf)
             {
-                presenter.RetractPath();
+                controller.RetractPath();
             }
             else
             {
-                presenter.ExpandPath();
+                controller.ExpandPath();
             }
         }
 
         VisualElement[] m_Lines;
 
-        public override void OnDataChanged()
+        public override void SelfChange(int change)
         {
-            base.OnDataChanged();
-            VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
+            base.SelfChange(change);
 
-            if (presenter.depth != 0 && m_Lines == null)
+            if (controller.depth != 0 && m_Lines == null)
             {
-                m_Lines = new VisualElement[presenter.depth + 1];
+                m_Lines = new VisualElement[controller.depth + 1];
 
-                for (int i = 0; i < presenter.depth; ++i)
+                for (int i = 0; i < controller.depth; ++i)
                 {
                     var line = new VisualElement();
                     line.style.width = 1;
@@ -74,30 +71,30 @@ namespace UnityEditor.VFX.UI
             }
 
 
-            if (presenter.expandable)
+            if (controller.expandable)
             {
                 if (m_Icons == null)
                     m_Icons = new Texture2D[2];
 
-                m_Icons[0] = GetTypeIcon(presenter.portType, IconType.plus);
-                m_Icons[1] = GetTypeIcon(presenter.portType, IconType.minus);
+                m_Icons[0] = GetTypeIcon(controller.portType, IconType.plus);
+                m_Icons[1] = GetTypeIcon(controller.portType, IconType.minus);
 
-                m_Icon.style.backgroundImage = presenter.expanded ? m_Icons[1] : m_Icons[0];
+                m_Icon.style.backgroundImage = controller.expandedSelf ? m_Icons[1] : m_Icons[0];
 
                 m_Icon.AddManipulator(new Clickable(OnToggleExpanded));
             }
             else
             {
-                m_Icon.style.backgroundImage = GetTypeIcon(presenter.portType, IconType.simple);
+                m_Icon.style.backgroundImage = GetTypeIcon(controller.portType, IconType.simple);
             }
 
-            if (presenter.expandable)
-                m_Icon.style.backgroundImage = presenter.expanded ? m_Icons[1] : m_Icons[0];
+            if (controller.expandable)
+                m_Icon.style.backgroundImage = controller.expandedSelf ? m_Icons[1] : m_Icons[0];
 
 
             string text = "";
             string tooltip = null;
-            VFXPropertyAttribute.ApplyToGUI(presenter.attributes, ref text, ref tooltip);
+            VFXPropertyAttribute.ApplyToGUI(controller.attributes, ref text, ref tooltip);
 
             this.AddTooltip(tooltip);
         }

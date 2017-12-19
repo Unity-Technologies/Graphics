@@ -7,7 +7,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    partial class VFXViewPresenter : GraphViewPresenter
+    partial class VFXViewController : Controller<VFXAsset>
     {
         public event System.Action onRecompileEvent;
         public void RecompileExpressionGraphIfNeeded()
@@ -35,12 +35,8 @@ namespace UnityEditor.VFX.UI
 
         public void InvalidateExpressionGraph(VFXModel model, VFXModel.InvalidationCause cause)
         {
-            IncremenentGraphState();
-
             if (cause != VFXModel.InvalidationCause.kStructureChanged &&
                 cause != VFXModel.InvalidationCause.kConnectionChanged &&
-                /*cause != VFXModel.InvalidationCause.kExpressionInvalidated &&*/
-                //cause != VFXModel.InvalidationCause.kExpressionGraphChanged &&
                 cause != VFXModel.InvalidationCause.kParamChanged &&
                 cause != VFXModel.InvalidationCause.kSettingChanged)
                 return;
@@ -55,7 +51,7 @@ namespace UnityEditor.VFX.UI
 
             m_ExpressionContext = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
             HashSet<Object> currentObjects = new HashSet<Object>();
-            m_Graph.CollectDependencies(currentObjects);
+            graph.CollectDependencies(currentObjects);
 
             int nbExpr = 0;
             foreach (var o in currentObjects)

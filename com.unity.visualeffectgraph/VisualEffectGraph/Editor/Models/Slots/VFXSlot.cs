@@ -439,6 +439,11 @@ namespace UnityEditor.VFX
             m_MasterData = masterData;
         }
 
+        public void CleanupLinkedSlots()
+        {
+            m_LinkedSlots = m_LinkedSlots.Where(t => t != null).ToList();
+        }
+
         public int GetNbLinks() { return m_LinkedSlots.Count; }
         public bool HasLink(bool rescursive = false)
         {

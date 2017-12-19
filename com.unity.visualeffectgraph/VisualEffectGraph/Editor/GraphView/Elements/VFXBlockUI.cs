@@ -13,6 +13,12 @@ namespace UnityEditor.VFX.UI
     {
         Toggle m_EnableToggle;
 
+        public new VFXBlockController controller
+        {
+            get { return base.controller as VFXBlockController; }
+            set { base.controller = value; }
+        }
+
         public VFXBlockUI()
         {
             this.AddManipulator(new SelectionDropper(HandleDropEvent));
@@ -22,13 +28,33 @@ namespace UnityEditor.VFX.UI
             titleContainer.shadow.Insert(0, m_EnableToggle);
 
             capabilities &= ~Capabilities.Ascendable;
+            capabilities |= Capabilities.Selectable;
+
+            RegisterCallback<MouseDownEvent>(OnMouseDown, Capture.Capture);
+        }
+
+        void OnMouseDown(MouseDownEvent e)
+        {
+            VFXView view = this.GetFirstAncestorOfType<VFXView>();
+
+            if (view != null)
+            {
+                if (!e.shiftKey && !e.ctrlKey)
+                {
+                    view.ClearSelection();
+                }
+                if (IsSelected(view))
+                {
+                    view.RemoveFromSelection(this);
+                }
+                else
+                    view.AddToSelection(this);
+            }
         }
 
         void OnToggleEnable()
         {
-            var presenter = GetPresenter<VFXBlockPresenter>();
-
-            presenter.block.enabled = !presenter.block.enabled;
+            controller.block.enabled = !controller.block.enabled;
         }
 
         // This function is a placeholder for common stuff to do before we delegate the action to the drop target
@@ -61,16 +87,15 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override void OnDataChanged()
+        protected override void SelfChange()
         {
-            base.OnDataChanged();
-            var presenter = GetPresenter<VFXBlockPresenter>();
+            base.SelfChange();
 
-            m_EnableToggle.on = presenter.block.enabled;
+            m_EnableToggle.on = controller.block.enabled;
             if (inputContainer != null)
-                inputContainer.SetEnabled(presenter.block.enabled);
+                inputContainer.SetEnabled(controller.block.enabled);
             if (m_SettingsContainer != null)
-                m_SettingsContainer.SetEnabled(presenter.block.enabled);
+                m_SettingsContainer.SetEnabled(controller.block.enabled);
         }
 
         bool IDropTarget.CanAcceptDrop(List<ISelectable> selection)
@@ -94,12 +119,12 @@ namespace UnityEditor.VFX.UI
 
             IEnumerable<VFXBlockUI> draggedBlocksUI = selection.Select(t => t as VFXBlockUI).Where(t => t != null);
 
-            VFXBlockPresenter blockPresenter = GetPresenter<VFXBlockPresenter>();
-            VFXContextPresenter contextPresenter = blockPresenter.contextPresenter;
+            VFXBlockController blockController = controller;
+            VFXContextController contextController = blockController.contextController;
 
             if (context.CanDrop(draggedBlocksUI, this))
             {
-                context.BlocksDropped(blockPresenter, pos.y > layout.height / 2, draggedBlocksUI, evt.imguiEvent.control);
+                context.BlocksDropped(blockController, pos.y > layout.height / 2, draggedBlocksUI, evt.imguiEvent.control);
                 DragAndDrop.AcceptDrag();
             }
             else

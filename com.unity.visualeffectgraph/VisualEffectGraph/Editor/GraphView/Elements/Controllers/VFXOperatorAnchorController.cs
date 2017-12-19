@@ -6,11 +6,10 @@ using System;
 
 namespace UnityEditor.VFX.UI
 {
-    abstract class VFXOperatorAnchorPresenter : VFXDataAnchorPresenter
+    abstract class VFXOperatorAnchorController : VFXDataAnchorController
     {
-        public new void Init(VFXSlot model, VFXSlotContainerPresenter scPresenter)
+        public VFXOperatorAnchorController(VFXSlot model, VFXSlotContainerController sourceNode, bool hidden) : base(model, sourceNode, hidden)
         {
-            base.Init(model, scPresenter);
         }
 
         public static System.Type GetDisplayAnchorType(VFXSlot slot)
@@ -31,9 +30,7 @@ namespace UnityEditor.VFX.UI
 
                 if (newAnchorType != portType)
                 {
-                    this.sourceNode.viewPresenter.UnregisterDataAnchorPresenter(this);
                     portType = newAnchorType;
-                    this.sourceNode.viewPresenter.RegisterDataAnchorPresenter(this);
                 }
             }
             else
@@ -42,8 +39,12 @@ namespace UnityEditor.VFX.UI
     }
 
 
-    class VFXInputOperatorAnchorPresenter : VFXOperatorAnchorPresenter
+    class VFXInputOperatorAnchorController : VFXOperatorAnchorController
     {
+        public VFXInputOperatorAnchorController(VFXSlot model, VFXSlotContainerController sourceNode, bool hidden) : base(model, sourceNode, hidden)
+        {
+        }
+
         public override Direction direction
         {
             get
@@ -53,8 +54,12 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXOutputOperatorAnchorPresenter : VFXOperatorAnchorPresenter
+    class VFXOutputOperatorAnchorController : VFXOperatorAnchorController
     {
+        public VFXOutputOperatorAnchorController(VFXSlot model, VFXSlotContainerController sourceNode, bool hidden) : base(model, sourceNode, hidden)
+        {
+        }
+
         public override Direction direction
         {
             get

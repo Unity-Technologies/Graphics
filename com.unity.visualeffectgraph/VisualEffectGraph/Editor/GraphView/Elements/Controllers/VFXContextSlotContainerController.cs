@@ -9,31 +9,32 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXContextSlotContainerPresenter : VFXSlotContainerPresenter
+    class VFXContextSlotContainerController : VFXSlotContainerController
     {
-        protected override VFXDataAnchorPresenter AddDataAnchor(VFXSlot slot, bool input)
+        protected override VFXDataAnchorController AddDataAnchor(VFXSlot slot, bool input, bool hidden)
         {
             if (input)
             {
-                VFXContextDataInputAnchorPresenter anchorPresenter = CreateInstance<VFXContextDataInputAnchorPresenter>();
-                anchorPresenter.Init(slot, this);
+                VFXContextDataInputAnchorController anchorController = new VFXContextDataInputAnchorController(slot, this, hidden);
 
-                return anchorPresenter;
+                return anchorController;
             }
-            return null;
+            else
+            {
+                VFXContextDataOutputAnchorController anchorController = new VFXContextDataOutputAnchorController(slot, this, hidden);
+
+                return anchorController;
+            }
         }
 
-        public void Init(VFXModel model, VFXContextPresenter contextPresenter)
+        public VFXContextSlotContainerController(VFXModel model, VFXContextController contextController) : base(model, contextController.viewController)
         {
-            m_ContextPresenter = contextPresenter;
-            base.Init(model, contextPresenter.viewPresenter);
-
-            capabilities &= ~Capabilities.Selectable;
+            m_ContextController = contextController;
         }
 
-        public VFXContextPresenter contextPresenter
+        public VFXContextController contextController
         {
-            get { return m_ContextPresenter; }
+            get { return m_ContextController; }
         }
 
         public static bool IsTypeExpandable(System.Type type)
@@ -51,6 +52,6 @@ namespace UnityEditor.VFX.UI
             return typeof(ISpaceable).IsAssignableFrom(type) && field.Name == "space";
         }
 
-        protected VFXContextPresenter m_ContextPresenter;
+        protected VFXContextController m_ContextController;
     }
 }

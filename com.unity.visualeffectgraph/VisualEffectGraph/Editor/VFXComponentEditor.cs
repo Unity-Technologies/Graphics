@@ -376,7 +376,7 @@ public class VFXComponentEditor : Editor
         public Type type;
     }
 
-    Dictionary<VFXParameterPresenter, Infos> m_Infos = new Dictionary<VFXParameterPresenter, Infos>();
+    Dictionary<VFXParameterController, Infos> m_Infos = new Dictionary<VFXParameterController, Infos>();
 
     void OnParamGUI(VFXParameter parameter)
     {

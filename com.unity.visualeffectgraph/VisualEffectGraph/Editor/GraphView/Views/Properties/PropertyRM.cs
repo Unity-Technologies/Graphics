@@ -162,7 +162,6 @@ namespace UnityEditor.VFX.UI
                 }
             }
             m_Label.style.width = effectiveLabelWidth - provider.depth * VFXPropertyIM.depthOffset;
-            //m_Label.marginLeft = presenter.depth * VFXPropertyIM.depthOffset;
             Add(m_Label);
 
             AddToClassList("propertyrm");
@@ -207,10 +206,10 @@ namespace UnityEditor.VFX.UI
         };
 
 
-        static Type GetPropertyType(IPropertyRMProvider presenter)
+        static Type GetPropertyType(IPropertyRMProvider controller)
         {
             Type propertyType = null;
-            Type type = presenter.portType;
+            Type type = controller.portType;
 
             if (type.IsEnum)
             {
@@ -245,16 +244,15 @@ namespace UnityEditor.VFX.UI
             return propertyType;
         }
 
-        public static PropertyRM Create(IPropertyRMProvider presenter, float labelWidth)
+        public static PropertyRM Create(IPropertyRMProvider controller, float labelWidth)
         {
-            Type propertyType = GetPropertyType(presenter);
+            Type propertyType = GetPropertyType(controller);
 
-            return System.Activator.CreateInstance(propertyType, new object[] { presenter, labelWidth }) as PropertyRM;
+            return System.Activator.CreateInstance(propertyType, new object[] { controller, labelWidth }) as PropertyRM;
         }
 
         protected void NotifyValueChanged()
         {
-            //m_Presenter.SetPropertyValue(GetValue());
             m_Provider.value = GetValue();
         }
 
@@ -282,7 +280,7 @@ namespace UnityEditor.VFX.UI
 
     abstract class PropertyRM<T> : PropertyRM
     {
-        public PropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {}
         public override void SetValue(object obj)
         {
@@ -322,7 +320,7 @@ namespace UnityEditor.VFX.UI
     {
         public abstract ValueControl<T> CreateField();
 
-        public SimplePropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public SimplePropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
             m_Field = CreateField();
             m_Field.AddToClassList("fieldContainer");
@@ -372,7 +370,7 @@ namespace UnityEditor.VFX.UI
     {
         public abstract INotifyValueChanged<U> CreateField();
 
-        public SimpleUIPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public SimpleUIPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
             m_Field = CreateField();
 

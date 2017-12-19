@@ -15,18 +15,19 @@ namespace UnityEditor.VFX.UI
         {
             forceNotififcationOnAdd = true;
             pickingMode = PickingMode.Ignore;
+            capabilities &= ~Capabilities.Selectable;
 
 
             AddToClassList("VFXContextSlotContainerUI");
         }
 
-        public override Port InstantiatePort(PortPresenter presenter)
+        public override VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorController controller, VFXNodeUI node)
         {
-            VFXContextDataAnchorPresenter anchorPresenter = presenter as VFXContextDataAnchorPresenter;
+            VFXContextDataAnchorController anchorController = controller as VFXContextDataAnchorController;
 
-            VFXEditableDataAnchor anchor = VFXBlockDataAnchor.Create(anchorPresenter);
+            VFXEditableDataAnchor anchor = VFXBlockDataAnchor.Create(anchorController, node);
 
-            anchorPresenter.sourceNode.viewPresenter.onRecompileEvent += anchor.OnRecompile;
+            anchorController.sourceNode.viewController.onRecompileEvent += anchor.OnRecompile;
 
             return anchor;
         }
@@ -35,8 +36,8 @@ namespace UnityEditor.VFX.UI
         {
             if (anchor is VFXEditableDataAnchor)
             {
-                var viewPresenter = GetPresenter<VFXSlotContainerPresenter>().viewPresenter;
-                viewPresenter.onRecompileEvent += (anchor as VFXEditableDataAnchor).OnRecompile;
+                var viewController = controller.viewController;
+                viewController.onRecompileEvent += (anchor as VFXEditableDataAnchor).OnRecompile;
             }
         }
 
@@ -45,15 +46,14 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        public override void OnDataChanged()
+        protected override void SelfChange()
         {
-            base.OnDataChanged();
-            var presenter = GetPresenter<VFXContextSlotContainerPresenter>();
+            base.SelfChange();
+        }
 
-            if (presenter == null)
-                return;
-
-            SetPosition(presenter.position);
+        protected override bool HasPosition()
+        {
+            return false;
         }
 
         public VFXContextUI context

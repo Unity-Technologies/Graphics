@@ -7,14 +7,36 @@ using Type = System.Type;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXFlowAnchor : Port, IEdgeConnectorListener
+    class VFXFlowAnchor : Port, IControlledElement<VFXFlowAnchorController>, IEdgeConnectorListener
     {
-        public static VFXFlowAnchor Create(VFXFlowAnchorPresenter presenter)
+        VFXFlowAnchorController m_Controller;
+        Controller IControlledElement.controller
         {
-            var anchor = new VFXFlowAnchor(presenter.orientation, presenter.direction, presenter.portType);
+            get { return m_Controller; }
+        }
+        public VFXFlowAnchorController controller
+        {
+            get { return m_Controller; }
+            set
+            {
+                if (m_Controller != null)
+                {
+                    m_Controller.UnregisterHandler(this);
+                }
+                m_Controller = value;
+                if (m_Controller != null)
+                {
+                    m_Controller.RegisterHandler(this);
+                }
+            }
+        }
+
+        public static VFXFlowAnchor Create(VFXFlowAnchorController controller)
+        {
+            var anchor = new VFXFlowAnchor(controller.orientation, controller.direction, typeof(int));
             anchor.m_EdgeConnector = new EdgeConnector<VFXFlowEdge>(anchor);
             anchor.AddManipulator(anchor.m_EdgeConnector);
-            anchor.presenter = presenter;
+            anchor.controller = controller;
             return anchor;
         }
 
@@ -23,28 +45,28 @@ namespace UnityEditor.VFX.UI
             AddToClassList("EdgeConnector");
         }
 
-        public override void OnDataChanged()
+        void OnChange(ControllerChangedEvent e)
         {
-            base.OnDataChanged();
-            m_ConnectorText.text = "";
-
-            VFXFlowAnchorPresenter presenter = GetPresenter<VFXFlowAnchorPresenter>();
-
-            if (presenter.connected)
-                AddToClassList("connected");
-            else
-                RemoveFromClassList("connected");
-
-            switch (presenter.direction)
+            if (e.controller == controller)
             {
-                case Direction.Input:
-                    RemoveFromClassList("Output");
-                    AddToClassList("Input");
-                    break;
-                case Direction.Output:
-                    RemoveFromClassList("Input");
-                    AddToClassList("Output");
-                    break;
+                m_ConnectorText.text = "";
+
+                if (controller.connected)
+                    AddToClassList("connected");
+                else
+                    RemoveFromClassList("connected");
+
+                switch (controller.direction)
+                {
+                    case Direction.Input:
+                        RemoveFromClassList("Output");
+                        AddToClassList("Input");
+                        break;
+                    case Direction.Output:
+                        RemoveFromClassList("Input");
+                        AddToClassList("Output");
+                        break;
+                }
             }
         }
 
@@ -55,12 +77,16 @@ namespace UnityEditor.VFX.UI
 
         void IEdgeConnectorListener.OnDrop(GraphView graphView, Edge edge)
         {
-            VFXFlowEdgePresenter edgePresenter = VFXFlowEdgePresenter.CreateInstance<VFXFlowEdgePresenter>();
-            edge.presenter = edgePresenter;
-            edgePresenter.input = edge.input.GetPresenter<VFXFlowAnchorPresenter>();
-            edgePresenter.output = edge.output.GetPresenter<VFXFlowAnchorPresenter>();
+            VFXView view = graphView as VFXView;
+            VFXFlowEdge flowEdge = edge as VFXFlowEdge;
+            VFXFlowEdgeController edgeController = new VFXFlowEdgeController(flowEdge.input.controller, flowEdge.output.controller);
 
-            graphView.GetPresenter<VFXViewPresenter>().AddElement(edgePresenter);
+            if (flowEdge.controller != null)
+            {
+                view.controller.RemoveElement(flowEdge.controller);
+            }
+
+            view.controller.AddElement(edgeController);
         }
 
         bool ProviderFilter(VFXNodeProvider.Descriptor d)
@@ -71,12 +97,18 @@ namespace UnityEditor.VFX.UI
 
             if (direction == Direction.Input)
             {
-                return VFXContext.CanLink(desc.model, this.GetPresenter<VFXFlowAnchorPresenter>().context.context);
+                return VFXContext.CanLink(desc.model, controller.context.context);
             }
             else
             {
-                return VFXContext.CanLink(this.GetPresenter<VFXFlowAnchorPresenter>().context.context, desc.model);
+                return VFXContext.CanLink(controller.context.context, desc.model);
             }
+        }
+
+        public override void Disconnect(Edge edge)
+        {
+            base.Disconnect(edge);
+            UpdateCapColor();
         }
 
         void AddLinkedContext(VFXNodeProvider.Descriptor d, Vector2 mPos)
@@ -85,27 +117,25 @@ namespace UnityEditor.VFX.UI
             if (view == null) return;
             Vector2 tPos = view.ChangeCoordinatesTo(view.contentViewContainer, mPos);
 
-            VFXContext context = view.GetPresenter<VFXViewPresenter>().AddVFXContext(tPos, d.modelDescriptor as VFXModelDescriptor<VFXContext>);
+            VFXContext context = view.controller.AddVFXContext(tPos, d.modelDescriptor as VFXModelDescriptor<VFXContext>);
 
             if (context == null) return;
 
 
             if (direction == Direction.Input)
             {
-                this.GetPresenter<VFXFlowAnchorPresenter>().context.context.LinkFrom(context, 0, this.GetPresenter<VFXFlowAnchorPresenter>().slotIndex);
+                controller.context.context.LinkFrom(context, 0, controller.slotIndex);
             }
             else
             {
-                this.GetPresenter<VFXFlowAnchorPresenter>().context.context.LinkTo(context, this.GetPresenter<VFXFlowAnchorPresenter>().slotIndex, 0);
+                controller.context.context.LinkTo(context, controller.slotIndex, 0);
             }
         }
 
         void IEdgeConnectorListener.OnDropOutsidePort(Edge edge, Vector2 position)
         {
-            VFXFlowAnchorPresenter presenter = GetPresenter<VFXFlowAnchorPresenter>();
-
             VFXView view = this.GetFirstAncestorOfType<VFXView>();
-            VFXViewPresenter viewPresenter = view.GetPresenter<VFXViewPresenter>();
+            VFXViewController viewController = view.controller;
 
 
             VFXContextUI endContext = null;
@@ -117,38 +147,40 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
+            VFXFlowEdge flowEdge  = edge as VFXFlowEdge;
+            if (flowEdge.controller != null)
+            {
+                view.controller.RemoveElement(flowEdge.controller);
+            }
+
             if (endContext != null)
             {
-                VFXContextPresenter nodePresenter = endContext.GetPresenter<VFXContextPresenter>();
+                VFXContextController nodeController = endContext.controller;
 
-                var compatibleAnchors = viewPresenter.GetCompatiblePorts(presenter, null);
+                var compatibleAnchors = viewController.GetCompatiblePorts(controller, null);
 
-                if (presenter.direction == Direction.Input)
+                if (controller.direction == Direction.Input)
                 {
-                    foreach (var outputAnchor in nodePresenter.flowOutputAnchors)
+                    foreach (var outputAnchor in nodeController.flowOutputAnchors)
                     {
                         if (compatibleAnchors.Contains(outputAnchor))
                         {
-                            VFXFlowEdgePresenter edgePresenter = VFXFlowEdgePresenter.CreateInstance<VFXFlowEdgePresenter>();
-                            edgePresenter.input = presenter;
-                            edgePresenter.output = outputAnchor;
+                            VFXFlowEdgeController edgeController = new VFXFlowEdgeController(controller, outputAnchor);
 
-                            viewPresenter.AddElement(edgePresenter);
+                            viewController.AddElement(edgeController);
                             break;
                         }
                     }
                 }
                 else
                 {
-                    foreach (var inputAnchor in nodePresenter.flowInputAnchors)
+                    foreach (var inputAnchor in nodeController.flowInputAnchors)
                     {
                         if (compatibleAnchors.Contains(inputAnchor))
                         {
-                            VFXFlowEdgePresenter edgePresenter = VFXFlowEdgePresenter.CreateInstance<VFXFlowEdgePresenter>();
-                            edgePresenter.input = inputAnchor;
-                            edgePresenter.output = presenter;
+                            VFXFlowEdgeController edgeController = new VFXFlowEdgeController(inputAnchor, controller);
 
-                            viewPresenter.AddElement(edgePresenter);
+                            viewController.AddElement(edgeController);
                             break;
                         }
                     }
@@ -158,59 +190,6 @@ namespace UnityEditor.VFX.UI
             {
                 VFXFilterWindow.Show(Event.current.mousePosition, new VFXNodeProvider(AddLinkedContext, ProviderFilter, new Type[] { typeof(VFXContext)}));
             }
-            /*
-            else if (Event.current.modifiers == EventModifiers.Alt)
-            {
-                VFXContextType targetContextType = VFXContextType.kNone;
-                //TODO create the most obvious context and link
-                if (presenter.direction == Direction.Input)
-                {
-                    switch (presenter.owner.contextType)
-                    {
-                        case VFXContextType.kInit:
-                            targetContextType = VFXContextType.kSpawner;
-                            break;
-                        case VFXContextType.kUpdate:
-                            targetContextType = VFXContextType.kInit;
-                            break;
-                        case VFXContextType.kOutput:
-                            targetContextType = VFXContextType.kUpdate;
-                            break;
-                    }
-                }
-                else
-                {
-                    switch (presenter.owner.contextType)
-                    {
-                        case VFXContextType.kUpdate:
-                            targetContextType = VFXContextType.kOutput;
-                            break;
-                        case VFXContextType.kInit:
-                            targetContextType = VFXContextType.kUpdate;
-                            break;
-                        case VFXContextType.kSpawner:
-                            targetContextType = VFXContextType.kInit;
-                            break;
-                    }
-                }
-
-                if (targetContextType != VFXContextType.kNone)
-                {
-                    var contextDesc = VFXLibrary.GetContexts().FirstOrDefault(t => t.CreateInstance().contextType == targetContextType);
-                    if (contextDesc != null)
-                    {
-                        VFXContext newContext = viewPresenter.AddVFXContext(view.contentViewContainer.GlobalToBound(position) - new Vector2(188, presenter.direction == Direction.Input ? 92 : 16), contextDesc);
-
-                        VFXContextPresenter newContextPresenter = viewPresenter.elements.OfType<VFXContextPresenter>().FirstOrDefault(t => t.model == newContext);
-
-                        VFXFlowEdgePresenter edgePresenter = VFXFlowEdgePresenter.CreateInstance<VFXFlowEdgePresenter>();
-                        edgePresenter.input = presenter.direction == Direction.Input ? presenter : newContextPresenter.flowInputAnchors.First();
-                        edgePresenter.output = presenter.direction == Direction.Output ? presenter : newContextPresenter.flowOutputAnchors.First();
-
-                        viewPresenter.AddElement(edgePresenter);
-                    }
-                }
-            }*/
         }
     }
 }
