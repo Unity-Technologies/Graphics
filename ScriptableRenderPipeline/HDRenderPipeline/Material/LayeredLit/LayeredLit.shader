@@ -217,6 +217,9 @@ Shader "HDRenderPipeline/LayeredLit"
 
         // Stencil state
         [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting
+        [HideInInspector] _StencilWriteMask("_StencilWriteMask", Int) = 7 // StencilMask.Lighting  (fixed at compile time)
+        [HideInInspector] _StencilRefMV("_StencilRefMV", Int) = 128 // StencilLightingUsage.RegularLighting  (fixed at compile time)
+        [HideInInspector] _StencilWriteMaskMV("_StencilWriteMaskMV", Int) = 128 // StencilMask.ObjectsVelocity  (fixed at compile time)
 
         // Blending state
         [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
@@ -240,6 +243,8 @@ Shader "HDRenderPipeline/LayeredLit"
         [ToggleOff] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0
         [ToggleOff] _DisplacementLockTilingScale("displacement lock tiling scale", Float) = 1.0
         [ToggleOff] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
+
+        [ToggleOff] _EnableMotionVectorForVertexAnimation("EnableMotionVectorForVertexAnimation", Float) = 0.0
 
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
         _PPDMaxSamples("Max sample for POM", Range(1.0, 64.0)) = 15
@@ -457,7 +462,8 @@ Shader "HDRenderPipeline/LayeredLit"
 
             Stencil
             {
-                Ref  [_StencilRef]
+                WriteMask [_StencilWriteMask]
+                Ref [_StencilRef]
                 Comp Always
                 Pass Replace
             }
@@ -490,7 +496,8 @@ Shader "HDRenderPipeline/LayeredLit"
 
             Stencil
             {
-                Ref  [_StencilRef]
+                WriteMask [_StencilWriteMask]
+                Ref [_StencilRef]
                 Comp Always
                 Pass Replace
             }
@@ -522,7 +529,8 @@ Shader "HDRenderPipeline/LayeredLit"
 
             Stencil
             {
-                Ref  [_StencilRef]
+                WriteMask [_StencilWriteMask]
+                Ref [_StencilRef]
                 Comp Always
                 Pass Replace
             }
@@ -575,6 +583,15 @@ Shader "HDRenderPipeline/LayeredLit"
         {
             Name "Motion Vectors"
             Tags{ "LightMode" = "MotionVectors" } // Caution, this need to be call like this to setup the correct parameters by C++ (legacy Unity)
+
+            // If velocity pass (motion vectors) is enabled we tag the stencil so it don't perform CameraMotionVelocity
+            Stencil
+            {
+                WriteMask [_StencilWriteMaskMV]
+                Ref [_StencilRefMV]
+                Comp Always
+                Pass Replace
+            }
 
             Cull[_CullMode]
 
@@ -648,7 +665,8 @@ Shader "HDRenderPipeline/LayeredLit"
 
             Stencil
             {
-                Ref[_StencilRef]
+                WriteMask [_StencilWriteMask]
+                Ref [_StencilRef]
                 Comp Always
                 Pass Replace
             }
@@ -684,7 +702,8 @@ Shader "HDRenderPipeline/LayeredLit"
 
             Stencil
             {
-                Ref[_StencilRef]
+                WriteMask [_StencilWriteMask]
+                Ref [_StencilRef]
                 Comp Always
                 Pass Replace
             }
