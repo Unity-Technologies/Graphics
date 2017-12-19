@@ -1,4 +1,4 @@
-//-----------------------------------------------------------------------------
+﻿//-----------------------------------------------------------------------------
 // SurfaceData and BSDFData
 //-----------------------------------------------------------------------------
 
@@ -1535,6 +1535,15 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     }
 }
 
+//------------------------------------------------------------------------------------
+// Little helper to share code between sphere and box.
+// These function will fade the mask of a reflection volume based on normal orientation compare to direction define by the center of the reflection volume.
+float influenceFadeNormalWeight(float3 normal, float3 centerToPos)
+{
+    // Start weight from 0.6f (1 fully transparent) to 0.2f (fully opaque).
+    return saturate((-1.0f / 0.4f) * dot(normal, centerToPos) + (0.6f / 0.4f));
+}
+
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Env
 // ----------------------------------------------------------------------------
@@ -1649,7 +1658,20 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         // Influence volume
         // Calculate falloff value, so reflections on the edges of the volume would gradually blend to previous reflection.
         float distFade = DistancePointBox(positionLS, -lightData.innerDistance, lightData.innerDistance);
-        weight = saturate(1.0 - distFade / max(lightData.blendDistance, 0.0001)); // avoid divide by zero
+        float alpha = saturate(1.0 - distFade / max(lightData.blendDistance, 0.0001)); // avoid divide by zero
+
+        // Influence Normal volume
+        float3 insideBox = saturate(abs(positionLS) - lightData.innerDistance + float3(lightData.blendNormalDistance, lightData.blendNormalDistance, lightData.blendNormalDistance));
+        float insideWeight = influenceFadeNormalWeight(bsdfData.normalWS, normalize(positionWS - lightData.positionWS));
+        alpha *= any(insideBox > 0.0) ? insideWeight : 1.0;
+
+        //float3 rn = normalize(R);
+        //float3 faceFade = saturate(float3(6.0, 6.0, 6.0) * rn - float3(2.0, 2.0, 2.0));
+        //faceFade += saturate(float3(-6.0, -6.0, -6.0) * rn - float3(2.0, 2.0, 2.0));
+        //alpha *= saturate(1.0 - (faceFade.x + faceFade.y + faceFade.z));
+
+        //weight = smoothstep(alpha, 0.0, 1.0);
+        weight = alpha;
     }
 
     // Smooth weighting
