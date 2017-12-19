@@ -412,12 +412,46 @@ GraphInspectorView > #bottom > #properties > #items {
     padding-bottom: 4;
 }
 
-GraphInspectorView > #resize {
-    cursor: resize-up-left;
-    background-image : resource("GraphView/Nodes/NodeChevronLeft.png");
+GraphInspectorView > #resize-right {
+    cursor: resize-horizontal;
+    background-color: rgba(0, 0, 0, 0);
     position-type: absolute;
-    width: 16;
-    height: 16;
+    width: 5;
+    position-right: 0;
+    position-top: 0;
+    position-bottom: 0;
+}
+
+GraphInspectorView > #resize-left {
+    cursor: resize-horizontal;
+    background-color: rgba(0, 0, 0, 0);
+    position-type: absolute;
+    width: 5;
+    position-left: 0;
+    position-top: 0;
+    position-bottom: 0;
+    padding-left: 0;
+    margin-left: 0;
+}
+
+GraphInspectorView > #resize-top {
+    cursor: resize-vertical;
+    background-color: rgba(0, 0, 0, 0);
+    position-type: absolute;
+    height: 5;
+    position-left: 0;
+    position-right: 0;
+    position-top: 0;
+    padding-top: 0;
+    margin-top: 0;
+}
+
+GraphInspectorView > #resize-bottom {
+    cursor: resize-vertical;
+    background-color: rgba(0, 0, 0, 0);
+    position-type: absolute;
+    height: 5;
+    position-left: 0;
     position-right: 0;
     position-bottom: 0;
 }
