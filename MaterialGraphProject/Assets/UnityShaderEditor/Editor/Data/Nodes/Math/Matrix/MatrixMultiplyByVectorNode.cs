@@ -91,17 +91,16 @@ namespace UnityEditor.ShaderGraph
             return string.Format("{0} ({1}, {2})", GetFunctionName(), input1Value, input2Value);
         }
 
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("arg1", "arg2"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-            outputString.AddShaderChunk("return mul(arg1, arg2);", false);
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+            registry.ProvideFunction(GetFunctionName(), s =>
+            {
+                s.AppendLine(GetFunctionPrototype("arg1", "arg2"));
+                using (s.BlockScope())
+                {
+                    s.AppendLine("return mul(arg1, arg2);");
+                }
+            });
         }
     }
 }

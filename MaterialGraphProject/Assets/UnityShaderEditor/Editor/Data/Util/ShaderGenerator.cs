@@ -96,7 +96,7 @@ namespace UnityEditor.ShaderGraph
             var sb = new StringBuilder();
             foreach (var shaderChunk in m_ShaderChunks)
             {
-                var lines = shaderChunk.chunkString.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                var lines = Regex.Split(shaderChunk.chunkString, Environment.NewLine);
                 for (int index = 0; index < lines.Length; index++)
                 {
                     var line = lines[index];

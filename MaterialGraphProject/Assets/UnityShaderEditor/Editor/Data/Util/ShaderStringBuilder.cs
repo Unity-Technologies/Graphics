@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 
 namespace UnityEditor.ShaderGraph
@@ -26,22 +27,28 @@ namespace UnityEditor.ShaderGraph
 
         public void AppendNewLine()
         {
-            m_StringBuilder.Append(Environment.NewLine);
+            m_StringBuilder.AppendLine();
         }
 
         public void AppendLine(string value)
         {
-            AppendNewLine();
             AppendIndentation();
             m_StringBuilder.Append(value);
+            AppendNewLine();
         }
 
         [StringFormatMethod("formatString")]
         public void AppendLine(string formatString, params object[] args)
         {
-            AppendNewLine();
             AppendIndentation();
             m_StringBuilder.AppendFormat(formatString, args);
+            AppendNewLine();
+        }
+
+        public void AppendLines(string lines)
+        {
+            foreach (var line in Regex.Split(lines, Environment.NewLine))
+                AppendLine(line);
         }
 
         public void Append(string value)
@@ -64,16 +71,26 @@ namespace UnityEditor.ShaderGraph
         public IDisposable IndentScope()
         {
             m_ScopeStack.Push(ScopeType.Indent);
-            m_IndentationLevel++;
+            IncreaseIndent();
             return this;
         }
 
         public IDisposable BlockScope()
         {
             AppendLine("{");
-            m_IndentationLevel++;
+            IncreaseIndent();
             m_ScopeStack.Push(ScopeType.Block);
             return this;
+        }
+
+        public void IncreaseIndent()
+        {
+            m_IndentationLevel++;
+        }
+
+        public void DecreaseIndent()
+        {
+            m_IndentationLevel--;
         }
 
         public void Dispose()
@@ -81,10 +98,10 @@ namespace UnityEditor.ShaderGraph
             switch (m_ScopeStack.Pop())
             {
                 case ScopeType.Indent:
-                    m_IndentationLevel--;
+                    DecreaseIndent();
                     break;
                 case ScopeType.Block:
-                    m_IndentationLevel--;
+                    DecreaseIndent();
                     AppendLine("}");
                     break;
             }
@@ -93,11 +110,6 @@ namespace UnityEditor.ShaderGraph
         public override string ToString()
         {
             return m_StringBuilder.ToString();
-        }
-
-        public string ToString(int startIndex, int length)
-        {
-            return m_StringBuilder.ToString(startIndex, length);
         }
     }
 }

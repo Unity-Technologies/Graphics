@@ -147,12 +147,12 @@ namespace UnityEditor.ShaderGraph
             properties.AddRange(referencedGraph.GetPreviewProperties());
         }
 
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             if (referencedGraph == null)
                 return;
 
-            referencedGraph.GenerateNodeFunction(visitor, GenerationMode.ForReals);
+            referencedGraph.GenerateNodeFunction(registry, GenerationMode.ForReals);
         }
 
         public NeededCoordinateSpace RequiresNormal()

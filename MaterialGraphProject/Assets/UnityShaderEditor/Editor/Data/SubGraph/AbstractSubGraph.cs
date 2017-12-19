@@ -25,12 +25,12 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             foreach (var node in activeNodes)
             {
                 if (node is IGeneratesFunction)
-                    (node as IGeneratesFunction).GenerateNodeFunction(visitor, generationMode);
+                    (node as IGeneratesFunction).GenerateNodeFunction(registry, generationMode);
             }
         }
 

@@ -36,19 +36,22 @@ namespace UnityEditor.ShaderGraph
 ";
         }
 
-        public override void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
+        public override void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            string functionPreamble = @"
+            registry.ProvideFunction("unity_noise_randomValue", s => s.Append(@"
 inline float unity_noise_randomValue (float2 uv)
 {
     return frac(sin(dot(uv, float2(12.9898, 78.233)))*43758.5453);
-}
+}"));
 
+            registry.ProvideFunction("unity_noise_interpolate", s => s.Append(@"
 inline float unity_noise_interpolate (float a, float b, float t)
 {
     return (1.0-t)*a + (t*b);
 }
+"));
 
+            registry.ProvideFunction("unity_valueNoise", s => s.Append(@"
 inline float unity_valueNoise (float2 uv)
 {
     float2 i = floor(uv);
@@ -69,9 +72,9 @@ inline float unity_valueNoise (float2 uv)
     float topOfGrid = unity_noise_interpolate(r2, r3, f.x);
     float t = unity_noise_interpolate(bottomOfGrid, topOfGrid, f.y);
     return t;
-}";
-            visitor.AddShaderChunk(functionPreamble, true);
-            base.GenerateNodeFunction(visitor, generationMode);
+}"));
+
+            base.GenerateNodeFunction(registry, generationMode);
         }
     }
 }

@@ -182,5 +182,21 @@ namespace UnityEditor.ShaderGraph
             }
             visitor.AddShaderChunk(sb.ToString(), true);
         }
+
+        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
+        {
+            registry.ProvideFunction(GetFunctionName(), s =>
+            {
+                s.AppendLine("void {0}({1} In, {2} Flip, out {3} Out)",
+                    GetFunctionName(),
+                    FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToString(precision),
+                    FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToString(precision),
+                    FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision));
+                using (s.BlockScope())
+                {
+                    s.AppendLine("Out = abs(Flip - In);");
+                }
+            });
+        }
     }
 }
