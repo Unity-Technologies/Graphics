@@ -83,7 +83,7 @@ namespace UnityEditor.Experimental.Rendering
             k_InfluenceVolumeSection.Draw(s, p, this);
             k_SeparateProjectionVolumeSection.Draw(s, p, this);
             k_CaptureSection.Draw(s, p, this);
-            //k_AdditionalSection.Draw(s, p, this);
+            k_AdditionalSection.Draw(s, p, this);
             k_BakingActions.Draw(s, p, this);
 
             PerformOperations(s, p, this);
