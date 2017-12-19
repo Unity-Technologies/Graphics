@@ -416,7 +416,7 @@ GraphInspectorView > #resize-right {
     cursor: resize-horizontal;
     background-color: rgba(0, 0, 0, 0);
     position-type: absolute;
-    width: 5;
+    width: 10;
     position-right: 0;
     position-top: 0;
     position-bottom: 0;
@@ -426,7 +426,7 @@ GraphInspectorView > #resize-left {
     cursor: resize-horizontal;
     background-color: rgba(0, 0, 0, 0);
     position-type: absolute;
-    width: 5;
+    width: 10;
     position-left: 0;
     position-top: 0;
     position-bottom: 0;
@@ -438,7 +438,7 @@ GraphInspectorView > #resize-top {
     cursor: resize-vertical;
     background-color: rgba(0, 0, 0, 0);
     position-type: absolute;
-    height: 5;
+    height: 10;
     position-left: 0;
     position-right: 0;
     position-top: 0;
@@ -450,7 +450,7 @@ GraphInspectorView > #resize-bottom {
     cursor: resize-vertical;
     background-color: rgba(0, 0, 0, 0);
     position-type: absolute;
-    height: 5;
+    height: 10;
     position-left: 0;
     position-right: 0;
     position-bottom: 0;
