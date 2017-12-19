@@ -66,7 +66,7 @@
 #elif defined(SHADER_API_PSSL)
 #include "API/PSSL.hlsl"
 #elif defined(SHADER_API_XBOXONE)
-#include "API/XBoneOne.hlsl"
+#include "API/XBoxOne.hlsl"
 #elif defined(SHADER_API_METAL)
 #include "API/Metal.hlsl"
 #elif defined(SHADER_API_VULKAN)
