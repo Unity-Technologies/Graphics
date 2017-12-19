@@ -150,6 +150,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enableRoughRefraction = frameSettings.enableRoughRefraction;
             aggregate.enableTransparentPostPass = frameSettings.enableTransparentPostPass;
             aggregate.enableDistortion = camera.cameraType == CameraType.Reflection ? false : frameSettings.enableDistortion;
+
             // Planar and real time cubemap doesn't need post process and render in FP16
             aggregate.enablePostprocess = camera.cameraType == CameraType.Reflection ? false : frameSettings.enablePostprocess;
 
