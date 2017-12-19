@@ -72,10 +72,19 @@ namespace UnityEngine.Experimental.Rendering
             stack = CreateStack();
         }
 
+        public VolumeStack CreateStack()
+        {
+            var stack = new VolumeStack();
+            stack.Reload(baseComponentTypes);
+            return stack;
+        }
+
         // This will be called only once at runtime and everytime script reload kicks-in in the
         // editor as we need to keep track of any compatible component in the project
         void ReloadBaseTypes()
         {
+            m_ComponentsDefaultState.Clear();
+
             // Grab all the component types we can find
             baseComponentTypes = CoreUtils.GetAllAssemblyTypes()
                             .Where(t => t.IsSubclassOf(typeof(VolumeComponent)) && !t.IsAbstract);
@@ -87,11 +96,6 @@ namespace UnityEngine.Experimental.Rendering
                 var inst = (VolumeComponent)ScriptableObject.CreateInstance(type);
                 m_ComponentsDefaultState.Add(inst);
             }
-        }
-
-        public VolumeStack CreateStack()
-        {
-            return new VolumeStack(baseComponentTypes);
         }
 
         public void Register(Volume volume, int layer)
@@ -209,6 +213,29 @@ namespace UnityEngine.Experimental.Rendering
                 ReloadBaseTypes();
         }
 
+        [Conditional("UNITY_EDITOR")]
+        public void CheckStack(VolumeStack stack)
+        {
+            // The editor doesn't reload the domain when exiting play mode but still kills every
+            // object created while in play mode, like stacks' component states
+            var components = stack.components;
+
+            if (components == null)
+            {
+                stack.Reload(baseComponentTypes);
+                return;
+            }
+
+            foreach (var kvp in components)
+            {
+                if (kvp.Key == null || kvp.Value == null)
+                {
+                    stack.Reload(baseComponentTypes);
+                    return;
+                }
+            }
+        }
+
         // Update the global state - should be called once per frame per transform/layer mask combo
         // in the update loop before rendering
         public void Update(Transform trigger, LayerMask layerMask)
@@ -219,7 +246,10 @@ namespace UnityEngine.Experimental.Rendering
         // Update a specific stack - can be used to manage your own stack and store it for later use
         public void Update(VolumeStack stack, Transform trigger, LayerMask layerMask)
         {
+            Assert.IsNotNull(stack);
+
             CheckBaseTypes();
+            CheckStack(stack);
 
             // Start by resetting the global state to default values
             ReplaceData(stack, m_ComponentsDefaultState);

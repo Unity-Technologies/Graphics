@@ -27,7 +27,6 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 void Frag(  PackedVaryingsToPS packedInput,
             OUTPUT_GBUFFER(outGBuffer)
             OUTPUT_GBUFFER_SHADOWMASK(outShadowMaskBuffer)
-            OUTPUT_GBUFFER_VELOCITY(outVelocityBuffer)
             #ifdef _DEPTHOFFSET_ON
             , out float outputDepth : SV_Depth
             #endif
@@ -57,7 +56,6 @@ void Frag(  PackedVaryingsToPS packedInput,
 
     ENCODE_INTO_GBUFFER(surfaceData, bakeDiffuseLighting, posInput.positionSS, outGBuffer);
     ENCODE_SHADOWMASK_INTO_GBUFFER(float4(builtinData.shadowMask0, builtinData.shadowMask1, builtinData.shadowMask2, builtinData.shadowMask3), outShadowMaskBuffer);
-    ENCODE_VELOCITY_INTO_GBUFFER(builtinData.velocity, outVelocityBuffer);
 
 #ifdef _DEPTHOFFSET_ON
     outputDepth = posInput.deviceDepth;

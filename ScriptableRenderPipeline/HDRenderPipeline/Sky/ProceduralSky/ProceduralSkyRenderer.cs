@@ -4,7 +4,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         Material m_SkyProceduralMaterial;
         MaterialPropertyBlock m_PropertyBlock;
-        ProceduralSkySettings m_ProceduralSkyParams;
+        ProceduralSky m_ProceduralSkyParams;
 
         readonly int _SunSizeParam = Shader.PropertyToID("_SunSize");
         readonly int _SunSizeConvergenceParam = Shader.PropertyToID("_SunSizeConvergence");
@@ -14,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         readonly int _SunColorParam = Shader.PropertyToID("_SunColor");
         readonly int _SunDirectionParam = Shader.PropertyToID("_SunDirection");
 
-        public ProceduralSkyRenderer(ProceduralSkySettings proceduralSkyParams)
+        public ProceduralSkyRenderer(ProceduralSky proceduralSkyParams)
         {
             m_ProceduralSkyParams = proceduralSkyParams;
             m_PropertyBlock = new MaterialPropertyBlock();
@@ -69,7 +69,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             CoreUtils.DrawFullScreen(builtinParams.commandBuffer, m_SkyProceduralMaterial, m_PropertyBlock, renderForCubemap ? 0 : 1);
         }
 
-        public override bool IsSkyValid()
+        public override bool IsValid()
         {
             return true;
         }
