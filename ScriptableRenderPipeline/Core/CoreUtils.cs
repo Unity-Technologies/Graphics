@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
 
@@ -337,6 +338,19 @@ namespace UnityEngine.Experimental.Rendering
 
             mesh.triangles = triangles;
             return mesh;
+        }
+
+        public static BoundingSphere GetDecalMeshBoundingSphere(Matrix4x4 decalToWorld)
+        {
+
+            Vector4 min = new Vector4(-0.5f, -1.0f, -0.5f, 1.0f);
+            Vector4 max = new Vector4(0.5f, 0.0f, 0.5f, 1.0f);
+            min = decalToWorld * min;
+            max = decalToWorld * max;
+            BoundingSphere res = new BoundingSphere();
+            res.position = (max + min) / 2;
+            res.radius = ((Vector3)(max - min)).magnitude / 2;
+            return res;
         }
     }
 }
