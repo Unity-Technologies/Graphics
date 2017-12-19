@@ -75,8 +75,7 @@ namespace UnityEditor.Experimental.Rendering
         internal enum Operation
         {
             None = 0,
-            UpdateOldLocalSpace = 1 << 0,
-            FitVolumeToSurroundings = 1 << 1
+            FitVolumeToSurroundings = 1 << 0
         }
 
         internal class UIState

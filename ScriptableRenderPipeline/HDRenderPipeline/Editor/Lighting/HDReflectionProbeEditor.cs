@@ -52,6 +52,23 @@ namespace UnityEditor.Experimental.Rendering
                 var p = (ReflectionProbe)t;
                 s_ReflectionProbeEditors[p] = this;
             }
+
+            for (var i = 0; i < targets.Length; ++i)
+            {
+                var p = (ReflectionProbe)targets[i];
+                var a = additionalData[i];
+                InitializeProbe(p, a);
+                ChangeVisibility(p, true);
+            }
+        }
+
+        void OnDisable()
+        {
+            for (var i = 0; i < targets.Length; ++i)
+            {
+                var p = (ReflectionProbe)targets[i];
+                ChangeVisibility(p, false);
+            }
         }
 
         public override void OnInspectorGUI()
@@ -79,8 +96,7 @@ namespace UnityEditor.Experimental.Rendering
 
         static void PerformOperations(UIState s, SerializedReflectionProbe p, HDReflectionProbeEditor o)
         {
-            if (s.HasAndClearOperation(Operation.UpdateOldLocalSpace))
-                s.UpdateOldLocalSpace((ReflectionProbe)p.so.targetObject);
+            
         }
 
         void HideAdditionalComponents(bool visible)
@@ -219,15 +235,6 @@ namespace UnityEditor.Experimental.Rendering
         {
             var renderer = p.GetComponent<Renderer>();
             renderer.sharedMaterial.SetTexture(_Cubemap, p.texture);
-        }
-
-        static void ResetAllProbeSceneTextureInMaterial()
-        {
-            foreach (var data in HDAdditionalReflectionData.AllDatas)
-            {
-                var p = data.GetComponent<ReflectionProbe>();
-                ResetProbeSceneTextureInMaterial(p);
-            }
         }
     }
 }
