@@ -188,8 +188,8 @@ CBUFFER_START(UnityPerFrame)
     int unity_StereoEyeIndex;
 #endif
 
-    float4 unity_ShadowColor;
-
+    float3 unity_ShadowColor;
+    uint _TaaFrameIndex;      // [0, 7]
     // Volumetric lighting. Should be a struct in 'UnityPerFrame'.
     // Unfortunately, structures inside constant buffers are not supported by Unity.
     float3 _GlobalFog_Scattering;

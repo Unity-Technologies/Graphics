@@ -153,13 +153,6 @@ void UpdateLightingHierarchyWeights(inout float hierarchyWeight, inout float wei
 
 #ifdef SHADOWS_SHADOWMASK
     #define OUTPUT_GBUFFER_SHADOWMASK(NAME) ,out float4 NAME : SV_Target2
-    #if SHADEROPTIONS_VELOCITY_IN_GBUFFER
-    #define OUTPUT_GBUFFER_VELOCITY(NAME) ,out float4 NAME : SV_Target3
-    #endif
-#else
-    #if SHADEROPTIONS_VELOCITY_IN_GBUFFER
-    #define OUTPUT_GBUFFER_VELOCITY(NAME) ,out float4 NAME : SV_Target2
-    #endif
 #endif
 
 #elif GBUFFERMATERIAL_COUNT == 3
@@ -173,13 +166,6 @@ void UpdateLightingHierarchyWeights(inout float hierarchyWeight, inout float wei
 
 #ifdef SHADOWS_SHADOWMASK
     #define OUTPUT_GBUFFER_SHADOWMASK(NAME) ,out float4 NAME : SV_Target3
-    #if SHADEROPTIONS_VELOCITY_IN_GBUFFER
-    #define OUTPUT_GBUFFER_VELOCITY(NAME) ,out float4 NAME : SV_Target4
-    #endif
-#else
-    #if SHADEROPTIONS_VELOCITY_IN_GBUFFER
-    #define OUTPUT_GBUFFER_VELOCITY(NAME) ,out float4 NAME : SV_Target3
-    #endif
 #endif
 
 #elif GBUFFERMATERIAL_COUNT == 4
@@ -194,13 +180,6 @@ void UpdateLightingHierarchyWeights(inout float hierarchyWeight, inout float wei
 
 #ifdef SHADOWS_SHADOWMASK
     #define OUTPUT_GBUFFER_SHADOWMASK(NAME) ,out float4 NAME : SV_Target4
-    #if SHADEROPTIONS_VELOCITY_IN_GBUFFER
-    #define OUTPUT_GBUFFER_VELOCITY(NAME) ,out float4 NAME : SV_Target5
-    #endif
-#else
-    #if SHADEROPTIONS_VELOCITY_IN_GBUFFER
-    #define OUTPUT_GBUFFER_VELOCITY(NAME) ,out float4 NAME : SV_Target4
-    #endif
 #endif
 
 #elif GBUFFERMATERIAL_COUNT == 5
@@ -216,13 +195,6 @@ void UpdateLightingHierarchyWeights(inout float hierarchyWeight, inout float wei
 
 #ifdef SHADOWS_SHADOWMASK
     #define OUTPUT_GBUFFER_SHADOWMASK(NAME) ,out float4 NAME : SV_Target5
-    #if SHADEROPTIONS_VELOCITY_IN_GBUFFER
-    #define OUTPUT_GBUFFER_VELOCITY(NAME) ,out float4 NAME : SV_Target6
-    #endif
-#else
-    #if SHADEROPTIONS_VELOCITY_IN_GBUFFER
-    #define OUTPUT_GBUFFER_VELOCITY(NAME) ,out float4 NAME : SV_Target5
-    #endif
 #endif
 
 #elif GBUFFERMATERIAL_COUNT == 6
@@ -239,13 +211,6 @@ void UpdateLightingHierarchyWeights(inout float hierarchyWeight, inout float wei
 
 #ifdef SHADOWS_SHADOWMASK
     #define OUTPUT_GBUFFER_SHADOWMASK(NAME) ,out float4 NAME : SV_Target6
-    #if SHADEROPTIONS_VELOCITY_IN_GBUFFER
-    #define OUTPUT_GBUFFER_VELOCITY(NAME) ,out float4 NAME : SV_Target7
-    #endif
-#else
-    #if SHADEROPTIONS_VELOCITY_IN_GBUFFER
-    #define OUTPUT_GBUFFER_VELOCITY(NAME) ,out float4 NAME : SV_Target6
-    #endif
 #endif
 
 #endif
@@ -258,13 +223,6 @@ void UpdateLightingHierarchyWeights(inout float hierarchyWeight, inout float wei
 #else
 #define OUTPUT_GBUFFER_SHADOWMASK(NAME)
 #define ENCODE_SHADOWMASK_INTO_GBUFFER(SHADOWMASK, NAME)
-#endif
-
-#if SHADEROPTIONS_VELOCITY_IN_GBUFFER
-#define ENCODE_VELOCITY_INTO_GBUFFER(VELOCITY, NAME) EncodeVelocity(VELOCITY, NAME)
-#else
-#define OUTPUT_GBUFFER_VELOCITY(NAME)
-#define ENCODE_VELOCITY_INTO_GBUFFER(VELOCITY, NAME)
 #endif
 
 #endif // #ifdef GBUFFERMATERIAL_COUNT

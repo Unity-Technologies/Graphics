@@ -81,7 +81,9 @@ Shader "HDRenderPipeline/Lit"
 
         [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+        _AlphaCutoffPrepass("_AlphaCutoffPrepass", Range(0.0, 1.0)) = 0.5
         _AlphaCutoffPostpass("_AlphaCutoffPostpass", Range(0.0, 1.0)) = 0.5
+        [ToggleOff] _TransparentDepthPrepassEnable("_TransparentDepthPrepassEnable", Float) = 0.0
         [ToggleOff] _TransparentBackfaceEnable("_TransparentBackfaceEnable", Float) = 0.0
         [ToggleOff] _TransparentDepthPostpassEnable("_TransparentDepthPostpassEnable", Float) = 0.0
 
@@ -96,6 +98,9 @@ Shader "HDRenderPipeline/Lit"
 
         // Stencil state
         [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting  (fixed at compile time)
+        [HideInInspector] _StencilWriteMask("_StencilWriteMask", Int) = 7 // StencilMask.Lighting  (fixed at compile time)
+        [HideInInspector] _StencilRefMV("_StencilRefMV", Int) = 128 // StencilLightingUsage.RegularLighting  (fixed at compile time)
+        [HideInInspector] _StencilWriteMaskMV("_StencilWriteMaskMV", Int) = 128 // StencilMask.ObjectsVelocity  (fixed at compile time)
 
         // Blending state
         [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
@@ -126,6 +131,8 @@ Shader "HDRenderPipeline/Lit"
         [ToggleOff] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0
         [ToggleOff] _DisplacementLockTilingScale("displacement lock tiling scale", Float) = 1.0
         [ToggleOff] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
+
+        [ToggleOff] _EnableMotionVectorForVertexAnimation("EnableMotionVectorForVertexAnimation", Float) = 0.0
 
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
         _PPDMaxSamples("Max sample for POM", Range(1.0, 64.0)) = 15
@@ -259,6 +266,7 @@ Shader "HDRenderPipeline/Lit"
 
             Stencil
             {
+                WriteMask [_StencilWriteMask]
                 Ref  [_StencilRef]
                 Comp Always
                 Pass Replace
@@ -292,6 +300,7 @@ Shader "HDRenderPipeline/Lit"
 
             Stencil
             {
+                WriteMask [_StencilWriteMask]
                 Ref  [_StencilRef]
                 Comp Always
                 Pass Replace
@@ -324,6 +333,7 @@ Shader "HDRenderPipeline/Lit"
 
             Stencil
             {
+                WriteMask [_StencilWriteMask]
                 Ref  [_StencilRef]
                 Comp Always
                 Pass Replace
@@ -427,6 +437,15 @@ Shader "HDRenderPipeline/Lit"
             Name "Motion Vectors"
             Tags{ "LightMode" = "MotionVectors" } // Caution, this need to be call like this to setup the correct parameters by C++ (legacy Unity)
 
+            // If velocity pass (motion vectors) is enabled we tag the stencil so it don't perform CameraMotionVelocity
+            Stencil
+            {
+                WriteMask [_StencilWriteMaskMV]
+                Ref [_StencilRefMV]
+                Comp Always
+                Pass Replace
+            }
+
             Cull[_CullMode]
 
             ZWrite Off // TODO: Test Z equal here.
@@ -462,6 +481,30 @@ Shader "HDRenderPipeline/Lit"
             #include "ShaderPass/LitDistortionPass.hlsl"
             #include "LitData.hlsl"
             #include "../../ShaderPass/ShaderPassDistortion.hlsl"
+
+            ENDHLSL
+        }
+
+        // Caution: Order of pass mater. It should be:
+        // TransparentDepthPrepass, TransparentBackface, Forward/ForwardOnly, TransparentDepthPostpass
+        Pass
+        {
+            Name "TransparentDepthPrepass"
+            Tags{ "LightMode" = "TransparentDepthPrepass" }
+
+            Cull[_CullMode]
+            ZWrite On
+            ColorMask 0
+
+            HLSLPROGRAM
+
+            #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #define CUTOFF_TRANSPARENT_DEPTH_PREPASS
+            #include "../../ShaderVariables.hlsl"
+            #include "../../Material/Material.hlsl"
+            #include "ShaderPass/LitDepthPass.hlsl"
+            #include "LitData.hlsl"
+            #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
         }
@@ -502,7 +545,8 @@ Shader "HDRenderPipeline/Lit"
 
             Stencil
             {
-                Ref[_StencilRef]
+                WriteMask [_StencilWriteMask]
+                Ref [_StencilRef]
                 Comp Always
                 Pass Replace
             }
@@ -538,7 +582,8 @@ Shader "HDRenderPipeline/Lit"
 
             Stencil
             {
-                Ref[_StencilRef]
+                WriteMask [_StencilWriteMask]
+                Ref [_StencilRef]
                 Comp Always
                 Pass Replace
             }

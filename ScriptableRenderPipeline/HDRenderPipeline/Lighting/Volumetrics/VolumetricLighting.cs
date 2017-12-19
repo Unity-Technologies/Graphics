@@ -260,7 +260,7 @@ public partial class HDRenderPipeline : RenderPipeline
 
             camera.SetupComputeShader(m_VolumetricLightingCS, cmd);
 
-            bool enableClustered = m_Asset.lightLoopSettings.enableTileAndCluster;
+            bool enableClustered = m_FrameSettings.lightLoopSettings.enableTileAndCluster;
             int  kernel          = m_VolumetricLightingCS.FindKernel(enableClustered ? "VolumetricLightingClustered"
                                                                                      : "VolumetricLightingAllLights");
             int w = 0, h = 0, d = 0;
