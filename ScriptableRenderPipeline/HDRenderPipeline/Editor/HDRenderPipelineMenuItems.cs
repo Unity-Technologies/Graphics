@@ -37,6 +37,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     camera.gameObject.AddComponent<HDAdditionalCameraData>();
             }
         }
+        static void CheckOutFile(bool VSCEnabled, Material mat)
+        {
+            if (VSCEnabled)
+            {
+                UnityEditor.VersionControl.Task task = UnityEditor.VersionControl.Provider.Checkout(mat, UnityEditor.VersionControl.CheckoutMode.Both);
+
+                if (!task.success)
+                {
+                    Debug.Log(task.text + " " + task.resultCode);
+                }
+            }
+        }
 
         // This script is a helper for the artists to re-synchronize all layered materials
         [MenuItem("Internal/HDRenderPipeline/Synchronize all Layered materials")]
@@ -44,10 +56,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             var materials = Resources.FindObjectsOfTypeAll<Material>();
 
+            bool VSCEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
+
             foreach (var mat in materials)
             {
                 if (mat.shader.name == "HDRenderPipeline/LayeredLit" || mat.shader.name == "HDRenderPipeline/LayeredLitTessellation")
                 {
+                    CheckOutFile(VSCEnabled, mat);
                     LayeredLitGUI.SynchronizeAllLayers(mat);
                     EditorUtility.SetDirty(mat);
                 }
@@ -65,6 +80,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 var materials = Resources.FindObjectsOfTypeAll<Material>();
 
+                bool VSCEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
+
                 for (int i = 0, length = materials.Length; i < length; i++)
                 {
                     EditorUtility.DisplayProgressBar(
@@ -72,6 +89,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         string.Format("{0} / {1} materials cleaned.", i, length),
                         i / (float)(length - 1));
 
+                    CheckOutFile(VSCEnabled, materials[i]);
                     HDEditorUtils.ResetMaterialKeywords(materials[i]);
                 }
             }
@@ -88,6 +106,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 var matIds = AssetDatabase.FindAssets("t:Material");
 
+                bool VSCEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
+
                 for (int i = 0, length = matIds.Length; i < length; i++)
                 {
                     var path = AssetDatabase.GUIDToAssetPath(matIds[i]);
@@ -98,25 +118,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         string.Format("{0} / {1} materials cleaned.", i, length),
                         i / (float)(length - 1));
 
+                    CheckOutFile(VSCEnabled, mat);
                     HDEditorUtils.ResetMaterialKeywords(mat);
                 }
             }
             finally
             {
                 EditorUtility.ClearProgressBar();
-            }
-        }
-
-        static void CheckOutFile(bool VSCEnabled, Material mat)
-        {
-            if (VSCEnabled)
-            {
-                UnityEditor.VersionControl.Task task = UnityEditor.VersionControl.Provider.Checkout(mat, UnityEditor.VersionControl.CheckoutMode.Both);
-
-                if (!task.success)
-                {
-                    Debug.Log(task.text + " " + task.resultCode);
-                }
             }
         }
 

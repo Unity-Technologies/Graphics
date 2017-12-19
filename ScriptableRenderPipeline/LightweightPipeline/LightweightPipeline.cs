@@ -328,7 +328,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void DepthPass(ref ScriptableRenderContext context)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Depth Prepass");
-            SetRenderTarget(cmd, m_DepthRT);
+            SetRenderTarget(cmd, m_DepthRT, ClearFlag.Depth);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 

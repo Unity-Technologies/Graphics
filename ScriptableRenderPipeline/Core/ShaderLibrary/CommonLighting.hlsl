@@ -275,7 +275,8 @@ float3 GetViewReflectedNormal(float3 N, float3 V, out float NdotV)
 
     NdotV = dot(N, V);
 
-    N = (NdotV >= 0.0) ? N : (N - 2.0 * NdotV * V);
+    // N = (NdotV >= 0.0) ? N : (N - 2.0 * NdotV * V);
+    N += (2.0 * saturate(-NdotV)) * V;
     NdotV = abs(NdotV);
 
     return N;
