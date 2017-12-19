@@ -80,7 +80,6 @@ namespace UnityEditor.Experimental.Rendering
         static void Handle_InfluenceBoxEditing(UIState s, SerializedReflectionProbe sp, Editor o)
         {
             var p = (ReflectionProbe)sp.so.targetObject;
-            var a = p.GetComponent<HDAdditionalReflectionData>();
 
             using (new Handles.DrawingScope(GetLocalSpace(p)))
             {
