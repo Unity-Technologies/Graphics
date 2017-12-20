@@ -18,8 +18,8 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #include "ShaderLibrary/Common.hlsl"
-            #include "ShaderLibrary/ImageBasedLighting.hlsl"
+            #include "CoreRP/ShaderLibrary/Common.hlsl"
+            #include "CoreRP/ShaderLibrary/ImageBasedLighting.hlsl"
             #include "GGXConvolution.cs.hlsl"
             #include "../../ShaderVariables.hlsl"
 

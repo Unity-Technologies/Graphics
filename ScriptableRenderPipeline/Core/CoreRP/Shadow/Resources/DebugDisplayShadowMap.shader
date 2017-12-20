@@ -4,7 +4,7 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayShadowMap"
         #pragma target 4.5
         #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
-        #include "ShaderLibrary/Common.hlsl"
+        #include "CoreRP/ShaderLibrary/Common.hlsl"
 
         float4 _TextureScaleBias;
         float _TextureSlice;

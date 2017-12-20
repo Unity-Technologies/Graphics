@@ -35,10 +35,10 @@
 // Included headers
 //--------------------------------------------------------------------------------------------------
 
-#include "ShaderLibrary/Common.hlsl"
-#include "ShaderLibrary/Packing.hlsl"
-#include "ShaderLibrary/Sampling/Sampling.hlsl"
-#include "ShaderLibrary/SpaceFillingCurves.hlsl"
+#include "CoreRP/ShaderLibrary/Common.hlsl"
+#include "CoreRP/ShaderLibrary/Packing.hlsl"
+#include "CoreRP/ShaderLibrary/Sampling/Sampling.hlsl"
+#include "CoreRP/ShaderLibrary/SpaceFillingCurves.hlsl"
 #include "../../ShaderVariables.hlsl"
 #include "../../Lighting/LightDefinition.cs.hlsl"
 #include "SubsurfaceScattering.hlsl"

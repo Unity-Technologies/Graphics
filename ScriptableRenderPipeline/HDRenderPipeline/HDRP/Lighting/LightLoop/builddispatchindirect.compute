@@ -1,6 +1,6 @@
 #pragma kernel BuildDispatchIndirect
 
-#include "ShaderLibrary/Common.hlsl"
+#include "CoreRP/ShaderLibrary/Common.hlsl"
 #include "LightLoop.cs.hlsl"
 
 #include "../../ShaderVariables.hlsl"

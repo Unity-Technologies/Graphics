@@ -30,7 +30,7 @@
     #define SHADOW_OPTIMIZE_REGISTER_USAGE   0
 #endif
 
-#include "Shadow/ShadowBase.cs.hlsl"	// ShadowData definition, auto generated (don't modify)
+#include "CoreRP/Shadow/ShadowBase.cs.hlsl"	// ShadowData definition, auto generated (don't modify)
 #include "ShadowTexFetch.hlsl"						// Resource sampling definitions (don't modify)
 
 struct ShadowContext

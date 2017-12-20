@@ -1,7 +1,7 @@
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
-#include "ShaderLibrary/Sampling/SampleUVMapping.hlsl"
+#include "CoreRP/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
 #include "../MaterialUtilities.hlsl"
 #include "../Decal/DecalUtilities.hlsl"
 

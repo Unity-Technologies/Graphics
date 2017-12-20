@@ -16,8 +16,8 @@ Shader "Hidden/HDRenderPipeline/DebugDisplayLatlong"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #include "ShaderLibrary/Common.hlsl"
-            #include "ShaderLibrary/ImageBasedLighting.hlsl"
+            #include "CoreRP/ShaderLibrary/Common.hlsl"
+            #include "CoreRP/ShaderLibrary/ImageBasedLighting.hlsl"
 
             TEXTURECUBE(_InputCubemap);
             SAMPLER(sampler_InputCubemap);
