@@ -86,6 +86,7 @@ Pass
 		float Smoothness = 0.5;
 		float Occlusion = 1;
 		float Alpha = 1;
+		float AlphaClipThreshold = 0;
 
         ${SurfaceOutputRemap}
 
@@ -126,7 +127,7 @@ Pass
 #endif
 
 #if _AlphaClip
-		clip(Alpha - 0.01);
+		clip(Alpha - AlphaClipThreshold);
 #endif
 		return color;
     }

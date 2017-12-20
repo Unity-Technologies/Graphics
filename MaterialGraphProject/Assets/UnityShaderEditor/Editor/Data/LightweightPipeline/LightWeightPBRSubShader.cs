@@ -19,7 +19,8 @@ namespace UnityEditor.ShaderGraph
                 PBRMasterNode.MetallicSlotId,
                 PBRMasterNode.SmoothnessSlotId,
                 PBRMasterNode.OcclusionSlotId,
-                PBRMasterNode.AlphaSlotId
+                PBRMasterNode.AlphaSlotId,
+                PBRMasterNode.AlphaThresholdSlotId
             }
         };
 
@@ -41,7 +42,8 @@ namespace UnityEditor.ShaderGraph
                 PBRMasterNode.SpecularSlotId,
                 PBRMasterNode.SmoothnessSlotId,
                 PBRMasterNode.OcclusionSlotId,
-                PBRMasterNode.AlphaSlotId
+                PBRMasterNode.AlphaSlotId,
+                PBRMasterNode.AlphaThresholdSlotId
             }
         };
 
@@ -179,18 +181,16 @@ struct GraphVertexInput
                 case PBRMasterNode.AlphaMode.AdditiveBlend:
                     defines.AddShaderChunk("#define _AlphaOut 1", true);
                     break;
-                case PBRMasterNode.AlphaMode.Clip:
-                    defines.AddShaderChunk("#define _AlphaClip 1", true);
-                    break;
             }
+
+            if (masterNode.IsSlotConnected(PBRMasterNode.AlphaThresholdSlotId))
+                defines.AddShaderChunk("#define _AlphaClip 1", true);
 
             var templateLocation = ShaderGenerator.GetTemplatePath(template);
 
             foreach (var slot in usedSlots)
             {
-                surfaceOutputRemap.AddShaderChunk(slot.shaderOutputName
-                    + " = surf."
-                    + slot.shaderOutputName + ";", true);
+                surfaceOutputRemap.AddShaderChunk(string.Format("{0} = surf.{0};", slot.shaderOutputName), true);
             }
 
             if (!File.Exists(templateLocation))
@@ -225,8 +225,7 @@ struct GraphVertexInput
             var materialOptions = new SurfaceMaterialOptions();
             switch (masterNode.alphaMode)
             {
-                case PBRMasterNode.AlphaMode.Overwrite:
-                case PBRMasterNode.AlphaMode.Clip:
+                case PBRMasterNode.AlphaMode.Opaque:
                     materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
                     materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.Zero;
                     materialOptions.cullMode = SurfaceMaterialOptions.CullMode.Back;

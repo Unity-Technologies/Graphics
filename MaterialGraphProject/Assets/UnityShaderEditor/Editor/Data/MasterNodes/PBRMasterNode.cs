@@ -19,6 +19,7 @@ namespace UnityEditor.ShaderGraph
         public const string SmoothnessSlotName = "Smoothness";
         public const string OcclusionSlotName = "Occlusion";
         public const string AlphaSlotName = "Alpha";
+        public const string AlphaClipThresholdSlotName = "AlphaClipThreshold";
         public const string VertexOffsetName = "VertexPosition";
 
         public const int AlbedoSlotId = 0;
@@ -29,6 +30,7 @@ namespace UnityEditor.ShaderGraph
         public const int SmoothnessSlotId = 5;
         public const int OcclusionSlotId = 6;
         public const int AlphaSlotId = 7;
+        public const int AlphaThresholdSlotId = 8;
 
         public enum Model
         {
@@ -38,10 +40,9 @@ namespace UnityEditor.ShaderGraph
 
         public enum AlphaMode
         {
-            Overwrite,
+            Opaque,
             AlphaBlend,
-            AdditiveBlend,
-            Clip
+            AdditiveBlend
         }
 
         [SerializeField]
@@ -109,6 +110,7 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector1MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, 0.5f, ShaderStage.Fragment));
             AddSlot(new Vector1MaterialSlot(OcclusionSlotId, OcclusionSlotName, OcclusionSlotName, SlotType.Input, 1f, ShaderStage.Fragment));
             AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1f, ShaderStage.Fragment));
+            AddSlot(new Vector1MaterialSlot(AlphaThresholdSlotId, AlphaClipThresholdSlotName, AlphaClipThresholdSlotName, SlotType.Input, 0f, ShaderStage.Fragment));
 
             // clear out slot names that do not match the slots
             // we support
@@ -121,7 +123,8 @@ namespace UnityEditor.ShaderGraph
                 model == Model.Metallic ? MetallicSlotId : SpecularSlotId,
                 SmoothnessSlotId,
                 OcclusionSlotId,
-                AlphaSlotId
+                AlphaSlotId,
+                AlphaThresholdSlotId
             });
         }
 
