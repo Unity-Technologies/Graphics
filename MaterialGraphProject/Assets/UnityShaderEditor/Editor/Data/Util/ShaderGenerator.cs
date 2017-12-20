@@ -341,8 +341,11 @@ namespace UnityEditor.ShaderGraph
 
         public static string EmitTransform(TransformDesc[] matrices, TransformDesc[] invMatrices, string variable, bool isAffine, bool inverseTranspose)
         {
+            // Use inverse transpose for situations where
+            // scale needs to be considered (normals)
             if (inverseTranspose)
                 matrices = invMatrices;
+
             if (isAffine)
             {
                 variable = string.Format("float4({0},1.0)", variable);
@@ -354,6 +357,10 @@ namespace UnityEditor.ShaderGraph
                 {
                     matrix = "(float3x3)" + matrix;
                 }
+
+                // if the matrix is NOT a transpose type
+                // invert the order of multiplication
+                // it is implicit transpose.
                 if (m.transpose)
                     inverseTranspose = !inverseTranspose;
                 variable = inverseTranspose
