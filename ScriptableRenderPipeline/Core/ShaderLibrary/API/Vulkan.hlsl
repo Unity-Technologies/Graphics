@@ -3,9 +3,9 @@
 
 #define UNITY_UV_STARTS_AT_TOP 1
 #define UNITY_REVERSED_Z 1
-#define UNITY_NEAR_CLIP_VALUE (REAL(1.0))
+#define UNITY_NEAR_CLIP_VALUE (real(1.0))
 // This value will not go through any matrix projection conversion
-#define UNITY_RAW_FAR_CLIP_VALUE (REAL(0.0))
+#define UNITY_RAW_FAR_CLIP_VALUE (real(0.0))
 #define FRONT_FACE_SEMANTIC SV_IsFrontFace
 #define FRONT_FACE_TYPE bool
 #define IS_FRONT_VFACE(VAL, FRONT, BACK) ((VAL) ? (FRONT) : (BACK))
@@ -67,22 +67,22 @@
 #define SAMPLE_TEXTURE2D_LOD(textureName, samplerName, coord2, lod)                  textureName.SampleLevel(samplerName, coord2, lod)
 #define SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, coord2, bias)                textureName.SampleBias(samplerName, coord2, bias)
 #define SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, coord2, dpdx, dpdy)          textureName.SampleGrad(samplerName, coord2, dpdx, dpdy)
-#define SAMPLE_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index)              textureName.Sample(samplerName, REAL3(coord2, index))
-#define SAMPLE_TEXTURE2D_ARRAY_LOD(textureName, samplerName, coord2, index, lod)     textureName.SampleLevel(samplerName, REAL3(coord2, index), lod)
-#define SAMPLE_TEXTURE2D_ARRAY_BIAS(textureName, samplerName, coord2, index, bias)   textureName.SampleBias(samplerName, REAL3(coord2, index), bias)
+#define SAMPLE_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index)              textureName.Sample(samplerName, real3(coord2, index))
+#define SAMPLE_TEXTURE2D_ARRAY_LOD(textureName, samplerName, coord2, index, lod)     textureName.SampleLevel(samplerName, real3(coord2, index), lod)
+#define SAMPLE_TEXTURE2D_ARRAY_BIAS(textureName, samplerName, coord2, index, bias)   textureName.SampleBias(samplerName, real3(coord2, index), bias)
 #define SAMPLE_TEXTURECUBE(textureName, samplerName, coord3)                         textureName.Sample(samplerName, coord3)
 #define SAMPLE_TEXTURECUBE_LOD(textureName, samplerName, coord3, lod)                textureName.SampleLevel(samplerName, coord3, lod)
 #define SAMPLE_TEXTURECUBE_BIAS(textureName, samplerName, coord3, bias)              textureName.SampleBias(samplerName, coord3, bias)
-#define SAMPLE_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index)            textureName.Sample(samplerName, REAL4(coord3, index))
-#define SAMPLE_TEXTURECUBE_ARRAY_LOD(textureName, samplerName, coord3, index, lod)   textureName.SampleLevel(samplerName, REAL4(coord3, index), lod)
-#define SAMPLE_TEXTURECUBE_ARRAY_BIAS(textureName, samplerName, coord3, index, bias) textureName.SampleBias(samplerName, REAL4(coord3, index), bias)
+#define SAMPLE_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index)            textureName.Sample(samplerName, real4(coord3, index))
+#define SAMPLE_TEXTURECUBE_ARRAY_LOD(textureName, samplerName, coord3, index, lod)   textureName.SampleLevel(samplerName, real4(coord3, index), lod)
+#define SAMPLE_TEXTURECUBE_ARRAY_BIAS(textureName, samplerName, coord3, index, bias) textureName.SampleBias(samplerName, real4(coord3, index), bias)
 #define SAMPLE_TEXTURE3D(textureName, samplerName, coord3)                           textureName.Sample(samplerName, coord3)
 #define SAMPLE_TEXTURE3D_LOD(textureName, samplerName, coord3, lod) 				 textureName.SampleLevel(samplerName, coord3, lod)
 
 #define SAMPLE_TEXTURE2D_SHADOW(textureName, samplerName, coord3)                    textureName.SampleCmpLevelZero(samplerName, (coord3).xy, (coord3).z)
-#define SAMPLE_TEXTURE2D_ARRAY_SHADOW(textureName, samplerName, coord3, index)       textureName.SampleCmpLevelZero(samplerName, REAL3((coord3).xy, index), (coord3).z)
+#define SAMPLE_TEXTURE2D_ARRAY_SHADOW(textureName, samplerName, coord3, index)       textureName.SampleCmpLevelZero(samplerName, real3((coord3).xy, index), (coord3).z)
 #define SAMPLE_TEXTURECUBE_SHADOW(textureName, samplerName, coord4)                  textureName.SampleCmpLevelZero(samplerName, (coord3).xyz, (coord3).w)
-#define SAMPLE_TEXTURECUBE_ARRAY_SHADOW(textureName, samplerName, coord4, index)     textureName.SampleCmpLevelZero(samplerName, REAL4((coord4).xyz, index), (coord4).w)
+#define SAMPLE_TEXTURECUBE_ARRAY_SHADOW(textureName, samplerName, coord4, index)     textureName.SampleCmpLevelZero(samplerName, real4((coord4).xyz, index), (coord4).w)
 
 #define SAMPLE_DEPTH_TEXTURE(textureName, samplerName, coord2)          SAMPLE_TEXTURE2D(textureName, samplerName, coord2).r
 #define SAMPLE_DEPTH_TEXTURE_LOD(textureName, samplerName, coord2, lod) SAMPLE_TEXTURE2D_LOD(textureName, samplerName, coord2, lod).r
@@ -96,9 +96,9 @@
 #define LOAD_TEXTURE3D_LOD(textureName, unCoord3, lod)              textureName.Load(int4(unCoord3, lod))
 
 #define GATHER_TEXTURE2D(textureName, samplerName, coord2)                textureName.Gather(samplerName, coord2)
-#define GATHER_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index)   textureName.Gather(samplerName, REAL3(coord2, index))
+#define GATHER_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index)   textureName.Gather(samplerName, real3(coord2, index))
 #define GATHER_TEXTURECUBE(textureName, samplerName, coord3)              textureName.Gather(samplerName, coord3)
-#define GATHER_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index) textureName.Gather(samplerName, REAL4(coord3, index))
+#define GATHER_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index) textureName.Gather(samplerName, real4(coord3, index))
 
 #define GATHER_RED_TEXTURE2D(textureName, samplerName, coord2)              textureName.GatherRed(samplerName, coord2)
 #define GATHER_GREEN_TEXTURE2D(textureName, samplerName, coord2)            textureName.GatherGreen(samplerName, coord2)

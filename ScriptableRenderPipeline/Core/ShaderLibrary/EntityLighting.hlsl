@@ -6,11 +6,11 @@
 // TODO: Check if PI is correctly handled!
 
 // Ref: "Efficient Evaluation of Irradiance Environment Maps" from ShaderX 2
-REAL3 SHEvalLinearL0L1(REAL3 N, REAL4 shAr, REAL4 shAg, REAL4 shAb)
+real3 SHEvalLinearL0L1(real3 N, real4 shAr, real4 shAg, real4 shAb)
 {
-    REAL4 vA = REAL4(N, 1.0);
+    real4 vA = real4(N, 1.0);
 
-    REAL3 x1;
+    real3 x1;
     // Linear (L1) + constant (L0) polynomial terms
     x1.r = dot(shAr, vA);
     x1.g = dot(shAg, vA);
@@ -19,34 +19,34 @@ REAL3 SHEvalLinearL0L1(REAL3 N, REAL4 shAr, REAL4 shAg, REAL4 shAb)
     return x1;
 }
 
-REAL3 SHEvalLinearL2(REAL3 N, REAL4 shBr, REAL4 shBg, REAL4 shBb, REAL4 shC)
+real3 SHEvalLinearL2(real3 N, real4 shBr, real4 shBg, real4 shBb, real4 shC)
 {
-    REAL3 x2;
+    real3 x2;
     // 4 of the quadratic (L2) polynomials
-    REAL4 vB = N.xyzz * N.yzzx;
+    real4 vB = N.xyzz * N.yzzx;
     x2.r = dot(shBr, vB);
     x2.g = dot(shBg, vB);
     x2.b = dot(shBb, vB);
 
     // Final (5th) quadratic (L2) polynomial
-    REAL vC = N.x * N.x - N.y * N.y;
-    REAL3 x3 = shC.rgb * vC;
+    real vC = N.x * N.x - N.y * N.y;
+    real3 x3 = shC.rgb * vC;
 
     return x2 + x3;
 }
 
-REAL3 SampleSH9(REAL4 SHCoefficients[7], REAL3 N)
+real3 SampleSH9(real4 SHCoefficients[7], real3 N)
 {
-    REAL4 shAr = SHCoefficients[0];
-    REAL4 shAg = SHCoefficients[1];
-    REAL4 shAb = SHCoefficients[2];
-    REAL4 shBr = SHCoefficients[3];
-    REAL4 shBg = SHCoefficients[4];
-    REAL4 shBb = SHCoefficients[5];
-    REAL4 shCr = SHCoefficients[6];
+    real4 shAr = SHCoefficients[0];
+    real4 shAg = SHCoefficients[1];
+    real4 shAb = SHCoefficients[2];
+    real4 shBr = SHCoefficients[3];
+    real4 shBg = SHCoefficients[4];
+    real4 shBb = SHCoefficients[5];
+    real4 shCr = SHCoefficients[6];
 
     // Linear + constant polynomial terms
-    REAL3 res = SHEvalLinearL0L1(N, shAr, shAg, shAb);
+    real3 res = SHEvalLinearL0L1(N, shAr, shAg, shAb);
 
     // Quadratic polynomials
     res += SHEvalLinearL2(N, shBr, shBg, shBb, shCr);
@@ -59,32 +59,32 @@ REAL3 SampleSH9(REAL4 SHCoefficients[7], REAL3 N)
 // TODO: the packing here is inefficient as we will fetch values far away from each other and they may not fit into the cache - Suggest we pack RGB continuously
 // TODO: The calcul of texcoord could be perform with a single matrix multicplication calcualted on C++ side that will fold probeVolumeMin and probeVolumeSizeInv into it and handle the identity case, no reasons to do it in C++ (ask Ionut about it)
 // It should also handle the camera relative path (if the render pipeline use it)
-REAL3 SampleProbeVolumeSH4(TEXTURE3D_ARGS(SHVolumeTexture, SHVolumeSampler), REAL3 positionWS, REAL3 normalWS, REAL4x4 WorldToTexture,
-                            REAL transformToLocal, REAL texelSizeX, REAL3 probeVolumeMin, REAL3 probeVolumeSizeInv)
+real3 SampleProbeVolumeSH4(TEXTURE3D_ARGS(SHVolumeTexture, SHVolumeSampler), real3 positionWS, real3 normalWS, real4x4 WorldToTexture,
+                            real transformToLocal, real texelSizeX, real3 probeVolumeMin, real3 probeVolumeSizeInv)
 {
-    REAL3 position = (transformToLocal == 1.0) ? mul(WorldToTexture, REAL4(positionWS, 1.0)).xyz : positionWS;
-    REAL3 texCoord = (position - probeVolumeMin) * probeVolumeSizeInv.xyz;
+    real3 position = (transformToLocal == 1.0) ? mul(WorldToTexture, real4(positionWS, 1.0)).xyz : positionWS;
+    real3 texCoord = (position - probeVolumeMin) * probeVolumeSizeInv.xyz;
     // Each component is store in the same texture 3D. Each use one quater on the x axis
     // Here we get R component then increase by step size (0.25) to get other component. This assume 4 component
     // but last one is not used.
-    // Clamp to edge of the "internal" texture, as R is from REAL texel to size of R texture minus REAL texel.
+    // Clamp to edge of the "internal" texture, as R is from real texel to size of R texture minus real texel.
     // This avoid leaking
     texCoord.x = clamp(texCoord.x * 0.25, 0.5 * texelSizeX, 0.25 - 0.5 * texelSizeX);
 
-    REAL4 shAr = SAMPLE_TEXTURE3D(SHVolumeTexture, SHVolumeSampler, texCoord);
+    real4 shAr = SAMPLE_TEXTURE3D(SHVolumeTexture, SHVolumeSampler, texCoord);
     texCoord.x += 0.25;
-    REAL4 shAg = SAMPLE_TEXTURE3D(SHVolumeTexture, SHVolumeSampler, texCoord);
+    real4 shAg = SAMPLE_TEXTURE3D(SHVolumeTexture, SHVolumeSampler, texCoord);
     texCoord.x += 0.25;
-    REAL4 shAb = SAMPLE_TEXTURE3D(SHVolumeTexture, SHVolumeSampler, texCoord);
+    real4 shAb = SAMPLE_TEXTURE3D(SHVolumeTexture, SHVolumeSampler, texCoord);
 
     return SHEvalLinearL0L1(normalWS, shAr, shAg, shAb);
 }
 
-REAL4 SampleProbeOcclusion(TEXTURE3D_ARGS(SHVolumeTexture, SHVolumeSampler), REAL3 positionWS, REAL4x4 WorldToTexture,
-                            REAL transformToLocal, REAL texelSizeX, REAL3 probeVolumeMin, REAL3 probeVolumeSizeInv)
+real4 SampleProbeOcclusion(TEXTURE3D_ARGS(SHVolumeTexture, SHVolumeSampler), real3 positionWS, real4x4 WorldToTexture,
+                            real transformToLocal, real texelSizeX, real3 probeVolumeMin, real3 probeVolumeSizeInv)
 {
-    REAL3 position = (transformToLocal == 1.0) ? mul(WorldToTexture, REAL4(positionWS, 1.0)).xyz : positionWS;
-    REAL3 texCoord = (position - probeVolumeMin) * probeVolumeSizeInv.xyz;
+    real3 position = (transformToLocal == 1.0) ? mul(WorldToTexture, real4(positionWS, 1.0)).xyz : positionWS;
+    real3 texCoord = (position - probeVolumeMin) * probeVolumeSizeInv.xyz;
 
     // Sample fourth texture in the atlas
     // We need to compute proper U coordinate to sample.
@@ -114,12 +114,12 @@ REAL4 SampleProbeOcclusion(TEXTURE3D_ARGS(SHVolumeTexture, SHVolumeSampler), REA
 // Same goes for emissive packed as an input for Enlighten with another hard coded multiplier.
 
 // TODO: This function is used with the LightTransport pass to encode lightmap or emissive
-REAL4 PackEmissiveRGBM(REAL3 rgb)
+real4 PackEmissiveRGBM(real3 rgb)
 {
-    REAL kOneOverRGBMMaxRange = 1.0 / EMISSIVE_RGBM_SCALE;
-    const REAL kMinMultiplier = 2.0 * 1e-2;
+    real kOneOverRGBMMaxRange = 1.0 / EMISSIVE_RGBM_SCALE;
+    const real kMinMultiplier = 2.0 * 1e-2;
 
-    REAL4 rgbm = REAL4(rgb * kOneOverRGBMMaxRange, 1.0);
+    real4 rgbm = real4(rgb * kOneOverRGBMMaxRange, 1.0);
         rgbm.a = max(max(rgbm.r, rgbm.g), max(rgbm.b, kMinMultiplier));
     rgbm.a = ceil(rgbm.a * 255.0) / 255.0;
 
@@ -130,18 +130,18 @@ REAL4 PackEmissiveRGBM(REAL3 rgb)
     return rgbm;
 }
 
-REAL3 UnpackLightmapRGBM(REAL4 rgbmInput)
+real3 UnpackLightmapRGBM(real4 rgbmInput)
 {
     // RGBM lightmaps are always gamma encoded for now, so decode with that in mind:
     return rgbmInput.rgb * pow(rgbmInput.a, 2.2f) * LIGHTMAP_RGBM_RANGE;
 }
 
-REAL3 UnpackLightmapDoubleLDR(REAL4 encodedColor)
+real3 UnpackLightmapDoubleLDR(real4 encodedColor)
 {
     return encodedColor.rgb * LIGHTMAP_DLDR_RANGE;
 }
 
-REAL3 DecodeLightmap(REAL4 encodedIlluminance)
+real3 DecodeLightmap(real4 encodedIlluminance)
 {
 #if defined(UNITY_LIGHTMAP_RGBM_ENCODING)
     return UnpackLightmapRGBM(encodedIlluminance);
@@ -150,24 +150,24 @@ REAL3 DecodeLightmap(REAL4 encodedIlluminance)
 #endif
 }
 
-REAL3 DecodeHDREnvironment(REAL4 encodedIrradiance, REAL4 decodeInstructions)
+real3 DecodeHDREnvironment(real4 encodedIrradiance, real4 decodeInstructions)
 {
     // Take into account texture alpha if decodeInstructions.w is true(the alpha value affects the RGB channels)
-    REAL alpha = max(decodeInstructions.w * (encodedIrradiance.a - 1.0) + 1.0, 0.0);
+    real alpha = max(decodeInstructions.w * (encodedIrradiance.a - 1.0) + 1.0, 0.0);
 
     // If Linear mode is not supported we can skip exponent part
     return (decodeInstructions.x * pow(alpha, decodeInstructions.y)) * encodedIrradiance.rgb;
 }
 
-REAL3 SampleSingleLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), REAL2 uv, REAL4 transform, bool encodedLightmap)
+real3 SampleSingleLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), real2 uv, real4 transform, bool encodedLightmap)
 {
     // transform is scale and bias
     uv = uv * transform.xy + transform.zw;
-    REAL3 illuminance = REAL3(0.0, 0.0, 0.0);
+    real3 illuminance = real3(0.0, 0.0, 0.0);
     // Remark: baked lightmap is RGBM for now, dynamic lightmap is RGB9E5
     if (encodedLightmap)
     {
-        REAL4 encodedIlluminance = SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgba;
+        real4 encodedIlluminance = SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgba;
         illuminance = DecodeLightmap(encodedIlluminance);
     }
     else
@@ -177,10 +177,10 @@ REAL3 SampleSingleLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), REAL2 u
     return illuminance;
 }
 
-REAL3 SampleDirectionalLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), TEXTURE2D_ARGS(lightmapDirTex, lightmapDirSampler), REAL2 uv, REAL4 transform, REAL3 normalWS, bool encodedLightmap)
+real3 SampleDirectionalLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), TEXTURE2D_ARGS(lightmapDirTex, lightmapDirSampler), real2 uv, real4 transform, real3 normalWS, bool encodedLightmap)
 {
     // In directional mode Enlighten bakes dominant light direction
-    // in a way, that using it for REAL Lambert and then dividing by a "rebalancing coefficient"
+    // in a way, that using it for real Lambert and then dividing by a "rebalancing coefficient"
     // gives a result close to plain diffuse response lightmaps, but normalmapped.
 
     // Note that dir is not unit length on purpose. Its length is "directionality", like
@@ -189,19 +189,19 @@ REAL3 SampleDirectionalLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), TE
     // transform is scale and bias
     uv = uv * transform.xy + transform.zw;
 
-    REAL4 direction = SAMPLE_TEXTURE2D(lightmapDirTex, lightmapDirSampler, uv);
+    real4 direction = SAMPLE_TEXTURE2D(lightmapDirTex, lightmapDirSampler, uv);
     // Remark: baked lightmap is RGBM for now, dynamic lightmap is RGB9E5
-    REAL3 illuminance = REAL3(0.0, 0.0, 0.0);
+    real3 illuminance = real3(0.0, 0.0, 0.0);
     if (encodedLightmap)
     {
-        REAL4 encodedIlluminance = SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgba;
+        real4 encodedIlluminance = SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgba;
         illuminance = DecodeLightmap(encodedIlluminance);
     }
     else
     {
         illuminance = SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgb;
     }
-    REAL halfLambert = dot(normalWS, direction.xyz - 0.5) + 0.5;
+    real halfLambert = dot(normalWS, direction.xyz - 0.5) + 0.5;
     return illuminance * halfLambert / max(1e-4, direction.w);
 }
 

@@ -4,66 +4,66 @@ SAMPLER(sampler_WIND_SETTINGS_TexNoise);
 TEXTURE2D(WIND_SETTINGS_TexGust);
 SAMPLER(sampler_WIND_SETTINGS_TexGust);
 
-REAL4  WIND_SETTINGS_WorldDirectionAndSpeed;
-REAL   WIND_SETTINGS_FlexNoiseScale;
-REAL   WIND_SETTINGS_ShiverNoiseScale;
-REAL   WIND_SETTINGS_Turbulence;
-REAL   WIND_SETTINGS_GustSpeed;
-REAL   WIND_SETTINGS_GustScale;
-REAL   WIND_SETTINGS_GustWorldScale;
+real4  WIND_SETTINGS_WorldDirectionAndSpeed;
+real   WIND_SETTINGS_FlexNoiseScale;
+real   WIND_SETTINGS_ShiverNoiseScale;
+real   WIND_SETTINGS_Turbulence;
+real   WIND_SETTINGS_GustSpeed;
+real   WIND_SETTINGS_GustScale;
+real   WIND_SETTINGS_GustWorldScale;
 
-REAL AttenuateTrunk(REAL x, REAL s)
+real AttenuateTrunk(real x, real s)
 {
-    REAL r = (x / s);
+    real r = (x / s);
     return PositivePow(r,1/s);
 }
 
 
-REAL3 Rotate(REAL3 pivot, REAL3 position, REAL3 rotationAxis, REAL angle)
+real3 Rotate(real3 pivot, real3 position, real3 rotationAxis, real angle)
 {
     rotationAxis = normalize(rotationAxis);
-    REAL3 cpa = pivot + rotationAxis * dot(rotationAxis, position - pivot);
+    real3 cpa = pivot + rotationAxis * dot(rotationAxis, position - pivot);
     return cpa + ((position - cpa) * cos(angle) + cross(rotationAxis, (position - cpa)) * sin(angle));
 }
 
 struct WindData
 {
-    REAL3 Direction;
-    REAL Strength;
-    REAL3 ShiverStrength;
-    REAL3 ShiverDirection;
+    real3 Direction;
+    real Strength;
+    real3 ShiverStrength;
+    real3 ShiverDirection;
 };
 
 
-REAL3 texNoise(REAL3 worldPos, REAL LOD)
+real3 texNoise(real3 worldPos, real LOD)
 {
     return SAMPLE_TEXTURE2D_LOD(WIND_SETTINGS_TexNoise, sampler_WIND_SETTINGS_TexNoise, worldPos.xz, LOD).xyz -0.5;
 }
 
-REAL texGust(REAL3 worldPos, REAL LOD)
+real texGust(real3 worldPos, real LOD)
 {
     return SAMPLE_TEXTURE2D_LOD(WIND_SETTINGS_TexGust, sampler_WIND_SETTINGS_TexGust, worldPos.xz, LOD).x;
 }
 
 
-WindData GetAnalyticalWind(REAL3 WorldPosition, REAL3 PivotPosition, REAL drag, REAL shiverDrag, REAL initialBend, REAL4 time)
+WindData GetAnalyticalWind(real3 WorldPosition, real3 PivotPosition, real drag, real shiverDrag, real initialBend, real4 time)
 {
     WindData result;
-    REAL3 normalizedDir = normalize(WIND_SETTINGS_WorldDirectionAndSpeed.xyz);
+    real3 normalizedDir = normalize(WIND_SETTINGS_WorldDirectionAndSpeed.xyz);
 
-    REAL3 worldOffset = normalizedDir * WIND_SETTINGS_WorldDirectionAndSpeed.w * time.y;
-    REAL3 gustWorldOffset = normalizedDir * WIND_SETTINGS_GustSpeed * time.y;
+    real3 worldOffset = normalizedDir * WIND_SETTINGS_WorldDirectionAndSpeed.w * time.y;
+    real3 gustWorldOffset = normalizedDir * WIND_SETTINGS_GustSpeed * time.y;
 
     // Trunk noise is base wind + gusts + noise
 
-    REAL3 trunk = REAL3(0,0,0);
+    real3 trunk = real3(0,0,0);
 
     if(WIND_SETTINGS_WorldDirectionAndSpeed.w > 0.0 || WIND_SETTINGS_Turbulence > 0.0)
     {
         trunk = texNoise((PivotPosition - worldOffset)*WIND_SETTINGS_FlexNoiseScale,3);
     }
 
-    REAL gust  = 0.0;
+    real gust  = 0.0;
 
     if(WIND_SETTINGS_GustSpeed > 0.0)
     {
@@ -71,7 +71,7 @@ WindData GetAnalyticalWind(REAL3 WorldPosition, REAL3 PivotPosition, REAL drag, 
         gust = pow(gust, 2) * WIND_SETTINGS_GustScale;
     }
 
-    REAL3 trunkNoise =
+    real3 trunkNoise =
         (
                 (normalizedDir * WIND_SETTINGS_WorldDirectionAndSpeed.w)
                 + (gust * normalizedDir * WIND_SETTINGS_GustSpeed)
@@ -79,11 +79,11 @@ WindData GetAnalyticalWind(REAL3 WorldPosition, REAL3 PivotPosition, REAL drag, 
         ) * drag;
 
     // Shiver Noise
-    REAL3 shiverNoise = texNoise((WorldPosition - worldOffset)*WIND_SETTINGS_ShiverNoiseScale,0) * shiverDrag * WIND_SETTINGS_Turbulence;
+    real3 shiverNoise = texNoise((WorldPosition - worldOffset)*WIND_SETTINGS_ShiverNoiseScale,0) * shiverDrag * WIND_SETTINGS_Turbulence;
 
-    REAL3 dir = trunkNoise;
-    REAL flex = length(trunkNoise) + initialBend;
-    REAL shiver = length(shiverNoise);
+    real3 dir = trunkNoise;
+    real flex = length(trunkNoise) + initialBend;
+    real shiver = length(shiverNoise);
 
     result.Direction = dir;
     result.ShiverDirection = shiverNoise;
@@ -95,27 +95,27 @@ WindData GetAnalyticalWind(REAL3 WorldPosition, REAL3 PivotPosition, REAL drag, 
 
 
 
-void ApplyWindDisplacement( inout REAL3    positionWS,
-                            REAL3          normalWS,
-                            REAL3          rootWP,
-                            REAL           stiffness,
-                            REAL           drag,
-                            REAL           shiverDrag,
-                            REAL           shiverDirectionality,
-                            REAL           initialBend,
-                            REAL           shiverMask,
-                            REAL4          time)
+void ApplyWindDisplacement( inout real3    positionWS,
+                            real3          normalWS,
+                            real3          rootWP,
+                            real           stiffness,
+                            real           drag,
+                            real           shiverDrag,
+                            real           shiverDirectionality,
+                            real           initialBend,
+                            real           shiverMask,
+                            real4          time)
 {
     WindData wind = GetAnalyticalWind(positionWS, rootWP, drag, shiverDrag, initialBend, time);
 
     if (wind.Strength > 0.0)
     {
-        REAL att = AttenuateTrunk(distance(positionWS, rootWP), stiffness);
-        REAL3 rotAxis = cross(REAL3(0, 1, 0), wind.Direction);
+        real att = AttenuateTrunk(distance(positionWS, rootWP), stiffness);
+        real3 rotAxis = cross(real3(0, 1, 0), wind.Direction);
 
         positionWS = Rotate(rootWP, positionWS, rotAxis, (wind.Strength) * 0.001 * att);
 
-        REAL3 shiverDirection = normalize(lerp(normalWS, normalize(wind.Direction + wind.ShiverDirection), shiverDirectionality));
+        real3 shiverDirection = normalize(lerp(normalWS, normalize(wind.Direction + wind.ShiverDirection), shiverDirectionality));
         positionWS += wind.ShiverStrength * shiverDirection * shiverMask;
     }
 
