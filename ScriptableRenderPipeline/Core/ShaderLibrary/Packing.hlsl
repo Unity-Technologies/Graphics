@@ -5,102 +5,102 @@
 // Normal packing
 //-----------------------------------------------------------------------------
 
-REAL3 PackNormalMaxComponent(REAL3 n)
+real3 PackNormalMaxComponent(real3 n)
 {
     // TODO: use max3
     return (n / max(abs(n.x), max(abs(n.y), abs(n.z)))) * 0.5 + 0.5;
 }
 
-REAL3 UnpackNormalMaxComponent(REAL3 n)
+real3 UnpackNormalMaxComponent(real3 n)
 {
     return normalize(n * 2.0 - 1.0);
 }
 
 // Ref: http://jcgt.org/published/0003/02/01/paper.pdf
 // Encode with Oct, this function work with any size of output
-// return REAL between [-1, 1]
-REAL2 PackNormalOctEncode(REAL3 n)
+// return real between [-1, 1]
+real2 PackNormalOctEncode(real3 n)
 {
-    //REAL l1norm    = dot(abs(n), 1.0);
-    //REAL2 res0     = n.xy * (1.0 / l1norm);
+    //real l1norm    = dot(abs(n), 1.0);
+    //real2 res0     = n.xy * (1.0 / l1norm);
 
-    //REAL2 val      = 1.0 - abs(res0.yx);
-    //return (n.zz < REAL2(0.0, 0.0) ? (res0 >= 0.0 ? val : -val) : res0);
+    //real2 val      = 1.0 - abs(res0.yx);
+    //return (n.zz < real2(0.0, 0.0) ? (res0 >= 0.0 ? val : -val) : res0);
 
     // Optimized version of above code:
     n *= rcp(dot(abs(n), 1.0));
-    REAL t = saturate(-n.z);
+    real t = saturate(-n.z);
     return n.xy + (n.xy >= 0.0 ? t : -t);
 }
 
-REAL3 UnpackNormalOctEncode(REAL2 f)
+real3 UnpackNormalOctEncode(real2 f)
 {
-    REAL3 n = REAL3(f.x, f.y, 1.0 - abs(f.x) - abs(f.y));
+    real3 n = real3(f.x, f.y, 1.0 - abs(f.x) - abs(f.y));
 
-    //REAL2 val = 1.0 - abs(n.yx);
-    //n.xy = (n.zz < REAL2(0.0, 0.0) ? (n.xy >= 0.0 ? val : -val) : n.xy);
+    //real2 val = 1.0 - abs(n.yx);
+    //n.xy = (n.zz < real2(0.0, 0.0) ? (n.xy >= 0.0 ? val : -val) : n.xy);
 
     // Optimized version of above code:
-    REAL t = max(-n.z, 0.0);
+    real t = max(-n.z, 0.0);
     n.xy += n.xy >= 0.0 ? -t.xx : t.xx;
 
     return normalize(n);
 }
 
-REAL2 PackNormalHemiOctEncode(REAL3 n)
+real2 PackNormalHemiOctEncode(real3 n)
 {
-    REAL l1norm = dot(abs(n), 1.0);
-    REAL2 res = n.xy * (1.0 / l1norm);
+    real l1norm = dot(abs(n), 1.0);
+    real2 res = n.xy * (1.0 / l1norm);
 
-    return REAL2(res.x + res.y, res.x - res.y);
+    return real2(res.x + res.y, res.x - res.y);
 }
 
-REAL3 UnpackNormalHemiOctEncode(REAL2 f)
+real3 UnpackNormalHemiOctEncode(real2 f)
 {
-    REAL2 val = REAL2(f.x + f.y, f.x - f.y) * 0.5;
-    REAL3 n = REAL3(val, 1.0 - dot(abs(val), 1.0));
+    real2 val = real2(f.x + f.y, f.x - f.y) * 0.5;
+    real3 n = real3(val, 1.0 - dot(abs(val), 1.0));
 
     return normalize(n);
 }
 
 // Tetrahedral encoding - Looks like Tetra encoding 10:10 + 2 is similar to oct 11:11, as oct is cheaper prefer it
 // To generate the basisNormal below we use these 4 vertex of a regular tetrahedron
-// v0 = REAL3(1.0, 0.0, -1.0 / sqrt(2.0));
-// v1 = REAL3(-1.0, 0.0, -1.0 / sqrt(2.0));
-// v2 = REAL3(0.0, 1.0, 1.0 / sqrt(2.0));
-// v3 = REAL3(0.0, -1.0, 1.0 / sqrt(2.0));
+// v0 = real3(1.0, 0.0, -1.0 / sqrt(2.0));
+// v1 = real3(-1.0, 0.0, -1.0 / sqrt(2.0));
+// v2 = real3(0.0, 1.0, 1.0 / sqrt(2.0));
+// v3 = real3(0.0, -1.0, 1.0 / sqrt(2.0));
 // Then we normalize the average of each face's vertices
 // normalize(v0 + v1 + v2), etc...
-static const REAL3 tetraBasisNormal[4] =
+static const real3 tetraBasisNormal[4] =
 {
-    REAL3(0., 0.816497, -0.57735),
-    REAL3(-0.816497, 0., 0.57735),
-    REAL3(0.816497, 0., 0.57735),
-    REAL3(0., -0.816497, -0.57735)
+    real3(0., 0.816497, -0.57735),
+    real3(-0.816497, 0., 0.57735),
+    real3(0.816497, 0., 0.57735),
+    real3(0., -0.816497, -0.57735)
 };
 
 // Then to get the local matrix (with z axis rotate to basisNormal) use GetLocalFrame(basisNormal[xxx])
-static const REAL3x3 tetraBasisArray[4] =
+static const real3x3 tetraBasisArray[4] =
 {
-    REAL3x3(-1., 0., 0.,0., 0.57735, 0.816497,0., 0.816497, -0.57735),
-    REAL3x3(0., -1., 0.,0.57735, 0., 0.816497,-0.816497, 0., 0.57735),
-    REAL3x3(0., 1., 0.,-0.57735, 0., 0.816497,0.816497, 0., 0.57735),
-    REAL3x3(1., 0., 0.,0., -0.57735, 0.816497,0., -0.816497, -0.57735)
+    real3x3(-1., 0., 0.,0., 0.57735, 0.816497,0., 0.816497, -0.57735),
+    real3x3(0., -1., 0.,0.57735, 0., 0.816497,-0.816497, 0., 0.57735),
+    real3x3(0., 1., 0.,-0.57735, 0., 0.816497,0.816497, 0., 0.57735),
+    real3x3(1., 0., 0.,0., -0.57735, 0.816497,0., -0.816497, -0.57735)
 };
 
 // Return [-1..1] vector2 oriented in plane of the faceIndex of a regular tetrahedron
-REAL2 PackNormalTetraEncode(REAL3 n, out uint faceIndex)
+real2 PackNormalTetraEncode(real3 n, out uint faceIndex)
 {
     // Retrieve the tetrahedra's face for the normal direction
     // It is the one with the greatest dot value with face normal
-    REAL dot0 = dot(n, tetraBasisNormal[0]);
-    REAL dot1 = dot(n, tetraBasisNormal[1]);
-    REAL dot2 = dot(n, tetraBasisNormal[2]);
-    REAL dot3 = dot(n, tetraBasisNormal[3]);
+    real dot0 = dot(n, tetraBasisNormal[0]);
+    real dot1 = dot(n, tetraBasisNormal[1]);
+    real dot2 = dot(n, tetraBasisNormal[2]);
+    real dot3 = dot(n, tetraBasisNormal[3]);
 
-    REAL maxi0 = max(dot0, dot1);
-    REAL maxi1 = max(dot2, dot3);
-    REAL maxi = max(maxi0, maxi1);
+    real maxi0 = max(dot0, dot1);
+    real maxi1 = max(dot2, dot3);
+    real maxi = max(maxi0, maxi1);
 
     // Get the index from the greatest dot
     if (maxi == dot0)
@@ -120,26 +120,26 @@ REAL2 PackNormalTetraEncode(REAL3 n, out uint faceIndex)
 }
 
 // Assume f [-1..1]
-REAL3 UnpackNormalTetraEncode(REAL2 f, uint faceIndex)
+real3 UnpackNormalTetraEncode(real2 f, uint faceIndex)
 {
     // Recover n from local plane
-    REAL3 n = REAL3(f.xy, sqrt(1.0 - dot(f.xy, f.xy)));
+    real3 n = real3(f.xy, sqrt(1.0 - dot(f.xy, f.xy)));
     // Inverse of transform PackNormalTetraEncode (just swap order in mul as we have a rotation)
     return mul(n, tetraBasisArray[faceIndex]);
 }
 
 // Unpack from normal map
-REAL3 UnpackNormalRGB(REAL4 packedNormal, REAL scale = 1.0)
+real3 UnpackNormalRGB(real4 packedNormal, real scale = 1.0)
 {
-    REAL3 normal;
+    real3 normal;
     normal.xyz = packedNormal.rgb * 2.0 - 1.0;
     normal.xy *= scale;
     return normalize(normal);
 }
 
-REAL3 UnpackNormalAG(REAL4 packedNormal, REAL scale = 1.0)
+real3 UnpackNormalAG(real4 packedNormal, real scale = 1.0)
 {
-    REAL3 normal;
+    real3 normal;
     normal.xy = packedNormal.wy * 2.0 - 1.0;
     normal.xy *= scale;
     normal.z = sqrt(1.0 - saturate(dot(normal.xy, normal.xy)));
@@ -147,7 +147,7 @@ REAL3 UnpackNormalAG(REAL4 packedNormal, REAL scale = 1.0)
 }
 
 // Unpack normal as DXT5nm (1, y, 0, x) or BC5 (x, y, 0, 1)
-REAL3 UnpackNormalmapRGorAG(REAL4 packedNormal, REAL scale = 1.0)
+real3 UnpackNormalmapRGorAG(real4 packedNormal, real scale = 1.0)
 {
     // This do the trick
     packedNormal.w *= packedNormal.x;
@@ -162,43 +162,43 @@ REAL3 UnpackNormalmapRGorAG(REAL4 packedNormal, REAL scale = 1.0)
 #if !defined(SHADER_API_GLES)
 
 // Ref: http://realtimecollisiondetection.net/blog/?p=15
-REAL4 PackToLogLuv(REAL3 vRGB)
+real4 PackToLogLuv(real3 vRGB)
 {
     // M matrix, for encoding
-    const REAL3x3 M = REAL3x3(
+    const real3x3 M = real3x3(
         0.2209, 0.3390, 0.4184,
         0.1138, 0.6780, 0.7319,
         0.0102, 0.1130, 0.2969);
 
-    REAL4 vResult;
-    REAL3 Xp_Y_XYZp = mul(vRGB, M);
-    Xp_Y_XYZp = max(Xp_Y_XYZp, REAL3(1e-6, 1e-6, 1e-6));
+    real4 vResult;
+    real3 Xp_Y_XYZp = mul(vRGB, M);
+    Xp_Y_XYZp = max(Xp_Y_XYZp, real3(1e-6, 1e-6, 1e-6));
     vResult.xy = Xp_Y_XYZp.xy / Xp_Y_XYZp.z;
-    REAL Le = 2.0 * log2(Xp_Y_XYZp.y) + 127.0;
+    real Le = 2.0 * log2(Xp_Y_XYZp.y) + 127.0;
     vResult.w = frac(Le);
     vResult.z = (Le - (floor(vResult.w * 255.0)) / 255.0) / 255.0;
     return vResult;
 }
 
-REAL3 UnpackFromLogLuv(REAL4 vLogLuv)
+real3 UnpackFromLogLuv(real4 vLogLuv)
 {
     // Inverse M matrix, for decoding
-    const REAL3x3 InverseM = REAL3x3(
+    const real3x3 InverseM = real3x3(
         6.0014, -2.7008, -1.7996,
         -1.3320, 3.1029, -5.7721,
         0.3008, -1.0882, 5.6268);
 
-    REAL Le = vLogLuv.z * 255.0 + vLogLuv.w;
-    REAL3 Xp_Y_XYZp;
+    real Le = vLogLuv.z * 255.0 + vLogLuv.w;
+    real3 Xp_Y_XYZp;
     Xp_Y_XYZp.y = exp2((Le - 127.0) / 2.0);
     Xp_Y_XYZp.z = Xp_Y_XYZp.y / vLogLuv.y;
     Xp_Y_XYZp.x = vLogLuv.x * Xp_Y_XYZp.z;
-    REAL3 vRGB = mul(Xp_Y_XYZp, InverseM);
-    return max(vRGB, REAL3(0.0, 0.0, 0.0));
+    real3 vRGB = mul(Xp_Y_XYZp, InverseM);
+    return max(vRGB, real3(0.0, 0.0, 0.0));
 }
 
 // The standard 32-bit HDR color format
-uint PackToR11G11B10f(REAL3 rgb)
+uint PackToR11G11B10f(real3 rgb)
 {
     uint r = (f32tof16(rgb.x) << 17) & 0xFFE00000;
     uint g = (f32tof16(rgb.y) << 6) & 0x001FFC00;
@@ -206,12 +206,12 @@ uint PackToR11G11B10f(REAL3 rgb)
     return r | g | b;
 }
 
-REAL3 UnpackFromR11G11B10f(uint rgb)
+real3 UnpackFromR11G11B10f(uint rgb)
 {
-    REAL r = f16tof32((rgb >> 17) & 0x7FF0);
-    REAL g = f16tof32((rgb >> 6) & 0x7FF0);
-    REAL b = f16tof32((rgb << 5) & 0x7FE0);
-    return REAL3(r, g, b);
+    real r = f16tof32((rgb >> 17) & 0x7FF0);
+    real g = f16tof32((rgb >> 6) & 0x7FF0);
+    real b = f16tof32((rgb << 5) & 0x7FE0);
+    return real3(r, g, b);
 }
 
 #endif // SHADER_API_GLES
@@ -224,7 +224,7 @@ REAL3 UnpackFromR11G11B10f(uint rgb)
 
 /*
 // This is GCN intrinsic
-uint FindBiggestComponent(REAL4 q)
+uint FindBiggestComponent(real4 q)
 {
     uint xyzIndex = CubeMapFaceID(q.x, q.y, q.z) * 0.5f;
     uint wIndex = 3;
@@ -235,7 +235,7 @@ uint FindBiggestComponent(REAL4 q)
 }
 
 // Pack a quaternion into a 10:10:10:2
-REAL4  PackQuat(REAL4 quat)
+real4  PackQuat(real4 quat)
 {
     uint index = FindBiggestComponent(quat);
 
@@ -243,7 +243,7 @@ REAL4  PackQuat(REAL4 quat)
     if (index == 1) quat = quat.xzwy;
     if (index == 2) quat = quat.xywz;
 
-    REAL4 packedQuat;
+    real4 packedQuat;
     packedQuat.xyz = quat.xyz * FastSign(quat.w) * sqrt(0.5) + 0.5;
     packedQuat.w = index / 3.0;
 
@@ -252,11 +252,11 @@ REAL4  PackQuat(REAL4 quat)
 */
 
 // Unpack a quaternion from a 10:10:10:2
-REAL4 UnpackQuat(REAL4 packedQuat)
+real4 UnpackQuat(real4 packedQuat)
 {
     uint index = (uint)(packedQuat.w * 3.0);
 
-    REAL4 quat;
+    real4 quat;
     quat.xyz = packedQuat.xyz * sqrt(2.0) - (1.0 / sqrt(2.0));
     quat.w = sqrt(1.0 - saturate(dot(quat.xyz, quat.xyz)));
 
@@ -274,77 +274,77 @@ REAL4 UnpackQuat(REAL4 packedQuat)
 // Integer packing
 //-----------------------------------------------------------------------------
 
-// Packs an integer stored using at most 'numBits' into a [0..1] REAL.
-REAL PackInt(uint i, uint numBits)
+// Packs an integer stored using at most 'numBits' into a [0..1] real.
+real PackInt(uint i, uint numBits)
 {
     uint maxInt = (1u << numBits) - 1u;
     return saturate(i * rcp(maxInt));
 }
 
-// Unpacks a [0..1] REAL into an integer of size 'numBits'.
-uint UnpackInt(REAL f, uint numBits)
+// Unpacks a [0..1] real into an integer of size 'numBits'.
+uint UnpackInt(real f, uint numBits)
 {
     uint maxInt = (1u << numBits) - 1u;
     return (uint)(f * maxInt + 0.5); // Round instead of truncating
 }
 
-// Packs a [0..255] integer into a [0..1] REAL.
-REAL PackByte(uint i)
+// Packs a [0..255] integer into a [0..1] real.
+real PackByte(uint i)
 {
     return PackInt(i, 8);
 }
 
-// Unpacks a [0..1] REAL into a [0..255] integer.
-uint UnpackByte(REAL f)
+// Unpacks a [0..1] real into a [0..255] integer.
+uint UnpackByte(real f)
 {
     return UnpackInt(f, 8);
 }
 
-// Packs a [0..65535] integer into a [0..1] REAL.
-REAL PackShort(uint i)
+// Packs a [0..65535] integer into a [0..1] real.
+real PackShort(uint i)
 {
     return PackInt(i, 16);
 }
 
-// Unpacks a [0..1] REAL into a [0..65535] integer.
-uint UnpackShort(REAL f)
+// Unpacks a [0..1] real into a [0..65535] integer.
+uint UnpackShort(real f)
 {
     return UnpackInt(f, 16);
 }
 
-// Packs 8 lowermost bits of a [0..65535] integer into a [0..1] REAL.
-REAL PackShortLo(uint i)
+// Packs 8 lowermost bits of a [0..65535] integer into a [0..1] real.
+real PackShortLo(uint i)
 {
     uint lo = BitFieldExtract(i, 0u, 8u);
     return PackInt(lo, 8);
 }
 
-// Packs 8 uppermost bits of a [0..65535] integer into a [0..1] REAL.
-REAL PackShortHi(uint i)
+// Packs 8 uppermost bits of a [0..65535] integer into a [0..1] real.
+real PackShortHi(uint i)
 {
     uint hi = BitFieldExtract(i, 8u, 8u);
     return PackInt(hi, 8);
 }
 
-REAL Pack2Byte(REAL2 inputs)
+real Pack2Byte(real2 inputs)
 {
-    REAL2 temp = inputs * REAL2(255.0, 255.0);
+    real2 temp = inputs * real2(255.0, 255.0);
     temp.x *= 256.0;
     temp = round(temp);
-    REAL combined = temp.x + temp.y;
+    real combined = temp.x + temp.y;
     return combined * (1.0 / 65535.0);
 }
 
-REAL2 Unpack2Byte(REAL inputs)
+real2 Unpack2Byte(real inputs)
 {
-    REAL temp = round(inputs * 65535.0);
-    REAL ipart;
-    REAL fpart = modf(temp / 256.0, ipart);
-    REAL2 result = REAL2(ipart, round(256.0 * fpart));
-    return result * (1.0 / REAL2(255.0, 255.0));
+    real temp = round(inputs * 65535.0);
+    real ipart;
+    real fpart = modf(temp / 256.0, ipart);
+    real2 result = real2(ipart, round(256.0 * fpart));
+    return result * (1.0 / real2(255.0, 255.0));
 }
 
-// Encode a REAL in [0..1] and an int in [0..maxi - 1] as a REAL [0..1] to be store in log2(precision) bit
+// Encode a real in [0..1] and an int in [0..maxi - 1] as a real [0..1] to be store in log2(precision) bit
 // maxi must be a power of two and define the number of bit dedicated 0..1 to the int part (log2(maxi))
 // Example: precision is 256.0, maxi is 2, i is [0..1] encode on 1 bit. f is [0..1] encode on 7 bit.
 // Example: precision is 256.0, maxi is 4, i is [0..3] encode on 2 bit. f is [0..1] encode on 6 bit.
@@ -352,57 +352,57 @@ REAL2 Unpack2Byte(REAL inputs)
 // ...
 // Example: precision is 1024.0, maxi is 8, i is [0..7] encode on 3 bit. f is [0..1] encode on 7 bit.
 //...
-REAL PackFloatInt(REAL f, int i, REAL maxi, REAL precision)
+real PackFloatInt(real f, int i, real maxi, real precision)
 {
     // Constant
-    REAL precisionMinusOne = precision - 1.0;
-    REAL t1 = ((precision / maxi) - 1.0) / precisionMinusOne;
-    REAL t2 = (precision / maxi) / precisionMinusOne;
+    real precisionMinusOne = precision - 1.0;
+    real t1 = ((precision / maxi) - 1.0) / precisionMinusOne;
+    real t2 = (precision / maxi) / precisionMinusOne;
 
-    return t1 * f + t2 * REAL(i);
+    return t1 * f + t2 * real(i);
 }
 
-void UnpackFloatInt(REAL val, REAL maxi, REAL precision, out REAL f, out int i)
+void UnpackFloatInt(real val, real maxi, real precision, out real f, out int i)
 {
     // Constant
-    REAL precisionMinusOne = precision - 1.0;
-    REAL t1 = ((precision / maxi) - 1.0) / precisionMinusOne;
-    REAL t2 = (precision / maxi) / precisionMinusOne;
+    real precisionMinusOne = precision - 1.0;
+    real t1 = ((precision / maxi) - 1.0) / precisionMinusOne;
+    real t2 = (precision / maxi) / precisionMinusOne;
 
     // extract integer part
     i = int((val / t2) + rcp(precisionMinusOne)); // + rcp(precisionMinusOne) to deal with precision issue (can't use round() as val contain the floating number
     // Now that we have i, solve formula in PackFloatInt for f
-    //f = (val - t2 * REAL(i)) / t1 => convert in mads form
-    f = saturate((-t2 * REAL(i) + val) / t1); // Saturate in case of precision issue
+    //f = (val - t2 * real(i)) / t1 => convert in mads form
+    f = saturate((-t2 * real(i) + val) / t1); // Saturate in case of precision issue
 }
 
 // Define various variante for ease of read
-REAL PackFloatInt8bit(REAL f, int i, REAL maxi)
+real PackFloatInt8bit(real f, int i, real maxi)
 {
     return PackFloatInt(f, i, maxi, 256.0);
 }
 
-void UnpackFloatInt8bit(REAL val, REAL maxi, out REAL f, out int i)
+void UnpackFloatInt8bit(real val, real maxi, out real f, out int i)
 {
     UnpackFloatInt(val, maxi, 256.0, f, i);
 }
 
-REAL PackFloatInt10bit(REAL f, int i, REAL maxi)
+real PackFloatInt10bit(real f, int i, real maxi)
 {
     return PackFloatInt(f, i, maxi, 1024.0);
 }
 
-void UnpackFloatInt10bit(REAL val, REAL maxi, out REAL f, out int i)
+void UnpackFloatInt10bit(real val, real maxi, out real f, out int i)
 {
     UnpackFloatInt(val, maxi, 1024.0, f, i);
 }
 
-REAL PackFloatInt16bit(REAL f, int i, REAL maxi)
+real PackFloatInt16bit(real f, int i, real maxi)
 {
     return PackFloatInt(f, i, maxi, 65536.0);
 }
 
-void UnpackFloatInt16bit(REAL val, REAL maxi, out REAL f, out int i)
+void UnpackFloatInt16bit(real val, real maxi, out real f, out int i)
 {
     UnpackFloatInt(val, maxi, 65536.0, f, i);
 }
@@ -412,18 +412,18 @@ void UnpackFloatInt16bit(REAL val, REAL maxi, out REAL f, out int i)
 //-----------------------------------------------------------------------------
 
 // src must be between 0.0 and 1.0
-uint PackFloatToUInt(REAL src, uint offset, uint numBits)
+uint PackFloatToUInt(real src, uint offset, uint numBits)
 {
     return UnpackInt(src, numBits) << offset;
 }
 
-REAL UnpackUIntToFloat(uint src, uint offset, uint numBits)
+real UnpackUIntToFloat(uint src, uint offset, uint numBits)
 {
     uint maxInt = (1u << numBits) - 1u;
-    return REAL(BitFieldExtract(src, offset, numBits)) * rcp(maxInt);
+    return real(BitFieldExtract(src, offset, numBits)) * rcp(maxInt);
 }
 
-uint PackToR10G10B10A2(REAL4 rgba)
+uint PackToR10G10B10A2(real4 rgba)
 {
     return (PackFloatToUInt(rgba.x, 0,  10) |
             PackFloatToUInt(rgba.y, 10, 10) |
@@ -431,9 +431,9 @@ uint PackToR10G10B10A2(REAL4 rgba)
             PackFloatToUInt(rgba.w, 30, 2));
 }
 
-REAL4 UnpackFromR10G10B10A2(uint rgba)
+real4 UnpackFromR10G10B10A2(uint rgba)
 {
-    REAL4 ouput;
+    real4 ouput;
     ouput.x = UnpackUIntToFloat(rgba, 0,  10);
     ouput.y = UnpackUIntToFloat(rgba, 10, 10);
     ouput.z = UnpackUIntToFloat(rgba, 20, 10);
@@ -442,14 +442,14 @@ REAL4 UnpackFromR10G10B10A2(uint rgba)
 }
 
 // Both the input and the output are in the [0, 1] range.
-REAL2 PackFloatToR8G8(REAL f)
+real2 PackFloatToR8G8(real f)
 {
     uint i = UnpackShort(f);
-    return REAL2(PackShortLo(i), PackShortHi(i));
+    return real2(PackShortLo(i), PackShortHi(i));
 }
 
 // Both the input and the output are in the [0, 1] range.
-REAL UnpackFloatFromR8G8(REAL2 f)
+real UnpackFloatFromR8G8(real2 f)
 {
     uint lo = UnpackByte(f.x);
     uint hi = UnpackByte(f.y);

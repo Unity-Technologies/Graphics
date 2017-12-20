@@ -9,58 +9,58 @@
 // Fresnel term
 //-----------------------------------------------------------------------------
 
-REAL F_Schlick(REAL f0, REAL f90, REAL u)
+real F_Schlick(real f0, real f90, real u)
 {
-    REAL x  = 1.0 - u;
-    REAL x2 = x * x;
-    REAL x5 = x * x2 * x2;
+    real x  = 1.0 - u;
+    real x2 = x * x;
+    real x5 = x * x2 * x2;
     return (f90 - f0) * x5 + f0;                // sub mul mul mul sub mad
 }
 
-REAL F_Schlick(REAL f0, REAL u)
+real F_Schlick(real f0, real u)
 {
     return F_Schlick(f0, 1.0, u);               // sub mul mul mul sub mad
 }
 
-REAL3 F_Schlick(REAL3 f0, REAL f90, REAL u)
+real3 F_Schlick(real3 f0, real f90, real u)
 {
-    REAL x  = 1.0 - u;
-    REAL x2 = x * x;
-    REAL x5 = x * x2 * x2;
+    real x  = 1.0 - u;
+    real x2 = x * x;
+    real x5 = x * x2 * x2;
     return f0 * (1.0 - x5) + (f90 * x5);        // sub mul mul mul sub mul mad*3
 }
 
-REAL3 F_Schlick(REAL3 f0, REAL u)
+real3 F_Schlick(real3 f0, real u)
 {
     return F_Schlick(f0, 1.0, u);               // sub mul mul mul sub mad*3
 }
 
 // Does not handle TIR.
-REAL F_Transm_Schlick(REAL f0, REAL f90, REAL u)
+real F_Transm_Schlick(real f0, real f90, real u)
 {
-    REAL x  = 1.0 - u;
-    REAL x2 = x * x;
-    REAL x5 = x * x2 * x2;
+    real x  = 1.0 - u;
+    real x2 = x * x;
+    real x5 = x * x2 * x2;
     return (1.0 - f90 * x5) - f0 * (1.0 - x5);  // sub mul mul mul mad sub mad
 }
 
 // Does not handle TIR.
-REAL F_Transm_Schlick(REAL f0, REAL u)
+real F_Transm_Schlick(real f0, real u)
 {
     return F_Transm_Schlick(f0, 1.0, u);        // sub mul mul mad mad
 }
 
 // Does not handle TIR.
-REAL3 F_Transm_Schlick(REAL3 f0, REAL f90, REAL u)
+real3 F_Transm_Schlick(real3 f0, real f90, real u)
 {
-    REAL x  = 1.0 - u;
-    REAL x2 = x * x;
-    REAL x5 = x * x2 * x2;
+    real x  = 1.0 - u;
+    real x2 = x * x;
+    real x5 = x * x2 * x2;
     return (1.0 - f90 * x5) - f0 * (1.0 - x5);  // sub mul mul mul mad sub mad*3
 }
 
 // Does not handle TIR.
-REAL3 F_Transm_Schlick(REAL3 f0, REAL u)
+real3 F_Transm_Schlick(real3 f0, real u)
 {
     return F_Transm_Schlick(f0, 1.0, u);        // sub mul mul mad mad*3
 }
@@ -69,20 +69,20 @@ REAL3 F_Transm_Schlick(REAL3 f0, REAL u)
 // Specular BRDF
 //-----------------------------------------------------------------------------
 
-REAL D_GGXNoPI(REAL NdotH, REAL roughness)
+real D_GGXNoPI(real NdotH, real roughness)
 {
-    REAL a2 = Sq(roughness);
-    REAL s  = (NdotH * a2 - NdotH) * NdotH + 1.0;
+    real a2 = Sq(roughness);
+    real s  = (NdotH * a2 - NdotH) * NdotH + 1.0;
     return a2 / (s * s);
 }
 
-REAL D_GGX(REAL NdotH, REAL roughness)
+real D_GGX(real NdotH, real roughness)
 {
     return INV_PI * D_GGXNoPI(NdotH, roughness);
 }
 
 // Ref: Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs, p. 19, 29.
-REAL G_MaskingSmithGGX(REAL NdotV, REAL roughness)
+real G_MaskingSmithGGX(real NdotV, real roughness)
 {
     // G1(V, H)    = HeavisideStep(VdotH) / (1 + Λ(V)).
     // Λ(V)        = -0.5 + 0.5 * sqrt(1 + 1 / a²).
@@ -95,23 +95,23 @@ REAL G_MaskingSmithGGX(REAL NdotV, REAL roughness)
 }
 
 // Ref: Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs, p. 12.
-REAL D_GGX_Visible(REAL NdotH, REAL NdotV, REAL VdotH, REAL roughness)
+real D_GGX_Visible(real NdotH, real NdotV, real VdotH, real roughness)
 {
     return D_GGX(NdotH, roughness) * G_MaskingSmithGGX(NdotV, roughness) * VdotH / NdotV;
 }
 
 // Precompute part of lambdaV
-REAL GetSmithJointGGXPartLambdaV(REAL NdotV, REAL roughness)
+real GetSmithJointGGXPartLambdaV(real NdotV, real roughness)
 {
-    REAL a2 = Sq(roughness);
+    real a2 = Sq(roughness);
     return sqrt((-NdotV * a2 + NdotV) * NdotV + a2);
 }
 
 // Note: V = G / (4 * NdotL * NdotV)
 // Ref: http://jcgt.org/published/0003/02/03/paper.pdf
-REAL V_SmithJointGGX(REAL NdotL, REAL NdotV, REAL roughness, REAL partLambdaV)
+real V_SmithJointGGX(real NdotL, real NdotV, real roughness, real partLambdaV)
 {
-    REAL a2 = Sq(roughness);
+    real a2 = Sq(roughness);
 
     // Original formulation:
     // lambda_v = (-1 + sqrt(a2 * (1 - NdotL2) / NdotL2 + 1)) * 0.5
@@ -119,37 +119,37 @@ REAL V_SmithJointGGX(REAL NdotL, REAL NdotV, REAL roughness, REAL partLambdaV)
     // G        = 1 / (1 + lambda_v + lambda_l);
 
     // Reorder code to be more optimal:
-    REAL lambdaV = NdotL * partLambdaV;
-    REAL lambdaL = NdotV * sqrt((-NdotL * a2 + NdotL) * NdotL + a2);
+    real lambdaV = NdotL * partLambdaV;
+    real lambdaL = NdotV * sqrt((-NdotL * a2 + NdotL) * NdotL + a2);
 
     // Simplify visibility term: (2.0 * NdotL * NdotV) /  ((4.0 * NdotL * NdotV) * (lambda_v + lambda_l));
     return 0.5 / (lambdaV + lambdaL);
 }
 
-REAL V_SmithJointGGX(REAL NdotL, REAL NdotV, REAL roughness)
+real V_SmithJointGGX(real NdotL, real NdotV, real roughness)
 {
-    REAL partLambdaV = GetSmithJointGGXPartLambdaV(NdotV, roughness);
+    real partLambdaV = GetSmithJointGGXPartLambdaV(NdotV, roughness);
     return V_SmithJointGGX(NdotL, NdotV, roughness, partLambdaV);
 }
 
 // Inline D_GGX() * V_SmithJointGGX() together for better code generation.
-REAL DV_SmithJointGGX(REAL NdotH, REAL NdotL, REAL NdotV, REAL roughness, REAL partLambdaV)
+real DV_SmithJointGGX(real NdotH, real NdotL, real NdotV, real roughness, real partLambdaV)
 {
-    REAL a2 = Sq(roughness);
-    REAL s  = (NdotH * a2 - NdotH) * NdotH + 1.0;
+    real a2 = Sq(roughness);
+    real s  = (NdotH * a2 - NdotH) * NdotH + 1.0;
 
-    REAL lambdaV = NdotL * partLambdaV;
-    REAL lambdaL = NdotV * sqrt((-NdotL * a2 + NdotL) * NdotL + a2);
+    real lambdaV = NdotL * partLambdaV;
+    real lambdaL = NdotV * sqrt((-NdotL * a2 + NdotL) * NdotL + a2);
 
-    REAL2 D = REAL2(a2, s * s);            // Fraction without the multiplier (1/Pi)
-    REAL2 G = REAL2(1, lambdaV + lambdaL); // Fraction without the multiplier (1/2)
+    real2 D = real2(a2, s * s);            // Fraction without the multiplier (1/Pi)
+    real2 G = real2(1, lambdaV + lambdaL); // Fraction without the multiplier (1/2)
 
     return (INV_PI * 0.5) * (D.x * G.x) / (D.y * G.y);
 }
 
-REAL DV_SmithJointGGX(REAL NdotH, REAL NdotL, REAL NdotV, REAL roughness)
+real DV_SmithJointGGX(real NdotH, real NdotL, real NdotV, real roughness)
 {
-    REAL partLambdaV = GetSmithJointGGXPartLambdaV(NdotV, roughness);
+    real partLambdaV = GetSmithJointGGXPartLambdaV(NdotV, roughness);
     return DV_SmithJointGGX(NdotH, NdotL, NdotV, roughness, partLambdaV);
 }
 
@@ -158,89 +158,89 @@ REAL DV_SmithJointGGX(REAL NdotH, REAL NdotL, REAL NdotV, REAL roughness)
 // Exact for roughness values of 0 and 1. Also, exact when the cosine is 0 or 1.
 // Otherwise, the worst case relative error is around 10%.
 // https://www.desmos.com/calculator/wtp8lnjutx
-REAL GetSmithJointGGXPartLambdaVApprox(REAL NdotV, REAL roughness)
+real GetSmithJointGGXPartLambdaVApprox(real NdotV, real roughness)
 {
-    REAL a = roughness;
+    real a = roughness;
     return NdotV * (1 - a) + a;
 }
 
-REAL V_SmithJointGGXApprox(REAL NdotL, REAL NdotV, REAL roughness, REAL partLambdaV)
+real V_SmithJointGGXApprox(real NdotL, real NdotV, real roughness, real partLambdaV)
 {
-    REAL a = roughness;
+    real a = roughness;
 
-    REAL lambdaV = NdotL * partLambdaV;
-    REAL lambdaL = NdotV * (NdotL * (1 - a) + a);
+    real lambdaV = NdotL * partLambdaV;
+    real lambdaL = NdotV * (NdotL * (1 - a) + a);
 
     return 0.5 / (lambdaV + lambdaL);
 }
 
-REAL V_SmithJointGGXApprox(REAL NdotL, REAL NdotV, REAL roughness)
+real V_SmithJointGGXApprox(real NdotL, real NdotV, real roughness)
 {
-    REAL partLambdaV = GetSmithJointGGXPartLambdaVApprox(NdotV, roughness);
+    real partLambdaV = GetSmithJointGGXPartLambdaVApprox(NdotV, roughness);
     return V_SmithJointGGXApprox(NdotL, NdotV, roughness, partLambdaV);
 }
 
 // roughnessT -> roughness in tangent direction
 // roughnessB -> roughness in bitangent direction
-REAL D_GGXAnisoNoPI(REAL TdotH, REAL BdotH, REAL NdotH, REAL roughnessT, REAL roughnessB)
+real D_GGXAnisoNoPI(real TdotH, real BdotH, real NdotH, real roughnessT, real roughnessB)
 {
-    REAL a2 = roughnessT * roughnessB;
-    REAL3 v = REAL3(roughnessB * TdotH, roughnessT * BdotH, a2 * NdotH);
-    REAL  s = dot(v, v);
+    real a2 = roughnessT * roughnessB;
+    real3 v = real3(roughnessB * TdotH, roughnessT * BdotH, a2 * NdotH);
+    real  s = dot(v, v);
 
     return a2 * Sq(a2 / s);
 }
 
-REAL D_GGXAniso(REAL TdotH, REAL BdotH, REAL NdotH, REAL roughnessT, REAL roughnessB)
+real D_GGXAniso(real TdotH, real BdotH, real NdotH, real roughnessT, real roughnessB)
 {
     return INV_PI * D_GGXAnisoNoPI(TdotH, BdotH, NdotH, roughnessT, roughnessB);
 }
 
-REAL GetSmithJointGGXAnisoPartLambdaV(REAL TdotV, REAL BdotV, REAL NdotV, REAL roughnessT, REAL roughnessB)
+real GetSmithJointGGXAnisoPartLambdaV(real TdotV, real BdotV, real NdotV, real roughnessT, real roughnessB)
 {
-    return length(REAL3(roughnessT * TdotV, roughnessB * BdotV, NdotV));
+    return length(real3(roughnessT * TdotV, roughnessB * BdotV, NdotV));
 }
 
 // Note: V = G / (4 * NdotL * NdotV)
 // Ref: https://cedec.cesa.or.jp/2015/session/ENG/14698.html The Rendering Materials of Far Cry 4
-REAL V_SmithJointGGXAniso(REAL TdotV, REAL BdotV, REAL NdotV, REAL TdotL, REAL BdotL, REAL NdotL, REAL roughnessT, REAL roughnessB, REAL partLambdaV)
+real V_SmithJointGGXAniso(real TdotV, real BdotV, real NdotV, real TdotL, real BdotL, real NdotL, real roughnessT, real roughnessB, real partLambdaV)
 {
-    REAL lambdaV = NdotL * partLambdaV;
-    REAL lambdaL = NdotV * length(REAL3(roughnessT * TdotL, roughnessB * BdotL, NdotL));
+    real lambdaV = NdotL * partLambdaV;
+    real lambdaL = NdotV * length(real3(roughnessT * TdotL, roughnessB * BdotL, NdotL));
 
     return 0.5 / (lambdaV + lambdaL);
 }
 
-REAL V_SmithJointGGXAniso(REAL TdotV, REAL BdotV, REAL NdotV, REAL TdotL, REAL BdotL, REAL NdotL, REAL roughnessT, REAL roughnessB)
+real V_SmithJointGGXAniso(real TdotV, real BdotV, real NdotV, real TdotL, real BdotL, real NdotL, real roughnessT, real roughnessB)
 {
-    REAL partLambdaV = GetSmithJointGGXAnisoPartLambdaV(TdotV, BdotV, NdotV, roughnessT, roughnessB);
+    real partLambdaV = GetSmithJointGGXAnisoPartLambdaV(TdotV, BdotV, NdotV, roughnessT, roughnessB);
     return V_SmithJointGGXAniso(TdotV, BdotV, NdotV, TdotL, BdotL, NdotL, roughnessT, roughnessB, partLambdaV);
 }
 
 // Inline D_GGXAniso() * V_SmithJointGGXAniso() together for better code generation.
-REAL DV_SmithJointGGXAniso(REAL TdotH, REAL BdotH, REAL NdotH, REAL NdotV,
-                            REAL TdotL, REAL BdotL, REAL NdotL,
-                            REAL roughnessT, REAL roughnessB, REAL partLambdaV)
+real DV_SmithJointGGXAniso(real TdotH, real BdotH, real NdotH, real NdotV,
+                            real TdotL, real BdotL, real NdotL,
+                            real roughnessT, real roughnessB, real partLambdaV)
 {
-    REAL a2 = roughnessT * roughnessB;
-    REAL3 v = REAL3(roughnessB * TdotH, roughnessT * BdotH, a2 * NdotH);
-    REAL  s = dot(v, v);
+    real a2 = roughnessT * roughnessB;
+    real3 v = real3(roughnessB * TdotH, roughnessT * BdotH, a2 * NdotH);
+    real  s = dot(v, v);
 
-    REAL lambdaV = NdotL * partLambdaV;
-    REAL lambdaL = NdotV * length(REAL3(roughnessT * TdotL, roughnessB * BdotL, NdotL));
+    real lambdaV = NdotL * partLambdaV;
+    real lambdaL = NdotV * length(real3(roughnessT * TdotL, roughnessB * BdotL, NdotL));
 
-    REAL2 D = REAL2(a2 * a2 * a2, s * s);  // Fraction without the multiplier (1/Pi)
-    REAL2 G = REAL2(1, lambdaV + lambdaL); // Fraction without the multiplier (1/2)
+    real2 D = real2(a2 * a2 * a2, s * s);  // Fraction without the multiplier (1/Pi)
+    real2 G = real2(1, lambdaV + lambdaL); // Fraction without the multiplier (1/2)
 
     return (INV_PI * 0.5) * (D.x * G.x) / (D.y * G.y);
 }
 
-REAL DV_SmithJointGGXAniso(REAL TdotH, REAL BdotH, REAL NdotH,
-                            REAL TdotV, REAL BdotV, REAL NdotV,
-                            REAL TdotL, REAL BdotL, REAL NdotL,
-                            REAL roughnessT, REAL roughnessB)
+real DV_SmithJointGGXAniso(real TdotH, real BdotH, real NdotH,
+                            real TdotV, real BdotV, real NdotV,
+                            real TdotL, real BdotL, real NdotL,
+                            real roughnessT, real roughnessB)
 {
-    REAL partLambdaV = GetSmithJointGGXAnisoPartLambdaV(TdotV, BdotV, NdotV, roughnessT, roughnessB);
+    real partLambdaV = GetSmithJointGGXAnisoPartLambdaV(TdotV, BdotV, NdotV, roughnessT, roughnessB);
     return DV_SmithJointGGXAniso(TdotH, BdotH, NdotH, NdotV, TdotL, BdotL, NdotL,
                                  roughnessT, roughnessB, partLambdaV);
 }
@@ -249,24 +249,24 @@ REAL DV_SmithJointGGXAniso(REAL TdotH, REAL BdotH, REAL NdotH,
 // Diffuse BRDF - diffuseColor is expected to be multiply by the caller
 //-----------------------------------------------------------------------------
 
-REAL LambertNoPI()
+real LambertNoPI()
 {
     return 1.0;
 }
 
-REAL Lambert()
+real Lambert()
 {
     return INV_PI;
 }
 
-REAL DisneyDiffuseNoPI(REAL NdotV, REAL NdotL, REAL LdotV, REAL perceptualRoughness)
+real DisneyDiffuseNoPI(real NdotV, real NdotL, real LdotV, real perceptualRoughness)
 {
     // (2 * LdotH * LdotH) = 1 + LdotV
-    // REAL fd90 = 0.5 + 2 * LdotH * LdotH * perceptualRoughness;
-    REAL fd90 = 0.5 + (perceptualRoughness + perceptualRoughness * LdotV);
+    // real fd90 = 0.5 + 2 * LdotH * LdotH * perceptualRoughness;
+    real fd90 = 0.5 + (perceptualRoughness + perceptualRoughness * LdotV);
     // Two schlick fresnel term
-    REAL lightScatter = F_Schlick(1.0, fd90, NdotL);
-    REAL viewScatter  = F_Schlick(1.0, fd90, NdotV);
+    real lightScatter = F_Schlick(1.0, fd90, NdotL);
+    real viewScatter  = F_Schlick(1.0, fd90, NdotV);
 
     // Normalize the BRDF for polar view angles of up to (Pi/4).
     // We use the worst case of (roughness = albedo = 1), and, for each view angle,
@@ -277,26 +277,26 @@ REAL DisneyDiffuseNoPI(REAL NdotV, REAL NdotL, REAL LdotV, REAL perceptualRoughn
     return rcp(1.03571) * (lightScatter * viewScatter);
 }
 
-REAL DisneyDiffuse(REAL NdotV, REAL NdotL, REAL LdotV, REAL perceptualRoughness)
+real DisneyDiffuse(real NdotV, real NdotL, real LdotV, real perceptualRoughness)
 {
     return INV_PI * DisneyDiffuseNoPI(NdotV, NdotL, LdotV, perceptualRoughness);
 }
 
 // Ref: Diffuse Lighting for GGX + Smith Microsurfaces, p. 113.
-REAL3 DiffuseGGXNoPI(REAL3 albedo, REAL NdotV, REAL NdotL, REAL NdotH, REAL LdotV, REAL roughness)
+real3 DiffuseGGXNoPI(real3 albedo, real NdotV, real NdotL, real NdotH, real LdotV, real roughness)
 {
-    REAL facing    = 0.5 + 0.5 * LdotV;              // (LdotH)^2
-    REAL rough     = facing * (0.9 - 0.4 * facing) * (0.5 / NdotH + 1);
-    REAL transmitL = F_Transm_Schlick(0, NdotL);
-    REAL transmitV = F_Transm_Schlick(0, NdotV);
-    REAL smooth    = transmitL * transmitV * 1.05;   // Normalize F_t over the hemisphere
-    REAL single    = lerp(smooth, rough, roughness); // Rescaled by PI
-    REAL multiple  = roughness * (0.1159 * PI);      // Rescaled by PI
+    real facing    = 0.5 + 0.5 * LdotV;              // (LdotH)^2
+    real rough     = facing * (0.9 - 0.4 * facing) * (0.5 / NdotH + 1);
+    real transmitL = F_Transm_Schlick(0, NdotL);
+    real transmitV = F_Transm_Schlick(0, NdotV);
+    real smooth    = transmitL * transmitV * 1.05;   // Normalize F_t over the hemisphere
+    real single    = lerp(smooth, rough, roughness); // Rescaled by PI
+    real multiple  = roughness * (0.1159 * PI);      // Rescaled by PI
 
     return single + albedo * multiple;
 }
 
-REAL3 DiffuseGGX(REAL3 albedo, REAL NdotV, REAL NdotL, REAL NdotH, REAL LdotV, REAL roughness)
+real3 DiffuseGGX(real3 albedo, real NdotV, real NdotL, real NdotH, real LdotV, real roughness)
 {
     // Note that we could save 2 cycles by inlining the multiplication by INV_PI.
     return INV_PI * DiffuseGGXNoPI(albedo, NdotV, NdotL, NdotH, LdotV, roughness);

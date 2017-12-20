@@ -1,63 +1,63 @@
 #ifndef UNITY_VOLUME_RENDERING_INCLUDED
 #define UNITY_VOLUME_RENDERING_INCLUDED
 
-REAL OpticalDepthHomogeneous(REAL extinction, REAL intervalLength)
+real OpticalDepthHomogeneous(real extinction, real intervalLength)
 {
     return extinction * intervalLength;
 }
 
-REAL Transmittance(REAL opticalDepth)
+real Transmittance(real opticalDepth)
 {
     return exp(-opticalDepth);
 }
 
-REAL TransmittanceIntegralOverHomogeneousInterval(REAL extinction, REAL start, REAL end)
+real TransmittanceIntegralOverHomogeneousInterval(real extinction, real start, real end)
 {
     return (exp(-extinction * start) - exp(-extinction * end)) / extinction;
 }
 
-REAL3 OpticalDepthHomogeneous(REAL3 extinction, REAL intervalLength)
+real3 OpticalDepthHomogeneous(real3 extinction, real intervalLength)
 {
     return extinction * intervalLength;
 }
 
-REAL3 Transmittance(REAL3 opticalDepth)
+real3 Transmittance(real3 opticalDepth)
 {
     return exp(-opticalDepth);
 }
 
-REAL3 TransmittanceIntegralOverHomogeneousInterval(REAL3 extinction, REAL start, REAL end)
+real3 TransmittanceIntegralOverHomogeneousInterval(real3 extinction, real start, real end)
 {
     return (exp(-extinction * start) - exp(-extinction * end)) / extinction;
 }
 
-REAL IsotropicPhaseFunction()
+real IsotropicPhaseFunction()
 {
     return INV_FOUR_PI;
 }
 
-REAL HenyeyGreensteinPhasePartConstant(REAL asymmetry)
+real HenyeyGreensteinPhasePartConstant(real asymmetry)
 {
-    REAL g = asymmetry;
+    real g = asymmetry;
 
     return INV_FOUR_PI * (1 - g * g);
 }
 
-REAL HenyeyGreensteinPhasePartVarying(REAL asymmetry, REAL LdotD)
+real HenyeyGreensteinPhasePartVarying(real asymmetry, real LdotD)
 {
-    REAL g = asymmetry;
+    real g = asymmetry;
 
     return pow(abs(1 + g * g - 2 * g * LdotD), -1.5);
 }
 
-REAL HenyeyGreensteinPhaseFunction(REAL asymmetry, REAL LdotD)
+real HenyeyGreensteinPhaseFunction(real asymmetry, real LdotD)
 {
     return HenyeyGreensteinPhasePartConstant(asymmetry) *
            HenyeyGreensteinPhasePartVarying(asymmetry, LdotD);
 }
 
 // Absorption coefficient from Disney: http://blog.selfshadow.com/publications/s2015-shading-course/burley/s2015_pbs_disney_bsdf_notes.pdf
-REAL3 TransmittanceColorAtDistanceToAbsorption(REAL3 transmittanceColor, REAL atDistance)
+real3 TransmittanceColorAtDistanceToAbsorption(real3 transmittanceColor, real atDistance)
 {
     return -log(transmittanceColor + FLT_EPS) / max(atDistance, FLT_EPS);
 }

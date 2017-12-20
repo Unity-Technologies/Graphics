@@ -10,21 +10,21 @@
 struct UVMapping
 {
     int mappingType;
-    REAL2 uv;  // Current uv or planar uv
+    real2 uv;  // Current uv or planar uv
 
     // Triplanar specific
-    REAL2 uvZY;
-    REAL2 uvXZ;
-    REAL2 uvXY;
+    real2 uvZY;
+    real2 uvXZ;
+    real2 uvXY;
 
-    REAL3 normalWS; // vertex normal
-    REAL3 triplanarWeights;
+    real3 normalWS; // vertex normal
+    real3 triplanarWeights;
 
 #ifdef SURFACE_GRADIENT
     // tangent basis to use when mappingType is UV_MAPPING_UVSET
     // these are vertex level in world space
-    REAL3 tangentWS;
-    REAL3 bitangentWS;
+    real3 tangentWS;
+    real3 bitangentWS;
     // TODO: store also object normal map for object triplanar
 #endif
 };
