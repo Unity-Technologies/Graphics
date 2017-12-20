@@ -276,8 +276,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _FilterKernelsBasic = Shader.PropertyToID("_FilterKernelsBasic");
         public static readonly int _HalfRcpWeightedVariances = Shader.PropertyToID("_HalfRcpWeightedVariances");
 
-        public static readonly int _CameraPosDiff = Shader.PropertyToID("_CameraPosDiff");
-
         public static readonly int _CameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture");
         public static readonly int _CameraMotionVectorsTexture = Shader.PropertyToID("_CameraMotionVectorsTexture");
         public static readonly int _FullScreenDebugMode = Shader.PropertyToID("_FullScreenDebugMode");

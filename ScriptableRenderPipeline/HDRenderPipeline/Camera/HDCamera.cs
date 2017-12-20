@@ -138,6 +138,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cameraPos = pos;
             screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
 
+            if (ShaderConfig.s_CameraRelativeRendering != 0)
+            {
+                Matrix4x4 cameraDisplacement = Matrix4x4.Translate(cameraPos - prevCameraPos); // Non-camera-relative positions
+                prevViewProjMatrix *= cameraDisplacement; // Now prevViewProjMatrix correctly transforms this frame's camera-relative positionWS
+            }
+
             // Warning: near and far planes appear to be broken.
             GeometryUtility.CalculateFrustumPlanes(viewProjMatrix, frustumPlanes);
 
