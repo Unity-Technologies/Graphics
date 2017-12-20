@@ -1,7 +1,7 @@
 #ifndef UNITY_ATMOSPHERIC_SCATTERING_INCLUDED
 #define UNITY_ATMOSPHERIC_SCATTERING_INCLUDED
 
-#include "ShaderLibrary/VolumeRendering.hlsl"
+#include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
 
 #include "AtmosphericScattering.cs.hlsl"
 #include "../SkyVariables.hlsl"

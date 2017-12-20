@@ -3,7 +3,7 @@
 
 #pragma kernel ScreenBoundsAABB
 
-#include "ShaderLibrary/common.hlsl"
+#include "CoreRP/ShaderLibrary/common.hlsl"
 #include "LightLoop.cs.hlsl"
 
 uniform int g_isOrthographic;

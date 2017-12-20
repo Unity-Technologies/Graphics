@@ -33,9 +33,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             var srpPath = GetScriptableRenderPipelinePath();
             if (srpPath != null)
-                return Path.Combine(srpPath, "ScriptableRenderPipeline/HDRenderPipeline/");
+                return Path.Combine(srpPath, "ScriptableRenderPipeline/HDRenderPipeline/HDRP/");
             // If the SRPMARKER is not found, we assume that a package setup is used.
-            return "Packages/com.unity.render-pipelines.high-definition/";
+            return "Packages/com.unity.render-pipelines.high-definition/HDRP/";
         }
 
         public static string GetPostProcessingPath()
@@ -51,7 +51,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             var srpPath = GetScriptableRenderPipelinePath();
             if (srpPath != null)
-                return Path.Combine(srpPath, "ScriptableRenderPipeline/Core/");
+                return Path.Combine(srpPath, "ScriptableRenderPipeline/Core/CoreRP");
             // If the SRPMARKER is not found, we assume that a package setup is used.
             return "Packages/com.unity.render-pipelines.core/";
         }

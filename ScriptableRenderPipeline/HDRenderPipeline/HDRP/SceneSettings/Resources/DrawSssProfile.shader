@@ -22,7 +22,7 @@ Shader "Hidden/HDRenderPipeline/DrawSssProfile"
             // Include
             //-------------------------------------------------------------------------------------
 
-            #include "ShaderLibrary/Common.hlsl"
+            #include "CoreRP/ShaderLibrary/Common.hlsl"
             #define USE_LEGACY_UNITY_MATRIX_VARIABLES
             #include "../../ShaderVariables.hlsl"
         #ifdef SSS_MODEL_BASIC

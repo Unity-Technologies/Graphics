@@ -15,9 +15,9 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
 
     #pragma multi_compile _ _ENABLE_SUN_DISK
 
-    #include "ShaderLibrary/Common.hlsl"
-    #include "ShaderLibrary/Color.hlsl"
-    #include "ShaderLibrary/CommonLighting.hlsl"
+    #include "CoreRP/ShaderLibrary/Common.hlsl"
+    #include "CoreRP/ShaderLibrary/Color.hlsl"
+    #include "CoreRP/ShaderLibrary/CommonLighting.hlsl"
 
     float4   _SkyParam; // x exposure, y multiplier, z rotation
     float4x4 _PixelCoordToViewDirWS; // Actually just 3x3, but Unity can only set 4x4
