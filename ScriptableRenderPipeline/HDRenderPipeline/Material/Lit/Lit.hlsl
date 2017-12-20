@@ -1639,12 +1639,13 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     else if (envShapeType == ENVSHAPETYPE_BOX)
     {
         float3 dirLS = mul(R, worldToLocal);
-        float3 boxOuterDistance = lightData.innerDistance;
-        float dist = BoxRayIntersectSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
-        dist = max(dist, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
+        float3 extents = lightData.innerDistance;
+        float extentHitDistance = BoxRayIntersectSimple(positionLS, dirLS, -extents, extents);
+        float projectionDist = max(extentHitDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
+        
         // No need to normalize for fetching cubemap
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.positionWS
-        R = (positionWS + dist * R) - lightData.positionWS;
+        R = (positionWS + projectionDist * R) - lightData.positionWS;
 
         // TODO: add distance based roughness
 
@@ -1652,15 +1653,42 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
         {
             dirLS = mul(coatR, worldToLocal);
-            dist = BoxRayIntersectSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
-            coatR = (positionWS + dist * coatR) - lightData.positionWS;
+            projectionDist = BoxRayIntersectSimple(positionLS, dirLS, -extents, extents);
+            coatR = (positionWS + projectionDist * coatR) - lightData.positionWS;
         }
 
         // Influence volume
         // Calculate falloff value, so reflections on the edges of the volume would gradually blend to previous reflection.
+
+        // Calculate distance to cube face
+        float3 minPositionLS = positionLS + extents;
+        float3 maxPositionLS = extents - positionLS;
+        int extentDistAxis = 0;
+        float extentDist = minPositionLS[0];
+        for (int i = 1; i < 3; ++i)
+        {
+            if (minPositionLS[i] < extentDist)
+            {
+                extentDistAxis = i;
+                extentDist = minPositionLS[i];
+            }
+        }
+        for (int i = 0; i < 3; ++i)
+        {
+            if (maxPositionLS[i] < extentDist)
+            {
+                extentDistAxis = i + 3;
+                extentDist = maxPositionLS[i];
+            }
+        }
         
-        float distFade = DistancePointBox(positionLS, -lightData.innerDistance - lightData.blendDistance2, lightData.innerDistance + lightData.blendDistance);
-        float alpha = saturate(1.0 - distFade / max(lightData.blendDistance.x, 0.0001)); // avoid divide by zero
+        float influenceFalloff = 0;
+        if (extentDistAxis < 3)
+            influenceFalloff = extentDist / max(0.0001, lightData.blendDistance2[extentDistAxis]); // avoid divide by zero
+        else
+            influenceFalloff = extentDist / max(0.0001, lightData.blendDistance[extentDistAxis - 3]); // avoid divide by zero
+
+        float alpha = saturate(influenceFalloff);
 
         // Influence Normal volume
         //float3 insideBox = saturate(abs(positionLS) - lightData.innerDistance + float3(lightData.blendNormalDistance, lightData.blendNormalDistance, lightData.blendNormalDistance));
