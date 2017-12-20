@@ -284,8 +284,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (settings.cookie != null && m_LightShape == LightShape.Directional)
                 {
                     EditorGUI.indentLevel++;
-                    EditorGUILayout.Slider(m_AdditionalLightData.shapeWidth, 0.01f, 10f, s_Styles.cookieSizeX);
-                    EditorGUILayout.Slider(m_AdditionalLightData.shapeHeight, 0.01f, 10f, s_Styles.cookieSizeY);
+                    EditorGUILayout.PropertyField(m_AdditionalLightData.shapeWidth, s_Styles.cookieSizeX);
+                    EditorGUILayout.PropertyField(m_AdditionalLightData.shapeHeight, s_Styles.cookieSizeY);
                     EditorGUI.indentLevel--;
                 }
             }
@@ -346,42 +346,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
 
                 EditorGUI.indentLevel++;
-
-                using (var scope = new EditorGUI.ChangeCheckScope())
-                {
-                    // Draw each field first...
-                    int arraySize = m_AdditionalShadowData.cascadeRatios.arraySize;
-                    for (int i = 0; i < arraySize; i++)
-                        EditorGUILayout.Slider(m_AdditionalShadowData.cascadeRatios.GetArrayElementAtIndex(i), 0f, 1f, s_Styles.shadowCascadeRatios[i]);
-
-                    if (scope.changed)
-                    {
-                        // ...then clamp values to avoid out of bounds cascade ratios
-                        for (int i = 0; i < arraySize; i++)
-                        {
-                            var ratios = m_AdditionalShadowData.cascadeRatios;
-                            var ratioProp = ratios.GetArrayElementAtIndex(i);
-                            float val = ratioProp.floatValue;
-
-                            if (i > 0)
-                            {
-                                var prevRatioProp = ratios.GetArrayElementAtIndex(i - 1);
-                                float prevVal = prevRatioProp.floatValue;
-                                val = Mathf.Max(val, prevVal);
-                            }
-
-                            if (i < arraySize - 1)
-                            {
-                                var nextRatioProp = ratios.GetArrayElementAtIndex(i + 1);
-                                float nextVal = nextRatioProp.floatValue;
-                                val = Mathf.Min(val, nextVal);
-                            }
-
-                            ratioProp.floatValue = val;
-                        }
-                    }
-                }
-
+                int arraySize = m_AdditionalShadowData.cascadeRatios.arraySize;
+                for (int i = 0; i < arraySize; i++)
+                    EditorGUILayout.Slider(m_AdditionalShadowData.cascadeRatios.GetArrayElementAtIndex(i), 0f, 1f, s_Styles.shadowCascadeRatios[i]);
                 EditorGUI.indentLevel--;
             }
 

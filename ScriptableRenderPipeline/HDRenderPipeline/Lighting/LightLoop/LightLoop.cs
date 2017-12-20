@@ -721,8 +721,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Light direction for directional is opposite to the forward direction
             directionalLightData.forward = light.light.transform.forward;
             // Rescale for cookies and windowing.
-            directionalLightData.up         = light.light.transform.up    * 2 / additionalData.shapeHeight;
-            directionalLightData.right      = light.light.transform.right * 2 / additionalData.shapeWidth;
+            directionalLightData.right      = light.light.transform.right * 2 / Mathf.Max(additionalData.shapeWidth, 0.001f);
+            directionalLightData.up         = light.light.transform.up    * 2 / Mathf.Max(additionalData.shapeHeight, 0.001f);
             directionalLightData.positionWS = light.light.transform.position;
             directionalLightData.color = GetLightColor(light);
             directionalLightData.diffuseScale = additionalData.affectDiffuse ? diffuseDimmer : 0.0f;
@@ -813,8 +813,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.size.x = light.range;
 
                 // Rescale for cookies and windowing.
-                lightData.right *= 2.0f / additionalLightData.shapeWidth;
-                lightData.up    *= 2.0f / additionalLightData.shapeHeight;
+                lightData.right *= 2.0f / Mathf.Max(additionalLightData.shapeWidth, 0.001f);
+                lightData.up    *= 2.0f / Mathf.Max(additionalLightData.shapeHeight, 0.001f);
             }
             else if (lightData.lightType == GPULightType.ProjectorPyramid)
             {
@@ -1159,6 +1159,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (probe.boxProjection == 0)
                     envLightData.minProjectionDistance = 65504.0f;
+
+                envLightData.dimmer = additionalData.dimmer;
             }
             else
             {
@@ -1174,6 +1176,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     envLightData.envShapeType = EnvShapeType.Box;
                     envLightData.minProjectionDistance = 0.0f;
                 }
+
+                envLightData.dimmer = 1;
             }
 
             // remove scale from the matrix (Scale in this matrix is use to scale the widget)
