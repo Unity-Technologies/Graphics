@@ -24,6 +24,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedProperty m_ReflectionCubemapSize;
         // Commented out until we have proper realtime BC6H compression
         //SerializedProperty m_ReflectionCacheCompressed;
+        SerializedProperty m_SkyReflectionSize;
 
         // FrameSettings
         // LightLoop settings
@@ -63,6 +64,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_ReflectionCubemapSize = properties.Find(x => x.renderPipelineSettings.lightLoopSettings.reflectionCubemapSize);
             // Commented out until we have proper realtime BC6H compression
             //m_ReflectionCacheCompressed = properties.Find(x => x.globalFrameSettings.lightLoopSettings.reflectionCacheCompressed);
+            m_SkyReflectionSize = properties.Find(x => x.renderPipelineSettings.lightLoopSettings.skyReflectionSize);
 
             // FrameSettings
             // LightLoop settings
@@ -101,6 +103,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(m_ReflectionCubemapSize, s_Styles.reflectionCubemapSize);
             // Commented out until we have proper realtime BC6H compression
             //EditorGUILayout.PropertyField(m_ReflectionCacheCompressed, s_Styles.reflectionCacheCompressed);
+            EditorGUILayout.PropertyField(m_SkyReflectionSize, s_Styles.skyReflectionSize);
             if (EditorGUI.EndChangeCheck())
             {
                 HackSetDirty(hdAsset); // Repaint
