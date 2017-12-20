@@ -11,6 +11,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
     public class GraphInspectorView : VisualElement, IDisposable
     {
+        enum ResizeDirection
+        {
+            Any,
+            Vertical,
+            Horizontal
+        }
+
         int m_SelectionHash;
 
         VisualElement m_PropertyItems;
@@ -104,6 +111,22 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             foreach (var property in m_Graph.properties)
                 m_PropertyItems.Add(new ShaderPropertyView(m_Graph, property));
 
+            var resizeHandleTop = new Label { name = "resize-top", text = "" };
+            resizeHandleTop.AddManipulator(new Draggable(mouseDelta => OnResize(mouseDelta, ResizeDirection.Vertical, true)));
+            Add(resizeHandleTop);
+
+            var resizeHandleRight = new Label { name = "resize-right", text = "" };
+            resizeHandleRight.AddManipulator(new Draggable(mouseDelta => OnResize(mouseDelta, ResizeDirection.Horizontal, false)));
+            Add(resizeHandleRight);
+
+            var resizeHandleLeft = new Label { name = "resize-left", text = "" };
+            resizeHandleLeft.AddManipulator(new Draggable(mouseDelta => OnResize(mouseDelta, ResizeDirection.Horizontal, true)));
+            Add(resizeHandleLeft);
+
+            var resizeHandleBottom = new Label { name = "resize-bottom", text = "" };
+            resizeHandleBottom.AddManipulator(new Draggable(mouseDelta => OnResize(mouseDelta, ResizeDirection.Vertical, false)));
+            Add(resizeHandleBottom);
+
             // Nodes missing custom editors:
             // - PropertyNode
             // - SubGraphInputNode
@@ -112,6 +135,44 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             {
                 // { typeof(AbstractSurfaceMasterNode), typeof(SurfaceMasterNodeEditorView) }
             };
+        }
+
+        void OnResize(Vector2 resizeDelta, ResizeDirection direction, bool moveWhileResize)
+        {
+            Vector2 normalizedResizeDelta = resizeDelta / 2f;
+
+            if (direction == ResizeDirection.Vertical)
+            {
+                normalizedResizeDelta.x = 0f;
+            }
+            else if (direction == ResizeDirection.Horizontal)
+            {
+                normalizedResizeDelta.y = 0f;
+            }
+
+            Rect newLayout = layout;
+
+            // Resize form bottom/right
+            if (!moveWhileResize)
+            {
+                newLayout.width = Mathf.Max(layout.width + normalizedResizeDelta.x, 60f);
+                newLayout.height = Mathf.Max(layout.height + normalizedResizeDelta.y, 60f);
+
+                layout = newLayout;
+
+                return;
+            }
+
+            float previousFarX = layout.x + layout.width;
+            float previousFarY = layout.y + layout.height;
+
+            newLayout.width = Mathf.Max(layout.width - normalizedResizeDelta.x, 60f);
+            newLayout.height = Mathf.Max(layout.height - normalizedResizeDelta.y, 60f);
+
+            newLayout.x = Mathf.Min(layout.x + normalizedResizeDelta.x, previousFarX - 60f);
+            newLayout.y = Mathf.Min(layout.y + normalizedResizeDelta.y, previousFarY - 60f);
+
+            layout = newLayout;
         }
 
         MasterNode masterNode
