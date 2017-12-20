@@ -57,9 +57,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private Shader m_DefaultShader;
         [SerializeField] private Shader m_BlitShader;
         [SerializeField] private Shader m_CopyDepthShader;
+        [SerializeField] private LightweightPipelineResource m_ResourceAsset;
 
 #if UNITY_EDITOR
-        private LightweightPipelineResource m_ResourceAsset;
 
         [MenuItem("Assets/Create/Render Pipeline/Lightweight/Pipeline Asset", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateLightweightPipeline()
