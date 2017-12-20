@@ -54,14 +54,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public SpotLightShape spotLightShape = SpotLightShape.Cone;
 
         // Only for Rectangle/Line/box projector lights
-        [Range(0.0f, 20.0f)]
-        [FormerlySerializedAs("lightLength")]
-        public float shapeLength = 0.5f;
-
-        // Only for Rectangle/box projector lights
-        [Range(0.0f, 20.0f)]
         [FormerlySerializedAs("lightWidth")]
         public float shapeWidth = 0.5f;
+
+        // Only for Rectangle/box projector lights
+        [FormerlySerializedAs("lightHeight")]
+        public float shapeHeight = 0.5f;
 
         // Only for pyramid projector
         public float aspectRatio = 1.0f;
@@ -79,7 +77,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // This is specific for the LightEditor GUI and not use at runtime
         public bool useOldInspector = false;
         public bool featuresFoldout = true;
-        public bool showAdditionalSettings = true; // TODO: Maybe we can remove if if we decide to always show additional settings
+        public bool showAdditionalSettings = false;
 
 #if UNITY_EDITOR
 

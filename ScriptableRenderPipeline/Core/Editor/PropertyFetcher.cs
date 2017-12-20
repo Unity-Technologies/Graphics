@@ -57,4 +57,19 @@ namespace UnityEditor.Experimental.Rendering
             // Nothing to do here, still needed so we can rely on the using/IDisposable pattern
         }
     }
+
+    public static class PropertyFetcherExtensions
+    {
+        public static SerializedProperty Find<TSource, TValue>(this SerializedObject obj, Expression<Func<TSource, TValue>> expr)
+        {
+            var path = CoreEditorUtils.FindProperty(expr);
+            return obj.FindProperty(path);
+        }
+
+        public static SerializedProperty Find<TSource, TValue>(this SerializedProperty obj, Expression<Func<TSource, TValue>> expr)
+        {
+            var path = CoreEditorUtils.FindProperty(expr);
+            return obj.FindPropertyRelative(path);
+        }
+    }
 }

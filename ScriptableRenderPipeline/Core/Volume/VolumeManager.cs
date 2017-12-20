@@ -33,6 +33,12 @@ namespace UnityEngine.Experimental.Rendering
         }
         //<<<
 
+        // Internal stack
+        public VolumeStack stack { get; private set; }
+
+        // Current list of tracked component types
+        public IEnumerable<Type> baseComponentTypes { get; private set; }
+
         // Max amount of layers available in Unity
         const int k_MaxLayerCount = 32;
 
@@ -45,9 +51,6 @@ namespace UnityEngine.Experimental.Rendering
         // Keep track of sorting states for layer masks
         readonly Dictionary<LayerMask, bool> m_SortNeeded;
 
-        // Internal state of all component types
-        readonly Dictionary<Type, VolumeComponent> m_Components;
-
         // Internal list of default state for each component type - this is used to reset component
         // states on update instead of having to implement a Reset method on all components (which
         // would be error-prone)
@@ -56,81 +59,43 @@ namespace UnityEngine.Experimental.Rendering
         // Recycled list used for volume traversal
         readonly List<Collider> m_TempColliders;
 
-        // In the editor, when entering play-mode, it will call the constructor and OnEditorReload()
-        // which in turn will call ReloadBaseTypes() twice, so we need to keep track of the reloads
-        // to avoid wasting any more CPU than required
-        static bool s_StopReloads = false;
-
         VolumeManager()
         {
             m_SortedVolumes = new Dictionary<LayerMask, List<Volume>>();
             m_Volumes = new List<Volume>();
             m_SortNeeded = new Dictionary<LayerMask, bool>();
             m_TempColliders = new List<Collider>(8);
-            m_Components = new Dictionary<Type, VolumeComponent>();
             m_ComponentsDefaultState = new List<VolumeComponent>();
 
             ReloadBaseTypes();
+
+            stack = CreateStack();
         }
 
-#if UNITY_EDITOR
-        // Called every time Unity recompiles scripts in the editor. We need this to keep track of
-        // any new custom component the user might add to the project.
-        [UnityEditor.Callbacks.DidReloadScripts]
-        static void OnEditorReload()
+        public VolumeStack CreateStack()
         {
-            if (!s_StopReloads)
-                instance.ReloadBaseTypes();
-
-            s_StopReloads = false;
+            var stack = new VolumeStack();
+            stack.Reload(baseComponentTypes);
+            return stack;
         }
-#endif
 
         // This will be called only once at runtime and everytime script reload kicks-in in the
         // editor as we need to keep track of any compatible component in the project
         void ReloadBaseTypes()
         {
-            // Clean component map & default states
-            foreach (var component in m_Components)
-                CoreUtils.Destroy(component.Value);
-
-            foreach (var component in m_ComponentsDefaultState)
-                CoreUtils.Destroy(component);
-
-            m_Components.Clear();
             m_ComponentsDefaultState.Clear();
 
-            // Rebuild it from scratch
-            var types = CoreUtils.GetAllAssemblyTypes()
+            // Grab all the component types we can find
+            baseComponentTypes = CoreUtils.GetAllAssemblyTypes()
                             .Where(t => t.IsSubclassOf(typeof(VolumeComponent)) && !t.IsAbstract);
 
-            foreach (var type in types)
+            // Keep an instance of each type to be used in a virtual lowest priority global volume
+            // so that we have a default state to fallback to when exiting volumes
+            foreach (var type in baseComponentTypes)
             {
-                // We need two instances, one for global state tracking and another one to keep a
-                // default state that will act as the lowest priority global volume (so that we have
-                // a state to fallback to when exiting volumes)
                 var inst = (VolumeComponent)ScriptableObject.CreateInstance(type);
-                m_Components.Add(type, inst);
-
-                inst = (VolumeComponent)ScriptableObject.CreateInstance(type);
                 m_ComponentsDefaultState.Add(inst);
             }
-
-            s_StopReloads = true;
-        }
-
-        public T GetComponent<T>()
-            where T : VolumeComponent
-        {
-            var comp = GetComponent(typeof(T));
-            return (T)comp;
-        }
-
-        public VolumeComponent GetComponent(Type type)
-        {
-            VolumeComponent comp;
-            m_Components.TryGetValue(type, out comp);
-            return comp;
         }
 
         public void Register(Volume volume, int layer)
@@ -140,9 +105,7 @@ namespace UnityEngine.Experimental.Rendering
             // Look for existing cached layer masks and add it there if needed
             foreach (var kvp in m_SortedVolumes)
             {
-                var mask = kvp.Key;
-
-                if ((mask & (1 << layer)) != 0)
+                if ((kvp.Key & (1 << layer)) != 0)
                     kvp.Value.Add(volume);
             }
 
@@ -155,14 +118,33 @@ namespace UnityEngine.Experimental.Rendering
 
             foreach (var kvp in m_SortedVolumes)
             {
-                var mask = kvp.Key;
-
                 // Skip layer masks this volume doesn't belong to
-                if ((mask & (1 << layer)) == 0)
+                if ((kvp.Key & (1 << layer)) == 0)
                     continue;
 
                 kvp.Value.Remove(volume);
             }
+        }
+
+        public bool IsComponentActiveInMask<T>(LayerMask layerMask)
+            where T : VolumeComponent
+        {
+            int mask = layerMask.value;
+
+            foreach (var kvp in m_SortedVolumes)
+            {
+                if ((kvp.Key & mask) == 0)
+                    continue;
+
+                foreach (var volume in kvp.Value)
+                {
+                    T component;
+                    if (volume.TryGet(out component) && component.active)
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         internal void SetLayerDirty(int layer)
@@ -186,14 +168,14 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Go through all listed components and lerp overriden values in the global state
-        void OverrideData(List<VolumeComponent> components, float interpFactor)
+        void OverrideData(VolumeStack stack, List<VolumeComponent> components, float interpFactor)
         {
             foreach (var component in components)
             {
                 if (!component.active)
                     continue;
 
-                var target = GetComponent(component.GetType());
+                var target = stack.GetComponent(component.GetType());
                 int count = component.parameters.Count;
 
                 for (int i = 0; i < count; i++)
@@ -211,11 +193,11 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Faster version of OverrideData to force replace values in the global state
-        void ReplaceData(List<VolumeComponent> components)
+        void ReplaceData(VolumeStack stack, List<VolumeComponent> components)
         {
             foreach (var component in components)
             {
-                var target = GetComponent(component.GetType());
+                var target = stack.GetComponent(component.GetType());
                 int count = component.parameters.Count;
 
                 for (int i = 0; i < count; i++)
@@ -231,14 +213,46 @@ namespace UnityEngine.Experimental.Rendering
                 ReloadBaseTypes();
         }
 
+        [Conditional("UNITY_EDITOR")]
+        public void CheckStack(VolumeStack stack)
+        {
+            // The editor doesn't reload the domain when exiting play mode but still kills every
+            // object created while in play mode, like stacks' component states
+            var components = stack.components;
+
+            if (components == null)
+            {
+                stack.Reload(baseComponentTypes);
+                return;
+            }
+
+            foreach (var kvp in components)
+            {
+                if (kvp.Key == null || kvp.Value == null)
+                {
+                    stack.Reload(baseComponentTypes);
+                    return;
+                }
+            }
+        }
+
         // Update the global state - should be called once per frame per transform/layer mask combo
         // in the update loop before rendering
         public void Update(Transform trigger, LayerMask layerMask)
         {
+            Update(stack, trigger, layerMask);
+        }
+
+        // Update a specific stack - can be used to manage your own stack and store it for later use
+        public void Update(VolumeStack stack, Transform trigger, LayerMask layerMask)
+        {
+            Assert.IsNotNull(stack);
+
             CheckBaseTypes();
+            CheckStack(stack);
 
             // Start by resetting the global state to default values
-            ReplaceData(m_ComponentsDefaultState);
+            ReplaceData(stack, m_ComponentsDefaultState);
 
             bool onlyGlobal = trigger == null;
             var triggerPos = onlyGlobal ? Vector3.zero : trigger.position;
@@ -256,7 +270,7 @@ namespace UnityEngine.Experimental.Rendering
                 // Global volumes always have influence
                 if (volume.isGlobal)
                 {
-                    OverrideData(volume.components, Mathf.Clamp01(volume.weight));
+                    OverrideData(stack, volume.components, Mathf.Clamp01(volume.weight));
                     continue;
                 }
 
@@ -301,7 +315,7 @@ namespace UnityEngine.Experimental.Rendering
                     interpFactor = 1f - (closestDistanceSqr / blendDistSqr);
 
                 // No need to clamp01 the interpolation factor as it'll always be in [0;1[ range
-                OverrideData(volume.components, interpFactor * Mathf.Clamp01(volume.weight));
+                OverrideData(stack, volume.components, interpFactor * Mathf.Clamp01(volume.weight));
             }
         }
 

@@ -3,7 +3,7 @@
 
 #include "ShaderLibrary/CommonLighting.hlsl"
 #include "ShaderLibrary/CommonShadow.hlsl"
-#include "ShaderLibrary/Sampling.hlsl"
+#include "ShaderLibrary/Sampling/Sampling.hlsl"
 #include "ShaderLibrary/AreaLighting.hlsl"
 #include "ShaderLibrary/ImageBasedLighting.hlsl"
 

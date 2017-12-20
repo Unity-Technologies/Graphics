@@ -66,11 +66,17 @@
 #elif defined(SHADER_API_PSSL)
 #include "API/PSSL.hlsl"
 #elif defined(SHADER_API_XBOXONE)
-#include "API/XBoneOne.hlsl"
+#include "API/XBoxOne.hlsl"
 #elif defined(SHADER_API_METAL)
 #include "API/Metal.hlsl"
 #elif defined(SHADER_API_VULKAN)
 #include "API/Vulkan.hlsl"
+#elif defined(SHADER_API_GLCORE)
+#include "API/GLCore.hlsl"
+#elif defined(SHADER_API_GLES3)
+#include "API/GLES3.hlsl"
+#elif defined(SHADER_API_GLES)
+#include "API/GLES2.hlsl"
 #else
 #error unsupported shader api
 #endif
@@ -83,20 +89,55 @@
 // Common intrinsic (general implementation of intrinsic available on some platform)
 // ----------------------------------------------------------------------------
 
+// Error on GLES2 undefined functions
+#ifdef SHADER_API_GLES
+#define BitFieldExtract ERROR_ON_UNSUPPORTED_FUNC(BitFieldExtract)
+#define IsBitSet ERROR_ON_UNSUPPORTED_FUNC(IsBitSet)
+#define SetBit ERROR_ON_UNSUPPORTED_FUNC(SetBit)
+#define ClearBit ERROR_ON_UNSUPPORTED_FUNC(ClearBit)
+#define ToggleBit ERROR_ON_UNSUPPORTED_FUNC(ToggleBit)
+#define FastMulBySignOfNegZero ERROR_ON_UNSUPPORTED_FUNC(FastMulBySignOfNegZero)
+#define LODDitheringTransition ERROR_ON_UNSUPPORTED_FUNC(LODDitheringTransition)
+#endif
+
+#if !defined(SHADER_API_GLES)
+
 #ifndef INTRINSIC_BITFIELD_EXTRACT
 // Unsigned integer bit field extraction.
 // Note that the intrinsic itself generates a vector instruction.
 // Wrap this function with WaveReadFirstLane() to get scalar output.
-uint BitFieldExtract(uint data, uint numBits, uint offset)
+uint BitFieldExtract(uint data, uint offset, uint numBits)
 {
-    uint mask = UINT_MAX >> (32u - numBits);
+    uint mask = (1u << numBits) - 1u;
     return (data >> offset) & mask;
 }
 #endif // INTRINSIC_BITFIELD_EXTRACT
 
+#ifndef INTRINSIC_BITFIELD_EXTRACT_SIGN_EXTEND
+// Integer bit field extraction with sign extension.
+// Note that the intrinsic itself generates a vector instruction.
+// Wrap this function with WaveReadFirstLane() to get scalar output.
+int BitFieldExtractSignExtend(int data, uint offset, uint numBits)
+{
+    int  shifted = data >> offset;      // Sign-extending (arithmetic) shift
+    int  signBit = shifted & (1u << (numBits - 1u));
+    uint mask    = (1u << numBits) - 1u;
+
+    return -signBit | (shifted & mask); // Use 2-complement for negation to replicate the sign bit
+}
+#endif // INTRINSIC_BITFIELD_EXTRACT_SIGN_EXTEND
+
+#ifndef INTRINSIC_BITFIELD_INSERT
+// Inserts the bits indicated by 'mask' from 'src' into 'dst'.
+uint BitFieldInsert(uint mask, uint src, uint dst)
+{
+    return (src & mask) | (dst & ~mask);
+}
+#endif // INTRINSIC_BITFIELD_INSERT
+
 bool IsBitSet(uint data, uint offset)
 {
-    return BitFieldExtract(data, 1u, offset) != 0;
+    return BitFieldExtract(data, offset, 1u) != 0;
 }
 
 void SetBit(inout uint data, uint offset)
@@ -113,6 +154,9 @@ void ToggleBit(inout uint data, uint offset)
 {
     data ^= 1u << offset;
 }
+
+#endif
+
 
 #ifndef INTRINSIC_WAVEREADFIRSTLANE
     // Warning: for correctness, the argument must have the same value across the wave!
@@ -250,6 +294,13 @@ float FastATanPos(float x)
     return (x < 1.0) ? poly : HALF_PI - poly;
 }
 
+#if (SHADER_TARGET >= 45)
+uint FastLog2(uint x)
+{
+    return firstbithigh(x) - 1u;
+}
+#endif
+
 // 4 VGPR, 16 FR (12 FR, 1 QR), 2 scalar
 // input [-infinity, infinity] and output [-PI/2, PI/2]
 float FastATan(float x)
@@ -258,30 +309,18 @@ float FastATan(float x)
     return (x < 0.0) ? -t0 : t0;
 }
 
-// Same as smoothstep except it assume 0, 1 interval for x
-float Smoothstep01(float x)
-{
-    return x * x * (3.0 - (2.0 * x));
-}
-
-static const float3x3 k_identity3x3 = {1.0, 0.0, 0.0,
-                                       0.0, 1.0, 0.0,
-                                       0.0, 0.0, 1.0};
-
-static const float4x4 k_identity4x4 = {1.0, 0.0, 0.0, 0.0,
-                                       0.0, 1.0, 0.0, 0.0,
-                                       0.0, 0.0, 1.0, 0.0,
-                                       0.0, 0.0, 0.0, 1.0};
-
 // Using pow often result to a warning like this
 // "pow(f, e) will not work for negative f, use abs(f) or conditionally handle negative values if you expect them"
 // PositivePow remove this warning when you know the value is positive and avoid inf/NAN.
 TEMPLATE_2_FLT(PositivePow, base, power, return pow(max(abs(base), FLT_EPS), power))
 
+
+
 // Computes (FastSign(s) * x) using 2x VALU.
 // See the comment about FastSign() below.
 float FastMulBySignOf(float s, float x, bool ignoreNegZero = true)
 {
+#if !defined(SHADER_API_GLES)
     if (ignoreNegZero)
     {
         return (s >= 0) ? x : -x;
@@ -292,6 +331,9 @@ float FastMulBySignOf(float s, float x, bool ignoreNegZero = true)
         uint signBit = negZero & asuint(s);
         return asfloat(signBit ^ asuint(x));
     }
+#else
+    return (s >= 0) ? x : -x;
+#endif
 }
 
 // Returns -1 for negative numbers and 1 for positive numbers.
@@ -312,6 +354,12 @@ float FastSign(float s, bool ignoreNegZero = true)
 float3 Orthonormalize(float3 tangent, float3 normal)
 {
     return normalize(tangent - dot(tangent, normal) * normal);
+}
+
+// Same as smoothstep except it assume 0, 1 interval for x
+float Smoothstep01(float x)
+{
+    return x * x * (3.0 - (2.0 * x));
 }
 
 // ----------------------------------------------------------------------------
@@ -409,6 +457,15 @@ float LinearEyeDepth(float3 positionWS, float4x4 viewProjMatrix)
 // ----------------------------------------------------------------------------
 // Space transformations
 // ----------------------------------------------------------------------------
+
+static const float3x3 k_identity3x3 = {1, 0, 0,
+                                       0, 1, 0,
+                                       0, 0, 1};
+
+static const float4x4 k_identity4x4 = {1, 0, 0, 0,
+                                       0, 1, 0, 0,
+                                       0, 0, 1, 0,
+                                       0, 0, 0, 1};
 
 // Use case examples:
 // (position = positionCS) => (clipSpaceTransform = use default)
@@ -525,6 +582,20 @@ void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float4x4 viewP
 // Misc utilities
 // ----------------------------------------------------------------------------
 
+// Normalize that account for vectors with zero length
+float3 SafeNormalize(float3 inVec)
+{
+    float dp3 = max(FLT_MIN, dot(inVec, inVec));
+    return inVec * rsqrt(dp3);
+}
+
+// Normalize that account for vectors with zero length
+half3 SafeNormalize(half3 inVec)
+{
+    half dp3 = max(HALF_MIN, dot(inVec, inVec));
+    return inVec * rsqrt(dp3);
+}
+
 // Generates a triangle in homogeneous clip space, s.t.
 // v0 = (-1, -1, 1), v1 = (3, -1, 1), v2 = (-1, 3, 1).
 float2 GetFullScreenTriangleTexCoord(uint vertexID)
@@ -542,6 +613,8 @@ float4 GetFullScreenTriangleVertexPosition(uint vertexID, float z = UNITY_NEAR_C
     return float4(uv * 2.0 - 1.0, z, 1.0);
 }
 
+#if !defined(SHADER_API_GLES)
+
 // LOD dithering transition helper
 // LOD0 must use this function with ditherFactor 1..0
 // LOD1 must use this function with ditherFactor 0..1
@@ -556,6 +629,8 @@ void LODDitheringTransition(uint2 positionSS, float ditherFactor)
     p = (ditherFactor >= 0.5) ? p : 1 - p;
     clip(ditherFactor - p);
 }
+
+#endif
 
 
 #endif // UNITY_COMMON_INCLUDED

@@ -21,11 +21,16 @@ float3 UnpackNormalMaxComponent(float3 n)
 // return float between [-1, 1]
 float2 PackNormalOctEncode(float3 n)
 {
-    float l1norm    = dot(abs(n), 1.0);
-    float2 res0     = n.xy * (1.0 / l1norm);
+    //float l1norm    = dot(abs(n), 1.0);
+    //float2 res0     = n.xy * (1.0 / l1norm);
 
-    float2 val      = 1.0 - abs(res0.yx);
-    return (n.zz < float2(0.0, 0.0) ? (res0 >= 0.0 ? val : -val) : res0);
+    //float2 val      = 1.0 - abs(res0.yx);
+    //return (n.zz < float2(0.0, 0.0) ? (res0 >= 0.0 ? val : -val) : res0);
+
+    // Optimized version of above code:
+    n *= rcp(dot(abs(n), 1.0));
+    float t = saturate(-n.z);
+    return n.xy + (n.xy >= 0.0 ? t : -t);
 }
 
 float3 UnpackNormalOctEncode(float2 f)
@@ -124,17 +129,17 @@ float3 UnpackNormalTetraEncode(float2 f, uint faceIndex)
 }
 
 // Unpack from normal map
-float3 UnpackNormalRGB(float4 packedNormal, float scale = 1.0)
+half3 UnpackNormalRGB(half4 packedNormal, half scale = 1.0)
 {
-    float3 normal;
+    half3 normal;
     normal.xyz = packedNormal.rgb * 2.0 - 1.0;
     normal.xy *= scale;
     return normalize(normal);
 }
 
-float3 UnpackNormalAG(float4 packedNormal, float scale = 1.0)
+half3 UnpackNormalAG(half4 packedNormal, half scale = 1.0)
 {
-    float3 normal;
+    half3 normal;
     normal.xy = packedNormal.wy * 2.0 - 1.0;
     normal.xy *= scale;
     normal.z = sqrt(1.0 - saturate(dot(normal.xy, normal.xy)));
@@ -142,7 +147,7 @@ float3 UnpackNormalAG(float4 packedNormal, float scale = 1.0)
 }
 
 // Unpack normal as DXT5nm (1, y, 0, x) or BC5 (x, y, 0, 1)
-float3 UnpackNormalmapRGorAG(float4 packedNormal, float scale = 1.0)
+half3 UnpackNormalmapRGorAG(half4 packedNormal, half scale = 1.0)
 {
     // This do the trick
     packedNormal.w *= packedNormal.x;
@@ -152,6 +157,9 @@ float3 UnpackNormalmapRGorAG(float4 packedNormal, float scale = 1.0)
 //-----------------------------------------------------------------------------
 // HDR packing
 //-----------------------------------------------------------------------------
+
+// HDR Packing not defined in GLES2
+#if !defined(SHADER_API_GLES)
 
 // Ref: http://realtimecollisiondetection.net/blog/?p=15
 float4 PackToLogLuv(float3 vRGB)
@@ -206,6 +214,8 @@ float3 UnpackFromR11G11B10f(uint rgb)
     return float3(r, g, b);
 }
 
+#endif // SHADER_API_GLES
+
 //-----------------------------------------------------------------------------
 // Quaternion packing
 //-----------------------------------------------------------------------------
@@ -257,6 +267,9 @@ float4 UnpackQuat(float4 packedQuat)
     return quat;
 }
 
+// Integer and Float packing not defined in GLES2
+#if !defined(SHADER_API_GLES)
+
 //-----------------------------------------------------------------------------
 // Integer packing
 //-----------------------------------------------------------------------------
@@ -264,14 +277,14 @@ float4 UnpackQuat(float4 packedQuat)
 // Packs an integer stored using at most 'numBits' into a [0..1] float.
 float PackInt(uint i, uint numBits)
 {
-    uint maxInt = UINT_MAX >> (32u - numBits);
+    uint maxInt = (1u << numBits) - 1u;
     return saturate(i * rcp(maxInt));
 }
 
 // Unpacks a [0..1] float into an integer of size 'numBits'.
 uint UnpackInt(float f, uint numBits)
 {
-    uint maxInt = UINT_MAX >> (32u - numBits);
+    uint maxInt = (1u << numBits) - 1u;
     return (uint)(f * maxInt + 0.5); // Round instead of truncating
 }
 
@@ -302,7 +315,7 @@ uint UnpackShort(float f)
 // Packs 8 lowermost bits of a [0..65535] integer into a [0..1] float.
 float PackShortLo(uint i)
 {
-    uint lo = BitFieldExtract(i, 8u, 0u);
+    uint lo = BitFieldExtract(i, 0u, 8u);
     return PackInt(lo, 8);
 }
 
@@ -399,29 +412,32 @@ void UnpackFloatInt16bit(float val, float maxi, out float f, out int i)
 //-----------------------------------------------------------------------------
 
 // src must be between 0.0 and 1.0
-uint PackFloatToUInt(float src, uint numBits, uint offset)
+uint PackFloatToUInt(float src, uint offset, uint numBits)
 {
     return UnpackInt(src, numBits) << offset;
 }
 
-float UnpackUIntToFloat(uint src, uint numBits, uint offset)
+float UnpackUIntToFloat(uint src, uint offset, uint numBits)
 {
-    uint maxInt = UINT_MAX >> (32u - numBits);
-    return float(BitFieldExtract(src, numBits, offset)) * rcp(maxInt);
+    uint maxInt = (1u << numBits) - 1u;
+    return float(BitFieldExtract(src, offset, numBits)) * rcp(maxInt);
 }
 
 uint PackToR10G10B10A2(float4 rgba)
 {
-    return (PackFloatToUInt(rgba.x, 10, 0) | PackFloatToUInt(rgba.y, 10, 10) | PackFloatToUInt(rgba.z, 10, 20) | PackFloatToUInt(rgba.w, 2, 30));
+    return (PackFloatToUInt(rgba.x, 0,  10) |
+            PackFloatToUInt(rgba.y, 10, 10) |
+            PackFloatToUInt(rgba.z, 20, 10) |
+            PackFloatToUInt(rgba.w, 30, 2));
 }
 
 float4 UnpackFromR10G10B10A2(uint rgba)
 {
     float4 ouput;
-    ouput.x = UnpackUIntToFloat(rgba, 10, 0);
+    ouput.x = UnpackUIntToFloat(rgba, 0,  10);
     ouput.y = UnpackUIntToFloat(rgba, 10, 10);
-    ouput.z = UnpackUIntToFloat(rgba, 10, 20);
-    ouput.w = UnpackUIntToFloat(rgba, 2, 30);
+    ouput.z = UnpackUIntToFloat(rgba, 20, 10);
+    ouput.w = UnpackUIntToFloat(rgba, 30, 2);
     return ouput;
 }
 
@@ -440,5 +456,7 @@ float UnpackFloatFromR8G8(float2 f)
     uint cb = (hi << 8) + lo;
     return PackShort(cb);
 }
+
+#endif // SHADER_API_GLES
 
 #endif // UNITY_PACKING_INCLUDED

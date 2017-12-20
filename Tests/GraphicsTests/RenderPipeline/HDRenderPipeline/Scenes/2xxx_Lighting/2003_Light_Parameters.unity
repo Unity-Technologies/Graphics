@@ -13,7 +13,7 @@ OcclusionCullingSettings:
 --- !u!104 &2
 RenderSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 9
+  serializedVersion: 8
   m_Fog: 0
   m_FogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   m_FogMode: 3
@@ -38,8 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.3661533, g: 0.3847445, b: 0.42534745, a: 1}
-  m_UseRadianceAmbientProbe: 0
+  m_IndirectSpecularColor: {r: 0.07321051, g: 0.076927215, b: 0.08504366, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -177,7 +176,7 @@ Transform:
   - {fileID: 13552206}
   - {fileID: 759782494}
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &95545367
 GameObject:
@@ -557,13 +556,13 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 119984175}
-  m_LocalRotation: {x: -0, y: -0, z: 0.70710677, w: 0.7071068}
-  m_LocalPosition: {x: -2.429, y: -0.5, z: 0}
+  m_LocalRotation: {x: 0.059106357, y: -0.05910636, z: 0.7046321, w: 0.7046322}
+  m_LocalPosition: {x: -2.429, y: -2.11, z: -0.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1176110784}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90.00001}
+  m_LocalEulerAnglesHint: {x: 9.59, y: 0, z: 90.00001}
 --- !u!102 &119984177
 TextMesh:
   serializedVersion: 3
@@ -571,9 +570,9 @@ TextMesh:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 119984175}
-  m_Text: Spot Point
+  m_Text: ' Line  Rect. Spot Point'
   m_OffsetZ: 0
-  m_CharacterSize: 0.2
+  m_CharacterSize: 0.15
   m_LineSpacing: 1
   m_Anchor: 7
   m_Alignment: 1
@@ -809,8 +808,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 1
   spotLightShape: 0
-  shapeLength: 0.5
   shapeWidth: 0.5
+  shapeHeight: 0.5
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
@@ -828,7 +827,7 @@ Light:
   serializedVersion: 8
   m_Type: 2
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 3.14
+  m_Intensity: 1
   m_Range: 0.6
   m_SpotAngle: 140
   m_CookieSize: 10
@@ -854,6 +853,44 @@ Light:
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+--- !u!114 &207520586
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59b6606ef2548734bb6d11b9d160bc7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  active: 1
+  rotation:
+    m_OverrideState: 1
+    m_Value: 160
+    min: 0
+    max: 360
+  exposure:
+    m_OverrideState: 1
+    m_Value: 0
+  multiplier:
+    m_OverrideState: 1
+    m_Value: 0.2
+    min: 0
+  resolution:
+    m_OverrideState: 1
+    m_Value: 256
+  updateMode:
+    m_OverrideState: 1
+    m_Value: 0
+  updatePeriod:
+    m_OverrideState: 1
+    m_Value: 0
+    min: 0
+  useForBaking: 1
+  skyHDRI:
+    m_OverrideState: 1
+    m_Value: {fileID: 8900000, guid: fb0bf2eac2381484187ba8a68cdca165, type: 3}
 --- !u!21 &217658013
 Material:
   serializedVersion: 6
@@ -1131,8 +1168,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 1
   spotLightShape: 0
-  shapeLength: 0.5
   shapeWidth: 0.5
+  shapeHeight: 0.5
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
@@ -1150,7 +1187,7 @@ Light:
   serializedVersion: 8
   m_Type: 2
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 3.14
+  m_Intensity: 1
   m_Range: 0.6
   m_SpotAngle: 140
   m_CookieSize: 10
@@ -1311,8 +1348,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 0
   spotLightShape: 0
-  shapeLength: 0.5
   shapeWidth: 0.5
+  shapeHeight: 0.5
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
@@ -1583,8 +1620,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 0
   spotLightShape: 2
-  shapeLength: 1.1
-  shapeWidth: 6
+  shapeWidth: 1.1
+  shapeHeight: 6
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 0.2
@@ -2420,8 +2457,8 @@ MonoBehaviour:
   affectSpecular: 0
   lightTypeExtent: 0
   spotLightShape: 0
-  shapeLength: 0.5
   shapeWidth: 0.5
+  shapeHeight: 0.5
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
@@ -2797,8 +2834,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 2
   spotLightShape: 0
-  shapeLength: 0.5
   shapeWidth: 0.5
+  shapeHeight: 0.5
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
@@ -2817,7 +2854,7 @@ Light:
   m_Type: 2
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
-  m_Range: 0.6
+  m_Range: 0.8
   m_SpotAngle: 140
   m_CookieSize: 10
   m_Shadows:
@@ -3841,8 +3878,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 0
   spotLightShape: 0
-  shapeLength: 0.5
   shapeWidth: 0.5
+  shapeHeight: 0.5
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
@@ -3861,7 +3898,7 @@ Light:
   m_Type: 2
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
-  m_Range: 0.7
+  m_Range: 0.8
   m_SpotAngle: 30
   m_CookieSize: 10
   m_Shadows:
@@ -3969,8 +4006,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 0
   spotLightShape: 0
-  shapeLength: 0.5
   shapeWidth: 0.5
+  shapeHeight: 0.5
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
@@ -3989,7 +4026,7 @@ Light:
   m_Type: 2
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
-  m_Range: 0.7
+  m_Range: 0.8
   m_SpotAngle: 30
   m_CookieSize: 10
   m_Shadows:
@@ -4169,8 +4206,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 0
   spotLightShape: 0
-  shapeLength: 0.5
   shapeWidth: 0.5
+  shapeHeight: 0.5
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
@@ -4491,8 +4528,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 2
   spotLightShape: 0
-  shapeLength: 0.5
   shapeWidth: 0.5
+  shapeHeight: 0.5
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
@@ -4511,7 +4548,7 @@ Light:
   m_Type: 2
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
-  m_Range: 0.6
+  m_Range: 0.8
   m_SpotAngle: 140
   m_CookieSize: 10
   m_Shadows:
@@ -4568,7 +4605,7 @@ Transform:
   - {fileID: 788242261}
   - {fileID: 871199633}
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &702619537
 GameObject:
@@ -4991,8 +5028,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 2
   spotLightShape: 0
-  shapeLength: 0.5
   shapeWidth: 0.5
+  shapeHeight: 0.5
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
@@ -5011,7 +5048,7 @@ Light:
   m_Type: 2
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
-  m_Range: 0.6
+  m_Range: 0.8
   m_SpotAngle: 140
   m_CookieSize: 10
   m_Shadows:
@@ -5153,8 +5190,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 0
   spotLightShape: 0
-  shapeLength: 0.5
   shapeWidth: 0.5
+  shapeHeight: 0.5
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
@@ -5173,7 +5210,7 @@ Light:
   m_Type: 2
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
-  m_Range: 0.7
+  m_Range: 0.8
   m_SpotAngle: 179
   m_CookieSize: 10
   m_Shadows:
@@ -5281,8 +5318,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 0
   spotLightShape: 2
-  shapeLength: 1.1
-  shapeWidth: 6
+  shapeWidth: 1.1
+  shapeHeight: 6
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 0.8
@@ -5409,8 +5446,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 0
   spotLightShape: 2
-  shapeLength: 1.1
-  shapeWidth: 6
+  shapeWidth: 1.1
+  shapeHeight: 6
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
@@ -5537,8 +5574,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 0
   spotLightShape: 2
-  shapeLength: 1.1
-  shapeWidth: 6
+  shapeWidth: 1.1
+  shapeHeight: 6
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 0.6
@@ -5637,6 +5674,24 @@ Transform:
   m_PrefabParentObject: {fileID: 4415619047076708, guid: e6be141ec19d3554489da286b19b90b2,
     type: 2}
   m_PrefabInternal: {fileID: 970404657}
+--- !u!114 &1014241604
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d7593b3a9277ac4696b20006c21dde2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  active: 1
+  skyType:
+    m_OverrideState: 1
+    m_Value: 1
+  fogType:
+    m_OverrideState: 1
+    m_Value: 0
 --- !u!1 &1018044727
 GameObject:
   m_ObjectHideFlags: 0
@@ -5991,8 +6046,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 0
   spotLightShape: 0
-  shapeLength: 0.5
   shapeWidth: 0.5
+  shapeHeight: 0.5
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
@@ -6011,7 +6066,7 @@ Light:
   m_Type: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
-  m_Range: 0.6
+  m_Range: 0.7
   m_SpotAngle: 179
   m_CookieSize: 10
   m_Shadows:
@@ -6581,7 +6636,7 @@ Transform:
   - {fileID: 95545368}
   - {fileID: 589538113}
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1242278682
 GameObject:
@@ -6666,8 +6721,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 0
   spotLightShape: 2
-  shapeLength: 1.1
-  shapeWidth: 6
+  shapeWidth: 1.1
+  shapeHeight: 6
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 0.4
@@ -6756,6 +6811,26 @@ Prefab:
       value: 
       objectReference: {fileID: 11400000, guid: 6afe60f7be788644f84fb8dc55566ff7,
         type: 2}
+    - target: {fileID: 114110876577682668, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 2}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 20109210616973140, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 2}
+      propertyPath: m_BackGroundColor.r
+      value: 0.2509804
+      objectReference: {fileID: 0}
+    - target: {fileID: 20109210616973140, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 2}
+      propertyPath: m_BackGroundColor.g
+      value: 0.2509804
+      objectReference: {fileID: 0}
+    - target: {fileID: 20109210616973140, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 2}
+      propertyPath: m_BackGroundColor.b
+      value: 0.2509804
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 2}
   m_IsPrefabParent: 0
@@ -7382,7 +7457,7 @@ Transform:
   - {fileID: 396282402}
   - {fileID: 244439178}
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1423161239
 GameObject:
@@ -8865,8 +8940,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 0
   spotLightShape: 0
-  shapeLength: 0.5
   shapeWidth: 0.5
+  shapeHeight: 0.5
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
@@ -8885,7 +8960,7 @@ Light:
   m_Type: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
-  m_Range: 0.6
+  m_Range: 0.7
   m_SpotAngle: 179
   m_CookieSize: 10
   m_Shadows:
@@ -8993,8 +9068,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 0
   spotLightShape: 0
-  shapeLength: 0.5
   shapeWidth: 0.5
+  shapeHeight: 0.5
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
@@ -9013,7 +9088,7 @@ Light:
   m_Type: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
-  m_Range: 0.6
+  m_Range: 0.7
   m_SpotAngle: 179
   m_CookieSize: 10
   m_Shadows:
@@ -9814,8 +9889,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 1
   spotLightShape: 0
-  shapeLength: 0.5
   shapeWidth: 0.5
+  shapeHeight: 0.5
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
@@ -9833,7 +9908,7 @@ Light:
   serializedVersion: 8
   m_Type: 2
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 3.14
+  m_Intensity: 1
   m_Range: 0.6
   m_SpotAngle: 140
   m_CookieSize: 10
@@ -10014,8 +10089,8 @@ MonoBehaviour:
   affectSpecular: 0
   lightTypeExtent: 0
   spotLightShape: 0
-  shapeLength: 0.5
   shapeWidth: 0.5
+  shapeHeight: 0.5
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
@@ -11187,6 +11262,53 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+--- !u!1 &1985413819
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 1985413821}
+  - component: {fileID: 1985413820}
+  m_Layer: 0
+  m_Name: HDRP_Default_Sky 1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1985413820
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1985413819}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isGlobal: 1
+  priority: 0
+  blendDistance: 0
+  weight: 1
+  components:
+  - {fileID: 1014241604}
+  - {fileID: 207520586}
+--- !u!4 &1985413821
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1985413819}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -4.945982, y: 3.5591245, z: -6.423647}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2012364838
 GameObject:
   m_ObjectHideFlags: 0
@@ -11406,8 +11528,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 0
   spotLightShape: 0
-  shapeLength: 0.5
   shapeWidth: 0.5
+  shapeHeight: 0.5
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1

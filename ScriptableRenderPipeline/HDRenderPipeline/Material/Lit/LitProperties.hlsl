@@ -5,53 +5,53 @@
 // ===========================================================================
 
 TEXTURE2D(_DistortionVectorMap);
-SAMPLER2D(sampler_DistortionVectorMap);
+SAMPLER(sampler_DistortionVectorMap);
 
 TEXTURE2D(_EmissiveColorMap);
-SAMPLER2D(sampler_EmissiveColorMap);
+SAMPLER(sampler_EmissiveColorMap);
 
 #ifndef LAYERED_LIT_SHADER
 
 TEXTURE2D(_DiffuseLightingMap);
-SAMPLER2D(sampler_DiffuseLightingMap);
+SAMPLER(sampler_DiffuseLightingMap);
 
 TEXTURE2D(_BaseColorMap);
-SAMPLER2D(sampler_BaseColorMap);
+SAMPLER(sampler_BaseColorMap);
 
 TEXTURE2D(_MaskMap);
-SAMPLER2D(sampler_MaskMap);
+SAMPLER(sampler_MaskMap);
 TEXTURE2D(_BentNormalMap); // Reuse sampler from normal map
-SAMPLER2D(sampler_BentNormalMap);
+SAMPLER(sampler_BentNormalMap);
 
 TEXTURE2D(_NormalMap);
-SAMPLER2D(sampler_NormalMap);
+SAMPLER(sampler_NormalMap);
 TEXTURE2D(_NormalMapOS);
-SAMPLER2D(sampler_NormalMapOS);
+SAMPLER(sampler_NormalMapOS);
 
 TEXTURE2D(_DetailMap);
-SAMPLER2D(sampler_DetailMap);
+SAMPLER(sampler_DetailMap);
 
 TEXTURE2D(_HeightMap);
-SAMPLER2D(sampler_HeightMap);
+SAMPLER(sampler_HeightMap);
 
 TEXTURE2D(_TangentMap);
-SAMPLER2D(sampler_TangentMap);
+SAMPLER(sampler_TangentMap);
 TEXTURE2D(_TangentMapOS);
-SAMPLER2D(sampler_TangentMapOS);
+SAMPLER(sampler_TangentMapOS);
 
 TEXTURE2D(_AnisotropyMap);
-SAMPLER2D(sampler_AnisotropyMap);
+SAMPLER(sampler_AnisotropyMap);
 
 TEXTURE2D(_SubsurfaceRadiusMap);
-SAMPLER2D(sampler_SubsurfaceRadiusMap);
+SAMPLER(sampler_SubsurfaceRadiusMap);
 TEXTURE2D(_ThicknessMap);
-SAMPLER2D(sampler_ThicknessMap);
+SAMPLER(sampler_ThicknessMap);
 
 TEXTURE2D(_SpecularColorMap);
-SAMPLER2D(sampler_SpecularColorMap);
+SAMPLER(sampler_SpecularColorMap);
 
 TEXTURE2D(_TransmittanceColorMap);
-SAMPLER2D(sampler_TransmittanceColorMap);
+SAMPLER(sampler_TransmittanceColorMap);
 
 #else
 
@@ -61,13 +61,13 @@ SAMPLER2D(sampler_TransmittanceColorMap);
 // mean we must declare all sampler
 #define PROP_DECL_TEX2D(name)\
     TEXTURE2D(MERGE_NAME(name, 0)); \
-    SAMPLER2D(MERGE_NAME(MERGE_NAME(sampler, name), 0)); \
+    SAMPLER(MERGE_NAME(MERGE_NAME(sampler, name), 0)); \
     TEXTURE2D(MERGE_NAME(name, 1)); \
-    SAMPLER2D(MERGE_NAME(MERGE_NAME(sampler, name), 1)); \
+    SAMPLER(MERGE_NAME(MERGE_NAME(sampler, name), 1)); \
     TEXTURE2D(MERGE_NAME(name, 2)); \
-    SAMPLER2D(MERGE_NAME(MERGE_NAME(sampler, name), 2)); \
+    SAMPLER(MERGE_NAME(MERGE_NAME(sampler, name), 2)); \
     TEXTURE2D(MERGE_NAME(name, 3)); \
-    SAMPLER2D(MERGE_NAME(MERGE_NAME(sampler, name), 3))
+    SAMPLER(MERGE_NAME(MERGE_NAME(sampler, name), 3))
 
 
 PROP_DECL_TEX2D(_BaseColorMap);
@@ -82,9 +82,9 @@ PROP_DECL_TEX2D(_SubsurfaceRadiusMap);
 PROP_DECL_TEX2D(_ThicknessMap);
 
 TEXTURE2D(_LayerMaskMap);
-SAMPLER2D(sampler_LayerMaskMap);
+SAMPLER(sampler_LayerMaskMap);
 TEXTURE2D(_LayerInfluenceMaskMap);
-SAMPLER2D(sampler_LayerInfluenceMaskMap);
+SAMPLER(sampler_LayerInfluenceMaskMap);
 
 #endif
 
@@ -92,6 +92,7 @@ CBUFFER_START(_PerMaterial)
 
 // shared constant between lit and layered lit
 float _AlphaCutoff;
+float _AlphaCutoffPrepass;
 float _AlphaCutoffPostpass;
 float4 _DoubleSidedConstants;
 float _DistortionScale;
