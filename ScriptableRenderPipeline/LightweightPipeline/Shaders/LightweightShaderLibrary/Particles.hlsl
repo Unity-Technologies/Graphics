@@ -1,6 +1,6 @@
 #include "Core.hlsl"
 #include "InputSurface.hlsl"
-#include "ShaderLibrary/Color.hlsl"
+#include "CoreRP/ShaderLibrary/Color.hlsl"
 
 #if defined (_COLORADDSUBDIFF_ON)
 half4 _ColorAddSubDiff;

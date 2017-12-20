@@ -1,9 +1,9 @@
 #ifndef LIGHTWEIGHT_LIGHTING_INCLUDED
 #define LIGHTWEIGHT_LIGHTING_INCLUDED
 
-#include "ShaderLibrary/Common.hlsl"
-#include "ShaderLibrary/EntityLighting.hlsl"
-#include "ShaderLibrary/ImageBasedLighting.hlsl"
+#include "CoreRP/ShaderLibrary/Common.hlsl"
+#include "CoreRP/ShaderLibrary/EntityLighting.hlsl"
+#include "CoreRP/ShaderLibrary/ImageBasedLighting.hlsl"
 #include "Core.hlsl"
 #include "Shadows.hlsl"
 

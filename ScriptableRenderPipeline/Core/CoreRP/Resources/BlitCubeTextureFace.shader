@@ -11,7 +11,7 @@
             Cull Off
 
             HLSLPROGRAM
-            #include "ShaderLibrary/Common.hlsl"
+            #include "CoreRP/ShaderLibrary/Common.hlsl"
 
             #pragma vertex vert
             #pragma fragment frag

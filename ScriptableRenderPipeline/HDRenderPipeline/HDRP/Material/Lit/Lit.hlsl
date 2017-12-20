@@ -9,7 +9,7 @@
 // Define refraction keyword helpers
 #define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
 #if HAS_REFRACTION
-# include "ShaderLibrary/Refraction.hlsl"
+# include "CoreRP/ShaderLibrary/Refraction.hlsl"
 
 # if defined(_REFRACTION_PLANE)
 #  define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelPlane(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)

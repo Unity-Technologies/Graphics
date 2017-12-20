@@ -1,6 +1,6 @@
 #pragma kernel BigTileLightListGen
 
-#include "ShaderLibrary/common.hlsl"
+#include "CoreRP/ShaderLibrary/common.hlsl"
 #include "LightLoop.cs.hlsl"
 #include "LightingConvexHullUtils.hlsl"
 #include "SortingComputeUtils.hlsl"

@@ -24,7 +24,7 @@ Shader "Hidden/HDRenderPipeline/CombineLighting"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #include "ShaderLibrary/Common.hlsl"
+            #include "CoreRP/ShaderLibrary/Common.hlsl"
 
             TEXTURE2D(_IrradianceSource);
 

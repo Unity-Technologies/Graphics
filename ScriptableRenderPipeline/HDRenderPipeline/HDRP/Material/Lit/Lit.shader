@@ -237,8 +237,8 @@ Shader "HDRenderPipeline/Lit"
     // Include
     //-------------------------------------------------------------------------------------
 
-    #include "ShaderLibrary/Common.hlsl"
-    #include "ShaderLibrary/Wind.hlsl"
+    #include "CoreRP/ShaderLibrary/Common.hlsl"
+    #include "CoreRP/ShaderLibrary/Wind.hlsl"
     #include "../../ShaderPass/FragInputs.hlsl"
     #include "../../ShaderPass/ShaderPass.cs.hlsl"
 

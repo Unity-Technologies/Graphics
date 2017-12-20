@@ -429,10 +429,10 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
     // Include
     //-------------------------------------------------------------------------------------
 
-    #include "ShaderLibrary/common.hlsl"
-    #include "ShaderLibrary/Wind.hlsl"
-    #include "ShaderLibrary/GeometricTools.hlsl"
-    #include "ShaderLibrary/tessellation.hlsl"
+    #include "CoreRP/ShaderLibrary/common.hlsl"
+    #include "CoreRP/ShaderLibrary/Wind.hlsl"
+    #include "CoreRP/ShaderLibrary/GeometricTools.hlsl"
+    #include "CoreRP/ShaderLibrary/tessellation.hlsl"
     #include "../../ShaderPass/FragInputs.hlsl"
     #include "../../ShaderPass/ShaderPass.cs.hlsl"
 

@@ -2,8 +2,8 @@
 #define LIGHTWEIGHT_SURFACE_INPUT_INCLUDED
 
 #include "Core.hlsl"
-#include "ShaderLibrary/Packing.hlsl"
-#include "ShaderLibrary/CommonMaterial.hlsl"
+#include "CoreRP/ShaderLibrary/Packing.hlsl"
+#include "CoreRP/ShaderLibrary/CommonMaterial.hlsl"
 
 #ifdef _SPECULAR_SETUP
 #define SAMPLE_METALLICSPECULAR(uv) SAMPLE_TEXTURE2D(_SpecGlossMap, sampler_SpecGlossMap, uv)
