@@ -190,7 +190,7 @@ namespace UnityEditor.VFX.UI
             }
             else if (!exists)
             {
-                VFXFilterWindow.Show(Event.current.mousePosition, new VFXNodeProvider(AddLinkedContext, ProviderFilter, new Type[] { typeof(VFXContext)}));
+                VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, new VFXNodeProvider(AddLinkedContext, ProviderFilter, new Type[] { typeof(VFXContext)}));
             }
         }
     }

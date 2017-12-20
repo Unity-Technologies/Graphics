@@ -181,9 +181,6 @@ namespace UnityEditor.VFX.UI
         }
         public VFXModel AddNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
         {
-            VFXViewWindow.currentWindow.Focus();
-
-
             Vector2 tPos = this.ChangeCoordinatesTo(contentViewContainer, mPos);
             if (d.modelDescriptor is VFXModelDescriptor<VFXOperator>)
             {
@@ -584,7 +581,7 @@ namespace UnityEditor.VFX.UI
 
         void OnCreateNode(NodeCreationContext ctx)
         {
-            VFXFilterWindow.Show(GUIUtility.ScreenToGUIPoint(ctx.screenMousePosition), m_NodeProvider);
+            VFXFilterWindow.Show(VFXViewWindow.currentWindow, GUIUtility.ScreenToGUIPoint(ctx.screenMousePosition), m_NodeProvider);
         }
 
         VFXRendererSettings GetRendererSettings()
