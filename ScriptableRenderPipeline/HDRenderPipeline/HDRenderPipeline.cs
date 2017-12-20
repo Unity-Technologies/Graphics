@@ -1368,9 +1368,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
                 hdcamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
-                // TODO: This is not safe ? as we don't use cmd buffer we can have a delay no ?
-                m_CameraMotionVectorsMaterial.SetVector(HDShaderIDs._CameraPosDiff, hdcamera.prevCameraPos - hdcamera.cameraPos);
-
                 // Setup stencil buffer
                 CoreUtils.DrawFullScreen(cmd, m_CameraMotionVectorsMaterial, m_VelocityBufferRT, m_CameraDepthStencilBufferRT, null, 0);
 
