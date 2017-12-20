@@ -13,6 +13,12 @@ namespace UnityEditor.VFX
             public AABox box = new AABox();
         }
 
+        public class OutputProperties
+        {
+            [Tooltip("The volume of the box.")]
+            public float volume;
+        }
+
         override public string name { get { return "Volume (Axis Aligned Box)"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

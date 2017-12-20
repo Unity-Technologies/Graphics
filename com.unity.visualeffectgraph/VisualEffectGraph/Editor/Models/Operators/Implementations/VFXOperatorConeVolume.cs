@@ -13,6 +13,12 @@ namespace UnityEditor.VFX
             public Cone cone = new Cone();
         }
 
+        public class OutputProperties
+        {
+            [Tooltip("The volume of the cone.")]
+            public float volume;
+        }
+
         override public string name { get { return "Volume (Cone)"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
