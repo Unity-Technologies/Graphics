@@ -23,8 +23,9 @@ namespace UnityEditor.VFX
         void AddSlot(VFXSlot slot);
         void RemoveSlot(VFXSlot slot);
 
+        void UpdateOutputExpressions();
+
         void Invalidate(VFXModel.InvalidationCause cause);
-        void UpdateOutputs();
 
         void SetSettingValue(string name, object value);
 
@@ -173,7 +174,6 @@ namespace UnityEditor.VFX
                 if (nbRemoved > 0)
                     Debug.Log(String.Format("Remove {0} input slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
             }
-            SyncSlots(VFXSlot.Direction.kInput, false);
 
             if (m_OutputSlots == null)
                 m_OutputSlots = new List<VFXSlot>();
@@ -183,7 +183,8 @@ namespace UnityEditor.VFX
                 if (nbRemoved > 0)
                     Debug.Log(String.Format("Remove {0} output slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
             }
-            SyncSlots(VFXSlot.Direction.kOutput, false);
+
+            ResyncSlots(false);
         }
 
         public override void CollectDependencies(HashSet<Object> objs)
@@ -218,11 +219,8 @@ namespace UnityEditor.VFX
 
         protected virtual void ResyncSlots(bool notify)
         {
-            bool changed = false;
-            changed |= SyncSlots(VFXSlot.Direction.kInput, false);
-            changed |= SyncSlots(VFXSlot.Direction.kOutput, false);
-            if (notify && changed)
-                Invalidate(InvalidationCause.kStructureChanged);
+            SyncSlots(VFXSlot.Direction.kInput, notify);
+            SyncSlots(VFXSlot.Direction.kOutput, notify);
         }
 
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
@@ -294,7 +292,7 @@ namespace UnityEditor.VFX
 
                 // Finally remove links for all slots that are no longer needed
                 foreach (var slot in existingSlots)
-                    slot.UnlinkAll(true, false);
+                    slot.UnlinkAll(true, notify);
 
                 if (notify)
                     Invalidate(InvalidationCause.kStructureChanged);
@@ -336,11 +334,7 @@ namespace UnityEditor.VFX
             base.Invalidate(model, cause);
         }
 
-        public virtual void UpdateOutputs()
-        {
-            //foreach (var slot in m_InputSlots)
-            //    slot.Initialize();
-        }
+        public virtual void UpdateOutputExpressions() {}
 
         //[SerializeField]
         HashSet<string> m_expandedPaths = new HashSet<string>();

@@ -7,7 +7,7 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX
 {
     [VFXInfo(category = "Flow")]
-    class VFXOperatorBranch : VFXOperator
+    class VFXOperatorBranch : VFXOperatorFloatUnified
     {
         public class InputProperties
         {
@@ -23,7 +23,7 @@ namespace UnityEditor.VFX
 
         sealed override protected IEnumerable<VFXExpression> GetInputExpressions()
         {
-            var inputExpression = base.GetInputExpressions();
+            var inputExpression = GetRawInputExpressions();
 
             yield return inputExpression.First();
             var branches = VFXOperatorUtility.UnifyFloatLevel(inputExpression.Skip(1));

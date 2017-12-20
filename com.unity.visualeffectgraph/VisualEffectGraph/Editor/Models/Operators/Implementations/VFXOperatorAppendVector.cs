@@ -17,7 +17,15 @@ namespace UnityEditor.VFX
             public FloatN b = 0.0f;
         }
 
-        sealed protected override void OnInputConnectionsChanged()
+        protected override IEnumerable<VFXPropertyWithValue> inputProperties
+        {
+            get
+            {
+                return PropertiesFromSlotsOrDefaultFromClass(VFXSlot.Direction.kInput);
+            }
+        }
+
+        /*sealed protected override void OnInputConnectionsChanged()
         {
             var emptySlot = inputSlots.Where(s => s.GetExpression() == null).ToArray();
             foreach (var slot in emptySlot)
@@ -32,7 +40,7 @@ namespace UnityEditor.VFX
             }
 
             UpdateOutputs();
-        }
+        }*/
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

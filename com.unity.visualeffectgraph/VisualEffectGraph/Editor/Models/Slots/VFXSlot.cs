@@ -546,7 +546,7 @@ namespace UnityEditor.VFX
             {
                 if (owner != null)
                 {
-                    owner.UpdateOutputs();
+                    owner.UpdateOutputExpressions();
                     // Update outputs can trigger an invalidate, it can be reentrant. Just check if we're up to date after that and early out
                     if (m_ExpressionTreeUpToDate)
                         return;

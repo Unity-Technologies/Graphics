@@ -114,14 +114,50 @@ namespace UnityEditor.VFX
         {
         }
 
+        protected int GetFloatMaxNbComponents(IEnumerable<VFXSlot> slots)
+        {
+            int maxNbComponents = 0;
+            foreach (var slot in slots)
+            {
+                int slotNbComponents = 0;
+                var slotType = slot.refSlot.property.type;
+                if (slotType == typeof(float) || slotType == typeof(uint) || slotType == typeof(int))
+                    slotNbComponents = 1;
+                else if (slotType == typeof(Vector2))
+                    slotNbComponents = 2;
+                else if (slotType == typeof(Vector3))
+                    slotNbComponents = 3;
+                else if (slotType == typeof(Vector4))
+                    slotNbComponents = 4;
+                else if (slotType == typeof(FloatN))
+                    slotNbComponents = ((FloatN)slot.refSlot.value).realSize;
+                maxNbComponents = Math.Max(slotNbComponents, maxNbComponents);
+            }
+            return maxNbComponents;
+        }
+
+        protected override IEnumerable<VFXPropertyWithValue> outputProperties
+        {
+            get
+            {
+                const string outputName = "o";
+                Type slotType = null;
+                switch (GetFloatMaxNbComponents(inputSlots))
+                {
+                    case 1: slotType = typeof(float); break;
+                    case 2: slotType = typeof(Vector2); break;
+                    case 3: slotType = typeof(Vector3); break;
+                    case 4: slotType = typeof(Vector4); break;
+                    default: break;
+                }
+
+                if (slotType != null)
+                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, outputName));
+            }
+        }
+
         public override void OnEnable()
         {
-            base.OnEnable();
-            if (inputSlots.Any(s => s.property.type != typeof(FloatN)))
-            {
-                throw new Exception(string.Format("VFXOperatorFloatUnified except only FloatN as input : {0}", GetType()));
-            }
-
             var propertyType = GetType().GetRecursiveNestedType(GetInputPropertiesTypeName());
             if (propertyType != null)
             {
@@ -132,12 +168,14 @@ namespace UnityEditor.VFX
                     m_FallbackValue = (float)field.GetValue(null);
                 }
             }
+
+            base.OnEnable();
         }
 
         //Convert automatically input expression with diverging floatN size to floatMax
-        sealed override protected IEnumerable<VFXExpression> GetInputExpressions()
+        override protected IEnumerable<VFXExpression> GetInputExpressions()
         {
-            var inputExpression = base.GetInputExpressions();
+            var inputExpression = GetRawInputExpressions();
             return VFXOperatorUtility.UnifyFloatLevel(inputExpression, m_FallbackValue);
         }
     }
@@ -153,38 +191,23 @@ namespace UnityEditor.VFX
 
     abstract class VFXOperatorBinaryFloatCascadableOperation : VFXOperatorFloatUnified
     {
-        sealed protected override void OnInputConnectionsChanged()
+        protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
-            //Remove useless unplugged slot (ensuring there is at least 2 slots)
-            var currentSlots = inputSlots.ToList();
-            var uselessSlots = new Stack<VFXSlot>(currentSlots.Where((s, i) => i >= 2 && !s.HasLink()));
-            foreach (var slot in uselessSlots)
+            get
             {
-                currentSlots.Remove(slot);
-            }
+                int nbNeededSlots = 2;
+                var currentSlots = inputSlots.ToList();
+                for (int i = 0; i < currentSlots.Count; ++i)
+                    if (currentSlots[i].HasLink())
+                        nbNeededSlots = Math.Max(nbNeededSlots, i + 2);
+                // +2 to reserve an unlinked slot
 
-            if (currentSlots.All(s => s.HasLink()))
-            {
-                if (uselessSlots.Count == 0)
-                {
-                    AddSlot(VFXSlot.Create(new VFXProperty(typeof(FloatN), ((char)((int)'a' + currentSlots.Count)).ToString()), VFXSlot.Direction.kInput, new FloatN(m_FallbackValue)));
-                }
-                else
-                {
-                    uselessSlots.Pop();
-                }
+                for (int i = 0; i < nbNeededSlots; ++i)
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(FloatN), ((char)((int)'a' + i)).ToString()), new FloatN(m_FallbackValue));
             }
-
-            //Update deprecated Slot
-            foreach (var slot in uselessSlots)
-            {
-                RemoveSlot(slot);
-            }
-
-            UpdateOutputs();
         }
 
-        public override void UpdateOutputs()
+        public override void UpdateOutputExpressions()
         {
             var inputExpression = GetInputExpressions();
             //Process aggregate two by two element until result
@@ -196,7 +219,7 @@ namespace UnityEditor.VFX
                 var compose = BuildExpression(new[] { a, b })[0];
                 outputExpression.Push(compose);
             }
-            SetOuputSlotFromExpression(outputExpression);
+            SetOutputExpressions(outputExpression.ToArray());
         }
     }
 
