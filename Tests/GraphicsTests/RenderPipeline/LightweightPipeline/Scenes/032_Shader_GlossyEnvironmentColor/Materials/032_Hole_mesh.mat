@@ -9,7 +9,7 @@ Material:
   m_Name: 032_Hole_mesh
   m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
   m_ShaderKeywords: _ALPHATEST_ON _GLOSSYREFLECTIONS_OFF _METALLICGLOSSMAP _METALLICSPECGLOSSMAP
-    _METALLIC_SETUP _NORMALMAP
+    _NORMALMAP
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -21,7 +21,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BumpMap:
-        m_Texture: {fileID: -1965401378, guid: c53335b5520f8495bb2f81c23ad1181f, type: 3}
+        m_Texture: {fileID: 2800000, guid: 01ed40737c5fe4576be9b3064f9b7686, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Cube:
@@ -45,11 +45,11 @@ Material:
         m_Scale: {x: 4, y: 2}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 527795884, guid: c53335b5520f8495bb2f81c23ad1181f, type: 3}
+        m_Texture: {fileID: 2800000, guid: 5f951043386624d62a1d57cf247df28f, type: 3}
         m_Scale: {x: 4, y: 2}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
-        m_Texture: {fileID: -679357159, guid: c53335b5520f8495bb2f81c23ad1181f, type: 3}
+        m_Texture: {fileID: 2800000, guid: 1c0144d3a57c0469bbe87704ee564f54, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicSpecGlossMap:
