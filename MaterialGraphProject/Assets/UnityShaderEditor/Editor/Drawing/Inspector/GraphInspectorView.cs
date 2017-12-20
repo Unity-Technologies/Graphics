@@ -150,31 +150,29 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 normalizedResizeDelta.y = 0f;
             }
 
-            Vector2 newSize = new Vector2();
-            Vector2 newPosition = new Vector2(style.positionLeft, style.positionTop);
+            Rect newLayout = layout;
 
-            if (moveWhileResize)
+            // Resize form bottom/right
+            if (!moveWhileResize)
             {
-                newPosition.x = style.positionLeft + normalizedResizeDelta.x;
-                newPosition.y = style.positionTop + normalizedResizeDelta.y;
+                newLayout.width = Mathf.Max(layout.width + normalizedResizeDelta.x, 60f);
+                newLayout.height = Mathf.Max(layout.height + normalizedResizeDelta.y, 60f);
 
-                normalizedResizeDelta *= -1f;
+                layout = newLayout;
+
+                return;
             }
 
-            newSize.x = Mathf.Max(style.width + normalizedResizeDelta.x, 60f);
-            newSize.y = Mathf.Max(style.height + normalizedResizeDelta.y, 60f);
+            float previousFarX = layout.x + layout.width;
+            float previousFarY = layout.y + layout.height;
 
-            if (newSize.x > 60f)
-            {
-                style.positionLeft = newPosition.x;
-                style.width = Mathf.Max(style.width + normalizedResizeDelta.x, 60f);
-            }
+            newLayout.width = Mathf.Max(layout.width - normalizedResizeDelta.x, 60f);
+            newLayout.height = Mathf.Max(layout.height - normalizedResizeDelta.y, 60f);
 
-            if (newSize.y > 60f)
-            {
-                style.positionTop = newPosition.y;
-                style.height = Mathf.Max(style.height + normalizedResizeDelta.y, 60f);
-            }
+            newLayout.x = Mathf.Min(layout.x + normalizedResizeDelta.x, previousFarX - 60f);
+            newLayout.y = Mathf.Min(layout.y + normalizedResizeDelta.y, previousFarY - 60f);
+
+            layout = newLayout;
         }
 
         MasterNode masterNode
