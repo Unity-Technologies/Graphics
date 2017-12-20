@@ -81,16 +81,16 @@
 #include "../ShadowMoments.hlsl"
 
 #if MAX_MSAA > 1
-Texture2DMS<real> depthTex;
+Texture2DMS<float> depthTex;
 #else
-Texture2D<real>   depthTex;
+Texture2D<float>   depthTex;
 #endif
 
 uniform uint4	srcRect; // .xy = offset, .zw = width/height
 uniform uint4	dstRect; // .xy = offset, .z  = array slice , .w = Flags: 1 := 16bpp, 2 := 2 channels pp, 4:= reversed z
 
-uniform real4  blurWeightsStorage[3]; // Unity expects real arrays to be tightly packed
-static real    blurWeights[12] = (real[12])blurWeightsStorage;
+uniform float4  blurWeightsStorage[3]; // Unity expects float arrays to be tightly packed
+static float    blurWeights[12] = (float[12])blurWeightsStorage;
 
 static const int kBits_16	 = 1; // 16 bits per channel
 static const int kChannels_2 = 2; // 2 channels per pixel
@@ -99,41 +99,41 @@ static const int kReversed_z = 4; // depth buffer contains reversed z
 #if (SHADOW_MOMENT_ALGORITHM == VSM)
 #	define SHADOW_MOMENTS 2
 
-	real2 DepthToMoments( real depth )
+	float2 DepthToMoments( float depth )
 	{
-		return real2( depth, depth * depth );
+		return float2( depth, depth * depth );
 	}
 #elif SHADOW_MOMENT_ALGORITHM == EVSM_2
 #	define SHADOW_MOMENTS 2
 
-	uniform real evsmExponent;
+	uniform float evsmExponent;
 
-	real2 DepthToMoments( real depth )
+	float2 DepthToMoments( float depth )
 	{
-		real2 moments = ShadowMoments_WarpDepth( depth, evsmExponent.xx );
-		return real2( moments.x, moments.x * moments.x );
+		float2 moments = ShadowMoments_WarpDepth( depth, evsmExponent.xx );
+		return float2( moments.x, moments.x * moments.x );
 	}
 #elif SHADOW_MOMENT_ALGORITHM == EVSM_4
 #	define SHADOW_MOMENTS 4
 
-	uniform real2 evsmExponents;
+	uniform float2 evsmExponents;
 
-	real4 DepthToMoments( real depth )
+	float4 DepthToMoments( float depth )
 	{
-		real2 moments = ShadowMoments_WarpDepth( depth, evsmExponents );
-		return real4( moments.xy, moments.xy * moments.xy );
+		float2 moments = ShadowMoments_WarpDepth( depth, evsmExponents );
+		return float4( moments.xy, moments.xy * moments.xy );
 	}
 #elif SHADOW_MOMENT_ALGORITHM == MSM
 #	define SHADOW_MOMENTS 4
 
-	real4 DepthToMoments( real depth )
+	float4 DepthToMoments( float depth )
 	{
 		if( (dstRect.w & kBits_16) != 0 )
 			return ShadowMoments_Encode16MSM( depth  );
 		else
 		{
-			real dsq = depth * depth;
-			return real4( depth, dsq, depth * dsq, dsq * dsq );
+			float dsq = depth * depth;
+			return float4( depth, dsq, depth * dsq, dsq * dsq );
 		}
 	}
 #else
@@ -144,16 +144,16 @@ static const int kReversed_z = 4; // depth buffer contains reversed z
 #define BLUR_BORDER (BLUR_SIZE / 2)
 #define LDS_STRIDE (THREADS + BLUR_BORDER + BLUR_BORDER)
 
-#define moment_t  MERGE_NAME( real, SHADOW_MOMENTS )
+#define moment_t  MERGE_NAME( float, SHADOW_MOMENTS )
 RWTexture2DArray<moment_t>	outputTex;
 
-groupshared real  moments1[THREADS * LDS_STRIDE];  // contains the blurred first moment
-groupshared real  moments2[THREADS * LDS_STRIDE];  // contains the blurred second moment
-groupshared real  moments3[THREADS * LDS_STRIDE];  // contains the blurred third moment
-groupshared real  moments4[THREADS * LDS_STRIDE];  // contains the blurred fourth moment
+groupshared float  moments1[THREADS * LDS_STRIDE];  // contains the blurred first moment
+groupshared float  moments2[THREADS * LDS_STRIDE];  // contains the blurred second moment
+groupshared float  moments3[THREADS * LDS_STRIDE];  // contains the blurred third moment
+groupshared float  moments4[THREADS * LDS_STRIDE];  // contains the blurred fourth moment
 
-groupshared real  sampleWeights[MAX_MSAA];
-groupshared real  sumWeights;
+groupshared float  sampleWeights[MAX_MSAA];
+groupshared float  sumWeights;
 
 int getLDSIdx( int2 pos, int stride )
 {
@@ -192,17 +192,17 @@ void KERNEL_MAIN( uint3 dispatchId : SV_DispatchThreadID, uint3 groupThreadId : 
 	uint width, height, sampleCnt;
 	depthTex.GetDimensions( width, height, sampleCnt );
 	sampleCnt = clamp( sampleCnt, 2, MAX_MSAA );
-	real sampleCntRcp = 1.0 / sampleCnt;
+	float sampleCntRcp = 1.0 / sampleCnt;
 
 	// calculate weights based on sample positions
 	if( groupThreadId.x < sampleCnt )
 	{
-		real2 spos = depthTex.GetSamplePosition( groupThreadId.x );
+		float2 spos = depthTex.GetSamplePosition( groupThreadId.x );
 		sampleWeights[groupThreadId.x] = sampleCntRcp;
 	}
 	if( groupThreadId.x == 0 )
 	{
-		real sum = 0.0;
+		float sum = 0.0;
 		for( uint i = 0; i < sampleCnt; i++ )
 			sum += sampleWeights[i];
 		sumWeights = 1.0 / sum;
@@ -235,7 +235,7 @@ void KERNEL_MAIN( uint3 dispatchId : SV_DispatchThreadID, uint3 groupThreadId : 
 				[loop]
 				for( uint is = 0; is < sampleCnt; is++ )
 				{
-					real depth = depthTex.Load( min( srcIdx, validSrc ), is ).x;
+					float depth = depthTex.Load( min( srcIdx, validSrc ), is ).x;
 						  depth = reverse_z ? (1.0 - depth) : depth;
 #   if SHADOW_MOMENT_ALGORITHM == MSM
 						  // We're pancaking triangles to znear in the depth pass so depth and subsequently all moments can end up being zero.
@@ -249,7 +249,7 @@ void KERNEL_MAIN( uint3 dispatchId : SV_DispatchThreadID, uint3 groupThreadId : 
 
 				writeToShared( avgMoments, int2( ldsIdx.x, groupThreadId.y ), LDS_STRIDE );
 #else
-				real depth = depthTex.Load( int3( min( srcIdx, validSrc ), 0 ) ).x;
+				float depth = depthTex.Load( int3( min( srcIdx, validSrc ), 0 ) ).x;
 					  depth = reverse_z ? (1.0 - depth) : depth;
 #   if SHADOW_MOMENT_ALGORITHM == MSM
 					  // We're pancaking triangles to znear in the depth pass so depth and subsequently all moments can end up being zero.
