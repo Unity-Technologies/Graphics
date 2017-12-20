@@ -432,7 +432,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if UNITY_EDITOR
         static readonly SupportedRenderingFeatures s_NeededFeatures = new SupportedRenderingFeatures()
         {
-            reflectionProbeSupportFlags = SupportedRenderingFeatures.ReflectionProbeSupportFlags.Rotation
+            reflectionProbeSupportFlags = SupportedRenderingFeatures.ReflectionProbeSupportFlags.Rotation,
+            defaultMixedLightingMode = SupportedRenderingFeatures.LightmapMixedBakeMode.IndirectOnly,
+            supportedMixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeMode.IndirectOnly | SupportedRenderingFeatures.LightmapMixedBakeMode.Shadowmask,
+            supportedLightmapBakeTypes = LightmapBakeType.Baked | LightmapBakeType.Mixed | LightmapBakeType.Realtime,
+            supportedLightmapsModes = LightmapsMode.NonDirectional | LightmapsMode.CombinedDirectional,
+            rendererSupportsLightProbeProxyVolumes = true,
+            rendererSupportsMotionVectors = true,
+            rendererSupportsReceiveShadows = true,
+            rendererSupportsReflectionProbes = true
         };
 #endif
 
