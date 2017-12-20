@@ -100,7 +100,7 @@ struct EnvLightData
     float3 innerDistance;
     float unused0;
     float3 offsetLS;
-    float unused1;
+    float dimmer;
 };
 
 //
@@ -286,9 +286,9 @@ float3 GetOffsetLS(EnvLightData value)
 {
 	return value.offsetLS;
 }
-float GetUnused1(EnvLightData value)
+float GetDimmer(EnvLightData value)
 {
-	return value.unused1;
+	return value.dimmer;
 }
 
 

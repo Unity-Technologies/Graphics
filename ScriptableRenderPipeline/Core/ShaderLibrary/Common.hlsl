@@ -71,6 +71,12 @@
 #include "API/Metal.hlsl"
 #elif defined(SHADER_API_VULKAN)
 #include "API/Vulkan.hlsl"
+#elif defined(SHADER_API_GLCORE)
+#include "API/GLCore.hlsl"
+#elif defined(SHADER_API_GLES3)
+#include "API/GLES3.hlsl"
+#elif defined(SHADER_API_GLES)
+#include "API/GLES2.hlsl"
 #else
 #error unsupported shader api
 #endif
@@ -82,6 +88,19 @@
 // ----------------------------------------------------------------------------
 // Common intrinsic (general implementation of intrinsic available on some platform)
 // ----------------------------------------------------------------------------
+
+// Error on GLES2 undefined functions
+#ifdef SHADER_API_GLES
+#define BitFieldExtract ERROR_ON_UNSUPPORTED_FUNC(BitFieldExtract)
+#define IsBitSet ERROR_ON_UNSUPPORTED_FUNC(IsBitSet)
+#define SetBit ERROR_ON_UNSUPPORTED_FUNC(SetBit)
+#define ClearBit ERROR_ON_UNSUPPORTED_FUNC(ClearBit)
+#define ToggleBit ERROR_ON_UNSUPPORTED_FUNC(ToggleBit)
+#define FastMulBySignOfNegZero ERROR_ON_UNSUPPORTED_FUNC(FastMulBySignOfNegZero)
+#define LODDitheringTransition ERROR_ON_UNSUPPORTED_FUNC(LODDitheringTransition)
+#endif
+
+#if !defined(SHADER_API_GLES)
 
 #ifndef INTRINSIC_BITFIELD_EXTRACT
 // Unsigned integer bit field extraction.
@@ -135,6 +154,9 @@ void ToggleBit(inout uint data, uint offset)
 {
     data ^= 1u << offset;
 }
+
+#endif
+
 
 #ifndef INTRINSIC_WAVEREADFIRSTLANE
     // Warning: for correctness, the argument must have the same value across the wave!
@@ -292,10 +314,13 @@ float FastATan(float x)
 // PositivePow remove this warning when you know the value is positive and avoid inf/NAN.
 TEMPLATE_2_FLT(PositivePow, base, power, return pow(max(abs(base), FLT_EPS), power))
 
+
+
 // Computes (FastSign(s) * x) using 2x VALU.
 // See the comment about FastSign() below.
 float FastMulBySignOf(float s, float x, bool ignoreNegZero = true)
 {
+#if !defined(SHADER_API_GLES)
     if (ignoreNegZero)
     {
         return (s >= 0) ? x : -x;
@@ -306,6 +331,9 @@ float FastMulBySignOf(float s, float x, bool ignoreNegZero = true)
         uint signBit = negZero & asuint(s);
         return asfloat(signBit ^ asuint(x));
     }
+#else
+    return (s >= 0) ? x : -x;
+#endif
 }
 
 // Returns -1 for negative numbers and 1 for positive numbers.
@@ -554,6 +582,20 @@ void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float4x4 viewP
 // Misc utilities
 // ----------------------------------------------------------------------------
 
+// Normalize that account for vectors with zero length
+float3 SafeNormalize(float3 inVec)
+{
+    float dp3 = max(FLT_MIN, dot(inVec, inVec));
+    return inVec * rsqrt(dp3);
+}
+
+// Normalize that account for vectors with zero length
+half3 SafeNormalize(half3 inVec)
+{
+    half dp3 = max(HALF_MIN, dot(inVec, inVec));
+    return inVec * rsqrt(dp3);
+}
+
 // Generates a triangle in homogeneous clip space, s.t.
 // v0 = (-1, -1, 1), v1 = (3, -1, 1), v2 = (-1, 3, 1).
 float2 GetFullScreenTriangleTexCoord(uint vertexID)
@@ -571,6 +613,8 @@ float4 GetFullScreenTriangleVertexPosition(uint vertexID, float z = UNITY_NEAR_C
     return float4(uv * 2.0 - 1.0, z, 1.0);
 }
 
+#if !defined(SHADER_API_GLES)
+
 // LOD dithering transition helper
 // LOD0 must use this function with ditherFactor 1..0
 // LOD1 must use this function with ditherFactor 0..1
@@ -585,6 +629,8 @@ void LODDitheringTransition(uint2 positionSS, float ditherFactor)
     p = (ditherFactor >= 0.5) ? p : 1 - p;
     clip(ditherFactor - p);
 }
+
+#endif
 
 
 #endif // UNITY_COMMON_INCLUDED

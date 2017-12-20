@@ -32,6 +32,8 @@ namespace UnityEditor.Experimental.Rendering
         SerializedObject m_AdditionalDataSerializedObject;
         UIState m_UIState = new UIState();
 
+        int m_PositionHash = 0;
+
         public bool sceneViewEditing
         {
             get { return IsReflectionProbeEditMode(EditMode.editMode) && EditMode.IsOwner(this); }
@@ -53,22 +55,13 @@ namespace UnityEditor.Experimental.Rendering
                 s_ReflectionProbeEditors[p] = this;
             }
 
-            for (var i = 0; i < targets.Length; ++i)
-            {
-                var p = (ReflectionProbe)targets[i];
-                var a = additionalData[i];
-                InitializeProbe(p, a);
-                ChangeVisibility(p, true);
-            }
+            InitializeAllTargetProbes();
+            ChangeVisibilityOfAllTargets(true);
         }
 
         void OnDisable()
         {
-            for (var i = 0; i < targets.Length; ++i)
-            {
-                var p = (ReflectionProbe)targets[i];
-                ChangeVisibility(p, false);
-            }
+            ChangeVisibilityOfAllTargets(false);
         }
 
         public override void OnInspectorGUI()
@@ -83,7 +76,7 @@ namespace UnityEditor.Experimental.Rendering
             k_InfluenceVolumeSection.Draw(s, p, this);
             k_SeparateProjectionVolumeSection.Draw(s, p, this);
             k_CaptureSection.Draw(s, p, this);
-            //k_AdditionalSection.Draw(s, p, this);
+            k_AdditionalSection.Draw(s, p, this);
             k_BakingActions.Draw(s, p, this);
 
             PerformOperations(s, p, this);

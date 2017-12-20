@@ -33,14 +33,13 @@ Shader "LightweightPipeline/Standard Terrain"
         Pass
         {
             Tags { "LightMode" = "LightweightForward" }
-            CGPROGRAM
+            HLSLPROGRAM
+            // Required to compile gles 2.0 with standard srp library
+            #pragma prefer_hlslcc gles
             #pragma target 3.0
 
-            // needs more than 8 texcoords
-            #pragma exclude_renderers gles psp2
             #pragma vertex SplatmapVert
             #pragma fragment SpatmapFragment
-            #include "LightweightLighting.cginc"
 
             #pragma multi_compile _ _MAIN_LIGHT_COOKIE
             #pragma multi_compile _MAIN_DIRECTIONAL_LIGHT _MAIN_SPOT_LIGHT
@@ -55,9 +54,9 @@ Shader "LightweightPipeline/Standard Terrain"
             #pragma multi_compile __ _TERRAIN_NORMAL_MAP
             #pragma multi_compile_fog
 
-            #define TERRAIN_STANDARD_SHADER
-            #define TERRAIN_SURFACE_OUTPUT SurfaceOutputStandard
+            #include "LightweightShaderLibrary/Lighting.hlsl"
 
+            CBUFFER_START(_Terrain)
             half _Metallic0;
             half _Metallic1;
             half _Metallic2;
@@ -68,34 +67,43 @@ Shader "LightweightPipeline/Standard Terrain"
             half _Smoothness2;
             half _Smoothness3;
 
-            sampler2D _Control;
             float4 _Control_ST;
-            sampler2D _Splat0, _Splat1, _Splat2, _Splat3;
             half4 _Splat0_ST, _Splat1_ST, _Splat2_ST, _Splat3_ST;
+            CBUFFER_END
+
+            sampler2D _Control;
+            sampler2D _Splat0, _Splat1, _Splat2, _Splat3;
 
 #ifdef _TERRAIN_NORMAL_MAP
             sampler2D _Normal0, _Normal1, _Normal2, _Normal3;
 #endif
+
+            struct VertexInput
+            {
+                float4 vertex : POSITION;
+                float4 tangent : TANGENT;
+                float3 normal : NORMAL;
+                float2 texcoord : TEXCOORD0;
+                float2 texcoord1 : TEXCOORD1;
+            };
 
             struct VertexOutput
             {
                 float4 uvSplat01                : TEXCOORD0; // xy: splat0, zw: splat1
                 float4 uvSplat23                : TEXCOORD1; // xy: splat2, zw: splat3
                 float4 uvControlAndLM           : TEXCOORD2; // xy: control, zw: lightmap
+                half3 normal                    : TEXCOORD3;
 
 #if _TERRAIN_NORMAL_MAP
-                half3 tangent                   : TEXCOORD3;
-                half3 binormal                  : TEXCOORD4;
-                half3 normal                    : TEXCOORD5;
-#else
-                half3 normal                    : TEXCOORD3;
+                half3 tangent                   : TEXCOORD4;
+                half3 binormal                  : TEXCOORD5;
 #endif
                 half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
                 float3 positionWS               : TEXCOORD7;
                 float4 clipPos                  : SV_POSITION;
             };
 
-            void SplatmapMix(VertexOutput IN, half4 defaultAlpha, out half4 splat_control, out half weight, out fixed4 mixedDiffuse, inout fixed3 mixedNormal)
+            void SplatmapMix(VertexOutput IN, half4 defaultAlpha, out half4 splat_control, out half weight, out half4 mixedDiffuse, inout half3 mixedNormal)
             {
                 splat_control = tex2D(_Control, IN.uvControlAndLM.xy);
                 weight = dot(splat_control, half4(1, 1, 1, 1));
@@ -115,24 +123,23 @@ Shader "LightweightPipeline/Standard Terrain"
                 mixedDiffuse += splat_control.a * tex2D(_Splat3, IN.uvSplat23.zw) * half4(1.0, 1.0, 1.0, defaultAlpha.a);
 
 #ifdef _TERRAIN_NORMAL_MAP
-                fixed4 nrm = 0.0f;
+                half4 nrm = 0.0f;
                 nrm += splat_control.r * tex2D(_Normal0, IN.uvSplat01.xy);
                 nrm += splat_control.g * tex2D(_Normal1, IN.uvSplat01.zw);
                 nrm += splat_control.b * tex2D(_Normal2, IN.uvSplat23.xy);
                 nrm += splat_control.a * tex2D(_Normal3, IN.uvSplat23.zw);
                 mixedNormal = UnpackNormal(nrm);
 #else
-                mixedNormal = fixed3(0, 0, 1);
+                mixedNormal = half3(0, 0, 1);
 #endif
             }
 
-            VertexOutput SplatmapVert(appdata_full v)
+            VertexOutput SplatmapVert(VertexInput v)
             {
                 VertexOutput o;
-                UNITY_INITIALIZE_OUTPUT(VertexOutput, o);
 
-                float4 clipPos = UnityObjectToClipPos(v.vertex);
-                float3 positionWS = mul(unity_ObjectToWorld, v.vertex).xyz;
+                float3 positionWS = TransformObjectToWorld(v.vertex.xyz);
+                float4 clipPos = TransformWorldToHClip(positionWS);
 
                 o.uvSplat01.xy = TRANSFORM_TEX(v.texcoord, _Splat0);
                 o.uvSplat01.zw = TRANSFORM_TEX(v.texcoord, _Splat1);
@@ -145,7 +152,7 @@ Shader "LightweightPipeline/Standard Terrain"
                 float4 vertexTangent = float4(cross(v.normal, float3(0, 0, 1)), -1.0);
                 OutputTangentToWorld(vertexTangent, v.normal, o.tangent, o.binormal, o.normal);
 #else
-                o.normal = UnityObjectToWorldNormal(v.normal);
+                o.normal = TransformObjectToWorldNormal(v.normal);
 #endif
                 o.fogFactorAndVertexLight.x = ComputeFogFactor(clipPos.z);
                 o.fogFactorAndVertexLight.yzw = VertexLighting(positionWS, o.normal);
@@ -158,7 +165,7 @@ Shader "LightweightPipeline/Standard Terrain"
             {
                 half4 splat_control;
                 half weight;
-                fixed4 mixedDiffuse;
+                half4 mixedDiffuse;
                 half4 defaultSmoothness = half4(_Smoothness0, _Smoothness1, _Smoothness2, _Smoothness3);
                 half3 normalTangent;
                 SplatmapMix(IN, defaultSmoothness, splat_control, weight, mixedDiffuse, normalTangent);
@@ -177,7 +184,7 @@ Shader "LightweightPipeline/Standard Terrain"
 
                 half3 indirectDiffuse = half3(0, 0, 0);
 #if LIGHTMAP_ON
-                float2 lightmapUV = IN.uvControlAndLM.zw;
+                float4 lightmapUV = half4(IN.uvControlAndLM.zw, 0.0, 0.0);
                 indirectDiffuse = SampleLightmap(lightmapUV, normalWS);
 #endif
 
@@ -187,9 +194,9 @@ Shader "LightweightPipeline/Standard Terrain"
                     IN.fogFactorAndVertexLight.yzw, albedo, metallic, specular, smoothness, /* occlusion */ 1.0, /* emission */ half3(0, 0, 0), alpha);
 
                 ApplyFog(color.rgb, fogFactor);
-                return OUTPUT_COLOR(color);
+                return color;
             }
-            ENDCG
+            ENDHLSL
         }
 
         Pass
@@ -199,23 +206,25 @@ Shader "LightweightPipeline/Standard Terrain"
             ZWrite On
             ColorMask 0
 
-            CGPROGRAM
+            HLSLPROGRAM
+            // Required to compile gles 2.0 with standard srp library
+            #pragma prefer_hlslcc gles
             #pragma target 2.0
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "UnityCG.cginc"
+            #include "LightweightShaderLibrary/Core.hlsl"
 
             float4 vert(float4 pos : POSITION) : SV_POSITION
             {
-                return UnityObjectToClipPos(pos);
+                return TransformObjectToHClip(pos.xyz);
             }
 
             half4 frag() : SV_TARGET
             {
                 return 0;
             }
-            ENDCG
+            ENDHLSL
         }
     }
 

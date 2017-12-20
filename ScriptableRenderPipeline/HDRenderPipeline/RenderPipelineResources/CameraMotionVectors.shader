@@ -10,8 +10,6 @@ Shader "Hidden/HDRenderPipeline/CameraMotionVectors"
         #include "../ShaderPass/VaryingMesh.hlsl"
         #include "../ShaderPass/VertMesh.hlsl"
 
-        float4 _CameraPosDiff;
-
         struct Attributes
         {
             uint vertexID : SV_VertexID;
@@ -36,10 +34,6 @@ Shader "Hidden/HDRenderPipeline/CameraMotionVectors"
             UpdatePositionInput(depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, posInput);
             float4 worldPos = float4(posInput.positionWS, 1.0);
             float4 prevPos = worldPos;
-
-        #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
-            prevPos -= _CameraPosDiff;
-        #endif
 
             float4 prevClipPos = mul(_PrevViewProjMatrix, prevPos);
             float4 curClipPos = mul(_NonJitteredViewProjMatrix, worldPos);

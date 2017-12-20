@@ -1,6 +1,8 @@
 #ifndef UNITY_NOISE_INCLUDED
 #define UNITY_NOISE_INCLUDED
 
+#if !defined(SHADER_API_GLES)
+
 // A single iteration of Bob Jenkins' One-At-A-Time hashing algorithm.
 uint JenkinsHash(uint x)
 {
@@ -67,5 +69,7 @@ float GenerateHashedRandomFloat(uint4 v)
 {
     return ConstructFloat(JenkinsHash(v));
 }
+
+#endif // SHADER_API_GLES
 
 #endif // UNITY_NOISE_INCLUDED
