@@ -290,9 +290,32 @@ namespace UnityEditor.VFX
                     InnerAddSlot(slot, false);
                 }
 
-                // Finally remove links for all slots that are no longer needed
+                // Finally remove links for all slots that are no longer needed or try to keep links
+                currentSlots = isInput ? inputSlots : outputSlots;
                 foreach (var slot in existingSlots)
+                {
+                    if (slot.HasLink())
+                    {
+                        var candidates = currentSlots.Where(s => s.property.name == slot.property.name);
+                        foreach (var candidate in candidates)
+                        {
+                            var links = slot.LinkedSlots.ToArray();
+                            int index = 0;
+                            while (index < links.Count())
+                            {
+                                var link = links[index];
+                                if (candidate.CanLink(link))
+                                {
+                                    candidate.Link(link, notify);
+                                    slot.Unlink(link, notify);
+                                }
+                                ++index;
+                            }
+                        }
+                    }
+
                     slot.UnlinkAll(true, notify);
+                }
 
                 if (notify)
                     Invalidate(InvalidationCause.kStructureChanged);
