@@ -589,7 +589,7 @@ struct GraphVertexInput
             finalShader.AddShaderChunk("#include \"Packing.hlsl\"", false);
             finalShader.AddShaderChunk("#include \"ShaderVariables.hlsl\"", false);
             finalShader.AddShaderChunk("#include \"ShaderVariablesFunctions.hlsl\"", false);
-            
+
             finalShader.AddShaderChunk(shaderFunctionVisitor.GetShaderString(2), false);
             finalShader.AddShaderChunk(graphVertexInput, false);
             finalShader.AddShaderChunk(surfaceInputs.GetShaderString(2), false);

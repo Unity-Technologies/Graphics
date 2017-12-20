@@ -27,12 +27,6 @@ float GetOddNegativeScale()
     return unity_WorldTransformParams.w;
 }
 
-float3 WorldSpaceViewDir(float3 cameraPositionWS, float3 positionOS)
-{
-    float3 worldPos = mul(GetObjectToWorldMatrix(), float4(positionOS, 1.0)).xyz;
-    return normalize(cameraPositionWS - worldPos);
-}
-
 float3 TransformWorldToView(float3 positionWS)
 {
     return mul(GetWorldToViewMatrix(), float4(positionWS, 1.0)).xyz;
