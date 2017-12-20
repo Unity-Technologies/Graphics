@@ -3,11 +3,11 @@
 
 
 TEXTURE2D(_BaseColorMap);
-SAMPLER2D(sampler_BaseColorMap);
+SAMPLER(sampler_BaseColorMap);
 TEXTURE2D(_NormalMap);
-SAMPLER2D(sampler_NormalMap);
+SAMPLER(sampler_NormalMap);
 TEXTURE2D(_MaskMap);
-SAMPLER2D(sampler_MaskMap);
+SAMPLER(sampler_MaskMap);
 
 float _DecalBlend;
 

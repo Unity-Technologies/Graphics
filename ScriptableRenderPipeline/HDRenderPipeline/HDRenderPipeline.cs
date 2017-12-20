@@ -644,7 +644,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 #endif
                     // decal system needs to be updated with current camera
-                    DecalSystem.instance.Cull(camera);
+					if (m_FrameSettings.enableDBuffer)
+						DecalSystem.instance.Cull(camera);
 
                     using (new ProfilingSample(cmd, "CullResults.Cull", GetSampler(CustomSamplerId.CullResultsCull)))
                     {
@@ -697,7 +698,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 	                InitAndClearBuffer(hdCamera, enableBakeShadowMask, cmd);
 
-                    RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd, true);
+					bool forcePrepassForDecals = m_FrameSettings.enableDBuffer && (DecalSystem.instance.QueryCullResults() > 0);
+                    RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd, forcePrepassForDecals);
 
                     RenderObjectsVelocity(m_CullResults, hdCamera, renderContext, cmd);
 

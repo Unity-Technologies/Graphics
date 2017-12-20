@@ -21,6 +21,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Mesh m_DecalMesh;
         CullingGroup m_CullingGroup;
         private BoundingSphere[] m_BoundingSpheres;
+		private int[] m_ResultIndices;
+		private int m_NumResults = 0;
      
         public DecalSystem()
         {
@@ -31,6 +33,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void UpdateCulling()
         {
             m_BoundingSpheres = new BoundingSphere[m_Decals.Count];
+			m_ResultIndices = new int[m_Decals.Count];
             int cullIndex = 0;
             foreach (var decal in m_Decals)
             {
@@ -71,18 +74,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CullingGroup.SetBoundingSpheres(m_BoundingSpheres);            
         }
 
+		public int QueryCullResults()
+		{
+			m_NumResults = m_CullingGroup.QueryIndices(true, m_ResultIndices, 0);
+			return m_NumResults;
+		}
+
         public void Render(ScriptableRenderContext renderContext, HDCamera camera, CommandBuffer cmd)
         {
             if (m_DecalMesh == null)
                 m_DecalMesh = CoreUtils.CreateDecalMesh();
 
-            int numResults = 0;
-            int[] resultIndices = new int[m_Decals.Count];
-            numResults = m_CullingGroup.QueryIndices(true, resultIndices, 0);
-
-            for (int resultIndex = 0; resultIndex < numResults; resultIndex++)
+            for (int resultIndex = 0; resultIndex < m_NumResults; resultIndex++)
             {
-                int decalIndex = resultIndices[resultIndex];
+                int decalIndex = m_ResultIndices[resultIndex];
 
                 // If no decal material assigned, don't draw it
                 if (m_Decals[decalIndex].m_Material == null)
