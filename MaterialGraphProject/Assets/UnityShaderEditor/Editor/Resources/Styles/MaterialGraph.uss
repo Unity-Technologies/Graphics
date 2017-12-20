@@ -327,7 +327,7 @@ GraphInspectorView {
     flex-direction: column;
     justify-content: space-between;
     position-type: absolute;
-    position-left: 0;
+    position-right: 0;
     position-top: 0;
     width: 600;
     height: 800;
