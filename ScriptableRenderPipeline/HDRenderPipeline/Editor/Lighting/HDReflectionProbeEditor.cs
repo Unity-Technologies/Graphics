@@ -66,11 +66,15 @@ namespace UnityEditor.Experimental.Rendering
 
         public override void OnInspectorGUI()
         {
+            //InspectColorsGUI();
+
             serializedObject.Update();
             m_AdditionalDataSerializedObject.Update();
 
             var s = m_UIState;
             var p = m_SerializedReflectionProbe;
+            // Set the legacy blend distance to 0 so the legacy culling system use the probe extent
+            p.legacyBlendDistance.floatValue = 0;
 
             k_PrimarySection.Draw(s, p, this);
             k_InfluenceVolumeSection.Draw(s, p, this);
@@ -166,6 +170,21 @@ namespace UnityEditor.Experimental.Rendering
         {
             return editMode == EditMode.SceneViewEditMode.ReflectionProbeBox || editMode == EditMode.SceneViewEditMode.Collider || editMode == EditMode.SceneViewEditMode.GridBox ||
                 editMode == EditMode.SceneViewEditMode.ReflectionProbeOrigin;
+        }
+
+        static void InspectColorsGUI()
+        {
+            EditorGUILayout.LabelField("Color Theme", EditorStyles.largeLabel);
+            k_GizmoThemeColorExtent = EditorGUILayout.ColorField("Extent", k_GizmoThemeColorExtent);
+            k_GizmoThemeColorExtentFace = EditorGUILayout.ColorField("Extent Face", k_GizmoThemeColorExtentFace);
+            k_GizmoThemeColorInfluenceBlend = EditorGUILayout.ColorField("Influence Blend", k_GizmoThemeColorInfluenceBlend);
+            k_GizmoThemeColorInfluenceBlendFace = EditorGUILayout.ColorField("Influence Blend Face", k_GizmoThemeColorInfluenceBlendFace);
+            k_GizmoThemeColorInfluenceNormalBlend = EditorGUILayout.ColorField("Influence Normal Blend", k_GizmoThemeColorInfluenceNormalBlend);
+            k_GizmoThemeColorInfluenceNormalBlendFace = EditorGUILayout.ColorField("Influence Normal Blend Face", k_GizmoThemeColorInfluenceNormalBlendFace);
+            k_GizmoThemeColorProjection = EditorGUILayout.ColorField("Projection", k_GizmoThemeColorProjection);
+            k_GizmoThemeColorProjectionFace = EditorGUILayout.ColorField("Projection Face", k_GizmoThemeColorProjectionFace);
+            k_GizmoThemeColorDisabled = EditorGUILayout.ColorField("Disabled", k_GizmoThemeColorDisabled);
+            k_GizmoThemeColorDisabledFace = EditorGUILayout.ColorField("Disabled Face", k_GizmoThemeColorDisabledFace);
         }
 
         static void BakeCustomReflectionProbe(ReflectionProbe probe, bool usePreviousAssetPath, bool custom)

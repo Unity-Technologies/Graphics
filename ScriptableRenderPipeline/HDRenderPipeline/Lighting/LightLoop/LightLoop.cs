@@ -1124,6 +1124,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             var additionalData = probe.probe.GetComponent<HDAdditionalReflectionData>();
             var extents = probe.bounds.extents;
+            var influenceBlendDistance = probe.blendDistance;
 
             // For now we won't display real time probe when rendering one.
             // TODO: We may want to display last frame result but in this case we need to be careful not to update the atlas before all realtime probes are rendered (for frame coherency).
@@ -1162,6 +1163,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 envLightData.dimmer = additionalData.dimmer;
                 envLightData.blendNormalDistance = additionalData.blendNormalDistance;
+                influenceBlendDistance = additionalData.blendDistance;
             }
             else
             {
@@ -1194,8 +1196,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // So we let the current UI but we assume blendDistance is an inside factor instead
             // Blend distance can't be larger than the max radius
             // probe.bounds.extents is BoxSize / 2
-            float maxBlendDist = Mathf.Min(probe.bounds.extents.x, Mathf.Min(probe.bounds.extents.y, probe.bounds.extents.z));
-            float blendDistance = Mathf.Min(maxBlendDist, probe.blendDistance);
+            var maxBlendDist = Mathf.Min(probe.bounds.extents.x, Mathf.Min(probe.bounds.extents.y, probe.bounds.extents.z));
+            var blendDistance = Mathf.Min(maxBlendDist, influenceBlendDistance);
             envLightData.innerDistance = extents - new Vector3(blendDistance, blendDistance, blendDistance);
             envLightData.envIndex = envIndex;
             envLightData.offsetLS = probe.center; // center is misnamed, it is the offset (in local space) from center of the bounding box to the cubemap capture point

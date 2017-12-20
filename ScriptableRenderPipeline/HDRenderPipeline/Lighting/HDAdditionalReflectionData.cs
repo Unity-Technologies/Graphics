@@ -21,6 +21,7 @@
         public Vector3 boxReprojectionVolumeCenter = Vector3.zero;
         public float maxSearchDistance = 8.0f;
         public Texture previewCubemap;
+        public float blendDistance = 0f;
         public float blendNormalDistance = 0f;
     }
 }
