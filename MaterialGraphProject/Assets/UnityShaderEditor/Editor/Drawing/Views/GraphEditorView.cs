@@ -75,7 +75,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 m_GraphInspectorView = new GraphInspectorView(assetName, previewManager, graph) { name = "inspector" };
                 m_GraphInspectorView.AddManipulator(new Draggable(OnMouseDrag, true));
-                m_GraphInspectorView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
+                m_GraphView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
                 m_GraphView.onSelectionChanged += m_GraphInspectorView.UpdateSelection;
                 m_GraphView.Add(m_GraphInspectorView);
 
