@@ -31,10 +31,10 @@
 //--------------------------------------------------------------------------------------------------
 
 RW_TEXTURE3D(float4, _VBufferLightingCurr); // RGB = radiance, A = optical depth
-TEXTURE3D(_VBufferLightingCurrPrev);        // RGB = radiance, A = optical depth
+TEXTURE3D(_VBufferLightingPrev);            // RGB = radiance, A = optical depth
 
 CBUFFER_START(UnityVolumetricLighting)
-    float4x4 _VBufferCoordToViewDirWS; // Actually just 3x3, but Unity can only set 4x4
+    float4x4 _VBufferCoordToViewDirWS;      // Actually just 3x3, but Unity can only set 4x4
 CBUFFER_END
 
 //--------------------------------------------------------------------------------------------------
@@ -90,6 +90,14 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // We will use it for participating media sampling and reprojection.
         float  tc       = t0 + 0.5 * dt;
         float3 centerWS = GetPointAtDistance(ray, tc);
+
+        // Reproject 'centerWS'. It performs a point sample.
+        float2 reprojPosNDC = ComputeNormalizedDeviceCoordinates(centerWS, _PrevViewProjMatrix);
+        float  reprojZ      = mul(_PrevViewProjMatrix, float4(centerWS, 1)).w;
+        float4 reprojValue  = LoadInScatteredRadianceAndTransmittance(reprojPosNDC, reprojZ,
+                                                                      _VBufferLightingPrev,
+                                                                      _VBufferResolutionAndScale,
+                                                                      _VBufferDepthEncodingParams);
 
         // Sample the participating medium at 'tc' (or 'centerWS').
         // We consider it to be constant along the interval [t0, t1] (within the voxel).
@@ -290,8 +298,12 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // Compute the optical depth up to the center of the interval.
         opticalDepth += 0.5 * extinction * dt;
 
-        // Store the voxel data. TODO: reprojection of 'tc' (or 'centerWS').
-        _VBufferLightingCurr[uint3(posInput.positionSS, slice)] = float4(totalRadiance, opticalDepth);
+        // Perform temporal blending.
+        float4 newValue     = float4(totalRadiance, opticalDepth);
+        float4 blendedValue = lerp(reprojValue, newValue, reprojValue.a == 0 ? 1 : 0.1);
+
+        // Store the voxel data.
+        _VBufferLightingCurr[uint3(posInput.positionSS, slice)] = blendedValue;
 
         // Compute the optical depth up to the end of the interval.
         opticalDepth += 0.5 * extinction * dt;
