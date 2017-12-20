@@ -353,7 +353,8 @@ half SpotAttenuation(half3 spotDirection, half3 lightDirection, half4 spotAttenu
 
     // If we precompute the terms in a MAD instruction
     half SdotL = dot(spotDirection, lightDirection);
-    return saturate(SdotL * spotAttenuation.x + spotAttenuation.y);
+    half atten = saturate(SdotL * spotAttenuation.x + spotAttenuation.y);
+    return atten * atten;
 }
 
 inline half GetLightDirectionAndRealtimeAttenuation(LightInput lightInput, half3 normal, float3 worldPos, out half3 lightDirection)
