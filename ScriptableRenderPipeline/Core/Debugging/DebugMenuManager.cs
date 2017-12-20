@@ -65,7 +65,7 @@ namespace UnityEngine.Experimental.Rendering
         void LookUpDebugPanelClasses()
         {
             // Prepare all debug menus
-            var types = Assembly.GetAssembly(typeof(DebugPanel)).GetTypes()
+            var types = CoreUtils.GetAllAssemblyTypes()
                 .Where(t => t.IsSubclassOf(typeof(DebugPanel)));
 
             m_DebugPanels.Clear();

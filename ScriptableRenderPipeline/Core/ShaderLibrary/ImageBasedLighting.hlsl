@@ -4,7 +4,7 @@
 #include "CommonLighting.hlsl"
 #include "CommonMaterial.hlsl"
 #include "BSDF.hlsl"
-#include "Sampling.hlsl"
+#include "Sampling/Sampling.hlsl"
 
 #ifndef UNITY_SPECCUBE_LOD_STEPS
     #define UNITY_SPECCUBE_LOD_STEPS 6
@@ -421,6 +421,11 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
 
         if (usePrecomputedSamples)
         {
+            // Performance warning: using a texture LUT will generate a vector load,
+            // which increases both the VGPR pressure and the workload of the
+            // texture unit. A better solution here is to load from a Constant, Raw
+            // or Structured buffer, or perhaps even declare all the constants in an
+            // HLSL header to allow the compiler to inline everything.
             float3 localL = LOAD_TEXTURE2D(ggxIblSamples, uint2(i, index)).xyz;
 
             L     = mul(localL, localToWorld);

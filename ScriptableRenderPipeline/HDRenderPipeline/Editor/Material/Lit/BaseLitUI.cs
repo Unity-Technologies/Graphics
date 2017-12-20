@@ -23,6 +23,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent lockWithObjectScaleText = new GUIContent("Lock with object scale", "Displacement mapping will take the absolute value of the scale of the object into account.");
             public static GUIContent lockWithTilingRateText = new GUIContent("Lock with height map tiling rate", "Displacement mapping will take the absolute value of the tiling rate of the height map into account.");
 
+            public static GUIContent enableMotionVectorForVertexAnimationText = new GUIContent("Enable MotionVector For Vertex Animation", "This will enable an object motion vector pass for this material. Useful if wind animation is enabled or if displacement map is animated");
+
             // Material ID
             public static GUIContent materialIDText = new GUIContent("Material type", "Subsurface Scattering: enable for translucent materials such as skin, vegetation, fruit, marble, wax and milk.");
 
@@ -88,7 +90,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty materialID  = null;
         protected const string     kMaterialID = "_MaterialID";
 
-        protected const string     kStencilRef = "_StencilRef";
+        protected const string kStencilRef = "_StencilRef";
+        protected const string kStencilWriteMask = "_StencilWriteMask";
+        protected const string kStencilRefMV = "_StencilRefMV";
+        protected const string kStencilWriteMaskMV = "_StencilWriteMaskMV";
 
         protected MaterialProperty displacementMode = null;
         protected const string kDisplacementMode = "_DisplacementMode";
@@ -96,6 +101,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kDisplacementLockObjectScale = "_DisplacementLockObjectScale";
         protected MaterialProperty displacementLockTilingScale = null;
         protected const string kDisplacementLockTilingScale = "_DisplacementLockTilingScale";
+
+        protected MaterialProperty enableMotionVectorForVertexAnimation = null;
+        protected const string kEnableMotionVectorForVertexAnimation = "_EnableMotionVectorForVertexAnimation";
 
         // Per pixel displacement params
         protected MaterialProperty ppdMinSamples = null;
@@ -154,6 +162,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             displacementMode = FindProperty(kDisplacementMode, props);
             displacementLockObjectScale = FindProperty(kDisplacementLockObjectScale, props);
             displacementLockTilingScale = FindProperty(kDisplacementLockTilingScale, props);
+
+            enableMotionVectorForVertexAnimation = FindProperty(kEnableMotionVectorForVertexAnimation, props);
 
             // Per pixel displacement
             ppdMinSamples = FindProperty(kPpdMinSamples, props);
@@ -221,6 +231,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.ShaderProperty(displacementLockTilingScale, StylesBaseLit.lockWithTilingRateText);
                 EditorGUI.indentLevel--;
             }
+
+            m_MaterialEditor.ShaderProperty(enableMotionVectorForVertexAnimation, StylesBaseLit.enableMotionVectorForVertexAnimationText);
 
             if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel)
             {
@@ -319,7 +331,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 stencilRef = (int)StencilLightingUsage.SplitLighting;
             }
+            // As we tag both during velocity pass and Gbuffer pass we need a separate state and we need to use the write mask
             material.SetInt(kStencilRef, stencilRef);
+            material.SetInt(kStencilWriteMask, (int)HDRenderPipeline.StencilBitMask.Lighting);
+            material.SetInt(kStencilRefMV, (int)HDRenderPipeline.StencilBitMask.ObjectVelocity);
+            material.SetInt(kStencilWriteMaskMV, (int)HDRenderPipeline.StencilBitMask.ObjectVelocity);
 
             bool enableDisplacement = (DisplacementMode)material.GetFloat(kDisplacementMode) != DisplacementMode.None;
             bool enableVertexDisplacement = (DisplacementMode)material.GetFloat(kDisplacementMode) == DisplacementMode.Vertex;
@@ -357,6 +373,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static public void SetupBaseLitMaterialPass(Material material)
         {
             SetupBaseUnlitMaterialPass(material);
+
+            material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, material.GetFloat(kEnableMotionVectorForVertexAnimation) > 0.0f);
         }
     }
 } // namespace UnityEditor

@@ -35,7 +35,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public static int s_GBufferLitStandardSpecularColorId = 1;
 
             public static float s_DefaultSpecularValue = 0.04f;
-            public static float s_SkinSpecularValue = 0.028f;
         }
 
         [GenerateHLSL(PackingRules.Exact)]
@@ -265,7 +264,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Lit() {}
 
-        public override void Build(RenderPipelineResources renderPipelineResources)
+        public override void Build(HDRenderPipelineAsset hdAsset)
         {
             m_InitPreFGD = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/PreIntegratedFGD");
 

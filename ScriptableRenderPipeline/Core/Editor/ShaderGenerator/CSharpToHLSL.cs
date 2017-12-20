@@ -42,7 +42,7 @@ namespace UnityEditor.Experimental.Rendering
             s_TypeName = new Dictionary<string, ShaderTypeGenerator>();
 
             // Iterate over assemblyList, discover all applicable types with fully qualified names
-			var assemblyList = AppDomain.CurrentDomain.GetAssemblies().ToList();
+            var assemblyList = AppDomain.CurrentDomain.GetAssemblies().ToList();
 
             foreach (var assembly in assemblyList)
             {

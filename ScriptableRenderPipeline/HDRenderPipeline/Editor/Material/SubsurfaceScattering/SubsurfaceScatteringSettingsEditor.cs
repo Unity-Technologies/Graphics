@@ -21,6 +21,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             internal SerializedProperty transmissionMode;
             internal SerializedProperty thicknessRemap;
             internal SerializedProperty worldScale;
+            internal SerializedProperty fresnel0;
 
             // Old SSS Model >>>
             internal SerializedProperty scatterDistance1;
@@ -83,6 +84,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     transmissionMode = rp.Find(x => x.transmissionMode),
                     thicknessRemap = rp.Find(x => x.thicknessRemap),
                     worldScale = rp.Find(x => x.worldScale),
+                    fresnel0 = rp.Find(x => x.fresnel0),
 
                     scatterDistance1 = rp.Find(x => x.scatterDistance1),
                     scatterDistance2 = rp.Find(x => x.scatterDistance2),
@@ -114,13 +116,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             serializedObject.Update();
 
-            using (var scope = new EditorGUI.ChangeCheckScope())
-            {
-                EditorGUILayout.PropertyField(m_UseDisneySSS, s_Styles.useDisneySSS);
-
-                if (scope.changed && m_HDPipeline != null)
-                    m_HDPipeline.CreateSssMaterials();
-            }
+            EditorGUILayout.PropertyField(m_UseDisneySSS, s_Styles.useDisneySSS);
 
             EditorGUILayout.Space();
 
@@ -168,6 +164,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         EditorGUILayout.MinMaxSlider(s_Styles.profileThicknessRemap, ref thicknessRemap.x, ref thicknessRemap.y, 0f, 50f);
                         profile.thicknessRemap.vector2Value = thicknessRemap;
                         EditorGUILayout.PropertyField(profile.worldScale, s_Styles.profileWorldScale);
+                        EditorGUILayout.Slider(profile.fresnel0, 0.0f, 0.1f, s_Styles.profileFresnel0);
 
                         EditorGUILayout.Space();
                         EditorGUILayout.LabelField(s_Styles.profilePreview0, s_Styles.centeredMiniBoldLabel);

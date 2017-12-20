@@ -21,16 +21,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Matrix4x4[]   m_faceWorldToViewMatrixMatrices     = new Matrix4x4[6];
 
 
-        RenderPipelineResources m_RenderPipelinesResources;
+        RenderPipelineResources m_RenderPipelineResources;
 
-        public bool supportMis
+        public IBLFilterGGX(RenderPipelineResources renderPipelineResources)
         {
-            get { return !TextureCache.isMobileBuildTarget; }
-        }
-
-        public IBLFilterGGX(RenderPipelineResources renderPipelinesResources)
-        {
-            m_RenderPipelinesResources = renderPipelinesResources;
+            m_RenderPipelineResources = renderPipelineResources;
         }
 
         public bool IsInitialized()
@@ -42,20 +37,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (!m_ComputeGgxIblSampleDataCS)
             {
-                m_ComputeGgxIblSampleDataCS     = m_RenderPipelinesResources.computeGgxIblSampleData;
+                m_ComputeGgxIblSampleDataCS     = m_RenderPipelineResources.computeGgxIblSampleData;
                 m_ComputeGgxIblSampleDataKernel = m_ComputeGgxIblSampleDataCS.FindKernel("ComputeGgxIblSampleData");
             }
 
-            if (!m_BuildProbabilityTablesCS && supportMis)
+            if (!m_BuildProbabilityTablesCS)
             {
-                m_BuildProbabilityTablesCS   = m_RenderPipelinesResources.buildProbabilityTables;
+                m_BuildProbabilityTablesCS   = m_RenderPipelineResources.buildProbabilityTables;
                 m_ConditionalDensitiesKernel = m_BuildProbabilityTablesCS.FindKernel("ComputeConditionalDensities");
                 m_MarginalRowDensitiesKernel = m_BuildProbabilityTablesCS.FindKernel("ComputeMarginalRowDensities");
             }
 
             if (!m_GgxConvolveMaterial)
             {
-                m_GgxConvolveMaterial = CoreUtils.CreateEngineMaterial(m_RenderPipelinesResources.GGXConvolve);
+                m_GgxConvolveMaterial = CoreUtils.CreateEngineMaterial(m_RenderPipelineResources.GGXConvolve);
             }
 
             if (!m_GgxIblSampleData)

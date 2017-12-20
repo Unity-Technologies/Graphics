@@ -7,13 +7,17 @@
 //-----------------------------------------------------------------------------
 
 float3 EvaluateCookie_Directional(LightLoopContext lightLoopContext, DirectionalLightData lightData,
-                                  float3 lighToSample)
+                                  float3 positionWS)
 {
-    // Compute the CS position (in [-1, 1]^2) by projecting 'positionWS' onto the near plane.
+
+    // Translate and rotate 'positionWS' into the light space.
     // 'lightData.right' and 'lightData.up' are pre-scaled on CPU.
-    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
-    float3   positionLS   = mul(lighToSample, transpose(lightToWorld));
-    float2   positionCS   = positionLS.xy;
+    float3   lightToSample = positionWS - lightData.positionWS;
+    float3x3 lightToWorld  = float3x3(lightData.right, lightData.up, lightData.forward);
+    float3   positionLS    = mul(lightToSample, transpose(lightToWorld));
+
+    // Perform orthographic projection.
+    float2 positionCS    = positionLS.xy;
 
     // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
     float2 positionNDC = positionCS * 0.5 + 0.5;
@@ -67,8 +71,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 
     [branch] if (lightData.cookieIndex >= 0)
     {
-        float3 lightToSample = positionWS - lightData.positionWS;
-        float3 cookie = EvaluateCookie_Directional(lightLoopContext, lightData, lightToSample);
+        float3 cookie = EvaluateCookie_Directional(lightLoopContext, lightData, positionWS);
 
         color *= cookie;
     }
@@ -79,14 +82,15 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 //-----------------------------------------------------------------------------
 
 float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData lightData,
-                               float3 lighToSample)
+                               float3 positionWS)
 {
     int lightType = lightData.lightType;
 
     // Translate and rotate 'positionWS' into the light space.
     // 'lightData.right' and 'lightData.up' are pre-scaled on CPU.
-    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
-    float3   positionLS   = mul(lighToSample, transpose(lightToWorld));
+    float3   lightToSample = positionWS - lightData.positionWS;
+    float3x3 lightToWorld  = float3x3(lightData.right, lightData.up, lightData.forward);
+    float3   positionLS    = mul(lightToSample, transpose(lightToWorld));
 
     float4 cookie;
 
@@ -97,8 +101,7 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
     }
     else
     {
-        // Compute the NDC position (in [-1, 1]^2) by projecting 'positionWS' onto the plane at 1m distance.
-        // Box projector lights require no perspective division.
+        // Perform orthographic or perspective projection.
         float  perspectiveZ = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? positionLS.z : 1.0;
         float2 positionCS   = positionLS.xy / perspectiveZ;
         bool   isInBounds   = Max3(abs(positionCS.x), abs(positionCS.y), 1.0 - positionLS.z) <= 1.0;
@@ -167,8 +170,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     // Projector lights always have cookies, so we can perform clipping inside the if().
     [branch] if (lightData.cookieIndex >= 0)
     {
-        float3 lightToSample = positionWS - lightData.positionWS;
-        float4 cookie = EvaluateCookie_Punctual(lightLoopContext, lightData, lightToSample);
+        float4 cookie = EvaluateCookie_Punctual(lightLoopContext, lightData, positionWS);
 
         color       *= cookie.rgb;
         attenuation *= cookie.a;

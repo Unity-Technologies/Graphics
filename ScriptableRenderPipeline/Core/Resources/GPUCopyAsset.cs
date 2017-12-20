@@ -90,7 +90,7 @@ namespace UnityEngine.Experimental.Rendering
                     k_KernelSize.ToString(), k_KernelSize.ToString()));
                 cck.AppendLine(string.Format(@"void {0}(uint2 dispatchThreadId : SV_DispatchThreadID)", kernelName));
                 cck.AppendLine("{");
-                cck.AppendLine(string.Format("    _Result{0}[dispatchThreadId] = _Source{1}.SampleLevel(sampler_LinearClamp, float2(dispatchThreadId) * _Size.zw, 0.0).{2};",
+                cck.AppendLine(string.Format("    _Result{0}[dispatchThreadId] = SAMPLE_TEXTURE2D_LOD(_Source{1}, sampler_LinearClamp, float2(dispatchThreadId) * _Size.zw, 0.0).{2};",
                     o.targetChannel.ToString(), o.sourceChannel.ToString(), o.subscript));
                 cck.AppendLine("}");
                 cck.AppendLine();
@@ -106,13 +106,11 @@ namespace UnityEngine.Experimental.Rendering
                 // CSharp method
                 csm.AppendLine(string.Format(@"        public void SampleCopyChannel_{0}2{1}(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier target, Vector2 size)", channelName, o.subscript));
                 csm.AppendLine("            {");
-                csm.AppendLine(string.Format("                if (size.x < {0} || size.y < {0})", k_KernelSize.ToString()));
-                csm.AppendLine("                    Debug.LogWarning(\"Trying to copy a channel from a texture smaller than 8x* or *x8. ComputeShader cannot perform it.\");");
                 csm.AppendLine("                var s = new Vector4(size.x, size.y, 1f / size.x, 1f / size.y);");
                 csm.AppendLine("                cmd.SetComputeVectorParam(m_Shader, _Size, s);");
                 csm.AppendLine(string.Format("                cmd.SetComputeTextureParam(m_Shader, {0}, _Source{1}, source);", kernelIndexName, o.sourceChannel.ToString()));
                 csm.AppendLine(string.Format("                cmd.SetComputeTextureParam(m_Shader, {0}, _Result{1}, target);", kernelIndexName, o.targetChannel.ToString()));
-                csm.AppendLine(string.Format("                cmd.DispatchCompute(m_Shader, {0}, (int)(size.x) / {1}, (int)(size.y) / {1}, 1);", kernelIndexName, k_KernelSize.ToString()));
+                csm.AppendLine(string.Format("                cmd.DispatchCompute(m_Shader, {0}, (int)Mathf.Max((size.x) / {1}, 1), (int)Mathf.Max((size.y) / {1}, 1), 1);", kernelIndexName, k_KernelSize.ToString()));
                 csm.AppendLine("            }");
             }
             csc.AppendLine("        }");
