@@ -37,6 +37,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public class LightweightPipelineAsset : RenderPipelineAsset
     {
+        private const int PACKAGE_MANAGER_PATH_INDEX = 1;
         public static readonly string[] m_SearchPaths = {"Assets", "Packages/com.unity.render-pipelines.lightweight"};
 
         // Default values set when a new LightweightPipeline asset is created
@@ -89,7 +90,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 // There's currently an issue that prevents FindAssets from find resources withing the package folder.
                 if (resourceAsset == null)
                 {
-                    string path = "Packages/com.unity.render-pipelines.lightweight/Data/LightweightPipelineResource.asset";
+                    string path = m_SearchPaths[PACKAGE_MANAGER_PATH_INDEX] + "/LWRP/Data/LightweightPipelineResource.asset";
                     resourceAsset = AssetDatabase.LoadAssetAtPath<LightweightPipelineResource>(path);
                 }
 
