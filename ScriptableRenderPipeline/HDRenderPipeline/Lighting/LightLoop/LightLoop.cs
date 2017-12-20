@@ -1262,7 +1262,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public int GetShadowAtlasCount()
         {
-            return (int)m_ShadowMgr.GetShadowMapCount();
+            return (m_ShadowMgr == null) ? 0 : (int)m_ShadowMgr.GetShadowMapCount();
         }
 
         public void UpdateCullingParameters(ref ScriptableCullingParameters cullingParams)
@@ -1579,19 +1579,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     if (GetEnvLightData(cmd, camera, probe))
                     {
-                    GetEnvLightVolumeDataAndBound(probe, lightVolumeType, worldToView);
+                        GetEnvLightVolumeDataAndBound(probe, lightVolumeType, worldToView);
 
-                    // We make the light position camera-relative as late as possible in order
-                    // to allow the preceding code to work with the absolute world space coordinates.
-                    if (ShaderConfig.s_CameraRelativeRendering != 0)
-                    {
-                        // Caution: 'EnvLightData.positionWS' is camera-relative after this point.
-                        int n = m_lightList.envLights.Count;
-                        EnvLightData envLightData = m_lightList.envLights[n - 1];
-                        envLightData.positionWS -= camPosWS;
-                        m_lightList.envLights[n - 1] = envLightData;
+                        // We make the light position camera-relative as late as possible in order
+                        // to allow the preceding code to work with the absolute world space coordinates.
+                        if (ShaderConfig.s_CameraRelativeRendering != 0)
+                        {
+                            // Caution: 'EnvLightData.positionWS' is camera-relative after this point.
+                            int n = m_lightList.envLights.Count;
+                            EnvLightData envLightData = m_lightList.envLights[n - 1];
+                            envLightData.positionWS -= camPosWS;
+                            m_lightList.envLights[n - 1] = envLightData;
+                        }
                     }
-                }
                 }
             }
 

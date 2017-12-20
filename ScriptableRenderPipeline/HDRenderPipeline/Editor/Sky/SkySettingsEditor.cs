@@ -7,7 +7,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public abstract class SkySettingsEditor : VolumeComponentEditor
     {
-        SerializedDataParameter m_SkyResolution;
         SerializedDataParameter m_SkyExposure;
         SerializedDataParameter m_SkyMultiplier;
         SerializedDataParameter m_SkyRotation;
@@ -20,7 +19,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             var o = new PropertyFetcher<SkySettings>(serializedObject);
 
-            m_SkyResolution = Unpack(o.Find(x => x.resolution));
             m_SkyExposure = Unpack(o.Find(x => x.exposure));
             m_SkyMultiplier = Unpack(o.Find(x => x.multiplier));
             m_SkyRotation = Unpack(o.Find(x => x.rotation));
@@ -31,7 +29,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         protected void CommonSkySettingsGUI()
         {
-            PropertyField(m_SkyResolution);
             PropertyField(m_SkyExposure);
             PropertyField(m_SkyMultiplier);
             PropertyField(m_SkyRotation);
