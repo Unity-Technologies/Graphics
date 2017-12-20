@@ -6,26 +6,26 @@
 // it return the offset to apply to the UVSet provide in PerPixelHeightDisplacementParam
 // viewDirTS is view vector in texture space matching the UVSet
 // ref: https://www.gamedev.net/resources/_/technical/graphics-programming-and-theory/a-closer-look-at-parallax-occlusion-mapping-r3262
-float2 ParallaxOcclusionMapping(float lod, float lodThreshold, int numSteps, float3 viewDirTS, PerPixelHeightDisplacementParam ppdParam, out float outHeight)
+REAL2 ParallaxOcclusionMapping(REAL lod, REAL lodThreshold, int numSteps, REAL3 viewDirTS, PerPixelHeightDisplacementParam ppdParam, out REAL outHeight)
 {
     // Convention: 1.0 is top, 0.0 is bottom - POM is always inward, no extrusion
-    float stepSize = 1.0 / (float)numSteps;
+    REAL stepSize = 1.0 / (REAL)numSteps;
 
     // View vector is from the point to the camera, but we want to raymarch from camera to point, so reverse the sign
     // The length of viewDirTS vector determines the furthest amount of displacement:
-    // float parallaxLimit = -length(viewDirTS.xy) / viewDirTS.z;
-    // float2 parallaxDir = normalize(Out.viewDirTS.xy);
-    // float2 parallaxMaxOffsetTS = parallaxDir * parallaxLimit;
+    // REAL parallaxLimit = -length(viewDirTS.xy) / viewDirTS.z;
+    // REAL2 parallaxDir = normalize(Out.viewDirTS.xy);
+    // REAL2 parallaxMaxOffsetTS = parallaxDir * parallaxLimit;
     // Above code simplify to
-    float2 parallaxMaxOffsetTS = (viewDirTS.xy / -viewDirTS.z);
-    float2 texOffsetPerStep = stepSize * parallaxMaxOffsetTS;
+    REAL2 parallaxMaxOffsetTS = (viewDirTS.xy / -viewDirTS.z);
+    REAL2 texOffsetPerStep = stepSize * parallaxMaxOffsetTS;
 
     // Do a first step before the loop to init all value correctly
-    float2 texOffsetCurrent = float2(0.0, 0.0);
-    float prevHeight = ComputePerPixelHeightDisplacement(texOffsetCurrent, lod, ppdParam);
+    REAL2 texOffsetCurrent = REAL2(0.0, 0.0);
+    REAL prevHeight = ComputePerPixelHeightDisplacement(texOffsetCurrent, lod, ppdParam);
     texOffsetCurrent += texOffsetPerStep;
-    float currHeight = ComputePerPixelHeightDisplacement(texOffsetCurrent, lod, ppdParam);
-    float rayHeight = 1.0 - stepSize; // Start at top less one sample
+    REAL currHeight = ComputePerPixelHeightDisplacement(texOffsetCurrent, lod, ppdParam);
+    REAL rayHeight = 1.0 - stepSize; // Start at top less one sample
 
     // Linear search
     for (int stepIndex = 0; stepIndex < numSteps; ++stepIndex)
@@ -48,20 +48,20 @@ float2 ParallaxOcclusionMapping(float lod, float lodThreshold, int numSteps, flo
 #define POM_SECANT_METHOD 1
 #if POM_SECANT_METHOD
 
-    float pt0 = rayHeight + stepSize;
-    float pt1 = rayHeight;
-    float delta0 = pt0 - prevHeight;
-    float delta1 = pt1 - currHeight;
+    REAL pt0 = rayHeight + stepSize;
+    REAL pt1 = rayHeight;
+    REAL delta0 = pt0 - prevHeight;
+    REAL delta1 = pt1 - currHeight;
 
-    float delta;
-    float2 offset;
+    REAL delta;
+    REAL2 offset;
 
     // Secant method to affine the search
     // Ref: Faster Relief Mapping Using the Secant Method - Eric Risser
     for (int i = 0; i < 3; ++i)
     {
         // intersectionHeight is the height [0..1] for the intersection between view ray and heightfield line
-        float intersectionHeight = (pt0 * delta1 - pt1 * delta0) / (delta1 - delta0);
+        REAL intersectionHeight = (pt0 * delta1 - pt1 * delta0) / (delta1 - delta0);
         // Retrieve offset require to find this intersectionHeight
         offset = (1 - intersectionHeight) * texOffsetPerStep * numSteps;
 
@@ -87,18 +87,18 @@ float2 ParallaxOcclusionMapping(float lod, float lodThreshold, int numSteps, flo
 
 #else // regular POM intersection
 
-    //float pt0 = rayHeight + stepSize;
-    //float pt1 = rayHeight;
-    //float delta0 = pt0 - prevHeight;
-    //float delta1 = pt1 - currHeight;
-    //float intersectionHeight = (pt0 * delta1 - pt1 * delta0) / (delta1 - delta0);
-    //float2 offset = (1 - intersectionHeight) * texOffsetPerStep * numSteps;
+    //REAL pt0 = rayHeight + stepSize;
+    //REAL pt1 = rayHeight;
+    //REAL delta0 = pt0 - prevHeight;
+    //REAL delta1 = pt1 - currHeight;
+    //REAL intersectionHeight = (pt0 * delta1 - pt1 * delta0) / (delta1 - delta0);
+    //REAL2 offset = (1 - intersectionHeight) * texOffsetPerStep * numSteps;
 
     // A bit more optimize
-    float delta0 = currHeight - rayHeight;
-    float delta1 = (rayHeight + stepSize) - prevHeight;
-    float ratio = delta0 / (delta0 + delta1);
-    float2 offset = texOffsetCurrent - ratio * texOffsetPerStep;
+    REAL delta0 = currHeight - rayHeight;
+    REAL delta1 = (rayHeight + stepSize) - prevHeight;
+    REAL ratio = delta0 / (delta0 + delta1);
+    REAL2 offset = texOffsetCurrent - ratio * texOffsetPerStep;
 
     currHeight = ComputePerPixelHeightDisplacement(offset, lod, ppdParam);
 

@@ -3,10 +3,10 @@
 
 // Ref: https://mynameismjp.wordpress.com/2015/02/18/shadow-sample-update/
 // Calculates the offset to use for sampling the shadow map, based on the surface normal
-float3 GetShadowPosOffset(float NdotL, float3 normalWS, float2 invShadowMapSize)
+REAL3 GetShadowPosOffset(REAL NdotL, REAL3 normalWS, REAL2 invShadowMapSize)
 {
-    float texelSize = 2.0 * invShadowMapSize.x;
-    float offsetScaleNormalize = saturate(1.0 - NdotL);
+    REAL texelSize = 2.0 * invShadowMapSize.x;
+    REAL offsetScaleNormalize = saturate(1.0 - NdotL);
     // return texelSize * OffsetScale * offsetScaleNormalize * normalWS;
     return texelSize * offsetScaleNormalize * normalWS;
 }

@@ -34,7 +34,7 @@
 // VertDefault
 // FragDefault / FragForward / FragDeferred
 
-// constant floating number written as 1.0  (not 1, not 1.0f, not 1.0h)
+// constant floating number written as 1.0  (not 1, not 1.0, not 1.0h)
 
 // uniform have _ as prefix + uppercase _LowercaseThenCamelCase
 
@@ -42,7 +42,7 @@
 // The reason is that for compute shader we need to guarantee that the layout of CBs is consistent across kernels. Something that we can't control with the global namespace (uniforms get optimized out if not used, modifying the global CBuffer layout per kernel)
 
 // Structure definition that are share between C# and hlsl.
-// These structures need to be align on float4 to respect various packing rules from sahder language.
+// These structures need to be align on REAL4 to respect various packing rules from sahder language.
 // This mean that these structure need to be padded.
 
 // Do not use "in", only "out" or "inout" as califier, not "inline" keyword either, useless.
@@ -53,12 +53,29 @@
 
 // headers from ShaderLibrary do not include "common.hlsl", this should be included in the .shader using it (or Material.hlsl)
 
-// Rules: When doing an array for constant buffer variables, we always use float4 to avoid any packing issue, particularly between compute shader and pixel shaders
+// Rules: When doing an array for constant buffer variables, we always use REAL4 to avoid any packing issue, particularly between compute shader and pixel shaders
 // i.e don't use SetGlobalFloatArray or SetComputeFloatParams
 // The array can be alias in hlsl. Exemple:
-// uniform float4 packedArray[3];
-// static float unpackedArray[12] = (float[12]packedArray;
+// uniform REAL4 packedArray[3];
+// static REAL unpackedArray[12] = (REAL[12]packedArray;
 
+#ifndef REAL
+#define REAL float
+#define REAL2 float2
+#define REAL3 float3
+#define REAL4 float4
+
+#define REAL2x2 float2x2
+#define REAL2x3 float2x3
+#define REAL3x2 float3x2
+#define REAL3x3 float3x3
+#define REAL3x4 float3x4
+#define REAL4x3 float4x3
+#define REAL4x4 float4x4
+
+#define REAL_MIN FLT_MIN
+#define REAL_MAX FLT_MAX
+#endif
 
 // Include language header
 #if defined(SHADER_API_D3D11)
@@ -191,9 +208,9 @@ TEMPLATE_SWAP(Swap) // Define a Swap(a, b) function for all types
 #ifndef INTRINSIC_CUBEMAP_FACE_ID
 // TODO: implement this. Is the reference implementation of cubemapID provide by AMD the reverse of our ?
 /*
-float CubemapFaceID(float3 dir)
+REAL CubemapFaceID(REAL3 dir)
 {
-    float faceID;
+    REAL faceID;
     if (abs(dir.z) >= abs(dir.x) && abs(dir.z) >= abs(dir.y))
     {
         faceID = (dir.z < 0.0) ? 5.0 : 4.0;
@@ -210,10 +227,10 @@ float CubemapFaceID(float3 dir)
 }
 */
 
-void GetCubeFaceID(float3 dir, out int faceIndex)
+void GetCubeFaceID(REAL3 dir, out int faceIndex)
 {
     // TODO: Use faceID intrinsic on console
-    float3 adir = abs(dir);
+    REAL3 adir = abs(dir);
 
     // +Z -Z
     faceIndex = dir.z > 0.0 ? CUBEMAPFACE_NEGATIVE_Z : CUBEMAPFACE_POSITIVE_Z;
@@ -236,12 +253,12 @@ void GetCubeFaceID(float3 dir, out int faceIndex)
 // Common math functions
 // ----------------------------------------------------------------------------
 
-float DegToRad(float deg)
+REAL DegToRad(REAL deg)
 {
     return deg * (PI / 180.0);
 }
 
-float RadToDeg(float rad)
+REAL RadToDeg(REAL rad)
 {
     return rad * (180.0 / PI);
 }
@@ -252,10 +269,10 @@ TEMPLATE_1_INT(Sq, x, return x * x)
 
 // Input [0, 1] and output [0, PI/2]
 // 9 VALU
-float FastACosPos(float inX)
+REAL FastACosPos(REAL inX)
 {
-    float x = abs(inX);
-    float res = (0.0468878 * x + -0.203471) * x + 1.570796; // p(x)
+    REAL x = abs(inX);
+    REAL res = (0.0468878 * x + -0.203471) * x + 1.570796; // p(x)
     res *= sqrt(1.0 - x);
 
     return res;
@@ -264,9 +281,9 @@ float FastACosPos(float inX)
 // Ref: https://seblagarde.wordpress.com/2014/12/01/inverse-trigonometric-functions-gpu-optimization-for-amd-gcn-architecture/
 // Input [-1, 1] and output [0, PI]
 // 12 VALU
-float FastACos(float inX)
+REAL FastACos(REAL inX)
 {
-    float res = FastACosPos(inX);
+    REAL res = FastACosPos(inX);
 
     return (inX >= 0) ? res : PI - res; // Undo range reduction
 }
@@ -274,7 +291,7 @@ float FastACos(float inX)
 // Same cost as Acos + 1 FR
 // Same error
 // input [-1, 1] and output [-PI/2, PI/2]
-float FastASin(float x)
+REAL FastASin(REAL x)
 {
     return HALF_PI - FastACos(x);
 }
@@ -283,11 +300,11 @@ float FastASin(float x)
 // Eberly's odd polynomial degree 5 - respect bounds
 // 4 VGPR, 14 FR (10 FR, 1 QR), 2 scalar
 // input [0, infinity] and output [0, PI/2]
-float FastATanPos(float x)
+REAL FastATanPos(REAL x)
 {
-    float t0 = (x < 1.0) ? x : 1.0 / x;
-    float t1 = t0 * t0;
-    float poly = 0.0872929;
+    REAL t0 = (x < 1.0) ? x : 1.0 / x;
+    REAL t1 = t0 * t0;
+    REAL poly = 0.0872929;
     poly = -0.301895 + poly * t1;
     poly = 1.0 + poly * t1;
     poly = poly * t0;
@@ -303,9 +320,9 @@ uint FastLog2(uint x)
 
 // 4 VGPR, 16 FR (12 FR, 1 QR), 2 scalar
 // input [-infinity, infinity] and output [-PI/2, PI/2]
-float FastATan(float x)
+REAL FastATan(REAL x)
 {
-    float t0 = FastATanPos(abs(x));
+    REAL t0 = FastATanPos(abs(x));
     return (x < 0.0) ? -t0 : t0;
 }
 
@@ -318,7 +335,7 @@ TEMPLATE_2_FLT(PositivePow, base, power, return pow(max(abs(base), FLT_EPS), pow
 
 // Computes (FastSign(s) * x) using 2x VALU.
 // See the comment about FastSign() below.
-float FastMulBySignOf(float s, float x, bool ignoreNegZero = true)
+REAL FastMulBySignOf(REAL s, REAL x, bool ignoreNegZero = true)
 {
 #if !defined(SHADER_API_GLES)
     if (ignoreNegZero)
@@ -343,7 +360,7 @@ float FastMulBySignOf(float s, float x, bool ignoreNegZero = true)
 // Therefore, we treat -0 as +0 by default: FastSign(+0) = FastSign(-0) = 1.
 // If (ignoreNegZero = false), FastSign(-0, false) = -1.
 // Note that the sign() function in HLSL implements signum, which returns 0 for 0.
-float FastSign(float s, bool ignoreNegZero = true)
+REAL FastSign(REAL s, bool ignoreNegZero = true)
 {
     return FastMulBySignOf(s, 1.0, ignoreNegZero);
 }
@@ -351,13 +368,13 @@ float FastSign(float s, bool ignoreNegZero = true)
 // Orthonormalizes the tangent frame using the Gram-Schmidt process.
 // We assume that both the tangent and the normal are normalized.
 // Returns the new tangent (the normal is unaffected).
-float3 Orthonormalize(float3 tangent, float3 normal)
+REAL3 Orthonormalize(REAL3 tangent, REAL3 normal)
 {
     return normalize(tangent - dot(tangent, normal) * normal);
 }
 
 // Same as smoothstep except it assume 0, 1 interval for x
-float Smoothstep01(float x)
+REAL Smoothstep01(REAL x)
 {
     return x * x * (3.0 - (2.0 * x));
 }
@@ -366,18 +383,18 @@ float Smoothstep01(float x)
 // Texture utilities
 // ----------------------------------------------------------------------------
 
-float ComputeTextureLOD(float2 uv)
+REAL ComputeTextureLOD(REAL2 uv)
 {
-    float2 ddx_ = ddx(uv);
-    float2 ddy_ = ddy(uv);
-    float d = max(dot(ddx_, ddx_), dot(ddy_, ddy_));
+    REAL2 ddx_ = ddx(uv);
+    REAL2 ddy_ = ddy(uv);
+    REAL d = max(dot(ddx_, ddx_), dot(ddy_, ddy_));
 
     return max(0.5 * log2(d), 0.0);
 }
 
 // texelSize is Unity XXX_TexelSize feature parameters
 // x contains 1.0/width, y contains 1.0 / height, z contains width, w contains height
-float ComputeTextureLOD(float2 uv, float4 texelSize)
+REAL ComputeTextureLOD(REAL2 uv, REAL4 texelSize)
 {
     uv *= texelSize.zw;
 
@@ -388,24 +405,24 @@ float ComputeTextureLOD(float2 uv, float4 texelSize)
 // Texture format sampling
 // ----------------------------------------------------------------------------
 
-float2 DirectionToLatLongCoordinate(float3 unDir)
+REAL2 DirectionToLatLongCoordinate(REAL3 unDir)
 {
-    float3 dir = normalize(unDir);
+    REAL3 dir = normalize(unDir);
     // coordinate frame is (-Z, X) meaning negative Z is primary axis and X is secondary axis.
-    return float2(1.0 - 0.5 * INV_PI * atan2(dir.x, -dir.z), asin(dir.y) * INV_PI + 0.5);
+    return REAL2(1.0 - 0.5 * INV_PI * atan2(dir.x, -dir.z), asin(dir.y) * INV_PI + 0.5);
 }
 
-float3 LatlongToDirectionCoordinate(float2 coord)
+REAL3 LatlongToDirectionCoordinate(REAL2 coord)
 {
-    float theta = coord.y * PI;
-    float phi = (coord.x * 2.f * PI - PI*0.5f);
+    REAL theta = coord.y * PI;
+    REAL phi = (coord.x * 2.f * PI - PI*0.5f);
 
-    float cosTheta = cos(theta);
-    float sinTheta = sqrt(1.0f - min(1.0f, cosTheta*cosTheta));
-    float cosPhi = cos(phi);
-    float sinPhi = sin(phi);
+    REAL cosTheta = cos(theta);
+    REAL sinTheta = sqrt(1.0 - min(1.0, cosTheta*cosTheta));
+    REAL cosPhi = cos(phi);
+    REAL sinPhi = sin(phi);
 
-    float3 direction = float3(sinTheta*cosPhi, cosTheta, sinTheta*sinPhi);
+    REAL3 direction = REAL3(sinTheta*cosPhi, cosTheta, sinTheta*sinPhi);
     direction.xy *= -1.0;
     return direction;
 }
@@ -416,21 +433,21 @@ float3 LatlongToDirectionCoordinate(float2 coord)
 
 // Z buffer to linear 0..1 depth (0 at near plane, 1 at far plane).
 // Does not correctly handle oblique view frustums.
-float Linear01DepthFromNear(float depth, float4 zBufferParam)
+REAL Linear01DepthFromNear(REAL depth, REAL4 zBufferParam)
 {
     return 1.0 / (zBufferParam.x + zBufferParam.y / depth);
 }
 
 // Z buffer to linear 0..1 depth (0 at camera position, 1 at far plane).
 // Does not correctly handle oblique view frustums.
-float Linear01Depth(float depth, float4 zBufferParam)
+REAL Linear01Depth(REAL depth, REAL4 zBufferParam)
 {
     return 1.0 / (zBufferParam.x * depth + zBufferParam.y);
 }
 
 // Z buffer to linear depth.
 // Does not correctly handle oblique view frustums.
-float LinearEyeDepth(float depth, float4 zBufferParam)
+REAL LinearEyeDepth(REAL depth, REAL4 zBufferParam)
 {
     return 1.0 / (zBufferParam.z * depth + zBufferParam.w);
 }
@@ -438,10 +455,10 @@ float LinearEyeDepth(float depth, float4 zBufferParam)
 // Z buffer to linear depth.
 // Correctly handles oblique view frustums. Only valid for projection matrices!
 // Ref: An Efficient Depth Linearization Method for Oblique View Frustums, Eq. 6.
-float LinearEyeDepth(float2 positionNDC, float deviceDepth, float4 invProjParam)
+REAL LinearEyeDepth(REAL2 positionNDC, REAL deviceDepth, REAL4 invProjParam)
 {
-    float4 positionCS = float4(positionNDC * 2.0 - 1.0, deviceDepth, 1.0);
-    float  viewSpaceZ = rcp(dot(positionCS, invProjParam));
+    REAL4 positionCS = REAL4(positionNDC * 2.0 - 1.0, deviceDepth, 1.0);
+    REAL  viewSpaceZ = rcp(dot(positionCS, invProjParam));
     // The view space uses a right-handed coordinate system.
     return -viewSpaceZ;
 }
@@ -449,20 +466,20 @@ float LinearEyeDepth(float2 positionNDC, float deviceDepth, float4 invProjParam)
 // Z buffer to linear depth.
 // Correctly handles oblique view frustums.
 // Typically, this is the cheapest variant, provided you've already computed 'positionWS'.
-float LinearEyeDepth(float3 positionWS, float4x4 viewProjMatrix)
+REAL LinearEyeDepth(REAL3 positionWS, REAL4x4 viewProjMatrix)
 {
-    return mul(viewProjMatrix, float4(positionWS, 1.0)).w;
+    return mul(viewProjMatrix, REAL4(positionWS, 1.0)).w;
 }
 
 // ----------------------------------------------------------------------------
 // Space transformations
 // ----------------------------------------------------------------------------
 
-static const float3x3 k_identity3x3 = {1, 0, 0,
+static const REAL3x3 k_identity3x3 = {1, 0, 0,
                                        0, 1, 0,
                                        0, 0, 1};
 
-static const float4x4 k_identity4x4 = {1, 0, 0, 0,
+static const REAL4x4 k_identity4x4 = {1, 0, 0, 0,
                                        0, 1, 0, 0,
                                        0, 0, 1, 0,
                                        0, 0, 0, 1};
@@ -471,37 +488,37 @@ static const float4x4 k_identity4x4 = {1, 0, 0, 0,
 // (position = positionCS) => (clipSpaceTransform = use default)
 // (position = positionVS) => (clipSpaceTransform = UNITY_MATRIX_P)
 // (position = positionWS) => (clipSpaceTransform = UNITY_MATRIX_VP)
-float2 ComputeNormalizedDeviceCoordinates(float3 position, float4x4 clipSpaceTransform = k_identity4x4)
+REAL2 ComputeNormalizedDeviceCoordinates(REAL3 position, REAL4x4 clipSpaceTransform = k_identity4x4)
 {
-    float4 positionCS = mul(clipSpaceTransform, float4(position, 1.0));
-    float2 positionNDC = positionCS.xy * (rcp(positionCS.w) * 0.5) + 0.5;
+    REAL4 positionCS = mul(clipSpaceTransform, REAL4(position, 1.0));
+    REAL2 positionNDC = positionCS.xy * (rcp(positionCS.w) * 0.5) + 0.5;
 #if UNITY_UV_STARTS_AT_TOP
     positionNDC.y = 1.0 - positionNDC.y;
 #endif
     return positionNDC;
 }
 
-float4 ComputeClipSpacePosition(float2 positionNDC, float deviceDepth)
+REAL4 ComputeClipSpacePosition(REAL2 positionNDC, REAL deviceDepth)
 {
 #if UNITY_UV_STARTS_AT_TOP
     positionNDC.y = 1.0 - positionNDC.y;
 #endif
-    return float4(positionNDC * 2.0 - 1.0, deviceDepth, 1.0);
+    return REAL4(positionNDC * 2.0 - 1.0, deviceDepth, 1.0);
 }
 
-float3 ComputeViewSpacePosition(float2 positionNDC, float deviceDepth, float4x4 invProjMatrix)
+REAL3 ComputeViewSpacePosition(REAL2 positionNDC, REAL deviceDepth, REAL4x4 invProjMatrix)
 {
-    float4 positionCS = ComputeClipSpacePosition(positionNDC, deviceDepth);
-    float4 positionVS = mul(invProjMatrix, positionCS);
+    REAL4 positionCS = ComputeClipSpacePosition(positionNDC, deviceDepth);
+    REAL4 positionVS = mul(invProjMatrix, positionCS);
     // The view space uses a right-handed coordinate system.
     positionVS.z = -positionVS.z;
     return positionVS.xyz / positionVS.w;
 }
 
-float3 ComputeWorldSpacePosition(float2 positionNDC, float deviceDepth, float4x4 invViewProjMatrix)
+REAL3 ComputeWorldSpacePosition(REAL2 positionNDC, REAL deviceDepth, REAL4x4 invViewProjMatrix)
 {
-    float4 positionCS  = ComputeClipSpacePosition(positionNDC, deviceDepth);
-    float4 hpositionWS = mul(invViewProjMatrix, positionCS);
+    REAL4 positionCS  = ComputeClipSpacePosition(positionNDC, deviceDepth);
+    REAL4 hpositionWS = mul(invViewProjMatrix, positionCS);
     return hpositionWS.xyz / hpositionWS.w;
 }
 
@@ -511,27 +528,27 @@ float3 ComputeWorldSpacePosition(float2 positionNDC, float deviceDepth, float4x4
 
 struct PositionInputs
 {
-    float3 positionWS;  // World space position (could be camera-relative)
-    float2 positionNDC; // Normalized screen UVs          : [0, 1) (with the half-pixel offset)
+    REAL3 positionWS;  // World space position (could be camera-relative)
+    REAL2 positionNDC; // Normalized screen UVs          : [0, 1) (with the REAL-pixel offset)
     uint2  positionSS;  // Screen space pixel coordinates : [0, NumPixels)
     uint2  tileCoord;   // Screen tile coordinates        : [0, NumTiles)
-    float  deviceDepth; // Depth from the depth buffer    : [0, 1] (typically reversed)
-    float  linearDepth; // View space Z coordinate        : [Near, Far]
+    REAL  deviceDepth; // Depth from the depth buffer    : [0, 1] (typically reversed)
+    REAL  linearDepth; // View space Z coordinate        : [Near, Far]
 };
 
 // This function is use to provide an easy way to sample into a screen texture, either from a pixel or a compute shaders.
 // This allow to easily share code.
 // If a compute shader call this function positionSS is an integer usually calculate like: uint2 positionSS = groupId.xy * BLOCK_SIZE + groupThreadId.xy
 // else it is current unormalized screen coordinate like return by SV_Position
-PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, uint2 tileCoord)   // Specify explicit tile coordinates so that we can easily make it lane invariant for compute evaluation.
+PositionInputs GetPositionInput(REAL2 positionSS, REAL2 invScreenSize, uint2 tileCoord)   // Specify explicit tile coordinates so that we can easily make it lane invariant for compute evaluation.
 {
     PositionInputs posInput;
     ZERO_INITIALIZE(PositionInputs, posInput);
 
     posInput.positionNDC = positionSS;
 #if SHADER_STAGE_COMPUTE
-    // In case of compute shader an extra half offset is added to the screenPos to shift the integer position to pixel center.
-    posInput.positionNDC.xy += float2(0.5, 0.5);
+    // In case of compute shader an extra REAL offset is added to the screenPos to shift the integer position to pixel center.
+    posInput.positionNDC.xy += REAL2(0.5, 0.5);
 #endif
     posInput.positionNDC *= invScreenSize;
 
@@ -541,14 +558,14 @@ PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, uint2 t
     return posInput;
 }
 
-PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize)
+PositionInputs GetPositionInput(REAL2 positionSS, REAL2 invScreenSize)
 {
     return GetPositionInput(positionSS, invScreenSize, uint2(0, 0));
 }
 
 // From forward
 // deviceDepth and linearDepth come directly from .zw of SV_Position
-void UpdatePositionInput(float deviceDepth, float linearDepth, float3 positionWS, inout PositionInputs posInput)
+void UpdatePositionInput(REAL deviceDepth, REAL linearDepth, REAL3 positionWS, inout PositionInputs posInput)
 {
     posInput.deviceDepth = deviceDepth;
     posInput.linearDepth = linearDepth;
@@ -558,22 +575,22 @@ void UpdatePositionInput(float deviceDepth, float linearDepth, float3 positionWS
 // From deferred or compute shader
 // depth must be the depth from the raw depth buffer. This allow to handle all kind of depth automatically with the inverse view projection matrix.
 // For information. In Unity Depth is always in range 0..1 (even on OpenGL) but can be reversed.
-void UpdatePositionInput(float deviceDepth, float4x4 invViewProjMatrix, float4x4 viewProjMatrix, inout PositionInputs posInput)
+void UpdatePositionInput(REAL deviceDepth, REAL4x4 invViewProjMatrix, REAL4x4 viewProjMatrix, inout PositionInputs posInput)
 {
     posInput.deviceDepth = deviceDepth;
     posInput.positionWS  = ComputeWorldSpacePosition(posInput.positionNDC, deviceDepth, invViewProjMatrix);
 
     // The compiler should optimize this (less expensive than reconstruct depth VS from depth buffer)
-    posInput.linearDepth = mul(viewProjMatrix, float4(posInput.positionWS, 1.0)).w;
+    posInput.linearDepth = mul(viewProjMatrix, REAL4(posInput.positionWS, 1.0)).w;
 }
 
 // The view direction 'V' points towards the camera.
 // 'depthOffsetVS' is always applied in the opposite direction (-V).
-void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float4x4 viewProjMatrix, inout PositionInputs posInput)
+void ApplyDepthOffsetPositionInput(REAL3 V, REAL depthOffsetVS, REAL4x4 viewProjMatrix, inout PositionInputs posInput)
 {
     posInput.positionWS += depthOffsetVS * (-V);
 
-    float4 positionCS    = mul(viewProjMatrix, float4(posInput.positionWS, 1.0));
+    REAL4 positionCS    = mul(viewProjMatrix, REAL4(posInput.positionWS, 1.0));
     posInput.linearDepth = positionCS.w;
     posInput.deviceDepth = positionCS.z / positionCS.w;
 }
@@ -583,34 +600,27 @@ void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float4x4 viewP
 // ----------------------------------------------------------------------------
 
 // Normalize that account for vectors with zero length
-float3 SafeNormalize(float3 inVec)
+REAL3 SafeNormalize(REAL3 inVec)
 {
-    float dp3 = max(FLT_MIN, dot(inVec, inVec));
-    return inVec * rsqrt(dp3);
-}
-
-// Normalize that account for vectors with zero length
-half3 SafeNormalize(half3 inVec)
-{
-    half dp3 = max(HALF_MIN, dot(inVec, inVec));
+    REAL dp3 = max(REAL_MIN, dot(inVec, inVec));
     return inVec * rsqrt(dp3);
 }
 
 // Generates a triangle in homogeneous clip space, s.t.
 // v0 = (-1, -1, 1), v1 = (3, -1, 1), v2 = (-1, 3, 1).
-float2 GetFullScreenTriangleTexCoord(uint vertexID)
+REAL2 GetFullScreenTriangleTexCoord(uint vertexID)
 {
 #if UNITY_UV_STARTS_AT_TOP
-    return float2((vertexID << 1) & 2, 1.0 - (vertexID & 2));
+    return REAL2((vertexID << 1) & 2, 1.0 - (vertexID & 2));
 #else
-    return float2((vertexID << 1) & 2, vertexID & 2);
+    return REAL2((vertexID << 1) & 2, vertexID & 2);
 #endif
 }
 
-float4 GetFullScreenTriangleVertexPosition(uint vertexID, float z = UNITY_NEAR_CLIP_VALUE)
+REAL4 GetFullScreenTriangleVertexPosition(uint vertexID, REAL z = UNITY_NEAR_CLIP_VALUE)
 {
-    float2 uv = float2((vertexID << 1) & 2, vertexID & 2);
-    return float4(uv * 2.0 - 1.0, z, 1.0);
+    REAL2 uv = REAL2((vertexID << 1) & 2, vertexID & 2);
+    return REAL4(uv * 2.0 - 1.0, z, 1.0);
 }
 
 #if !defined(SHADER_API_GLES)
@@ -618,11 +628,11 @@ float4 GetFullScreenTriangleVertexPosition(uint vertexID, float z = UNITY_NEAR_C
 // LOD dithering transition helper
 // LOD0 must use this function with ditherFactor 1..0
 // LOD1 must use this function with ditherFactor 0..1
-void LODDitheringTransition(uint2 positionSS, float ditherFactor)
+void LODDitheringTransition(uint2 positionSS, REAL ditherFactor)
 {
     // Generate a spatially varying pattern.
     // Unfortunately, varying the pattern with time confuses the TAA, increasing the amount of noise.
-    float p = GenerateHashedRandomFloat(positionSS);
+    REAL p = GenerateHashedRandomFloat(positionSS);
 
     // We want to have a symmetry between 0..0.5 ditherFactor and 0.5..1 so no pixels are transparent during the transition
     // this is handled by this test which reverse the pattern

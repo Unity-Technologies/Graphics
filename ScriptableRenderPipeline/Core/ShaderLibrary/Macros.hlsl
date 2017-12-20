@@ -35,7 +35,7 @@
 #define CENTIMETERS_PER_METER 100
 #define METERS_PER_CENTIMETER rcp(CENTIMETERS_PER_METER)
 
-#define FLT_EPS     5.960464478e-8  // 2^-24, machine epsilon: 1 + EPS = 1 (half of the ULP for 1)
+#define FLT_EPS     5.960464478e-8  // 2^-24, machine epsilon: 1 + EPS = 1 (REAL of the ULP for 1)
 #define FLT_MIN     1.175494351e-38 // Minimum representable positive floating-point number
 #define FLT_MAX     3.402823466e+38 // Maximum representable floating-point number
 #define HALF_MIN    6.103515625e-5  // 2^-14, the same value for 10, 11 and 16-bit: https://www.khronos.org/opengl/wiki/Small_Float_Formats
@@ -43,10 +43,10 @@
 #define UINT_MAX    0xFFFFFFFFu
 
 #define TEMPLATE_1_FLT(FunctionName, Parameter1, FunctionBody) \
-float  FunctionName(float  Parameter1) { FunctionBody; } \
-float2 FunctionName(float2 Parameter1) { FunctionBody; } \
-float3 FunctionName(float3 Parameter1) { FunctionBody; } \
-float4 FunctionName(float4 Parameter1) { FunctionBody; }
+REAL  FunctionName(REAL  Parameter1) { FunctionBody; } \
+REAL2 FunctionName(REAL2 Parameter1) { FunctionBody; } \
+REAL3 FunctionName(REAL3 Parameter1) { FunctionBody; } \
+REAL4 FunctionName(REAL4 Parameter1) { FunctionBody; }
 
 #ifdef SHADER_API_GLES
     #define TEMPLATE_1_INT(FunctionName, Parameter1, FunctionBody) \
@@ -67,10 +67,10 @@ float4 FunctionName(float4 Parameter1) { FunctionBody; }
 #endif
 
 #define TEMPLATE_2_FLT(FunctionName, Parameter1, Parameter2, FunctionBody) \
-float  FunctionName(float  Parameter1, float  Parameter2) { FunctionBody; } \
-float2 FunctionName(float2 Parameter1, float2 Parameter2) { FunctionBody; } \
-float3 FunctionName(float3 Parameter1, float3 Parameter2) { FunctionBody; } \
-float4 FunctionName(float4 Parameter1, float4 Parameter2) { FunctionBody; }
+REAL  FunctionName(REAL  Parameter1, REAL  Parameter2) { FunctionBody; } \
+REAL2 FunctionName(REAL2 Parameter1, REAL2 Parameter2) { FunctionBody; } \
+REAL3 FunctionName(REAL3 Parameter1, REAL3 Parameter2) { FunctionBody; } \
+REAL4 FunctionName(REAL4 Parameter1, REAL4 Parameter2) { FunctionBody; }
 
 
 #ifdef SHADER_API_GLES
@@ -92,10 +92,10 @@ float4 FunctionName(float4 Parameter1, float4 Parameter2) { FunctionBody; }
 #endif
 
 #define TEMPLATE_3_FLT(FunctionName, Parameter1, Parameter2, Parameter3, FunctionBody) \
-float  FunctionName(float  Parameter1, float  Parameter2, float  Parameter3) { FunctionBody; } \
-float2 FunctionName(float2 Parameter1, float2 Parameter2, float2 Parameter3) { FunctionBody; } \
-float3 FunctionName(float3 Parameter1, float3 Parameter2, float3 Parameter3) { FunctionBody; } \
-float4 FunctionName(float4 Parameter1, float4 Parameter2, float4 Parameter3) { FunctionBody; }
+REAL  FunctionName(REAL  Parameter1, REAL  Parameter2, REAL  Parameter3) { FunctionBody; } \
+REAL2 FunctionName(REAL2 Parameter1, REAL2 Parameter2, REAL2 Parameter3) { FunctionBody; } \
+REAL3 FunctionName(REAL3 Parameter1, REAL3 Parameter2, REAL3 Parameter3) { FunctionBody; } \
+REAL4 FunctionName(REAL4 Parameter1, REAL4 Parameter2, REAL4 Parameter3) { FunctionBody; }
 
 #ifdef SHADER_API_GLES
     #define TEMPLATE_3_INT(FunctionName, Parameter1, Parameter2, Parameter3, FunctionBody) \
@@ -117,10 +117,10 @@ float4 FunctionName(float4 Parameter1, float4 Parameter2, float4 Parameter3) { F
 
 #ifdef SHADER_API_GLES
     #define TEMPLATE_SWAP(FunctionName) \
-    void FunctionName(inout float  a, inout float  b) { float  t = a; a = b; b = t; } \
-    void FunctionName(inout float2 a, inout float2 b) { float2 t = a; a = b; b = t; } \
-    void FunctionName(inout float3 a, inout float3 b) { float3 t = a; a = b; b = t; } \
-    void FunctionName(inout float4 a, inout float4 b) { float4 t = a; a = b; b = t; } \
+    void FunctionName(inout REAL  a, inout REAL  b) { REAL  t = a; a = b; b = t; } \
+    void FunctionName(inout REAL2 a, inout REAL2 b) { REAL2 t = a; a = b; b = t; } \
+    void FunctionName(inout REAL3 a, inout REAL3 b) { REAL3 t = a; a = b; b = t; } \
+    void FunctionName(inout REAL4 a, inout REAL4 b) { REAL4 t = a; a = b; b = t; } \
     void FunctionName(inout int    a, inout int    b) { int    t = a; a = b; b = t; } \
     void FunctionName(inout int2   a, inout int2   b) { int2   t = a; a = b; b = t; } \
     void FunctionName(inout int3   a, inout int3   b) { int3   t = a; a = b; b = t; } \
@@ -131,10 +131,10 @@ float4 FunctionName(float4 Parameter1, float4 Parameter2, float4 Parameter3) { F
     void FunctionName(inout bool4  a, inout bool4  b) { bool4  t = a; a = b; b = t; }
 #else
     #define TEMPLATE_SWAP(FunctionName) \
-    void FunctionName(inout float  a, inout float  b) { float  t = a; a = b; b = t; } \
-    void FunctionName(inout float2 a, inout float2 b) { float2 t = a; a = b; b = t; } \
-    void FunctionName(inout float3 a, inout float3 b) { float3 t = a; a = b; b = t; } \
-    void FunctionName(inout float4 a, inout float4 b) { float4 t = a; a = b; b = t; } \
+    void FunctionName(inout REAL  a, inout REAL  b) { REAL  t = a; a = b; b = t; } \
+    void FunctionName(inout REAL2 a, inout REAL2 b) { REAL2 t = a; a = b; b = t; } \
+    void FunctionName(inout REAL3 a, inout REAL3 b) { REAL3 t = a; a = b; b = t; } \
+    void FunctionName(inout REAL4 a, inout REAL4 b) { REAL4 t = a; a = b; b = t; } \
     void FunctionName(inout int    a, inout int    b) { int    t = a; a = b; b = t; } \
     void FunctionName(inout int2   a, inout int2   b) { int2   t = a; a = b; b = t; } \
     void FunctionName(inout int3   a, inout int3   b) { int3   t = a; a = b; b = t; } \

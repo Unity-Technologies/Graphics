@@ -4,20 +4,20 @@
 #if SHADOW_SUPPORTS_DYNAMIC_INDEXING != 0
 
 // Shader model >= 5.1
-#	define SHADOW_DEFINE_SAMPLING_FUNC_T2DA_COMP( _Tex2DArraySlots  , _SamplerCompSlots )	float4 SampleCompShadow_T2DA( ShadowContext ctxt, uint texIdx, uint sampIdx, float3 tcs, float slice					)	{ return SAMPLE_TEXTURE2D_ARRAY_SHADOW( ctxt.tex2DArray[texIdx], ctxt.compSamplers[sampIdx], tcs, slice );		}
-#	define SHADOW_DEFINE_SAMPLING_FUNC_T2DA_SAMP( _Tex2DArraySlots  , _SamplerSlots )		float4 SampleShadow_T2DA(	  ShadowContext ctxt, uint texIdx, uint sampIdx, float2 tcs, float slice, float lod = 0.0	)	{ return SAMPLE_TEXTURE2D_ARRAY_LOD( ctxt.tex2DArray[texIdx], ctxt.samplers[sampIdx], tcs, slice, lod );		}
-#   define SHADOW_DEFINE_SAMPLING_FUNC_T2DA_LOAD( _Tex2DArraySlots  )	                    float4 LoadShadow_T2DA(	      ShadowContext ctxt, uint texIdx,               uint2  tcs, uint  slice, uint lod = 0	    )   { return LOAD_TEXTURE2D_ARRAY_LOD( ctxt.tex2DArray[texIdx], tcs, slice, lod ).x;                                }
-#	define SHADOW_DEFINE_SAMPLING_FUNC_TCA_COMP(  _TexCubeArraySlots, _SamplerCompSlots )	float4 SampleCompShadow_TCA(  ShadowContext ctxt, uint texIdx, uint sampIdx, float4 tcs, float cubeIdx					)	{ return SAMPLE_TEXTURECUBE_ARRAY_SHADOW( ctxt.texCubeArray[texIdx], ctxt.compSamplers[sampIdx], tcs, cubeIdx );}
-#	define SHADOW_DEFINE_SAMPLING_FUNC_TCA_SAMP(  _TexCubeArraySlots, _SamplerSlots )		float4 SampleShadow_TCA(	  ShadowContext ctxt, uint texIdx, uint sampIdx, float3 tcs, float cubeIdx, float lod = 0.0 )	{ return SAMPLE_TEXTURECUBE_ARRAY_LOD( ctxt.texCubeArray[texIdx], ctxt.samplers[sampIdx], tcs, cubeIdx, lod );	}
+#	define SHADOW_DEFINE_SAMPLING_FUNC_T2DA_COMP( _Tex2DArraySlots  , _SamplerCompSlots )	REAL4 SampleCompShadow_T2DA( ShadowContext ctxt, uint texIdx, uint sampIdx, REAL3 tcs, REAL slice					)	{ return SAMPLE_TEXTURE2D_ARRAY_SHADOW( ctxt.tex2DArray[texIdx], ctxt.compSamplers[sampIdx], tcs, slice );		}
+#	define SHADOW_DEFINE_SAMPLING_FUNC_T2DA_SAMP( _Tex2DArraySlots  , _SamplerSlots )		REAL4 SampleShadow_T2DA(	  ShadowContext ctxt, uint texIdx, uint sampIdx, REAL2 tcs, REAL slice, REAL lod = 0.0	)	{ return SAMPLE_TEXTURE2D_ARRAY_LOD( ctxt.tex2DArray[texIdx], ctxt.samplers[sampIdx], tcs, slice, lod );		}
+#   define SHADOW_DEFINE_SAMPLING_FUNC_T2DA_LOAD( _Tex2DArraySlots  )	                    REAL4 LoadShadow_T2DA(	      ShadowContext ctxt, uint texIdx,               uint2  tcs, uint  slice, uint lod = 0	    )   { return LOAD_TEXTURE2D_ARRAY_LOD( ctxt.tex2DArray[texIdx], tcs, slice, lod ).x;                                }
+#	define SHADOW_DEFINE_SAMPLING_FUNC_TCA_COMP(  _TexCubeArraySlots, _SamplerCompSlots )	REAL4 SampleCompShadow_TCA(  ShadowContext ctxt, uint texIdx, uint sampIdx, REAL4 tcs, REAL cubeIdx					)	{ return SAMPLE_TEXTURECUBE_ARRAY_SHADOW( ctxt.texCubeArray[texIdx], ctxt.compSamplers[sampIdx], tcs, cubeIdx );}
+#	define SHADOW_DEFINE_SAMPLING_FUNC_TCA_SAMP(  _TexCubeArraySlots, _SamplerSlots )		REAL4 SampleShadow_TCA(	  ShadowContext ctxt, uint texIdx, uint sampIdx, REAL3 tcs, REAL cubeIdx, REAL lod = 0.0 )	{ return SAMPLE_TEXTURECUBE_ARRAY_LOD( ctxt.texCubeArray[texIdx], ctxt.samplers[sampIdx], tcs, cubeIdx, lod );	}
 
 #else // helper macros if dynamic indexing does not work
 
 // Sampler and texture combinations are static. No shadowmap will ever be sampled with two different samplers.
 // Once shadowmaps and samplers are fixed consider writing custom dispatchers directly accessing textures and samplers.
 #	define SHADOW_DEFINE_SAMPLING_FUNC_T2DA_COMP( _Tex2DArraySlots, _SamplerCompSlots )											\
-		float4 SampleCompShadow_T2DA( ShadowContext ctxt, uint texIdx, uint sampIdx, float3 tcs, float slice )					\
+		REAL4 SampleCompShadow_T2DA( ShadowContext ctxt, uint texIdx, uint sampIdx, REAL3 tcs, REAL slice )					\
 		{																														\
-			float4 res = 1.0.xxxx;																								\
+			REAL4 res = 1.0.xxxx;																								\
 			[unroll] for( uint i = 0; i < _Tex2DArraySlots; i++ )																\
 			{																													\
 				[unroll] for( uint j = 0; j < _SamplerCompSlots; j++ )															\
@@ -33,9 +33,9 @@
 		}
 
 #	define SHADOW_DEFINE_SAMPLING_FUNC_T2DA_SAMP( _Tex2DArraySlots, _SamplerSlots )												\
-		float4 SampleShadow_T2DA( ShadowContext ctxt, uint texIdx, uint sampIdx, float2 tcs, float slice, float lod = 0.0 )		\
+		REAL4 SampleShadow_T2DA( ShadowContext ctxt, uint texIdx, uint sampIdx, REAL2 tcs, REAL slice, REAL lod = 0.0 )		\
 		{																														\
-			float4 res = 1.0.xxxx;																								\
+			REAL4 res = 1.0.xxxx;																								\
 			[unroll] for( uint i = 0; i < _Tex2DArraySlots; i++ )																\
 			{																													\
 				[unroll] for( uint j = 0; j < _SamplerSlots; j++ )																\
@@ -51,9 +51,9 @@
 		}
 
 #	define SHADOW_DEFINE_SAMPLING_FUNC_T2DA_LOAD( _Tex2DArraySlots )												            \
-		float LoadShadow_T2DA( ShadowContext ctxt, uint texIdx, uint2 tcs, uint slice, uint lod = 0 )		                    \
+		REAL LoadShadow_T2DA( ShadowContext ctxt, uint texIdx, uint2 tcs, uint slice, uint lod = 0 )		                    \
 		{																														\
-			float res = 1.0;																								    \
+			REAL res = 1.0;																								    \
 			[unroll] for( uint i = 0; i < _Tex2DArraySlots; i++ )																\
 			{																													\
 				[branch] if( i == texIdx )																	                    \
@@ -67,9 +67,9 @@
 
 
 #	define SHADOW_DEFINE_SAMPLING_FUNC_TCA_COMP( _TexCubeArraySlots, _SamplerCompSlots )										\
-		float4 SampleCompShadow_TCA( ShadowContext ctxt, uint texIdx, uint sampIdx, float4 tcs, float cubeIdx )					\
+		REAL4 SampleCompShadow_TCA( ShadowContext ctxt, uint texIdx, uint sampIdx, REAL4 tcs, REAL cubeIdx )					\
 		{																														\
-			float4 res = 1.0.xxxx;																								\
+			REAL4 res = 1.0.xxxx;																								\
 			[unroll] for( uint i = 0; i < _TexCubeArraySlots; i++ )																\
 			{																													\
 				[unroll] for( uint j = 0; j < _SamplerCompSlots; j++ )															\
@@ -85,9 +85,9 @@
 		}
 
 #	define SHADOW_DEFINE_SAMPLING_FUNC_TCA_SAMP( _TexCubeArraySlots, _SamplerSlots )											\
-		float4 SampleShadow_TCA( ShadowContext ctxt, uint texIdx, uint sampIdx, float3 tcs, float cubeIdx, float lod = 0.0 )	\
+		REAL4 SampleShadow_TCA( ShadowContext ctxt, uint texIdx, uint sampIdx, REAL3 tcs, REAL cubeIdx, REAL lod = 0.0 )	\
 		{																														\
-			float4 res = 1.0.xxxx;																								\
+			REAL4 res = 1.0.xxxx;																								\
 			[unroll] for( uint i = 0; i < _TexCubeArraySlots; i++ )																\
 			{																													\
 				[unroll] for( uint j = 0; j < _SamplerSlots; j++ )																\
@@ -104,11 +104,11 @@
 #endif // SHADOW_SUPPORTS_DYNAMIC_INDEXING != 0
 
 // helper macro to suppress code generation if _cnt is 0
-#define SHADOW_DECLARE_SAMPLING_FUNC_T2DA_COMP( _Tex2DArraySlots  , _SamplerCompSlots )	float4 SampleCompShadow_T2DA( ShadowContext ctxt, uint texIdx, uint sampIdx, float3 tcs, float slice					);
-#define SHADOW_DECLARE_SAMPLING_FUNC_T2DA_SAMP( _Tex2DArraySlots  , _SamplerSlots )		float4 SampleShadow_T2DA(	  ShadowContext ctxt, uint texIdx, uint sampIdx, float2 tcs, float slice, float lod = 0.0	);
-#define SHADOW_DECLARE_SAMPLING_FUNC_T2DA_LOAD( _Tex2DArraySlots  )	                    float4 LoadShadow_T2DA(	      ShadowContext ctxt, uint texIdx,               uint2  tcs, uint  slice, uint lod = 0	    );
-#define SHADOW_DECLARE_SAMPLING_FUNC_TCA_COMP(  _TexCubeArraySlots, _SamplerCompSlots )	float4 SampleCompShadow_TCA(  ShadowContext ctxt, uint texIdx, uint sampIdx, float4 tcs, float cubeIdx					);
-#define SHADOW_DECLARE_SAMPLING_FUNC_TCA_SAMP(  _TexCubeArraySlots, _SamplerSlots )		float4 SampleShadow_TCA(	  ShadowContext ctxt, uint texIdx, uint sampIdx, float3 tcs, float cubeIdx, float lod = 0.0 );
+#define SHADOW_DECLARE_SAMPLING_FUNC_T2DA_COMP( _Tex2DArraySlots  , _SamplerCompSlots )	REAL4 SampleCompShadow_T2DA( ShadowContext ctxt, uint texIdx, uint sampIdx, REAL3 tcs, REAL slice					);
+#define SHADOW_DECLARE_SAMPLING_FUNC_T2DA_SAMP( _Tex2DArraySlots  , _SamplerSlots )		REAL4 SampleShadow_T2DA(	  ShadowContext ctxt, uint texIdx, uint sampIdx, REAL2 tcs, REAL slice, REAL lod = 0.0	);
+#define SHADOW_DECLARE_SAMPLING_FUNC_T2DA_LOAD( _Tex2DArraySlots  )	                    REAL4 LoadShadow_T2DA(	      ShadowContext ctxt, uint texIdx,               uint2  tcs, uint  slice, uint lod = 0	    );
+#define SHADOW_DECLARE_SAMPLING_FUNC_TCA_COMP(  _TexCubeArraySlots, _SamplerCompSlots )	REAL4 SampleCompShadow_TCA(  ShadowContext ctxt, uint texIdx, uint sampIdx, REAL4 tcs, REAL cubeIdx					);
+#define SHADOW_DECLARE_SAMPLING_FUNC_TCA_SAMP(  _TexCubeArraySlots, _SamplerSlots )		REAL4 SampleShadow_TCA(	  ShadowContext ctxt, uint texIdx, uint sampIdx, REAL3 tcs, REAL cubeIdx, REAL lod = 0.0 );
 
 #define SHADOW_CAT( _left, _right ) _left ## _right
 
