@@ -5,13 +5,13 @@
 #define UNITY_UV_STARTS_AT_TOP 0
 #define UNITY_REVERSED_Z 0
 #define UNITY_GATHER_SUPPORTED 0
-#define UNITY_NEAR_CLIP_VALUE (-1.0)
+#define UNITY_NEAR_CLIP_VALUE (REAL(-1.0))
 
 // This value will not go through any matrix projection convertion
-#define UNITY_RAW_FAR_CLIP_VALUE (1.0)
+#define UNITY_RAW_FAR_CLIP_VALUE (REAL(1.0))
 #define FRONT_FACE_SEMANTIC VFACE
-#define FRONT_FACE_TYPE float
-#define IS_FRONT_VFACE(VAL, FRONT, BACK) ((VAL > 0.0) ? (FRONT) : (BACK))
+#define FRONT_FACE_TYPE REAL
+#define IS_FRONT_VFACE(VAL, FRONT, BACK) ((VAL > REAL(0.0)) ? (FRONT) : (BACK))
 
 #define CBUFFER_START(name)
 #define CBUFFER_END
@@ -91,39 +91,39 @@
 #define SAMPLE_TEXTURE2D(textureName, samplerName, coord2) tex2D(textureName, coord2)
 
 #if (SHADER_TARGET >= 30)
-    #define SAMPLE_TEXTURE2D_LOD(textureName, samplerName, coord2, lod) tex2Dlod(textureName, float4(coord2, 0, lod))
+    #define SAMPLE_TEXTURE2D_LOD(textureName, samplerName, coord2, lod) tex2Dlod(textureName, REAL4(coord2, 0, lod))
 #else
     // No lod support. Very poor approximation with bias.
     #define SAMPLE_TEXTURE2D_LOD(textureName, samplerName, coord2, lod) SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, coord2, lod)
 #endif
 
-#define SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, coord2, bias) tex2Dbias(textureName, float4(coord2, 0, bias))
+#define SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, coord2, bias) tex2Dbias(textureName, REAL4(coord2, 0, bias))
 #define SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, coord2, ddx, ddy) SAMPLE_TEXTURE2D(textureName, coord2)
-#define SAMPLE_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index) SAMPLE_TEXTURECUBE(textureName, samplerName, float3(coord2, index))
-#define SAMPLE_TEXTURE2D_ARRAY_LOD(textureName, samplerName, coord2, index, lod) SAMPLE_TEXTURECUBE_LOD(textureName, samplerName, float3(coord2, index), lod)
-#define SAMPLE_TEXTURE2D_ARRAY_BIAS(textureName, samplerName, coord2, index, bias) SAMPLE_TEXTURECUBE_BIAS(textureName, samplerName, float3(coord2, index), bias)
+#define SAMPLE_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index) SAMPLE_TEXTURECUBE(textureName, samplerName, REAL3(coord2, index))
+#define SAMPLE_TEXTURE2D_ARRAY_LOD(textureName, samplerName, coord2, index, lod) SAMPLE_TEXTURECUBE_LOD(textureName, samplerName, REAL3(coord2, index), lod)
+#define SAMPLE_TEXTURE2D_ARRAY_BIAS(textureName, samplerName, coord2, index, bias) SAMPLE_TEXTURECUBE_BIAS(textureName, samplerName, REAL3(coord2, index), bias)
 #define SAMPLE_TEXTURECUBE(textureName, samplerName, coord3) texCUBE(textureName, coord3)
 // No lod support. Very poor approximation with bias.
 #define SAMPLE_TEXTURECUBE_LOD(textureName, samplerName, coord3, lod) SAMPLE_TEXTURECUBE_BIAS(textureName, samplerName, coord3, lod)
-#define SAMPLE_TEXTURECUBE_BIAS(textureName, samplerName, coord3, bias) texCUBEbias(textureName, float4(coord3, bias))
+#define SAMPLE_TEXTURECUBE_BIAS(textureName, samplerName, coord3, bias) texCUBEbias(textureName, REAL4(coord3, bias))
 #define SAMPLE_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index) SAMPLE_TEXTURECUBE(textureName, samplerName, coord3)
 #define SAMPLE_TEXTURECUBE_ARRAY_LOD(textureName, samplerName, coord3, index, lod) SAMPLE_TEXTURECUBE_LOD(textureName, samplerName, coord3, lod)
 #define SAMPLE_TEXTURECUBE_ARRAY_BIAS(textureName, samplerName, coord3, index, bias) SAMPLE_TEXTURECUBE_BIAS(textureName, samplerName, coord3, bias)
 #define SAMPLE_TEXTURE3D(textureName, samplerName, coord3) tex3D(textureName, coord3)
 
 #define SAMPLE_TEXTURE2D_SHADOW(textureName, samplerName, coord3) SHADOW2D_SAMPLE(textureName, samplerName, coord3)
-#define SAMPLE_TEXTURE2D_ARRAY_SHADOW(textureName, samplerName, coord3, index) SAMPLE_TEXTURECUBE_SHADOW(textureName, samplerName, float4(coord3.xy, index, coord3.w))
+#define SAMPLE_TEXTURE2D_ARRAY_SHADOW(textureName, samplerName, coord3, index) SAMPLE_TEXTURECUBE_SHADOW(textureName, samplerName, REAL4(coord3.xy, index, coord3.w))
 #define SAMPLE_TEXTURECUBE_SHADOW(textureName, samplerName, coord4) SHADOWCUBE_SAMPLE(textureName, samplerName, coord4)
 #define SAMPLE_TEXTURECUBE_ARRAY_SHADOW(textureName, samplerName, coord4, index) SAMPLE_TEXTURECUBE_SHADOW(textureName, samplerName, coord4)
 
 #define SAMPLE_DEPTH_TEXTURE(textureName, samplerName, coord2) SAMPLE_TEXTURE2D(textureName, samplerName, coord2).r
 #define SAMPLE_DEPTH_TEXTURE_LOD(textureName, samplerName, coord2, lod) SAMPLE_TEXTURE2D_LOD(textureName, samplerName, coord2, lod).r
 
-#define LOAD_TEXTURE2D(textureName, unCoord2)                       half4(0, 0, 0, 0) // Not supported
-#define LOAD_TEXTURE2D_LOD(textureName, unCoord2, lod)              half4(0, 0, 0, 0) // Not supported
-#define LOAD_TEXTURE2D_MSAA(textureName, unCoord2, sampleIndex)     half4(0, 0, 0, 0) // Not supported
-#define LOAD_TEXTURE2D_ARRAY(textureName, unCoord2, index)          half4(0, 0, 0, 0) // Not supported
-#define LOAD_TEXTURE2D_ARRAY_LOD(textureName, unCoord2, index, lod) half4(0, 0, 0, 0) // Not supported
+#define LOAD_TEXTURE2D(textureName, unCoord2)                       REAL4(0, 0, 0, 0) // Not supported
+#define LOAD_TEXTURE2D_LOD(textureName, unCoord2, lod)              REAL4(0, 0, 0, 0) // Not supported
+#define LOAD_TEXTURE2D_MSAA(textureName, unCoord2, sampleIndex)     REAL4(0, 0, 0, 0) // Not supported
+#define LOAD_TEXTURE2D_ARRAY(textureName, unCoord2, index)          REAL4(0, 0, 0, 0) // Not supported
+#define LOAD_TEXTURE2D_ARRAY_LOD(textureName, unCoord2, index, lod) REAL4(0, 0, 0, 0) // Not supported
 
 // Gather not supported. Fallback to regular texture sampling.
 #define GATHER_TEXTURE2D(textureName, samplerName, coord2)                  SAMPLE_TEXTURE2D(textureName, samplerName, coord2).rrrr

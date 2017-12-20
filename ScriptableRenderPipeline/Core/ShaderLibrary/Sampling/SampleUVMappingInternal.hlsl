@@ -4,12 +4,12 @@
 // Also we use multiple inclusion to handle the various variation for lod and bias
 
 // param can be unused, lod or bias
-float4 ADD_FUNC_SUFFIX(SampleUVMapping)(TEXTURE2D_ARGS(textureName, samplerName), UVMapping uvMapping, float param)
+REAL4 ADD_FUNC_SUFFIX(SampleUVMapping)(TEXTURE2D_ARGS(textureName, samplerName), UVMapping uvMapping, REAL param)
 {
     if (uvMapping.mappingType == UV_MAPPING_TRIPLANAR)
     {
-        float3 triplanarWeights = uvMapping.triplanarWeights;
-        float4 val = float4(0.0, 0.0, 0.0, 0.0);
+        REAL3 triplanarWeights = uvMapping.triplanarWeights;
+        REAL4 val = REAL4(0.0, 0.0, 0.0, 0.0);
 
         if (triplanarWeights.x > 0.0)
             val += triplanarWeights.x * SAMPLE_TEXTURE_FUNC(textureName, samplerName, uvMapping.uvZY, param);
