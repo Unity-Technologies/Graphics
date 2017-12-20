@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -205,6 +205,49 @@ namespace UnityEditor.Experimental.Rendering
             }
 
             return group.isExpanded;
+        }
+
+        static readonly GUIContent[] k_DrawVector6Slider_Labels =
+        {
+            new GUIContent("+X"),
+            new GUIContent("+Y"),
+            new GUIContent("+Z"),
+            new GUIContent("-X"),
+            new GUIContent("-Y"),
+            new GUIContent("-Z"),
+        };
+        public static void DrawVector6Slider(GUIContent label, SerializedProperty positive, SerializedProperty negative, Vector3 min, Vector3 max)
+        {
+            GUILayout.BeginVertical();
+            negative.isExpanded = EditorGUILayout.Foldout(negative.isExpanded, label, true);
+            if (negative.isExpanded)
+            {
+                var labelWidth = EditorGUIUtility.labelWidth;
+                EditorGUIUtility.labelWidth = 60;
+
+                ++EditorGUI.indentLevel;
+                GUILayout.BeginHorizontal();
+                var v = positive.vector3Value;
+                EditorGUI.BeginChangeCheck();
+                for (var i = 0; i < 3; ++i)
+                    v[i] = EditorGUILayout.Slider(k_DrawVector6Slider_Labels[i], v[i], min[i], max[i]);
+                if (EditorGUI.EndChangeCheck())
+                    positive.vector3Value = v;
+                GUILayout.EndHorizontal();
+
+                GUILayout.BeginHorizontal();
+                v = negative.vector3Value;
+                EditorGUI.BeginChangeCheck();
+                for (var i = 0; i < 3; ++i)
+                    v[i] = EditorGUILayout.Slider(k_DrawVector6Slider_Labels[i + 3], v[i], min[i], max[i]);
+                if (EditorGUI.EndChangeCheck())
+                    negative.vector3Value = v;
+                GUILayout.EndHorizontal();
+                --EditorGUI.indentLevel;
+
+                EditorGUIUtility.labelWidth = labelWidth;
+            }
+            GUILayout.EndVertical();
         }
 
         public static void RemoveMaterialKeywords(Material material)

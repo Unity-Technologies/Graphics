@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -120,17 +120,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int envIndex;
 
         public Vector3 up;
-        public float blendDistance;     // blend transition outside the volume
+        public float dimmer;
 
         public Vector3 right;
         // User can chose if they use This is use in case we want to force infinite projection distance (i.e no projection);
         public float minProjectionDistance;
 
-        public Vector3 innerDistance;   // equivalent to volume scale
-        public float blendNormalDistance;
+        public Vector3 innerDistance;   // extents of the env light
+        public float unused0;
 
         public Vector3 offsetLS;
-        public float dimmer;
+        public float unused1;
+
+        public Vector3 blendDistance; //+X,+Y,+Z
+        public float unused2;
+        public Vector3 blendDistance2; //-X,-Y,-Z
+        public float unused3;
+
+        public Vector3 blendNormalDistance; //+X,+Y,+Z
+        public float unused4;
+        public Vector3 blendNormalDistance2; //-X,-Y,-Z
+        public float unused5;
     };
 
     // Usage of StencilBits.Lighting on 2 bits.

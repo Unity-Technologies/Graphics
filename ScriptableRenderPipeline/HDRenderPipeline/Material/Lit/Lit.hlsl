@@ -1617,7 +1617,8 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     {
         // 1. First process the projection
         float3 dirLS = mul(R, worldToLocal);
-        float sphereOuterDistance = lightData.innerDistance.x + lightData.blendDistance;
+        float sphereOuterDistance = lightData.innerDistance.x;
+        float sphereInnerDistance = sphereOuterDistance - lightData.blendDistance.x;
         float dist = SphereRayIntersectSimple(positionLS, dirLS, sphereOuterDistance);
         dist = max(dist, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.positionWS
@@ -1632,13 +1633,13 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         }
 
         // 2. Process the influence
-        float distFade = max(length(positionLS) - lightData.innerDistance.x, 0.0);
-        weight = saturate(1.0 - distFade / max(lightData.blendDistance, 0.0001)); // avoid divide by zero
+        float distFade = max(length(positionLS) - sphereInnerDistance, 0.0);
+        weight = saturate(1.0 - distFade / max(lightData.blendDistance.x, 0.0001)); // avoid divide by zero
     }
     else if (envShapeType == ENVSHAPETYPE_BOX)
     {
         float3 dirLS = mul(R, worldToLocal);
-        float3 boxOuterDistance = lightData.innerDistance + float3(lightData.blendDistance, lightData.blendDistance, lightData.blendDistance);
+        float3 boxOuterDistance = lightData.innerDistance;
         float dist = BoxRayIntersectSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
         dist = max(dist, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
         // No need to normalize for fetching cubemap
@@ -1657,13 +1658,14 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
         // Influence volume
         // Calculate falloff value, so reflections on the edges of the volume would gradually blend to previous reflection.
-        float distFade = DistancePointBox(positionLS, -lightData.innerDistance, lightData.innerDistance);
-        float alpha = saturate(1.0 - distFade / max(lightData.blendDistance, 0.0001)); // avoid divide by zero
+        
+        float distFade = DistancePointBox(positionLS, -lightData.innerDistance - lightData.blendDistance2, lightData.innerDistance + lightData.blendDistance);
+        float alpha = saturate(1.0 - distFade / max(lightData.blendDistance.x, 0.0001)); // avoid divide by zero
 
         // Influence Normal volume
-        float3 insideBox = saturate(abs(positionLS) - lightData.innerDistance + float3(lightData.blendNormalDistance, lightData.blendNormalDistance, lightData.blendNormalDistance));
-        float insideWeight = influenceFadeNormalWeight(bsdfData.normalWS, normalize(positionWS - lightData.positionWS));
-        alpha *= any(insideBox > 0.0) ? insideWeight : 1.0;
+        //float3 insideBox = saturate(abs(positionLS) - lightData.innerDistance + float3(lightData.blendNormalDistance, lightData.blendNormalDistance, lightData.blendNormalDistance));
+        //float insideWeight = influenceFadeNormalWeight(bsdfData.normalWS, normalize(positionWS - lightData.positionWS));
+        //alpha *= any(insideBox > 0.0) ? insideWeight : 1.0;
 
         //float3 rn = normalize(R);
         //float3 faceFade = saturate(float3(6.0, 6.0, 6.0) * rn - float3(2.0, 2.0, 2.0));
