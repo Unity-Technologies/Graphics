@@ -361,23 +361,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        public static List<KeyValuePair<VFXContext, VFXContext>> BuildAssociativeContext(VFXModel[] fromArray, VFXModel[] toArray)
-        {
-            var associativeContext = new List<KeyValuePair<VFXContext, VFXContext>>();
-            for (int i = 0; i < fromArray.Length; ++i)
-            {
-                var from = fromArray[i] as VFXContext;
-                var to = toArray[i] as VFXContext;
-                if (from != null)
-                {
-                    if (to == null)
-                        throw new NullReferenceException("BuildAssociativeContext : Inconsistent hierarchy");
-                    associativeContext.Add(new KeyValuePair<VFXContext, VFXContext>(from, to));
-                }
-            }
-            return associativeContext;
-        }
-
         // Not serialized nor exposed
         private VFXContextType m_ContextType;
         private VFXDataType m_InputType;

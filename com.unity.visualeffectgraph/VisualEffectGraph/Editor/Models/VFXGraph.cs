@@ -128,8 +128,6 @@ namespace UnityEditor.VFX
             {
                 model.OnUnknownChange();
             }
-
-            //m_CompiledData = new Co
         }
 
         public override void CollectDependencies(HashSet<ScriptableObject> objs)
