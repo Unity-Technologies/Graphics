@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
@@ -239,11 +240,18 @@ namespace UnityEditor.ShaderGraph.Drawing
                         m_UberShaderString = m_Graph.GetUberPreviewShader(m_UberShaderIds, out m_OutputIdProperty);
                         ShaderUtil.UpdateShaderAsset(m_UberShader, m_UberShaderString);
                         File.WriteAllText(Application.dataPath + "/../UberShader.shader", (m_UberShaderString ?? "null").Replace("UnityEngine.MaterialGraph", "Generated"));
-                        var message = "RecreateUberShader: " + Environment.NewLine + m_UberShaderString;
                         bool uberShaderHasError = false;
                         if (MaterialGraphAsset.ShaderHasError(m_UberShader))
                         {
-                            Debug.LogWarning(message);
+                            var errors = MaterialGraphAsset.GetShaderErrors(m_UberShader);
+                            var message = new ShaderStringBuilder();
+                            message.AppendLine("Uber shader has {0} error{1}:", errors.Length, errors.Length != 1 ? "s" : "");
+                            foreach (var error in errors)
+                            {
+                                message.AppendLine("{0} at line {1} (on {2})", error.message, error.line, error.platform);
+                                message.AppendLine(error.messageDetails);
+                            }
+                            Debug.LogWarning(message.ToString());
                             ShaderUtil.ClearShaderErrors(m_UberShader);
                             ShaderUtil.UpdateShaderAsset(m_UberShader, k_EmptyShader);
                             uberShaderHasError = true;
