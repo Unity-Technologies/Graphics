@@ -98,49 +98,71 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Handle_InfluenceBoxEditing(UIState s, SerializedReflectionProbe sp, Editor o)
         {
-            Handle_InfluenceBoxEditing_Internal(s, sp, o, s.boxBlendHandle, k_GizmoThemeColorInfluenceBlend, ref sp.targetData.blendDistance);
+            Handle_InfluenceBoxEditing_Internal(
+                s, sp, o, 
+                s.boxBlendHandle, k_GizmoThemeColorInfluenceBlend, 
+                ref sp.targetData.blendDistance, ref sp.targetData.blendDistance2);
         }
 
         static void Handle_InfluenceNormalBoxEditing(UIState s, SerializedReflectionProbe sp, Editor o)
         {
-            Handle_InfluenceBoxEditing_Internal(s, sp, o, s.boxBlendHandle, k_GizmoThemeColorInfluenceNormalBlend, ref sp.targetData.blendNormalDistance);
+            Handle_InfluenceBoxEditing_Internal(
+                s, sp, o, 
+                s.boxBlendHandle, k_GizmoThemeColorInfluenceNormalBlend,
+                ref sp.targetData.blendNormalDistance, ref sp.targetData.blendNormalDistance2);
         }
 
         static void Handle_InfluenceBoxEditing_Internal(
             UIState s, SerializedReflectionProbe sp, Editor o, 
             BoxBoundsHandle blendBox, 
-            Color blendHandleColor, 
-            ref float probeBlendDistance)
+            Color blendHandleColor,
+            ref Vector3 probeBlendDistancePositive,
+            ref Vector3 probeBlendDistanceNegative)
         {
-            var p = (ReflectionProbe)sp.so.targetObject;
+            var p = sp.target;
 
             using (new Handles.DrawingScope(GetLocalSpace(p)))
             {
                 s.boxExtentHandle.center = p.center;
                 s.boxExtentHandle.size = p.size;
-                blendBox.center = p.center;
-                blendBox.size = p.size - Vector3.one * probeBlendDistance * 2;
+                blendBox.center = p.center - (probeBlendDistancePositive - probeBlendDistanceNegative) * 0.5f;
+                blendBox.size = p.size - probeBlendDistancePositive - probeBlendDistanceNegative;
 
                 Handles.color = k_GizmoThemeColorExtent;
                 EditorGUI.BeginChangeCheck();
                 s.boxExtentHandle.DrawHandle();
-                var influenceChanged = EditorGUI.EndChangeCheck();
+                var extentChanged = EditorGUI.EndChangeCheck();
                 EditorGUI.BeginChangeCheck();
                 Handles.color = blendHandleColor;
                 blendBox.DrawHandle();
-                if (influenceChanged || EditorGUI.EndChangeCheck())
+                if (extentChanged || EditorGUI.EndChangeCheck())
                 {
                     Undo.RecordObject(p, "Modified Reflection Probe AABB");
                     var center = s.boxExtentHandle.center;
-                    var influenceSize = s.boxExtentHandle.size;
-                    var blendSize = blendBox.size;
-                    ValidateAABB(p, ref center, ref influenceSize);
-                    var blendDistance = influenceChanged
-                        ? probeBlendDistance
-                        : ((influenceSize.x - blendSize.x) * 0.5f + (influenceSize.y - blendSize.y) * 0.5f + (influenceSize.z - blendSize.z) * 0.5f) / 3;
+                    var extents = s.boxExtentHandle.size;
+                    ValidateAABB(p, ref center, ref extents);
+
+                    Vector3 blendDistancePositive, blendDistanceNegative;
+
+                    if (extentChanged)
+                    {
+                        blendDistancePositive = Vector3.Min(probeBlendDistancePositive, extents);
+                        blendDistanceNegative = Vector3.Min(probeBlendDistanceNegative, extents);
+                    }
+                    else
+                    {
+                        var diff = 2 * (blendBox.center - center);
+                        var sum = extents - blendBox.size;
+                        var positive = (sum - diff) * 0.5f;
+                        var negative = (sum + diff) * 0.5f;
+                        blendDistancePositive = Vector3.Max(Vector3.zero, Vector3.Min(positive, extents));
+                        blendDistanceNegative = Vector3.Max(Vector3.zero, Vector3.Min(negative, extents));
+                    }
+                    
                     p.center = center;
-                    p.size = influenceSize;
-                    probeBlendDistance = Mathf.Max(blendDistance, 0);
+                    p.size = extents;
+                    probeBlendDistancePositive = blendDistancePositive;
+                    probeBlendDistanceNegative = blendDistanceNegative;
                     EditorUtility.SetDirty(p);
                 }
             }
@@ -173,12 +195,16 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Handle_InfluenceSphereEditing(UIState s, SerializedReflectionProbe sp, Editor o)
         {
-            Handle_InfluenceSphereEditing_Internal(s, sp, o, s.sphereBlendHandle, k_GizmoThemeColorInfluenceBlend, ref sp.targetData.blendDistance);
+            var blendDistance = sp.targetData.blendDistance.x;
+            Handle_InfluenceSphereEditing_Internal(s, sp, o, s.sphereBlendHandle, k_GizmoThemeColorInfluenceBlend, ref blendDistance);
+            sp.targetData.blendDistance.x = blendDistance;
         }
 
         static void Handle_InfluenceNormalSphereEditing(UIState s, SerializedReflectionProbe sp, Editor o)
         {
-            Handle_InfluenceSphereEditing_Internal(s, sp, o, s.sphereBlendHandle, k_GizmoThemeColorInfluenceNormalBlend, ref sp.targetData.blendNormalDistance);
+            var blendDistance = sp.targetData.blendNormalDistance.x;
+            Handle_InfluenceSphereEditing_Internal(s, sp, o, s.sphereBlendHandle, k_GizmoThemeColorInfluenceNormalBlend, ref blendDistance);
+            sp.targetData.blendNormalDistance.x = blendDistance;
         }
 
         static void Handle_InfluenceSphereEditing_Internal(
@@ -300,16 +326,16 @@ namespace UnityEditor.Experimental.Rendering
                     if (reflectionData.influenceShape == ReflectionInfluenceShape.Box)
                     {
                         Gizmos.color = k_GizmoThemeColorExtentFace;
-                        Gizmos.DrawCube(reflectionProbe.center, -1f * reflectionProbe.size);
+                        Gizmos.DrawCube(reflectionProbe.center, reflectionProbe.size);
                         Gizmos.color = k_GizmoThemeColorInfluenceBlendFace;
-                        Gizmos.DrawCube(reflectionProbe.center, -1f * reflectionProbe.size + Vector3.one * 2f * reflectionData.blendDistance);
+                        Gizmos.DrawCube(reflectionProbe.center + reflectionData.boxBlendCenterOffset, reflectionProbe.size + reflectionData.boxBlendSizeOffset);
                     }
                     if (reflectionData.influenceShape == ReflectionInfluenceShape.Sphere)
                     {
                         Gizmos.color = k_GizmoThemeColorExtentFace;
                         Gizmos.DrawSphere(reflectionProbe.center, reflectionData.influenceSphereRadius);
                         Gizmos.color = k_GizmoThemeColorInfluenceBlendFace;
-                        Gizmos.DrawSphere(reflectionProbe.center, reflectionData.influenceSphereRadius - reflectionData.blendDistance * 2f);
+                        Gizmos.DrawSphere(reflectionProbe.center, reflectionData.influenceSphereRadius - reflectionData.sphereBlendRadiusOffset);
                     }
 
                     Gizmos.matrix = Matrix4x4.identity;
@@ -323,9 +349,9 @@ namespace UnityEditor.Experimental.Rendering
 
                     Gizmos.matrix = GetLocalSpace(reflectionProbe);
                     if (reflectionData.influenceShape == ReflectionInfluenceShape.Box)
-                        Gizmos.DrawCube(reflectionProbe.center, -1f * reflectionProbe.size + Vector3.one * 2f * reflectionData.blendNormalDistance);
+                        Gizmos.DrawCube(reflectionProbe.center + reflectionData.boxBlendNormalCenterOffset, reflectionProbe.size + reflectionData.boxBlendNormalSizeOffset);
                     if (reflectionData.influenceShape == ReflectionInfluenceShape.Sphere)
-                        Gizmos.DrawSphere(reflectionProbe.center, reflectionData.influenceSphereRadius - reflectionData.blendNormalDistance * 2f);
+                        Gizmos.DrawSphere(reflectionProbe.center, reflectionData.influenceSphereRadius - reflectionData.sphereBlendNormalRadiusOffset);
 
                     Gizmos.matrix = Matrix4x4.identity;
                     Gizmos.color = oldColor;
@@ -372,22 +398,14 @@ namespace UnityEditor.Experimental.Rendering
             Gizmos.color = reflectionProbe.isActiveAndEnabled ? k_GizmoThemeColorExtent : k_GizmoThemeColorDisabled;
             Gizmos.matrix = GetLocalSpace(reflectionProbe);
             Gizmos.DrawWireCube(reflectionProbe.center, reflectionProbe.size);
-            if (reflectionData.blendDistance > 0)
-            {
-                Gizmos.color = reflectionProbe.isActiveAndEnabled ? k_GizmoThemeColorInfluenceBlend : k_GizmoThemeColorDisabled;
-                Gizmos.DrawWireCube(reflectionProbe.center, GetBlendBoxSize(reflectionProbe, reflectionData.blendDistance));
-            }
-            if (reflectionData.blendNormalDistance > 0)
-            {
-                Gizmos.color = reflectionProbe.isActiveAndEnabled ? k_GizmoThemeColorInfluenceNormalBlend : k_GizmoThemeColorDisabled;
-                Gizmos.DrawWireCube(reflectionProbe.center, GetBlendBoxSize(reflectionProbe, reflectionData.blendNormalDistance));
-            }
-            Gizmos.matrix = Matrix4x4.identity;
-        }
 
-        static Vector3 GetBlendBoxSize(ReflectionProbe reflectionProbe, float blendDistance)
-        {
-            return new Vector3(reflectionProbe.size.x - blendDistance * 2, reflectionProbe.size.y - blendDistance * 2, reflectionProbe.size.z - blendDistance * 2);
+            Gizmos.color = reflectionProbe.isActiveAndEnabled ? k_GizmoThemeColorInfluenceBlend : k_GizmoThemeColorDisabled;
+            Gizmos.DrawWireCube(reflectionProbe.center + reflectionData.boxBlendCenterOffset, reflectionProbe.size + reflectionData.boxBlendSizeOffset);
+
+            Gizmos.color = reflectionProbe.isActiveAndEnabled ? k_GizmoThemeColorInfluenceNormalBlend : k_GizmoThemeColorDisabled;
+            Gizmos.DrawWireCube(reflectionProbe.center + reflectionData.boxBlendNormalCenterOffset, reflectionProbe.size + reflectionData.boxBlendNormalSizeOffset);
+
+            Gizmos.matrix = Matrix4x4.identity;
         }
 
         static void DrawSphereInfluenceGizmo(ReflectionProbe reflectionProbe, HDAdditionalReflectionData reflectionData)
@@ -395,16 +413,13 @@ namespace UnityEditor.Experimental.Rendering
             Gizmos.color = reflectionProbe.isActiveAndEnabled ? k_GizmoThemeColorExtent : k_GizmoThemeColorDisabled;
             Gizmos.matrix = GetLocalSpace(reflectionProbe);
             Gizmos.DrawWireSphere(reflectionProbe.center, reflectionData.influenceSphereRadius);
-            if (reflectionData.blendDistance > 0)
-            {
-                Gizmos.color = reflectionProbe.isActiveAndEnabled ? k_GizmoThemeColorInfluenceBlend : k_GizmoThemeColorDisabled;
-                Gizmos.DrawWireSphere(reflectionProbe.center, reflectionData.influenceSphereRadius - 2 * reflectionData.blendDistance);
-            }
-            if (reflectionData.blendNormalDistance > 0)
-            {
-                Gizmos.color = reflectionProbe.isActiveAndEnabled ? k_GizmoThemeColorInfluenceNormalBlend : k_GizmoThemeColorDisabled;
-                Gizmos.DrawWireSphere(reflectionProbe.center, reflectionData.influenceSphereRadius - 2 * reflectionData.blendNormalDistance);
-            }
+
+            Gizmos.color = reflectionProbe.isActiveAndEnabled ? k_GizmoThemeColorInfluenceBlend : k_GizmoThemeColorDisabled;
+            Gizmos.DrawWireSphere(reflectionProbe.center, reflectionData.influenceSphereRadius - reflectionData.sphereBlendRadiusOffset);
+
+            Gizmos.color = reflectionProbe.isActiveAndEnabled ? k_GizmoThemeColorInfluenceNormalBlend : k_GizmoThemeColorDisabled;
+            Gizmos.DrawWireSphere(reflectionProbe.center, reflectionData.influenceSphereRadius - reflectionData.sphereBlendNormalRadiusOffset);
+
             Gizmos.matrix = Matrix4x4.identity;
         }
 

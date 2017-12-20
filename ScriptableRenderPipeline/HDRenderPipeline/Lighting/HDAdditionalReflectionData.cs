@@ -21,7 +21,18 @@
         public Vector3 boxReprojectionVolumeCenter = Vector3.zero;
         public float maxSearchDistance = 8.0f;
         public Texture previewCubemap;
-        public float blendDistance = 0f;
-        public float blendNormalDistance = 0f;
+        public Vector3 blendDistance = Vector3.zero;
+        public Vector3 blendDistance2 = Vector3.zero;
+        public Vector3 blendNormalDistance = Vector3.zero;
+        public Vector3 blendNormalDistance2 = Vector3.zero;
+
+        public Vector3 boxBlendCenterOffset { get { return (-blendDistance + blendDistance2) * 0.5f; } }
+        public Vector3 boxBlendSizeOffset { get { return -(blendDistance + blendDistance2); } }
+        public Vector3 boxBlendNormalCenterOffset { get { return -(blendNormalDistance + blendNormalDistance2) * 0.5f; } }
+        public Vector3 boxBlendNormalSizeOffset { get { return -(blendNormalDistance + blendNormalDistance2); } }
+
+
+        public float sphereBlendRadiusOffset { get { return -blendDistance.x * 2; } }
+        public float sphereBlendNormalRadiusOffset { get { return -blendNormalDistance.x * 2; } }
     }
 }

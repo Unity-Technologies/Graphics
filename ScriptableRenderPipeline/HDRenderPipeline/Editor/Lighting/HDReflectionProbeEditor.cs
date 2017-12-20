@@ -78,7 +78,7 @@ namespace UnityEditor.Experimental.Rendering
 
             k_PrimarySection.Draw(s, p, this);
             k_InfluenceVolumeSection.Draw(s, p, this);
-            k_InfluenceNormalVolumeSection.Draw(s, p, this);
+            //k_InfluenceNormalVolumeSection.Draw(s, p, this);
             k_SeparateProjectionVolumeSection.Draw(s, p, this);
             k_CaptureSection.Draw(s, p, this);
             k_AdditionalSection.Draw(s, p, this);
@@ -185,6 +185,7 @@ namespace UnityEditor.Experimental.Rendering
             k_GizmoThemeColorProjectionFace = EditorGUILayout.ColorField("Projection Face", k_GizmoThemeColorProjectionFace);
             k_GizmoThemeColorDisabled = EditorGUILayout.ColorField("Disabled", k_GizmoThemeColorDisabled);
             k_GizmoThemeColorDisabledFace = EditorGUILayout.ColorField("Disabled Face", k_GizmoThemeColorDisabledFace);
+            EditorGUILayout.Space();
         }
 
         static void BakeCustomReflectionProbe(ReflectionProbe probe, bool usePreviousAssetPath, bool custom)

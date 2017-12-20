@@ -1124,7 +1124,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             var additionalData = probe.probe.GetComponent<HDAdditionalReflectionData>();
             var extents = probe.bounds.extents;
-            var influenceBlendDistance = probe.blendDistance;
+            var influenceBlendDistance = Vector3.one * probe.blendDistance;
+            var influenceBlendDistance2 = Vector3.one * probe.blendDistance;
 
             // For now we won't display real time probe when rendering one.
             // TODO: We may want to display last frame result but in this case we need to be careful not to update the atlas before all realtime probes are rendered (for frame coherency).
@@ -1163,7 +1164,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 envLightData.dimmer = additionalData.dimmer;
                 envLightData.blendNormalDistance = additionalData.blendNormalDistance;
+                envLightData.blendNormalDistance2 = additionalData.blendNormalDistance2;
                 influenceBlendDistance = additionalData.blendDistance;
+                influenceBlendDistance2 = additionalData.blendDistance2;
             }
             else
             {
@@ -1181,7 +1184,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 envLightData.dimmer = 1;
-                envLightData.blendNormalDistance = 0;
+                envLightData.blendNormalDistance = Vector3.zero;
+                envLightData.blendNormalDistance2 = Vector3.zero;
             }
 
             // remove scale from the matrix (Scale in this matrix is use to scale the widget)
@@ -1196,12 +1200,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // So we let the current UI but we assume blendDistance is an inside factor instead
             // Blend distance can't be larger than the max radius
             // probe.bounds.extents is BoxSize / 2
-            var maxBlendDist = Mathf.Min(probe.bounds.extents.x, Mathf.Min(probe.bounds.extents.y, probe.bounds.extents.z));
-            var blendDistance = Mathf.Min(maxBlendDist, influenceBlendDistance);
-            envLightData.innerDistance = extents - new Vector3(blendDistance, blendDistance, blendDistance);
+            var blendDistance = Vector3.Min(probe.bounds.extents, influenceBlendDistance);
+            var blendDistance2 = Vector3.Min(probe.bounds.extents, influenceBlendDistance2);
+            envLightData.innerDistance = extents;
             envLightData.envIndex = envIndex;
             envLightData.offsetLS = probe.center; // center is misnamed, it is the offset (in local space) from center of the bounding box to the cubemap capture point
             envLightData.blendDistance = blendDistance;
+            envLightData.blendDistance2 = blendDistance2;
 
             m_lightList.envLights.Add(envLightData);
 

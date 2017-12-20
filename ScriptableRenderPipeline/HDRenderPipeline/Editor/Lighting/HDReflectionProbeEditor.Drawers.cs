@@ -34,7 +34,6 @@ namespace UnityEditor.Experimental.Rendering
             "Influence volume settings",
             (s, p, o) => p.blendDistance,
             true,
-            CED.Action(Drawer_DistanceBlend),
             CED.FadeGroup(
                 (s, p, o, i) => s.GetShapeFaded((ReflectionInfluenceShape)i),
                 false,
@@ -42,13 +41,6 @@ namespace UnityEditor.Experimental.Rendering
                 CED.Action(Drawer_InfluenceSphereSettings)    // Sphere
             )/*,
             CED.Action(Drawer_UseSeparateProjectionVolume)*/
-        );
-
-        static readonly CED.IDrawer k_InfluenceNormalVolumeSection = CED.FoldoutGroup(
-            "Influence normal volume settings",
-            (s, p, o) => p.blendNormalDistance,
-            true,
-            CED.Action(Drawer_DistanceBlendNormal)
         );
 
         static readonly CED.IDrawer k_SeparateProjectionVolumeSection = CED.FadeGroup(
@@ -119,7 +111,7 @@ namespace UnityEditor.Experimental.Rendering
         {
             if (p.mode.intValue == (int)ReflectionProbeMode.Realtime)
             {
-                EditorGUILayout.HelpBox("Baking of this reflection probe should be initiated from the scripting API because the type is 'Realtime'", MessageType.Info);
+                EditorGUILayout.HelpBox("Refresh of this reflection probe should be initiated from the scripting API because the type is 'Realtime'", MessageType.Info);
 
                 if (!QualitySettings.realtimeReflectionProbes)
                     EditorGUILayout.HelpBox("Realtime reflection probes are disabled in Quality Settings", MessageType.Warning);
@@ -196,19 +188,17 @@ namespace UnityEditor.Experimental.Rendering
         }
 
         #region Influence Volume
-        static void Drawer_DistanceBlend(UIState s, SerializedReflectionProbe p, Editor owner)
-        {
-            EditorGUILayout.Slider(p.blendDistance, 0, CalculateMaxBlendDistance(s, p, owner), CoreEditorUtils.GetContent("Blend Distance|Area around the probe where it is blended with other probes. Only used in deferred probes."));
-            EditorGUI.BeginChangeCheck();
-        }
-        static void Drawer_DistanceBlendNormal(UIState s, SerializedReflectionProbe p, Editor owner)
-        {
-            EditorGUILayout.Slider(p.blendNormalDistance, 0, CalculateMaxBlendDistance(s, p, owner), CoreEditorUtils.GetContent("Blend Normal Distance|Area around the probe where the normals influence the probe. Only used in deferred probes."));
-            EditorGUI.BeginChangeCheck();
-        }
-
         static void Drawer_InfluenceBoxSettings(UIState s, SerializedReflectionProbe p, Editor owner)
         {
+            var maxBlendDistance = CalculateBoxMaxBlendDistance(s, p, owner);
+            CoreEditorUtils.DrawVector6Slider(
+                CoreEditorUtils.GetContent("Blend Distance|Area around the probe where it is blended with other probes. Only used in deferred probes."),
+                p.blendDistance, p.blendDistance2, Vector3.zero, maxBlendDistance);
+
+            CoreEditorUtils.DrawVector6Slider(
+                CoreEditorUtils.GetContent("Blend Normal Distance|Area around the probe where the normals influence the probe. Only used in deferred probes."),
+                p.blendNormalDistance, p.blendNormalDistance2, Vector3.zero, maxBlendDistance);
+
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(p.boxSize, CoreEditorUtils.GetContent("Box Size|The size of the box in which the reflections will be applied to objects. The value is not affected by the Transform of the Game Object."));
             EditorGUILayout.PropertyField(p.boxOffset, CoreEditorUtils.GetContent("Box Offset|The center of the box in which the reflections will be applied to objects. The value is relative to the position of the Game Object."));
@@ -228,6 +218,26 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Drawer_InfluenceSphereSettings(UIState s, SerializedReflectionProbe p, Editor owner)
         {
+            var maxBlendDistance = CalculateSphereMaxBlendDistance(s, p, owner);
+
+            var blendDistance = p.blendDistance.vector3Value.x;
+            EditorGUI.BeginChangeCheck();
+            blendDistance = EditorGUILayout.Slider(CoreEditorUtils.GetContent("Blend Distance|Area around the probe where it is blended with other probes. Only used in deferred probes."), blendDistance, 0, maxBlendDistance);
+            if (EditorGUI.EndChangeCheck())
+            {
+                p.blendDistance.vector3Value = Vector3.one * blendDistance;
+                p.blendDistance2.vector3Value = Vector3.one * blendDistance;
+            }
+
+            var blendNormalDistance = p.blendNormalDistance.vector3Value.x;
+            EditorGUI.BeginChangeCheck();
+            blendNormalDistance = EditorGUILayout.Slider(CoreEditorUtils.GetContent("Blend Normal Distance|Area around the probe where the normals influence the probe. Only used in deferred probes."), blendNormalDistance, 0, maxBlendDistance);
+            if (EditorGUI.EndChangeCheck())
+            {
+                p.blendNormalDistance.vector3Value = Vector3.one * blendNormalDistance;
+                p.blendNormalDistance2.vector3Value = Vector3.one * blendNormalDistance;
+            }
+
             EditorGUILayout.PropertyField(p.influenceSphereRadius, CoreEditorUtils.GetContent("Radius"));
             EditorGUILayout.PropertyField(p.boxProjection, CoreEditorUtils.GetContent("Sphere Projection|Sphere projection causes reflections to appear to change based on the object's position within the probe's sphere, while still using a single probe as the source of the reflection. This works well for reflections on objects that are moving through enclosed spaces such as corridors and rooms. Setting sphere projection to False and the cubemap reflection will be treated as coming from infinitely far away. Note that this feature can be globally disabled from Graphics Settings -> Tier Settings"));
         }
@@ -363,21 +373,14 @@ namespace UnityEditor.Experimental.Rendering
         }
         #endregion
 
-        static float CalculateMaxBlendDistance(UIState s, SerializedReflectionProbe p, Editor o)
+        static float CalculateSphereMaxBlendDistance(UIState s, SerializedReflectionProbe p, Editor o)
         {
-            var shape = (ReflectionInfluenceShape)p.influenceShape.intValue;
-            switch (shape)
-            {
-                case ReflectionInfluenceShape.Sphere:
-                    return p.influenceSphereRadius.floatValue * 0.5f;
-                default:
-                case ReflectionInfluenceShape.Box:
-                {
-                    var size = p.boxSize.vector3Value;
-                    var v = Mathf.Min(size.x, Mathf.Min(size.y, size.z));
-                    return v * 0.5f;
-                }
-            }
+            return p.influenceSphereRadius.floatValue * 0.5f;
+        }
+
+        static Vector3 CalculateBoxMaxBlendDistance(UIState s, SerializedReflectionProbe p, Editor o)
+        {
+            return p.boxSize.vector3Value * 0.5f;
         }
 
         static MethodInfo k_EditorGUI_ButtonWithDropdownList = typeof(EditorGUI).GetMethod("ButtonWithDropdownList", BindingFlags.Static | BindingFlags.NonPublic, null, CallingConventions.Any, new [] { typeof(GUIContent), typeof(string[]), typeof(GenericMenu.MenuFunction2), typeof(GUILayoutOption[]) }, new ParameterModifier[0]);
