@@ -525,6 +525,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             this.hdr = hdr;
             this.showAlpha = showAlpha;
+            this.showEyeDropper = showEyeDropper;
             this.overrideState = overrideState;
         }
 
@@ -556,6 +557,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             this.hdr = hdr;
             this.showAlpha = showAlpha;
+            this.showEyeDropper = showEyeDropper;
             this.overrideState = overrideState;
         }
     }
