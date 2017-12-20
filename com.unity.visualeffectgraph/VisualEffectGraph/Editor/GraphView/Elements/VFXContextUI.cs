@@ -585,6 +585,7 @@ namespace UnityEditor.VFX.UI
 
         void AddBlock(Vector2 position, VFXModelDescriptor<VFXBlock> descriptor)
         {
+            VFXViewWindow.currentWindow.Focus();
             int blockIndex = -1;
 
             var blocks = m_BlockContainer.Query().OfType<VFXBlockUI>().ToList();
@@ -603,7 +604,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void OnCreateBlock(EventBase evt)
+        public void OnCreateBlock(EventBase evt)
         {
             Vector2 referencePosition;
             if (evt is IMouseEvent)
@@ -612,7 +613,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                referencePosition = Vector2.zero;
+                referencePosition = evt.imguiEvent.mousePosition;
             }
 
             VFXFilterWindow.Show(referencePosition, m_BlockProvider);

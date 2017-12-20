@@ -181,6 +181,9 @@ namespace UnityEditor.VFX.UI
         }
         public VFXModel AddNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
         {
+            VFXViewWindow.currentWindow.Focus();
+
+
             Vector2 tPos = this.ChangeCoordinatesTo(contentViewContainer, mPos);
             if (d.modelDescriptor is VFXModelDescriptor<VFXOperator>)
             {
@@ -203,6 +206,37 @@ namespace UnityEditor.VFX.UI
                 Debug.LogErrorFormat("Add unknown controller : {0}", d.modelDescriptor.GetType());
             }
             return null;
+        }
+
+        protected internal override void ExecuteDefaultAction(EventBase evt)
+        {
+            if (evt.GetEventTypeId() == KeyDownEvent.TypeId())
+            {
+                if (evt.imguiEvent.Equals(Event.KeyboardEvent("space")))
+                {
+                    OnCreateThing(evt as KeyDownEvent);
+                }
+            }
+
+            base.ExecuteDefaultAction(evt);
+        }
+
+        void OnCreateThing(KeyDownEvent evt)
+        {
+            VisualElement picked = panel.Pick(evt.imguiEvent.mousePosition);
+            VFXContextUI context = picked.GetFirstAncestorOfType<VFXContextUI>();
+
+            if (context != null)
+            {
+                context.OnCreateBlock(evt);
+            }
+            else
+            {
+                NodeCreationContext ctx;
+                ctx.screenMousePosition = GUIUtility.GUIToScreenPoint(evt.imguiEvent.mousePosition);
+
+                OnCreateNode(ctx);
+            }
         }
 
         VFXNodeProvider m_NodeProvider;
@@ -627,6 +661,13 @@ namespace UnityEditor.VFX.UI
             var graph = controller.graph;
             graph.SetExpressionGraphDirty();
             graph.RecompileIfNeeded();
+        }
+
+        public EventPropagation Compile()
+        {
+            OnCompile();
+
+            return EventPropagation.Stop;
         }
 
         VFXContext AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
