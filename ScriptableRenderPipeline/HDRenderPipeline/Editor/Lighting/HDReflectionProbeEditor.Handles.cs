@@ -335,7 +335,7 @@ namespace UnityEditor.Experimental.Rendering
                         Gizmos.color = k_GizmoThemeColorExtentFace;
                         Gizmos.DrawSphere(reflectionProbe.center, reflectionData.influenceSphereRadius);
                         Gizmos.color = k_GizmoThemeColorInfluenceBlendFace;
-                        Gizmos.DrawSphere(reflectionProbe.center, reflectionData.influenceSphereRadius - reflectionData.sphereBlendRadiusOffset);
+                        Gizmos.DrawSphere(reflectionProbe.center, reflectionData.influenceSphereRadius + reflectionData.sphereBlendRadiusOffset);
                     }
 
                     Gizmos.matrix = Matrix4x4.identity;
@@ -351,7 +351,7 @@ namespace UnityEditor.Experimental.Rendering
                     if (reflectionData.influenceShape == ReflectionInfluenceShape.Box)
                         Gizmos.DrawCube(reflectionProbe.center + reflectionData.boxBlendNormalCenterOffset, reflectionProbe.size + reflectionData.boxBlendNormalSizeOffset);
                     if (reflectionData.influenceShape == ReflectionInfluenceShape.Sphere)
-                        Gizmos.DrawSphere(reflectionProbe.center, reflectionData.influenceSphereRadius - reflectionData.sphereBlendNormalRadiusOffset);
+                        Gizmos.DrawSphere(reflectionProbe.center, reflectionData.influenceSphereRadius + reflectionData.sphereBlendNormalRadiusOffset);
 
                     Gizmos.matrix = Matrix4x4.identity;
                     Gizmos.color = oldColor;
@@ -415,10 +415,10 @@ namespace UnityEditor.Experimental.Rendering
             Gizmos.DrawWireSphere(reflectionProbe.center, reflectionData.influenceSphereRadius);
 
             Gizmos.color = reflectionProbe.isActiveAndEnabled ? k_GizmoThemeColorInfluenceBlend : k_GizmoThemeColorDisabled;
-            Gizmos.DrawWireSphere(reflectionProbe.center, reflectionData.influenceSphereRadius - reflectionData.sphereBlendRadiusOffset);
+            Gizmos.DrawWireSphere(reflectionProbe.center, reflectionData.influenceSphereRadius + reflectionData.sphereBlendRadiusOffset);
 
             Gizmos.color = reflectionProbe.isActiveAndEnabled ? k_GizmoThemeColorInfluenceNormalBlend : k_GizmoThemeColorDisabled;
-            Gizmos.DrawWireSphere(reflectionProbe.center, reflectionData.influenceSphereRadius - reflectionData.sphereBlendNormalRadiusOffset);
+            Gizmos.DrawWireSphere(reflectionProbe.center, reflectionData.influenceSphereRadius + reflectionData.sphereBlendNormalRadiusOffset);
 
             Gizmos.matrix = Matrix4x4.identity;
         }
