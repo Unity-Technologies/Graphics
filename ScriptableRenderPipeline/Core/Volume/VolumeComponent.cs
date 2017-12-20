@@ -37,10 +37,18 @@ namespace UnityEngine.Experimental.Rendering
                 .Select(t => (VolumeParameter)t.GetValue(this))
                 .ToList()
                 .AsReadOnly();
+
+            foreach (var parameter in parameters)
+                parameter.OnEnable();
         }
 
         protected virtual void OnDisable()
         {
+            if (parameters == null)
+                return;
+
+            foreach (var parameter in parameters)
+                parameter.OnDisable();
         }
 
         public void SetAllOverridesTo(bool state)

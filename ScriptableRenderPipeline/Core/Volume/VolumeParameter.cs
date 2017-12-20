@@ -32,6 +32,20 @@ namespace UnityEngine.Experimental.Rendering
 
         internal abstract void SetValue(VolumeParameter parameter);
 
+        // This is used in case you need to access fields/properties that can't be accessed in the
+        // constructor of a ScriptableObject (VolumeParameter are generally declared and inited in
+        // a VolumeComponent which is a ScriptableObject). This will be called right after the
+        // VolumeComponent object has been constructed, thus allowing access to previously
+        // "forbidden" fields/properties.
+        protected internal virtual void OnEnable()
+        {
+        }
+
+        // Called when the parent VolumeComponent OnDisabled is called
+        protected internal virtual void OnDisable()
+        {
+        }
+
         public static bool IsObjectParameter(Type type)
         {
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ObjectParameter<>))
