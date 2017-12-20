@@ -459,17 +459,18 @@ float LinearEyeDepth(float3 positionWS, float4x4 viewProjMatrix)
     return mul(viewProjMatrix, float4(positionWS, 1.0)).w;
 }
 
-// 'z' is the view-space Z position. It is assumed to lie between the near and the far planes.
-// For (z <= n), the function returns 0. For (z >= f), the function returns 1.
+// 'z' is the view-space Z position (linear depth).
+// saturate() the output of the function to clamp them to the [0, 1] range.
 float EncodeLogarithmicDepth(float z, float4 encodingParams)
 {
-    return saturate(log2(max(1, z * encodingParams.z)) * encodingParams.w);
+    return log2(max(0, z * encodingParams.z)) * encodingParams.w;
 }
 
-// The encoded depth 'd' is assumed to lie in the [0, 1] range.
+// 'd' is the logarithmically encoded depth value.
+// saturate(d) to clamp the output of the function to the [n, f] range.
 float DecodeLogarithmicDepth(float d, float4 encodingParams)
 {
-    return encodingParams.x * exp2(saturate(d) * encodingParams.y);
+    return encodingParams.x * exp2(d * encodingParams.y);
 }
 
 // ----------------------------------------------------------------------------

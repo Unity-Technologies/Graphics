@@ -97,8 +97,8 @@ public partial class HDRenderPipeline : RenderPipeline
     VolumetricLightingPreset m_VolumetricLightingPreset = VolumetricLightingPreset.Normal;
     ComputeShader            m_VolumetricLightingCS { get { return m_Asset.renderPipelineResources.volumetricLightingCS; } }
 
-    float                    m_VBufferNearPlane  =  0.5f; // Distance in meters
-    float                    m_VBufferFarPlane   = 64.0f; // Distance in meters
+    float                    m_VBufferNearPlane  =  0.5f; // Distance in meters; dynamic modifications not handled by reprojection
+    float                    m_VBufferFarPlane   = 64.0f; // Distance in meters; dynamic modifications not handled by reprojection
 
     RenderTexture[]          m_VBufferLighting   = null;  // Used for even / odd frames
     RenderTargetIdentifier[] m_VBufferLightingRT = null;
@@ -223,6 +223,18 @@ public partial class HDRenderPipeline : RenderPipeline
         return globalFogComponent;
     }
 
+    RenderTargetIdentifier GetVBufferCurrFrame()
+    {
+        bool evenFrame = (Time.renderedFrameCount & 1) == 0;
+        return m_VBufferLightingRT[evenFrame ? 0 : 1];
+    }
+
+    RenderTargetIdentifier GetVBufferPrevFrame()
+    {
+        bool evenFrame = (Time.renderedFrameCount & 1) == 0;
+        return m_VBufferLightingRT[evenFrame ? 1 : 0];
+    }
+
     public void SetVolumetricLightingData(HDCamera camera, CommandBuffer cmd)
     {
         HomogeneousFog globalFogComponent = GetGlobalFogComponent();
@@ -242,7 +254,7 @@ public partial class HDRenderPipeline : RenderPipeline
 
         cmd.SetGlobalVector( HDShaderIDs._VBufferResolutionAndScale,  resAndScale);
         cmd.SetGlobalVector( HDShaderIDs._VBufferDepthEncodingParams, depthParams);
-        cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,            m_VBufferLightingRT[0]);
+        cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,            GetVBufferCurrFrame());
     }
 
     void VolumetricLightingPass(HDCamera camera, CommandBuffer cmd)
@@ -254,11 +266,9 @@ public partial class HDRenderPipeline : RenderPipeline
             if (GetGlobalFogComponent() == null)
             {
                 // Clear the render target instead of running the shader.
-                CoreUtils.SetRenderTarget(cmd, m_VBufferLightingRT[0], ClearFlag.Color, CoreUtils.clearColorAllBlack);
+                CoreUtils.SetRenderTarget(cmd, GetVBufferCurrFrame(), ClearFlag.Color, CoreUtils.clearColorAllBlack);
                 return;
             }
-
-            camera.SetupComputeShader(m_VolumetricLightingCS, cmd);
 
             bool enableClustered = m_FrameSettings.lightLoopSettings.enableTileAndCluster;
             int  kernel          = m_VolumetricLightingCS.FindKernel(enableClustered ? "VolumetricLightingClustered"
@@ -272,10 +282,12 @@ public partial class HDRenderPipeline : RenderPipeline
             Vector4   scaledRes = new Vector4(w * scale.x, h * scale.y, 1.0f / (w * scale.x), 1.0f / (h * scale.y));
             Matrix4x4 transform = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, scaledRes, camera.viewMatrix, false);
 
+            camera.SetupComputeShader(m_VolumetricLightingCS, cmd);
+
             // TODO: set 'm_VolumetricLightingPreset'.
             cmd.SetComputeMatrixParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferCoordToViewDirWS, transform);
-            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingCurr, m_VBufferLightingRT[0]);
-            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingPrev, m_VBufferLightingRT[1]);
+            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingCurr, GetVBufferCurrFrame());
+            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingPrev, GetVBufferPrevFrame());
 
             // The shader defines GROUP_SIZE_1D = 16.
             cmd.DispatchCompute(m_VolumetricLightingCS, kernel, (w + 15) / 16, (h + 15) / 16, 1);
