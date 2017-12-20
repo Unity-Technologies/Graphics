@@ -371,7 +371,7 @@ GraphInspectorView > #bottom > #preview {
     background-color: rgb(79, 79, 79);
 }
 
-GraphInspectorView > #bottom > #properties {
+GraphInspectorView > #top > #properties {
     border-color: rgb(41, 41, 41);
     border-top-width: 1;
     border-bottom-width: 1;
@@ -383,7 +383,7 @@ GraphInspectorView > #bottom > #properties {
     margin-right: 8;
 }
 
-GraphInspectorView > #bottom > #properties > #header {
+GraphInspectorView > #top > #properties > #header {
     border-color: rgb(41, 41, 41);
     border-bottom-width: 1;
     flex-direction: row;
@@ -391,7 +391,7 @@ GraphInspectorView > #bottom > #properties > #header {
     align-items: center;
 }
 
-GraphInspectorView > #bottom > #properties > #header > #title {
+GraphInspectorView > #top > #properties > #header > #title {
     text-color: rgb(180, 180, 180);
     font-style: bold;
     padding-top: 8;
@@ -400,7 +400,7 @@ GraphInspectorView > #bottom > #properties > #header > #title {
     padding-right: 8;
 }
 
-GraphInspectorView > #bottom > #properties > #header > #addButton {
+GraphInspectorView > #top > #properties > #header > #addButton {
     height: 24;
     margin-top: 0;
     margin-bottom: 0;
@@ -408,7 +408,7 @@ GraphInspectorView > #bottom > #properties > #header > #addButton {
     margin-right: 8;
 }
 
-GraphInspectorView > #bottom > #properties > #items {
+GraphInspectorView > #top > #properties > #items {
     padding-bottom: 4;
 }
 
