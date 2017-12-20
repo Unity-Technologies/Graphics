@@ -148,9 +148,11 @@ namespace UnityEditor.VFX.UI
             }
 
             VFXFlowEdge flowEdge  = edge as VFXFlowEdge;
+            bool exists = false;
             if (flowEdge.controller != null)
             {
                 view.controller.RemoveElement(flowEdge.controller);
+                exists = true;
             }
 
             if (endContext != null)
@@ -186,7 +188,7 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
-            else
+            else if (!exists)
             {
                 VFXFilterWindow.Show(Event.current.mousePosition, new VFXNodeProvider(AddLinkedContext, ProviderFilter, new Type[] { typeof(VFXContext)}));
             }

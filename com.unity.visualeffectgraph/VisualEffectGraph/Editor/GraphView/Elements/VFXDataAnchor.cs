@@ -229,8 +229,10 @@ namespace UnityEditor.VFX.UI
             }
 
             VFXDataEdge dataEdge  = edge as VFXDataEdge;
+            bool exists = false;
             if (dataEdge.controller != null)
             {
+                exists = true;
                 view.controller.RemoveElement(dataEdge.controller);
             }
 
@@ -278,7 +280,7 @@ namespace UnityEditor.VFX.UI
                     startSlot.Link(parameter.outputSlots[0]);
                 }
             }
-            else
+            else if (!exists)
             {
                 VFXFilterWindow.Show(Event.current.mousePosition, new VFXNodeProvider(AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter) }));
             }

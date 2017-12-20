@@ -375,7 +375,7 @@ namespace UnityEditor.VFX.UI
         {
             BaseVisualElementPanel panel = this.panel as BaseVisualElementPanel;
 
-            panel.scheduler.ScheduleOnce(t => { panel.ValidateLayout(); FrameAll(); }, 100);
+            //panel.scheduler.ScheduleOnce(t => { panel.ValidateLayout(); FrameAll(); }, 100);
         }
 
         void NewControllerSet()
@@ -383,10 +383,6 @@ namespace UnityEditor.VFX.UI
             if (controller != null)
             {
                 m_NoAssetLabel.RemoveFromHierarchy();
-
-                BaseVisualElementPanel panel = this.panel as BaseVisualElementPanel;
-                if (panel != null)
-                    panel.scheduler.ScheduleOnce(t => { panel.ValidateLayout(); FrameAll(); }, 100);
 
                 pasteOffset = Vector2.zero; // if we change asset we want to paste exactly at the same place as the original asset the first time.
             }
@@ -397,6 +393,20 @@ namespace UnityEditor.VFX.UI
                     Add(m_NoAssetLabel);
                 }
             }
+        }
+
+        void OnFrameAfterRefresh(PostLayoutEvent e)
+        {
+            if (e.target == this)
+            {
+                UnregisterCallback<PostLayoutEvent>(OnFrameAfterRefresh);
+                FrameAll();
+            }
+        }
+
+        public void FrameNewController()
+        {
+            RegisterCallback<PostLayoutEvent>(OnFrameAfterRefresh);
         }
 
         Dictionary<VFXNodeController, GraphElement> rootSlotContainers

@@ -51,7 +51,16 @@ namespace  UnityEditor.VFX.UI
         {
             if (graphView.controller == null || graphView.controller.model != asset)
             {
+                bool differentAsset = asset != m_DisplayedAsset;
+
+                m_AssetName = asset.name;
+                m_DisplayedAsset = asset;
                 graphView.controller = VFXViewController.GetController(asset, true);
+
+                if (differentAsset)
+                {
+                    graphView.FrameNewController();
+                }
             }
         }
 
@@ -64,11 +73,9 @@ namespace  UnityEditor.VFX.UI
             {
                 selectedAsset = objs[0] as VFXAsset;
             }
-            else if (!string.IsNullOrEmpty(m_DisplayedAssetPath))
+            else if (m_DisplayedAsset != null)
             {
-                VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>(m_DisplayedAssetPath);
-
-                selectedAsset = asset;
+                selectedAsset = m_DisplayedAsset;
             }
             return selectedAsset;
         }
@@ -85,7 +92,7 @@ namespace  UnityEditor.VFX.UI
             VFXAsset currentAsset = GetCurrentAsset();
             if (currentAsset != null)
             {
-                graphView.controller = VFXViewController.GetController(currentAsset, true);
+                LoadAsset(currentAsset);
             }
 
             autoCompile = true;
@@ -121,13 +128,11 @@ namespace  UnityEditor.VFX.UI
             var objs = Selection.objects;
             if (objs != null && objs.Length == 1 && objs[0] is VFXAsset)
             {
-                m_DisplayedAssetPath = AssetDatabase.GetAssetPath(objs[0] as VFXAsset);
-
                 VFXViewController controller = graphView.controller;
 
                 if (controller == null || controller.model != objs[0] as VFXAsset)
                 {
-                    graphView.controller = VFXViewController.GetController(objs[0] as VFXAsset);
+                    LoadAsset(objs[0] as VFXAsset);
                 }
             }
         }
@@ -156,7 +161,7 @@ namespace  UnityEditor.VFX.UI
             if (controller != null && controller.model != null && controller.graph != null)
             {
                 var graph = controller.graph;
-                var filename = System.IO.Path.GetFileName(m_DisplayedAssetPath);
+                var filename = m_AssetName;
                 if (!graph.saved)
                 {
                     filename += "*";
@@ -168,6 +173,8 @@ namespace  UnityEditor.VFX.UI
         }
 
         [SerializeField]
-        private string m_DisplayedAssetPath;
+        private VFXAsset m_DisplayedAsset;
+
+        private string m_AssetName;
     }
 }
