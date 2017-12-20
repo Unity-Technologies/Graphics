@@ -1,41 +1,69 @@
-Pass
-{
-    Tags{"LightMode" = "ShadowCaster"}
+       Pass
+        {
+            Tags{"LightMode" = "ShadowCaster"}
 
-    ZWrite On ZTest LEqual
+            ZWrite On ZTest LEqual
 
-    CGPROGRAM
-    #pragma target 2.0
-    #pragma vertex ShadowPassVertex
-    #pragma fragment ShadowPassFragment
+            HLSLPROGRAM
+            // Required to compile gles 2.0 with standard srp library
+            #pragma prefer_hlslcc gles
+            #pragma target 2.0
+            #pragma vertex ShadowPassVertex
+            #pragma fragment ShadowPassFragment
 
-    #include "UnityCG.cginc"
-    #include "LightweightPassShadow.cginc"
-    ENDCG
-}
+            #include "LightweightPassShadow.hlsl"
+            ENDHLSL
+        }
 
-Pass
-{
-    Tags{"LightMode" = "DepthOnly"}
+        Pass
+        {
+            Tags{"LightMode" = "DepthOnly"}
 
-    ZWrite On
-    ColorMask 0
+            ZWrite On
+            ColorMask 0
 
-    CGPROGRAM
-    #pragma target 2.0
-    #pragma vertex vert
-    #pragma fragment frag
+            HLSLPROGRAM
+            // Required to compile gles 2.0 with standard srp library
+            #pragma prefer_hlslcc gles
+            #pragma target 2.0
+            #pragma vertex vert
+            #pragma fragment frag
 
-    #include "UnityCG.cginc"
+            #include "LightweightShaderLibrary/Core.hlsl"
 
-    float4 vert(float4 pos : POSITION) : SV_POSITION
-    {
-        return UnityObjectToClipPos(pos);
-    }
+            float4 vert(float4 pos : POSITION) : SV_POSITION
+            {
+                return TransformObjectToHClip(pos.xyz);
+            }
 
-    half4 frag() : SV_TARGET
-    {
-        return 0;
-    }
-    ENDCG
-}
+            half4 frag() : SV_TARGET
+            {
+                return 0;
+            }
+            ENDHLSL
+        }
+
+        // This pass it not used during regular rendering, only for lightmap baking.
+        Pass
+        {
+            Tags{"LightMode" = "Meta"}
+
+            Cull Off
+
+            HLSLPROGRAM
+            // Required to compile gles 2.0 with standard srp library
+            #pragma prefer_hlslcc gles
+
+            #pragma vertex LightweightVertexMeta
+            #pragma fragment LightweightFragmentMeta
+
+            #pragma shader_feature _EMISSION
+            #pragma shader_feature _METALLICSPECGLOSSMAP
+            #pragma shader_feature _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+            #pragma shader_feature EDITOR_VISUALIZATION
+
+            #pragma shader_feature _SPECGLOSSMAP
+
+            #include "LightweightPassMeta.hlsl"
+            ENDHLSL
+        }

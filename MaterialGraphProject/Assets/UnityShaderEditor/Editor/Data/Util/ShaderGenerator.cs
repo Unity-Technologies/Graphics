@@ -477,7 +477,9 @@ namespace UnityEditor.ShaderGraph
             {
                 var name = preferedCoordinateSpace.ToVariableName(InterpolatorType.ViewDirection);
                 interpolators.AddShaderChunk(string.Format("float3 {0} : TEXCOORD{1};", name, interpolatorIndex), false);
-                vertexShader.AddShaderChunk(string.Format("o.{0} = {1};", name, ConvertBetweenSpace("WorldSpaceViewDir(_WorldSpaceCameraPos.xyz, v.vertex)", CoordinateSpace.World, preferedCoordinateSpace, InputType.Vector)), false);
+
+                var worldSpaceViewDir = "SafeNormalize(_WorldSpaceCameraPos.xyz - mul(GetObjectToWorldMatrix(), float4(v.vertex.xyz, 1.0)).xyz)";
+                vertexShader.AddShaderChunk(string.Format("o.{0} = {1};", name, ConvertBetweenSpace(worldSpaceViewDir, CoordinateSpace.World, preferedCoordinateSpace, InputType.Vector)), false);
                 pixelShader.AddShaderChunk(string.Format("float3 {0} = normalize(IN.{0});", name), false);
                 interpolatorIndex++;
             }

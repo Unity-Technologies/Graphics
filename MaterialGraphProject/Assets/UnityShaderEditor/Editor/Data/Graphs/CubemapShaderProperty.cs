@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetPropertyDeclarationString()
         {
-            return "samplerCUBE " + referenceName + ";";
+            return string.Format("TEXTURECUBE({0});\nSAMPLER(sampler{0});", referenceName);
         }
 
         public override PreviewProperty GetPreviewMaterialProperty()
