@@ -310,7 +310,6 @@ namespace UnityEditor.VFX.UI
             this.nodeCreationRequest = OnCreateNode;
 
             RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
-            RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
         }
 
         void Delete(string cmd, AskUser askUser)
@@ -371,11 +370,9 @@ namespace UnityEditor.VFX.UI
             SelectionUpdated();
         }
 
-        void OnAttachToPanel(AttachToPanelEvent e)
+        public override void OnPersistentDataReady()
         {
-            BaseVisualElementPanel panel = this.panel as BaseVisualElementPanel;
-
-            //panel.scheduler.ScheduleOnce(t => { panel.ValidateLayout(); FrameAll(); }, 100);
+            // prevent default that messes with view restoration from the VFXViewWindow
         }
 
         void NewControllerSet()

@@ -110,12 +110,20 @@ namespace  UnityEditor.VFX.UI
             }
 
             currentWindow = this;
+
+            if (m_ViewScale != Vector3.zero)
+            {
+                graphView.UpdateViewTransform(m_ViewPosition, m_ViewScale);
+            }
         }
 
         protected void OnDisable()
         {
             if (graphView != null)
             {
+                m_ViewScale = graphView.contentViewContainer.transform.scale;
+                m_ViewPosition = graphView.contentViewContainer.transform.position;
+
                 graphView.UnregisterCallback<AttachToPanelEvent>(OnEnterPanel);
                 graphView.UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
                 graphView.controller = null;
@@ -174,6 +182,12 @@ namespace  UnityEditor.VFX.UI
 
         [SerializeField]
         private VFXAsset m_DisplayedAsset;
+
+        [SerializeField]
+        Vector3 m_ViewPosition;
+
+        [SerializeField]
+        Vector3 m_ViewScale;
 
         private string m_AssetName;
     }
