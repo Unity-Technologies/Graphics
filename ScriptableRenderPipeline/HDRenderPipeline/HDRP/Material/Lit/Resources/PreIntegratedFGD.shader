@@ -10,8 +10,8 @@ Shader "Hidden/HDRenderPipeline/PreIntegratedFGD"
             #pragma target 4.5
             #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
-            #include "ShaderLibrary/Common.hlsl"
-            #include "ShaderLibrary/ImageBasedLighting.hlsl"
+            #include "CoreRP/ShaderLibrary/Common.hlsl"
+            #include "CoreRP/ShaderLibrary/ImageBasedLighting.hlsl"
             #include "../../../ShaderVariables.hlsl"
 
             struct Attributes

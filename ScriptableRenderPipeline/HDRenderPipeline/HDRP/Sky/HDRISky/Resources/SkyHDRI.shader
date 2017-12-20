@@ -8,9 +8,9 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyHDRI"
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
-    #include "ShaderLibrary/Common.hlsl"
-    #include "ShaderLibrary/Color.hlsl"
-    #include "ShaderLibrary/CommonLighting.hlsl"
+    #include "CoreRP/ShaderLibrary/Common.hlsl"
+    #include "CoreRP/ShaderLibrary/Color.hlsl"
+    #include "CoreRP/ShaderLibrary/CommonLighting.hlsl"
 
     TEXTURECUBE(_Cubemap);
     SAMPLER(sampler_Cubemap);

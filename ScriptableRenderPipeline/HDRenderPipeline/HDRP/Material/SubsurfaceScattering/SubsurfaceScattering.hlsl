@@ -1,5 +1,5 @@
 #include "SubsurfaceScatteringSettings.cs.hlsl"
-#include "ShaderLibrary\Packing.hlsl"
+#include "CoreRP/ShaderLibrary/Packing.hlsl"
 #include "CommonSubsurfaceScattering.hlsl"
 
 // Subsurface scattering constant
