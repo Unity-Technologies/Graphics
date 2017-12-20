@@ -278,6 +278,8 @@ namespace UnityEditor.VFX.UI
                 {
                     VFXParameter parameter = viewController.AddVFXParameter(view.contentViewContainer.GlobalToBound(position) - new Vector2(360, 0), parameterDesc);
                     startSlot.Link(parameter.outputSlots[0]);
+
+                    CopyValueToParameter(parameter);
                 }
             }
             else if (!exists)
@@ -346,8 +348,28 @@ namespace UnityEditor.VFX.UI
                 if (slot.CanLink(mySlot))
                 {
                     slot.Link(mySlot);
-                    return;
+                    break;
                 }
+            }
+
+            // If linking to a new parameter, copy the slot value
+
+            if (direction == Direction.Input && result is VFXParameter)
+            {
+                VFXParameter parameter = result as VFXParameter;
+
+                CopyValueToParameter(parameter);
+            }
+        }
+
+        void CopyValueToParameter(VFXParameter parameter)
+        {
+            if (parameter.type == portType)
+            {
+                if (VFXConverter.CanConvert(parameter.type))
+                    parameter.value = VFXConverter.ConvertTo(controller.model.value, parameter.type);
+                else
+                    parameter.value = controller.model.value;
             }
         }
 

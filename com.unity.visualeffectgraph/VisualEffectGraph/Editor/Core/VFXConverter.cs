@@ -29,6 +29,17 @@ namespace UnityEditor.VFX.UI
 
     static class VFXConverter
     {
+        public static bool CanConvert(Type type)
+        {
+            return type == typeof(Color) ||
+                type == typeof(Vector4) ||
+                type == typeof(Vector3) ||
+                type == typeof(Position) ||
+                type == typeof(Vector) ||
+                type == typeof(Vector2) ||
+                type == typeof(float);
+        }
+
         public static T ConvertTo<T>(object value)
         {
             return (T)ConvertTo(value, typeof(T));
@@ -63,6 +74,10 @@ namespace UnityEditor.VFX.UI
             else if (type == typeof(Vector2))
             {
                 return ConvertToVector2(value);
+            }
+            else if (type == typeof(float))
+            {
+                return ConvertToFloat(value);
             }
             else
             {
@@ -213,6 +228,25 @@ namespace UnityEditor.VFX.UI
                 return val;
             }
             return (Vector2)value;
+        }
+
+        public static float ConvertToFloat(object value)
+        {
+            if (value is int)
+            {
+                return (float)(int)value;
+            }
+            else if (value is uint)
+            {
+                return (float)(uint)value;
+            }
+            else if (value is FloatN)
+            {
+                FloatN val = (FloatN)value;
+
+                return val;
+            }
+            return (float)value;
         }
 
         public static Position ConvertToPosition(object value)
