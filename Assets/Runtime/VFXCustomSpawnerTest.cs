@@ -14,18 +14,18 @@ namespace UnityEditor.VFX
             public float totalTime = 8;
         }
 
-        public override void OnPlay(VFXSpawnerState state, VFXExpressionValues vfxValues)
+        public override void OnPlay(VFXSpawnerState state, VFXExpressionValues vfxValues, VFXComponent vfxComponent)
         {
         }
 
-        public override void OnUpdate(VFXSpawnerState state, VFXExpressionValues vfxValues)
+        public override void OnUpdate(VFXSpawnerState state, VFXExpressionValues vfxValues, VFXComponent vfxComponent)
         {
             state.spawnCount = s_SpawnCount;
             state.totalTime = vfxValues.GetFloat("totalTime");
             state.vfxEventAttribute.SetFloat("lifetime", s_LifeTime);
         }
 
-        public override void OnStop(VFXSpawnerState state, VFXExpressionValues vfxValues)
+        public override void OnStop(VFXSpawnerState state, VFXExpressionValues vfxValues, VFXComponent vfxComponent)
         {
         }
     }
