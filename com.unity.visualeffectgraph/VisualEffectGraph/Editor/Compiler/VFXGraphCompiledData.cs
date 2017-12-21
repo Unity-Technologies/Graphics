@@ -346,13 +346,13 @@ namespace UnityEditor.VFX
 
         private static void FillEvent(List<VFXEventDesc> outEventDesc, Dictionary<VFXContext, SpawnInfo> contextSpawnToSpawnInfo, IEnumerable<VFXContext> contexts)
         {
-            var allStartNotLinked = contextSpawnToSpawnInfo.Where(o => !o.Key.inputFlowSlot[0].link.Any()).Select(o => (uint)o.Value.systemIndex).ToList();
+            var allPlayNotLinked = contextSpawnToSpawnInfo.Where(o => !o.Key.inputFlowSlot[0].link.Any()).Select(o => (uint)o.Value.systemIndex).ToList();
             var allStopNotLinked = contextSpawnToSpawnInfo.Where(o => !o.Key.inputFlowSlot[1].link.Any()).Select(o => (uint)o.Value.systemIndex).ToList();
 
             var eventDescTemp = new[]
             {
-                new { eventName = "OnStart", startSystems = allStartNotLinked, stopSystems = new List<uint>() },
-                new { eventName = "OnStop", startSystems = new List<uint>(), stopSystems = allStopNotLinked },
+                new { eventName = "OnPlay", playSystems = allPlayNotLinked, stopSystems = new List<uint>() },
+                new { eventName = "OnStop", playSystems = new List<uint>(), stopSystems = allStopNotLinked },
             }.ToList();
 
             var events = contexts.Where(o => o.contextType == VFXContextType.kEvent);
@@ -370,7 +370,7 @@ namespace UnityEditor.VFX
                             eventDescTemp.Add(new
                             {
                                 eventName = eventName,
-                                startSystems = new List<uint>(),
+                                playSystems = new List<uint>(),
                                 stopSystems = new List<uint>(),
                             });
                         }
@@ -379,7 +379,7 @@ namespace UnityEditor.VFX
                         var spawnerIndex = (uint)contextSpawnToSpawnInfo[link.context].systemIndex;
                         if (startSystem)
                         {
-                            eventDescTemp[eventIndex].startSystems.Add(spawnerIndex);
+                            eventDescTemp[eventIndex].playSystems.Add(spawnerIndex);
                         }
                         else
                         {
@@ -389,7 +389,7 @@ namespace UnityEditor.VFX
                 }
             }
             outEventDesc.Clear();
-            outEventDesc.AddRange(eventDescTemp.Select(o => new VFXEventDesc() { name = o.eventName, startSystems = o.startSystems.ToArray(), stopSystems = o.stopSystems.ToArray() }));
+            outEventDesc.AddRange(eventDescTemp.Select(o => new VFXEventDesc() { name = o.eventName, startSystems = o.playSystems.ToArray(), stopSystems = o.stopSystems.ToArray() }));
         }
 
         private static void GenerateShaders(List<GeneratedCodeData> outGeneratedCodeData, VFXExpressionGraph graph, IEnumerable<VFXContext> contexts, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)

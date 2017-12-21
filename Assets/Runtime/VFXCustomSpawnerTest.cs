@@ -14,7 +14,7 @@ namespace UnityEditor.VFX
             public float totalTime = 8;
         }
 
-        public override void OnStart(VFXSpawnerState state, VFXExpressionValues vfxValues)
+        public override void OnPlay(VFXSpawnerState state, VFXExpressionValues vfxValues)
         {
         }
 

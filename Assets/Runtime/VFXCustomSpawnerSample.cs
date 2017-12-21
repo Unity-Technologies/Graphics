@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
             public Gradient dummyZ = new Gradient();
         }
 
-        public override void OnStart(VFXSpawnerState state, VFXExpressionValues vfxValues)
+        public override void OnPlay(VFXSpawnerState state, VFXExpressionValues vfxValues)
         {
         }
 
