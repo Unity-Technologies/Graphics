@@ -1618,34 +1618,44 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         // 1. First process the projection
         float3 dirLS = mul(R, worldToLocal);
         float sphereOuterDistance = lightData.innerDistance.x;
-        float sphereInnerDistance = sphereOuterDistance - lightData.blendDistance.x;
-        float dist = SphereRayIntersectSimple(positionLS, dirLS, sphereOuterDistance);
-        dist = max(dist, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
+
+        float projectionDistance = SphereRayIntersectSimple(positionLS, dirLS, sphereOuterDistance);
+        projectionDistance = max(projectionDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.positionWS
-        R = (positionWS + dist * R) - lightData.positionWS;
+        R = (positionWS + projectionDistance * R) - lightData.positionWS;
 
         // Test again for clear code
         if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
         {
             dirLS = mul(coatR, worldToLocal);
-            dist = SphereRayIntersectSimple(positionLS, dirLS, sphereOuterDistance);
-            coatR = (positionWS + dist * coatR) - lightData.positionWS;
+            projectionDistance = SphereRayIntersectSimple(positionLS, dirLS, sphereOuterDistance);
+            coatR = (positionWS + projectionDistance * coatR) - lightData.positionWS;
         }
 
-        // 2. Process the influence
-        float distFade = max(length(positionLS) - sphereInnerDistance, 0.0);
-        weight = saturate(1.0 - distFade / max(lightData.blendDistance.x, 0.0001)); // avoid divide by zero
+        // 2. Process the position influence
+        float lengthPositionLS = length(positionLS);
+        float sphereInfluenceDistance = lightData.innerDistance.x - lightData.blendDistance.x;
+        float distFade = max(lengthPositionLS - sphereInfluenceDistance, 0.0);
+        float alpha = saturate(1.0 - distFade / max(lightData.blendDistance.x, 0.0001)); // avoid divide by zero
+
+        // 3. Process the normal influence
+        float insideInfluenceNormalVolume = lengthPositionLS <= (lightData.innerDistance.x - lightData.blendNormalDistance.x) ? 1.0 : 0.0;
+        float insideWeight = influenceFadeNormalWeight(bsdfData.normalWS, normalize(positionWS - lightData.positionWS));
+        alpha *= insideInfluenceNormalVolume ? 1.0 : insideWeight;
+
+        weight = alpha;
     }
     else if (envShapeType == ENVSHAPETYPE_BOX)
     {
+        // 1. First process the projection
         float3 dirLS = mul(R, worldToLocal);
-        float3 extents = lightData.innerDistance;
-        float extentHitDistance = BoxRayIntersectSimple(positionLS, dirLS, -extents, extents);
-        float projectionDist = max(extentHitDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
+        float3 boxOuterDistance = lightData.innerDistance;
+        float projectionDistance = BoxRayIntersectSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
+        projectionDistance = max(projectionDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
         
         // No need to normalize for fetching cubemap
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.positionWS
-        R = (positionWS + projectionDist * R) - lightData.positionWS;
+        R = (positionWS + projectionDistance * R) - lightData.positionWS;
 
         // TODO: add distance based roughness
 
@@ -1653,16 +1663,16 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
         {
             dirLS = mul(coatR, worldToLocal);
-            projectionDist = BoxRayIntersectSimple(positionLS, dirLS, -extents, extents);
-            coatR = (positionWS + projectionDist * coatR) - lightData.positionWS;
+            projectionDistance = BoxRayIntersectSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
+            coatR = (positionWS + projectionDistance * coatR) - lightData.positionWS;
         }
 
-        // Influence volume
+        // 2. Process the position influence
         // Calculate falloff value, so reflections on the edges of the volume would gradually blend to previous reflection.
 
         // Distance to each cube face
-        float3 negativeDistance = extents + positionLS;
-        float3 positiveDistance = extents - positionLS;
+        float3 negativeDistance = boxOuterDistance + positionLS;
+        float3 positiveDistance = boxOuterDistance - positionLS;
         
         // Influence falloff for each face
         float3 negativeFalloff = negativeDistance / max(0.0001, lightData.blendDistance2);
@@ -1675,7 +1685,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
         float alpha = saturate(influenceFalloff);
 
-        // Influence Normal volume
+        // 3. Process the normal influence
         // Calculate a falloff value to discard normals pointing outward the center of the environment light
         float3 belowPositiveInfluenceNormalVolume = positiveDistance / max(0.0001, lightData.blendNormalDistance);
         float3 aboveNegativeInfluenceNormalVolume = negativeDistance / max(0.0001, lightData.blendNormalDistance2);
@@ -1683,12 +1693,6 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         float insideWeight = influenceFadeNormalWeight(bsdfData.normalWS, normalize(positionWS - lightData.positionWS));
         alpha *= insideInfluenceNormalVolume ? 1.0 : insideWeight;
 
-        //float3 rn = normalize(R);
-        //float3 faceFade = saturate(float3(6.0, 6.0, 6.0) * rn - float3(2.0, 2.0, 2.0));
-        //faceFade += saturate(float3(-6.0, -6.0, -6.0) * rn - float3(2.0, 2.0, 2.0));
-        //alpha *= saturate(1.0 - (faceFade.x + faceFade.y + faceFade.z));
-
-        //weight = smoothstep(alpha, 0.0, 1.0);
         weight = alpha;
     }
 

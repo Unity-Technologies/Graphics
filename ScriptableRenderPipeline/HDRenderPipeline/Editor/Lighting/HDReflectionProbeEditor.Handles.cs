@@ -137,7 +137,7 @@ namespace UnityEditor.Experimental.Rendering
                 case ReflectionInfluenceShape.Sphere:
                 {
                     sphereHandle.center = sp.target.center;
-                    sphereHandle.radius = Mathf.Min(sp.targetData.influenceSphereRadius - probeBlendDistancePositive.x * 2, sp.targetData.influenceSphereRadius);
+                    sphereHandle.radius = Mathf.Clamp(sp.targetData.influenceSphereRadius - probeBlendDistancePositive.x, 0, sp.targetData.influenceSphereRadius);
 
                     Handles.color = k_GizmoThemeColorExtent;
                     EditorGUI.BeginChangeCheck();
@@ -151,12 +151,12 @@ namespace UnityEditor.Experimental.Rendering
                         var influenceRadius = sp.targetData.influenceSphereRadius;
                         var blendRadius = sphereHandle.radius;
 
-                        var blendDistance = Mathf.Max(0, (influenceRadius - blendRadius) * 0.5f);
+                        var blendDistance = Mathf.Clamp(influenceRadius - blendRadius, 0, influenceRadius);
 
                         probeBlendDistancePositive = Vector3.one * blendDistance;
                         probeBlendDistanceNegative = probeBlendDistancePositive;
 
-                            ApplyConstraintsOnTargets(s, sp, o);
+                        ApplyConstraintsOnTargets(s, sp, o);
 
                         EditorUtility.SetDirty(sp.target);
                         EditorUtility.SetDirty(sp.targetData);

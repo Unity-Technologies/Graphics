@@ -32,7 +32,7 @@
         public Vector3 boxBlendNormalSizeOffset { get { return -(blendNormalDistance + blendNormalDistance2); } }
 
 
-        public float sphereBlendRadiusOffset { get { return -blendDistance.x * 2; } }
-        public float sphereBlendNormalRadiusOffset { get { return -blendNormalDistance.x * 2; } }
+        public float sphereBlendRadiusOffset { get { return -blendDistance.x; } }
+        public float sphereBlendNormalRadiusOffset { get { return -blendNormalDistance.x; } }
     }
 }
