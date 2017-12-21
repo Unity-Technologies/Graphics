@@ -101,14 +101,18 @@ struct EnvLightData
     float unused0;
     float3 offsetLS;
     float unused1;
-    float3 blendDistance;
+    float3 blendDistancePositive;
     float unused2;
-    float3 blendDistance2;
+    float3 blendDistanceNegative;
     float unused3;
-    float3 blendNormalDistance;
+    float3 blendNormalDistancePositive;
     float unused4;
-    float3 blendNormalDistance2;
+    float3 blendNormalDistanceNegative;
     float unused5;
+    float3 boxSideFadePositive;
+    float unused6;
+    float3 boxSideFadeNegative;
+    float unused7;
 };
 
 //
@@ -298,37 +302,53 @@ float GetUnused1(EnvLightData value)
 {
 	return value.unused1;
 }
-float3 GetBlendDistance(EnvLightData value)
+float3 GetBlendDistancePositive(EnvLightData value)
 {
-	return value.blendDistance;
+	return value.blendDistancePositive;
 }
 float GetUnused2(EnvLightData value)
 {
 	return value.unused2;
 }
-float3 GetBlendDistance2(EnvLightData value)
+float3 GetBlendDistanceNegative(EnvLightData value)
 {
-	return value.blendDistance2;
+	return value.blendDistanceNegative;
 }
 float GetUnused3(EnvLightData value)
 {
 	return value.unused3;
 }
-float3 GetBlendNormalDistance(EnvLightData value)
+float3 GetBlendNormalDistancePositive(EnvLightData value)
 {
-	return value.blendNormalDistance;
+	return value.blendNormalDistancePositive;
 }
 float GetUnused4(EnvLightData value)
 {
 	return value.unused4;
 }
-float3 GetBlendNormalDistance2(EnvLightData value)
+float3 GetBlendNormalDistanceNegative(EnvLightData value)
 {
-	return value.blendNormalDistance2;
+	return value.blendNormalDistanceNegative;
 }
 float GetUnused5(EnvLightData value)
 {
 	return value.unused5;
+}
+float3 GetBoxSideFadePositive(EnvLightData value)
+{
+	return value.boxSideFadePositive;
+}
+float GetUnused6(EnvLightData value)
+{
+	return value.unused6;
+}
+float3 GetBoxSideFadeNegative(EnvLightData value)
+{
+	return value.boxSideFadeNegative;
+}
+float GetUnused7(EnvLightData value)
+{
+	return value.unused7;
 }
 
 

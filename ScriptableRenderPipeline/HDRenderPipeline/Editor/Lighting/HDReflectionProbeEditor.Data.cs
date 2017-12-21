@@ -41,10 +41,12 @@ namespace UnityEditor.Experimental.Rendering
             internal SerializedProperty boxReprojectionVolumeSize;
             internal SerializedProperty boxReprojectionVolumeCenter;
             internal SerializedProperty sphereReprojectionVolumeRadius;
-            internal SerializedProperty blendDistance;
-            internal SerializedProperty blendDistance2;
-            internal SerializedProperty blendNormalDistance;
-            internal SerializedProperty blendNormalDistance2;
+            internal SerializedProperty blendDistancePositive;
+            internal SerializedProperty blendDistanceNegative;
+            internal SerializedProperty blendNormalDistancePositive;
+            internal SerializedProperty blendNormalDistanceNegative;
+            internal SerializedProperty boxSideFadePositive;
+            internal SerializedProperty boxSideFadeNegative;
             internal SerializedProperty dimmer;
 
             public SerializedReflectionProbe(SerializedObject so, SerializedObject addso)
@@ -77,10 +79,12 @@ namespace UnityEditor.Experimental.Rendering
                 boxReprojectionVolumeCenter = addso.Find((HDAdditionalReflectionData d) => d.boxReprojectionVolumeCenter);
                 sphereReprojectionVolumeRadius = addso.Find((HDAdditionalReflectionData d) => d.sphereReprojectionVolumeRadius);
                 dimmer = addso.Find((HDAdditionalReflectionData d) => d.dimmer);
-                blendDistance = addso.Find((HDAdditionalReflectionData d) => d.blendDistance);
-                blendDistance2 = addso.Find((HDAdditionalReflectionData d) => d.blendDistance2);
-                blendNormalDistance = addso.Find((HDAdditionalReflectionData d) => d.blendNormalDistance);
-                blendNormalDistance2 = addso.Find((HDAdditionalReflectionData d) => d.blendNormalDistance2);
+                blendDistancePositive = addso.Find((HDAdditionalReflectionData d) => d.blendDistancePositive);
+                blendDistanceNegative = addso.Find((HDAdditionalReflectionData d) => d.blendDistanceNegative);
+                blendNormalDistancePositive = addso.Find((HDAdditionalReflectionData d) => d.blendNormalDistancePositive);
+                blendNormalDistanceNegative = addso.Find((HDAdditionalReflectionData d) => d.blendNormalDistanceNegative);
+                boxSideFadePositive = addso.Find((HDAdditionalReflectionData d) => d.boxSideFadePositive);
+                boxSideFadeNegative = addso.Find((HDAdditionalReflectionData d) => d.boxSideFadeNegative);
             }
         }
 

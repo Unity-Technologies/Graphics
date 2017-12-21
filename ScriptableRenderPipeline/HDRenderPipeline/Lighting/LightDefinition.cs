@@ -132,15 +132,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector3 offsetLS;
         public float unused1;
 
-        public Vector3 blendDistance; //+X,+Y,+Z
+        public Vector3 blendDistancePositive; //+X,+Y,+Z
         public float unused2;
-        public Vector3 blendDistance2; //-X,-Y,-Z
+        public Vector3 blendDistanceNegative; //-X,-Y,-Z
         public float unused3;
 
-        public Vector3 blendNormalDistance; //+X,+Y,+Z
+        public Vector3 blendNormalDistancePositive; //+X,+Y,+Z
         public float unused4;
-        public Vector3 blendNormalDistance2; //-X,-Y,-Z
+        public Vector3 blendNormalDistanceNegative; //-X,-Y,-Z
         public float unused5;
+
+        public Vector3 boxSideFadePositive; //+X,+Y,+Z
+        public float unused6;
+        public Vector3 boxSideFadeNegative; //-X,-Y,-Z
+        public float unused7;
     };
 
     // Usage of StencilBits.Lighting on 2 bits.
