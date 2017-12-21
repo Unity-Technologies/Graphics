@@ -299,6 +299,7 @@ namespace UnityEditor.Experimental.Rendering
         static readonly EditMode.SceneViewEditMode[] k_Toolbar_SceneViewEditModes =
         {
             EditMode.SceneViewEditMode.ReflectionProbeBox,
+            EditMode.SceneViewEditMode.GridBox,
             EditMode.SceneViewEditMode.Collider,
             EditMode.SceneViewEditMode.ReflectionProbeOrigin
         };
@@ -309,8 +310,9 @@ namespace UnityEditor.Experimental.Rendering
             {
                 return s_Toolbar_Contents ?? (s_Toolbar_Contents = new []
                 {
-                    EditorGUIUtility.IconContent("EditCollider", "|Modify the influence volume of the reflection probe."),
-                    EditorGUIUtility.IconContent("PreMatCube", "|Modify the influence normal volume of the reflection probe."),
+                    EditorGUIUtility.IconContent("EditCollider", "|Modify the extents of the reflection probe."),
+                    EditorGUIUtility.IconContent("PreMatCube", "|Modify the influence volume of the reflection probe."),
+                    EditorGUIUtility.IconContent("SceneViewOrtho", "|Modify the influence normal volume of the reflection probe."),
                     EditorGUIUtility.IconContent("MoveTool", "|Move the selected objects.")
                 });
             }
