@@ -20,7 +20,12 @@ void KMain(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, u
     float2 offset = float2(threadUL) * 2.0f + 1.0f;
     float4 depths = _Source.GatherRed(sampler_PointClamp, offset * _SrcSize.zw, 0.0);
 
+    // Select the nearest sample
+#if UNITY_REVERSED_Z
+    float minDepth = max(min(depths.x, depths.y), max(depths.z, depths.w));
+#else
     float minDepth = min(min(depths.x, depths.y), min(depths.z, depths.w));
+#endif
 
     // Write to the final target
     _Result[dispatchThreadId] = minDepth;
