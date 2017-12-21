@@ -213,7 +213,7 @@ void SampleAnisoGGXDir(real2 u,
     H = sqrt(u.x / (1.0 - u.x)) * (roughnessT * cos(TWO_PI * u.y) * tangentX + roughnessB * sin(TWO_PI * u.y) * tangentY) + N;
     H = normalize(H);
 
-    // Convert sample from real angle to incident angle
+    // Convert sample from half angle to incident angle
     L = 2.0 * saturate(dot(V, H)) * H - V;
 }
 
@@ -576,7 +576,7 @@ real4 IntegrateLD_MIS(TEXTURECUBE_ARGS(envMap, sampler_envMap),
         uint x = BinarySearchRow(y, s.y, conditionalDensities, width - 1);
 
         // Compute the coordinates of the sample.
-        // Note: we take the sample in between two texels, and also apply the real-texel offset.
+        // Note: we take the sample in between two texels, and also apply the half-texel offset.
         // We could compute fractional coordinates at the cost of 4 extra texel samples.
         real  u = saturate((real)x / width  + 1.0 / width);
         real  v = saturate((real)y / height + 1.0 / height);

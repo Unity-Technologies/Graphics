@@ -264,7 +264,7 @@ real3 GetViewReflectedNormal(real3 N, real3 V, out real NdotV)
     // For one, it does not solve the incorrect lookup direction problem, since the normal itself
     // is not modified. There is a more insidious issue, however. 'NdotV' is a constituent element
     // of the mathematical system describing the relationships between different vectors - and
-    // not just normal and view vectors, but also light vectors, real vectors, tangent vectors, etc.
+    // not just normal and view vectors, but also light vectors, half vectors, tangent vectors, etc.
     // Changing only one angle (or its cosine) leaves the system in an inconsistent state, where
     // certain relationships can take on different values depending on whether 'NdotV' is used
     // in the calculation or not. Therefore, it is important to change the normal (or another
