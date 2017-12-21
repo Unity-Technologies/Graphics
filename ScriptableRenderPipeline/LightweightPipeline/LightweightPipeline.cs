@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.XR;
@@ -171,6 +172,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_Asset = asset;
 
             BuildShadowSettings();
+            SetRenderingFeatures();
 
             PerFrameBuffer._GlossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
             PerFrameBuffer._SubtractiveShadowColor = Shader.PropertyToID("_SubtractiveShadowColor");
@@ -229,15 +231,30 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CoreUtils.Destroy(m_BlitMaterial);
         }
 
+        private void SetRenderingFeatures()
+        {
+#if UNITY_EDITOR
+            SupportedRenderingFeatures.active = new SupportedRenderingFeatures()
+            {
+                reflectionProbeSupportFlags = SupportedRenderingFeatures.ReflectionProbeSupportFlags.None,
+                defaultMixedLightingMode = SupportedRenderingFeatures.LightmapMixedBakeMode.Subtractive,
+                supportedMixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeMode.Subtractive,
+                supportedLightmapBakeTypes = LightmapBakeType.Baked | LightmapBakeType.Mixed,
+                supportedLightmapsModes = LightmapsMode.CombinedDirectional | LightmapsMode.NonDirectional,
+                rendererSupportsLightProbeProxyVolumes = false,
+                rendererSupportsMotionVectors = false,
+                rendererSupportsReceiveShadows = true,
+                rendererSupportsReflectionProbes = true
+            };
+#endif
+        }
+
         CullResults m_CullResults;
         public override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
             base.Render(context, cameras);
 
-            // TODO: This is at the moment required for all pipes. We should not implicitly change user project settings
-            // instead this should be forced when using SRP, since all SRP use linear lighting.
             GraphicsSettings.lightsUseLinearIntensity = true;
-
             SetupPerFrameShaderConstants();
 
             // Sort cameras array by camera depth
@@ -753,13 +770,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 // invAngleRange = 1.0 / (cosInnerAngle - cosOuterAngle)
                 // SdotL * invAngleRange + (-cosOuterAngle * invAngleRange)
                 // If we precompute the terms in a MAD instruction
-                float spotAngle = Mathf.Deg2Rad * lightData.spotAngle;
-                float cosOuterAngle = Mathf.Cos(spotAngle * 0.5f);
-                float cosInneAngle = Mathf.Cos(spotAngle * 0.25f);
-                float smoothAngleRange = cosInneAngle - cosOuterAngle;
-                if (Mathf.Approximately(smoothAngleRange, 0.0f))
-                    smoothAngleRange = 1.0f;
-
+                float cosOuterAngle = Mathf.Cos(Mathf.Deg2Rad * lightData.spotAngle * 0.5f);
+                float cosInneAngle = Mathf.Cos(LightmapperUtils.ExtractInnerCone(lightData.light) * 0.5f);
+                float smoothAngleRange = Mathf.Max(0.001f, cosInneAngle - cosOuterAngle);
                 float invAngleRange = 1.0f / smoothAngleRange;
                 float add = -cosOuterAngle * invAngleRange;
                 lightSpotAttenuation = new Vector4(invAngleRange, add, 0.0f);

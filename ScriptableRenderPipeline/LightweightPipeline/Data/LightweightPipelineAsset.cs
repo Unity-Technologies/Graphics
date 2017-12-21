@@ -57,11 +57,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private Shader m_DefaultShader;
         [SerializeField] private Shader m_BlitShader;
         [SerializeField] private Shader m_CopyDepthShader;
+        [SerializeField] private LightweightPipelineResource m_ResourceAsset;
 
 #if UNITY_EDITOR
-        [SerializeField] private Material m_DefaultMaterial;
-        [SerializeField] private Material m_DefaultParticleMaterial;
-        [SerializeField] private Material m_DefaultTerrainMaterial;
 
         [MenuItem("Assets/Create/Render Pipeline/Lightweight/Pipeline Asset", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateLightweightPipeline()
@@ -93,13 +91,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     resourceAsset = AssetDatabase.LoadAssetAtPath<LightweightPipelineResource>(path);
                 }
 
-                if (resourceAsset != null)
-                {
-                    instance.m_DefaultMaterial = resourceAsset.DefaultMaterial;
-                    instance.m_DefaultParticleMaterial = resourceAsset.DefaultParticleMaterial;
-                    instance.m_DefaultTerrainMaterial = resourceAsset.DefaultTerrainMaterial;
-                }
-
+                instance.m_ResourceAsset = resourceAsset;
                 instance.m_DefaultShader = Shader.Find(LightweightShaderUtils.GetShaderPath(ShaderPathID.STANDARD_PBS));
                 instance.m_BlitShader = Shader.Find(LightweightShaderUtils.GetShaderPath(ShaderPathID.HIDDEN_BLIT));
                 instance.m_CopyDepthShader = Shader.Find(LightweightShaderUtils.GetShaderPath(ShaderPathID.HIDDEN_DEPTH_COPY));
@@ -206,19 +198,19 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public override Material GetDefaultMaterial()
         {
 #if UNITY_EDITOR
-            return m_DefaultMaterial;
-#else
-            return null;
+            if (m_ResourceAsset != null)
+                return m_ResourceAsset.DefaultMaterial;
 #endif
+            return null;
         }
 
         public override Material GetDefaultParticleMaterial()
         {
 #if UNITY_EDITOR
-            return m_DefaultParticleMaterial;
-#else
-            return null;
+            if (m_ResourceAsset != null)
+                return m_ResourceAsset.DefaultParticleMaterial;
 #endif
+            return null;
         }
 
         public override Material GetDefaultLineMaterial()
@@ -229,10 +221,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public override Material GetDefaultTerrainMaterial()
         {
 #if UNITY_EDITOR
-            return m_DefaultTerrainMaterial;
-#else
-            return null;
+            if (m_ResourceAsset != null)
+                return m_ResourceAsset.DefaultTerrainMaterial;
 #endif
+            return null;
         }
 
         public override Material GetDefaultUIMaterial()
