@@ -26,9 +26,9 @@
         public Vector3 blendNormalDistance = Vector3.zero;
         public Vector3 blendNormalDistance2 = Vector3.zero;
 
-        public Vector3 boxBlendCenterOffset { get { return (-blendDistance + blendDistance2) * 0.5f; } }
+        public Vector3 boxBlendCenterOffset { get { return (blendDistance2 - blendDistance) * 0.5f; } }
         public Vector3 boxBlendSizeOffset { get { return -(blendDistance + blendDistance2); } }
-        public Vector3 boxBlendNormalCenterOffset { get { return -(blendNormalDistance + blendNormalDistance2) * 0.5f; } }
+        public Vector3 boxBlendNormalCenterOffset { get { return (blendNormalDistance2 - blendNormalDistance) * 0.5f; } }
         public Vector3 boxBlendNormalSizeOffset { get { return -(blendNormalDistance + blendNormalDistance2); } }
 
 

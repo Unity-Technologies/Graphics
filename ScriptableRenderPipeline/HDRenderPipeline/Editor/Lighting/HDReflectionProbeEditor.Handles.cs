@@ -152,8 +152,9 @@ namespace UnityEditor.Experimental.Rendering
                         var blendDistance = Mathf.Max(0, (influenceRadius - blendRadius) * 0.5f);
 
                         probeBlendDistancePositive = Vector3.one * blendDistance;
+                        probeBlendDistanceNegative = probeBlendDistancePositive;
 
-                        ApplyConstraintsOnTargets(s, sp, o);
+                            ApplyConstraintsOnTargets(s, sp, o);
 
                         EditorUtility.SetDirty(sp.target);
                         EditorUtility.SetDirty(sp.targetData);
@@ -177,7 +178,7 @@ namespace UnityEditor.Experimental.Rendering
                 case InfluenceType.Normal:
                 {
                     sp.targetData.blendNormalDistance = probeBlendDistancePositive;
-                    sp.targetData.blendNormalDistance2 = probeBlendDistancePositive;
+                    sp.targetData.blendNormalDistance2 = probeBlendDistanceNegative;
                     break;
                 }
             }
@@ -203,13 +204,13 @@ namespace UnityEditor.Experimental.Rendering
                         Undo.RecordObject(sp.target, "Modified Reflection Probe AABB");
                         Undo.RecordObject(sp.targetData, "Modified Reflection Probe AABB");
 
-                        var blendDistancePositive = Vector3.Min(sp.targetData.blendDistance, s.boxInfluenceHandle.size);
-                        var blendDistanceNegative = Vector3.Min(sp.targetData.blendDistance2, s.boxInfluenceHandle.size);
+                        var center = s.boxInfluenceHandle.center;
+                        var size = s.boxInfluenceHandle.size;
 
-                        sp.target.center = s.boxInfluenceHandle.center;
-                        sp.target.size = s.boxInfluenceHandle.size;
-                        sp.targetData.blendDistance = blendDistancePositive;
-                        sp.targetData.blendDistance2 = blendDistanceNegative;
+                        ValidateAABB(sp.target, ref center, ref size);
+
+                        sp.target.center = center;
+                        sp.target.size = size;
 
                         ApplyConstraintsOnTargets(s, sp, o);
 
@@ -250,59 +251,6 @@ namespace UnityEditor.Experimental.Rendering
             }
             Handles.matrix = mat;
             Handles.color = col;
-        }
-
-        static void ApplyConstraintsOnTargets(UIState s, SerializedReflectionProbe sp, Editor o)
-        {
-            switch ((ReflectionInfluenceShape)sp.influenceShape.enumValueIndex)
-            {
-                case ReflectionInfluenceShape.Box:
-                {
-                    var maxBlendDistance = CalculateBoxMaxBlendDistance(s, sp, o);
-                    sp.targetData.blendDistance = Vector3.Min(sp.targetData.blendDistance, maxBlendDistance);
-                    sp.targetData.blendDistance2 = Vector3.Min(sp.targetData.blendDistance2, maxBlendDistance);
-                    sp.targetData.blendNormalDistance = Vector3.Min(sp.targetData.blendNormalDistance, maxBlendDistance);
-                    sp.targetData.blendNormalDistance2 = Vector3.Min(sp.targetData.blendNormalDistance2, maxBlendDistance);
-                    break;
-                }
-                case ReflectionInfluenceShape.Sphere:
-                {
-                    var maxBlendDistance = Vector3.one * CalculateSphereMaxBlendDistance(s, sp, o);
-                    sp.targetData.blendDistance = Vector3.Min(sp.targetData.blendDistance, maxBlendDistance);
-                    sp.targetData.blendDistance2 = Vector3.Min(sp.targetData.blendDistance2, maxBlendDistance);
-                    sp.targetData.blendNormalDistance = Vector3.Min(sp.targetData.blendNormalDistance, maxBlendDistance);
-                    sp.targetData.blendNormalDistance2 = Vector3.Min(sp.targetData.blendNormalDistance2, maxBlendDistance);
-                    break;
-                }
-            }
-        }
-
-        void BakeRealtimeProbeIfPositionChanged(UIState s, SerializedReflectionProbe sp, Editor o)
-        {
-            if (Application.isPlaying 
-                || ((ReflectionProbeMode)sp.mode.intValue) != ReflectionProbeMode.Realtime)
-            {
-                m_PositionHash = 0;
-                return;
-            }
-
-            var hash = 0;
-            for (var i = 0; i < sp.so.targetObjects.Length; i++)
-            {
-                var p = (ReflectionProbe)sp.so.targetObjects[i];
-                var tr = p.GetComponent<Transform>();
-                hash ^= tr.position.GetHashCode();
-            }
-
-            if (hash != m_PositionHash)
-            {
-                m_PositionHash = hash;
-                for (var i = 0; i < sp.so.targetObjects.Length; i++)
-                {
-                    var p = (ReflectionProbe)sp.so.targetObjects[i];
-                    p.RenderProbe();
-                }
-            }
         }
 
         static void Handle_OriginEditing(UIState s, SerializedReflectionProbe sp, Editor o)
