@@ -49,6 +49,14 @@ namespace UnityEditor.VFX
         [StringProvider(typeof(AttributeProvider))]
         public string attribute = VFXAttribute.All.First();
 
+        protected override IEnumerable<VFXPropertyWithValue> outputProperties
+        {
+            get
+            {
+                var attribute = VFXAttribute.Find(this.attribute);
+                yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(attribute.type), attribute.name));
+            }
+        }
 
         override public string name { get { return string.Format("{0} {1}", location.ToString(), attribute); } }
 

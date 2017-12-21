@@ -13,9 +13,6 @@ namespace UnityEditor.VFX
             m_UICollapsed = false;
         }
 
-        protected override IEnumerable<VFXPropertyWithValue> inputProperties { get { return PropertiesFromSlotsOrDefaultFromClass(VFXSlot.Direction.kInput); } }
-        protected override IEnumerable<VFXPropertyWithValue> outputProperties { get { return PropertiesFromSlotsOrDefaultFromClass(VFXSlot.Direction.kOutput); } }
-
         protected IEnumerable<VFXExpression> GetRawInputExpressions()
         {
             List<VFXExpression> results = new List<VFXExpression>();
@@ -48,8 +45,9 @@ namespace UnityEditor.VFX
         protected override void ResyncSlots(bool notify)
         {
             base.ResyncSlots(notify);
-            foreach (var slot in outputSlots) // invalidate expressions on output slots
-                slot.InvalidateExpressionTree();
+            if (notify)
+                foreach (var slot in outputSlots) // invalidate expressions on output slots
+                    slot.InvalidateExpressionTree();
         }
 
         sealed override protected void OnInvalidate(VFXModel model, InvalidationCause cause)

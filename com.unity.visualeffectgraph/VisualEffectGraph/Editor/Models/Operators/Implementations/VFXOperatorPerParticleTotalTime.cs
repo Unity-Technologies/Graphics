@@ -6,6 +6,11 @@ namespace UnityEditor.VFX
     [VFXInfo(category = "Time")]
     class VFXOperatorPerParticleTotalTime : VFXOperator
     {
+        public class OutputProperties
+        {
+            public float t;
+        }
+
         public override string name
         {
             get
@@ -13,6 +18,7 @@ namespace UnityEditor.VFX
                 return "Total Time (Per-Particle)";
             }
         }
+
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             VFXExpression[] output = new VFXExpression[] {

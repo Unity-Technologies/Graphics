@@ -18,6 +18,11 @@ namespace UnityEditor.VFX
             public Vector2 Range = new Vector2(0.0f, 1.0f);
         }
 
+        public class OutputProperties
+        {
+            public float t;
+        }
+
         public override string name
         {
             get

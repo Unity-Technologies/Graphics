@@ -15,6 +15,11 @@ namespace UnityEditor.VFX
             public Vector vector = new Vector();
         }
 
+        public class OutputProperties
+        {
+            public Vector3 tVec;
+        }
+
         override public string name { get { return "Transform (Vector)"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

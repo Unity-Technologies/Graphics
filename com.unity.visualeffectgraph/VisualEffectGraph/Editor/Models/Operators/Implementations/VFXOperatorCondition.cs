@@ -22,7 +22,7 @@ namespace UnityEditor.VFX
         public class OutputProperties
         {
             [Tooltip("The result of the comparison.")]
-            public float res;
+            public bool res;
         }
 
         override public string name { get { return "Compare"; } }

@@ -15,6 +15,11 @@ namespace UnityEditor.VFX
             public float distance = 1.0f;
         }
 
+        public class OutputProperties
+        {
+            public Vector2 coord;
+        }
+
         override public string name { get { return "Polar to Rectangular"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
