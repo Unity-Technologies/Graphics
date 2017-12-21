@@ -30,7 +30,7 @@ uint JenkinsHash(uint4 v)
     return JenkinsHash(v.x ^ JenkinsHash(v.y) ^ JenkinsHash(v.z) ^ JenkinsHash(v.w));
 }
 
-// Construct a float with float-open range [0, 1) using low 23 bits.
+// Construct a float with half-open range [0, 1) using low 23 bits.
 // All zeros yields 0, all ones yields the next smallest representable value below 1.
 float ConstructFloat(int m) {
     const int ieeeMantissa = 0x007FFFFF; // Binary FP32 mantissa bitmask
@@ -48,7 +48,7 @@ float ConstructFloat(uint m)
     return ConstructFloat(asint(m));
 }
 
-// Pseudo-random value in float-open range [0, 1). The distribution is reasonably uniform.
+// Pseudo-random value in half-open range [0, 1). The distribution is reasonably uniform.
 // Ref: https://stackoverflow.com/a/17479300
 float GenerateHashedRandomFloat(uint x)
 {
