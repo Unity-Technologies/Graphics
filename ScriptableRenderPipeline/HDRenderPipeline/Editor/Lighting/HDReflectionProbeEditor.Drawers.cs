@@ -328,19 +328,7 @@ namespace UnityEditor.Experimental.Rendering
             GUI.changed = false;
             var oldEditMode = EditMode.editMode;
 
-            Func<Bounds> getBounds = () =>
-            {
-                var bounds = new Bounds();
-                foreach (var targetObject in p.so.targetObjects)
-                {
-                    var rp = (ReflectionProbe)targetObject;
-                    var b = rp.bounds;
-                    bounds.Encapsulate(b);
-                }
-                return bounds;
-            };
-
-            EditMode.DoInspectorToolbar(k_Toolbar_SceneViewEditModes, toolbar_Contents, getBounds, owner);
+            EditMode.DoInspectorToolbar(k_Toolbar_SceneViewEditModes, toolbar_Contents, GetBoundsGetter(p), owner);
 
             //if (GUILayout.Button(EditorGUIUtility.IconContent("Navigation", "|Fit the reflection probe volume to the surrounding colliders.")))
             //    s.AddOperation(Operation.FitVolumeToSurroundings);
@@ -357,6 +345,21 @@ namespace UnityEditor.Experimental.Rendering
 
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
+        }
+
+        static Func<Bounds> GetBoundsGetter(SerializedReflectionProbe p)
+        {
+            return () =>
+            {
+                var bounds = new Bounds();
+                foreach (var targetObject in p.so.targetObjects)
+                {
+                    var rp = (ReflectionProbe)targetObject;
+                    var b = rp.bounds;
+                    bounds.Encapsulate(b);
+                }
+                return bounds;
+            };
         }
         #endregion
 

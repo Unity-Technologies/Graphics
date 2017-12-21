@@ -91,6 +91,8 @@ namespace UnityEditor.Experimental.Rendering
             serializedObject.ApplyModifiedProperties();
 
             HideAdditionalComponents(false);
+
+            DoShortcutKey(p, this);
         }
 
         static void PerformOperations(UIState s, SerializedReflectionProbe p, HDReflectionProbeEditor o)
@@ -300,6 +302,32 @@ namespace UnityEditor.Experimental.Rendering
                     sp.targetData.blendDistance2 = Vector3.Min(sp.targetData.blendDistance2, maxBlendDistance);
                     sp.targetData.blendNormalDistance = Vector3.Min(sp.targetData.blendNormalDistance, maxBlendDistance);
                     sp.targetData.blendNormalDistance2 = Vector3.Min(sp.targetData.blendNormalDistance2, maxBlendDistance);
+                    break;
+                }
+            }
+        }
+
+        static readonly KeyCode[] k_ShortCutKeys =
+        {
+            KeyCode.Alpha1,
+            KeyCode.Alpha2,
+            KeyCode.Alpha3,
+        };
+        static void DoShortcutKey(SerializedReflectionProbe p, Editor o)
+        {
+            var evt = Event.current;
+            if (evt.type != EventType.KeyDown || !evt.shift)
+                return;
+
+            for (var i = 0; i < k_ShortCutKeys.Length; ++i)
+            {
+                if (evt.keyCode == k_ShortCutKeys[i])
+                {
+                    var mode = EditMode.editMode == k_Toolbar_SceneViewEditModes[i]
+                        ? EditMode.SceneViewEditMode.None
+                        : k_Toolbar_SceneViewEditModes[i];
+                    EditMode.ChangeEditMode(mode, GetBoundsGetter(p)(), o);
+                    evt.Use();
                     break;
                 }
             }
