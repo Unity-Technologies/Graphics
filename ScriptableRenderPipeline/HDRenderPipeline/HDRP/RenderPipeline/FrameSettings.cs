@@ -14,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static string kEnableSSSAndTransmission = "Enable SSS and Transmission";
 
         public static string kForwardOnly = "Forward Only";
-        public static string kDeferredDepthPrePass = "Deferred Depth Prepass";
+        public static string kDeferredDepthPrepass = "Deferred Depth Prepass";
         public static string kDeferredDepthPrepassATestOnly = "Deferred Depth Prepass ATest Only";
 
         public static string KEnableTransparentPrepass = "Enable Transparent Prepass";
@@ -52,13 +52,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableDepthPrepassWithDeferredRendering = false;
         public bool enableAlphaTestOnlyInDeferredPrepass = false;
 
-        public bool enableTransparentPrePass = true;
+        public bool enableTransparentPrepass = true;
         public bool enableMotionVectors = true; // Enable/disable whole motion vectors pass (Camera + Object).
         public bool enableObjectMotionVectors = true;
         public bool enableDBuffer = true;
         public bool enableAtmosphericScattering = true;
         public bool enableRoughRefraction = true; // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable rough refraction ?
-        public bool enableTransparentPostPass = true;
+        public bool enableTransparentPostpass = true;
         public bool enableDistortion = true;
         public bool enablePostprocess = true;
 
@@ -88,13 +88,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frameSettings.enableDepthPrepassWithDeferredRendering = this.enableDepthPrepassWithDeferredRendering;
             frameSettings.enableAlphaTestOnlyInDeferredPrepass = this.enableAlphaTestOnlyInDeferredPrepass;
 
-            frameSettings.enableTransparentPrePass = this.enableTransparentPrePass;
+            frameSettings.enableTransparentPrepass = this.enableTransparentPrepass;
             frameSettings.enableMotionVectors = this.enableMotionVectors;
             frameSettings.enableObjectMotionVectors = this.enableObjectMotionVectors;
             frameSettings.enableDBuffer = this.enableDBuffer;
             frameSettings.enableAtmosphericScattering = this.enableAtmosphericScattering;
             frameSettings.enableRoughRefraction = this.enableRoughRefraction;
-            frameSettings.enableTransparentPostPass = this.enableTransparentPostPass;
+            frameSettings.enableTransparentPostpass = this.enableTransparentPostpass;
             frameSettings.enableDistortion = this.enableDistortion;
             frameSettings.enablePostprocess = this.enablePostprocess;
 
@@ -142,13 +142,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enableDepthPrepassWithDeferredRendering = frameSettings.enableDepthPrepassWithDeferredRendering;
             aggregate.enableAlphaTestOnlyInDeferredPrepass = frameSettings.enableAlphaTestOnlyInDeferredPrepass;
 
-            aggregate.enableTransparentPrePass = frameSettings.enableTransparentPrePass;
+            aggregate.enableTransparentPrepass = frameSettings.enableTransparentPrepass;
             aggregate.enableMotionVectors = camera.cameraType == CameraType.Reflection ? false : frameSettings.enableMotionVectors;
             aggregate.enableObjectMotionVectors = camera.cameraType == CameraType.Reflection ? false : frameSettings.enableObjectMotionVectors;
             aggregate.enableDBuffer = frameSettings.enableDBuffer && renderPipelineSettings.supportDBuffer;
             aggregate.enableAtmosphericScattering = frameSettings.enableAtmosphericScattering;
             aggregate.enableRoughRefraction = frameSettings.enableRoughRefraction;
-            aggregate.enableTransparentPostPass = frameSettings.enableTransparentPostPass;
+            aggregate.enableTransparentPostpass = frameSettings.enableTransparentPostpass;
             aggregate.enableDistortion = camera.cameraType == CameraType.Reflection ? false : frameSettings.enableDistortion;
 
             // Planar and real time cubemap doesn't need post process and render in FP16
@@ -184,13 +184,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kDeferredDepthPrepassATestOnly, () => frameSettings.enableDepthPrepassWithDeferredRendering, (value) => frameSettings.enableDepthPrepassWithDeferredRendering = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, KEnableTransparentPrepass, () => frameSettings.enableAlphaTestOnlyInDeferredPrepass, (value) => frameSettings.enableAlphaTestOnlyInDeferredPrepass = (bool)value);
 
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, KEnableTransparentPrepass, () => frameSettings.enableTransparentPrePass, (value) => frameSettings.enableTransparentPrePass = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>(menuName, KEnableTransparentPrepass, () => frameSettings.enableTransparentPrepass, (value) => frameSettings.enableTransparentPrepass = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableMotionVectors, () => frameSettings.enableMotionVectors, (value) => frameSettings.enableMotionVectors = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, KEnableObjectMotionVectors, () => frameSettings.enableObjectMotionVectors, (value) => frameSettings.enableObjectMotionVectors = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableDBuffer, () => frameSettings.enableDBuffer, (value) => frameSettings.enableDBuffer = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableAtmosphericScattering, () => frameSettings.enableAtmosphericScattering, (value) => frameSettings.enableAtmosphericScattering = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableRoughRefraction, () => frameSettings.enableRoughRefraction, (value) => frameSettings.enableRoughRefraction = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableTransparentPostpass, () => frameSettings.enableTransparentPostPass, (value) => frameSettings.enableTransparentPostPass = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableTransparentPostpass, () => frameSettings.enableTransparentPostpass, (value) => frameSettings.enableTransparentPostpass = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableDistortion, () => frameSettings.enableDistortion, (value) => frameSettings.enableDistortion = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnablePostprocess, () => frameSettings.enablePostprocess, (value) => frameSettings.enablePostprocess = (bool)value);
 
