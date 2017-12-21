@@ -13,7 +13,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         protected static class StylesBaseLit
         {
-            public static GUIContent doubleSidedNormalModeText = new GUIContent("Normal mode", "This will modify the normal base on the selected mode. None: untouch, Mirror: Mirror the normal with vertex normal plane, Flip: Flip the normal");
+            public static GUIContent doubleSidedNormalModeText = new GUIContent("Normal mode", "This will modify the normal base on the selected mode. Mirror: Mirror the normal with vertex normal plane, Flip: Flip the normal");
             public static GUIContent depthOffsetEnableText = new GUIContent("Enable Depth Offset", "EnableDepthOffset on this shader (Use with heightmap)");
 
             // Displacement mapping (POM, tessellation, per vertex)
@@ -61,7 +61,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public enum DoubleSidedNormalMode
         {
-           None,
            Mirror,
            Flip
         }
@@ -311,10 +310,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 DoubleSidedNormalMode doubleSidedNormalMode = (DoubleSidedNormalMode)material.GetFloat(kDoubleSidedNormalMode);
                 switch (doubleSidedNormalMode)
                 {
-                    case DoubleSidedNormalMode.None:
-                        material.SetVector("_DoubleSidedConstants", new Vector4(1.0f, 1.0f, 1.0f, 0.0f));
-                        break;
-
                     case DoubleSidedNormalMode.Mirror: // Mirror mode (in tangent space)
                         material.SetVector("_DoubleSidedConstants", new Vector4(1.0f, 1.0f, -1.0f, 0.0f));
                         break;
