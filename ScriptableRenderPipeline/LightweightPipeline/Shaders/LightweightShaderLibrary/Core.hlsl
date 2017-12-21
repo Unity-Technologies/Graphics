@@ -1,8 +1,8 @@
 #ifndef LIGHTWEIGHT_PIPELINE_CORE_INCLUDED
 #define LIGHTWEIGHT_PIPELINE_CORE_INCLUDED
 
-#include "ShaderLibrary/Common.hlsl"
-#include "ShaderLibrary/Packing.hlsl"
+#include "CoreRP/ShaderLibrary/Common.hlsl"
+#include "CoreRP/ShaderLibrary/Packing.hlsl"
 #include "Input.hlsl"
 
 #ifdef _NORMALMAP

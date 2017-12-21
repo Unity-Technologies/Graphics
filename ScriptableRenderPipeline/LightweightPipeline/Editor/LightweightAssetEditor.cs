@@ -9,7 +9,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             public static GUIContent renderingLabel = new GUIContent("Rendering");
             public static GUIContent shadowLabel = new GUIContent("Shadows");
-            public static GUIContent defaults = new GUIContent("Default Materials");
 
             public static GUIContent renderScaleLabel = new GUIContent("Render Scale", "Scales the camera render target allowing the game to render at a resolution different than native resolution. UI is always rendered at native resolution. When in VR mode, VR scaling configuration is used instead.");
 
@@ -38,15 +37,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent shadowCascadeSplit = new GUIContent("Cascades Split",
                     "Percentages to split shadow volume");
 
-            public static GUIContent defaultMaterial = new GUIContent("Mesh",
-                    "Material to use when creating 3D objects");
-
-            public static GUIContent defaultParticleMaterial = new GUIContent("Particles",
-                    "Material to use when creating Particle Systems");
-
-            public static GUIContent defaultTerrainMaterial = new GUIContent("Terrain",
-                    "Material to use in Terrains");
-
             public static GUIContent msaaContent = new GUIContent("Anti Aliasing (MSAA)", "Controls the global anti aliasing settings.");
 
             public static string[] shadowTypeOptions = {"No Shadows", "Hard Shadows", "Hard and Soft Shadows"};
@@ -67,9 +57,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private SerializedProperty m_ShadowCascadesProp;
         private SerializedProperty m_ShadowCascade2SplitProp;
         private SerializedProperty m_ShadowCascade4SplitProp;
-        private SerializedProperty m_DefaultMaterial;
-        private SerializedProperty m_DefaultParticleMaterial;
-        private SerializedProperty m_DefaultTerrainMaterial;
         private SerializedProperty m_MSAA;
 
         void OnEnable()
@@ -85,9 +72,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_ShadowCascadesProp = serializedObject.FindProperty("m_ShadowCascades");
             m_ShadowCascade2SplitProp = serializedObject.FindProperty("m_Cascade2Split");
             m_ShadowCascade4SplitProp = serializedObject.FindProperty("m_Cascade4Split");
-            m_DefaultMaterial = serializedObject.FindProperty("m_DefaultMaterial");
-            m_DefaultParticleMaterial = serializedObject.FindProperty("m_DefaultParticleMaterial");
-            m_DefaultTerrainMaterial = serializedObject.FindProperty("m_DefaultTerrainMaterial");
             m_MSAA = serializedObject.FindProperty("m_MSAA");
         }
 
@@ -95,6 +79,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             var mode = property.intValue;
             EditorGUI.BeginChangeCheck();
+
+            if (mode >= options.Length)
+                Debug.LogError(string.Format("Invalid option while trying to set {0}", label.text));
+
             mode = EditorGUILayout.Popup(label, mode, options);
             if (EditorGUI.EndChangeCheck())
             {
@@ -145,14 +133,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 EditorGUILayout.PropertyField(m_ShadowCascade2SplitProp, Styles.shadowCascadeSplit);
             }
 
-            EditorGUI.indentLevel--;
-
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(Styles.defaults, EditorStyles.boldLabel);
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(m_DefaultMaterial, Styles.defaultMaterial);
-            EditorGUILayout.PropertyField(m_DefaultParticleMaterial, Styles.defaultParticleMaterial);
-            EditorGUILayout.PropertyField(m_DefaultTerrainMaterial, Styles.defaultTerrainMaterial);
             EditorGUI.indentLevel--;
 
             serializedObject.ApplyModifiedProperties();
