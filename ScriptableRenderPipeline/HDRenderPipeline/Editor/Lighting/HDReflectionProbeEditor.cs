@@ -289,19 +289,19 @@ namespace UnityEditor.Experimental.Rendering
                 case ReflectionInfluenceShape.Box:
                 {
                     var maxBlendDistance = CalculateBoxMaxBlendDistance(s, sp, o);
-                    sp.targetData.blendDistance = Vector3.Min(sp.targetData.blendDistance, maxBlendDistance);
-                    sp.targetData.blendDistance2 = Vector3.Min(sp.targetData.blendDistance2, maxBlendDistance);
-                    sp.targetData.blendNormalDistance = Vector3.Min(sp.targetData.blendNormalDistance, maxBlendDistance);
-                    sp.targetData.blendNormalDistance2 = Vector3.Min(sp.targetData.blendNormalDistance2, maxBlendDistance);
+                    sp.targetData.blendDistancePositive = Vector3.Min(sp.targetData.blendDistancePositive, maxBlendDistance);
+                    sp.targetData.blendDistanceNegative = Vector3.Min(sp.targetData.blendDistanceNegative, maxBlendDistance);
+                    sp.targetData.blendNormalDistancePositive = Vector3.Min(sp.targetData.blendNormalDistancePositive, maxBlendDistance);
+                    sp.targetData.blendNormalDistanceNegative = Vector3.Min(sp.targetData.blendNormalDistanceNegative, maxBlendDistance);
                     break;
                 }
                 case ReflectionInfluenceShape.Sphere:
                 {
                     var maxBlendDistance = Vector3.one * CalculateSphereMaxBlendDistance(s, sp, o);
-                    sp.targetData.blendDistance = Vector3.Min(sp.targetData.blendDistance, maxBlendDistance);
-                    sp.targetData.blendDistance2 = Vector3.Min(sp.targetData.blendDistance2, maxBlendDistance);
-                    sp.targetData.blendNormalDistance = Vector3.Min(sp.targetData.blendNormalDistance, maxBlendDistance);
-                    sp.targetData.blendNormalDistance2 = Vector3.Min(sp.targetData.blendNormalDistance2, maxBlendDistance);
+                    sp.targetData.blendDistancePositive = Vector3.Min(sp.targetData.blendDistancePositive, maxBlendDistance);
+                    sp.targetData.blendDistanceNegative = Vector3.Min(sp.targetData.blendDistanceNegative, maxBlendDistance);
+                    sp.targetData.blendNormalDistancePositive = Vector3.Min(sp.targetData.blendNormalDistancePositive, maxBlendDistance);
+                    sp.targetData.blendNormalDistanceNegative = Vector3.Min(sp.targetData.blendNormalDistanceNegative, maxBlendDistance);
                     break;
                 }
             }

@@ -207,47 +207,62 @@ namespace UnityEditor.Experimental.Rendering
             return group.isExpanded;
         }
 
-        static readonly GUIContent[] k_DrawVector6Slider_Labels =
+        static readonly GUIContent[] k_DrawVector6Slider_LabelPositives =
         {
             new GUIContent("+X"),
             new GUIContent("+Y"),
             new GUIContent("+Z"),
+        };
+        static readonly GUIContent[] k_DrawVector6Slider_LabelNegatives =
+        {
             new GUIContent("-X"),
             new GUIContent("-Y"),
             new GUIContent("-Z"),
         };
+        const int k_DrawVector6Slider_LabelSize = 60;
+        const int k_DrawVector6Slider_FieldSize = 80;
         public static void DrawVector6Slider(GUIContent label, SerializedProperty positive, SerializedProperty negative, Vector3 min, Vector3 max)
         {
             GUILayout.BeginVertical();
-            negative.isExpanded = EditorGUILayout.Foldout(negative.isExpanded, label, true);
-            if (negative.isExpanded)
-            {
-                var labelWidth = EditorGUIUtility.labelWidth;
-                EditorGUIUtility.labelWidth = 60;
+            EditorGUILayout.LabelField(label);
+            ++EditorGUI.indentLevel;
 
-                ++EditorGUI.indentLevel;
-                GUILayout.BeginHorizontal();
-                var v = positive.vector3Value;
-                EditorGUI.BeginChangeCheck();
-                for (var i = 0; i < 3; ++i)
-                    v[i] = EditorGUILayout.Slider(k_DrawVector6Slider_Labels[i], v[i], min[i], max[i]);
-                if (EditorGUI.EndChangeCheck())
-                    positive.vector3Value = v;
-                GUILayout.EndHorizontal();
+            var rect = GUILayoutUtility.GetRect(0, float.MaxValue, EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight);
+            var v = positive.vector3Value;
+            EditorGUI.BeginChangeCheck();
+            v = DrawVector3Slider(rect, k_DrawVector6Slider_LabelPositives, v, min, max);
+            if (EditorGUI.EndChangeCheck())
+                positive.vector3Value = v;
 
-                GUILayout.BeginHorizontal();
-                v = negative.vector3Value;
-                EditorGUI.BeginChangeCheck();
-                for (var i = 0; i < 3; ++i)
-                    v[i] = EditorGUILayout.Slider(k_DrawVector6Slider_Labels[i + 3], v[i], min[i], max[i]);
-                if (EditorGUI.EndChangeCheck())
-                    negative.vector3Value = v;
-                GUILayout.EndHorizontal();
-                --EditorGUI.indentLevel;
+            GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
-                EditorGUIUtility.labelWidth = labelWidth;
-            }
+            rect = GUILayoutUtility.GetRect(0, float.MaxValue, EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight);
+            v = negative.vector3Value;
+            EditorGUI.BeginChangeCheck();
+            v = DrawVector3Slider(rect, k_DrawVector6Slider_LabelNegatives, v, min, max);
+            if (EditorGUI.EndChangeCheck())
+                negative.vector3Value = v;
+            --EditorGUI.indentLevel;
             GUILayout.EndVertical();
+        }
+
+        static Vector3 DrawVector3Slider(Rect rect, GUIContent[] labels, Vector3 value, Vector3 min, Vector3 max)
+        {
+            // Use a corrected width due to the hacks used for layouting the slider properly below
+            rect.width -= 20;
+            var fieldWidth = rect.width / 3f;
+
+            for (var i = 0; i < 3; ++i)
+            {
+                var c = new Rect(rect.x + fieldWidth * i, rect.y, fieldWidth, rect.height);
+                var labelRect = new Rect(c.x, c.y, k_DrawVector6Slider_LabelSize, c.height);
+                var sliderRect = new Rect(labelRect.x + labelRect.width, c.y, c.width - k_DrawVector6Slider_LabelSize - k_DrawVector6Slider_FieldSize + 45, c.height);
+                var fieldRect = new Rect(sliderRect.x + sliderRect.width - 25, c.y, k_DrawVector6Slider_FieldSize, c.height);
+                EditorGUI.LabelField(labelRect, labels[i]);
+                value[i] = GUI.HorizontalSlider(sliderRect, value[i], min[i], max[i]);
+                value[i] = EditorGUI.FloatField(fieldRect, value[i]);
+            }
+            return value;
         }
 
         public static void RemoveMaterialKeywords(Material material)

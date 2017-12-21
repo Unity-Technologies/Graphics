@@ -32,7 +32,7 @@ namespace UnityEditor.Experimental.Rendering
 
         static readonly CED.IDrawer k_InfluenceVolumeSection = CED.FoldoutGroup(
             "Influence volume settings",
-            (s, p, o) => p.blendDistance,
+            (s, p, o) => p.blendDistancePositive,
             true,
             CED.FadeGroup(
                 (s, p, o, i) => s.GetShapeFaded((ReflectionInfluenceShape)i),
@@ -193,11 +193,17 @@ namespace UnityEditor.Experimental.Rendering
             var maxBlendDistance = CalculateBoxMaxBlendDistance(s, p, owner);
             CoreEditorUtils.DrawVector6Slider(
                 CoreEditorUtils.GetContent("Blend Distance|Area around the probe where it is blended with other probes. Only used in deferred probes."),
-                p.blendDistance, p.blendDistance2, Vector3.zero, maxBlendDistance);
+                p.blendDistancePositive, p.blendDistanceNegative, Vector3.zero, maxBlendDistance);
 
             CoreEditorUtils.DrawVector6Slider(
                 CoreEditorUtils.GetContent("Blend Normal Distance|Area around the probe where the normals influence the probe. Only used in deferred probes."),
-                p.blendNormalDistance, p.blendNormalDistance2, Vector3.zero, maxBlendDistance);
+                p.blendNormalDistancePositive, p.blendNormalDistanceNegative, Vector3.zero, maxBlendDistance);
+
+            CoreEditorUtils.DrawVector6Slider(
+                CoreEditorUtils.GetContent("Face fade|Fade faces of the cubemap."),
+                p.boxSideFadePositive, p.boxSideFadeNegative, Vector3.zero, Vector3.one);
+
+            EditorGUILayout.Space();
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(p.boxSize, CoreEditorUtils.GetContent("Box Size|The size of the box in which the reflections will be applied to objects. The value is not affected by the Transform of the Game Object."));
@@ -220,22 +226,22 @@ namespace UnityEditor.Experimental.Rendering
         {
             var maxBlendDistance = CalculateSphereMaxBlendDistance(s, p, owner);
 
-            var blendDistance = p.blendDistance.vector3Value.x;
+            var blendDistance = p.blendDistancePositive.vector3Value.x;
             EditorGUI.BeginChangeCheck();
             blendDistance = EditorGUILayout.Slider(CoreEditorUtils.GetContent("Blend Distance|Area around the probe where it is blended with other probes. Only used in deferred probes."), blendDistance, 0, maxBlendDistance);
             if (EditorGUI.EndChangeCheck())
             {
-                p.blendDistance.vector3Value = Vector3.one * blendDistance;
-                p.blendDistance2.vector3Value = Vector3.one * blendDistance;
+                p.blendDistancePositive.vector3Value = Vector3.one * blendDistance;
+                p.blendDistanceNegative.vector3Value = Vector3.one * blendDistance;
             }
 
-            var blendNormalDistance = p.blendNormalDistance.vector3Value.x;
+            var blendNormalDistance = p.blendNormalDistancePositive.vector3Value.x;
             EditorGUI.BeginChangeCheck();
             blendNormalDistance = EditorGUILayout.Slider(CoreEditorUtils.GetContent("Blend Normal Distance|Area around the probe where the normals influence the probe. Only used in deferred probes."), blendNormalDistance, 0, maxBlendDistance);
             if (EditorGUI.EndChangeCheck())
             {
-                p.blendNormalDistance.vector3Value = Vector3.one * blendNormalDistance;
-                p.blendNormalDistance2.vector3Value = Vector3.one * blendNormalDistance;
+                p.blendNormalDistancePositive.vector3Value = Vector3.one * blendNormalDistance;
+                p.blendNormalDistanceNegative.vector3Value = Vector3.one * blendNormalDistance;
             }
 
             EditorGUILayout.PropertyField(p.influenceSphereRadius, CoreEditorUtils.GetContent("Radius"));
@@ -310,9 +316,9 @@ namespace UnityEditor.Experimental.Rendering
             {
                 return s_Toolbar_Contents ?? (s_Toolbar_Contents = new []
                 {
-                    EditorGUIUtility.IconContent("EditCollider", "|Modify the extents of the reflection probe."),
-                    EditorGUIUtility.IconContent("PreMatCube", "|Modify the influence volume of the reflection probe."),
-                    EditorGUIUtility.IconContent("SceneViewOrtho", "|Modify the influence normal volume of the reflection probe."),
+                    EditorGUIUtility.IconContent("EditCollider", "|Modify the extents of the reflection probe. (SHIFT+1)"),
+                    EditorGUIUtility.IconContent("PreMatCube", "|Modify the influence volume of the reflection probe. (SHIFT+2)"),
+                    EditorGUIUtility.IconContent("SceneViewOrtho", "|Modify the influence normal volume of the reflection probe. (SHIFT+3)"),
                     EditorGUIUtility.IconContent("MoveTool", "|Move the selected objects.")
                 });
             }

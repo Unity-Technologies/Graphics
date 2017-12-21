@@ -78,8 +78,8 @@ namespace UnityEditor.Experimental.Rendering
                 {
                     blendBox = s.boxBlendHandle;
                     sphereHandle = s.sphereBlendHandle;
-                    probeBlendDistancePositive = sp.targetData.blendDistance;
-                    probeBlendDistanceNegative = sp.targetData.blendDistance2;
+                    probeBlendDistancePositive = sp.targetData.blendDistancePositive;
+                    probeBlendDistanceNegative = sp.targetData.blendDistanceNegative;
                     color = k_GizmoThemeColorInfluenceBlend;
                     break;
                 }
@@ -87,8 +87,8 @@ namespace UnityEditor.Experimental.Rendering
                 {
                     blendBox = s.boxBlendNormalHandle;
                     sphereHandle = s.sphereBlendNormalHandle;
-                    probeBlendDistancePositive = sp.targetData.blendNormalDistance;
-                    probeBlendDistanceNegative = sp.targetData.blendNormalDistance2;
+                    probeBlendDistancePositive = sp.targetData.blendNormalDistancePositive;
+                    probeBlendDistanceNegative = sp.targetData.blendNormalDistanceNegative;
                     color = k_GizmoThemeColorInfluenceNormalBlend;
                     break;
                 }
@@ -173,14 +173,14 @@ namespace UnityEditor.Experimental.Rendering
                 default:
                 case InfluenceType.Standard:
                 {
-                    sp.targetData.blendDistance = probeBlendDistancePositive;
-                    sp.targetData.blendDistance2 = probeBlendDistanceNegative;
+                    sp.targetData.blendDistancePositive = probeBlendDistancePositive;
+                    sp.targetData.blendDistanceNegative = probeBlendDistanceNegative;
                     break;
                 }
                 case InfluenceType.Normal:
                 {
-                    sp.targetData.blendNormalDistance = probeBlendDistancePositive;
-                    sp.targetData.blendNormalDistance2 = probeBlendDistanceNegative;
+                    sp.targetData.blendNormalDistancePositive = probeBlendDistancePositive;
+                    sp.targetData.blendNormalDistanceNegative = probeBlendDistanceNegative;
                     break;
                 }
             }

@@ -94,6 +94,16 @@ float3 EstimateRaycast(float3 V, PositionInputs posInputs, float3 positionWS, fl
     return positionWS + rayWS * hitDistanceFromPosition;
 }
 
+//------------------------------------------------------------------------------------
+// Little helper to share code between sphere and box.
+// These function will fade the mask of a reflection volume based on normal orientation compare to direction define by the center of the reflection volume.
+//-----------------------------------------------------------------------------
+float InfluenceFadeNormalWeight(float3 normal, float3 centerToPos)
+{
+    // Start weight from 0.6f (1 fully transparent) to 0.2f (fully opaque).
+    return saturate((-1.0f / 0.4f) * dot(normal, centerToPos) + (0.6f / 0.4f));
+}
+
 //-----------------------------------------------------------------------------
 // Ligth and material classification for the deferred rendering path
 // Configure what kind of combination is supported
@@ -1535,15 +1545,6 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     }
 }
 
-//------------------------------------------------------------------------------------
-// Little helper to share code between sphere and box.
-// These function will fade the mask of a reflection volume based on normal orientation compare to direction define by the center of the reflection volume.
-float influenceFadeNormalWeight(float3 normal, float3 centerToPos)
-{
-    // Start weight from 0.6f (1 fully transparent) to 0.2f (fully opaque).
-    return saturate((-1.0f / 0.4f) * dot(normal, centerToPos) + (0.6f / 0.4f));
-}
-
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Env
 // ----------------------------------------------------------------------------
@@ -1634,13 +1635,13 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
         // 2. Process the position influence
         float lengthPositionLS = length(positionLS);
-        float sphereInfluenceDistance = lightData.innerDistance.x - lightData.blendDistance.x;
+        float sphereInfluenceDistance = lightData.innerDistance.x - lightData.blendDistancePositive.x;
         float distFade = max(lengthPositionLS - sphereInfluenceDistance, 0.0);
-        float alpha = saturate(1.0 - distFade / max(lightData.blendDistance.x, 0.0001)); // avoid divide by zero
+        float alpha = saturate(1.0 - distFade / max(lightData.blendDistancePositive.x, 0.0001)); // avoid divide by zero
 
         // 3. Process the normal influence
-        float insideInfluenceNormalVolume = lengthPositionLS <= (lightData.innerDistance.x - lightData.blendNormalDistance.x) ? 1.0 : 0.0;
-        float insideWeight = influenceFadeNormalWeight(bsdfData.normalWS, normalize(positionWS - lightData.positionWS));
+        float insideInfluenceNormalVolume = lengthPositionLS <= (lightData.innerDistance.x - lightData.blendNormalDistancePositive.x) ? 1.0 : 0.0;
+        float insideWeight = InfluenceFadeNormalWeight(bsdfData.normalWS, normalize(positionWS - lightData.positionWS));
         alpha *= insideInfluenceNormalVolume ? 1.0 : insideWeight;
 
         weight = alpha;
@@ -1675,8 +1676,8 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         float3 positiveDistance = boxOuterDistance - positionLS;
         
         // Influence falloff for each face
-        float3 negativeFalloff = negativeDistance / max(0.0001, lightData.blendDistance2);
-        float3 positiveFalloff = positiveDistance / max(0.0001, lightData.blendDistance);
+        float3 negativeFalloff = negativeDistance / max(0.0001, lightData.blendDistanceNegative);
+        float3 positiveFalloff = positiveDistance / max(0.0001, lightData.blendDistancePositive);
 
         // Fallof is the min for all faces
         float influenceFalloff = min(
@@ -1687,11 +1688,21 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
         // 3. Process the normal influence
         // Calculate a falloff value to discard normals pointing outward the center of the environment light
-        float3 belowPositiveInfluenceNormalVolume = positiveDistance / max(0.0001, lightData.blendNormalDistance);
-        float3 aboveNegativeInfluenceNormalVolume = negativeDistance / max(0.0001, lightData.blendNormalDistance2);
+        float3 belowPositiveInfluenceNormalVolume = positiveDistance / max(0.0001, lightData.blendNormalDistancePositive);
+        float3 aboveNegativeInfluenceNormalVolume = negativeDistance / max(0.0001, lightData.blendNormalDistanceNegative);
         float insideInfluenceNormalVolume = all(belowPositiveInfluenceNormalVolume >= 1.0) && all(aboveNegativeInfluenceNormalVolume >= 1.0) ? 1.0 : 0;
-        float insideWeight = influenceFadeNormalWeight(bsdfData.normalWS, normalize(positionWS - lightData.positionWS));
+        float insideWeight = InfluenceFadeNormalWeight(bsdfData.normalWS, normalize(positionWS - lightData.positionWS));
         alpha *= insideInfluenceNormalVolume ? 1.0 : insideWeight;
+
+        // 4. Fade specific cubemap faces
+        // For each axes (both positive and negative ones), we want to fade from the center of one face to another
+        // So we normalized the sample direction (R) and use its component to fade for each axis
+        // We consider R.x as cos(X) and then fade as angle from 60°(=acos(1/2)) to 75°(=acos(1/4))
+        // For positive axes: axisFade = (R - 1/4) / (1/2 - 1/4)
+        // <=> axisFace = 4 * R - 1;
+        R = normalize(R);
+        float3 faceFade = saturate((4 * R - 1) * lightData.boxSideFadePositive) + saturate((-4 * R - 1) * lightData.boxSideFadeNegative);
+        alpha *= saturate(faceFade.x + faceFade.y + faceFade.z);
 
         weight = alpha;
     }
