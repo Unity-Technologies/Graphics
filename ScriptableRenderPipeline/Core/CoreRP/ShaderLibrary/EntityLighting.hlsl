@@ -100,10 +100,10 @@ float4 SampleProbeOcclusion(TEXTURE3D_ARGS(SHVolumeTexture, SHVolumeSampler), fl
 // (But these kind of platform should use regular render loop and not news shaders).
 
 // RGBM lightmaps are currently always gamma encoded, so we use a constant of range^2.2 = 5^2.2
-#define LIGHTMAP_RGBM_RANGE 34.493242f
+#define LIGHTMAP_RGBM_RANGE 34.493242
 
-// DLRD lightmaps are currently always gamma encoded, so we use a constant of 2.0^2.2 = 4.59
-#define LIGHTMAP_DLDR_RANGE 4.59f
+// DLDR lightmaps are currently always gamma encoded, so we use a constant of 2.0^2.2 = 4.59
+#define LIGHTMAP_DLDR_RANGE 4.59
 
 // TODO: This is the max value allowed for emissive (bad name - but keep for now to retrieve it) (It is 8^2.2 (gamma) and 8 is the limit of punctual light slider...), comme from UnityCg.cginc. Fix it!
 // Ask Jesper if this can be change for HDRenderPipeline
@@ -133,7 +133,7 @@ real4 PackEmissiveRGBM(real3 rgb)
 real3 UnpackLightmapRGBM(real4 rgbmInput)
 {
     // RGBM lightmaps are always gamma encoded for now, so decode with that in mind:
-    return rgbmInput.rgb * pow(rgbmInput.a, 2.2f) * LIGHTMAP_RGBM_RANGE;
+    return rgbmInput.rgb * pow(rgbmInput.a, 2.2) * LIGHTMAP_RGBM_RANGE;
 }
 
 real3 UnpackLightmapDoubleLDR(real4 encodedColor)
@@ -159,15 +159,15 @@ real3 DecodeHDREnvironment(real4 encodedIrradiance, real4 decodeInstructions)
     return (decodeInstructions.x * pow(alpha, decodeInstructions.y)) * encodedIrradiance.rgb;
 }
 
-float3 SampleSingleLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), float2 uv, float4 transform, bool encodedLightmap)
+real3 SampleSingleLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), float2 uv, float4 transform, bool encodedLightmap)
 {
     // transform is scale and bias
     uv = uv * transform.xy + transform.zw;
-    float3 illuminance = float3(0.0, 0.0, 0.0);
+    real3 illuminance = real3(0.0, 0.0, 0.0);
     // Remark: baked lightmap is RGBM for now, dynamic lightmap is RGB9E5
     if (encodedLightmap)
     {
-        float4 encodedIlluminance = SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgba;
+        real4 encodedIlluminance = SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgba;
         illuminance = DecodeLightmap(encodedIlluminance);
     }
     else
@@ -177,7 +177,7 @@ float3 SampleSingleLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), float2
     return illuminance;
 }
 
-float3 SampleDirectionalLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), TEXTURE2D_ARGS(lightmapDirTex, lightmapDirSampler), float2 uv, float4 transform, float3 normalWS, bool encodedLightmap)
+real3 SampleDirectionalLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), TEXTURE2D_ARGS(lightmapDirTex, lightmapDirSampler), float2 uv, float4 transform, float3 normalWS, bool encodedLightmap)
 {
     // In directional mode Enlighten bakes dominant light direction
     // in a way, that using it for half Lambert and then dividing by a "rebalancing coefficient"
@@ -189,19 +189,19 @@ float3 SampleDirectionalLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), T
     // transform is scale and bias
     uv = uv * transform.xy + transform.zw;
 
-    float4 direction = SAMPLE_TEXTURE2D(lightmapDirTex, lightmapDirSampler, uv);
+    real4 direction = SAMPLE_TEXTURE2D(lightmapDirTex, lightmapDirSampler, uv);
     // Remark: baked lightmap is RGBM for now, dynamic lightmap is RGB9E5
-    float3 illuminance = float3(0.0, 0.0, 0.0);
+    real3 illuminance = real3(0.0, 0.0, 0.0);
     if (encodedLightmap)
     {
-        float4 encodedIlluminance = SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgba;
+        real4 encodedIlluminance = SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgba;
         illuminance = DecodeLightmap(encodedIlluminance);
     }
     else
     {
         illuminance = SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgb;
     }
-    float halfLambert = dot(normalWS, direction.xyz - 0.5) + 0.5;
+    real halfLambert = dot(normalWS, direction.xyz - 0.5) + 0.5;
     return illuminance * halfLambert / max(1e-4, direction.w);
 }
 
