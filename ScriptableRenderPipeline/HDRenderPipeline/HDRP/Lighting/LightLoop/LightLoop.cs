@@ -372,6 +372,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         FrameSettings m_FrameSettings = null;
         RenderPipelineResources m_Resources = null;
 
+        // this defualt additionalLightData is use for lights that don't have any (like preview light)
+        HDAdditionalLightData defaultHDAdditionalLightData = new HDAdditionalLightData();
+
         // Following is an array of material of size eight for all combination of keyword: OUTPUT_SPLIT_LIGHTING - LIGHTLOOP_TILE_PASS - SHADOWS_SHADOWMASK - USE_FPTL_LIGHTLIST/USE_CLUSTERED_LIGHTLIST - DEBUG_DISPLAY
         Material[] m_deferredLightingMaterial;
         Material m_DebugViewTilesMaterial;
@@ -1344,13 +1347,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         var light = cullResults.visibleLights[lightIndex];
 
-                        // We only process light with additional data
+                        // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning defaultHDAdditionalLightData
                         var additionalData = light.light.GetComponent<HDAdditionalLightData>();
-
-                        // Debug.Assert(additionalData == null, "Missing HDAdditionalData on a light - Should have been create by HDLightEditor");
-
                         if (additionalData == null)
-                            return false;
+                            additionalData = defaultHDAdditionalLightData;
 
                         LightCategory lightCategory = LightCategory.Count;
                         GPULightType gpuLightType = GPULightType.Point;
@@ -1466,7 +1466,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         m_enableBakeShadowMask = m_enableBakeShadowMask || IsBakedShadowMaskLight(light.light);
 
+                        // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning defaultHDAdditionalLightData
                         var additionalLightData = light.light.GetComponent<HDAdditionalLightData>();
+                        if (additionalLightData == null)
+                            additionalLightData = defaultHDAdditionalLightData;
+
                         var additionalShadowData = light.light.GetComponent<AdditionalShadowData>(); // Can be null
 
                         // Directional rendering side, it is separated as it is always visible so no volume to handle here
