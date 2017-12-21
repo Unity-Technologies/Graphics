@@ -6,6 +6,7 @@ using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 
 namespace UnityEditor.Experimental.Rendering
@@ -112,6 +113,34 @@ namespace UnityEditor.Experimental.Rendering
                 addData.hideFlags = flags;
                 meshRenderer.hideFlags = flags;
                 meshFilter.hideFlags = flags;
+            }
+        }
+
+        void BakeRealtimeProbeIfPositionChanged(UIState s, SerializedReflectionProbe sp, Editor o)
+        {
+            if (Application.isPlaying
+                || ((ReflectionProbeMode)sp.mode.intValue) != ReflectionProbeMode.Realtime)
+            {
+                m_PositionHash = 0;
+                return;
+            }
+
+            var hash = 0;
+            for (var i = 0; i < sp.so.targetObjects.Length; i++)
+            {
+                var p = (ReflectionProbe)sp.so.targetObjects[i];
+                var tr = p.GetComponent<Transform>();
+                hash ^= tr.position.GetHashCode();
+            }
+
+            if (hash != m_PositionHash)
+            {
+                m_PositionHash = hash;
+                for (var i = 0; i < sp.so.targetObjects.Length; i++)
+                {
+                    var p = (ReflectionProbe)sp.so.targetObjects[i];
+                    p.RenderProbe();
+                }
             }
         }
 
@@ -249,6 +278,31 @@ namespace UnityEditor.Experimental.Rendering
         {
             var renderer = p.GetComponent<Renderer>();
             renderer.sharedMaterial.SetTexture(_Cubemap, p.texture);
+        }
+
+        static void ApplyConstraintsOnTargets(UIState s, SerializedReflectionProbe sp, Editor o)
+        {
+            switch ((ReflectionInfluenceShape)sp.influenceShape.enumValueIndex)
+            {
+                case ReflectionInfluenceShape.Box:
+                {
+                    var maxBlendDistance = CalculateBoxMaxBlendDistance(s, sp, o);
+                    sp.targetData.blendDistance = Vector3.Min(sp.targetData.blendDistance, maxBlendDistance);
+                    sp.targetData.blendDistance2 = Vector3.Min(sp.targetData.blendDistance2, maxBlendDistance);
+                    sp.targetData.blendNormalDistance = Vector3.Min(sp.targetData.blendNormalDistance, maxBlendDistance);
+                    sp.targetData.blendNormalDistance2 = Vector3.Min(sp.targetData.blendNormalDistance2, maxBlendDistance);
+                    break;
+                }
+                case ReflectionInfluenceShape.Sphere:
+                {
+                    var maxBlendDistance = Vector3.one * CalculateSphereMaxBlendDistance(s, sp, o);
+                    sp.targetData.blendDistance = Vector3.Min(sp.targetData.blendDistance, maxBlendDistance);
+                    sp.targetData.blendDistance2 = Vector3.Min(sp.targetData.blendDistance2, maxBlendDistance);
+                    sp.targetData.blendNormalDistance = Vector3.Min(sp.targetData.blendNormalDistance, maxBlendDistance);
+                    sp.targetData.blendNormalDistance2 = Vector3.Min(sp.targetData.blendNormalDistance2, maxBlendDistance);
+                    break;
+                }
+            }
         }
     }
 }
