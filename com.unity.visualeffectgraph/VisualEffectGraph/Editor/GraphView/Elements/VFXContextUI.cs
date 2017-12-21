@@ -129,6 +129,7 @@ namespace UnityEditor.VFX.UI
                 RemoveFromClassList("init");
                 RemoveFromClassList("update");
                 RemoveFromClassList("output");
+                RemoveFromClassList("event");
 
 
                 foreach (int val in System.Enum.GetValues(typeof(CoordinateSpace)))
@@ -309,8 +310,6 @@ namespace UnityEditor.VFX.UI
 
             m_DragDisplay = new VisualElement();
             m_DragDisplay.AddToClassList("dragdisplay");
-
-            Add(new VisualElement() { name = "icon" });
 
             clippingOptions = VisualElement.ClippingOptions.NoClipping;
 
