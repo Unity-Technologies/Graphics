@@ -28,19 +28,19 @@
 #define HALF_PI     1.57079632679489661923
 #define INV_HALF_PI 0.63661977236758134308
 #define LOG2_E      1.44269504088896340736
-#define INFINITY    asfloat(0x7F800000)
 
 #define MILLIMETERS_PER_METER 1000
 #define METERS_PER_MILLIMETER rcp(MILLIMETERS_PER_METER)
 #define CENTIMETERS_PER_METER 100
 #define METERS_PER_CENTIMETER rcp(CENTIMETERS_PER_METER)
 
-#define FLT_EPS     5.960464478e-8  // 2^-24, machine epsilon: 1 + EPS = 1 (real of the ULP for 1)
-#define FLT_MIN     1.175494351e-38 // Minimum representable positive floating-point number
-#define FLT_MAX     3.402823466e+38 // Maximum representable floating-point number
-#define HALF_MIN    6.103515625e-5  // 2^-14, the same value for 10, 11 and 16-bit: https://www.khronos.org/opengl/wiki/Small_Float_Formats
-#define HALF_MAX    65504.0
-#define UINT_MAX    0xFFFFFFFFu
+#define FLT_INF  asfloat(0x7F800000)
+#define FLT_EPS  5.960464478e-8  // 2^-24, machine epsilon: 1 + EPS = 1 (half of the ULP for 1.0f)
+#define FLT_MIN  1.175494351e-38 // Minimum representable positive floating-point number
+#define FLT_MAX  3.402823466e+38 // Maximum representable floating-point number
+#define HALF_MIN 6.103515625e-5  // 2^-14, the same value for 10, 11 and 16-bit: https://www.khronos.org/opengl/wiki/Small_Float_Formats
+#define HALF_MAX 65504.0
+#define UINT_MAX 0xFFFFFFFFu
 
 #define TEMPLATE_1_FLT(FunctionName, Parameter1, FunctionBody) \
 real  FunctionName(real  Parameter1) { FunctionBody; } \

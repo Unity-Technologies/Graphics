@@ -30,44 +30,64 @@ uint JenkinsHash(uint4 v)
     return JenkinsHash(v.x ^ JenkinsHash(v.y) ^ JenkinsHash(v.z) ^ JenkinsHash(v.w));
 }
 
-// Construct a real with real-open range [0, 1) using low 23 bits.
+// Construct a float with float-open range [0, 1) using low 23 bits.
 // All zeros yields 0, all ones yields the next smallest representable value below 1.
-real ConstructFloat(int m) {
+float ConstructFloat(int m) {
     const int ieeeMantissa = 0x007FFFFF; // Binary FP32 mantissa bitmask
     const int ieeeOne      = 0x3F800000; // 1.0 in FP32 IEEE
 
     m &= ieeeMantissa;                   // Keep only mantissa bits (fractional part)
     m |= ieeeOne;                        // Add fractional part to 1.0
 
-    real  f = asfloat(m);               // Range [1, 2)
+    float  f = asfloat(m);               // Range [1, 2)
     return f - 1;                        // Range [0, 1)
 }
 
-real ConstructFloat(uint m)
+float ConstructFloat(uint m)
 {
     return ConstructFloat(asint(m));
 }
 
-// Pseudo-random value in real-open range [0, 1). The distribution is reasonably uniform.
+// Pseudo-random value in float-open range [0, 1). The distribution is reasonably uniform.
 // Ref: https://stackoverflow.com/a/17479300
-real GenerateHashedRandomFloat(uint x)
+float GenerateHashedRandomFloat(uint x)
 {
     return ConstructFloat(JenkinsHash(x));
 }
 
-real GenerateHashedRandomFloat(uint2 v)
+float GenerateHashedRandomFloat(uint2 v)
 {
     return ConstructFloat(JenkinsHash(v));
 }
 
-real GenerateHashedRandomFloat(uint3 v)
+float GenerateHashedRandomFloat(uint3 v)
 {
     return ConstructFloat(JenkinsHash(v));
 }
 
-real GenerateHashedRandomFloat(uint4 v)
+float GenerateHashedRandomFloat(uint4 v)
 {
     return ConstructFloat(JenkinsHash(v));
+}
+
+float Hash(uint s)
+{
+    s = s ^ 2747636419u;
+    s = s * 2654435769u;
+    s = s ^ (s >> 16);
+    s = s * 2654435769u;
+    s = s ^ (s >> 16);
+    s = s * 2654435769u;
+    return float(s) * rcp(4294967296.0); // 2^-32
+}
+
+float2 InitRandom(float2 input)
+{
+    float2 r;
+    r.x = Hash(uint(input.x * UINT_MAX));
+    r.y = Hash(uint(input.y * UINT_MAX));
+
+    return r;
 }
 
 #endif // SHADER_API_GLES

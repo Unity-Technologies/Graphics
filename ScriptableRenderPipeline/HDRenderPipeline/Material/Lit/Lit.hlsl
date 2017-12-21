@@ -859,7 +859,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     RefractionModelResult refraction = REFRACTION_MODEL(V, posInput, bsdfData);
     preLightData.transmissionRefractV = refraction.rayWS;
     preLightData.transmissionPositionWS = refraction.positionWS;
-    preLightData.transmissionTransmittance = exp(-bsdfData.absorptionCoefficient * refraction.distance);
+    preLightData.transmissionTransmittance = exp(-bsdfData.absorptionCoefficient * refraction.dist);
     // Empirical remap to try to match a bit the refractio probe blurring for the fallback
     preLightData.transmissionSSMipLevel = sqrt(bsdfData.perceptualRoughness) * uint(_GaussianPyramidColorMipSize.z);
 #else
