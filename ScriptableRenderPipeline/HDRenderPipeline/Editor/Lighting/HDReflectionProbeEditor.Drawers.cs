@@ -82,11 +82,11 @@ namespace UnityEditor.Experimental.Rendering
             p.resolution.intValue = renderPipelineAsset.GetRenderPipelineSettings().lightLoopSettings.reflectionCubemapSize;
             EditorGUILayout.LabelField(CoreEditorUtils.GetContent("Resolution"), CoreEditorUtils.GetContent(p.resolution.intValue.ToString()));
 
-            EditorGUILayout.PropertyField(p.shadowDistance);
-            EditorGUILayout.PropertyField(p.cullingMask);
-            EditorGUILayout.PropertyField(p.useOcclusionCulling);
-            EditorGUILayout.PropertyField(p.nearClip);
-            EditorGUILayout.PropertyField(p.farClip);
+            EditorGUILayout.PropertyField(p.shadowDistance, CoreEditorUtils.GetContent("Shadow Distance"));
+            EditorGUILayout.PropertyField(p.cullingMask, CoreEditorUtils.GetContent("Culling Mask"));
+            EditorGUILayout.PropertyField(p.useOcclusionCulling, CoreEditorUtils.GetContent("Use Occlusion Culling"));
+            EditorGUILayout.PropertyField(p.nearClip, CoreEditorUtils.GetContent("Near Clip"));
+            EditorGUILayout.PropertyField(p.farClip, CoreEditorUtils.GetContent("Far Clip"));
         }
 
         static void Drawer_AdditionalSettings(UIState s, SerializedReflectionProbe p, Editor owner)
