@@ -380,7 +380,7 @@ namespace UnityEditor.Experimental.Rendering
 
         static float CalculateSphereMaxBlendDistance(UIState s, SerializedReflectionProbe p, Editor o)
         {
-            return p.influenceSphereRadius.floatValue * 0.5f;
+            return p.influenceSphereRadius.floatValue;
         }
 
         static Vector3 CalculateBoxMaxBlendDistance(UIState s, SerializedReflectionProbe p, Editor o)
