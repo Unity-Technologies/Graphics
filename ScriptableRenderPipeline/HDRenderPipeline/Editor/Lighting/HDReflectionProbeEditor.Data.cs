@@ -103,11 +103,11 @@ namespace UnityEditor.Experimental.Rendering
             public void ClearOperation(Operation op) { operations &= ~op; }
             public void AddOperation(Operation op) { operations |= op; }
 
-            public BoxBoundsHandle boxExtentHandle = new BoxBoundsHandle();
+            public BoxBoundsHandle boxInfluenceHandle = new BoxBoundsHandle();
             public BoxBoundsHandle boxProjectionHandle = new BoxBoundsHandle();
             public BoxBoundsHandle boxBlendHandle = new BoxBoundsHandle();
             public BoxBoundsHandle boxBlendNormalHandle = new BoxBoundsHandle();
-            public SphereBoundsHandle sphereExtentHandle = new SphereBoundsHandle();
+            public SphereBoundsHandle sphereInfluenceHandle = new SphereBoundsHandle();
             public SphereBoundsHandle sphereProjectionHandle = new SphereBoundsHandle();
             public SphereBoundsHandle sphereBlendHandle = new SphereBoundsHandle();
             public SphereBoundsHandle sphereBlendNormalHandle = new SphereBoundsHandle();

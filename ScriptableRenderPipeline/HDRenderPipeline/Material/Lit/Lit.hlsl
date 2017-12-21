@@ -1660,13 +1660,15 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         // Influence volume
         // Calculate falloff value, so reflections on the edges of the volume would gradually blend to previous reflection.
 
-        // Calculate distance to cube face
+        // Distance to each cube face
         float3 negativeDistance = extents + positionLS;
         float3 positiveDistance = extents - positionLS;
         
+        // Influence falloff for each face
         float3 negativeFalloff = negativeDistance / max(0.0001, lightData.blendDistance2);
         float3 positiveFalloff = positiveDistance / max(0.0001, lightData.blendDistance);
 
+        // Fallof is the min for all faces
         float influenceFalloff = min(
             min(min(negativeFalloff.x, negativeFalloff.y), negativeFalloff.z),
             min(min(positiveFalloff.x, positiveFalloff.y), positiveFalloff.z));
@@ -1674,9 +1676,12 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         float alpha = saturate(influenceFalloff);
 
         // Influence Normal volume
-        //float3 insideBox = saturate(abs(positionLS) - lightData.innerDistance + float3(lightData.blendNormalDistance, lightData.blendNormalDistance, lightData.blendNormalDistance));
-        //float insideWeight = influenceFadeNormalWeight(bsdfData.normalWS, normalize(positionWS - lightData.positionWS));
-        //alpha *= any(insideBox > 0.0) ? insideWeight : 1.0;
+        // Calculate a falloff value to discard normals pointing outward the center of the environment light
+        float3 belowPositiveInfluenceNormalVolume = positiveDistance / max(0.0001, lightData.blendNormalDistance);
+        float3 aboveNegativeInfluenceNormalVolume = negativeDistance / max(0.0001, lightData.blendNormalDistance2);
+        float insideInfluenceNormalVolume = all(belowPositiveInfluenceNormalVolume >= 1.0) && all(aboveNegativeInfluenceNormalVolume >= 1.0) ? 1.0 : 0;
+        float insideWeight = influenceFadeNormalWeight(bsdfData.normalWS, normalize(positionWS - lightData.positionWS));
+        alpha *= insideInfluenceNormalVolume ? 1.0 : insideWeight;
 
         //float3 rn = normalize(R);
         //float3 faceFade = saturate(float3(6.0, 6.0, 6.0) * rn - float3(2.0, 2.0, 2.0));
