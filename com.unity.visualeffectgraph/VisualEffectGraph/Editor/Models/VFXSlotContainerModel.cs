@@ -247,6 +247,29 @@ namespace UnityEditor.VFX
             }
         }
 
+        private static void TransferLinks(VFXSlot dst, VFXSlot src, bool notify)
+        {
+            var links = src.LinkedSlots.ToArray();
+            int index = 0;
+            while (index < links.Count())
+            {
+                var link = links[index];
+                if (dst.CanLink(link))
+                {
+                    dst.Link(link, notify);
+                    src.Unlink(link, notify);
+                }
+                ++index;
+            }
+
+            if (src.property.type == dst.property.type && src.GetNbChildren() == dst.GetNbChildren())
+            {
+                int nbSubSlots = src.GetNbChildren();
+                for (int i = 0; i < nbSubSlots; ++i)
+                    TransferLinks(dst[i], src[i], notify);
+            }
+        }
+
         protected bool SyncSlots(VFXSlot.Direction direction, bool notify)
         {
             bool isInput = direction == VFXSlot.Direction.kInput;
@@ -278,6 +301,7 @@ namespace UnityEditor.VFX
                     existingSlots.Add(currentSlots[i]);
                     InnerRemoveSlot(currentSlots[i], false);
                 }
+                existingSlots.Reverse();
 
                 // Reuse slots that already exists or create a new one if not
                 foreach (var p in expectedProperties)
@@ -290,32 +314,33 @@ namespace UnityEditor.VFX
                     InnerAddSlot(slot, false);
                 }
 
-                // Finally remove links for all slots that are no longer needed or try to keep links
-                currentSlots = isInput ? inputSlots : outputSlots;
+                var currentSlot = isInput ? inputSlots : outputSlots;
+
+                // Try to keep links for slots of same name and compatible types
                 foreach (var slot in existingSlots)
                 {
-                    if (slot.HasLink())
+                    if (slot.HasLink(true))
                     {
                         var candidates = currentSlots.Where(s => s.property.name == slot.property.name);
                         foreach (var candidate in candidates)
-                        {
-                            var links = slot.LinkedSlots.ToArray();
-                            int index = 0;
-                            while (index < links.Count())
-                            {
-                                var link = links[index];
-                                if (candidate.CanLink(link))
-                                {
-                                    candidate.Link(link, notify);
-                                    slot.Unlink(link, notify);
-                                }
-                                ++index;
-                            }
-                        }
+                            TransferLinks(candidate, slot, notify);
                     }
-
-                    slot.UnlinkAll(true, notify);
                 }
+
+                // Keep link for slots of same types and different names
+                foreach (var slot in existingSlots)
+                {
+                    if (slot.HasLink(true))
+                    {
+                        var candidate = currentSlots.FirstOrDefault(s => !s.HasLink(true) && s.property.type == slot.property.type);
+                        if (candidate != null)
+                            TransferLinks(candidate, slot, notify);
+                    }
+                }
+
+                // Finally remove all remaining links
+                foreach (var slot in existingSlots)
+                    slot.UnlinkAll(true, notify);
 
                 if (notify)
                     Invalidate(InvalidationCause.kStructureChanged);

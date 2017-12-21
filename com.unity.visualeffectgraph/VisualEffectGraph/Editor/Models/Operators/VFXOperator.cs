@@ -42,12 +42,27 @@ namespace UnityEditor.VFX
 
         protected abstract VFXExpression[] BuildExpression(VFXExpression[] inputExpression);
 
+        // As connections changed can be triggered from ResyncSlots, we need to make sure it is not reentrant
+        [NonSerialized]
+        private bool m_ResyncingSlots = false;
+
         protected override void ResyncSlots(bool notify)
         {
-            base.ResyncSlots(notify);
-            if (notify)
-                foreach (var slot in outputSlots) // invalidate expressions on output slots
-                    slot.InvalidateExpressionTree();
+            if (!m_ResyncingSlots)
+            {
+                m_ResyncingSlots = true;
+                try
+                {
+                    base.ResyncSlots(notify);
+                    if (notify)
+                        foreach (var slot in outputSlots) // invalidate expressions on output slots
+                            slot.InvalidateExpressionTree();
+                }
+                finally
+                {
+                    m_ResyncingSlots = false;
+                }
+            }
         }
 
         sealed override protected void OnInvalidate(VFXModel model, InvalidationCause cause)
