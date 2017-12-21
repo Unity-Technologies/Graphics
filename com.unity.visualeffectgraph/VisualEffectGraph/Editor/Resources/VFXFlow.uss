@@ -9,10 +9,10 @@
 	height:12;
 }
 .FlowContainer.Input{
-	position-top:12;
+	position-top:-4;
 }
 .FlowContainer.Output{
-	position-bottom:8;
+	position-bottom:-4;
 }
 
 VFXFlowAnchor.EdgeConnector {
@@ -53,7 +53,6 @@ VFXFlowEdge.edge
 {
 	edge-width:4;
 	border-color : rgba(146,146,146,255);
-	layer:1;
 }
 
 VFXFlowEdge.edge.selected

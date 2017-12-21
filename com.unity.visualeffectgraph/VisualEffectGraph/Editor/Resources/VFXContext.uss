@@ -8,8 +8,8 @@ VFXContextUI {
 }
 VFXContextUI #NodeContents
 {
-	width:368;
-	-background-color:rgb(255,0,0);
+	width:368;	
+	background-color:rgba(29,29,29,0.8);
 	
 	border-radius:6;
 	border-left-width:2;
@@ -97,10 +97,17 @@ VFXContextSlotContainerUI.VFXNodeUI.selected
 
 VFXContextSlotContainerUI.VFXContextSlotContainerUI
 {
+	-background-color:rgba(57,57,57,0.8);
 	margin-top:0;
 	margin-right:0;
 	margin-left:0;
 	margin-bottom:0;
+
+    -border-color: #FFBC21;
+	border-left-width:1;
+	border-right-width:1;
+	border-top-width:1;
+	border-bottom-width:1;
 }
 
 VFXContextSlotContainerUI.VFXContextSlotContainerUI #settings
@@ -133,14 +140,13 @@ VFXContextUI #Inside
 
 VFXContextUI #Header,VFXContextUI #Footer
 {
-	background-color:rgba(90,90,90,0.8);
-	padding-top:10;
-	padding-bottom:10;
+	-background-color:rgba(90,90,90,0.8);
+	-padding-top:10;
+	-padding-bottom:10;
 }
 
 VFXContextUI #Header
 {
-	background-color:rgba(90,90,90,0.8);
 	border-radius:2;
 }
 
@@ -157,6 +163,7 @@ VFXContextUI #Footer
 	border-radius:2;
 	justify-content:center;
 	margin-bottom:1;
+	align-items:center;
 }
 
 VFXContextUI	.title
@@ -187,7 +194,7 @@ VFXContextUI #HeaderSpace
 	height:16;
 	position-type:absolute;
 	position-right:5;
-	-position-top:10;
+	position-top:10;
 }
 
 
@@ -262,5 +269,6 @@ VFXContextUI BlockContainer {
 	font-size:12;
 	margin-top: 0;
 	margin-bottom: 0;
-	padding-top:3;
+	padding-top:4;
+	padding-bottom:4;
 }
