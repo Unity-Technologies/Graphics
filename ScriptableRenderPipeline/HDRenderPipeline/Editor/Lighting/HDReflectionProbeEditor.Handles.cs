@@ -34,6 +34,8 @@ namespace UnityEditor.Experimental.Rendering
 
             BakeRealtimeProbeIfPositionChanged(s, p, o);
 
+            DoShortcutKey(p, o);
+
             if (!s.sceneViewEditing)
                 return;
 
@@ -330,7 +332,7 @@ namespace UnityEditor.Experimental.Rendering
                 ChangeVisibility(reflectionProbe, false);
         }
 
-        static void Gizmos_InfluenceFade(ReflectionProbe p, HDAdditionalReflectionData a, HDReflectionProbeEditor e, InfluenceType type, bool isEdit)
+        static void Gizmos_InfluenceFade(ReflectionProbe p, HDAdditionalReflectionData a, Editor e, InfluenceType type, bool isEdit)
         {
             var col = Gizmos.color;
             var mat = Gizmos.matrix;
@@ -387,7 +389,7 @@ namespace UnityEditor.Experimental.Rendering
             Gizmos.color = col;
         }
 
-        static void Gizmos_Influence(ReflectionProbe p, HDAdditionalReflectionData a, HDReflectionProbeEditor e, bool isEdit)
+        static void Gizmos_Influence(ReflectionProbe p, HDAdditionalReflectionData a, Editor e, bool isEdit)
         {
             var col = Gizmos.color;
             var mat = Gizmos.matrix;
