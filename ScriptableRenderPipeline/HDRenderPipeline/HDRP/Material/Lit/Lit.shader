@@ -616,8 +616,8 @@ Shader "HDRenderPipeline/Lit"
 
         Pass
         {
-            Name "TransparentDepthPostPass"
-            Tags { "LightMode" = "TransparentDepthPostPass" }
+            Name "TransparentDepthPostpass"
+            Tags { "LightMode" = "TransparentDepthPostpass" }
 
             Cull[_CullMode]
             ZWrite On

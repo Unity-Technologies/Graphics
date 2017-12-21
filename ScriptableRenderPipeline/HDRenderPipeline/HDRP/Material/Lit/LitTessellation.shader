@@ -668,8 +668,8 @@ Shader "HDRenderPipeline/LitTessellation"
 
         Pass
         {
-            Name "TransparentDepthPostPass"
-            Tags { "LightMode" = "TransparentDepthPostPass" }
+            Name "TransparentDepthPostpass"
+            Tags { "LightMode" = "TransparentDepthPostpass" }
 
             Cull[_CullMode]
             ZWrite On
