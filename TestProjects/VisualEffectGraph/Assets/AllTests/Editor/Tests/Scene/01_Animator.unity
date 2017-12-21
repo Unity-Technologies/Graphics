@@ -150,7 +150,7 @@ VFXComponent:
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: c3ad7db78f0440646adb219e8cc4f567, type: 2}
   m_StartSeed: 0
-  m_ResetSeedOnStart: 0
+  m_ResetSeedOnPlay: 0
   m_PropertySheet:
     m_Float:
       m_Array:

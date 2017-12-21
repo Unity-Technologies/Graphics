@@ -4371,7 +4371,7 @@ VFXAsset:
       - index: 61
         nameId: texture_attributeMap_c
       params: []
-      processor: {fileID: 7200000, guid: e5339642739c7fc47abdc7654225dc06, type: 3}
+      processor: {fileID: 7200000, guid: 51c817c62f455a24aa27c0ea57c4cfa1, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -4394,7 +4394,7 @@ VFXAsset:
       - index: 65
         nameId: texture_VectorField_b
       params: []
-      processor: {fileID: 7200000, guid: f4acb6756701c47439c48358a5e07800, type: 3}
+      processor: {fileID: 7200000, guid: 0b956ab9d3fb713438bf30378e220bdb, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -4431,13 +4431,13 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 9cff0a7929545a44bb897f7668b575c8, type: 3}
+      processor: {fileID: 4800000, guid: 3dbab1d47e7763341a6a20d9cfb456ce, type: 3}
   m_Events:
-  - name: OnStart
-    startSystems: 00000000
+  - name: OnPlay
+    playSystems: 00000000
     stopSystems: 
   - name: OnStop
-    startSystems: 
+    playSystems: 
     stopSystems: 00000000
   m_RendererSettings:
     motionVectorGenerationMode: 0

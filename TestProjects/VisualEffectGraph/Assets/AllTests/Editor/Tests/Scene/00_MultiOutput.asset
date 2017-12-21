@@ -2613,7 +2613,7 @@ VFXAsset:
       - index: 23
         nameId: uniform_Velocity_c
       params: []
-      processor: {fileID: 7200000, guid: 52439d2a8a2476b4a9192436e50aeb51, type: 3}
+      processor: {fileID: 7200000, guid: 820117cb40f2686439d2c9ef4dbcaa3f, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -2628,7 +2628,7 @@ VFXAsset:
       - index: 26
         nameId: uniform_deltaTime_c
       params: []
-      processor: {fileID: 7200000, guid: 1b9477a5212728d4ebc89e99aeb6839d, type: 3}
+      processor: {fileID: 7200000, guid: 26f4ea973ce7b404187f7fd919b83fdb, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -2639,7 +2639,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 86ed34001435b48448e84b9a1564e903, type: 3}
+      processor: {fileID: 4800000, guid: b440689355a928944b25bce13d881f28, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -2652,7 +2652,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: d6124f4ec9b8cdd4495689d54df10235, type: 3}
+      processor: {fileID: 4800000, guid: e9bee95298b3ccc44ab26fbfbab90607, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -2667,13 +2667,13 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: ab378cd9b49623647ab534e4ff07ca61, type: 3}
+      processor: {fileID: 4800000, guid: 10d8ffb717961c74f87f6cfc09601b4c, type: 3}
   m_Events:
-  - name: OnStart
-    startSystems: 00000000
+  - name: OnPlay
+    playSystems: 00000000
     stopSystems: 
   - name: OnStop
-    startSystems: 
+    playSystems: 
     stopSystems: 00000000
   m_RendererSettings:
     motionVectorGenerationMode: 0

@@ -5265,7 +5265,7 @@ VFXAsset:
       - index: 82
         nameId: uniform_Sphere_arc_e
       params: []
-      processor: {fileID: 7200000, guid: 804855cc3df6af5428d2786d6075452a, type: 3}
+      processor: {fileID: 7200000, guid: f0c6d941c556ab748944570452009d32, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5284,7 +5284,7 @@ VFXAsset:
       - index: 51
         nameId: uniform_deltaTime_f
       params: []
-      processor: {fileID: 7200000, guid: 2983de265daa5bc4dadda640ac5a3d22, type: 3}
+      processor: {fileID: 7200000, guid: 0f1a8766f92f5cf46880ccc86076a90d, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -5303,7 +5303,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 67eee60eedb092f4184a7f9d9a69b410, type: 3}
+      processor: {fileID: 4800000, guid: 1c1062f09def1944ca97caaac28236e4, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -5322,7 +5322,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 302f57b1cd39b9b40886e88dcaa27122, type: 3}
+      processor: {fileID: 4800000, guid: c507cd986c7e99948bbf244d123cf5ff, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -5341,7 +5341,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 07902871c388da240b0b89620ef5c8cc, type: 3}
+      processor: {fileID: 4800000, guid: ed53c6d8fdc2fdd418329aaf17368d47, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -5358,13 +5358,13 @@ VFXAsset:
       params:
       - index: -1
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 11256d54af1800c4a9687bb400ec1266, type: 3}
+      processor: {fileID: 4800000, guid: 82c45ff8675794340af0521e73aacc11, type: 3}
   m_Events:
-  - name: OnStart
-    startSystems: 00000000
+  - name: OnPlay
+    playSystems: 00000000
     stopSystems: 
   - name: OnStop
-    startSystems: 
+    playSystems: 
     stopSystems: 00000000
   m_RendererSettings:
     motionVectorGenerationMode: 0

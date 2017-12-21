@@ -1326,6 +1326,7 @@ MonoBehaviour:
   - {fileID: 114762544598619578}
   m_OutputSlots: []
   m_Disabled: 0
+  advanced: 1
 --- !u!114 &114402326059149842
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4080,14 +4081,14 @@ VFXAsset:
       - index: 49
         nameId: uniform_Sphere_arc_c
       params: []
-      processor: {fileID: 7200000, guid: 9983445f7a3bc4a4abbcca47a9351f94, type: 3}
+      processor: {fileID: 7200000, guid: 030b2ea37c749bc408a5f94f0ba2e3ee, type: 3}
     - type: 805306368
       buffers:
       - index: 0
         nameId: attributeBuffer
       values: []
       params: []
-      processor: {fileID: 7200000, guid: 834b3f6aa316ed943a2a272dd2773cb3, type: 3}
+      processor: {fileID: 7200000, guid: 22cab09ae12aca8409c54a3beab7c0af, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -4106,13 +4107,13 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 1f53a7b5540775b49bd8b80bd81766de, type: 3}
+      processor: {fileID: 4800000, guid: 64130f5af325a9445ac80614db3391d4, type: 3}
   m_Events:
-  - name: OnStart
-    startSystems: 00000000
+  - name: OnPlay
+    playSystems: 00000000
     stopSystems: 
   - name: OnStop
-    startSystems: 
+    playSystems: 
     stopSystems: 00000000
   m_RendererSettings:
     motionVectorGenerationMode: 0
