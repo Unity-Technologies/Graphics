@@ -61,8 +61,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public enum DoubleSidedNormalMode
         {
-           Mirror,
-           Flip
+            Flip,
+            Mirror
         }
 
         public enum TessellationMode
