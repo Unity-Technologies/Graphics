@@ -1661,32 +1661,15 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         // Calculate falloff value, so reflections on the edges of the volume would gradually blend to previous reflection.
 
         // Calculate distance to cube face
-        float3 minPositionLS = positionLS + extents;
-        float3 maxPositionLS = extents - positionLS;
-        int extentDistAxis = 0;
-        float extentDist = minPositionLS[0];
-        for (int i = 1; i < 3; ++i)
-        {
-            if (minPositionLS[i] < extentDist)
-            {
-                extentDistAxis = i;
-                extentDist = minPositionLS[i];
-            }
-        }
-        for (int i = 0; i < 3; ++i)
-        {
-            if (maxPositionLS[i] < extentDist)
-            {
-                extentDistAxis = i + 3;
-                extentDist = maxPositionLS[i];
-            }
-        }
+        float3 negativeDistance = extents + positionLS;
+        float3 positiveDistance = extents - positionLS;
         
-        float influenceFalloff = 0;
-        if (extentDistAxis < 3)
-            influenceFalloff = extentDist / max(0.0001, lightData.blendDistance2[extentDistAxis]); // avoid divide by zero
-        else
-            influenceFalloff = extentDist / max(0.0001, lightData.blendDistance[extentDistAxis - 3]); // avoid divide by zero
+        float3 negativeFalloff = negativeDistance / max(0.0001, lightData.blendDistance2);
+        float3 positiveFalloff = positiveDistance / max(0.0001, lightData.blendDistance);
+
+        float influenceFalloff = min(
+            min(min(negativeFalloff.x, negativeFalloff.y), negativeFalloff.z),
+            min(min(positiveFalloff.x, positiveFalloff.y), positiveFalloff.z));
 
         float alpha = saturate(influenceFalloff);
 
