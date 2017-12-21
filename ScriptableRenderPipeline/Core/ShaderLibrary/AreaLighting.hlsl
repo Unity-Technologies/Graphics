@@ -337,8 +337,8 @@ real ComputeLineWidthFactor(real3x3 invM, real3 ortho)
     // Take into account that m12 = m21 = m23 = m32 = 0 and m33 = 1.
     real    det = invM._11 * invM._22 - invM._22 * invM._31 * invM._13;
     real3x3 cof = {invM._22, 0.0, -invM._22 * invM._31,
-                    0.0, invM._11 - invM._13 * invM._31, 0.0,
-                    -invM._13 * invM._22, 0.0, invM._11 * invM._22};
+                   0.0, invM._11 - invM._13 * invM._31, 0.0,
+                   -invM._13 * invM._22, 0.0, invM._11 * invM._22};
 
     // 1.0 / length(mul(V, (1.0 / s * M))) = abs(s) / length(mul(V, M)).
     return abs(det) / length(mul(ortho, cof));

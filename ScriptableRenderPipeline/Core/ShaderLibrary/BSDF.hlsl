@@ -219,8 +219,8 @@ real V_SmithJointGGXAniso(real TdotV, real BdotV, real NdotV, real TdotL, real B
 
 // Inline D_GGXAniso() * V_SmithJointGGXAniso() together for better code generation.
 real DV_SmithJointGGXAniso(real TdotH, real BdotH, real NdotH, real NdotV,
-                            real TdotL, real BdotL, real NdotL,
-                            real roughnessT, real roughnessB, real partLambdaV)
+                           real TdotL, real BdotL, real NdotL,
+                           real roughnessT, real roughnessB, real partLambdaV)
 {
     real a2 = roughnessT * roughnessB;
     real3 v = real3(roughnessB * TdotH, roughnessT * BdotH, a2 * NdotH);
@@ -236,9 +236,9 @@ real DV_SmithJointGGXAniso(real TdotH, real BdotH, real NdotH, real NdotV,
 }
 
 real DV_SmithJointGGXAniso(real TdotH, real BdotH, real NdotH,
-                            real TdotV, real BdotV, real NdotV,
-                            real TdotL, real BdotL, real NdotL,
-                            real roughnessT, real roughnessB)
+                           real TdotV, real BdotV, real NdotV,
+                           real TdotL, real BdotL, real NdotL,
+                           real roughnessT, real roughnessB)
 {
     real partLambdaV = GetSmithJointGGXAnisoPartLambdaV(TdotV, BdotV, NdotV, roughnessT, roughnessB);
     return DV_SmithJointGGXAniso(TdotH, BdotH, NdotH, NdotV, TdotL, BdotL, NdotL,

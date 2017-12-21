@@ -8,26 +8,6 @@
 #include "Fibonacci.hlsl"
 #include "Hammersley.hlsl"
 
-real Hash(uint s)
-{
-    s = s ^ 2747636419u;
-    s = s * 2654435769u;
-    s = s ^ (s >> 16);
-    s = s * 2654435769u;
-    s = s ^ (s >> 16);
-    s = s * 2654435769u;
-    return real(s) / 4294967295.0;
-}
-
-real2 InitRandom(real2 input)
-{
-    real2 r;
-    r.x = Hash(uint(input.x * 4294967295.0));
-    r.y = Hash(uint(input.y * 4294967295.0));
-
-    return r;
-}
-
 //-----------------------------------------------------------------------------
 // Coordinate system conversion
 //-----------------------------------------------------------------------------
@@ -168,12 +148,12 @@ real3 SampleSphereUniform(real u1, real u2)
     return SphericalToCartesian(phi, cosTheta);
 }
 
-void SampleSphere(  real2 u,
-                    real4x4 localToWorld,
-                    real radius,
-                    out real lightPdf,
-                    out real3 P,
-                    out real3 Ns)
+void SampleSphere(real2   u,
+                  real4x4 localToWorld,
+                  real    radius,
+              out real    lightPdf,
+              out real3   P,
+              out real3   Ns)
 {
     real u1 = u.x;
     real u2 = u.y;
@@ -187,12 +167,12 @@ void SampleSphere(  real2 u,
     lightPdf = 1.0 / (FOUR_PI * radius * radius);
 }
 
-void SampleHemisphere(  real2 u,
-                        real4x4 localToWorld,
-                        real radius,
-                        out real lightPdf,
-                        out real3 P,
-                        out real3 Ns)
+void SampleHemisphere(real2   u,
+                      real4x4 localToWorld,
+                      real    radius,
+                  out real    lightPdf,
+                  out real3   P,
+                  out real3   Ns)
 {
     real u1 = u.x;
     real u2 = u.y;
@@ -210,13 +190,13 @@ void SampleHemisphere(  real2 u,
 }
 
 // Note: The cylinder has no end caps (i.e. no disk on the side)
-void SampleCylinder(real2 u,
+void SampleCylinder(real2   u,
                     real4x4 localToWorld,
-                    real radius,
-                    real width,
-                    out real lightPdf,
-                    out real3 P,
-                    out real3 Ns)
+                    real    radius,
+                    real    width,
+                out real    lightPdf,
+                out real3   P,
+                out real3   Ns)
 {
     real u1 = u.x;
     real u2 = u.y;
@@ -239,13 +219,13 @@ void SampleCylinder(real2 u,
     lightPdf = 1.0 / (TWO_PI * radius * width);
 }
 
-void SampleRectangle(   real2 u,
-                        real4x4 localToWorld,
-                        real width,
-                        real height,
-                        out real   lightPdf,
-                        out real3  P,
-                        out real3  Ns)
+void SampleRectangle(real2   u,
+                     real4x4 localToWorld,
+                     real    width,
+                     real    height,
+                 out real    lightPdf,
+                 out real3   P,
+                 out real3   Ns)
 {
     // Random point at rectangle surface
     P = real3((u.x - 0.5) * width, (u.y - 0.5) * height, 0);
@@ -259,12 +239,12 @@ void SampleRectangle(   real2 u,
     lightPdf = 1.0 / (width * height);
 }
 
-void SampleDisk(real2 u,
+void SampleDisk(real2   u,
                 real4x4 localToWorld,
-                real radius,
-                out real lightPdf,
-                out real3 P,
-                out real3 Ns)
+                real    radius,
+            out real    lightPdf,
+            out real3   P,
+            out real3   Ns)
 {
     // Random point at disk surface
     P  = real3(radius * SampleDiskUniform(u.x, u.y), 0);

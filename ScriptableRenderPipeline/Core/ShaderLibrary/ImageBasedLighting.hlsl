@@ -4,6 +4,7 @@
 #include "CommonLighting.hlsl"
 #include "CommonMaterial.hlsl"
 #include "BSDF.hlsl"
+#include "Random.hlsl"
 #include "Sampling/Sampling.hlsl"
 
 #ifndef UNITY_SPECCUBE_LOD_STEPS
@@ -157,7 +158,7 @@ void SampleVisibleAnisoGGXDir(real2 u, real3 V, real3x3 localToWorld,
                               out real  NdotL,
                               out real  NdotH,
                               out real  VdotH,
-                                  bool   VeqN = false)
+                                  bool  VeqN = false)
 {
     real3 localV = mul(V, transpose(localToWorld));
 

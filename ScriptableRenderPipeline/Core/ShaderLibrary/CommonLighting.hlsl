@@ -108,7 +108,7 @@ real GetAngleAttenuation(real3 L, real3 lightDir, real lightAngleScale, real lig
 // Both the ellipsoid (e.i. 'axis') and 'unL' should be in the same coordinate system.
 // 'unL' should be computed from the center of the ellipsoid.
 real GetEllipsoidalDistanceAttenuation(real3 unL,  real invSqRadius,
-                                        real3 axis, real invAspectRatio)
+                                       real3 axis, real invAspectRatio)
 {
     // Project the unnormalized light vector onto the axis.
     real projL = dot(unL, axis);

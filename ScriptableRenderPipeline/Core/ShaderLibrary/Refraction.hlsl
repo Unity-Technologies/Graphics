@@ -7,9 +7,9 @@
 
 struct RefractionModelResult
 {
-    real       distance;       // length of the transmission during refraction through the shape
-    real3      positionWS;     // out ray position
-    real3      rayWS;          // out ray direction
+    real  dist;       // length of the transmission during refraction through the shape
+    real3 positionWS; // out ray position
+    real3 rayWS;      // out ray direction
 };
 
 RefractionModelResult RefractionModelSphere(real3 V, real3 positionWS, real3 normalWS, real ior, real thickness)
@@ -30,9 +30,9 @@ RefractionModelResult RefractionModelSphere(real3 V, real3 positionWS, real3 nor
     // Second refraction (tangent sphere out)
     real NoR1 = dot(normalWS, R1);
     // Optical depth within the sphere
-    real distance = -NoR1 * thickness;
+    real dist = -NoR1 * thickness;
     // Out hit point in the tangent sphere
-    real3 P1 = positionWS + R1 * distance;
+    real3 P1 = positionWS + R1 * dist;
     // Out normal
     real3 N1 = normalize(C - P1);
     // Out refracted ray
@@ -41,7 +41,7 @@ RefractionModelResult RefractionModelSphere(real3 V, real3 positionWS, real3 nor
     real VoR1 = dot(V, R1);
 
     RefractionModelResult result;
-    result.distance = distance;
+    result.dist = dist;
     result.positionWS = P1;
     result.rayWS = R2;
 
@@ -58,11 +58,11 @@ RefractionModelResult RefractionModelPlane(real3 V, real3 positionWS, real3 norm
     real3 R = refract(-V, normalWS, 1.0 / ior);
 
     // Optical depth within the thin plane
-    real distance = thickness / dot(R, -normalWS);
+    real dist = thickness / dot(R, -normalWS);
 
     RefractionModelResult result;
-    result.distance = distance;
-    result.positionWS = positionWS + R * distance;
+    result.dist = dist;
+    result.positionWS = positionWS + R * dist;
     result.rayWS = -V;
 
     return result;
