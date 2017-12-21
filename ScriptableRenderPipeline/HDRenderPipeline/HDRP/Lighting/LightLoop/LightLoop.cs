@@ -1286,329 +1286,328 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             using (new ProfilingSample(cmd, "Prepare Lights For GPU"))
             {
+                // If any light require it, we need to enabled bake shadow mask feature
+                m_enableBakeShadowMask = false;
 
-            // If any light require it, we need to enabled bake shadow mask feature
-            m_enableBakeShadowMask = false;
+                m_lightList.Clear();
 
-            m_lightList.Clear();
+                Vector3 camPosWS = camera.transform.position;
 
-            Vector3 camPosWS = camera.transform.position;
-
-            // Note: Light with null intensity/Color are culled by the C++, no need to test it here
-            if (cullResults.visibleLights.Count != 0 || cullResults.visibleReflectionProbes.Count != 0)
-            {
-                // 0. deal with shadows
+                // Note: Light with null intensity/Color are culled by the C++, no need to test it here
+                if (cullResults.visibleLights.Count != 0 || cullResults.visibleReflectionProbes.Count != 0)
                 {
-                    m_FrameId.frameCount++;
-                    // get the indices for all lights that want to have shadows
-                    m_ShadowRequests.Clear();
-                    m_ShadowRequests.Capacity = cullResults.visibleLights.Count;
-                    int lcnt = cullResults.visibleLights.Count;
-                    for (int i = 0; i < lcnt; ++i)
+                    // 0. deal with shadows
                     {
-                        VisibleLight vl = cullResults.visibleLights[i];
-                        if (vl.light.shadows == LightShadows.None)
-                            continue;
-
-                        AdditionalShadowData asd = vl.light.GetComponent<AdditionalShadowData>();
-                        if (asd != null && asd.shadowDimmer > 0.0f)
-                            m_ShadowRequests.Add(i);
-                    }
-                    // pass this list to a routine that assigns shadows based on some heuristic
-                    uint    shadowRequestCount = (uint)m_ShadowRequests.Count;
-                    //TODO: Do not call ToArray here to avoid GC, refactor API
-                    int[]   shadowRequests = m_ShadowRequests.ToArray();
-                    int[]   shadowDataIndices;
-                    m_ShadowMgr.ProcessShadowRequests(m_FrameId, cullResults, camera, ShaderConfig.s_CameraRelativeRendering != 0, cullResults.visibleLights,
-                        ref shadowRequestCount, shadowRequests, out shadowDataIndices);
-
-                    // update the visibleLights with the shadow information
-                    m_ShadowIndices.Clear();
-                    for (uint i = 0; i < shadowRequestCount; i++)
-                    {
-                        m_ShadowIndices.Add(shadowRequests[i], shadowDataIndices[i]);
-                    }
-                }
-
-                // 1. Count the number of lights and sort all lights by category, type and volume - This is required for the fptl/cluster shader code
-                // If we reach maximum of lights available on screen, then we discard the light.
-                // Lights are processed in order, so we don't discards light based on their importance but based on their ordering in visible lights list.
-                int directionalLightcount = 0;
-                int punctualLightcount = 0;
-                int areaLightCount = 0;
-
-                int lightCount = Math.Min(cullResults.visibleLights.Count, k_MaxLightsOnScreen);
-                var sortKeys = new uint[lightCount];
-                int sortCount = 0;
-
-                for (int lightIndex = 0, numLights = cullResults.visibleLights.Count; (lightIndex < numLights) && (sortCount < lightCount); ++lightIndex)
-                {
-                    var light = cullResults.visibleLights[lightIndex];
-
-                    // We only process light with additional data
-                    var additionalData = light.light.GetComponent<HDAdditionalLightData>();
-
-                    // Debug.Assert(additionalData == null, "Missing HDAdditionalData on a light - Should have been create by HDLightEditor");
-
-                    if (additionalData == null)
-                        return false;
-
-                    LightCategory lightCategory = LightCategory.Count;
-                    GPULightType gpuLightType = GPULightType.Point;
-                    LightVolumeType lightVolumeType = LightVolumeType.Count;
-
-                    if (additionalData.lightTypeExtent == LightTypeExtent.Punctual)
-                    {
-                        lightCategory = LightCategory.Punctual;
-
-                        switch (light.lightType)
+                        m_FrameId.frameCount++;
+                        // get the indices for all lights that want to have shadows
+                        m_ShadowRequests.Clear();
+                        m_ShadowRequests.Capacity = cullResults.visibleLights.Count;
+                        int lcnt = cullResults.visibleLights.Count;
+                        for (int i = 0; i < lcnt; ++i)
                         {
-                            case LightType.Spot:
-                                if (punctualLightcount >= k_MaxPunctualLightsOnScreen)
-                                    continue;
-                                switch (additionalData.spotLightShape)
+                            VisibleLight vl = cullResults.visibleLights[i];
+                            if (vl.light.shadows == LightShadows.None)
+                                continue;
+
+                            AdditionalShadowData asd = vl.light.GetComponent<AdditionalShadowData>();
+                            if (asd != null && asd.shadowDimmer > 0.0f)
+                                m_ShadowRequests.Add(i);
+                        }
+                        // pass this list to a routine that assigns shadows based on some heuristic
+                        uint    shadowRequestCount = (uint)m_ShadowRequests.Count;
+                        //TODO: Do not call ToArray here to avoid GC, refactor API
+                        int[]   shadowRequests = m_ShadowRequests.ToArray();
+                        int[]   shadowDataIndices;
+                        m_ShadowMgr.ProcessShadowRequests(m_FrameId, cullResults, camera, ShaderConfig.s_CameraRelativeRendering != 0, cullResults.visibleLights,
+                            ref shadowRequestCount, shadowRequests, out shadowDataIndices);
+
+                        // update the visibleLights with the shadow information
+                        m_ShadowIndices.Clear();
+                        for (uint i = 0; i < shadowRequestCount; i++)
+                        {
+                            m_ShadowIndices.Add(shadowRequests[i], shadowDataIndices[i]);
+                        }
+                    }
+
+                    // 1. Count the number of lights and sort all lights by category, type and volume - This is required for the fptl/cluster shader code
+                    // If we reach maximum of lights available on screen, then we discard the light.
+                    // Lights are processed in order, so we don't discards light based on their importance but based on their ordering in visible lights list.
+                    int directionalLightcount = 0;
+                    int punctualLightcount = 0;
+                    int areaLightCount = 0;
+
+                    int lightCount = Math.Min(cullResults.visibleLights.Count, k_MaxLightsOnScreen);
+                    var sortKeys = new uint[lightCount];
+                    int sortCount = 0;
+
+                    for (int lightIndex = 0, numLights = cullResults.visibleLights.Count; (lightIndex < numLights) && (sortCount < lightCount); ++lightIndex)
+                    {
+                        var light = cullResults.visibleLights[lightIndex];
+
+                        // We only process light with additional data
+                        var additionalData = light.light.GetComponent<HDAdditionalLightData>();
+
+                        // Debug.Assert(additionalData == null, "Missing HDAdditionalData on a light - Should have been create by HDLightEditor");
+
+                        if (additionalData == null)
+                            return false;
+
+                        LightCategory lightCategory = LightCategory.Count;
+                        GPULightType gpuLightType = GPULightType.Point;
+                        LightVolumeType lightVolumeType = LightVolumeType.Count;
+
+                        if (additionalData.lightTypeExtent == LightTypeExtent.Punctual)
+                        {
+                            lightCategory = LightCategory.Punctual;
+
+                            switch (light.lightType)
+                            {
+                                case LightType.Spot:
+                                    if (punctualLightcount >= k_MaxPunctualLightsOnScreen)
+                                        continue;
+                                    switch (additionalData.spotLightShape)
+                                    {
+                                        case SpotLightShape.Cone:
+                                            gpuLightType = GPULightType.Spot;
+                                            lightVolumeType = LightVolumeType.Cone;
+                                            break;
+                                        case SpotLightShape.Pyramid:
+                                            gpuLightType = GPULightType.ProjectorPyramid;
+                                            lightVolumeType = LightVolumeType.Cone;
+                                            break;
+                                        case SpotLightShape.Box:
+                                            gpuLightType = GPULightType.ProjectorBox;
+                                            lightVolumeType = LightVolumeType.Box;
+                                            break;
+                                        default:
+                                            Debug.Assert(false, "Encountered an unknown SpotLightShape.");
+                                            break;
+                                    }
+                                    break;
+
+                                case LightType.Directional:
+                                    if (directionalLightcount >= k_MaxDirectionalLightsOnScreen)
+                                        continue;
+                                    gpuLightType = GPULightType.Directional;
+                                    // No need to add volume, always visible
+                                    lightVolumeType = LightVolumeType.Count; // Count is none
+                                    break;
+
+                                case LightType.Point:
+                                    if (punctualLightcount >= k_MaxPunctualLightsOnScreen)
+                                        continue;
+                                    gpuLightType = GPULightType.Point;
+                                    lightVolumeType = LightVolumeType.Sphere;
+                                    break;
+
+                                default:
+                                    Debug.Assert(false, "Encountered an unknown LightType.");
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            lightCategory = LightCategory.Area;
+
+                            switch (additionalData.lightTypeExtent)
+                            {
+                                case LightTypeExtent.Rectangle:
+                                    if (areaLightCount >= k_MaxAreaLightsOnScreen)
+                                        continue;
+                                    gpuLightType = GPULightType.Rectangle;
+                                    lightVolumeType = LightVolumeType.Box;
+                                    break;
+
+                                case LightTypeExtent.Line:
+                                    if (areaLightCount >= k_MaxAreaLightsOnScreen)
+                                        continue;
+                                    gpuLightType = GPULightType.Line;
+                                    lightVolumeType = LightVolumeType.Box;
+                                    break;
+
+                                default:
+                                    Debug.Assert(false, "Encountered an unknown LightType.");
+                                    break;
+                            }
+                        }
+
+                        uint shadow = m_ShadowIndices.ContainsKey(lightIndex) ? 1u : 0;
+                        // 5 bit (0x1F) light category, 5 bit (0x1F) GPULightType, 5 bit (0x1F) lightVolume, 1 bit for shadow casting, 16 bit index
+                        sortKeys[sortCount++] = (uint)lightCategory << 27 | (uint)gpuLightType << 22 | (uint)lightVolumeType << 17 | shadow << 16 | (uint)lightIndex;
+                    }
+
+                    CoreUtils.QuickSort(sortKeys, 0, sortCount - 1); // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory (note the SortCount-1 that is different from original call).
+
+                    // TODO: Refactor shadow management
+                    // The good way of managing shadow:
+                    // Here we sort everyone and we decide which light is important or not (this is the responsibility of the lightloop)
+                    // we allocate shadow slot based on maximum shadow allowed on screen and attribute slot by bigger solid angle
+                    // THEN we ask to the ShadowRender to render the shadow, not the reverse as it is today (i.e render shadow than expect they
+                    // will be use...)
+                    // The lightLoop is in charge, not the shadow pass.
+                    // For now we will still apply the maximum of shadow here but we don't apply the sorting by priority + slot allocation yet
+                    m_CurrentSunLight = null;
+                    m_CurrentSunLightShadowIndex = -1;
+
+                    // 2. Go through all lights, convert them to GPU format.
+                    // Create simultaneously data for culling (LigthVolumeData and rendering)
+                    var worldToView = WorldToCamera(camera);
+
+                    for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
+                    {
+                        // In 1. we have already classify and sorted the light, we need to use this sorted order here
+                        uint sortKey = sortKeys[sortIndex];
+                        LightCategory lightCategory = (LightCategory)((sortKey >> 27) & 0x1F);
+                        GPULightType gpuLightType = (GPULightType)((sortKey >> 22) & 0x1F);
+                        LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> 17) & 0x1F);
+                        int lightIndex = (int)(sortKey & 0xFFFF);
+
+                        var light = cullResults.visibleLights[lightIndex];
+
+                        m_enableBakeShadowMask = m_enableBakeShadowMask || IsBakedShadowMaskLight(light.light);
+
+                        var additionalLightData = light.light.GetComponent<HDAdditionalLightData>();
+                        var additionalShadowData = light.light.GetComponent<AdditionalShadowData>(); // Can be null
+
+                        // Directional rendering side, it is separated as it is always visible so no volume to handle here
+                        if (gpuLightType == GPULightType.Directional)
+                        {
+                            if (GetDirectionalLightData(cmd, shadowSettings, gpuLightType, light, additionalLightData, additionalShadowData, lightIndex))
+                            {
+                                directionalLightcount++;
+
+                                // We make the light position camera-relative as late as possible in order
+                                // to allow the preceding code to work with the absolute world space coordinates.
+                                if (ShaderConfig.s_CameraRelativeRendering != 0)
                                 {
-                                    case SpotLightShape.Cone:
-                                        gpuLightType = GPULightType.Spot;
-                                        lightVolumeType = LightVolumeType.Cone;
-                                        break;
-                                    case SpotLightShape.Pyramid:
-                                        gpuLightType = GPULightType.ProjectorPyramid;
-                                        lightVolumeType = LightVolumeType.Cone;
-                                        break;
-                                    case SpotLightShape.Box:
-                                        gpuLightType = GPULightType.ProjectorBox;
-                                        lightVolumeType = LightVolumeType.Box;
-                                        break;
-                                    default:
-                                        Debug.Assert(false, "Encountered an unknown SpotLightShape.");
-                                        break;
+                                    // Caution: 'DirectionalLightData.positionWS' is camera-relative after this point.
+                                    int n = m_lightList.directionalLights.Count;
+                                    DirectionalLightData lightData = m_lightList.directionalLights[n - 1];
+                                    lightData.positionWS -= camPosWS;
+                                    m_lightList.directionalLights[n - 1] = lightData;
                                 }
-                                break;
-
-                            case LightType.Directional:
-                                if (directionalLightcount >= k_MaxDirectionalLightsOnScreen)
-                                    continue;
-                                gpuLightType = GPULightType.Directional;
-                                // No need to add volume, always visible
-                                lightVolumeType = LightVolumeType.Count; // Count is none
-                                break;
-
-                            case LightType.Point:
-                                if (punctualLightcount >= k_MaxPunctualLightsOnScreen)
-                                    continue;
-                                gpuLightType = GPULightType.Point;
-                                lightVolumeType = LightVolumeType.Sphere;
-                                break;
-
-                            default:
-                                Debug.Assert(false, "Encountered an unknown LightType.");
-                                break;
+                            }
+                            continue;
                         }
-                    }
-                    else
-                    {
-                        lightCategory = LightCategory.Area;
 
-                        switch (additionalData.lightTypeExtent)
+                        Vector3 lightDimensions = new Vector3(); // X = length or width, Y = height, Z = range (depth)
+
+                        // Punctual, area, projector lights - the rendering side.
+                        if (GetLightData(cmd, shadowSettings, camera, gpuLightType, light, additionalLightData, additionalShadowData, lightIndex, ref lightDimensions))
                         {
-                            case LightTypeExtent.Rectangle:
-                                if (areaLightCount >= k_MaxAreaLightsOnScreen)
-                                    continue;
-                                gpuLightType = GPULightType.Rectangle;
-                                lightVolumeType = LightVolumeType.Box;
-                                break;
+                            switch (lightCategory)
+                            {
+                                case LightCategory.Punctual:
+                                    punctualLightcount++;
+                                    break;
+                                case LightCategory.Area:
+                                    areaLightCount++;
+                                    break;
+                                default:
+                                    Debug.Assert(false, "TODO: encountered an unknown LightCategory.");
+                                    break;
+                            }
 
-                            case LightTypeExtent.Line:
-                                if (areaLightCount >= k_MaxAreaLightsOnScreen)
-                                    continue;
-                                gpuLightType = GPULightType.Line;
-                                lightVolumeType = LightVolumeType.Box;
-                                break;
-
-                            default:
-                                Debug.Assert(false, "Encountered an unknown LightType.");
-                                break;
-                        }
-                    }
-
-                    uint shadow = m_ShadowIndices.ContainsKey(lightIndex) ? 1u : 0;
-                    // 5 bit (0x1F) light category, 5 bit (0x1F) GPULightType, 5 bit (0x1F) lightVolume, 1 bit for shadow casting, 16 bit index
-                    sortKeys[sortCount++] = (uint)lightCategory << 27 | (uint)gpuLightType << 22 | (uint)lightVolumeType << 17 | shadow << 16 | (uint)lightIndex;
-                }
-
-                CoreUtils.QuickSort(sortKeys, 0, sortCount - 1); // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory (note the SortCount-1 that is different from original call).
-
-                // TODO: Refactor shadow management
-                // The good way of managing shadow:
-                // Here we sort everyone and we decide which light is important or not (this is the responsibility of the lightloop)
-                // we allocate shadow slot based on maximum shadow allowed on screen and attribute slot by bigger solid angle
-                // THEN we ask to the ShadowRender to render the shadow, not the reverse as it is today (i.e render shadow than expect they
-                // will be use...)
-                // The lightLoop is in charge, not the shadow pass.
-                // For now we will still apply the maximum of shadow here but we don't apply the sorting by priority + slot allocation yet
-                m_CurrentSunLight = null;
-                m_CurrentSunLightShadowIndex = -1;
-
-                // 2. Go through all lights, convert them to GPU format.
-                // Create simultaneously data for culling (LigthVolumeData and rendering)
-                var worldToView = WorldToCamera(camera);
-
-                for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
-                {
-                    // In 1. we have already classify and sorted the light, we need to use this sorted order here
-                    uint sortKey = sortKeys[sortIndex];
-                    LightCategory lightCategory = (LightCategory)((sortKey >> 27) & 0x1F);
-                    GPULightType gpuLightType = (GPULightType)((sortKey >> 22) & 0x1F);
-                    LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> 17) & 0x1F);
-                    int lightIndex = (int)(sortKey & 0xFFFF);
-
-                    var light = cullResults.visibleLights[lightIndex];
-
-                    m_enableBakeShadowMask = m_enableBakeShadowMask || IsBakedShadowMaskLight(light.light);
-
-                    var additionalLightData = light.light.GetComponent<HDAdditionalLightData>();
-                    var additionalShadowData = light.light.GetComponent<AdditionalShadowData>(); // Can be null
-
-                    // Directional rendering side, it is separated as it is always visible so no volume to handle here
-                    if (gpuLightType == GPULightType.Directional)
-                    {
-                        if (GetDirectionalLightData(cmd, shadowSettings, gpuLightType, light, additionalLightData, additionalShadowData, lightIndex))
-                        {
-                            directionalLightcount++;
+                            // Then culling side. Must be call in this order as we pass the created Light data to the function
+                            GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, worldToView);
 
                             // We make the light position camera-relative as late as possible in order
                             // to allow the preceding code to work with the absolute world space coordinates.
                             if (ShaderConfig.s_CameraRelativeRendering != 0)
                             {
-                                // Caution: 'DirectionalLightData.positionWS' is camera-relative after this point.
-                                int n = m_lightList.directionalLights.Count;
-                                DirectionalLightData lightData = m_lightList.directionalLights[n - 1];
+                                // Caution: 'LightData.positionWS' is camera-relative after this point.
+                                int n = m_lightList.lights.Count;
+                                LightData lightData = m_lightList.lights[n - 1];
                                 lightData.positionWS -= camPosWS;
-                                m_lightList.directionalLights[n - 1] = lightData;
+                                m_lightList.lights[n - 1] = lightData;
                             }
                         }
-                        continue;
                     }
 
-                    Vector3 lightDimensions = new Vector3(); // X = length or width, Y = height, Z = range (depth)
+                    // Sanity check
+                    Debug.Assert(m_lightList.directionalLights.Count == directionalLightcount);
+                    Debug.Assert(m_lightList.lights.Count == areaLightCount + punctualLightcount);
 
-                    // Punctual, area, projector lights - the rendering side.
-                    if (GetLightData(cmd, shadowSettings, camera, gpuLightType, light, additionalLightData, additionalShadowData, lightIndex, ref lightDimensions))
+                    m_punctualLightCount = punctualLightcount;
+                    m_areaLightCount     = areaLightCount;
+
+                    // Redo everything but this time with envLights
+                    int envLightCount = 0;
+
+                    int probeCount = Math.Min(cullResults.visibleReflectionProbes.Count, k_MaxEnvLightsOnScreen);
+                    sortKeys = new uint[probeCount];
+                    sortCount = 0;
+
+                    for (int probeIndex = 0, numProbes = cullResults.visibleReflectionProbes.Count; (probeIndex < numProbes) && (sortCount < probeCount); probeIndex++)
                     {
-                        switch (lightCategory)
+                        VisibleReflectionProbe probe = cullResults.visibleReflectionProbes[probeIndex];
+
+                        // probe.texture can be null when we are adding a reflection probe in the editor
+                        if (probe.texture == null || envLightCount >= k_MaxEnvLightsOnScreen)
+                            continue;
+
+                        // Work around the culling issues. TODO: fix culling in C++.
+                        if (probe.probe == null || !probe.probe.isActiveAndEnabled)
+                            continue;
+
+                        // Work around the data issues.
+                        if (probe.localToWorld.determinant == 0)
                         {
-                            case LightCategory.Punctual:
-                                punctualLightcount++;
-                                break;
-                            case LightCategory.Area:
-                                areaLightCount++;
-                                break;
-                            default:
-                                Debug.Assert(false, "TODO: encountered an unknown LightCategory.");
-                                break;
+                            Debug.LogError("Reflection probe " + probe.probe.name + " has an invalid local frame and needs to be fixed.");
+                            continue;
                         }
 
-                        // Then culling side. Must be call in this order as we pass the created Light data to the function
-                        GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, worldToView);
+                        // TODO: Support LightVolumeType.Sphere, currently in UI there is no way to specify a sphere influence volume
+                        LightVolumeType lightVolumeType = probe.boxProjection != 0 ? LightVolumeType.Box : LightVolumeType.Box;
+                        ++envLightCount;
 
-                        // We make the light position camera-relative as late as possible in order
-                        // to allow the preceding code to work with the absolute world space coordinates.
-                        if (ShaderConfig.s_CameraRelativeRendering != 0)
+                        float boxVolume = 8 * probe.bounds.extents.x * probe.bounds.extents.y * probe.bounds.extents.z;
+                        float logVolume = Mathf.Clamp(256 + Mathf.Log(boxVolume, 1.1f), 0, 8191); // Allow for negative exponents
+
+                        // 13 bit volume, 3 bit LightVolumeType, 16 bit index
+                        sortKeys[sortCount++] = (uint)logVolume << 19 | (uint)lightVolumeType << 16 | ((uint)probeIndex & 0xFFFF); // Sort by volume
+                    }
+
+                    // Not necessary yet but call it for future modification with sphere influence volume
+                    CoreUtils.QuickSort(sortKeys, 0, sortCount - 1); // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory (note the SortCount-1 that is different from original call).
+
+                    for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
+                    {
+                        // In 1. we have already classify and sorted the light, we need to use this sorted order here
+                        uint sortKey = sortKeys[sortIndex];
+                        LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> 16) & 0x3);
+                        int probeIndex = (int)(sortKey & 0xFFFF);
+
+                        VisibleReflectionProbe probe = cullResults.visibleReflectionProbes[probeIndex];
+
+                        if (GetEnvLightData(cmd, camera, probe))
                         {
-                            // Caution: 'LightData.positionWS' is camera-relative after this point.
-                            int n = m_lightList.lights.Count;
-                            LightData lightData = m_lightList.lights[n - 1];
-                            lightData.positionWS -= camPosWS;
-                            m_lightList.lights[n - 1] = lightData;
+                            GetEnvLightVolumeDataAndBound(probe, lightVolumeType, worldToView);
+
+                            // We make the light position camera-relative as late as possible in order
+                            // to allow the preceding code to work with the absolute world space coordinates.
+                            if (ShaderConfig.s_CameraRelativeRendering != 0)
+                            {
+                                // Caution: 'EnvLightData.positionWS' is camera-relative after this point.
+                                int n = m_lightList.envLights.Count;
+                                EnvLightData envLightData = m_lightList.envLights[n - 1];
+                                envLightData.positionWS -= camPosWS;
+                                m_lightList.envLights[n - 1] = envLightData;
+                            }
                         }
                     }
                 }
 
-                // Sanity check
-                Debug.Assert(m_lightList.directionalLights.Count == directionalLightcount);
-                Debug.Assert(m_lightList.lights.Count == areaLightCount + punctualLightcount);
+                m_lightCount = m_lightList.lights.Count + m_lightList.envLights.Count;
+                Debug.Assert(m_lightList.bounds.Count == m_lightCount);
+                Debug.Assert(m_lightList.lightVolumes.Count == m_lightCount);
 
-                m_punctualLightCount = punctualLightcount;
-                m_areaLightCount     = areaLightCount;
+                UpdateDataBuffers();
 
-                // Redo everything but this time with envLights
-                int envLightCount = 0;
+                m_maxShadowDistance = shadowSettings.maxShadowDistance;
 
-                int probeCount = Math.Min(cullResults.visibleReflectionProbes.Count, k_MaxEnvLightsOnScreen);
-                sortKeys = new uint[probeCount];
-                sortCount = 0;
-
-                for (int probeIndex = 0, numProbes = cullResults.visibleReflectionProbes.Count; (probeIndex < numProbes) && (sortCount < probeCount); probeIndex++)
-                {
-                    VisibleReflectionProbe probe = cullResults.visibleReflectionProbes[probeIndex];
-
-                    // probe.texture can be null when we are adding a reflection probe in the editor
-                    if (probe.texture == null || envLightCount >= k_MaxEnvLightsOnScreen)
-                        continue;
-
-                    // Work around the culling issues. TODO: fix culling in C++.
-                    if (probe.probe == null || !probe.probe.isActiveAndEnabled)
-                        continue;
-
-                    // Work around the data issues.
-                    if (probe.localToWorld.determinant == 0)
-                    {
-                        Debug.LogError("Reflection probe " + probe.probe.name + " has an invalid local frame and needs to be fixed.");
-                        continue;
-                    }
-
-                    // TODO: Support LightVolumeType.Sphere, currently in UI there is no way to specify a sphere influence volume
-                    LightVolumeType lightVolumeType = probe.boxProjection != 0 ? LightVolumeType.Box : LightVolumeType.Box;
-                    ++envLightCount;
-
-                    float boxVolume = 8 * probe.bounds.extents.x * probe.bounds.extents.y * probe.bounds.extents.z;
-                    float logVolume = Mathf.Clamp(256 + Mathf.Log(boxVolume, 1.1f), 0, 8191); // Allow for negative exponents
-
-                    // 13 bit volume, 3 bit LightVolumeType, 16 bit index
-                    sortKeys[sortCount++] = (uint)logVolume << 19 | (uint)lightVolumeType << 16 | ((uint)probeIndex & 0xFFFF); // Sort by volume
-                }
-
-                // Not necessary yet but call it for future modification with sphere influence volume
-                CoreUtils.QuickSort(sortKeys, 0, sortCount - 1); // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory (note the SortCount-1 that is different from original call).
-
-                for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
-                {
-                    // In 1. we have already classify and sorted the light, we need to use this sorted order here
-                    uint sortKey = sortKeys[sortIndex];
-                    LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> 16) & 0x3);
-                    int probeIndex = (int)(sortKey & 0xFFFF);
-
-                    VisibleReflectionProbe probe = cullResults.visibleReflectionProbes[probeIndex];
-
-                    if (GetEnvLightData(cmd, camera, probe))
-                    {
-                    GetEnvLightVolumeDataAndBound(probe, lightVolumeType, worldToView);
-
-                    // We make the light position camera-relative as late as possible in order
-                    // to allow the preceding code to work with the absolute world space coordinates.
-                    if (ShaderConfig.s_CameraRelativeRendering != 0)
-                    {
-                        // Caution: 'EnvLightData.positionWS' is camera-relative after this point.
-                        int n = m_lightList.envLights.Count;
-                        EnvLightData envLightData = m_lightList.envLights[n - 1];
-                        envLightData.positionWS -= camPosWS;
-                        m_lightList.envLights[n - 1] = envLightData;
-                    }
-                }
-                }
+                return m_enableBakeShadowMask;
             }
-
-            m_lightCount = m_lightList.lights.Count + m_lightList.envLights.Count;
-            Debug.Assert(m_lightList.bounds.Count == m_lightCount);
-            Debug.Assert(m_lightList.lightVolumes.Count == m_lightCount);
-
-            UpdateDataBuffers();
-
-            m_maxShadowDistance = shadowSettings.maxShadowDistance;
-
-            return m_enableBakeShadowMask;
-        }
         }
 
         void VoxelLightListGeneration(CommandBuffer cmd, Camera camera, Matrix4x4 projscr, Matrix4x4 invProjscr, RenderTargetIdentifier cameraDepthBufferRT)
