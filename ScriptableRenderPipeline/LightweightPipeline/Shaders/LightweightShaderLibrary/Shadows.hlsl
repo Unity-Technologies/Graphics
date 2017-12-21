@@ -1,7 +1,7 @@
 #ifndef LIGHTWEIGHT_SHADOWS_INCLUDED
 #define LIGHTWEIGHT_SHADOWS_INCLUDED
 
-#include "ShaderLibrary\Common.hlsl"
+#include "CoreRP/ShaderLibrary/Common.hlsl"
 
 #define MAX_SHADOW_CASCADES 4
 

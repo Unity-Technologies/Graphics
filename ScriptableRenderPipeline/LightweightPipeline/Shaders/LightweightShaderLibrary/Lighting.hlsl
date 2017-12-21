@@ -1,9 +1,9 @@
 #ifndef LIGHTWEIGHT_LIGHTING_INCLUDED
 #define LIGHTWEIGHT_LIGHTING_INCLUDED
 
-#include "ShaderLibrary/Common.hlsl"
-#include "ShaderLibrary/EntityLighting.hlsl"
-#include "ShaderLibrary/ImageBasedLighting.hlsl"
+#include "CoreRP/ShaderLibrary/Common.hlsl"
+#include "CoreRP/ShaderLibrary/EntityLighting.hlsl"
+#include "CoreRP/ShaderLibrary/ImageBasedLighting.hlsl"
 #include "Core.hlsl"
 #include "Shadows.hlsl"
 
@@ -353,7 +353,8 @@ half SpotAttenuation(half3 spotDirection, half3 lightDirection, half4 spotAttenu
 
     // If we precompute the terms in a MAD instruction
     half SdotL = dot(spotDirection, lightDirection);
-    return saturate(SdotL * spotAttenuation.x + spotAttenuation.y);
+    half atten = saturate(SdotL * spotAttenuation.x + spotAttenuation.y);
+    return atten * atten;
 }
 
 inline half GetLightDirectionAndRealtimeAttenuation(LightInput lightInput, half3 normal, float3 worldPos, out half3 lightDirection)
