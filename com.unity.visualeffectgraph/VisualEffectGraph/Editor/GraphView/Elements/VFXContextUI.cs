@@ -603,7 +603,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void OnCreateBlock(EventBase evt)
+        public void OnCreateBlock(EventBase evt)
         {
             Vector2 referencePosition;
             if (evt is IMouseEvent)
@@ -612,10 +612,10 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                referencePosition = Vector2.zero;
+                referencePosition = evt.imguiEvent.mousePosition;
             }
 
-            VFXFilterWindow.Show(referencePosition, m_BlockProvider);
+            VFXFilterWindow.Show(VFXViewWindow.currentWindow, referencePosition, m_BlockProvider);
         }
 
         VFXBlockProvider m_BlockProvider = null;

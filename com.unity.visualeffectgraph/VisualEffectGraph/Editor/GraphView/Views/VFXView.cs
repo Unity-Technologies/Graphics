@@ -205,6 +205,37 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
+        protected internal override void ExecuteDefaultAction(EventBase evt)
+        {
+            if (evt.GetEventTypeId() == KeyDownEvent.TypeId())
+            {
+                if (evt.imguiEvent.Equals(Event.KeyboardEvent("space")))
+                {
+                    OnCreateThing(evt as KeyDownEvent);
+                }
+            }
+
+            base.ExecuteDefaultAction(evt);
+        }
+
+        void OnCreateThing(KeyDownEvent evt)
+        {
+            VisualElement picked = panel.Pick(evt.imguiEvent.mousePosition);
+            VFXContextUI context = picked.GetFirstAncestorOfType<VFXContextUI>();
+
+            if (context != null)
+            {
+                context.OnCreateBlock(evt);
+            }
+            else
+            {
+                NodeCreationContext ctx;
+                ctx.screenMousePosition = GUIUtility.GUIToScreenPoint(evt.imguiEvent.mousePosition);
+
+                OnCreateNode(ctx);
+            }
+        }
+
         VFXNodeProvider m_NodeProvider;
 
 
@@ -550,7 +581,7 @@ namespace UnityEditor.VFX.UI
 
         void OnCreateNode(NodeCreationContext ctx)
         {
-            VFXFilterWindow.Show(GUIUtility.ScreenToGUIPoint(ctx.screenMousePosition), m_NodeProvider);
+            VFXFilterWindow.Show(VFXViewWindow.currentWindow, GUIUtility.ScreenToGUIPoint(ctx.screenMousePosition), m_NodeProvider);
         }
 
         VFXRendererSettings GetRendererSettings()
@@ -627,6 +658,13 @@ namespace UnityEditor.VFX.UI
             var graph = controller.graph;
             graph.SetExpressionGraphDirty();
             graph.RecompileIfNeeded();
+        }
+
+        public EventPropagation Compile()
+        {
+            OnCompile();
+
+            return EventPropagation.Stop;
         }
 
         VFXContext AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
