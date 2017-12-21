@@ -8,8 +8,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             public readonly GUIContent defaults = new GUIContent("Defaults");
             public readonly GUIContent renderPipelineResources = new GUIContent("Render Pipeline Resources", "Set of resources that need to be loaded when creating stand alone");
-            public readonly GUIContent defaultDiffuseMaterial = new GUIContent("Default Diffuse Material", "Material to use when creating objects");
-            public readonly GUIContent defaultShader = new GUIContent("Default Shader", "Shader to use when creating materials");
 
             public readonly GUIContent settingsLabel = new GUIContent("Settings");
 
