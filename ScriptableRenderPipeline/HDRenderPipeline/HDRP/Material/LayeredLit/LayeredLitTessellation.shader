@@ -467,7 +467,8 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
     SubShader
     {
-       Pass
+         // Caution: The outline selection in the editor use the vertex shader/hull/domain shader of the first pass declare. So it should not bethe  meta pass.
+        Pass
         {
             Name "GBuffer"  // Name is not used
             Tags { "LightMode" = "GBuffer" } // This will be only for opaque object based on the RenderQueue index
