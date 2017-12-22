@@ -1,6 +1,7 @@
 ﻿using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System;
+using UnityEngine.Assertions;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -260,6 +261,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const int k_MaxEnvLightsOnScreen = 64;
         public const int k_MaxShadowOnScreen = 16;
         public const int k_MaxCascadeCount = 4; //Should be not less than m_Settings.directionalLightCascadeCount;
+        static readonly Vector3 k_BoxCullingExtentThreshold = Vector3.one * 0.01f;
 
         // Static keyword is required here else we get a "DestroyBuffer can only be call in main thread"
         static ComputeBuffer s_DirectionalLightDatas = null;
@@ -1209,7 +1211,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // probe.bounds.extents is BoxSize / 2
             var blendDistancePositive = Vector3.Min(probe.bounds.extents, influenceBlendDistancePositive);
             var blendDistanceNegative = Vector3.Min(probe.bounds.extents, influenceBlendDistanceNegative);
-            envLightData.innerDistance = extents;
+            envLightData.influenceExtents = extents;
             envLightData.envIndex = envIndex;
             envLightData.offsetLS = probe.center; // center is misnamed, it is the offset (in local space) from center of the bounding box to the cubemap capture point
             envLightData.blendDistancePositive = blendDistancePositive;
@@ -1222,13 +1224,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void GetEnvLightVolumeDataAndBound(VisibleReflectionProbe probe, LightVolumeType lightVolumeType, Matrix4x4 worldToView)
         {
+            var add = probe.probe.GetComponent<HDAdditionalReflectionData>();
+            Assert.IsNotNull(add);
+
             var bound = new SFiniteLightBound();
             var lightVolumeData = new LightVolumeData();
 
-            var bnds = probe.bounds;
-            var boxOffset = probe.center;                  // reflection volume offset relative to cube map capture point
-            var blendDistance = probe.blendDistance;
-
+            var centerOffset = probe.center;                  // reflection volume offset relative to cube map capture point
             var mat = probe.localToWorld;
 
             Vector3 vx = mat.GetColumn(0);
@@ -1240,37 +1242,59 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             vz.Normalize();
 
             // C is reflection volume center in world space (NOT same as cube map capture point)
-            var e = bnds.extents;       // 0.5f * Vector3.Max(-boxSizes[p], boxSizes[p]);
-            var C = vx * boxOffset.x + vy * boxOffset.y + vz * boxOffset.z + vw;
-
-            var combinedExtent = e + new Vector3(blendDistance, blendDistance, blendDistance);
+            var influenceExtents = probe.bounds.extents;       // 0.5f * Vector3.Max(-boxSizes[p], boxSizes[p]);
+            var centerWS = vx * centerOffset.x + vy * centerOffset.y + vz * centerOffset.z + vw;
 
             // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
             vx = worldToView.MultiplyVector(vx);
             vy = worldToView.MultiplyVector(vy);
             vz = worldToView.MultiplyVector(vz);
 
-            var Cw = worldToView.MultiplyPoint(C);
-
-            bound.center = Cw;
-            bound.boxAxisX = combinedExtent.x * vx;
-            bound.boxAxisY = combinedExtent.y * vy;
-            bound.boxAxisZ = combinedExtent.z * vz;
-            bound.scaleXY.Set(1.0f, 1.0f);
-            bound.radius = combinedExtent.magnitude;
-
+            var centerVS = worldToView.MultiplyPoint(centerWS);
 
             lightVolumeData.lightCategory = (uint)LightCategory.Env;
             lightVolumeData.lightVolume = (uint)lightVolumeType;
             lightVolumeData.featureFlags = (uint)LightFeatureFlags.Env;
 
-            lightVolumeData.lightPos = Cw;
-            lightVolumeData.lightAxisX = vx;
-            lightVolumeData.lightAxisY = vy;
-            lightVolumeData.lightAxisZ = vz;
-            var delta = combinedExtent - e;
-            lightVolumeData.boxInnerDist = e;
-            lightVolumeData.boxInvRange.Set(1.0f / delta.x, 1.0f / delta.y, 1.0f / delta.z);
+            switch (lightVolumeType)
+            {
+                case LightVolumeType.Sphere:
+                {
+                    lightVolumeData.lightPos = centerVS;
+                    lightVolumeData.radiusSq = add.influenceSphereRadius * add.influenceSphereRadius;
+                    lightVolumeData.lightAxisX = vx;
+                    lightVolumeData.lightAxisY = vy;
+                    lightVolumeData.lightAxisZ = vz;
+
+                    bound.center = centerVS;
+                    bound.boxAxisX = vx * add.influenceSphereRadius;
+                    bound.boxAxisY = vy * add.influenceSphereRadius;
+                    bound.boxAxisZ = vz * add.influenceSphereRadius;
+                    bound.scaleXY.Set(1.0f, 1.0f);
+                    bound.radius = add.influenceSphereRadius;
+                    break;
+                }
+                case LightVolumeType.Box:
+                {
+                    bound.center = centerVS;
+                    bound.boxAxisX = influenceExtents.x * vx;
+                    bound.boxAxisY = influenceExtents.y * vy;
+                    bound.boxAxisZ = influenceExtents.z * vz;
+                    bound.scaleXY.Set(1.0f, 1.0f);
+                    bound.radius = influenceExtents.magnitude;
+
+                    // The culling system culls pixels that are further
+                    //   than a threshold to the box influence extents.
+                    // So we use an arbitrary threshold here (k_BoxCullingExtentOffset)
+                    lightVolumeData.lightPos = centerVS;
+                    lightVolumeData.lightAxisX = vx;
+                    lightVolumeData.lightAxisY = vy;
+                    lightVolumeData.lightAxisZ = vz;
+                    lightVolumeData.boxInnerDist = influenceExtents - k_BoxCullingExtentThreshold;
+                    lightVolumeData.boxInvRange.Set(1.0f / k_BoxCullingExtentThreshold.x, 1.0f / k_BoxCullingExtentThreshold.y, 1.0f / k_BoxCullingExtentThreshold.z);
+                    break;
+                }
+            }
 
             m_lightList.bounds.Add(bound);
             m_lightList.lightVolumes.Add(lightVolumeData);
@@ -1558,6 +1582,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     for (int probeIndex = 0, numProbes = cullResults.visibleReflectionProbes.Count; (probeIndex < numProbes) && (sortCount < probeCount); probeIndex++)
                     {
                         VisibleReflectionProbe probe = cullResults.visibleReflectionProbes[probeIndex];
+                        HDAdditionalReflectionData additional = probe.probe.GetComponent<HDAdditionalReflectionData>();
 
                         // probe.texture can be null when we are adding a reflection probe in the editor
                         if (probe.texture == null || envLightCount >= k_MaxEnvLightsOnScreen)
@@ -1575,7 +1600,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
 
                         // TODO: Support LightVolumeType.Sphere, currently in UI there is no way to specify a sphere influence volume
-                        LightVolumeType lightVolumeType = probe.boxProjection != 0 ? LightVolumeType.Box : LightVolumeType.Box;
+                        LightVolumeType lightVolumeType = LightVolumeType.Box;
+                        if (additional != null && additional.influenceShape == ReflectionInfluenceShape.Sphere)
+                            lightVolumeType = LightVolumeType.Sphere;
                         ++envLightCount;
 
                         float boxVolume = 8 * probe.bounds.extents.x * probe.bounds.extents.y * probe.bounds.extents.z;

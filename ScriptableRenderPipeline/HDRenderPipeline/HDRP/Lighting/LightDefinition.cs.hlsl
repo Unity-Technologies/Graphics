@@ -97,7 +97,7 @@ struct EnvLightData
     float dimmer;
     float3 right;
     float minProjectionDistance;
-    float3 innerDistance;
+    float3 influenceExtents;
     float unused0;
     float3 offsetLS;
     float unused1;
@@ -286,9 +286,9 @@ float GetMinProjectionDistance(EnvLightData value)
 {
 	return value.minProjectionDistance;
 }
-float3 GetInnerDistance(EnvLightData value)
+float3 GetInfluenceExtents(EnvLightData value)
 {
-	return value.innerDistance;
+	return value.influenceExtents;
 }
 float GetUnused0(EnvLightData value)
 {
