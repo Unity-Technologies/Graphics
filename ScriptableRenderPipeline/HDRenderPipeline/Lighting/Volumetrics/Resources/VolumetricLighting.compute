@@ -7,6 +7,8 @@
 
 #pragma enable_d3d11_debug_symbols
 
+#define DEBUG_REPROJECTION 0
+
 #include "../../../ShaderPass/ShaderPass.cs.hlsl"
 #define SHADERPASS    SHADERPASS_VOLUMETRIC_LIGHTING
 #define GROUP_SIZE_1D 16
@@ -31,8 +33,8 @@
 //--------------------------------------------------------------------------------------------------
 
 RW_TEXTURE3D(float4, _VBufferLightingIntegral); // RGB = radiance, A = optical depth
+RW_TEXTURE3D(float4, _VBufferLightingFeedback); // RGB = radiance, A = confidence (similarity)
 TEXTURE3D(_VBufferLightingHistory);             // RGB = radiance, A = confidence (similarity)
-TEXTURE3D(_VBufferLightingFeedback);            // RGB = radiance, A = confidence (similarity)
 
 // TODO: avoid creating another Constant Buffer...
 CBUFFER_START(UnityVolumetricLighting)
@@ -290,6 +292,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
         // Sample the participating medium at 'tc' (or 'centerWS').
         // We consider it to be constant along the interval [t0, t1] (within the voxel).
+        // TODO: piecewise linear.
         float3 scattering = _GlobalFog_Scattering;
         float  extinction = _GlobalFog_Extinction;
 
@@ -304,34 +307,42 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                                                      );
                                                 #endif
 
+        // Reproject the history at 'centerWS'.
+        float2 reprojPosNDC = ComputeNormalizedDeviceCoordinates(centerWS, _PrevViewProjMatrix);
+        float  reprojZ      = mul(_PrevViewProjMatrix, float4(centerWS, 1)).w;
+        float4 reprojValue  = LoadFromVBuffer(reprojPosNDC, reprojZ,
+                                              _VBufferLightingHistory,
+                                              _VBufferResolutionAndScale,
+                                              _VBufferDepthEncodingParams);
+
+
+        // Perform temporal blending.
+        float3 blendedRadiance = lerp(voxelRadiance, reprojValue.rgb, reprojValue.a == 0 ? 0 : 0.1);
+
+        // Store the feedback.
+        _VBufferLightingFeedback[uint3(posInput.positionSS, slice)] = float4(blendedRadiance, 1);
+
+    #if (DEBUG_REPROJECTION != 0)
+        if (distance(voxelRadiance, reprojValue.rgb) > 0.1) blendedRadiance = float3(1000, 0, 0);
+    #endif
+
         // Compute the transmittance from the camera to 't0'.
         float transmittance = Transmittance(opticalDepth);
 
-        // Integral{a, b}{Transmittance(0, t) * Li(t) dt} = Transmittance(0, a) * Integral{a, b}{Transmittance(0, t - a) * Li(t) dt}.
-        totalRadiance += (transmittance * IsotropicPhaseFunction()) * scattering * voxelRadiance;
+        // Integral{a, b}{Transmittance(0, t) * L_s(t) dt} = Transmittance(0, a) * Integral{a, b}{Transmittance(0, t - a) * L_s(t) dt}.
+        totalRadiance += (transmittance * IsotropicPhaseFunction()) * scattering * blendedRadiance;
 
         // Compute the optical depth up to the center of the interval.
         opticalDepth += 0.5 * extinction * dt;
 
-        // Reproject 'centerWS'. It performs a point sample.
-        float2 reprojPosNDC = ComputeNormalizedDeviceCoordinates(centerWS, _PrevViewProjMatrix);
-        float  reprojZ      = mul(_PrevViewProjMatrix, float4(centerWS, 1)).w;
-        float4 reprojValue  = LoadInScatteredRadianceAndTransmittance(reprojPosNDC, reprojZ,
-                                                                      _VBufferLightingHistory,
-                                                                      _VBufferResolutionAndScale,
-                                                                      _VBufferDepthEncodingParams);
-
-        // Perform temporal blending.
-        float4 newValue     = float4(totalRadiance, opticalDepth);
-        float4 blendedValue = lerp(reprojValue, newValue, reprojValue.a == 0 ? 1 : 0.1);
-
         // Store the voxel data.
-        _VBufferLightingIntegral[uint3(posInput.positionSS, slice)] = blendedValue;
+        _VBufferLightingIntegral[uint3(posInput.positionSS, slice)] = float4(totalRadiance, opticalDepth);
 
         // Compute the optical depth up to the end of the interval.
         opticalDepth += 0.5 * extinction * dt;
 
         t0 = t1;
+
     #ifdef LIGHTLOOP_TILE_PASS
         clusterIndices[0] = clusterIndices[1];
         clusterDepths[0]  = clusterDepths[1];
