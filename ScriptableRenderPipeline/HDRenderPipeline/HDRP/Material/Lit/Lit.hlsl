@@ -1677,11 +1677,13 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         // 2. Process the position influence
         // Calculate falloff value, so reflections on the edges of the volume would gradually blend to previous reflection.
 
-#if defined(ENVMAP_FEATURE_PERFACEINFLUENCE)
+#if defined(ENVMAP_FEATURE_PERFACEINFLUENCE) || defined(ENVMAP_FEATURE_INFLUENCENORMAL) || defined(ENVMAP_FEATURE_PERFACEFADE)
         // Distance to each cube face
         float3 negativeDistance = boxOuterDistance + positionLS;
         float3 positiveDistance = boxOuterDistance - positionLS;
-        
+#endif
+
+#if defined(ENVMAP_FEATURE_PERFACEINFLUENCE)
         // Influence falloff for each face
         float3 negativeFalloff = negativeDistance / max(0.0001, lightData.blendDistanceNegative);
         float3 positiveFalloff = positiveDistance / max(0.0001, lightData.blendDistancePositive);
