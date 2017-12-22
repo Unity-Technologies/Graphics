@@ -1,5 +1,9 @@
-﻿using UnityEngine.Rendering;
-using System;
+﻿using System;
+using System.Linq;
+using System.Reflection;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -67,31 +71,61 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         VolumeStack         m_LightingOverrideVolumeStack;
         LayerMask           m_LightingOverrideLayerMask = -1;
 
+        static Dictionary<int, Type> m_SkyTypesDict = null;
+        public static Dictionary<int, Type> skyTypesDict { get { if (m_SkyTypesDict == null) UpdateSkyTypes(); return m_SkyTypesDict; } }
+
         public Texture skyReflection { get { return m_SkyRenderingContext.reflectionTexture; } }
 
 
         SkySettings GetSkySetting(VolumeStack stack)
         {
-            SkySettings result;
             var visualEnv = stack.GetComponent<VisualEnvironment>();
-            switch (visualEnv.skyType.value)
+            int skyID = visualEnv.skyType;
+            Type skyType;
+            if(m_SkyTypesDict.TryGetValue(skyID, out skyType))
             {
-                case SkyType.HDRISky:
-                    {
-                        result = stack.GetComponent<HDRISky>();
-                        break;
-                    }
-                case SkyType.ProceduralSky:
-                    {
-                        result = stack.GetComponent<ProceduralSky>();
-                        break;
-                    }
-                default:
-                    result = null;
-                    break;
+                return (SkySettings)stack.GetComponent(skyType);
             }
+            else
+            {
+                return null;
+            }
+        }
 
-            return result;
+        static void UpdateSkyTypes()
+        {
+            if(m_SkyTypesDict == null)
+            {
+                m_SkyTypesDict = new Dictionary<int, Type>();
+
+                var skyTypes = CoreUtils.GetAllAssemblyTypes().Where(t => t.IsSubclassOf(typeof(SkySettings)) && !t.IsAbstract);
+                foreach(Type skyType in skyTypes)
+                {
+                    var uniqueIDs = skyType.GetCustomAttributes(typeof(SkyUniqueID), false);
+                    if(uniqueIDs.Length == 0)
+                    {
+                        Debug.LogWarningFormat("Missing attribute SkyUniqueID on class {0}. Class won't be registered as an available sky.", skyType);
+                    }
+                    else
+                    {
+                        int uniqueID = ((SkyUniqueID)uniqueIDs[0]).uniqueID;
+                        if(uniqueID == 0)
+                        {
+                            Debug.LogWarningFormat("0 is a reserved SkyUniqueID and is used in class {0}. Class won't be registered as an available sky.", skyType);
+                            continue;
+                        }
+
+                        Type value;
+                        if(m_SkyTypesDict.TryGetValue(uniqueID, out value))
+                        {
+                            Debug.LogWarningFormat("SkyUniqueID {0} used in class {1} is already used in class {2}. Class won't be registered as an available sky.", uniqueID, skyType, value);
+                            continue;
+                        }
+
+                        m_SkyTypesDict.Add(uniqueID, skyType);
+                    }
+                }
+            }
         }
 
         void UpdateCurrentSkySettings(HDCamera camera)
@@ -218,6 +252,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_NeedUpdateRealtimeEnv = false;
             }
 
+            UpdateSkyTypes();
             UpdateCurrentSkySettings(camera);
 
             m_NeedUpdateBakingSky = m_BakingSkyRenderingContext.UpdateEnvironment(m_BakingSky, camera, sunLight, m_UpdateRequired, cmd);

@@ -1,6 +1,6 @@
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [DisallowMultipleComponent]
+    [SkyUniqueID((int)SkyType.ProceduralSky)]
     public class ProceduralSky : SkySettings
     {
         public ClampedFloatParameter sunSize = new ClampedFloatParameter(0.04f, 0.0f, 1.0f);
