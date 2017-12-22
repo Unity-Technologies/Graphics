@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph
                 vertexInputs.AddShaderChunk(String.Format("float4 texcoord{0} : TEXCOORD{1};", ((int)channel).ToString(), vertexInputIndex.ToString()), false);
                 vertexInputIndex++;
             }
-            
+
             vertexInputs.Deindent();
             vertexInputs.AddShaderChunk("};", false);
         }
@@ -165,10 +165,13 @@ namespace UnityEditor.ShaderGraph
 
                 finalBuilder.AppendLine(@"HLSLINCLUDE");
                 finalBuilder.AppendLine("#define USE_LEGACY_UNITY_MATRIX_VARIABLES");
-                finalBuilder.AppendLine(@"#include ""Common.hlsl""");
-                finalBuilder.AppendLine(@"#include ""Packing.hlsl""");
-                finalBuilder.AppendLine(@"#include ""ShaderVariables.hlsl""");
-                finalBuilder.AppendLine(@"#include ""ShaderVariablesFunctions.hlsl""");
+                finalBuilder.AppendLine(@"#include ""ShaderLibrary/Common.hlsl""");
+                finalBuilder.AppendLine(@"#include ""ShaderLibrary/Packing.hlsl""");
+                finalBuilder.AppendLine(@"#include ""ShaderLibrary/Color.hlsl""");
+                finalBuilder.AppendLine(@"#include ""ShaderGraphLibrary/Functions.hlsl""");
+                finalBuilder.AppendLine(@"#include ""ShaderGraphLibrary/ShaderVariables.hlsl""");
+                finalBuilder.AppendLine(@"#include ""ShaderGraphLibrary/ShaderVariablesFunctions.hlsl""");
+
                 finalBuilder.Concat(functionBuilder);
                 finalBuilder.AppendLines(vertexInputs.GetShaderString(0));
                 finalBuilder.AppendLines(surfaceInputs.GetShaderString(0));

@@ -672,12 +672,6 @@ SubShader
     Pass
     {
         HLSLPROGRAM
-        #define USE_LEGACY_UNITY_MATRIX_VARIABLES
-        #include ""Common.hlsl""
-
-        #include ""ShaderVariables.hlsl""
-        #include ""ShaderVariablesFunctions.hlsl""
-
         #pragma vertex vert
         #pragma fragment frag
 

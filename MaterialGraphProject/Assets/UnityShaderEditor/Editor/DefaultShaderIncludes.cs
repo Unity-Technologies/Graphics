@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace UnityEditor
 {
     internal static class DefaultShaderIncludes
@@ -7,8 +9,11 @@ namespace UnityEditor
         {
             return new[]
             {
-                "Assets/ScriptableRenderPipeline/",
-                "Assets/SRP/ScriptableRenderPipeline/LightweightPipeline/Shaders"
+                Path.GetFullPath("Packages/com.unity.render-pipelines.core"),
+                Path.GetFullPath("Packages/com.unity.render-pipelines.lightweight/Shaders"),
+                Path.GetFullPath("Packages/com.unity.render-pipelines.high-quality/Material/Unlit"),
+                Path.GetFullPath("Assets/UnityShaderEditor/Editor"),
+                Path.GetFullPath("Packages/com.unity.shadergraph/Editor"),
             };
         }
     }

@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph
                 return;
 
             visitor.AddShaderChunk(string.Format(
-                @"{0}4 {1} = IsGammaSpace() ? {0}4({2}, {3}, {4}, {5}) : {0}4(GammaToLinearSpace({0}3({2}, {3}, {4})), {5});"
+                @"{0}4 {1} = IsGammaSpace() ? {0}4({2}, {3}, {4}, {5}) : {0}4(SRGBToLinear({0}3({2}, {3}, {4})), {5});"
                 , precision
                 , GetVariableNameForNode()
                 , color.r
