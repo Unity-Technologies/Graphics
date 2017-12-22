@@ -142,7 +142,7 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 
 #ifdef VARYINGS_NEED_TANGENT_TO_WORLD
     float4 tangentWS = float4(input.interpolators2.xyz, input.interpolators2.w > 0.0 ? 1.0 : -1.0);	// must not be normalized (mikkts requirement)
-    
+
     // Normalize normalWS vector but keep the renormFactor to apply it to bitangent and tangent
 	float3 unnormalizedNormalWS = input.interpolators1.xyz;
     float renormFactor = 1.0 / length(unnormalizedNormalWS);
@@ -176,6 +176,9 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 
 #if defined(VARYINGS_NEED_CULLFACE) && SHADER_STAGE_FRAGMENT
     output.isFrontFace = IS_FRONT_VFACE(input.cullFace, true, false);
+    // Handle handness of the view matrix (In Unity view matrix default to a determinant of -1)
+    // when we render a cubemap the view matrix handness is flipped (due to convention used for cubemap) we have a determinant of +1
+    output.isFrontFace = _ViewParam.x <  0.0 ? output.isFrontFace : !output.isFrontFace;
 #endif
 
     return output;

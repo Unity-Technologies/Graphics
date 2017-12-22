@@ -13,6 +13,9 @@ namespace UnityEditor.Experimental.Rendering
     {
         internal class SerializedReflectionProbe
         {
+            internal ReflectionProbe target;
+            internal HDAdditionalReflectionData targetData;
+
             internal SerializedObject so;
 
             internal SerializedProperty mode;
@@ -21,7 +24,7 @@ namespace UnityEditor.Experimental.Rendering
             internal SerializedProperty refreshMode;
             internal SerializedProperty timeSlicingMode;
             internal SerializedProperty intensityMultiplier;
-            internal SerializedProperty blendDistance;
+            internal SerializedProperty legacyBlendDistance;
             internal SerializedProperty boxSize;
             internal SerializedProperty boxOffset;
             internal SerializedProperty resolution;
@@ -38,11 +41,19 @@ namespace UnityEditor.Experimental.Rendering
             internal SerializedProperty boxReprojectionVolumeSize;
             internal SerializedProperty boxReprojectionVolumeCenter;
             internal SerializedProperty sphereReprojectionVolumeRadius;
+            internal SerializedProperty blendDistancePositive;
+            internal SerializedProperty blendDistanceNegative;
+            internal SerializedProperty blendNormalDistancePositive;
+            internal SerializedProperty blendNormalDistanceNegative;
+            internal SerializedProperty boxSideFadePositive;
+            internal SerializedProperty boxSideFadeNegative;
             internal SerializedProperty dimmer;
 
             public SerializedReflectionProbe(SerializedObject so, SerializedObject addso)
             {
                 this.so = so;
+                target = (ReflectionProbe)so.targetObject;
+                targetData = target.GetComponent<HDAdditionalReflectionData>();
 
                 mode = so.FindProperty("m_Mode");
                 customBakedTexture = so.FindProperty("m_CustomBakedTexture");
@@ -50,7 +61,6 @@ namespace UnityEditor.Experimental.Rendering
                 refreshMode = so.FindProperty("m_RefreshMode");
                 timeSlicingMode = so.FindProperty("m_TimeSlicingMode");
                 intensityMultiplier = so.FindProperty("m_IntensityMultiplier");
-                blendDistance = so.FindProperty("m_BlendDistance");
                 boxSize = so.FindProperty("m_BoxSize");
                 boxOffset = so.FindProperty("m_BoxOffset");
                 resolution = so.FindProperty("m_Resolution");
@@ -60,6 +70,7 @@ namespace UnityEditor.Experimental.Rendering
                 nearClip = so.FindProperty("m_NearClip");
                 farClip = so.FindProperty("m_FarClip");
                 boxProjection = so.FindProperty("m_BoxProjection");
+                legacyBlendDistance = so.FindProperty("m_BlendDistance");
 
                 influenceShape = addso.Find((HDAdditionalReflectionData d) => d.influenceShape);
                 influenceSphereRadius = addso.Find((HDAdditionalReflectionData d) => d.influenceSphereRadius);
@@ -68,6 +79,12 @@ namespace UnityEditor.Experimental.Rendering
                 boxReprojectionVolumeCenter = addso.Find((HDAdditionalReflectionData d) => d.boxReprojectionVolumeCenter);
                 sphereReprojectionVolumeRadius = addso.Find((HDAdditionalReflectionData d) => d.sphereReprojectionVolumeRadius);
                 dimmer = addso.Find((HDAdditionalReflectionData d) => d.dimmer);
+                blendDistancePositive = addso.Find((HDAdditionalReflectionData d) => d.blendDistancePositive);
+                blendDistanceNegative = addso.Find((HDAdditionalReflectionData d) => d.blendDistanceNegative);
+                blendNormalDistancePositive = addso.Find((HDAdditionalReflectionData d) => d.blendNormalDistancePositive);
+                blendNormalDistanceNegative = addso.Find((HDAdditionalReflectionData d) => d.blendNormalDistanceNegative);
+                boxSideFadePositive = addso.Find((HDAdditionalReflectionData d) => d.boxSideFadePositive);
+                boxSideFadeNegative = addso.Find((HDAdditionalReflectionData d) => d.boxSideFadeNegative);
             }
         }
 
@@ -90,12 +107,14 @@ namespace UnityEditor.Experimental.Rendering
             public void ClearOperation(Operation op) { operations &= ~op; }
             public void AddOperation(Operation op) { operations |= op; }
 
-            public BoxBoundsHandle boxInfluenceBoundsHandle = new BoxBoundsHandle();
-            public BoxBoundsHandle boxProjectionBoundsHandle = new BoxBoundsHandle();
+            public BoxBoundsHandle boxInfluenceHandle = new BoxBoundsHandle();
+            public BoxBoundsHandle boxProjectionHandle = new BoxBoundsHandle();
             public BoxBoundsHandle boxBlendHandle = new BoxBoundsHandle();
-            public SphereBoundsHandle influenceSphereHandle = new SphereBoundsHandle();
-            public SphereBoundsHandle projectionSphereHandle = new SphereBoundsHandle();
+            public BoxBoundsHandle boxBlendNormalHandle = new BoxBoundsHandle();
+            public SphereBoundsHandle sphereInfluenceHandle = new SphereBoundsHandle();
+            public SphereBoundsHandle sphereProjectionHandle = new SphereBoundsHandle();
             public SphereBoundsHandle sphereBlendHandle = new SphereBoundsHandle();
+            public SphereBoundsHandle sphereBlendNormalHandle = new SphereBoundsHandle();
             public Matrix4x4 oldLocalSpace = Matrix4x4.identity;
 
             public bool HasAndClearOperation(Operation op)
