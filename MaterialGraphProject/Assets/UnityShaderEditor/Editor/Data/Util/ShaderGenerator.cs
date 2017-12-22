@@ -72,7 +72,7 @@ namespace UnityEditor.ShaderGraph
             var sb = new StringBuilder();
             foreach (var shaderChunk in m_ShaderChunks)
             {
-                var lines = shaderChunk.chunkString.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                var lines = Regex.Split(shaderChunk.chunkString, Environment.NewLine);
                 for (int index = 0; index < lines.Length; index++)
                 {
                     var line = lines[index];
@@ -339,7 +339,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static string EmitTransform(TransformDesc[] matrices, TransformDesc[] invMatrices, string variable, bool isAffine, bool inverseTranspose)
+        public static string EmitTransform(TransformDesc[] matrices, TransformDesc[] invMatrices, string variable, bool isAffine, bool noMatrixCast, bool inverseTranspose)
         {
             // Use inverse transpose for situations where
             // scale needs to be considered (normals)
@@ -353,7 +353,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var m in matrices)
             {
                 var matrix = m.name;
-                if (!isAffine)
+                if (!isAffine && !noMatrixCast)
                 {
                     matrix = "(float3x3)" + matrix;
                 }
@@ -381,7 +381,8 @@ namespace UnityEditor.ShaderGraph
             // Ensure that the transform graph is initialized
             InitTransforms();
             bool isNormal = false;
-            bool affine = (inputType == InputType.Position);
+            bool affine = (inputType == InputType.Position && to != CoordinateSpace.World);
+            bool noMatrixCast = (inputType == InputType.Position && to == CoordinateSpace.World);
             if (inputType == InputType.Normal)
             {
                 inputType = InputType.Vector;
@@ -398,13 +399,13 @@ namespace UnityEditor.ShaderGraph
                 variable = EmitTransform(
                         GetTransformPath(CoordinateSpace.Tangent, tangentMatrixSpace),
                         GetTransformPath(tangentMatrixSpace, CoordinateSpace.Tangent),
-                        variable, affine, !isNormal);
+                        variable, affine, noMatrixCast, !isNormal);
                 if (to == tangentMatrixSpace)
                 {
                     return variable;
                 }
             }
-            return EmitTransform(GetTransformPath(from, to), GetTransformPath(to, from), variable, affine, isNormal);
+            return EmitTransform(GetTransformPath(from, to), GetTransformPath(to, from), variable, affine, noMatrixCast, isNormal);
         }
 
         public static void GenerateSpaceTranslationSurfaceInputs(
@@ -495,7 +496,7 @@ namespace UnityEditor.ShaderGraph
             {
                 var name = preferedCoordinateSpace.ToVariableName(InterpolatorType.Position);
                 interpolators.AddShaderChunk(string.Format("float3 {0} : TEXCOORD{1};", name, interpolatorIndex), false);
-                vertexShader.AddShaderChunk(string.Format("o.{0} = {1};", name, ConvertBetweenSpace("v.vertex", CoordinateSpace.Object, preferedCoordinateSpace, InputType.Vector)), false);
+                vertexShader.AddShaderChunk(string.Format("o.{0} = {1};", name, ConvertBetweenSpace("v.vertex", CoordinateSpace.Object, preferedCoordinateSpace, InputType.Position)), false);
                 pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", name), false);
                 interpolatorIndex++;
             }
@@ -559,8 +560,8 @@ namespace UnityEditor.ShaderGraph
             if (graphRequiements.requiresScreenPosition)
                 surfaceInputs.AddShaderChunk(string.Format("surfaceInput.{0} = {0};", ShaderGeneratorNames.ScreenPosition), false);
 
-            foreach (var channel in combinedRequierments.requiresMeshUVs.Distinct())
-                surfaceInputs.AddShaderChunk(string.Format("surfaceInput.{0}  ={0};", channel.GetUVName()), false);
+            foreach (var channel in graphRequiements.requiresMeshUVs.Distinct())
+                surfaceInputs.AddShaderChunk(string.Format("surfaceInput.{0} = {0};", channel.GetUVName()), false);
         }
 
         public enum Dimension

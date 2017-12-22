@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+﻿using System;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
@@ -66,16 +66,14 @@ namespace UnityEditor.ShaderGraph
 
         void ValidateChannelCount()
         {
-            int channelCount = (int)SlotValueHelper.GetChannelCount(FindSlot<MaterialSlot>(InputSlotId).concreteValueType);
+            int channelCount = SlotValueHelper.GetChannelCount(FindSlot<MaterialSlot>(InputSlotId).concreteValueType);
             if ((int)channel >= channelCount)
                 channel = TextureChannel.Red;
         }
 
         string GetFunctionPrototype(string argIn, string argOut)
         {
-            return string.Format("void {0} ({1} {2}, out {3} {4})", GetFunctionName(),
-                ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<DynamicVectorMaterialSlot>(InputSlotId).concreteValueType), argIn,
-                ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<DynamicVectorMaterialSlot>(OutputSlotId).concreteValueType), argOut);
+            return string.Format("void {0} ({1} {2}, out {3} {4})", GetFunctionName(), NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<DynamicVectorMaterialSlot>(InputSlotId).concreteValueType), argIn, NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<DynamicVectorMaterialSlot>(OutputSlotId).concreteValueType), argOut);
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
@@ -83,7 +81,7 @@ namespace UnityEditor.ShaderGraph
             ValidateChannelCount();
             string inputValue = GetSlotValue(InputSlotId, generationMode);
             string outputValue = GetSlotValue(OutputSlotId, generationMode);
-            visitor.AddShaderChunk(string.Format("{0} {1};", ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType), GetVariableNameForSlot(OutputSlotId)), true);
+            visitor.AddShaderChunk(string.Format("{0} {1};", NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType), GetVariableNameForSlot(OutputSlotId)), true);
             visitor.AddShaderChunk(GetFunctionCallBody(inputValue, outputValue), true);
         }
 
@@ -92,33 +90,32 @@ namespace UnityEditor.ShaderGraph
             return GetFunctionName() + " (" + inputValue + ", " + outputValue + ");";
         }
 
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            ValidateChannelCount();
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("In", "Out"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-
-            switch (channel)
+            registry.ProvideFunction(GetFunctionName(), s =>
             {
-                case TextureChannel.Green:
-                    outputString.AddShaderChunk("Out = In.yyyy;", false);
-                    break;
-                case TextureChannel.Blue:
-                    outputString.AddShaderChunk("Out = In.zzzz;", false);
-                    break;
-                case TextureChannel.Alpha:
-                    outputString.AddShaderChunk("Out = In.wwww;", false);
-                    break;
-                default:
-                    outputString.AddShaderChunk("Out = In.xxxx;", false);
-                    break;
-            }
-
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+                s.AppendLine(GetFunctionPrototype("In", "Out"));
+                using (s.BlockScope())
+                {
+                    switch (channel)
+                    {
+                        case TextureChannel.Green:
+                            s.AppendLine("Out = In.yyyy;");
+                            break;
+                        case TextureChannel.Blue:
+                            s.AppendLine("Out = In.zzzz;");
+                            break;
+                        case TextureChannel.Alpha:
+                            s.AppendLine("Out = In.wwww;");
+                            break;
+                        case TextureChannel.Red:
+                            s.AppendLine("Out = In.xxxx;");
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                }
+            });
         }
     }
 }

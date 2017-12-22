@@ -7,7 +7,7 @@ using UnityEngine.Experimental.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class DynamicVectorMaterialSlot : MaterialSlot, IMaterialSlotHasVaule<Vector4>
+    public class DynamicVectorMaterialSlot : MaterialSlot, IMaterialSlotHasValue<Vector4>
     {
         [SerializeField]
         private Vector4 m_Value;
@@ -79,7 +79,7 @@ namespace UnityEditor.ShaderGraph
 
         protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
         {
-            var channelCount = (int)SlotValueHelper.GetChannelCount(concreteValueType);
+            var channelCount = SlotValueHelper.GetChannelCount(concreteValueType);
             var values = value.x.ToString();
             if (channelCount == 1)
                 return values;

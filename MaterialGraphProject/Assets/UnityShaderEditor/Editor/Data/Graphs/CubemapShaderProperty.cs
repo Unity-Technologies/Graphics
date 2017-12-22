@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using UnityEditor.Graphing;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -61,6 +62,11 @@ namespace UnityEditor.ShaderGraph
                 propType = PropertyType.Cubemap,
                 cubemapValue = value.cubemap
             };
+        }
+
+        public override INode ToConcreteNode()
+        {
+            return new CubemapAssetNode { cubemap = value.cubemap };
         }
     }
 }

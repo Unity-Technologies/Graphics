@@ -1,4 +1,5 @@
 using System;
+using UnityEditor.Graphing;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -76,5 +77,6 @@ namespace UnityEditor.ShaderGraph
         }
 
         public abstract PreviewProperty GetPreviewMaterialProperty();
+        public abstract INode ToConcreteNode();
     }
 }

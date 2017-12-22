@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEditor.Graphing;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -28,6 +29,11 @@ namespace UnityEditor.ShaderGraph
         public override PreviewProperty GetPreviewMaterialProperty()
         {
             return default(PreviewProperty);
+        }
+
+        public override INode ToConcreteNode()
+        {
+            return new SamplerStateNode();
         }
     }
 }

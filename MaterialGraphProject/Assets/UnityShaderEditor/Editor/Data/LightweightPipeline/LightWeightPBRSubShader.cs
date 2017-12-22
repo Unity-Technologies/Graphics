@@ -47,26 +47,41 @@ namespace UnityEditor.ShaderGraph
             }
         };
 
+        private static void GenerateApplicationVertexInputs(ShaderGraphRequirements graphRequiements, ShaderGenerator vertexInputs)
+        {
+            vertexInputs.AddShaderChunk("struct GraphVertexInput", false);
+            vertexInputs.AddShaderChunk("{", false);
+            vertexInputs.Indent();
+            vertexInputs.AddShaderChunk("float4 vertex : POSITION;", false);
+            vertexInputs.AddShaderChunk("float3 normal : NORMAL;", false);
+            vertexInputs.AddShaderChunk("float4 tangent : TANGENT;", false);
+
+            if (graphRequiements.requiresVertexColor)
+            {
+                vertexInputs.AddShaderChunk("float4 color : COLOR;", false);
+            }
+
+            foreach (var channel in graphRequiements.requiresMeshUVs.Distinct())
+                vertexInputs.AddShaderChunk(string.Format("float4 texcoord{0} : TEXCOORD{0};", (int)channel), false);
+
+            vertexInputs.AddShaderChunk("UNITY_VERTEX_INPUT_INSTANCE_ID", false);
+            vertexInputs.Deindent();
+            vertexInputs.AddShaderChunk("};", false);
+        }
+
         private static string GetShaderPassFromTemplate(string template, PBRMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions)
         {
+            var builder = new ShaderStringBuilder();
+            builder.IncreaseIndent();
+            builder.IncreaseIndent();
+            var vertexInputs = new ShaderGenerator();
             var surfaceVertexShader = new ShaderGenerator();
             var surfaceDescriptionFunction = new ShaderGenerator();
             var surfaceDescriptionStruct = new ShaderGenerator();
-            var shaderFunctionVisitor = new ShaderGenerator();
+            var functionRegistry = new FunctionRegistry(builder);
             var surfaceInputs = new ShaderGenerator();
 
             var shaderProperties = new PropertyCollector();
-
-            var graphVertexInput = @"
-struct GraphVertexInput
-{
-     float4 vertex : POSITION;
-     float3 normal : NORMAL;
-     float4 tangent : TANGENT;
-     float4 color : COLOR;
-     float4 texcoord0 : TEXCOORD0;
-     float4 lightmapUV : TEXCOORD1;
-};";
 
             surfaceInputs.AddShaderChunk("struct SurfaceInputs{", false);
             surfaceInputs.Indent();
@@ -74,7 +89,17 @@ struct GraphVertexInput
             var activeNodeList = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots);
 
-            var requirements = AbstractMaterialGraph.GetRequirements(activeNodeList);
+            var requirements = ShaderGraphRequirements.FromNodes(activeNodeList);
+
+            var modelRequiements = ShaderGraphRequirements.none;
+            modelRequiements.requiresNormal |= NeededCoordinateSpace.World;
+            modelRequiements.requiresTangent |= NeededCoordinateSpace.World;
+            modelRequiements.requiresBitangent |= NeededCoordinateSpace.World;
+            modelRequiements.requiresPosition |= NeededCoordinateSpace.World;
+            modelRequiements.requiresViewDir |= NeededCoordinateSpace.World;
+            modelRequiements.requiresMeshUVs.Add(UVChannel.uv1);
+
+            GenerateApplicationVertexInputs(requirements.Union(modelRequiements), vertexInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, surfaceInputs);
@@ -102,18 +127,18 @@ struct GraphVertexInput
             var slots = new List<MaterialSlot>();
             foreach (var id in pass.PixelShaderSlots)
                 slots.Add(masterNode.FindSlot<MaterialSlot>(id));
-            AbstractMaterialGraph.GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, slots, true);
+            GraphUtil.GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, slots, true);
 
             var usedSlots = new List<MaterialSlot>();
             foreach (var id in pass.PixelShaderSlots)
                 usedSlots.Add(masterNode.FindSlot<MaterialSlot>(id));
 
-            AbstractMaterialGraph.GenerateSurfaceDescription(
+            GraphUtil.GenerateSurfaceDescription(
                 activeNodeList,
                 masterNode,
                 masterNode.owner as AbstractMaterialGraph,
                 surfaceDescriptionFunction,
-                shaderFunctionVisitor,
+                functionRegistry,
                 shaderProperties,
                 requirements,
                 mode,
@@ -124,8 +149,8 @@ struct GraphVertexInput
                 usedSlots);
 
             var graph = new ShaderGenerator();
-            graph.AddShaderChunk(shaderFunctionVisitor.GetShaderString(2), false);
-            graph.AddShaderChunk(graphVertexInput, false);
+            graph.AddShaderChunk(builder.ToString(), false);
+            graph.AddShaderChunk(vertexInputs.GetShaderString(2), false);
             graph.AddShaderChunk(surfaceInputs.GetShaderString(2), false);
             graph.AddShaderChunk(surfaceDescriptionStruct.GetShaderString(2), false);
             graph.AddShaderChunk(shaderProperties.GetPropertiesDeclaration(2), false);
@@ -149,13 +174,6 @@ struct GraphVertexInput
             var localSurfaceInputs = new ShaderGenerator();
             var surfaceOutputRemap = new ShaderGenerator();
 
-            var reqs = ShaderGraphRequirements.none;
-            reqs.requiresNormal |= NeededCoordinateSpace.World;
-            reqs.requiresTangent |= NeededCoordinateSpace.World;
-            reqs.requiresBitangent |= NeededCoordinateSpace.World;
-            reqs.requiresPosition |= NeededCoordinateSpace.World;
-            reqs.requiresViewDir |= NeededCoordinateSpace.World;
-
             ShaderGenerator.GenerateStandardTransforms(
                 3,
                 10,
@@ -164,7 +182,7 @@ struct GraphVertexInput
                 localPixelShader,
                 localSurfaceInputs,
                 requirements,
-                reqs,
+                modelRequiements,
                 CoordinateSpace.World);
 
             ShaderGenerator defines = new ShaderGenerator();
@@ -184,7 +202,7 @@ struct GraphVertexInput
             }
 
             if (masterNode.IsSlotConnected(PBRMasterNode.AlphaThresholdSlotId))
-                defines.AddShaderChunk("#define _AlphaClip 1", true);
+                    defines.AddShaderChunk("#define _AlphaClip 1", true);
 
             var templateLocation = ShaderGenerator.GetTemplatePath(template);
 

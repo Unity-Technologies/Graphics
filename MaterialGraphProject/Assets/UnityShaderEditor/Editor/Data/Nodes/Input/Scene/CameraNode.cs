@@ -6,17 +6,23 @@ namespace UnityEditor.ShaderGraph
     [Title("Input", "Scene", "Camera")]
     public class CameraNode : AbstractMaterialNode
     {
-        private const string kOutputSlotName = "Pos";
-        private const string kOutputSlot1Name = "Dir";
-        private const string kOutputSlot2Name = "Near";
-        private const string kOutputSlot3Name = "Far";
-        private const string kOutputSlot4Name = "Sign";
+        const string kOutputSlotName = "Position";
+        const string kOutputSlot1Name = "Direction";
+        const string kOutputSlot2Name = "Orthographic";
+        const string kOutputSlot3Name = "Near Plane";
+        const string kOutputSlot4Name = "Far Plane";
+        const string kOutputSlot5Name = "Sign";
+        const string kOutputSlot6Name = "Width";
+        const string kOutputSlot7Name = "Height";
 
         public const int OutputSlotId = 0;
         public const int OutputSlot1Id = 1;
         public const int OutputSlot2Id = 2;
         public const int OutputSlot3Id = 3;
         public const int OutputSlot4Id = 4;
+        public const int OutputSlot5Id = 5;
+        public const int OutputSlot6Id = 6;
+        public const int OutputSlot7Id = 7;
 
         public CameraNode()
         {
@@ -31,12 +37,10 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector1MaterialSlot(OutputSlot2Id, kOutputSlot2Name, kOutputSlot2Name, SlotType.Output, 0));
             AddSlot(new Vector1MaterialSlot(OutputSlot3Id, kOutputSlot3Name, kOutputSlot3Name, SlotType.Output, 0));
             AddSlot(new Vector1MaterialSlot(OutputSlot4Id, kOutputSlot4Name, kOutputSlot4Name, SlotType.Output, 1));
-            RemoveSlotsNameNotMatching(validSlots);
-        }
-
-        protected int[] validSlots
-        {
-            get { return new[] { OutputSlotId, OutputSlot1Id, OutputSlot2Id, OutputSlot3Id, OutputSlot4Id }; }
+            AddSlot(new Vector1MaterialSlot(OutputSlot5Id, kOutputSlot5Name, kOutputSlot5Name, SlotType.Output, 1));
+            AddSlot(new Vector1MaterialSlot(OutputSlot6Id, kOutputSlot6Name, kOutputSlot6Name, SlotType.Output, 1));
+            AddSlot(new Vector1MaterialSlot(OutputSlot7Id, kOutputSlot7Name, kOutputSlot7Name, SlotType.Output, 1));
+            RemoveSlotsNameNotMatching(new[] { OutputSlotId, OutputSlot1Id, OutputSlot2Id, OutputSlot3Id, OutputSlot4Id, OutputSlot5Id, OutputSlot6Id, OutputSlot7Id });
         }
 
         public override string GetVariableNameForSlot(int slotId)
@@ -44,13 +48,19 @@ namespace UnityEditor.ShaderGraph
             switch (slotId)
             {
                 case OutputSlot1Id:
-                    return "mul(unity_ObjectToWorld, UNITY_MATRIX_IT_MV [2].xyz)";
+                    return "-1 * mul(unity_ObjectToWorld, UNITY_MATRIX_IT_MV [2].xyz)";
                 case OutputSlot2Id:
-                    return "_ProjectionParams.y";
+                    return "unity_OrthoParams.w";
                 case OutputSlot3Id:
-                    return "_ProjectionParams.z";
+                    return "_ProjectionParams.y";
                 case OutputSlot4Id:
+                    return "_ProjectionParams.z";
+                case OutputSlot5Id:
                     return "_ProjectionParams.x";
+                case OutputSlot6Id:
+                    return "unity_OrthoParams.x";
+                case OutputSlot7Id:
+                    return "unity_OrthoParams.y";
                 default:
                     return "_WorldSpaceCameraPos";
             }

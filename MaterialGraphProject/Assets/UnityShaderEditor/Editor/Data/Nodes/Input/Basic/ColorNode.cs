@@ -63,7 +63,14 @@ namespace UnityEditor.ShaderGraph
             if (generationMode.IsPreview())
                 return;
 
-            visitor.AddShaderChunk(precision + "4 " + GetVariableNameForNode() + " = " + precision + "4 (" + color.r + ", " + color.g + ", " + color.b + ", " + color.a + ");", true);
+            visitor.AddShaderChunk(string.Format(
+                @"{0}4 {1} = IsGammaSpace() ? {0}4({2}, {3}, {4}, {5}) : {0}4(GammaToLinearSpace({0}3({2}, {3}, {4})), {5});"
+                , precision
+                , GetVariableNameForNode()
+                , color.r
+                , color.g
+                , color.b
+                , color.a), true);
         }
 
         public override string GetVariableNameForSlot(int slotId)

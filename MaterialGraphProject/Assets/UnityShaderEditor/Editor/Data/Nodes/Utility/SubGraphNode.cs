@@ -96,7 +96,7 @@ namespace UnityEditor.ShaderGraph
             GetOutputSlots(s_TempSlots);
             foreach (var slot in s_TempSlots)
             {
-                var outDimension = ConvertConcreteSlotValueTypeToString(precision, slot.concreteValueType);
+                var outDimension = NodeUtils.ConvertConcreteSlotValueTypeToString(precision, slot.concreteValueType);
                 outputString.AddShaderChunk(string.Format("{0} {1} = 0;", outDimension, GetVariableNameForSlot(slot.id)), false);
             }
 
@@ -144,8 +144,7 @@ namespace UnityEditor.ShaderGraph
                 else
                 {
                     var varName = prop.referenceName;
-                    outputString.AddShaderChunk(
-                        ConvertConcreteSlotValueTypeToString(precision, inSlot.concreteValueType)
+                    outputString.AddShaderChunk(NodeUtils.ConvertConcreteSlotValueTypeToString(precision, inSlot.concreteValueType)
                         + " "
                         + varName
                         + " = "

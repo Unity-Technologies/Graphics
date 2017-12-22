@@ -1,32 +1,34 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental.UIElements;
-using UnityEditor.Graphing.Util;
+using UnityEditor.Graphing;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using UnityEditor.Graphing;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
     public class GraphInspectorView : VisualElement, IDisposable
     {
+        enum ResizeDirection
+        {
+            Any,
+            Vertical,
+            Horizontal
+        }
+
         int m_SelectionHash;
 
         VisualElement m_PropertyItems;
         VisualElement m_LayerItems;
-        VisualElement m_ContentContainer;
         ObjectField m_PreviewMeshPicker;
         AbstractNodeEditorView m_EditorView;
 
-        TypeMapper m_TypeMapper;
         PreviewTextureView m_PreviewTextureView;
 
         AbstractMaterialGraph m_Graph;
         MasterNode m_MasterNode;
         PreviewRenderData m_PreviewRenderHandle;
-
-        List<INode> m_SelectedNodes;
 
         Vector2 m_PreviewScrollPosition;
 
@@ -36,7 +38,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         public GraphInspectorView(string assetName, PreviewManager previewManager, AbstractMaterialGraph graph)
         {
             m_Graph = graph;
-            m_SelectedNodes = new List<INode>();
 
             AddStyleSheetPath("Styles/MaterialGraph");
 
@@ -59,13 +60,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 }
                 topContainer.Add(headerContainer);
 
-                m_ContentContainer = new VisualElement {name = "content"};
-                topContainer.Add(m_ContentContainer);
-            }
-            Add(topContainer);
-
-            var bottomContainer = new VisualElement {name = "bottom"};
-            {
                 var propertiesContainer = new VisualElement {name = "properties"};
                 {
                     var header = new VisualElement {name = "header"};
@@ -81,16 +75,19 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                     m_PropertyItems = new VisualContainer {name = "items"};
                     propertiesContainer.Add(m_PropertyItems);
                 }
-                bottomContainer.Add(propertiesContainer);
+                topContainer.Add(propertiesContainer);
+            }
+            Add(topContainer);
 
+            var bottomContainer = new VisualElement {name = "bottom"};
+            {
                 m_PreviewTextureView = new PreviewTextureView { name = "preview", image = Texture2D.blackTexture };
                 m_PreviewTextureView.AddManipulator(new Draggable(OnMouseDrag, true));
-                m_PreviewTextureView.AddManipulator(new Scrollable(OnMouseScroll));
                 bottomContainer.Add(m_PreviewTextureView);
 
                 m_PreviewScrollPosition = new Vector2(0f, 0f);
 
-                m_PreviewMeshPicker = new ObjectField() { objectType = typeof(Mesh) };
+                m_PreviewMeshPicker = new ObjectField { objectType = typeof(Mesh) };
                 m_PreviewMeshPicker.OnValueChanged(OnPreviewMeshChanged);
 
                 bottomContainer.Add(m_PreviewMeshPicker);
@@ -100,19 +97,64 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_PreviewRenderHandle = previewManager.masterRenderData;
             m_PreviewRenderHandle.onPreviewChanged += OnPreviewChanged;
 
-            m_PreviewMeshPicker.SetValueAndNotify(m_Graph.previewMesh);
+            m_PreviewMeshPicker.SetValueAndNotify(m_Graph.previewData.serializedMesh.mesh);
 
             foreach (var property in m_Graph.properties)
                 m_PropertyItems.Add(new ShaderPropertyView(m_Graph, property));
 
-            // Nodes missing custom editors:
-            // - PropertyNode
-            // - SubGraphInputNode
-            // - SubGraphOutputNode
-            m_TypeMapper = new TypeMapper(typeof(INode), typeof(AbstractNodeEditorView), typeof(StandardNodeEditorView))
+            var resizeHandleTop = new Label { name = "resize-top", text = "" };
+            resizeHandleTop.AddManipulator(new Draggable(mouseDelta => OnResize(mouseDelta, ResizeDirection.Vertical, true)));
+            Add(resizeHandleTop);
+
+            var resizeHandleRight = new Label { name = "resize-right", text = "" };
+            resizeHandleRight.AddManipulator(new Draggable(mouseDelta => OnResize(mouseDelta, ResizeDirection.Horizontal, false)));
+            Add(resizeHandleRight);
+
+            var resizeHandleLeft = new Label { name = "resize-left", text = "" };
+            resizeHandleLeft.AddManipulator(new Draggable(mouseDelta => OnResize(mouseDelta, ResizeDirection.Horizontal, true)));
+            Add(resizeHandleLeft);
+
+            var resizeHandleBottom = new Label { name = "resize-bottom", text = "" };
+            resizeHandleBottom.AddManipulator(new Draggable(mouseDelta => OnResize(mouseDelta, ResizeDirection.Vertical, false)));
+            Add(resizeHandleBottom);
+        }
+
+        void OnResize(Vector2 resizeDelta, ResizeDirection direction, bool moveWhileResize)
+        {
+            Vector2 normalizedResizeDelta = resizeDelta / 2f;
+
+            if (direction == ResizeDirection.Vertical)
             {
-                // { typeof(AbstractSurfaceMasterNode), typeof(SurfaceMasterNodeEditorView) }
-            };
+                normalizedResizeDelta.x = 0f;
+            }
+            else if (direction == ResizeDirection.Horizontal)
+            {
+                normalizedResizeDelta.y = 0f;
+            }
+
+            Rect newLayout = layout;
+
+            // Resize form bottom/right
+            if (!moveWhileResize)
+            {
+                newLayout.width = Mathf.Max(layout.width + normalizedResizeDelta.x, 60f);
+                newLayout.height = Mathf.Max(layout.height + normalizedResizeDelta.y, 60f);
+
+                layout = newLayout;
+
+                return;
+            }
+
+            float previousFarX = layout.x + layout.width;
+            float previousFarY = layout.y + layout.height;
+
+            newLayout.width = Mathf.Max(layout.width - normalizedResizeDelta.x, 60f);
+            newLayout.height = Mathf.Max(layout.height - normalizedResizeDelta.y, 60f);
+
+            newLayout.x = Mathf.Min(layout.x + normalizedResizeDelta.x, previousFarX - 60f);
+            newLayout.y = Mathf.Min(layout.y + normalizedResizeDelta.y, previousFarY - 60f);
+
+            layout = newLayout;
         }
 
         MasterNode masterNode
@@ -128,12 +170,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_PreviewScrollPosition.y = Mathf.Clamp(m_PreviewScrollPosition.y, -90f, 90f);
             Quaternion previewRotation = Quaternion.Euler(m_PreviewScrollPosition.y, 0, 0) * Quaternion.Euler(0, m_PreviewScrollPosition.x, 0);
             m_Graph.previewData.rotation = previewRotation;
-        }
 
-        void OnMouseScroll(float scrollDelta)
-        {
-            m_Graph.previewData.scale -= scrollDelta * .01f;
-            m_Graph.previewData.scale = Mathf.Clamp(m_Graph.previewData.scale, .1f, 4f);
+            masterNode.onModified(masterNode, ModificationScope.Node);
         }
 
         void OnAddProperty()
@@ -161,48 +199,18 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_PreviewTextureView.Dirty(ChangeType.Repaint);
         }
 
-        void OnPreviewMeshChanged(ChangeEvent<UnityEngine.Object> changeEvent)
+        void OnPreviewMeshChanged(ChangeEvent<Object> changeEvent)
         {
             Mesh changedMesh = changeEvent.newValue as Mesh;
 
             masterNode.onModified(masterNode, ModificationScope.Node);
 
-            if (m_Graph.previewMesh != changedMesh)
+            if (m_Graph.previewData.serializedMesh.mesh != changedMesh)
             {
                 m_Graph.previewData.rotation = Quaternion.identity;
-                m_Graph.previewData.scale = 1f;
             }
 
-            m_Graph.previewMesh = changedMesh;
-        }
-
-        public void UpdateSelection(IEnumerable<INode> nodes)
-        {
-            m_SelectedNodes.Clear();
-            m_SelectedNodes.AddRange(nodes);
-
-            var selectionHash = UIUtilities.GetHashCode(m_SelectedNodes.Count,
-                    m_SelectedNodes != null ? m_SelectedNodes.FirstOrDefault() : null);
-            if (selectionHash != m_SelectionHash)
-            {
-                m_SelectionHash = selectionHash;
-                m_ContentContainer.Clear();
-                if (m_SelectedNodes.Count > 1)
-                {
-                    var element = new Label(string.Format("{0} nodes selected.", m_SelectedNodes.Count))
-                    {
-                        name = "selectionCount"
-                    };
-                    m_ContentContainer.Add(element);
-                }
-                else if (m_SelectedNodes.Count == 1)
-                {
-                    var node = m_SelectedNodes.First();
-                    var view = (AbstractNodeEditorView)Activator.CreateInstance(m_TypeMapper.MapType(node.GetType()));
-                    view.node = node;
-                    m_ContentContainer.Add(view);
-                }
-            }
+            m_Graph.previewData.serializedMesh.mesh = changedMesh;
         }
 
         public void HandleGraphChanges()

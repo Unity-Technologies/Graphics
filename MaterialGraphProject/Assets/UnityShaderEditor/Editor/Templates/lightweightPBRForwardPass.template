@@ -10,7 +10,7 @@ Pass
 	HLSLPROGRAM
     // Required to compile gles 2.0 with standard srp library
     #pragma prefer_hlslcc gles
-    #pragma target 3.0
+	#pragma target 3.0
 	
     #pragma multi_compile _ _MAIN_LIGHT_COOKIE
     #pragma multi_compile _MAIN_DIRECTIONAL_LIGHT _MAIN_SPOT_LIGHT
@@ -47,7 +47,7 @@ Pass
 	    v = PopulateVertexData(v);
 		
         GraphVertexOutput o = (GraphVertexOutput)0;
-        
+
         ${VertexShader}
 
 		float3 lwWNormal = TransformObjectToWorldNormal(v.normal);
@@ -60,7 +60,7 @@ Pass
 	    OUTPUT_LIGHTMAP_UV(v.lightmapUV, unity_LightmapST, o.lightmapUVOrVertexSH);
 	    OUTPUT_SH(lwWNormal, o.lightmapUVOrVertexSH);
 
-		half3 vertexLight = VertexLighting(lwWorldPos, lwWNormal);
+	    half3 vertexLight = VertexLighting(lwWorldPos, lwWNormal);
 	    half fogFactor = ComputeFogFactor(clipPos.z);
 	    o.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
