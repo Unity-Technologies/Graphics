@@ -2,12 +2,10 @@ using System;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.VFX;
-using UnityEditor;
+using UnityEngine.Rendering;
 using UnityEngine.TestTools;
 using System.Linq;
-using UnityEditor.VFX.UI;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEditor.VFX.Block.Test;
 
 namespace UnityEditor.VFX.Test
@@ -18,6 +16,7 @@ namespace UnityEditor.VFX.Test
         GameObject m_cubeEmpty;
         GameObject m_sphereEmpty;
         GameObject m_mainObject;
+        GameObject m_mainCamera;
         string m_pathTexture2D_A;
         string m_pathTexture2D_B;
         Texture2D m_texture2D_A;
@@ -91,6 +90,11 @@ namespace UnityEditor.VFX.Test
             m_textureCubeArray_B = AssetDatabase.LoadAssetAtPath<CubemapArray>(m_pathTextureCubeArray_B);
 
             m_mainObject = new GameObject("TestObject");
+
+            m_mainCamera = new GameObject();
+            var camera = m_mainCamera.AddComponent<Camera>();
+            camera.transform.localPosition = Vector3.one;
+            camera.transform.LookAt(m_mainCamera.transform);
         }
 
         [OneTimeTearDown]
@@ -109,6 +113,90 @@ namespace UnityEditor.VFX.Test
             AssetDatabase.DeleteAsset(m_pathTextureCube_B);
             AssetDatabase.DeleteAsset(m_pathTextureCubeArray_A);
             AssetDatabase.DeleteAsset(m_pathTextureCubeArray_B);
+        }
+
+        [UnityTest]
+        [Timeout(1000 * 10)]
+        public IEnumerator CreateComponentAndCheckDimensionConstraint()
+        {
+            EditorApplication.ExecuteMenuItem("Window/Game");
+            var graph = ScriptableObject.CreateInstance<VFXGraph>();
+
+            var contextInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var allType = ScriptableObject.CreateInstance<AllType>();
+
+            contextInitialize.AddChild(allType);
+            graph.AddChild(contextInitialize);
+
+            // Needs a spawner and output for the system to be valid (TODOPAUL : Should not be needed here)
+            {
+                var spawner = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+                spawner.LinkTo(contextInitialize);
+                graph.AddChild(spawner);
+
+                var output = ScriptableObject.CreateInstance<VFXPointOutput>();
+                output.LinkFrom(contextInitialize);
+                graph.AddChild(output);
+            }
+
+            var parameter = VFXLibrary.GetParameters().First(o => o.model.type == typeof(Texture2D)).CreateInstance();
+            var type = VFXValueType.kTexture2D;
+
+            var targetTextureName = "exposed_test_tex2D";
+
+            if (type != VFXValueType.kNone)
+            {
+                parameter.SetSettingValue("m_exposedName", targetTextureName);
+                parameter.SetSettingValue("m_exposed", true);
+                graph.AddChild(parameter);
+            }
+
+            for (int i = 0; i < allType.GetNbInputSlots(); ++i)
+            {
+                var currentSlot = allType.GetInputSlot(i);
+                var expression = currentSlot.GetExpression();
+                if (expression != null && expression.valueType == type)
+                {
+                    currentSlot.Link(parameter.GetOutputSlot(0));
+                    break;
+                }
+            }
+
+            graph.vfxAsset = new VFXAsset();
+            graph.RecompileIfNeeded();
+
+            while (m_mainObject.GetComponent<VFXComponent>() != null)
+            {
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VFXComponent>());
+            }
+            var vfxComponent = m_mainObject.AddComponent<VFXComponent>();
+            vfxComponent.vfxAsset = graph.vfxAsset;
+
+            yield return null;
+
+            Assert.IsTrue(vfxComponent.HasTexture(targetTextureName));
+            Assert.AreEqual(TextureDimension.Tex2D, vfxComponent.GetTextureDimension(targetTextureName));
+
+            var renderTartget3D = new RenderTexture(4, 4, 4, RenderTextureFormat.ARGB32);
+            renderTartget3D.dimension = TextureDimension.Tex3D;
+
+            vfxComponent.SetTexture(targetTextureName, renderTartget3D);
+            LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("3D"));
+            Assert.AreNotEqual(renderTartget3D, vfxComponent.GetTexture(targetTextureName));
+
+            var renderTartget2D = new RenderTexture(4, 4, 4, RenderTextureFormat.ARGB32);
+            renderTartget2D.dimension = TextureDimension.Tex2D;
+            vfxComponent.SetTexture(targetTextureName, renderTartget2D);
+            Assert.AreEqual(renderTartget2D, vfxComponent.GetTexture(targetTextureName));
+            yield return null;
+
+            /*
+             * Actually, this error is only catched in debug mode
+            renderTartget2D.dimension = TextureDimension.Tex3D; //try to hack dimension
+            Assert.AreEqual(renderTartget2D, vfxComponent.GetTexture(targetTextureName));
+            yield return null;
+            LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("3D"));
+            */
         }
 
         [UnityTest]
@@ -245,12 +333,7 @@ namespace UnityEditor.VFX.Test
             var vfxComponent = m_mainObject.AddComponent<VFXComponent>();
             vfxComponent.vfxAsset = graph.vfxAsset;
 
-            int maxFrame = 512;
-            while (vfxComponent.culled && --maxFrame > 0)
-            {
-                yield return null;
-            }
-            Assert.IsTrue(maxFrame > 0);
+            yield return null;
 
             Func<AnimationCurve, AnimationCurve, bool> fnCompareCurve = delegate(AnimationCurve left, AnimationCurve right)
                 {
@@ -325,33 +408,37 @@ namespace UnityEditor.VFX.Test
                 }
                 else if (type == VFXValueType.kTexture2D)
                 {
-                    Assert.IsTrue(vfxComponent.HasTexture2D(currentName));
-                    Assert.AreEqual(baseValue, vfxComponent.GetTexture2D(currentName));
-                    vfxComponent.SetTexture2D(currentName, newValue as Texture2D);
+                    Assert.IsTrue(vfxComponent.HasTexture(currentName));
+                    Assert.AreEqual(TextureDimension.Tex2D, vfxComponent.GetTextureDimension(currentName));
+                    Assert.AreEqual(baseValue, vfxComponent.GetTexture(currentName));
+                    vfxComponent.SetTexture(currentName, newValue as Texture);
                 }
                 else if (type == VFXValueType.kTexture2DArray)
                 {
-                    Assert.IsTrue(vfxComponent.HasTexture2DArray(currentName));
-                    Assert.AreEqual(baseValue, vfxComponent.GetTexture2DArray(currentName));
-                    vfxComponent.SetTexture2DArray(currentName, newValue as Texture2DArray);
+                    Assert.IsTrue(vfxComponent.HasTexture(currentName));
+                    Assert.AreEqual(TextureDimension.Tex2DArray, vfxComponent.GetTextureDimension(currentName));
+                    vfxComponent.SetTexture(currentName, newValue as Texture);
                 }
                 else if (type == VFXValueType.kTexture3D)
                 {
-                    Assert.IsTrue(vfxComponent.HasTexture3D(currentName));
-                    Assert.AreEqual(baseValue, vfxComponent.GetTexture3D(currentName));
-                    vfxComponent.SetTexture3D(currentName, newValue as Texture3D);
+                    Assert.IsTrue(vfxComponent.HasTexture(currentName));
+                    Assert.AreEqual(TextureDimension.Tex3D, vfxComponent.GetTextureDimension(currentName));
+                    Assert.AreEqual(baseValue, vfxComponent.GetTexture(currentName));
+                    vfxComponent.SetTexture(currentName, newValue as Texture);
                 }
                 else if (type == VFXValueType.kTextureCube)
                 {
-                    Assert.IsTrue(vfxComponent.HasTextureCube(currentName));
-                    Assert.AreEqual(baseValue, vfxComponent.GetTextureCube(currentName));
-                    vfxComponent.SetTextureCube(currentName, newValue as Cubemap);
+                    Assert.IsTrue(vfxComponent.HasTexture(currentName));
+                    Assert.AreEqual(TextureDimension.Cube, vfxComponent.GetTextureDimension(currentName));
+                    Assert.AreEqual(baseValue, vfxComponent.GetTexture(currentName));
+                    vfxComponent.SetTexture(currentName, newValue as Texture);
                 }
                 else if (type == VFXValueType.kTextureCubeArray)
                 {
-                    Assert.IsTrue(vfxComponent.HasTextureCubeArray(currentName));
-                    Assert.AreEqual(baseValue, vfxComponent.GetTextureCubeArray(currentName));
-                    vfxComponent.SetTextureCubeArray(currentName, newValue as CubemapArray);
+                    Assert.IsTrue(vfxComponent.HasTexture(currentName));
+                    Assert.AreEqual(TextureDimension.CubeArray, vfxComponent.GetTextureDimension(currentName));
+                    Assert.AreEqual(baseValue, vfxComponent.GetTexture(currentName));
+                    vfxComponent.SetTexture(currentName, newValue as Texture);
                 }
                 else if (type == VFXValueType.kBool)
                 {
@@ -420,28 +507,33 @@ namespace UnityEditor.VFX.Test
                 }
                 else if (type == VFXValueType.kTexture2D)
                 {
-                    Assert.IsTrue(vfxComponent.HasTexture2D(currentName));
-                    Assert.AreEqual(baseValue, vfxComponent.GetTexture2D(currentName));
+                    Assert.IsTrue(vfxComponent.HasTexture(currentName));
+                    Assert.AreEqual(TextureDimension.Tex2D, vfxComponent.GetTextureDimension(currentName));
+                    Assert.AreEqual(baseValue, vfxComponent.GetTexture(currentName));
                 }
                 else if (type == VFXValueType.kTexture2DArray)
                 {
-                    Assert.IsTrue(vfxComponent.HasTexture2DArray(currentName));
-                    Assert.AreEqual(baseValue, vfxComponent.GetTexture2DArray(currentName));
+                    Assert.IsTrue(vfxComponent.HasTexture(currentName));
+                    Assert.AreEqual(TextureDimension.Tex2DArray, vfxComponent.GetTextureDimension(currentName));
+                    Assert.AreEqual(baseValue, vfxComponent.GetTexture(currentName));
                 }
                 else if (type == VFXValueType.kTexture3D)
                 {
-                    Assert.IsTrue(vfxComponent.HasTexture3D(currentName));
-                    Assert.AreEqual(baseValue, vfxComponent.GetTexture3D(currentName));
+                    Assert.IsTrue(vfxComponent.HasTexture(currentName));
+                    Assert.AreEqual(TextureDimension.Tex3D, vfxComponent.GetTextureDimension(currentName));
+                    Assert.AreEqual(baseValue, vfxComponent.GetTexture(currentName));
                 }
                 else if (type == VFXValueType.kTextureCube)
                 {
-                    Assert.IsTrue(vfxComponent.HasTextureCube(currentName));
-                    Assert.AreEqual(baseValue, vfxComponent.GetTextureCube(currentName));
+                    Assert.IsTrue(vfxComponent.HasTexture(currentName));
+                    Assert.AreEqual(TextureDimension.Cube, vfxComponent.GetTextureDimension(currentName));
+                    Assert.AreEqual(baseValue, vfxComponent.GetTexture(currentName));
                 }
                 else if (type == VFXValueType.kTextureCubeArray)
                 {
-                    Assert.IsTrue(vfxComponent.HasTextureCubeArray(currentName));
-                    Assert.AreEqual(baseValue, vfxComponent.GetTextureCubeArray(currentName));
+                    Assert.IsTrue(vfxComponent.HasTexture(currentName));
+                    Assert.AreEqual(TextureDimension.CubeArray, vfxComponent.GetTextureDimension(currentName));
+                    Assert.AreEqual(baseValue, vfxComponent.GetTexture(currentName));
                 }
                 else if (type == VFXValueType.kBool)
                 {
