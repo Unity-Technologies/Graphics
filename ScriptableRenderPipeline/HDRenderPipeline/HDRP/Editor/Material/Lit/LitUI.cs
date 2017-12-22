@@ -640,6 +640,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                         ++EditorGUI.indentLevel;
                         m_MaterialEditor.ShaderProperty(thicknessMultiplier, Styles.refractionThicknessMultiplierText);
+                        thicknessMultiplier.floatValue = Mathf.Max(thicknessMultiplier.floatValue, 0);
                         --EditorGUI.indentLevel;
 
                         m_MaterialEditor.TexturePropertySingleLine(Styles.transmittanceColorText, transmittanceColorMap, transmittanceColor);
