@@ -99,7 +99,10 @@ namespace UnityEditor.VFX
                         case VFXValueType.kInt: value = CreateValueDesc<int>(exp, i); break;
                         case VFXValueType.kUint: value = CreateValueDesc<uint>(exp, i); break;
                         case VFXValueType.kTexture2D: value = CreateValueDesc<Texture2D>(exp, i); break;
+                        case VFXValueType.kTexture2DArray: value = CreateValueDesc<Texture2DArray>(exp, i); break;
                         case VFXValueType.kTexture3D: value = CreateValueDesc<Texture3D>(exp, i); break;
+                        case VFXValueType.kTextureCube: value = CreateValueDesc<Cubemap>(exp, i); break;
+                        case VFXValueType.kTextureCubeArray: value = CreateValueDesc<CubemapArray>(exp, i); break;
                         case VFXValueType.kTransform: value = CreateValueDesc<Matrix4x4>(exp, i); break;
                         case VFXValueType.kCurve: value = CreateValueDesc<AnimationCurve>(exp, i); break;
                         case VFXValueType.kColorGradient: value = CreateValueDesc<Gradient>(exp, i); break;
@@ -119,21 +122,33 @@ namespace UnityEditor.VFX
             }
         }
 
+        private static void CollectExposedDesc(List<VFXExposedDesc> outExposedParameters, string name, VFXSlot slot, VFXExpressionGraph graph)
+        {
+            var expression = slot.GetExpression();
+            if (expression != null)
+            {
+                outExposedParameters.Add(new VFXExposedDesc()
+                {
+                    name = name,
+                    expressionIndex = (uint)graph.GetFlattenedIndex(expression)
+                });
+            }
+            else
+            {
+                foreach (var child in slot.children)
+                {
+                    CollectExposedDesc(outExposedParameters, name + "_" + child.name, child, graph);
+                }
+            }
+        }
+
         private static void FillExposedDescs(List<VFXExposedDesc> outExposedParameters, VFXExpressionGraph graph, IEnumerable<VFXParameter> parameters)
         {
             foreach (var parameter in parameters)
             {
                 if (parameter.exposed)
                 {
-                    var outputSlotExpr = parameter.GetOutputSlot(0).GetExpression();
-                    if (outputSlotExpr != null)
-                    {
-                        outExposedParameters.Add(new VFXExposedDesc()
-                        {
-                            name = parameter.exposedName,
-                            expressionIndex = (uint)graph.GetFlattenedIndex(outputSlotExpr)
-                        });
-                    }
+                    CollectExposedDesc(outExposedParameters, parameter.exposedName, parameter.GetOutputSlot(0), graph);
                 }
             }
         }
@@ -659,7 +674,10 @@ namespace UnityEditor.VFX
                         case VFXValueType.kInt: SetValueDesc<int>(desc, exp); break;
                         case VFXValueType.kUint: SetValueDesc<uint>(desc, exp); break;
                         case VFXValueType.kTexture2D: SetValueDesc<Texture2D>(desc, exp); break;
+                        case VFXValueType.kTexture2DArray: SetValueDesc<Texture2DArray>(desc, exp); break;
                         case VFXValueType.kTexture3D: SetValueDesc<Texture3D>(desc, exp); break;
+                        case VFXValueType.kTextureCube: SetValueDesc<Cubemap>(desc, exp); break;
+                        case VFXValueType.kTextureCubeArray: SetValueDesc<CubemapArray>(desc, exp); break;
                         case VFXValueType.kTransform: SetValueDesc<Matrix4x4>(desc, exp); break;
                         case VFXValueType.kCurve: SetValueDesc<AnimationCurve>(desc, exp); break;
                         case VFXValueType.kColorGradient: SetValueDesc<Gradient>(desc, exp); break;

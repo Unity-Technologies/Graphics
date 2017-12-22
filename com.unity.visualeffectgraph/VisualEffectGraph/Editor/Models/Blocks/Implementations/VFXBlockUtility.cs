@@ -70,5 +70,55 @@ namespace UnityEditor.VFX.Block
 
             return "RAND" + ((size != 1) ? size.ToString() : "");
         }
+
+        public static IEnumerable<VFXAttributeInfo> GetReadableSizeAttributes(VFXData data, int nbComponents = 3)
+        {
+            if (nbComponents < 1 || nbComponents > 3)
+                throw new ArgumentException("NbComponents must be between 1 and 3");
+
+            if (nbComponents >= 1)
+                yield return new VFXAttributeInfo(VFXAttribute.SizeX, VFXAttributeMode.Read);
+            if (nbComponents >= 2 && data.IsCurrentAttributeWritten(VFXAttribute.SizeY))
+                yield return new VFXAttributeInfo(VFXAttribute.SizeY, VFXAttributeMode.Read);
+            if (nbComponents >= 3 && data.IsCurrentAttributeWritten(VFXAttribute.SizeZ))
+                yield return new VFXAttributeInfo(VFXAttribute.SizeZ, VFXAttributeMode.Read);
+        }
+
+        public static string GetSizeVector(VFXContext context, int nbComponents = 3)
+        {
+            var data = context.GetData();
+
+            string sizeX = data.IsCurrentAttributeRead(VFXAttribute.SizeX, context) ? "sizeX" : VFXAttribute.kDefaultSize.ToString();
+            string sizeY = nbComponents >= 2 && data.IsCurrentAttributeRead(VFXAttribute.SizeY, context) ? "sizeY" : "sizeX";
+            string sizeZ = nbComponents >= 3 && data.IsCurrentAttributeRead(VFXAttribute.SizeZ, context) ? "sizeZ" : string.Format("min({0},{1})", sizeX, sizeY);
+
+            switch (nbComponents)
+            {
+                case 1: return sizeX;
+                case 2: return string.Format("float2({0},{1})", sizeX, sizeY);
+                case 3: return string.Format("float3({0},{1},{2})", sizeX, sizeY, sizeZ);
+                default:
+                    throw new ArgumentException("NbComponents must be between 1 and 3");
+            }
+        }
+
+        public static string SetSizesFromVector(VFXContext context, string vector, int nbComponents = 3)
+        {
+            if (nbComponents < 1 || nbComponents > 3)
+                throw new ArgumentException("NbComponents must be between 1 and 3");
+
+            var data = context.GetData();
+
+            string res = string.Empty;
+
+            if (nbComponents >= 1 && data.IsCurrentAttributeWritten(VFXAttribute.SizeX, context))
+                res += "sizeX = size.x;\n";
+            if (nbComponents >= 2 && data.IsCurrentAttributeWritten(VFXAttribute.SizeY, context))
+                res += "sizeY = size.y;\n";
+            if (nbComponents >= 3 && data.IsCurrentAttributeWritten(VFXAttribute.SizeZ, context))
+                res += "sizeZ = size.z;";
+
+            return res;
+        }
     }
 }

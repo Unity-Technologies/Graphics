@@ -9,18 +9,9 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXBlockUI : VFXContextSlotContainerUI, IDropTarget, IEdgeDrawerContainer
+    class VFXBlockUI : VFXContextSlotContainerUI, IDropTarget
     {
         Toggle m_EnableToggle;
-
-
-        void IEdgeDrawerContainer.EdgeDirty()
-        {
-            VFXContextUI contextUI = GetFirstAncestorOfType<VFXContextUI>();
-
-            if (contextUI != null)
-                (contextUI as IEdgeDrawerContainer).EdgeDirty();
-        }
 
         public VFXBlockUI()
         {
@@ -32,7 +23,26 @@ namespace UnityEditor.VFX.UI
 
             capabilities &= ~Capabilities.Ascendable;
 
-            edgeDrawer.RemoveFromHierarchy();
+            RegisterCallback<MouseDownEvent>(OnMouseDown, Capture.Capture);
+        }
+
+        void OnMouseDown(MouseDownEvent e)
+        {
+            VFXView view = this.GetFirstAncestorOfType<VFXView>();
+
+            if (view != null)
+            {
+                if (!e.shiftKey && !e.ctrlKey)
+                {
+                    view.ClearSelection();
+                }
+                if (IsSelected(view))
+                {
+                    view.RemoveFromSelection(this);
+                }
+                else
+                    view.AddToSelection(this);
+            }
         }
 
         void OnToggleEnable()

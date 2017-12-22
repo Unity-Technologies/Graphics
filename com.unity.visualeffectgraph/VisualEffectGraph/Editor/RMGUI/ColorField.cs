@@ -131,7 +131,7 @@ namespace UnityEditor.VFX.UIElements
             Color pickerColor = EyeDropper.GetPickedColor();
             if (pickerColor != GetValue())
             {
-                SetValue(pickerColor);
+                SetValue(pickerColor.linear);
             }
         }
 

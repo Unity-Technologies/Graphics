@@ -4600,7 +4600,7 @@ VFXAsset:
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 11
+      data[3]: 14
     - op: 0
       valueIndex: 39
       data[0]: -1
@@ -5059,7 +5059,7 @@ VFXAsset:
         structure: 8
         element: 0
     - name: alive
-      type: 14
+      type: 17
       offset:
         bucket: 0
         structure: 8

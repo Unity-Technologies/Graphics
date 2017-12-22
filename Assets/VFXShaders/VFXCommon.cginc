@@ -22,9 +22,27 @@ struct VFXSampler2D
     SamplerState s;
 };
 
+struct VFXSampler2DArray
+{
+    Texture2DArray t;
+    SamplerState s;
+};
+
 struct VFXSampler3D
 {
     Texture3D t;
+    SamplerState s;
+};
+
+struct VFXSamplerCube
+{
+    TextureCube t;
+    SamplerState s;
+};
+
+struct VFXSamplerCubeArray
+{
+    TextureCubeArray t;
     SamplerState s;
 };
 
@@ -40,16 +58,31 @@ float3x3 GetVFXToViewRotMatrix()                { return mul(VFXGetWorldToViewRo
 float3 GetViewVFXPosition()                     { return mul(VFXGetWorldToObjectMatrix(),float4(VFXGetViewWorldPosition(),1.0f)).xyz; }
 #endif
 
-#define VFX_SAMPLER(name) GetVFXSampler(texture_##name,samplertexture_##name)
+#define VFX_SAMPLER(name) GetVFXSampler(##name,sampler##name)
 
-float4 SampleTexture(VFXSampler2D s,float2 coords)
+float4 SampleTexture(VFXSampler2D s,float2 coords,float level = 0.0f)
 {
-    return s.t.SampleLevel(s.s,coords,0.0f);
+    return s.t.SampleLevel(s.s,coords, level);
 }
 
-float4 SampleTexture(VFXSampler3D s,float3 coords)
+float4 SampleTexture(VFXSampler2DArray s,float2 coords,float slice,float level = 0.0f)
 {
-    return s.t.SampleLevel(s.s,coords,0.0f);
+    return s.t.SampleLevel(s.s,float3(coords,slice),level);
+}
+
+float4 SampleTexture(VFXSampler3D s,float3 coords,float level = 0.0f)
+{
+    return s.t.SampleLevel(s.s,coords,level);
+}
+
+float4 SampleTexture(VFXSamplerCube s,float3 coords,float level = 0.0f)
+{
+    return s.t.SampleLevel(s.s,coords,level);
+}
+
+float4 SampleTexture(VFXSamplerCubeArray s,float3 coords,float slice,float level = 0.0f)
+{
+    return s.t.SampleLevel(s.s,float4(coords,slice),level);
 }
 
 VFXSampler2D GetVFXSampler(Texture2D t,SamplerState s)
@@ -60,9 +93,33 @@ VFXSampler2D GetVFXSampler(Texture2D t,SamplerState s)
     return vfxSampler;
 }
 
+VFXSampler2DArray GetVFXSampler(Texture2DArray t,SamplerState s)
+{
+    VFXSampler2DArray vfxSampler;
+    vfxSampler.t = t;
+    vfxSampler.s = s;
+    return vfxSampler;
+}
+
 VFXSampler3D GetVFXSampler(Texture3D t,SamplerState s)
 {
     VFXSampler3D vfxSampler;
+    vfxSampler.t = t;
+    vfxSampler.s = s;
+    return vfxSampler;
+}
+
+VFXSamplerCube GetVFXSampler(TextureCube t,SamplerState s)
+{
+    VFXSamplerCube vfxSampler;
+    vfxSampler.t = t;
+    vfxSampler.s = s;
+    return vfxSampler;
+}
+
+VFXSamplerCubeArray GetVFXSampler(TextureCubeArray t,SamplerState s)
+{
+    VFXSamplerCubeArray vfxSampler;
     vfxSampler.t = t;
     vfxSampler.s = s;
     return vfxSampler;
@@ -199,6 +256,13 @@ float SampleCurve(float4 curveData,float u)
 // Utils //
 ///////////
 
+float3x3 GetScaleMatrix(float3 scale)
+{
+    return float3x3(scale.x,    0,          0,
+                    0,          scale.y,    0,
+                    0,          0,          scale.z);
+}
+
 float3x3 GetRotationMatrix(float3 axis,float angle)
 {
     float2 sincosA;
@@ -215,19 +279,46 @@ float3x3 GetRotationMatrix(float3 axis,float angle)
                     t * x * z - s * y,  t * y * z + s * x,  t * z * z + c);
 }
 
-float3 TransformInElementSpace(float3 offsets,float3 side,float3 up,float3 front,float3x3 rot,float3 pivot,float3 size)
+float3x3 GetEulerMatrix(float3 angles)
 {
-    offsets -= pivot;
-    offsets *= size;
-    float3 tOffsets = mul(rot,side * offsets.x + up * offsets.y + front * offsets.z);
-    //tOffsets += front * offsets.z;
-    return tOffsets;
+    float3 s,c;
+    sincos(angles, s, c);
+
+    return float3x3(c.y * c.z + s.x * s.y * s.z,    c.z * s.x * s.y - c.y * s.z,    c.x * s.y,
+                    c.x * s.z,                      c.x * c.z,                      -s.x,
+                    -c.z * s.y + c.y * s.x * s.z,   c.y * c.z * s.x + s.y * s.z,    c.x * c.y);
 }
 
-float3 TransformInElementSpace(float3 offsets,float3 side,float3 up,float3 front,float angle,float3 pivot,float3 size)
+float4x4 GetElementToVFXMatrix(float3 axisX,float3 axisY,float3 axisZ,float3x3 rot,float3 pivot,float3 size,float3 pos)
 {
-    float3x3 rot = GetRotationMatrix(front,radians(angle));
-    return TransformInElementSpace(offsets,side,up,front,rot,pivot,size);
+    float3x3 rotAndScale = GetScaleMatrix(size * 0.5f);
+    rotAndScale = mul(rot,rotAndScale);
+    rotAndScale = mul(transpose(float3x3(axisX,axisY,axisZ)),rotAndScale);
+    pos -= mul(rotAndScale,pivot);
+    return float4x4(
+        float4(rotAndScale[0],pos.x),
+        float4(rotAndScale[1],pos.y),
+        float4(rotAndScale[2],pos.z),
+        float4(0,0,0,1));
+}
+
+float4x4 GetElementToVFXMatrix(float3 axisX,float3 axisY,float3 axisZ,float3 angles,float3 pivot,float3 size,float3 pos)
+{
+    float3x3 rot = GetEulerMatrix(radians(angles));
+    return GetElementToVFXMatrix(axisX,axisY,axisZ,rot,pivot,size,pos);
+}
+
+float4x4 GetVFXToElementMatrix(float3 axisX,float3 axisY,float3 axisZ,float3 angles,float3 pivot,float3 size,float3 pos)
+{
+    float3x3 rotAndScale = float3x3(axisX,axisY,axisZ);
+    rotAndScale = mul(transpose(GetEulerMatrix(radians(angles))),rotAndScale);
+    rotAndScale = mul(GetScaleMatrix(2.0f / size),rotAndScale);
+    pos = pivot - mul(rotAndScale,pos);
+    return float4x4(
+        float4(rotAndScale[0],pos.x),
+        float4(rotAndScale[1],pos.y),
+        float4(rotAndScale[2],pos.z),
+        float4(0,0,0,1));
 }
 
 float2 GetSubUV(int flipBookIndex,float2 uv,float2 dim,float2 invDim)

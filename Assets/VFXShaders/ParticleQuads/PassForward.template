@@ -50,7 +50,7 @@ Pass
 	{
 		ps_output o = (ps_output)0;
 		o.color = VFXGetFragmentColor(i);
-		o.color *= VFXGetTextureColor(VFX_SAMPLER(texture),i);		
+		o.color *= VFXGetTextureColor(VFX_SAMPLER(texture_texture),i);		
 		VFXClipFragmentColor(o.color.a,i);
 		return o;
 	}

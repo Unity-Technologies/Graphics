@@ -1239,13 +1239,13 @@ VFXAsset:
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 10
+      data[3]: 13
     - op: 0
       valueIndex: 8
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 11
+      data[3]: 14
     - op: 32
       valueIndex: 9
       data[0]: 1
@@ -1534,7 +1534,7 @@ VFXAsset:
         structure: 8
         element: 0
     - name: alive
-      type: 14
+      type: 17
       offset:
         bucket: 262144
         structure: 8
@@ -1652,7 +1652,7 @@ VFXAsset:
       - index: 19
         nameId: uniform_Max_d
       params: []
-      processor: {fileID: 7200000, guid: 81f17fc458b645340b0993dd560881b5, type: 3}
+      processor: {fileID: 7200000, guid: ee7231ab4f16faa4287dfb1d9b21de0a, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -1663,7 +1663,7 @@ VFXAsset:
       - index: 20
         nameId: uniform_deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: 514a44495fa515a4083c27765ff14d5f, type: 3}
+      processor: {fileID: 7200000, guid: 58006431fe80c694f89a1a2ce0fefa08, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -1678,7 +1678,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 0cffc1a8d9a1a5b4586d70a8ef30c256, type: 3}
+      processor: {fileID: 4800000, guid: 5fdbeea8ebf2ec442a018a0f6214a4df, type: 3}
   m_Events:
   - name: OnStart
     startSystems: 00000000
