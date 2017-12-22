@@ -1211,7 +1211,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // probe.bounds.extents is BoxSize / 2
             var blendDistancePositive = Vector3.Min(probe.bounds.extents, influenceBlendDistancePositive);
             var blendDistanceNegative = Vector3.Min(probe.bounds.extents, influenceBlendDistanceNegative);
-            envLightData.innerDistance = extents;
+            envLightData.influenceExtents = extents;
             envLightData.envIndex = envIndex;
             envLightData.offsetLS = probe.center; // center is misnamed, it is the offset (in local space) from center of the bounding box to the cubemap capture point
             envLightData.blendDistancePositive = blendDistancePositive;
