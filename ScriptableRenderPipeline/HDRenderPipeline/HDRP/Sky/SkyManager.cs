@@ -191,7 +191,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, CoreUtils.magentaCubeTexture);
 
             // This is done here because we need to wait for one frame that the command buffer is executed before using the resulting textures.
-            if (m_NeedUpdateBakingSky)
+            // Testing the current skybox material is because we have to make sure that additive scene loading or even some user script haven't altered it.
+            if (m_NeedUpdateBakingSky || (RenderSettings.skybox != m_StandardSkyboxMaterial))
             {
                 // Here we update the global SkyMaterial so that it uses our baking sky cubemap. This way, next time the GI is baked, the right sky will be present.
                 float intensity = m_BakingSky.IsValid() ? 1.0f : 0.0f; // Eliminate all diffuse if we don't have a skybox (meaning for now the background is black in HDRP)
