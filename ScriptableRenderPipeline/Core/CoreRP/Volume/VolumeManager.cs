@@ -138,6 +138,9 @@ namespace UnityEngine.Experimental.Rendering
 
                 foreach (var volume in kvp.Value)
                 {
+                    if (!volume.enabled)
+                        continue;
+
                     T component;
                     if (volume.TryGet(out component) && component.active)
                         return true;

@@ -32,8 +32,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public FloatParameter           exposure = new FloatParameter(0.0f);
         [Tooltip("Intensity multiplier for the sky.")]
         public MinFloatParameter        multiplier = new MinFloatParameter(1.0f, 0.0f);
-        [Tooltip("Resolution of the environment lighting generated from the sky.")]
-        public SkyResolutionParameter   resolution = new SkyResolutionParameter(SkyResolution.SkyResolution256);
         [Tooltip("Specify how the environment lighting should be updated.")]
         public EnvUpdateParameter       updateMode = new EnvUpdateParameter(EnvironementUpdateMode.OnChanged);
         [Tooltip("If environment update is set to realtime, period in seconds at which it is updated (0.0 means every frame).")]
@@ -61,7 +59,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // TODO: Fixme once we switch to .Net 4.6+
                 //>>>
-                hash = hash * 23 + ((int)resolution.value).GetHashCode(); // Enum.GetHashCode generates garbage on .NET 3.5... Wtf !?
                 hash = hash * 23 + ((int)updateMode.value).GetHashCode();
                 //<<<
 
@@ -109,6 +106,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
 
-        public abstract SkyRenderer GetRenderer();
+        public abstract SkyRenderer CreateRenderer();
     }
 }
