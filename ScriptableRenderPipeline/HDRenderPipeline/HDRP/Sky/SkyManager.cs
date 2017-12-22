@@ -42,56 +42,80 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Material                m_BlitCubemapMaterial;
         Material                m_OpaqueAtmScatteringMaterial;
 
-        int                     m_LastFrameUpdated = -1;
-        bool                    m_UpdateRequired =false;
+        bool                    m_UpdateRequired = false;
         bool                    m_NeedUpdateRealtimeEnv = false;
         bool                    m_NeedUpdateBakingSky = false;
 
         // This is the sky used for rendering in the main view. It will also be used for lighting if no lighting override sky is setup.
         // Ambient Probe: Only for real time GI (otherwise we use the baked one)
         // Reflection Probe : Always used and updated depending on the OnChanged/Realtime flags.
-        SkyRenderingContext    m_VisualSky;
-        // This is optional and is used only to compute ambient probe and sky reflection for 
+        SkyUpdateContext    m_VisualSky = new SkyUpdateContext();
+        // This is optional and is used only to compute ambient probe and sky reflection
         // Ambient Probe: Only for real time GI (otherwise we use the baked one)
         // Reflection Probe : Always used and updated depending on the OnChanged/Realtime flags.
-        SkyRenderingContext    m_LightingOverrideSky;
+        SkyUpdateContext    m_LightingOverrideSky = new SkyUpdateContext();
         // This is mandatory when using baked GI. This sky is used to setup the global Skybox material used by the GI system to bake sky GI.
-        SkyRenderingContext    m_BakingSky;
+        SkyUpdateContext    m_BakingSky = new SkyUpdateContext();
 
-        public Texture skyReflection
-        {
-            get
-            {
-                if (m_LightingOverrideSky.skySettings != null)
-                    return m_LightingOverrideSky.reflectionTexture;
-                else
-                    return m_VisualSky.reflectionTexture;
-            }
-        }
+        // The sky rendering contexts holds the render textures used by the sky system.
+        // We need to have a separate one for the baking sky because we have to keep it alive regardless of the visual/override sky (because it's set in the lighting panel skybox material).
+        SkyRenderingContext m_BakingSkyRenderingContext;
+        SkyRenderingContext m_SkyRenderingContext;
 
-        void UpdateCurrentSkySettings()
+        // This interpolation volume stack is used to interpolate the lighting override separately from the visual sky.
+        // If a sky setting is present in this volume then it will be used for lighting override.
+        VolumeStack         m_LightingOverrideVolumeStack;
+        LayerMask           m_LightingOverrideLayerMask = -1;
+
+        public Texture skyReflection { get { return m_SkyRenderingContext.reflectionTexture; } }
+
+
+        SkySettings GetSkySetting(VolumeStack stack)
         {
-            SkySettings newSkySettings = null;
-            var visualEnv = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
+            SkySettings result;
+            var visualEnv = stack.GetComponent<VisualEnvironment>();
             switch (visualEnv.skyType.value)
             {
                 case SkyType.HDRISky:
                     {
-                        newSkySettings = VolumeManager.instance.stack.GetComponent<HDRISky>();
+                        result = stack.GetComponent<HDRISky>();
                         break;
                     }
                 case SkyType.ProceduralSky:
                     {
-                        newSkySettings = VolumeManager.instance.stack.GetComponent<ProceduralSky>();
+                        result = stack.GetComponent<ProceduralSky>();
                         break;
                     }
+                default:
+                    result = null;
+                    break;
             }
 
-            m_VisualSky.skySettings = newSkySettings;
-            m_BakingSky.skySettings = SkySettings.GetBakingSkySettings();
-            m_LightingOverrideSky.skySettings = null;
+            return result;
+        }
 
-            UpdateRenderData();
+        void UpdateCurrentSkySettings(HDCamera camera)
+        {
+            m_VisualSky.skySettings = GetSkySetting(VolumeManager.instance.stack);
+            m_BakingSky.skySettings = SkySettings.GetBakingSkySettings();
+            
+            // Update needs to happen before testing if the component is active other internal data structure are not properly updated yet.
+            VolumeManager.instance.Update(m_LightingOverrideVolumeStack, camera.camera.transform, m_LightingOverrideLayerMask);
+            if(VolumeManager.instance.IsComponentActiveInMask<VisualEnvironment>(m_LightingOverrideLayerMask))
+            {
+                SkySettings newSkyOverride = GetSkySetting(m_LightingOverrideVolumeStack);
+                if(m_LightingOverrideSky.skySettings != null && newSkyOverride == null)
+                {
+                    // When we switch from override to no override, we need to make sure that the visual sky will actually be properly re-rendered.
+                    // Resetting the visual sky hash will ensure that.
+                    m_VisualSky.skyParametersHash = -1;
+                }
+                m_LightingOverrideSky.skySettings = newSkyOverride;
+            }
+            else
+            {
+                m_LightingOverrideSky.skySettings = null;
+            }
         }
 
         // Sets the global MIP-mapped cubemap '_SkyTexture' in the shader.
@@ -103,29 +127,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalFloat(HDShaderIDs._SkyTextureMipCount, mipCount);
         }
 
-        public void UpdateRenderData()
-        {
-            m_BakingSky.RebuildTextures();
-            m_VisualSky.RebuildTextures();
-            m_LightingOverrideSky.RebuildTextures();
-
-            m_LastFrameUpdated = -1;
-        }
-
         public void Build(HDRenderPipelineAsset hdAsset, IBLFilterGGX iblFilterGGX)
         {
-            // For now, both these rendering context will allocate render textures
-            // In theory, when we have a lighting override we don't need any cubemaps from the visual sky so we could avoid allocating them
-            m_VisualSky = new SkyRenderingContext(true, iblFilterGGX);
-            m_LightingOverrideSky = new SkyRenderingContext(true, iblFilterGGX);
-            // Here we don't need convolution supports because this sky will never need to generate it (only sky cubemap for GI system)
-            m_BakingSky = new SkyRenderingContext(false, iblFilterGGX);
+            m_BakingSkyRenderingContext = new SkyRenderingContext(iblFilterGGX, (int)hdAsset.renderPipelineSettings.lightLoopSettings.skyReflectionSize, false);
+            m_SkyRenderingContext = new SkyRenderingContext(iblFilterGGX, (int)hdAsset.renderPipelineSettings.lightLoopSettings.skyReflectionSize, true);
 
             m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.skyboxCubemap);
-
             m_BlitCubemapMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.blitCubemap);
-
             m_OpaqueAtmScatteringMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.opaqueAtmosphericScattering);
+
+            m_LightingOverrideVolumeStack = VolumeManager.instance.CreateStack();
+            m_LightingOverrideLayerMask = hdAsset.renderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask;
         }
 
         public void Cleanup()
@@ -135,11 +147,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_BakingSky.Cleanup();
             m_VisualSky.Cleanup();
             m_LightingOverrideSky.Cleanup();
+
+            m_BakingSkyRenderingContext.Cleanup();
+            m_SkyRenderingContext.Cleanup();
         }
 
         public bool IsSkyValid()
         {
-            return m_VisualSky.IsValid();
+            return m_VisualSky.IsValid() || m_LightingOverrideSky.IsValid();
         }
 
 
@@ -175,50 +190,40 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (Shader.GetGlobalTexture(HDShaderIDs._SkyTexture) == null)
                 cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, CoreUtils.magentaCubeTexture);
 
-            if (m_LastFrameUpdated == Time.frameCount)
-                return;
-
             // This is done here because we need to wait for one frame that the command buffer is executed before using the resulting textures.
             if (m_NeedUpdateBakingSky)
             {
                 // Here we update the global SkyMaterial so that it uses our baking sky cubemap. This way, next time the GI is baked, the right sky will be present.
                 float intensity = m_BakingSky.IsValid() ? 1.0f : 0.0f; // Eliminate all diffuse if we don't have a skybox (meaning for now the background is black in HDRP)
-                m_StandardSkyboxMaterial.SetTexture("_Tex", m_BakingSky.cubemapRT);
-                    RenderSettings.skybox = m_StandardSkyboxMaterial; // Setup this material as the default to be use in RenderSettings
-                    RenderSettings.ambientIntensity = intensity;
-                    RenderSettings.ambientMode = AmbientMode.Skybox; // Force skybox for our HDRI
-                    RenderSettings.reflectionIntensity = intensity;
-                    RenderSettings.customReflection = null;
+                m_StandardSkyboxMaterial.SetTexture("_Tex", m_BakingSkyRenderingContext.cubemapRT);
+                RenderSettings.skybox = m_StandardSkyboxMaterial; // Setup this material as the default to be use in RenderSettings
+                RenderSettings.ambientIntensity = intensity;
+                RenderSettings.ambientMode = AmbientMode.Skybox; // Force skybox for our HDRI
+                RenderSettings.reflectionIntensity = intensity;
+                RenderSettings.customReflection = null;
 
                 // Strictly speaking, this should not be necessary, but it helps avoiding inconsistent behavior in the editor
                 // where the GI system sometimes update the ambient probe and sometime does not...
-                    DynamicGI.UpdateEnvironment();
+                DynamicGI.UpdateEnvironment();
 
-                    m_NeedUpdateBakingSky = false;
+                m_NeedUpdateBakingSky = false;
             }
 
             if (m_NeedUpdateRealtimeEnv)
             {
                 // TODO: Here we need to do that in case we are using real time GI. Unfortunately we don't have a way to check that atm.
+                // Moreover we still need Async readback from texture in command buffers first.
                 //DynamicGI.SetEnvironmentData();
                 m_NeedUpdateRealtimeEnv = false;
             }
 
-            UpdateCurrentSkySettings();
+            UpdateCurrentSkySettings(camera);
 
-            m_NeedUpdateBakingSky = m_BakingSky.UpdateEnvironment(camera, sunLight, m_UpdateRequired, cmd);
-            if (m_LightingOverrideSky.IsValid())
-            {
-                m_NeedUpdateRealtimeEnv = m_LightingOverrideSky.UpdateEnvironment(camera, sunLight, m_UpdateRequired, cmd);
-            }
-            else
-            {
-                m_NeedUpdateRealtimeEnv = m_VisualSky.UpdateEnvironment(camera, sunLight, m_UpdateRequired, cmd);
-            }
+            m_NeedUpdateBakingSky = m_BakingSkyRenderingContext.UpdateEnvironment(m_BakingSky, camera, sunLight, m_UpdateRequired, cmd);
+            SkyUpdateContext currentSky = m_LightingOverrideSky.IsValid() ? m_LightingOverrideSky : m_VisualSky;
+            m_NeedUpdateRealtimeEnv = m_SkyRenderingContext.UpdateEnvironment(currentSky, camera, sunLight, m_UpdateRequired, cmd);
 
             m_UpdateRequired = false;
-
-            m_LastFrameUpdated = Time.frameCount;
 
             SetGlobalSkyTexture(cmd);
             if (IsSkyValid())
@@ -233,7 +238,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void RenderSky(HDCamera camera, Light sunLight, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, CommandBuffer cmd)
         {
-            m_VisualSky.RenderSky(camera, sunLight, colorBuffer, depthBuffer, cmd);
+            m_SkyRenderingContext.RenderSky(m_VisualSky, camera, sunLight, colorBuffer, depthBuffer, cmd);
         }
 
         public void RenderOpaqueAtmosphericScattering(CommandBuffer cmd)
@@ -252,7 +257,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return null;
             }
 
-            int resolution = (int)m_VisualSky.skySettings.resolution.value;
+            RenderTexture skyCubemap = m_SkyRenderingContext.cubemapRT;
+
+            int resolution = skyCubemap.width;
 
             var tempRT = new RenderTexture(resolution * 6, resolution, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear)
             {
@@ -274,7 +281,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int offset = 0;
             for (int i = 0; i < 6; ++i)
             {
-                UnityEngine.Graphics.SetRenderTarget(m_VisualSky.cubemapRT, 0, (CubemapFace)i);
+                UnityEngine.Graphics.SetRenderTarget(skyCubemap, 0, (CubemapFace)i);
                 temp.ReadPixels(new Rect(0, 0, resolution, resolution), offset, 0);
                 temp.Apply();
                 offset += resolution;

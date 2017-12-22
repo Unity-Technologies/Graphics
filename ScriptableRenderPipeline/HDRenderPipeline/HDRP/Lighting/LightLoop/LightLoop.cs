@@ -509,8 +509,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     for (int shadowMask = 0; shadowMask < 2; ++shadowMask)
                     {
-                            for (int debugDisplay = 0; debugDisplay < 2; ++debugDisplay)
-                            {
+                        for (int debugDisplay = 0; debugDisplay < 2; ++debugDisplay)
+                        {
                             int index = GetDeferredLightingMaterialIndex(outputSplitLighting, lightLoopTilePass, shadowMask, debugDisplay);
 
                             m_deferredLightingMaterial[index] = CoreUtils.CreateEngineMaterial(m_Resources.deferredShader);
@@ -1282,7 +1282,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public int GetShadowAtlasCount()
         {
-            return (int)m_ShadowMgr.GetShadowMapCount();
+            return (m_ShadowMgr == null) ? 0 : (int)m_ShadowMgr.GetShadowMapCount();
         }
 
         public void UpdateCullingParameters(ref ScriptableCullingParameters cullingParams)
@@ -1546,7 +1546,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     Debug.Assert(m_lightList.lights.Count == areaLightCount + punctualLightcount);
 
                     m_punctualLightCount = punctualLightcount;
-                    m_areaLightCount     = areaLightCount;
+                    m_areaLightCount = areaLightCount;
 
                     // Redo everything but this time with envLights
                     int envLightCount = 0;
