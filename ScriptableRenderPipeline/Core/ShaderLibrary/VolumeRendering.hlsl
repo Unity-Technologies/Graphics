@@ -159,6 +159,8 @@ float4 LoadFromVBuffer(float2 positionNDC, float linearDepth,
     return LOAD_TEXTURE3D(VBufferLighting, float3(positionSS, slice));
 }
 
+#include "Random.hlsl"
+
 // Returns linearly interpolated {volumetric radiance, opacity}. The sampler clamps to edge.
 float4 SampleInScatteredRadianceAndTransmittance(float2 positionNDC, float linearDepth,
                                                  TEXTURE3D_ARGS(VBufferLighting, linearClampSampler),
@@ -167,6 +169,10 @@ float4 SampleInScatteredRadianceAndTransmittance(float2 positionNDC, float linea
     int   k = VBUFFER_SLICE_COUNT;
     float z = linearDepth;
     float d = EncodeLogarithmicDepth(z, VBufferDepthEncodingParams);
+
+    // TODO: Add some kind of jitter to the look-up.
+    // TODO: Also add some kind of animated 3D noise to the sampled result.
+    // d -= GenerateHashedRandomFloat(asuint(positionNDC)) / (2 * k);
 
     // Account for the visible area of the V-Buffer.
     float2 uv = positionNDC * VBufferScale;
