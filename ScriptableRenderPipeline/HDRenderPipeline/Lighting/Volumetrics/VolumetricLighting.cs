@@ -99,8 +99,9 @@ public partial class HDRenderPipeline : RenderPipeline
 
     float                    m_VBufferNearPlane  =  0.5f; // Distance in meters; dynamic modifications not handled by reprojection
     float                    m_VBufferFarPlane   = 64.0f; // Distance in meters; dynamic modifications not handled by reprojection
+    const uint               m_VBufferCount      = 3;     // 0 and 1 - history (prev) and feedback (next), 2 - integral (curr)
 
-    RenderTexture[]          m_VBufferLighting   = null;  // Used for even / odd frames
+    RenderTexture[]          m_VBufferLighting   = null;
     RenderTargetIdentifier[] m_VBufferLightingRT = null;
 
     public static int ComputeVBufferTileSize(VolumetricLightingPreset preset)
@@ -155,13 +156,13 @@ public partial class HDRenderPipeline : RenderPipeline
     {
         DestroyVBuffer();
 
-        m_VBufferLighting   = new RenderTexture[2];
-        m_VBufferLightingRT = new RenderTargetIdentifier[2];
+        m_VBufferLighting   = new RenderTexture[m_VBufferCount];
+        m_VBufferLightingRT = new RenderTargetIdentifier[m_VBufferCount];
 
         int w = 0, h = 0, d = 0;
         ComputeVBufferResolutionAndScale(screenWidth, screenHeight, ref w, ref h, ref d);
 
-        for (int i = 0; i < 2; i++)
+        for (uint i = 0; i < m_VBufferCount; i++)
         {
             m_VBufferLighting[i] = new RenderTexture(w, h, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear); // UAV with ARGBHalf appears to be broken...
             m_VBufferLighting[i].filterMode        = FilterMode.Bilinear;    // Custom trilinear
@@ -171,6 +172,12 @@ public partial class HDRenderPipeline : RenderPipeline
             m_VBufferLighting[i].Create();
 
             m_VBufferLightingRT[i] = new RenderTargetIdentifier(m_VBufferLighting[i]);
+
+            // No clean way to clear a RenderTexture without a CommandBuffer? Ridiculous.
+            RenderTexture saveRT = UnityEngine.RenderTexture.active;
+            RenderTexture.active = m_VBufferLighting[i];
+            GL.Clear(false, true, CoreUtils.clearColorAllBlack);
+            RenderTexture.active = saveRT;
         }
     }
 
@@ -178,8 +185,10 @@ public partial class HDRenderPipeline : RenderPipeline
     {
         if (m_VBufferLighting != null)
         {
-            if (m_VBufferLighting[0] != null) m_VBufferLighting[0].Release();
-            if (m_VBufferLighting[1] != null) m_VBufferLighting[1].Release();
+            for (uint i = 0; i < m_VBufferCount; i++)
+            {
+                if (m_VBufferLighting[i] != null) m_VBufferLighting[i].Release();
+            }
 
             m_VBufferLighting   = null;
             m_VBufferLightingRT = null;
@@ -223,16 +232,21 @@ public partial class HDRenderPipeline : RenderPipeline
         return globalFogComponent;
     }
 
-    RenderTargetIdentifier GetVBufferCurrFrame()
+    RenderTargetIdentifier GetVBufferLightingHistory() // From the previous frame
     {
-        bool evenFrame = (Time.renderedFrameCount & 1) == 0;
+        bool evenFrame = (Time.renderedFrameCount & 1) == 0; // Does not work in the Scene view
         return m_VBufferLightingRT[evenFrame ? 0 : 1];
     }
 
-    RenderTargetIdentifier GetVBufferPrevFrame()
+    RenderTargetIdentifier GetVBufferLightingFeedback() // For the next frame
     {
-        bool evenFrame = (Time.renderedFrameCount & 1) == 0;
+        bool evenFrame = (Time.renderedFrameCount & 1) == 0; // Does not work in the Scene view
         return m_VBufferLightingRT[evenFrame ? 1 : 0];
+    }
+
+    RenderTargetIdentifier GetVBufferLightingIntegral() // Of the current frame
+    {
+        return m_VBufferLightingRT[2];
     }
 
     public void SetVolumetricLightingData(HDCamera camera, CommandBuffer cmd)
@@ -254,7 +268,7 @@ public partial class HDRenderPipeline : RenderPipeline
 
         cmd.SetGlobalVector( HDShaderIDs._VBufferResolutionAndScale,  resAndScale);
         cmd.SetGlobalVector( HDShaderIDs._VBufferDepthEncodingParams, depthParams);
-        cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,            GetVBufferCurrFrame());
+        cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,            GetVBufferLightingIntegral());
     }
 
     void VolumetricLightingPass(HDCamera camera, CommandBuffer cmd)
@@ -266,7 +280,7 @@ public partial class HDRenderPipeline : RenderPipeline
             if (GetGlobalFogComponent() == null)
             {
                 // Clear the render target instead of running the shader.
-                CoreUtils.SetRenderTarget(cmd, GetVBufferCurrFrame(), ClearFlag.Color, CoreUtils.clearColorAllBlack);
+                CoreUtils.SetRenderTarget(cmd, GetVBufferLightingHistory(), ClearFlag.Color, CoreUtils.clearColorAllBlack);
                 return;
             }
 
@@ -286,8 +300,9 @@ public partial class HDRenderPipeline : RenderPipeline
 
             // TODO: set 'm_VolumetricLightingPreset'.
             cmd.SetComputeMatrixParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferCoordToViewDirWS, transform);
-            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingCurr, GetVBufferCurrFrame());
-            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingPrev, GetVBufferPrevFrame());
+            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingHistory,  GetVBufferLightingHistory());  // Read
+            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingFeedback, GetVBufferLightingFeedback()); // Write
+            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingIntegral, GetVBufferLightingIntegral()); // Write
 
             // The shader defines GROUP_SIZE_1D = 16.
             cmd.DispatchCompute(m_VolumetricLightingCS, kernel, (w + 15) / 16, (h + 15) / 16, 1);
