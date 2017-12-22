@@ -28,6 +28,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent reflectionCubemapSize = new GUIContent("Reflection Cubemap Size");
             public readonly GUIContent reflectionCacheCompressed = new GUIContent("Compress Reflection Probe Cache");
             public readonly GUIContent skyReflectionSize = new GUIContent("Sky Reflection Size");
+            public readonly GUIContent skyLightingOverride = new GUIContent("Sky Lighting Override Mask", "This layer mask will define in which layers the sky system will look for sky settings volumes for lighting override.");
 
             public readonly GUIContent defaultFrameSettings = new GUIContent("Default Frame Settings");
 

@@ -44,7 +44,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool IsValid()
         {
-            return m_Renderer != null && m_Renderer.IsValid();
+            // We need to check m_SkySettings in addition to the renderer because it can be "nulled" when destroying the volume containing the settings (as it's a ScriptableObject) without the context knowing about it.
+            return m_Renderer != null && m_Renderer.IsValid() && m_SkySettings != null;
         }
 
         public void Cleanup()
