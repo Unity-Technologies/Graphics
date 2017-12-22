@@ -1615,16 +1615,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
 
-            m_lightCount = m_lightList.lights.Count + m_lightList.envLights.Count;
-            Debug.Assert(m_lightList.bounds.Count == m_lightCount);
-            Debug.Assert(m_lightList.lightVolumes.Count == m_lightCount);
+                m_lightCount = m_lightList.lights.Count + m_lightList.envLights.Count;
+                Debug.Assert(m_lightList.bounds.Count == m_lightCount);
+                Debug.Assert(m_lightList.lightVolumes.Count == m_lightCount);
 
-            UpdateDataBuffers();
+                UpdateDataBuffers();
 
-            m_maxShadowDistance = shadowSettings.maxShadowDistance;
+                m_maxShadowDistance = shadowSettings.maxShadowDistance;
 
-            return m_enableBakeShadowMask;
-        }
+                return m_enableBakeShadowMask;
+            }
         }
 
         void VoxelLightListGeneration(CommandBuffer cmd, Camera camera, Matrix4x4 projscr, Matrix4x4 invProjscr, RenderTargetIdentifier cameraDepthBufferRT)
