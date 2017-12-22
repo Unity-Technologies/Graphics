@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph
             finalShader.Deindent();
             finalShader.AddShaderChunk("}", false);
 
-            var lwSub = new HDUnlitSubShader();
+            var lwSub = new LightWeightUnlitSubShader();
             foreach (var subshader in lwSub.GetSubshader(this, mode))
                 finalShader.AddShaderChunk(subshader, true);
 
