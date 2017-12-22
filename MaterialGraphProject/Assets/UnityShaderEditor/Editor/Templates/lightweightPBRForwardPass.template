@@ -6,12 +6,12 @@ Pass
 	${Culling}
 	${ZTest}
 	${ZWrite}
-	
+
 	HLSLPROGRAM
     // Required to compile gles 2.0 with standard srp library
     #pragma prefer_hlslcc gles
 	#pragma target 3.0
-	
+
     #pragma multi_compile _ _MAIN_LIGHT_COOKIE
     #pragma multi_compile _MAIN_DIRECTIONAL_LIGHT _MAIN_SPOT_LIGHT
     #pragma multi_compile _ _ADDITIONAL_LIGHTS
@@ -26,14 +26,16 @@ Pass
 
     #pragma vertex vert
 	#pragma fragment frag
-	
+
 	${Defines}
 
 	#include "LightweightShaderLibrary/Core.hlsl"
 	#include "LightweightShaderLibrary/Lighting.hlsl"
+	#include "ShaderLibrary/Color.hlsl"
+	#include "ShaderGraphLibrary/Functions.hlsl"
 
 	${Graph}
-	
+
 	struct GraphVertexOutput
     {
         float4 clipPos : SV_POSITION;
@@ -41,11 +43,11 @@ Pass
 		half4 fogFactorAndVertexLight : TEXCOORD1; // x: fogFactor, yzw: vertex light
         ${Interpolators}
     };
-	
+
     GraphVertexOutput vert (GraphVertexInput v)
 	{
 	    v = PopulateVertexData(v);
-		
+
         GraphVertexOutput o = (GraphVertexOutput)0;
 
         ${VertexShader}
@@ -90,7 +92,7 @@ Pass
 
         ${SurfaceOutputRemap}
 
-#if defined(UNITY_COLORSPACE_GAMMA) 
+#if defined(UNITY_COLORSPACE_GAMMA)
        	Albedo = Albedo * Albedo;
        	Emission = Emission * Emission;
 #endif
@@ -108,7 +110,7 @@ Pass
 			normalWS,
 			WorldSpaceViewDirection,
 			indirectDiffuse,
-			IN.fogFactorAndVertexLight.yzw, 
+			IN.fogFactorAndVertexLight.yzw,
 			Albedo,
 			Metallic,
 			Specular,

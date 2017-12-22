@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph
 
         protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
         {
-            return string.Format("IsGammaSpace() ? {0}4({1}, {2}, {3}, {4}) : {0}4 (GammaToLinearSpace({0}3({1}, {2}, {3})), {4})"
+            return string.Format("IsGammaSpace() ? {0}4({1}, {2}, {3}, {4}) : {0}4 (SRGBToLinear({0}3({1}, {2}, {3})), {4})"
                 , precision
                 , value.x
                 , value.y
