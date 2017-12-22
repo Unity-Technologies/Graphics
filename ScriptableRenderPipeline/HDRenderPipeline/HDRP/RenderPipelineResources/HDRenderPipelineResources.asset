@@ -11,6 +11,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b6f86e1523e69a4282e92d393be89a4, type: 3}
   m_Name: HDRenderPipelineResources
   m_EditorClassIdentifier: 
+  defaultDiffuseMaterial: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17,
+    type: 2}
+  defaultShader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   debugDisplayLatlongShader: {fileID: 4800000, guid: c1d1d149a043a5349ba367da6c2051ba,
     type: 3}
   debugViewMaterialGBufferShader: {fileID: 4800000, guid: 439949ea1bfa91b4ba0d04269fcde33d,

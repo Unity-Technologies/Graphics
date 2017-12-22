@@ -25,7 +25,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ForwardPassName,
         ForwardTransparentDepthPrepass,
         RenderForwardError,
-        TransparentDepthPostPass,
+        TransparentDepthPostpass,
         ObjectsVelocity,
         CameraVelocity,
         GaussianPyramidColor,
