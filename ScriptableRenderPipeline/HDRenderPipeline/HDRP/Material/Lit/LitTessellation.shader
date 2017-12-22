@@ -272,6 +272,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
     SubShader
     {
+        // Caution: The outline selection in the editor use the vertex shader/hull/domain shader of the first pass declare. So it should not bethe  meta pass.
         Pass
         {
             Name "GBuffer"  // Name is not used
@@ -525,8 +526,6 @@ Shader "HDRenderPipeline/LitTessellation"
             ENDHLSL
         }
 
-        // Caution: Order of pass mater. It should be:
-        // TransparentDepthPrepass, TransparentBackface, Forward/ForwardOnly, TransparentDepthPostpass
         Pass
         {
             Name "TransparentDepthPrepass"
@@ -552,6 +551,7 @@ Shader "HDRenderPipeline/LitTessellation"
             ENDHLSL
         }
 
+        // Caution: Order is important: TransparentBackface, then Forward/ForwardOnly
         Pass
         {
             Name "TransparentBackface"
