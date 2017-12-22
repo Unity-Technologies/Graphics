@@ -731,6 +731,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             directionalLightData.up         = light.light.transform.up    * 2 / Mathf.Max(additionalData.shapeHeight, 0.001f);
             directionalLightData.positionWS = light.light.transform.position;
             directionalLightData.color = GetLightColor(light);
+
+            // Caution: This is bad but if additionalData == defaultHDAdditionalLightData it mean we are trying to promote legacy lights, which is the case for the preview for example, so we need to multiply by PI as legacy Unity do implicit divide by PI for direct intensity.
+            // So we expect that all light with additionalData == defaultHDAdditionalLightData are currently the one from the preview, light in scene MUST have additionalData
+            directionalLightData.color *= (defaultHDAdditionalLightData == additionalData) ? Mathf.PI : 1.0f;
+
             directionalLightData.diffuseScale = additionalData.affectDiffuse ? diffuseDimmer : 0.0f;
             directionalLightData.specularScale = additionalData.affectSpecular ? specularDimmer : 0.0f;
             directionalLightData.shadowIndex = directionalLightData.cookieIndex = -1;
@@ -1364,9 +1369,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         var light = cullResults.visibleLights[lightIndex];
 
                         // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning defaultHDAdditionalLightData
-                        var additionalData = light.light.GetComponent<HDAdditionalLightData>();
-                        if (additionalData == null)
-                            additionalData = defaultHDAdditionalLightData;
+                        var additionalData = GetHDAdditionalLightData(light);
 
                         LightCategory lightCategory = LightCategory.Count;
                         GPULightType gpuLightType = GPULightType.Point;
@@ -1483,10 +1486,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_enableBakeShadowMask = m_enableBakeShadowMask || IsBakedShadowMaskLight(light.light);
 
                         // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning defaultHDAdditionalLightData
-                        var additionalLightData = light.light.GetComponent<HDAdditionalLightData>();
-                        if (additionalLightData == null)
-                            additionalLightData = defaultHDAdditionalLightData;
-
+                        var additionalLightData = GetHDAdditionalLightData(light);
                         var additionalShadowData = light.light.GetComponent<AdditionalShadowData>(); // Can be null
 
                         // Directional rendering side, it is separated as it is always visible so no volume to handle here
@@ -1878,6 +1878,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 add.blendDistancePositive = Vector3.one * probe.blendDistance;
                 add.blendDistanceNegative = add.blendDistancePositive;
                 add.influenceShape = ReflectionInfluenceShape.Box;
+            }
+            return add;
+        }
+
+        HDAdditionalLightData GetHDAdditionalLightData(VisibleLight light)
+        {
+            var add = light.light.GetComponent<HDAdditionalLightData>();
+            if (add == null)
+            {
+                add = defaultHDAdditionalLightData;
             }
             return add;
         }
