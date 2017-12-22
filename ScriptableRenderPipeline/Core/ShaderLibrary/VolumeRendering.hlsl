@@ -141,11 +141,11 @@ float3 TransmittanceColorAtDistanceToAbsorption(float3 transmittanceColor, float
     #define VBUFFER_SLICE_COUNT 128
 #endif // PRESET_ULTRA
 
-// Point samples {volumetric radiance, optical depth}. Out-of-bounds loads return 0.
-float4 LoadInScatteredRadianceAndTransmittance(float2 positionNDC, float linearDepth,
-                                               TEXTURE3D(VBufferLighting),
-                                               float4 VBufferResolutionAndScale,
-                                               float4 VBufferDepthEncodingParams)
+// Point samples the V-Buffer. Out-of-bounds loads return 0.
+float4 LoadFromVBuffer(float2 positionNDC, float linearDepth,
+                       TEXTURE3D(VBufferLighting),
+                       float4 VBufferResolutionAndScale,
+                       float4 VBufferDepthEncodingParams)
 {
     int   k = VBUFFER_SLICE_COUNT;
     float z = linearDepth;
@@ -168,7 +168,7 @@ float4 SampleInScatteredRadianceAndTransmittance(float2 positionNDC, float linea
     float z = linearDepth;
     float d = EncodeLogarithmicDepth(z, VBufferDepthEncodingParams);
 
-    // Account for the visible area of the VBuffer.
+    // Account for the visible area of the V-Buffer.
     float2 uv = positionNDC * VBufferScale;
 
     float4 L;
