@@ -6,6 +6,7 @@ using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 
 namespace UnityEditor.Experimental.Rendering
@@ -66,14 +67,19 @@ namespace UnityEditor.Experimental.Rendering
 
         public override void OnInspectorGUI()
         {
+            //InspectColorsGUI();
+
             serializedObject.Update();
             m_AdditionalDataSerializedObject.Update();
 
             var s = m_UIState;
             var p = m_SerializedReflectionProbe;
+            // Set the legacy blend distance to 0 so the legacy culling system use the probe extent
+            p.legacyBlendDistance.floatValue = 0;
 
             k_PrimarySection.Draw(s, p, this);
             k_InfluenceVolumeSection.Draw(s, p, this);
+            //k_InfluenceNormalVolumeSection.Draw(s, p, this);
             k_SeparateProjectionVolumeSection.Draw(s, p, this);
             k_CaptureSection.Draw(s, p, this);
             k_AdditionalSection.Draw(s, p, this);
@@ -85,6 +91,8 @@ namespace UnityEditor.Experimental.Rendering
             serializedObject.ApplyModifiedProperties();
 
             HideAdditionalComponents(false);
+
+            DoShortcutKey(p, this);
         }
 
         static void PerformOperations(UIState s, SerializedReflectionProbe p, HDReflectionProbeEditor o)
@@ -107,6 +115,34 @@ namespace UnityEditor.Experimental.Rendering
                 addData.hideFlags = flags;
                 meshRenderer.hideFlags = flags;
                 meshFilter.hideFlags = flags;
+            }
+        }
+
+        void BakeRealtimeProbeIfPositionChanged(UIState s, SerializedReflectionProbe sp, Editor o)
+        {
+            if (Application.isPlaying
+                || ((ReflectionProbeMode)sp.mode.intValue) != ReflectionProbeMode.Realtime)
+            {
+                m_PositionHash = 0;
+                return;
+            }
+
+            var hash = 0;
+            for (var i = 0; i < sp.so.targetObjects.Length; i++)
+            {
+                var p = (ReflectionProbe)sp.so.targetObjects[i];
+                var tr = p.GetComponent<Transform>();
+                hash ^= tr.position.GetHashCode();
+            }
+
+            if (hash != m_PositionHash)
+            {
+                m_PositionHash = hash;
+                for (var i = 0; i < sp.so.targetObjects.Length; i++)
+                {
+                    var p = (ReflectionProbe)sp.so.targetObjects[i];
+                    p.RenderProbe();
+                }
             }
         }
 
@@ -165,6 +201,22 @@ namespace UnityEditor.Experimental.Rendering
         {
             return editMode == EditMode.SceneViewEditMode.ReflectionProbeBox || editMode == EditMode.SceneViewEditMode.Collider || editMode == EditMode.SceneViewEditMode.GridBox ||
                 editMode == EditMode.SceneViewEditMode.ReflectionProbeOrigin;
+        }
+
+        static void InspectColorsGUI()
+        {
+            EditorGUILayout.LabelField("Color Theme", EditorStyles.largeLabel);
+            k_GizmoThemeColorExtent = EditorGUILayout.ColorField("Extent", k_GizmoThemeColorExtent);
+            k_GizmoThemeColorExtentFace = EditorGUILayout.ColorField("Extent Face", k_GizmoThemeColorExtentFace);
+            k_GizmoThemeColorInfluenceBlend = EditorGUILayout.ColorField("Influence Blend", k_GizmoThemeColorInfluenceBlend);
+            k_GizmoThemeColorInfluenceBlendFace = EditorGUILayout.ColorField("Influence Blend Face", k_GizmoThemeColorInfluenceBlendFace);
+            k_GizmoThemeColorInfluenceNormalBlend = EditorGUILayout.ColorField("Influence Normal Blend", k_GizmoThemeColorInfluenceNormalBlend);
+            k_GizmoThemeColorInfluenceNormalBlendFace = EditorGUILayout.ColorField("Influence Normal Blend Face", k_GizmoThemeColorInfluenceNormalBlendFace);
+            k_GizmoThemeColorProjection = EditorGUILayout.ColorField("Projection", k_GizmoThemeColorProjection);
+            k_GizmoThemeColorProjectionFace = EditorGUILayout.ColorField("Projection Face", k_GizmoThemeColorProjectionFace);
+            k_GizmoThemeColorDisabled = EditorGUILayout.ColorField("Disabled", k_GizmoThemeColorDisabled);
+            k_GizmoThemeColorDisabledFace = EditorGUILayout.ColorField("Disabled Face", k_GizmoThemeColorDisabledFace);
+            EditorGUILayout.Space();
         }
 
         static void BakeCustomReflectionProbe(ReflectionProbe probe, bool usePreviousAssetPath, bool custom)
@@ -228,6 +280,57 @@ namespace UnityEditor.Experimental.Rendering
         {
             var renderer = p.GetComponent<Renderer>();
             renderer.sharedMaterial.SetTexture(_Cubemap, p.texture);
+        }
+
+        static void ApplyConstraintsOnTargets(UIState s, SerializedReflectionProbe sp, Editor o)
+        {
+            switch ((ReflectionInfluenceShape)sp.influenceShape.enumValueIndex)
+            {
+                case ReflectionInfluenceShape.Box:
+                {
+                    var maxBlendDistance = CalculateBoxMaxBlendDistance(s, sp, o);
+                    sp.targetData.blendDistancePositive = Vector3.Min(sp.targetData.blendDistancePositive, maxBlendDistance);
+                    sp.targetData.blendDistanceNegative = Vector3.Min(sp.targetData.blendDistanceNegative, maxBlendDistance);
+                    sp.targetData.blendNormalDistancePositive = Vector3.Min(sp.targetData.blendNormalDistancePositive, maxBlendDistance);
+                    sp.targetData.blendNormalDistanceNegative = Vector3.Min(sp.targetData.blendNormalDistanceNegative, maxBlendDistance);
+                    break;
+                }
+                case ReflectionInfluenceShape.Sphere:
+                {
+                    var maxBlendDistance = Vector3.one * CalculateSphereMaxBlendDistance(s, sp, o);
+                    sp.targetData.blendDistancePositive = Vector3.Min(sp.targetData.blendDistancePositive, maxBlendDistance);
+                    sp.targetData.blendDistanceNegative = Vector3.Min(sp.targetData.blendDistanceNegative, maxBlendDistance);
+                    sp.targetData.blendNormalDistancePositive = Vector3.Min(sp.targetData.blendNormalDistancePositive, maxBlendDistance);
+                    sp.targetData.blendNormalDistanceNegative = Vector3.Min(sp.targetData.blendNormalDistanceNegative, maxBlendDistance);
+                    break;
+                }
+            }
+        }
+
+        static readonly KeyCode[] k_ShortCutKeys =
+        {
+            KeyCode.Alpha1,
+            KeyCode.Alpha2,
+            KeyCode.Alpha3,
+        };
+        static void DoShortcutKey(SerializedReflectionProbe p, Editor o)
+        {
+            var evt = Event.current;
+            if (evt.type != EventType.KeyDown || !evt.shift)
+                return;
+
+            for (var i = 0; i < k_ShortCutKeys.Length; ++i)
+            {
+                if (evt.keyCode == k_ShortCutKeys[i])
+                {
+                    var mode = EditMode.editMode == k_Toolbar_SceneViewEditModes[i]
+                        ? EditMode.SceneViewEditMode.None
+                        : k_Toolbar_SceneViewEditModes[i];
+                    EditMode.ChangeEditMode(mode, GetBoundsGetter(p)(), o);
+                    evt.Use();
+                    break;
+                }
+            }
         }
     }
 }
