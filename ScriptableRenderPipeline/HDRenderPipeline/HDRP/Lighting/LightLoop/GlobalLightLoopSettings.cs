@@ -20,6 +20,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int reflectionCubemapSize = 128;
         public bool reflectionCacheCompressed = false;
         public SkyResolution skyReflectionSize = SkyResolution.SkyResolution256;
+        public LayerMask skyLightingOverrideLayerMask = 0;
     }
 }
 

@@ -42,7 +42,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Material                m_BlitCubemapMaterial;
         Material                m_OpaqueAtmScatteringMaterial;
 
-        int                     m_LastFrameUpdated = -1;
         bool                    m_UpdateRequired = false;
         bool                    m_NeedUpdateRealtimeEnv = false;
         bool                    m_NeedUpdateBakingSky = false;
@@ -63,29 +62,60 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SkyRenderingContext m_BakingSkyRenderingContext;
         SkyRenderingContext m_SkyRenderingContext;
 
+        // This interpolation volume stack is used to interpolate the lighting override separately from the visual sky.
+        // If a sky setting is present in this volume then it will be used for lighting override.
+        VolumeStack         m_LightingOverrideVolumeStack;
+        LayerMask           m_LightingOverrideLayerMask = -1;
+
         public Texture skyReflection { get { return m_SkyRenderingContext.reflectionTexture; } }
 
-        void UpdateCurrentSkySettings()
+
+        SkySettings GetSkySetting(VolumeStack stack)
         {
-            SkySettings newSkySettings = null;
-            var visualEnv = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
+            SkySettings result;
+            var visualEnv = stack.GetComponent<VisualEnvironment>();
             switch (visualEnv.skyType.value)
             {
                 case SkyType.HDRISky:
                     {
-                        newSkySettings = VolumeManager.instance.stack.GetComponent<HDRISky>();
+                        result = stack.GetComponent<HDRISky>();
                         break;
                     }
                 case SkyType.ProceduralSky:
                     {
-                        newSkySettings = VolumeManager.instance.stack.GetComponent<ProceduralSky>();
+                        result = stack.GetComponent<ProceduralSky>();
                         break;
                     }
+                default:
+                    result = null;
+                    break;
             }
 
-            m_VisualSky.skySettings = newSkySettings;
+            return result;
+        }
+
+        void UpdateCurrentSkySettings(HDCamera camera)
+        {
+            m_VisualSky.skySettings = GetSkySetting(VolumeManager.instance.stack);
             m_BakingSky.skySettings = SkySettings.GetBakingSkySettings();
-            m_LightingOverrideSky.skySettings = null;
+            
+            // Update needs to happen before testing if the component is active other internal data structure are not properly updated yet.
+            VolumeManager.instance.Update(m_LightingOverrideVolumeStack, camera.camera.transform, m_LightingOverrideLayerMask);
+            if(VolumeManager.instance.IsComponentActiveInMask<VisualEnvironment>(m_LightingOverrideLayerMask))
+            {
+                SkySettings newSkyOverride = GetSkySetting(m_LightingOverrideVolumeStack);
+                if(m_LightingOverrideSky.skySettings != null && newSkyOverride == null)
+                {
+                    // When we switch from override to no override, we need to make sure that the visual sky will actually be properly re-rendered.
+                    // Resetting the visual sky hash will ensure that.
+                    m_VisualSky.skyParametersHash = -1;
+                }
+                m_LightingOverrideSky.skySettings = newSkyOverride;
+            }
+            else
+            {
+                m_LightingOverrideSky.skySettings = null;
+            }
         }
 
         // Sets the global MIP-mapped cubemap '_SkyTexture' in the shader.
@@ -105,6 +135,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.skyboxCubemap);
             m_BlitCubemapMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.blitCubemap);
             m_OpaqueAtmScatteringMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.opaqueAtmosphericScattering);
+
+            m_LightingOverrideVolumeStack = VolumeManager.instance.CreateStack();
+            m_LightingOverrideLayerMask = hdAsset.renderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask;
         }
 
         public void Cleanup()
@@ -121,7 +154,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool IsSkyValid()
         {
-            return m_VisualSky.IsValid();
+            return m_VisualSky.IsValid() || m_LightingOverrideSky.IsValid();
         }
 
 
@@ -157,9 +190,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (Shader.GetGlobalTexture(HDShaderIDs._SkyTexture) == null)
                 cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, CoreUtils.magentaCubeTexture);
 
-            if (m_LastFrameUpdated == Time.frameCount)
-                return;
-
             // This is done here because we need to wait for one frame that the command buffer is executed before using the resulting textures.
             if (m_NeedUpdateBakingSky)
             {
@@ -182,18 +212,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_NeedUpdateRealtimeEnv)
             {
                 // TODO: Here we need to do that in case we are using real time GI. Unfortunately we don't have a way to check that atm.
+                // Moreover we still need Async readback from texture in command buffers first.
                 //DynamicGI.SetEnvironmentData();
                 m_NeedUpdateRealtimeEnv = false;
             }
 
-            UpdateCurrentSkySettings();
+            UpdateCurrentSkySettings(camera);
 
             m_NeedUpdateBakingSky = m_BakingSkyRenderingContext.UpdateEnvironment(m_BakingSky, camera, sunLight, m_UpdateRequired, cmd);
             SkyUpdateContext currentSky = m_LightingOverrideSky.IsValid() ? m_LightingOverrideSky : m_VisualSky;
             m_NeedUpdateRealtimeEnv = m_SkyRenderingContext.UpdateEnvironment(currentSky, camera, sunLight, m_UpdateRequired, cmd);
 
             m_UpdateRequired = false;
-            m_LastFrameUpdated = Time.frameCount;
 
             SetGlobalSkyTexture(cmd);
             if (IsSkyValid())

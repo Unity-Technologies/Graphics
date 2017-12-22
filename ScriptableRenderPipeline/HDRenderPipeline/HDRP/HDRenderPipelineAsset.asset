@@ -63,6 +63,9 @@ MonoBehaviour:
       reflectionCubemapSize: 128
       reflectionCacheCompressed: 0
       skyReflectionSize: 256
+      skyLightingOverrideLayerMask:
+        serializedVersion: 2
+        m_Bits: 256
     shadowInitParams:
       shadowAtlasWidth: 4096
       shadowAtlasHeight: 4096

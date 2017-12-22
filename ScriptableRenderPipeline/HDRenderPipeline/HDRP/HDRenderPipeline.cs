@@ -627,8 +627,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         using (new ProfilingSample(cmd, "Volume Update", GetSampler(CustomSamplerId.VolumeUpdate)))
                         {
-                            // TODO: Transform & layer should be configurable per camera
-                            VolumeManager.instance.Update(camera.transform, -1);
+                            LayerMask layerMask = -1;
+                            if(additionalCameraData != null)
+                            {
+                                layerMask = additionalCameraData.volumeLayerMask;
+                            }
+                            else
+                            {
+                                // Temporary hack. For scene view, by default, we don't want to have the lighting override layers in the current sky.
+                                // This is arbitrary and should be editable in the scene view somehow.
+                                if(camera.cameraType == CameraType.SceneView)
+                                {
+                                    layerMask = (-1 & ~m_Asset.renderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask);
+                                }
+                            }
+                            VolumeManager.instance.Update(camera.transform, layerMask);
                         }
                     }
 
