@@ -126,7 +126,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // User can chose if they use This is use in case we want to force infinite projection distance (i.e no projection);
         public float minProjectionDistance;
 
-        public Vector3 innerDistance;   // extents of the env light
+        public Vector3 influenceExtents;   // extents of the env light
         public float unused0;
 
         public Vector3 offsetLS;
