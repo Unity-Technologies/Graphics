@@ -35,15 +35,15 @@ void ApplyVertexModification(AttributesMesh input, float3 normalWS, inout float3
         input.uv3,
     #else
         float2(0.0, 0.0),
-    #endif            
+    #endif
     #ifdef ATTRIBUTES_NEED_COLOR
         input.color
     #else
         float4(0.0, 0.0, 0.0, 0.0)
-    #endif      
+    #endif
         );
 #endif
-    
+
 #ifdef _VERTEX_WIND
     float3 rootWP = mul(GetObjectToWorldMatrix(), float4(0, 0, 0, 1)).xyz;
     ApplyWindDisplacement(positionWS, normalWS, rootWP, _Stiffness, _Drag, _ShiverDrag, _ShiverDirectionality, _InitialBend, input.color.a, time);
@@ -59,8 +59,8 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     // For tessellation we want to process tessellation factor always from the point of view of the camera (to be consistent and avoid Z-fight).
     // For the culling part however we want to use the current view (shadow view).
     // Thus the following code play with both.
-    float frustumEps = -maxDisplacement;
-    
+    float frustumEps = -maxDisplacement; // "-" Expected parameter for CullTriangleEdgesFrustum
+
     // TODO: the only reason I test the near plane here is that I am not sure that the product of other tessellation factors
     // (such as screen-space/distance-based) results in the tessellation factor of 1 for the geometry behind the near plane.
     // If that is the case (and, IMHO, it should be), we shouldn't have to test the near plane here.
@@ -79,6 +79,7 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     if (_TessellationBackFaceCullEpsilon > -1.0) // Is back-face culling enabled ?
     {
         // Handle transform mirroring (like negative scaling)
+        // Note: We don't need to handle handness of view matrix here as the backface is perform in worldspace
         float winding = unity_WorldTransformParams.w;
         faceCull = CullTriangleBackFace(p0, p1, p2, _TessellationBackFaceCullEpsilon, GetCurrentViewPosition(), winding); // Use shadow view
     }
@@ -152,12 +153,12 @@ void ApplyTessellationModification(VaryingsMeshToDS input, float3 normalWS, inou
         input.texCoord3,
     #else
         float2(0.0, 0.0),
-    #endif            
+    #endif
     #ifdef VARYINGS_DS_NEED_COLOR
         input.color
     #else
         float4(0.0, 0.0, 0.0, 0.0)
-    #endif      
+    #endif
         );
 #endif // _TESSELLATION_DISPLACEMENT
 }
