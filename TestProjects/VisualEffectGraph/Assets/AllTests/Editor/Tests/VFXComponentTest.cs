@@ -191,7 +191,7 @@ namespace UnityEditor.VFX.Test
             yield return null;
 
             /*
-             * Actually, this error is only catched in debug mode
+             * Actually, this error is only caught in debug mode
             renderTartget2D.dimension = TextureDimension.Tex3D; //try to hack dimension
             Assert.AreEqual(renderTartget2D, vfxComponent.GetTexture(targetTextureName));
             yield return null;
