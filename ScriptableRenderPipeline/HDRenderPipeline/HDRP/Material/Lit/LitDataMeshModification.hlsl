@@ -80,8 +80,10 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     {
         // Handle transform mirroring (like negative scaling)
         // Note: We don't need to handle handness of view matrix here as the backface is perform in worldspace
+        // note2: When we have an orthogonal matrix (cascade shadow map), we need to use the direction of the light.
+        // Otherwise we use only p0 instead of the mean of P0, p1,p2 to save ALU as with tessellated geomerty it is rarely needed and user can still control _TessellationBackFaceCullEpsilon.
         float winding = unity_WorldTransformParams.w;
-        faceCull = CullTriangleBackFace(p0, p1, p2, _TessellationBackFaceCullEpsilon, GetCurrentViewPosition(), winding); // Use shadow view
+        faceCull = CullTriangleBackFaceView(p0, p1, p2, _TessellationBackFaceCullEpsilon, GetWorldSpaceNormalizeViewDir(p0), winding); // Use shadow view
     }
 #endif
 
