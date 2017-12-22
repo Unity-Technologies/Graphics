@@ -57,6 +57,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Exponential
     }
 
+    [GenerateHLSL]
+    public enum FogColorMode
+    {
+        ConstantColor,
+        SkyColor,
+    }
+
     [Serializable]
     public sealed class FogTypeParameter : VolumeParameter<FogType>
     {
@@ -64,13 +71,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             : base(value, overrideState)
         {
         }
-    }
-
-    [GenerateHLSL]
-    public enum FogColorMode
-    {
-        ConstantColor,
-        SkyColor,
     }
 
     [Serializable]
