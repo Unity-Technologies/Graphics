@@ -1578,7 +1578,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             continue;
                         }
 
-                        // TODO: Support LightVolumeType.Sphere, currently in UI there is no way to specify a sphere influence volume
                         LightVolumeType lightVolumeType = LightVolumeType.Box;
                         if (additional != null && additional.influenceShape == ReflectionInfluenceShape.Sphere)
                             lightVolumeType = LightVolumeType.Sphere;
