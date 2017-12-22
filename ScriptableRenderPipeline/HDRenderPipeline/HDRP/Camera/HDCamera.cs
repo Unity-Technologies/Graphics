@@ -156,8 +156,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Near, far.
-            frustumPlaneEquations[4] = new Vector4( camera.transform.forward.x,  camera.transform.forward.y,  camera.transform.forward.z, -Vector3.Dot(camera.transform.forward, relPos) - camera.nearClipPlane);
-            frustumPlaneEquations[5] = new Vector4(-camera.transform.forward.x, -camera.transform.forward.y, -camera.transform.forward.z,  Vector3.Dot(camera.transform.forward, relPos) + camera.farClipPlane);
+            // We need to switch forward direction based on handness (Reminder: Regular camera have a negative determinant in Unity and reflection probe follow DX convention and have a positive determinant)
+            Vector3 forward = viewParam.x < 0.0f ? camera.transform.forward : -camera.transform.forward;
+            frustumPlaneEquations[4] = new Vector4( forward.x,  forward.y,  forward.z, -Vector3.Dot(forward, relPos) - camera.nearClipPlane);
+            frustumPlaneEquations[5] = new Vector4(-forward.x, -forward.y, -forward.z,  Vector3.Dot(forward, relPos) + camera.farClipPlane);
 
             m_LastFrameActive = Time.frameCount;
         }
