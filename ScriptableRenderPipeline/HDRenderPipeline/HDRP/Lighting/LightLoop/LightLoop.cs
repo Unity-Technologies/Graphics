@@ -376,6 +376,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // this defualt additionalLightData is use for lights that don't have any (like preview light)
         HDAdditionalLightData defaultHDAdditionalLightData = new HDAdditionalLightData();
+        HDAdditionalReflectionData defaultHDAdditionalReflectionData = new HDAdditionalReflectionData();
 
         // Following is an array of material of size eight for all combination of keyword: OUTPUT_SPLIT_LIGHTING - LIGHTLOOP_TILE_PASS - SHADOWS_SHADOWMASK - USE_FPTL_LIGHTLIST/USE_CLUSTERED_LIGHTLIST - DEBUG_DISPLAY
         Material[] m_deferredLightingMaterial;
@@ -1127,7 +1128,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool GetEnvLightData(CommandBuffer cmd, Camera camera, VisibleReflectionProbe probe)
         {
-            var additionalData = probe.probe.GetComponent<HDAdditionalReflectionData>();
+            var additionalData = GetHDAdditionalReflectionData(probe);
             var extents = probe.bounds.extents;
             var influenceBlendDistancePositive = Vector3.one * probe.blendDistance;
             var influenceBlendDistanceNegative = Vector3.one * probe.blendDistance;
@@ -1150,52 +1151,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             envLightData.boxSideFadePositive = Vector3.one;
             envLightData.boxSideFadeNegative = Vector3.one;
 
-            if (additionalData != null)
+            envLightData.minProjectionDistance = 0;
+            switch (additionalData.influenceShape)
             {
-                envLightData.minProjectionDistance = 0;
-                switch (additionalData.influenceShape)
-                {
-                    case ReflectionInfluenceShape.Box:
-                    {
-                        envLightData.envShapeType = EnvShapeType.Box;
-                        envLightData.boxSideFadePositive = additionalData.boxSideFadePositive;
-                        envLightData.boxSideFadeNegative = additionalData.boxSideFadeNegative;
-                        break;
-                    }
-                    case ReflectionInfluenceShape.Sphere:
-                        envLightData.envShapeType = EnvShapeType.Sphere;
-                        extents = Vector3.one * additionalData.influenceSphereRadius;
-                        break;
-                }
-
-                if (probe.boxProjection == 0)
-                    envLightData.minProjectionDistance = 65504.0f;
-
-                envLightData.dimmer = additionalData.dimmer;
-                envLightData.blendNormalDistancePositive = additionalData.blendNormalDistancePositive;
-                envLightData.blendNormalDistanceNegative = additionalData.blendNormalDistanceNegative;
-                influenceBlendDistancePositive = additionalData.blendDistancePositive;
-                influenceBlendDistanceNegative = additionalData.blendDistanceNegative;
-            }
-            else
-            {
-                if (probe.boxProjection == 0)
+                case ReflectionInfluenceShape.Box:
                 {
                     envLightData.envShapeType = EnvShapeType.Box;
-                    // If user request to have no projection, then setup a high number for minProjectionDistance
-                    // this will mimic infinite shape projection
-                    envLightData.minProjectionDistance = 65504.0f;
+                    envLightData.boxSideFadePositive = additionalData.boxSideFadePositive;
+                    envLightData.boxSideFadeNegative = additionalData.boxSideFadeNegative;
+                    break;
                 }
-                else
-                {
-                    envLightData.envShapeType = EnvShapeType.Box;
-                    envLightData.minProjectionDistance = 0.0f;
-                }
-
-                envLightData.dimmer = 1;
-                envLightData.blendDistancePositive = Vector3.zero;
-                envLightData.blendDistanceNegative = Vector3.zero;
+                case ReflectionInfluenceShape.Sphere:
+                    envLightData.envShapeType = EnvShapeType.Sphere;
+                    extents = Vector3.one * additionalData.influenceSphereRadius;
+                    break;
             }
+
+            if (probe.boxProjection == 0)
+                envLightData.minProjectionDistance = 65504.0f;
+
+            envLightData.dimmer = additionalData.dimmer;
+            envLightData.blendNormalDistancePositive = additionalData.blendNormalDistancePositive;
+            envLightData.blendNormalDistanceNegative = additionalData.blendNormalDistanceNegative;
+            influenceBlendDistancePositive = additionalData.blendDistancePositive;
+            influenceBlendDistanceNegative = additionalData.blendDistanceNegative;
 
             // remove scale from the matrix (Scale in this matrix is use to scale the widget)
             envLightData.right = probe.localToWorld.GetColumn(0);
@@ -1224,8 +1203,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void GetEnvLightVolumeDataAndBound(VisibleReflectionProbe probe, LightVolumeType lightVolumeType, Matrix4x4 worldToView)
         {
-            var add = probe.probe.GetComponent<HDAdditionalReflectionData>();
-            Assert.IsNotNull(add);
+            var add = GetHDAdditionalReflectionData(probe);
 
             var bound = new SFiniteLightBound();
             var lightVolumeData = new LightVolumeData();
@@ -1299,6 +1277,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_lightList.bounds.Add(bound);
             m_lightList.lightVolumes.Add(lightVolumeData);
         }
+
         public int GetCurrentShadowCount()
         {
             return m_ShadowRequests.Count;
@@ -1889,6 +1868,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // These two buffers have been set in Rebuild()
             s_ConvexBoundsBuffer.SetData(m_lightList.bounds);
             s_LightVolumeDataBuffer.SetData(m_lightList.lightVolumes);
+        }
+
+        HDAdditionalReflectionData GetHDAdditionalReflectionData(VisibleReflectionProbe probe)
+        {
+            var add = probe.probe.GetComponent<HDAdditionalReflectionData>();
+            if (add == null)
+            {
+                add = defaultHDAdditionalReflectionData;
+                add.blendDistancePositive = Vector3.one * probe.blendDistance;
+                add.blendDistanceNegative = add.blendDistancePositive;
+                add.influenceShape = ReflectionInfluenceShape.Box;
+            }
+            return add;
         }
 
         void PushGlobalParams(Camera camera, CommandBuffer cmd)
