@@ -3,13 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
-using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
@@ -237,7 +232,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (uberNodes.Count > 0)
                     {
                         m_UberShaderIds.Clear();
-                        m_UberShaderString = m_Graph.GetUberPreviewShader(m_UberShaderIds, out m_OutputIdProperty);
+                        var results = m_Graph.GetUberPreviewShader();
+                        m_UberShaderString = results.shader;
+                        m_OutputIdProperty = results.outputIdProperty;
+                        m_UberShaderIds = results.ids;
                         ShaderUtil.UpdateShaderAsset(m_UberShader, m_UberShaderString);
                         File.WriteAllText(Application.dataPath + "/../UberShader.shader", (m_UberShaderString ?? "null").Replace("UnityEngine.MaterialGraph", "Generated"));
                         bool uberShaderHasError = false;
@@ -248,8 +246,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                             message.AppendLine(@"Preview shader for graph has {0} error{1}:", errors.Length, errors.Length != 1 ? "s" : "");
                             foreach (var error in errors)
                             {
-                                message.AppendLine("{0} at line {1} (on {2})", error.message, error.line, error.platform);
+                                INode node = null;
+                                try
+                                {
+                                    node = results.sourceMap.FindNode(error.line);
+                                }
+                                catch (Exception)
+                                {
+                                    Debug.LogWarning("ERROR");
+                                    continue;
+                                }
+                                message.AppendLine("{0} in {3} at line {1} (on {2})", error.message, error.line, error.platform, node != null ? string.Format("node {0} ({1})", node.name, node.guid) : "graph");
                                 message.AppendLine(error.messageDetails);
+                                message.AppendNewLine();
                             }
                             Debug.LogWarning(message.ToString());
                             ShaderUtil.ClearShaderErrors(m_UberShader);
@@ -456,14 +465,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             else
             {
-                PreviewMode mode;
-                if (node is IMasterNode)
+                var masterNode = node as IMasterNode;
+                if (masterNode != null)
                 {
                     List<PropertyCollector.TextureInfo> configuredTextures;
-                    shaderData.shaderString = ((IMasterNode)node).GetShader(GenerationMode.Preview, node.name, out configuredTextures);
+                    shaderData.shaderString = masterNode.GetShader(GenerationMode.Preview, node.name, out configuredTextures);
                 }
                 else
-                    shaderData.shaderString = m_Graph.GetPreviewShader(node, out mode);
+                    shaderData.shaderString = m_Graph.GetPreviewShader(node).shader;
             }
 
             File.WriteAllText(Application.dataPath + "/../GeneratedShader.shader", (shaderData.shaderString ?? "null").Replace("UnityEngine.MaterialGraph", "Generated"));

@@ -383,7 +383,9 @@ namespace UnityEditor.ShaderGraph
             registry.ProvideFunction(GetFunctionName(), s =>
             {
                 s.AppendLine(GetFunctionHeader());
-                s.AppendLines(GetFunctionBody(GetFunctionToConvert()).Trim('\r', '\n', '\t', ' '));
+                var functionBody = GetFunctionBody(GetFunctionToConvert());
+                var lines = functionBody.Trim('\r', '\n', '\t', ' ');
+                s.AppendLines(lines);
             });
         }
 

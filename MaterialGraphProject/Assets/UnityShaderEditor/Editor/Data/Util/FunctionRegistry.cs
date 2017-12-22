@@ -6,42 +6,45 @@ namespace UnityEditor.ShaderGraph
 {
     public class FunctionRegistry
     {
-        Dictionary<string, string> m_Functions = new Dictionary<string, string>();
-        ShaderStringBuilder m_StringBuilder = new ShaderStringBuilder();
-        bool m_ValidationEnabled = false;
+        Dictionary<string, string> m_Sources = new Dictionary<string, string>();
+        bool m_Validate = false;
+        ShaderStringBuilder m_Builder;
 
-        public FunctionRegistry(int indentLevel = 0)
+        public FunctionRegistry(ShaderStringBuilder builder)
         {
-            for (var i = 0; i < indentLevel; i++)
-                m_StringBuilder.IncreaseIndent();
+            m_Builder = builder;
         }
 
-        public bool ProvideFunction(string name, Action<ShaderStringBuilder> generator)
+        internal ShaderStringBuilder builder
         {
-            string functionSource = string.Empty;
-            if (m_ValidationEnabled)
-            {
-                var ssb = new ShaderStringBuilder();
-                generator(ssb);
-                functionSource = ssb.ToString();
-            }
-
-            string existingFunctionSource;
-            if (m_Functions.TryGetValue(name, out existingFunctionSource))
-            {
-                if (m_ValidationEnabled && functionSource != existingFunctionSource)
-                    Debug.LogErrorFormat(@"Function `{0}` has varying implementations:{1}{1}{2}{1}{1}{3}", name, Environment.NewLine, functionSource, existingFunctionSource);
-                return false;
-            }
-            generator(m_StringBuilder);
-            m_Functions.Add(name, functionSource);
-            m_StringBuilder.AppendNewLine();
-            return true;
+            get { return m_Builder; }
         }
 
-        public override string ToString()
+        public void ProvideFunction(string name, Action<ShaderStringBuilder> generator)
         {
-            return m_StringBuilder.ToString();
+            string existingSource;
+            if (m_Sources.TryGetValue(name, out existingSource))
+            {
+                if (m_Validate)
+                {
+                    var startIndex = builder.length;
+                    generator(builder);
+                    var length = builder.length - startIndex;
+                    var source = builder.ToString(startIndex, length);
+                    builder.length -= length;
+                    if (source != existingSource)
+                        Debug.LogErrorFormat(@"Function `{0}` has varying implementations:{1}{1}{2}{1}{1}{3}", name, Environment.NewLine, source, existingSource);
+                }
+                return;
+            }
+            {
+                builder.AppendNewLine();
+                var startIndex = builder.length;
+                generator(builder);
+                var length = builder.length - startIndex;
+                var source = m_Validate ? builder.ToString(startIndex, length) : string.Empty;
+                m_Sources.Add(name, source);
+            }
         }
     }
 }
