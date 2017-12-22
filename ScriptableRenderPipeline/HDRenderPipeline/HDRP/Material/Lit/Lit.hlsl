@@ -1622,7 +1622,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     {
         // 1. First process the projection
         float3 dirLS = mul(R, worldToLocal);
-        float sphereOuterDistance = lightData.innerDistance.x;
+        float sphereOuterDistance = lightData.influenceExtents.x;
 
         float projectionDistance = SphereRayIntersectSimple(positionLS, dirLS, sphereOuterDistance);
         projectionDistance = max(projectionDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
@@ -1639,13 +1639,13 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
         // 2. Process the position influence
         float lengthPositionLS = length(positionLS);
-        float sphereInfluenceDistance = lightData.innerDistance.x - lightData.blendDistancePositive.x;
+        float sphereInfluenceDistance = lightData.influenceExtents.x - lightData.blendDistancePositive.x;
         float distFade = max(lengthPositionLS - sphereInfluenceDistance, 0.0);
         float alpha = saturate(1.0 - distFade / max(lightData.blendDistancePositive.x, 0.0001)); // avoid divide by zero
 
 #if defined(ENVMAP_FEATURE_INFLUENCENORMAL)
         // 3. Process the normal influence
-        float insideInfluenceNormalVolume = lengthPositionLS <= (lightData.innerDistance.x - lightData.blendNormalDistancePositive.x) ? 1.0 : 0.0;
+        float insideInfluenceNormalVolume = lengthPositionLS <= (lightData.influenceExtents.x - lightData.blendNormalDistancePositive.x) ? 1.0 : 0.0;
         float insideWeight = InfluenceFadeNormalWeight(bsdfData.normalWS, normalize(positionWS - lightData.positionWS));
         alpha *= insideInfluenceNormalVolume ? 1.0 : insideWeight;
 #endif
@@ -1656,7 +1656,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     {
         // 1. First process the projection
         float3 dirLS = mul(R, worldToLocal);
-        float3 boxOuterDistance = lightData.innerDistance;
+        float3 boxOuterDistance = lightData.influenceExtents;
         float projectionDistance = BoxRayIntersectSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
         projectionDistance = max(projectionDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
         
@@ -1695,7 +1695,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
         float alpha = saturate(influenceFalloff);
 #else
-        float distFace = DistancePointBox(positionLS, -lightData.innerDistance + lightData.blendDistancePositive.x, lightData.innerDistance - lightData.blendDistancePositive.x);
+        float distFace = DistancePointBox(positionLS, -lightData.influenceExtents + lightData.blendDistancePositive.x, lightData.influenceExtents - lightData.blendDistancePositive.x);
         float alpha = saturate(1.0 - distFace / max(lightData.blendDistancePositive.x, 0.0001));
 #endif
 
