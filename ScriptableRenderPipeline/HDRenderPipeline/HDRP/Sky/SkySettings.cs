@@ -3,13 +3,16 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [Serializable]
-    public sealed class SkyResolutionParameter : VolumeParameter<SkyResolution>
+    // This class is used to associate a unique ID to a sky class.
+    // This is needed to be able to automatically register sky classes and avoid collisions and refactoring class names causing data compatibility issues.
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    public sealed class SkyUniqueID : Attribute
     {
-        public SkyResolutionParameter(SkyResolution val, bool overrideState = false)
-            : base(val, overrideState)
-        {
+        public readonly int uniqueID;
 
+        public SkyUniqueID(int uniqueID)
+        {
+            this.uniqueID = uniqueID;
         }
     }
 
@@ -105,6 +108,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         }
 
+        public static int GetUniqueID<T>()
+        {
+            var uniqueIDs = typeof(T).GetCustomAttributes(typeof(SkyUniqueID), false);
+            if (uniqueIDs.Length == 0)
+                return -1;
+            else
+                return ((SkyUniqueID)uniqueIDs[0]).uniqueID;
+
+        }
 
         public abstract SkyRenderer CreateRenderer();
     }
