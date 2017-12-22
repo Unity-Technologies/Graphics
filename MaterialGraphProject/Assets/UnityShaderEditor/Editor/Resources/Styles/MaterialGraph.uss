@@ -109,20 +109,13 @@ MaterialNodeView #previewContainer.expanded > #expand {
 }
 
 MaterialNodeView > #resize {
-    background-color: rgb(0, 0, 255);
+    background-image : resource("GraphView/Nodes/NodeChevronLeft.png");
     position-type: absolute;
     position-right: 5;
     position-bottom: 5;
     width: 10;
     height: 10;
-}
-
-MaterialNodeView > #resize:hover {
-    background-color: rgb(0, 127, 127);
-}
-
-MaterialNodeView > #resize:active {
-    background-color: rgb(0, 225, 25);
+    cursor: resize-up-left;
 }
 
 PortInputView {
@@ -333,6 +326,15 @@ GraphInspectorView {
     background-color: rgb(56, 56, 56);
     flex-direction: column;
     justify-content: space-between;
+    position-type: absolute;
+    position-right: 0;
+    position-top: 0;
+    width: 600;
+    height: 800;
+}
+
+GraphInspectorView * {
+    font-size: 11;
 }
 
 GraphInspectorView > #top > #header {
@@ -360,12 +362,16 @@ GraphInspectorView > #top > #content > #selectionCount {
     padding-bottom: 10;
 }
 
+GraphInspectorView > #bottom {
+    margin-bottom: 20;
+}
+
 GraphInspectorView > #bottom > #preview {
-    height: 400;
+    max-height: 400;
     background-color: rgb(79, 79, 79);
 }
 
-GraphInspectorView > #bottom > #properties {
+GraphInspectorView > #top > #properties {
     border-color: rgb(41, 41, 41);
     border-top-width: 1;
     border-bottom-width: 1;
@@ -377,7 +383,7 @@ GraphInspectorView > #bottom > #properties {
     margin-right: 8;
 }
 
-GraphInspectorView > #bottom > #properties > #header {
+GraphInspectorView > #top > #properties > #header {
     border-color: rgb(41, 41, 41);
     border-bottom-width: 1;
     flex-direction: row;
@@ -385,7 +391,7 @@ GraphInspectorView > #bottom > #properties > #header {
     align-items: center;
 }
 
-GraphInspectorView > #bottom > #properties > #header > #title {
+GraphInspectorView > #top > #properties > #header > #title {
     text-color: rgb(180, 180, 180);
     font-style: bold;
     padding-top: 8;
@@ -394,7 +400,7 @@ GraphInspectorView > #bottom > #properties > #header > #title {
     padding-right: 8;
 }
 
-GraphInspectorView > #bottom > #properties > #header > #addButton {
+GraphInspectorView > #top > #properties > #header > #addButton {
     height: 24;
     margin-top: 0;
     margin-bottom: 0;
@@ -402,8 +408,52 @@ GraphInspectorView > #bottom > #properties > #header > #addButton {
     margin-right: 8;
 }
 
-GraphInspectorView > #bottom > #properties > #items {
+GraphInspectorView > #top > #properties > #items {
     padding-bottom: 4;
+}
+
+GraphInspectorView > #resize-right {
+    cursor: resize-horizontal;
+    background-color: rgba(0, 0, 0, 0);
+    position-type: absolute;
+    width: 10;
+    position-right: 0;
+    position-top: 0;
+    position-bottom: 0;
+}
+
+GraphInspectorView > #resize-left {
+    cursor: resize-horizontal;
+    background-color: rgba(0, 0, 0, 0);
+    position-type: absolute;
+    width: 10;
+    position-left: 0;
+    position-top: 0;
+    position-bottom: 0;
+    padding-left: 0;
+    margin-left: 0;
+}
+
+GraphInspectorView > #resize-top {
+    cursor: resize-vertical;
+    background-color: rgba(0, 0, 0, 0);
+    position-type: absolute;
+    height: 10;
+    position-left: 0;
+    position-right: 0;
+    position-top: 0;
+    padding-top: 0;
+    margin-top: 0;
+}
+
+GraphInspectorView > #resize-bottom {
+    cursor: resize-vertical;
+    background-color: rgba(0, 0, 0, 0);
+    position-type: absolute;
+    height: 10;
+    position-left: 0;
+    position-right: 0;
+    position-bottom: 0;
 }
 
 ShaderPropertyView {

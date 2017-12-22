@@ -316,13 +316,13 @@ namespace UnityEditor.ShaderGraph
 
         private string GetParamTypeName(MaterialSlot slot)
         {
-            return ConvertConcreteSlotValueTypeToString(precision, slot.concreteValueType);
+            return NodeUtils.ConvertConcreteSlotValueTypeToString(precision, slot.concreteValueType);
         }
 
         private string GetFunctionName()
         {
             var function = GetFunctionToConvert();
-            return function.Name + "_" + (function.IsStatic ? string.Empty : GuidEncoder.Encode(guid) + "_") + precision;
+            return function.Name + "_" + (function.IsStatic ? string.Empty : GuidEncoder.Encode(guid) + "_") + precision + (this.GetSlots<DynamicVectorMaterialSlot>().Select(s => NodeUtils.GetSlotDimension(s.concreteValueType)).FirstOrDefault() ?? "");
         }
 
         private string GetFunctionHeader()
@@ -372,16 +372,21 @@ namespace UnityEditor.ShaderGraph
             foreach (var slot in s_TempSlots)
             {
                 var toReplace = string.Format("{{slot{0}dimension}}", slot.id);
-                var replacement = GetSlotDimension(slot.concreteValueType);
+                var replacement = NodeUtils.GetSlotDimension(slot.concreteValueType);
                 result = result.Replace(toReplace, replacement);
             }
             return result;
         }
 
-        public virtual void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
+        public virtual void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            string function = GetFunctionHeader() + GetFunctionBody(GetFunctionToConvert());
-            visitor.AddShaderChunk(function, true);
+            registry.ProvideFunction(GetFunctionName(), s =>
+            {
+                s.AppendLine(GetFunctionHeader());
+                var functionBody = GetFunctionBody(GetFunctionToConvert());
+                var lines = functionBody.Trim('\r', '\n', '\t', ' ');
+                s.AppendLines(lines);
+            });
         }
 
         private static SlotAttribute GetSlotAttribute([NotNull] ParameterInfo info)

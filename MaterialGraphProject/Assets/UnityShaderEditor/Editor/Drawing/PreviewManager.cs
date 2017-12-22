@@ -3,12 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading;
-using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
@@ -28,7 +24,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         MaterialPropertyBlock m_PreviewPropertyBlock;
         PreviewSceneResources m_SceneResources;
         Texture2D m_ErrorTexture;
-        const bool k_UberShaderEnabled = true;
         Shader m_UberShader;
         string m_UberShaderString;
         Dictionary<Guid, int> m_UberShaderIds;
@@ -215,7 +210,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var node = m_Graph.GetNodeFromGuid(guid);
                     if (node == null)
                         continue;
-                    if (!k_UberShaderEnabled || node is IMasterNode)
+                    if (node is IMasterNode)
                         masterNodes.Add(node);
                     else
                         uberNodes.Add(node);
@@ -237,14 +232,35 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (uberNodes.Count > 0)
                     {
                         m_UberShaderIds.Clear();
-                        m_UberShaderString = m_Graph.GetUberPreviewShader(m_UberShaderIds, out m_OutputIdProperty);
+                        var results = m_Graph.GetUberPreviewShader();
+                        m_UberShaderString = results.shader;
+                        m_OutputIdProperty = results.outputIdProperty;
+                        m_UberShaderIds = results.ids;
                         ShaderUtil.UpdateShaderAsset(m_UberShader, m_UberShaderString);
                         File.WriteAllText(Application.dataPath + "/../UberShader.shader", (m_UberShaderString ?? "null").Replace("UnityEngine.MaterialGraph", "Generated"));
-                        var message = "RecreateUberShader: " + Environment.NewLine + m_UberShaderString;
                         bool uberShaderHasError = false;
                         if (ShaderUtil.GetShaderErrorCount(m_UberShader) > 0)
                         {
-                            Debug.LogWarning(message);
+                            var errors = MaterialGraphAsset.GetShaderErrors(m_UberShader);
+                            var message = new ShaderStringBuilder();
+                            message.AppendLine(@"Preview shader for graph has {0} error{1}:", errors.Length, errors.Length != 1 ? "s" : "");
+                            foreach (var error in errors)
+                            {
+                                INode node = null;
+                                try
+                                {
+                                    node = results.sourceMap.FindNode(error.line);
+                                }
+                                catch (Exception)
+                                {
+                                    Debug.LogWarning("ERROR");
+                                    continue;
+                                }
+                                message.AppendLine("{0} in {3} at line {1} (on {2})", error.message, error.line, error.platform, node != null ? string.Format("node {0} ({1})", node.name, node.guid) : "graph");
+                                message.AppendLine(error.messageDetails);
+                                message.AppendNewLine();
+                            }
+                            Debug.LogWarning(message.ToString());
                             ShaderUtil.ClearShaderErrors(m_UberShader);
                             ShaderUtil.UpdateShaderAsset(m_UberShader, k_EmptyShader);
                             uberShaderHasError = true;
@@ -400,10 +416,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                 RenderTexture.active = renderData.renderTexture;
                 GL.Clear(true, true, Color.black);
                 Graphics.Blit(Texture2D.whiteTexture, renderData.renderTexture, m_SceneResources.checkerboardMaterial);
-                var mesh = (renderData == masterRenderData && m_Graph.previewMesh) ? m_Graph.previewMesh :  m_SceneResources.sphere;
+                var mesh = (renderData == masterRenderData && m_Graph.previewData.serializedMesh.mesh) ? m_Graph.previewData.serializedMesh.mesh :  m_SceneResources.sphere;
                 Quaternion rotation = (renderData == masterRenderData) ? m_Graph.previewData.rotation : Quaternion.identity;
-                float scale = (renderData == masterRenderData) ? m_Graph.previewData.scale : 1f;
-                Graphics.DrawMesh(mesh, Matrix4x4.TRS(-mesh.bounds.center, rotation, Vector3.one * scale), m_PreviewMaterial, 1, m_SceneResources.camera, 0, m_PreviewPropertyBlock, ShadowCastingMode.Off, false, null, false);
+                Matrix4x4 previewTransform = Matrix4x4.identity;
+
+                if (renderData == masterRenderData)
+                {
+                    previewTransform *= Matrix4x4.Rotate(rotation);
+                    previewTransform *= Matrix4x4.Scale(Vector3.one * (Vector3.one).magnitude / mesh.bounds.size.magnitude);
+                    previewTransform *= Matrix4x4.Translate(-mesh.bounds.center);
+                }
+
+                Graphics.DrawMesh(mesh, previewTransform, m_PreviewMaterial, 1, m_SceneResources.camera, 0, m_PreviewPropertyBlock, ShadowCastingMode.Off, false, null, false);
+
                 var previousUseSRP = Unsupported.useScriptableRenderPipeline;
                 Unsupported.useScriptableRenderPipeline = renderData.shaderData.node is IMasterNode;
                 m_SceneResources.camera.Render();
@@ -442,14 +467,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             else
             {
-                PreviewMode mode;
-                if (node is IMasterNode)
+                var masterNode = node as IMasterNode;
+                if (masterNode != null)
                 {
                     List<PropertyCollector.TextureInfo> configuredTextures;
-                    shaderData.shaderString = ((IMasterNode)node).GetShader(GenerationMode.Preview, node.name, out configuredTextures);
+                    shaderData.shaderString = masterNode.GetShader(GenerationMode.Preview, node.name, out configuredTextures);
                 }
                 else
-                    shaderData.shaderString = m_Graph.GetPreviewShader(node, out mode);
+                    shaderData.shaderString = m_Graph.GetPreviewShader(node).shader;
             }
 
             File.WriteAllText(Application.dataPath + "/../GeneratedShader.shader", (shaderData.shaderString ?? "null").Replace("UnityEngine.MaterialGraph", "Generated"));

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using UnityEditor.Graphing;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -66,6 +67,11 @@ namespace UnityEditor.ShaderGraph
                 propType = PropertyType.Texture,
                 textureValue = value.texture
             };
+        }
+
+        public override INode ToConcreteNode()
+        {
+            return new Texture2DAssetNode { texture = value.texture };
         }
     }
 }

@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         string m_Selected;
 
         [SerializeField]
-        SerializableGraphObject m_GraphObject;
+        GraphObject m_GraphObject;
 
         [NonSerialized]
         bool m_HasError;
@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        SerializableGraphObject graphObject
+        GraphObject graphObject
         {
             get { return m_GraphObject; }
             set
@@ -115,10 +115,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnDestroy()
         {
-            if (graphObject.isDirty && EditorUtility.DisplayDialog("Shader Graph Might Have Been Modified", "Do you want to save the changes you made in the shader graph?", "Save", "Don't Save"))
-                UpdateAsset();
-            Undo.ClearUndo(graphObject);
-            DestroyImmediate(graphObject);
+            if (graphObject != null)
+            {
+                if (graphObject.isDirty && EditorUtility.DisplayDialog("Shader Graph Has Been Modified", "Do you want to save the changes you made in the shader graph?\n\nYour changes will be lost if you don't save them.", "Save", "Don't Save"))
+                    UpdateAsset();
+                Undo.ClearUndo(graphObject);
+                DestroyImmediate(graphObject);
+            }
             graphEditorView = null;
         }
 
@@ -423,7 +426,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 selectedGuid = newSelectionGuid;
 
                 var textGraph = File.ReadAllText(path, Encoding.UTF8);
-                graphObject = CreateInstance<SerializableGraphObject>();
+                graphObject = CreateInstance<GraphObject>();
                 graphObject.hideFlags = HideFlags.HideAndDontSave;
                 graphObject.graph = JsonUtility.FromJson(textGraph, graphType) as IGraph;
                 graphObject.graph.OnEnable();

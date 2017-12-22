@@ -46,7 +46,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         isNormalMap = importer.textureType == TextureImporterType.NormalMap;
                 }
 
-                var node = new Texture2DNode();
+                var node = new SampleTexture2DNode();
                 if (isNormalMap)
                     node.textureType = TextureType.Normal;
 
@@ -54,7 +54,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 drawState.position = new Rect(nodePosition, drawState.position.size);
                 node.drawState = drawState;
                 m_Graph.AddNode(node);
-                var inputslot = node.FindSlot<Texture2DInputMaterialSlot>(Texture2DNode.TextureInputId);
+                var inputslot = node.FindSlot<Texture2DInputMaterialSlot>(SampleTexture2DNode.TextureInputId);
                 if (inputslot != null)
                     inputslot.texture = texture2D;
             }
@@ -65,12 +65,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Graph.owner.RegisterCompleteObjectUndo("Drag Cubemap");
                 var property = new CubemapShaderProperty { displayName = cubemap.name, value = { cubemap = cubemap } };
                 m_Graph.AddShaderProperty(property);
-                var node = new CubemapNode();
+                var node = new SampleCubemapNode();
                 var drawState = node.drawState;
                 drawState.position = new Rect(nodePosition, drawState.position.size);
                 node.drawState = drawState;
                 m_Graph.AddNode(node);
-                var inputslot = node.FindSlot<CubemapInputMaterialSlot>(CubemapNode.CubemapInputId);
+                var inputslot = node.FindSlot<CubemapInputMaterialSlot>(SampleCubemapNode.CubemapInputId);
                 if (inputslot != null)
                     inputslot.cubemap = cubemap;
             }

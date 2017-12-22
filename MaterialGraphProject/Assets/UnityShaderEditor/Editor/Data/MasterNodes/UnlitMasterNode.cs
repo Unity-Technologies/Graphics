@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
         public sealed override void UpdateNodeAfterDeserialization()
         {
             name = "Unlit Master";
-            AddSlot(new Vector3MaterialSlot(ColorSlotId, ColorSlotName, ColorSlotName, SlotType.Input, new Vector3(0.5f, 0.5f, 0.5f), ShaderStage.Fragment));
+            AddSlot(new ColorRGBMaterialSlot(ColorSlotId, ColorSlotName, ColorSlotName, SlotType.Input, Color.grey, ShaderStage.Fragment));
             AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1, ShaderStage.Fragment));
 
             // clear out slot names that do not match the slots

@@ -1,4 +1,5 @@
 using System;
+using UnityEditor.Graphing;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -29,6 +30,11 @@ namespace UnityEditor.ShaderGraph
                 propType = PropertyType.Vector4,
                 vector4Value = value
             };
+        }
+
+        public override INode ToConcreteNode()
+        {
+            return new Vector4Node { value = value };
         }
     }
 }
