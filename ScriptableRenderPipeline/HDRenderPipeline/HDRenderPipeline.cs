@@ -544,41 +544,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
 
         // TODO: Might be worth migrating these to CoreUtils, couldn't use HDCamera anymore
-        RenderTexture CreateRenderTexture(HDCamera hdCamera, int depthBufferBits, RenderTextureFormat format, 
-                                          RenderTextureReadWrite readWrite = RenderTextureReadWrite.Default,
-                                          int widthOverride = 0, int heightOverride = 0)
+        RenderTexture CreateRenderTexture(RenderTextureDescriptor baseDesc, int depthBufferBits, RenderTextureFormat format, 
+                                          RenderTextureReadWrite readWrite = RenderTextureReadWrite.Default)
         {
-            var localDesc = hdCamera.renderTextureDesc;
-            localDesc.depthBufferBits = depthBufferBits;
-            localDesc.colorFormat = format;
-            localDesc.sRGB = (readWrite != RenderTextureReadWrite.Linear);
+            baseDesc.depthBufferBits = depthBufferBits;
+            baseDesc.colorFormat = format;
+            baseDesc.sRGB = (readWrite != RenderTextureReadWrite.Linear);
             // TODO: Explicit MSAA support will come in later
-            if (widthOverride > 0)
-                localDesc.width = widthOverride;
-            if (heightOverride > 0)
-                localDesc.height = heightOverride;
 
-            return new RenderTexture(localDesc);
+            return new RenderTexture(baseDesc);
         }
 
-        void CreateTemporaryRT(CommandBuffer cmd, int nameID, HDCamera hdCamera,
+        void CreateCmdTemporaryRT(CommandBuffer cmd, int nameID, RenderTextureDescriptor baseDesc,
                                int depthBufferBits, FilterMode filter, RenderTextureFormat format, 
-                               RenderTextureReadWrite readWrite = RenderTextureReadWrite.Default, int msaaSamples = 1, bool enableRandomWrite = false,
-                               int widthOverride = 0, int heightOverride = 0)
+                               RenderTextureReadWrite readWrite = RenderTextureReadWrite.Default, int msaaSamples = 1, bool enableRandomWrite = false)
         {
-            var localDesc = hdCamera.renderTextureDesc;
-            localDesc.depthBufferBits = depthBufferBits;
-            localDesc.colorFormat = format;
-            localDesc.sRGB = (readWrite != RenderTextureReadWrite.Linear);
-            localDesc.msaaSamples = msaaSamples;
-            localDesc.enableRandomWrite = enableRandomWrite;
+            baseDesc.depthBufferBits = depthBufferBits;
+            baseDesc.colorFormat = format;
+            baseDesc.sRGB = (readWrite != RenderTextureReadWrite.Linear);
+            baseDesc.msaaSamples = msaaSamples;
+            baseDesc.enableRandomWrite = enableRandomWrite;
 
-            if (widthOverride > 0)
-                localDesc.width = widthOverride;
-            if (heightOverride > 0)
-                localDesc.height = heightOverride;
-
-            cmd.GetTemporaryRT(nameID, localDesc, filter);
+            cmd.GetTemporaryRT(nameID, baseDesc, filter);
         }
 
         void CreateDepthStencilBuffer(HDCamera hdCamera)
@@ -588,7 +575,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_CameraDepthStencilBuffer != null)
                 m_CameraDepthStencilBuffer.Release();
 
-            m_CameraDepthStencilBuffer = CreateRenderTexture(hdCamera, 24, RenderTextureFormat.Depth);
+            m_CameraDepthStencilBuffer = CreateRenderTexture(hdCamera.renderTextureDesc, 24, RenderTextureFormat.Depth);
             m_CameraDepthStencilBuffer.filterMode = FilterMode.Point;
             m_CameraDepthStencilBuffer.Create();
             m_CameraDepthStencilBufferRT = new RenderTargetIdentifier(m_CameraDepthStencilBuffer);
@@ -598,7 +585,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_CameraDepthBufferCopy != null)
                     m_CameraDepthBufferCopy.Release();
 
-                m_CameraDepthBufferCopy = CreateRenderTexture(hdCamera, 24, RenderTextureFormat.Depth);
+                m_CameraDepthBufferCopy = CreateRenderTexture(hdCamera.renderTextureDesc, 24, RenderTextureFormat.Depth);
                 m_CameraDepthBufferCopy.filterMode = FilterMode.Point;
                 m_CameraDepthBufferCopy.Create();
                 m_CameraDepthBufferCopyRT = new RenderTargetIdentifier(m_CameraDepthBufferCopy);
@@ -609,7 +596,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_CameraStencilBufferCopy != null)
                     m_CameraStencilBufferCopy.Release();
 
-                m_CameraStencilBufferCopy = CreateRenderTexture(hdCamera, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear); // DXGI_FORMAT_R8_UINT is not supported by Unity
+                m_CameraStencilBufferCopy = CreateRenderTexture(hdCamera.renderTextureDesc, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear); // DXGI_FORMAT_R8_UINT is not supported by Unity
                 m_CameraStencilBufferCopy.filterMode = FilterMode.Point;
                 m_CameraStencilBufferCopy.Create();
                 m_CameraStencilBufferCopyRT = new RenderTargetIdentifier(m_CameraStencilBufferCopy);
@@ -622,7 +609,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // We use 8x8 tiles in order to match the native GCN HTile as closely as possible.
                 var desc = hdCamera.renderTextureDesc;
-                m_HTile = CreateRenderTexture(hdCamera, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear, ((desc.width + 7) / 8), ((desc.height + 7) / 8)); // DXGI_FORMAT_R8_UINT is not supported by Unity
+                desc.width = (desc.width + 7) / 8;
+                desc.height = (desc.height + 7) / 8;
+                m_HTile = CreateRenderTexture(desc, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear); // DXGI_FORMAT_R8_UINT is not supported by Unity
                 m_HTile.filterMode = FilterMode.Point;
                 m_HTile.enableRandomWrite = true;
                 m_HTile.Create();
@@ -961,7 +950,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         using (new ProfilingSample(cmd, "Deferred directional shadows", GetSampler(CustomSamplerId.RenderDeferredDirectionalShadow)))
                         {
                             cmd.ReleaseTemporaryRT(m_DeferredShadowBuffer);
-                            CreateTemporaryRT(cmd, m_DeferredShadowBuffer, hdCamera, 0, FilterMode.Point, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear, 1, true);
+                            CreateCmdTemporaryRT(cmd, m_DeferredShadowBuffer, hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear, 1, true);
                             m_LightLoop.RenderDeferredDirectionalShadow(hdCamera, m_DeferredShadowBufferRT, GetDepthTexture(), cmd);
                             PushFullScreenDebugTexture(cmd, m_DeferredShadowBuffer, hdCamera, renderContext, FullScreenDebugMode.DeferredShadows);
                         }
@@ -1192,7 +1181,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd, "Distortion", GetSampler(CustomSamplerId.Distortion)))
             {
                 cmd.ReleaseTemporaryRT(m_DistortionBuffer);
-                CreateTemporaryRT(cmd, m_DistortionBuffer, hdCamera, 0, FilterMode.Point, Builtin.GetDistortionBufferFormat(), Builtin.GetDistortionBufferReadWrite());
+                CreateCmdTemporaryRT(cmd, m_DistortionBuffer, hdCamera.renderTextureDesc, 0, FilterMode.Point, Builtin.GetDistortionBufferFormat(), Builtin.GetDistortionBufferReadWrite());
                 cmd.SetRenderTarget(m_DistortionBufferRT, m_CameraDepthStencilBufferRT);
                 cmd.ClearRenderTarget(false, true, Color.clear);
 
@@ -1367,7 +1356,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (settings.IsEnabledAndSupported(null))
                 {
                     cmd.ReleaseTemporaryRT(HDShaderIDs._AmbientOcclusionTexture);
-                    CreateTemporaryRT(cmd, HDShaderIDs._AmbientOcclusionTexture, hdCamera, 0, FilterMode.Bilinear, RenderTextureFormat.R8, RenderTextureReadWrite.Linear, msaaSamples: 1, enableRandomWrite: true);
+                    CreateCmdTemporaryRT(cmd, HDShaderIDs._AmbientOcclusionTexture, hdCamera.renderTextureDesc, 0, FilterMode.Bilinear, RenderTextureFormat.R8, RenderTextureReadWrite.Linear, msaaSamples: 1, enableRandomWrite: true);
                     postProcessLayer.BakeMSVOMap(cmd, camera, HDShaderIDs._AmbientOcclusionTexture, GetDepthTexture(), true);
                     cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, new Vector4(settings.color.value.r, settings.color.value.g, settings.color.value.b, settings.directLightingStrength.value));
                     PushFullScreenDebugTexture(cmd, HDShaderIDs._AmbientOcclusionTexture, hdCamera, renderContext, FullScreenDebugMode.SSAO);
@@ -1629,7 +1618,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_CameraMotionVectorsMaterial.SetVector(HDShaderIDs._CameraPosDiff, hdcam.prevCameraPos - hdcam.cameraPos);
 
                 cmd.ReleaseTemporaryRT(m_VelocityBuffer);
-                CreateTemporaryRT(cmd, m_VelocityBuffer, hdcam, 0, FilterMode.Point, Builtin.GetVelocityBufferFormat(), Builtin.GetVelocityBufferReadWrite());
+                CreateCmdTemporaryRT(cmd, m_VelocityBuffer, hdcam.renderTextureDesc, 0, FilterMode.Point, Builtin.GetVelocityBufferFormat(), Builtin.GetVelocityBufferReadWrite());
                 CoreUtils.DrawFullScreen(cmd, m_CameraMotionVectorsMaterial, m_VelocityBufferRT, null, 0);
                 cmd.SetRenderTarget(m_VelocityBufferRT, m_CameraDepthStencilBufferRT);
 
@@ -1805,7 +1794,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_FullScreenDebugPushed = true; // We need this flag because otherwise if no fullscreen debug is pushed, when we render the result in RenderDebug the temporary RT will not exist.
                 cb.ReleaseTemporaryRT(m_DebugFullScreenTempRT);
-                CreateTemporaryRT(cb, m_DebugFullScreenTempRT, hdCamera, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+                CreateCmdTemporaryRT(cb, m_DebugFullScreenTempRT, hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
                 cb.Blit(textureID, m_DebugFullScreenTempRT);
             }
         }
@@ -1818,13 +1807,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_FullScreenDebugPushed = true; // We need this flag because otherwise if no fullscreen debug is pushed, when we render the result in RenderDebug the temporary RT will not exist.
                 cmd.ReleaseTemporaryRT(m_DebugFullScreenTempRT);
 
-                // TODO: Maybe make a size override for CreateTemporaryRT?
                 desc.width = desc.width >> mipIndex;
                 desc.height = desc.height >> mipIndex;
-                desc.depthBufferBits = 0;
-                desc.colorFormat = RenderTextureFormat.ARGBHalf;
-                desc.sRGB = false;
-                cmd.GetTemporaryRT(m_DebugFullScreenTempRT, desc, FilterMode.Point);
+                CreateCmdTemporaryRT(cmd, m_DebugFullScreenTempRT, desc, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
 
                 cmd.CopyTexture(textureID, 0, mipIndex, m_DebugFullScreenTempRT, 0, 0); // TODO: Support tex arrays
             }
@@ -1840,10 +1825,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 desc.width = desc.width >> mipIndex;
                 desc.height = desc.height >> mipIndex;
-                desc.depthBufferBits = 0;
-                desc.colorFormat = RenderTextureFormat.RFloat;
-                desc.sRGB = false;
-                cmd.GetTemporaryRT(m_DebugFullScreenTempRT, desc, FilterMode.Point);
+                CreateCmdTemporaryRT(cmd, m_DebugFullScreenTempRT, desc, 0, FilterMode.Point, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
 
                 cmd.CopyTexture(textureID, 0, mipIndex, m_DebugFullScreenTempRT, 0, 0); // TODO: Support tex arrays
             }
@@ -1912,14 +1894,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     cmd.ReleaseTemporaryRT(m_CameraColorBuffer);
                     cmd.ReleaseTemporaryRT(m_CameraSssDiffuseLightingBuffer);
-                    CreateTemporaryRT(cmd, m_CameraColorBuffer,              hdCamera, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf,       RenderTextureReadWrite.Linear, 1, true); // Enable UAV
-                    CreateTemporaryRT(cmd, m_CameraSssDiffuseLightingBuffer, hdCamera, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
-
+                    CreateCmdTemporaryRT(cmd, m_CameraColorBuffer,              hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf,       RenderTextureReadWrite.Linear, 1, true); // Enable UAV
+                    CreateCmdTemporaryRT(cmd, m_CameraSssDiffuseLightingBuffer, hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
 
                     if (NeedTemporarySubsurfaceBuffer())
                     {
                         cmd.ReleaseTemporaryRT(m_CameraFilteringBuffer);
-                        CreateTemporaryRT(cmd, m_CameraFilteringBuffer, hdCamera, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
+                        CreateCmdTemporaryRT(cmd, m_CameraFilteringBuffer, hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
                     }
 
                     // Color and depth pyramids
