@@ -9,14 +9,23 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXStaticMeshOutput : VFXContext
     {
-        [VFXSetting, SerializeField]
-        private Shader shader;
+        [VFXSetting]
+        private Shader shader; // not serialized here but in VFXDataMesh
 
-        protected VFXStaticMeshOutput() : base(VFXContextType.kOutput, VFXDataType.kNone, VFXDataType.kNone) {}
+        protected VFXStaticMeshOutput() : base(VFXContextType.kOutput, VFXDataType.kMesh, VFXDataType.kNone) {}
 
-        public override bool CanBeCompiled()
+        public override void OnEnable()
         {
-            return shader != null;
+            base.OnEnable();
+            shader = ((VFXDataMesh)GetData()).shader;
+        }
+
+        protected override void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
+        {
+            if (model == this && cause == VFXModel.InvalidationCause.kSettingChanged)
+                ((VFXDataMesh)GetData()).shader = shader;
+
+            base.OnInvalidate(model, cause);
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
@@ -71,5 +80,30 @@ namespace UnityEditor.VFX
         public override string name { get { return "Static Mesh Output"; } }
         public override string codeGeneratorTemplate { get { return null; } }
         public override VFXTaskType taskType { get { return VFXTaskType.kOutput; } }
+
+        public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
+        {
+            switch (target)
+            {
+                case VFXDeviceTarget.GPU:
+                {
+                    var mapper = new VFXExpressionMapper();
+                    for (int i = 2; i < GetNbInputSlots(); ++i)
+                        mapper.AddExpression(GetInputSlot(i).GetExpression(), GetInputSlot(i).property.name, -1);
+                    return mapper;
+                }
+
+                case VFXDeviceTarget.CPU:
+                {
+                    var mapper = new VFXExpressionMapper();
+                    mapper.AddExpression(GetInputSlot(0).GetExpression(), "mesh", -1);
+                    mapper.AddExpression(GetInputSlot(1).GetExpression(), "transform", -1);
+                    return mapper;
+                }
+
+                default:
+                    return null;
+            }
+        }
     }
 }
