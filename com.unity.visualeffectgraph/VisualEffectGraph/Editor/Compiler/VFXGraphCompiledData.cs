@@ -506,7 +506,13 @@ namespace UnityEditor.VFX
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Collect dependencies", 0 / nbSteps);
                 var models = new HashSet<Object>();
                 m_Graph.CollectDependencies(models);
-                var compilableContexts = models.OfType<VFXContext>().Where(c => c.CanBeCompiled());
+
+                var compilableContexts = models.OfType<VFXContext>().Where(c => {
+                        var canBeCompiled = c.CanBeCompiled();
+                        c.MarkAsCompiled(canBeCompiled);
+                        return canBeCompiled;
+                    });
+
                 var compilableData = models.OfType<VFXData>().Where(d => d.CanBeCompiled());
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Collect attributes", 1 / nbSteps);

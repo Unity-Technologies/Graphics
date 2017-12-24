@@ -113,6 +113,11 @@ namespace UnityEditor.VFX
             return m_Data != null && m_Data.CanBeCompiled();
         }
 
+        public void MarkAsCompiled(bool compiled)
+        {
+            hasBeenCompiled = compiled;
+        }
+
         public override void CollectDependencies(HashSet<Object> objs)
         {
             base.CollectDependencies(objs);
@@ -132,7 +137,7 @@ namespace UnityEditor.VFX
                 cause == InvalidationCause.kExpressionInvalidated ||
                 cause == InvalidationCause.kSettingChanged)
             {
-                if (CanBeCompiled())
+                if (CanBeCompiled() || hasBeenCompiled)
                     Invalidate(InvalidationCause.kExpressionGraphChanged);
             }
         }
@@ -155,14 +160,14 @@ namespace UnityEditor.VFX
         protected override void OnAdded()
         {
             base.OnAdded();
-            if (CanBeCompiled())
+            if (CanBeCompiled() || hasBeenCompiled)
                 Invalidate(InvalidationCause.kExpressionGraphChanged);
         }
 
         protected override void OnRemoved()
         {
             base.OnRemoved();
-            if (CanBeCompiled())
+            if (CanBeCompiled() || hasBeenCompiled)
                 Invalidate(InvalidationCause.kExpressionGraphChanged);
         }
 
@@ -275,12 +280,6 @@ namespace UnityEditor.VFX
 
         private static void InnerUnlink(VFXContext from, VFXContext to, int fromIndex = 0, int toIndex = 0, bool notify = true)
         {
-            // We need to force recompilation of contexts that where compilable before unlink and might not be after
-            if (from.CanBeCompiled())
-                from.Invalidate(InvalidationCause.kExpressionGraphChanged);
-            if (to.CanBeCompiled())
-                to.Invalidate(InvalidationCause.kExpressionGraphChanged);
-
             if (from.ownedType == to.ownedType)
                 to.SetDefaultData(false);
 
@@ -423,6 +422,9 @@ namespace UnityEditor.VFX
         private VFXContextType m_ContextType;
         private VFXDataType m_InputType;
         private VFXDataType m_OutputType;
+
+        [NonSerialized]
+        private bool hasBeenCompiled = false;
 
         [SerializeField]
         private VFXData m_Data;
