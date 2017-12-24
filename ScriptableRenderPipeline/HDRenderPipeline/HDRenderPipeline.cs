@@ -1654,15 +1654,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 cmd.SetGlobalVector(HDShaderIDs._GaussianPyramidColorMipSize, new Vector4(pyramidSideSize, pyramidSideSize, lodCount, 0));
 
-                cmd.Blit(m_CameraColorBufferRT, m_GaussianPyramidColorBuffer);
+                cmd.Blit(m_CameraColorBufferRT, m_GaussianPyramidColorBufferRT);
 
                 var last = m_GaussianPyramidColorBuffer;
 
-                colorPyramidDesc.depthBufferBits = 0;
-                colorPyramidDesc.colorFormat = RenderTextureFormat.ARGBHalf;
                 colorPyramidDesc.sRGB = false;
-                colorPyramidDesc.msaaSamples = 1;
                 colorPyramidDesc.enableRandomWrite = true;
+                colorPyramidDesc.useMipMap = false;
+
                 for (int i = 0; i < lodCount; i++)
                 {
                     colorPyramidDesc.width = colorPyramidDesc.width >> 1;
@@ -1715,15 +1714,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 cmd.ReleaseTemporaryRT(HDShaderIDs._DepthPyramidMips[0]);
 
-                depthPyramidDesc.depthBufferBits = 0;
-                depthPyramidDesc.colorFormat = RenderTextureFormat.RFloat;
                 depthPyramidDesc.sRGB = false;
-                depthPyramidDesc.msaaSamples = 1;
                 depthPyramidDesc.enableRandomWrite = true;
+                depthPyramidDesc.useMipMap = false;
 
                 cmd.GetTemporaryRT(HDShaderIDs._DepthPyramidMips[0], depthPyramidDesc, FilterMode.Bilinear);
                 m_GPUCopy.SampleCopyChannel_xyzw2x(cmd, GetDepthTexture(), HDShaderIDs._DepthPyramidMips[0], new Vector2(depthPyramidDesc.width, depthPyramidDesc.height));
-                cmd.CopyTexture(HDShaderIDs._DepthPyramidMips[0], 0, 0, m_DepthPyramidBuffer, 0, 0);
+                cmd.CopyTexture(HDShaderIDs._DepthPyramidMips[0], 0, 0, m_DepthPyramidBufferRT, 0, 0);
 
                 for (int i = 0; i < lodCount; i++)
                 {
