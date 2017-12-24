@@ -562,8 +562,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         void CreateTemporaryRT(CommandBuffer cmd, int nameID, HDCamera hdCamera,
-            int depthBufferBits, FilterMode filter, RenderTextureFormat format, 
-            RenderTextureReadWrite readWrite = RenderTextureReadWrite.Default, int msaaSamples = 1, bool enableRandomWrite = false)
+                               int depthBufferBits, FilterMode filter, RenderTextureFormat format, 
+                               RenderTextureReadWrite readWrite = RenderTextureReadWrite.Default, int msaaSamples = 1, bool enableRandomWrite = false,
+                               int widthOverride = 0, int heightOverride = 0)
         {
             var localDesc = hdCamera.renderTextureDesc;
             localDesc.depthBufferBits = depthBufferBits;
@@ -571,6 +572,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             localDesc.sRGB = (readWrite != RenderTextureReadWrite.Linear);
             localDesc.msaaSamples = msaaSamples;
             localDesc.enableRandomWrite = enableRandomWrite;
+
+            if (widthOverride > 0)
+                localDesc.width = widthOverride;
+            if (heightOverride > 0)
+                localDesc.height = heightOverride;
 
             cmd.GetTemporaryRT(nameID, localDesc, filter);
         }
