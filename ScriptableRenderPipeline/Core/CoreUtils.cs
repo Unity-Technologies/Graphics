@@ -18,8 +18,6 @@ namespace UnityEngine.Experimental.Rendering
         All = Depth | Color
     }
 
-    // TODO: Move GetTemporaryRT and CreateTexture to here
-
     public static class CoreUtils
     {
         // Data useful for various cubemap processes.
