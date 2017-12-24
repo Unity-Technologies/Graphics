@@ -23,19 +23,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // In case of deferred, we must be in sync with SubsurfaceScattering.hlsl and lit.hlsl files and setup the correct buffers
         // for SSS
-        public void InitGBuffers(int width, int height, GBufferManager gbufferManager, CommandBuffer cmd)
+        public void InitGBuffers(GBufferManager gbufferManager)
         {
             m_RTIDs[0] = gbufferManager.GetGBuffers()[0];
         }
 
         // In case of full forward we must allocate the render target for forward SSS (or reuse one already existing)
         // TODO: Provide a way to reuse a render target
-        public void InitGBuffers(int width, int height, CommandBuffer cmd)
+        public void InitGBuffers(RenderTextureDescriptor desc, CommandBuffer cmd)
         {
             m_RTIDs[0] = m_SSSBuffer0RT;
 
+            desc.depthBufferBits = 0;
+            desc.colorFormat = RenderTextureFormat.ARGB32;
+            desc.sRGB = false;
+
             cmd.ReleaseTemporaryRT(m_SSSBuffer0);
-            cmd.GetTemporaryRT(m_SSSBuffer0, width, height, 0, FilterMode.Point, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);            
+            cmd.GetTemporaryRT(m_SSSBuffer0, desc, FilterMode.Point);            
         }
 
         public RenderTargetIdentifier GetSSSBuffers(int index)
