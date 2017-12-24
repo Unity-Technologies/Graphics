@@ -12,13 +12,6 @@ using UnityEditor;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    //static void GetScreenSpaceTemporaryRT(CommandBuffer cmd, int nameID,
-    //                                        int depthBufferBits = 0, RenderTextureFormat colorFormat = RenderTextureFormat.Default, RenderTextureReadWrite readWrite = RenderTextureReadWrite.Default,
-    //                                        FilterMode filter = FilterMode.Bilinear, int widthOverride = 0, int heightOverride = 0)
-    //{
-
-    //}
-
     public class GBufferManager
     {
         public const int k_MaxGbuffer = 8;
@@ -550,8 +543,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         };
 #endif
 
-        // TODO: We need to respect QualitySettings.activeColorSpace 
-
+        // TODO: Might be worth migrating these to CoreUtils, couldn't use HDCamera anymore
         RenderTexture CreateRenderTexture(HDCamera hdCamera, int depthBufferBits, RenderTextureFormat format, 
                                           RenderTextureReadWrite readWrite = RenderTextureReadWrite.Default,
                                           int widthOverride = 0, int heightOverride = 0)
@@ -645,7 +637,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyManager.skySettings = skySettingsToUse;
             m_SkyManager.Resize(camera.nearClipPlane, camera.farClipPlane); // TODO: Also a bad naming, here we just want to realloc texture if skyparameters change (useful for lookdev)
 
-            bool resolutionChanged = camera.pixelWidth != m_CurrentWidth || camera.pixelHeight != m_CurrentHeight;
+            var desc = hdCamera.renderTextureDesc;
+            var texWidth = desc.width;
+            var texHeight = desc.height;
+
+            bool resolutionChanged = (texWidth != m_CurrentWidth) || (texHeight != m_CurrentHeight);
 
             if (resolutionChanged || m_CameraDepthStencilBuffer == null)
                 CreateDepthStencilBuffer(hdCamera);
@@ -655,12 +651,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_CurrentWidth > 0 && m_CurrentHeight > 0)
                     m_LightLoop.ReleaseResolutionDependentBuffers();
 
-                m_LightLoop.AllocResolutionDependentBuffers(camera.pixelWidth, camera.pixelHeight);
+                m_LightLoop.AllocResolutionDependentBuffers(texWidth, texHeight);
             }
 
             // update recorded window resolution
-            m_CurrentWidth = camera.pixelWidth;
-            m_CurrentHeight = camera.pixelHeight;
+            m_CurrentWidth = texWidth;
+            m_CurrentHeight = texHeight;
         }
 
         public void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd, SubsurfaceScatteringSettings sssParameters)
@@ -841,6 +837,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     if (!m_IBLFilterGGX.IsInitialized())
                         m_IBLFilterGGX.Initialize(cmd);
 
+                    // TODO: Float HDCamera setup higher in order to pass stereo into GetCullingParameters
                     ScriptableCullingParameters cullingParams;
                     if (!CullResults.GetCullingParameters(camera, out cullingParams))
                     {
@@ -933,7 +930,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         using (new ProfilingSample(cmd, "Render SSAO", GetSampler(CustomSamplerId.RenderSSAO)))
                         {
                             // TODO: Everything here (SSAO, Shadow, Build light list, deferred shadow, material and light classification can be parallelize with Async compute)
-                            RenderSSAO(cmd, camera, renderContext, postProcessLayer);
+                            RenderSSAO(cmd, hdCamera, renderContext, postProcessLayer);
                         }
 
                         bool enableAsyncCompute = m_LightLoop.IsAsyncEnabled();
@@ -958,9 +955,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         using (new ProfilingSample(cmd, "Deferred directional shadows", GetSampler(CustomSamplerId.RenderDeferredDirectionalShadow)))
                         {
                             cmd.ReleaseTemporaryRT(m_DeferredShadowBuffer);
-                            cmd.GetTemporaryRT(m_DeferredShadowBuffer, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear, 1 , true);
+                            CreateTemporaryRT(cmd, m_DeferredShadowBuffer, hdCamera, 0, FilterMode.Point, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear, 1, true);
                             m_LightLoop.RenderDeferredDirectionalShadow(hdCamera, m_DeferredShadowBufferRT, GetDepthTexture(), cmd);
-                            PushFullScreenDebugTexture(cmd, m_DeferredShadowBuffer, hdCamera.camera, renderContext, FullScreenDebugMode.DeferredShadows);
+                            PushFullScreenDebugTexture(cmd, m_DeferredShadowBuffer, hdCamera, renderContext, FullScreenDebugMode.DeferredShadows);
                         }
 
   	                    // TODO: Move this code inside LightLoop
@@ -1019,7 +1016,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Fill depth buffer to reduce artifact for transparent object
                         RenderTransparentDepthPostPass(m_CullResults, camera, renderContext, cmd, ForwardPass.Transparent);
 
-                        PushFullScreenDebugTexture(cmd, m_CameraColorBuffer, camera, renderContext, FullScreenDebugMode.NanTracker);
+                        PushFullScreenDebugTexture(cmd, m_CameraColorBuffer, hdCamera, renderContext, FullScreenDebugMode.NanTracker);
 
                         // Planar and real time cubemap doesn't need post process and render in FP16
                         if (camera.cameraType == CameraType.Reflection)
@@ -1038,7 +1035,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             // Rendering distortion here have off course lot of artifact.
                             // But resolving at each objects that write in distortion is not possible (need to sort transparent, render those that do not distort, then resolve, then etc...)
                             // Instead we chose to apply distortion at the end after we cumulate distortion vector and desired blurriness.
-                            AccumulateDistortion(m_CullResults, camera, renderContext, cmd);
+                            AccumulateDistortion(m_CullResults, hdCamera, renderContext, cmd);
                             RenderDistortion(cmd, m_Asset.renderPipelineResources);
 
                             RenderPostProcesses(hdCamera, cmd, postProcessLayer);
@@ -1181,23 +1178,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings, stateBlock.Value);
         }
 
-        void AccumulateDistortion(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        void AccumulateDistortion(CullResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             if (!m_CurrentDebugDisplaySettings.renderingDebugSettings.enableDistortion)
                 return;
 
             using (new ProfilingSample(cmd, "Distortion", GetSampler(CustomSamplerId.Distortion)))
             {
-                int w = camera.pixelWidth;
-                int h = camera.pixelHeight;
-
                 cmd.ReleaseTemporaryRT(m_DistortionBuffer);
-                cmd.GetTemporaryRT(m_DistortionBuffer, w, h, 0, FilterMode.Point, Builtin.GetDistortionBufferFormat(), Builtin.GetDistortionBufferReadWrite());
+                CreateTemporaryRT(cmd, m_DistortionBuffer, hdCamera, 0, FilterMode.Point, Builtin.GetDistortionBufferFormat(), Builtin.GetDistortionBufferReadWrite());
                 cmd.SetRenderTarget(m_DistortionBufferRT, m_CameraDepthStencilBufferRT);
                 cmd.ClearRenderTarget(false, true, Color.clear);
 
                 // Only transparent object can render distortion vectors
-                RenderTransparentRenderList(cullResults, camera, renderContext, cmd, HDShaderPassNames.s_DistortionVectorsName);
+                RenderTransparentRenderList(cullResults, hdCamera.camera, renderContext, cmd, HDShaderPassNames.s_DistortionVectorsName);
             }
         }
 
@@ -1205,6 +1199,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             using (new ProfilingSample(cmd, "ApplyDistortion", GetSampler(CustomSamplerId.ApplyDistortion)))
             {
+                // TODO: Should this be using HDCamera.screenSize?
                 var size = new Vector4(m_CurrentWidth, m_CurrentHeight, 1f / m_CurrentWidth, 1f / m_CurrentHeight);
                 uint x, y, z;
                 m_applyDistortionCS.GetKernelThreadGroupSizes(m_applyDistortionKernel, out x, out y, out z);
@@ -1354,8 +1349,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderSSAO(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext, PostProcessLayer postProcessLayer)
+        void RenderSSAO(CommandBuffer cmd, HDCamera hdCamera, ScriptableRenderContext renderContext, PostProcessLayer postProcessLayer)
         {
+            var camera = hdCamera.camera;
+
             // Apply SSAO from PostProcessLayer
             if (postProcessLayer != null && postProcessLayer.enabled)
             {
@@ -1364,14 +1361,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (settings.IsEnabledAndSupported(null))
                 {
                     cmd.ReleaseTemporaryRT(HDShaderIDs._AmbientOcclusionTexture);
-                    cmd.GetTemporaryRT(HDShaderIDs._AmbientOcclusionTexture, new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight, RenderTextureFormat.R8, 0)
-                    {
-                        sRGB = false,
-                        enableRandomWrite = true
-                    }, FilterMode.Bilinear);
+                    CreateTemporaryRT(cmd, HDShaderIDs._AmbientOcclusionTexture, hdCamera, 0, FilterMode.Bilinear, RenderTextureFormat.R8, RenderTextureReadWrite.Linear, msaaSamples: 1, enableRandomWrite: true);
                     postProcessLayer.BakeMSVOMap(cmd, camera, HDShaderIDs._AmbientOcclusionTexture, GetDepthTexture(), true);
                     cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, new Vector4(settings.color.value.r, settings.color.value.g, settings.color.value.b, settings.directLightingStrength.value));
-                    PushFullScreenDebugTexture(cmd, HDShaderIDs._AmbientOcclusionTexture, camera, renderContext, FullScreenDebugMode.SSAO);
+                    PushFullScreenDebugTexture(cmd, HDShaderIDs._AmbientOcclusionTexture, hdCamera, renderContext, FullScreenDebugMode.SSAO);
                     return;
                 }
             }
@@ -1627,19 +1620,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
                 hdcam.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
-                int w = (int)hdcam.screenSize.x;
-                int h = (int)hdcam.screenSize.y;
-
                 m_CameraMotionVectorsMaterial.SetVector(HDShaderIDs._CameraPosDiff, hdcam.prevCameraPos - hdcam.cameraPos);
 
                 cmd.ReleaseTemporaryRT(m_VelocityBuffer);
-                cmd.GetTemporaryRT(m_VelocityBuffer, w, h, 0, FilterMode.Point, Builtin.GetVelocityBufferFormat(), Builtin.GetVelocityBufferReadWrite());
+                CreateTemporaryRT(cmd, m_VelocityBuffer, hdcam, 0, FilterMode.Point, Builtin.GetVelocityBufferFormat(), Builtin.GetVelocityBufferReadWrite());
                 CoreUtils.DrawFullScreen(cmd, m_CameraMotionVectorsMaterial, m_VelocityBufferRT, null, 0);
                 cmd.SetRenderTarget(m_VelocityBufferRT, m_CameraDepthStencilBufferRT);
 
                 RenderOpaqueRenderList(cullResults, hdcam.camera, renderContext, cmd, HDShaderPassNames.s_MotionVectorsName, RendererConfiguration.PerObjectMotionVectors);
 
-                PushFullScreenDebugTexture(cmd, m_VelocityBuffer, hdcam.camera, renderContext, FullScreenDebugMode.MotionVectors);
+                PushFullScreenDebugTexture(cmd, m_VelocityBuffer, hdcam, renderContext, FullScreenDebugMode.MotionVectors);
             }
         }
 
@@ -1650,47 +1640,55 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, "Gaussian Pyramid Color", GetSampler(CustomSamplerId.GaussianPyramidColor)))
             {
-                int w = camera.pixelWidth;
-                int h = camera.pixelHeight;
-                int size = CalculatePyramidSize(w, h);
+                var colorPyramidDesc = m_GaussianPyramidColorBufferDesc;
+                var pyramidSideSize = colorPyramidDesc.height;
 
                 // The gaussian pyramid compute works in blocks of 8x8 so make sure the last lod has a
                 // minimum size of 8x8
-                int lodCount = Mathf.FloorToInt(Mathf.Log(size, 2f) - 3f);
+                int lodCount = Mathf.FloorToInt(Mathf.Log(pyramidSideSize, 2f) - 3f);
                 if (lodCount > HDShaderIDs._GaussianPyramidColorMips.Length)
                 {
                     Debug.LogWarningFormat("Cannot compute all mipmaps of the color pyramid, max texture size supported: {0}", (2 << HDShaderIDs._GaussianPyramidColorMips.Length).ToString());
                     lodCount = HDShaderIDs._GaussianPyramidColorMips.Length;
                 }
 
-                cmd.SetGlobalVector(HDShaderIDs._GaussianPyramidColorMipSize, new Vector4(size, size, lodCount, 0));
+                cmd.SetGlobalVector(HDShaderIDs._GaussianPyramidColorMipSize, new Vector4(pyramidSideSize, pyramidSideSize, lodCount, 0));
 
                 cmd.Blit(m_CameraColorBufferRT, m_GaussianPyramidColorBuffer);
 
                 var last = m_GaussianPyramidColorBuffer;
 
-                var mipSize = size;
+                colorPyramidDesc.depthBufferBits = 0;
+                colorPyramidDesc.colorFormat = RenderTextureFormat.ARGBHalf;
+                colorPyramidDesc.sRGB = false;
+                colorPyramidDesc.msaaSamples = 1;
+                colorPyramidDesc.enableRandomWrite = true;
                 for (int i = 0; i < lodCount; i++)
                 {
-                    mipSize >>= 1;
+                    colorPyramidDesc.width = colorPyramidDesc.width >> 1;
+                    colorPyramidDesc.height = colorPyramidDesc.height >> 1;
+
+                    // TODO: Add proper stereo support to the compute job
 
                     cmd.ReleaseTemporaryRT(HDShaderIDs._GaussianPyramidColorMips[i + 1]);
-                    cmd.GetTemporaryRT(HDShaderIDs._GaussianPyramidColorMips[i + 1], mipSize, mipSize, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear, 1, true);
+                    cmd.GetTemporaryRT(HDShaderIDs._GaussianPyramidColorMips[i + 1], colorPyramidDesc, FilterMode.Bilinear);
                     cmd.SetComputeTextureParam(m_GaussianPyramidCS, m_GaussianPyramidKernel, "_Source", last);
                     cmd.SetComputeTextureParam(m_GaussianPyramidCS, m_GaussianPyramidKernel, "_Result", HDShaderIDs._GaussianPyramidColorMips[i + 1]);
-                    cmd.SetComputeVectorParam(m_GaussianPyramidCS, "_Size", new Vector4(mipSize, mipSize, 1f / mipSize, 1f / mipSize));
-                    cmd.DispatchCompute(m_GaussianPyramidCS, m_GaussianPyramidKernel, mipSize / 8, mipSize / 8, 1);
+                    cmd.SetComputeVectorParam(m_GaussianPyramidCS, "_Size", new Vector4(colorPyramidDesc.height, colorPyramidDesc.height, 1f / colorPyramidDesc.height, 1f / colorPyramidDesc.height));
+                    cmd.DispatchCompute(m_GaussianPyramidCS, m_GaussianPyramidKernel, colorPyramidDesc.width / 8, colorPyramidDesc.height / 8, 1);
                     cmd.CopyTexture(HDShaderIDs._GaussianPyramidColorMips[i + 1], 0, 0, m_GaussianPyramidColorBufferRT, 0, i + 1);
 
                     last = HDShaderIDs._GaussianPyramidColorMips[i + 1];
                 }
 
-                PushFullScreenDebugTextureMip(cmd, m_GaussianPyramidColorBufferRT, lodCount, size, size, debugMode);
+                PushFullScreenDebugTextureMip(cmd, m_GaussianPyramidColorBufferRT, lodCount, m_GaussianPyramidColorBufferDesc, debugMode);
 
                 cmd.SetGlobalTexture(HDShaderIDs._GaussianPyramidColorTexture, m_GaussianPyramidColorBuffer);
 
                 for (int i = 0; i < lodCount; i++)
                     cmd.ReleaseTemporaryRT(HDShaderIDs._GaussianPyramidColorMips[i + 1]);
+
+                // TODO: Why don't we use _GaussianPyramidColorMips[0]?
             }
         }
 
@@ -1701,42 +1699,52 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, "Pyramid Depth", GetSampler(CustomSamplerId.PyramidDepth)))
             {
-                int w = camera.pixelWidth;
-                int h = camera.pixelHeight;
-                int size = CalculatePyramidSize(w, h);
+                var depthPyramidDesc = m_DepthPyramidBufferDesc;
+                var pyramidSideSize = depthPyramidDesc.height;
 
                 // The gaussian pyramid compute works in blocks of 8x8 so make sure the last lod has a
                 // minimum size of 8x8
-                int lodCount = Mathf.FloorToInt(Mathf.Log(size, 2f) - 3f);
+                int lodCount = Mathf.FloorToInt(Mathf.Log(pyramidSideSize, 2f) - 3f);
                 if (lodCount > HDShaderIDs._DepthPyramidMips.Length)
                 {
                     Debug.LogWarningFormat("Cannot compute all mipmaps of the depth pyramid, max texture size supported: {0}", (2 << HDShaderIDs._DepthPyramidMips.Length).ToString());
                     lodCount = HDShaderIDs._DepthPyramidMips.Length;
                 }
 
-                cmd.SetGlobalVector(HDShaderIDs._DepthPyramidMipSize, new Vector4(size, size, lodCount, 0));
+                cmd.SetGlobalVector(HDShaderIDs._DepthPyramidMipSize, new Vector4(pyramidSideSize, pyramidSideSize, lodCount, 0));
 
                 cmd.ReleaseTemporaryRT(HDShaderIDs._DepthPyramidMips[0]);
-                cmd.GetTemporaryRT(HDShaderIDs._DepthPyramidMips[0], size, size, 0, FilterMode.Bilinear, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear, 1, true);
-                m_GPUCopy.SampleCopyChannel_xyzw2x(cmd, GetDepthTexture(), HDShaderIDs._DepthPyramidMips[0], new Vector2(size, size));
+
+                depthPyramidDesc.depthBufferBits = 0;
+                depthPyramidDesc.colorFormat = RenderTextureFormat.RFloat;
+                depthPyramidDesc.sRGB = false;
+                depthPyramidDesc.msaaSamples = 1;
+                depthPyramidDesc.enableRandomWrite = true;
+
+                cmd.GetTemporaryRT(HDShaderIDs._DepthPyramidMips[0], depthPyramidDesc, FilterMode.Bilinear);
+                m_GPUCopy.SampleCopyChannel_xyzw2x(cmd, GetDepthTexture(), HDShaderIDs._DepthPyramidMips[0], new Vector2(depthPyramidDesc.width, depthPyramidDesc.height));
                 cmd.CopyTexture(HDShaderIDs._DepthPyramidMips[0], 0, 0, m_DepthPyramidBuffer, 0, 0);
 
-                var mipSize = size;
                 for (int i = 0; i < lodCount; i++)
                 {
-                    int srcMipSize = mipSize;
-                    mipSize >>= 1;
+                    var srcMipWidth = depthPyramidDesc.width;
+                    var srcMipHeight = depthPyramidDesc.height;
+                    depthPyramidDesc.width = srcMipWidth >> 1;
+                    depthPyramidDesc.height = srcMipHeight >> 1;
 
                     cmd.ReleaseTemporaryRT(HDShaderIDs._DepthPyramidMips[i + 1]);
-                    cmd.GetTemporaryRT(HDShaderIDs._DepthPyramidMips[i + 1], mipSize, mipSize, 0, FilterMode.Bilinear, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear, 1, true);
+                    cmd.GetTemporaryRT(HDShaderIDs._DepthPyramidMips[i + 1], depthPyramidDesc, FilterMode.Bilinear);
+
                     cmd.SetComputeTextureParam(m_DepthPyramidCS, m_DepthPyramidKernel, "_Source", HDShaderIDs._DepthPyramidMips[i]);
                     cmd.SetComputeTextureParam(m_DepthPyramidCS, m_DepthPyramidKernel, "_Result", HDShaderIDs._DepthPyramidMips[i + 1]);
-                    cmd.SetComputeVectorParam(m_DepthPyramidCS, "_SrcSize", new Vector4(srcMipSize, srcMipSize, 1f / srcMipSize, 1f / srcMipSize));
-                    cmd.DispatchCompute(m_DepthPyramidCS, m_DepthPyramidKernel, mipSize / 8, mipSize / 8, 1);
+                    cmd.SetComputeVectorParam(m_DepthPyramidCS, "_SrcSize", new Vector4(srcMipWidth, srcMipHeight, 1f / srcMipWidth, 1f / srcMipHeight));
+
+                    cmd.DispatchCompute(m_DepthPyramidCS, m_DepthPyramidKernel, depthPyramidDesc.width / 8, depthPyramidDesc.height / 8, 1);
+
                     cmd.CopyTexture(HDShaderIDs._DepthPyramidMips[i + 1], 0, 0, m_DepthPyramidBufferRT, 0, i + 1);
                 }
 
-                PushFullScreenDebugDepthMip(cmd, m_DepthPyramidBufferRT, lodCount, size, size, debugMode);
+                PushFullScreenDebugDepthMip(cmd, m_DepthPyramidBufferRT, lodCount, m_DepthPyramidBufferDesc, debugMode);
 
                 cmd.SetGlobalTexture(HDShaderIDs._DepthPyramidTexture, m_DepthPyramidBuffer);
 
@@ -1788,44 +1796,59 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalVector(HDShaderIDs._DebugLightingSmoothness, debugSmoothness);
         }
 
-        public void PushFullScreenDebugTexture(CommandBuffer cb, RenderTargetIdentifier textureID, Camera camera, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
+        public void PushFullScreenDebugTexture(CommandBuffer cb, RenderTargetIdentifier textureID, HDCamera hdCamera, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
         {
             if (debugMode == m_CurrentDebugDisplaySettings.fullScreenDebugMode)
             {
                 m_FullScreenDebugPushed = true; // We need this flag because otherwise if no fullscreen debug is pushed, when we render the result in RenderDebug the temporary RT will not exist.
                 cb.ReleaseTemporaryRT(m_DebugFullScreenTempRT);
-                cb.GetTemporaryRT(m_DebugFullScreenTempRT, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+                CreateTemporaryRT(cb, m_DebugFullScreenTempRT, hdCamera, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
                 cb.Blit(textureID, m_DebugFullScreenTempRT);
             }
         }
 
-        void PushFullScreenDebugTextureMip(CommandBuffer cmd, RenderTargetIdentifier textureID, int lodCount, int width, int height, FullScreenDebugMode debugMode)
+        void PushFullScreenDebugTextureMip(CommandBuffer cmd, RenderTargetIdentifier textureID, int lodCount, RenderTextureDescriptor desc, FullScreenDebugMode debugMode)
         {
             var mipIndex = Mathf.FloorToInt(m_CurrentDebugDisplaySettings.fullscreenDebugMip * (lodCount));
             if (debugMode == m_CurrentDebugDisplaySettings.fullScreenDebugMode)
             {
                 m_FullScreenDebugPushed = true; // We need this flag because otherwise if no fullscreen debug is pushed, when we render the result in RenderDebug the temporary RT will not exist.
                 cmd.ReleaseTemporaryRT(m_DebugFullScreenTempRT);
-                cmd.GetTemporaryRT(m_DebugFullScreenTempRT, width >> mipIndex, height >> mipIndex, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-                cmd.CopyTexture(textureID, 0, mipIndex, m_DebugFullScreenTempRT, 0, 0);
+
+                // TODO: Maybe make a size override for CreateTemporaryRT?
+                desc.width = desc.width >> mipIndex;
+                desc.height = desc.height >> mipIndex;
+                desc.depthBufferBits = 0;
+                desc.colorFormat = RenderTextureFormat.ARGBHalf;
+                desc.sRGB = false;
+                cmd.GetTemporaryRT(m_DebugFullScreenTempRT, desc, FilterMode.Point);
+
+                cmd.CopyTexture(textureID, 0, mipIndex, m_DebugFullScreenTempRT, 0, 0); // TODO: Support tex arrays
             }
         }
 
-        void PushFullScreenDebugDepthMip(CommandBuffer cmd, RenderTargetIdentifier textureID, int lodCount, int width, int height, FullScreenDebugMode debugMode)
+        void PushFullScreenDebugDepthMip(CommandBuffer cmd, RenderTargetIdentifier textureID, int lodCount, RenderTextureDescriptor desc, FullScreenDebugMode debugMode)
         {
             var mipIndex = Mathf.FloorToInt(m_CurrentDebugDisplaySettings.fullscreenDebugMip * (lodCount));
             if (debugMode == m_CurrentDebugDisplaySettings.fullScreenDebugMode)
             {
                 m_FullScreenDebugPushed = true; // We need this flag because otherwise if no fullscreen debug is pushed, when we render the result in RenderDebug the temporary RT will not exist.
                 cmd.ReleaseTemporaryRT(m_DebugFullScreenTempRT);
-                cmd.GetTemporaryRT(m_DebugFullScreenTempRT, width >> mipIndex, height >> mipIndex, 0, FilterMode.Point, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
-                cmd.CopyTexture(textureID, 0, mipIndex, m_DebugFullScreenTempRT, 0, 0);
+
+                desc.width = desc.width >> mipIndex;
+                desc.height = desc.height >> mipIndex;
+                desc.depthBufferBits = 0;
+                desc.colorFormat = RenderTextureFormat.RFloat;
+                desc.sRGB = false;
+                cmd.GetTemporaryRT(m_DebugFullScreenTempRT, desc, FilterMode.Point);
+
+                cmd.CopyTexture(textureID, 0, mipIndex, m_DebugFullScreenTempRT, 0, 0); // TODO: Support tex arrays
             }
         }
 
-        public void PushFullScreenDebugTexture(CommandBuffer cb, int textureID, Camera camera, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
+        public void PushFullScreenDebugTexture(CommandBuffer cb, int textureID, HDCamera hdCamera, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
         {
-            PushFullScreenDebugTexture(cb, new RenderTargetIdentifier(textureID), camera, renderContext, debugMode);
+            PushFullScreenDebugTexture(cb, new RenderTargetIdentifier(textureID), hdCamera, renderContext, debugMode);
         }
 
         void RenderDebug(HDCamera camera, CommandBuffer cmd)
@@ -1870,7 +1893,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void InitAndClearBuffer(HDCamera camera, bool enableBakeShadowMask, CommandBuffer cmd)
+        void InitAndClearBuffer(HDCamera hdCamera, bool enableBakeShadowMask, CommandBuffer cmd)
         {
             using (new ProfilingSample(cmd, "InitAndClearBuffer", GetSampler(CustomSamplerId.InitAndClearBuffer)))
             {
@@ -1883,43 +1906,42 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Also we manage ourself the HDR format, here allocating fp16 directly.
                     // With scriptable render loop we can allocate temporary RT in a command buffer, they will not be release with ExecuteCommandBuffer
                     // These temporary surface are release automatically at the end of the scriptable render pipeline if not release explicitly
-                    int w = camera.camera.pixelWidth;
-                    int h = camera.camera.pixelHeight;
 
                     cmd.ReleaseTemporaryRT(m_CameraColorBuffer);
                     cmd.ReleaseTemporaryRT(m_CameraSssDiffuseLightingBuffer);
-                    cmd.GetTemporaryRT(m_CameraColorBuffer,              w, h, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf,       RenderTextureReadWrite.Linear, 1, true); // Enable UAV
-                    cmd.GetTemporaryRT(m_CameraSssDiffuseLightingBuffer, w, h, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
+                    CreateTemporaryRT(cmd, m_CameraColorBuffer,              hdCamera, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf,       RenderTextureReadWrite.Linear, 1, true); // Enable UAV
+                    CreateTemporaryRT(cmd, m_CameraSssDiffuseLightingBuffer, hdCamera, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
+
+
                     if (NeedTemporarySubsurfaceBuffer())
                     {
-                        cmd.GetTemporaryRT(m_CameraFilteringBuffer,      w, h, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
+                        cmd.ReleaseTemporaryRT(m_CameraFilteringBuffer);
+                        CreateTemporaryRT(cmd, m_CameraFilteringBuffer, hdCamera, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
                     }
 
                     // Color and depth pyramids
-                    int s = CalculatePyramidSize(w, h);
-                    m_GaussianPyramidColorBufferDesc.width = s;
-                    m_GaussianPyramidColorBufferDesc.height = s;
+                    m_GaussianPyramidColorBufferDesc = BuildPyramidDescriptor(hdCamera, PyramidType.Color);
                     cmd.ReleaseTemporaryRT(m_GaussianPyramidColorBuffer);
                     cmd.GetTemporaryRT(m_GaussianPyramidColorBuffer, m_GaussianPyramidColorBufferDesc, FilterMode.Trilinear);
 
-                    m_DepthPyramidBufferDesc.width = s;
-                    m_DepthPyramidBufferDesc.height = s;
+                    m_DepthPyramidBufferDesc = BuildPyramidDescriptor(hdCamera, PyramidType.Depth);
+
                     cmd.ReleaseTemporaryRT(m_DepthPyramidBuffer);
                     cmd.GetTemporaryRT(m_DepthPyramidBuffer, m_DepthPyramidBufferDesc, FilterMode.Trilinear);
                     // End
 
-                    if (!camera.useForwardOnly)
+                    if (!hdCamera.useForwardOnly)
                     {
-                        m_GbufferManager.InitGBuffers(camera.renderTextureDesc, m_DeferredMaterial, enableBakeShadowMask, cmd);
-                        m_SSSBufferManager.InitGBuffers(w, h, m_GbufferManager, cmd);
+                        m_GbufferManager.InitGBuffers(hdCamera.renderTextureDesc, m_DeferredMaterial, enableBakeShadowMask, cmd);
+                        m_SSSBufferManager.InitGBuffers(m_GbufferManager);
                     }
                     else
                     {
                         // We need to allocate target for SSS
-                        m_SSSBufferManager.InitGBuffers(w, h, cmd);
+                        m_SSSBufferManager.InitGBuffers(hdCamera.renderTextureDesc, cmd);
                     }
 
-                    m_DbufferManager.InitDBuffers(camera.renderTextureDesc, cmd);
+                    m_DbufferManager.InitDBuffers(hdCamera.renderTextureDesc, cmd);
 
                     CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.Depth);
                 }
@@ -1946,12 +1968,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Clear the HDR target
                 using (new ProfilingSample(cmd, "Clear HDR target", GetSampler(CustomSamplerId.ClearHDRTarget)))
                 {
-                    Color clearColor = camera.camera.backgroundColor.linear; // Need it in linear because we clear a linear fp16 texture.
+                    Color clearColor = hdCamera.camera.backgroundColor.linear; // Need it in linear because we clear a linear fp16 texture.
                     CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.Color, clearColor);
                 }
 
                 // Clear GBuffers
-                if (!camera.useForwardOnly)
+                if (!hdCamera.useForwardOnly)
                 {
                     using (new ProfilingSample(cmd, "Clear GBuffer", GetSampler(CustomSamplerId.ClearGBuffer)))
                     {
@@ -1965,6 +1987,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static int CalculatePyramidSize(int w, int h)
         {
             return Mathf.ClosestPowerOfTwo(Mathf.Min(w, h));
+        }
+
+        public enum PyramidType
+        {
+            Color = 0,
+            Depth = 1
+        }
+
+        static RenderTextureDescriptor BuildPyramidDescriptor(HDCamera hdCamera, PyramidType pyramidType )
+        {
+            var desc = hdCamera.renderTextureDesc;
+            desc.colorFormat = (pyramidType == PyramidType.Color) ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.RFloat;
+            desc.depthBufferBits = 0;
+            desc.useMipMap = true;
+            desc.autoGenerateMips = false;
+
+            var pyramidSize = CalculatePyramidSize((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y);
+            var widthModifier = 1;
+            if (hdCamera.stereoEnabled && (desc.dimension != TextureDimension.Tex2DArray))
+                widthModifier = 2; // double-wide
+
+            desc.width = pyramidSize * widthModifier;
+            desc.height = pyramidSize;
+
+            return desc;
         }
     }
 }
