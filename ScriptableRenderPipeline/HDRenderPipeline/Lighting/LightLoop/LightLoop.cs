@@ -682,6 +682,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return 8 * (1 << k_Log2NumClusters);       // total footprint for all layers of the tile (measured in light index entries)
         }
 
+        // TODO: Add proper stereo support
         public void AllocResolutionDependentBuffers(int width, int height)
         {
             var nrTilesX = (width + LightDefinitions.s_TileSizeFptl - 1) / LightDefinitions.s_TileSizeFptl;
@@ -1960,6 +1961,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int numTilesX = (hdCamera.camera.pixelWidth + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
                 int numTilesY = (hdCamera.camera.pixelHeight + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
 
+                // TODO: Update for stereo
                 cmd.DispatchCompute(deferredDirectionalShadowComputeShader, s_deferredDirectionalShadowKernel, numTilesX, numTilesY, 1);
             }
         }
