@@ -102,6 +102,30 @@ namespace UnityEngine.Experimental.Rendering
                 cmd.ClearRenderTarget((clearFlag & ClearFlag.Depth) != 0, (clearFlag & ClearFlag.Color) != 0, clearColor);
         }
 
+        public static RenderTexture CreateRenderTexture(RenderTextureDescriptor baseDesc, int depthBufferBits, RenderTextureFormat format,
+                                                        RenderTextureReadWrite readWrite = RenderTextureReadWrite.Default)
+        {
+            baseDesc.depthBufferBits = depthBufferBits;
+            baseDesc.colorFormat = format;
+            baseDesc.sRGB = (readWrite != RenderTextureReadWrite.Linear);
+            // TODO: Explicit MSAA support will come in later
+
+            return new RenderTexture(baseDesc);
+        }
+
+        public static void CreateCmdTemporaryRT(CommandBuffer cmd, int nameID, RenderTextureDescriptor baseDesc,
+                                                int depthBufferBits, FilterMode filter, RenderTextureFormat format,
+                                                RenderTextureReadWrite readWrite = RenderTextureReadWrite.Default, int msaaSamples = 1, bool enableRandomWrite = false)
+        {
+            baseDesc.depthBufferBits = depthBufferBits;
+            baseDesc.colorFormat = format;
+            baseDesc.sRGB = (readWrite != RenderTextureReadWrite.Linear);
+            baseDesc.msaaSamples = msaaSamples;
+            baseDesc.enableRandomWrite = enableRandomWrite;
+
+            cmd.GetTemporaryRT(nameID, baseDesc, filter);
+        }
+
         public static void ClearCubemap(CommandBuffer cmd, RenderTargetIdentifier buffer, Color clearColor)
         {
             for(int i = 0; i < 6; ++i)
