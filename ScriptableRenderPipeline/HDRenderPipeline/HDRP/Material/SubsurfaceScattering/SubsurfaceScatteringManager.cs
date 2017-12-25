@@ -49,19 +49,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // In case of deferred, we must be in sync with SubsurfaceScattering.hlsl and lit.hlsl files and setup the correct buffers
         // for SSS
-        public void InitSSSBuffersFromGBuffer(int width, int height, GBufferManager gbufferManager, CommandBuffer cmd)
+        public void InitSSSBuffersFromGBuffer(GBufferManager gbufferManager)
         {
             m_RTIDs[0] = gbufferManager.GetGBuffers()[0];
         }
 
         // In case of full forward we must allocate the render target for forward SSS (or reuse one already existing)
         // TODO: Provide a way to reuse a render target
-        public void InitSSSBuffers(int width, int height, CommandBuffer cmd)
+        public void InitSSSBuffers(RenderTextureDescriptor desc, CommandBuffer cmd)
         {
             m_RTIDs[0] = m_SSSBuffer0RT;
 
+            desc.depthBufferBits = 0;
+            desc.colorFormat = RenderTextureFormat.ARGB32;
+            desc.sRGB = false;
+
             cmd.ReleaseTemporaryRT(m_SSSBuffer0);
-            cmd.GetTemporaryRT(m_SSSBuffer0, width, height, 0, FilterMode.Point, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+            cmd.GetTemporaryRT(m_SSSBuffer0, desc, FilterMode.Point);
         }
 
         public RenderTargetIdentifier GetSSSBuffers(int index)
@@ -98,11 +102,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             CoreUtils.Destroy(m_CopyStencilForSplitLighting);
         }
 
-        public void Resize(Camera camera)
+        public void Resize(HDCamera hdCamera)
         {
             // We must use a RenderTexture and not GetTemporaryRT() as currently Unity only aloow to bind a RenderTexture for a UAV in a pixel shader
             // We use 8x8 tiles in order to match the native GCN HTile as closely as possible.
-            m_HTile = new RenderTexture((camera.pixelWidth + 7) / 8, (camera.pixelHeight + 7) / 8, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear); // DXGI_FORMAT_R8_UINT is not supported by Unity
+            var desc = hdCamera.renderTextureDesc;
+            desc.width = (desc.width + 7) / 8;
+            desc.height = (desc.height + 7) / 8;
+            m_HTile = CoreUtils.CreateRenderTexture(desc, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear); // DXGI_FORMAT_R8_UINT is not supported by Unity
             m_HTile.filterMode = FilterMode.Point;
             m_HTile.enableRandomWrite = true;
             m_HTile.Create();
@@ -159,8 +166,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     // Caution: must be same format as m_CameraSssDiffuseLightingBuffer
                     cmd.ReleaseTemporaryRT(m_CameraFilteringBuffer);
-                    cmd.GetTemporaryRT(m_CameraFilteringBuffer, w, h, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
-                                                                                                                                                                        // Clear the SSS filtering target
+                    CoreUtils.CreateCmdTemporaryRT(cmd, m_CameraFilteringBuffer, hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
+
+                    // Clear the SSS filtering target
                     using (new ProfilingSample(cmd, "Clear SSS filtering target", HDRenderPipeline.GetSampler(CustomSamplerId.ClearSSSFilteringTarget)))
                     {
                         CoreUtils.SetRenderTarget(cmd, m_CameraFilteringBufferRT, ClearFlag.Color, CoreUtils.clearColorAllBlack);
