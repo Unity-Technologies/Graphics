@@ -1,0 +1,41 @@
+﻿#include "CoreRP/ShaderLibrary/Common.hlsl"
+
+Texture2D<float> _Source;
+RWTexture2D<float> _Result;
+
+SamplerState sampler_PointClamp;    //TODO: could we use min-sampler instead of using ALU?
+
+CBUFFER_START(cb)
+float4 _SrcSize;
+CBUFFER_END
+
+#pragma kernel KMain
+[numthreads(8, 8, 1)]
+void KMain(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, uint2 dispatchThreadId : SV_DispatchThreadID)
+{
+    // Upper-left pixel coordinate of quad that this thread will read
+    int2 threadUL = dispatchThreadId;
+
+    // Downsample the block
+    float2 offset = float2(threadUL) * 2.0f + 1.0f;
+#if defined(PLATFORM_SUPPORT_GATHER)
+    float4 depths = GATHER_RED_TEXTURE2D(_Source, sampler_PointClamp, offset * _SrcSize.zw, 0.0);
+#else
+    // Downsample the block
+    float p00 = SAMPLE_TEXTURE2D_LOD(_Source, sampler_PointClamp, (offset) * _SrcSize.zw, 0.0).x;
+    float p10 = SAMPLE_TEXTURE2D_LOD(_Source, sampler_PointClamp, (offset + float2(1.0, 0.0)) * _SrcSize.zw, 0.0).x;
+    float p01 = SAMPLE_TEXTURE2D_LOD(_Source, sampler_PointClamp, (offset + float2(0.0, 1.0)) * _SrcSize.zw, 0.0).x;
+    float p11 = SAMPLE_TEXTURE2D_LOD(_Source, sampler_PointClamp, (offset + float2(1.0, 1.0)) * _SrcSize.zw, 0.0).x;
+    float4 depths = float4(p00, p10, p01, p11);
+#endif
+
+    // Select the nearest sample
+#if UNITY_REVERSED_Z
+    float minDepth = max(min(depths.x, depths.y), max(depths.z, depths.w));
+#else
+    float minDepth = min(min(depths.x, depths.y), min(depths.z, depths.w));
+#endif
+
+    // Write to the final target
+    _Result[dispatchThreadId] = minDepth;
+}

@@ -1,4 +1,4 @@
-﻿using UnityEngine.Rendering;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -16,12 +16,12 @@ namespace UnityEngine.Experimental.Rendering
 		public void Setup()
 		{
 			m_OriginalAsset = GraphicsSettings.renderPipelineAsset;
-			GraphicsSettings.renderPipelineAsset = renderPipeline;
+            if (m_OriginalAsset != renderPipeline) GraphicsSettings.renderPipelineAsset = renderPipeline;
 		}
 
 		public void TearDown()
 		{
-			GraphicsSettings.renderPipelineAsset = m_OriginalAsset;
+			if ( GraphicsSettings.renderPipelineAsset != m_OriginalAsset ) GraphicsSettings.renderPipelineAsset = m_OriginalAsset;
 		}
 	}
 }
