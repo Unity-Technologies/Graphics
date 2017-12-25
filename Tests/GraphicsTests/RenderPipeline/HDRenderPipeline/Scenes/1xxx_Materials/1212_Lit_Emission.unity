@@ -23,7 +23,7 @@ RenderSettings:
   m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
-  m_AmbientIntensity: 1
+  m_AmbientIntensity: 0
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
   m_SkyboxMaterial: {fileID: 0}
@@ -35,10 +35,10 @@ RenderSettings:
   m_DefaultReflectionMode: 0
   m_DefaultReflectionResolution: 128
   m_ReflectionBounces: 1
-  m_ReflectionIntensity: 1
+  m_ReflectionIntensity: 0
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.036605254, g: 0.038463607, b: 0.04252183, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -149,7 +149,7 @@ Transform:
   - {fileID: 347751326}
   - {fileID: 906555100}
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &239094703
 GameObject:
@@ -781,7 +781,7 @@ Transform:
   - {fileID: 430324215}
   - {fileID: 1358945702}
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &560439887
 GameObject:
@@ -1039,11 +1039,13 @@ Material:
     - _AlbedoAffectEmissive: 1
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -1109,6 +1111,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 4
@@ -1203,6 +1207,24 @@ Prefab:
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 2}
   m_IsPrefabParent: 0
+--- !u!114 &771361998
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d7593b3a9277ac4696b20006c21dde2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  active: 1
+  skyType:
+    m_OverrideState: 1
+    m_Value: 1
+  fogType:
+    m_OverrideState: 1
+    m_Value: 0
 --- !u!1 &906555099
 GameObject:
   m_ObjectHideFlags: 0
@@ -1363,6 +1385,44 @@ MeshFilter:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 948739070}
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1001620718
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59b6606ef2548734bb6d11b9d160bc7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  active: 1
+  rotation:
+    m_OverrideState: 1
+    m_Value: 160
+    min: 0
+    max: 360
+  exposure:
+    m_OverrideState: 1
+    m_Value: 0
+  multiplier:
+    m_OverrideState: 1
+    m_Value: 0.1
+    min: 0
+  resolution:
+    m_OverrideState: 1
+    m_Value: 256
+  updateMode:
+    m_OverrideState: 1
+    m_Value: 0
+  updatePeriod:
+    m_OverrideState: 1
+    m_Value: 0
+    min: 0
+  useForBaking: 1
+  skyHDRI:
+    m_OverrideState: 1
+    m_Value: {fileID: 8900000, guid: fb0bf2eac2381484187ba8a68cdca165, type: 3}
 --- !u!21 &1006229993
 Material:
   serializedVersion: 6
@@ -1461,11 +1521,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -1531,6 +1593,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 4
@@ -1717,11 +1781,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -1787,6 +1853,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 4
@@ -1987,11 +2055,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -2057,6 +2127,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 4
@@ -2171,11 +2243,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -2241,6 +2315,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 4
@@ -2355,11 +2431,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -2425,6 +2503,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 4
@@ -2539,11 +2619,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -2609,6 +2691,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 4
@@ -2690,7 +2774,7 @@ Transform:
   - {fileID: 1457866158}
   - {fileID: 330760095}
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1225089855
 GameObject:
@@ -2876,11 +2960,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -2946,6 +3032,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 4
@@ -3143,7 +3231,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4415619047076708, guid: e6be141ec19d3554489da286b19b90b2, type: 2}
       propertyPath: m_RootOrder
-      value: 5
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 23096287020260212, guid: e6be141ec19d3554489da286b19b90b2,
         type: 2}
@@ -3492,7 +3580,7 @@ Transform:
   - {fileID: 1684509468}
   - {fileID: 1693044647}
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1776563390
 Prefab:
@@ -3531,7 +3619,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4415619047076708, guid: e6be141ec19d3554489da286b19b90b2, type: 2}
       propertyPath: m_RootOrder
-      value: 6
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 23096287020260212, guid: e6be141ec19d3554489da286b19b90b2,
         type: 2}
@@ -3703,6 +3791,53 @@ MeshFilter:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1815981380}
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1866519629
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 1866519631}
+  - component: {fileID: 1866519630}
+  m_Layer: 0
+  m_Name: HDRP_Emission_Sky
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1866519630
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1866519629}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isGlobal: 1
+  priority: 0
+  blendDistance: 0
+  weight: 1
+  components:
+  - {fileID: 771361998}
+  - {fileID: 1001620718}
+--- !u!4 &1866519631
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1866519629}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -4.945982, y: 3.5591245, z: -6.423647}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!21 &1983578890
 Material:
   serializedVersion: 6
@@ -3801,11 +3936,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -3871,6 +4008,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 4
@@ -3985,11 +4124,13 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -4055,6 +4196,8 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 4
