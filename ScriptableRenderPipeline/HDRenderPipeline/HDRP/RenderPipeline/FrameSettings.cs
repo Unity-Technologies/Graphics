@@ -62,7 +62,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableDistortion = true;
         public bool enablePostprocess = true;
 
-        public bool enableStereo = false;
+        public bool enableStereo = true;
         public bool enableAsyncCompute = false;
 
         public bool enableOpaqueObjects = true;

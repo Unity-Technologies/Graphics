@@ -32,7 +32,7 @@ MonoBehaviour:
     enableTransparentPostPass: 1
     enableDistortion: 1
     enablePostprocess: 1
-    enableStereo: 0
+    enableStereo: 1
     enableAsyncCompute: 0
     enableOpaqueObjects: 1
     enableTransparentObjects: 1
