@@ -7,7 +7,8 @@
 
 #pragma enable_d3d11_debug_symbols
 
-#define DEBUG_REPROJECTION 0
+#define ENABLE_REPROJECTION 0
+#define DEBUG_REPROJECTION  0
 
 #include "../../../ShaderPass/ShaderPass.cs.hlsl"
 #define SHADERPASS    SHADERPASS_VOLUMETRIC_LIGHTING
@@ -307,6 +308,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                                                      );
                                                 #endif
 
+    #if ENABLE_REPROJECTION
         // Reproject the history at 'centerWS'.
         // TODO! WARNING! THE REPROJECTED VALUE IS AN INTEGRAL OVER A SEGMENT, THE LENGTH OF THE CURRENT SEGMENT IS DIFFERENT, ACCOUNT FOR THAT!
         float2 reprojPosNDC = ComputeNormalizedDeviceCoordinates(centerWS, _PrevViewProjMatrix);
@@ -322,8 +324,11 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
         // Store the feedback.
         _VBufferLightingFeedback[uint3(posInput.positionSS, slice)] = float4(blendedRadiance, 1);
+    #else
+        float3 blendedRadiance = voxelRadiance;
+    #endif
 
-    #if (DEBUG_REPROJECTION != 0)
+    #if DEBUG_REPROJECTION
         if (distance(voxelRadiance, reprojValue.rgb) > 0.1) blendedRadiance = float3(1000, 0, 0);
     #endif
 
@@ -383,12 +388,13 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
         return;
     }
 
+#if ENABLE_REPROJECTION
     // TODO: use a low-discrepancy point set.
-
     float2 halton23[8] = {float2(1.0/2.0, 1.0/3.0), float2(1.0/4.0, 2.0/3.0), float2(3.0/4.0, 1.0/9.0), float2(1.0/8.0, 4.0/9.0), float2(5.0/8.0, 7.0/9.0), float2(3.0/8.0, 2.0/9.0), float2(7.0/8.0, 5.0/9.0), float2(1.0/16.0, 8.0/9.0)};
-
-    // float2 sampleCoord = voxelCoord + 0.5;
     float2 sampleCoord = voxelCoord + halton23[_TaaFrameIndex];
+#else
+    float2 sampleCoord = voxelCoord + 0.5;
+#endif
 
     // Compute the ray direction s.t. its ViewSpaceZ = 1.
     float3 dir    = -mul(float3(sampleCoord, 1), (float3x3)_VBufferCoordToViewDirWS);
