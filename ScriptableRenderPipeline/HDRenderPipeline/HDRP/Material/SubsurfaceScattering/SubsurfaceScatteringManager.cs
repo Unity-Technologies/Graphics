@@ -157,9 +157,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, "Subsurface Scattering", HDRenderPipeline.GetSampler(CustomSamplerId.SubsurfaceScattering)))
             {
-                int w = hdCamera.camera.pixelWidth;
-                int h = hdCamera.camera.pixelHeight;
-
                 // For Jimenez we always need an extra buffer, for Disney it depends on platform
                 if (!sssParameters.useDisneySSS ||
                     (sssParameters.useDisneySSS && NeedTemporarySubsurfaceBuffer()))
@@ -219,7 +216,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         // Caution: must be same format as m_CameraSssDiffuseLightingBuffer
                         cmd.ReleaseTemporaryRT(m_CameraFilteringBuffer);
-                        cmd.GetTemporaryRT(m_CameraFilteringBuffer, w, h, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
+                        CoreUtils.CreateCmdTemporaryRT(cmd, m_CameraFilteringBuffer, hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
                         // Clear the SSS filtering target
                         using (new ProfilingSample(cmd, "Clear SSS filtering target", HDRenderPipeline.GetSampler(CustomSamplerId.ClearSSSFilteringTarget)))
                         {
