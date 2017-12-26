@@ -46,6 +46,8 @@ namespace UnityEditor.VFX
             }
         }
 
+        public virtual void Sanitize() {}
+
         public virtual void CollectDependencies(HashSet<UnityEngine.Object> objs)
         {
             foreach (var child in children)
@@ -287,12 +289,20 @@ namespace UnityEditor.VFX
 
         public VFXAsset GetAsset()
         {
-            var graph = this as VFXGraph;
+            var graph = GetGraph();
             if (graph != null)
                 return graph.vfxAsset;
+            return null;
+        }
+
+        public VFXGraph GetGraph()
+        {
+            var graph = this as VFXGraph;
+            if (graph != null)
+                return graph;
             var parent = GetParent();
             if (parent != null)
-                return parent.GetAsset();
+                return parent.GetGraph();
             return null;
         }
 

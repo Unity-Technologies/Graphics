@@ -642,6 +642,7 @@ namespace UnityEditor.VFX.UI
             }
 
             m_Graph = m_VFXAsset.GetOrCreateGraph();
+            m_Graph.SanitizeGraph();
 
             AddInvalidateDelegate(m_Graph, SyncPresentersFromModel);
             AddInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
@@ -683,6 +684,8 @@ namespace UnityEditor.VFX.UI
 
                 m_VFXAsset = vfx == null ? new VFXAsset() : vfx;
                 m_Graph = m_VFXAsset.GetOrCreateGraph();
+                m_Graph.SanitizeGraph();
+
                 InitializeUndoStack();
 
                 AddInvalidateDelegate(m_Graph, SyncPresentersFromModel);

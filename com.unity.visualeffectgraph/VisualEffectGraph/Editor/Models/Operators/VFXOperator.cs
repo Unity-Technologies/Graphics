@@ -46,14 +46,15 @@ namespace UnityEditor.VFX
         [NonSerialized]
         private bool m_ResyncingSlots = false;
 
-        protected override void ResyncSlots(bool notify)
+        public override bool ResyncSlots(bool notify)
         {
+            bool changed = false;
             if (!m_ResyncingSlots)
             {
                 m_ResyncingSlots = true;
                 try
                 {
-                    base.ResyncSlots(notify);
+                    changed = base.ResyncSlots(notify);
                     if (notify)
                         foreach (var slot in outputSlots) // invalidate expressions on output slots
                             slot.InvalidateExpressionTree();
@@ -63,6 +64,7 @@ namespace UnityEditor.VFX
                     m_ResyncingSlots = false;
                 }
             }
+            return changed;
         }
 
         sealed override protected void OnInvalidate(VFXModel model, InvalidationCause cause)

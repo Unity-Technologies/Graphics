@@ -183,8 +183,13 @@ namespace UnityEditor.VFX
                 if (nbRemoved > 0)
                     Debug.Log(String.Format("Remove {0} output slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
             }
+        }
 
-            ResyncSlots(false);
+        public override void Sanitize()
+        {
+            base.Sanitize();
+            if (ResyncSlots(true))
+                Debug.Log(string.Format("Slots have been resynced in {0} of type {1}", name, GetType()));
         }
 
         public override void CollectDependencies(HashSet<Object> objs)
@@ -217,10 +222,12 @@ namespace UnityEditor.VFX
             return clone as T;
         }
 
-        protected virtual void ResyncSlots(bool notify)
+        public virtual bool ResyncSlots(bool notify)
         {
-            SyncSlots(VFXSlot.Direction.kInput, notify);
-            SyncSlots(VFXSlot.Direction.kOutput, notify);
+            bool changed = false;
+            changed |= SyncSlots(VFXSlot.Direction.kInput, notify);
+            changed |= SyncSlots(VFXSlot.Direction.kOutput, notify);
+            return changed;
         }
 
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
