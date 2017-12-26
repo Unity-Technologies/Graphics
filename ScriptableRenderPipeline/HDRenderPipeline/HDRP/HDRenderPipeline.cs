@@ -1448,7 +1448,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.GetTemporaryRT(HDShaderIDs._GaussianPyramidColorMips[i + 1], colorPyramidDesc, FilterMode.Bilinear);
                     cmd.SetComputeTextureParam(m_GaussianPyramidCS, m_GaussianPyramidKernel, "_Source", last);
                     cmd.SetComputeTextureParam(m_GaussianPyramidCS, m_GaussianPyramidKernel, "_Result", HDShaderIDs._GaussianPyramidColorMips[i + 1]);
-                    cmd.SetComputeVectorParam(m_GaussianPyramidCS, "_Size", new Vector4(colorPyramidDesc.height, colorPyramidDesc.height, 1f / colorPyramidDesc.height, 1f / colorPyramidDesc.height));
+                    cmd.SetComputeVectorParam(m_GaussianPyramidCS, "_Size", new Vector4(colorPyramidDesc.width, colorPyramidDesc.height, 1f / colorPyramidDesc.width, 1f / colorPyramidDesc.height));
                     cmd.DispatchCompute(m_GaussianPyramidCS, m_GaussianPyramidKernel, colorPyramidDesc.width / 8, colorPyramidDesc.height / 8, 1);
                     cmd.CopyTexture(HDShaderIDs._GaussianPyramidColorMips[i + 1], 0, 0, m_GaussianPyramidColorBufferRT, 0, i + 1);
 
@@ -1750,11 +1750,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var pyramidSize = CalculatePyramidSize((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y);
 
-            var widthModifier = 1;
-            if (stereoEnabled && (desc.dimension != TextureDimension.Tex2DArray))
-                widthModifier = 2; // double-wide
+            // for stereo double-wide, each half of the texture will represent a single eye's pyramid 
+            //var widthModifier = 1;
+            //if (stereoEnabled && (desc.dimension != TextureDimension.Tex2DArray))
+            //    widthModifier = 2; // double-wide
 
-            desc.width = pyramidSize * widthModifier;
+            //desc.width = pyramidSize * widthModifier;
+            desc.width = pyramidSize;
             desc.height = pyramidSize;
 
             return desc;
