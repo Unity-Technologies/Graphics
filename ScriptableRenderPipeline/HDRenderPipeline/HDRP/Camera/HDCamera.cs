@@ -50,7 +50,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        // View-projection matrix from the previous frame.
+        // View-projection matrix from the previous frame (non-jittered).
         public Matrix4x4 prevViewProjMatrix;
 
         // We need to keep track of these when camera relative rendering is enabled so we can take

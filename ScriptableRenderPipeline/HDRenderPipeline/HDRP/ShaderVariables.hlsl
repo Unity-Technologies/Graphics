@@ -240,7 +240,7 @@ CBUFFER_END
 // TODO: sort these vars by the frequency of use (descending), and put commonly used vars together.
 // Note: please use UNITY_MATRIX_X macros instead of referencing matrix variables directly.
 CBUFFER_START(UnityPerPass)
-float4x4 _PrevViewProjMatrix;
+float4x4 _PrevViewProjMatrix; // non-jittered
 float4x4 _ViewProjMatrix;
 float4x4 _NonJitteredViewProjMatrix;
 float4x4 _ViewMatrix;
