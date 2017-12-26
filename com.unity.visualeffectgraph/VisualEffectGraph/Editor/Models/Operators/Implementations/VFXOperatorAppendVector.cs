@@ -11,42 +11,65 @@ namespace UnityEditor.VFX
     {
         override public string name { get { return "AppendVector"; } }
 
-        public class InputProperties
+        private int outputComponentCount
         {
-            public FloatN a = 0.0f;
-            public FloatN b = 0.0f;
+            get
+            {
+                return Math.Min(4, inputSlots.Sum(s => GetFloatNbComponents(s)));
+            }
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
             {
-                return PropertiesFromSlotsOrDefaultFromClass(VFXSlot.Direction.kInput);
+                int totalComponentCount = 0;
+                int nbNeededSlots = 1;
+                var currentSlots = inputSlots.ToList();
+                for (int i = 0; i < currentSlots.Count; ++i)
+                {
+                    var slotComponentCount = GetFloatNbComponents(currentSlots[i]);
+                    totalComponentCount += slotComponentCount;
+                    if (slotComponentCount > 0 && totalComponentCount < 4)
+                        ++nbNeededSlots;
+                    if (totalComponentCount >= 4)
+                        break;
+                }
+
+                for (int i = 0; i < nbNeededSlots; ++i)
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(FloatN), ((char)((int)'a' + i)).ToString()), null);
+                // if (totalComponentCount < 4)
+                //     yield return new VFXPropertyWithValue(new VFXProperty(typeof(FloatN), ((char)((int)'a' + nbNeededSlots)).ToString()), null); // Add an empty slot for additonal connection
             }
         }
 
-        /*sealed protected override void OnInputConnectionsChanged()
+        protected override IEnumerable<VFXPropertyWithValue> outputProperties
         {
-            var emptySlot = inputSlots.Where(s => s.GetExpression() == null).ToArray();
-            foreach (var slot in emptySlot)
+            get
             {
-                RemoveSlot(slot);
-            }
+                const string outputName = "o";
+                Type slotType = null;
+                switch (outputComponentCount)
+                {
+                    case 1: slotType = typeof(float); break;
+                    case 2: slotType = typeof(Vector2); break;
+                    case 3: slotType = typeof(Vector3); break;
+                    case 4: slotType = typeof(Vector4); break;
+                    default: break;
+                }
 
-            var size = inputSlots.Sum(s => VFXExpression.TypeToSize(s.GetExpression().valueType));
-            if (inputSlots.All(s => s.HasLink()) && size < 4)
-            {
-                AddSlot(VFXSlot.Create(new VFXProperty(typeof(FloatN), "Empty"), VFXSlot.Direction.kInput));
+                if (slotType != null)
+                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, outputName));
             }
-
-            UpdateOutputs();
-        }*/
+        }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
+            int nbComponents = outputComponentCount;
             var allComponent = inputExpression.SelectMany(e => VFXOperatorUtility.ExtractComponents(e))
-                .Take(4)
+                .Take(outputComponentCount)
                 .ToArray();
+
             if (allComponent.Length == 0)
             {
                 return new VFXExpression[] {};

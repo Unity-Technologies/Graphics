@@ -8,6 +8,33 @@ namespace UnityEditor.VFX
 {
     abstract class VFXOperator : VFXSlotContainerModel<VFXModel, VFXModel>
     {
+        protected static int GetFloatNbComponents(VFXSlot slot)
+        {
+            var slotType = slot.refSlot.property.type;
+            if (slotType == typeof(float) || slotType == typeof(uint) || slotType == typeof(int))
+                return 1;
+            else if (slotType == typeof(Vector2))
+                return 2;
+            else if (slotType == typeof(Vector3))
+                return 3;
+            else if (slotType == typeof(Vector4))
+                return 4;
+            else if (slotType == typeof(FloatN))
+                return ((FloatN)slot.refSlot.value).realSize;
+            return 0;
+        }
+
+        protected static int GetFloatMaxNbComponents(IEnumerable<VFXSlot> slots)
+        {
+            int maxNbComponents = 0;
+            foreach (var slot in slots)
+            {
+                int slotNbComponents = GetFloatNbComponents(slot);
+                maxNbComponents = Math.Max(slotNbComponents, maxNbComponents);
+            }
+            return maxNbComponents;
+        }
+
         protected VFXOperator()
         {
             m_UICollapsed = false;

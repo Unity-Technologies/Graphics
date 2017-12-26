@@ -167,7 +167,10 @@ namespace UnityEditor.VFX
             base.OnEnable();
 
             if (m_InputSlots == null)
+            {
                 m_InputSlots = new List<VFXSlot>();
+                SyncSlots(VFXSlot.Direction.kInput, false); // Initial slot creation
+            }
             else
             {
                 int nbRemoved = m_InputSlots.RemoveAll(c => c == null);// Remove bad references if any
@@ -176,7 +179,10 @@ namespace UnityEditor.VFX
             }
 
             if (m_OutputSlots == null)
+            {
                 m_OutputSlots = new List<VFXSlot>();
+                SyncSlots(VFXSlot.Direction.kOutput, false); // Initial slot creation
+            }
             else
             {
                 int nbRemoved = m_OutputSlots.RemoveAll(c => c == null);// Remove bad references if any

@@ -114,28 +114,6 @@ namespace UnityEditor.VFX
         {
         }
 
-        protected int GetFloatMaxNbComponents(IEnumerable<VFXSlot> slots)
-        {
-            int maxNbComponents = 0;
-            foreach (var slot in slots)
-            {
-                int slotNbComponents = 0;
-                var slotType = slot.refSlot.property.type;
-                if (slotType == typeof(float) || slotType == typeof(uint) || slotType == typeof(int))
-                    slotNbComponents = 1;
-                else if (slotType == typeof(Vector2))
-                    slotNbComponents = 2;
-                else if (slotType == typeof(Vector3))
-                    slotNbComponents = 3;
-                else if (slotType == typeof(Vector4))
-                    slotNbComponents = 4;
-                else if (slotType == typeof(FloatN))
-                    slotNbComponents = ((FloatN)slot.refSlot.value).realSize;
-                maxNbComponents = Math.Max(slotNbComponents, maxNbComponents);
-            }
-            return maxNbComponents;
-        }
-
         protected override IEnumerable<VFXPropertyWithValue> outputProperties
         {
             get

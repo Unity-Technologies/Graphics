@@ -23,7 +23,7 @@ namespace UnityEditor.VFX.UI
 
             anchor.portType = VFXOperatorAnchorPresenter.GetDisplayAnchorType(slot);
 
-            if (slot.GetExpression() == null)
+            if (input && slot.property.type == typeof(FloatN) && !slot.HasLink() && ((FloatN)slot.value).realSize == 0)
             {
                 anchor.name = "Empty";
             }
