@@ -369,7 +369,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
         // Store the feedback for a unit interval.
         // TODO: store a non-constant confidence value.
-        _VBufferLightingFeedback[uint3(posInput.positionSS, slice)] = float4(blendedRadiance / dt, 1);
+        _VBufferLightingFeedback[uint3(posInput.positionSS, slice)] = float4(blendedRadiance * rcp(dt), 1);
     #else
         float3 blendedRadiance = voxelRadiance;
     #endif
