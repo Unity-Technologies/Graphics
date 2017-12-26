@@ -50,8 +50,9 @@ CBUFFER_END
 struct Ray
 {
     float3 originWS;
-    float3 directionWS; // Normalized
+    float3 directionWS; // Normalized, stratified
     float  ratioLenToZ; // 1 / ViewSpaceZ
+    float3 centerDirWS; // Not normalized, centered
 };
 
 float3 GetPointAtDistance(Ray ray, float t)
@@ -59,6 +60,10 @@ float3 GetPointAtDistance(Ray ray, float t)
     return ray.originWS + t * ray.directionWS;
 }
 
+float3 GetCenterAtDistance(Ray ray, float t)
+{
+    return ray.originWS + t * ray.centerDirWS;
+}
 
 // Computes the light integral (in-scattered radiance) within the voxel.
 // Multiplication by the scattering coefficient and the phase function is performed outside.
@@ -317,10 +322,10 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         clusterDepths[1]  = GetLightClusterMinLinearDepth(posInput.tileCoord, clusterIndices[1]);
     #endif
 
-        // Compute the position of the center of the voxel.
+        // Compute the -exact- position of the center of the voxel.
         // We will use it for participating media sampling and reprojection.
         float  tc       = t0 + 0.5 * dt;
-        float3 centerWS = GetPointAtDistance(ray, tc);
+        float3 centerWS = GetCenterAtDistance(ray, tc);
 
         // Sample the participating medium at 'tc' (or 'centerWS').
         // We consider it to be constant along the interval [t0, t1] (within the voxel).
@@ -429,25 +434,31 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
         return;
     }
 
+    float2 centerCoord = voxelCoord + 0.5;
 #if ENABLE_REPROJECTION
-    float2 sampleCoord = voxelCoord + 0.5;
-    // // TODO: use a low-discrepancy point set.
-    // float2 halton23[8] = {float2(1.0/2.0, 1.0/3.0), float2(1.0/4.0, 2.0/3.0), float2(3.0/4.0, 1.0/9.0), float2(1.0/8.0, 4.0/9.0), float2(5.0/8.0, 7.0/9.0), float2(3.0/8.0, 2.0/9.0), float2(7.0/8.0, 5.0/9.0), float2(1.0/16.0, 8.0/9.0)};
-    // float2 sampleCoord = voxelCoord + halton23[_TaaFrameIndex];
+    float2 sampleCoord = voxelCoord + _VBufferIntegrationOffset.xy;
 #else
-    float2 sampleCoord = voxelCoord + 0.5;
+    float2 sampleCoord = centerCoord;
 #endif
 
-    // Compute the ray direction s.t. its ViewSpaceZ = 1.
-    float3 dir    = -mul(float3(sampleCoord, 1), (float3x3)_VBufferCoordToViewDirWS);
-    float  lenSq  = dot(dir, dir);
+    // Compute the (stratified) ray direction s.t. its ViewSpaceZ = 1.
+    float3 rayDir = mul(-float3(sampleCoord, 1), (float3x3)_VBufferCoordToViewDirWS);
+    float  lenSq  = dot(rayDir, rayDir);
     float  lenRcp = rsqrt(lenSq);
     float  len    = lenSq * lenRcp;
+
+#if ENABLE_REPROJECTION
+    // Compute the ray direction which passes through the center of the voxel s.t. its ViewSpaceZ = 1.
+    float3 rayCenterDir = mul(-float3(centerCoord, 1), (float3x3)_VBufferCoordToViewDirWS);
+#else
+    float3 rayCenterDir = rayDir;
+#endif
 
     Ray ray;
     ray.originWS    = GetCurrentViewPosition();
     ray.ratioLenToZ = len;
-    ray.directionWS = dir * lenRcp;
+    ray.directionWS = rayDir * lenRcp;
+    ray.centerDirWS = rayCenterDir * lenRcp;
 
     // TODO
     LightLoopContext context;
