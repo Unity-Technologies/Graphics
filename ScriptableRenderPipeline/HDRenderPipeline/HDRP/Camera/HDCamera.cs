@@ -19,6 +19,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4[] frustumPlaneEquations;
         public Camera camera;
         public uint taaFrameIndex;
+        public Vector4 viewParam;
         public PostProcessRenderContext postprocessRenderContext;
 
         public Matrix4x4 viewProjMatrix
@@ -123,7 +124,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 isFirstFrame = false;
 
                 const uint taaFrameCount = 8;
-                taaFrameIndex = taaEnabled ? (uint)Time.renderedFrameCount % taaFrameCount : 0; 
+                taaFrameIndex = taaEnabled ? (uint)Time.renderedFrameCount % taaFrameCount : 0;
             }
             else
             {
@@ -137,6 +138,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             nonJitteredProjMatrix = gpuNonJitteredProj;
             cameraPos = pos;
             screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
+            viewParam = new Vector4(viewMatrix.determinant, 0.0f, 0.0f, 0.0f);
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
@@ -154,8 +156,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Near, far.
-            frustumPlaneEquations[4] = new Vector4( camera.transform.forward.x,  camera.transform.forward.y,  camera.transform.forward.z, -Vector3.Dot(camera.transform.forward, relPos) - camera.nearClipPlane);
-            frustumPlaneEquations[5] = new Vector4(-camera.transform.forward.x, -camera.transform.forward.y, -camera.transform.forward.z,  Vector3.Dot(camera.transform.forward, relPos) + camera.farClipPlane);
+            // We need to switch forward direction based on handness (Reminder: Regular camera have a negative determinant in Unity and reflection probe follow DX convention and have a positive determinant)
+            Vector3 forward = viewParam.x < 0.0f ? camera.transform.forward : -camera.transform.forward;
+            frustumPlaneEquations[4] = new Vector4( forward.x,  forward.y,  forward.z, -Vector3.Dot(forward, relPos) - camera.nearClipPlane);
+            frustumPlaneEquations[5] = new Vector4(-forward.x, -forward.y, -forward.z,  Vector3.Dot(forward, relPos) + camera.farClipPlane);
 
             m_LastFrameActive = Time.frameCount;
         }
@@ -207,28 +211,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalMatrix(HDShaderIDs._NonJitteredViewProjMatrix, nonJitteredViewProjMatrix);
             cmd.SetGlobalMatrix(HDShaderIDs._ViewProjMatrix, viewProjMatrix);
             cmd.SetGlobalMatrix(HDShaderIDs._InvViewProjMatrix, viewProjMatrix.inverse);
+            cmd.SetGlobalVector(HDShaderIDs._ViewParam, viewParam);
             cmd.SetGlobalVector(HDShaderIDs._InvProjParam, invProjParam);
             cmd.SetGlobalVector(HDShaderIDs._ScreenSize, screenSize);
             cmd.SetGlobalMatrix(HDShaderIDs._PrevViewProjMatrix, prevViewProjMatrix);
             cmd.SetGlobalVectorArray(HDShaderIDs._FrustumPlanes, frustumPlaneEquations);
             cmd.SetGlobalInt(HDShaderIDs._TaaFrameIndex, (int)taaFrameIndex);
-        }
-
-        // Does not modify global settings. Used for shadows, low res. rendering, etc.
-        public void OverrideGlobalParams(Material material)
-        {
-            material.SetMatrix(HDShaderIDs._ViewMatrix, viewMatrix);
-            material.SetMatrix(HDShaderIDs._InvViewMatrix, viewMatrix.inverse);
-            material.SetMatrix(HDShaderIDs._ProjMatrix, projMatrix);
-            material.SetMatrix(HDShaderIDs._InvProjMatrix, projMatrix.inverse);
-            material.SetMatrix(HDShaderIDs._NonJitteredViewProjMatrix, nonJitteredViewProjMatrix);
-            material.SetMatrix(HDShaderIDs._ViewProjMatrix, viewProjMatrix);
-            material.SetMatrix(HDShaderIDs._InvViewProjMatrix, viewProjMatrix.inverse);
-            material.SetVector(HDShaderIDs._InvProjParam, invProjParam);
-            material.SetVector(HDShaderIDs._ScreenSize, screenSize);
-            material.SetMatrix(HDShaderIDs._PrevViewProjMatrix, prevViewProjMatrix);
-            material.SetVectorArray(HDShaderIDs._FrustumPlanes, frustumPlaneEquations);
-            material.SetInt(HDShaderIDs._TaaFrameIndex, (int)taaFrameIndex);
         }
 
         // TODO: We should set all the value below globally and not let it under the control of Unity,
@@ -239,6 +227,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Copy values set by Unity which are not configured in scripts.
             cmd.SetComputeVectorParam(cs, HDShaderIDs.unity_OrthoParams, Shader.GetGlobalVector(HDShaderIDs.unity_OrthoParams));
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ProjectionParams, Shader.GetGlobalVector(HDShaderIDs._ProjectionParams));
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ViewParam, Shader.GetGlobalVector(HDShaderIDs._ViewParam));
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ScreenParams, Shader.GetGlobalVector(HDShaderIDs._ScreenParams));
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ZBufferParams, Shader.GetGlobalVector(HDShaderIDs._ZBufferParams));
             cmd.SetComputeVectorParam(cs, HDShaderIDs._WorldSpaceCameraPos, Shader.GetGlobalVector(HDShaderIDs._WorldSpaceCameraPos));

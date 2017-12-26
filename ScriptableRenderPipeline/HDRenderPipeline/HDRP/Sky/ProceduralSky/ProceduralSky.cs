@@ -1,6 +1,6 @@
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [DisallowMultipleComponent]
+    [SkyUniqueID((int)SkyType.ProceduralSky)]
     public class ProceduralSky : SkySettings
     {
         public ClampedFloatParameter sunSize = new ClampedFloatParameter(0.04f, 0.0f, 1.0f);
@@ -10,7 +10,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ColorParameter groundColor = new ColorParameter(new Color(0.369f, 0.349f, 0.341f, 1.0f));
         public BoolParameter enableSunDisk = new BoolParameter(true);
 
-        public override SkyRenderer GetRenderer()
+        public override SkyRenderer CreateRenderer()
         {
             return new ProceduralSkyRenderer(this);
         }

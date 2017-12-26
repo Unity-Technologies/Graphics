@@ -105,51 +105,7 @@ Shader "HDRenderPipeline/Unlit"
 
     SubShader
     {
-        // Extracts information for lightmapping, GI (emission, albedo, ...)
-        // This pass it not used during regular rendering.
-        Pass
-        {
-            Name "META"
-            Tags{ "LightMode" = "Meta" }
-
-            Cull Off
-
-            HLSLPROGRAM
-
-            // Lightmap memo
-            // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light,
-            // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
-
-            #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
-            #include "../../Material/Material.hlsl"
-            #include "ShaderPass/UnlitSharePass.hlsl"
-            #include "UnlitData.hlsl"
-            #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
-
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "Distortion" // Name is not used
-            Tags { "LightMode" = "DistortionVectors" } // This will be only for transparent object based on the RenderQueue index
-
-            Blend [_DistortionSrcBlend] [_DistortionDstBlend], [_DistortionBlurSrcBlend] [_DistortionBlurDstBlend]
-            BlendOp Add, [_DistortionBlurBlendOp]
-            ZTest [_ZTestMode]
-            ZWrite off
-            Cull [_CullMode]
-
-            HLSLPROGRAM
-
-            #define SHADERPASS SHADERPASS_DISTORTION
-            #include "../../Material/Material.hlsl"
-            #include "ShaderPass/UnlitDistortionPass.hlsl"
-            #include "UnlitData.hlsl"
-            #include "../../ShaderPass/ShaderPassDistortion.hlsl"
-
-            ENDHLSL
-        }
+        // Caution: The outline selection in the editor use the vertex shader/hull/domain shader of the first pass declare. So it should not bethe  meta pass.
 
         // Unlit shader always render in forward
         Pass
@@ -212,6 +168,52 @@ Shader "HDRenderPipeline/Unlit"
             #include "ShaderPass/UnlitSharePass.hlsl"
             #include "UnlitData.hlsl"
             #include "../../ShaderPass/ShaderPassForwardUnlit.hlsl"
+
+            ENDHLSL
+        }
+
+        // Extracts information for lightmapping, GI (emission, albedo, ...)
+        // This pass it not used during regular rendering.
+        Pass
+        {
+            Name "META"
+            Tags{ "LightMode" = "Meta" }
+
+            Cull Off
+
+            HLSLPROGRAM
+
+            // Lightmap memo
+            // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light,
+            // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
+
+            #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
+            #include "../../Material/Material.hlsl"
+            #include "ShaderPass/UnlitSharePass.hlsl"
+            #include "UnlitData.hlsl"
+            #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "Distortion" // Name is not used
+            Tags { "LightMode" = "DistortionVectors" } // This will be only for transparent object based on the RenderQueue index
+
+            Blend [_DistortionSrcBlend] [_DistortionDstBlend], [_DistortionBlurSrcBlend] [_DistortionBlurDstBlend]
+            BlendOp Add, [_DistortionBlurBlendOp]
+            ZTest [_ZTestMode]
+            ZWrite off
+            Cull [_CullMode]
+
+            HLSLPROGRAM
+
+            #define SHADERPASS SHADERPASS_DISTORTION
+            #include "../../Material/Material.hlsl"
+            #include "ShaderPass/UnlitDistortionPass.hlsl"
+            #include "UnlitData.hlsl"
+            #include "../../ShaderPass/ShaderPassDistortion.hlsl"
 
             ENDHLSL
         }
