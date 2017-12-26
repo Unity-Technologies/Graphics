@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {

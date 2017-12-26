@@ -3,6 +3,7 @@ using System.Text;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using System.Collections.Generic;
 using UnityEditor.VFX.Block;
 

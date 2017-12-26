@@ -2,6 +2,7 @@ using System;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using System.Reflection;
 using System.Linq;
 

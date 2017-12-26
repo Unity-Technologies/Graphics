@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 
 using Object = UnityEngine.Object;
 
