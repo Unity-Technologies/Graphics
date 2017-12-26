@@ -80,7 +80,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Reset();
         }
 
-        public void Update(PostProcessLayer postProcessLayer)
+        public void Update(PostProcessLayer postProcessLayer, bool stereoEnabled)
         {
             // If TAA is enabled projMatrix will hold a jittered projection matrix. The original,
             // non-jittered projection matrix can be accessed via nonJitteredProjMatrix.
@@ -166,7 +166,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_LastFrameActive = Time.frameCount;
 
             RenderTextureDescriptor tempDesc;
-            if (false) // pass in FrameSettings.enablestereo
+            if (stereoEnabled)
             {
                 screenSize = new Vector4(XRSettings.eyeTextureWidth, XRSettings.eyeTextureHeight, 1.0f / XRSettings.eyeTextureWidth, 1.0f / XRSettings.eyeTextureHeight);
                 tempDesc = XRSettings.eyeTextureDesc;
@@ -194,7 +194,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Grab the HDCamera tied to a given Camera and update it.
-        public static HDCamera Get(Camera camera, PostProcessLayer postProcessLayer)
+        public static HDCamera Get(Camera camera, PostProcessLayer postProcessLayer, bool stereoEnabled)
         {
             HDCamera hdcam;
 
@@ -204,7 +204,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_Cameras.Add(camera, hdcam);
             }
 
-            hdcam.Update(postProcessLayer);
+            hdcam.Update(postProcessLayer, stereoEnabled);
             return hdcam;
         }
 

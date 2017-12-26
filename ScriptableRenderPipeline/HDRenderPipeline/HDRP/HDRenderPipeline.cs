@@ -696,7 +696,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     var postProcessLayer = camera.GetComponent<PostProcessLayer>();
-                    var hdCamera = HDCamera.Get(camera, postProcessLayer);
+                    var hdCamera = HDCamera.Get(camera, postProcessLayer, m_FrameSettings.enableStereo);
 
                     Resize(hdCamera);
 
@@ -739,7 +739,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     ConfigureForShadowMask(enableBakeShadowMask, cmd);
 
-	                InitAndClearBuffer(hdCamera, enableBakeShadowMask, cmd);
+	                InitAndClearBuffer(hdCamera, enableBakeShadowMask, cmd, m_FrameSettings.enableStereo);
 
                     RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd);
 
@@ -1648,7 +1648,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void InitAndClearBuffer(HDCamera hdCamera, bool enableBakeShadowMask, CommandBuffer cmd)
+        void InitAndClearBuffer(HDCamera hdCamera, bool enableBakeShadowMask, CommandBuffer cmd, bool stereoEnabled)
         {
             using (new ProfilingSample(cmd, "InitAndClearBuffer", GetSampler(CustomSamplerId.InitAndClearBuffer)))
             {
@@ -1669,11 +1669,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 
                     // Color and depth pyramids
-                    m_GaussianPyramidColorBufferDesc = BuildPyramidDescriptor(hdCamera, PyramidType.Color);
+                    m_GaussianPyramidColorBufferDesc = BuildPyramidDescriptor(hdCamera, PyramidType.Color, stereoEnabled);
                     cmd.ReleaseTemporaryRT(m_GaussianPyramidColorBuffer);
                     cmd.GetTemporaryRT(m_GaussianPyramidColorBuffer, m_GaussianPyramidColorBufferDesc, FilterMode.Trilinear);
 
-                    m_DepthPyramidBufferDesc = BuildPyramidDescriptor(hdCamera, PyramidType.Depth);
+                    m_DepthPyramidBufferDesc = BuildPyramidDescriptor(hdCamera, PyramidType.Depth, stereoEnabled);
 
                     cmd.ReleaseTemporaryRT(m_DepthPyramidBuffer);
                     cmd.GetTemporaryRT(m_DepthPyramidBuffer, m_DepthPyramidBufferDesc, FilterMode.Trilinear);
@@ -1740,7 +1740,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Depth = 1
         }
 
-        static RenderTextureDescriptor BuildPyramidDescriptor(HDCamera hdCamera, PyramidType pyramidType )
+        static RenderTextureDescriptor BuildPyramidDescriptor(HDCamera hdCamera, PyramidType pyramidType, bool stereoEnabled)
         {
             var desc = hdCamera.renderTextureDesc;
             desc.colorFormat = (pyramidType == PyramidType.Color) ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.RFloat;
@@ -1749,9 +1749,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             desc.autoGenerateMips = false;
 
             var pyramidSize = CalculatePyramidSize((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y);
+
             var widthModifier = 1;
-            // Gotta plug-in proper stereo bits from frame settings?
-            if (false /*hdCamera.stereoEnabled*/ && (desc.dimension != TextureDimension.Tex2DArray))
+            if (stereoEnabled && (desc.dimension != TextureDimension.Tex2DArray))
                 widthModifier = 2; // double-wide
 
             desc.width = pyramidSize * widthModifier;
