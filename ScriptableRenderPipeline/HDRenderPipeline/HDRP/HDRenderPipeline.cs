@@ -856,7 +856,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         RenderGaussianPyramidColor(camera, cmd, renderContext, FullScreenDebugMode.FinalColorPyramid);
 
                         AccumulateDistortion(m_CullResults, hdCamera, renderContext, cmd);
-                        RenderDistortion(cmd, m_Asset.renderPipelineResources);
+                        RenderDistortion(cmd, m_Asset.renderPipelineResources, hdCamera);
 
                         // Final blit
                         if (m_FrameSettings.enablePostprocess && CoreUtils.IsPostProcessingActive(postProcessLayer))
@@ -1026,15 +1026,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderDistortion(CommandBuffer cmd, RenderPipelineResources resources)
+        void RenderDistortion(CommandBuffer cmd, RenderPipelineResources resources, HDCamera hdCamera)
         {
             if (!m_FrameSettings.enableDistortion)
                 return;
 
             using (new ProfilingSample(cmd, "ApplyDistortion", GetSampler(CustomSamplerId.ApplyDistortion)))
             {
-                // TODO: Should this be using HDCamera.screenSize?
-                var size = new Vector4(m_CurrentWidth, m_CurrentHeight, 1f / m_CurrentWidth, 1f / m_CurrentHeight);
+                var size = new Vector4(hdCamera.screenSize.x, hdCamera.screenSize.y, 1f / hdCamera.screenSize.x, 1f / hdCamera.screenSize.y);
                 uint x, y, z;
                 m_applyDistortionCS.GetKernelThreadGroupSizes(m_applyDistortionKernel, out x, out y, out z);
                 cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._DistortionTexture, m_DistortionBufferRT);
