@@ -1,7 +1,7 @@
 using System;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.VFX.UI;

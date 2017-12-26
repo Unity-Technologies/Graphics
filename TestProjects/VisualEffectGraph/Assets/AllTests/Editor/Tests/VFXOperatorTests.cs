@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 using System.Collections.Generic;
 using Object = UnityEngine.Object;
 

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -243,7 +243,7 @@ namespace UnityEditor.VFX
             if (!m_StoredCurrentAttributes.ContainsKey(attrib))
                 throw new ArgumentException(string.Format("Attribute {0} does not exist in data layout", attrib.name));
 
-            return string.Format("attributeBuffer.Store{0}({1},{3}({2}))", GetByteAddressBufferMethodSuffix(attrib), m_layoutAttributeCurrent.GetCodeOffset(attrib, "index"), value, attrib.type == UnityEngine.VFX.VFXValueType.kBool ? "uint" : "asuint");
+            return string.Format("attributeBuffer.Store{0}({1},{3}({2}))", GetByteAddressBufferMethodSuffix(attrib), m_layoutAttributeCurrent.GetCodeOffset(attrib, "index"), value, attrib.type == VFXValueType.kBool ? "uint" : "asuint");
         }
 
         public bool NeedsIndirectBuffer()

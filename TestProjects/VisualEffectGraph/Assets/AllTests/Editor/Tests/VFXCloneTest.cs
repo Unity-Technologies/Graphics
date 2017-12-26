@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using System.Collections.Generic;
 
 namespace UnityEditor.VFX.Test
@@ -119,10 +120,10 @@ namespace UnityEditor.VFX.Test
         public void CloneBuiltInAttribute()
         {
             var builtIn = ScriptableObject.CreateInstance<VFXBuiltInParameter>();
-            builtIn.SetSettingValue("m_expressionOp", UnityEngine.VFX.VFXExpressionOp.kVFXTotalTimeOp);
-            Assert.AreEqual(UnityEngine.VFX.VFXExpressionOp.kVFXTotalTimeOp, builtIn.outputSlots[0].GetExpression().operation);
+            builtIn.SetSettingValue("m_expressionOp", VFXExpressionOp.kVFXTotalTimeOp);
+            Assert.AreEqual(VFXExpressionOp.kVFXTotalTimeOp, builtIn.outputSlots[0].GetExpression().operation);
             var copy = builtIn.Clone<VFXBuiltInParameter>();
-            Assert.AreEqual(UnityEngine.VFX.VFXExpressionOp.kVFXTotalTimeOp, copy.outputSlots[0].GetExpression().operation);
+            Assert.AreEqual(VFXExpressionOp.kVFXTotalTimeOp, copy.outputSlots[0].GetExpression().operation);
         }
 
         [Test]
@@ -130,7 +131,7 @@ namespace UnityEditor.VFX.Test
         {
             var graphA = ScriptableObject.CreateInstance<VFXGraph>();
             var contextA = ScriptableObject.CreateInstance<VFXBasicInitialize>();
-            contextA.space = UnityEngine.VFX.CoordinateSpace.Global;
+            contextA.space = CoordinateSpace.Global;
             (contextA.GetData() as VFXDataParticle).capacity = 256;
             graphA.AddChild(contextA);
 

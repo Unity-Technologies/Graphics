@@ -7,7 +7,7 @@ using UnityEngine.TestTools;
 using UnityEditor.SceneManagement;
 using UnityEngine.SceneManagement;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 using System.Collections;
 using UnityEngine.Rendering;
 

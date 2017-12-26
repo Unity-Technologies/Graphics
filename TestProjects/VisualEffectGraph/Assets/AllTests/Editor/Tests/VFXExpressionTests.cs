@@ -5,7 +5,7 @@ using NUnit.Framework;
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEditor.VFX;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Test
 {
