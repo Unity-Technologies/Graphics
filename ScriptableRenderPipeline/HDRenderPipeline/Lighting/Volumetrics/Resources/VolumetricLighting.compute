@@ -7,7 +7,7 @@
 
 #pragma enable_d3d11_debug_symbols
 
-#define ENABLE_REPROJECTION 0
+#define ENABLE_REPROJECTION 1
 #define DEBUG_REPROJECTION  0
 
 #include "../../../ShaderPass/ShaderPass.cs.hlsl"
@@ -40,6 +40,7 @@ TEXTURE3D(_VBufferLightingHistory);             // RGB = radiance, A = confidenc
 // TODO: avoid creating another Constant Buffer...
 CBUFFER_START(UnityVolumetricLighting)
     float4x4 _VBufferCoordToViewDirWS;          // Actually just 3x3, but Unity can only set 4x4
+    float4   _VBufferIntegrationOffset;         // {x, y, z}, w = unused
 CBUFFER_END
 
 //--------------------------------------------------------------------------------------------------
@@ -58,7 +59,6 @@ float3 GetPointAtDistance(Ray ray, float t)
     return ray.originWS + t * ray.directionWS;
 }
 
-BakeLightingData unused; // Unused, so define once
 
 // Computes the light integral (in-scattered radiance) within the voxel.
 // Multiplication by the scattering coefficient and the phase function is performed outside.
@@ -71,6 +71,8 @@ float3 EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, Positi
                          #endif
 {
     float3 voxelRadiance = 0;
+
+    BakeLightingData unused; // Unused for now, so define once
 
     if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
     {
@@ -250,6 +252,35 @@ float3 EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, Positi
     return voxelRadiance;
 }
 
+// Samples the linearly interpolated V-Buffer. Out-of-bounds loads return 0.
+float4 SampleVBuffer(TEXTURE3D_ARGS(VBufferLighting, trilinearSampler),
+                     float2 positionNDC, float linearDepth,
+                     float2 VBufferScale,
+                     float4 VBufferDepthEncodingParams)
+{
+    int   k = VBUFFER_SLICE_COUNT;
+    float z = linearDepth;
+    float d = EncodeLogarithmicDepth(z, VBufferDepthEncodingParams);
+
+    // Account for the visible area of the V-Buffer.
+    float2 uv = positionNDC * VBufferScale;
+
+    // TODO: Unity doesn't support samplers clamping to border, so we have to do it ourselves.
+    bool isInBounds = Min3(uv.x, uv.y, d) > 0 && Max3(uv.x, uv.y, d) < 1;
+
+    [branch] if (isInBounds)
+    {
+        // We use hardware trilinear filtering.
+        // In theory, this is wrong, since the distance between slices is log-encoded.
+        // In practice, doing the right thing in a loop is simply too expensive.
+        return SAMPLE_TEXTURE3D_LOD(VBufferLighting, trilinearSampler, float3(uv, d), 0);
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 // Computes the in-scattered radiance along the ray.
 void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                                   PositionInputs posInput, Ray ray)
@@ -297,8 +328,13 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float3 scattering = _GlobalFog_Scattering;
         float  extinction = _GlobalFog_Extinction;
 
-        // TODO: use a low-discrepancy point set.
-        float rndVal = VanDerCorputBase2(_TaaFrameIndex + 1);
+    #if ENABLE_REPROJECTION
+        // This is a sequence of 7 equidistant numbers from 1/14 to 13/14.
+        // Each of them is the centroid of the interval of length 2/14.
+        float rndVal = _VBufferIntegrationOffset.z;
+    #else
+        float rndVal = 0.5;
+    #endif
 
         float3 voxelRadiance = EvaluateVoxelLighting(context, featureFlags, posInput,
                                                      ray, t0, t1, dt, rndVal, extinction
@@ -310,20 +346,25 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
     #if ENABLE_REPROJECTION
         // Reproject the history at 'centerWS'.
-        // TODO! WARNING! THE REPROJECTED VALUE IS AN INTEGRAL OVER A SEGMENT, THE LENGTH OF THE CURRENT SEGMENT IS DIFFERENT, ACCOUNT FOR THAT!
         float2 reprojPosNDC = ComputeNormalizedDeviceCoordinates(centerWS, _PrevViewProjMatrix);
         float  reprojZ      = mul(_PrevViewProjMatrix, float4(centerWS, 1)).w;
-        float4 reprojValue  = LoadFromVBuffer(reprojPosNDC, reprojZ,
-                                              _VBufferLightingHistory,
-                                              _VBufferResolutionAndScale,
-                                              _VBufferDepthEncodingParams);
-
+        float4 reprojValue  = SampleVBuffer(TEXTURE3D_PARAM(_VBufferLightingHistory, s_trilinear_clamp_sampler),
+                                            reprojPosNDC, reprojZ,
+                                            _VBufferResolutionAndScale.zw,
+                                            _VBufferDepthEncodingParams);
 
         // Perform temporal blending.
-        float3 blendedRadiance = lerp(voxelRadiance, reprojValue.rgb, reprojValue.a == 0 ? 0 : 0.9);
+        // Both radiance values are obtained by integrating over line segments of different length.
+        // Blending only makes sense if the length of both intervals is the same.
+        // Therefore, the reprojected radiance is defined as an integral over the unit interval,
+        // and it needs to be rescaled by 'dt'.
+        float  confidence      = reprojValue.a * 0.75; // 0.75 ^ 7 ≈ 1/7
+        float3 reprojRadiance  = reprojValue.rgb;
+        float3 blendedRadiance = (1 - confidence) * voxelRadiance + confidence * dt * reprojRadiance;
 
-        // Store the feedback.
-        _VBufferLightingFeedback[uint3(posInput.positionSS, slice)] = float4(blendedRadiance, 1);
+        // Store the feedback for a unit interval.
+        // TODO: store a non-constant confidence value.
+        _VBufferLightingFeedback[uint3(posInput.positionSS, slice)] = float4(blendedRadiance / dt, 1);
     #else
         float3 blendedRadiance = voxelRadiance;
     #endif
@@ -389,9 +430,10 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
     }
 
 #if ENABLE_REPROJECTION
-    // TODO: use a low-discrepancy point set.
-    float2 halton23[8] = {float2(1.0/2.0, 1.0/3.0), float2(1.0/4.0, 2.0/3.0), float2(3.0/4.0, 1.0/9.0), float2(1.0/8.0, 4.0/9.0), float2(5.0/8.0, 7.0/9.0), float2(3.0/8.0, 2.0/9.0), float2(7.0/8.0, 5.0/9.0), float2(1.0/16.0, 8.0/9.0)};
-    float2 sampleCoord = voxelCoord + halton23[_TaaFrameIndex];
+    float2 sampleCoord = voxelCoord + 0.5;
+    // // TODO: use a low-discrepancy point set.
+    // float2 halton23[8] = {float2(1.0/2.0, 1.0/3.0), float2(1.0/4.0, 2.0/3.0), float2(3.0/4.0, 1.0/9.0), float2(1.0/8.0, 4.0/9.0), float2(5.0/8.0, 7.0/9.0), float2(3.0/8.0, 2.0/9.0), float2(7.0/8.0, 5.0/9.0), float2(1.0/16.0, 8.0/9.0)};
+    // float2 sampleCoord = voxelCoord + halton23[_TaaFrameIndex];
 #else
     float2 sampleCoord = voxelCoord + 0.5;
 #endif

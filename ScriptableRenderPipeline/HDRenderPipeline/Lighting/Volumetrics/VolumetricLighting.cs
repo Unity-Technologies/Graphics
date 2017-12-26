@@ -298,11 +298,20 @@ public partial class HDRenderPipeline : RenderPipeline
 
             camera.SetupComputeShader(m_VolumetricLightingCS, cmd);
 
+            // This is a sequence of 7 equidistant numbers from 1/14 to 13/14.
+            // Each of them is the centroid of the interval of length 2/14.
+            // They've been rearranged in a sequence of pairs {small, large}, s.t. (small + large) = 1.
+            // That way, the running average position is close to 0.5.
+            float[] seq = {7.0f/14.0f, 3.0f/14.0f, 11.0f/14.0f, 5.0f/14.0f, 9.0f/14.0f, 1.0f/14.0f, 13.0f/14.0f};
+
+            uint sampleIndex = (camera.camera.cameraType == CameraType.Game) ? (uint)Time.renderedFrameCount % 7 : 0;
+
             // TODO: set 'm_VolumetricLightingPreset'.
-            cmd.SetComputeMatrixParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferCoordToViewDirWS, transform);
-            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingHistory,  GetVBufferLightingHistory());  // Read
-            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingFeedback, GetVBufferLightingFeedback()); // Write
-            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingIntegral, GetVBufferLightingIntegral()); // Write
+            cmd.SetComputeMatrixParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferCoordToViewDirWS,  transform);
+            cmd.SetComputeVectorParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferIntegrationOffset, new Vector4(0.0f, 0.0f, seq[sampleIndex]));
+            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingHistory,   GetVBufferLightingHistory());  // Read
+            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingFeedback,  GetVBufferLightingFeedback()); // Write
+            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingIntegral,  GetVBufferLightingIntegral()); // Write
 
             // The shader defines GROUP_SIZE_1D = 16.
             cmd.DispatchCompute(m_VolumetricLightingCS, kernel, (w + 15) / 16, (h + 15) / 16, 1);
