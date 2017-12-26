@@ -132,7 +132,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private ShadowSliceData[] m_ShadowSlices = new ShadowSliceData[kMaxCascades];
 
         // Pipeline pass names
-        private static readonly ShaderPassName m_DepthPrePass = new ShaderPassName("DepthOnly");
+        private static readonly ShaderPassName m_DepthPrepass = new ShaderPassName("DepthOnly");
         private static readonly ShaderPassName m_LitPassName = new ShaderPassName("LightweightForward");
         private static readonly ShaderPassName m_UnlitPassName = new ShaderPassName("SRPDefaultUnlit"); // Renders all shaders without a lightmode tag
 
@@ -349,7 +349,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
-            var opaqueDrawSettings = new DrawRendererSettings(m_CurrCamera, m_DepthPrePass);
+            var opaqueDrawSettings = new DrawRendererSettings(m_CurrCamera, m_DepthPrepass);
             opaqueDrawSettings.sorting.flags = SortFlags.CommonOpaque;
 
             var opaqueFilterSettings = new FilterRenderersSettings(true)

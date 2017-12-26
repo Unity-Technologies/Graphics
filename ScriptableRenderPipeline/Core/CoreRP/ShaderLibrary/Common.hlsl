@@ -474,19 +474,27 @@ static const float4x4 k_identity4x4 = {1, 0, 0, 0,
 float2 ComputeNormalizedDeviceCoordinates(float3 position, float4x4 clipSpaceTransform = k_identity4x4)
 {
     float4 positionCS = mul(clipSpaceTransform, float4(position, 1.0));
-    float2 positionNDC = positionCS.xy * (rcp(positionCS.w) * 0.5) + 0.5;
+
 #if UNITY_UV_STARTS_AT_TOP
-    positionNDC.y = 1.0 - positionNDC.y;
+    // Our clip space is correct, but the NDC is flipped.
+    // Conceptually, it should be (positionNDC.y = 1.0 - positionNDC.y), but this is more efficient.
+    positionCS.y = -positionCS.y;
 #endif
-    return positionNDC;
+
+return positionCS.xy * (rcp(positionCS.w) * 0.5) + 0.5;
 }
 
 float4 ComputeClipSpacePosition(float2 positionNDC, float deviceDepth)
 {
+    float4 positionCS = float4(positionNDC * 2.0 - 1.0, deviceDepth, 1.0);
+
 #if UNITY_UV_STARTS_AT_TOP
-    positionNDC.y = 1.0 - positionNDC.y;
+    // Our clip space is correct, but the NDC is flipped.
+    // Conceptually, it should be (positionNDC.y = 1.0 - positionNDC.y), but this is more efficient.
+    positionCS.y = -positionCS.y;
 #endif
-    return float4(positionNDC * 2.0 - 1.0, deviceDepth, 1.0);
+
+    return positionCS;
 }
 
 float3 ComputeViewSpacePosition(float2 positionNDC, float deviceDepth, float4x4 invProjMatrix)

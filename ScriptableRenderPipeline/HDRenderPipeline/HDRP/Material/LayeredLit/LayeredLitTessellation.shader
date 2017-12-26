@@ -234,11 +234,11 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         [ToggleOff] _EnableBlendModePreserveSpecularLighting("Enable Blend Mode Preserve Specular Lighting", Float) = 1.0
 
         [ToggleOff] _DoubleSidedEnable("Double sided enable", Float) = 0.0
-        [Enum(None, 0, Mirror, 1, Flip, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
+        [Enum(Flip, 0, Mirror, 1)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
     	[Enum(Subsurface Scattering, 0, Standard, 1)] _MaterialID("MaterialId", Int) = 1 // MaterialId.RegularLighting
-        [Enum(None, 0, Vertex displacement, 1, Pixel displacement, 2, Tessellation displacement, 3)] _DisplacementMode("DisplacementMode", Int) = 0
+        [Enum(None, 0, Tessellation displacement, 3)] _DisplacementMode("DisplacementMode", Int) = 3
         [ToggleOff] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0
         [ToggleOff] _DisplacementLockTilingScale("displacement lock tiling scale", Float) = 1.0
         [ToggleOff] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
@@ -467,7 +467,8 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
     SubShader
     {
-       Pass
+         // Caution: The outline selection in the editor use the vertex shader/hull/domain shader of the first pass declare. So it should not bethe  meta pass.
+        Pass
         {
             Name "GBuffer"  // Name is not used
             Tags { "LightMode" = "GBuffer" } // This will be only for opaque object based on the RenderQueue index

@@ -1,12 +1,12 @@
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [DisallowMultipleComponent]
+    [SkyUniqueID((int)SkyType.HDRISky)]
     public class HDRISky : SkySettings
     {
         [Tooltip("Cubemap used to render the sky.")]
         public CubemapParameter skyHDRI = new CubemapParameter(null);
 
-        public override SkyRenderer GetRenderer()
+        public override SkyRenderer CreateRenderer()
         {
             return new HDRISkyRenderer(this);
         }

@@ -3,13 +3,16 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [Serializable]
-    public sealed class SkyResolutionParameter : VolumeParameter<SkyResolution>
+    // This class is used to associate a unique ID to a sky class.
+    // This is needed to be able to automatically register sky classes and avoid collisions and refactoring class names causing data compatibility issues.
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    public sealed class SkyUniqueID : Attribute
     {
-        public SkyResolutionParameter(SkyResolution val, bool overrideState = false)
-            : base(val, overrideState)
-        {
+        public readonly int uniqueID;
 
+        public SkyUniqueID(int uniqueID)
+        {
+            this.uniqueID = uniqueID;
         }
     }
 
@@ -32,8 +35,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public FloatParameter           exposure = new FloatParameter(0.0f);
         [Tooltip("Intensity multiplier for the sky.")]
         public MinFloatParameter        multiplier = new MinFloatParameter(1.0f, 0.0f);
-        [Tooltip("Resolution of the environment lighting generated from the sky.")]
-        public SkyResolutionParameter   resolution = new SkyResolutionParameter(SkyResolution.SkyResolution256);
         [Tooltip("Specify how the environment lighting should be updated.")]
         public EnvUpdateParameter       updateMode = new EnvUpdateParameter(EnvironementUpdateMode.OnChanged);
         [Tooltip("If environment update is set to realtime, period in seconds at which it is updated (0.0 means every frame).")]
@@ -61,7 +62,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // TODO: Fixme once we switch to .Net 4.6+
                 //>>>
-                hash = hash * 23 + ((int)resolution.value).GetHashCode(); // Enum.GetHashCode generates garbage on .NET 3.5... Wtf !?
                 hash = hash * 23 + ((int)updateMode.value).GetHashCode();
                 //<<<
 
@@ -108,7 +108,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         }
 
+        public static int GetUniqueID<T>()
+        {
+            var uniqueIDs = typeof(T).GetCustomAttributes(typeof(SkyUniqueID), false);
+            if (uniqueIDs.Length == 0)
+                return -1;
+            else
+                return ((SkyUniqueID)uniqueIDs[0]).uniqueID;
 
-        public abstract SkyRenderer GetRenderer();
+        }
+
+        public abstract SkyRenderer CreateRenderer();
     }
 }

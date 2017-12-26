@@ -2,6 +2,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class RenderPipelineResources : ScriptableObject
     {
+        // Default Material / Shader
+        public Material defaultDiffuseMaterial;
+        public Shader defaultShader;
+
         // Debug
         public Shader debugDisplayLatlongShader;
         public Shader debugViewMaterialGBufferShader;

@@ -8,8 +8,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             public readonly GUIContent defaults = new GUIContent("Defaults");
             public readonly GUIContent renderPipelineResources = new GUIContent("Render Pipeline Resources", "Set of resources that need to be loaded when creating stand alone");
-            public readonly GUIContent defaultDiffuseMaterial = new GUIContent("Default Diffuse Material", "Material to use when creating objects");
-            public readonly GUIContent defaultShader = new GUIContent("Default Shader", "Shader to use when creating materials");
 
             public readonly GUIContent settingsLabel = new GUIContent("Settings");
 
@@ -27,6 +25,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent pointCookieSize = new GUIContent("Point Cookie Size");
             public readonly GUIContent reflectionCubemapSize = new GUIContent("Reflection Cubemap Size");
             public readonly GUIContent reflectionCacheCompressed = new GUIContent("Compress Reflection Probe Cache");
+            public readonly GUIContent skyReflectionSize = new GUIContent("Sky Reflection Size");
+            public readonly GUIContent skyLightingOverride = new GUIContent("Sky Lighting Override Mask", "This layer mask will define in which layers the sky system will look for sky settings volumes for lighting override.");
 
             public readonly GUIContent defaultFrameSettings = new GUIContent("Default Frame Settings");
 
