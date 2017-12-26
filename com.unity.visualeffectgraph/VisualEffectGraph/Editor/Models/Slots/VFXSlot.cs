@@ -533,6 +533,32 @@ namespace UnityEditor.VFX
             PropagateToChildren(func);
         }
 
+        private static void UpdateLinkedInExpression(VFXSlot destSlot, VFXSlot refSlot)
+        {
+            var expression = refSlot.GetExpression();
+            if (expression != null)
+            {
+                destSlot.m_LinkedInExpression = expression;
+            }
+            else if (destSlot.GetType() == refSlot.GetType())
+            {
+                for (int i = 0; i < destSlot.GetNbChildren(); ++i)
+                {
+                    UpdateLinkedInExpression(destSlot.children.ElementAt(i), refSlot.children.ElementAt(i));
+                }
+            }
+        }
+
+        private IEnumerable<VFXSlot> allChildrenWhere(Func<VFXSlot, bool> predicate)
+        {
+            if (predicate(this))
+                yield return this;
+
+            var filtered = children.SelectMany(c => c.allChildrenWhere(predicate));
+            foreach (var r in filtered)
+                yield return r;
+        }
+
         private void RecomputeExpressionTree()
         {
             // Start from the top most parent
@@ -546,7 +572,18 @@ namespace UnityEditor.VFX
             masterSlot.PropagateToChildren(s => { s.m_ExpressionTreeUpToDate = false; });
 
             if (direction == Direction.kInput) // For input slots, linked expression are directly taken from linked slots
-                masterSlot.PropagateToChildren(s => s.m_LinkedInExpression = s.HasLink() ? s.refSlot.GetExpression() : null); // this will trigger recomputation of linked expressions if needed
+            {
+                masterSlot.PropagateToChildren(s =>
+                    {
+                        s.m_LinkedInExpression = null;
+                    });
+
+                var linkedChildren = masterSlot.allChildrenWhere(s => s.HasLink());
+                foreach (var slot in linkedChildren)
+                {
+                    UpdateLinkedInExpression(slot, slot.refSlot);// this will trigger recomputation of linked expressions if needed
+                }
+            }
             else
             {
                 if (owner != null)
