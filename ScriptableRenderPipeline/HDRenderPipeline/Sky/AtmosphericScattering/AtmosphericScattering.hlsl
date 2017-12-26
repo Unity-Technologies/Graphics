@@ -57,8 +57,8 @@ float3 GetFogColor(PositionInputs posInput)
 float4 EvaluateAtmosphericScattering(PositionInputs posInput)
 {
 #ifdef VOLUMETRIC_LIGHTING_ENABLED
-    return SampleInScatteredRadianceAndTransmittance(posInput.positionNDC, posInput.linearDepth,
-                                                     TEXTURE3D_PARAM(_VBufferLighting, s_linear_clamp_sampler),
+    return SampleInScatteredRadianceAndTransmittance(TEXTURE3D_PARAM(_VBufferLighting, s_linear_clamp_sampler),
+                                                     posInput.positionNDC, posInput.linearDepth,
                                                      _VBufferResolutionAndScale.zw,
                                                      _VBufferDepthEncodingParams);
 #endif

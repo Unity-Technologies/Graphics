@@ -141,29 +141,11 @@ float3 TransmittanceColorAtDistanceToAbsorption(float3 transmittanceColor, float
     #define VBUFFER_SLICE_COUNT 128
 #endif // PRESET_ULTRA
 
-// Point samples the V-Buffer. Out-of-bounds loads return 0.
-float4 LoadFromVBuffer(float2 positionNDC, float linearDepth,
-                       TEXTURE3D(VBufferLighting),
-                       float4 VBufferResolutionAndScale,
-                       float4 VBufferDepthEncodingParams)
-{
-    int   k = VBUFFER_SLICE_COUNT;
-    float z = linearDepth;
-    float d = EncodeLogarithmicDepth(z, VBufferDepthEncodingParams);
-
-    // Account for the visible area of the VBuffer.
-    float2 positionSS = positionNDC * (VBufferResolutionAndScale.xy * VBufferResolutionAndScale.zw);
-    float  slice      = d * k;
-
-    // Out-of-bounds loads return 0.
-    return LOAD_TEXTURE3D(VBufferLighting, float3(positionSS, slice));
-}
-
 #include "Random.hlsl"
 
 // Returns linearly interpolated {volumetric radiance, opacity}. The sampler clamps to edge.
-float4 SampleInScatteredRadianceAndTransmittance(float2 positionNDC, float linearDepth,
-                                                 TEXTURE3D_ARGS(VBufferLighting, linearClampSampler),
+float4 SampleInScatteredRadianceAndTransmittance(TEXTURE3D_ARGS(VBufferLighting, linearClampSampler),
+                                                 float2 positionNDC, float linearDepth,
                                                  float2 VBufferScale, float4 VBufferDepthEncodingParams)
 {
     int   k = VBUFFER_SLICE_COUNT;
