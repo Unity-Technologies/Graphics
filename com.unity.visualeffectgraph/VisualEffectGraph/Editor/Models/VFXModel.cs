@@ -265,15 +265,10 @@ namespace UnityEditor.VFX
                     if (attrArray.Length == 1)
                     {
                         var attr = attrArray[0] as VFXSettingAttribute;
-                        if ((attr.visibleFlags & flags) == 0)
-                        {
-                            return false;
-                        }
-
-                        if (!filteredOutSettings.Contains(f.Name) || listHidden)
-                        {
+                        if (listHidden)
                             return true;
-                        }
+
+                        return (attr.visibleFlags & flags) != 0 && !filteredOutSettings.Contains(f.Name);
                     }
                     return false;
                 });

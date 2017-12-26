@@ -83,7 +83,7 @@ namespace UnityEditor.VFX.UI
 
         private void InitializeUndoStack()
         {
-            m_graphUndoStack = null;// new VFXGraphUndoStack(m_Graph);
+            m_graphUndoStack = new VFXGraphUndoStack(m_Graph);
         }
 
         private void ReleaseUndoStack()
