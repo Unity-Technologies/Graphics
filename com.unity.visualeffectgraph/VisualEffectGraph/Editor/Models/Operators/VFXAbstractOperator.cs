@@ -114,26 +114,6 @@ namespace UnityEditor.VFX
         {
         }
 
-        protected override IEnumerable<VFXPropertyWithValue> outputProperties
-        {
-            get
-            {
-                const string outputName = "o";
-                Type slotType = null;
-                switch (GetFloatMaxNbComponents(inputSlots))
-                {
-                    case 1: slotType = typeof(float); break;
-                    case 2: slotType = typeof(Vector2); break;
-                    case 3: slotType = typeof(Vector3); break;
-                    case 4: slotType = typeof(Vector4); break;
-                    default: break;
-                }
-
-                if (slotType != null)
-                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, outputName));
-            }
-        }
-
         public override void OnEnable()
         {
             var propertyType = GetType().GetRecursiveNestedType(GetInputPropertiesTypeName());
@@ -158,7 +138,30 @@ namespace UnityEditor.VFX
         }
     }
 
-    abstract class VFXOperatorUnaryFloatOperation : VFXOperatorFloatUnified
+    abstract class VFXOperatorFloatUnifiedWithVariadicOutput : VFXOperatorFloatUnified
+    {
+        protected override IEnumerable<VFXPropertyWithValue> outputProperties
+        {
+            get
+            {
+                const string outputName = "o";
+                Type slotType = null;
+                switch (GetFloatMaxNbComponents(inputSlots))
+                {
+                    case 1: slotType = typeof(float); break;
+                    case 2: slotType = typeof(Vector2); break;
+                    case 3: slotType = typeof(Vector3); break;
+                    case 4: slotType = typeof(Vector4); break;
+                    default: break;
+                }
+
+                if (slotType != null)
+                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, outputName));
+            }
+        }
+    }
+
+    abstract class VFXOperatorUnaryFloatOperation : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         public class InputProperties
         {
@@ -167,7 +170,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    abstract class VFXOperatorBinaryFloatCascadableOperation : VFXOperatorFloatUnified
+    abstract class VFXOperatorBinaryFloatCascadableOperation : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {

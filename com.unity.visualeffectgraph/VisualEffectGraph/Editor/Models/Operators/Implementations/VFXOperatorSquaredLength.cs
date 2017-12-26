@@ -12,6 +12,12 @@ namespace UnityEditor.VFX
             public FloatN x = Vector3.one;
         }
 
+        public class OutputProperties
+        {
+            [Tooltip("The squared length of x.")]
+            public float l;
+        }
+
         override public string name { get { return "Squared Length"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

@@ -14,6 +14,12 @@ namespace UnityEditor.VFX
             public FloatN b = Vector3.zero;
         }
 
+        public class OutputProperties
+        {
+            [Tooltip("The dot product between a and b.")]
+            public float d;
+        }
+
         override public string name { get { return "Dot Product"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

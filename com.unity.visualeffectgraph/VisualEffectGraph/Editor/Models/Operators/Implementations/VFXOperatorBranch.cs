@@ -7,7 +7,7 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX
 {
     [VFXInfo(category = "Flow")]
-    class VFXOperatorBranch : VFXOperatorFloatUnified
+    class VFXOperatorBranch : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         public class InputProperties
         {
