@@ -696,7 +696,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     var postProcessLayer = camera.GetComponent<PostProcessLayer>();
-                    var hdCamera = HDCamera.Get(camera, postProcessLayer, m_FrameSettings.enableStereo);
+                    var hdCamera = HDCamera.Get(camera, postProcessLayer, m_FrameSettings);
 
                     Resize(hdCamera);
 
@@ -739,7 +739,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     ConfigureForShadowMask(enableBakeShadowMask, cmd);
 
-	                InitAndClearBuffer(hdCamera, enableBakeShadowMask, cmd, m_FrameSettings.enableStereo);
+	                InitAndClearBuffer(hdCamera, enableBakeShadowMask, cmd);
 
                     RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd);
 
@@ -1647,7 +1647,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void InitAndClearBuffer(HDCamera hdCamera, bool enableBakeShadowMask, CommandBuffer cmd, bool stereoEnabled)
+        void InitAndClearBuffer(HDCamera hdCamera, bool enableBakeShadowMask, CommandBuffer cmd)
         {
             using (new ProfilingSample(cmd, "InitAndClearBuffer", GetSampler(CustomSamplerId.InitAndClearBuffer)))
             {
@@ -1668,11 +1668,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 
                     // Color and depth pyramids
-                    m_GaussianPyramidColorBufferDesc = BuildPyramidDescriptor(hdCamera, PyramidType.Color, stereoEnabled);
+                    m_GaussianPyramidColorBufferDesc = BuildPyramidDescriptor(hdCamera, PyramidType.Color, m_FrameSettings.enableStereo);
                     cmd.ReleaseTemporaryRT(m_GaussianPyramidColorBuffer);
                     cmd.GetTemporaryRT(m_GaussianPyramidColorBuffer, m_GaussianPyramidColorBufferDesc, FilterMode.Trilinear);
 
-                    m_DepthPyramidBufferDesc = BuildPyramidDescriptor(hdCamera, PyramidType.Depth, stereoEnabled);
+                    m_DepthPyramidBufferDesc = BuildPyramidDescriptor(hdCamera, PyramidType.Depth, m_FrameSettings.enableStereo);
 
                     cmd.ReleaseTemporaryRT(m_DepthPyramidBuffer);
                     cmd.GetTemporaryRT(m_DepthPyramidBuffer, m_DepthPyramidBufferDesc, FilterMode.Trilinear);
