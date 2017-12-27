@@ -386,7 +386,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // Both radiance values are obtained by integrating over line segments of different length.
         // Blending only makes sense if the length of both intervals is the same.
         // Therefore, the reprojected radiance needs to be rescaled by (frame_dt / reproj_dt).
-        bool   reprojSuccess   = reprojValue.a > 0;
+        bool   reprojSuccess   = reprojValue.a != 0;
         float  blendFactor     = reprojSuccess ? historyWeight : 0;
         float  reprojRcpLen    = reprojSuccess ? rcp(reprojValue.a) : 0;
         float  lengthScale     = dt * reprojRcpLen;
