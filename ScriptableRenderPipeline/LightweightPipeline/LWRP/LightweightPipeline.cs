@@ -125,8 +125,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private bool m_RequiredDepth;
         private MixedLightingSetup m_MixedLightingSetup;
 
-        private const int kShadowDepthBufferBits = 16;
-        private const int kCameraDepthBufferBits = 32;
+        private const int kDepthStencilBufferBits = 32;
         private Vector4[] m_DirectionalShadowSplitDistances = new Vector4[kMaxCascades];
 
         private ShadowSettings m_ShadowSettings = ShadowSettings.Default;
@@ -600,14 +599,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (m_RequiredDepth)
             {
-                RenderTextureDescriptor depthRTDesc = new RenderTextureDescriptor(rtWidth, rtHeight, RenderTextureFormat.Depth, kCameraDepthBufferBits);
+                RenderTextureDescriptor depthRTDesc = new RenderTextureDescriptor(rtWidth, rtHeight, RenderTextureFormat.Depth, kDepthStencilBufferBits);
                 cmd.GetTemporaryRT(CameraRenderTargetID.depth, depthRTDesc, FilterMode.Bilinear);
 
                 if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.DepthCopy))
                     cmd.GetTemporaryRT(CameraRenderTargetID.depthCopy, depthRTDesc, FilterMode.Bilinear);
             }
 
-            RenderTextureDescriptor colorRTDesc = new RenderTextureDescriptor(rtWidth, rtHeight, m_ColorFormat, kCameraDepthBufferBits);
+            RenderTextureDescriptor colorRTDesc = new RenderTextureDescriptor(rtWidth, rtHeight, m_ColorFormat, kDepthStencilBufferBits);
             colorRTDesc.msaaSamples = msaaSamples;
             colorRTDesc.enableRandomWrite = false;
 
@@ -821,7 +820,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Lightweight pipeline also supports only a single shadow light, if available it will be the main light.
             SetupMainLightConstants(cmd, lights, lightData.mainLightIndex);
             if (lightData.shadowMapSampleType != LightShadows.None)
-                SetupShadowShaderConstants(cmd, ref lights[lightData.mainLightIndex], m_ShadowCasterCascadesCount);
+                SetupShadowReceiverConstants(cmd, ref lights[lightData.mainLightIndex], m_ShadowCasterCascadesCount);
 
             if (lightData.totalAdditionalLightsCount > 0)
                 SetupAdditionalListConstants(cmd, lights, ref lightData);
@@ -894,13 +893,46 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.SetGlobalVectorArray(PerCameraBuffer._AdditionalLightSpotAttenuation, m_LightSpotAttenuations);
         }
 
-        private void SetupShadowShaderConstants(CommandBuffer cmd, ref VisibleLight shadowLight, int cascadeCount)
+        private void SetupShadowCasterConstants(CommandBuffer cmd, ref VisibleLight visibleLight, Matrix4x4 proj, float cascadeResolution)
+        {
+            Light light = visibleLight.light;
+            float bias = 0.0f;
+            float normalBias = 0.0f;
+            if (visibleLight.lightType == LightType.Directional)
+            {
+                // Scale bias by cascade depth.
+                // Directional has orthogonal projection so proj.m22 = -2 / (far - near)
+                // if reversed z buffer we don't need to flip sign as proj.m22 sign is already negative
+                float sign = (SystemInfo.usesReversedZBuffer) ? 1.0f : -1.0f;
+                bias = light.shadowBias * proj.m22 * 0.5f * sign;
+
+                // Currently only square pot cascades resolutions are used.
+                float texelSizeX = proj.m00 * 0.5f / cascadeResolution;
+                float texelSizeY = proj.m11 * 0.5f / cascadeResolution;
+                float texelSize = Mathf.Max(texelSizeX, texelSizeY);
+
+                // Since we are applying normal bias on caster side we want an inset normal offset
+                // thus we keep the negative bias
+                normalBias = light.shadowNormalBias * texelSize;
+            }
+            else if (visibleLight.lightType == LightType.Spot)
+            {
+                float sign = (SystemInfo.usesReversedZBuffer) ? -1.0f : 1.0f;
+                bias = light.shadowBias * sign;
+                normalBias = 0.0f;
+            }
+            else
+            {
+                Debug.LogWarning("Only spot and directional shadow casters are supported in lightweight pipeline");
+            }
+
+            cmd.SetGlobalVector("_ShadowBias", new Vector4(bias, normalBias, 0.0f, 0.0f));
+        }
+
+        private void SetupShadowReceiverConstants(CommandBuffer cmd, ref VisibleLight shadowLight, int cascadeCount)
         {
             Light light = shadowLight.light;
             float strength = 1.0f - light.shadowStrength;
-            float bias = light.shadowBias * 0.1f;
-            float normalBias = light.shadowNormalBias;
-            float nearPlane = light.shadowNearPlane;
             float shadowResolution = m_ShadowSlices[0].shadowResolution;
 
             const int maxShadowCascades = 4;
@@ -911,7 +943,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             float invShadowResolution = 0.5f / shadowResolution;
             cmd.SetGlobalMatrixArray("_WorldToShadow", shadowMatrices);
             cmd.SetGlobalVectorArray("_DirShadowSplitSpheres", m_DirectionalShadowSplitDistances);
-            cmd.SetGlobalVector("_ShadowData", new Vector4(strength, bias, normalBias, nearPlane));
+            cmd.SetGlobalVector("_ShadowData", new Vector4(strength, 0.0f, 0.0f, 0.0f));
             cmd.SetGlobalVector("_ShadowOffset0", new Vector4(-invShadowResolution, -invShadowResolution, 0.0f, 0.0f));
             cmd.SetGlobalVector("_ShadowOffset1", new Vector4(invShadowResolution, -invShadowResolution, 0.0f, 0.0f));
             cmd.SetGlobalVector("_ShadowOffset2", new Vector4(-invShadowResolution,  invShadowResolution, 0.0f, 0.0f));
@@ -983,62 +1015,65 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (!cullResults.GetShadowCasterBounds(shadowLightIndex, out bounds))
                 return false;
 
-            var cmd = CommandBufferPool.Get();
-            cmd.name = "Render packed shadows";
-            cmd.GetTemporaryRT(m_ShadowMapRTID, m_ShadowSettings.shadowAtlasWidth,
-                m_ShadowSettings.shadowAtlasHeight, kShadowDepthBufferBits, FilterMode.Bilinear, m_ShadowSettings.renderTextureFormat);
-            SetRenderTarget(cmd, m_ShadowMapRT, ClearFlag.All);
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
-
             float shadowNearPlane = m_Asset.ShadowNearOffset;
-            Vector3 splitRatio = m_ShadowSettings.directionalLightCascades;
 
             Matrix4x4 view, proj;
             var settings = new DrawShadowsSettings(cullResults, shadowLightIndex);
-            bool needRendering = false;
+            bool success = false;
+
+            var cmd = CommandBufferPool.Get("Render Shadowmap");
+            cmd.GetTemporaryRT(m_ShadowMapRTID, m_ShadowSettings.shadowAtlasWidth,
+                m_ShadowSettings.shadowAtlasHeight, kDepthStencilBufferBits, FilterMode.Bilinear, m_ShadowSettings.renderTextureFormat);
+            SetRenderTarget(cmd, m_ShadowMapRT, ClearFlag.All);
 
             if (shadowLight.lightType == LightType.Spot)
             {
-                needRendering = cullResults.ComputeSpotShadowMatricesAndCullingPrimitives(shadowLightIndex, out view, out proj,
+                success = cullResults.ComputeSpotShadowMatricesAndCullingPrimitives(shadowLightIndex, out view, out proj,
                         out settings.splitData);
 
-                if (!needRendering)
-                    return false;
-
-                SetupShadowSliceTransform(0, shadowResolution, proj, view);
-                RenderShadowSlice(ref context, 0, proj, view, settings);
+                if (success)
+                {
+                    SetupShadowCasterConstants(cmd, ref shadowLight, proj, shadowResolution);
+                    SetupShadowSliceTransform(0, shadowResolution, proj, view);
+                    RenderShadowSlice(cmd, ref context, 0, proj, view, settings);
+                }
             }
             else if (shadowLight.lightType == LightType.Directional)
             {
                 for (int cascadeIdx = 0; cascadeIdx < m_ShadowCasterCascadesCount; ++cascadeIdx)
                 {
-                    needRendering = cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(shadowLightIndex,
-                            cascadeIdx, m_ShadowCasterCascadesCount, splitRatio, shadowResolution, shadowNearPlane, out view, out proj,
+                    success = cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(shadowLightIndex,
+                            cascadeIdx, m_ShadowCasterCascadesCount, m_ShadowSettings.directionalLightCascades, shadowResolution, shadowNearPlane, out view, out proj,
                             out settings.splitData);
 
                     m_DirectionalShadowSplitDistances[cascadeIdx] = settings.splitData.cullingSphere;
                     m_DirectionalShadowSplitDistances[cascadeIdx].w *= settings.splitData.cullingSphere.w;
 
-                    if (!needRendering)
-                        return false;
+                    if (!success)
+                        break;
 
+                    SetupShadowCasterConstants(cmd, ref shadowLight, proj, shadowResolution);
                     SetupShadowSliceTransform(cascadeIdx, shadowResolution, proj, view);
-                    RenderShadowSlice(ref context, cascadeIdx, proj, view, settings);
+                    RenderShadowSlice(cmd, ref context, cascadeIdx, proj, view, settings);
                 }
             }
             else
             {
                 Debug.LogWarning("Only spot and directional shadow casters are supported in lightweight pipeline");
-                return false;
             }
 
-            return true;
+            CommandBufferPool.Release(cmd);
+            return success;
         }
 
         private void SetupShadowSliceTransform(int cascadeIndex, int shadowResolution, Matrix4x4 proj, Matrix4x4 view)
         {
-            // Assumes MAX_CASCADES = 4
+            if (cascadeIndex >= 4)
+            {
+                Debug.LogError(String.Format("{0} is an invalid cascade index. Maximum of 4 cascades"));
+                return;
+            }
+
             m_ShadowSlices[cascadeIndex].atlasX = (cascadeIndex % 2) * shadowResolution;
             m_ShadowSlices[cascadeIndex].atlasY = (cascadeIndex / 2) * shadowResolution;
             m_ShadowSlices[cascadeIndex].shadowResolution = shadowResolution;
@@ -1068,17 +1103,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_ShadowSlices[cascadeIndex].shadowTransform = matTile * matScaleBias * proj * view;
         }
 
-        private void RenderShadowSlice(ref ScriptableRenderContext context, int cascadeIndex,
+        private void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context, int cascadeIndex,
             Matrix4x4 proj, Matrix4x4 view, DrawShadowsSettings settings)
         {
-            var buffer = CommandBufferPool.Get("Prepare Shadowmap Slice");
-            buffer.SetViewport(new Rect(m_ShadowSlices[cascadeIndex].atlasX, m_ShadowSlices[cascadeIndex].atlasY,
+            cmd.SetViewport(new Rect(m_ShadowSlices[cascadeIndex].atlasX, m_ShadowSlices[cascadeIndex].atlasY,
                     m_ShadowSlices[cascadeIndex].shadowResolution, m_ShadowSlices[cascadeIndex].shadowResolution));
-            buffer.SetViewProjectionMatrices(view, proj);
-            context.ExecuteCommandBuffer(buffer);
-
+            cmd.SetViewProjectionMatrices(view, proj);
+            context.ExecuteCommandBuffer(cmd);
             context.DrawShadows(ref settings);
-            CommandBufferPool.Release(buffer);
+            cmd.Clear();
         }
 
         private int GetMaxTileResolutionInAtlas(int atlasWidth, int atlasHeight, int tileCount)
