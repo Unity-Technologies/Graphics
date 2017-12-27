@@ -358,12 +358,28 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                                             _VBufferResolutionAndScale.zw,
                                             _VBufferDepthEncodingParams);
 
+        // Compute the exponential moving average over 'n' frames:
+        // X = (1 - a) * ValueAtFrame[n] + a * AverageOverPreviousFrames.
+        // We want each sample to be uniformly weighted by (1 / n):
+        // X = (1 / n) * Sum{i from 1 to n}{ValueAtFrame[i]}.
+        // Therefore, we get:
+        // (1 - a) = (1 / n) => a = (1 - 1 / n) = (n - 1) / n,
+        // X = (1 / n) * ValueAtFrame[n] + (1 - 1 / n) * AverageOverPreviousFrames.
+        // Why does it work? We need to make the following assumption:
+        // AverageOverPreviousFrames ≈ AverageOverFrames[n - 1].
+        // AverageOverFrames[n - 1] = (1 / (n - 1)) * Sum{i from 1 to n - 1}{ValueAtFrame[i]}.
+        // This implies that the reprojected (accumulated) value has mostly converged.
+        // X = (1 / n) * ValueAtFrame[n] + ((n - 1) / n) * (1 / (n - 1)) * Sum{i from 1 to n - 1}{ValueAtFrame[i]}.
+        // X = (1 / n) * ValueAtFrame[n] + (1 / n) * Sum{i from 1 to n - 1}{ValueAtFrame[i]}.
+        // X = Sum{i from 1 to n}{ValueAtFrame[i] / n}.
+        float numFrames  = 7;
+        float confidence = reprojValue.a * (1 - 1 / numFrames);
+
         // Perform temporal blending.
         // Both radiance values are obtained by integrating over line segments of different length.
         // Blending only makes sense if the length of both intervals is the same.
         // Therefore, the reprojected radiance is defined as an integral over the unit interval,
         // and it needs to be rescaled by 'dt'.
-        float  confidence      = reprojValue.a * 0.75; // 0.75 ^ 7 ≈ 1/7
         float3 reprojRadiance  = reprojValue.rgb;
         float3 blendedRadiance = (1 - confidence) * voxelRadiance + confidence * dt * reprojRadiance;
 
