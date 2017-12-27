@@ -257,15 +257,15 @@ namespace UnityEditor.VFX.Test
             var appendDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "AppendVector");
             var append = m_ViewPresenter.AddVFXOperator(new Vector2(300, 100), appendDesc); fnResync();
 
-            var edgePresenterCos = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
-            edgePresenterCos.input = fnFindPresenter(append).outputPorts[0];
-            edgePresenterCos.output = fnFindPresenter(cos).inputPorts[0];
-            m_ViewPresenter.AddElement(edgePresenterCos); fnResync();
-
             var edgePresenterAppend_A = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
             edgePresenterAppend_A.input = fnFindPresenter(abs).outputPorts[0];
             edgePresenterAppend_A.output = fnFindPresenter(append).inputPorts[0];
             m_ViewPresenter.AddElement(edgePresenterAppend_A); fnResync();
+
+            var edgePresenterCos = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
+            edgePresenterCos.input = fnFindPresenter(append).outputPorts[0];
+            edgePresenterCos.output = fnFindPresenter(cos).inputPorts[0];
+            m_ViewPresenter.AddElement(edgePresenterCos); fnResync();
 
             var edgePresenterAppend_B = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
             edgePresenterAppend_B.input = fnFindPresenter(abs).outputPorts[0];
