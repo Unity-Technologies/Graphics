@@ -122,21 +122,33 @@ namespace UnityEditor.VFX
             }
         }
 
+        private static void CollectExposedDesc(List<VFXExposedDesc> outExposedParameters, string name, VFXSlot slot, VFXExpressionGraph graph)
+        {
+            var expression = slot.GetExpression();
+            if (expression != null)
+            {
+                outExposedParameters.Add(new VFXExposedDesc()
+                {
+                    name = name,
+                    expressionIndex = (uint)graph.GetFlattenedIndex(expression)
+                });
+            }
+            else
+            {
+                foreach (var child in slot.children)
+                {
+                    CollectExposedDesc(outExposedParameters, name + "_" + child.name, child, graph);
+                }
+            }
+        }
+
         private static void FillExposedDescs(List<VFXExposedDesc> outExposedParameters, VFXExpressionGraph graph, IEnumerable<VFXParameter> parameters)
         {
             foreach (var parameter in parameters)
             {
                 if (parameter.exposed)
                 {
-                    var outputSlotExpr = parameter.GetOutputSlot(0).GetExpression();
-                    if (outputSlotExpr != null)
-                    {
-                        outExposedParameters.Add(new VFXExposedDesc()
-                        {
-                            name = parameter.exposedName,
-                            expressionIndex = (uint)graph.GetFlattenedIndex(outputSlotExpr)
-                        });
-                    }
+                    CollectExposedDesc(outExposedParameters, parameter.exposedName, parameter.GetOutputSlot(0), graph);
                 }
             }
         }
