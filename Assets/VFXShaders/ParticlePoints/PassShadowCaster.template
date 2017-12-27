@@ -1,7 +1,7 @@
 // Shadow pass
 Pass
 {		
-	Tags { "LightMode"="ShadowCaster" }
+	Tags { "LightMode"=${VFXPassShadow} }
 	
 	ZWrite On
 	Blend Off
