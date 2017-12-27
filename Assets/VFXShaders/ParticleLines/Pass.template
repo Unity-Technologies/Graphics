@@ -22,12 +22,12 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 			
 			if (!alive)
 				return o;
-				
+
+			#if TARGET_FROM_ATTRIBUTES
+
 			${VFXLoadSize}
-			
 			float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);
 
-			#if TARGET_FROM_ATTRIBUTES			
 			position = mul(elementToVFX,float4(0,0,0,1)).xyz;
 			
 			${VFXLoadParameter:{targetOffset}}
