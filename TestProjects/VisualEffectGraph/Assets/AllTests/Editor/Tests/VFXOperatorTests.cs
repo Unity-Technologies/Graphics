@@ -154,16 +154,16 @@ namespace UnityEditor.VFX.Test
             var cosOperator = ScriptableObject.CreateInstance<VFXOperatorCosine>();
 
             Assert.AreEqual(VFXValueType.kFloat, cosOperator.outputSlots[0].GetExpression().valueType);
-            Assert.AreEqual(1, appendOperator.outputSlots.Count);
-            Assert.AreEqual(2, appendOperator.inputSlots.Count);
-            Assert.AreEqual(VFXValueType.kFloat2, appendOperator.outputSlots[0].GetExpression().valueType);
-
-            cosOperator.inputSlots[0].Link(appendOperator.outputSlots[0]);
-            Assert.AreEqual(VFXValueType.kFloat2, cosOperator.outputSlots[0].GetExpression().valueType);
+            Assert.AreEqual(0, appendOperator.outputSlots.Count);
+            Assert.AreEqual(1, appendOperator.inputSlots.Count);
 
             appendOperator.inputSlots[0].Link(absOperator.outputSlots[0]);
+            Assert.AreEqual(1, appendOperator.outputSlots.Count);
+            Assert.AreEqual(VFXValueType.kFloat, appendOperator.outputSlots[0].GetExpression().valueType);
+
+            cosOperator.inputSlots[0].Link(appendOperator.outputSlots[0]);
             Assert.AreEqual(2, appendOperator.inputSlots.Count);
-            Assert.AreEqual(VFXValueType.kFloat2, cosOperator.outputSlots[0].GetExpression().valueType);
+            Assert.AreEqual(VFXValueType.kFloat, cosOperator.outputSlots[0].GetExpression().valueType);
 
             appendOperator.inputSlots[1].Link(absOperator.outputSlots[0]);
             Assert.AreEqual(3, appendOperator.inputSlots.Count);

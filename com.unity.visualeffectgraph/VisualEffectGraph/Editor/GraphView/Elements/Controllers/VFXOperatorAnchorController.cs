@@ -24,7 +24,7 @@ namespace UnityEditor.VFX.UI
 
         public override void UpdateInfos()
         {
-            if (model.GetExpression() != null)
+            if (model.direction == VFXSlot.Direction.kInput && model.GetExpression() != null)
             {
                 System.Type newAnchorType = GetDisplayAnchorType(model);
 

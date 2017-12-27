@@ -13,6 +13,11 @@ namespace UnityEditor.VFX
             public Color color = Color.white;
         }
 
+        public class OutputProperties
+        {
+            public Vector3 hsv;
+        }
+
         override public string name { get { return "RGB to HSV"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

@@ -4,6 +4,11 @@ namespace UnityEditor.VFX.Test
 {
     class VFXOperatorFloatOne : VFXOperator
     {
+        public class OutputProperties
+        {
+            public float o;
+        }
+
         // HACK FIX
         private static VFXExpression defaultValue = null;
         private VFXExpression GetDefault

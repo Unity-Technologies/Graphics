@@ -112,7 +112,6 @@ namespace UnityEditor.VFX.Test
 
             var edgeControllerCos = new VFXDataEdgeController(fnFindController(cos).inputPorts.First(), fnFindController(append).outputPorts.First());
             m_ViewController.AddElement(edgeControllerCos); fnResync();
-
             var edgeControllerAppend_A = new VFXDataEdgeController(fnFindController(append).inputPorts.First(), fnFindController(abs).outputPorts.First());
             m_ViewController.AddElement(edgeControllerAppend_A); fnResync();
 

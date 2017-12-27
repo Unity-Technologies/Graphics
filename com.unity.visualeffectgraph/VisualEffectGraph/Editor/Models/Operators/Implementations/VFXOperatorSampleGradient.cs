@@ -19,13 +19,13 @@ namespace UnityEditor.VFX
             public float time = 0.0f;
         }
 
+        public class OutputProperties
+        {
+            public Vector4 s;
+        }
+
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            if (inputExpression.Length != 2)
-            {
-                return new VFXExpression[] {};
-            }
-
             return new[] { new VFXExpressionSampleGradient(inputExpression[0], inputExpression[1]) };
         }
     }

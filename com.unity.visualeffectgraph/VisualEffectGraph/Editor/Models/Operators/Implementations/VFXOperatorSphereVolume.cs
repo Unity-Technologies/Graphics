@@ -13,6 +13,12 @@ namespace UnityEditor.VFX
             public Sphere sphere = new Sphere();
         }
 
+        public class OutputProperties
+        {
+            [Tooltip("The volume of the sphere.")]
+            public float volume;
+        }
+
         override public string name { get { return "Volume (Sphere)"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

@@ -13,6 +13,12 @@ namespace UnityEditor.VFX
             public OrientedBox box = new OrientedBox();
         }
 
+        public class OutputProperties
+        {
+            [Tooltip("The volume of the box.")]
+            public float volume;
+        }
+
         override public string name { get { return "Volume (Oriented Box)"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

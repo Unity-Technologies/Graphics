@@ -20,13 +20,13 @@ namespace UnityEditor.VFX
             public float mipLevel = 0.0f;
         }
 
+        public class OutputProperties
+        {
+            public Vector4 s;
+        }
+
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            if (inputExpression.Length != 4)
-            {
-                return new VFXExpression[] {};
-            }
-
             return new[] { new VFXExpressionSampleTexture2DArray(inputExpression[0], inputExpression[1], inputExpression[2], inputExpression[3]) };
         }
     }

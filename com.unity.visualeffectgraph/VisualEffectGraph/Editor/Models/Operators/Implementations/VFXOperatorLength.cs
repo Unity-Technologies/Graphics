@@ -12,6 +12,12 @@ namespace UnityEditor.VFX
             public FloatN x = Vector3.one;
         }
 
+        public class OutputProperties
+        {
+            [Tooltip("The length of x.")]
+            public float l;
+        }
+
         override public string name { get { return "Length"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

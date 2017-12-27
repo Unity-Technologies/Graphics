@@ -110,7 +110,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots:
-  - {fileID: 114834270759789446}
+  - {fileID: 114950841702986880}
   m_expressionOp: 14
 --- !u!114 &114045363306678572
 MonoBehaviour:
@@ -141,14 +141,10 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
         Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The first operand.
+    attributes: []
   m_Direction: 0
   m_LinkedSlots:
-  - {fileID: 114834270759789446}
+  - {fileID: 114950841702986880}
 --- !u!114 &114048015916724814
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -248,11 +244,7 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
         Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The second operand.
+    attributes: []
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114077051982172570
@@ -1477,7 +1469,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots:
-  - {fileID: 114383312567673114}
+  - {fileID: 114303854455946364}
   m_expressionOp: 13
 --- !u!114 &114297743305116820
 MonoBehaviour:
@@ -1549,6 +1541,41 @@ MonoBehaviour:
   m_Direction: 0
   m_LinkedSlots:
   - {fileID: 114996906165513182}
+--- !u!114 &114303854455946364
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: VFXSlotFloat
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 114303854455946364}
+  m_MasterData:
+    m_Owner: {fileID: 114284239601355758}
+    m_Value:
+      m_Type:
+        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+      m_SerializableObject: 
+  m_Property:
+    name: kVFXDeltaTimeOp
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 1
+  m_LinkedSlots:
+  - {fileID: 114603518210589920}
+  - {fileID: 114522795565253118}
+  - {fileID: 114596887460168504}
 --- !u!114 &114304094525003352
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1783,41 +1810,6 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
---- !u!114 &114383312567673114
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
-  m_Name: VFXSlotFloat
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114383312567673114}
-  m_MasterData:
-    m_Owner: {fileID: 114284239601355758}
-    m_Value:
-      m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
-          PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 
-  m_Property:
-    name: o
-    m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-    attributes: []
-  m_Direction: 1
-  m_LinkedSlots:
-  - {fileID: 114603518210589920}
-  - {fileID: 114522795565253118}
-  - {fileID: 114596887460168504}
 --- !u!114 &114395709851238466
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1847,11 +1839,7 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
         Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The second operand.
+    attributes: []
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114426675514071650
@@ -2146,14 +2134,10 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
         Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The first operand.
+    attributes: []
   m_Direction: 0
   m_LinkedSlots:
-  - {fileID: 114383312567673114}
+  - {fileID: 114303854455946364}
 --- !u!114 &114525222220761692
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2246,11 +2230,7 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
         Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The second operand.
+    attributes: []
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114549471002919732
@@ -2462,14 +2442,10 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
         Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The first operand.
+    attributes: []
   m_Direction: 0
   m_LinkedSlots:
-  - {fileID: 114383312567673114}
+  - {fileID: 114303854455946364}
 --- !u!114 &114603518210589920
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2499,14 +2475,10 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
         Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The first operand.
+    attributes: []
   m_Direction: 0
   m_LinkedSlots:
-  - {fileID: 114383312567673114}
+  - {fileID: 114303854455946364}
 --- !u!114 &114605905450444768
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3027,11 +2999,7 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
         Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The second operand.
+    attributes: []
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114733244951243014
@@ -3599,39 +3567,6 @@ MonoBehaviour:
     - context: {fileID: 114177930399143018}
       slotIndex: 0
   integration: 0
---- !u!114 &114834270759789446
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
-  m_Name: VFXSlotFloat
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114834270759789446}
-  m_MasterData:
-    m_Owner: {fileID: 114039282653483644}
-    m_Value:
-      m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
-          PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 
-  m_Property:
-    name: o
-    m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-    attributes: []
-  m_Direction: 1
-  m_LinkedSlots:
-  - {fileID: 114045363306678572}
 --- !u!114 &114839271827221688
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3822,11 +3757,7 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
         Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The first operand.
+    attributes: []
   m_Direction: 0
   m_LinkedSlots:
   - {fileID: 114137356790581338}
@@ -4121,13 +4052,42 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
         Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The second operand.
+    attributes: []
   m_Direction: 0
   m_LinkedSlots: []
+--- !u!114 &114950841702986880
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: VFXSlotFloat
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 114950841702986880}
+  m_MasterData:
+    m_Owner: {fileID: 114039282653483644}
+    m_Value:
+      m_Type:
+        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+      m_SerializableObject: 
+  m_Property:
+    name: kVFXTotalTimeOp
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 1
+  m_LinkedSlots:
+  - {fileID: 114045363306678572}
 --- !u!114 &114952545566363384
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5265,7 +5225,7 @@ VFXAsset:
       - index: 82
         nameId: uniform_Sphere_arc_e
       params: []
-      processor: {fileID: 7200000, guid: f0c6d941c556ab748944570452009d32, type: 3}
+      processor: {fileID: 7200000, guid: c3fa31e17b7efc644aacb25695af5d2f, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5284,7 +5244,7 @@ VFXAsset:
       - index: 51
         nameId: uniform_deltaTime_f
       params: []
-      processor: {fileID: 7200000, guid: 0f1a8766f92f5cf46880ccc86076a90d, type: 3}
+      processor: {fileID: 7200000, guid: 7cd20d36a381b3941b0722795714a069, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -5303,7 +5263,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 1c1062f09def1944ca97caaac28236e4, type: 3}
+      processor: {fileID: 4800000, guid: f7eb68a2b93620b40be17e1ac8734b27, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -5322,7 +5282,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: c507cd986c7e99948bbf244d123cf5ff, type: 3}
+      processor: {fileID: 4800000, guid: 2e082528682f04b408edf9f17795ec84, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -5341,7 +5301,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: ed53c6d8fdc2fdd418329aaf17368d47, type: 3}
+      processor: {fileID: 4800000, guid: d2a96768ce0afe94eb4761050313cf08, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -5358,13 +5318,13 @@ VFXAsset:
       params:
       - index: -1
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 82c45ff8675794340af0521e73aacc11, type: 3}
+      processor: {fileID: 4800000, guid: a77dc126cc9a6b54d816f12075ebbea5, type: 3}
   m_Events:
-  - name: OnPlay
-    playSystems: 00000000
+  - name: OnStart
+    startSystems: 00000000
     stopSystems: 
   - name: OnStop
-    playSystems: 
+    startSystems: 
     stopSystems: 00000000
   m_RendererSettings:
     motionVectorGenerationMode: 0

@@ -15,6 +15,11 @@ namespace UnityEditor.VFX
             public DirectionType direction = new DirectionType();
         }
 
+        public class OutputProperties
+        {
+            public Vector3 tDir;
+        }
+
         override public string name { get { return "Transform (Direction)"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
