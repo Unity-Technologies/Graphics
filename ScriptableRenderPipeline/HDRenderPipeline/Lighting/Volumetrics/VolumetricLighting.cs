@@ -271,6 +271,31 @@ public partial class HDRenderPipeline : RenderPipeline
         cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,            GetVBufferLightingIntegral());
     }
 
+    // Ref: https://en.wikipedia.org/wiki/Close-packing_of_equal_spheres
+    // The returned {x, y} coordinates (all spheres) are all within the (-0.5, 0.5)^2 range.
+    Vector2[] GetHexagonalClosePackedSpheres7()
+    {
+        Vector2[] coords = new Vector2[7];
+
+        // The width is 3 spheres, so 6 radii.
+        float r = 1.0f / 6.0f;
+        float d = 2 * r;
+        float s = r * Mathf.Sqrt(3);
+
+        //  (7)(5)    ( )( )    ( )( )    ( )( )    ( )( )    ( )(o)    ( )(x)    (o)(x)    (x)(x)
+        // (2)(1)(3) ( )(o)( ) (o)(x)( ) (x)(x)(o) (x)(x)(x) (x)(x)(x) (x)(x)(x) (x)(x)(x) (x)(x)(x)
+        //  (4)(6)    ( )( )    ( )( )    ( )( )    (o)( )    (x)( )    (x)(o)    (x)(x)    (x)(x)
+        coords[0] = new Vector2( 0,  0);
+        coords[1] = new Vector2(-d,  0);
+        coords[2] = new Vector2( d,  0);
+        coords[3] = new Vector2(-r, -s);
+        coords[4] = new Vector2( r,  s);
+        coords[5] = new Vector2( r, -s);
+        coords[6] = new Vector2(-r,  s);
+
+        return coords;
+    }
+
     void VolumetricLightingPass(HDCamera camera, CommandBuffer cmd)
     {
         if (m_VolumetricLightingPreset == VolumetricLightingPreset.Off) return;
@@ -298,20 +323,32 @@ public partial class HDRenderPipeline : RenderPipeline
 
             camera.SetupComputeShader(m_VolumetricLightingCS, cmd);
 
+            Vector2[] xySeq = GetHexagonalClosePackedSpheres7();
+
             // This is a sequence of 7 equidistant numbers from 1/14 to 13/14.
             // Each of them is the centroid of the interval of length 2/14.
             // They've been rearranged in a sequence of pairs {small, large}, s.t. (small + large) = 1.
             // That way, the running average position is close to 0.5.
-            float[] seq = {7.0f/14.0f, 3.0f/14.0f, 11.0f/14.0f, 5.0f/14.0f, 9.0f/14.0f, 1.0f/14.0f, 13.0f/14.0f};
+            // | 6 | 2 | 4 | 1 | 5 | 3 | 7 |
+            // |   |   |   | o |   |   |   |
+            // |   | o |   | x |   |   |   |
+            // |   | x |   | x |   | o |   |
+            // |   | x | o | x |   | x |   |
+            // |   | x | x | x | o | x |   |
+            // | o | x | x | x | x | x |   |
+            // | x | x | x | x | x | x | o |
+            // | x | x | x | x | x | x | x |
+            float[] zSeq = {7.0f/14.0f, 3.0f/14.0f, 11.0f/14.0f, 5.0f/14.0f, 9.0f/14.0f, 1.0f/14.0f, 13.0f/14.0f};
 
             uint sampleIndex = (camera.camera.cameraType == CameraType.Game) ? (uint)Time.renderedFrameCount % 7 : 0;
+            Vector4 offset = new Vector4(xySeq[sampleIndex].x, xySeq[sampleIndex].y, zSeq[sampleIndex]);
 
             // TODO: set 'm_VolumetricLightingPreset'.
-            cmd.SetComputeMatrixParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferCoordToViewDirWS,  transform);
-            cmd.SetComputeVectorParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferIntegrationOffset, new Vector4(0.0f, 0.0f, seq[sampleIndex]));
-            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingHistory,   GetVBufferLightingHistory());  // Read
-            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingFeedback,  GetVBufferLightingFeedback()); // Write
-            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingIntegral,  GetVBufferLightingIntegral()); // Write
+            cmd.SetComputeVectorParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferSampleOffset,     offset);
+            cmd.SetComputeMatrixParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferCoordToViewDirWS, transform);
+            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingHistory,  GetVBufferLightingHistory());  // Read
+            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingFeedback, GetVBufferLightingFeedback()); // Write
+            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingIntegral, GetVBufferLightingIntegral()); // Write
 
             // The shader defines GROUP_SIZE_1D = 16.
             cmd.DispatchCompute(m_VolumetricLightingCS, kernel, (w + 15) / 16, (h + 15) / 16, 1);
