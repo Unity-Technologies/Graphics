@@ -8950,11 +8950,11 @@ VFXAsset:
         nameId: sortPriority
       processor: {fileID: 4800000, guid: 6d08ccbd8f5feaa498f266c6d75390bf, type: 3}
   m_Events:
-  - name: OnStart
-    startSystems: 00000000
+  - name: OnPlay
+    playSystems: 00000000
     stopSystems: 
   - name: OnStop
-    startSystems: 
+    playSystems: 
     stopSystems: 00000000
   m_RendererSettings:
     motionVectorGenerationMode: 0

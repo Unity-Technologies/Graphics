@@ -15,6 +15,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 114195889867397454}
   - {fileID: 114451710450516872}
@@ -35,6 +36,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114130155557443396}
   m_MasterData:
     m_Owner: {fileID: 114047068427672398}
@@ -66,6 +68,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots: []
   m_Disabled: 0
@@ -84,6 +87,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114781803701715642}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -114,6 +118,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114195889867397454}
   m_MasterData:
     m_Owner: {fileID: 114047068427672398}
@@ -127,11 +132,7 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
         Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The first operand.
+    attributes: []
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114233188372146952
@@ -149,6 +150,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114781803701715642}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -179,6 +181,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_Owners:
   - {fileID: 114728395063945522}
   - {fileID: 114806187176570744}
@@ -200,6 +203,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114347444046337502}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -230,6 +234,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114347444046337502}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -262,6 +267,7 @@ MonoBehaviour:
   - {fileID: 114594725394343742}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114347444046337502}
   m_MasterData:
     m_Owner: {fileID: 114977458455472868}
@@ -293,6 +299,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_Owners:
   - {fileID: 114977458455472868}
   - {fileID: 114638473226913198}
@@ -313,6 +320,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114347444046337502}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -343,6 +351,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114451710450516872}
   m_MasterData:
     m_Owner: {fileID: 114047068427672398}
@@ -356,11 +365,7 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
         Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The second operand.
+    attributes: []
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114473159940169392
@@ -379,6 +384,7 @@ MonoBehaviour:
   - {fileID: 114155643770284568}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots: []
   m_Data: {fileID: 114239660578601624}
@@ -391,6 +397,7 @@ MonoBehaviour:
   blendMode: 1
   useSoftParticle: 0
   sortPriority: 0
+  indirectDraw: 0
 --- !u!114 &114492186645237016
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -406,6 +413,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114781803701715642}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -436,6 +444,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114781803701715642}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -472,6 +481,7 @@ MonoBehaviour:
   - {fileID: 114047068427672398}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_saved: 1
 --- !u!114 &114581667515437644
 MonoBehaviour:
@@ -488,6 +498,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114781803701715642}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -521,6 +532,7 @@ MonoBehaviour:
   - {fileID: 114887654079465442}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114347444046337502}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -555,6 +567,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots: []
   m_Data: {fileID: 114356458982197376}
@@ -567,6 +580,7 @@ MonoBehaviour:
   blendMode: 1
   useSoftParticle: 0
   sortPriority: 0
+  indirectDraw: 0
 --- !u!114 &114716445837870802
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -585,6 +599,7 @@ MonoBehaviour:
   - {fileID: 114279658599045604}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114347444046337502}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -619,6 +634,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114347444046337502}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -650,6 +666,7 @@ MonoBehaviour:
   - {fileID: 114850903804657560}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 114781803701715642}
   m_OutputSlots: []
@@ -678,6 +695,7 @@ MonoBehaviour:
   - {fileID: 114233188372146952}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114781803701715642}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -715,6 +733,7 @@ MonoBehaviour:
   - {fileID: 114581667515437644}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114781803701715642}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -749,6 +768,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114347444046337502}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -781,6 +801,7 @@ MonoBehaviour:
   - {fileID: 114743450444088132}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114781803701715642}
   m_MasterData:
     m_Owner: {fileID: 114728395063945522}
@@ -813,6 +834,7 @@ MonoBehaviour:
   - {fileID: 114839237809197254}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots: []
   m_Data: {fileID: 114239660578601624}
@@ -840,6 +862,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots: []
   m_Disabled: 0
@@ -858,6 +881,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots: []
   m_Disabled: 0
@@ -876,6 +900,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114347444046337502}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -906,6 +931,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 114347444046337502}
   m_OutputSlots: []
@@ -931,6 +957,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
+  m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114781803701715642}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -996,11 +1023,11 @@ VFXAsset:
       data: 00000000
   m_Systems: []
   m_Events:
-  - name: OnStart
-    startSystems: 
+  - name: OnPlay
+    playSystems: 
     stopSystems: 
   - name: OnStop
-    startSystems: 
+    playSystems: 
     stopSystems: 
   m_RendererSettings:
     motionVectorGenerationMode: 0

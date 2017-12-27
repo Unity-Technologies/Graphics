@@ -110,10 +110,11 @@ namespace UnityEditor.VFX.Test
             var appendDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "AppendVector");
             var append = m_ViewController.AddVFXOperator(new Vector2(300, 100), appendDesc); fnResync();
 
-            var edgeControllerCos = new VFXDataEdgeController(fnFindController(cos).inputPorts.First(), fnFindController(append).outputPorts.First());
-            m_ViewController.AddElement(edgeControllerCos); fnResync();
             var edgeControllerAppend_A = new VFXDataEdgeController(fnFindController(append).inputPorts.First(), fnFindController(abs).outputPorts.First());
             m_ViewController.AddElement(edgeControllerAppend_A); fnResync();
+
+            var edgeControllerCos = new VFXDataEdgeController(fnFindController(cos).inputPorts.First(), fnFindController(append).outputPorts.First());
+            m_ViewController.AddElement(edgeControllerCos); fnResync();
 
             var edgeControllerAppend_B = new VFXDataEdgeController(fnFindController(append).inputPorts[1], fnFindController(abs).outputPorts.First());
             m_ViewController.AddElement(edgeControllerAppend_B); fnResync();
