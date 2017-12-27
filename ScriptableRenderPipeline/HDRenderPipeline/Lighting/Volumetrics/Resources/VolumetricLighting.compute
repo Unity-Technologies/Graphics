@@ -34,8 +34,8 @@
 //--------------------------------------------------------------------------------------------------
 
 RW_TEXTURE3D(float4, _VBufferLightingIntegral); // RGB = radiance, A = optical depth
-RW_TEXTURE3D(float4, _VBufferLightingFeedback); // RGB = radiance, A = confidence (similarity)
-TEXTURE3D(_VBufferLightingHistory);             // RGB = radiance, A = confidence (similarity)
+RW_TEXTURE3D(float4, _VBufferLightingFeedback); // RGB = radiance, A = interval length
+TEXTURE3D(_VBufferLightingHistory);             // RGB = radiance, A = interval length
 
 // TODO: avoid creating another Constant Buffer...
 CBUFFER_START(UnityVolumetricLighting)
@@ -323,6 +323,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     #endif
 
         // Compute the -exact- position of the center of the voxel.
+        // It's important since the accumulated value of the integral is stored at the center.
         // We will use it for participating media sampling and reprojection.
         float  tc       = t0 + 0.5 * dt;
         float3 centerWS = GetCenterAtDistance(ray, tc);
@@ -372,20 +373,27 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // X = (1 / n) * ValueAtFrame[n] + ((n - 1) / n) * (1 / (n - 1)) * Sum{i from 1 to n - 1}{ValueAtFrame[i]}.
         // X = (1 / n) * ValueAtFrame[n] + (1 / n) * Sum{i from 1 to n - 1}{ValueAtFrame[i]}.
         // X = Sum{i from 1 to n}{ValueAtFrame[i] / n}.
-        float numFrames  = 7;
-        float confidence = reprojValue.a * (1 - 1 / numFrames);
+        float numFrames     = 7;
+        float frameWeight   = 1 / numFrames;
+        float historyWeight = 1 - frameWeight;
+
+        // The accuracy of the integral linearly decreases with the length of the interval.
+        // Therefore, reprojecting longer intervals should result in a lower confidence.
+        // TODO: doesn't seem to be worth it, removed for now.
 
         // Perform temporal blending.
         // Both radiance values are obtained by integrating over line segments of different length.
         // Blending only makes sense if the length of both intervals is the same.
-        // Therefore, the reprojected radiance is defined as an integral over the unit interval,
-        // and it needs to be rescaled by 'dt'.
+        // Therefore, the reprojected radiance needs to be rescaled by (frame_dt / reproj_dt).
+        bool   reprojSuccess   = reprojValue.a > 0;
+        float  blendFactor     = reprojSuccess ? historyWeight : 0;
+        float  reprojRcpLen    = reprojSuccess ? rcp(reprojValue.a) : 0;
+        float  lengthScale     = dt * reprojRcpLen;
         float3 reprojRadiance  = reprojValue.rgb;
-        float3 blendedRadiance = (1 - confidence) * voxelRadiance + confidence * dt * reprojRadiance;
+        float3 blendedRadiance = (1 - blendFactor) * voxelRadiance + blendFactor * lengthScale * reprojRadiance;
 
-        // Store the feedback for a unit interval.
-        // TODO: store a non-constant confidence value.
-        _VBufferLightingFeedback[uint3(posInput.positionSS, slice)] = float4(blendedRadiance * rcp(dt), 1);
+        // Store the feedback for the voxel.
+        _VBufferLightingFeedback[uint3(posInput.positionSS, slice)] = float4(blendedRadiance, dt);
     #else
         float3 blendedRadiance = voxelRadiance;
     #endif
