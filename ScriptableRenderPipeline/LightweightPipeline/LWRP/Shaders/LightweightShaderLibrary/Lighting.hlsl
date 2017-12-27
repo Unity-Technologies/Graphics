@@ -381,7 +381,7 @@ inline half GetMainLightDirectionAndRealtimeAttenuation(LightInput lightInput, h
 
     // Cookies and shadows are only computed for main light
     attenuation *= CookieAttenuation(positionWS);
-    attenuation *= RealtimeShadowAttenuation(positionWS, normalWS, lightDirection);
+    attenuation *= RealtimeShadowAttenuation(positionWS);
 
     return attenuation;
 }

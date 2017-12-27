@@ -37,17 +37,8 @@ half4 _ShadowOffset0;
 half4 _ShadowOffset1;
 half4 _ShadowOffset2;
 half4 _ShadowOffset3;
-half4 _ShadowData; // (x: 1.0 - shadowStrength, y: bias, z: normal bias, w: near plane offset)
+half4 _ShadowData; // (x: 1.0 - shadowStrength)
 CBUFFER_END
-
-float ApplyDepthBias(float clipZ)
-{
-#ifdef UNITY_REVERSED_Z
-    return  clipZ + _ShadowData.y;
-#endif
-
-    return  clipZ - _ShadowData.y;
-}
 
 inline half SampleShadowmap(float4 shadowCoord)
 {
@@ -57,7 +48,7 @@ inline half SampleShadowmap(float4 shadowCoord)
     float3 coord = shadowCoord.xyz;
 #endif
 
-    coord.z = saturate(ApplyDepthBias(coord.z));
+    coord.z = saturate(coord.z);
     if (coord.x <= 0 || coord.x >= 1 || coord.y <= 0 || coord.y >= 1)
         return 1;
 
@@ -95,25 +86,20 @@ inline half ComputeCascadeIndex(float3 wpos)
     return 4 - dot(weights, half4(4, 3, 2, 1));
 }
 
-inline half RealtimeShadowAttenuation(float3 posWorld, half3 vertexNormal, half3 shadowDir)
+inline half RealtimeShadowAttenuation(float3 posWorld)
 {
 #if !defined(_SHADOWS_ENABLED)
     return 1.0;
 #endif
 
-    half NdotL = dot(vertexNormal, shadowDir);
-    half bias = saturate(1.0 - NdotL) * _ShadowData.z;
-
-    float3 posWorldOffsetNormal = posWorld + vertexNormal * bias;
-
     int cascadeIndex = 0;
 #ifdef _SHADOWS_CASCADE
-    cascadeIndex = ComputeCascadeIndex(posWorldOffsetNormal);
+    cascadeIndex = ComputeCascadeIndex(posWorld);
     if (cascadeIndex >= MAX_SHADOW_CASCADES)
         return 1.0;
 #endif
 
-    float4 shadowCoord = mul(_WorldToShadow[cascadeIndex], float4(posWorldOffsetNormal, 1.0));
+    float4 shadowCoord = mul(_WorldToShadow[cascadeIndex], float4(posWorld, 1.0));
     return SampleShadowmap(shadowCoord);
 }
 
