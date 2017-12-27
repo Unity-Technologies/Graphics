@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 public class TestRealtime : MonoBehaviour
@@ -16,9 +17,9 @@ public class TestRealtime : MonoBehaviour
     {
         if (m_SceneSettings != null)
         {
-            HDRISkySettings skyParams = m_SceneSettings.GetComponent<HDRISkySettings>();
-            if (skyParams)
-                skyParams.rotation = (skyParams.rotation + Time.deltaTime * m_RotationSpeed) % 360.0f;
+            HDRISky skyParams = VolumeManager.instance.stack.GetComponent<HDRISky>();
+            if (skyParams != null)
+                skyParams.rotation.value = (skyParams.rotation + Time.deltaTime * m_RotationSpeed) % 360.0f;
         }
     }
 }
