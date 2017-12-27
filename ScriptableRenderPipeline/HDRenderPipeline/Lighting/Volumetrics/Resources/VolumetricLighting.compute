@@ -39,8 +39,8 @@ TEXTURE3D(_VBufferLightingHistory);             // RGB = radiance, A = confidenc
 
 // TODO: avoid creating another Constant Buffer...
 CBUFFER_START(UnityVolumetricLighting)
+    float4   _VBufferSampleOffset;              // {x, y, z}, w = unused
     float4x4 _VBufferCoordToViewDirWS;          // Actually just 3x3, but Unity can only set 4x4
-    float4   _VBufferIntegrationOffset;         // {x, y, z}, w = unused
 CBUFFER_END
 
 //--------------------------------------------------------------------------------------------------
@@ -336,7 +336,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     #if ENABLE_REPROJECTION
         // This is a sequence of 7 equidistant numbers from 1/14 to 13/14.
         // Each of them is the centroid of the interval of length 2/14.
-        float rndVal = _VBufferIntegrationOffset.z;
+        float rndVal = _VBufferSampleOffset.z;
     #else
         float rndVal = 0.5;
     #endif
@@ -452,7 +452,7 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
 
     float2 centerCoord = voxelCoord + 0.5;
 #if ENABLE_REPROJECTION
-    float2 sampleCoord = voxelCoord + _VBufferIntegrationOffset.xy;
+    float2 sampleCoord = centerCoord + _VBufferSampleOffset.xy;
 #else
     float2 sampleCoord = centerCoord;
 #endif
