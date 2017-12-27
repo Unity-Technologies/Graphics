@@ -26,18 +26,18 @@ UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(3);
 #define DIRECTIONAL_LIGHT (3)
 
 #if defined(SHADER_API_D3D11)
-#	include "ShaderLibrary/API/D3D11.hlsl"
+#	include "CoreRP/ShaderLibrary/API/D3D11.hlsl"
 #elif defined(SHADER_API_PSSL)
-#	include "ShaderLibrary/API/PSSL.hlsl"
+#	include "CoreRP/ShaderLibrary/API/PSSL.hlsl"
 #elif defined(SHADER_API_XBOXONE)
-#	include "ShaderLibrary/API/D3D11.hlsl"
-#	include "ShaderLibrary/API/D3D11_1.hlsl"
+#	include "CoreRP/ShaderLibrary/API/D3D11.hlsl"
+#	include "CoreRP/ShaderLibrary/API/D3D11_1.hlsl"
 #elif defined(SHADER_API_METAL)
-#	include "ShaderLibrary/API/Metal.hlsl"
+#	include "CoreRP/ShaderLibrary/API/Metal.hlsl"
 #else
 #	error unsupported shader api
 #endif
-#include "ShaderLibrary/API/Validate.hlsl"
+#include "CoreRP/ShaderLibrary/API/Validate.hlsl"
 #include "../../Fptl/Shadow.hlsl"
 
 UNITY_DECLARE_DEPTH_TEXTURE(_CameraGBufferZ);
