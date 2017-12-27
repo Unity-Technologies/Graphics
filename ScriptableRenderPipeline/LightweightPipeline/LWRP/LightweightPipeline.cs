@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
@@ -58,7 +59,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public int pixelAdditionalLightsCount;
         public int totalAdditionalLightsCount;
         public int mainLightIndex;
-        public bool shadowsRendered;
+        public LightShadows shadowMapSampleType;
     }
 
     public enum MixedLightingSetup
@@ -336,8 +337,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     // There's no way to map shadow light indices. We need to pass in the original unsorted index.
                     // If no additional lights then no light sorting is performed and the indices match.
                     int shadowOriginalIndex = (lightData.totalAdditionalLightsCount > 0) ? GetLightUnsortedIndex(lightData.mainLightIndex) : lightData.mainLightIndex;
-                    lightData.shadowsRendered = RenderShadows(ref m_CullResults, ref mainLight,
+                    bool shadowsRendered = RenderShadows(ref m_CullResults, ref mainLight,
                             shadowOriginalIndex, ref context);
+                    if (shadowsRendered)
+                    {
+                        lightData.shadowMapSampleType = (m_Asset.ShadowSetting != ShadowType.SOFT_SHADOWS)
+                            ? LightShadows.Hard
+                            : mainLight.light.shadows;
+                    }
+                    else
+                    {
+                        lightData.shadowMapSampleType = LightShadows.None;
+                    }
                 }
             }
         }
@@ -638,7 +649,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             int visibleLightsCount = Math.Min(visibleLights.Length, m_Asset.MaxPixelLights);
             m_SortedLightIndexMap.Clear();
 
-            lightData.shadowsRendered = false;
+            lightData.shadowMapSampleType = LightShadows.None;
 
             if (visibleLightsCount <= 1)
                 lightData.mainLightIndex = GetMainLight(visibleLights);
@@ -699,9 +710,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (currLight.light == null)
                     break;
 
+                // Shadow lights are sorted by type (directional > puctual) and intensity
+                // The first shadow light we find in the list is the main light
                 if (shadowsEnabled && currLight.light.shadows != LightShadows.None && LightweightUtils.IsSupportedShadowType(currLight.lightType))
                     return i;
 
+                // In case no shadow light is present we will return the brightest directional light
                 if (currLight.lightType == LightType.Directional && brighestDirectionalIndex == -1)
                     brighestDirectionalIndex = i;
             }
@@ -806,7 +820,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Main light has an optimized shader path for main light. This will benefit games that only care about a single light.
             // Lightweight pipeline also supports only a single shadow light, if available it will be the main light.
             SetupMainLightConstants(cmd, lights, lightData.mainLightIndex);
-            if (lightData.shadowsRendered)
+            if (lightData.shadowMapSampleType != LightShadows.None)
                 SetupShadowShaderConstants(cmd, ref lights[lightData.mainLightIndex], m_ShadowCasterCascadesCount);
 
             if (lightData.totalAdditionalLightsCount > 0)
@@ -907,29 +921,52 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void SetShaderKeywords(CommandBuffer cmd, ref LightData lightData, VisibleLight[] visibleLights)
         {
             int vertexLightsCount = lightData.totalAdditionalLightsCount - lightData.pixelAdditionalLightsCount;
-            CoreUtils.SetKeyword(cmd, "_VERTEX_LIGHTS", vertexLightsCount > 0);
-
             int mainLightIndex = lightData.mainLightIndex;
 
-            CoreUtils.SetKeyword(cmd, "_MAIN_LIGHT_COOKIE", mainLightIndex != -1 && LightweightUtils.IsSupportedCookieType(visibleLights[mainLightIndex].lightType) && visibleLights[mainLightIndex].light.cookie != null);
-            CoreUtils.SetKeyword(cmd, "_MAIN_DIRECTIONAL_LIGHT", mainLightIndex == -1 || visibleLights[mainLightIndex].lightType == LightType.Directional);
-            CoreUtils.SetKeyword(cmd, "_MAIN_SPOT_LIGHT", mainLightIndex != -1 && visibleLights[mainLightIndex].lightType == LightType.Spot);
-            CoreUtils.SetKeyword(cmd, "_ADDITIONAL_LIGHTS", lightData.totalAdditionalLightsCount > 0);
-            CoreUtils.SetKeyword(cmd, "_MIXED_LIGHTING_SHADOWMASK", m_MixedLightingSetup == MixedLightingSetup.ShadowMask);
-            CoreUtils.SetKeyword(cmd, "_MIXED_LIGHTING_SUBTRACTIVE", m_MixedLightingSetup == MixedLightingSetup.Subtractive);
-
-            string[] shadowKeywords = new string[] { "_HARD_SHADOWS", "_SOFT_SHADOWS", "_HARD_SHADOWS_CASCADES", "_SOFT_SHADOWS_CASCADES" };
-            for (int i = 0; i < shadowKeywords.Length; ++i)
-                cmd.DisableShaderKeyword(shadowKeywords[i]);
-
-            if (m_Asset.AreShadowsEnabled() && lightData.shadowsRendered)
+            // We have no good approach exposed to skip shader variants, e.g, ideally we would like to skip _CASCADE for all puctual lights
+            // We combine light and shadow classification keywords to reduce the amount of shader variants.
+            // Lightweight shader library declares defines based on these keywords to make avoid having to check them in the shaders
+            // Core.hlsl defines _MAIN_LIGHT_DIRECTIONAL and _MAIN_LIGHT_SPOT (point lights can't be main light)
+            // Shadow.hlsl defines _SHADOWS_ENABLED, _SHADOWS_SOFT, _SHADOWS_CASCADE, _SHADOWS_PERSPECTIVE
+            string[] mainLightKeywords =
             {
-                int keywordIndex = (int)m_Asset.ShadowSetting - 1;
-                if (m_Asset.CascadeCount > 1)
-                    keywordIndex += 2;
-                cmd.EnableShaderKeyword(shadowKeywords[keywordIndex]);
+                "_MAIN_LIGHT_DIRECTIONAL_SHADOW",
+                "_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE",
+                "_MAIN_LIGHT_DIRECTIONAL_SHADOW_SOFT",
+                "_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT",
+
+                "_MAIN_LIGHT_SPOT_SHADOW",
+                "_MAIN_LIGHT_SPOT_SHADOW_SOFT"
+            };
+
+            for (int i = 0; i < mainLightKeywords.Length; ++i)
+                cmd.DisableShaderKeyword(mainLightKeywords[i]);
+
+            if (mainLightIndex != -1 && (lightData.shadowMapSampleType != LightShadows.None))
+            {
+                StringBuilder keywordString = new StringBuilder("_MAIN_LIGHT");
+                LightType mainLightType = visibleLights[mainLightIndex].lightType;
+                if (mainLightType == LightType.Directional)
+                {
+                    keywordString.Append("_DIRECTIONAL_SHADOW");
+                    if (m_Asset.CascadeCount > 1)
+                        keywordString.Append("_CASCADE");
+                }
+                else
+                {
+                    keywordString.Append("_SPOT_SHADOW");
+                }
+
+                if (lightData.shadowMapSampleType == LightShadows.Soft)
+                    keywordString.Append("_SOFT");
+                string keyword = keywordString.ToString();
+                cmd.EnableShaderKeyword(keyword);
             }
 
+            CoreUtils.SetKeyword(cmd, "_MAIN_LIGHT_COOKIE", mainLightIndex != -1 && LightweightUtils.IsSupportedCookieType(visibleLights[mainLightIndex].lightType) && visibleLights[mainLightIndex].light.cookie != null);
+            CoreUtils.SetKeyword(cmd, "_ADDITIONAL_LIGHTS", lightData.totalAdditionalLightsCount > 0);
+            CoreUtils.SetKeyword(cmd, "_MIXED_LIGHTING_SUBTRACTIVE", m_MixedLightingSetup == MixedLightingSetup.Subtractive);
+            CoreUtils.SetKeyword(cmd, "_VERTEX_LIGHTS", vertexLightsCount > 0);
             CoreUtils.SetKeyword(cmd, "SOFTPARTICLES_ON", m_Asset.RequireCameraDepthTexture);
         }
 
