@@ -45,8 +45,7 @@ namespace UnityEditor.VFX
 
     abstract class VFXAttributeParameter : VFXOperator
     {
-        [VFXSetting]
-        [StringProvider(typeof(AttributeProvider))]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(AttributeProvider))]
         public string attribute = VFXAttribute.All.First();
 
         protected override IEnumerable<VFXPropertyWithValue> outputProperties
