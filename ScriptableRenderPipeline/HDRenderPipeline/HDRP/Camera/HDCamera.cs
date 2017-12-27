@@ -81,8 +81,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // If TAA is enabled projMatrix will hold a jittered projection matrix. The original,
             // non-jittered projection matrix can be accessed via nonJitteredProjMatrix.
-            bool taaEnabled = camera.cameraType == CameraType.Game
-                && CoreUtils.IsTemporalAntialiasingActive(postProcessLayer);
+            bool taaEnabled = Application.isPlaying && CoreUtils.IsTemporalAntialiasingActive(postProcessLayer);
 
             var nonJitteredCameraProj = camera.projectionMatrix;
             var cameraProj = taaEnabled
@@ -122,16 +121,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 isFirstFrame = false;
+            }
 
-                const uint taaFrameCount = 8;
-                taaFrameIndex = taaEnabled ? (uint)Time.renderedFrameCount % taaFrameCount : 0;
-            }
-            else
-            {
-                // Warning: in the Game View, outside of the Play Mode, the counter gets stuck on a random frame.
-                // In this case, reset the frame index to 0.
-                taaFrameIndex = 0;
-            }
+            const uint taaFrameCount = 8;
+            taaFrameIndex = taaEnabled ? (uint)Time.renderedFrameCount % taaFrameCount : 0;
 
             viewMatrix = gpuView;
             projMatrix = gpuProj;
