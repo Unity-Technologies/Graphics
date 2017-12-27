@@ -153,7 +153,6 @@ namespace UnityEditor.VFX
             try
             {
                 EditorUtility.DisplayProgressBar("Saving...", "Rebuild", 0);
-                SanitizeGraph();
                 RecompileIfNeeded();
                 float currentStep = 0;
 
@@ -199,10 +198,15 @@ namespace UnityEditor.VFX
 
         public void SanitizeGraph()
         {
+            if (m_GraphSanitized)
+                return;
+
             var objs = new HashSet<Object>();
             CollectDependencies(objs);
             foreach (var model in objs.OfType<VFXModel>())
                 model.Sanitize(); // This can modify dependencies but newly created model are supposed safe so we dont care about retrieving new dependencies
+
+            m_GraphSanitized = true;
         }
 
         public bool UpdateSubAssets()
@@ -323,6 +327,8 @@ namespace UnityEditor.VFX
 
         public void RecompileIfNeeded(bool preventRecompilation = false)
         {
+            SanitizeGraph();
+
             bool considerGraphDirty = m_ExpressionGraphDirty && !preventRecompilation;
             if (considerGraphDirty)
             {
@@ -359,6 +365,8 @@ namespace UnityEditor.VFX
             }
         }
 
+        [NonSerialized]
+        private bool m_GraphSanitized = false;
         [NonSerialized]
         private bool m_ExpressionGraphDirty = true;
         [NonSerialized]

@@ -90,7 +90,6 @@ namespace UnityEditor.VFX.Test
             foreach (var vfx in vfxAsset)
             {
                 var graph = VFXAssetExtensions.GetOrCreateGraph(vfx);
-                graph.SanitizeGraph();
                 graph.RecompileIfNeeded();
             }
 
