@@ -5,18 +5,26 @@
 
 #define MAX_SHADOW_CASCADES 4
 
-#if defined(_HARD_SHADOWS) || defined(_SOFT_SHADOWS) || defined(_HARD_SHADOWS_CASCADES) || defined(_SOFT_SHADOWS_CASCADES)
-#define _SHADOWS
+///////////////////////////////////////////////////////////////////////////////
+// Light Classification shadow defines                                       //
+//                                                                           //
+// In order to reduce shader variations main light keywords were combined    //
+// here we define shadow keywords.                                           //
+///////////////////////////////////////////////////////////////////////////////
+#if defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_SOFT) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT) || defined(_MAIN_LIGHT_SPOT_SHADOW) || defined(_MAIN_LIGHT_SPOT_SHADOW_SOFT)
+    #define _SHADOWS_ENABLED
 #endif
 
-#if defined(_HARD_SHADOWS_CASCADES) || defined(_SOFT_SHADOWS_CASCADES)
-#define _SHADOW_CASCADES
+#if defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_SOFT) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT) || defined(_MAIN_LIGHT_SPOT_SHADOW_SOFT)
+    #define _SHADOWS_SOFT
 #endif
 
-#ifdef _SHADOWS
-#define LIGHTWEIGHT_SHADOW_ATTENUATION(posWorld, vertexNormal, shadowDir) ComputeShadowAttenuation(posWorld, vertexNormal, shadowDir)
-#else
-#define LIGHTWEIGHT_SHADOW_ATTENUATION(posWorld, vertexNormal, shadowDir) 1.0h
+#if defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT)
+    #define _SHADOWS_CASCADE
+#endif
+
+#if defined(_MAIN_LIGHT_SPOT_SHADOW) || defined(_MAIN_LIGHT_SPOT_SHADOW_SOFT)
+    #define _SHADOWS_PERSPECTIVE
 #endif
 
 TEXTURE2D_SHADOW(_ShadowMap);
@@ -43,12 +51,17 @@ float ApplyDepthBias(float clipZ)
 
 inline half SampleShadowmap(float4 shadowCoord)
 {
+#if defined(_SHADOWS_PERSPECTIVE)
     float3 coord = shadowCoord.xyz /= shadowCoord.w;
+#else
+    float3 coord = shadowCoord.xyz;
+#endif
+
     coord.z = saturate(ApplyDepthBias(coord.z));
     if (coord.x <= 0 || coord.x >= 1 || coord.y <= 0 || coord.y >= 1)
         return 1;
 
-#if defined(_SOFT_SHADOWS) || defined(_SOFT_SHADOWS_CASCADES)
+#ifdef _SHADOWS_SOFT
     // 4-tap hardware comparison
     half4 attenuation;
     attenuation.x = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, coord + _ShadowOffset0.xyz);
@@ -82,15 +95,19 @@ inline half ComputeCascadeIndex(float3 wpos)
     return 4 - dot(weights, half4(4, 3, 2, 1));
 }
 
-inline half ComputeShadowAttenuation(float3 posWorld, half3 vertexNormal, half3 shadowDir)
+inline half RealtimeShadowAttenuation(float3 posWorld, half3 vertexNormal, half3 shadowDir)
 {
+#if !defined(_SHADOWS_ENABLED)
+    return 1.0;
+#endif
+
     half NdotL = dot(vertexNormal, shadowDir);
     half bias = saturate(1.0 - NdotL) * _ShadowData.z;
 
     float3 posWorldOffsetNormal = posWorld + vertexNormal * bias;
 
     int cascadeIndex = 0;
-#ifdef _SHADOW_CASCADES
+#ifdef _SHADOWS_CASCADE
     cascadeIndex = ComputeCascadeIndex(posWorldOffsetNormal);
     if (cascadeIndex >= MAX_SHADOW_CASCADES)
         return 1.0;
