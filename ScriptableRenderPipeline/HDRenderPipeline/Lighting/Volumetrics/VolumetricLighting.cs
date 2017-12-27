@@ -309,9 +309,24 @@ public partial class HDRenderPipeline : RenderPipeline
                 return;
             }
 
-            bool enableClustered = m_FrameSettings.lightLoopSettings.enableTileAndCluster;
-            int  kernel          = m_VolumetricLightingCS.FindKernel(enableClustered ? "VolumetricLightingClustered"
-                                                                                     : "VolumetricLightingAllLights");
+            bool enableClustered    = m_FrameSettings.lightLoopSettings.enableTileAndCluster;
+            bool enableReprojection = Application.isPlaying;
+
+            int kernel;
+
+            if (enableReprojection)
+            {
+                // Only available in the Play Mode because all the frame counters in the Edit Mode are broken.
+                kernel = m_VolumetricLightingCS.FindKernel(enableClustered ? "VolumetricLightingClusteredReproj"
+                                                                           : "VolumetricLightingAllLightsReproj");
+            }
+            else
+            {
+                kernel = m_VolumetricLightingCS.FindKernel(enableClustered ? "VolumetricLightingClustered"
+                                                                           : "VolumetricLightingAllLights");
+
+            }
+
             int w = 0, h = 0, d = 0;
             Vector2 scale = ComputeVBufferResolutionAndScale(camera.screenSize.x, camera.screenSize.y, ref w, ref h, ref d);
             float   vFoV  = camera.camera.fieldOfView * Mathf.Deg2Rad;
@@ -340,7 +355,7 @@ public partial class HDRenderPipeline : RenderPipeline
             // | x | x | x | x | x | x | x |
             float[] zSeq = {7.0f/14.0f, 3.0f/14.0f, 11.0f/14.0f, 5.0f/14.0f, 9.0f/14.0f, 1.0f/14.0f, 13.0f/14.0f};
 
-            uint sampleIndex = (camera.camera.cameraType == CameraType.Game) ? (uint)Time.renderedFrameCount % 7 : 0;
+            uint sampleIndex = (uint)Time.renderedFrameCount % 7;
             Vector4 offset = new Vector4(xySeq[sampleIndex].x, xySeq[sampleIndex].y, zSeq[sampleIndex]);
 
             // TODO: set 'm_VolumetricLightingPreset'.

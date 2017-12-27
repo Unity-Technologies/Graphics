@@ -2,13 +2,14 @@
 // Definitions
 //--------------------------------------------------------------------------------------------------
 
-#pragma kernel VolumetricLightingAllLights VolumetricLighting=VolumetricLightingAllLights LIGHTLOOP_SINGLE_PASS
-#pragma kernel VolumetricLightingClustered VolumetricLighting=VolumetricLightingClustered LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
+#pragma kernel VolumetricLightingAllLights       VolumetricLighting=VolumetricLightingAllLights       ENABLE_REPROJECTION=0 LIGHTLOOP_SINGLE_PASS
+#pragma kernel VolumetricLightingAllLightsReproj VolumetricLighting=VolumetricLightingAllLightsReproj ENABLE_REPROJECTION=1 LIGHTLOOP_SINGLE_PASS
+#pragma kernel VolumetricLightingClustered       VolumetricLighting=VolumetricLightingClustered       ENABLE_REPROJECTION=0 LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
+#pragma kernel VolumetricLightingClusteredReproj VolumetricLighting=VolumetricLightingClusteredReproj ENABLE_REPROJECTION=1 LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
 
 #pragma enable_d3d11_debug_symbols
 
-#define ENABLE_REPROJECTION 1
-#define DEBUG_REPROJECTION  0
+#define DEBUG_REPROJECTION 0
 
 #include "../../../ShaderPass/ShaderPass.cs.hlsl"
 #define SHADERPASS    SHADERPASS_VOLUMETRIC_LIGHTING
