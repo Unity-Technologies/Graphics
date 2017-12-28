@@ -129,7 +129,7 @@ namespace UnityEditor.VFX
                 outExpressionDescs.Add(new VFXExpressionDesc
                 {
                     op = exp.operation,
-                    data = exp.GetOperands(graph),
+                    data = exp.GetOperands(graph).ToArray(),
                 });
             }
         }

@@ -47,7 +47,7 @@ namespace UnityEditor.VFX
             return valueType == other.valueType && operation == other.operation;
         }
 
-        public override int GetHashCode()
+        protected override int GetInnerHashCode()
         {
             return operation.GetHashCode();
         }
