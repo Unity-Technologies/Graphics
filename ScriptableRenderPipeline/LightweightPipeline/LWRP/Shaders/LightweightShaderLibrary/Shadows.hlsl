@@ -33,11 +33,12 @@ SAMPLER_CMP(sampler_ShadowMap);
 CBUFFER_START(_ShadowBuffer)
 float4x4 _WorldToShadow[MAX_SHADOW_CASCADES];
 float4 _DirShadowSplitSpheres[MAX_SHADOW_CASCADES];
+float4 _DirShadowSplitSphereRadii;
 half4 _ShadowOffset0;
 half4 _ShadowOffset1;
 half4 _ShadowOffset2;
 half4 _ShadowOffset3;
-half4 _ShadowData; // (x: 1.0 - shadowStrength)
+half4 _ShadowData; // (x: shadowStrength)
 CBUFFER_END
 
 inline half SampleShadowmap(float4 shadowCoord)
@@ -51,34 +52,31 @@ inline half SampleShadowmap(float4 shadowCoord)
 
 #ifdef _SHADOWS_SOFT
     // 4-tap hardware comparison
-    half4 attenuation;
-    attenuation.x = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz + _ShadowOffset0.xyz);
-    attenuation.y = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz + _ShadowOffset1.xyz);
-    attenuation.z = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz + _ShadowOffset2.xyz);
-    attenuation.w = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz + _ShadowOffset3.xyz);
-    lerp(attenuation, 1.0, _ShadowData.xxxx);
-    return dot(attenuation, 0.25);
+    half4 attenuation4;
+    attenuation4.x = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz + _ShadowOffset0.xyz);
+    attenuation4.y = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz + _ShadowOffset1.xyz);
+    attenuation4.z = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz + _ShadowOffset2.xyz);
+    attenuation4.w = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz + _ShadowOffset3.xyz);
+    half attenuation = dot(attenuation4, 0.25);
 #else
     // 1-tap hardware comparison
     half attenuation = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz);
-    return lerp(attenuation, 1.0, _ShadowData.x);
 #endif
+
+    // Apply shadow strength
+    return LerpWhiteTo(attenuation, _ShadowData.x);
 }
 
 inline half ComputeCascadeIndex(float3 wpos)
 {
+    // TODO: profile if there's a performance improvement if we avoid indexing here
     float3 fromCenter0 = wpos.xyz - _DirShadowSplitSpheres[0].xyz;
     float3 fromCenter1 = wpos.xyz - _DirShadowSplitSpheres[1].xyz;
     float3 fromCenter2 = wpos.xyz - _DirShadowSplitSpheres[2].xyz;
     float3 fromCenter3 = wpos.xyz - _DirShadowSplitSpheres[3].xyz;
     float4 distances2 = float4(dot(fromCenter0, fromCenter0), dot(fromCenter1, fromCenter1), dot(fromCenter2, fromCenter2), dot(fromCenter3, fromCenter3));
 
-    float4 vDirShadowSplitSphereSqRadii;
-    vDirShadowSplitSphereSqRadii.x = _DirShadowSplitSpheres[0].w;
-    vDirShadowSplitSphereSqRadii.y = _DirShadowSplitSpheres[1].w;
-    vDirShadowSplitSphereSqRadii.z = _DirShadowSplitSpheres[2].w;
-    vDirShadowSplitSphereSqRadii.w = _DirShadowSplitSpheres[3].w;
-    half4 weights = half4(distances2 < vDirShadowSplitSphereSqRadii);
+    half4 weights = half4(distances2 < _DirShadowSplitSphereRadii);
     weights.yzw = saturate(weights.yzw - weights.xyz);
     return 4 - dot(weights, half4(4, 3, 2, 1));
 }
@@ -137,7 +135,7 @@ inline half3 SubtractDirectMainLightFromLightmap(half3 lightmap, half attenuatio
 
     // 2) Allows user to define overall ambient of the scene and control situation when realtime shadow becomes too dark.
     half3 realtimeShadow = max(subtractedLightmap, _SubtractiveShadowColor.xyz);
-    realtimeShadow = lerp(realtimeShadow, lightmap, shadowStrength);
+    realtimeShadow = lerp(lightmap, realtimeShadow, shadowStrength);
 
     // 3) Pick darkest color
     return min(lightmap, realtimeShadow);
