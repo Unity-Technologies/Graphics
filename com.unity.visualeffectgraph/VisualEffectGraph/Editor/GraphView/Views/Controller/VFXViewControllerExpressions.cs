@@ -36,7 +36,8 @@ namespace UnityEditor.VFX.UI
         public void InvalidateExpressionGraph(VFXModel model, VFXModel.InvalidationCause cause)
         {
             if (cause != VFXModel.InvalidationCause.kStructureChanged &&
-                cause != VFXModel.InvalidationCause.kExpressionInvalidated)
+                cause != VFXModel.InvalidationCause.kExpressionInvalidated &&
+                cause != VFXModel.InvalidationCause.kParamChanged)
                 /*use != VFXModel.InvalidationCause.kConnectionChanged &&
                 cause != VFXModel.InvalidationCause.kParamChanged &&
                 cause != VFXModel.InvalidationCause.kSettingChanged)*/
