@@ -36,7 +36,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     defaultShadowSettings.shadowAtlasHeight = defaultShadowSettings.shadowAtlasWidth = 4096;
                     defaultShadowSettings.directionalLightCascadeCount = 1;
                     defaultShadowSettings.directionalLightCascades = new Vector3(0.05F, 0.2F, 0.3F);
-                    defaultShadowSettings.directionalLightCascadeCount = 4;
                     defaultShadowSettings.directionalLightNearPlaneOffset = 5;
                     defaultShadowSettings.maxShadowDistance = 1000.0F;
                     defaultShadowSettings.renderTextureFormat = RenderTextureFormat.Shadowmap;
@@ -110,8 +109,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private Camera m_CurrCamera;
 
-        private static readonly int kMaxCascades = 4;
-        private int m_ShadowCasterCascadesCount = kMaxCascades;
+        private const int kMaxCascades = 4;
+        private int m_ShadowCasterCascadesCount;
         private int m_ShadowMapRTID;
         private RenderTargetIdentifier m_CurrCameraColorRT;
         private RenderTargetIdentifier m_ShadowMapRT;
@@ -209,6 +208,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_PostProcessRenderContext = new PostProcessRenderContext();
 
             m_CopyTextureSupport = SystemInfo.copyTextureSupport;
+
+            for (int i = 0; i < kMaxCascades; ++i)
+                m_DirectionalShadowSplitDistances[i] = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+            m_DirectionalShadowSplitRadii = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
 
             // Let engine know we have MSAA on for cases where we support MSAA backbuffer
             if (QualitySettings.antiAliasing != m_Asset.MSAASampleCount)
@@ -821,7 +824,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Lightweight pipeline also supports only a single shadow light, if available it will be the main light.
             SetupMainLightConstants(cmd, lights, lightData.mainLightIndex);
             if (lightData.shadowMapSampleType != LightShadows.None)
-                SetupShadowReceiverConstants(cmd, ref lights[lightData.mainLightIndex], m_ShadowCasterCascadesCount);
+                SetupShadowReceiverConstants(cmd, ref lights[lightData.mainLightIndex]);
 
             if (lightData.totalAdditionalLightsCount > 0)
                 SetupAdditionalListConstants(cmd, lights, ref lightData);
@@ -930,15 +933,22 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.SetGlobalVector("_ShadowBias", new Vector4(bias, normalBias, 0.0f, 0.0f));
         }
 
-        private void SetupShadowReceiverConstants(CommandBuffer cmd, ref VisibleLight shadowLight, int cascadeCount)
+        private void SetupShadowReceiverConstants(CommandBuffer cmd, ref VisibleLight shadowLight)
         {
             Light light = shadowLight.light;
             float shadowResolution = m_ShadowSlices[0].shadowResolution;
 
-            const int maxShadowCascades = 4;
-            Matrix4x4[] shadowMatrices = new Matrix4x4[maxShadowCascades];
-            for (int i = 0; i < cascadeCount; ++i)
+            int cascadeCount = m_ShadowCasterCascadesCount;
+            Matrix4x4[] shadowMatrices = new Matrix4x4[kMaxCascades + 1];
+            for (int i = 0; i < kMaxCascades; ++i)
                 shadowMatrices[i] = (cascadeCount >= i) ? m_ShadowSlices[i].shadowTransform : Matrix4x4.identity;
+
+            // We setup and additional a no-op WorldToShadow matrix in the last index
+            // because the ComputeCascadeIndex function in Shadows.hlsl can return an index
+            // out of bounds. (position not inside any cascade) and we want to avoid branching
+            Matrix4x4 noOpShadowMatrix = Matrix4x4.zero;
+            noOpShadowMatrix.m33 = (SystemInfo.usesReversedZBuffer) ? 1.0f : 0.0f;
+            shadowMatrices[kMaxCascades] = noOpShadowMatrix;
 
             float invShadowResolution = 0.5f / shadowResolution;
             cmd.SetGlobalMatrixArray("_WorldToShadow", shadowMatrices);
@@ -956,9 +966,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             int vertexLightsCount = lightData.totalAdditionalLightsCount - lightData.pixelAdditionalLightsCount;
             int mainLightIndex = lightData.mainLightIndex;
 
-            // We have no good approach exposed to skip shader variants, e.g, ideally we would like to skip _CASCADE for all puctual lights
+            // We have no good approach exposed to skip shader variants, e.g, ideally we would like to skip _CASCADE for all punctual lights
             // We combine light and shadow classification keywords to reduce the amount of shader variants.
-            // Lightweight shader library declares defines based on these keywords to make avoid having to check them in the shaders
+            // Lightweight shader library declares defines based on these keywords to avoid having to check them in the shaders
             // Core.hlsl defines _MAIN_LIGHT_DIRECTIONAL and _MAIN_LIGHT_SPOT (point lights can't be main light)
             // Shadow.hlsl defines _SHADOWS_ENABLED, _SHADOWS_SOFT, _SHADOWS_CASCADE, _SHADOWS_PERSPECTIVE
             string[] mainLightKeywords =
