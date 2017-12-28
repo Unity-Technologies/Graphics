@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -31,6 +32,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get { return nonJitteredProjMatrix * viewMatrix; }
         }
+
+        public RenderTextureDescriptor renderTextureDesc { get; private set; }
 
         // Always true for cameras that just got added to the pool - needed for previous matrices to
         // avoid one-frame jumps/hiccups with temporal effects (motion blur, TAA...)
@@ -77,7 +80,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Reset();
         }
 
-        public void Update(PostProcessLayer postProcessLayer)
+        public void Update(PostProcessLayer postProcessLayer, FrameSettings frameSettings)
         {
             // If TAA is enabled projMatrix will hold a jittered projection matrix. The original,
             // non-jittered projection matrix can be accessed via nonJitteredProjMatrix.
@@ -130,7 +133,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             projMatrix = gpuProj;
             nonJitteredProjMatrix = gpuNonJitteredProj;
             cameraPos = pos;
-            screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
             viewParam = new Vector4(viewMatrix.determinant, 0.0f, 0.0f, 0.0f);
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
@@ -155,6 +157,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frustumPlaneEquations[5] = new Vector4(-forward.x, -forward.y, -forward.z,  Vector3.Dot(forward, relPos) + camera.farClipPlane);
 
             m_LastFrameActive = Time.frameCount;
+
+            RenderTextureDescriptor tempDesc;
+            if (frameSettings.enableStereo)
+            {
+                screenSize = new Vector4(XRSettings.eyeTextureWidth, XRSettings.eyeTextureHeight, 1.0f / XRSettings.eyeTextureWidth, 1.0f / XRSettings.eyeTextureHeight);
+                tempDesc = XRSettings.eyeTextureDesc;
+            }
+            else
+            {
+                screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
+                tempDesc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
+            }
+
+            tempDesc.msaaSamples = 1; // will be updated later, deferred will always set to 1
+            tempDesc.depthBufferBits = 0;
+            tempDesc.autoGenerateMips = false;
+            tempDesc.useMipMap = false;
+            tempDesc.enableRandomWrite = false;
+            tempDesc.memoryless = RenderTextureMemoryless.None;
+
+            renderTextureDesc = tempDesc;
         }
 
         public void Reset()
@@ -164,7 +187,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Grab the HDCamera tied to a given Camera and update it.
-        public static HDCamera Get(Camera camera, PostProcessLayer postProcessLayer)
+        public static HDCamera Get(Camera camera, PostProcessLayer postProcessLayer, FrameSettings frameSettings)
         {
             HDCamera hdcam;
 
@@ -174,7 +197,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_Cameras.Add(camera, hdcam);
             }
 
-            hdcam.Update(postProcessLayer);
+            hdcam.Update(postProcessLayer, frameSettings);
             return hdcam;
         }
 
