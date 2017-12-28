@@ -51,7 +51,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // for SSS
         public void InitSSSBuffersFromGBuffer(GBufferManager gbufferManager)
         {
-            m_RTIDs[0] = gbufferManager.GetGBuffers()[0];
+            m_RTIDs[0] = gbufferManager.GetGBuffers()[0]; // Note: This buffer must be sRGB (which is the case with Lit.shader)
         }
 
         // In case of full forward we must allocate the render target for forward SSS (or reuse one already existing)
@@ -62,7 +62,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             desc.depthBufferBits = 0;
             desc.colorFormat = RenderTextureFormat.ARGB32;
-            desc.sRGB = false;
+            desc.sRGB = true;  // Note: This buffer must be sRGB to match deferred case (which is the case with Lit.shader)
 
             cmd.ReleaseTemporaryRT(m_SSSBuffer0);
             cmd.GetTemporaryRT(m_SSSBuffer0, desc, FilterMode.Point);

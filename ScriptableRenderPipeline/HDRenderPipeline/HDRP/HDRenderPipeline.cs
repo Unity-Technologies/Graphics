@@ -1415,7 +1415,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd, "Gaussian Pyramid Color", GetSampler(CustomSamplerId.GaussianPyramidColor)))
             {
                 var colorPyramidDesc = m_GaussianPyramidColorBufferDesc;
-                var pyramidSideSize = colorPyramidDesc.height;
+                var pyramidSideSize = colorPyramidDesc.width;
 
                 // The gaussian pyramid compute works in blocks of 8x8 so make sure the last lod has a
                 // minimum size of 8x8
@@ -1470,7 +1470,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd, "Pyramid Depth", GetSampler(CustomSamplerId.PyramidDepth)))
             {
                 var depthPyramidDesc = m_DepthPyramidBufferDesc;
-                var pyramidSideSize = depthPyramidDesc.height;
+                var pyramidSideSize = depthPyramidDesc.width;
 
                 // The gaussian pyramid compute works in blocks of 8x8 so make sure the last lod has a
                 // minimum size of 8x8
@@ -1749,7 +1749,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var pyramidSize = CalculatePyramidSize((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y);
 
-            // for stereo double-wide, each half of the texture will represent a single eye's pyramid 
+            // for stereo double-wide, each half of the texture will represent a single eye's pyramid
             //var widthModifier = 1;
             //if (stereoEnabled && (desc.dimension != TextureDimension.Tex2DArray))
             //    widthModifier = 2; // double-wide
