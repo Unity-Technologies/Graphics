@@ -70,9 +70,9 @@ namespace UnityEditor.VFX
 
         protected sealed override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
-            if (cause == InvalidationCause.kSettingChanged && m_Parent != null)
+            if (cause == InvalidationCause.kSettingChanged)
             {
-                m_Parent.Invalidate(InvalidationCause.kExpressionGraphChanged);
+                Invalidate(InvalidationCause.kExpressionGraphChanged);
             }
         }
 
