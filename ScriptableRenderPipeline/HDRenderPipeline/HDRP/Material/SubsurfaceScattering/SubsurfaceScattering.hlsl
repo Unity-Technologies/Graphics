@@ -75,11 +75,13 @@ struct SSSData
 // SSSBuffer texture declaration
 TEXTURE2D(_SSSBufferTexture0);
 
+// Note: The SSS buffer used here is sRGB
 void EncodeIntoSSSBuffer(SSSData sssData, uint2 positionSS, out SSSBufferType0 outSSSBuffer0)
 {
     outSSSBuffer0 = float4(sssData.diffuseColor, PackFloatInt8bit(sssData.subsurfaceRadius, sssData.subsurfaceProfile, 16.0));
 }
 
+// Note: The SSS buffer used here is sRGB
 void DecodeFromSSSBuffer(float4 sssBuffer, uint2 positionSS, out SSSData sssData)
 {
     sssData.diffuseColor = sssBuffer.rgb;
