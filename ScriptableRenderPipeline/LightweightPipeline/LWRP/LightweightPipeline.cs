@@ -127,6 +127,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private const int kDepthStencilBufferBits = 32;
         private Vector4[] m_DirectionalShadowSplitDistances = new Vector4[kMaxCascades];
+        private Vector4 m_DirectionalShadowSplitRadii;
 
         private ShadowSettings m_ShadowSettings = ShadowSettings.Default;
         private ShadowSliceData[] m_ShadowSlices = new ShadowSliceData[kMaxCascades];
@@ -932,7 +933,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void SetupShadowReceiverConstants(CommandBuffer cmd, ref VisibleLight shadowLight, int cascadeCount)
         {
             Light light = shadowLight.light;
-            float strength = 1.0f - light.shadowStrength;
             float shadowResolution = m_ShadowSlices[0].shadowResolution;
 
             const int maxShadowCascades = 4;
@@ -942,8 +942,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             float invShadowResolution = 0.5f / shadowResolution;
             cmd.SetGlobalMatrixArray("_WorldToShadow", shadowMatrices);
+            cmd.SetGlobalVector("_ShadowData", new Vector4(light.shadowStrength, 0.0f, 0.0f, 0.0f));
             cmd.SetGlobalVectorArray("_DirShadowSplitSpheres", m_DirectionalShadowSplitDistances);
-            cmd.SetGlobalVector("_ShadowData", new Vector4(strength, 0.0f, 0.0f, 0.0f));
+            cmd.SetGlobalVector("_DirShadowSplitSphereRadii", m_DirectionalShadowSplitRadii);
             cmd.SetGlobalVector("_ShadowOffset0", new Vector4(-invShadowResolution, -invShadowResolution, 0.0f, 0.0f));
             cmd.SetGlobalVector("_ShadowOffset1", new Vector4(invShadowResolution, -invShadowResolution, 0.0f, 0.0f));
             cmd.SetGlobalVector("_ShadowOffset2", new Vector4(-invShadowResolution,  invShadowResolution, 0.0f, 0.0f));
@@ -1021,10 +1022,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             var settings = new DrawShadowsSettings(cullResults, shadowLightIndex);
             bool success = false;
 
-            var cmd = CommandBufferPool.Get("Render Shadowmap");
+            var cmd = CommandBufferPool.Get("Prepare Shadowmap");
             cmd.GetTemporaryRT(m_ShadowMapRTID, m_ShadowSettings.shadowAtlasWidth,
                 m_ShadowSettings.shadowAtlasHeight, kDepthStencilBufferBits, FilterMode.Bilinear, m_ShadowSettings.renderTextureFormat);
-            SetRenderTarget(cmd, m_ShadowMapRT, ClearFlag.All);
+            SetRenderTarget(cmd, m_ShadowMapRT, ClearFlag.Depth);
 
             if (shadowLight.lightType == LightType.Spot)
             {
@@ -1046,8 +1047,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                             cascadeIdx, m_ShadowCasterCascadesCount, m_ShadowSettings.directionalLightCascades, shadowResolution, shadowNearPlane, out view, out proj,
                             out settings.splitData);
 
+                    float cullingSphereRadius = settings.splitData.cullingSphere.w;
                     m_DirectionalShadowSplitDistances[cascadeIdx] = settings.splitData.cullingSphere;
-                    m_DirectionalShadowSplitDistances[cascadeIdx].w *= settings.splitData.cullingSphere.w;
+                    m_DirectionalShadowSplitRadii[cascadeIdx] = cullingSphereRadius * cullingSphereRadius;
 
                     if (!success)
                         break;
