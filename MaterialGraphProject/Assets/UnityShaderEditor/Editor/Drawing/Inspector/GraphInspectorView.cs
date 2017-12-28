@@ -101,44 +101,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             Add(new ResizeSideHandle(this, ResizeHandleAnchor.Left, new string[] {"resize", "horizontal", "left"}));
         }
 
-        void OnResize(Vector2 resizeDelta, ResizeDirection direction, bool moveWhileResize)
-        {
-            Vector2 normalizedResizeDelta = resizeDelta / 2f;
-
-            if (direction == ResizeDirection.Vertical)
-            {
-                normalizedResizeDelta.x = 0f;
-            }
-            else if (direction == ResizeDirection.Horizontal)
-            {
-                normalizedResizeDelta.y = 0f;
-            }
-
-            Rect newLayout = layout;
-
-            // Resize form bottom/right
-            if (!moveWhileResize)
-            {
-                newLayout.width = Mathf.Max(layout.width + normalizedResizeDelta.x, 60f);
-                newLayout.height = Mathf.Max(layout.height + normalizedResizeDelta.y, 60f);
-
-                layout = newLayout;
-
-                return;
-            }
-
-            float previousFarX = layout.x + layout.width;
-            float previousFarY = layout.y + layout.height;
-
-            newLayout.width = Mathf.Max(layout.width - normalizedResizeDelta.x, 60f);
-            newLayout.height = Mathf.Max(layout.height - normalizedResizeDelta.y, 60f);
-
-            newLayout.x = Mathf.Min(layout.x + normalizedResizeDelta.x, previousFarX - 60f);
-            newLayout.y = Mathf.Min(layout.y + normalizedResizeDelta.y, previousFarY - 60f);
-
-            layout = newLayout;
-        }
-
         MasterNode masterNode
         {
             get { return m_PreviewRenderHandle.shaderData.node as MasterNode; }
