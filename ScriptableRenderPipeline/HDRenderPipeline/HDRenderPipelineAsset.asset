@@ -13,33 +13,31 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
     type: 2}
-  defaultFrameSettings:
-    lightingSettings:
-      enableShadow: 1
-      enableSSR: 1
-      enableSSAO: 1
-      enableSSSAndTransmission: 1
-      diffuseGlobalDimmer: 1
-      specularGlobalDimmer: 1
-    renderSettings:
-      enableForwardRenderingOnly: 1
-      enableDepthPrepassWithDeferredRendering: 0
-      enableAlphaTestOnlyInDeferredPrepass: 0
-      enableTransparentPrePass: 1
-      enableMotionVectors: 1
-      enableDBuffer: 1
-      enableAtmosphericScattering: 1
-      enableRoughRefraction: 1
-      enableTransparentPostPass: 1
-      enableDistortion: 1
-      enablePostprocess: 1
-      enableStereo: 0
-      enableAsyncCompute: 0
-      enableOpaqueObjects: 1
-      enableTransparentObjects: 1
-      enableMSAA: 0
-      enableMaterialDisplayDebug: 0
-      enableShadowMask: 0
+  serializedFrameSettings:
+    enableShadow: 1
+    enableSSR: 1
+    enableSSAO: 1
+    enableSSSAndTransmission: 1
+    diffuseGlobalDimmer: 1
+    specularGlobalDimmer: 1
+    enableForwardRenderingOnly: 0
+    enableDepthPrepassWithDeferredRendering: 0
+    enableAlphaTestOnlyInDeferredPrepass: 0
+    enableTransparentPrePass: 1
+    enableMotionVectors: 1
+    enableObjectMotionVectors: 1
+    enableDBuffer: 1
+    enableAtmosphericScattering: 1
+    enableRoughRefraction: 1
+    enableTransparentPostPass: 1
+    enableDistortion: 1
+    enablePostprocess: 1
+    enableStereo: 0
+    enableAsyncCompute: 0
+    enableOpaqueObjects: 1
+    enableTransparentObjects: 1
+    enableMSAA: 0
+    enableShadowMask: 0
     lightLoopSettings:
       enableTileAndCluster: 1
       enableComputeLightEvaluation: 1
@@ -48,8 +46,26 @@ MonoBehaviour:
       enableFptlForForwardOpaque: 1
       enableBigTilePrepass: 1
       isFptlEnabled: 1
-  m_globalFrameSettings: {fileID: 0}
-  m_sssSettings: {fileID: 0}
+  renderPipelineSettings:
+    supportShadowMask: 1
+    supportSSR: 1
+    supportSSAO: 1
+    supportSSSAndTransmission: 1
+    supportDBuffer: 1
+    supportMSAA: 0
+    supportAsyncCompute: 0
+    lightLoopSettings:
+      spotCookieSize: 128
+      cookieTexArraySize: 16
+      pointCookieSize: 512
+      cubeCookieTexArraySize: 16
+      reflectionProbeCacheSize: 128
+      reflectionCubemapSize: 128
+      reflectionCacheCompressed: 0
+    shadowInitParams:
+      shadowAtlasWidth: 4096
+      shadowAtlasHeight: 4096
+  sssSettings: {fileID: 0}
   m_DefaultDiffuseMaterial: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17,
     type: 2}
   m_DefaultShader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}

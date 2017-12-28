@@ -75,7 +75,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             DrawGizmo(true);
             // if this object is selected there is a chance the transform was changed so update culling info
-            DecalSystem.instance.UpdateCulling(this);
+            DecalSystem.instance.UpdateBoundingSphere(this);
         }
 
 		public void UpdatePropertyBlock(Vector3 cameraPos)
