@@ -97,7 +97,7 @@ public partial class HDRenderPipeline : RenderPipeline
     VolumetricLightingPreset m_VolumetricLightingPreset = VolumetricLightingPreset.Normal;
     ComputeShader            m_VolumetricLightingCS { get { return m_Asset.renderPipelineResources.volumetricLightingCS; } }
 
-    float                    m_VBufferNearPlane  =  0.5f; // Distance in meters; dynamic modifications not handled by reprojection
+    float                    m_VBufferNearPlane  = 0.5f;  // Distance in meters; dynamic modifications not handled by reprojection
     float                    m_VBufferFarPlane   = 64.0f; // Distance in meters; dynamic modifications not handled by reprojection
     const uint               m_VBufferCount      = 3;     // 0 and 1 - history (prev) and feedback (next), 2 - integral (curr)
 
@@ -164,7 +164,7 @@ public partial class HDRenderPipeline : RenderPipeline
 
         for (uint i = 0; i < m_VBufferCount; i++)
         {
-            m_VBufferLighting[i] = new RenderTexture(w, h, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear); // UAV with ARGBHalf appears to be broken...
+            m_VBufferLighting[i] = new RenderTexture(w, h, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
             m_VBufferLighting[i].filterMode        = FilterMode.Bilinear;    // Custom trilinear
             m_VBufferLighting[i].dimension         = TextureDimension.Tex3D; // TODO: request the thick 3D tiling layout
             m_VBufferLighting[i].volumeDepth       = d;
