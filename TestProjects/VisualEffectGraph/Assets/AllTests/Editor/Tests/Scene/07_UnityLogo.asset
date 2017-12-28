@@ -6664,7 +6664,7 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots: []
   m_Disabled: 0
-  mode: 5
+  mode: 6
 --- !u!114 &114970026523473288
 MonoBehaviour:
   m_ObjectHideFlags: 0
