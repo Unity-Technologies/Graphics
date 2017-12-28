@@ -31,7 +31,10 @@ TEXTURE2D_SHADOW(_ShadowMap);
 SAMPLER_CMP(sampler_ShadowMap);
 
 CBUFFER_START(_ShadowBuffer)
-float4x4 _WorldToShadow[MAX_SHADOW_CASCADES];
+// Last cascade is initialized with a no-op matrix. It always transforms
+// shadow coord to half(0, 0, NEAR_PLANE). We use this trick to avoid
+// branching since ComputeCascadeIndex can return cascade index = MAX_SHADOW_CASCADES
+float4x4 _WorldToShadow[MAX_SHADOW_CASCADES + 1];
 float4 _DirShadowSplitSpheres[MAX_SHADOW_CASCADES];
 float4 _DirShadowSplitSphereRadii;
 half4 _ShadowOffset0;
@@ -78,23 +81,27 @@ inline half ComputeCascadeIndex(float3 wpos)
 
     half4 weights = half4(distances2 < _DirShadowSplitSphereRadii);
     weights.yzw = saturate(weights.yzw - weights.xyz);
+
     return 4 - dot(weights, half4(4, 3, 2, 1));
 }
 
-inline half RealtimeShadowAttenuation(float3 posWorld)
+inline float4 ComputeShadowCoord(float3 positionWS, half cascadeIndex = 0)
+{
+#ifdef _SHADOWS_CASCADE
+    return mul(_WorldToShadow[cascadeIndex], float4(positionWS, 1.0));
+#endif
+
+    return mul(_WorldToShadow[0], float4(positionWS, 1.0));
+}
+
+inline half RealtimeShadowAttenuation(float3 positionWS)
 {
 #if !defined(_SHADOWS_ENABLED)
     return 1.0;
 #endif
 
-    int cascadeIndex = 0;
-#ifdef _SHADOWS_CASCADE
-    cascadeIndex = ComputeCascadeIndex(posWorld);
-    if (cascadeIndex >= MAX_SHADOW_CASCADES)
-        return 1.0;
-#endif
-
-    float4 shadowCoord = mul(_WorldToShadow[cascadeIndex], float4(posWorld, 1.0));
+    half cascadeIndex = ComputeCascadeIndex(positionWS);
+    float4 shadowCoord = ComputeShadowCoord(positionWS, cascadeIndex);
     return SampleShadowmap(shadowCoord);
 }
 
