@@ -98,12 +98,13 @@ void ImportanceSampleHomogeneousMedium(float rndVal, float extinction, float int
 void ImportanceSamplePunctualLight(float rndVal, float3 lightPosition,
                                    float3 rayOrigin, float3 rayDirection,
                                    float tMin, float tMax,
-                                   out float dist, out float rSq, out float rcpPdf)
+                                   out float dist, out float rSq, out float rcpPdf,
+                                   float minDistSq = FLT_EPS)
 {
     float3 originToLight       = lightPosition - rayOrigin;
     float  originToLightProj   = dot(originToLight, rayDirection);
     float  originToLightDistSq = dot(originToLight, originToLight);
-    float  rayToLightDistSq    = max(originToLightDistSq - originToLightProj * originToLightProj, FLT_EPS);
+    float  rayToLightDistSq    = max(originToLightDistSq - originToLightProj * originToLightProj, minDistSq);
 
     float a    = tMin - originToLightProj;
     float b    = tMax - originToLightProj;

@@ -178,10 +178,17 @@ float3 EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, Positi
 
                     if (sampleLight)
                     {
+                        // We are unable to adequately sample features larger
+                        // than the half of the length of the integration interval
+                        // divided by the number of temporal samples (7).
+                        // Therefore, we apply this hack to reduce flickering.
+                        float hackMinDistSq = Sq(dt * (0.5 / 7));
+
                         float t, distSq, rcpPdf;
                         ImportanceSamplePunctualLight(rndVal, light.positionWS,
                                                       ray.originWS, ray.directionWS,
-                                                      tEntr, tExit, t, distSq, rcpPdf);
+                                                      tEntr, tExit, t, distSq, rcpPdf,
+                                                      hackMinDistSq);
 
                         posInput.positionWS = GetPointAtDistance(ray, t);
 
