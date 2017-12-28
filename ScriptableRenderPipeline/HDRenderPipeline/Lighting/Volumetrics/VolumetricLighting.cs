@@ -293,6 +293,18 @@ public partial class HDRenderPipeline : RenderPipeline
         coords[5] = new Vector2( r, -s);
         coords[6] = new Vector2(-r,  s);
 
+        // Rotate the sampling pattern by 15 degrees in order to maximize the resolution along X and Y.
+        const float cosTheta = 0.96592582628906828675f;
+        const float sinTheta = 0.25881904510252076235f;
+
+        for (int i = 0; i < 7; i++)
+        {
+            Vector2 coord = coords[i];
+
+            coords[i].x = coord.x * cosTheta - coord.y * sinTheta;
+            coords[i].y = coord.x * sinTheta + coord.y * cosTheta;
+        }
+
         return coords;
     }
 
