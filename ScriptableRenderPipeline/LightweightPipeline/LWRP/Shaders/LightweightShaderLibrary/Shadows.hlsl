@@ -50,9 +50,6 @@ inline half SampleShadowmap(float4 shadowCoord)
     shadowCoord.xyz = shadowCoord.xyz /= shadowCoord.w;
 #endif
 
-    if (shadowCoord.x <= 0 || shadowCoord.x >= 1 || shadowCoord.y <= 0 || shadowCoord.y >= 1 || shadowCoord.z <= 0 || shadowCoord.z >= 1)
-        return 1;
-
 #ifdef _SHADOWS_SOFT
     // 4-tap hardware comparison
     half4 attenuation4;
@@ -67,7 +64,11 @@ inline half SampleShadowmap(float4 shadowCoord)
 #endif
 
     // Apply shadow strength
-    return LerpWhiteTo(attenuation, _ShadowData.x);
+    attenuation = LerpWhiteTo(attenuation, _ShadowData.x);
+
+    // Shadow coords that fall out of the light frustum volume must always return attenuation 1.0
+    // TODO: We can set shadowmap sampler to clamptoborder when we don't have a shadow atlas and avoid xy coord bounds check
+    return (shadowCoord.x <= 0 || shadowCoord.x >= 1 || shadowCoord.y <= 0 || shadowCoord.y >= 1 || shadowCoord.z >= 1) ? 1.0 : attenuation;
 }
 
 inline half ComputeCascadeIndex(float3 wpos)
