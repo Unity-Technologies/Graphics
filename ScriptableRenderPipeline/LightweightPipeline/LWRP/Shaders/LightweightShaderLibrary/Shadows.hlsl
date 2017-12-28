@@ -43,27 +43,24 @@ CBUFFER_END
 inline half SampleShadowmap(float4 shadowCoord)
 {
 #if defined(_SHADOWS_PERSPECTIVE)
-    float3 coord = shadowCoord.xyz /= shadowCoord.w;
-#else
-    float3 coord = shadowCoord.xyz;
+    shadowCoord.xyz = shadowCoord.xyz /= shadowCoord.w;
 #endif
 
-    coord.z = saturate(coord.z);
-    if (coord.x <= 0 || coord.x >= 1 || coord.y <= 0 || coord.y >= 1)
+    if (shadowCoord.x <= 0 || shadowCoord.x >= 1 || shadowCoord.y <= 0 || shadowCoord.y >= 1 || shadowCoord.z <= 0 || shadowCoord.z >= 1)
         return 1;
 
 #ifdef _SHADOWS_SOFT
     // 4-tap hardware comparison
     half4 attenuation;
-    attenuation.x = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, coord + _ShadowOffset0.xyz);
-    attenuation.y = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, coord + _ShadowOffset1.xyz);
-    attenuation.z = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, coord + _ShadowOffset2.xyz);
-    attenuation.w = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, coord + _ShadowOffset3.xyz);
+    attenuation.x = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz + _ShadowOffset0.xyz);
+    attenuation.y = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz + _ShadowOffset1.xyz);
+    attenuation.z = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz + _ShadowOffset2.xyz);
+    attenuation.w = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz + _ShadowOffset3.xyz);
     lerp(attenuation, 1.0, _ShadowData.xxxx);
     return dot(attenuation, 0.25);
 #else
     // 1-tap hardware comparison
-    half attenuation = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, coord);
+    half attenuation = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz);
     return lerp(attenuation, 1.0, _ShadowData.x);
 #endif
 }
