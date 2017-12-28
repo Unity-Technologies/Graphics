@@ -136,7 +136,7 @@ namespace UnityEditor.VFX
 
         private static void CollectExposedDesc(List<VFXExposedDesc> outExposedParameters, string name, VFXSlot slot, VFXExpressionGraph graph)
         {
-            var expression = slot.GetExpression();
+            var expression = slot.GetInExpression();
             if (expression != null)
             {
                 outExposedParameters.Add(new VFXExposedDesc()
