@@ -150,11 +150,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             else
             {
-                PreviewMode previewMode;
-                FloatShaderProperty outputIdProperty;
                 var graph = (AbstractMaterialGraph)node.owner;
-                var shader = graph.GetShader(node, GenerationMode.ForReals, node.name, out textureInfo, out previewMode, out outputIdProperty);
-                GUIUtility.systemCopyBuffer = shader;
+                GUIUtility.systemCopyBuffer = graph.GetShader(node, GenerationMode.ForReals, node.name).shader;
             }
         }
 

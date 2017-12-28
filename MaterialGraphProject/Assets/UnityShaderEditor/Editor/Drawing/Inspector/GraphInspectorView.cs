@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental.UIElements;
-using UnityEditor.Graphing.Util;
+using UnityEditor.Graphing;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using UnityEditor.Graphing;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
@@ -15,18 +14,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         VisualElement m_PropertyItems;
         VisualElement m_LayerItems;
-        VisualElement m_ContentContainer;
         ObjectField m_PreviewMeshPicker;
         AbstractNodeEditorView m_EditorView;
 
-        TypeMapper m_TypeMapper;
         PreviewTextureView m_PreviewTextureView;
 
         AbstractMaterialGraph m_Graph;
         MasterNode m_MasterNode;
         PreviewRenderData m_PreviewRenderHandle;
-
-        List<INode> m_SelectedNodes;
 
         Vector2 m_PreviewScrollPosition;
 
@@ -36,7 +31,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         public GraphInspectorView(string assetName, PreviewManager previewManager, AbstractMaterialGraph graph)
         {
             m_Graph = graph;
-            m_SelectedNodes = new List<INode>();
 
             AddStyleSheetPath("Styles/MaterialGraph");
 
@@ -59,13 +53,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 }
                 topContainer.Add(headerContainer);
 
-                m_ContentContainer = new VisualElement {name = "content"};
-                topContainer.Add(m_ContentContainer);
-            }
-            Add(topContainer);
-
-            var bottomContainer = new VisualElement {name = "bottom"};
-            {
                 var propertiesContainer = new VisualElement {name = "properties"};
                 {
                     var header = new VisualElement {name = "header"};
@@ -81,15 +68,19 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                     m_PropertyItems = new VisualContainer {name = "items"};
                     propertiesContainer.Add(m_PropertyItems);
                 }
-                bottomContainer.Add(propertiesContainer);
+                topContainer.Add(propertiesContainer);
+            }
+            Add(topContainer);
 
+            var bottomContainer = new VisualElement {name = "bottom"};
+            {
                 m_PreviewTextureView = new PreviewTextureView { name = "preview", image = Texture2D.blackTexture };
                 m_PreviewTextureView.AddManipulator(new Draggable(OnMouseDrag, true));
                 bottomContainer.Add(m_PreviewTextureView);
 
                 m_PreviewScrollPosition = new Vector2(0f, 0f);
 
-                m_PreviewMeshPicker = new ObjectField() { objectType = typeof(Mesh) };
+                m_PreviewMeshPicker = new ObjectField { objectType = typeof(Mesh) };
                 m_PreviewMeshPicker.OnValueChanged(OnPreviewMeshChanged);
 
                 bottomContainer.Add(m_PreviewMeshPicker);
@@ -108,15 +99,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             Add(new ResizeSideHandle(this, ResizeHandleAnchor.Right, new string[] {"resize", "horizontal", "right"}));
             Add(new ResizeSideHandle(this, ResizeHandleAnchor.Bottom, new string[] {"resize", "vertical", "bottom"}));
             Add(new ResizeSideHandle(this, ResizeHandleAnchor.Left, new string[] {"resize", "horizontal", "left"}));
-
-            // Nodes missing custom editors:
-            // - PropertyNode
-            // - SubGraphInputNode
-            // - SubGraphOutputNode
-            m_TypeMapper = new TypeMapper(typeof(INode), typeof(AbstractNodeEditorView), typeof(StandardNodeEditorView))
-            {
-                // { typeof(AbstractSurfaceMasterNode), typeof(SurfaceMasterNodeEditorView) }
-            };
         }
 
         void OnResize(Vector2 resizeDelta, ResizeDirection direction, bool moveWhileResize)
@@ -199,7 +181,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_PreviewTextureView.Dirty(ChangeType.Repaint);
         }
 
-        void OnPreviewMeshChanged(ChangeEvent<UnityEngine.Object> changeEvent)
+        void OnPreviewMeshChanged(ChangeEvent<Object> changeEvent)
         {
             Mesh changedMesh = changeEvent.newValue as Mesh;
 
@@ -211,35 +193,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             }
 
             m_Graph.previewData.serializedMesh.mesh = changedMesh;
-        }
-
-        public void UpdateSelection(IEnumerable<INode> nodes)
-        {
-            m_SelectedNodes.Clear();
-            m_SelectedNodes.AddRange(nodes);
-
-            var selectionHash = UIUtilities.GetHashCode(m_SelectedNodes.Count,
-                    m_SelectedNodes != null ? m_SelectedNodes.FirstOrDefault() : null);
-            if (selectionHash != m_SelectionHash)
-            {
-                m_SelectionHash = selectionHash;
-                m_ContentContainer.Clear();
-                if (m_SelectedNodes.Count > 1)
-                {
-                    var element = new Label(string.Format("{0} nodes selected.", m_SelectedNodes.Count))
-                    {
-                        name = "selectionCount"
-                    };
-                    m_ContentContainer.Add(element);
-                }
-                else if (m_SelectedNodes.Count == 1)
-                {
-                    var node = m_SelectedNodes.First();
-                    var view = (AbstractNodeEditorView)Activator.CreateInstance(m_TypeMapper.MapType(node.GetType()));
-                    view.node = node;
-                    m_ContentContainer.Add(view);
-                }
-            }
         }
 
         public void HandleGraphChanges()

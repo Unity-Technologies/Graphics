@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -51,15 +52,17 @@ namespace UnityEditor.ShaderGraph
             outputList.Add(node);
         }
 
-        public static string GetShader(this AbstractMaterialGraph graph, AbstractMaterialNode node, GenerationMode mode, string name, out List<PropertyCollector.TextureInfo> configuredTextures, out PreviewMode previewMode, out FloatShaderProperty outputIdProperty, Dictionary<Guid, int> ids = null)
+        public static GenerationResults GetShader(this AbstractMaterialGraph graph, AbstractMaterialNode node, GenerationMode mode, string name)
         {
+            var results = new GenerationResults();
             bool isUber = node == null;
 
             var vertexInputs = new ShaderGenerator();
             var vertexShader = new ShaderGenerator();
             var surfaceDescriptionFunction = new ShaderGenerator();
             var surfaceDescriptionStruct = new ShaderGenerator();
-            var functionRegistry = new FunctionRegistry(2);
+            var functionBuilder = new ShaderStringBuilder();
+            var functionRegistry = new FunctionRegistry(functionBuilder);
             var surfaceInputs = new ShaderGenerator();
 
             surfaceInputs.AddShaderChunk("struct SurfaceInputs{", false);
@@ -94,14 +97,14 @@ namespace UnityEditor.ShaderGraph
             if (requirements.requiresScreenPosition)
                 surfaceInputs.AddShaderChunk(String.Format("float4 {0};", ShaderGeneratorNames.ScreenPosition), false);
 
-            previewMode = PreviewMode.Preview3D;
+            results.previewMode = PreviewMode.Preview3D;
             if (!isUber)
             {
                 foreach (var pNode in activeNodeList.OfType<AbstractMaterialNode>())
                 {
                     if (pNode.previewMode == PreviewMode.Preview3D)
                     {
-                        previewMode = PreviewMode.Preview3D;
+                        results.previewMode = PreviewMode.Preview3D;
                         break;
                     }
                 }
@@ -130,14 +133,14 @@ namespace UnityEditor.ShaderGraph
             GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, slots, !isUber);
 
             var shaderProperties = new PropertyCollector();
-            outputIdProperty = new FloatShaderProperty
+            results.outputIdProperty = new FloatShaderProperty
             {
                 displayName = "OutputId",
                 generatePropertyBlock = false,
                 value = -1
             };
             if (isUber)
-                shaderProperties.AddShaderProperty(outputIdProperty);
+                shaderProperties.AddShaderProperty(results.outputIdProperty);
 
             GenerateSurfaceDescription(
                 activeNodeList,
@@ -148,40 +151,39 @@ namespace UnityEditor.ShaderGraph
                 shaderProperties,
                 requirements,
                 mode,
-                outputIdProperty: outputIdProperty,
-                ids: ids);
+                outputIdProperty: results.outputIdProperty,
+                ids: results.ids);
 
-            var finalShader = new ShaderGenerator();
-            finalShader.AddShaderChunk(String.Format(@"Shader ""{0}""", name), false);
-            finalShader.AddShaderChunk("{", false);
-            finalShader.Indent();
+            var finalBuilder = new ShaderStringBuilder();
+            finalBuilder.AppendLine(@"Shader ""{0}""", name);
+            using (finalBuilder.BlockScope())
+            {
+                finalBuilder.AppendLine("Properties");
+                using (finalBuilder.BlockScope())
+                {
+                    finalBuilder.AppendLines(shaderProperties.GetPropertiesBlock(0));
+                }
 
-            finalShader.AddShaderChunk("Properties", false);
-            finalShader.AddShaderChunk("{", false);
-            finalShader.Indent();
-            finalShader.AddShaderChunk(shaderProperties.GetPropertiesBlock(2), false);
-            finalShader.Deindent();
-            finalShader.AddShaderChunk("}", false);
+                finalBuilder.AppendLine(@"CGINCLUDE");
+                finalBuilder.AppendLine(@"#include ""UnityCG.cginc""");
+                finalBuilder.Concat(functionBuilder);
+                finalBuilder.AppendLines(vertexInputs.GetShaderString(0));
+                finalBuilder.AppendLines(surfaceInputs.GetShaderString(0));
+                finalBuilder.AppendLines(surfaceDescriptionStruct.GetShaderString(0));
+                finalBuilder.AppendLines(shaderProperties.GetPropertiesDeclaration(0));
+                finalBuilder.AppendLines(vertexShader.GetShaderString(0));
+                finalBuilder.AppendLines(surfaceDescriptionFunction.GetShaderString(0));
+                finalBuilder.AppendLine(@"ENDCG");
 
-            finalShader.AddShaderChunk("CGINCLUDE", false);
-            finalShader.AddShaderChunk("#include \"UnityCG.cginc\"", false);
-            finalShader.AddShaderChunk(functionRegistry.ToString(), false);
-            finalShader.AddShaderChunk(vertexInputs.GetShaderString(2), false);
-            finalShader.AddShaderChunk(surfaceInputs.GetShaderString(2), false);
-            finalShader.AddShaderChunk(surfaceDescriptionStruct.GetShaderString(2), false);
-            finalShader.AddShaderChunk(shaderProperties.GetPropertiesDeclaration(2), false);
-            finalShader.AddShaderChunk(vertexShader.GetShaderString(2), false);
-            finalShader.AddShaderChunk(surfaceDescriptionFunction.GetShaderString(2), false);
-            finalShader.AddShaderChunk("ENDCG", false);
+                finalBuilder.AppendLines(ShaderGenerator.GetPreviewSubShader(node, requirements));
+                ListPool<INode>.Release(activeNodeList);
+            }
 
-            finalShader.AddShaderChunk(ShaderGenerator.GetPreviewSubShader(node, requirements), false);
-
-            ListPool<INode>.Release(activeNodeList);
-
-            finalShader.Deindent();
-            finalShader.AddShaderChunk("}", false);
-            configuredTextures = shaderProperties.GetConfiguredTexutres();
-            return finalShader.GetShaderString(0);
+            results.configuredTextures = shaderProperties.GetConfiguredTexutres();
+            ShaderSourceMap sourceMap;
+            results.shader = finalBuilder.ToString(out sourceMap);
+            results.sourceMap = sourceMap;
+            return results;
         }
 
         internal static void GenerateSurfaceDescriptionStruct(ShaderGenerator surfaceDescriptionStruct, List<MaterialSlot> slots, bool isMaster)
@@ -253,7 +255,10 @@ namespace UnityEditor.ShaderGraph
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
             {
                 if (activeNode is IGeneratesFunction)
+                {
+                    functionRegistry.builder.currentNode = activeNode;
                     (activeNode as IGeneratesFunction).GenerateNodeFunction(functionRegistry, mode);
+                }
                 if (activeNode is IGeneratesBodyCode)
                     (activeNode as IGeneratesBodyCode).GenerateNodeCode(surfaceDescriptionFunction, mode);
                 if (masterNode == null && activeNode.hasPreview)
@@ -269,6 +274,7 @@ namespace UnityEditor.ShaderGraph
 
                 activeNode.CollectShaderProperties(shaderProperties, mode);
             }
+            functionRegistry.builder.currentNode = null;
 
             if (masterNode != null)
             {
@@ -302,18 +308,14 @@ namespace UnityEditor.ShaderGraph
             surfaceDescriptionFunction.AddShaderChunk("}", false);
         }
 
-        public static string GetPreviewShader(this AbstractMaterialGraph graph, AbstractMaterialNode node, out PreviewMode previewMode)
+        public static GenerationResults GetPreviewShader(this AbstractMaterialGraph graph, AbstractMaterialNode node)
         {
-            List<PropertyCollector.TextureInfo> configuredTextures;
-            FloatShaderProperty outputIdProperty;
-            return graph.GetShader(node, GenerationMode.Preview, String.Format("hidden/preview/{0}", node.GetVariableNameForNode()), out configuredTextures, out previewMode, out outputIdProperty);
+            return graph.GetShader(node, GenerationMode.Preview, String.Format("hidden/preview/{0}", node.GetVariableNameForNode()));
         }
 
-        public static string GetUberPreviewShader(this AbstractMaterialGraph graph, Dictionary<Guid, int> ids, out FloatShaderProperty outputIdProperty)
+        public static GenerationResults GetUberPreviewShader(this AbstractMaterialGraph graph)
         {
-            List<PropertyCollector.TextureInfo> configuredTextures;
-            PreviewMode previewMode;
-            return graph.GetShader(null, GenerationMode.Preview, "hidden/preview", out configuredTextures, out previewMode, out outputIdProperty, ids);
+            return graph.GetShader(null, GenerationMode.Preview, "hidden/preview");
         }
 
         static Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo> s_LegacyTypeRemapping;

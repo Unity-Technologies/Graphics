@@ -69,11 +69,14 @@ namespace UnityEditor.ShaderGraph
 
         private static string GetShaderPassFromTemplate(string template, PBRMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions)
         {
+            var builder = new ShaderStringBuilder();
+            builder.IncreaseIndent();
+            builder.IncreaseIndent();
             var vertexInputs = new ShaderGenerator();
             var surfaceVertexShader = new ShaderGenerator();
             var surfaceDescriptionFunction = new ShaderGenerator();
             var surfaceDescriptionStruct = new ShaderGenerator();
-            var functionRegistry = new FunctionRegistry(2);
+            var functionRegistry = new FunctionRegistry(builder);
             var surfaceInputs = new ShaderGenerator();
 
             var shaderProperties = new PropertyCollector();
@@ -144,7 +147,7 @@ namespace UnityEditor.ShaderGraph
                 usedSlots);
 
             var graph = new ShaderGenerator();
-            graph.AddShaderChunk(functionRegistry.ToString(), false);
+            graph.AddShaderChunk(builder.ToString(), false);
             graph.AddShaderChunk(vertexInputs.GetShaderString(2), false);
             graph.AddShaderChunk(surfaceInputs.GetShaderString(2), false);
             graph.AddShaderChunk(surfaceDescriptionStruct.GetShaderString(2), false);
