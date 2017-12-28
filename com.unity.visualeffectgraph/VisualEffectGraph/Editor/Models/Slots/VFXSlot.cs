@@ -124,6 +124,14 @@ namespace UnityEditor.VFX
             return m_OutExpression;
         }
 
+        public VFXExpression GetInExpression()
+        {
+            if (!m_ExpressionTreeUpToDate)
+                RecomputeExpressionTree();
+
+            return m_InExpression;
+        }
+
         public void SetExpression(VFXExpression expr)
         {
             if (!expr.Equals(m_LinkedInExpression))
