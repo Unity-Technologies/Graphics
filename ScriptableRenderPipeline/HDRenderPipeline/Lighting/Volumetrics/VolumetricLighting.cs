@@ -273,10 +273,10 @@ public partial class HDRenderPipeline : RenderPipeline
 
     // Ref: https://en.wikipedia.org/wiki/Close-packing_of_equal_spheres
     // The returned {x, y} coordinates (all spheres) are all within the (-0.5, 0.5)^2 range.
-    // Maximizes the resolution along diagonals. This is where it matters the most.
-    // Here's the version rotated by 15 degrees which maximizes the resolution along X and Y:
+    // Maximizes the resolution along diagonals. This is where it matters the most (for lights).
+    // Here's the version rotated by 15 degrees which maximizes the resolution along X and Y (for surfaces):
     // https://www.desmos.com/calculator/runuxzjrkm
-    // If you further rotate it by 45 degrees, you end up with the original pattern.
+    // If you further rotate it by 45 degrees (60 in total), you end up with the original pattern.
     Vector2[] GetHexagonalClosePackedSpheres7()
     {
         Vector2[] coords = new Vector2[7];
