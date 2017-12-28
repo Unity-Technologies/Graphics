@@ -14,9 +14,13 @@ namespace UnityEditor.ShaderGraph.Drawing
     public enum ResizeHandleAnchor
     {
         Top,
+        TopRight,
         Right,
+        BottomRight,
         Bottom,
-        Left
+        BottomLeft,
+        Left,
+        TopLeft
     }
 
     public class ResizeSideHandle : VisualElement
@@ -38,21 +42,26 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             ResizeDirection resizeDirection;
 
-            bool moveWhileResize = anchor == ResizeHandleAnchor.Top || anchor == ResizeHandleAnchor.Left;
+            bool moveWhileResizeHorizontal = anchor == ResizeHandleAnchor.TopLeft || anchor == ResizeHandleAnchor.BottomLeft || anchor == ResizeHandleAnchor.Left;
+            bool moveWhileResizeVertical = anchor == ResizeHandleAnchor.TopLeft || anchor == ResizeHandleAnchor.TopRight || anchor == ResizeHandleAnchor.Top;
 
             if (anchor == ResizeHandleAnchor.Left || anchor == ResizeHandleAnchor.Right)
             {
                 resizeDirection = ResizeDirection.Horizontal;
             }
-            else
+            else if (anchor == ResizeHandleAnchor.Top || anchor == ResizeHandleAnchor.Bottom)
             {
                 resizeDirection = ResizeDirection.Vertical;
             }
+            else
+            {
+                resizeDirection = ResizeDirection.Any;
+            }
 
-            this.AddManipulator(new Draggable(mouseDelta => OnResize(mouseDelta, resizeDirection, moveWhileResize)));
+            this.AddManipulator(new Draggable(mouseDelta => OnResize(mouseDelta, resizeDirection, moveWhileResizeHorizontal, moveWhileResizeVertical)));
         }
 
-        void OnResize(Vector2 resizeDelta, ResizeDirection direction, bool moveWhileResize)
+        void OnResize(Vector2 resizeDelta, ResizeDirection direction, bool moveWhileResizeHorizontal, bool moveWhileresizerVertical)
         {
             Vector2 normalizedResizeDelta = resizeDelta / 2f;
 
@@ -68,24 +77,28 @@ namespace UnityEditor.ShaderGraph.Drawing
             Rect newLayout = m_ResizeTarget.layout;
 
             // Resize form bottom/right
-            if (!moveWhileResize)
+            if (!moveWhileResizeHorizontal)
             {
-                newLayout.width = Mathf.Max(m_ResizeTarget.layout.width + normalizedResizeDelta.x, 60f);
-                newLayout.height = Mathf.Max(m_ResizeTarget.layout.height + normalizedResizeDelta.y, 60f);
+                newLayout.width = Mathf.Max(newLayout.width + normalizedResizeDelta.x, 60f);
+                normalizedResizeDelta.x = 0f;
+                Debug.Log("Not moving horizontally");
+            }
 
-                m_ResizeTarget.layout = newLayout;
-
-                return;
+            if (!moveWhileresizerVertical)
+            {
+                newLayout.height = Mathf.Max(newLayout.height + normalizedResizeDelta.y, 60f);
+                normalizedResizeDelta.y = 0f;
+                Debug.Log("Not moving vertically");
             }
 
             float previousFarX = m_ResizeTarget.layout.x + m_ResizeTarget.layout.width;
             float previousFarY = m_ResizeTarget.layout.y + m_ResizeTarget.layout.height;
 
-            newLayout.width = Mathf.Max(m_ResizeTarget.layout.width - normalizedResizeDelta.x, 60f);
-            newLayout.height = Mathf.Max(m_ResizeTarget.layout.height - normalizedResizeDelta.y, 60f);
+            newLayout.width = Mathf.Max(newLayout.width - normalizedResizeDelta.x, 60f);
+            newLayout.height = Mathf.Max(newLayout.height - normalizedResizeDelta.y, 60f);
 
-            newLayout.x = Mathf.Min(m_ResizeTarget.layout.x + normalizedResizeDelta.x, previousFarX - 60f);
-            newLayout.y = Mathf.Min(m_ResizeTarget.layout.y + normalizedResizeDelta.y, previousFarY - 60f);
+            newLayout.x = Mathf.Min(newLayout.x + normalizedResizeDelta.x, previousFarX - 60f);
+            newLayout.y = Mathf.Min(newLayout.y + normalizedResizeDelta.y, previousFarY - 60f);
 
             m_ResizeTarget.layout = newLayout;
         }
