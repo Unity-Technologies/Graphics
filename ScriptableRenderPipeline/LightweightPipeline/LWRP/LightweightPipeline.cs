@@ -1080,9 +1080,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void SetupShadowSliceTransform(int cascadeIndex, int shadowResolution, Matrix4x4 proj, Matrix4x4 view)
         {
-            if (cascadeIndex >= 4)
+            if (cascadeIndex >= kMaxCascades)
             {
-                Debug.LogError(String.Format("{0} is an invalid cascade index. Maximum of 4 cascades"));
+                Debug.LogError(String.Format("{0} is an invalid cascade index. Maximum of {1} cascades", cascadeIndex, kMaxCascades));
                 return;
             }
 
