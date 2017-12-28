@@ -16,62 +16,76 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return m_Instance;
             }
         }
-
-        internal List<DecalProjectorComponent> m_Decals = new List<DecalProjectorComponent>();
+        
         Mesh m_DecalMesh;
         CullingGroup m_CullingGroup;
-        private BoundingSphere[] m_BoundingSpheres;
-		private int[] m_ResultIndices;
+		private const int kDecalBlockSize = 128;
+		private BoundingSphere[] m_BoundingSpheres = new BoundingSphere[kDecalBlockSize];
+		private DecalProjectorComponent[] m_Decals = new DecalProjectorComponent[kDecalBlockSize];
+		private int[] m_ResultIndices = new int[kDecalBlockSize];
 		private int m_NumResults = 0;
+		private int m_DecalsCount = 0;
      
         public DecalSystem()
         {
             m_DecalMesh = CoreUtils.CreateDecalMesh();            
         }
 
-        // updates bounding spheres for all decals, also refreshes cull indices
-        void UpdateCulling()
-        {
-            m_BoundingSpheres = new BoundingSphere[m_Decals.Count];
-			m_ResultIndices = new int[m_Decals.Count];
-            int cullIndex = 0;
-            foreach (var decal in m_Decals)
-            {
-                decal.CullIndex = cullIndex;
-                m_BoundingSpheres[cullIndex] = CoreUtils.GetDecalMeshBoundingSphere(decal.transform.localToWorldMatrix);
-                cullIndex++;
-            }           
-        }
-
         // update bounding sphere for a single decal
-        public void UpdateCulling(DecalProjectorComponent decal)
+        public void UpdateBoundingSphere(DecalProjectorComponent decal)
         {
-            int cullIndex = decal.CullIndex;
-            m_BoundingSpheres[cullIndex] = CoreUtils.GetDecalMeshBoundingSphere(decal.transform.localToWorldMatrix);
+			m_BoundingSpheres[decal.CullIndex] = CoreUtils.GetDecalMeshBoundingSphere(decal.transform.localToWorldMatrix);
         }
 
-        public void AddDecal(DecalProjectorComponent d)
+        public void AddDecal(DecalProjectorComponent decal)
         {
-            if (d.CullIndex != DecalProjectorComponent.kInvalidIndex)
+			if (decal.CullIndex != DecalProjectorComponent.kInvalidIndex) //do not add the same decal more than once
+				return;
+
+			// increase array size if no space left
+            if(m_DecalsCount == m_Decals.Length)
             {
-                RemoveDecal(d);
-            }
-            d.CullIndex = m_Decals.Count;
-            m_Decals.Add(d);
-            UpdateCulling();
+				DecalProjectorComponent[] newDecals = new DecalProjectorComponent[m_DecalsCount + kDecalBlockSize];
+				BoundingSphere[] newSpheres = new BoundingSphere[m_DecalsCount + kDecalBlockSize];
+				m_ResultIndices = new int[m_DecalsCount + kDecalBlockSize];
+
+                m_Decals.CopyTo(newDecals, 0);
+				m_BoundingSpheres.CopyTo(newSpheres, 0);
+
+				m_Decals = newDecals;
+				m_BoundingSpheres = newSpheres;
+			}
+
+			m_Decals[m_DecalsCount] = decal;
+			m_Decals[m_DecalsCount].CullIndex = m_DecalsCount;
+			UpdateBoundingSphere(m_Decals[m_DecalsCount]);
+			m_DecalsCount++;            
         }
 
-        public void RemoveDecal(DecalProjectorComponent d)
+        public void RemoveDecal(DecalProjectorComponent decal)
         {
-            m_Decals.Remove(d);
-            UpdateCulling();
+			if (decal.CullIndex == DecalProjectorComponent.kInvalidIndex) //do not remove decal that has not been added
+				return;
+
+			int removeAtIndex = decal.CullIndex;
+			// replace with last decal in the list and update index
+			m_Decals[removeAtIndex] = m_Decals[m_DecalsCount - 1]; // move the last decal in list 
+			m_Decals[removeAtIndex].CullIndex = removeAtIndex;
+			m_Decals[m_DecalsCount - 1] = null;
+
+			// update the bounding spheres array
+			m_BoundingSpheres[removeAtIndex] = m_BoundingSpheres[m_DecalsCount - 1];
+			m_DecalsCount--;
+			decal.CullIndex = DecalProjectorComponent.kInvalidIndex;
         }
 
         public void Cull(Camera camera)
         {
+			m_NumResults = 0;
             m_CullingGroup = new CullingGroup();
             m_CullingGroup.targetCamera = camera;
-            m_CullingGroup.SetBoundingSpheres(m_BoundingSpheres);            
+            m_CullingGroup.SetBoundingSpheres(m_BoundingSpheres);
+			m_CullingGroup.SetBoundingSphereCount(m_DecalsCount);
         }
 
 		public int QueryCullResults()

@@ -23,8 +23,7 @@ void GetSurfaceData(float2 texCoordDS, out DecalSurfaceData surfaceData)
 #endif
 #if _MASKMAP
 	surfaceData.mask = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, texCoordDS.xy); 
-	surfaceData.normalWS.w *= surfaceData.mask.z;
-	surfaceData.mask.z *= totalBlend;
+	surfaceData.mask.z = totalBlend;
 #endif
 
 }

@@ -4,8 +4,6 @@ DECLARE_DBUFFER_TEXTURE(_DBufferTexture);
 
 void AddDecalContribution(uint2 unPositionSS, inout SurfaceData surfaceData)
 {
-    // Currently disabled
-#if 1
 	FETCH_DBUFFER(DBuffer, _DBufferTexture, unPositionSS);
 	DecalSurfaceData decalSurfaceData;
 	DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
@@ -15,5 +13,4 @@ void AddDecalContribution(uint2 unPositionSS, inout SurfaceData surfaceData)
 	surfaceData.metallic = lerp(surfaceData.metallic, decalSurfaceData.mask.x, decalSurfaceData.mask.z);
 	surfaceData.ambientOcclusion = lerp(surfaceData.ambientOcclusion, decalSurfaceData.mask.y, decalSurfaceData.mask.z);
 	surfaceData.perceptualSmoothness = lerp(surfaceData.perceptualSmoothness, decalSurfaceData.mask.w, decalSurfaceData.mask.z);
-#endif
 }
