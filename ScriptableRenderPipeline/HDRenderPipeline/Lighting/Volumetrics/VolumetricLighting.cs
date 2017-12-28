@@ -273,6 +273,10 @@ public partial class HDRenderPipeline : RenderPipeline
 
     // Ref: https://en.wikipedia.org/wiki/Close-packing_of_equal_spheres
     // The returned {x, y} coordinates (all spheres) are all within the (-0.5, 0.5)^2 range.
+    // Maximizes the resolution along diagonals. This is where it matters the most.
+    // Here's the version rotated by 15 degrees which maximizes the resolution along X and Y:
+    // https://www.desmos.com/calculator/runuxzjrkm
+    // If you further rotate it by 45 degrees, you end up with the original pattern.
     Vector2[] GetHexagonalClosePackedSpheres7()
     {
         Vector2[] coords = new Vector2[7];
@@ -292,18 +296,6 @@ public partial class HDRenderPipeline : RenderPipeline
         coords[4] = new Vector2( r,  s);
         coords[5] = new Vector2( r, -s);
         coords[6] = new Vector2(-r,  s);
-
-        // Rotate the sampling pattern by 15 degrees in order to maximize the resolution along X and Y.
-        const float cosTheta = 0.96592582628906828675f;
-        const float sinTheta = 0.25881904510252076235f;
-
-        for (int i = 0; i < 7; i++)
-        {
-            Vector2 coord = coords[i];
-
-            coords[i].x = coord.x * cosTheta - coord.y * sinTheta;
-            coords[i].y = coord.x * sinTheta + coord.y * cosTheta;
-        }
 
         return coords;
     }
