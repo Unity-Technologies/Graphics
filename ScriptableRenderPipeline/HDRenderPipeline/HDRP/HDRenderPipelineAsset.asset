@@ -23,13 +23,13 @@ MonoBehaviour:
     enableForwardRenderingOnly: 0
     enableDepthPrepassWithDeferredRendering: 0
     enableAlphaTestOnlyInDeferredPrepass: 0
-    enableTransparentPrePass: 1
+    enableTransparentPrepass: 1
     enableMotionVectors: 1
     enableObjectMotionVectors: 1
     enableDBuffer: 1
     enableAtmosphericScattering: 1
     enableRoughRefraction: 1
-    enableTransparentPostPass: 1
+    enableTransparentPostpass: 1
     enableDistortion: 1
     enablePostprocess: 1
     enableStereo: 1
@@ -51,7 +51,7 @@ MonoBehaviour:
     supportSSR: 1
     supportSSAO: 1
     supportSSSAndTransmission: 1
-    supportDBuffer: 0
+    supportDBuffer: 1
     supportMSAA: 0
     supportAsyncCompute: 0
     lightLoopSettings:
@@ -70,6 +70,3 @@ MonoBehaviour:
       shadowAtlasWidth: 4096
       shadowAtlasHeight: 4096
   sssSettings: {fileID: 0}
-  m_DefaultDiffuseMaterial: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17,
-    type: 2}
-  m_DefaultShader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
