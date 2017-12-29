@@ -181,6 +181,7 @@ float4 SampleInScatteredRadianceAndTransmittance(TEXTURE3D_ARGS(VBufferLighting,
         float z1 = DecodeLogarithmicDepth(d1, VBufferDepthEncodingParams);
 
         // The sampler will clamp to edge.
+        // TODO: adjust the texture coordinate and take a single HW trlinear sample.
         float4 L0 = SAMPLE_TEXTURE3D_LOD(VBufferLighting, linearClampSampler, float3(uv, d0), 0);
         float4 L1 = SAMPLE_TEXTURE3D_LOD(VBufferLighting, linearClampSampler, float3(uv, d1), 0);
 
