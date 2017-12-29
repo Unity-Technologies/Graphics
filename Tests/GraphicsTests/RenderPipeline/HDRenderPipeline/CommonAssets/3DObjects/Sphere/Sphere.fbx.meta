@@ -1,43 +1,26 @@
 fileFormatVersion: 2
-guid: ec3442293e1c1fb4cbdc0a199ebb03f0
+guid: eafea311820fefe4399b63d8b6b3e8d1
 ModelImporter:
   serializedVersion: 22
   fileIDToRecycleName:
     100000: //RootNode
     400000: //RootNode
-    2100000: Cornell Box
-    2100002: Cornell Box_green
-    2100004: Cornell Box_red
+    2100000: No Name
     2300000: //RootNode
     3300000: //RootNode
-    4300000: Cornell Box
-    7400000: Take 001
-    9500000: //RootNode
+    4300000: Sphere
     2186277476908879412: ImportLogs
     2186277476908879414: ImportLogs
     2186277476908879416: ImportLogs
     2186277476908879418: ImportLogs
-  externalObjects:
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Cornell Box
-    second: {fileID: 2100000, guid: 75d48353f7ed9d04683bb9f74b121d21, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Cornell Box_green
-    second: {fileID: 2100000, guid: ccb6d265c4315eb46bc2af89bda5b225, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Cornell Box_red
-    second: {fileID: 2100000, guid: 9e230cd3dd687c74f9fd71088a260bb3, type: 2}
+    2186277476908879420: ImportLogs
+    2186277476908879422: ImportLogs
+  externalObjects: {}
   materials:
-    importMaterials: 1
+    importMaterials: 0
     materialName: 0
     materialSearch: 1
-    materialLocation: 0
+    materialLocation: 1
   animations:
     legacyGenerateAnimations: 4
     bakeSimulation: 0
@@ -71,24 +54,24 @@ ModelImporter:
     importCameras: 1
     importLights: 1
     swapUVChannels: 0
-    generateSecondaryUV: 1
+    generateSecondaryUV: 0
     useFileUnits: 1
     optimizeMeshForGPU: 1
     keepQuads: 0
     weldVertices: 1
     preserveHierarchy: 0
-    indexFormat: 1
+    indexFormat: 0
     secondaryUVAngleDistortion: 8
-    secondaryUVAreaDistortion: 15
+    secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
-    secondaryUVPackMargin: 8
-    useFileScale: 1
+    secondaryUVPackMargin: 4
+    useFileScale: 0
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0
-    tangentImportMode: 3
+    tangentImportMode: 0
     normalCalculationMode: 4
-  importAnimation: 0
+  importAnimation: 1
   copyAvatar: 0
   humanDescription:
     serializedVersion: 2
