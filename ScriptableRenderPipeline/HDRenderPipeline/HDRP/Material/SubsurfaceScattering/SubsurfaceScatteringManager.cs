@@ -214,15 +214,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     if (NeedTemporarySubsurfaceBuffer())
                     {
-                        // Caution: must be same format as m_CameraSssDiffuseLightingBuffer
-                        cmd.ReleaseTemporaryRT(m_CameraFilteringBuffer);
-                        CoreUtils.CreateCmdTemporaryRT(cmd, m_CameraFilteringBuffer, hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
-                        // Clear the SSS filtering target
-                        using (new ProfilingSample(cmd, "Clear SSS filtering target", HDRenderPipeline.GetSampler(CustomSamplerId.ClearSSSFilteringTarget)))
-                        {
-                            CoreUtils.SetRenderTarget(cmd, m_CameraFilteringBufferRT, ClearFlag.Color, CoreUtils.clearColorAllBlack);
-                        }
-
                         cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._CameraFilteringBuffer, m_CameraFilteringBufferRT);
 
                         // Perform the SSS filtering pass which fills 'm_CameraFilteringBufferRT'.
