@@ -71,7 +71,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             light1.color = new Color(.4f, .4f, .45f, 0f) * .7f;
 
             m_CheckerboardMaterial = new Material(Shader.Find("Hidden/Checkerboard"));
-            checkerboardMaterial.shader.hideFlags = HideFlags.HideAndDontSave;
             checkerboardMaterial.hideFlags = HideFlags.HideAndDontSave;
 
             if (s_Meshes[0] == null)
@@ -192,7 +191,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (checkerboardMaterial != null)
             {
-                UnityEngine.Object.DestroyImmediate(checkerboardMaterial);
+                UnityEngine.Object.DestroyImmediate(checkerboardMaterial, true);
                 m_CheckerboardMaterial = null;
             }
 
