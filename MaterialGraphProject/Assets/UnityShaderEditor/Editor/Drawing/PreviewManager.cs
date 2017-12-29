@@ -475,32 +475,32 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        void DestroyRenderData(PreviewRenderData renderData)
+        {
+            if (renderData.shaderData.shader != null && renderData.shaderData.shader != m_UberShader)
+                Object.DestroyImmediate(renderData.shaderData.shader, true);
+            if (renderData.renderTexture != null)
+                Object.DestroyImmediate(renderData.renderTexture, true);
+            var node = renderData.shaderData.node;
+            if (node != null)
+                node.onModified -= OnNodeModified;
+        }
+
         void DestroyPreview(Identifier nodeId)
         {
             var renderData = Get(m_RenderDatas, nodeId);
             if (renderData != null)
             {
-                if (renderData.shaderData.shader != null && renderData.shaderData.shader != m_UberShader)
-                    Object.DestroyImmediate(renderData.shaderData.shader, true);
-                if (renderData.renderTexture != null)
-                    Object.DestroyImmediate(renderData.renderTexture, true);
-                var node = renderData.shaderData.node;
-                if (node != null)
-                    node.onModified -= OnNodeModified;
+                if (masterRenderData != null && masterRenderData.shaderData != null && masterRenderData.shaderData.node == renderData.shaderData.node)
+                    masterRenderData.shaderData = m_RenderDatas.Where(x => x != null && x.shaderData.node is IMasterNode).Select(x => x.shaderData).FirstOrDefault();
+
+                DestroyRenderData(renderData);
 
                 m_TimeDependentPreviews.Remove(nodeId.index);
                 m_DirtyPreviews.Remove(nodeId.index);
                 m_DirtyPreviews.Remove(nodeId.index);
                 Set(m_RenderDatas, nodeId, null);
                 Set(m_Identifiers, nodeId, default(Identifier));
-
-                if (masterRenderData.shaderData != null && masterRenderData.shaderData.node == node)
-                    masterRenderData.shaderData = m_RenderDatas.Where(x => x != null && x.shaderData.node is IMasterNode).Select(x => x.shaderData).FirstOrDefault();
-
-                renderData.shaderData.shader = null;
-                renderData.renderTexture = null;
-                renderData.texture = null;
-                renderData.onPreviewChanged = null;
             }
         }
 
@@ -526,8 +526,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_SceneResources.Dispose();
                 m_SceneResources = null;
             }
-            foreach (var renderData in m_RenderDatas.ToList())
-                DestroyPreview(renderData.shaderData.node.tempId);
+            if (m_MasterRenderData != null)
+                DestroyRenderData(m_MasterRenderData);
+            foreach (var renderData in m_RenderDatas.ToList().Where(x => x != null))
+                DestroyRenderData(renderData);
+            m_RenderDatas.Clear();
         }
 
         public void Dispose()

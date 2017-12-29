@@ -312,7 +312,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var maskIndex = index >> 5;
             var bitIndex = index & 31;
-            return (m_Masks[maskIndex] & ((uint)1 << bitIndex)) > 0;
+            return maskIndex < m_Masks.Count && (m_Masks[maskIndex] & ((uint)1 << bitIndex)) > 0;
         }
 
         public void CopyTo(int[] array, int arrayIndex)
