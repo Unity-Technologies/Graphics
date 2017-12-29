@@ -902,15 +902,23 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Light light = visibleLight.light;
             float bias = 0.0f;
             float normalBias = 0.0f;
+
+            // Use same kernel radius as built-in pipeline so we can achieve same bias results
+            // with the default light bias parameters.
+            const float kernelRadius = 3.65f;
+
             if (visibleLight.lightType == LightType.Directional)
             {
-                // Scale bias by cascade depth.
-                // Directional has orthogonal projection so proj.m22 = -2 / (far - near)
-                // if reversed z buffer we don't need to flip sign as proj.m22 sign is already negative
+                // Scale bias by cascade's world space depth range.
+                // Directional shadow lights have orthogonal projection.
+                // proj.m22 = -2 / (far - near) since the projection's depth range is [-1.0, 1.0]
+                // Therefore we scale it by 0.5. We keep the negative sign and only flip it in case z is
+                // reversed.
                 float sign = (SystemInfo.usesReversedZBuffer) ? 1.0f : -1.0f;
                 bias = light.shadowBias * proj.m22 * 0.5f * sign;
 
-                // Currently only square pot cascades resolutions are used.
+                // Currently only square POT cascades resolutions are used.
+                // We scale normalBias 
                 double frustumWidth = 2.0 / (double)proj.m00;
                 double frustumHeight = 2.0 / (double)proj.m11;
                 float texelSizeX = (float)(frustumWidth / (double)cascadeResolution);
@@ -918,8 +926,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 float texelSize = Mathf.Max(texelSizeX, texelSizeY);
 
                 // Since we are applying normal bias on caster side we want an inset normal offset
-                // thus we keep the negative bias
-                normalBias = light.shadowNormalBias * texelSize;
+                // thus we use a negative normal bias.
+                normalBias = -light.shadowNormalBias * texelSize * kernelRadius;
             }
             else if (visibleLight.lightType == LightType.Spot)
             {
@@ -1095,7 +1103,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             float atlasWidth = (float)m_ShadowSettings.shadowAtlasWidth;
             float atlasHeight = (float)m_ShadowSettings.shadowAtlasHeight;
 
-            // Currently CullResults ComputeDirectionalShadowMatricesAndCullingPrimitives doesnt
+            float deviceZRangeScale = 1.0f;
+
+            // Currently CullResults ComputeDirectionalShadowMatricesAndCullingPrimitives doesn't
             // apply z reversal to projection matrix. We need to do it manually here.
             if (SystemInfo.usesReversedZBuffer)
             {
@@ -1103,6 +1113,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 proj.m21 = -proj.m21;
                 proj.m22 = -proj.m22;
                 proj.m23 = -proj.m23;
+                deviceZRangeScale = 0.5f;
             }
 
             Matrix4x4 worldToShadow = proj * view;
@@ -1110,9 +1121,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             var textureScaleAndBias = Matrix4x4.identity;
             textureScaleAndBias.m00 = 0.5f;
             textureScaleAndBias.m11 = 0.5f;
-            textureScaleAndBias.m22 = 0.5f;
+            textureScaleAndBias.m22 = deviceZRangeScale;
             textureScaleAndBias.m03 = 0.5f;
-            textureScaleAndBias.m23 = 0.5f;
+            textureScaleAndBias.m23 = deviceZRangeScale;
             textureScaleAndBias.m13 = 0.5f;
 
             // Apply texture scale and offset to save a MAD in shader.
