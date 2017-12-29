@@ -5,6 +5,7 @@
 
 // x: global clip space bias, y: normal world space bias
 float4 _ShadowBias;
+float3 _LightDirection;
 
 struct VertexInput
 {
@@ -17,8 +18,11 @@ float4 ShadowPassVertex(VertexInput v) : SV_POSITION
     float3 positionWS = TransformObjectToWorld(v.position.xyz);
     float3 normalWS = TransformObjectToWorldDir(v.normal);
 
+    float invNdotL = 1.0 - saturate(dot(_LightDirection, normalWS));
+    float scale = invNdotL * _ShadowBias.y;
+
     // normal bias is negative since we want to apply an inset normal offset
-    positionWS = normalWS * _ShadowBias.yyy + positionWS;
+    positionWS = normalWS * scale.xxx + positionWS;
     float4 clipPos = TransformWorldToHClip(positionWS);
 
     // _ShadowBias.x sign depens on if platform has reversed z buffer

@@ -911,8 +911,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 bias = light.shadowBias * proj.m22 * 0.5f * sign;
 
                 // Currently only square pot cascades resolutions are used.
-                float texelSizeX = proj.m00 * 0.5f / cascadeResolution;
-                float texelSizeY = proj.m11 * 0.5f / cascadeResolution;
+                double frustumWidth = 2.0 / (double)proj.m00;
+                double frustumHeight = 2.0 / (double)proj.m11;
+                float texelSizeX = (float)(frustumWidth / (double)cascadeResolution);
+                float texelSizeY = (float)(frustumHeight / (double)cascadeResolution);
                 float texelSize = Mathf.Max(texelSizeX, texelSizeY);
 
                 // Since we are applying normal bias on caster side we want an inset normal offset
@@ -930,7 +932,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 Debug.LogWarning("Only spot and directional shadow casters are supported in lightweight pipeline");
             }
 
+            Vector3 lightDirection = -visibleLight.localToWorld.GetColumn(2);
             cmd.SetGlobalVector("_ShadowBias", new Vector4(bias, normalBias, 0.0f, 0.0f));
+            cmd.SetGlobalVector("_LightDirection", new Vector4(lightDirection.x, lightDirection.y, lightDirection.z, 0.0f));
         }
 
         private void SetupShadowReceiverConstants(CommandBuffer cmd, ref VisibleLight shadowLight)
@@ -1086,33 +1090,47 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 return;
             }
 
-            m_ShadowSlices[cascadeIndex].atlasX = (cascadeIndex % 2) * shadowResolution;
-            m_ShadowSlices[cascadeIndex].atlasY = (cascadeIndex / 2) * shadowResolution;
-            m_ShadowSlices[cascadeIndex].shadowResolution = shadowResolution;
-            m_ShadowSlices[cascadeIndex].shadowTransform = Matrix4x4.identity;
+            int atlasX = (cascadeIndex % 2) * shadowResolution;
+            int atlasY = (cascadeIndex / 2) * shadowResolution;
+            float atlasWidth = (float)m_ShadowSettings.shadowAtlasWidth;
+            float atlasHeight = (float)m_ShadowSettings.shadowAtlasHeight;
 
-            var matScaleBias = Matrix4x4.identity;
-            matScaleBias.m00 = 0.5f;
-            matScaleBias.m11 = 0.5f;
-            matScaleBias.m22 = 0.5f;
-            matScaleBias.m03 = 0.5f;
-            matScaleBias.m23 = 0.5f;
-            matScaleBias.m13 = 0.5f;
-
-            // Later down the pipeline the proj matrix will be scaled to reverse-z in case of DX.
-            // We need account for that scale in the shadowTransform.
+            // Currently CullResults ComputeDirectionalShadowMatricesAndCullingPrimitives doesnt
+            // apply z reversal to projection matrix. We need to do it manually here.
             if (SystemInfo.usesReversedZBuffer)
-                matScaleBias.m22 = -0.5f;
+            {
+                proj.m20 = -proj.m20;
+                proj.m21 = -proj.m21;
+                proj.m22 = -proj.m22;
+                proj.m23 = -proj.m23;
+            }
 
-            var matTile = Matrix4x4.identity;
-            matTile.m00 = (float)m_ShadowSlices[cascadeIndex].shadowResolution /
-                (float)m_ShadowSettings.shadowAtlasWidth;
-            matTile.m11 = (float)m_ShadowSlices[cascadeIndex].shadowResolution /
-                (float)m_ShadowSettings.shadowAtlasHeight;
-            matTile.m03 = (float)m_ShadowSlices[cascadeIndex].atlasX / (float)m_ShadowSettings.shadowAtlasWidth;
-            matTile.m13 = (float)m_ShadowSlices[cascadeIndex].atlasY / (float)m_ShadowSettings.shadowAtlasHeight;
+            Matrix4x4 worldToShadow = proj * view;
 
-            m_ShadowSlices[cascadeIndex].shadowTransform = matTile * matScaleBias * proj * view;
+            var textureScaleAndBias = Matrix4x4.identity;
+            textureScaleAndBias.m00 = 0.5f;
+            textureScaleAndBias.m11 = 0.5f;
+            textureScaleAndBias.m22 = 0.5f;
+            textureScaleAndBias.m03 = 0.5f;
+            textureScaleAndBias.m23 = 0.5f;
+            textureScaleAndBias.m13 = 0.5f;
+
+            // Apply texture scale and offset to save a MAD in shader.
+            worldToShadow = textureScaleAndBias * worldToShadow;
+
+            var cascadeAtlas = Matrix4x4.identity;
+            cascadeAtlas.m00 = (float)shadowResolution / atlasWidth;
+            cascadeAtlas.m11 = (float)shadowResolution / atlasHeight;
+            cascadeAtlas.m03 = (float)atlasX / atlasWidth;
+            cascadeAtlas.m13 = (float)atlasY / atlasHeight;
+
+            // Apply cascade scale and offset
+            worldToShadow = cascadeAtlas * worldToShadow;
+
+            m_ShadowSlices[cascadeIndex].atlasX = atlasX;
+            m_ShadowSlices[cascadeIndex].atlasY = atlasY; 
+            m_ShadowSlices[cascadeIndex].shadowResolution = shadowResolution;
+            m_ShadowSlices[cascadeIndex].shadowTransform = worldToShadow;
         }
 
         private void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context, int cascadeIndex,
