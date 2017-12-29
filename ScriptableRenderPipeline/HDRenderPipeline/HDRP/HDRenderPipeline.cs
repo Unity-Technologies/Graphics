@@ -1415,7 +1415,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd, "Gaussian Pyramid Color", GetSampler(CustomSamplerId.GaussianPyramidColor)))
             {
                 var colorPyramidDesc = m_GaussianPyramidColorBufferDesc;
-                var pyramidSideSize = colorPyramidDesc.width;
+                var pyramidSideSize = GetPyramidSize(colorPyramidDesc);
 
                 // The gaussian pyramid compute works in blocks of 8x8 so make sure the last lod has a
                 // minimum size of 8x8
@@ -1470,7 +1470,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd, "Pyramid Depth", GetSampler(CustomSamplerId.PyramidDepth)))
             {
                 var depthPyramidDesc = m_DepthPyramidBufferDesc;
-                var pyramidSideSize = depthPyramidDesc.width;
+                var pyramidSideSize = GetPyramidSize(depthPyramidDesc);
 
                 // The gaussian pyramid compute works in blocks of 8x8 so make sure the last lod has a
                 // minimum size of 8x8
@@ -1731,6 +1731,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static int CalculatePyramidSize(int w, int h)
         {
             return Mathf.ClosestPowerOfTwo(Mathf.Min(w, h));
+        }
+
+        static int GetPyramidSize(RenderTextureDescriptor pyramidDesc)
+        {
+            // The monoscopic pyramid texture has both the width and height
+            // matching, so the pyramid size could be either dimension.
+            // However, with stereo double-wide rendering, we will arrange
+            // two pyramid textures next to each other inside the double-wide
+            // texture.  The whole texture width will no longer be representative
+            // of the pyramid size, but the height still corresponds to the pyramid.
+            return pyramidDesc.height;
         }
 
         public enum PyramidType
