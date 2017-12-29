@@ -401,6 +401,9 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float3 blendedRadiance = (1 - blendFactor) * voxelRadiance + blendFactor * lengthScale * reprojRadiance;
 
         // Store the feedback for the voxel.
+        // TODO: animated lights (moving, rotating, with animated cookies) should not write
+        // to the history buffer. This will cause them to alias, but it is the only way
+        // to prevent ghosting.
         _VBufferLightingFeedback[uint3(posInput.positionSS, slice)] = float4(blendedRadiance, dt);
     #else
         float3 blendedRadiance = voxelRadiance;
