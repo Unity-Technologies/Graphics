@@ -27,8 +27,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
             {
                 m_Slot.owner.owner.owner.RegisterCompleteObjectUndo("Change Texture");
                 m_Slot.texture = texture;
-                if (m_Slot.owner.onModified != null)
-                    m_Slot.owner.onModified(m_Slot.owner, ModificationScope.Node);
+                m_Slot.owner.Dirty(ModificationScope.Node);
             }
         }
     }

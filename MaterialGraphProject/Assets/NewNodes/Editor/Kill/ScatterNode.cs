@@ -22,10 +22,7 @@ namespace UnityEditor.ShaderGraph
                   }
 
                   m_num = value;
-                  if (onModified != null)
-                  {
-                      onModified(this, ModificationScope.Graph);
-                  }
+                  Dirty(ModificationScope.Graph);
               }
           }
 

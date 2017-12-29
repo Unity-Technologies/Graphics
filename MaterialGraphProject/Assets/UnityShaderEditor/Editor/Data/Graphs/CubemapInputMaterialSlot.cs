@@ -60,10 +60,9 @@ namespace UnityEditor.ShaderGraph
 
         public override PreviewProperty GetPreviewProperty(string name)
         {
-            var pp = new PreviewProperty
+            var pp = new PreviewProperty(PropertyType.Cubemap)
             {
                 name = name,
-                propType = PropertyType.Cubemap,
                 cubemapValue = cubemap
             };
             return pp;
