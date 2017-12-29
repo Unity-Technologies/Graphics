@@ -151,8 +151,7 @@ namespace UnityEditor.ShaderGraph
                 shaderProperties,
                 requirements,
                 mode,
-                outputIdProperty: results.outputIdProperty,
-                ids: results.ids);
+                outputIdProperty: results.outputIdProperty);
 
             var finalBuilder = new ShaderStringBuilder();
             finalBuilder.AppendLine(@"Shader ""{0}""", name);
@@ -216,7 +215,6 @@ namespace UnityEditor.ShaderGraph
             string functionName = "PopulateSurfaceData",
             string surfaceDescriptionName = "SurfaceDescription",
             FloatShaderProperty outputIdProperty = null,
-            Dictionary<Guid, int> ids = null,
             IEnumerable<MaterialSlot> slots = null)
         {
             if (graph == null)
@@ -251,7 +249,6 @@ namespace UnityEditor.ShaderGraph
 
             graph.CollectShaderProperties(shaderProperties, mode);
 
-            var currentId = -1;
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
             {
                 if (activeNode is IGeneratesFunction)
@@ -265,11 +262,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     var outputSlot = activeNode.GetOutputSlots<MaterialSlot>().FirstOrDefault();
                     if (outputSlot != null)
-                    {
-                        currentId++;
-                        ids[activeNode.guid] = currentId;
-                        surfaceDescriptionFunction.AddShaderChunk(String.Format("if ({0} == {1}) {{ surface.PreviewOutput = {2}; return surface; }}", outputIdProperty.referenceName, currentId, ShaderGenerator.AdaptNodeOutputForPreview(activeNode, outputSlot.id, activeNode.GetVariableNameForSlot(outputSlot.id))), false);
-                    }
+                        surfaceDescriptionFunction.AddShaderChunk(String.Format("if ({0} == {1}) {{ surface.PreviewOutput = {2}; return surface; }}", outputIdProperty.referenceName, activeNode.tempId.index, ShaderGenerator.AdaptNodeOutputForPreview(activeNode, outputSlot.id, activeNode.GetVariableNameForSlot(outputSlot.id))), false);
                 }
 
                 activeNode.CollectShaderProperties(shaderProperties, mode);

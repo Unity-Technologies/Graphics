@@ -21,10 +21,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_filter = value;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Graph);
-                }
+                Dirty(ModificationScope.Graph);
             }
         }
 
@@ -41,10 +38,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_wrap = value;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Graph);
-                }
+                Dirty(ModificationScope.Graph);
             }
         }
 

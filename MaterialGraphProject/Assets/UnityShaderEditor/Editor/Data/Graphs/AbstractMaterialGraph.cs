@@ -48,11 +48,17 @@ namespace UnityEditor.ShaderGraph
         #region Node data
 
         [NonSerialized]
-        Dictionary<Guid, INode> m_Nodes = new Dictionary<Guid, INode>();
+        Stack<Identifier> m_FreeNodeTempIds = new Stack<Identifier>();
+
+        [NonSerialized]
+        List<AbstractMaterialNode> m_Nodes = new List<AbstractMaterialNode>();
+
+        [NonSerialized]
+        Dictionary<Guid, INode> m_NodeDictionary = new Dictionary<Guid, INode>();
 
         public IEnumerable<T> GetNodes<T>() where T : INode
         {
-            return m_Nodes.Values.OfType<T>();
+            return m_Nodes.Where(x => x != null).OfType<T>();
         }
 
         [SerializeField]
@@ -144,28 +150,42 @@ namespace UnityEditor.ShaderGraph
 
         void AddNodeNoValidate(INode node)
         {
-            m_Nodes.Add(node.guid, node);
-            node.owner = this;
-            m_AddedNodes.Add(node);
+            var materialNode = (AbstractMaterialNode)node;
+            materialNode.owner = this;
+            if (m_FreeNodeTempIds.Any())
+            {
+                var id = m_FreeNodeTempIds.Pop();
+                id.IncrementVersion();
+                materialNode.tempId = id;
+                m_Nodes[id.index] = materialNode;
+            }
+            else
+            {
+                var id = new Identifier(m_Nodes.Count);
+                materialNode.tempId = id;
+                m_Nodes.Add(materialNode);
+            }
+            m_NodeDictionary.Add(materialNode.guid, materialNode);
+            m_AddedNodes.Add(materialNode);
         }
 
         public void RemoveNode(INode node)
         {
             if (!node.canDeleteNode)
                 return;
-
-            m_Nodes.Remove(node.guid);
-            m_RemovedNodes.Add(node);
             ValidateGraph();
         }
 
         void RemoveNodeNoValidate(INode node)
         {
-            if (!node.canDeleteNode)
+            var materialNode = (AbstractMaterialNode)node;
+            if (!materialNode.canDeleteNode)
                 return;
 
-            m_Nodes.Remove(node.guid);
-            m_RemovedNodes.Add(node);
+            m_Nodes[materialNode.tempId.index] = null;
+            m_FreeNodeTempIds.Push(materialNode.tempId);
+            m_NodeDictionary.Remove(materialNode.guid);
+            m_RemovedNodes.Add(materialNode);
         }
 
         void AddEdgeToNodeEdges(IEdge edge)
@@ -270,13 +290,23 @@ namespace UnityEditor.ShaderGraph
         public INode GetNodeFromGuid(Guid guid)
         {
             INode node;
-            m_Nodes.TryGetValue(guid, out node);
+            m_NodeDictionary.TryGetValue(guid, out node);
+            return node;
+        }
+
+        public INode GetNodeFromTempId(Identifier tempId)
+        {
+            var node = m_Nodes[tempId.index];
+            if (node == null)
+                throw new Exception("Index does not contain a node.");
+            if (node.tempId.version != tempId.version)
+                throw new Exception("Trying to retrieve a node that was removed from the graph.");
             return node;
         }
 
         public bool ContainsNodeGuid(Guid guid)
         {
-            return m_Nodes.ContainsKey(guid);
+            return m_NodeDictionary.ContainsKey(guid);
         }
 
         public T GetNodeFromGuid<T>(Guid guid) where T : INode
@@ -474,9 +504,9 @@ namespace UnityEditor.ShaderGraph
             using (var removedNodesPooledObject = ListPool<Guid>.GetDisposable())
             {
                 var removedNodeGuids = removedNodesPooledObject.value;
-                removedNodeGuids.AddRange(m_Nodes.Keys);
+                removedNodeGuids.AddRange(m_Nodes.Where(n => n != null).Select(n => n.guid));
                 foreach (var nodeGuid in removedNodeGuids)
-                    RemoveNodeNoValidate(m_Nodes[nodeGuid]);
+                    RemoveNodeNoValidate(m_NodeDictionary[nodeGuid]);
             }
 
             ValidateGraph();
@@ -492,7 +522,7 @@ namespace UnityEditor.ShaderGraph
 
         public void OnBeforeSerialize()
         {
-            m_SerializableNodes = SerializationHelper.Serialize<INode>(m_Nodes.Values);
+            m_SerializableNodes = SerializationHelper.Serialize(GetNodes<INode>());
             m_SerializableEdges = SerializationHelper.Serialize<IEdge>(m_Edges);
             m_SerializedProperties = SerializationHelper.Serialize<IShaderProperty>(m_Properties);
         }
@@ -502,12 +532,15 @@ namespace UnityEditor.ShaderGraph
             // have to deserialize 'globals' before nodes
             m_Properties = SerializationHelper.Deserialize<IShaderProperty>(m_SerializedProperties, null);
             var nodes = SerializationHelper.Deserialize<INode>(m_SerializableNodes, GraphUtil.GetLegacyTypeRemapping());
-            m_Nodes = new Dictionary<Guid, INode>(nodes.Count);
-            foreach (var node in nodes)
+            m_Nodes = new List<AbstractMaterialNode>(nodes.Count);
+            m_NodeDictionary = new Dictionary<Guid, INode>(nodes.Count);
+            foreach (var node in nodes.OfType<AbstractMaterialNode>())
             {
                 node.owner = this;
                 node.UpdateNodeAfterDeserialization();
-                m_Nodes.Add(node.guid, node);
+                node.tempId = new Identifier(m_Nodes.Count);
+                m_Nodes.Add(node);
+                m_NodeDictionary.Add(node.guid, node);
             }
 
             m_SerializableNodes = null;

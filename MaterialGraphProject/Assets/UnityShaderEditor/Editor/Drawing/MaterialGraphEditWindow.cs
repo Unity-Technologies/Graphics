@@ -99,11 +99,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphEditorView.HandleGraphChanges();
                 graphObject.graph.ClearChanges();
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 m_HasError = true;
                 m_GraphEditorView = null;
                 graphObject = null;
+                Debug.LogException(e);
                 throw;
             }
         }

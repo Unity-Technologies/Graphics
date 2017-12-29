@@ -42,8 +42,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
                     var value = m_Get();
                     value[index] = (float)evt.newValue;
                     m_Set(value);
-                    if (m_Node.onModified != null)
-                        m_Node.onModified(m_Node, ModificationScope.Node);
+                    m_Node.Dirty(ModificationScope.Node);
                     m_UndoGroup = -1;
                 });
             field.RegisterCallback<InputEvent>(evt =>
@@ -61,8 +60,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
                     {
                         value[index] = newValue;
                         m_Set(value);
-                        if (m_Node.onModified != null)
-                            m_Node.onModified(m_Node, ModificationScope.Node);
+                        m_Node.Dirty(ModificationScope.Node);
                     }
                 });
             field.RegisterCallback<KeyDownEvent>(evt =>

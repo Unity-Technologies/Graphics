@@ -51,10 +51,7 @@ namespace UnityEditor.ShaderGraph
                 if (m_RedChannel == value.isOn)
                     return;
                 m_RedChannel = value.isOn;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Node);
-                }
+                Dirty(ModificationScope.Node);
             }
         }
 
@@ -70,10 +67,7 @@ namespace UnityEditor.ShaderGraph
                 if (m_GreenChannel == value.isOn)
                     return;
                 m_GreenChannel = value.isOn;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Node);
-                }
+                Dirty(ModificationScope.Node);
             }
         }
 
@@ -89,10 +83,7 @@ namespace UnityEditor.ShaderGraph
                 if (m_BlueChannel == value.isOn)
                     return;
                 m_BlueChannel = value.isOn;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Node);
-                }
+                Dirty(ModificationScope.Node);
             }
         }
 
@@ -107,10 +98,7 @@ namespace UnityEditor.ShaderGraph
                 if (m_AlphaChannel == value.isOn)
                     return;
                 m_AlphaChannel = value.isOn;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Node);
-                }
+                Dirty(ModificationScope.Node);
             }
         }
 
@@ -146,10 +134,9 @@ namespace UnityEditor.ShaderGraph
         {
             base.CollectPreviewMaterialProperties(properties);
 
-            properties.Add(new PreviewProperty()
+            properties.Add(new PreviewProperty(PropertyType.Vector4)
             {
                 name = string.Format("_{0}_Flip", GetVariableNameForNode()),
-                propType = PropertyType.Vector4,
                 vector4Value = new Vector4(Convert.ToInt32(m_RedChannel), Convert.ToInt32(m_GreenChannel), Convert.ToInt32(m_BlueChannel), Convert.ToInt32(m_AlphaChannel)),
             });
         }

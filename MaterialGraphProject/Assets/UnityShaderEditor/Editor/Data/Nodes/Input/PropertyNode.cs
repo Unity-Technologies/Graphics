@@ -132,10 +132,7 @@ namespace UnityEditor.ShaderGraph
 
                 UpdateNode();
 
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Topological);
-                }
+                Dirty(ModificationScope.Topological);
             }
         }
 
