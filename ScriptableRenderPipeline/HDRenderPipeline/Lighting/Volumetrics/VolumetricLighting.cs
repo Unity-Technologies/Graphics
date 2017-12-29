@@ -272,20 +272,18 @@ public partial class HDRenderPipeline : RenderPipeline
     }
 
     // Ref: https://en.wikipedia.org/wiki/Close-packing_of_equal_spheres
-    // The returned {x, y} coordinates (all spheres) are all within the (-0.5, 0.5)^2 range.
-    // Maximizes the resolution along diagonals. This is where it matters the most (for lights).
-    // Here's the version rotated by 15 degrees which maximizes the resolution along X and Y (for surfaces):
-    // https://www.desmos.com/calculator/runuxzjrkm
-    // If you further rotate it by 45 degrees (60 in total), you end up with the original pattern.
+    // The returned {x, y} coordinates (and all spheres) are all within the (-0.5, 0.5)^2 range.
+    // The pattern has been rotated by 15 degrees to maximize the resolution along X and Y:
+    // https://www.desmos.com/calculator/kcpfvltz7c
     Vector2[] GetHexagonalClosePackedSpheres7()
     {
         Vector2[] coords = new Vector2[7];
 
-        // The width is 3 spheres, so 6 radii.
-        float r = 1.0f / 6.0f;
+        float r = 0.17054068870105443882f;
         float d = 2 * r;
         float s = r * Mathf.Sqrt(3);
 
+        // Try to keep the weighted average as close to the center (0.5) as possible.
         //  (7)(5)    ( )( )    ( )( )    ( )( )    ( )( )    ( )(o)    ( )(x)    (o)(x)    (x)(x)
         // (2)(1)(3) ( )(o)( ) (o)(x)( ) (x)(x)(o) (x)(x)(x) (x)(x)(x) (x)(x)(x) (x)(x)(x) (x)(x)(x)
         //  (4)(6)    ( )( )    ( )( )    ( )( )    (o)( )    (x)( )    (x)(o)    (x)(x)    (x)(x)
@@ -296,6 +294,18 @@ public partial class HDRenderPipeline : RenderPipeline
         coords[4] = new Vector2( r,  s);
         coords[5] = new Vector2( r, -s);
         coords[6] = new Vector2(-r,  s);
+
+        // Rotate the sampling pattern by 15 degrees.
+        const float cos15 = 0.96592582628906828675f;
+        const float sin15 = 0.25881904510252076235f;
+
+        for (int i = 0; i < 7; i++)
+        {
+            Vector2 coord = coords[i];
+
+            coords[i].x = coord.x * cos15 - coord.y * sin15;
+            coords[i].y = coord.x * sin15 + coord.y * cos15;
+        }
 
         return coords;
     }
