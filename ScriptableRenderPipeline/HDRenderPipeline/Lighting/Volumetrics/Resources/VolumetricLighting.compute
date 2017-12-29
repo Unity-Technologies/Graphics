@@ -286,6 +286,7 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBufferLighting, trilinearSampler),
         // We use hardware trilinear filtering.
         // In theory, this is wrong, since the distance between slices is log-encoded.
         // In practice, doing the right thing in a loop is simply too expensive.
+        // TODO: adjust the texture coordinate and take a single HW trlinear sample.
         return SAMPLE_TEXTURE3D_LOD(VBufferLighting, trilinearSampler, float3(uv, d), 0);
     }
     else
