@@ -53,10 +53,7 @@ uint _DirectionalLightCount;
 uint _PunctualLightCount;
 uint _AreaLightCount;
 uint _EnvLightCount;
-float4 _DirShadowSplitSpheres[4]; // TODO: share this max between C# and hlsl
-
 int  _EnvLightSkyEnabled;         // TODO: make it a bool
-
 CBUFFER_END
 
 // LightLoopContext is not visible from Material (user should not use these properties in Material file)
