@@ -50,6 +50,18 @@ void ConvertAnisotropyToRoughness(float perceptualRoughness, float anisotropy, o
     roughnessB = ClampRoughnessForAnalyticalLights(roughnessB);
 }
 
+// Use with stack BRDF (clear coat / coat)
+float roughnessToVariance(float roughness)
+{
+    float roughnessPow = pow(roughness, 1.1);
+    return roughnessPow / (1.0 - roughnessPow);
+}
+
+float varianceToRoughness(float variance)
+{
+    return pow(variance / (1.0 + variance), 1.0 / 1.1);
+}
+
 // ----------------------------------------------------------------------------
 // Parallax mapping
 // ----------------------------------------------------------------------------

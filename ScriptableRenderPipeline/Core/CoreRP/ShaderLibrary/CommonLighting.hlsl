@@ -314,4 +314,11 @@ float IORToFresnel0(float ior)
     return Sq((ior - 1.0) / (ior + 1.0));
 }
 
+// same as regular refract except there is not the test for total internal reflection
+float3 RefractNoTIR(float3 X, float3 N, float ieta)
+{
+    float XdotN = saturate(dot(N, X));
+    return ieta * X + (sqrt(1 + ieta * ieta * (XdotN * XdotN - 1)) - ieta * XdotN) * N;
+}
+
 #endif // UNITY_COMMON_LIGHTING_INCLUDED
