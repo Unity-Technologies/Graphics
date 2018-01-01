@@ -166,8 +166,7 @@ float _SubsurfaceRadius;
 float _Thickness;
 float4 _ThicknessRemap;
 
-float _CoatCoverage;
-float _CoatIOR;
+float _CoatMask;
 
 float4 _SpecularColor;
 
