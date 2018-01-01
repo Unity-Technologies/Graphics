@@ -151,9 +151,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // fold into fresnel0
 
             // ClearCoat
-            public Vector3 coatNormalWS;
-            public float coatCoverage;
-            public float coatIOR; // CoatIOR is in range[1..2] it is surfaceData + 1
+            public float coatMask;
 
             // Only in forward
             // Transparency
