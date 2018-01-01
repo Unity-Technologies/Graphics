@@ -839,7 +839,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     preLightData.transmissionTransmittance = exp(-bsdfData.absorptionCoefficient * refraction.distance);
     // Empirical remap to try to match a bit the refraction probe blurring for the fallback
     // Use IblPerceptualRoughness so we can handle approx of clear coat.
-    preLightData.transmissionSSMipLevel = sqrt(preLightData.IblPerceptualRoughness) * uint(_GaussianPyramidColorMipSize.z);
+    preLightData.transmissionSSMipLevel = sqrt(preLightData.iblPerceptualRoughness) * uint(_GaussianPyramidColorMipSize.z);
 #endif
 
     return preLightData;
@@ -1603,6 +1603,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         {
             dirLS = mul(coatR, worldToLocal);
             projectionDistance = SphereRayIntersectSimple(positionLS, dirLS, sphereOuterDistance);
+            projectionDistance = max(projectionDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
             coatR = (positionWS + projectionDistance * coatR) - lightData.positionWS;
         }
 
@@ -1640,6 +1641,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         {
             dirLS = mul(coatR, worldToLocal);
             projectionDistance = BoxRayIntersectSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
+            projectionDistance = max(projectionDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
             coatR = (positionWS + projectionDistance * coatR) - lightData.positionWS;
         }
 
