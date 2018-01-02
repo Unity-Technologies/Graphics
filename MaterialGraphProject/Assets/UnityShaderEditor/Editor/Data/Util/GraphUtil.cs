@@ -164,9 +164,9 @@ namespace UnityEditor.ShaderGraph
 
                 finalBuilder.AppendLine(@"HLSLINCLUDE");
                 finalBuilder.AppendLine("#define USE_LEGACY_UNITY_MATRIX_VARIABLES");
-                finalBuilder.AppendLine(@"#include ""ShaderLibrary/Common.hlsl""");
-                finalBuilder.AppendLine(@"#include ""ShaderLibrary/Packing.hlsl""");
-                finalBuilder.AppendLine(@"#include ""ShaderLibrary/Color.hlsl""");
+                finalBuilder.AppendLine(@"#include ""CoreRP/ShaderLibrary/Common.hlsl""");
+                finalBuilder.AppendLine(@"#include ""CoreRP/ShaderLibrary/Packing.hlsl""");
+                finalBuilder.AppendLine(@"#include ""CoreRP/ShaderLibrary/Color.hlsl""");
                 finalBuilder.AppendLine(@"#include ""ShaderGraphLibrary/Functions.hlsl""");
                 finalBuilder.AppendLine(@"#include ""ShaderGraphLibrary/ShaderVariables.hlsl""");
                 finalBuilder.AppendLine(@"#include ""ShaderGraphLibrary/ShaderVariablesFunctions.hlsl""");
