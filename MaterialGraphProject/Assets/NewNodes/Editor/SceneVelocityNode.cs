@@ -44,10 +44,7 @@ using System.Collections.Generic;
                     return;
 
                 m_SceneVelocityMode = value;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Graph);
-                }
+                Dirty(ModificationScope.Graph);
             }
         }
 

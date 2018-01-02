@@ -58,8 +58,7 @@ namespace UnityEditor.ShaderGraph
                 if (m_Conversion.Equals(value))
                     return;
                 m_Conversion = value;
-                if (onModified != null)
-                    onModified(this, ModificationScope.Graph);
+                Dirty(ModificationScope.Graph);
             }
         }
 

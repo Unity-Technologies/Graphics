@@ -58,8 +58,7 @@ namespace UnityEditor.ShaderGraph
                 m_SerializedSubGraph = EditorJsonUtility.ToJson(helper, true);
                 UpdateSlots();
 
-                if (onModified != null)
-                    onModified(this, ModificationScope.Topological);
+                Dirty(ModificationScope.Topological);
             }
         }
 #else

@@ -29,8 +29,7 @@ namespace UnityEditor.ShaderGraph
 
           public void OnModified()
           {
-              if (onModified != null)
-                  onModified(this, ModificationScope.Node);
+              Dirty(ModificationScope.Node);
           }
 
           protected override string GetFunctionName()

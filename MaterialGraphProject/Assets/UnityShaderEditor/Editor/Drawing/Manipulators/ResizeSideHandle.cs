@@ -81,14 +81,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 newLayout.width = Mathf.Max(newLayout.width + normalizedResizeDelta.x, 60f);
                 normalizedResizeDelta.x = 0f;
-                Debug.Log("Not moving horizontally");
             }
 
             if (!moveWhileresizerVertical)
             {
                 newLayout.height = Mathf.Max(newLayout.height + normalizedResizeDelta.y, 60f);
                 normalizedResizeDelta.y = 0f;
-                Debug.Log("Not moving vertically");
             }
 
             float previousFarX = m_ResizeTarget.layout.x + m_ResizeTarget.layout.width;

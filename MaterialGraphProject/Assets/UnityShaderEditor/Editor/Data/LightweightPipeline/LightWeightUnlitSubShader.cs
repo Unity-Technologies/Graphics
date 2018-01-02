@@ -95,7 +95,6 @@ namespace UnityEditor.ShaderGraph
                 "PopulateSurfaceData",
                 "SurfaceDescription",
                 null,
-                null,
                 usedSlots);
 
             var graph = new ShaderGenerator();

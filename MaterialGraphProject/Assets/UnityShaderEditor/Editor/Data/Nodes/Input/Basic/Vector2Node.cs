@@ -37,8 +37,7 @@ namespace UnityEditor.ShaderGraph
 
                 m_Value = value;
 
-                if (onModified != null)
-                    onModified(this, ModificationScope.Node);
+                Dirty(ModificationScope.Node);
             }
         }
 
@@ -70,19 +69,16 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
-            properties.Add(new PreviewProperty()
+            properties.Add(new PreviewProperty(PropertyType.Vector2)
             {
                 name = GetVariableNameForNode(),
-                propType = PropertyType.Vector2,
                 vector4Value = m_Value
             });
         }
 
         public IShaderProperty AsShaderProperty()
         {
-            var prop = new Vector2ShaderProperty();
-            prop.value = value;
-            return prop;
+            return new Vector2ShaderProperty { value = value };
         }
 
         public int outputSlotId { get { return OutputSlotId; } }

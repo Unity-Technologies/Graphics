@@ -36,10 +36,7 @@ namespace UnityEditor.ShaderGraph
                 if (m_Cubemap.cubemap == value)
                     return;
                 m_Cubemap.cubemap = value;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Node);
-                }
+                Dirty(ModificationScope.Node);
             }
         }
 
@@ -56,18 +53,16 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
-            properties.Add(new PreviewProperty
+            properties.Add(new PreviewProperty(PropertyType.Cubemap)
             {
                 name = GetVariableNameForSlot(OutputSlotId),
-                propType = PropertyType.Cubemap,
                 cubemapValue = cubemap
             });
         }
 
         public IShaderProperty AsShaderProperty()
         {
-            var prop = new CubemapShaderProperty();
-            prop.value = m_Cubemap;
+            var prop = new CubemapShaderProperty { value = m_Cubemap };
             if (cubemap != null)
                 prop.displayName = cubemap.name;
             return prop;
