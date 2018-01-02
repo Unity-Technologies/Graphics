@@ -462,8 +462,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void CreateDepthStencilBuffer(HDCamera hdCamera)
         {
-            var camera = hdCamera.camera;
-
             if (m_CameraDepthStencilBuffer != null)
                 m_CameraDepthStencilBuffer.Release();
 

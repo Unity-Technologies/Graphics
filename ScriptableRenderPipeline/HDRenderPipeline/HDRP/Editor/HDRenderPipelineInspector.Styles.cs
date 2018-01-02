@@ -36,6 +36,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent useDepthPrepassWithDeferredRendering = new GUIContent("Use Depth Prepass with Deferred rendering");
             public readonly GUIContent renderAlphaTestOnlyInDeferredPrepass = new GUIContent("Alpha Test Only");
             public readonly GUIContent enableAsyncCompute = new GUIContent("Enable Async Compute");
+            public readonly GUIContent enableShadowMask = new GUIContent("Enable Shadow Mask");
 
             // LightLoop Settings
             public readonly GUIContent lightLoopSettings = new GUIContent("Light Loop Settings");
