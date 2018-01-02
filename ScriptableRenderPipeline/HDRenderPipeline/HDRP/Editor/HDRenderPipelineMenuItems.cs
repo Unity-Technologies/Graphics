@@ -266,7 +266,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             volume.isGlobal = true;
             volume.Add<HDShadowSettings>(true);
             var visualEnv = volume.Add<VisualEnvironment>(true);
-            visualEnv.skyType.value = SkyType.ProceduralSky;
+            visualEnv.skyType.value = SkySettings.GetUniqueID<ProceduralSky>();
             visualEnv.fogType.value = FogType.Exponential;
             volume.Add<ProceduralSky>(true);
             volume.Add<ExponentialFog>(true);

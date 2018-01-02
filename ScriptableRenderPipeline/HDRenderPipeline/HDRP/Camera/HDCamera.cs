@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -19,6 +20,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4[] frustumPlaneEquations;
         public Camera camera;
         public uint taaFrameIndex;
+        public Vector4 viewParam;
         public PostProcessRenderContext postprocessRenderContext;
 
         public Matrix4x4 viewProjMatrix
@@ -30,6 +32,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get { return nonJitteredProjMatrix * viewMatrix; }
         }
+
+        public RenderTextureDescriptor renderTextureDesc { get; private set; }
 
         // Always true for cameras that just got added to the pool - needed for previous matrices to
         // avoid one-frame jumps/hiccups with temporal effects (motion blur, TAA...)
@@ -50,7 +54,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        // View-projection matrix from the previous frame.
+        // View-projection matrix from the previous frame (non-jittered).
         public Matrix4x4 prevViewProjMatrix;
 
         // We need to keep track of these when camera relative rendering is enabled so we can take
@@ -76,12 +80,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Reset();
         }
 
-        public void Update(PostProcessLayer postProcessLayer)
+        public void Update(PostProcessLayer postProcessLayer, FrameSettings frameSettings)
         {
             // If TAA is enabled projMatrix will hold a jittered projection matrix. The original,
             // non-jittered projection matrix can be accessed via nonJitteredProjMatrix.
-            bool taaEnabled = camera.cameraType == CameraType.Game
-                && CoreUtils.IsTemporalAntialiasingActive(postProcessLayer);
+            bool taaEnabled = Application.isPlaying && CoreUtils.IsTemporalAntialiasingActive(postProcessLayer);
 
             var nonJitteredCameraProj = camera.projectionMatrix;
             var cameraProj = taaEnabled
@@ -121,22 +124,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 isFirstFrame = false;
+            }
 
-                const uint taaFrameCount = 8;
-                taaFrameIndex = taaEnabled ? (uint)Time.renderedFrameCount % taaFrameCount : 0; 
-            }
-            else
-            {
-                // Warning: in the Game View, outside of the Play Mode, the counter gets stuck on a random frame.
-                // In this case, reset the frame index to 0.
-                taaFrameIndex = 0;
-            }
+            const uint taaFrameCount = 8;
+            taaFrameIndex = taaEnabled ? (uint)Time.renderedFrameCount % taaFrameCount : 0;
 
             viewMatrix = gpuView;
             projMatrix = gpuProj;
             nonJitteredProjMatrix = gpuNonJitteredProj;
             cameraPos = pos;
-            screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
+            viewParam = new Vector4(viewMatrix.determinant, 0.0f, 0.0f, 0.0f);
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
@@ -154,10 +151,33 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Near, far.
-            frustumPlaneEquations[4] = new Vector4( camera.transform.forward.x,  camera.transform.forward.y,  camera.transform.forward.z, -Vector3.Dot(camera.transform.forward, relPos) - camera.nearClipPlane);
-            frustumPlaneEquations[5] = new Vector4(-camera.transform.forward.x, -camera.transform.forward.y, -camera.transform.forward.z,  Vector3.Dot(camera.transform.forward, relPos) + camera.farClipPlane);
+            // We need to switch forward direction based on handness (Reminder: Regular camera have a negative determinant in Unity and reflection probe follow DX convention and have a positive determinant)
+            Vector3 forward = viewParam.x < 0.0f ? camera.transform.forward : -camera.transform.forward;
+            frustumPlaneEquations[4] = new Vector4( forward.x,  forward.y,  forward.z, -Vector3.Dot(forward, relPos) - camera.nearClipPlane);
+            frustumPlaneEquations[5] = new Vector4(-forward.x, -forward.y, -forward.z,  Vector3.Dot(forward, relPos) + camera.farClipPlane);
 
             m_LastFrameActive = Time.frameCount;
+
+            RenderTextureDescriptor tempDesc;
+            if (frameSettings.enableStereo)
+            {
+                screenSize = new Vector4(XRSettings.eyeTextureWidth, XRSettings.eyeTextureHeight, 1.0f / XRSettings.eyeTextureWidth, 1.0f / XRSettings.eyeTextureHeight);
+                tempDesc = XRSettings.eyeTextureDesc;
+            }
+            else
+            {
+                screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
+                tempDesc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
+            }
+
+            tempDesc.msaaSamples = 1; // will be updated later, deferred will always set to 1
+            tempDesc.depthBufferBits = 0;
+            tempDesc.autoGenerateMips = false;
+            tempDesc.useMipMap = false;
+            tempDesc.enableRandomWrite = false;
+            tempDesc.memoryless = RenderTextureMemoryless.None;
+
+            renderTextureDesc = tempDesc;
         }
 
         public void Reset()
@@ -167,7 +187,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Grab the HDCamera tied to a given Camera and update it.
-        public static HDCamera Get(Camera camera, PostProcessLayer postProcessLayer)
+        public static HDCamera Get(Camera camera, PostProcessLayer postProcessLayer, FrameSettings frameSettings)
         {
             HDCamera hdcam;
 
@@ -177,7 +197,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_Cameras.Add(camera, hdcam);
             }
 
-            hdcam.Update(postProcessLayer);
+            hdcam.Update(postProcessLayer, frameSettings);
             return hdcam;
         }
 
@@ -207,28 +227,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalMatrix(HDShaderIDs._NonJitteredViewProjMatrix, nonJitteredViewProjMatrix);
             cmd.SetGlobalMatrix(HDShaderIDs._ViewProjMatrix, viewProjMatrix);
             cmd.SetGlobalMatrix(HDShaderIDs._InvViewProjMatrix, viewProjMatrix.inverse);
+            cmd.SetGlobalVector(HDShaderIDs._ViewParam, viewParam);
             cmd.SetGlobalVector(HDShaderIDs._InvProjParam, invProjParam);
             cmd.SetGlobalVector(HDShaderIDs._ScreenSize, screenSize);
             cmd.SetGlobalMatrix(HDShaderIDs._PrevViewProjMatrix, prevViewProjMatrix);
             cmd.SetGlobalVectorArray(HDShaderIDs._FrustumPlanes, frustumPlaneEquations);
             cmd.SetGlobalInt(HDShaderIDs._TaaFrameIndex, (int)taaFrameIndex);
-        }
-
-        // Does not modify global settings. Used for shadows, low res. rendering, etc.
-        public void OverrideGlobalParams(Material material)
-        {
-            material.SetMatrix(HDShaderIDs._ViewMatrix, viewMatrix);
-            material.SetMatrix(HDShaderIDs._InvViewMatrix, viewMatrix.inverse);
-            material.SetMatrix(HDShaderIDs._ProjMatrix, projMatrix);
-            material.SetMatrix(HDShaderIDs._InvProjMatrix, projMatrix.inverse);
-            material.SetMatrix(HDShaderIDs._NonJitteredViewProjMatrix, nonJitteredViewProjMatrix);
-            material.SetMatrix(HDShaderIDs._ViewProjMatrix, viewProjMatrix);
-            material.SetMatrix(HDShaderIDs._InvViewProjMatrix, viewProjMatrix.inverse);
-            material.SetVector(HDShaderIDs._InvProjParam, invProjParam);
-            material.SetVector(HDShaderIDs._ScreenSize, screenSize);
-            material.SetMatrix(HDShaderIDs._PrevViewProjMatrix, prevViewProjMatrix);
-            material.SetVectorArray(HDShaderIDs._FrustumPlanes, frustumPlaneEquations);
-            material.SetInt(HDShaderIDs._TaaFrameIndex, (int)taaFrameIndex);
         }
 
         // TODO: We should set all the value below globally and not let it under the control of Unity,
@@ -239,6 +243,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Copy values set by Unity which are not configured in scripts.
             cmd.SetComputeVectorParam(cs, HDShaderIDs.unity_OrthoParams, Shader.GetGlobalVector(HDShaderIDs.unity_OrthoParams));
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ProjectionParams, Shader.GetGlobalVector(HDShaderIDs._ProjectionParams));
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ViewParam, Shader.GetGlobalVector(HDShaderIDs._ViewParam));
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ScreenParams, Shader.GetGlobalVector(HDShaderIDs._ScreenParams));
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ZBufferParams, Shader.GetGlobalVector(HDShaderIDs._ZBufferParams));
             cmd.SetComputeVectorParam(cs, HDShaderIDs._WorldSpaceCameraPos, Shader.GetGlobalVector(HDShaderIDs._WorldSpaceCameraPos));

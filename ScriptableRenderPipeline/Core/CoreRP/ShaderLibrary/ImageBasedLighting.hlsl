@@ -341,8 +341,7 @@ real4 IntegrateGGXAndDisneyFGD(real3 V, real3 N, real roughness, uint sampleCoun
         {
             // Integral{BSDF * <N,L> dw} =
             // Integral{(F0 + (1 - F0) * (1 - <V,H>)^5) * (BSDF / F) * <N,L> dw} =
-            // F0 * Integral{(BSDF / F) * <N,L> dw} +
-            // (1 - F0) * Integral{(1 - <V,H>)^5 * (BSDF / F) * <N,L> dw} =
+            // (1 - F0) * Integral{(1 - <V,H>)^5 * (BSDF / F) * <N,L> dw} + F0 * Integral{(BSDF / F) * <N,L> dw}=
             // (1 - F0) * x + F0 * y = lerp(x, y, F0)
 
             acc.x += weightOverPdf * pow(1 - VdotH, 5);
