@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 
@@ -25,25 +25,79 @@ namespace UnityEditor.ShaderGraph.Drawing
 
     public class ResizeSideHandle : VisualElement
     {
+        public static void AddResizeHandleBorderFrame(VisualElement targetElement)
+        {
+            targetElement.Add(new ResizeSideHandle(targetElement, ResizeHandleAnchor.TopLeft));
+            targetElement.Add(new ResizeSideHandle(targetElement, ResizeHandleAnchor.Top));
+            targetElement.Add(new ResizeSideHandle(targetElement, ResizeHandleAnchor.TopRight));
+            targetElement.Add(new ResizeSideHandle(targetElement, ResizeHandleAnchor.Right));
+            targetElement.Add(new ResizeSideHandle(targetElement, ResizeHandleAnchor.BottomRight));
+            targetElement.Add(new ResizeSideHandle(targetElement, ResizeHandleAnchor.Bottom));
+            targetElement.Add(new ResizeSideHandle(targetElement, ResizeHandleAnchor.BottomLeft));
+            targetElement.Add(new ResizeSideHandle(targetElement, ResizeHandleAnchor.Left));
+        }
+
         VisualElement m_ResizeTarget;
 
-        ResizeHandleAnchor m_HandleAnchor;
-
-        public ResizeSideHandle(VisualElement resizeTarget, ResizeHandleAnchor anchor, string[] styleClasses)
+        public ResizeSideHandle(VisualElement resizeTarget, ResizeHandleAnchor anchor)
         {
             m_ResizeTarget = resizeTarget;
 
-            foreach (string styleClass in styleClasses)
+            AddToClassList("resize");
+
+            switch (anchor)
             {
-                AddToClassList(styleClass);
+                case ResizeHandleAnchor.Top:
+                {
+                    AddToClassList("vertical");
+                    AddToClassList("top");
+                    break;
+                }
+                case ResizeHandleAnchor.TopRight:
+                {
+                    AddToClassList("diagonal");
+                    AddToClassList("top-right");
+                    break;
+                }
+                case ResizeHandleAnchor.Right:
+                {
+                    AddToClassList("horizontal");
+                    AddToClassList("right");
+                    break;
+                }
+                case ResizeHandleAnchor.BottomRight:
+                {
+                    AddToClassList("diagonal");
+                    AddToClassList("bottom-right");
+                    break;
+                }
+                case ResizeHandleAnchor.Bottom:
+                {
+                    AddToClassList("vertical");
+                    AddToClassList("bottom");
+                    break;
+                }
+                case ResizeHandleAnchor.BottomLeft:
+                {
+                    AddToClassList("diagonal");
+                    AddToClassList("bottom-left");
+                    break;
+                }
+                case ResizeHandleAnchor.Left:
+                {
+                    AddToClassList("horizontal");
+                    AddToClassList("left");
+                    break;
+                }
+                case ResizeHandleAnchor.TopLeft:
+                {
+                    AddToClassList("vertical");
+                    AddToClassList("top-left");
+                    break;
+                }
             }
 
-            m_HandleAnchor = anchor;
-
             ResizeDirection resizeDirection;
-
-            bool moveWhileResizeHorizontal = anchor == ResizeHandleAnchor.TopLeft || anchor == ResizeHandleAnchor.BottomLeft || anchor == ResizeHandleAnchor.Left;
-            bool moveWhileResizeVertical = anchor == ResizeHandleAnchor.TopLeft || anchor == ResizeHandleAnchor.TopRight || anchor == ResizeHandleAnchor.Top;
 
             if (anchor == ResizeHandleAnchor.Left || anchor == ResizeHandleAnchor.Right)
             {
@@ -57,6 +111,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 resizeDirection = ResizeDirection.Any;
             }
+
+            bool moveWhileResizeHorizontal = anchor == ResizeHandleAnchor.TopLeft || anchor == ResizeHandleAnchor.BottomLeft || anchor == ResizeHandleAnchor.Left;
+            bool moveWhileResizeVertical = anchor == ResizeHandleAnchor.TopLeft || anchor == ResizeHandleAnchor.TopRight || anchor == ResizeHandleAnchor.Top;
 
             this.AddManipulator(new Draggable(mouseDelta => OnResize(mouseDelta, resizeDirection, moveWhileResizeHorizontal, moveWhileResizeVertical)));
         }

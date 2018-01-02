@@ -94,14 +94,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             foreach (var property in m_Graph.properties)
                 m_PropertyItems.Add(new ShaderPropertyView(m_Graph, property));
 
-            Add(new ResizeSideHandle(this, ResizeHandleAnchor.TopLeft, new string[] {"resize", "diagonal", "top-left"}));
-            Add(new ResizeSideHandle(this, ResizeHandleAnchor.Top, new string[] {"resize", "vertical", "top"}));
-            Add(new ResizeSideHandle(this, ResizeHandleAnchor.TopRight, new string[] {"resize", "diagonal", "top-right"}));
-            Add(new ResizeSideHandle(this, ResizeHandleAnchor.Right, new string[] {"resize", "horizontal", "right"}));
-            Add(new ResizeSideHandle(this, ResizeHandleAnchor.BottomRight, new string[] {"resize", "diagonal", "bottom-right"}));
-            Add(new ResizeSideHandle(this, ResizeHandleAnchor.Bottom, new string[] {"resize", "vertical", "bottom"}));
-            Add(new ResizeSideHandle(this, ResizeHandleAnchor.BottomLeft, new string[] {"resize", "diagonal", "bottom-left"}));
-            Add(new ResizeSideHandle(this, ResizeHandleAnchor.Left, new string[] {"resize", "horizontal", "left"}));
+            ResizeSideHandle.AddResizeHandleBorderFrame(this);
         }
 
         MasterNode masterNode
