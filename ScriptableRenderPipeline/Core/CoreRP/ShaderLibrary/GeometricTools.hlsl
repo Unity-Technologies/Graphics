@@ -106,7 +106,7 @@ float3 ProjectPointOnPlane(float3 position, float3 planePosition, float3 planeNo
 // Plane equation: {(a, b, c) = N, d = -dot(N, P)}.
 // Returns the distance from the plane to the point 'p' along the normal.
 // Positive -> in front (above), negative -> behind (below).
-float DistanceFromPlane(float3 p, float3 plane)
+float DistanceFromPlane(float3 p, float4 plane)
 {
     return dot(float4(p, 1.0), plane);
 }
