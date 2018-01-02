@@ -10,7 +10,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public enum ShaderOptions
     {
         CameraRelativeRendering = 1, // Rendering sets the origin of the world to the position of the primary (scene view) camera
-        UseDisneySSS = 1 // Allow to chose between Burley Normalized Diffusion (Multi + Fix single scattering) or Jimenez diffusion approximation (Multiscattering only - More blurry) for Subsurface scattering
+        UseDisneySSS = 1 // Allow to chose between Burley Normalized Diffusion (Multi + Fix direction single scattering) or Jimenez diffusion approximation (Multiscattering only - More blurry) for Subsurface scattering
     };
 
     // Note: #define can't be use in include file in C# so we chose this way to configure both C# and hlsl
