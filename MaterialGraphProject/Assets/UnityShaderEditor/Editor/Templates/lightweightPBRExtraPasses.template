@@ -1,4 +1,4 @@
-       Pass
+        Pass
         {
             Tags{"LightMode" = "ShadowCaster"}
 
@@ -11,7 +11,7 @@
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
 
-            #include "LightweightPassShadow.hlsl"
+            #include "LWRP/Shaders/LightweightPassShadow.hlsl"
             ENDHLSL
         }
 
@@ -29,7 +29,7 @@
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "LightweightShaderLibrary/Core.hlsl"
+            #include "LWRP/Shaders/LightweightShaderLibrary/Core.hlsl"
 
             float4 vert(float4 pos : POSITION) : SV_POSITION
             {
@@ -64,6 +64,6 @@
 
             #pragma shader_feature _SPECGLOSSMAP
 
-            #include "LightweightPassMeta.hlsl"
+            #include "LWRP/Shaders/LightweightPassMeta.hlsl"
             ENDHLSL
         }
