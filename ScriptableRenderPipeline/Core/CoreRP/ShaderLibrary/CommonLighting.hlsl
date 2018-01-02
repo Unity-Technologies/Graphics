@@ -2,25 +2,7 @@
 #define UNITY_COMMON_LIGHTING_INCLUDED
 
 // These clamping function to max of floating point 16 bit are use to prevent INF in code in case of extreme value
-real ClampToFloat16Max(real value)
-{
-    return min(value, HALF_MAX);
-}
-
-real2 ClampToFloat16Max(real2 value)
-{
-    return min(value, HALF_MAX);
-}
-
-real3 ClampToFloat16Max(real3 value)
-{
-    return min(value, HALF_MAX);
-}
-
-real4 ClampToFloat16Max(real4 value)
-{
-    return min(value, HALF_MAX);
-}
+TEMPLATE_1_FLT(ClampToFloat16Max, value, min(value, HALF_MAX))
 
 // Ligthing convention
 // Light direction is oriented backward (-Z). i.e in shader code, light direction is -lightData.forward

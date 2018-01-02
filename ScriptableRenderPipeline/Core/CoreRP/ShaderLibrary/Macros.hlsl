@@ -43,10 +43,16 @@
 #define UINT_MAX 0xFFFFFFFFu
 
 #define TEMPLATE_1_FLT(FunctionName, Parameter1, FunctionBody) \
-real  FunctionName(real  Parameter1) { FunctionBody; } \
-real2 FunctionName(real2 Parameter1) { FunctionBody; } \
-real3 FunctionName(real3 Parameter1) { FunctionBody; } \
-real4 FunctionName(real4 Parameter1) { FunctionBody; }
+    float  FunctionName(float  Parameter1) { FunctionBody; } \
+    float2 FunctionName(float2 Parameter1) { FunctionBody; } \
+    float3 FunctionName(float3 Parameter1) { FunctionBody; } \
+    float4 FunctionName(float4 Parameter1) { FunctionBody; }
+
+#define TEMPLATE_1_HALF(FunctionName, Parameter1, FunctionBody) \
+    half  FunctionName(half  Parameter1) { FunctionBody; } \
+    half2 FunctionName(half2 Parameter1) { FunctionBody; } \
+    half3 FunctionName(half3 Parameter1) { FunctionBody; } \
+    half4 FunctionName(half4 Parameter1) { FunctionBody; }
 
 #ifdef SHADER_API_GLES
     #define TEMPLATE_1_INT(FunctionName, Parameter1, FunctionBody) \
@@ -67,10 +73,16 @@ real4 FunctionName(real4 Parameter1) { FunctionBody; }
 #endif
 
 #define TEMPLATE_2_FLT(FunctionName, Parameter1, Parameter2, FunctionBody) \
-real  FunctionName(real  Parameter1, real  Parameter2) { FunctionBody; } \
-real2 FunctionName(real2 Parameter1, real2 Parameter2) { FunctionBody; } \
-real3 FunctionName(real3 Parameter1, real3 Parameter2) { FunctionBody; } \
-real4 FunctionName(real4 Parameter1, real4 Parameter2) { FunctionBody; }
+    float  FunctionName(float  Parameter1, float  Parameter2) { FunctionBody; } \
+    float2 FunctionName(float2 Parameter1, float2 Parameter2) { FunctionBody; } \
+    float3 FunctionName(float3 Parameter1, float3 Parameter2) { FunctionBody; } \
+    float4 FunctionName(float4 Parameter1, float4 Parameter2) { FunctionBody; }
+
+#define TEMPLATE_2_HALF(FunctionName, Parameter1, Parameter2, FunctionBody) \
+    half  FunctionName(half  Parameter1, half  Parameter2) { FunctionBody; } \
+    half2 FunctionName(half2 Parameter1, half2 Parameter2) { FunctionBody; } \
+    half3 FunctionName(half3 Parameter1, half3 Parameter2) { FunctionBody; } \
+    half4 FunctionName(half4 Parameter1, half4 Parameter2) { FunctionBody; }
 
 
 #ifdef SHADER_API_GLES
@@ -92,10 +104,16 @@ real4 FunctionName(real4 Parameter1, real4 Parameter2) { FunctionBody; }
 #endif
 
 #define TEMPLATE_3_FLT(FunctionName, Parameter1, Parameter2, Parameter3, FunctionBody) \
-real  FunctionName(real  Parameter1, real  Parameter2, real  Parameter3) { FunctionBody; } \
-real2 FunctionName(real2 Parameter1, real2 Parameter2, real2 Parameter3) { FunctionBody; } \
-real3 FunctionName(real3 Parameter1, real3 Parameter2, real3 Parameter3) { FunctionBody; } \
-real4 FunctionName(real4 Parameter1, real4 Parameter2, real4 Parameter3) { FunctionBody; }
+    float  FunctionName(float  Parameter1, float  Parameter2, float  Parameter3) { FunctionBody; } \
+    float2 FunctionName(float2 Parameter1, float2 Parameter2, float2 Parameter3) { FunctionBody; } \
+    float3 FunctionName(float3 Parameter1, float3 Parameter2, float3 Parameter3) { FunctionBody; } \
+    float4 FunctionName(float4 Parameter1, float4 Parameter2, float4 Parameter3) { FunctionBody; }
+
+#define TEMPLATE_3_HALF(FunctionName, Parameter1, Parameter2, Parameter3, FunctionBody) \
+    half  FunctionName(half  Parameter1, half  Parameter2, half  Parameter3) { FunctionBody; } \
+    half2 FunctionName(half2 Parameter1, half2 Parameter2, half2 Parameter3) { FunctionBody; } \
+    half3 FunctionName(half3 Parameter1, half3 Parameter2, half3 Parameter3) { FunctionBody; } \
+    half4 FunctionName(half4 Parameter1, half4 Parameter2, half4 Parameter3) { FunctionBody; }
 
 #ifdef SHADER_API_GLES
     #define TEMPLATE_3_INT(FunctionName, Parameter1, Parameter2, Parameter3, FunctionBody) \

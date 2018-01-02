@@ -76,6 +76,9 @@
 
 #define REAL_MIN HALF_MIN
 #define REAL_MAX HALF_MAX
+#define TEMPLATE_1_REAL TEMPLATE_1_HALF
+#define TEMPLATE_2_REAL TEMPLATE_2_HALF
+#define TEMPLATE_3_REAL TEMPLATE_3_HALF
 
 #else
 
@@ -94,8 +97,13 @@
 
 #define REAL_MIN FLT_MIN
 #define REAL_MAX FLT_MAX
+#define TEMPLATE_1_REAL TEMPLATE_1_FLT
+#define TEMPLATE_2_REAL TEMPLATE_2_FLT
+#define TEMPLATE_3_REAL TEMPLATE_3_FLT
 
-#endif
+#endif // SHADER_API_MOBILE
+
+#endif // #ifndef real
 
 // Include language header
 #if defined(SHADER_API_D3D11)
@@ -197,7 +205,7 @@ void ToggleBit(inout uint data, uint offset)
 
 #ifndef INTRINSIC_WAVEREADFIRSTLANE
     // Warning: for correctness, the argument must have the same value across the wave!
-    TEMPLATE_1_FLT(WaveReadFirstLane, scalarValue, return scalarValue)
+    TEMPLATE_1_REAL(WaveReadFirstLane, scalarValue, return scalarValue)
     TEMPLATE_1_INT(WaveReadFirstLane, scalarValue, return scalarValue)
 #endif
 
@@ -210,9 +218,9 @@ void ToggleBit(inout uint data, uint offset)
 #endif // INTRINSIC_MAD24
 
 #ifndef INTRINSIC_MINMAX3
-    TEMPLATE_3_FLT(Min3, a, b, c, return min(min(a, b), c))
+    TEMPLATE_3_REAL(Min3, a, b, c, return min(min(a, b), c))
     TEMPLATE_3_INT(Min3, a, b, c, return min(min(a, b), c))
-    TEMPLATE_3_FLT(Max3, a, b, c, return max(max(a, b), c))
+    TEMPLATE_3_REAL(Max3, a, b, c, return max(max(a, b), c))
     TEMPLATE_3_INT(Max3, a, b, c, return max(max(a, b), c))
 #endif // INTRINSIC_MINMAX3
 
@@ -284,7 +292,7 @@ real RadToDeg(real rad)
 }
 
 // Square functions for cleaner code
-TEMPLATE_1_FLT(Sq, x, return x * x)
+TEMPLATE_1_REAL(Sq, x, return x * x)
 TEMPLATE_1_INT(Sq, x, return x * x)
 
 // Input [0, 1] and output [0, PI/2]
@@ -349,7 +357,7 @@ real FastATan(real x)
 // Using pow often result to a warning like this
 // "pow(f, e) will not work for negative f, use abs(f) or conditionally handle negative values if you expect them"
 // PositivePow remove this warning when you know the value is positive and avoid inf/NAN.
-TEMPLATE_2_FLT(PositivePow, base, power, return pow(max(abs(base), FLT_EPS), power))
+TEMPLATE_2_REAL(PositivePow, base, power, return pow(max(abs(base), FLT_EPS), power))
 
 // Computes (FastSign(s) * x) using 2x VALU.
 // See the comment about FastSign() below.
@@ -364,7 +372,7 @@ float FastMulBySignOf(float s, float x, bool ignoreNegZero = true)
     {
         uint negZero = 0x80000000u;
         uint signBit = negZero & asuint(s);
-        return asfloat(signBit ^ asuint(float(x))); // Does not work work with half, so have to cast
+        return asfloat(signBit ^ asuint(x));
     }
 #else
     return (s >= 0) ? x : -x;
@@ -573,7 +581,7 @@ PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, uint2 t
 
     posInput.positionNDC = positionSS;
 #if SHADER_STAGE_COMPUTE
-    // In case of compute shader an extra offset is added to the screenPos to shift the integer position to pixel center.
+    // In case of compute shader an extra half offset is added to the screenPos to shift the integer position to pixel center.
     posInput.positionNDC.xy += float2(0.5, 0.5);
 #endif
     posInput.positionNDC *= invScreenSize;
