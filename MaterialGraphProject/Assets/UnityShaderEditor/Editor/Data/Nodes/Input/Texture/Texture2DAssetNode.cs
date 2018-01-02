@@ -36,10 +36,7 @@ namespace UnityEditor.ShaderGraph
                 if (m_Texture.texture == value)
                     return;
                 m_Texture.texture = value;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Node);
-                }
+                Dirty(ModificationScope.Node);
             }
         }
 
@@ -56,18 +53,16 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
-            properties.Add(new PreviewProperty
+            properties.Add(new PreviewProperty(PropertyType.Texture)
             {
                 name = GetVariableNameForSlot(OutputSlotId),
-                propType = PropertyType.Texture,
                 textureValue = texture
             });
         }
 
         public IShaderProperty AsShaderProperty()
         {
-            var prop = new TextureShaderProperty();
-            prop.value = m_Texture;
+            var prop = new TextureShaderProperty { value = m_Texture };
             if (texture != null)
                 prop.displayName = texture.name;
             return prop;

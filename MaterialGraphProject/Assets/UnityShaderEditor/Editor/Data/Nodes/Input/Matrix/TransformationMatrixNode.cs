@@ -50,10 +50,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_matrix = value;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Graph);
-                }
+                Dirty(ModificationScope.Graph);
             }
         }
 

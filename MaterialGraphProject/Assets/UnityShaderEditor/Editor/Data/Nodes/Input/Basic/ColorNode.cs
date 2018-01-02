@@ -36,10 +36,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_Color = value;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Node);
-                }
+                Dirty(ModificationScope.Node);
             }
         }
 
@@ -80,19 +77,16 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
-            properties.Add(new PreviewProperty
+            properties.Add(new PreviewProperty(PropertyType.Color)
             {
                 name = GetVariableNameForNode(),
-                propType = PropertyType.Color,
                 colorValue = color
             });
         }
 
         public IShaderProperty AsShaderProperty()
         {
-            var prop = new ColorShaderProperty();
-            prop.value = color;
-            return prop;
+            return new ColorShaderProperty { value = color };
         }
 
         public int outputSlotId { get { return OutputSlotId; } }

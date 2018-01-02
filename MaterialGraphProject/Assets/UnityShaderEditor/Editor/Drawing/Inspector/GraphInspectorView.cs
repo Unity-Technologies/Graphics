@@ -10,19 +10,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
     public class GraphInspectorView : VisualElement, IDisposable
     {
-        enum ResizeDirection
-        {
-            Any,
-            Vertical,
-            Horizontal
-        }
-
         int m_SelectionHash;
 
         VisualElement m_PropertyItems;
         VisualElement m_LayerItems;
         ObjectField m_PreviewMeshPicker;
-        AbstractNodeEditorView m_EditorView;
 
         PreviewTextureView m_PreviewTextureView;
 
@@ -102,59 +94,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             foreach (var property in m_Graph.properties)
                 m_PropertyItems.Add(new ShaderPropertyView(m_Graph, property));
 
-            var resizeHandleTop = new Label { name = "resize-top", text = "" };
-            resizeHandleTop.AddManipulator(new Draggable(mouseDelta => OnResize(mouseDelta, ResizeDirection.Vertical, true)));
-            Add(resizeHandleTop);
-
-            var resizeHandleRight = new Label { name = "resize-right", text = "" };
-            resizeHandleRight.AddManipulator(new Draggable(mouseDelta => OnResize(mouseDelta, ResizeDirection.Horizontal, false)));
-            Add(resizeHandleRight);
-
-            var resizeHandleLeft = new Label { name = "resize-left", text = "" };
-            resizeHandleLeft.AddManipulator(new Draggable(mouseDelta => OnResize(mouseDelta, ResizeDirection.Horizontal, true)));
-            Add(resizeHandleLeft);
-
-            var resizeHandleBottom = new Label { name = "resize-bottom", text = "" };
-            resizeHandleBottom.AddManipulator(new Draggable(mouseDelta => OnResize(mouseDelta, ResizeDirection.Vertical, false)));
-            Add(resizeHandleBottom);
-        }
-
-        void OnResize(Vector2 resizeDelta, ResizeDirection direction, bool moveWhileResize)
-        {
-            Vector2 normalizedResizeDelta = resizeDelta / 2f;
-
-            if (direction == ResizeDirection.Vertical)
-            {
-                normalizedResizeDelta.x = 0f;
-            }
-            else if (direction == ResizeDirection.Horizontal)
-            {
-                normalizedResizeDelta.y = 0f;
-            }
-
-            Rect newLayout = layout;
-
-            // Resize form bottom/right
-            if (!moveWhileResize)
-            {
-                newLayout.width = Mathf.Max(layout.width + normalizedResizeDelta.x, 60f);
-                newLayout.height = Mathf.Max(layout.height + normalizedResizeDelta.y, 60f);
-
-                layout = newLayout;
-
-                return;
-            }
-
-            float previousFarX = layout.x + layout.width;
-            float previousFarY = layout.y + layout.height;
-
-            newLayout.width = Mathf.Max(layout.width - normalizedResizeDelta.x, 60f);
-            newLayout.height = Mathf.Max(layout.height - normalizedResizeDelta.y, 60f);
-
-            newLayout.x = Mathf.Min(layout.x + normalizedResizeDelta.x, previousFarX - 60f);
-            newLayout.y = Mathf.Min(layout.y + normalizedResizeDelta.y, previousFarY - 60f);
-
-            layout = newLayout;
+            Add(new ResizeSideHandle(this, ResizeHandleAnchor.TopLeft, new string[] {"resize", "diagonal", "top-left"}));
+            Add(new ResizeSideHandle(this, ResizeHandleAnchor.Top, new string[] {"resize", "vertical", "top"}));
+            Add(new ResizeSideHandle(this, ResizeHandleAnchor.TopRight, new string[] {"resize", "diagonal", "top-right"}));
+            Add(new ResizeSideHandle(this, ResizeHandleAnchor.Right, new string[] {"resize", "horizontal", "right"}));
+            Add(new ResizeSideHandle(this, ResizeHandleAnchor.BottomRight, new string[] {"resize", "diagonal", "bottom-right"}));
+            Add(new ResizeSideHandle(this, ResizeHandleAnchor.Bottom, new string[] {"resize", "vertical", "bottom"}));
+            Add(new ResizeSideHandle(this, ResizeHandleAnchor.BottomLeft, new string[] {"resize", "diagonal", "bottom-left"}));
+            Add(new ResizeSideHandle(this, ResizeHandleAnchor.Left, new string[] {"resize", "horizontal", "left"}));
         }
 
         MasterNode masterNode
@@ -171,7 +118,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             Quaternion previewRotation = Quaternion.Euler(m_PreviewScrollPosition.y, 0, 0) * Quaternion.Euler(0, m_PreviewScrollPosition.x, 0);
             m_Graph.previewData.rotation = previewRotation;
 
-            masterNode.onModified(masterNode, ModificationScope.Node);
+            masterNode.Dirty(ModificationScope.Node);
         }
 
         void OnAddProperty()
@@ -203,7 +150,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         {
             Mesh changedMesh = changeEvent.newValue as Mesh;
 
-            masterNode.onModified(masterNode, ModificationScope.Node);
+            masterNode.Dirty(ModificationScope.Node);
 
             if (m_Graph.previewData.serializedMesh.mesh != changedMesh)
             {

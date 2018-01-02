@@ -59,10 +59,7 @@ namespace UnityEditor.ShaderGraph
 
                 m_Model = value;
                 UpdateNodeAfterDeserialization();
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Topological);
-                }
+                Dirty(ModificationScope.Topological);
             }
         }
 
@@ -79,10 +76,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_AlphaMode = value;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Graph);
-                }
+                Dirty(ModificationScope.Graph);
             }
         }
 

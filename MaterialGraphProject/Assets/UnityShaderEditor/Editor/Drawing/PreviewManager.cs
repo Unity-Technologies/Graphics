@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using UnityEngine;
@@ -14,20 +13,18 @@ namespace UnityEditor.ShaderGraph.Drawing
     public class PreviewManager : IDisposable
     {
         AbstractMaterialGraph m_Graph;
-        Dictionary<Guid, PreviewRenderData> m_RenderDatas = new Dictionary<Guid, PreviewRenderData>();
-        Dictionary<Guid, PreviewShaderData> m_ShaderDatas = new Dictionary<Guid, PreviewShaderData>();
+        List<PreviewRenderData> m_RenderDatas = new List<PreviewRenderData>();
         PreviewRenderData m_MasterRenderData;
-        HashSet<Guid> m_DirtyPreviews = new HashSet<Guid>();
-        HashSet<Guid> m_DirtyShaders = new HashSet<Guid>();
-        HashSet<Guid> m_TimeDependentPreviews = new HashSet<Guid>();
+        List<Identifier> m_Identifiers = new List<Identifier>();
+        IndexSet m_DirtyPreviews = new IndexSet();
+        IndexSet m_DirtyShaders = new IndexSet();
+        IndexSet m_TimeDependentPreviews = new IndexSet();
         Material m_PreviewMaterial;
         MaterialPropertyBlock m_PreviewPropertyBlock;
         PreviewSceneResources m_SceneResources;
         Texture2D m_ErrorTexture;
         Shader m_UberShader;
-        string m_UberShaderString;
-        Dictionary<Guid, int> m_UberShaderIds;
-        FloatShaderProperty m_OutputIdProperty;
+        string m_OutputIdName;
 
         public PreviewRenderData masterRenderData
         {
@@ -50,7 +47,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_SceneResources = new PreviewSceneResources();
             m_UberShader = ShaderUtil.CreateShaderAsset(k_EmptyShader);
             m_UberShader.hideFlags = HideFlags.HideAndDontSave;
-            m_UberShaderIds = new Dictionary<Guid, int>();
             m_MasterRenderData = new PreviewRenderData
             {
                 renderTexture = new RenderTexture(400, 400, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave }
@@ -60,83 +56,68 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddPreview(node);
         }
 
-        public PreviewRenderData GetPreview(INode node)
+        public PreviewRenderData GetPreview(AbstractMaterialNode node)
         {
-            return m_RenderDatas[node.guid];
+            return m_RenderDatas[node.tempId.index];
         }
 
         void AddPreview(INode node)
         {
-            PreviewShaderData shaderData;
-            if (!m_ShaderDatas.TryGetValue(node.guid, out shaderData))
+            var shaderData = new PreviewShaderData
             {
-                shaderData = new PreviewShaderData
-                {
-                    node = node
-                };
-                m_ShaderDatas[node.guid] = shaderData;
-            }
-            var previewData = new PreviewRenderData
+                node = node
+            };
+            var renderData = new PreviewRenderData
             {
                 shaderData = shaderData,
                 renderTexture = new RenderTexture(200, 200, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave }
             };
-            if (m_RenderDatas.ContainsKey(node.guid))
-            {
-                Debug.LogWarningFormat("A preview already exists for {0} {1}", node.name, node.guid);
-                RemovePreview(node);
-            }
-            m_RenderDatas.Add(node.guid, previewData);
-            m_DirtyShaders.Add(node.guid);
+            Set(m_Identifiers, node.tempId, node.tempId);
+            Set(m_RenderDatas, node.tempId, renderData);
+            m_DirtyShaders.Add(node.tempId.index);
             node.onModified += OnNodeModified;
             if (node.RequiresTime())
-                m_TimeDependentPreviews.Add(node.guid);
+                m_TimeDependentPreviews.Add(node.tempId.index);
 
             var masterNode = node as IMasterNode;
             if (masterRenderData.shaderData == null && masterNode != null)
-            {
                 masterRenderData.shaderData = shaderData;
-            }
-        }
-
-        void RemovePreview(INode node)
-        {
-            node.onModified -= OnNodeModified;
-            m_RenderDatas.Remove(node.guid);
-            m_TimeDependentPreviews.Remove(node.guid);
-            m_DirtyPreviews.Remove(node.guid);
-            m_DirtyShaders.Remove(node.guid);
-
-            if (masterRenderData.shaderData != null && masterRenderData.shaderData.node == node)
-                masterRenderData.shaderData = m_ShaderDatas.Values.FirstOrDefault(x => x.node is IMasterNode);
         }
 
         void OnNodeModified(INode node, ModificationScope scope)
         {
             if (scope >= ModificationScope.Graph)
-                m_DirtyShaders.Add(node.guid);
+                m_DirtyShaders.Add(node.tempId.index);
             else if (scope == ModificationScope.Node)
-                m_DirtyPreviews.Add(node.guid);
+                m_DirtyPreviews.Add(node.tempId.index);
 
             if (node.RequiresTime())
-                m_TimeDependentPreviews.Add(node.guid);
+                m_TimeDependentPreviews.Add(node.tempId.index);
             else
-                m_TimeDependentPreviews.Remove(node.guid);
+                m_TimeDependentPreviews.Remove(node.tempId.index);
         }
 
-        Stack<Guid> m_Wavefront = new Stack<Guid>();
+        Stack<Identifier> m_Wavefront = new Stack<Identifier>();
         List<IEdge> m_Edges = new List<IEdge>();
         List<MaterialSlot> m_Slots = new List<MaterialSlot>();
 
-        void PropagateNodeSet(HashSet<Guid> nodeGuidSet, bool forward = true, IEnumerable<Guid> initialWavefront = null)
+        void PropagateNodeSet(IndexSet nodeSet, bool forward = true, IEnumerable<Identifier> initialWavefront = null)
         {
             m_Wavefront.Clear();
-            foreach (var guid in initialWavefront ?? nodeGuidSet)
-                m_Wavefront.Push(guid);
+            if (initialWavefront != null)
+            {
+                foreach (var id in initialWavefront)
+                    m_Wavefront.Push(id);
+            }
+            else
+            {
+                foreach (var index in nodeSet)
+                    m_Wavefront.Push(m_Identifiers[index]);
+            }
             while (m_Wavefront.Count > 0)
             {
-                var nodeGuid = m_Wavefront.Pop();
-                var node = m_Graph.GetNodeFromGuid(nodeGuid);
+                var index = m_Wavefront.Pop();
+                var node = m_Graph.GetNodeFromTempId(index);
                 if (node == null)
                     continue;
 
@@ -155,157 +136,68 @@ namespace UnityEditor.ShaderGraph.Drawing
                         // We look at each node we feed into.
                         var connectedSlot = forward ? edge.inputSlot : edge.outputSlot;
                         var connectedNodeGuid = connectedSlot.nodeGuid;
+                        var connectedNode = m_Graph.GetNodeFromGuid(connectedNodeGuid);
 
                         // If the input node is already in the set of time-dependent nodes, we don't need to process it.
-                        if (nodeGuidSet.Contains(connectedNodeGuid))
+                        if (nodeSet.Contains(connectedNode.tempId.index))
                             continue;
 
                         // Add the node to the set of time-dependent nodes, and to the wavefront such that we can process the nodes that it feeds into.
-                        nodeGuidSet.Add(connectedNodeGuid);
-                        m_Wavefront.Push(connectedNodeGuid);
+                        nodeSet.Add(connectedNode.tempId.index);
+                        m_Wavefront.Push(connectedNode.tempId);
                     }
                 }
             }
         }
 
-        HashSet<Guid> m_PropertyNodeGuids = new HashSet<Guid>();
-        List<PreviewProperty> m_PreviewProperties = new List<PreviewProperty>();
 
         public void HandleGraphChanges()
         {
             foreach (var node in m_Graph.removedNodes)
-                RemovePreview(node);
+                DestroyPreview(node.tempId);
 
             foreach (var node in m_Graph.addedNodes)
                 AddPreview(node);
 
             foreach (var edge in m_Graph.removedEdges)
-                m_DirtyShaders.Add(edge.inputSlot.nodeGuid);
+            {
+                var node = m_Graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
+                if (node != null)
+                    m_DirtyShaders.Add(node.tempId.index);
+            }
 
             foreach (var edge in m_Graph.addedEdges)
-                m_DirtyShaders.Add(edge.inputSlot.nodeGuid);
+            {
+                var node = m_Graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
+                if (node != null)
+                    m_DirtyShaders.Add(node.tempId.index);
+            }
         }
 
+        List<PreviewProperty> m_PreviewProperties = new List<PreviewProperty>();
         List<PreviewRenderData> m_RenderList2D = new List<PreviewRenderData>();
         List<PreviewRenderData> m_RenderList3D = new List<PreviewRenderData>();
-        HashSet<Guid> m_NodesWith3DPreview = new HashSet<Guid>();
+        IndexSet m_PropertyNodes = new IndexSet();
 
         public void RenderPreviews()
         {
-            if (m_DirtyShaders.Any())
-            {
-                m_NodesWith3DPreview.Clear();
-                foreach (var node in m_Graph.GetNodes<AbstractMaterialNode>())
-                {
-                    if (node.previewMode == PreviewMode.Preview3D)
-                        m_NodesWith3DPreview.Add(node.guid);
-                }
-                PropagateNodeSet(m_NodesWith3DPreview);
-                PropagateNodeSet(m_DirtyShaders);
+            UpdateShaders();
 
-                var masterNodes = new List<INode>();
-                var uberNodes = new List<INode>();
-                foreach (var guid in m_DirtyShaders)
-                {
-                    var node = m_Graph.GetNodeFromGuid(guid);
-                    if (node == null)
-                        continue;
-                    if (node is IMasterNode)
-                        masterNodes.Add(node);
-                    else
-                        uberNodes.Add(node);
-                }
-                var count = Math.Min(uberNodes.Count, 1) + masterNodes.Count;
-
-                try
-                {
-                    var sw = new Stopwatch();
-                    sw.Start();
-                    var i = 0;
-                    EditorUtility.DisplayProgressBar("Shader Graph", string.Format("Compiling preview shaders ({0}/{1})", i, count), 0f);
-                    foreach (var node in masterNodes)
-                    {
-                        UpdateShader(node.guid);
-                        i++;
-                        EditorUtility.DisplayProgressBar("Shader Graph", string.Format("Compiling preview shaders ({0}/{1})", i, count), 0f);
-                    }
-                    if (uberNodes.Count > 0)
-                    {
-                        m_UberShaderIds.Clear();
-                        var results = m_Graph.GetUberPreviewShader();
-                        m_UberShaderString = results.shader;
-                        m_OutputIdProperty = results.outputIdProperty;
-                        m_UberShaderIds = results.ids;
-                        ShaderUtil.UpdateShaderAsset(m_UberShader, m_UberShaderString);
-                        File.WriteAllText(Application.dataPath + "/../UberShader.shader", (m_UberShaderString ?? "null").Replace("UnityEngine.MaterialGraph", "Generated"));
-                        bool uberShaderHasError = false;
-                        if (ShaderUtil.GetShaderErrorCount(m_UberShader) > 0)
-                        {
-                            var errors = MaterialGraphAsset.GetShaderErrors(m_UberShader);
-                            var message = new ShaderStringBuilder();
-                            message.AppendLine(@"Preview shader for graph has {0} error{1}:", errors.Length, errors.Length != 1 ? "s" : "");
-                            foreach (var error in errors)
-                            {
-                                INode node = null;
-                                try
-                                {
-                                    node = results.sourceMap.FindNode(error.line);
-                                }
-                                catch (Exception)
-                                {
-                                    Debug.LogWarning("ERROR");
-                                    continue;
-                                }
-                                message.AppendLine("{0} in {3} at line {1} (on {2})", error.message, error.line, error.platform, node != null ? string.Format("node {0} ({1})", node.name, node.guid) : "graph");
-                                message.AppendLine(error.messageDetails);
-                                message.AppendNewLine();
-                            }
-                            Debug.LogWarning(message.ToString());
-                            ShaderUtil.ClearShaderErrors(m_UberShader);
-                            ShaderUtil.UpdateShaderAsset(m_UberShader, k_EmptyShader);
-                            uberShaderHasError = true;
-                        }
-
-                        foreach (var node in uberNodes)
-                        {
-                            PreviewShaderData shaderData;
-                            if (!m_ShaderDatas.TryGetValue(node.guid, out shaderData))
-                                continue;
-                            shaderData.previewMode = m_NodesWith3DPreview.Contains(node.guid) ? PreviewMode.Preview3D : PreviewMode.Preview2D;
-                            shaderData.shader = m_UberShader;
-                            shaderData.hasError = uberShaderHasError;
-                        }
-                        i++;
-                        EditorUtility.DisplayProgressBar("Shader Graph", string.Format("Compiling preview shaders ({0}/{1})", i, count), 0f);
-                    }
-                    sw.Stop();
-                    //Debug.LogFormat("Compiled preview shaders in {0} seconds", sw.Elapsed.TotalSeconds);
-                }
-                finally
-                {
-                    EditorUtility.ClearProgressBar();
-                }
-
-                m_DirtyPreviews.UnionWith(m_DirtyShaders);
-                m_DirtyShaders.Clear();
-            }
-
+            // Union time dependent previews into dirty previews
             m_DirtyPreviews.UnionWith(m_TimeDependentPreviews);
             PropagateNodeSet(m_DirtyPreviews);
 
             // Find nodes we need properties from
-            m_PropertyNodeGuids.Clear();
-            foreach (var nodeGuid in m_DirtyPreviews)
-                m_PropertyNodeGuids.Add(nodeGuid);
-            PropagateNodeSet(m_PropertyNodeGuids, false);
+            m_PropertyNodes.Clear();
+            m_PropertyNodes.UnionWith(m_DirtyPreviews);
+            PropagateNodeSet(m_PropertyNodes, false);
 
             // Fill MaterialPropertyBlock
             m_PreviewPropertyBlock.Clear();
-            var outputIdName = m_OutputIdProperty != null ? m_OutputIdProperty.referenceName : null;
-            m_PreviewPropertyBlock.SetFloat(outputIdName, -1);
-            foreach (var nodeGuid in m_PropertyNodeGuids)
+            m_PreviewPropertyBlock.SetFloat(m_OutputIdName, -1);
+            foreach (var index in m_PropertyNodes)
             {
-                var node = m_Graph.GetNodeFromGuid<AbstractMaterialNode>(nodeGuid);
+                var node = m_Graph.GetNodeFromTempId(m_Identifiers[index]) as AbstractMaterialNode;
                 if (node == null)
                     continue;
                 node.CollectPreviewMaterialProperties(m_PreviewProperties);
@@ -313,30 +205,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_PreviewProperties.Add(prop.GetPreviewMaterialProperty());
 
                 foreach (var previewProperty in m_PreviewProperties)
-                {
-                    if (previewProperty.propType == PropertyType.Texture && previewProperty.textureValue != null)
-                        m_PreviewPropertyBlock.SetTexture(previewProperty.name, previewProperty.textureValue);
-                    else if (previewProperty.propType == PropertyType.Cubemap && previewProperty.cubemapValue != null)
-                        m_PreviewPropertyBlock.SetTexture(previewProperty.name, previewProperty.cubemapValue);
-                    else if (previewProperty.propType == PropertyType.Color)
-                        m_PreviewPropertyBlock.SetColor(previewProperty.name, previewProperty.colorValue);
-                    else if (previewProperty.propType == PropertyType.Vector2)
-                        m_PreviewPropertyBlock.SetVector(previewProperty.name, previewProperty.vector4Value);
-                    else if (previewProperty.propType == PropertyType.Vector3)
-                        m_PreviewPropertyBlock.SetVector(previewProperty.name, previewProperty.vector4Value);
-                    else if (previewProperty.propType == PropertyType.Vector4)
-                        m_PreviewPropertyBlock.SetVector(previewProperty.name, previewProperty.vector4Value);
-                    else if (previewProperty.propType == PropertyType.Float)
-                        m_PreviewPropertyBlock.SetFloat(previewProperty.name, previewProperty.floatValue);
-                }
+                    m_PreviewPropertyBlock.SetPreviewProperty(previewProperty);
                 m_PreviewProperties.Clear();
             }
 
-            foreach (var nodeGuid in m_DirtyPreviews)
+            foreach (var i in m_DirtyPreviews)
             {
-                PreviewRenderData renderData;
-                if (!m_RenderDatas.TryGetValue(nodeGuid, out renderData))
-                    continue;
+                var renderData = m_RenderDatas[i];
                 if (renderData.shaderData.shader == null)
                 {
                     renderData.texture = null;
@@ -348,16 +223,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                     continue;
                 }
 
-                if (renderData.shaderData.previewMode == PreviewMode.Preview2D)
+                if (renderData.previewMode == PreviewMode.Preview2D)
                     m_RenderList2D.Add(renderData);
                 else
                     m_RenderList3D.Add(renderData);
             }
-
-            if (masterRenderData.shaderData != null 
-                && masterRenderData.shaderData.shader != null
-                && m_DirtyPreviews.Contains(masterRenderData.shaderData.node.guid))
-                    m_RenderList3D.Add(masterRenderData);
 
             m_RenderList3D.Sort((data1, data2) => data1.shaderData.shader.GetInstanceID().CompareTo(data2.shaderData.shader.GetInstanceID()));
             m_RenderList2D.Sort((data1, data2) => data1.shaderData.shader.GetInstanceID().CompareTo(data2.shaderData.shader.GetInstanceID()));
@@ -379,25 +249,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_SceneResources.camera.orthographic = true;
 
             foreach (var renderData in m_RenderList2D)
-            {
-                int outputId;
-                if (m_UberShaderIds.TryGetValue(renderData.shaderData.node.guid, out outputId))
-                    m_PreviewPropertyBlock.SetFloat(outputIdName, outputId);
-                if (m_PreviewMaterial.shader != renderData.shaderData.shader)
-                    m_PreviewMaterial.shader = renderData.shaderData.shader;
-                m_SceneResources.camera.targetTexture = renderData.renderTexture;
-                var previousRenderTexure = RenderTexture.active;
-                RenderTexture.active = renderData.renderTexture;
-                GL.Clear(true, true, Color.black);
-                Graphics.Blit(Texture2D.whiteTexture, renderData.renderTexture, m_SceneResources.checkerboardMaterial);
-                Graphics.DrawMesh(m_SceneResources.quad, Matrix4x4.identity, m_PreviewMaterial, 1, m_SceneResources.camera, 0, m_PreviewPropertyBlock, ShadowCastingMode.Off, false, null, false);
-                var previousUseSRP = Unsupported.useScriptableRenderPipeline;
-                Unsupported.useScriptableRenderPipeline = false;
-                m_SceneResources.camera.Render();
-                Unsupported.useScriptableRenderPipeline = previousUseSRP;
-                RenderTexture.active = previousRenderTexure;
-                renderData.texture = renderData.renderTexture;
-            }
+                RenderPreview(renderData, m_SceneResources.quad, Matrix4x4.identity);
 
             // Render 3D previews
             m_SceneResources.camera.transform.position = -Vector3.forward * 5;
@@ -405,36 +257,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_SceneResources.camera.orthographic = false;
 
             foreach (var renderData in m_RenderList3D)
+                RenderPreview(renderData, m_SceneResources.sphere, Matrix4x4.identity);
+
+            var renderMasterPreview = masterRenderData.shaderData != null && m_DirtyPreviews.Contains(masterRenderData.shaderData.node.tempId.index);
+            if (renderMasterPreview)
             {
-                int outputId;
-                if (m_UberShaderIds.TryGetValue(renderData.shaderData.node.guid, out outputId))
-                    m_PreviewPropertyBlock.SetFloat(outputIdName, outputId);
-                if (m_PreviewMaterial.shader != renderData.shaderData.shader)
-                    m_PreviewMaterial.shader = renderData.shaderData.shader;
-                m_SceneResources.camera.targetTexture = renderData.renderTexture;
-                var previousRenderTexure = RenderTexture.active;
-                RenderTexture.active = renderData.renderTexture;
-                GL.Clear(true, true, Color.black);
-                Graphics.Blit(Texture2D.whiteTexture, renderData.renderTexture, m_SceneResources.checkerboardMaterial);
-                var mesh = (renderData == masterRenderData && m_Graph.previewData.serializedMesh.mesh) ? m_Graph.previewData.serializedMesh.mesh :  m_SceneResources.sphere;
-                Quaternion rotation = (renderData == masterRenderData) ? m_Graph.previewData.rotation : Quaternion.identity;
-                Matrix4x4 previewTransform = Matrix4x4.identity;
-
-                if (renderData == masterRenderData)
-                {
-                    previewTransform *= Matrix4x4.Rotate(rotation);
-                    previewTransform *= Matrix4x4.Scale(Vector3.one * (Vector3.one).magnitude / mesh.bounds.size.magnitude);
-                    previewTransform *= Matrix4x4.Translate(-mesh.bounds.center);
-                }
-
-                Graphics.DrawMesh(mesh, previewTransform, m_PreviewMaterial, 1, m_SceneResources.camera, 0, m_PreviewPropertyBlock, ShadowCastingMode.Off, false, null, false);
-
-                var previousUseSRP = Unsupported.useScriptableRenderPipeline;
-                Unsupported.useScriptableRenderPipeline = renderData.shaderData.node is IMasterNode;
-                m_SceneResources.camera.Render();
-                Unsupported.useScriptableRenderPipeline = previousUseSRP;
-                RenderTexture.active = previousRenderTexure;
-                renderData.texture = renderData.renderTexture;
+                var mesh = m_Graph.previewData.serializedMesh.mesh ? m_Graph.previewData.serializedMesh.mesh :  m_SceneResources.sphere;
+                var previewTransform = Matrix4x4.Rotate(m_Graph.previewData.rotation);
+                previewTransform *= Matrix4x4.Scale(Vector3.one * (Vector3.one).magnitude / mesh.bounds.size.magnitude);
+                previewTransform *= Matrix4x4.Translate(-mesh.bounds.center);
+                RenderPreview(masterRenderData, mesh, previewTransform);
             }
 
             m_SceneResources.light0.enabled = false;
@@ -444,22 +276,148 @@ namespace UnityEditor.ShaderGraph.Drawing
                 renderData.NotifyPreviewChanged();
             foreach (var renderData in m_RenderList3D)
                 renderData.NotifyPreviewChanged();
+            if (renderMasterPreview)
+                masterRenderData.NotifyPreviewChanged();
 
             m_RenderList2D.Clear();
             m_RenderList3D.Clear();
             m_DirtyPreviews.Clear();
         }
 
-        void UpdateShader(Guid nodeGuid)
+        IndexSet m_NodesWith3DPreview = new IndexSet();
+
+        void UpdateShaders()
         {
-            var node = m_Graph.GetNodeFromGuid<AbstractMaterialNode>(nodeGuid);
+            if (m_DirtyShaders.Any())
+            {
+                PropagateNodeSet(m_DirtyShaders);
+                m_NodesWith3DPreview.Clear();
+                foreach (var index in m_DirtyShaders)
+                {
+                    var node = (AbstractMaterialNode)m_Graph.GetNodeFromTempId(m_Identifiers[index]);
+                    if (node.previewMode == PreviewMode.Preview3D)
+                        m_NodesWith3DPreview.Add(node.tempId.index);
+                }
+                PropagateNodeSet(m_NodesWith3DPreview);
+                foreach (var index in m_DirtyShaders)
+                {
+                    var renderData = m_RenderDatas[index];
+                    renderData.previewMode = m_NodesWith3DPreview.Contains(renderData.shaderData.node.tempId.index) ? PreviewMode.Preview3D : PreviewMode.Preview2D;
+                }
+
+                var masterNodes = new List<MasterNode>();
+                var uberNodes = new List<INode>();
+                foreach (var index in m_DirtyShaders)
+                {
+                    var node = m_Graph.GetNodeFromTempId(m_Identifiers[index]);
+                    if (node == null)
+                        continue;
+                    var masterNode = node as MasterNode;
+                    if (masterNode != null)
+                        masterNodes.Add(masterNode);
+                    else
+                        uberNodes.Add(node);
+                }
+                var count = Math.Min(uberNodes.Count, 1) + masterNodes.Count;
+
+                try
+                {
+                    var i = 0;
+                    EditorUtility.DisplayProgressBar("Shader Graph", string.Format("Compiling preview shaders ({0}/{1})", i, count), 0f);
+                    foreach (var node in masterNodes)
+                    {
+                        UpdateShader(node.tempId);
+                        i++;
+                        EditorUtility.DisplayProgressBar("Shader Graph", string.Format("Compiling preview shaders ({0}/{1})", i, count), 0f);
+                    }
+                    if (uberNodes.Count > 0)
+                    {
+                        var results = m_Graph.GetUberPreviewShader();
+                        m_OutputIdName = results.outputIdProperty.referenceName;
+                        ShaderUtil.UpdateShaderAsset(m_UberShader, results.shader);
+                        File.WriteAllText(Application.dataPath + "/../UberShader.shader", (results.shader ?? "null").Replace("UnityEngine.MaterialGraph", "Generated"));
+                        bool uberShaderHasError = false;
+                        if (MaterialGraphAsset.ShaderHasError(m_UberShader))
+                        {
+                            var errors = MaterialGraphAsset.GetShaderErrors(m_UberShader);
+                            var message = new ShaderStringBuilder();
+                            message.AppendLine(@"Preview shader for graph has {0} error{1}:", errors.Length, errors.Length != 1 ? "s" : "");
+                            foreach (var error in errors)
+                            {
+                                INode node;
+                                try
+                                {
+                                    node = results.sourceMap.FindNode(error.line);
+                                }
+                                catch (Exception e)
+                                {
+                                    Debug.LogException(e);
+                                    continue;
+                                }
+                                message.AppendLine("{0} in {3} at line {1} (on {2})", error.message, error.line, error.platform, node != null ? string.Format("node {0} ({1})", node.name, node.guid) : "graph");
+                                message.AppendLine(error.messageDetails);
+                                message.AppendNewLine();
+                            }
+                            Debug.LogWarning(message.ToString());
+                            ShaderUtil.ClearShaderErrors(m_UberShader);
+                            ShaderUtil.UpdateShaderAsset(m_UberShader, k_EmptyShader);
+                            uberShaderHasError = true;
+                        }
+
+                        foreach (var node in uberNodes)
+                        {
+                            var renderData = GetRenderData(node.tempId);
+                            if (renderData == null)
+                                continue;
+                            var shaderData = renderData.shaderData;
+                            shaderData.shader = m_UberShader;
+                            shaderData.hasError = uberShaderHasError;
+                        }
+                        i++;
+                        EditorUtility.DisplayProgressBar("Shader Graph", string.Format("Compiling preview shaders ({0}/{1})", i, count), 0f);
+                    }
+                }
+                finally
+                {
+                    EditorUtility.ClearProgressBar();
+                }
+
+                // Union dirty shaders into dirty previews
+                m_DirtyPreviews.UnionWith(m_DirtyShaders);
+                m_DirtyShaders.Clear();
+            }
+        }
+
+        void RenderPreview(PreviewRenderData renderData, Mesh mesh, Matrix4x4 transform)
+        {
+            m_PreviewPropertyBlock.SetFloat(m_OutputIdName, renderData.shaderData.node.tempId.index);
+            if (m_PreviewMaterial.shader != renderData.shaderData.shader)
+                m_PreviewMaterial.shader = renderData.shaderData.shader;
+            m_SceneResources.camera.targetTexture = renderData.renderTexture;
+            var previousRenderTexure = RenderTexture.active;
+            RenderTexture.active = renderData.renderTexture;
+            GL.Clear(true, true, Color.black);
+            Graphics.Blit(Texture2D.whiteTexture, renderData.renderTexture, m_SceneResources.checkerboardMaterial);
+
+            Graphics.DrawMesh(mesh, transform, m_PreviewMaterial, 1, m_SceneResources.camera, 0, m_PreviewPropertyBlock, ShadowCastingMode.Off, false, null, false);
+
+            var previousUseSRP = Unsupported.useScriptableRenderPipeline;
+            Unsupported.useScriptableRenderPipeline = renderData.shaderData.node is IMasterNode;
+            m_SceneResources.camera.Render();
+            Unsupported.useScriptableRenderPipeline = previousUseSRP;
+            RenderTexture.active = previousRenderTexure;
+            renderData.texture = renderData.renderTexture;
+        }
+
+        void UpdateShader(Identifier nodeId)
+        {
+            var node = m_Graph.GetNodeFromTempId(nodeId) as AbstractMaterialNode;
             if (node == null)
                 return;
-            PreviewShaderData shaderData;
-            if (!m_ShaderDatas.TryGetValue(nodeGuid, out shaderData))
+            var renderData = Get(m_RenderDatas, nodeId);
+            if (renderData == null || renderData.shaderData == null)
                 return;
-
-            shaderData.previewMode = m_NodesWith3DPreview.Contains(nodeGuid) ? PreviewMode.Preview3D : PreviewMode.Preview2D;
+            var shaderData = renderData.shaderData;
 
             if (!(node is IMasterNode) && (!node.hasPreview || NodeUtils.FindEffectiveShaderStage(node, true) == ShaderStage.Vertex))
             {
@@ -503,7 +461,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Debug output
             var message = "RecreateShader: " + node.GetVariableNameForNode() + Environment.NewLine + shaderData.shaderString;
-            if (ShaderUtil.GetShaderErrorCount(shaderData.shader) > 0)
+            if (MaterialGraphAsset.ShaderHasError(shaderData.shader))
             {
                 shaderData.hasError = true;
                 Debug.LogWarning(message);
@@ -517,38 +475,62 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void DestroyPreview(Guid nodeGuid, PreviewRenderData previewRenderData)
+        void DestroyRenderData(PreviewRenderData renderData)
         {
-            if (m_RenderDatas.Remove(nodeGuid))
+            if (renderData.shaderData.shader != null && renderData.shaderData.shader != m_UberShader)
+                Object.DestroyImmediate(renderData.shaderData.shader, true);
+            if (renderData.renderTexture != null)
+                Object.DestroyImmediate(renderData.renderTexture, true);
+            var node = renderData.shaderData.node;
+            if (node != null)
+                node.onModified -= OnNodeModified;
+        }
+
+        void DestroyPreview(Identifier nodeId)
+        {
+            var renderData = Get(m_RenderDatas, nodeId);
+            if (renderData != null)
             {
-                if (previewRenderData.shaderData.shader != null)
-                    Object.DestroyImmediate(previewRenderData.shaderData.shader, true);
-                if (previewRenderData.renderTexture != null)
-                    Object.DestroyImmediate(previewRenderData.renderTexture, true);
-                var node = m_Graph.GetNodeFromGuid(nodeGuid);
-                if (node != null)
-                    node.onModified -= OnNodeModified;
-                m_DirtyPreviews.Remove(nodeGuid);
-                m_DirtyShaders.Remove(nodeGuid);
-                m_TimeDependentPreviews.Remove(nodeGuid);
-                previewRenderData.shaderData.shader = null;
-                previewRenderData.renderTexture = null;
-                previewRenderData.texture = null;
-                previewRenderData.onPreviewChanged = null;
+                if (masterRenderData != null && masterRenderData.shaderData != null && masterRenderData.shaderData.node == renderData.shaderData.node)
+                    masterRenderData.shaderData = m_RenderDatas.Where(x => x != null && x.shaderData.node is IMasterNode).Select(x => x.shaderData).FirstOrDefault();
+
+                DestroyRenderData(renderData);
+
+                m_TimeDependentPreviews.Remove(nodeId.index);
+                m_DirtyPreviews.Remove(nodeId.index);
+                m_DirtyPreviews.Remove(nodeId.index);
+                Set(m_RenderDatas, nodeId, null);
+                Set(m_Identifiers, nodeId, default(Identifier));
             }
         }
 
         void ReleaseUnmanagedResources()
         {
+            if (m_UberShader != null)
+            {
+                Object.DestroyImmediate(m_UberShader, true);
+                m_UberShader = null;
+            }
+            if (m_ErrorTexture != null)
+            {
+                Object.DestroyImmediate(m_ErrorTexture);
+                m_ErrorTexture = null;
+            }
             if (m_PreviewMaterial != null)
+            {
                 Object.DestroyImmediate(m_PreviewMaterial, true);
-            m_PreviewMaterial = null;
+                m_PreviewMaterial = null;
+            }
             if (m_SceneResources != null)
+            {
                 m_SceneResources.Dispose();
-            m_SceneResources = null;
-            var previews = m_RenderDatas.ToList();
-            foreach (var kvp in previews)
-                DestroyPreview(kvp.Key, kvp.Value);
+                m_SceneResources = null;
+            }
+            if (m_MasterRenderData != null)
+                DestroyRenderData(m_MasterRenderData);
+            foreach (var renderData in m_RenderDatas.ToList().Where(x => x != null))
+                DestroyRenderData(renderData);
+            m_RenderDatas.Clear();
         }
 
         public void Dispose()
@@ -603,6 +585,43 @@ Shader ""hidden/preview""
         }
     }
 }";
+
+        T Get<T>(List<T> list, Identifier id)
+        {
+            var existingId = Get(m_Identifiers, id.index);
+            if (existingId.valid && existingId.version != id.version)
+                throw new Exception("Identifier version mismatch");
+            return Get(list, id.index);
+        }
+
+        static T Get<T>(List<T> list, int index)
+        {
+            return index < list.Count ? list[index] : default(T);
+        }
+
+        void Set<T>(List<T> list, Identifier id, T value)
+        {
+            var existingId = Get(m_Identifiers, id.index);
+            if (existingId.valid && existingId.version != id.version)
+                throw new Exception("Identifier version mismatch");
+            Set(list, id.index, value);
+        }
+
+        static void Set<T>(List<T> list, int index, T value)
+        {
+            // Make sure the list is large enough for the index
+            for (var i = list.Count; i <= index; i++)
+                list.Add(default(T));
+            list[index] = value;
+        }
+
+        PreviewRenderData GetRenderData(Identifier id)
+        {
+            var value = Get(m_RenderDatas, id);
+            if (value != null && value.shaderData.node.tempId.version != id.version)
+                throw new Exception("Trying to access render data of a previous version of a node");
+            return value;
+        }
     }
 
     public delegate void OnPreviewChanged();
@@ -612,7 +631,6 @@ Shader ""hidden/preview""
         public INode node { get; set; }
         public Shader shader { get; set; }
         public string shaderString { get; set; }
-        public PreviewMode previewMode { get; set; }
         public bool hasError { get; set; }
     }
 
@@ -621,6 +639,7 @@ Shader ""hidden/preview""
         public PreviewShaderData shaderData { get; set; }
         public RenderTexture renderTexture { get; set; }
         public Texture texture { get; set; }
+        public PreviewMode previewMode { get; set; }
         public OnPreviewChanged onPreviewChanged;
 
         public void NotifyPreviewChanged()

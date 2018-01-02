@@ -38,10 +38,7 @@ namespace UnityEditor.ShaderGraph
                      return;
 
                  m_ToggleState = value;
-                 if (onModified != null)
-                 {
-                     onModified(this, ModificationScope.Node);
-                 }
+                 Dirty(ModificationScope.Node);
              }
          }
 
