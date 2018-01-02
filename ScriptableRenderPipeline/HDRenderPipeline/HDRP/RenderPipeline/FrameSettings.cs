@@ -165,7 +165,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             aggregate.enableMSAA = frameSettings.enableMSAA && renderPipelineSettings.supportMSAA;
 
-            aggregate.enableShadowMask = renderPipelineSettings.supportShadowMask;
+            aggregate.enableShadowMask = frameSettings.enableShadowMask && renderPipelineSettings.supportShadowMask;
 
             aggregate.lightLoopSettings = LightLoopSettings.InitializeLightLoopSettings(camera, aggregate, renderPipelineSettings, frameSettings);
 

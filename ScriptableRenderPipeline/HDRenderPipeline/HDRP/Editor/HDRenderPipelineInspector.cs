@@ -39,6 +39,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedProperty m_RenderingUseDepthPrepass;
         SerializedProperty m_RenderingUseDepthPrepassAlphaTestOnly;
         SerializedProperty m_enableAsyncCompute;
+        SerializedProperty m_enableShadowMask;
 
         // Subsurface Scattering Settings
         SerializedProperty m_SubsurfaceScatteringSettings;
@@ -77,6 +78,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_RenderingUseForwardOnly = properties.Find(x => x.serializedFrameSettings.enableForwardRenderingOnly);
             m_RenderingUseDepthPrepass = properties.Find(x => x.serializedFrameSettings.enableDepthPrepassWithDeferredRendering);
             m_RenderingUseDepthPrepassAlphaTestOnly = properties.Find(x => x.serializedFrameSettings.enableAlphaTestOnlyInDeferredPrepass);
+            m_enableShadowMask = properties.Find(x => x.serializedFrameSettings.enableShadowMask);
 
             // Subsurface Scattering Settings
             m_SubsurfaceScatteringSettings = properties.Find(x => x.sssSettings);
@@ -189,6 +191,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             EditorGUILayout.PropertyField(m_enableAsyncCompute, s_Styles.enableAsyncCompute);
+            EditorGUILayout.PropertyField(m_enableShadowMask, s_Styles.enableShadowMask);
 
             EditorGUI.indentLevel--;
         }
