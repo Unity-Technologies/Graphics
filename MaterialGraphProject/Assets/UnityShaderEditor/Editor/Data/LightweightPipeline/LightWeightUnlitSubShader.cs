@@ -5,7 +5,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public class LightWeightUnlitSubShader
+    public class LightWeightUnlitSubShader : IUnlitSubShader
     {
         Pass m_UnlitPass = new Pass()
         {
@@ -175,7 +175,7 @@ namespace UnityEditor.ShaderGraph
             return resultPass;
         }
 
-        public IEnumerable<string> GetSubshader(UnlitMasterNode masterNode, GenerationMode mode)
+        public string GetSubshader(UnlitMasterNode masterNode, GenerationMode mode)
         {
             var subShader = new ShaderGenerator();
             subShader.AddShaderChunk("SubShader", true);
@@ -194,7 +194,7 @@ namespace UnityEditor.ShaderGraph
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
 
-            return new[] { subShader.GetShaderString(0) };
+            return subShader.GetShaderString(0);
         }
     }
 }
