@@ -2,59 +2,59 @@
 // Doc: https://msdn.microsoft.com/en-us/library/windows/desktop/hh308952(v=vs.85).aspx
 
 // Measure compression error
-real CalcMSLE(real3 a, real3 b)
+float CalcMSLE(float3 a, float3 b)
 {
-    real3 err = log2(( b + 1.0) / (a + 1.0 ));
+    float3 err = log2(( b + 1.0) / (a + 1.0 ));
     err = err * err;
     return err.x + err.y + err.z;
 }
 
 // Quantification Helpers
-real3 Quantize7(real3 x)
+float3 Quantize7(float3 x)
 {
     return (f32tof16(x) * 128.0) / (0x7bff + 1.0);
 }
 
-real3 Quantize9(real3 x)
+float3 Quantize9(float3 x)
 {
     return (f32tof16(x) * 512.0) / (0x7bff + 1.0);
 }
 
-real3 Quantize10(real3 x)
+float3 Quantize10(float3 x)
 {
     return (f32tof16(x) * 1024.0) / (0x7bff + 1.0);
 }
 
-real3 Unquantize7(real3 x)
+float3 Unquantize7(float3 x)
 {
     return (x * 65536.0 + 0x8000) / 128.0;
 }
 
-real3 Unquantize9(real3 x)
+float3 Unquantize9(float3 x)
 {
     return (x * 65536.0 + 0x8000) / 512.0;
 }
 
-real3 Unquantize10(real3 x)
+float3 Unquantize10(float3 x)
 {
     return (x * 65536.0 + 0x8000) / 1024.0;
 }
 
 // BC6H Helpers
 // Compute index of a texel projected against endpoints
-uint ComputeIndex3( real texelPos, real endPoint0Pos, real endPoint1Pos )
+uint ComputeIndex3(float texelPos, float endPoint0Pos, float endPoint1Pos )
 {
-    real r = ( texelPos - endPoint0Pos ) / ( endPoint1Pos - endPoint0Pos );
+    float r = ( texelPos - endPoint0Pos ) / ( endPoint1Pos - endPoint0Pos );
     return (uint) clamp( r * 6.98182f + 0.00909f + 0.5f, 0.0, 7.0 );
 }
 
-uint ComputeIndex4( real texelPos, real endPoint0Pos, real endPoint1Pos )
+uint ComputeIndex4(float texelPos, float endPoint0Pos, float endPoint1Pos )
 {
-    real r = ( texelPos - endPoint0Pos ) / ( endPoint1Pos - endPoint0Pos );
+    float r = ( texelPos - endPoint0Pos ) / ( endPoint1Pos - endPoint0Pos );
     return (uint) clamp( r * 14.93333f + 0.03333f + 0.5f, 0.0, 15.0 );
 }
 
-void SignExtend( inout real3 v1, uint mask, uint signFlag )
+void SignExtend(inout float3 v1, uint mask, uint signFlag )
 {
     int3 v = (int3) v1;
     v.x = ( v.x & mask ) | ( v.x < 0 ? signFlag : 0 );
@@ -64,18 +64,18 @@ void SignExtend( inout real3 v1, uint mask, uint signFlag )
 }
 
 // 2nd step for unquantize
-real3 FinishUnquantize( real3 endpoint0Unq, real3 endpoint1Unq, real weight )
+float3 FinishUnquantize( float3 endpoint0Unq, float3 endpoint1Unq, float weight )
 {
-    real3 comp = ( endpoint0Unq * ( 64.0 - weight ) + endpoint1Unq * weight + 32.0 ) * ( 31.0 / 4096.0 );
+    float3 comp = ( endpoint0Unq * ( 64.0 - weight ) + endpoint1Unq * weight + 32.0 ) * ( 31.0 / 4096.0 );
     return f16tof32( uint3( comp ) );
 }
 
 // BC6H Modes
-void EncodeMode11( inout uint4 block, inout real blockMSLE, real3 texels[ 16 ] )
+void EncodeMode11( inout uint4 block, inout float blockMSLE, float3 texels[ 16 ] )
 {
     // compute endpoints (min/max RGB bbox)
-    real3 blockMin = texels[ 0 ];
-    real3 blockMax = texels[ 0 ];
+    float3 blockMin = texels[ 0 ];
+    float3 blockMax = texels[ 0 ];
     uint i;
     for (i = 1; i < 16; ++i )
     {
@@ -84,35 +84,35 @@ void EncodeMode11( inout uint4 block, inout real blockMSLE, real3 texels[ 16 ] )
     }
 
     // refine endpoints in log2 RGB space
-    real3 refinedBlockMin = blockMax;
-    real3 refinedBlockMax = blockMin;
+    float3 refinedBlockMin = blockMax;
+    float3 refinedBlockMax = blockMin;
     for (i = 0; i < 16; ++i )
     {
         refinedBlockMin = min( refinedBlockMin, texels[ i ] == blockMin ? refinedBlockMin : texels[ i ] );
         refinedBlockMax = max( refinedBlockMax, texels[ i ] == blockMax ? refinedBlockMax : texels[ i ] );
     }
 
-    real3 logBlockMax          = log2( blockMax + 1.0 );
-    real3 logBlockMin          = log2( blockMin + 1.0 );
-    real3 logRefinedBlockMax   = log2( refinedBlockMax + 1.0 );
-    real3 logRefinedBlockMin   = log2( refinedBlockMin + 1.0 );
-    real3 logBlockMaxExt       = ( logBlockMax - logBlockMin ) * ( 1.0 / 32.0 );
+    float3 logBlockMax          = log2( blockMax + 1.0 );
+    float3 logBlockMin          = log2( blockMin + 1.0 );
+    float3 logRefinedBlockMax   = log2( refinedBlockMax + 1.0 );
+    float3 logRefinedBlockMin   = log2( refinedBlockMin + 1.0 );
+    float3 logBlockMaxExt       = ( logBlockMax - logBlockMin ) * ( 1.0 / 32.0 );
     logBlockMin += min( logRefinedBlockMin - logBlockMin, logBlockMaxExt );
     logBlockMax -= min( logBlockMax - logRefinedBlockMax, logBlockMaxExt );
     blockMin = exp2( logBlockMin ) - 1.0;
     blockMax = exp2( logBlockMax ) - 1.0;
 
-    real3 blockDir = blockMax - blockMin;
+    float3 blockDir = blockMax - blockMin;
     blockDir = blockDir / ( blockDir.x + blockDir.y + blockDir.z );
 
-    real3 endpoint0    = Quantize10( blockMin );
-    real3 endpoint1    = Quantize10( blockMax );
-    real endPoint0Pos  = f32tof16( dot( blockMin, blockDir ) );
-    real endPoint1Pos  = f32tof16( dot( blockMax, blockDir ) );
+    float3 endpoint0    = Quantize10( blockMin );
+    float3 endpoint1    = Quantize10( blockMax );
+    float endPoint0Pos  = f32tof16( dot( blockMin, blockDir ) );
+    float endPoint1Pos  = f32tof16( dot( blockMax, blockDir ) );
 
 
     // check if endpoint swap is required
-    real fixupTexelPos = f32tof16( dot( texels[ 0 ], blockDir ) );
+    float fixupTexelPos = f32tof16( dot( texels[ 0 ], blockDir ) );
     uint fixupIndex = ComputeIndex4( fixupTexelPos, endPoint0Pos, endPoint1Pos );
     if ( fixupIndex > 7 )
     {
@@ -124,18 +124,18 @@ void EncodeMode11( inout uint4 block, inout real blockMSLE, real3 texels[ 16 ] )
     uint indices[ 16 ] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     for (i = 0; i < 16; ++i )
     {
-        real texelPos = f32tof16( dot( texels[ i ], blockDir ) );
+        float texelPos = f32tof16( dot( texels[ i ], blockDir ) );
         indices[ i ] = ComputeIndex4( texelPos, endPoint0Pos, endPoint1Pos );
     }
 
     // compute compression error (MSLE)
-    real3 endpoint0Unq = Unquantize10( endpoint0 );
-    real3 endpoint1Unq = Unquantize10( endpoint1 );
-    real msle = 0.0;
+    float3 endpoint0Unq = Unquantize10( endpoint0 );
+    float3 endpoint1Unq = Unquantize10( endpoint1 );
+    float msle = 0.0;
     for (i = 0; i < 16; ++i )
     {
-        real weight = floor( ( indices[ i ] * 64.0 ) / 15.0 + 0.5);
-        real3 texelUnc = FinishUnquantize( endpoint0Unq, endpoint1Unq, weight );
+        float weight = floor( ( indices[ i ] * 64.0 ) / 15.0 + 0.5);
+        float3 texelUnc = FinishUnquantize( endpoint0Unq, endpoint1Unq, weight );
 
         msle += CalcMSLE( texels[ i ], texelUnc );
     }
