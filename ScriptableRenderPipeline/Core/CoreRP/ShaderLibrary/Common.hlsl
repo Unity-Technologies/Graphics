@@ -4,6 +4,7 @@
 // Convention:
 
 // Unity is Y up - left handed
+// The lighting code assume that 1 Unity unit (1uu) == 1 meters.  This is very important regarding physically based light unit and inverse square attenuation
 
 // space at the end of the variable name
 // WS: world space
@@ -34,32 +35,49 @@
 // VertDefault
 // FragDefault / FragForward / FragDeferred
 
-// constant floating number written as 1.0  (not 1, not 1.0, not 1.0h)
+// constant floating number written as 1.0  (not 1, not 1.0f, not 1.0h)
 
 // uniform have _ as prefix + uppercase _LowercaseThenCamelCase
+
+// Do not use "in", only "out" or "inout" as califier, no "inline" keyword either, useless.
+// When declaring "out" argument of function, they are always last
+
+// headers from ShaderLibrary do not include "common.hlsl", this should be included in the .shader using it (or Material.hlsl)
 
 // All uniforms should be in contant buffer (nothing in the global namespace).
 // The reason is that for compute shader we need to guarantee that the layout of CBs is consistent across kernels. Something that we can't control with the global namespace (uniforms get optimized out if not used, modifying the global CBuffer layout per kernel)
 
 // Structure definition that are share between C# and hlsl.
-// These structures need to be align on float4 to respect various packing rules from sahder language.
-// This mean that these structure need to be padded.
-
-// Do not use "in", only "out" or "inout" as califier, not "inline" keyword either, useless.
-
-// The lighting code assume that 1 Unity unit (1uu) == 1 meters.  This is very important regarding physically based light unit and inverse square attenuation
-
-// When declaring "out" argument of function, they are always last
-
-// headers from ShaderLibrary do not include "common.hlsl", this should be included in the .shader using it (or Material.hlsl)
-
+// These structures need to be align on float4 to respect various packing rules from shader language. This mean that these structure need to be padded.
 // Rules: When doing an array for constant buffer variables, we always use float4 to avoid any packing issue, particularly between compute shader and pixel shaders
 // i.e don't use SetGlobalFloatArray or SetComputeFloatParams
 // The array can be alias in hlsl. Exemple:
 // uniform float4 packedArray[3];
-// static float unpackedArray[12] = (float[12]packedArray;
+// static float unpackedArray[12] = (float[12])packedArray;
 
+// The function of the shader library are stateless, no uniform decalare in it.
+// If a function require to have both a half and a float version, then both need to be explicitly define
 #ifndef real
+
+#ifdef SHADER_API_MOBILE
+#define real half
+#define real2 half2
+#define real3 half3
+#define real4 half4
+
+#define real2x2 half2x2
+#define real2x3 half2x3
+#define real3x2 half3x2
+#define real3x3 half3x3
+#define real3x4 half3x4
+#define real4x3 half4x3
+#define real4x4 half4x4
+
+#define REAL_MIN HALF_MIN
+#define REAL_MAX HALF_MAX
+
+#else
+
 #define real float
 #define real2 float2
 #define real3 float3
@@ -75,6 +93,7 @@
 
 #define REAL_MIN FLT_MIN
 #define REAL_MAX FLT_MAX
+
 #endif
 
 // Include language header
@@ -333,7 +352,7 @@ TEMPLATE_2_FLT(PositivePow, base, power, return pow(max(abs(base), FLT_EPS), pow
 
 // Computes (FastSign(s) * x) using 2x VALU.
 // See the comment about FastSign() below.
-real FastMulBySignOf(real s, real x, bool ignoreNegZero = true)
+float FastMulBySignOf(float s, float x, bool ignoreNegZero = true)
 {
 #if !defined(SHADER_API_GLES)
     if (ignoreNegZero)
@@ -358,7 +377,7 @@ real FastMulBySignOf(real s, real x, bool ignoreNegZero = true)
 // Therefore, we treat -0 as +0 by default: FastSign(+0) = FastSign(-0) = 1.
 // If (ignoreNegZero = false), FastSign(-0, false) = -1.
 // Note that the sign() function in HLSL implements signum, which returns 0 for 0.
-real FastSign(real s, bool ignoreNegZero = true)
+float FastSign(float s, bool ignoreNegZero = true)
 {
     return FastMulBySignOf(s, 1.0, ignoreNegZero);
 }
