@@ -2,7 +2,7 @@
 using System.Linq;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.LightweightPipeline
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     static class HDIncludePaths
     {
