@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.12544414, g: 0.13212782, b: 0.11914396, a: 1}
+  m_IndirectSpecularColor: {r: 0.1404238, g: 0.1705669, b: 0.23180237, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -197,11 +197,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 8862568}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0e34c98127e05d340ba44a1d4a734454, type: 3}
+  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_CommonSettings: {fileID: 11400000, guid: 075f395cb6ba2534196f2ce83c32e633, type: 2}
-  m_SkySettings: {fileID: 11400000, guid: 622aa06566c087b41ac0edc80769f45f, type: 2}
+  isGlobal: 1
+  priority: 0
+  blendDistance: 0
+  weight: 1
+  components:
+  - {fileID: 1121281015}
+  - {fileID: 2108781293}
 --- !u!4 &8862570
 Transform:
   m_ObjectHideFlags: 0
@@ -5123,6 +5128,24 @@ Transform:
   m_PrefabParentObject: {fileID: 4590821631456672, guid: 63d293d8d9b22af4eb3a41f61a9d3538,
     type: 2}
   m_PrefabInternal: {fileID: 1064506993}
+--- !u!114 &1121281015
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d7593b3a9277ac4696b20006c21dde2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  active: 1
+  skyType:
+    m_OverrideState: 1
+    m_Value: 2
+  fogType:
+    m_OverrideState: 1
+    m_Value: 0
 --- !u!1 &1133003140
 GameObject:
   m_ObjectHideFlags: 0
@@ -9573,6 +9596,22 @@ Transform:
   m_PrefabParentObject: {fileID: 4211168484685708, guid: e1e5df6b963abe54ea96453a0a5f4c5d,
     type: 2}
   m_PrefabInternal: {fileID: 2106171676}
+--- !u!114 &2108781293
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ddcec8a8eb2d684d833ac8f5d26aebd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  active: 1
+  maxShadowDistance:
+    m_OverrideState: 1
+    m_Value: 500
+    min: 0
 --- !u!1001 &2117825843
 Prefab:
   m_ObjectHideFlags: 0

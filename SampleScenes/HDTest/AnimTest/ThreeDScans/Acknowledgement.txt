@@ -1,0 +1,17 @@
+The models contained in this directory were originally scanned by the Three D
+Scans project. These models are not copyrighted, and thus you can use them
+without restriction.
+
+For further details of the scans, please see the project page below.
+
+http://threedscans.com/
+
+These models were decimated and retopologized with Instant Meshes (auto-retopo
+software) and UV-unwrapped in Houdini. Normal maps and occlusion maps were
+generated with xNormal.
+
+The latest version of the models are available from the GitHub repository.
+
+https://github.com/keijiro/ThreeDScans
+
+Keijiro

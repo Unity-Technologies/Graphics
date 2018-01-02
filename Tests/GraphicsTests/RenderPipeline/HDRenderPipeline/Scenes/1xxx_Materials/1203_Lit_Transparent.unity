@@ -13,7 +13,7 @@ OcclusionCullingSettings:
 --- !u!104 &2
 RenderSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 9
+  serializedVersion: 8
   m_Fog: 0
   m_FogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   m_FogMode: 3
@@ -38,8 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.36615217, g: 0.3847425, b: 0.4253455, a: 1}
-  m_UseRadianceAmbientProbe: 0
+  m_IndirectSpecularColor: {r: 0.36615342, g: 0.38474455, b: 0.42534748, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -131,7 +130,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -325,7 +324,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -793,7 +792,7 @@ Transform:
   - {fileID: 2124071518}
   - {fileID: 992223835}
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!21 &115787072
 Material:
@@ -813,7 +812,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -1019,7 +1018,7 @@ Transform:
   - {fileID: 1450086967}
   - {fileID: 1662240653}
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &122460561
 GameObject:
@@ -1111,7 +1110,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -1477,7 +1476,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -1725,6 +1724,24 @@ MeshFilter:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 219736994}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &231362995
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d7593b3a9277ac4696b20006c21dde2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  active: 1
+  skyType:
+    m_OverrideState: 1
+    m_Value: 1
+  fogType:
+    m_OverrideState: 1
+    m_Value: 0
 --- !u!1 &252740731
 GameObject:
   m_ObjectHideFlags: 0
@@ -1903,7 +1920,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -2097,7 +2114,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -2291,7 +2308,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -2485,7 +2502,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -2751,7 +2768,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -3105,7 +3122,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -3385,7 +3402,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -3579,7 +3596,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -3856,7 +3873,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -4136,7 +4153,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -4411,7 +4428,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -4605,7 +4622,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -4799,7 +4816,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -4993,7 +5010,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -5428,7 +5445,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -5622,7 +5639,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -5888,7 +5905,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -6563,7 +6580,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -6757,7 +6774,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -7104,7 +7121,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -7667,7 +7684,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -8093,7 +8110,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -8575,7 +8592,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -8858,7 +8875,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -9248,7 +9265,7 @@ Transform:
   m_LocalScale: {x: 1.2, y: 9.802377, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1084885183
 GameObject:
@@ -9369,7 +9386,7 @@ Transform:
   - {fileID: 1215851477}
   - {fileID: 573273425}
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1101808930
 GameObject:
@@ -9490,7 +9507,7 @@ Transform:
   - {fileID: 678704631}
   - {fileID: 682864619}
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1129173717
 GameObject:
@@ -10432,7 +10449,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -10770,7 +10787,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -11252,7 +11269,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -11590,7 +11607,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -12095,7 +12112,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -12505,7 +12522,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -12785,7 +12802,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -13119,6 +13136,44 @@ MeshFilter:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1537724669}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1557159371
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59b6606ef2548734bb6d11b9d160bc7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  active: 1
+  rotation:
+    m_OverrideState: 1
+    m_Value: 160
+    min: 0
+    max: 360
+  exposure:
+    m_OverrideState: 1
+    m_Value: 0
+  multiplier:
+    m_OverrideState: 1
+    m_Value: 1
+    min: 0
+  resolution:
+    m_OverrideState: 1
+    m_Value: 256
+  updateMode:
+    m_OverrideState: 1
+    m_Value: 0
+  updatePeriod:
+    m_OverrideState: 1
+    m_Value: 0
+    min: 0
+  useForBaking: 1
+  skyHDRI:
+    m_OverrideState: 1
+    m_Value: {fileID: 8900000, guid: fb0bf2eac2381484187ba8a68cdca165, type: 3}
 --- !u!21 &1559477711
 Material:
   serializedVersion: 6
@@ -13137,7 +13192,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -13403,7 +13458,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -13669,7 +13724,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -13944,7 +13999,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -14282,7 +14337,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -14942,7 +14997,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -15136,7 +15191,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -15330,7 +15385,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -15740,7 +15795,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -16092,7 +16147,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -16286,7 +16341,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -16480,7 +16535,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -17039,6 +17094,53 @@ MonoBehaviour:
   offset: 1.2
   rotation: {x: 0, y: 0, z: 0}
   scale: 1
+--- !u!1 &1948343729
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 1948343731}
+  - component: {fileID: 1948343730}
+  m_Layer: 0
+  m_Name: HDRP_Default_Sky
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1948343730
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1948343729}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isGlobal: 1
+  priority: 0
+  blendDistance: 0
+  weight: 1
+  components:
+  - {fileID: 231362995}
+  - {fileID: 1557159371}
+--- !u!4 &1948343731
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1948343729}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -4.945982, y: 3.5591245, z: -6.423647}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!21 &1962586366
 Material:
   serializedVersion: 6
@@ -17057,7 +17159,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -17467,7 +17569,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -17660,7 +17762,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -17854,7 +17956,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -18048,7 +18150,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -18242,7 +18344,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -18508,7 +18610,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -18774,7 +18876,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
