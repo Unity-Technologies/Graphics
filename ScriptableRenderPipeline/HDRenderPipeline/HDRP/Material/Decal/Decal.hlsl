@@ -85,6 +85,9 @@
 #endif
 #endif // #ifdef DBUFFERMATERIAL_COUNT
 
+CBUFFER_START(UnityDecalParameters)
+	uint _EnableDBuffer;
+CBUFFER_END
 
 // Must be in sync with RT declared in HDRenderPipeline.cs ::Rebuild
 void EncodeIntoDBuffer( DecalSurfaceData surfaceData,
