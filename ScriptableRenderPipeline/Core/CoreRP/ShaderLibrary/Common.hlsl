@@ -3,7 +3,10 @@
 
 // Convention:
 
-// Unity is Y up - left handed
+// Unity is Y up and left handed in world space
+// Caution: When going from world space to view space, unity is right handed in view space and the determinant of the matrix is negative
+// For cubemap capture (reflection probe) view space is still left handed (cubemap convention) and the determinant is positive.
+
 // The lighting code assume that 1 Unity unit (1uu) == 1 meters.  This is very important regarding physically based light unit and inverse square attenuation
 
 // space at the end of the variable name
