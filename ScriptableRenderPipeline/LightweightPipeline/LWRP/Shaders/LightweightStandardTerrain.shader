@@ -183,8 +183,7 @@ Shader "LightweightPipeline/Standard Terrain"
 
                 half3 indirectDiffuse = half3(0, 0, 0);
 #if LIGHTMAP_ON
-                float4 lightmapUV = half4(IN.uvControlAndLM.zw, 0.0, 0.0);
-                indirectDiffuse = SampleLightmap(lightmapUV, normalWS);
+                indirectDiffuse = SampleLightmap(IN.uvControlAndLM.zw, normalWS);
 #endif
 
                 half3 viewDirectionWS = SafeNormalize(_WorldSpaceCameraPos - IN.positionWS);
