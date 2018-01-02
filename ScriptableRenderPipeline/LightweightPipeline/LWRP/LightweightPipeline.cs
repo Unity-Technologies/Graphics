@@ -736,6 +736,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 lightPos = new Vector4(pos.x, pos.y, pos.z, 1.0f);
             }
 
+            // VisibleLight.finalColor already returns color in active color space
             lightColor = lightData.finalColor;
 
             // Directional Light attenuation is initialize so distance attenuation always be 1.0
@@ -794,11 +795,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             // When glossy reflections are OFF in the shader we set a constant color to use as indirect specular
             SphericalHarmonicsL2 ambientSH = RenderSettings.ambientProbe;
-            Vector4 glossyEnvColor = new Vector4(ambientSH[0, 0], ambientSH[1, 0], ambientSH[2, 0]) * RenderSettings.reflectionIntensity;
+            Color linearGlossyEnvColor = new Color(ambientSH[0, 0], ambientSH[1, 0], ambientSH[2, 0]) * RenderSettings.reflectionIntensity;
+            Color glossyEnvColor = CoreUtils.ConvertLinearToActiveColorSpace(linearGlossyEnvColor);
             Shader.SetGlobalVector(PerFrameBuffer._GlossyEnvironmentColor, glossyEnvColor);
 
             // Used when subtractive mode is selected
-            Shader.SetGlobalColor(PerFrameBuffer._SubtractiveShadowColor, RenderSettings.subtractiveShadowColor.linear);
+            Shader.SetGlobalVector(PerFrameBuffer._SubtractiveShadowColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.subtractiveShadowColor));
         }
 
         private void SetupShaderLightConstants(CommandBuffer cmd, VisibleLight[] lights, ref LightData lightData)
@@ -833,7 +835,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
 
             cmd.SetGlobalVector(PerCameraBuffer._MainLightPosition, lightPos);
-            cmd.SetGlobalColor(PerCameraBuffer._MainLightColor, lightColor);
+            cmd.SetGlobalVector(PerCameraBuffer._MainLightColor, lightColor);
             cmd.SetGlobalVector(PerCameraBuffer._MainLightDistanceAttenuation, lightDistanceAttenuation);
             cmd.SetGlobalVector(PerCameraBuffer._MainLightSpotDir, lightSpotDir);
             cmd.SetGlobalVector(PerCameraBuffer._MainLightSpotAttenuation, lightSpotAttenuation);
@@ -1147,7 +1149,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorRT, ClearFlag clearFlag = ClearFlag.None)
         {
             int depthSlice = (m_IntermediateTextureArray) ? -1 : 0;
-            CoreUtils.SetRenderTarget(cmd, colorRT, clearFlag, m_CurrCamera.backgroundColor.linear, 0, CubemapFace.Unknown, depthSlice);
+            CoreUtils.SetRenderTarget(cmd, colorRT, clearFlag, CoreUtils.ConvertSRGBToActiveColorSpace(m_CurrCamera.backgroundColor), 0, CubemapFace.Unknown, depthSlice);
         }
 
         private void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorRT, RenderTargetIdentifier depthRT, ClearFlag clearFlag = ClearFlag.None)
@@ -1159,7 +1161,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
 
             int depthSlice = (m_IntermediateTextureArray) ? -1 : 0;
-            CoreUtils.SetRenderTarget(cmd, colorRT, depthRT, clearFlag, m_CurrCamera.backgroundColor.linear, 0, CubemapFace.Unknown, depthSlice);
+            CoreUtils.SetRenderTarget(cmd, colorRT, depthRT, clearFlag, CoreUtils.ConvertSRGBToActiveColorSpace(m_CurrCamera.backgroundColor), 0, CubemapFace.Unknown, depthSlice);
         }
 
         private void RenderPostProcess(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier dest, bool opaqueOnly)
