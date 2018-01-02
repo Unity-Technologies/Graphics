@@ -225,21 +225,18 @@ void FillMaterialIdSssData(int subsurfaceProfile, float radius, float thickness,
         bsdfData.thickness = _ThicknessRemaps[subsurfaceProfile].x + _ThicknessRemaps[subsurfaceProfile].y * thickness;
         bsdfData.useThickObjectMode = transmissionMode != SSS_TRSM_MODE_THIN;
 
-        if (_UseDisneySSS != 0)
-        {
+#if SHADEROPTIONS_USE_DISNEY_SSS
             bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParams[subsurfaceProfile].rgb,
                                                                 _TransmissionTintsAndFresnel0[subsurfaceProfile].rgb,
                                                                 bsdfData.thickness, bsdfData.subsurfaceRadius);
-        }
-        else
-        {
+#else
             bsdfData.transmittance = ComputeTransmittanceJimenez(_HalfRcpVariancesAndWeights[subsurfaceProfile][0].rgb,
                                                                  _HalfRcpVariancesAndWeights[subsurfaceProfile][0].a,
                                                                  _HalfRcpVariancesAndWeights[subsurfaceProfile][1].rgb,
                                                                  _HalfRcpVariancesAndWeights[subsurfaceProfile][1].a,
                                                                  _TransmissionTintsAndFresnel0[subsurfaceProfile].rgb,
                                                                  bsdfData.thickness, bsdfData.subsurfaceRadius);
-        }
+#endif
     }
 }
 
@@ -1659,7 +1656,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         float3 boxOuterDistance = lightData.influenceExtents;
         float projectionDistance = BoxRayIntersectSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
         projectionDistance = max(projectionDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
-        
+
         // No need to normalize for fetching cubemap
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.positionWS
         R = (positionWS + projectionDistance * R) - lightData.positionWS;
