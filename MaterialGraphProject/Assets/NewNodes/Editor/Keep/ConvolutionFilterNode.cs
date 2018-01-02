@@ -47,8 +47,7 @@ using System;
 
             m_ConvolutionFilter[6].w = value;
 
-            if (onModified != null)
-                onModified(this, ModificationScope.Node);
+            Dirty(ModificationScope.Node);
         }
 
         public float GetConvolutionWeight(int row, int col)
@@ -85,8 +84,7 @@ using System;
                 default: m_ConvolutionFilter[vectorIndex].w = value; break;
             }
 
-            if (onModified != null)
-                onModified(this, ModificationScope.Node);
+            Dirty(ModificationScope.Node);
         }
 
         protected override string GetFunctionName()

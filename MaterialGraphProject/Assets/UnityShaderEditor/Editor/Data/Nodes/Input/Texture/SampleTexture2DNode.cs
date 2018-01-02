@@ -54,10 +54,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_TextureType = value;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Graph);
-                }
+                Dirty(ModificationScope.Graph);
             }
         }
 

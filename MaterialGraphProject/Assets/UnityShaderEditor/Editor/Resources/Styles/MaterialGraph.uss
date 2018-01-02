@@ -412,48 +412,76 @@ GraphInspectorView > #top > #properties > #items {
     padding-bottom: 4;
 }
 
-GraphInspectorView > #resize-right {
-    cursor: resize-horizontal;
+GraphInspectorView > .resize {
     background-color: rgba(0, 0, 0, 0);
     position-type: absolute;
-    width: 10;
-    position-right: 0;
-    position-top: 0;
-    position-bottom: 0;
 }
 
-GraphInspectorView > #resize-left {
-    cursor: resize-horizontal;
-    background-color: rgba(0, 0, 0, 0);
-    position-type: absolute;
-    width: 10;
-    position-left: 0;
-    position-top: 0;
-    position-bottom: 0;
-    padding-left: 0;
-    margin-left: 0;
-}
-
-GraphInspectorView > #resize-top {
+GraphInspectorView > .resize.vertical {
     cursor: resize-vertical;
-    background-color: rgba(0, 0, 0, 0);
-    position-type: absolute;
     height: 10;
-    position-left: 0;
-    position-right: 0;
-    position-top: 0;
+    position-left: 10;
+    position-right: 10;
     padding-top: 0;
+    padding-bottom: 0;
     margin-top: 0;
+    margin-bottom: 0;
 }
 
-GraphInspectorView > #resize-bottom {
-    cursor: resize-vertical;
-    background-color: rgba(0, 0, 0, 0);
-    position-type: absolute;
+GraphInspectorView > .resize.horizontal {
+    cursor: resize-horizontal;
+    width: 10;
+    position-top: 10;
+    position-bottom: 10;
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+GraphInspectorView > .resize.diagonal {
+    width: 10;
     height: 10;
+}
+
+GraphInspectorView > .resize.diagonal.top-left {
+    cursor: resize-up-left;
+    position-top: 0;
     position-left: 0;
+}
+
+GraphInspectorView > .resize.diagonal.top-right {
+    cursor: resize-up-right;
+    position-top: 0;
     position-right: 0;
+}
+
+GraphInspectorView > .resize.diagonal.bottom-left {
+    cursor: resize-up-right;
     position-bottom: 0;
+    position-left: 0;
+}
+
+GraphInspectorView > .resize.diagonal.bottom-right {
+    cursor: resize-up-left;
+    position-bottom: 0;
+    position-right: 0;
+}
+
+GraphInspectorView > .resize.vertical.top {
+    position-top: 0;
+}
+
+GraphInspectorView > .resize.vertical.bottom {
+    position-bottom: 0;
+}
+
+GraphInspectorView > .resize.horzontal.left {
+    position-left: 0;
+}
+
+GraphInspectorView > .resize.horizontal.right {
+    position-right: 0;
 }
 
 ShaderPropertyView {

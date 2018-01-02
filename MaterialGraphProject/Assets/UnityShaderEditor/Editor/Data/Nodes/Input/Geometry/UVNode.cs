@@ -23,10 +23,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_OutputChannel = value;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Graph);
-                }
+                Dirty(ModificationScope.Graph);
             }
         }
 

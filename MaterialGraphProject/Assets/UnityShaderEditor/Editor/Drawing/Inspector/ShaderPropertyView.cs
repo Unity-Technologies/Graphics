@@ -121,7 +121,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         void NotifyNodes()
         {
             foreach (var node in graph.GetNodes<PropertyNode>())
-                node.onModified(node, ModificationScope.Node);
+                node.Dirty(ModificationScope.Node);
         }
 
         void FloatField()
