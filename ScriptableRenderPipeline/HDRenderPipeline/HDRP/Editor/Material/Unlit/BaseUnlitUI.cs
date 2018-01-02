@@ -43,7 +43,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent distortionBlurScaleText = new GUIContent("Distortion Blur Scale", "Distortion Blur Scale");
             public static GUIContent distortionBlurRemappingText = new GUIContent("Distortion Blur Remapping", "Distortion Blur Remapping");
 
-            public static GUIContent transparentPrePassText = new GUIContent("Pre Refraction Pass", "Render objects before the refraction pass");
+            public static GUIContent transparentPrepassText = new GUIContent("Pre Refraction Pass", "Render objects before the refraction pass");
 
             public static string advancedText = "Advanced Options";
         }
@@ -217,7 +217,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (enableFogOnTransparent != null)
                     m_MaterialEditor.ShaderProperty(enableFogOnTransparent, StylesBaseUnlit.enableTransparentFogText);
                 if (preRefractionPass != null)
-                    m_MaterialEditor.ShaderProperty(preRefractionPass, StylesBaseUnlit.transparentPrePassText);
+                    m_MaterialEditor.ShaderProperty(preRefractionPass, StylesBaseUnlit.transparentPrepassText);
                 EditorGUI.indentLevel--;
             }
 
@@ -341,8 +341,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 material.SetOverrideTag("RenderType", "Transparent");
                 material.SetInt("_ZWrite", 0);
-                var isPrePass = material.HasProperty(kPreRefractionPass) && material.GetFloat(kPreRefractionPass) > 0.0f;
-                material.renderQueue = (int)(isPrePass ? HDRenderQueue.PreRefraction : HDRenderQueue.Transparent);
+                var isPrepass = material.HasProperty(kPreRefractionPass) && material.GetFloat(kPreRefractionPass) > 0.0f;
+                material.renderQueue = (int)(isPrepass ? HDRenderQueue.PreRefraction : HDRenderQueue.Transparent);
 
                 if (material.HasProperty(kBlendMode))
                 {
@@ -505,10 +505,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 material.SetShaderPassEnabled(HDShaderPassNames.s_GBufferDebugDisplayStr, true);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_DistortionVectorsStr, distortionEnable); // note: use distortionEnable
-                material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrePassStr, enablePass);
+                material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrepassStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentBackfaceStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentBackfaceDebugDisplayStr, enablePass);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPostPassStr, enablePass);
+                material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPostpassStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_MetaStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_ShadowCasterStr, enablePass);
             }
@@ -518,11 +518,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 bool depthWriteEnable = (material.GetFloat(kTransparentDepthPrepassEnable) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent);
                 if (depthWriteEnable)
                 {
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrePassStr, true);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrepassStr, true);
                 }
                 else
                 {
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrePassStr, false);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrepassStr, false);
                 }
             }
 
@@ -531,11 +531,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 bool depthWriteEnable = (material.GetFloat(kTransparentDepthPostpassEnable) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent);
                 if (depthWriteEnable)
                 {
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPostPassStr, true);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPostpassStr, true);
                 }
                 else
                 {
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPostPassStr, false);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPostpassStr, false);
                 }
             }
 

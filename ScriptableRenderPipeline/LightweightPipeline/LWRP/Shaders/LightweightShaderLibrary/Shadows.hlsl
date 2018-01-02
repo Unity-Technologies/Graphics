@@ -5,98 +5,104 @@
 
 #define MAX_SHADOW_CASCADES 4
 
-#if defined(_HARD_SHADOWS) || defined(_SOFT_SHADOWS) || defined(_HARD_SHADOWS_CASCADES) || defined(_SOFT_SHADOWS_CASCADES)
-#define _SHADOWS
+///////////////////////////////////////////////////////////////////////////////
+// Light Classification shadow defines                                       //
+//                                                                           //
+// In order to reduce shader variations main light keywords were combined    //
+// here we define shadow keywords.                                           //
+///////////////////////////////////////////////////////////////////////////////
+#if defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_SOFT) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT) || defined(_MAIN_LIGHT_SPOT_SHADOW) || defined(_MAIN_LIGHT_SPOT_SHADOW_SOFT)
+    #define _SHADOWS_ENABLED
 #endif
 
-#if defined(_HARD_SHADOWS_CASCADES) || defined(_SOFT_SHADOWS_CASCADES)
-#define _SHADOW_CASCADES
+#if defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_SOFT) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT) || defined(_MAIN_LIGHT_SPOT_SHADOW_SOFT)
+    #define _SHADOWS_SOFT
 #endif
 
-#ifdef _SHADOWS
-#define LIGHTWEIGHT_SHADOW_ATTENUATION(posWorld, vertexNormal, shadowDir) ComputeShadowAttenuation(posWorld, vertexNormal, shadowDir)
-#else
-#define LIGHTWEIGHT_SHADOW_ATTENUATION(posWorld, vertexNormal, shadowDir) 1.0h
+#if defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT)
+    #define _SHADOWS_CASCADE
+#endif
+
+#if defined(_MAIN_LIGHT_SPOT_SHADOW) || defined(_MAIN_LIGHT_SPOT_SHADOW_SOFT)
+    #define _SHADOWS_PERSPECTIVE
 #endif
 
 TEXTURE2D_SHADOW(_ShadowMap);
 SAMPLER_CMP(sampler_ShadowMap);
 
 CBUFFER_START(_ShadowBuffer)
-float4x4 _WorldToShadow[MAX_SHADOW_CASCADES];
+// Last cascade is initialized with a no-op matrix. It always transforms
+// shadow coord to half(0, 0, NEAR_PLANE). We use this trick to avoid
+// branching since ComputeCascadeIndex can return cascade index = MAX_SHADOW_CASCADES
+float4x4 _WorldToShadow[MAX_SHADOW_CASCADES + 1];
 float4 _DirShadowSplitSpheres[MAX_SHADOW_CASCADES];
+float4 _DirShadowSplitSphereRadii;
 half4 _ShadowOffset0;
 half4 _ShadowOffset1;
 half4 _ShadowOffset2;
 half4 _ShadowOffset3;
-half4 _ShadowData; // (x: 1.0 - shadowStrength, y: bias, z: normal bias, w: near plane offset)
+half4 _ShadowData; // (x: shadowStrength)
 CBUFFER_END
-
-float ApplyDepthBias(float clipZ)
-{
-#ifdef UNITY_REVERSED_Z
-    return  clipZ + _ShadowData.y;
-#endif
-
-    return  clipZ - _ShadowData.y;
-}
 
 inline half SampleShadowmap(float4 shadowCoord)
 {
-    float3 coord = shadowCoord.xyz /= shadowCoord.w;
-    coord.z = saturate(ApplyDepthBias(coord.z));
-    if (coord.x <= 0 || coord.x >= 1 || coord.y <= 0 || coord.y >= 1)
-        return 1;
+#if defined(_SHADOWS_PERSPECTIVE)
+    shadowCoord.xyz = shadowCoord.xyz /= shadowCoord.w;
+#endif
 
-#if defined(_SOFT_SHADOWS) || defined(_SOFT_SHADOWS_CASCADES)
+#ifdef _SHADOWS_SOFT
     // 4-tap hardware comparison
-    half4 attenuation;
-    attenuation.x = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, coord + _ShadowOffset0.xyz);
-    attenuation.y = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, coord + _ShadowOffset1.xyz);
-    attenuation.z = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, coord + _ShadowOffset2.xyz);
-    attenuation.w = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, coord + _ShadowOffset3.xyz);
-    lerp(attenuation, 1.0, _ShadowData.xxxx);
-    return dot(attenuation, 0.25);
+    half4 attenuation4;
+    attenuation4.x = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz + _ShadowOffset0.xyz);
+    attenuation4.y = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz + _ShadowOffset1.xyz);
+    attenuation4.z = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz + _ShadowOffset2.xyz);
+    attenuation4.w = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz + _ShadowOffset3.xyz);
+    half attenuation = dot(attenuation4, 0.25);
 #else
     // 1-tap hardware comparison
-    half attenuation = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, coord);
-    return lerp(attenuation, 1.0, _ShadowData.x);
+    half attenuation = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz);
 #endif
+
+    // Apply shadow strength
+    attenuation = LerpWhiteTo(attenuation, _ShadowData.x);
+
+    // Shadow coords that fall out of the light frustum volume must always return attenuation 1.0
+    // TODO: We can set shadowmap sampler to clamptoborder when we don't have a shadow atlas and avoid xy coord bounds check
+    return (shadowCoord.x <= 0 || shadowCoord.x >= 1 || shadowCoord.y <= 0 || shadowCoord.y >= 1 || shadowCoord.z >= 1) ? 1.0 : attenuation;
 }
 
 inline half ComputeCascadeIndex(float3 wpos)
 {
+    // TODO: profile if there's a performance improvement if we avoid indexing here
     float3 fromCenter0 = wpos.xyz - _DirShadowSplitSpheres[0].xyz;
     float3 fromCenter1 = wpos.xyz - _DirShadowSplitSpheres[1].xyz;
     float3 fromCenter2 = wpos.xyz - _DirShadowSplitSpheres[2].xyz;
     float3 fromCenter3 = wpos.xyz - _DirShadowSplitSpheres[3].xyz;
     float4 distances2 = float4(dot(fromCenter0, fromCenter0), dot(fromCenter1, fromCenter1), dot(fromCenter2, fromCenter2), dot(fromCenter3, fromCenter3));
 
-    float4 vDirShadowSplitSphereSqRadii;
-    vDirShadowSplitSphereSqRadii.x = _DirShadowSplitSpheres[0].w;
-    vDirShadowSplitSphereSqRadii.y = _DirShadowSplitSpheres[1].w;
-    vDirShadowSplitSphereSqRadii.z = _DirShadowSplitSpheres[2].w;
-    vDirShadowSplitSphereSqRadii.w = _DirShadowSplitSpheres[3].w;
-    half4 weights = half4(distances2 < vDirShadowSplitSphereSqRadii);
+    half4 weights = half4(distances2 < _DirShadowSplitSphereRadii);
     weights.yzw = saturate(weights.yzw - weights.xyz);
+
     return 4 - dot(weights, half4(4, 3, 2, 1));
 }
 
-inline half ComputeShadowAttenuation(float3 posWorld, half3 vertexNormal, half3 shadowDir)
+inline float4 ComputeShadowCoord(float3 positionWS, half cascadeIndex = 0)
 {
-    half NdotL = dot(vertexNormal, shadowDir);
-    half bias = saturate(1.0 - NdotL) * _ShadowData.z;
-
-    float3 posWorldOffsetNormal = posWorld + vertexNormal * bias;
-
-    int cascadeIndex = 0;
-#ifdef _SHADOW_CASCADES
-    cascadeIndex = ComputeCascadeIndex(posWorldOffsetNormal);
-    if (cascadeIndex >= MAX_SHADOW_CASCADES)
-        return 1.0;
+#ifdef _SHADOWS_CASCADE
+    return mul(_WorldToShadow[cascadeIndex], float4(positionWS, 1.0));
 #endif
 
-    float4 shadowCoord = mul(_WorldToShadow[cascadeIndex], float4(posWorldOffsetNormal, 1.0));
+    return mul(_WorldToShadow[0], float4(positionWS, 1.0));
+}
+
+inline half RealtimeShadowAttenuation(float3 positionWS)
+{
+#if !defined(_SHADOWS_ENABLED)
+    return 1.0;
+#endif
+
+    half cascadeIndex = ComputeCascadeIndex(positionWS);
+    float4 shadowCoord = ComputeShadowCoord(positionWS, cascadeIndex);
     return SampleShadowmap(shadowCoord);
 }
 
@@ -137,7 +143,7 @@ inline half3 SubtractDirectMainLightFromLightmap(half3 lightmap, half attenuatio
 
     // 2) Allows user to define overall ambient of the scene and control situation when realtime shadow becomes too dark.
     half3 realtimeShadow = max(subtractedLightmap, _SubtractiveShadowColor.xyz);
-    realtimeShadow = lerp(realtimeShadow, lightmap, shadowStrength);
+    realtimeShadow = lerp(lightmap, realtimeShadow, shadowStrength);
 
     // 3) Pick darkest color
     return min(lightmap, realtimeShadow);

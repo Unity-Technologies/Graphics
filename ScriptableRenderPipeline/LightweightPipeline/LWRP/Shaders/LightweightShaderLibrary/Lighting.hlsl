@@ -164,7 +164,7 @@ half3 DiffuseGI(half3 indirectDiffuse, half3 lambert, half mainLightRealtimeAtte
     // If shadows and mixed subtractive mode is enabled we need to remove direct
     // light contribution from lightmap from occluded pixels so we can have dynamic objects
     // casting shadows onto static correctly.
-#if defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_ON) && defined(_SHADOWS)
+#if defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_ON) && defined(_SHADOWS_ENABLED)
     indirectDiffuse = SubtractDirectMainLightFromLightmap(indirectDiffuse, mainLightRealtimeAttenuation, lambert);
 #endif
 
@@ -308,10 +308,10 @@ half3 DirectBDRF(BRDFData brdfData, half roughness2, half3 normal, half3 lightDi
 half CookieAttenuation(float3 worldPos)
 {
 #ifdef _MAIN_LIGHT_COOKIE
-#ifdef _MAIN_DIRECTIONAL_LIGHT
+#ifdef _MAIN_LIGHT_DIRECTIONAL
     float2 cookieUV = mul(_WorldToLight, float4(worldPos, 1.0)).xy;
     return SAMPLE_TEXTURE2D(_MainLightCookie, sampler_MainLightCookie, cookieUV).a;
-#elif defined(_MAIN_SPOT_LIGHT)
+#elif defined(_MAIN_LIGHT_SPOT)
     float4 projPos = mul(_WorldToLight, float4(worldPos, 1.0));
     float2 cookieUV = projPos.xy / projPos.w + 0.5;
     return SAMPLE_TEXTURE2D(_MainLightCookie, sampler_MainLightCookie, cookieUV).a;
@@ -371,7 +371,7 @@ inline half GetLightDirectionAndRealtimeAttenuation(LightInput lightInput, half3
 
 inline half GetMainLightDirectionAndRealtimeAttenuation(LightInput lightInput, half3 normalWS, float3 positionWS, out half3 lightDirection)
 {
-#ifdef _MAIN_DIRECTIONAL_LIGHT
+#if defined(_MAIN_LIGHT_DIRECTIONAL)
     // Light pos holds normalized light dir
     lightDirection = lightInput.position.xyz;
     half attenuation = 1.0;
@@ -381,7 +381,7 @@ inline half GetMainLightDirectionAndRealtimeAttenuation(LightInput lightInput, h
 
     // Cookies and shadows are only computed for main light
     attenuation *= CookieAttenuation(positionWS);
-    attenuation *= LIGHTWEIGHT_SHADOW_ATTENUATION(positionWS, normalWS, lightDirection);
+    attenuation *= RealtimeShadowAttenuation(positionWS);
 
     return attenuation;
 }
