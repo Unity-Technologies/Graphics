@@ -80,7 +80,7 @@ o.screenToDecal2 = screenToDecal[2];
 
 		o.color = VFXGetParticleColor(i);
 		
-		VFXSampler2D s = VFX_SAMPLER(texture_texture);
+		VFXSampler2D s = VFX_SAMPLER(mainTexture);
 		o.color *= s.t.Sample(s.s,elementPos.xy * 0.5f + 0.5f);
 		
 		VFXClipFragmentColor(o.color.a,i);
