@@ -3,7 +3,11 @@
 
 // Convention:
 
-// Unity is Y up - left handed
+// Unity is Y up and left handed in world space
+// Caution: When going from world space to view space, unity is right handed in view space and the determinant of the matrix is negative
+// For cubemap capture (reflection probe) view space is still left handed (cubemap convention) and the determinant is positive.
+
+// The lighting code assume that 1 Unity unit (1uu) == 1 meters.  This is very important regarding physically based light unit and inverse square attenuation
 
 // space at the end of the variable name
 // WS: world space
@@ -38,27 +42,71 @@
 
 // uniform have _ as prefix + uppercase _LowercaseThenCamelCase
 
-// All uniforms should be in contant buffer (nothing in the global namespace).
-// The reason is that for compute shader we need to guarantee that the layout of CBs is consistent across kernels. Something that we can't control with the global namespace (uniforms get optimized out if not used, modifying the global CBuffer layout per kernel)
-
-// Structure definition that are share between C# and hlsl.
-// These structures need to be align on float4 to respect various packing rules from sahder language.
-// This mean that these structure need to be padded.
-
-// Do not use "in", only "out" or "inout" as califier, not "inline" keyword either, useless.
-
-// The lighting code assume that 1 Unity unit (1uu) == 1 meters.  This is very important regarding physically based light unit and inverse square attenuation
-
+// Do not use "in", only "out" or "inout" as califier, no "inline" keyword either, useless.
 // When declaring "out" argument of function, they are always last
 
 // headers from ShaderLibrary do not include "common.hlsl", this should be included in the .shader using it (or Material.hlsl)
 
+// All uniforms should be in contant buffer (nothing in the global namespace).
+// The reason is that for compute shader we need to guarantee that the layout of CBs is consistent across kernels. Something that we can't control with the global namespace (uniforms get optimized out if not used, modifying the global CBuffer layout per kernel)
+
+// Structure definition that are share between C# and hlsl.
+// These structures need to be align on float4 to respect various packing rules from shader language. This mean that these structure need to be padded.
 // Rules: When doing an array for constant buffer variables, we always use float4 to avoid any packing issue, particularly between compute shader and pixel shaders
 // i.e don't use SetGlobalFloatArray or SetComputeFloatParams
 // The array can be alias in hlsl. Exemple:
 // uniform float4 packedArray[3];
-// static float unpackedArray[12] = (float[12]packedArray;
+// static float unpackedArray[12] = (float[12])packedArray;
 
+// The function of the shader library are stateless, no uniform decalare in it.
+// Any function that require an explicit precision, use float or half qualifier, when the function can support both, it use real (see below)
+// If a function require to have both a half and a float version, then both need to be explicitly define
+#ifndef real
+
+#ifdef SHADER_API_MOBILE
+#define real half
+#define real2 half2
+#define real3 half3
+#define real4 half4
+
+#define real2x2 half2x2
+#define real2x3 half2x3
+#define real3x2 half3x2
+#define real3x3 half3x3
+#define real3x4 half3x4
+#define real4x3 half4x3
+#define real4x4 half4x4
+
+#define REAL_MIN HALF_MIN
+#define REAL_MAX HALF_MAX
+#define TEMPLATE_1_REAL TEMPLATE_1_HALF
+#define TEMPLATE_2_REAL TEMPLATE_2_HALF
+#define TEMPLATE_3_REAL TEMPLATE_3_HALF
+
+#else
+
+#define real float
+#define real2 float2
+#define real3 float3
+#define real4 float4
+
+#define real2x2 float2x2
+#define real2x3 float2x3
+#define real3x2 float3x2
+#define real3x3 float3x3
+#define real3x4 float3x4
+#define real4x3 float4x3
+#define real4x4 float4x4
+
+#define REAL_MIN FLT_MIN
+#define REAL_MAX FLT_MAX
+#define TEMPLATE_1_REAL TEMPLATE_1_FLT
+#define TEMPLATE_2_REAL TEMPLATE_2_FLT
+#define TEMPLATE_3_REAL TEMPLATE_3_FLT
+
+#endif // SHADER_API_MOBILE
+
+#endif // #ifndef real
 
 // Include language header
 #if defined(SHADER_API_D3D11)
@@ -160,7 +208,7 @@ void ToggleBit(inout uint data, uint offset)
 
 #ifndef INTRINSIC_WAVEREADFIRSTLANE
     // Warning: for correctness, the argument must have the same value across the wave!
-    TEMPLATE_1_FLT(WaveReadFirstLane, scalarValue, return scalarValue)
+    TEMPLATE_1_REAL(WaveReadFirstLane, scalarValue, return scalarValue)
     TEMPLATE_1_INT(WaveReadFirstLane, scalarValue, return scalarValue)
 #endif
 
@@ -173,9 +221,9 @@ void ToggleBit(inout uint data, uint offset)
 #endif // INTRINSIC_MAD24
 
 #ifndef INTRINSIC_MINMAX3
-    TEMPLATE_3_FLT(Min3, a, b, c, return min(min(a, b), c))
+    TEMPLATE_3_REAL(Min3, a, b, c, return min(min(a, b), c))
     TEMPLATE_3_INT(Min3, a, b, c, return min(min(a, b), c))
-    TEMPLATE_3_FLT(Max3, a, b, c, return max(max(a, b), c))
+    TEMPLATE_3_REAL(Max3, a, b, c, return max(max(a, b), c))
     TEMPLATE_3_INT(Max3, a, b, c, return max(max(a, b), c))
 #endif // INTRINSIC_MINMAX3
 
@@ -236,26 +284,26 @@ void GetCubeFaceID(float3 dir, out int faceIndex)
 // Common math functions
 // ----------------------------------------------------------------------------
 
-float DegToRad(float deg)
+real DegToRad(real deg)
 {
     return deg * (PI / 180.0);
 }
 
-float RadToDeg(float rad)
+real RadToDeg(real rad)
 {
     return rad * (180.0 / PI);
 }
 
 // Square functions for cleaner code
-TEMPLATE_1_FLT(Sq, x, return x * x)
+TEMPLATE_1_REAL(Sq, x, return x * x)
 TEMPLATE_1_INT(Sq, x, return x * x)
 
 // Input [0, 1] and output [0, PI/2]
 // 9 VALU
-float FastACosPos(float inX)
+real FastACosPos(real inX)
 {
-    float x = abs(inX);
-    float res = (0.0468878 * x + -0.203471) * x + 1.570796; // p(x)
+    real x = abs(inX);
+    real res = (0.0468878 * x + -0.203471) * x + 1.570796; // p(x)
     res *= sqrt(1.0 - x);
 
     return res;
@@ -264,9 +312,9 @@ float FastACosPos(float inX)
 // Ref: https://seblagarde.wordpress.com/2014/12/01/inverse-trigonometric-functions-gpu-optimization-for-amd-gcn-architecture/
 // Input [-1, 1] and output [0, PI]
 // 12 VALU
-float FastACos(float inX)
+real FastACos(real inX)
 {
-    float res = FastACosPos(inX);
+    real res = FastACosPos(inX);
 
     return (inX >= 0) ? res : PI - res; // Undo range reduction
 }
@@ -274,7 +322,7 @@ float FastACos(float inX)
 // Same cost as Acos + 1 FR
 // Same error
 // input [-1, 1] and output [-PI/2, PI/2]
-float FastASin(float x)
+real FastASin(real x)
 {
     return HALF_PI - FastACos(x);
 }
@@ -283,11 +331,11 @@ float FastASin(float x)
 // Eberly's odd polynomial degree 5 - respect bounds
 // 4 VGPR, 14 FR (10 FR, 1 QR), 2 scalar
 // input [0, infinity] and output [0, PI/2]
-float FastATanPos(float x)
+real FastATanPos(real x)
 {
-    float t0 = (x < 1.0) ? x : 1.0 / x;
-    float t1 = t0 * t0;
-    float poly = 0.0872929;
+    real t0 = (x < 1.0) ? x : 1.0 / x;
+    real t1 = t0 * t0;
+    real poly = 0.0872929;
     poly = -0.301895 + poly * t1;
     poly = 1.0 + poly * t1;
     poly = poly * t0;
@@ -303,18 +351,16 @@ uint FastLog2(uint x)
 
 // 4 VGPR, 16 FR (12 FR, 1 QR), 2 scalar
 // input [-infinity, infinity] and output [-PI/2, PI/2]
-float FastATan(float x)
+real FastATan(real x)
 {
-    float t0 = FastATanPos(abs(x));
+    real t0 = FastATanPos(abs(x));
     return (x < 0.0) ? -t0 : t0;
 }
 
 // Using pow often result to a warning like this
 // "pow(f, e) will not work for negative f, use abs(f) or conditionally handle negative values if you expect them"
 // PositivePow remove this warning when you know the value is positive and avoid inf/NAN.
-TEMPLATE_2_FLT(PositivePow, base, power, return pow(max(abs(base), FLT_EPS), power))
-
-
+TEMPLATE_2_REAL(PositivePow, base, power, return pow(max(abs(base), FLT_EPS), power))
 
 // Computes (FastSign(s) * x) using 2x VALU.
 // See the comment about FastSign() below.
@@ -351,13 +397,13 @@ float FastSign(float s, bool ignoreNegZero = true)
 // Orthonormalizes the tangent frame using the Gram-Schmidt process.
 // We assume that both the tangent and the normal are normalized.
 // Returns the new tangent (the normal is unaffected).
-float3 Orthonormalize(float3 tangent, float3 normal)
+real3 Orthonormalize(real3 tangent, real3 normal)
 {
     return normalize(tangent - dot(tangent, normal) * normal);
 }
 
 // Same as smoothstep except it assume 0, 1 interval for x
-float Smoothstep01(float x)
+real Smoothstep01(real x)
 {
     return x * x * (3.0 - (2.0 * x));
 }
@@ -401,7 +447,7 @@ float3 LatlongToDirectionCoordinate(float2 coord)
     float phi = (coord.x * 2.f * PI - PI*0.5f);
 
     float cosTheta = cos(theta);
-    float sinTheta = sqrt(1.0f - min(1.0f, cosTheta*cosTheta));
+    float sinTheta = sqrt(1.0 - min(1.0, cosTheta*cosTheta));
     float cosPhi = cos(phi);
     float sinPhi = sin(phi);
 
@@ -591,16 +637,9 @@ void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float4x4 viewP
 // ----------------------------------------------------------------------------
 
 // Normalize that account for vectors with zero length
-float3 SafeNormalize(float3 inVec)
+real3 SafeNormalize(real3 inVec)
 {
-    float dp3 = max(FLT_MIN, dot(inVec, inVec));
-    return inVec * rsqrt(dp3);
-}
-
-// Normalize that account for vectors with zero length
-half3 SafeNormalize(half3 inVec)
-{
-    half dp3 = max(HALF_MIN, dot(inVec, inVec));
+    real dp3 = max(REAL_MIN, dot(inVec, inVec));
     return inVec * rsqrt(dp3);
 }
 
