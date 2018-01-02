@@ -13,7 +13,6 @@ uint   _EnableSSSAndTransmission; // Globally toggles subsurface and transmissio
 float  _TexturingModeFlags;       // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
 float  _TransmissionFlags;        // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
 // Old SSS Model >>>
-uint   _UseDisneySSS;
 float4 _HalfRcpVariancesAndWeights[SSS_N_PROFILES][2]; // 2x Gaussians in RGB, A is interpolation weights
 // <<< Old SSS Model
 // Use float4 to avoid any packing issue between compute and pixel shaders
