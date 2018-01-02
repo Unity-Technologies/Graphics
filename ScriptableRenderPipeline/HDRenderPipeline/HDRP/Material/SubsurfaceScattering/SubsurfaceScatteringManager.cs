@@ -120,7 +120,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Broadcast SSS parameters to all shaders.
             cmd.SetGlobalInt(HDShaderIDs._EnableSSSAndTransmission, frameSettings.enableSSSAndTransmission ? 1 : 0);
-            cmd.SetGlobalInt(HDShaderIDs._UseDisneySSS, sssParameters.useDisneySSS ? 1 : 0);
             unsafe
             {
                 // Warning: Unity is not able to losslessly transfer integers larger than 2^24 to the shader system.
@@ -158,8 +157,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd, "Subsurface Scattering", HDRenderPipeline.GetSampler(CustomSamplerId.SubsurfaceScattering)))
             {
                 // For Jimenez we always need an extra buffer, for Disney it depends on platform
-                if (!sssParameters.useDisneySSS ||
-                    (sssParameters.useDisneySSS && NeedTemporarySubsurfaceBuffer()))
+                if (ShaderConfig.k_UseDisneySSS == 0 || NeedTemporarySubsurfaceBuffer())
                 {
                     // Caution: must be same format as m_CameraSssDiffuseLightingBuffer
                     cmd.ReleaseTemporaryRT(m_CameraFilteringBuffer);
@@ -172,7 +170,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
 
-                if (sssParameters.useDisneySSS)
+                if (ShaderConfig.s_UseDisneySSS == 1) // use static here to quiet the compiler warning
                 {
                     using (new ProfilingSample(cmd, "HTile for SSS", HDRenderPipeline.GetSampler(CustomSamplerId.HTileForSSS)))
                     {
