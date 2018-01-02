@@ -157,8 +157,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd, "Subsurface Scattering", HDRenderPipeline.GetSampler(CustomSamplerId.SubsurfaceScattering)))
             {
                 // For Jimenez we always need an extra buffer, for Disney it depends on platform
-                if (ShaderConfig.k_UseDisneySSS == 0 ||
-                    ((ShaderConfig.k_UseDisneySSS == 1) && NeedTemporarySubsurfaceBuffer()))
+                if (ShaderConfig.k_UseDisneySSS == 0 || NeedTemporarySubsurfaceBuffer())
                 {
                     // Caution: must be same format as m_CameraSssDiffuseLightingBuffer
                     cmd.ReleaseTemporaryRT(m_CameraFilteringBuffer);
