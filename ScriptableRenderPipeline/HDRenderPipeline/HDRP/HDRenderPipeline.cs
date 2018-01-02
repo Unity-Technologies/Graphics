@@ -74,6 +74,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const int k_MaxDbuffer = 4;
 
         public int dbufferCount { get; set; }
+        public int vsibleDecalCount { get; set; }
 
         RenderTargetIdentifier[] m_ColorMRTs;
         RenderTargetIdentifier[] m_RTIDs = new RenderTargetIdentifier[k_MaxDbuffer];
@@ -110,6 +111,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             return m_ColorMRTs;
+        }
+
+        public void PushGlobalParams(CommandBuffer cmd)
+        {
+            cmd.SetGlobalInt(HDShaderIDs._EnableDBuffer, vsibleDecalCount > 0 ? 1 : 0);
         }
     }
 
@@ -536,6 +542,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 hdCamera.SetupGlobalParams(cmd);
 
                 m_SSSBufferManager.PushGlobalParams(cmd, sssParameters, m_FrameSettings);
+
+                m_DbufferManager.PushGlobalParams(cmd);
             }
         }
 
@@ -691,11 +699,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
                     // decal system needs to be updated with current camera
 					if (m_FrameSettings.enableDBuffer)
-						DecalSystem.instance.Cull(camera);
+						DecalSystem.instance.BeginCull(camera);
 
                     using (new ProfilingSample(cmd, "CullResults.Cull", GetSampler(CustomSamplerId.CullResultsCull)))
                     {
                         CullResults.Cull(ref cullingParams, renderContext,ref m_CullResults);
+                    }
+
+                    m_DbufferManager.vsibleDecalCount = 0;
+                    if (m_FrameSettings.enableDBuffer)
+                    {
+                        m_DbufferManager.vsibleDecalCount = DecalSystem.instance.QueryCullResults();
+                        DecalSystem.instance.EndCull();
                     }
 
                     var postProcessLayer = camera.GetComponent<PostProcessLayer>();
@@ -744,7 +759,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 	                InitAndClearBuffer(hdCamera, enableBakeShadowMask, cmd);
 
-					bool forcePrepassForDecals = m_FrameSettings.enableDBuffer && (DecalSystem.instance.QueryCullResults() > 0);
+                    bool forcePrepassForDecals = m_DbufferManager.vsibleDecalCount > 0;
                     RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd, forcePrepassForDecals);
 
                     RenderObjectsVelocity(m_CullResults, hdCamera, renderContext, cmd);

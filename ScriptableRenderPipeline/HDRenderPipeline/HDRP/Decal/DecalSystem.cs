@@ -17,8 +17,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
         
-        Mesh m_DecalMesh;
-        CullingGroup m_CullingGroup;
+        Mesh m_DecalMesh = null;
+        CullingGroup m_CullingGroup = null;
 		private const int kDecalBlockSize = 128;
 		private BoundingSphere[] m_BoundingSpheres = new BoundingSphere[kDecalBlockSize];
 		private DecalProjectorComponent[] m_Decals = new DecalProjectorComponent[kDecalBlockSize];
@@ -79,8 +79,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 			decal.CullIndex = DecalProjectorComponent.kInvalidIndex;
         }
 
-        public void Cull(Camera camera)
+        public void BeginCull(Camera camera)
         {
+            if (m_CullingGroup != null)
+            {
+                Debug.LogError("Begin/EndCull() called out of sequence for decal projectors.");                
+            }
 			m_NumResults = 0;
             m_CullingGroup = new CullingGroup();
             m_CullingGroup.targetCamera = camera;
@@ -116,9 +120,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.DrawMesh(m_DecalMesh, m_Decals[decalIndex].transform.localToWorldMatrix, m_Decals[decalIndex].m_Material, 0, 0,
                     m_Decals[decalIndex].GetPropertyBlock());
             }
+        }
 
-            m_CullingGroup.Dispose();
-            m_CullingGroup = null;
+        public void EndCull()
+        {
+            if (m_CullingGroup == null)
+            {
+                Debug.LogError("Begin/EndCull() called out of sequence for decal projectors.");
+            }
+            else
+            {
+                m_CullingGroup.Dispose();
+                m_CullingGroup = null;               
+            }
         }
     }
 }

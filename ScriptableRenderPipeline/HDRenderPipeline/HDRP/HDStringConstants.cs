@@ -199,6 +199,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _CameraFilteringBuffer          = Shader.PropertyToID("_CameraFilteringTexture");
         public static readonly int _IrradianceSource               = Shader.PropertyToID("_IrradianceSource");
 
+        public static readonly int _EnableDBuffer = Shader.PropertyToID("_EnableDBuffer");
+
         public static readonly int[] _GBufferTexture =
         {
             Shader.PropertyToID("_GBufferTexture0"),
