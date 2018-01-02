@@ -297,9 +297,9 @@ real IORToFresnel0(real ior)
 }
 
 // same as regular refract except there is not the test for total internal reflection
-float3 RefractNoTIR(float3 X, float3 N, float ieta)
+real3 RefractNoTIR(real3 X, real3 N, real ieta)
 {
-    float XdotN = saturate(dot(N, X));
+    real XdotN = saturate(dot(N, X));
     return ieta * X + (sqrt(1 + ieta * ieta * (XdotN * XdotN - 1)) - ieta * XdotN) * N;
 }
 
