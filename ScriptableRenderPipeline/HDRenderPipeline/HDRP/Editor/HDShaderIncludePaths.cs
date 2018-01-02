@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 {
-    static class LightweightIncludePaths
+    static class HDIncludePaths
     {
         [ShaderIncludePath]
         public static string[] GetPaths()
@@ -15,10 +15,10 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             if (srpMarker != null)
             {
                 var rootPath = Directory.GetParent(srpMarker).ToString();
-                paths[index] = Path.Combine(rootPath, "ScriptableRenderPipeline/LightweightPipeline");
+                paths[index] = Path.Combine(rootPath, "ScriptableRenderPipeline/HDRenderPipeline");
                 index++;
             }
-            paths[index] = Path.GetFullPath("Packages/com.unity.render-pipelines.lightweight");
+            paths[index] = Path.GetFullPath("Packages/com.unity.render-pipelines.high-definition");
             return paths;
         }
     }
