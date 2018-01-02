@@ -13,7 +13,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_MaxPixelLights: 4
   m_SupportsVertexLight: 0
-  m_SupportSoftParticles: 0
+  m_RequireCameraDepthTexture: 0
   m_MSAA: 4
   m_RenderScale: 1
   m_ShadowType: 1
@@ -26,8 +26,4 @@ MonoBehaviour:
   m_DefaultShader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
   m_BlitShader: {fileID: 4800000, guid: c17132b1f77d20942aa75f8429c0f8bc, type: 3}
   m_CopyDepthShader: {fileID: 4800000, guid: d6dae50ee9e1bfa4db75f19f99355220, type: 3}
-  m_DefaultMaterial: {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
-  m_DefaultParticleMaterial: {fileID: 2100000, guid: e823cd5b5d27c0f4b8256e7c12ee3e6d,
-    type: 2}
-  m_DefaultTerrainMaterial: {fileID: 2100000, guid: 594ea882c5a793440b60ff72d896021e,
-    type: 2}
+  m_ResourceAsset: {fileID: 11400000, guid: c8afc0a27fb8c0b4da18151c689a1082, type: 2}
