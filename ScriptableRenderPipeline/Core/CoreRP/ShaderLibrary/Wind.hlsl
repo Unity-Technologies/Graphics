@@ -1,4 +1,4 @@
-// Globals
+// TODO: no global variable or resource declarations in the Shader Library. Functions and macros only!
 TEXTURE2D(WIND_SETTINGS_TexNoise);
 SAMPLER(sampler_WIND_SETTINGS_TexNoise);
 TEXTURE2D(WIND_SETTINGS_TexGust);
@@ -58,14 +58,14 @@ WindData GetAnalyticalWind(float3 WorldPosition, float3 PivotPosition, float dra
 
     float3 trunk = float3(0,0,0);
 
-    if(WIND_SETTINGS_WorldDirectionAndSpeed.w > 0.0f || WIND_SETTINGS_Turbulence > 0.0f)
+    if(WIND_SETTINGS_WorldDirectionAndSpeed.w > 0.0 || WIND_SETTINGS_Turbulence > 0.0)
     {
         trunk = texNoise((PivotPosition - worldOffset)*WIND_SETTINGS_FlexNoiseScale,3);
     }
 
-    float gust  = 0.0f;
+    float gust  = 0.0;
 
-    if(WIND_SETTINGS_GustSpeed > 0.0f)
+    if(WIND_SETTINGS_GustSpeed > 0.0)
     {
         gust = texGust((PivotPosition - gustWorldOffset)*WIND_SETTINGS_GustWorldScale,3);
         gust = pow(gust, 2) * WIND_SETTINGS_GustScale;
@@ -108,7 +108,7 @@ void ApplyWindDisplacement( inout float3    positionWS,
 {
     WindData wind = GetAnalyticalWind(positionWS, rootWP, drag, shiverDrag, initialBend, time);
 
-    if (wind.Strength > 0.0f)
+    if (wind.Strength > 0.0)
     {
         float att = AttenuateTrunk(distance(positionWS, rootWP), stiffness);
         float3 rotAxis = cross(float3(0, 1, 0), wind.Direction);
