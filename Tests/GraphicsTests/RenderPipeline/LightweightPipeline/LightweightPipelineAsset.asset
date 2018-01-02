@@ -20,9 +20,10 @@ MonoBehaviour:
   m_ShadowAtlasResolution: 2048
   m_ShadowNearPlaneOffset: 2
   m_ShadowDistance: 50
-  m_ShadowCascades: 0
+  m_ShadowCascades: 2
   m_Cascade2Split: 0.25
   m_Cascade4Split: {x: 0.067, y: 0.2, z: 0.467}
   m_DefaultShader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
   m_BlitShader: {fileID: 4800000, guid: c17132b1f77d20942aa75f8429c0f8bc, type: 3}
   m_CopyDepthShader: {fileID: 4800000, guid: d6dae50ee9e1bfa4db75f19f99355220, type: 3}
+  m_ResourceAsset: {fileID: 0}
