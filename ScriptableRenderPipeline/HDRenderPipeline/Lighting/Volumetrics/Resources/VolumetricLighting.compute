@@ -265,36 +265,6 @@ float3 EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, Positi
     return voxelRadiance;
 }
 
-// Samples the linearly interpolated V-Buffer. Out-of-bounds loads return 0.
-float4 SampleVBuffer(TEXTURE3D_ARGS(VBufferLighting, trilinearSampler),
-                     float2 positionNDC, float linearDepth,
-                     float2 VBufferScale,
-                     float4 VBufferDepthEncodingParams)
-{
-    int   k = VBUFFER_SLICE_COUNT;
-    float z = linearDepth;
-    float d = EncodeLogarithmicDepth(z, VBufferDepthEncodingParams);
-
-    // Account for the visible area of the V-Buffer.
-    float2 uv = positionNDC * VBufferScale;
-
-    // TODO: Unity doesn't support samplers clamping to border, so we have to do it ourselves.
-    bool isInBounds = Min3(uv.x, uv.y, d) > 0 && Max3(uv.x, uv.y, d) < 1;
-
-    [branch] if (isInBounds)
-    {
-        // We use hardware trilinear filtering.
-        // In theory, this is wrong, since the distance between slices is log-encoded.
-        // In practice, doing the right thing in a loop is simply too expensive.
-        // TODO: adjust the texture coordinate and take a single HW trlinear sample.
-        return SAMPLE_TEXTURE3D_LOD(VBufferLighting, trilinearSampler, float3(uv, d), 0);
-    }
-    else
-    {
-        return 0;
-    }
-}
-
 // Computes the in-scattered radiance along the ray.
 void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                                   PositionInputs posInput, Ray ray)
@@ -364,7 +334,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float2 reprojPosNDC = ComputeNormalizedDeviceCoordinates(centerWS, _PrevViewProjMatrix);
         float  reprojZ      = mul(_PrevViewProjMatrix, float4(centerWS, 1)).w;
         float4 reprojValue  = SampleVBuffer(TEXTURE3D_PARAM(_VBufferLightingHistory, s_trilinear_clamp_sampler),
-                                            reprojPosNDC, reprojZ,
+                                            false, reprojPosNDC, reprojZ,
                                             _VBufferResolutionAndScale.zw,
                                             _VBufferDepthEncodingParams);
 

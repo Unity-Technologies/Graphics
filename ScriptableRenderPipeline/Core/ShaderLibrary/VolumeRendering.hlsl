@@ -144,35 +144,27 @@ float3 TransmittanceColorAtDistanceToAbsorption(float3 transmittanceColor, float
 
 #include "Random.hlsl"
 
-// Returns linearly interpolated {volumetric radiance, opacity}. The sampler clamps to edge.
-float4 SampleInScatteredRadianceAndTransmittance(TEXTURE3D_ARGS(VBufferLighting, linearClampSampler),
-                                                 float2 positionNDC, float linearDepth,
-                                                 float2 VBufferScale, float4 VBufferDepthEncodingParams)
+// Samples the linearly interpolated V-Buffer.
+// If (clampToEdge == false), out-of-bounds loads return 0.
+float4 SampleVBuffer(TEXTURE3D_ARGS(VBufferLighting, trilinearSampler), bool clampToEdge,
+                     float2 positionNDC, float linearDepth,
+                     float2 VBufferScale,
+                     float4 VBufferDepthEncodingParams)
 {
     int   k = VBUFFER_SLICE_COUNT;
     float z = linearDepth;
     float d = EncodeLogarithmicDepth(z, VBufferDepthEncodingParams);
 
-    // TODO: Add some kind of jitter to the look-up.
-    // TODO: Also add some kind of animated 3D noise to the sampled result.
-    // d -= GenerateHashedRandomFloat(asuint(positionNDC)) / (2 * k);
-
     // Account for the visible area of the V-Buffer.
     float2 uv = positionNDC * VBufferScale;
 
-    float4 L;
+    // Unity doesn't support samplers clamping to border, so we have to do it ourselves.
+    // TODO: add the proper sampler support.
+    bool isInBounds = Min3(uv.x, uv.y, d) > 0 && Max3(uv.x, uv.y, d) < 1;
 
-    [branch] if (d != saturate(d))
+    [branch] if (clampToEdge || isInBounds)
     {
-        // We are in front of the near or behind the far plane of the V-buffer.
-        // The sampler will clamp to edge.
-        L = SAMPLE_TEXTURE3D_LOD(VBufferLighting, linearClampSampler, float3(uv, d), 0);
-    }
-    else
-    {
-        // We cannot use hardware trilinear interpolation since the distance between slices is log-encoded.
-        // Therefore, we perform 2 bilinear taps.
-        // TODO: test the visual difference in practice.
+        // The distance between slices is log-encoded.
         float s0 = floor(d * k - 0.5);
         float s1 = ceil(d * k - 0.5);
         float d0 = saturate(s0 * rcp(k) + (0.5 * rcp(k)));
@@ -180,13 +172,26 @@ float4 SampleInScatteredRadianceAndTransmittance(TEXTURE3D_ARGS(VBufferLighting,
         float z0 = DecodeLogarithmicDepth(d0, VBufferDepthEncodingParams);
         float z1 = DecodeLogarithmicDepth(d1, VBufferDepthEncodingParams);
 
-        // The sampler will clamp to edge.
-        // TODO: adjust the texture coordinate and take a single HW trlinear sample.
-        float4 L0 = SAMPLE_TEXTURE3D_LOD(VBufferLighting, linearClampSampler, float3(uv, d0), 0);
-        float4 L1 = SAMPLE_TEXTURE3D_LOD(VBufferLighting, linearClampSampler, float3(uv, d1), 0);
+        // Compute the linear Z-interpolation weight.
+        float a = saturate((z - z0) / (z1 - z0));
+        float w = d0 + a * rcp(k);
 
-        L = lerp(L0, L1, saturate((z - z0) / (z1 - z0)));
+        // Adjust the texture coordinate and take a single HW trlinear sample.
+        return SAMPLE_TEXTURE3D_LOD(VBufferLighting, trilinearSampler, float3(uv, w), 0);
     }
+    else
+    {
+        return 0;
+    }
+}
+
+// Returns linearly interpolated {volumetric radiance, opacity}. The sampler clamps to edge.
+float4 SampleInScatteredRadianceAndTransmittance(TEXTURE3D_ARGS(VBufferLighting, trilinearSampler),
+                                                 float2 positionNDC, float linearDepth,
+                                                 float2 VBufferScale, float4 VBufferDepthEncodingParams)
+{
+    float4 L = SampleVBuffer(TEXTURE3D_PARAM(VBufferLighting, trilinearSampler), true,
+                             positionNDC, linearDepth, VBufferScale, VBufferDepthEncodingParams);
 
     return float4(L.rgb, 1 - Transmittance(L.a));
 }
