@@ -1,5 +1,7 @@
-// No support to Distortion
-// No support to Shadows
+// ------------------------------------------
+// Only directional light is supported for lit particles
+// No shadow
+// No distortion
 Shader "LightweightPipeline/Particles/Standard"
 {
     Properties
@@ -58,7 +60,6 @@ Shader "LightweightPipeline/Particles/Standard"
             #pragma vertex ParticlesLitVertex
             #pragma fragment ParticlesLitFragment
             #pragma multi_compile __ SOFTPARTICLES_ON
-            #pragma multi_compile _MAIN_DIRECTIONAL_LIGHT _MAIN_SPOT_LIGHT
             #pragma target 3.5
 
             #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
