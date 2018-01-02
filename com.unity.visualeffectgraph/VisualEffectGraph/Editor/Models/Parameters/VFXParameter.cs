@@ -68,6 +68,14 @@ namespace UnityEditor.VFX
             set { outputSlots[0].value = value; }
         }
 
+        protected sealed override void OnInvalidate(VFXModel model, InvalidationCause cause)
+        {
+            if (cause == InvalidationCause.kSettingChanged)
+            {
+                Invalidate(InvalidationCause.kExpressionGraphChanged);
+            }
+        }
+
         protected override IEnumerable<VFXPropertyWithValue> outputProperties { get { return PropertiesFromSlotsOrDefaultFromClass(VFXSlot.Direction.kOutput); } }
 
         public void Init(Type _type)

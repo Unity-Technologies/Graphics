@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.UI
             {
                 VFXStandaloneSlotContainerUI slotContainer = (VFXStandaloneSlotContainerUI)target;
 
-                slotContainer.superCollapsed = !slotContainer.superCollapsed;
+                slotContainer.controller.superCollapsed = !slotContainer.superCollapsed;
             }
         }
     }
@@ -70,19 +70,11 @@ namespace UnityEditor.VFX.UI
 
         public bool superCollapsed
         {
-            get { return GetPresenter<VFXNodePresenter>().model.superCollapsed; }
-
-            set
-            {
-                if (GetPresenter<VFXNodePresenter>().model.superCollapsed != value)
-                {
-                    GetPresenter<VFXNodePresenter>().model.superCollapsed = value;
-                }
-            }
+            get { return controller.model.superCollapsed; }
         }
-        public override void OnDataChanged()
+        protected override void SelfChange()
         {
-            base.OnDataChanged();
+            base.SelfChange();
 
             if (superCollapsed)
             {
@@ -105,13 +97,11 @@ namespace UnityEditor.VFX.UI
             inputContainer.parent.Insert(1, element);
         }
 
-        public override void OnDataChanged()
+        public new VFXOperatorController controller
         {
-            base.OnDataChanged();
-            var presenter = GetPresenter<VFXOperatorPresenter>();
-            if (presenter == null || presenter.Operator == null)
-                return;
+            get { return base.controller as VFXOperatorController; }
         }
+
 
         public override void GetPreferedWidths(ref float labelWidth, ref float controlWidth)
         {
@@ -119,7 +109,6 @@ namespace UnityEditor.VFX.UI
 
             foreach (var port in GetPorts(true, false).Cast<VFXEditableDataAnchor>())
             {
-                port.OnDataChanged();
                 float portLabelWidth = port.GetPreferredLabelWidth();
                 float portControlWidth = port.GetPreferredControlWidth();
 

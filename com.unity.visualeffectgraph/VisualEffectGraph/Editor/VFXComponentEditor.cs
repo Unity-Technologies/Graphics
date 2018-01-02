@@ -51,23 +51,23 @@ static class VFXComponentUtility
         }
         else if (type == typeof(Texture2D))
         {
-            return comp.GetTexture2D(name);
+            return comp.GetTexture(name);
         }
         else if (type == typeof(Texture2DArray))
         {
-            return comp.GetTexture2DArray(name);
+            return comp.GetTexture(name);
         }
         else if (type == typeof(Texture3D))
         {
-            return comp.GetTexture3D(name);
+            return comp.GetTexture(name);
         }
         else if (type == typeof(Cubemap))
         {
-            return comp.GetTextureCube(name);
+            return comp.GetTexture(name);
         }
         else if (type == typeof(CubemapArray))
         {
-            return comp.GetTextureCubeArray(name);
+            return comp.GetTexture(name);
         }
         else if (type == typeof(float))
         {
@@ -120,23 +120,23 @@ static class VFXComponentUtility
         }
         else if (type == typeof(Texture2D))
         {
-            comp.SetTexture2D(name, (Texture2D)value);
+            comp.SetTexture(name, (Texture2D)value);
         }
         else if (type == typeof(Texture2DArray))
         {
-            comp.SetTexture2DArray(name, (Texture2DArray)value);
+            comp.SetTexture(name, (Texture2DArray)value);
         }
         else if (type == typeof(Texture3D))
         {
-            comp.SetTexture3D(name, (Texture3D)value);
+            comp.SetTexture(name, (Texture3D)value);
         }
         else if (type == typeof(Cubemap))
         {
-            comp.SetTextureCube(name, (Cubemap)value);
+            comp.SetTexture(name, (Cubemap)value);
         }
         else if (type == typeof(CubemapArray))
         {
-            comp.SetTextureCubeArray(name, (CubemapArray)value);
+            comp.SetTexture(name, (CubemapArray)value);
         }
         else if (type == typeof(float))
         {
@@ -329,7 +329,7 @@ public class VFXComponentEditor : Editor
     public static bool CanSetOverride = false;
 
     SerializedProperty m_VFXAsset;
-    SerializedProperty m_ReseedOnStart;
+    SerializedProperty m_ReseedOnPlay;
     SerializedProperty m_RandomSeed;
     SerializedProperty m_VFXPropertySheet;
     bool m_useNewSerializedField = false;
@@ -354,7 +354,7 @@ public class VFXComponentEditor : Editor
     void OnEnable()
     {
         m_RandomSeed = serializedObject.FindProperty("m_StartSeed");
-        m_ReseedOnStart = serializedObject.FindProperty("m_ResetSeedOnStart");
+        m_ReseedOnPlay = serializedObject.FindProperty("m_ResetSeedOnPlay");
         m_VFXAsset = serializedObject.FindProperty("m_Asset");
         m_VFXPropertySheet = serializedObject.FindProperty("m_PropertySheet");
 
@@ -376,7 +376,7 @@ public class VFXComponentEditor : Editor
         public Type type;
     }
 
-    Dictionary<VFXParameterPresenter, Infos> m_Infos = new Dictionary<VFXParameterPresenter, Infos>();
+    Dictionary<VFXParameterController, Infos> m_Infos = new Dictionary<VFXParameterController, Infos>();
 
     void OnParamGUI(VFXParameter parameter)
     {
@@ -640,7 +640,7 @@ public class VFXComponentEditor : Editor
         EditorGUI.BeginChangeCheck();
         using (new GUILayout.HorizontalScope())
         {
-            using (new EditorGUI.DisabledGroupScope(m_ReseedOnStart.boolValue))
+            using (new EditorGUI.DisabledGroupScope(m_ReseedOnPlay.boolValue))
             {
                 EditorGUILayout.PropertyField(m_RandomSeed, m_Contents.RandomSeed);
                 if (GUILayout.Button(m_Contents.SetRandomSeed, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
@@ -650,7 +650,7 @@ public class VFXComponentEditor : Editor
                 }
             }
         }
-        EditorGUILayout.PropertyField(m_ReseedOnStart, m_Contents.ReseedOnStart);
+        EditorGUILayout.PropertyField(m_ReseedOnPlay, m_Contents.ReseedOnPlay);
         bool reinit = EditorGUI.EndChangeCheck();
 
         //Field
@@ -739,7 +739,7 @@ public class VFXComponentEditor : Editor
 
         public GUIContent AssetPath = new GUIContent("Asset Template");
         public GUIContent RandomSeed = new GUIContent("Random Seed");
-        public GUIContent ReseedOnStart = new GUIContent("Reseed on start");
+        public GUIContent ReseedOnPlay = new GUIContent("Reseed on play");
         public GUIContent OpenEditor = new GUIContent("Edit");
         public GUIContent SetRandomSeed = new GUIContent("Reseed");
         public GUIContent SetPlayRate = new GUIContent("Set");

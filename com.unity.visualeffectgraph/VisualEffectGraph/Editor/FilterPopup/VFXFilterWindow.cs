@@ -179,7 +179,9 @@ namespace UnityEditor.VFX.UI
             return true;
         }
 
-        internal static bool Show(Vector2 position, IProvider provider)
+        EditorWindow m_mainWindow;
+
+        internal static bool Show(EditorWindow mainWindow, Vector2 position, IProvider provider)
         {
             // If the window is already open, close it instead.
             UnityEngine.Object[] wins = Resources.FindObjectsOfTypeAll(typeof(VFXFilterWindow));
@@ -209,6 +211,7 @@ namespace UnityEditor.VFX.UI
                     s_FilterWindow.hideFlags = HideFlags.HideAndDontSave;
                 }
                 s_FilterWindow.Init(position, provider);
+                s_FilterWindow.m_mainWindow = mainWindow;
                 return true;
             }
             return false;
@@ -559,7 +562,13 @@ namespace UnityEditor.VFX.UI
         private void GoToChild(Element e, bool addIfComponent)
         {
             if (m_Provider.GoToChild(e, addIfComponent))
+            {
                 Close();
+                if (m_mainWindow != null)
+                {
+                    m_mainWindow.Focus();
+                }
+            }
             else if (!hasSearch)//TODO RF || e is NewElement)
             {
                 m_LastTime = System.DateTime.Now.Ticks;

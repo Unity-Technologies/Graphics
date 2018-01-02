@@ -5,15 +5,15 @@ namespace UnityEditor.VFX.UI
 {
     abstract class VFXSpacedPropertyIM : VFXPropertyIM
     {
-        protected override object DoOnGUI(VFXDataAnchorPresenter presenter)
+        protected override object DoOnGUI(VFXDataAnchorController controller)
         {
             GUILayout.BeginHorizontal();
-            Label(presenter, presenter.name);
+            Label(controller, controller.name);
 
             Rect spaceRect = GUILayoutUtility.GetRect(24, 0, GUILayout.ExpandHeight(true));
-            SpaceButton(spaceRect, (ISpaceable)presenter.value);
+            SpaceButton(spaceRect, (ISpaceable)controller.value);
 
-            object result = DoOnParameterGUI(presenter);
+            object result = DoOnParameterGUI(controller);
             GUILayout.EndHorizontal();
             return result;
         }
@@ -40,14 +40,14 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        protected abstract object DoOnParameterGUI(VFXDataAnchorPresenter presenter);
+        protected abstract object DoOnParameterGUI(VFXDataAnchorController controller);
         protected abstract object DoOnParameterGUI(Rect rect, object value, string label);
     }
     abstract class VFXSpacedPropertyIM<T> : VFXSpacedPropertyIM
     {
-        protected override object DoOnParameterGUI(VFXDataAnchorPresenter presenter)
+        protected override object DoOnParameterGUI(VFXDataAnchorController controller)
         {
-            return OnParameterGUI(presenter, (T)presenter.value, presenter.name);
+            return OnParameterGUI(controller, (T)controller.value, controller.name);
         }
 
         protected override object DoOnParameterGUI(Rect rect, object value, string label)
@@ -55,14 +55,14 @@ namespace UnityEditor.VFX.UI
             return OnParameterGUI(rect, (T)value, label);
         }
 
-        public abstract T OnParameterGUI(VFXDataAnchorPresenter presenter, T value, string label);
+        public abstract T OnParameterGUI(VFXDataAnchorController controller, T value, string label);
         public abstract T OnParameterGUI(Rect rect, T value, string label);
     }
 
 
     abstract class VFXVector3SpacedPropertyIM<T> : VFXSpacedPropertyIM<T>
     {
-        public override T OnParameterGUI(VFXDataAnchorPresenter presenter, T value, string label)
+        public override T OnParameterGUI(VFXDataAnchorController controller, T value, string label)
         {
             throw new System.NotImplementedException();
         }

@@ -20,6 +20,56 @@ namespace UnityEditor.VFX
 
     abstract partial class VFXExpression
     {
+        public struct Operands
+        {
+            public static readonly int OperandCount = 4;
+
+            int data0;
+            int data1;
+            int data2;
+            int data3;
+
+            public Operands(int defaultValue)
+            {
+                data0 = defaultValue;
+                data1 = defaultValue;
+                data2 = defaultValue;
+                data3 = defaultValue;
+            }
+
+            // This ugly code is for optimization purpose (no garbage created)
+            public int this[int index]
+            {
+                get
+                {
+                    switch (index)
+                    {
+                        case 0: return data0;
+                        case 1: return data1;
+                        case 2: return data2;
+                        case 3: return data3;
+                        default: throw new IndexOutOfRangeException();
+                    }
+                }
+                set
+                {
+                    switch (index)
+                    {
+                        case 0: data0 = value; break;
+                        case 1: data1 = value; break;
+                        case 2: data2 = value; break;
+                        case 3: data3 = value; break;
+                        default: throw new IndexOutOfRangeException();
+                    }
+                }
+            }
+
+            public int[] ToArray()
+            {
+                return new int[] { data0, data1, data2, data3 };
+            }
+        }
+
         [Flags]
         public enum Flags
         {
@@ -221,23 +271,20 @@ namespace UnityEditor.VFX
         }
 
         // Get the operands for the runtime evaluation
-        public int[] GetOperands(VFXExpressionGraph graph)
+        public Operands GetOperands(VFXExpressionGraph graph)
         {
             var addOperands = additionnalOperands;
-            var parentsIndex = parents.Select(p => graph == null ? -1 : graph.GetFlattenedIndex(p)).ToArray();
-            if (parentsIndex.Length + addOperands.Length > 4)
+            if (parents.Length + addOperands.Length > 4)
                 throw new Exception("Too much parameter for expression : " + this);
 
-            var data = new int[] { -1, -1, -1, -1};
-            for (int i = 0; i < parents.Length; ++i)
-            {
-                data[i] = parentsIndex[i];
-            }
+            var data = new Operands(-1);
+            if (graph != null)
+                for (int i = 0; i < parents.Length; ++i)
+                    data[i] = graph.GetFlattenedIndex(parents[i]);
 
             for (int i = 0; i < addOperands.Length; ++i)
-            {
-                data[data.Length - addOperands.Length + i] = addOperands[i];
-            }
+                data[Operands.OperandCount - addOperands.Length + i] = addOperands[i];
+
             return data;
         }
 
@@ -263,8 +310,14 @@ namespace UnityEditor.VFX
 
         public override bool Equals(object obj)
         {
+            if (ReferenceEquals(this, obj))
+                return true;
+
             var other = obj as VFXExpression;
             if (other == null)
+                return false;
+
+            if (GetType() != other.GetType())
                 return false;
 
             if (operation != other.operation)
@@ -274,6 +327,9 @@ namespace UnityEditor.VFX
                 return false;
 
             if (m_Flags != other.m_Flags)
+                return false;
+
+            if (GetHashCode() != other.GetHashCode())
                 return false;
 
             var operands = additionnalOperands;
@@ -303,7 +359,18 @@ namespace UnityEditor.VFX
             return true;
         }
 
-        public override int GetHashCode()
+        public override sealed int GetHashCode()
+        {
+            if (!m_HashCodeCached)
+            {
+                m_HashCode = GetInnerHashCode();
+                m_HashCodeCached = true;
+            }
+
+            return m_HashCode;
+        }
+
+        protected virtual int GetInnerHashCode()
         {
             int hash = GetType().GetHashCode();
 
@@ -344,6 +411,7 @@ namespace UnityEditor.VFX
             m_Parents = parents;
             m_Flags |= additionalFlags;
             PropagateParentsFlags();
+            m_HashCodeCached = false; // as expression is mutated
         }
 
         private void PropagateParentsFlags()
@@ -378,5 +446,8 @@ namespace UnityEditor.VFX
 
         protected Flags m_Flags = Flags.None;
         private VFXExpression[] m_Parents;
+
+        private int m_HashCode;
+        private bool m_HashCodeCached = false;
     }
 }

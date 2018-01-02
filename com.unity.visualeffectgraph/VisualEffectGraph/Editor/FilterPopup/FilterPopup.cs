@@ -37,7 +37,7 @@ namespace UnityEditor.VFX.UI
         {
             if (e.button == 1)
             {
-                VFXFilterWindow.Show(Event.current.mousePosition, m_FilterProvider);
+                VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, m_FilterProvider);
                 e.StopPropagation();
             }
         }

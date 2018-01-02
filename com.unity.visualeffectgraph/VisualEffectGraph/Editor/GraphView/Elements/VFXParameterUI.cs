@@ -18,6 +18,11 @@ namespace UnityEditor.VFX.UI
         {
         }
 
+        public new VFXParameterController controller
+        {
+            get { return base.controller as VFXParameterController; }
+        }
+
         public override void GetPreferedWidths(ref float labelWidth, ref float controlWidth)
         {
             base.GetPreferedWidths(ref labelWidth, ref controlWidth);
@@ -54,28 +59,32 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override void OnDataChanged()
+        protected override bool syncInput
         {
-            base.OnDataChanged();
-            var presenter = GetPresenter<VFXParameterPresenter>();
-            if (presenter == null)
+            get { return false; }
+        }
+
+        protected override void SelfChange()
+        {
+            base.SelfChange();
+            if (controller == null)
                 return;
 
             if (m_Property == null)
             {
-                m_Property = PropertyRM.Create(presenter, 55);
+                m_Property = PropertyRM.Create(controller, 55);
                 if (m_Property != null)
                 {
                     inputContainer.Add(m_Property);
 
                     if (!m_Property.showsEverything)
                     {
-                        int count = presenter.CreateSubPresenters();
+                        int count = controller.CreateSubControllers();
                         m_SubProperties = new PropertyRM[count];
 
                         for (int i = 0; i < count; ++i)
                         {
-                            m_SubProperties[i] = PropertyRM.Create(presenter.GetSubPresenter(i), 55);
+                            m_SubProperties[i] = PropertyRM.Create(controller.GetSubController(i), 55);
                             inputContainer.Add(m_SubProperties[i]);
                         }
                     }

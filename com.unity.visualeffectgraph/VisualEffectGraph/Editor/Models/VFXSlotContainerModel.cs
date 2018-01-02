@@ -23,8 +23,9 @@ namespace UnityEditor.VFX
         void AddSlot(VFXSlot slot);
         void RemoveSlot(VFXSlot slot);
 
+        void UpdateOutputExpressions();
+
         void Invalidate(VFXModel.InvalidationCause cause);
-        void UpdateOutputs();
 
         void SetSettingValue(string name, object value);
 
@@ -166,24 +167,35 @@ namespace UnityEditor.VFX
             base.OnEnable();
 
             if (m_InputSlots == null)
+            {
                 m_InputSlots = new List<VFXSlot>();
+                SyncSlots(VFXSlot.Direction.kInput, false); // Initial slot creation
+            }
             else
             {
                 int nbRemoved = m_InputSlots.RemoveAll(c => c == null);// Remove bad references if any
                 if (nbRemoved > 0)
                     Debug.Log(String.Format("Remove {0} input slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
             }
-            SyncSlots(VFXSlot.Direction.kInput, false);
 
             if (m_OutputSlots == null)
+            {
                 m_OutputSlots = new List<VFXSlot>();
+                SyncSlots(VFXSlot.Direction.kOutput, false); // Initial slot creation
+            }
             else
             {
                 int nbRemoved = m_OutputSlots.RemoveAll(c => c == null);// Remove bad references if any
                 if (nbRemoved > 0)
                     Debug.Log(String.Format("Remove {0} output slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
             }
-            SyncSlots(VFXSlot.Direction.kOutput, false);
+        }
+
+        public override void Sanitize()
+        {
+            base.Sanitize();
+            if (ResyncSlots(true))
+                Debug.Log(string.Format("Slots have been resynced in {0} of type {1}", name, GetType()));
         }
 
         public override void CollectDependencies(HashSet<Object> objs)
@@ -216,16 +228,19 @@ namespace UnityEditor.VFX
             return clone as T;
         }
 
+        public virtual bool ResyncSlots(bool notify)
+        {
+            bool changed = false;
+            changed |= SyncSlots(VFXSlot.Direction.kInput, notify);
+            changed |= SyncSlots(VFXSlot.Direction.kOutput, notify);
+            return changed;
+        }
+
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
             if (model == this && cause == InvalidationCause.kSettingChanged)
-            {
-                bool notify = false;
-                notify |= SyncSlots(VFXSlot.Direction.kInput, false);
-                notify |= SyncSlots(VFXSlot.Direction.kOutput, false);
-                if (notify)
-                    Invalidate(InvalidationCause.kStructureChanged);
-            }
+                ResyncSlots(true);
+
             base.OnInvalidate(model, cause);
         }
 
@@ -236,41 +251,35 @@ namespace UnityEditor.VFX
                     yield return new VFXNamedExpression(slot.GetExpression(), slot.fullName);
         }
 
-        static private VFXExpression GetExpressionFromObject(object value, VFXValue.Mode mode)
-        {
-            if (value is float)
-            {
-                return new VFXValue<float>((float)value, mode);
-            }
-            else if (value is Vector2)
-            {
-                return new VFXValue<Vector2>((Vector2)value, mode);
-            }
-            else if (value is Vector3)
-            {
-                return new VFXValue<Vector3>((Vector3)value, mode);
-            }
-            else if (value is Vector4)
-            {
-                return new VFXValue<Vector4>((Vector4)value, mode);
-            }
-            else if (value is FloatN)
-            {
-                return ((FloatN)value).ToVFXValue(mode);
-            }
-            else if (value is AnimationCurve)
-            {
-                return new VFXValue<AnimationCurve>(value as AnimationCurve, mode);
-            }
-            return null;
-        }
-
         protected void InitSlotsFromProperties(IEnumerable<VFXPropertyWithValue> properties, VFXSlot.Direction direction)
         {
             foreach (var p in properties)
             {
                 var slot = VFXSlot.Create(p, direction);
                 InnerAddSlot(slot, false);
+            }
+        }
+
+        private static void TransferLinks(VFXSlot dst, VFXSlot src, bool notify)
+        {
+            var links = src.LinkedSlots.ToArray();
+            int index = 0;
+            while (index < links.Count())
+            {
+                var link = links[index];
+                if (dst.CanLink(link))
+                {
+                    dst.Link(link, notify);
+                    src.Unlink(link, notify);
+                }
+                ++index;
+            }
+
+            if (src.property.type == dst.property.type && src.GetNbChildren() == dst.GetNbChildren())
+            {
+                int nbSubSlots = src.GetNbChildren();
+                for (int i = 0; i < nbSubSlots; ++i)
+                    TransferLinks(dst[i], src[i], notify);
             }
         }
 
@@ -305,6 +314,7 @@ namespace UnityEditor.VFX
                     existingSlots.Add(currentSlots[i]);
                     InnerRemoveSlot(currentSlots[i], false);
                 }
+                existingSlots.Reverse();
 
                 // Reuse slots that already exists or create a new one if not
                 foreach (var p in expectedProperties)
@@ -317,9 +327,33 @@ namespace UnityEditor.VFX
                     InnerAddSlot(slot, false);
                 }
 
-                // Finally remove links for all slots that are no longer needed
+                var currentSlot = isInput ? inputSlots : outputSlots;
+
+                // Try to keep links for slots of same name and compatible types
                 foreach (var slot in existingSlots)
-                    slot.UnlinkAll(true, false);
+                {
+                    if (slot.HasLink(true))
+                    {
+                        var candidates = currentSlots.Where(s => s.property.name == slot.property.name);
+                        foreach (var candidate in candidates)
+                            TransferLinks(candidate, slot, notify);
+                    }
+                }
+
+                // Keep link for slots of same types and different names
+                foreach (var slot in existingSlots)
+                {
+                    if (slot.HasLink(true))
+                    {
+                        var candidate = currentSlots.FirstOrDefault(s => !s.HasLink(true) && s.property.type == slot.property.type);
+                        if (candidate != null)
+                            TransferLinks(candidate, slot, notify);
+                    }
+                }
+
+                // Finally remove all remaining links
+                foreach (var slot in existingSlots)
+                    slot.UnlinkAll(true, notify);
 
                 if (notify)
                     Invalidate(InvalidationCause.kStructureChanged);
@@ -361,11 +395,7 @@ namespace UnityEditor.VFX
             base.Invalidate(model, cause);
         }
 
-        public virtual void UpdateOutputs()
-        {
-            //foreach (var slot in m_InputSlots)
-            //    slot.Initialize();
-        }
+        public virtual void UpdateOutputExpressions() {}
 
         //[SerializeField]
         HashSet<string> m_expandedPaths = new HashSet<string>();

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
@@ -9,28 +10,192 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXNodeUI : Node
+    class VFXNodeUI : Node, IControlledElement<VFXSlotContainerController>, IControlledElement<VFXNodeController>
     {
+        VFXSlotContainerController m_Controller;
+        Controller IControlledElement.controller
+        {
+            get { return m_Controller; }
+        }
+        VFXNodeController IControlledElement<VFXNodeController>.controller
+        {
+            get { return m_Controller; }
+            set
+            {
+                controller = value as VFXSlotContainerController;
+            }
+        }
+        public override void UpdatePresenterPosition()
+        {
+            controller.position = GetPosition().position;
+        }
+
+        public VFXSlotContainerController controller
+        {
+            get { return m_Controller; }
+            set
+            {
+                if (m_Controller != null)
+                {
+                    m_Controller.UnregisterHandler(this);
+                }
+                m_Controller = value;
+                if (m_Controller != null)
+                {
+                    m_Controller.RegisterHandler(this);
+                }
+            }
+        }
+
         protected VisualElement m_SettingsContainer;
         private List<PropertyRM> m_Settings = new List<PropertyRM>();
         public VFXNodeUI()
         {
             AddToClassList("VFXNodeUI");
+            RegisterCallback<ControllerChangedEvent>(OnChange);
         }
 
-        public override Port InstantiatePort(PortPresenter presenter)
+        virtual protected void OnChange(ControllerChangedEvent e)
         {
-            if (presenter.direction == Direction.Input)
+            if (e.controller == controller)
             {
-                VFXDataAnchorPresenter anchorPresenter = presenter as VFXDataAnchorPresenter;
-                VFXEditableDataAnchor anchor = VFXEditableDataAnchor.Create(anchorPresenter);
-                anchorPresenter.sourceNode.viewPresenter.onRecompileEvent += anchor.OnRecompile;
+                SelfChange();
+            }
+            else if (e.controller is VFXDataAnchorController)
+            {
+                RefreshExpandedState();
+            }
+        }
+
+        protected virtual bool HasPosition()
+        {
+            return true;
+        }
+
+        protected void SyncSettings()
+        {
+            if (m_SettingsContainer == null && controller.settings != null)
+            {
+                object settings = controller.settings;
+
+                m_SettingsContainer = new VisualElement { name = "settings" };
+
+
+                VisualElement inputParent = new VisualElement() { name = "inputAndSettings" };
+
+                mainContainer.Q("contents").Insert(0, m_SettingsContainer);
+
+                foreach (var setting in controller.settings)
+                {
+                    AddSetting(setting);
+                }
+            }
+            if (m_SettingsContainer != null)
+            {
+                var activeSettings = controller.model.GetSettings(false, VFXSettingAttribute.VisibleFlags.InGraph);
+                for (int i = 0; i < m_Settings.Count; ++i)
+                    m_Settings[i].RemoveFromHierarchy();
+
+                for (int i = 0; i < m_Settings.Count; ++i)
+                {
+                    PropertyRM prop = m_Settings[i];
+                    if (prop != null && activeSettings.Any(s => s.Name == controller.settings[i].name))
+                    {
+                        m_SettingsContainer.Add(prop);
+                        prop.Update();
+                    }
+                }
+            }
+        }
+
+        protected virtual bool syncInput
+        {
+            get { return true; }
+        }
+
+        void SyncAnchors()
+        {
+            if (syncInput)
+                SyncAnchors(controller.inputPorts, inputContainer);
+            SyncAnchors(controller.outputPorts, outputContainer);
+        }
+
+        void SyncAnchors(ReadOnlyCollection<VFXDataAnchorController> ports, VisualElement container)
+        {
+            var existingAnchors = container.Children().Cast<VFXDataAnchor>().ToDictionary(t => t.controller, t => t);
+
+            var deletedControllers = existingAnchors.Keys.Except(ports);
+
+            foreach (var deletedController in deletedControllers)
+            {
+                container.Remove(existingAnchors[deletedController]);
+            }
+
+            foreach (var newController in ports.Except(existingAnchors.Keys))
+            {
+                var newElement = InstantiateDataAnchor(newController, this);
+                (newElement as IControlledElement<VFXDataAnchorController>).controller = newController;
+
+                container.Add(newElement);
+            }
+        }
+
+        protected virtual void SelfChange()
+        {
+            if (controller == null)
+                return;
+
+            title = controller.title;
+
+            if (HasPosition())
+            {
+                style.positionType = PositionType.Absolute;
+                style.positionLeft = controller.position.x;
+                style.positionTop = controller.position.y;
+            }
+
+            if (controller.model.superCollapsed)
+            {
+                AddToClassList("superCollapsed");
+            }
+            else
+            {
+                RemoveFromClassList("superCollapsed");
+            }
+
+            base.expanded = controller.expanded;
+
+            SyncSettings();
+            SyncAnchors();
+            RefreshExpandedState();
+        }
+
+        public override bool expanded
+        {
+            get { return base.expanded; }
+            set
+            {
+                if (base.expanded == value)
+                    return;
+
+                base.expanded = value;
+                controller.expanded = value;
+            }
+        }
+
+
+        public virtual VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorController controller, VFXNodeUI node)
+        {
+            if (controller.direction == Direction.Input)
+            {
+                VFXEditableDataAnchor anchor = VFXEditableDataAnchor.Create(controller, node);
+                controller.sourceNode.viewController.onRecompileEvent += anchor.OnRecompile;
 
                 return anchor;
             }
             else
             {
-                return VFXOutputDataAnchor.Create(presenter as VFXDataAnchorPresenter);
+                return VFXOutputDataAnchor.Create(controller, node);
             }
         }
 
@@ -38,7 +203,7 @@ namespace UnityEditor.VFX.UI
         {
             if (anchor is VFXEditableDataAnchor)
             {
-                GetPresenter<VFXSlotContainerPresenter>().viewPresenter.onRecompileEvent -= (anchor as VFXEditableDataAnchor).OnRecompile;
+                controller.viewController.onRecompileEvent -= (anchor as VFXEditableDataAnchor).OnRecompile;
             }
         }
 
@@ -59,79 +224,6 @@ namespace UnityEditor.VFX.UI
                     if (child is Port)
                         yield return child as Port;
                 }
-            }
-        }
-
-        public override void OnDataChanged()
-        {
-            var presenter = GetPresenter<VFXSlotContainerPresenter>();
-            // update the title in the presenter before it is used somewhere in base.OnDataChanged();
-            presenter.UpdateTitle();
-
-            base.OnDataChanged();
-
-
-            if (presenter == null)
-                return;
-
-            if (m_SettingsContainer == null && presenter.settings != null)
-            {
-                object settings = presenter.settings;
-
-                m_SettingsContainer = new VisualElement { name = "settings" };
-
-                VisualElement inputParent = new VisualElement() { name = "inputAndSettings" };
-
-                mainContainer.Q("contents").Insert(0, m_SettingsContainer);
-
-                foreach (var setting in presenter.settings)
-                {
-                    AddSetting(setting);
-                }
-            }
-            if (m_SettingsContainer != null)
-            {
-                var activeSettings = presenter.model.GetSettings(false, VFXSettingAttribute.VisibleFlags.InGraph);
-                for (int i = 0; i < m_Settings.Count; ++i)
-                    m_Settings[i].RemoveFromHierarchy();
-
-                for (int i = 0; i < m_Settings.Count; ++i)
-                {
-                    PropertyRM prop = m_Settings[i];
-                    if (prop != null && activeSettings.Any(s => s.Name == presenter.settings[i].name))
-                    {
-                        m_SettingsContainer.Add(prop);
-                        prop.Update();
-                    }
-                }
-            }
-
-            GraphView graphView = this.GetFirstAncestorOfType<GraphView>();
-            if (graphView != null)
-            {
-                var allEdges = graphView.Query<Edge>().ToList();
-
-                foreach (Port anchor in this.Query<Port>().Where(t => true).ToList())
-                {
-                    foreach (var edge in allEdges.Where(t =>
-                        {
-                            var pres = t.GetPresenter<EdgePresenter>();
-                            return pres != null && (pres.output == anchor.presenter || pres.input == anchor.presenter);
-                        }))
-                    {
-                        edge.OnDataChanged();
-                    }
-                }
-            }
-
-
-            if (presenter.model.superCollapsed)
-            {
-                AddToClassList("superCollapsed");
-            }
-            else
-            {
-                RemoveFromClassList("superCollapsed");
             }
         }
 
@@ -169,7 +261,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        protected void AddSetting(VFXSettingPresenter setting)
+        protected void AddSetting(VFXSettingController setting)
         {
             var rm = PropertyRM.Create(setting, 100);
             if (rm != null)
@@ -178,7 +270,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                Debug.LogErrorFormat("Cannot create presenter for {0}", setting.name);
+                Debug.LogErrorFormat("Cannot create controller for {0}", setting.name);
             }
         }
     }

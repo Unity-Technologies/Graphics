@@ -124,6 +124,14 @@ namespace UnityEditor.VFX
             return m_OutExpression;
         }
 
+        public VFXExpression GetInExpression()
+        {
+            if (!m_ExpressionTreeUpToDate)
+                RecomputeExpressionTree();
+
+            return m_InExpression;
+        }
+
         public void SetExpression(VFXExpression expr)
         {
             if (!expr.Equals(m_LinkedInExpression))
@@ -439,6 +447,11 @@ namespace UnityEditor.VFX
             m_MasterData = masterData;
         }
 
+        public void CleanupLinkedSlots()
+        {
+            m_LinkedSlots = m_LinkedSlots.Where(t => t != null).ToList();
+        }
+
         public int GetNbLinks() { return m_LinkedSlots.Count; }
         public bool HasLink(bool rescursive = false)
         {
@@ -583,7 +596,7 @@ namespace UnityEditor.VFX
             {
                 if (owner != null)
                 {
-                    owner.UpdateOutputs();
+                    owner.UpdateOutputExpressions();
                     // Update outputs can trigger an invalidate, it can be reentrant. Just check if we're up to date after that and early out
                     if (m_ExpressionTreeUpToDate)
                         return;
@@ -656,7 +669,7 @@ namespace UnityEditor.VFX
                 return "No Owner";
         }
 
-        private void InvalidateExpressionTree()
+        public void InvalidateExpressionTree()
         {
             var masterSlot = GetMasterSlot();
 
@@ -713,11 +726,6 @@ namespace UnityEditor.VFX
             output.m_LinkedSlots.Remove(input);
             if (input.m_LinkedSlots.Remove(output))
                 input.InvalidateExpressionTree();
-        }
-
-        protected virtual bool CanConvertFrom(VFXExpression expr)
-        {
-            return expr == null || DefaultExpr.valueType == expr.valueType;
         }
 
         protected virtual bool CanConvertFrom(Type type)

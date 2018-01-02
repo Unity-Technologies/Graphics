@@ -6,7 +6,7 @@ using System;
 
 namespace UnityEditor.VFX.UIElements
 {
-    class StringFieldProvider : ValueControl<string>, IValueChangeListener<string>
+    class StringFieldProvider : ValueControl<string>
     {
         Button m_DropDownButton;
         Func<string[]> m_fnStringProvider;
@@ -61,23 +61,6 @@ namespace UnityEditor.VFX.UIElements
         protected override void ValueToGUI()
         {
             m_DropDownButton.text = m_Value;
-        }
-
-        string IValueChangeListener<string>.GetValue(object userData)
-        {
-            return m_DropDownButton.text;
-        }
-
-        void IValueChangeListener<string>.SetValue(string value, object userData)
-        {
-            m_Value = value;
-
-            ValueToGUI();
-
-            if (OnValueChanged != null)
-            {
-                OnValueChanged();
-            }
         }
     }
 }

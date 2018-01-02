@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.UI
 
         Vector3Field m_VectorField;
 
-        public Vector3PropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public Vector3PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
             bool isColor = VFXPropertyAttribute.IsColor(m_Provider.attributes);
 

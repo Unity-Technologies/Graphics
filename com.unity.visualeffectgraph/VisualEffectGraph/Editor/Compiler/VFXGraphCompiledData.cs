@@ -51,9 +51,21 @@ namespace UnityEditor.VFX
             return desc;
         }
 
+        private static VFXExpressionValueContainerDesc<S> CreateValueDesc<T, S>(VFXExpression exp, int expIndex) where S : class
+        {
+            var desc = new VFXExpressionValueContainerDesc<S>();
+            desc.value = exp.Get<T>() as S;
+            return desc;
+        }
+
         private void SetValueDesc<T>(VFXExpressionValueContainerDescAbstract desc, VFXExpression exp)
         {
             ((VFXExpressionValueContainerDesc<T>)desc).value = exp.Get<T>();
+        }
+
+        private void SetValueDesc<T, S>(VFXExpressionValueContainerDescAbstract desc, VFXExpression exp) where S : class
+        {
+            ((VFXExpressionValueContainerDesc<S>)desc).value = exp.Get<T>() as S;
         }
 
         public uint FindReducedExpressionIndexFromSlotCPU(VFXSlot slot)
@@ -98,11 +110,11 @@ namespace UnityEditor.VFX
                         case VFXValueType.kFloat4: value = CreateValueDesc<Vector4>(exp, i); break;
                         case VFXValueType.kInt: value = CreateValueDesc<int>(exp, i); break;
                         case VFXValueType.kUint: value = CreateValueDesc<uint>(exp, i); break;
-                        case VFXValueType.kTexture2D: value = CreateValueDesc<Texture2D>(exp, i); break;
-                        case VFXValueType.kTexture2DArray: value = CreateValueDesc<Texture2DArray>(exp, i); break;
-                        case VFXValueType.kTexture3D: value = CreateValueDesc<Texture3D>(exp, i); break;
-                        case VFXValueType.kTextureCube: value = CreateValueDesc<Cubemap>(exp, i); break;
-                        case VFXValueType.kTextureCubeArray: value = CreateValueDesc<CubemapArray>(exp, i); break;
+                        case VFXValueType.kTexture2D: value = CreateValueDesc<Texture2D, Texture>(exp, i); break;
+                        case VFXValueType.kTexture2DArray: value = CreateValueDesc<Texture2DArray, Texture>(exp, i); break;
+                        case VFXValueType.kTexture3D: value = CreateValueDesc<Texture3D, Texture>(exp, i); break;
+                        case VFXValueType.kTextureCube: value = CreateValueDesc<Cubemap, Texture>(exp, i); break;
+                        case VFXValueType.kTextureCubeArray: value = CreateValueDesc<CubemapArray, Texture>(exp, i); break;
                         case VFXValueType.kTransform: value = CreateValueDesc<Matrix4x4>(exp, i); break;
                         case VFXValueType.kCurve: value = CreateValueDesc<AnimationCurve>(exp, i); break;
                         case VFXValueType.kColorGradient: value = CreateValueDesc<Gradient>(exp, i); break;
@@ -117,14 +129,14 @@ namespace UnityEditor.VFX
                 outExpressionDescs.Add(new VFXExpressionDesc
                 {
                     op = exp.operation,
-                    data = exp.GetOperands(graph),
+                    data = exp.GetOperands(graph).ToArray(),
                 });
             }
         }
 
         private static void CollectExposedDesc(List<VFXExposedDesc> outExposedParameters, string name, VFXSlot slot, VFXExpressionGraph graph)
         {
-            var expression = slot.GetExpression();
+            var expression = slot.GetInExpression();
             if (expression != null)
             {
                 outExposedParameters.Add(new VFXExposedDesc()
@@ -358,13 +370,13 @@ namespace UnityEditor.VFX
 
         private static void FillEvent(List<VFXEventDesc> outEventDesc, Dictionary<VFXContext, SpawnInfo> contextSpawnToSpawnInfo, IEnumerable<VFXContext> contexts)
         {
-            var allStartNotLinked = contextSpawnToSpawnInfo.Where(o => !o.Key.inputFlowSlot[0].link.Any()).Select(o => (uint)o.Value.systemIndex).ToList();
+            var allPlayNotLinked = contextSpawnToSpawnInfo.Where(o => !o.Key.inputFlowSlot[0].link.Any()).Select(o => (uint)o.Value.systemIndex).ToList();
             var allStopNotLinked = contextSpawnToSpawnInfo.Where(o => !o.Key.inputFlowSlot[1].link.Any()).Select(o => (uint)o.Value.systemIndex).ToList();
 
             var eventDescTemp = new[]
             {
-                new { eventName = "OnStart", startSystems = allStartNotLinked, stopSystems = new List<uint>() },
-                new { eventName = "OnStop", startSystems = new List<uint>(), stopSystems = allStopNotLinked },
+                new { eventName = "OnPlay", playSystems = allPlayNotLinked, stopSystems = new List<uint>() },
+                new { eventName = "OnStop", playSystems = new List<uint>(), stopSystems = allStopNotLinked },
             }.ToList();
 
             var events = contexts.Where(o => o.contextType == VFXContextType.kEvent);
@@ -382,7 +394,7 @@ namespace UnityEditor.VFX
                             eventDescTemp.Add(new
                             {
                                 eventName = eventName,
-                                startSystems = new List<uint>(),
+                                playSystems = new List<uint>(),
                                 stopSystems = new List<uint>(),
                             });
                         }
@@ -391,7 +403,7 @@ namespace UnityEditor.VFX
                         var spawnerIndex = (uint)contextSpawnToSpawnInfo[link.context].systemIndex;
                         if (startSystem)
                         {
-                            eventDescTemp[eventIndex].startSystems.Add(spawnerIndex);
+                            eventDescTemp[eventIndex].playSystems.Add(spawnerIndex);
                         }
                         else
                         {
@@ -401,7 +413,7 @@ namespace UnityEditor.VFX
                 }
             }
             outEventDesc.Clear();
-            outEventDesc.AddRange(eventDescTemp.Select(o => new VFXEventDesc() { name = o.eventName, startSystems = o.startSystems.ToArray(), stopSystems = o.stopSystems.ToArray() }));
+            outEventDesc.AddRange(eventDescTemp.Select(o => new VFXEventDesc() { name = o.eventName, startSystems = o.playSystems.ToArray(), stopSystems = o.stopSystems.ToArray() }));
         }
 
         private static void GenerateShaders(List<GeneratedCodeData> outGeneratedCodeData, VFXExpressionGraph graph, IEnumerable<VFXContext> contexts, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
@@ -636,11 +648,11 @@ namespace UnityEditor.VFX
                         case VFXValueType.kFloat4: SetValueDesc<Vector4>(desc, exp); break;
                         case VFXValueType.kInt: SetValueDesc<int>(desc, exp); break;
                         case VFXValueType.kUint: SetValueDesc<uint>(desc, exp); break;
-                        case VFXValueType.kTexture2D: SetValueDesc<Texture2D>(desc, exp); break;
-                        case VFXValueType.kTexture2DArray: SetValueDesc<Texture2DArray>(desc, exp); break;
-                        case VFXValueType.kTexture3D: SetValueDesc<Texture3D>(desc, exp); break;
-                        case VFXValueType.kTextureCube: SetValueDesc<Cubemap>(desc, exp); break;
-                        case VFXValueType.kTextureCubeArray: SetValueDesc<CubemapArray>(desc, exp); break;
+                        case VFXValueType.kTexture2D: SetValueDesc<Texture2D, Texture>(desc, exp); break;
+                        case VFXValueType.kTexture2DArray: SetValueDesc<Texture2DArray, Texture>(desc, exp); break;
+                        case VFXValueType.kTexture3D: SetValueDesc<Texture3D, Texture>(desc, exp); break;
+                        case VFXValueType.kTextureCube: SetValueDesc<Cubemap, Texture>(desc, exp); break;
+                        case VFXValueType.kTextureCubeArray: SetValueDesc<CubemapArray, Texture>(desc, exp); break;
                         case VFXValueType.kTransform: SetValueDesc<Matrix4x4>(desc, exp); break;
                         case VFXValueType.kCurve: SetValueDesc<AnimationCurve>(desc, exp); break;
                         case VFXValueType.kColorGradient: SetValueDesc<Gradient>(desc, exp); break;
