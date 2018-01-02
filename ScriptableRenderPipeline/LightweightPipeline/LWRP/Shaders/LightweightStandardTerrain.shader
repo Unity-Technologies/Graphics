@@ -41,18 +41,17 @@ Shader "LightweightPipeline/Standard Terrain"
             #pragma vertex SplatmapVert
             #pragma fragment SpatmapFragment
 
+            #pragma multi_compile _ _MAIN_LIGHT_DIRECTIONAL_SHADOW _MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE _MAIN_LIGHT_DIRECTIONAL_SHADOW_SOFT _MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT _MAIN_LIGHT_SPOT_SHADOW _MAIN_LIGHT_SPOT_SHADOW_SOFT
             #pragma multi_compile _ _MAIN_LIGHT_COOKIE
-            #pragma multi_compile _MAIN_DIRECTIONAL_LIGHT _MAIN_SPOT_LIGHT
             #pragma multi_compile _ _ADDITIONAL_LIGHTS
+            #pragma multi_compile _ _VERTEX_LIGHTS
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
             #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile _ _HARD_SHADOWS _SOFT_SHADOWS _HARD_SHADOWS_CASCADES _SOFT_SHADOWS_CASCADES
-            #pragma multi_compile _ _VERTEX_LIGHTS
+            #pragma multi_compile_fog
 
             #pragma multi_compile __ _TERRAIN_NORMAL_MAP
-            #pragma multi_compile_fog
 
             #include "LightweightShaderLibrary/Lighting.hlsl"
 
@@ -184,8 +183,7 @@ Shader "LightweightPipeline/Standard Terrain"
 
                 half3 indirectDiffuse = half3(0, 0, 0);
 #if LIGHTMAP_ON
-                float4 lightmapUV = half4(IN.uvControlAndLM.zw, 0.0, 0.0);
-                indirectDiffuse = SampleLightmap(lightmapUV, normalWS);
+                indirectDiffuse = SampleLightmap(IN.uvControlAndLM.zw, normalWS);
 #endif
 
                 half3 viewDirectionWS = SafeNormalize(_WorldSpaceCameraPos - IN.positionWS);

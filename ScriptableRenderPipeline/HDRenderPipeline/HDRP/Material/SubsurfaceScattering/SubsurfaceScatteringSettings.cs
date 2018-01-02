@@ -359,7 +359,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public sealed class SubsurfaceScatteringSettings : ScriptableObject
     {
-        public bool useDisneySSS = true;
         public SubsurfaceScatteringProfile[] profiles;
 
         [NonSerialized] public uint      texturingModeFlags;        // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter

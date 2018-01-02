@@ -1585,7 +1585,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         ++envLightCount;
 
                         float boxVolume = 8 * probe.bounds.extents.x * probe.bounds.extents.y * probe.bounds.extents.z;
-                        float logVolume = Mathf.Clamp(256 + Mathf.Log(boxVolume, 1.1f), 0, 8191); // Allow for negative exponents
+                        float logVolume = Mathf.Clamp(256 + Mathf.Log(boxVolume, 1.05f), 0, 8191); // Allow for negative exponents
 
                         // 13 bit volume, 3 bit LightVolumeType, 16 bit index
                         sortKeys[sortCount++] = (uint)logVolume << 19 | (uint)lightVolumeType << 16 | ((uint)probeIndex & 0xFFFF); // Sort by volume
