@@ -5,6 +5,28 @@
 #include "CoreRP/ShaderLibrary/Packing.hlsl"
 #include "Input.hlsl"
 
+///////////////////////////////////////////////////////////////////////////////
+// Light Classification defines                                              //
+//                                                                           //
+// In order to reduce shader variations main light keywords were combined    //
+// here we define main light type keywords.                                  //
+// Main light is either a shadow casting light or the brighest directional.  //
+// Lightweight pipeline doesn't support point light shadows so they can't be //
+// classified as main light.                                                 //
+///////////////////////////////////////////////////////////////////////////////
+#if defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_SOFT) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT)
+#define _MAIN_LIGHT_DIRECTIONAL
+#endif
+
+#if defined(_MAIN_LIGHT_SPOT_SHADOW) || defined(_MAIN_LIGHT_SPOT_SHADOW_SOFT)
+#define _MAIN_LIGHT_SPOT
+#endif
+
+// In case no shadow casting light we classify main light as directional
+#if !defined(_MAIN_LIGHT_DIRECTIONAL) && !defined(_MAIN_LIGHT_SPOT)
+#define _MAIN_LIGHT_DIRECTIONAL
+#endif
+
 #ifdef _NORMALMAP
     #define OUTPUT_NORMAL(IN, OUT) OutputTangentToWorld(IN.tangent, IN.normal, OUT.tangent, OUT.binormal, OUT.normal)
 #else
@@ -97,7 +119,7 @@ float ComputeFogFactor(float z)
 void ApplyFog(inout half3 color, half fogFactor)
 {
 #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
-    color = lerp(unity_FogColor, color, fogFactor);
+    color = lerp(unity_FogColor.rgb, color, fogFactor);
 #endif
 }
 #endif

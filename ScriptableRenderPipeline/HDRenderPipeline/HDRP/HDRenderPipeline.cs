@@ -462,8 +462,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void CreateDepthStencilBuffer(HDCamera hdCamera)
         {
-            var camera = hdCamera.camera;
-
             if (m_CameraDepthStencilBuffer != null)
                 m_CameraDepthStencilBuffer.Release();
 
@@ -497,8 +495,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void Resize(HDCamera hdCamera)
         {
-            var camera = hdCamera.camera;
-
             // TODO: Detect if renderdoc just load and force a resize in this case, as often renderdoc require to realloc resource.
 
             // TODO: This is the wrong way to handle resize/allocation. We can have several different camera here, mean that the loop on camera will allocate and deallocate

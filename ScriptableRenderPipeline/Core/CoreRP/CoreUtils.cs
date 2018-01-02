@@ -257,6 +257,17 @@ namespace UnityEngine.Experimental.Rendering
                 && layer.temporalAntialiasing.IsSupported();
         }
 
+        // Color space utilities
+        public static Color ConvertSRGBToActiveColorSpace(Color color)
+        {
+            return (QualitySettings.activeColorSpace == ColorSpace.Linear) ? color.linear : color;
+        }
+
+        public static Color ConvertLinearToActiveColorSpace(Color color)
+        {
+            return (QualitySettings.activeColorSpace == ColorSpace.Linear) ? color : color.gamma;
+        }
+
         // Unity specifics
         public static Material CreateEngineMaterial(string shaderPath)
         {

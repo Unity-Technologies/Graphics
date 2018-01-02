@@ -232,21 +232,18 @@ void FillMaterialIdSssData(int subsurfaceProfile, float radius, float thickness,
         bsdfData.thickness = _ThicknessRemaps[subsurfaceProfile].x + _ThicknessRemaps[subsurfaceProfile].y * thickness;
         bsdfData.useThickObjectMode = transmissionMode != SSS_TRSM_MODE_THIN;
 
-        if (_UseDisneySSS != 0)
-        {
+#if SHADEROPTIONS_USE_DISNEY_SSS
             bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParams[subsurfaceProfile].rgb,
                                                                 _TransmissionTintsAndFresnel0[subsurfaceProfile].rgb,
                                                                 bsdfData.thickness, bsdfData.subsurfaceRadius);
-        }
-        else
-        {
+#else
             bsdfData.transmittance = ComputeTransmittanceJimenez(_HalfRcpVariancesAndWeights[subsurfaceProfile][0].rgb,
                                                                  _HalfRcpVariancesAndWeights[subsurfaceProfile][0].a,
                                                                  _HalfRcpVariancesAndWeights[subsurfaceProfile][1].rgb,
                                                                  _HalfRcpVariancesAndWeights[subsurfaceProfile][1].a,
                                                                  _TransmissionTintsAndFresnel0[subsurfaceProfile].rgb,
                                                                  bsdfData.thickness, bsdfData.subsurfaceRadius);
-        }
+#endif
     }
 }
 
@@ -836,7 +833,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     RefractionModelResult refraction = REFRACTION_MODEL(V, posInput, bsdfData);
     preLightData.transmissionRefractV = refraction.rayWS;
     preLightData.transmissionPositionWS = refraction.positionWS;
-    preLightData.transmissionTransmittance = exp(-bsdfData.absorptionCoefficient * refraction.distance);
+    preLightData.transmissionTransmittance = exp(-bsdfData.absorptionCoefficient * refraction.dist);
     // Empirical remap to try to match a bit the refraction probe blurring for the fallback
     // Use IblPerceptualRoughness so we can handle approx of clear coat.
     preLightData.transmissionSSMipLevel = sqrt(preLightData.iblPerceptualRoughness) * uint(_GaussianPyramidColorMipSize.z);
