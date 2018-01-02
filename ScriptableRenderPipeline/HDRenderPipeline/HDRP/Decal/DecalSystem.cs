@@ -17,8 +17,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
         
-        Mesh m_DecalMesh = null;
-        CullingGroup m_CullingGroup = null;
+        private Mesh m_DecalMesh = null;
+        private CullingGroup m_CullingGroup = null;
 		private const int kDecalBlockSize = 128;
 		private BoundingSphere[] m_BoundingSpheres = new BoundingSphere[kDecalBlockSize];
 		private DecalProjectorComponent[] m_Decals = new DecalProjectorComponent[kDecalBlockSize];

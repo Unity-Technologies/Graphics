@@ -1,8 +1,6 @@
 ﻿using System;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.EventSystems;// Required when using Event data.
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
