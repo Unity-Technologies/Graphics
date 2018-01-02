@@ -8,11 +8,11 @@
 struct RefractionModelResult
 {
     real  dist;       // length of the transmission during refraction through the shape
-    real3 positionWS; // out ray position
+    float3 positionWS; // out ray position
     real3 rayWS;      // out ray direction
 };
 
-RefractionModelResult RefractionModelSphere(real3 V, real3 positionWS, real3 normalWS, real ior, real thickness)
+RefractionModelResult RefractionModelSphere(real3 V, float3 positionWS, real3 normalWS, real ior, real thickness)
 {
     // Sphere shape model:
     //  We approximate locally the shape of the object as sphere, that is tangent to the shape.
@@ -48,7 +48,7 @@ RefractionModelResult RefractionModelSphere(real3 V, real3 positionWS, real3 nor
     return result;
 }
 
-RefractionModelResult RefractionModelPlane(real3 V, real3 positionWS, real3 normalWS, real ior, real thickness)
+RefractionModelResult RefractionModelPlane(real3 V, float3 positionWS, real3 normalWS, real ior, real thickness)
 {
     // Plane shape model:
     //  We approximate locally the shape of the object as a plane with normal {normalWS} at {positionWS}
