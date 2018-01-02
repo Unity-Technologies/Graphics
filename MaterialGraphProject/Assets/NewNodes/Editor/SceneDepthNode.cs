@@ -44,10 +44,7 @@ using System.Collections.Generic;
                     return;
 
                 m_SceneDepthMode = value;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Graph);
-                }
+                Dirty(ModificationScope.Graph);
             }
         }
 

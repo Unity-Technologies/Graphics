@@ -27,10 +27,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_Unit = value;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Graph);
-                }
+                Dirty(ModificationScope.Graph);
             }
         }
 

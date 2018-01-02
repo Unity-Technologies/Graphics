@@ -60,10 +60,9 @@ namespace UnityEditor.ShaderGraph
 
         public override PreviewProperty GetPreviewProperty(string name)
         {
-            var pp = new PreviewProperty
+            var pp = new PreviewProperty(PropertyType.Texture)
             {
                 name = name,
-                propType = PropertyType.Texture,
                 textureValue = texture
             };
             return pp;

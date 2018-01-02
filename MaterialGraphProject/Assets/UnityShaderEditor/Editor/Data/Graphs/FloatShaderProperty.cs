@@ -55,10 +55,9 @@ namespace UnityEditor.ShaderGraph
 
         public override PreviewProperty GetPreviewMaterialProperty()
         {
-            return new PreviewProperty()
+            return new PreviewProperty(PropertyType.Float)
             {
                 name = referenceName,
-                propType = PropertyType.Float,
                 floatValue = value
             };
         }

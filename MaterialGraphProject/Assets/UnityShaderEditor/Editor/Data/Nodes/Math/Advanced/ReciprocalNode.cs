@@ -32,10 +32,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_ReciprocalMethod = value;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Graph);
-                }
+                Dirty(ModificationScope.Graph);
             }
         }
 

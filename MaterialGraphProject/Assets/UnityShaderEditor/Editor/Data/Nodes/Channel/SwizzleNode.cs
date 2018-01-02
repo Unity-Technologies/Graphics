@@ -53,10 +53,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_RedChannel = value;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Node);
-                }
+                Dirty(ModificationScope.Node);
             }
         }
 
@@ -73,10 +70,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_GreenChannel = value;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Node);
-                }
+                Dirty(ModificationScope.Node);
             }
         }
 
@@ -93,10 +87,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_BlueChannel = value;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Node);
-                }
+                Dirty(ModificationScope.Node);
             }
         }
 
@@ -113,10 +104,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_AlphaChannel = value;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Node);
-                }
+                Dirty(ModificationScope.Node);
             }
         }
 
@@ -169,10 +157,9 @@ namespace UnityEditor.ShaderGraph
             base.CollectPreviewMaterialProperties(properties);
             // Encode swizzle values into an integer
             var value = ((int)redChannel) | ((int)greenChannel << 2) | ((int)blueChannel << 4) | ((int)alphaChannel << 6);
-            properties.Add(new PreviewProperty
+            properties.Add(new PreviewProperty(PropertyType.Float)
             {
                 name = GetVariableNameForNode(),
-                propType = PropertyType.Float,
                 floatValue = value
             });
         }

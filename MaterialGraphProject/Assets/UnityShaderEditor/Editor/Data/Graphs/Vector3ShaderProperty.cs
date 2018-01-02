@@ -29,10 +29,9 @@ namespace UnityEditor.ShaderGraph
 
         public override PreviewProperty GetPreviewMaterialProperty()
         {
-            return new PreviewProperty()
+            return new PreviewProperty(PropertyType.Vector3)
             {
                 name = referenceName,
-                propType = PropertyType.Vector3,
                 vector4Value = value
             };
         }

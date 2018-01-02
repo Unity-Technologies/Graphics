@@ -15,7 +15,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         VisualElement m_PropertyItems;
         VisualElement m_LayerItems;
         ObjectField m_PreviewMeshPicker;
-        AbstractNodeEditorView m_EditorView;
 
         PreviewTextureView m_PreviewTextureView;
 
@@ -119,7 +118,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             Quaternion previewRotation = Quaternion.Euler(m_PreviewScrollPosition.y, 0, 0) * Quaternion.Euler(0, m_PreviewScrollPosition.x, 0);
             m_Graph.previewData.rotation = previewRotation;
 
-            masterNode.onModified(masterNode, ModificationScope.Node);
+            masterNode.Dirty(ModificationScope.Node);
         }
 
         void OnAddProperty()
@@ -151,7 +150,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         {
             Mesh changedMesh = changeEvent.newValue as Mesh;
 
-            masterNode.onModified(masterNode, ModificationScope.Node);
+            masterNode.Dirty(ModificationScope.Node);
 
             if (m_Graph.previewData.serializedMesh.mesh != changedMesh)
             {

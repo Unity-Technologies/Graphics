@@ -66,14 +66,12 @@ namespace UnityEditor.ShaderGraph
 
         public override PreviewProperty GetPreviewProperty(string name)
         {
-            var pp = new PreviewProperty
-            {
-                name = name,
-                propType = ConvertConcreteSlotValueTypeToPropertyType(concreteValueType),
-                vector4Value = new Vector4(value.x, value.y, value.z, value.w),
-                floatValue = value.x,
-                colorValue = new Vector4(value.x, value.x, value.z, value.w),
-            };
+            var propType = ConvertConcreteSlotValueTypeToPropertyType(concreteValueType);
+            var pp = new PreviewProperty(propType) { name = name };
+            if (propType == PropertyType.Float)
+                pp.floatValue = value.x;
+            else
+                pp.vector4Value = new Vector4(value.x, value.y, value.z, value.w);
             return pp;
         }
 

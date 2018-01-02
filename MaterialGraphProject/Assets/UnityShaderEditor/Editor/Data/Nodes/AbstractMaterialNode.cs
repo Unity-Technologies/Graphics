@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
 using UnityEngine;
 using UnityEditor.Graphing;
 
@@ -50,9 +49,17 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         private bool m_HasError;
 
+        public Identifier tempId { get; set; }
+
         public IGraph owner { get; set; }
 
         public OnNodeModified onModified { get; set; }
+
+        public void Dirty(ModificationScope scope)
+        {
+            if (onModified != null)
+                onModified(this, scope);
+        }
 
         public Guid guid
         {
@@ -76,8 +83,7 @@ namespace UnityEditor.ShaderGraph
             set
             {
                 m_DrawState = value;
-                if (onModified != null)
-                    onModified(this, ModificationScope.Node);
+                Dirty(ModificationScope.Node);
             }
         }
 
@@ -100,8 +106,7 @@ namespace UnityEditor.ShaderGraph
                 if (previewExpanded == value)
                     return;
                 m_PreviewExpanded = value;
-                if (onModified != null)
-                    onModified(this, ModificationScope.Node);
+                Dirty(ModificationScope.Node);
             }
         }
 
@@ -461,10 +466,7 @@ namespace UnityEditor.ShaderGraph
             m_Slots.Add(slot);
             slot.owner = this;
 
-            if (onModified != null)
-            {
-                onModified(this, ModificationScope.Topological);
-            }
+            Dirty(ModificationScope.Topological);
 
             if (foundSlot == null)
                 return;
@@ -488,10 +490,7 @@ namespace UnityEditor.ShaderGraph
             //remove slots
             m_Slots.RemoveAll(x => x.id == slotId);
 
-            if (onModified != null)
-            {
-                onModified(this, ModificationScope.Topological);
-            }
+            Dirty(ModificationScope.Topological);
         }
 
         public void RemoveSlotsNameNotMatching(IEnumerable<int> slotIds, bool supressWarnings = false)
