@@ -18,22 +18,20 @@ Pass
 
     #pragma vertex Vert
     #pragma fragment Frag
-    #pragma glsl
-    #pragma debug
 
     #define UNITY_MATERIAL_UNLIT // Need to be define before including Material.hlsl
 
-    #include "ShaderLibrary/common.hlsl"
-    #include "../../ShaderVariables.hlsl"
-    #include "../../ShaderPass/FragInputs.hlsl"
-    #include "../../ShaderPass/ShaderPass.cs.hlsl"
+    #include "CoreRP/ShaderLibrary/common.hlsl"
+    #include "HDRP/ShaderVariables.hlsl"
+    #include "HDRP/ShaderPass/FragInputs.hlsl"
+    #include "HDRP/ShaderPass/ShaderPass.cs.hlsl"
 
     ${Defines}
     
-    #include "../../Material/Material.hlsl"
+    #include "HDRP/Material/Material.hlsl"
 
     // This include will define the various Attributes/Varyings structure
-    #include "../../ShaderPass/VaryingMesh.hlsl"
+    #include "HDRP/ShaderPass/VaryingMesh.hlsl"
 
     ${Graph}
 
@@ -70,7 +68,7 @@ Pass
         builtinData.depthOffset = 0.0;
     }
 
-    #include "../../ShaderPass/${ShaderPassInclude}.hlsl"
+    #include "HDRP/ShaderPass/${ShaderPassInclude}.hlsl"
 
     ENDHLSL
 }
