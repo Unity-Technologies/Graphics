@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEditor.AnimatedValues;
 using UnityEditor.IMGUI.Controls;
 using UnityEditorInternal;
@@ -97,12 +98,11 @@ namespace UnityEditor.Experimental.Rendering
 
         internal class UIState
         {
-            AnimBool[] m_ModeSettingsDisplays = new AnimBool[Enum.GetValues(typeof(ReflectionProbeMode)).Length];
-            AnimBool[] m_InfluenceShapeDisplays = new AnimBool[Enum.GetValues(typeof(ReflectionInfluenceShape)).Length];
+            AnimBool[] m_IsSectionExpandedModeSettings = new AnimBool[Enum.GetValues(typeof(ReflectionProbeMode)).Length];
+            AnimBool[] m_IsSectionExpandedInfluenceShape = new AnimBool[Enum.GetValues(typeof(ReflectionInfluenceShape)).Length];
 
             Editor owner { get; set; }
             Operation operations { get; set; }
-            public AnimBool useSeparateProjectionVolumeDisplay { get; private set; }
             public bool HasOperation(Operation op) { return (operations & op) == op; }
             public void ClearOperation(Operation op) { operations &= ~op; }
             public void AddOperation(Operation op) { operations |= op; }
@@ -116,6 +116,13 @@ namespace UnityEditor.Experimental.Rendering
             public SphereBoundsHandle sphereBlendHandle = new SphereBoundsHandle();
             public SphereBoundsHandle sphereBlendNormalHandle = new SphereBoundsHandle();
             public Matrix4x4 oldLocalSpace = Matrix4x4.identity;
+
+            public AnimBool isSectionExpandedInfluenceVolume = new AnimBool();
+            public AnimBool isSectionExpandedSeparateProjection = new AnimBool();
+            public AnimBool isSectionExpandedCaptureSettings = new AnimBool();
+            public AnimBool isSectionExpandedAdditional = new AnimBool();
+
+            List<AnimBool> m_AnimBools = new List<AnimBool>();
 
             public bool HasAndClearOperation(Operation op)
             {
@@ -131,11 +138,22 @@ namespace UnityEditor.Experimental.Rendering
 
             internal UIState()
             {
-                for (var i = 0; i < m_ModeSettingsDisplays.Length; i++)
-                    m_ModeSettingsDisplays[i] = new AnimBool();
-                for (var i = 0; i < m_InfluenceShapeDisplays.Length; i++)
-                    m_InfluenceShapeDisplays[i] = new AnimBool();
-                useSeparateProjectionVolumeDisplay = new AnimBool();
+                for (var i = 0; i < m_IsSectionExpandedModeSettings.Length; i++)
+                {
+                    m_IsSectionExpandedModeSettings[i] = new AnimBool();
+                    m_AnimBools.Add(m_IsSectionExpandedModeSettings[i]);
+                }
+
+                for (var i = 0; i < m_IsSectionExpandedInfluenceShape.Length; i++)
+                {
+                    m_IsSectionExpandedInfluenceShape[i] = new AnimBool();
+                    m_AnimBools.Add(m_IsSectionExpandedInfluenceShape[i]);
+                }
+
+                m_AnimBools.Add(isSectionExpandedInfluenceVolume);
+                m_AnimBools.Add(isSectionExpandedSeparateProjection);
+                m_AnimBools.Add(isSectionExpandedCaptureSettings);
+                m_AnimBools.Add(isSectionExpandedAdditional);
             }
 
             internal void Reset(
@@ -146,45 +164,44 @@ namespace UnityEditor.Experimental.Rendering
                 this.owner = owner;
                 operations = 0;
 
-                for (var i = 0; i < m_ModeSettingsDisplays.Length; i++)
-                {
-                    m_ModeSettingsDisplays[i].valueChanged.RemoveAllListeners();
-                    m_ModeSettingsDisplays[i].valueChanged.AddListener(repaint);
-                    m_ModeSettingsDisplays[i].value = p.mode.intValue == i;
-                }
+                for (var i = 0; i < m_IsSectionExpandedModeSettings.Length; i++)
+                    m_IsSectionExpandedModeSettings[i].value = p.mode.intValue == i;
 
-                for (var i = 0; i < m_InfluenceShapeDisplays.Length; i++)
-                {
-                    m_InfluenceShapeDisplays[i].valueChanged.RemoveAllListeners();
-                    m_InfluenceShapeDisplays[i].valueChanged.AddListener(repaint);
-                    m_InfluenceShapeDisplays[i].value = p.influenceShape.intValue == i;
-                }
+                for (var i = 0; i < m_IsSectionExpandedInfluenceShape.Length; i++)
+                    m_IsSectionExpandedInfluenceShape[i].value = p.influenceShape.intValue == i;
 
-                useSeparateProjectionVolumeDisplay.valueChanged.RemoveAllListeners();
-                useSeparateProjectionVolumeDisplay.valueChanged.AddListener(repaint);
-                useSeparateProjectionVolumeDisplay.value = p.useSeparateProjectionVolume.boolValue;
+                isSectionExpandedSeparateProjection.value = p.useSeparateProjectionVolume.boolValue;
+                isSectionExpandedCaptureSettings.value = true;
+                isSectionExpandedInfluenceVolume.value = true;
+                isSectionExpandedAdditional.value = false;
+
+                for (var i = 0; i < m_AnimBools.Count; ++i)
+                {
+                    m_AnimBools[i].valueChanged.RemoveAllListeners();
+                    m_AnimBools[i].valueChanged.AddListener(repaint);
+                }
             }
 
-            public float GetModeFaded(ReflectionProbeMode mode)
+            public float IsSectionExpandedMode(ReflectionProbeMode mode)
             {
-                return m_ModeSettingsDisplays[(int)mode].faded;
+                return m_IsSectionExpandedModeSettings[(int)mode].faded;
             }
 
             public void SetModeTarget(int value)
             {
-                for (var i = 0; i < m_ModeSettingsDisplays.Length; i++)
-                    m_ModeSettingsDisplays[i].target = i == value;
+                for (var i = 0; i < m_IsSectionExpandedModeSettings.Length; i++)
+                    m_IsSectionExpandedModeSettings[i].target = i == value;
             }
 
-            public float GetShapeFaded(ReflectionInfluenceShape value)
+            public float IsSectionExpandedShape(ReflectionInfluenceShape value)
             {
-                return m_InfluenceShapeDisplays[(int)value].faded;
+                return m_IsSectionExpandedInfluenceShape[(int)value].faded;
             }
 
             public void SetShapeTarget(int value)
             {
-                for (var i = 0; i < m_InfluenceShapeDisplays.Length; i++)
-                    m_InfluenceShapeDisplays[i].target = i == value;
+                for (var i = 0; i < m_IsSectionExpandedInfluenceShape.Length; i++)
+                    m_IsSectionExpandedInfluenceShape[i].target = i == value;
             }
 
             internal void UpdateOldLocalSpace(ReflectionProbe target)

@@ -16,7 +16,7 @@ namespace UnityEditor.Experimental.Rendering
         static readonly CED.IDrawer[] k_PrimarySection =
         {
             CED.Action(Drawer_ReflectionProbeMode),
-            CED.FadeGroup((s, p, o, i) => s.GetModeFaded((ReflectionProbeMode)i),
+            CED.FadeGroup((s, p, o, i) => s.IsSectionExpandedMode((ReflectionProbeMode)i),
                 true,
                 CED.noop,                                      // Baked
                 CED.Action(Drawer_ModeSettingsRealtime),      // Realtime
@@ -32,10 +32,10 @@ namespace UnityEditor.Experimental.Rendering
 
         static readonly CED.IDrawer k_InfluenceVolumeSection = CED.FoldoutGroup(
             "Influence volume settings",
-            (s, p, o) => p.blendDistancePositive,
+            (s, p, o) => s.isSectionExpandedInfluenceVolume,
             true,
             CED.FadeGroup(
-                (s, p, o, i) => s.GetShapeFaded((ReflectionInfluenceShape)i),
+                (s, p, o, i) => s.IsSectionExpandedShape((ReflectionInfluenceShape)i),
                 false,
                 CED.Action(Drawer_InfluenceBoxSettings),      // Box
                 CED.Action(Drawer_InfluenceSphereSettings)    // Sphere
@@ -44,14 +44,14 @@ namespace UnityEditor.Experimental.Rendering
         );
 
         static readonly CED.IDrawer k_SeparateProjectionVolumeSection = CED.FadeGroup(
-            (s, p, o, i) => s.useSeparateProjectionVolumeDisplay.faded,
+            (s, p, o, i) => s.isSectionExpandedSeparateProjection.faded,
             false,
             CED.FoldoutGroup(
                 "Reprojection volume settings",
-                (s, p, o) => p.useSeparateProjectionVolume,
+                (s, p, o) => s.isSectionExpandedSeparateProjection,
                 true,
                 CED.FadeGroup(
-                    (s, p, o, i) => s.GetShapeFaded((ReflectionInfluenceShape)i),
+                    (s, p, o, i) => s.IsSectionExpandedShape((ReflectionInfluenceShape)i),
                     false,
                     CED.Action(Drawer_ProjectionBoxSettings), // Box
                     CED.Action(Drawer_ProjectionSphereSettings) // Sphere
@@ -61,14 +61,14 @@ namespace UnityEditor.Experimental.Rendering
 
         static readonly CED.IDrawer k_CaptureSection = CED.FoldoutGroup(
             "Capture settings",
-            (s, p, o) => p.shadowDistance,
+            (s, p, o) => s.isSectionExpandedCaptureSettings,
             true,
             CED.Action(Drawer_CaptureSettings)
         );
 
         static readonly CED.IDrawer k_AdditionalSection = CED.FoldoutGroup(
             "Additional settings",
-            (s, p, o) => p.dimmer,
+            (s, p, o) => s.isSectionExpandedAdditional,
             true,
             CED.Action(Drawer_AdditionalSettings)
         );
@@ -253,7 +253,7 @@ namespace UnityEditor.Experimental.Rendering
         static void Drawer_UseSeparateProjectionVolume(UIState s, SerializedReflectionProbe p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.useSeparateProjectionVolume);
-            s.useSeparateProjectionVolumeDisplay.target = p.useSeparateProjectionVolume.boolValue;
+            s.isSectionExpandedSeparateProjection.target = p.useSeparateProjectionVolume.boolValue;
         }
 
         static void Drawer_ProjectionBoxSettings(UIState s, SerializedReflectionProbe p, Editor owner)
