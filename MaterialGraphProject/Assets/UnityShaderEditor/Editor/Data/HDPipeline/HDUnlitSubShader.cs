@@ -48,7 +48,6 @@ namespace UnityEditor.ShaderGraph
 
             var surfaceDescriptionFunction = new ShaderGenerator();
             var surfaceDescriptionStruct = new ShaderGenerator();
-            var shaderFunctionVisitor = new ShaderGenerator();
             var surfaceInputs = new ShaderGenerator();
             var functionRegistry = new FunctionRegistry(builder);
 
@@ -62,13 +61,11 @@ namespace UnityEditor.ShaderGraph
 
             var requirements = ShaderGraphRequirements.FromNodes(activeNodeList);
 
-            /*
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresViewDir, InterpolatorType.ViewDirection, surfaceInputs);
-            ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresPosition, InterpolatorType.Position, surfaceInputs);*/
-
+            ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresPosition, InterpolatorType.Position, surfaceInputs);
 
             ShaderGenerator defines = new ShaderGenerator();
             defines.AddShaderChunk(string.Format("#define SHADERPASS {0}", pass.ShaderPassName), true);
@@ -76,14 +73,14 @@ namespace UnityEditor.ShaderGraph
             if (requirements.requiresVertexColor)
                 surfaceInputs.AddShaderChunk(string.Format("float4 {0};", ShaderGeneratorNames.VertexColor), false);
 
-            /*if (requirements.requiresScreenPosition)
-                surfaceInputs.AddShaderChunk(string.Format("float4 {0};", ShaderGeneratorNames.ScreenPosition), false);*/
+            if (requirements.requiresScreenPosition)
+                surfaceInputs.AddShaderChunk(string.Format("float4 {0};", ShaderGeneratorNames.ScreenPosition), false);
 
             foreach (var channel in requirements.requiresMeshUVs.Distinct())
             {
                 surfaceInputs.AddShaderChunk(string.Format("half4 {0};", channel.GetUVName()), false);
-                defines.AddShaderChunk("#define ATTRIBUTES_NEED_TEXCOORD" + (int)channel, true);
-                defines.AddShaderChunk("#define VARYINGS_NEED_TEXCOORD" + (int)channel, true);
+                defines.AddShaderChunk(string.Format("#define ATTRIBUTES_NEED_TEXCOORD{0}", (int)channel), true);
+                defines.AddShaderChunk(string.Format("#define VARYINGS_NEED_TEXCOORD{0}", (int)channel), true);
             }
 
             surfaceInputs.Deindent();
@@ -117,10 +114,10 @@ namespace UnityEditor.ShaderGraph
                 usedSlots);
 
             var graph = new ShaderGenerator();
-            graph.AddShaderChunk(shaderFunctionVisitor.GetShaderString(2), false);
-            graph.AddShaderChunk(surfaceInputs.GetShaderString(2), false);
-            graph.AddShaderChunk(surfaceDescriptionStruct.GetShaderString(2), false);
             graph.AddShaderChunk(shaderProperties.GetPropertiesDeclaration(2), false);
+            graph.AddShaderChunk(surfaceInputs.GetShaderString(2), false);
+            graph.AddShaderChunk(builder.ToString(), false);
+            graph.AddShaderChunk(surfaceDescriptionStruct.GetShaderString(2), false);
             graph.AddShaderChunk(surfaceDescriptionFunction.GetShaderString(2), false);
 
             var tagsVisitor = new ShaderGenerator();
