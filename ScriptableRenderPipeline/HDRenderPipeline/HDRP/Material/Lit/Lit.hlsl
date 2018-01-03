@@ -720,6 +720,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 
         // fresnel0 is deduced from interface between air and material (assume to be 1.5 in Unity, or a metal).
         // but here we go from clear coat (1.5) to material, we need to update fresnel0
+        // Note: Schlick is a poor approximation of Fresnel when ieta is 1 (1.5 / 1.5), schlick target 1.4 to 2.2 IOR.
         preLightData.baseFresnel0.x = Fresnel0ReajustFor15(bsdfData.fresnel0.x);
         preLightData.baseFresnel0.y = Fresnel0ReajustFor15(bsdfData.fresnel0.y);
         preLightData.baseFresnel0.z = Fresnel0ReajustFor15(bsdfData.fresnel0.z);
