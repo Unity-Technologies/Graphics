@@ -193,6 +193,10 @@ namespace UnityEditor.VFX.Test
         [Timeout(1000 * 10)]
         public IEnumerator RenderSceneAndCompareExpectedCapture([ValueSource("scenes")] SceneTest sceneTest)
         {
+            var sceneView = EditorWindow.GetWindow(typeof(SceneView));
+            if (sceneView != null)
+                sceneView.Close();
+
             uint waitFrameCount = 16;
 
             var scenePath = sceneTest.path;

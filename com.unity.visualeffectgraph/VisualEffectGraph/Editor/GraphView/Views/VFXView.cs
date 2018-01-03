@@ -293,6 +293,31 @@ namespace UnityEditor.VFX.UI
             spacer.style.flex = 1;
             toolbar.Add(spacer);
 
+            m_DropDownButtonCullingMode = new Button();
+
+            Func<VFXCullingMode, string> fnValueToGUI = delegate(VFXCullingMode mode)
+                {
+                    return "Culling Mode : " + mode.ToString();
+                };
+
+            m_DropDownButtonCullingMode.text = fnValueToGUI(cullingMode);
+            m_DropDownButtonCullingMode.AddManipulator(new DownClickable(() => {
+                    var menu = new GenericMenu();
+                    var enumType = typeof(VFXCullingMode);
+                    foreach (var val in Enum.GetNames(enumType))
+                    {
+                        var valueInt = (int)Enum.Parse(enumType, val);
+                        menu.AddItem(new GUIContent(val), valueInt == (int)cullingMode, (v) =>
+                        {
+                            cullingMode = (VFXCullingMode)v;
+                            m_DropDownButtonCullingMode.text = fnValueToGUI(cullingMode);
+                        }, valueInt);
+                    }
+                    menu.DropDown(m_DropDownButtonCullingMode.worldBound);
+                }));
+            toolbar.Add(m_DropDownButtonCullingMode);
+            m_DropDownButtonCullingMode.AddToClassList("toolbarItem");
+
             m_ToggleCastShadows = new Toggle(OnToggleCastShadows);
             m_ToggleCastShadows.text = "Cast Shadows";
             m_ToggleCastShadows.on = GetRendererSettings().shadowCastingMode != ShadowCastingMode.Off;
@@ -594,6 +619,30 @@ namespace UnityEditor.VFX.UI
             }
 
             return new VFXRendererSettings();
+        }
+
+        VFXCullingMode cullingMode
+        {
+            get
+            {
+                if (controller != null)
+                {
+                    var asset = controller.model;
+                    if (asset != null)
+                        return asset.cullingMode;
+                }
+                return VFXCullingMode.CullUpdate;
+            }
+
+            set
+            {
+                if (controller != null)
+                {
+                    var asset = controller.model;
+                    if (asset != null)
+                        asset.cullingMode = value;
+                }
+            }
         }
 
         public void CreateTemplateSystem(Vector2 tPos)
@@ -942,6 +991,7 @@ namespace UnityEditor.VFX.UI
                 SelectionUpdated();
         }
 
+        private Button m_DropDownButtonCullingMode;
         private Toggle m_ToggleCastShadows;
         private Toggle m_ToggleMotionVectors;
 
