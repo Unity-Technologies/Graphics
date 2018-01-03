@@ -758,7 +758,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // TODO: Currently m_maxShadowDistance is based on shadow settings, but this value is define for a whole level. We should be able to change this value during gameplay
             float scale;
             float bias;
-            GetSCaleAndBiasForLinearDistanceFade(m_maxShadowDistance, out scale, out bias);
+            GetScaleAndBiasForLinearDistanceFade(m_maxShadowDistance, out scale, out bias);
             directionalLightData.fadeDistanceScaleAndBias = new Vector2(scale, bias);
             directionalLightData.shadowMaskSelector = Vector4.zero;
 
@@ -782,7 +782,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return true;
         }
 
-        void GetSCaleAndBiasForLinearDistanceFade(float fadeDistance, out float scale, out float bias)
+        void GetScaleAndBiasForLinearDistanceFade(float fadeDistance, out float scale, out float bias)
         {
             // Fade with distance calculation is just a linear fade from 90% of fade distance to fade distance. 90% arbitrarily chosen but should work well enough.
             float distanceFadeNear = 0.9f * fadeDistance;
@@ -794,7 +794,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             float scale;
             float bias;
-            GetSCaleAndBiasForLinearDistanceFade(fadeDistance, out scale, out bias);
+            GetScaleAndBiasForLinearDistanceFade(fadeDistance, out scale, out bias);
 
             return 1.0f - Mathf.Clamp01(distanceToCamera * scale + bias);
         }
