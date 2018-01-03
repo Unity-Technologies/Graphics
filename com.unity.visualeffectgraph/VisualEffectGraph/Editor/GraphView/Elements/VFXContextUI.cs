@@ -311,8 +311,6 @@ namespace UnityEditor.VFX.UI
             m_DragDisplay = new VisualElement();
             m_DragDisplay.AddToClassList("dragdisplay");
 
-            clippingOptions = VisualElement.ClippingOptions.NoClipping;
-
             RegisterCallback<ControllerChangedEvent>(OnChange);
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
         }
@@ -412,7 +410,7 @@ namespace UnityEditor.VFX.UI
         {
             IEnumerable<VFXBlockUI> blocksUI = selection.Select(t => t as VFXBlockUI).Where(t => t != null);
 
-            Vector2 mousePosition = evt.imguiEvent.mousePosition;
+            Vector2 mousePosition = this.WorldToLocal(evt.originalMousePosition);
 
             bool after = mousePosition.y > layout.height * 0.5f;
 
@@ -435,7 +433,7 @@ namespace UnityEditor.VFX.UI
         {
             DragFinished();
 
-            Vector2 mousePosition = evt.imguiEvent.mousePosition;
+            Vector2 mousePosition = this.WorldToLocal(evt.originalMousePosition);
 
             bool after = mousePosition.y > layout.height * 0.5f;
 

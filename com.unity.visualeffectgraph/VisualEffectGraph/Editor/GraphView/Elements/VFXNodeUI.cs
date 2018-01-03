@@ -53,6 +53,7 @@ namespace UnityEditor.VFX.UI
         {
             AddToClassList("VFXNodeUI");
             RegisterCallback<ControllerChangedEvent>(OnChange);
+            clippingOptions = ClippingOptions.ClipContents;
         }
 
         virtual protected void OnChange(ControllerChangedEvent e)
