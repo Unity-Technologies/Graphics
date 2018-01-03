@@ -11,8 +11,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private static readonly int m_DecalToWorldR = Shader.PropertyToID("_DecalToWorldR");
 
         public Material m_Material;
-
         private MaterialPropertyBlock m_PropertyBlock;
+        public const int kInvalidIndex = -1;
+        private int m_CullIndex = kInvalidIndex;
+
+        public int CullIndex
+        {
+            get
+            {
+                return this.m_CullIndex;
+            }
+            set
+            {
+                this.m_CullIndex = value;
+            }
+        }
 
         public void OnEnable()
         {
@@ -32,6 +45,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void OnValidate()
         {
+            BoundingSphere sphere = CoreUtils.GetDecalMeshBoundingSphere(transform.localToWorldMatrix);
             if (m_Material != null)
             {
                 Shader shader = m_Material.shader;
@@ -41,7 +55,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
         }
-
 
         private void DrawGizmo(bool selected)
         {
@@ -59,6 +72,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void OnDrawGizmosSelected()
         {
             DrawGizmo(true);
+            // if this object is selected there is a chance the transform was changed so update culling info
+            DecalSystem.instance.UpdateBoundingSphere(this);
         }
 
 		public void UpdatePropertyBlock(Vector3 cameraPos)

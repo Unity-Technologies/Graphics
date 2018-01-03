@@ -51,7 +51,7 @@ MonoBehaviour:
     supportSSR: 1
     supportSSAO: 1
     supportSSSAndTransmission: 1
-    supportDBuffer: 0
+    supportDBuffer: 1
     supportMSAA: 0
     supportAsyncCompute: 0
     lightLoopSettings:
