@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
@@ -35,10 +34,8 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionName()
         {
-            string channelSum;
-            if (channelMask == 0)
-                channelSum = "None";
-            else
+            string channelSum = "None";
+            if (channelMask != 0)
             {
                 bool red = (channelMask & 1) != 0;
                 bool green = (channelMask & 2) != 0;
@@ -59,9 +56,9 @@ namespace UnityEditor.ShaderGraph
         public TextureChannel channel;
 
         [SerializeField]
-        private int m_ChannelMask = 0;
+        private int m_ChannelMask = -1;
 
-        [ChannelEnumMaskControl("Channel")]
+        [ChannelEnumMaskControl("Channels")]
         public int channelMask
         {
             get { return m_ChannelMask; }
@@ -78,8 +75,8 @@ namespace UnityEditor.ShaderGraph
         void ValidateChannelCount()
         {
             int channelCount = SlotValueHelper.GetChannelCount(FindSlot<MaterialSlot>(InputSlotId).concreteValueType);
-            if (channelMask > 1 << channelCount)
-                channelMask = 0;
+            if (channelMask > 1 << channelCount - 1)
+                channelMask = -1;
         }
 
         string GetFunctionPrototype(string argIn, string argOut)
@@ -103,6 +100,7 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
+            ValidateChannelCount();
             registry.ProvideFunction(GetFunctionName(), s =>
             {
                 int channelCount = SlotValueHelper.GetChannelCount(FindSlot<MaterialSlot>(InputSlotId).concreteValueType);
@@ -119,8 +117,6 @@ namespace UnityEditor.ShaderGraph
                         bool green = (channelMask & 2) != 0;
                         bool blue = (channelMask & 4) != 0;
                         bool alpha = (channelMask & 8) != 0;
-
-                        Debug.Log(red + " " + green + " " + blue + " " + alpha);
 
                         switch (channelCount)
                         {
