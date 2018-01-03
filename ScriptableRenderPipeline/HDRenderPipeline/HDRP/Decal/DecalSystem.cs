@@ -16,76 +16,122 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return m_Instance;
             }
         }
-
-        internal HashSet<DecalProjectorComponent> m_Decals = new HashSet<DecalProjectorComponent>();
-        Mesh m_CubeMesh;
-
+        
+        private Mesh m_DecalMesh = null;
+        private CullingGroup m_CullingGroup = null;
+		private const int kDecalBlockSize = 128;
+		private BoundingSphere[] m_BoundingSpheres = new BoundingSphere[kDecalBlockSize];
+		private DecalProjectorComponent[] m_Decals = new DecalProjectorComponent[kDecalBlockSize];
+		private int[] m_ResultIndices = new int[kDecalBlockSize];
+		private int m_NumResults = 0;
+		private int m_DecalsCount = 0;
+     
         public DecalSystem()
         {
-            CreateCubeMesh();
+            m_DecalMesh = CoreUtils.CreateDecalMesh();            
         }
 
-        void CreateCubeMesh()
+        // update bounding sphere for a single decal
+        public void UpdateBoundingSphere(DecalProjectorComponent decal)
         {
-            m_CubeMesh = new Mesh();
-
-            Vector3[] vertices = new Vector3[8];
-
-            vertices[0] = new Vector3(-0.5f, -1.0f, -0.5f);
-            vertices[1] = new Vector3( 0.5f, -1.0f, -0.5f);
-            vertices[2] = new Vector3( 0.5f, 0.0f, -0.5f);
-            vertices[3] = new Vector3(-0.5f, 0.0f, -0.5f);
-            vertices[4] = new Vector3(-0.5f, -1.0f,  0.5f);
-            vertices[5] = new Vector3( 0.5f, -1.0f,  0.5f);
-            vertices[6] = new Vector3( 0.5f, 0.0f,  0.5f);
-            vertices[7] = new Vector3(-0.5f, 0.0f,  0.5f);
-
-            m_CubeMesh.vertices = vertices;
-
-            int[] triangles = new int[36];
-
-            triangles[0] = 0; triangles[1] = 2; triangles[2] = 1;
-            triangles[3] = 0; triangles[4] = 3; triangles[5] = 2;
-            triangles[6] = 1; triangles[7] = 6; triangles[8] = 5;
-            triangles[9] = 1; triangles[10] = 2; triangles[11] = 6;
-            triangles[12] = 5; triangles[13] = 7; triangles[14] = 4;
-            triangles[15] = 5; triangles[16] = 6; triangles[17] = 7;
-            triangles[18] = 4; triangles[19] = 3; triangles[20] = 0;
-            triangles[21] = 4; triangles[22] = 7; triangles[23] = 3;
-            triangles[24] = 3; triangles[25] = 6; triangles[26] = 2;
-            triangles[27] = 3; triangles[28] = 7; triangles[29] = 6;
-            triangles[30] = 4; triangles[31] = 1; triangles[32] = 5;
-            triangles[33] = 4; triangles[34] = 0; triangles[35] = 1;
-
-            m_CubeMesh.triangles = triangles;
+			m_BoundingSpheres[decal.CullIndex] = CoreUtils.GetDecalMeshBoundingSphere(decal.transform.localToWorldMatrix);
         }
 
-        public void AddDecal(DecalProjectorComponent d)
+        public void AddDecal(DecalProjectorComponent decal)
         {
-            // If no decal material assign, don't add it
-            if (d.m_Material == null)
-                return;
+			if (decal.CullIndex != DecalProjectorComponent.kInvalidIndex) //do not add the same decal more than once
+				return;
 
-            if (d.m_Material.GetTexture("_BaseColorMap") || d.m_Material.GetTexture("_NormalMap"))
+			// increase array size if no space left
+            if(m_DecalsCount == m_Decals.Length)
             {
-                RemoveDecal(d);
-                m_Decals.Add(d);
+				DecalProjectorComponent[] newDecals = new DecalProjectorComponent[m_DecalsCount + kDecalBlockSize];
+				BoundingSphere[] newSpheres = new BoundingSphere[m_DecalsCount + kDecalBlockSize];
+				m_ResultIndices = new int[m_DecalsCount + kDecalBlockSize];
+
+                m_Decals.CopyTo(newDecals, 0);
+				m_BoundingSpheres.CopyTo(newSpheres, 0);
+
+				m_Decals = newDecals;
+				m_BoundingSpheres = newSpheres;
+			}
+
+			m_Decals[m_DecalsCount] = decal;
+			m_Decals[m_DecalsCount].CullIndex = m_DecalsCount;
+			UpdateBoundingSphere(m_Decals[m_DecalsCount]);
+			m_DecalsCount++;            
+        }
+
+        public void RemoveDecal(DecalProjectorComponent decal)
+        {
+			if (decal.CullIndex == DecalProjectorComponent.kInvalidIndex) //do not remove decal that has not been added
+				return;
+
+			int removeAtIndex = decal.CullIndex;
+			// replace with last decal in the list and update index
+			m_Decals[removeAtIndex] = m_Decals[m_DecalsCount - 1]; // move the last decal in list 
+			m_Decals[removeAtIndex].CullIndex = removeAtIndex;
+			m_Decals[m_DecalsCount - 1] = null;
+
+			// update the bounding spheres array
+			m_BoundingSpheres[removeAtIndex] = m_BoundingSpheres[m_DecalsCount - 1];
+			m_DecalsCount--;
+			decal.CullIndex = DecalProjectorComponent.kInvalidIndex;
+        }
+
+        public void BeginCull(Camera camera)
+        {
+            if (m_CullingGroup != null)
+            {
+                Debug.LogError("Begin/EndCull() called out of sequence for decal projectors.");                
+            }
+			m_NumResults = 0;
+            m_CullingGroup = new CullingGroup();
+            m_CullingGroup.targetCamera = camera;
+            m_CullingGroup.SetBoundingSpheres(m_BoundingSpheres);
+			m_CullingGroup.SetBoundingSphereCount(m_DecalsCount);
+        }
+
+		public int QueryCullResults()
+		{
+			m_NumResults = m_CullingGroup.QueryIndices(true, m_ResultIndices, 0);
+			return m_NumResults;
+		}
+
+        public void Render(ScriptableRenderContext renderContext, HDCamera camera, CommandBuffer cmd)
+        {
+            if (m_DecalMesh == null)
+                m_DecalMesh = CoreUtils.CreateDecalMesh();
+
+            for (int resultIndex = 0; resultIndex < m_NumResults; resultIndex++)
+            {
+                int decalIndex = m_ResultIndices[resultIndex];
+
+                // If no decal material assigned, don't draw it
+                if (m_Decals[decalIndex].m_Material == null)
+                    continue;
+
+                // don't draw decals that do not have textures assigned
+                if (!m_Decals[decalIndex].m_Material.GetTexture("_BaseColorMap") && !m_Decals[decalIndex].m_Material.GetTexture("_NormalMap") &&
+                    !m_Decals[decalIndex].m_Material.GetTexture("_MaskMap"))
+                    continue;
+
+                m_Decals[decalIndex].UpdatePropertyBlock(camera.cameraPos);
+                cmd.DrawMesh(m_DecalMesh, m_Decals[decalIndex].transform.localToWorldMatrix, m_Decals[decalIndex].m_Material, 0, 0,
+                    m_Decals[decalIndex].GetPropertyBlock());
             }
         }
 
-        public void RemoveDecal(DecalProjectorComponent d)
+        public void EndCull()
         {
-            m_Decals.Remove(d);
-        }
-
-        public void Render(ScriptableRenderContext renderContext, Vector3 cameraPos, CommandBuffer cmd)
-        {
-            if (m_CubeMesh == null)
-                CreateCubeMesh();
-            foreach (var decal in m_Decals)
+            if (m_CullingGroup == null)
             {
-				decal.UpdatePropertyBlock(cameraPos);
-                cmd.DrawMesh(m_CubeMesh, decal.transform.localToWorldMatrix, decal.m_Material, 0, 0, decal.GetPropertyBlock());
+                Debug.LogError("Begin/EndCull() called out of sequence for decal projectors.");
+            }
+            else
+            {
+                m_CullingGroup.Dispose();
+                m_CullingGroup = null;               
             }
         }
     }

@@ -88,7 +88,7 @@ SAMPLER(sampler_LayerInfluenceMaskMap);
 
 #endif
 
-CBUFFER_START(_PerMaterial)
+CBUFFER_START(UnityPerMaterial)
 
 // shared constant between lit and layered lit
 float _AlphaCutoff;

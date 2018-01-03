@@ -269,8 +269,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static ComputeBuffer s_EnvLightDatas = null;
         static ComputeBuffer s_shadowDatas = null;
 
-        static Texture2DArray m_DefaultTexture2DArray;
-        static Cubemap m_DefaultTextureCube;
+        static Texture2DArray s_DefaultTexture2DArray;
+        static Cubemap s_DefaultTextureCube;
+
+        static HDAdditionalReflectionData defaultHDAdditionalReflectionData { get { return ComponentSingleton<HDAdditionalReflectionData>.instance; } }
+        static HDAdditionalLightData defaultHDAdditionalLightData { get { return ComponentSingleton<HDAdditionalLightData>.instance; } }
+        static HDAdditionalCameraData defaultHDAdditionalCameraData { get { return ComponentSingleton<HDAdditionalCameraData>.instance; } }
 
         ReflectionProbeCache m_ReflectionProbeCache;
         TextureCache2D m_CookieTexArray;
@@ -373,10 +377,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         FrameSettings m_FrameSettings = null;
         RenderPipelineResources m_Resources = null;
-
-        // this defualt additionalLightData is use for lights that don't have any (like preview light)
-        HDAdditionalLightData defaultHDAdditionalLightData = new HDAdditionalLightData();
-        HDAdditionalReflectionData defaultHDAdditionalReflectionData = new HDAdditionalReflectionData();
 
         // Following is an array of material of size eight for all combination of keyword: OUTPUT_SPLIT_LIGHTING - LIGHTLOOP_TILE_PASS - SHADOWS_SHADOWMASK - USE_FPTL_LIGHTLIST/USE_CLUSTERED_LIGHTLIST - DEBUG_DISPLAY
         Material[] m_deferredLightingMaterial;
@@ -533,12 +533,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_DebugViewTilesMaterial = CoreUtils.CreateEngineMaterial(m_Resources.debugViewTilesShader);
 
-            m_DefaultTexture2DArray = new Texture2DArray(1, 1, 1, TextureFormat.ARGB32, false);
-            m_DefaultTexture2DArray.SetPixels32(new Color32[1] { new Color32(128, 128, 128, 128) }, 0);
-            m_DefaultTexture2DArray.Apply();
+            s_DefaultTexture2DArray = new Texture2DArray(1, 1, 1, TextureFormat.ARGB32, false);
+            s_DefaultTexture2DArray.SetPixels32(new Color32[1] { new Color32(128, 128, 128, 128) }, 0);
+            s_DefaultTexture2DArray.Apply();
 
-            m_DefaultTextureCube = new Cubemap(16, TextureFormat.ARGB32, false);
-            m_DefaultTextureCube.Apply();
+            s_DefaultTextureCube = new Cubemap(16, TextureFormat.ARGB32, false);
+            s_DefaultTextureCube.Apply();
 
 #if UNITY_EDITOR
             UnityEditor.SceneView.onSceneGUIDelegate -= OnSceneGUI;
@@ -758,7 +758,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // TODO: Currently m_maxShadowDistance is based on shadow settings, but this value is define for a whole level. We should be able to change this value during gameplay
             float scale;
             float bias;
-            GetSCaleAndBiasForLinearDistanceFade(m_maxShadowDistance, out scale, out bias);
+            GetScaleAndBiasForLinearDistanceFade(m_maxShadowDistance, out scale, out bias);
             directionalLightData.fadeDistanceScaleAndBias = new Vector2(scale, bias);
             directionalLightData.shadowMaskSelector = Vector4.zero;
 
@@ -782,7 +782,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return true;
         }
 
-        void GetSCaleAndBiasForLinearDistanceFade(float fadeDistance, out float scale, out float bias)
+        void GetScaleAndBiasForLinearDistanceFade(float fadeDistance, out float scale, out float bias)
         {
             // Fade with distance calculation is just a linear fade from 90% of fade distance to fade distance. 90% arbitrarily chosen but should work well enough.
             float distanceFadeNear = 0.9f * fadeDistance;
@@ -794,7 +794,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             float scale;
             float bias;
-            GetSCaleAndBiasForLinearDistanceFade(fadeDistance, out scale, out bias);
+            GetScaleAndBiasForLinearDistanceFade(fadeDistance, out scale, out bias);
 
             return 1.0f - Mathf.Clamp01(distanceToCamera * scale + bias);
         }
