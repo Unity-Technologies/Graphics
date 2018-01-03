@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine.Rendering;
 using System;
 using System.Diagnostics;
@@ -288,6 +288,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Debugging
         MaterialPropertyBlock m_SharedPropertyBlock = new MaterialPropertyBlock();
         DebugDisplaySettings m_DebugDisplaySettings = new DebugDisplaySettings();
+        public DebugDisplaySettings debugDisplaySettings { get { return m_DebugDisplaySettings; } }
         static DebugDisplaySettings s_NeutralDebugDisplaySettings = new DebugDisplaySettings();
         DebugDisplaySettings m_CurrentDebugDisplaySettings;
 
