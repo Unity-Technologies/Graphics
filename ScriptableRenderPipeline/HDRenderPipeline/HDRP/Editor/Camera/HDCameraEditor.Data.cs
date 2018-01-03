@@ -12,12 +12,15 @@ namespace UnityEditor.Experimental.Rendering
         {
             SerializedHDCamera m_SerializedHdCamera;
 
-            AnimBool[] m_AnimBools = new AnimBool[4];
+            AnimBool[] m_AnimBools = new AnimBool[7];
 
             public AnimBool isSectionExpandedBGColorOptions { get { return m_AnimBools[0]; } }
             public AnimBool isSectionExpandedOrthoOptions { get { return m_AnimBools[1]; } }
             public AnimBool isSectionExpandedTargetEyeOptions { get { return m_AnimBools[2]; } }
-            public AnimBool isSectionExpandedMiscellaneous { get { return m_AnimBools[3]; } }
+            public AnimBool isSectionExpandedShaderFeature { get { return m_AnimBools[3]; } }
+            public AnimBool isSectionExpandedLightLoop { get { return m_AnimBools[4]; } }
+            public AnimBool isSectionExpandedScreenSpace { get { return m_AnimBools[5]; } }
+            public AnimBool isSectionExpandedMiscellaneous { get { return m_AnimBools[6]; } }
 
             public UIState()
             {
