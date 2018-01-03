@@ -1,11 +1,13 @@
 #ifndef UNITY_VOLUME_RENDERING_INCLUDED
 #define UNITY_VOLUME_RENDERING_INCLUDED
 
+#include "Filtering.hlsl"
+
 // Reminder:
 // Optical_Depth(x, y) = Integral{x, y}{Extinction(t) dt}
 // Transmittance(x, y) = Exp(-Optical_Depth(x, y))
 // Transmittance(x, z) = Transmittance(x, y) * Transmittance(y, z)
-// Integral{a, b}{Transmittance(0, t) * Li(t) dt} = Transmittance(0, a) * Integral{a, b}{Transmittance(0, t - a) * Li(t) dt}.
+// Integral{a, b}{Transmittance(0, t) * L_s(t) dt} = Transmittance(0, a) * Integral{a, b}{Transmittance(0, t - a) * L_s(t) dt}.
 
 float OpticalDepthHomogeneousMedium(float extinction, float intervalLength)
 {
@@ -188,11 +190,46 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBufferLighting, trilinearSampler), bool cla
 // Returns linearly interpolated {volumetric radiance, opacity}. The sampler clamps to edge.
 float4 SampleInScatteredRadianceAndTransmittance(TEXTURE3D_ARGS(VBufferLighting, trilinearSampler),
                                                  float2 positionNDC, float linearDepth,
-                                                 float2 VBufferScale, float4 VBufferDepthEncodingParams)
+                                                 float4 VBufferResolutionAndScale, float4 VBufferDepthEncodingParams)
 {
+#ifdef RECONSTRUCTION_FILTER_TRILINEAR
     float4 L = SampleVBuffer(TEXTURE3D_PARAM(VBufferLighting, trilinearSampler), true,
                              positionNDC, linearDepth, VBufferScale, VBufferDepthEncodingParams);
+#else
+    // Perform biquadratic reconstruction in XY, linear in Z, using 4x trilinear taps.
+    int   k = VBUFFER_SLICE_COUNT;
+    float z = linearDepth;
+    float d = EncodeLogarithmicDepth(z, VBufferDepthEncodingParams);
 
+     // The distance between slices is log-encoded.
+    float s0 = floor(d * k - 0.5);
+    float s1 = ceil(d * k - 0.5);
+    float d0 = saturate(s0 * rcp(k) + (0.5 * rcp(k)));
+    float d1 = saturate(s1 * rcp(k) + (0.5 * rcp(k)));
+    float z0 = DecodeLogarithmicDepth(d0, VBufferDepthEncodingParams);
+    float z1 = DecodeLogarithmicDepth(d1, VBufferDepthEncodingParams);
+
+    // Compute the linear Z-interpolation weight.
+    float a = saturate((z - z0) / (z1 - z0));
+    float w = d0 + a * rcp(k);
+
+    // Account for the visible area of the V-Buffer.
+    float2 xy = positionNDC * (VBufferResolutionAndScale.xy * VBufferResolutionAndScale.zw); // TODO: precompute
+    float2 ic = floor(xy);
+    float2 fc = frac(xy);
+
+    float2 weights[2], offsets[2];
+    BiquadraticFilter(1 - fc, weights, offsets); // Reflect the filter around 0.5
+
+    float2 rcpRes = rcp(VBufferResolutionAndScale.xy); // TODO: precompute
+
+    float4 L = (weights[0].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBufferLighting, trilinearSampler, float3((ic + float2(offsets[0].x, offsets[0].y)) * rcpRes, w), 0)  // Top left
+             + (weights[1].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBufferLighting, trilinearSampler, float3((ic + float2(offsets[1].x, offsets[0].y)) * rcpRes, w), 0)  // Top right
+             + (weights[0].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBufferLighting, trilinearSampler, float3((ic + float2(offsets[0].x, offsets[1].y)) * rcpRes, w), 0)  // Bottom left
+             + (weights[1].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBufferLighting, trilinearSampler, float3((ic + float2(offsets[1].x, offsets[1].y)) * rcpRes, w), 0); // Bottom right
+#endif
+
+    // TODO: add some animated noise to the reconstructed radiance.
     return float4(L.rgb, 1 - Transmittance(L.a));
 }
 

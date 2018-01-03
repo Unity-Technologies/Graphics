@@ -59,7 +59,7 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput)
 #ifdef VOLUMETRIC_LIGHTING_ENABLED
     return SampleInScatteredRadianceAndTransmittance(TEXTURE3D_PARAM(_VBufferLighting, s_trilinear_clamp_sampler),
                                                      posInput.positionNDC, posInput.linearDepth,
-                                                     _VBufferResolutionAndScale.zw,
+                                                     _VBufferResolutionAndScale,
                                                      _VBufferDepthEncodingParams);
 #endif
 
