@@ -45,7 +45,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void OnValidate()
         {
-            BoundingSphere sphere = CoreUtils.GetDecalMeshBoundingSphere(transform.localToWorldMatrix);
+            BoundingSphere sphere = DecalSystem.instance.GetDecalProjectBoundingSphere(transform.localToWorldMatrix);
             if (m_Material != null)
             {
                 Shader shader = m_Material.shader;
