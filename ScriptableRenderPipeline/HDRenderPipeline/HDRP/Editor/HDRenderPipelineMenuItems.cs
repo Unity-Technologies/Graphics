@@ -1,7 +1,9 @@
 ﻿using System.IO;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.SceneManagement;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -37,7 +39,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     camera.gameObject.AddComponent<HDAdditionalCameraData>();
             }
         }
-        static void CheckOutFile(bool VSCEnabled, Material mat)
+        static void CheckOutFile(bool VSCEnabled, Object mat)
         {
             if (VSCEnabled)
             {
@@ -78,20 +80,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             try
             {
-                var materials = Resources.FindObjectsOfTypeAll<Material>();
-
-                bool VSCEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
-
-                for (int i = 0, length = materials.Length; i < length; i++)
-                {
-                    EditorUtility.DisplayProgressBar(
-                        "Setup materials Keywords...",
-                        string.Format("{0} / {1} materials cleaned.", i, length),
-                        i / (float)(length - 1));
-
-                    CheckOutFile(VSCEnabled, materials[i]);
-                    HDEditorUtils.ResetMaterialKeywords(materials[i]);
-                }
+                ResetAllLoadedMaterialKeywords(string.Empty, 1, 0);
             }
             finally
             {
@@ -99,32 +88,56 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/Upgrade/High Definition/Reset All Materials Keywords (Materials in Project)", priority = CoreUtils.editMenuPriority2)]
-        static void ResetAllMaterialKeywordsInProject()
+        [MenuItem("Edit/Render Pipeline/Upgrade/High Definition/Reset All Material Asset's Keywords (Materials in Project)", priority = CoreUtils.editMenuPriority2)]
+        static void ResetAllMaterialAssetsKeywords()
         {
             try
             {
-                var matIds = AssetDatabase.FindAssets("t:Material");
-
-                bool VSCEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
-
-                for (int i = 0, length = matIds.Length; i < length; i++)
-                {
-                    var path = AssetDatabase.GUIDToAssetPath(matIds[i]);
-                    var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
-
-                    EditorUtility.DisplayProgressBar(
-                        "Setup materials Keywords...",
-                        string.Format("{0} / {1} materials cleaned.", i, length),
-                        i / (float)(length - 1));
-
-                    CheckOutFile(VSCEnabled, mat);
-                    HDEditorUtils.ResetMaterialKeywords(mat);
-                }
+                ResetAllMaterialAssetsKeywords(1, 0);
             }
             finally
             {
                 EditorUtility.ClearProgressBar();
+            }
+        }
+
+        [MenuItem("Edit/Render Pipeline/Upgrade/High Definition/Reset All Materials Keywords (Materials in Project and scenes)", priority = CoreUtils.editMenuPriority2)]
+        static void ResetAllMaterialKeywordsInProjectAndScenes()
+        {
+            var openedScenes = new string[EditorSceneManager.loadedSceneCount];
+            for (var i = 0; i < openedScenes.Length; ++i)
+                openedScenes[i] = SceneManager.GetSceneAt(i).path;
+
+            bool VSCEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
+
+            try
+            {
+                var scenes = AssetDatabase.FindAssets("t:Scene");
+                var scale = 1f / Mathf.Max(1, scenes.Length);
+                for (var i = 0; i < scenes.Length; ++i)
+                {
+                    var scenePath = AssetDatabase.GUIDToAssetPath(scenes[i]);
+                    var sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath);
+                    CheckOutFile(VSCEnabled, sceneAsset);
+                    EditorSceneManager.OpenScene(scenePath);
+
+                    var sceneName = Path.GetFileNameWithoutExtension(scenePath);
+                    var description = string.Format("{0} {1}/{2} - ", sceneName, i + 1, scenes.Length);
+                    ResetAllLoadedMaterialKeywords(description, scale, scale * i);
+                }
+
+                ResetAllMaterialAssetsKeywords(scale, scale * (scenes.Length - 1));
+            }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
+
+                if (openedScenes.Length > 0)
+                {
+                    EditorSceneManager.OpenScene(openedScenes[0]);
+                    for (var i = 1; i < openedScenes.Length; i++)
+                        EditorSceneManager.OpenScene(openedScenes[i], OpenSceneMode.Additive);
+                }
             }
         }
 
@@ -290,6 +303,45 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetSubsurfaceScatteringSettings>(), "New SSS Settings.asset", icon, null);
+        }
+
+        static void ResetAllMaterialAssetsKeywords(float progressScale, float progressOffset)
+        {
+            var matIds = AssetDatabase.FindAssets("t:Material");
+
+            bool VSCEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
+
+            for (int i = 0, length = matIds.Length; i < length; i++)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(matIds[i]);
+                var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+
+                EditorUtility.DisplayProgressBar(
+                    "Setup material asset's Keywords...",
+                    string.Format("{0} / {1} materials cleaned.", i, length),
+                    (i / (float)(length - 1)) * progressScale + progressOffset);
+
+                CheckOutFile(VSCEnabled, mat);
+                HDEditorUtils.ResetMaterialKeywords(mat);
+            }
+        }
+
+        static void ResetAllLoadedMaterialKeywords(string descriptionPrefix, float progressScale, float progressOffset)
+        {
+            var materials = Resources.FindObjectsOfTypeAll<Material>();
+
+            bool VSCEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
+
+            for (int i = 0, length = materials.Length; i < length; i++)
+            {
+                EditorUtility.DisplayProgressBar(
+                    "Setup materials Keywords...",
+                    string.Format("{0}{1} / {2} materials cleaned.", descriptionPrefix, i, length),
+                    (i / (float)(length - 1)) * progressScale + progressOffset);
+
+                CheckOutFile(VSCEnabled, materials[i]);
+                HDEditorUtils.ResetMaterialKeywords(materials[i]);
+            }
         }
     }
 }
