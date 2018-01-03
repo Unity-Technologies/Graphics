@@ -89,7 +89,22 @@ namespace UnityEditor.VFX
                 {
                     var mapper = new VFXExpressionMapper();
                     for (int i = 2; i < GetNbInputSlots(); ++i)
-                        mapper.AddExpression(GetInputSlot(i).GetExpression(), GetInputSlot(i).property.name, -1);
+                    {
+                        VFXExpression exp = GetInputSlot(i).GetExpression();
+                        VFXProperty prop = GetInputSlot(i).property;
+
+                        // As there's not shader generation here, we need expressions that can be evaluated on CPU
+                        if (exp.IsAny(VFXExpression.Flags.InvalidOnCPU | VFXExpression.Flags.PerElement))
+                            throw new InvalidOperationException(string.Format("Expression for slot {0} must be evaluable on CPU: {1}", prop.name, exp));
+
+                        // needs to convert to srgb as color are linear in vfx graph
+                        // This should not be performed for colors with the attribute [HDR] and be performed for vector4 with the attribute [Gamma]
+                        // But property attributes cannot seem to be accessible from C# :(
+                        if (prop.type == typeof(Color))
+                            exp = VFXOperatorUtility.LinearToGamma(exp);
+
+                        mapper.AddExpression(exp, prop.name, -1);
+                    }
                     return mapper;
                 }
 
