@@ -51,9 +51,14 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            return string.Format("TEXTURE2D({0}){1}\nSAMPLER(sampler{0}){1}", referenceName, delimiter);
+            return string.Format("TEXTURE2D({0}){1} SAMPLER(sampler{0}){1}", referenceName, delimiter);
         }
-        
+
+        public override string GetPropertyAsArgumentString()
+        {
+            return string.Format("TEXTURE2D_ARGS({0}, sampler{0})", referenceName);
+        }
+
         public override PreviewProperty GetPreviewMaterialProperty()
         {
             return new PreviewProperty(PropertyType.Texture)

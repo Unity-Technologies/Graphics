@@ -18,6 +18,9 @@ namespace UnityEditor.ShaderGraph
 
         string GetPropertyBlockString();
         string GetPropertyDeclarationString(string delimiter = ";");
+
+        string GetPropertyAsArgumentString();
+
         PreviewProperty GetPreviewMaterialProperty();
         INode ToConcreteNode();
     }

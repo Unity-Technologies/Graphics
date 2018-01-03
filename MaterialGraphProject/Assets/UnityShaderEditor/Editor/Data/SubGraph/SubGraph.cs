@@ -93,7 +93,7 @@ namespace UnityEditor.ShaderGraph
                 // Generate arguments... first INPUTS
                 var arguments = new List<string>();
                 foreach (var prop in graphInputs)
-                    arguments.Add(string.Format("{0}", prop.GetPropertyDeclarationString(string.Empty)));
+                    arguments.Add(string.Format("{0}", prop.GetPropertyAsArgumentString()));
 
                 // now pass surface inputs
                 arguments.Add("SurfaceInputs IN");
