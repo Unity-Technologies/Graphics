@@ -181,8 +181,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableSSSAndTransmission, () => frameSettings.enableSSSAndTransmission, (value) => frameSettings.enableSSSAndTransmission = (bool)value);
 
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kForwardOnly, () => frameSettings.enableForwardRenderingOnly, (value) => frameSettings.enableForwardRenderingOnly = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kDeferredDepthPrepassATestOnly, () => frameSettings.enableDepthPrepassWithDeferredRendering, (value) => frameSettings.enableDepthPrepassWithDeferredRendering = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, KEnableTransparentPrepass, () => frameSettings.enableAlphaTestOnlyInDeferredPrepass, (value) => frameSettings.enableAlphaTestOnlyInDeferredPrepass = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kDeferredDepthPrepass, () => frameSettings.enableDepthPrepassWithDeferredRendering, (value) => frameSettings.enableDepthPrepassWithDeferredRendering = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kDeferredDepthPrepassATestOnly, () => frameSettings.enableAlphaTestOnlyInDeferredPrepass, (value) => frameSettings.enableAlphaTestOnlyInDeferredPrepass = (bool)value);
 
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, KEnableTransparentPrepass, () => frameSettings.enableTransparentPrepass, (value) => frameSettings.enableTransparentPrepass = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableMotionVectors, () => frameSettings.enableMotionVectors, (value) => frameSettings.enableMotionVectors = (bool)value);
