@@ -5169,29 +5169,29 @@ VFXAsset:
         nameId: sourceAttributeBuffer
       values:
       - index: 74
-        nameId: uniform_Torus_center_b
+        nameId: Torus_center_b
       - index: 16
-        nameId: uniform_Torus_majorRadius_b
+        nameId: Torus_majorRadius_b
       - index: 17
-        nameId: uniform_Torus_minorRadius_b
+        nameId: Torus_minorRadius_b
       - index: 63
-        nameId: uniform_Torus_arc_b
+        nameId: Torus_arc_b
       - index: 67
-        nameId: uniform_volumeFactor_b
+        nameId: volumeFactor_b
       - index: 80
-        nameId: uniform_r_b
+        nameId: r_b
       - index: 48
         nameId: uniform_h
       - index: 65
-        nameId: uniform_Lifetime_d
+        nameId: Lifetime_d
       - index: 68
-        nameId: uniform_box_center_e
+        nameId: box_center_e
       - index: 81
-        nameId: uniform_box_size_e
+        nameId: box_size_e
       - index: 73
-        nameId: uniform_Sphere_center_f
+        nameId: Sphere_center_f
       - index: 75
-        nameId: uniform_Sphere_radius_f
+        nameId: Sphere_radius_f
       params: []
       processor: {fileID: 7200000, guid: 2806efddc0b238948ac59a8d055ceef2, type: 3}
     - type: 805306368
@@ -5202,29 +5202,29 @@ VFXAsset:
         nameId: deadListOut
       values:
       - index: 68
-        nameId: uniform_box_center_b
+        nameId: box_center_b
       - index: 81
-        nameId: uniform_box_size_b
+        nameId: box_size_b
       - index: 70
-        nameId: uniform_Elasticity_b
+        nameId: Elasticity_b
       - index: 71
-        nameId: uniform_Friction_b
+        nameId: Friction_b
       - index: 79
-        nameId: uniform_LifetimeLoss_b
+        nameId: LifetimeLoss_b
       - index: 76
-        nameId: uniform_deltaTime_b
+        nameId: deltaTime_b
       - index: 73
-        nameId: uniform_Sphere_center_c
+        nameId: Sphere_center_c
       - index: 75
-        nameId: uniform_Sphere_radius_c
+        nameId: Sphere_radius_c
       - index: 77
-        nameId: uniform_Elasticity_c
+        nameId: Elasticity_c
       - index: 61
-        nameId: uniform_Friction_c
+        nameId: Friction_c
       - index: 62
-        nameId: uniform_LifetimeLoss_c
+        nameId: LifetimeLoss_c
       - index: 60
-        nameId: uniform_Force_d
+        nameId: Force_d
       params: []
       processor: {fileID: 7200000, guid: c94f585a3697f844d82bf500f6ee10df, type: 3}
     - type: 1073741824
@@ -5233,9 +5233,9 @@ VFXAsset:
         nameId: attributeBuffer
       values:
       - index: 64
-        nameId: uniform_gradient_b
+        nameId: gradient_b
       - index: 66
-        nameId: uniform_alphaThreshold
+        nameId: alphaThreshold
       params:
       - index: 0
         nameId: sortPriority

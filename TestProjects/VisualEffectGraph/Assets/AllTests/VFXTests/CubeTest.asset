@@ -3429,17 +3429,17 @@ VFXAsset:
         nameId: sourceAttributeBuffer
       values:
       - index: 40
-        nameId: uniform_Torus_center_b
+        nameId: Torus_center_b
       - index: 0
-        nameId: uniform_Torus_majorRadius_b
+        nameId: Torus_majorRadius_b
       - index: 1
-        nameId: uniform_Torus_minorRadius_b
+        nameId: Torus_minorRadius_b
       - index: 41
-        nameId: uniform_Torus_arc_b
+        nameId: Torus_arc_b
       - index: 37
-        nameId: uniform_r_b
+        nameId: r_b
       - index: 38
-        nameId: uniform_Lifetime_c
+        nameId: Lifetime_c
       params: []
       processor: {fileID: 7200000, guid: d24b9e1782b6c9c4fad0a7ca691a9145, type: 3}
     - type: 805306368
@@ -3454,7 +3454,7 @@ VFXAsset:
       - index: 10
         nameId: uniform_c
       - index: 3
-        nameId: uniform_deltaTime_c
+        nameId: deltaTime_c
       params: []
       processor: {fileID: 7200000, guid: 0146300833ab97a4faddcac8aa6a3b01, type: 3}
     - type: 1073741827
@@ -3463,19 +3463,19 @@ VFXAsset:
         nameId: attributeBuffer
       values:
       - index: 44
-        nameId: uniform_Position_position_b
+        nameId: Position_position_b
       - index: 42
-        nameId: uniform_curve_c
+        nameId: curve_c
       - index: 43
-        nameId: uniform_Color_d
+        nameId: Color_d
       - index: 36
-        nameId: uniform_alphaThreshold
+        nameId: alphaThreshold
       - index: 34
-        nameId: uniform_rimColor
+        nameId: rimColor
       - index: 35
-        nameId: uniform_rimCoef
+        nameId: rimCoef
       - index: 33
-        nameId: texture_normalMap
+        nameId: normalMap
       params:
       - index: 0
         nameId: sortPriority

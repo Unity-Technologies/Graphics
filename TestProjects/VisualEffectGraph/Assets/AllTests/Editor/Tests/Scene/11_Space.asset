@@ -2330,7 +2330,7 @@ MonoBehaviour:
           Culture=neutral, PublicKeyToken=null
       m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"c4c66e4864ec59c4f826a03689258bb6","type":3}}'
   m_Property:
-    name: texture
+    name: mainTexture
     m_serializedType:
       m_SerializableType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
@@ -2600,7 +2600,7 @@ MonoBehaviour:
           Culture=neutral, PublicKeyToken=null
       m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"c4c66e4864ec59c4f826a03689258bb6","type":3}}'
   m_Property:
-    name: texture
+    name: mainTexture
     m_serializedType:
       m_SerializableType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
@@ -4792,11 +4792,11 @@ VFXAsset:
         nameId: sourceAttributeBuffer
       values:
       - index: 38
-        nameId: uniform_Lifetime_b
+        nameId: Lifetime_b
       - index: 30
         nameId: uniform_c
       - index: 40
-        nameId: uniform_Velocity_d
+        nameId: Velocity_d
       params: []
       processor: {fileID: 7200000, guid: 18f070cb1e673574f91b4deba3c8cdb4, type: 3}
     - type: 805306368
@@ -4807,9 +4807,9 @@ VFXAsset:
         nameId: deadListOut
       values:
       - index: 37
-        nameId: uniform_GravityVector_b
+        nameId: GravityVector_b
       - index: 42
-        nameId: uniform_deltaTime_b
+        nameId: deltaTime_b
       params: []
       processor: {fileID: 7200000, guid: fbf9b28e18ef6a848ae594f154a39c49, type: 3}
     - type: 1073741826
@@ -4818,9 +4818,9 @@ VFXAsset:
         nameId: attributeBuffer
       values:
       - index: 46
-        nameId: uniform_Color_b
+        nameId: Color_b
       - index: 45
-        nameId: texture_texture
+        nameId: mainTexture
       params:
       - index: 0
         nameId: sortPriority
@@ -4857,11 +4857,11 @@ VFXAsset:
         nameId: sourceAttributeBuffer
       values:
       - index: 43
-        nameId: uniform_Lifetime_b
+        nameId: Lifetime_b
       - index: 44
-        nameId: uniform_Position_c
+        nameId: Position_c
       - index: 8
-        nameId: uniform_Velocity_d
+        nameId: Velocity_d
       params: []
       processor: {fileID: 7200000, guid: 63643632a0e68f04a855358a282bb678, type: 3}
     - type: 805306368
@@ -4872,9 +4872,9 @@ VFXAsset:
         nameId: deadListOut
       values:
       - index: 36
-        nameId: uniform_GravityVector_b
+        nameId: GravityVector_b
       - index: 42
-        nameId: uniform_deltaTime_b
+        nameId: deltaTime_b
       params: []
       processor: {fileID: 7200000, guid: dcb564efd6d8ab242806b071b44015d0, type: 3}
     - type: 1073741826
@@ -4883,9 +4883,9 @@ VFXAsset:
         nameId: attributeBuffer
       values:
       - index: 35
-        nameId: uniform_Color_b
+        nameId: Color_b
       - index: 33
-        nameId: texture_texture
+        nameId: mainTexture
       params:
       - index: 0
         nameId: sortPriority

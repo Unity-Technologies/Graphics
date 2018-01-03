@@ -1769,7 +1769,7 @@ MonoBehaviour:
           Culture=neutral, PublicKeyToken=null
       m_SerializableObject: '{"obj":{"fileID":10300,"guid":"0000000000000000f000000000000000","type":0}}'
   m_Property:
-    name: texture
+    name: mainTexture
     m_serializedType:
       m_SerializableType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
@@ -2308,7 +2308,7 @@ MonoBehaviour:
           Culture=neutral, PublicKeyToken=null
       m_SerializableObject: '{"obj":{"fileID":10300,"guid":"0000000000000000f000000000000000","type":0}}'
   m_Property:
-    name: texture
+    name: mainTexture
     m_serializedType:
       m_SerializableType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
@@ -2663,7 +2663,7 @@ MonoBehaviour:
           Culture=neutral, PublicKeyToken=null
       m_SerializableObject: '{"obj":{"fileID":10300,"guid":"0000000000000000f000000000000000","type":0}}'
   m_Property:
-    name: texture
+    name: mainTexture
     m_serializedType:
       m_SerializableType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
@@ -4089,17 +4089,17 @@ VFXAsset:
         nameId: sourceAttributeBuffer
       values:
       - index: 50
-        nameId: uniform_Lifetime_b
+        nameId: Lifetime_b
       - index: 52
-        nameId: uniform_Torus_center_c
+        nameId: Torus_center_c
       - index: 1
-        nameId: uniform_Torus_majorRadius_c
+        nameId: Torus_majorRadius_c
       - index: 0
-        nameId: uniform_Torus_minorRadius_c
+        nameId: Torus_minorRadius_c
       - index: 60
-        nameId: uniform_Torus_arc_c
+        nameId: Torus_arc_c
       - index: 69
-        nameId: uniform_r_c
+        nameId: r_c
       params: []
       processor: {fileID: 7200000, guid: f3bc67542dcfd4c4991572cf8dc01021, type: 3}
     - type: 805306368
@@ -4110,7 +4110,7 @@ VFXAsset:
         nameId: deadListOut
       values:
       - index: 75
-        nameId: uniform_deltaTime_b
+        nameId: deltaTime_b
       params: []
       processor: {fileID: 7200000, guid: 28f8e65402902ea40833c4c2e6f0e8c9, type: 3}
     - type: 1073741826
@@ -4119,11 +4119,11 @@ VFXAsset:
         nameId: attributeBuffer
       values:
       - index: 66
-        nameId: uniform_Alpha_b
+        nameId: Alpha_b
       - index: 57
-        nameId: uniform_Color_c
+        nameId: Color_c
       - index: 55
-        nameId: texture_texture
+        nameId: mainTexture
       params:
       - index: 2
         nameId: sortPriority
@@ -4160,13 +4160,13 @@ VFXAsset:
         nameId: sourceAttributeBuffer
       values:
       - index: 74
-        nameId: uniform_Lifetime_b
+        nameId: Lifetime_b
       - index: 67
-        nameId: uniform_Sphere_center_c
+        nameId: Sphere_center_c
       - index: 63
-        nameId: uniform_Sphere_radius_c
+        nameId: Sphere_radius_c
       - index: 64
-        nameId: uniform_Sphere_arc_c
+        nameId: Sphere_arc_c
       params: []
       processor: {fileID: 7200000, guid: 9afadfeb06f94c04f8115e4360496567, type: 3}
     - type: 805306368
@@ -4177,7 +4177,7 @@ VFXAsset:
         nameId: deadListOut
       values:
       - index: 75
-        nameId: uniform_deltaTime_b
+        nameId: deltaTime_b
       params: []
       processor: {fileID: 7200000, guid: 4732e82dd8a6d234b899537b9413ee5f, type: 3}
     - type: 1073741826
@@ -4186,11 +4186,11 @@ VFXAsset:
         nameId: attributeBuffer
       values:
       - index: 66
-        nameId: uniform_Alpha_b
+        nameId: Alpha_b
       - index: 73
-        nameId: uniform_Color_c
+        nameId: Color_c
       - index: 71
-        nameId: texture_texture
+        nameId: mainTexture
       params:
       - index: 1
         nameId: sortPriority
@@ -4227,11 +4227,11 @@ VFXAsset:
         nameId: sourceAttributeBuffer
       values:
       - index: 72
-        nameId: uniform_Lifetime_b
+        nameId: Lifetime_b
       - index: 53
-        nameId: uniform_Box_center_c
+        nameId: Box_center_c
       - index: 51
-        nameId: uniform_Box_size_c
+        nameId: Box_size_c
       params: []
       processor: {fileID: 7200000, guid: acadc69d0ee52f24ba3d5f55932b5949, type: 3}
     - type: 805306368
@@ -4242,7 +4242,7 @@ VFXAsset:
         nameId: deadListOut
       values:
       - index: 75
-        nameId: uniform_deltaTime_b
+        nameId: deltaTime_b
       params: []
       processor: {fileID: 7200000, guid: b57310c2ba97a9640952e712363b988e, type: 3}
     - type: 1073741826
@@ -4251,11 +4251,11 @@ VFXAsset:
         nameId: attributeBuffer
       values:
       - index: 66
-        nameId: uniform_Alpha_b
+        nameId: Alpha_b
       - index: 61
-        nameId: uniform_Color_c
+        nameId: Color_c
       - index: 59
-        nameId: texture_texture
+        nameId: mainTexture
       params:
       - index: 0
         nameId: sortPriority
