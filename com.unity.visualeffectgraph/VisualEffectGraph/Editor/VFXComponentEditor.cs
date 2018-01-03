@@ -51,23 +51,23 @@ static class VFXComponentUtility
         }
         else if (type == typeof(Texture2D))
         {
-            return comp.GetTexture2D(name);
+            return comp.GetTexture(name);
         }
         else if (type == typeof(Texture2DArray))
         {
-            return comp.GetTexture2DArray(name);
+            return comp.GetTexture(name);
         }
         else if (type == typeof(Texture3D))
         {
-            return comp.GetTexture3D(name);
+            return comp.GetTexture(name);
         }
         else if (type == typeof(Cubemap))
         {
-            return comp.GetTextureCube(name);
+            return comp.GetTexture(name);
         }
         else if (type == typeof(CubemapArray))
         {
-            return comp.GetTextureCubeArray(name);
+            return comp.GetTexture(name);
         }
         else if (type == typeof(float))
         {
@@ -120,23 +120,23 @@ static class VFXComponentUtility
         }
         else if (type == typeof(Texture2D))
         {
-            comp.SetTexture2D(name, (Texture2D)value);
+            comp.SetTexture(name, (Texture2D)value);
         }
         else if (type == typeof(Texture2DArray))
         {
-            comp.SetTexture2DArray(name, (Texture2DArray)value);
+            comp.SetTexture(name, (Texture2DArray)value);
         }
         else if (type == typeof(Texture3D))
         {
-            comp.SetTexture3D(name, (Texture3D)value);
+            comp.SetTexture(name, (Texture3D)value);
         }
         else if (type == typeof(Cubemap))
         {
-            comp.SetTextureCube(name, (Cubemap)value);
+            comp.SetTexture(name, (Cubemap)value);
         }
         else if (type == typeof(CubemapArray))
         {
-            comp.SetTextureCubeArray(name, (CubemapArray)value);
+            comp.SetTexture(name, (CubemapArray)value);
         }
         else if (type == typeof(float))
         {

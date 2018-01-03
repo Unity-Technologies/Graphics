@@ -13,6 +13,7 @@ namespace UnityEditor.VFX.Block
             FaceCameraPlane,
             FaceCameraPosition,
             LookAtPosition,
+            LookAtLine,
             FixedOrientation,
             FixedAxis,
             AlongVelocity,
@@ -48,6 +49,10 @@ namespace UnityEditor.VFX.Block
                 {
                     case Mode.LookAtPosition:
                         yield return new VFXPropertyWithValue(new VFXProperty(typeof(Position), "Position"));
+                        break;
+
+                    case Mode.LookAtLine:
+                        yield return new VFXPropertyWithValue(new VFXProperty(typeof(Line), "Line"));
                         break;
 
                     case Mode.FixedOrientation:
@@ -86,6 +91,15 @@ axisY = cross(axisZ,axisX);
                     case Mode.LookAtPosition:
                         return @"
 axisZ = normalize(position - Position_position);
+axisX = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,axisZ));
+axisY = cross(axisZ,axisX);
+";
+
+                    case Mode.LookAtLine:
+                        return @"
+float3 lineDir = normalize(Line_end - Line_start);
+float3 target = dot(position - Line_start,lineDir) * lineDir + Line_start;
+axisZ = normalize(position - target);
 axisX = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,axisZ));
 axisY = cross(axisZ,axisX);
 ";

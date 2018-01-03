@@ -15,6 +15,11 @@ namespace UnityEditor.VFX
             public Position position = new Position();
         }
 
+        public class OutputProperties
+        {
+            public Vector3 tPos;
+        }
+
         override public string name { get { return "Transform (Position)"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

@@ -19,6 +19,12 @@ namespace UnityEditor.VFX
             public float right = 0.0f;
         }
 
+        public class OutputProperties
+        {
+            [Tooltip("The result of the comparison.")]
+            public bool res;
+        }
+
         override public string name { get { return "Compare"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

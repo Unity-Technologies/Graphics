@@ -1506,11 +1506,11 @@ VFXAsset:
       data: 00000000
   m_Systems: []
   m_Events:
-  - name: OnStart
-    startSystems: 
+  - name: OnPlay
+    playSystems: 
     stopSystems: 
   - name: OnStop
-    startSystems: 
+    playSystems: 
     stopSystems: 
   m_RendererSettings:
     motionVectorGenerationMode: 0

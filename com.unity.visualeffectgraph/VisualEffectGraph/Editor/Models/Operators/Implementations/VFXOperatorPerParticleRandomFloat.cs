@@ -14,6 +14,11 @@ namespace UnityEditor.VFX
             public FloatN max = new FloatN(1.0f);
         }
 
+        public class OutputProperties
+        {
+            public float r;
+        }
+
         public override string name
         {
             get

@@ -13,6 +13,12 @@ namespace UnityEditor.VFX
             public Circle circle = new Circle();
         }
 
+        public class OutputProperties
+        {
+            [Tooltip("The area of the circle.")]
+            public float area;
+        }
+
         override public string name { get { return "Area (Circle)"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

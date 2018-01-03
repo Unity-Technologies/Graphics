@@ -200,5 +200,17 @@ namespace UnityEditor.VFX.Test
             model.SetSettingValue("slotSetting", 5);
             Assert.IsTrue(model.GetInputSlot(0).property.attributes.Length == 1);
         }
+
+        [Test]
+        public void ImplicitExpressionTransferWithCompoundType()
+        {
+            var outputSlot = VFXSlot.Create(new VFXProperty(typeof(ArcSphere), "o"), VFXSlot.Direction.kOutput);
+            var inputSlot = VFXSlot.Create(new VFXProperty(typeof(ArcSphere), "i"), VFXSlot.Direction.kInput);
+
+            var radius = 123.0f;
+            outputSlot.children.FirstOrDefault(o => o.name == "radius").value = radius;
+            inputSlot.Link(outputSlot);
+            Assert.AreEqual(radius, inputSlot.children.FirstOrDefault(o => o.name == "radius").GetExpression().Get<float>());
+        }
     }
 }
