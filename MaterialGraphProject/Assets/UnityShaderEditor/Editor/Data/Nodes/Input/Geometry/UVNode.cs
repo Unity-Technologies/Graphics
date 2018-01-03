@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            visitor.AddShaderChunk(precision + "4 " + GetVariableNameForSlot(OutputSlotId) + " = " + m_OutputChannel.GetUVName() + ";", true);
+            visitor.AddShaderChunk(string.Format("{0}4 {1} = IN.{2};", precision, GetVariableNameForSlot(OutputSlotId), m_OutputChannel.GetUVName()), true);
         }
 
         public bool RequiresMeshUV(UVChannel channel)

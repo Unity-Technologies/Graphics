@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return space.ToVariableName(InterpolatorType.ViewDirection);
+            return string.Format("IN.{0}", space.ToVariableName(InterpolatorType.ViewDirection));
         }
 
         public NeededCoordinateSpace RequiresViewDirection()

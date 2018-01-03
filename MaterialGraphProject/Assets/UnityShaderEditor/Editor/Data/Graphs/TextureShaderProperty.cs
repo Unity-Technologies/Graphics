@@ -49,16 +49,11 @@ namespace UnityEditor.ShaderGraph
             return result.ToString();
         }
 
-        public override string GetPropertyDeclarationString()
+        public override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            return string.Format("TEXTURE2D({0});\nSAMPLER(sampler{0});", referenceName);
+            return string.Format("TEXTURE2D({0}){1}\nSAMPLER(sampler{0}){1}", referenceName, delimiter);
         }
-
-        public override string GetInlinePropertyDeclarationString()
-        {
-            return string.Format("TEXTURE2D({0});", referenceName);
-        }
-
+        
         public override PreviewProperty GetPreviewMaterialProperty()
         {
             return new PreviewProperty(PropertyType.Texture)
