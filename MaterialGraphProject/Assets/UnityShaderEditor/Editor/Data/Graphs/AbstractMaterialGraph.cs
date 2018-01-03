@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using UnityEditor.Compilation;
 using UnityEngine;
 using UnityEditor.Graphing;
-using UnityEditor.Graphing.Util;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -41,6 +39,14 @@ namespace UnityEditor.ShaderGraph
         public IEnumerable<Guid> removedProperties
         {
             get { return m_RemovedProperties; }
+        }
+
+        [SerializeField]
+        SerializableGuid m_GUID = new SerializableGuid();
+
+        public Guid guid
+        {
+            get { return m_GUID.guid; }
         }
 
         #endregion

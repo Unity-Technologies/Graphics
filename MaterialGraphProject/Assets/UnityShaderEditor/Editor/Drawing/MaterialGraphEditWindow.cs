@@ -357,7 +357,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             graphObject.graph.ValidateGraph();
         }
 
-        void UpdateAbstractSubgraphOnDisk<T>(string path) where T : AbstractSubGraph
+        void UpdateAbstractSubgraphOnDisk<T>(string path) where T : SubGraph
         {
             var graph = graphObject.graph as T;
             if (graph == null)
@@ -389,7 +389,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (graphObject != null && graphObject.graph != null)
             {
-                var subNodes = graphObject.graph.GetNodes<AbstractSubGraphNode>();
+                var subNodes = graphObject.graph.GetNodes<SubGraphNode>();
                 foreach (var node in subNodes)
                     node.UpdateSlots();
             }

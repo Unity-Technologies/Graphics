@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetDefaultValue(GenerationMode generationMode)
         {
-            return string.Format("{0}.xy", channel.GetUVName());
+            return string.Format("IN.{0}.xy", channel.GetUVName());
         }
 
         public bool RequiresMeshUV(UVChannel channel)

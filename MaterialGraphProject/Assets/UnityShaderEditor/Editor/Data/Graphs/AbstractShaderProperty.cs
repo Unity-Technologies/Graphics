@@ -69,12 +69,7 @@ namespace UnityEditor.ShaderGraph
 
         public abstract Vector4 defaultValue { get; }
         public abstract string GetPropertyBlockString();
-        public abstract string GetPropertyDeclarationString();
-
-        public virtual string GetInlinePropertyDeclarationString()
-        {
-            return GetPropertyDeclarationString();
-        }
+        public abstract string GetPropertyDeclarationString(string delimiter = ";");
 
         public abstract PreviewProperty GetPreviewMaterialProperty();
         public abstract INode ToConcreteNode();

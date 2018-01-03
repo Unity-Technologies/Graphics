@@ -17,8 +17,7 @@ namespace UnityEditor.ShaderGraph
         string overrideReferenceName { get; set; }
 
         string GetPropertyBlockString();
-        string GetPropertyDeclarationString();
-        string GetInlinePropertyDeclarationString();
+        string GetPropertyDeclarationString(string delimiter = ";");
         PreviewProperty GetPreviewMaterialProperty();
         INode ToConcreteNode();
     }
