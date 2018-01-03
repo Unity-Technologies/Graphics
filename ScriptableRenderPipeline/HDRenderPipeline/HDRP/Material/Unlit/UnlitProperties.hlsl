@@ -7,7 +7,7 @@ SAMPLER(sampler_UnlitColorMap);
 TEXTURE2D(_EmissiveColorMap);
 SAMPLER(sampler_EmissiveColorMap);
 
-CBUFFER_START(_PerMaterial)
+CBUFFER_START(UnityPerMaterial)
 
 float4  _UnlitColor;
 float4 _UnlitColorMap_ST;
