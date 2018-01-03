@@ -53,6 +53,7 @@ namespace UnityEditor.VFX.UI
             {
                 m_MasterSlotHandle = DataWatchService.sharedInstance.AddWatch(model.GetMasterSlot(), MasterSlotChanged);
             }
+            ModelChanged(model);
         }
 
         void MasterSlotChanged(UnityEngine.Object obj)
