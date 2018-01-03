@@ -235,6 +235,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public class LightLoop
     {
+        // We use this class to instantiate a specific component once
+        // This is required to have default HDAdditional*Data as they are MonoBehaviour.
+        static class DefaultStaticComponent<TType>
+            where TType : Component
+        {
+            static TType s_DefaultComponent = null;
+            public static TType defaultComponent
+            {
+                get
+                {
+                    return s_DefaultComponent ?? (s_DefaultComponent = new GameObject("Default " + typeof(TType))
+                    {
+                        hideFlags = HideFlags.HideAndDontSave
+                    }.AddComponent<TType>());
+                }
+            }
+        }
+
         public enum TileClusterDebug : int
         {
             None,
@@ -269,8 +287,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static ComputeBuffer s_EnvLightDatas = null;
         static ComputeBuffer s_shadowDatas = null;
 
-        static Texture2DArray m_DefaultTexture2DArray;
-        static Cubemap m_DefaultTextureCube;
+        static Texture2DArray s_DefaultTexture2DArray;
+        static Cubemap s_DefaultTextureCube;
+
+        static HDAdditionalReflectionData defaultHDAdditionalReflectionData { get { return DefaultStaticComponent<HDAdditionalReflectionData>.defaultComponent; } }
+        static HDAdditionalLightData defaultHDAdditionalLightData { get { return DefaultStaticComponent<HDAdditionalLightData>.defaultComponent; } }
+        static HDAdditionalCameraData defaultHDAdditionalCameraData { get { return DefaultStaticComponent<HDAdditionalCameraData>.defaultComponent; } }
 
         ReflectionProbeCache m_ReflectionProbeCache;
         TextureCache2D m_CookieTexArray;
@@ -373,10 +395,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         FrameSettings m_FrameSettings = null;
         RenderPipelineResources m_Resources = null;
-
-        // this defualt additionalLightData is use for lights that don't have any (like preview light)
-        HDAdditionalLightData defaultHDAdditionalLightData = new HDAdditionalLightData();
-        HDAdditionalReflectionData defaultHDAdditionalReflectionData = new HDAdditionalReflectionData();
 
         // Following is an array of material of size eight for all combination of keyword: OUTPUT_SPLIT_LIGHTING - LIGHTLOOP_TILE_PASS - SHADOWS_SHADOWMASK - USE_FPTL_LIGHTLIST/USE_CLUSTERED_LIGHTLIST - DEBUG_DISPLAY
         Material[] m_deferredLightingMaterial;
@@ -533,12 +551,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_DebugViewTilesMaterial = CoreUtils.CreateEngineMaterial(m_Resources.debugViewTilesShader);
 
-            m_DefaultTexture2DArray = new Texture2DArray(1, 1, 1, TextureFormat.ARGB32, false);
-            m_DefaultTexture2DArray.SetPixels32(new Color32[1] { new Color32(128, 128, 128, 128) }, 0);
-            m_DefaultTexture2DArray.Apply();
+            s_DefaultTexture2DArray = new Texture2DArray(1, 1, 1, TextureFormat.ARGB32, false);
+            s_DefaultTexture2DArray.SetPixels32(new Color32[1] { new Color32(128, 128, 128, 128) }, 0);
+            s_DefaultTexture2DArray.Apply();
 
-            m_DefaultTextureCube = new Cubemap(16, TextureFormat.ARGB32, false);
-            m_DefaultTextureCube.Apply();
+            s_DefaultTextureCube = new Cubemap(16, TextureFormat.ARGB32, false);
+            s_DefaultTextureCube.Apply();
 
 #if UNITY_EDITOR
             UnityEditor.SceneView.onSceneGUIDelegate -= OnSceneGUI;
