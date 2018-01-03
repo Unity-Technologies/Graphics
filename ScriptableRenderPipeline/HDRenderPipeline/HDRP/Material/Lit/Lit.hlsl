@@ -636,6 +636,7 @@ struct PreLightData
 {
     // General
     float clampNdotV; // clamped NdotV
+    float3 baseFresnel0; // Fresnel0 use with schlick Fresnel (can be affected by clear coat)
 
     // GGX
     float partLambdaV;
@@ -694,7 +695,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
         // Note: coatMask should be just a scale of the IOR to 1. However this only work correctly with true Fresnel equation,
         // so in the code we also multiply F_Schlick by bsdfData.coatMask as an approximation
         preLightData.coatIEta = lerp(1.0, CLEAR_COAT_IETA, bsdfData.coatMask);
-        preLightData.coatRefractV = RefractNoTIR(V, N, preLightData.coatIEta);
+        preLightData.coatRefractV = CoatRefract(V, N, preLightData.coatIEta);
         preLightData.coatRoughness = CLEAR_COAT_ROUGHNESS; // This can be modify in punctual light evaluation in case of minRoughness usage
         preLightData.coatPartLambdaV = GetSmithJointGGXPartLambdaV(NdotV, CLEAR_COAT_ROUGHNESS); // This will not take into account the modification by minRoughness but we are ok with this
 
@@ -716,12 +717,19 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 
         V = preLightData.coatRefractV;
         NdotV = saturate(dot(N, V));
+
+        // fresnel0 is deduced from interface between air and material (assume to be 1.5 in Unity, or a metal).
+        // but here we go from clear coat (1.5) to material, we need to update fresnel0
+        preLightData.baseFresnel0.x = Fresnel0ReajustFor15(bsdfData.fresnel0.x);
+        preLightData.baseFresnel0.y = Fresnel0ReajustFor15(bsdfData.fresnel0.y);
+        preLightData.baseFresnel0.z = Fresnel0ReajustFor15(bsdfData.fresnel0.z);
     }
     else
     {
         preLightData.clampRoughnessT = bsdfData.roughnessT;
         preLightData.clampRoughnessB = bsdfData.roughnessB;
         preLightData.iblPerceptualRoughness = bsdfData.perceptualRoughness;
+        preLightData.baseFresnel0 = bsdfData.fresnel0;
     }
 
     // For clear coat and area light we reuse the same 'IBL' algorithm
@@ -773,7 +781,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 
     // Handle IBL +  multiscattering
     float reflectivity;
-    GetPreIntegratedFGD(NdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, reflectivity);
+    GetPreIntegratedFGD(NdotV, preLightData.iblPerceptualRoughness, preLightData.baseFresnel0, preLightData.specularFGD, preLightData.diffuseFGD, reflectivity);
 
 #ifdef LIT_USE_GGX_ENERGY_COMPENSATION
     // Ref: Practical multiple scattering compensation for microfacet models.
@@ -826,7 +834,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 
     // TODO: the fit seems rather poor. The scaling factor of 0.5 allows us
     // to match the reference for rough metals, but further darkens dielectrics.
-    preLightData.ltcMagnitudeFresnel = bsdfData.fresnel0 * ltcGGXFresnelMagnitudeDiff + (float3)ltcGGXFresnelMagnitude;
+    preLightData.ltcMagnitudeFresnel = preLightData.baseFresnel0 * ltcGGXFresnelMagnitudeDiff + (float3)ltcGGXFresnelMagnitude;
 
     // refraction (forward only)
 #ifdef REFRACTION_MODEL
@@ -967,7 +975,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
         // Change the Light and View direction to account for IOR change
         // Update the half vector accordingly
         V = preLightData.coatRefractV;
-        L = RefractNoTIR(L, N, preLightData.coatIEta);
+        L = CoatRefract(L, N, preLightData.coatIEta);
         NdotV = saturate(dot(N, V));
     }
 
@@ -980,7 +988,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 
     float DV;
 
-    F *= F_Schlick(bsdfData.fresnel0, LdotH);
+    F *= F_Schlick(preLightData.baseFresnel0, LdotH);
 
     // We avoid divergent evaluation of the GGX, as that nearly doubles the cost.
     // If the tile has anisotropy, all the pixels within the tile are evaluated as anisotropic.
@@ -1780,7 +1788,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     // Try to mimic multibounce with specular color. Not the point of the original formula but ok result.
     // Take the min of screenspace specular occlusion and visibility cone specular occlusion
 #if GTAO_MULTIBOUNCE_APPROX
-    lighting.indirect.specularReflected *= GTAOMultiBounce(min(bsdfData.specularOcclusion, specularOcclusion), bsdfData.fresnel0);
+    lighting.indirect.specularReflected *= GTAOMultiBounce(min(bsdfData.specularOcclusion, specularOcclusion), preLightData.baseFresnel0);
 #else
     lighting.indirect.specularReflected *= lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), min(bsdfData.specularOcclusion, specularOcclusion));
 #endif
@@ -1810,7 +1818,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
     specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
     // Rescale the GGX to account for the multiple scattering.
-    specularLighting *= 1.0 + bsdfData.fresnel0 * preLightData.energyCompensation;
+    specularLighting *= 1.0 + preLightData.baseFresnel0 * preLightData.energyCompensation;
 
 #ifdef DEBUG_DISPLAY
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_OCCLUSION_FROM_SSAO)
@@ -1831,7 +1839,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     }
     else if (_DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_GTAO_FROM_SSAO)
     {
-        diffuseLighting = GTAOMultiBounce(specularOcclusion, bsdfData.fresnel0);
+        diffuseLighting = GTAOMultiBounce(specularOcclusion, preLightData.baseFresnel0);
         specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
     }
     #endif

@@ -290,17 +290,4 @@ real3x3 GetLocalFrame(real3 localZ, real3 localX)
     return real3x3(localX, localY, localZ);
 }
 
-// ior is a value between 1.0 and 2.5
-real IORToFresnel0(real ior)
-{
-    return Sq((ior - 1.0) / (ior + 1.0));
-}
-
-// same as regular refract except there is not the test for total internal reflection
-real3 RefractNoTIR(real3 X, real3 N, real ieta)
-{
-    real XdotN = saturate(dot(N, X));
-    return ieta * X + (sqrt(1 + ieta * ieta * (XdotN * XdotN - 1)) - ieta * XdotN) * N;
-}
-
 #endif // UNITY_COMMON_LIGHTING_INCLUDED
