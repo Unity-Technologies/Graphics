@@ -235,24 +235,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public class LightLoop
     {
-        // We use this class to instantiate a specific component once
-        // This is required to have default HDAdditional*Data as they are MonoBehaviour.
-        static class DefaultStaticComponent<TType>
-            where TType : Component
-        {
-            static TType s_DefaultComponent = null;
-            public static TType defaultComponent
-            {
-                get
-                {
-                    return s_DefaultComponent ?? (s_DefaultComponent = new GameObject("Default " + typeof(TType))
-                    {
-                        hideFlags = HideFlags.HideAndDontSave
-                    }.AddComponent<TType>());
-                }
-            }
-        }
-
         public enum TileClusterDebug : int
         {
             None,
@@ -290,9 +272,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static Texture2DArray s_DefaultTexture2DArray;
         static Cubemap s_DefaultTextureCube;
 
-        static HDAdditionalReflectionData defaultHDAdditionalReflectionData { get { return DefaultStaticComponent<HDAdditionalReflectionData>.defaultComponent; } }
-        static HDAdditionalLightData defaultHDAdditionalLightData { get { return DefaultStaticComponent<HDAdditionalLightData>.defaultComponent; } }
-        static HDAdditionalCameraData defaultHDAdditionalCameraData { get { return DefaultStaticComponent<HDAdditionalCameraData>.defaultComponent; } }
+        static HDAdditionalReflectionData defaultHDAdditionalReflectionData { get { return ComponentSingleton<HDAdditionalReflectionData>.instance; } }
+        static HDAdditionalLightData defaultHDAdditionalLightData { get { return ComponentSingleton<HDAdditionalLightData>.instance; } }
+        static HDAdditionalCameraData defaultHDAdditionalCameraData { get { return ComponentSingleton<HDAdditionalCameraData>.instance; } }
 
         ReflectionProbeCache m_ReflectionProbeCache;
         TextureCache2D m_CookieTexArray;
