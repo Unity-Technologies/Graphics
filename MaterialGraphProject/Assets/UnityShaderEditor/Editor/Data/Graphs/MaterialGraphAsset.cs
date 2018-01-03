@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 using System.Reflection;
 
@@ -8,9 +9,8 @@ namespace UnityEditor.ShaderGraph
     {
         public static bool ShaderHasError(Shader shader)
         {
-            var hasErrorsCall = typeof(ShaderUtil).GetMethod("GetShaderErrorCount", BindingFlags.Static | BindingFlags.NonPublic);
-            var result = hasErrorsCall.Invoke(null, new object[] { shader });
-            return (int)result != 0;
+            var errors = GetShaderErrors(shader);
+            return errors.Any(x => x.warning == 0);
         }
 
         public struct ShaderError

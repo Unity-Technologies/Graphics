@@ -51,12 +51,12 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetPropertyDeclarationString()
         {
-            return "UNITY_DECLARE_TEX2D(" + referenceName + ");";
+            return string.Format("TEXTURE2D({0});\nSAMPLER(sampler{0});", referenceName);
         }
 
         public override string GetInlinePropertyDeclarationString()
         {
-            return "UNITY_DECLARE_TEX2D_NOSAMPLER(" + referenceName + ");";
+            return string.Format("TEXTURE2D({0});", referenceName);
         }
 
         public override PreviewProperty GetPreviewMaterialProperty()

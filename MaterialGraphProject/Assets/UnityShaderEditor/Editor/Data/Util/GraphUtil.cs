@@ -31,7 +31,6 @@ namespace UnityEditor.ShaderGraph
                 vertexInputIndex++;
             }
 
-            vertexInputs.AddShaderChunk("UNITY_VERTEX_INPUT_INSTANCE_ID", false);
             vertexInputs.Deindent();
             vertexInputs.AddShaderChunk("};", false);
         }
@@ -163,8 +162,15 @@ namespace UnityEditor.ShaderGraph
                     finalBuilder.AppendLines(shaderProperties.GetPropertiesBlock(0));
                 }
 
-                finalBuilder.AppendLine(@"CGINCLUDE");
-                finalBuilder.AppendLine(@"#include ""UnityCG.cginc""");
+                finalBuilder.AppendLine(@"HLSLINCLUDE");
+                finalBuilder.AppendLine("#define USE_LEGACY_UNITY_MATRIX_VARIABLES");
+                finalBuilder.AppendLine(@"#include ""CoreRP/ShaderLibrary/Common.hlsl""");
+                finalBuilder.AppendLine(@"#include ""CoreRP/ShaderLibrary/Packing.hlsl""");
+                finalBuilder.AppendLine(@"#include ""CoreRP/ShaderLibrary/Color.hlsl""");
+                finalBuilder.AppendLine(@"#include ""ShaderGraphLibrary/Functions.hlsl""");
+                finalBuilder.AppendLine(@"#include ""ShaderGraphLibrary/ShaderVariables.hlsl""");
+                finalBuilder.AppendLine(@"#include ""ShaderGraphLibrary/ShaderVariablesFunctions.hlsl""");
+
                 finalBuilder.Concat(functionBuilder);
                 finalBuilder.AppendLines(vertexInputs.GetShaderString(0));
                 finalBuilder.AppendLines(surfaceInputs.GetShaderString(0));
@@ -172,7 +178,7 @@ namespace UnityEditor.ShaderGraph
                 finalBuilder.AppendLines(shaderProperties.GetPropertiesDeclaration(0));
                 finalBuilder.AppendLines(vertexShader.GetShaderString(0));
                 finalBuilder.AppendLines(surfaceDescriptionFunction.GetShaderString(0));
-                finalBuilder.AppendLine(@"ENDCG");
+                finalBuilder.AppendLine(@"ENDHLSL");
 
                 finalBuilder.AppendLines(ShaderGenerator.GetPreviewSubShader(node, requirements));
                 ListPool<INode>.Release(activeNodeList);
