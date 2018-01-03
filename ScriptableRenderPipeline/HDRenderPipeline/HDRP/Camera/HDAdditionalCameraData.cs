@@ -1,8 +1,10 @@
+﻿using UnityEngine.Serialization;
+
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [DisallowMultipleComponent, ExecuteInEditMode]
     [RequireComponent(typeof(Camera))]
-    public class HDAdditionalCameraData : MonoBehaviour
+    public class HDAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver
     {
 #pragma warning disable 414 // CS0414 The private field '...' is assigned but its value is never used
         // We can't rely on Unity for our additional data, we need to version it ourself.
@@ -29,13 +31,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // To be able to turn on/off FrameSettings properties at runtime for debugging purpose without affecting the original one
         // we create a runtime copy (m_ActiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
-        public FrameSettings    serializedFrameSettings = new FrameSettings(); // Serialize frameSettings
+        [SerializeField]
+        [FormerlySerializedAs("serializedFrameSettings")]
+        FrameSettings    m_FrameSettings = new FrameSettings(); // Serialize frameSettings
 
         // Not serialized, not visible
-        FrameSettings m_FrameSettings = new FrameSettings();
+        FrameSettings m_FrameSettingsRuntime = new FrameSettings();
         public FrameSettings GetFrameSettings()
         {
-            return m_FrameSettings;
+            return m_FrameSettingsRuntime;
         }
 
         bool    m_IsDebugRegistered = false;
@@ -70,7 +74,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_camera = GetComponent<Camera>();
             m_camera.allowHDR = false;
 
-            serializedFrameSettings.CopyTo(m_FrameSettings);
+            m_FrameSettings.CopyTo(m_FrameSettingsRuntime);
 
             RegisterDebug();
         }
@@ -86,16 +90,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
         }
 
-        void OnValidate()
-        {
-            // Modification of frameSettings in the inspector will call OnValidate().
-            // We do a copy of the settings to those effectively used
-            serializedFrameSettings.CopyTo(m_FrameSettings);
-        }
-
         void OnDisable()
         {
             UnRegisterDebug();
+        }
+
+        public void OnBeforeSerialize()
+        {
+        }
+
+        public void OnAfterDeserialize()
+        {
+            // We do a copy of the settings to those effectively used
+            m_FrameSettings.CopyTo(m_FrameSettingsRuntime);
         }
     }
 }

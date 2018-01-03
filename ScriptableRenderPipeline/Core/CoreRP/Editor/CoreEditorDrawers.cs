@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEditor.AnimatedValues;
 
 namespace UnityEditor.Experimental.Rendering
 {
@@ -11,7 +12,7 @@ namespace UnityEditor.Experimental.Rendering
 
         public delegate void ActionDrawer(TUIState s, TData p, Editor owner);
         public delegate float FloatGetter(TUIState s, TData p, Editor owner, int i);
-        public delegate SerializedProperty SerializedPropertyGetter(TUIState s, TData p, Editor o);
+        public delegate AnimBool AnimBoolGetter(TUIState s, TData p, Editor owner);
 
         public static readonly IDrawer space = Action((state, data, owner) => EditorGUILayout.Space());
         public static readonly IDrawer noop = Action((state, data, owner) => { });
@@ -26,7 +27,7 @@ namespace UnityEditor.Experimental.Rendering
             return new FadeGroupsDrawerInternal(fadeGetter, indent, groupDrawers);
         }
 
-        public static IDrawer FoldoutGroup(string title, SerializedPropertyGetter root, bool indent, params IDrawer[] bodies)
+        public static IDrawer FoldoutGroup(string title, AnimBoolGetter root, bool indent, params IDrawer[] bodies)
         {
             return new FoldoutDrawerInternal(title, root, indent, bodies);
         }
@@ -79,24 +80,24 @@ namespace UnityEditor.Experimental.Rendering
         class FoldoutDrawerInternal : IDrawer
         {
             IDrawer[] bodies;
-            SerializedPropertyGetter root;
+            AnimBoolGetter isExpanded;
             string title;
             bool indent;
 
-            public FoldoutDrawerInternal(string title, SerializedPropertyGetter root, bool indent, params IDrawer[] bodies)
+            public FoldoutDrawerInternal(string title, AnimBoolGetter isExpanded, bool indent, params IDrawer[] bodies)
             {
                 this.title = title;
-                this.root = root;
+                this.isExpanded = isExpanded;
                 this.bodies = bodies;
                 this.indent = indent;
             }
 
             public void Draw(TUIState s, TData p, Editor owner)
             {
-                var r = root(s, p, owner);
+                var r = isExpanded(s, p, owner);
                 CoreEditorUtils.DrawSplitter();
-                r.isExpanded = CoreEditorUtils.DrawHeaderFoldout(title, r.isExpanded);
-                if (r.isExpanded)
+                r.target = CoreEditorUtils.DrawHeaderFoldout(title, r.target);
+                if (EditorGUILayout.BeginFadeGroup(r.faded))
                 {
                     if (indent)
                         ++EditorGUI.indentLevel;
@@ -105,6 +106,7 @@ namespace UnityEditor.Experimental.Rendering
                     if (indent)
                         --EditorGUI.indentLevel;
                 }
+                EditorGUILayout.EndFadeGroup();
             }
         }
     }
