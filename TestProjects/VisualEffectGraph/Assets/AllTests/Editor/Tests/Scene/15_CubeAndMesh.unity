@@ -203,7 +203,7 @@ VFXComponent:
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 8fd9ee67292583945ac79c1ec5a1224e, type: 2}
   m_StartSeed: 0
-  m_ResetSeedOnPlay: 1
+  m_ResetSeedOnPlay: 0
   m_PropertySheet:
     m_Float:
       m_Array: []
@@ -301,7 +301,7 @@ Camera:
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
-  m_HDR: 1
+  m_HDR: 0
   m_AllowMSAA: 0
   m_AllowDynamicResolution: 0
   m_ForceIntoRT: 0
