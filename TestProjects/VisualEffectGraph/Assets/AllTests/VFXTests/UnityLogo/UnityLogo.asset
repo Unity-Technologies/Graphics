@@ -798,7 +798,7 @@ MonoBehaviour:
           Culture=neutral, PublicKeyToken=null
       m_SerializableObject: '{"obj":{"fileID":10305,"guid":"0000000000000000f000000000000000","type":0}}'
   m_Property:
-    name: texture
+    name: mainTexture
     m_serializedType:
       m_SerializableType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
@@ -8826,11 +8826,11 @@ VFXAsset:
         nameId: sourceAttributeBuffer
       values:
       - index: 111
-        nameId: uniform_Color_b
+        nameId: Color_b
       - index: 110
-        nameId: uniform_Min_c
+        nameId: Min_c
       - index: 109
-        nameId: uniform_Max_c
+        nameId: Max_c
       - index: 1
         nameId: uniform_e
       - index: 0
@@ -8844,9 +8844,9 @@ VFXAsset:
       - index: 13
         nameId: uniform_j
       - index: 112
-        nameId: uniform_Sphere_radius_d
+        nameId: Sphere_radius_d
       - index: 115
-        nameId: uniform_Sphere_arc_d
+        nameId: Sphere_arc_d
       params: []
       processor: {fileID: 7200000, guid: 15f208e1ac7aa4f48b543a4b2fc7afac, type: 3}
     - type: 805306368
@@ -8869,13 +8869,13 @@ VFXAsset:
       - index: 13
         nameId: uniform_g
       - index: 112
-        nameId: uniform_Sphere_radius_b
+        nameId: Sphere_radius_b
       - index: 114
-        nameId: uniform_Elasticity_b
+        nameId: Elasticity_b
       - index: 105
-        nameId: uniform_Friction_b
+        nameId: Friction_b
       - index: 108
-        nameId: uniform_LifetimeLoss_b
+        nameId: LifetimeLoss_b
       - index: 20
         nameId: uniform_l
       - index: 22
@@ -8885,25 +8885,25 @@ VFXAsset:
       - index: 86
         nameId: uniform_o
       - index: 106
-        nameId: uniform_InvFieldTransform_d
+        nameId: InvFieldTransform_d
       - index: 88
-        nameId: uniform_FieldTransform_d
+        nameId: FieldTransform_d
       - index: 102
-        nameId: uniform_Intensity_d
+        nameId: Intensity_d
       - index: 103
-        nameId: uniform_DragCoefficient_d
+        nameId: DragCoefficient_d
       - index: 113
-        nameId: uniform_InvFieldTransform_e
+        nameId: InvFieldTransform_e
       - index: 78
-        nameId: uniform_FieldTransform_e
+        nameId: FieldTransform_e
       - index: 101
-        nameId: uniform_Intensity_e
+        nameId: Intensity_e
       - index: 94
-        nameId: uniform_DragCoefficient_e
+        nameId: DragCoefficient_e
       - index: 107
-        nameId: texture_VectorField_d
+        nameId: VectorField_d
       - index: 104
-        nameId: texture_VectorField_e
+        nameId: VectorField_e
       params: []
       processor: {fileID: 7200000, guid: 7f240976ad3646e48a67c715a7b047f8, type: 3}
     - type: 1073741826
@@ -8912,13 +8912,13 @@ VFXAsset:
         nameId: attributeBuffer
       values:
       - index: 98
-        nameId: uniform_SizeX_c
+        nameId: SizeX_c
       - index: 68
         nameId: uniform_c
       - index: 82
         nameId: uniform_d
       - index: 99
-        nameId: uniform_gradient_e
+        nameId: gradient_e
       - index: 35
         nameId: uniform_f
       - index: 1
@@ -8944,7 +8944,7 @@ VFXAsset:
       - index: 56
         nameId: uniform_q
       - index: 97
-        nameId: texture_texture
+        nameId: mainTexture
       params:
       - index: 0
         nameId: sortPriority

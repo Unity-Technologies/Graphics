@@ -423,22 +423,21 @@ namespace UnityEditor.VFX
             {
                 var compilMode = new[] { /* VFXCodeGenerator.CompilationMode.Debug,*/ VFXCodeGenerator.CompilationMode.Runtime };
 
-                foreach (var context in contexts.Where(model => model.contextType != VFXContextType.kSpawner))
+                foreach (var context in contexts)
                 {
+                    var gpuMapper = graph.BuildGPUMapper(context);
+                    var uniformMapper = new VFXUniformMapper(gpuMapper);
+
+                    // Add gpu and uniform mapper
+                    var contextData = contextToCompiledData[context];
+                    contextData.gpuMapper = gpuMapper;
+                    contextData.uniformMapper = uniformMapper;
+                    contextToCompiledData[context] = contextData;
+
                     var codeGeneratorTemplate = context.codeGeneratorTemplate;
                     if (codeGeneratorTemplate != null)
                     {
                         var generatedContent = compilMode.Select(o => new StringBuilder()).ToArray();
-
-                        var gpuMapper = graph.BuildGPUMapper(context);
-                        var uniformMapper = new VFXUniformMapper(gpuMapper);
-
-                        // Add gpu and uniform mapper
-                        var contextData = contextToCompiledData[context];
-                        contextData.gpuMapper = gpuMapper;
-                        contextData.uniformMapper = uniformMapper;
-                        contextToCompiledData[context] = contextData;
-
                         VFXCodeGenerator.Build(context, compilMode, generatedContent, contextData, codeGeneratorTemplate);
 
                         for (int i = 0; i < compilMode.Length; ++i)
@@ -518,8 +517,15 @@ namespace UnityEditor.VFX
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Collect dependencies", 0 / nbSteps);
                 var models = new HashSet<Object>();
                 m_Graph.CollectDependencies(models);
+
+                foreach (var c in models.OfType<VFXContext>()) // Unflag all contexts
+                    c.MarkAsCompiled(false);
+
                 var compilableContexts = models.OfType<VFXContext>().Where(c => c.CanBeCompiled());
                 var compilableData = models.OfType<VFXData>().Where(d => d.CanBeCompiled());
+
+                foreach (var c in compilableContexts) // Flag compiled contexts
+                    c.MarkAsCompiled(true);
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Collect attributes", 1 / nbSteps);
                 foreach (var data in compilableData)
@@ -592,7 +598,7 @@ namespace UnityEditor.VFX
                 FillEvent(eventDescs, contextSpawnToSpawnInfo, compilableContexts);
 
                 var contextSpawnToBufferIndex = contextSpawnToSpawnInfo.Select(o => new { o.Key, o.Value.bufferIndex }).ToDictionary(o => o.Key, o => o.bufferIndex);
-                foreach (var data in compilableData.OfType<VFXDataParticle>())
+                foreach (var data in compilableData)
                     data.FillDescs(bufferDescs, systemDescs, m_ExpressionGraph, contextToCompiledData, contextSpawnToBufferIndex);
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Setting up systems", 9 / nbSteps);

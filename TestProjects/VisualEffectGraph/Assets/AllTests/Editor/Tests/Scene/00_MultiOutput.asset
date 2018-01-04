@@ -411,7 +411,7 @@ MonoBehaviour:
           Culture=neutral, PublicKeyToken=null
       m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"276d9e395ae18fe40a9b4988549f2349","type":3}}'
   m_Property:
-    name: texture
+    name: mainTexture
     m_serializedType:
       m_SerializableType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
@@ -855,7 +855,7 @@ MonoBehaviour:
           Culture=neutral, PublicKeyToken=null
       m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"04a1a4f71875d89468defb5128b274bd","type":3}}'
   m_Property:
-    name: texture
+    name: mainTexture
     m_serializedType:
       m_SerializableType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
@@ -975,7 +975,7 @@ MonoBehaviour:
           Culture=neutral, PublicKeyToken=null
       m_SerializableObject: 
   m_Property:
-    name: texture
+    name: mainTexture
     m_serializedType:
       m_SerializableType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
@@ -2617,9 +2617,9 @@ VFXAsset:
         nameId: sourceAttributeBuffer
       values:
       - index: 22
-        nameId: uniform_Lifetime_b
+        nameId: Lifetime_b
       - index: 23
-        nameId: uniform_Velocity_c
+        nameId: Velocity_c
       params: []
       processor: {fileID: 7200000, guid: 05f3061dedaf86f439a6583a9665b37e, type: 3}
     - type: 805306368
@@ -2634,7 +2634,7 @@ VFXAsset:
       - index: 1
         nameId: uniform_c
       - index: 26
-        nameId: uniform_deltaTime_c
+        nameId: deltaTime_c
       params: []
       processor: {fileID: 7200000, guid: bbc8aafd71995b642b44448d5bb3d3e2, type: 3}
     - type: 1073741826
@@ -2643,7 +2643,7 @@ VFXAsset:
         nameId: attributeBuffer
       values:
       - index: 25
-        nameId: texture_texture
+        nameId: mainTexture
       params:
       - index: 0
         nameId: sortPriority
@@ -2656,7 +2656,7 @@ VFXAsset:
       - index: 0
         nameId: uniform_b
       - index: 20
-        nameId: texture_texture
+        nameId: mainTexture
       params:
       - index: 0
         nameId: sortPriority
@@ -2667,11 +2667,11 @@ VFXAsset:
         nameId: attributeBuffer
       values:
       - index: 17
-        nameId: uniform_Color_b
+        nameId: Color_b
       - index: 3
         nameId: uniform_c
       - index: 18
-        nameId: texture_texture
+        nameId: mainTexture
       params:
       - index: 0
         nameId: sortPriority
