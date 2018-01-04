@@ -304,7 +304,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int _GlobalFog_Extinction       = Shader.PropertyToID("_GlobalFog_Extinction");
         public static readonly int _GlobalFog_Scattering       = Shader.PropertyToID("_GlobalFog_Scattering");
-        public static readonly int _VBufferResolutionAndScale  = Shader.PropertyToID("_VBufferResolutionAndScale");
+        public static readonly int _VBufferResolution          = Shader.PropertyToID("_VBufferResolution");
+        public static readonly int _VBufferScaleAndSliceCount  = Shader.PropertyToID("_VBufferScaleAndSliceCount");
         public static readonly int _VBufferDepthEncodingParams = Shader.PropertyToID("_VBufferDepthEncodingParams");
         public static readonly int _VBufferCoordToViewDirWS    = Shader.PropertyToID("_VBufferCoordToViewDirWS");
         public static readonly int _VBufferDensity             = Shader.PropertyToID("_VBufferDensity");

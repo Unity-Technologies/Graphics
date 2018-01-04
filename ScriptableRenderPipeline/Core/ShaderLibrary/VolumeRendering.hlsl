@@ -134,31 +134,47 @@ float3 TransmittanceColorAtDistanceToAbsorption(float3 transmittanceColor, float
 
 #define VOLUMETRIC_LIGHTING_ENABLED
 
-#ifdef PRESET_ULTRA
-    // E.g. for 1080p: (1920/4)x(1080/4)x(256) = 33,177,600 voxels
-    #define VBUFFER_TILE_SIZE   4
-    #define VBUFFER_SLICE_COUNT 256
-#else
-    // E.g. for 1080p: (1920/8)x(1080/8)x(128) =  4,147,200 voxels
-    #define VBUFFER_TILE_SIZE   8
-    #define VBUFFER_SLICE_COUNT 128
-#endif // PRESET_ULTRA
+// Interpolation in the log space is non-linear.
+// Therefore, given 'logEncodedDepth', we compute a new depth value
+// which allows us to perform HW interpolation which is linear in the view space.
+float ComputeLerpPositionForLogEncoding(float linearDepth, float logEncodedDepth,
+                                        float4 VBufferScaleAndSliceCount,
+                                        float4 VBufferDepthEncodingParams)
+{
+    float z = linearDepth;
+    float d = logEncodedDepth;
 
-#include "Random.hlsl"
+    float numSlices    = VBufferScaleAndSliceCount.z;
+    float rcpNumSlices = VBufferScaleAndSliceCount.w;
 
-// Samples the linearly interpolated V-Buffer.
+    float s0 = floor(d * numSlices - 0.5);
+    float s1 = ceil(d * numSlices - 0.5);
+    float d0 = saturate(s0 * rcpNumSlices + (0.5 * rcpNumSlices));
+    float d1 = saturate(s1 * rcpNumSlices + (0.5 * rcpNumSlices));
+    float z0 = DecodeLogarithmicDepth(d0, VBufferDepthEncodingParams);
+    float z1 = DecodeLogarithmicDepth(d1, VBufferDepthEncodingParams);
+
+    // Compute the linear interpolation weight.
+    float t = saturate((z - z0) / (z1 - z0));
+    return d0 + t * rcpNumSlices;
+}
+
+// Performs trilinear reconstruction of the V-Buffer.
 // If (clampToEdge == false), out-of-bounds loads return 0.
 float4 SampleVBuffer(TEXTURE3D_ARGS(VBufferLighting, trilinearSampler), bool clampToEdge,
                      float2 positionNDC, float linearDepth,
-                     float2 VBufferScale,
+                     float4 VBufferScaleAndSliceCount,
                      float4 VBufferDepthEncodingParams)
 {
-    int   k = VBUFFER_SLICE_COUNT;
-    float z = linearDepth;
-    float d = EncodeLogarithmicDepth(z, VBufferDepthEncodingParams);
+    float numSlices    = VBufferScaleAndSliceCount.z;
+    float rcpNumSlices = VBufferScaleAndSliceCount.w;
 
     // Account for the visible area of the V-Buffer.
-    float2 uv = positionNDC * VBufferScale;
+    float2 uv = positionNDC * VBufferScaleAndSliceCount.xy;
+
+    // The distance between slices is log-encoded.
+    float z = linearDepth;
+    float d = EncodeLogarithmicDepth(z, VBufferDepthEncodingParams);
 
     // Unity doesn't support samplers clamping to border, so we have to do it ourselves.
     // TODO: add the proper sampler support.
@@ -166,19 +182,9 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBufferLighting, trilinearSampler), bool cla
 
     [branch] if (clampToEdge || isInBounds)
     {
-        // The distance between slices is log-encoded.
-        float s0 = floor(d * k - 0.5);
-        float s1 = ceil(d * k - 0.5);
-        float d0 = saturate(s0 * rcp(k) + (0.5 * rcp(k)));
-        float d1 = saturate(s1 * rcp(k) + (0.5 * rcp(k)));
-        float z0 = DecodeLogarithmicDepth(d0, VBufferDepthEncodingParams);
-        float z1 = DecodeLogarithmicDepth(d1, VBufferDepthEncodingParams);
+        // Adjust the texture coordinate for HW trilinear sampling.
+        float w = ComputeLerpPositionForLogEncoding(z, d, VBufferScaleAndSliceCount, VBufferDepthEncodingParams);
 
-        // Compute the linear Z-interpolation weight.
-        float a = saturate((z - z0) / (z1 - z0));
-        float w = d0 + a * rcp(k);
-
-        // Adjust the texture coordinate and take a single HW trlinear sample.
         return SAMPLE_TEXTURE3D_LOD(VBufferLighting, trilinearSampler, float3(uv, w), 0);
     }
     else
@@ -187,42 +193,40 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBufferLighting, trilinearSampler), bool cla
     }
 }
 
-// Returns linearly interpolated {volumetric radiance, opacity}. The sampler clamps to edge.
+// Returns interpolated {volumetric radiance, opacity}. The sampler clamps to edge.
 float4 SampleInScatteredRadianceAndTransmittance(TEXTURE3D_ARGS(VBufferLighting, trilinearSampler),
                                                  float2 positionNDC, float linearDepth,
-                                                 float4 VBufferResolutionAndScale, float4 VBufferDepthEncodingParams)
+                                                 float4 VBufferResolution,
+                                                 float4 VBufferScaleAndSliceCount,
+                                                 float4 VBufferDepthEncodingParams)
 {
 #ifdef RECONSTRUCTION_FILTER_TRILINEAR
     float4 L = SampleVBuffer(TEXTURE3D_PARAM(VBufferLighting, trilinearSampler), true,
-                             positionNDC, linearDepth, VBufferScale, VBufferDepthEncodingParams);
+                             positionNDC, linearDepth,
+                             VBufferScaleAndSliceCount, VBufferDepthEncodingParams);
 #else
     // Perform biquadratic reconstruction in XY, linear in Z, using 4x trilinear taps.
-    int   k = VBUFFER_SLICE_COUNT;
+
+    // Account for the visible area of the V-Buffer.
+    float2 xy = positionNDC * (VBufferResolution.xy * VBufferScaleAndSliceCount.xy);
+    float2 ic = floor(xy);
+    float2 fc = frac(xy);
+
+    // The distance between slices is log-encoded.
     float z = linearDepth;
     float d = EncodeLogarithmicDepth(z, VBufferDepthEncodingParams);
 
-     // The distance between slices is log-encoded.
-    float s0 = floor(d * k - 0.5);
-    float s1 = ceil(d * k - 0.5);
-    float d0 = saturate(s0 * rcp(k) + (0.5 * rcp(k)));
-    float d1 = saturate(s1 * rcp(k) + (0.5 * rcp(k)));
-    float z0 = DecodeLogarithmicDepth(d0, VBufferDepthEncodingParams);
-    float z1 = DecodeLogarithmicDepth(d1, VBufferDepthEncodingParams);
-
-    // Compute the linear Z-interpolation weight.
-    float a = saturate((z - z0) / (z1 - z0));
-    float w = d0 + a * rcp(k);
-
-    // Account for the visible area of the V-Buffer.
-    float2 xy = positionNDC * (VBufferResolutionAndScale.xy * VBufferResolutionAndScale.zw); // TODO: precompute
-    float2 ic = floor(xy);
-    float2 fc = frac(xy);
+    // Adjust the texture coordinate for HW trilinear sampling.
+    float w = ComputeLerpPositionForLogEncoding(z, d, VBufferScaleAndSliceCount, VBufferDepthEncodingParams);
 
     float2 weights[2], offsets[2];
     BiquadraticFilter(1 - fc, weights, offsets); // Reflect the filter around 0.5
 
-    float2 rcpRes = rcp(VBufferResolutionAndScale.xy); // TODO: precompute
+    float2 rcpRes = VBufferResolution.zw;
 
+    // TODO: reconstruction should be performed in the perceptual space (e.i., after tone mapping).
+    // But our VBuffer is linear. How to achieve that?
+    // See "A Fresh Look at Generalized Sampling", p. 51.
     float4 L = (weights[0].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBufferLighting, trilinearSampler, float3((ic + float2(offsets[0].x, offsets[0].y)) * rcpRes, w), 0)  // Top left
              + (weights[1].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBufferLighting, trilinearSampler, float3((ic + float2(offsets[1].x, offsets[0].y)) * rcpRes, w), 0)  // Top right
              + (weights[0].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBufferLighting, trilinearSampler, float3((ic + float2(offsets[0].x, offsets[1].y)) * rcpRes, w), 0)  // Bottom left
