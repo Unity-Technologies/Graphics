@@ -54,13 +54,14 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     // Same code in ShaderPassForward.shader
     if (_DebugViewMaterial != 0)
     {
-        float3 result = float3(1.0, 0.0, 1.0);
+        float3 result = (_DebugViewMaterial >= DEBUGVIEWTEXTURE_SHOW_MIP_RATIO && _DebugViewMaterial < DEBUGVIEWTEXTURE_LAST) ? outColor.rgb : float3(1.0, 0.0, 1.0);
         bool needLinearToSRGB = false;
 
         GetPropertiesDataDebug(_DebugViewMaterial, result, needLinearToSRGB);
         GetVaryingsDataDebug(_DebugViewMaterial, input, result, needLinearToSRGB);
         GetBuiltinDataDebug(_DebugViewMaterial, builtinData, result, needLinearToSRGB);
         GetBSDFDataDebug(_DebugViewMaterial, bsdfData, result, needLinearToSRGB); // TODO: This required to initialize all field from BSDFData...
+        GetTextureDataDebug(_DebugViewMaterial, input, _UnlitColorMap, _UnlitColorMap_TexelSize, _UnlitColorMap_MipInfo, result, needLinearToSRGB);
 
         // TEMP!
         // For now, the final blit in the backbuffer performs an sRGB write

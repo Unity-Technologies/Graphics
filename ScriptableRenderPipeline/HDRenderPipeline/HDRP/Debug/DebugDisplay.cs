@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using System;
 
@@ -110,6 +110,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightingDebugSettings.debugLightingMode = DebugLightingMode.None;
             materialDebugSettings.SetDebugViewProperties(value);
         }
+        public void SetDebugViewTexture(Attributes.DebugViewTexture value)
+        {
+            if (value != 0)
+                lightingDebugSettings.debugLightingMode = DebugLightingMode.None;
+            materialDebugSettings.SetDebugViewTexture(value);
+        }
 
         public void SetDebugViewGBuffer(int value)
         {
@@ -125,6 +131,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             lightingDebugSettings.debugLightingMode = value;
         }
 
+        public void UpdateMaterials()
+        {
+            //if (materialDebugSettings.debugViewTexture != 0)
+            //    Texture.SetStreamingTextureMaterialDebugProperties();
+        }
+
         public void RegisterDebug()
         {
             DebugMenuManager.instance.AddDebugItem<float>("Display Stats", "Frame Rate", () => 1.0f / Time.smoothDeltaTime, null, DebugItemFlag.DynamicDisplay);
@@ -134,6 +146,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugMenuManager.instance.AddDebugItem<int>("Material", "Engine",() => materialDebugSettings.debugViewEngine, (value) => SetDebugViewEngine((int)value), DebugItemFlag.None, new DebugItemHandlerIntEnum(MaterialDebugSettings.debugViewEngineStrings, MaterialDebugSettings.debugViewEngineValues));
             DebugMenuManager.instance.AddDebugItem<Attributes.DebugViewVarying>("Material", "Attributes",() => materialDebugSettings.debugViewVarying, (value) => SetDebugViewVarying((Attributes.DebugViewVarying)value));
             DebugMenuManager.instance.AddDebugItem<Attributes.DebugViewProperties>("Material", "Properties", () => materialDebugSettings.debugViewProperties, (value) => SetDebugViewProperties((Attributes.DebugViewProperties)value));
+            DebugMenuManager.instance.AddDebugItem<Attributes.DebugViewTexture>("Material", "Texture", () => materialDebugSettings.debugViewTexture, (value) => SetDebugViewTexture((Attributes.DebugViewTexture)value));
             DebugMenuManager.instance.AddDebugItem<int>("Material", "GBuffer",() => materialDebugSettings.debugViewGBuffer, (value) => SetDebugViewGBuffer((int)value), DebugItemFlag.None, new DebugItemHandlerIntEnum(MaterialDebugSettings.debugViewMaterialGBufferStrings, MaterialDebugSettings.debugViewMaterialGBufferValues));
 
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, ShadowMapDebugMode>(kShadowDebugMode, () => lightingDebugSettings.shadowDebugMode, (value) => lightingDebugSettings.shadowDebugMode = (ShadowMapDebugMode)value);

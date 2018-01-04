@@ -2,6 +2,8 @@ float4  _UnlitColor;
 TEXTURE2D(_UnlitColorMap);
 SAMPLER(sampler_UnlitColorMap);
 float4 _UnlitColorMap_ST;
+float4 _UnlitColorMap_TexelSize;
+float4 _UnlitColorMap_MipInfo;
 
 TEXTURE2D(_DistortionVectorMap);
 SAMPLER(sampler_DistortionVectorMap);
