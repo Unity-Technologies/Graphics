@@ -29,9 +29,9 @@ float4 ShadowPassVertex(VertexInput v) : SV_POSITION
     clipPos.z += _ShadowBias.x;
 
 #if defined(UNITY_REVERSED_Z)
-    clipPos.z = min(clipPos.z, UNITY_NEAR_CLIP_VALUE);
+    clipPos.z = min(clipPos.z, 1.0);
 #else
-    clipPos.z = max(clipPos.z, UNITY_NEAR_CLIP_VALUE);
+    clipPos.z = max(clipPos.z, 0.0);
 #endif
     return clipPos;
 }

@@ -1105,8 +1105,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             float atlasWidth = (float)m_ShadowSettings.shadowAtlasWidth;
             float atlasHeight = (float)m_ShadowSettings.shadowAtlasHeight;
 
-            float deviceZRangeScale = 1.0f;
-
             // Currently CullResults ComputeDirectionalShadowMatricesAndCullingPrimitives doesn't
             // apply z reversal to projection matrix. We need to do it manually here.
             if (SystemInfo.usesReversedZBuffer)
@@ -1115,7 +1113,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 proj.m21 = -proj.m21;
                 proj.m22 = -proj.m22;
                 proj.m23 = -proj.m23;
-                deviceZRangeScale = 0.5f;
             }
 
             Matrix4x4 worldToShadow = proj * view;
@@ -1123,9 +1120,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             var textureScaleAndBias = Matrix4x4.identity;
             textureScaleAndBias.m00 = 0.5f;
             textureScaleAndBias.m11 = 0.5f;
-            textureScaleAndBias.m22 = deviceZRangeScale;
+            textureScaleAndBias.m22 = 0.5f;
             textureScaleAndBias.m03 = 0.5f;
-            textureScaleAndBias.m23 = deviceZRangeScale;
+            textureScaleAndBias.m23 = 0.5f;
             textureScaleAndBias.m13 = 0.5f;
 
             // Apply texture scale and offset to save a MAD in shader.
