@@ -328,7 +328,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             // As we tag both during velocity pass and Gbuffer pass we need a separate state and we need to use the write mask
             material.SetInt(kStencilRef, stencilRef);
-            material.SetInt(kStencilWriteMask, (int)HDRenderPipeline.StencilBitMask.Lighting);
+            material.SetInt(kStencilWriteMask, (int)HDRenderPipeline.StencilBitMask.LightingMask);
             material.SetInt(kStencilRefMV, (int)HDRenderPipeline.StencilBitMask.ObjectVelocity);
             material.SetInt(kStencilWriteMaskMV, (int)HDRenderPipeline.StencilBitMask.ObjectVelocity);
 
