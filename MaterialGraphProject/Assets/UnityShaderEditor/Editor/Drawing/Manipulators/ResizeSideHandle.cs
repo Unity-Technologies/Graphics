@@ -25,18 +25,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
     public class ResizeSideHandle : VisualElement
     {
-        public static void AddResizeHandleBorderFrame(VisualElement targetElement)
-        {
-            targetElement.Add(new ResizeSideHandle(targetElement, ResizeHandleAnchor.TopLeft));
-            targetElement.Add(new ResizeSideHandle(targetElement, ResizeHandleAnchor.Top));
-            targetElement.Add(new ResizeSideHandle(targetElement, ResizeHandleAnchor.TopRight));
-            targetElement.Add(new ResizeSideHandle(targetElement, ResizeHandleAnchor.Right));
-            targetElement.Add(new ResizeSideHandle(targetElement, ResizeHandleAnchor.BottomRight));
-            targetElement.Add(new ResizeSideHandle(targetElement, ResizeHandleAnchor.Bottom));
-            targetElement.Add(new ResizeSideHandle(targetElement, ResizeHandleAnchor.BottomLeft));
-            targetElement.Add(new ResizeSideHandle(targetElement, ResizeHandleAnchor.Left));
-        }
-
         VisualElement m_ResizeTarget;
 
         public ResizeSideHandle(VisualElement resizeTarget, ResizeHandleAnchor anchor)

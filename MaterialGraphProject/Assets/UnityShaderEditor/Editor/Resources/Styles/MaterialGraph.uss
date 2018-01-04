@@ -412,12 +412,12 @@ GraphInspectorView > #top > #properties > #items {
     padding-bottom: 4;
 }
 
-GraphInspectorView > .resize {
+#resizeBorderFrame > .resize {
     background-color: rgba(0, 0, 0, 0);
     position-type: absolute;
 }
 
-GraphInspectorView > .resize.vertical {
+#resizeBorderFrame > .resize.vertical {
     cursor: resize-vertical;
     height: 10;
     position-left: 10;
@@ -428,7 +428,7 @@ GraphInspectorView > .resize.vertical {
     margin-bottom: 0;
 }
 
-GraphInspectorView > .resize.horizontal {
+#resizeBorderFrame > .resize.horizontal {
     cursor: resize-horizontal;
     width: 10;
     position-top: 10;
@@ -439,49 +439,57 @@ GraphInspectorView > .resize.horizontal {
     margin-right: 0;
 }
 
-GraphInspectorView > .resize.diagonal {
+#resizeBorderFrame > .resize.diagonal {
     width: 10;
     height: 10;
 }
 
-GraphInspectorView > .resize.diagonal.top-left {
+#resizeBorderFrame > .resize.diagonal.top-left {
     cursor: resize-up-left;
     position-top: 0;
     position-left: 0;
 }
 
-GraphInspectorView > .resize.diagonal.top-right {
+#resizeBorderFrame > .resize.diagonal.top-right {
     cursor: resize-up-right;
     position-top: 0;
     position-right: 0;
 }
 
-GraphInspectorView > .resize.diagonal.bottom-left {
+#resizeBorderFrame > .resize.diagonal.bottom-left {
     cursor: resize-up-right;
     position-bottom: 0;
     position-left: 0;
 }
 
-GraphInspectorView > .resize.diagonal.bottom-right {
+#resizeBorderFrame > .resize.diagonal.bottom-right {
     cursor: resize-up-left;
     position-bottom: 0;
     position-right: 0;
 }
 
-GraphInspectorView > .resize.vertical.top {
+#resizeBorderFrame > .resize.vertical.top {
     position-top: 0;
 }
 
-GraphInspectorView > .resize.vertical.bottom {
+#resizeBorderFrame > .resize.vertical.bottom {
     position-bottom: 0;
 }
 
-GraphInspectorView > .resize.horzontal.left {
+#resizeBorderFrame > .resize.horzontal.left {
     position-left: 0;
 }
 
-GraphInspectorView > .resize.horizontal.right {
+#resizeBorderFrame > .resize.horizontal.right {
     position-right: 0;
+}
+
+.reszieBorderFrame {
+    position-type: absolute;
+    position-top: 0;
+    position-right: 0;
+    position-bottom: 0;
+    position-left: 0;
 }
 
 ShaderPropertyView {
