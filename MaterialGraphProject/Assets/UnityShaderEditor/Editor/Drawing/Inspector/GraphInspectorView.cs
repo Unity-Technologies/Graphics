@@ -94,7 +94,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             foreach (var property in m_Graph.properties)
                 m_PropertyItems.Add(new ShaderPropertyView(m_Graph, property));
 
-            ResizeSideHandle.AddResizeHandleBorderFrame(this);
+            Add(new ResizeBorderFrame(this) { name = "resizeBorderFrame" });
         }
 
         MasterNode masterNode
