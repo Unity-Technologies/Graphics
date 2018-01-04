@@ -17,27 +17,32 @@ namespace UnityEditor.Experimental.Rendering
             CED.space,
             CED.Action(Drawer_Projection),
             CED.Action(Drawer_FieldClippingPlanes),
-            CED.Action(Drawer_FieldNormalizedViewPort),
+            // Partial viewport not yet supported
+            //CED.Action(Drawer_FieldNormalizedViewPort), 
             CED.space,
             CED.Action(Drawer_FieldDepth),
-            CED.Action(Drawer_DeferredOrthographicWarning),
             CED.Action(Drawer_FieldRenderTarget),
             CED.Action(Drawer_FieldOcclusionCulling),
             CED.Action(Drawer_CameraWarnings),
-            CED.Action(Drawer_FieldVR),
 #if ENABLE_MULTIPLE_DISPLAYS
             CED.Action(Drawer_SectionMultiDisplay),
 #endif
             CED.Action(Drawer_FieldRenderingPath),
-            CED.FadeGroup(
-                (s, d, o, i) => s.isSectionExpandedTargetEyeOptions.faded,
-                true,
-                CED.Action(Drawer_FieldTargetEye)),
+            // XR not yet supported
+            //CED.FadeGroup(
+            //    (s, d, o, i) => s.isSectionExpandedXRSupported.faded,
+            //    false,
+            //    CED.FoldoutGroup(
+            //        "XR",
+            //        (s, p, o) => s.isSectionExpandedXR,
+            //        true,
+            //        CED.Action(Drawer_FieldVR),
+            //        CED.Action(Drawer_FieldTargetEye))),
             CED.FadeGroup(
                 (s, d, o, i) => s.isSectionExpandedRenderLoopSettings.faded,
                 false,
                 CED.FoldoutGroup(
-                    "Shader Features",
+                    "Shader Passes",
                     (s, p, o) => s.isSectionExpandedShaderFeature,
                     true,
                     CED.Action(Drawer_SectionShaderFeature)),
@@ -113,13 +118,6 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUILayout.PropertyField(p.renderingPath, _.GetContent("Rendering Path"));
         }
 
-        static void Drawer_DeferredOrthographicWarning(UIState s, SerializedHDCamera p, Editor owner)
-        {
-            if (p.orthographic.boolValue && !p.frameSettings.enableForwardRenderingOnly.boolValue)
-                EditorGUILayout.HelpBox("Deferred rendering does not work with Orthographic camera, will use Forward.",
-                    MessageType.Warning, true);
-        }
-
         static void Drawer_FieldRenderTarget(UIState s, SerializedHDCamera p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.targetTexture);
@@ -157,7 +155,6 @@ namespace UnityEditor.Experimental.Rendering
         {
             if (PlayerSettings.virtualRealitySupported)
             {
-                EditorGUILayout.PropertyField(p.frameSettings.enableStereo, _.GetContent("Enable Stereo"));
                 EditorGUILayout.PropertyField(p.stereoSeparation, _.GetContent("Stereo Separation"));
                 EditorGUILayout.PropertyField(p.stereoConvergence, _.GetContent("Stereo Convergence"));
             }
@@ -225,6 +222,7 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUILayout.PropertyField(p.frameSettings.enableTransparentObjects, _.GetContent("Enable Transparent Objects"));
 
             EditorGUILayout.PropertyField(p.frameSettings.enableMSAA, _.GetContent("Enable MSAA"));
+            EditorGUILayout.PropertyField(p.frameSettings.enableStereo, _.GetContent("Enable Stereo"));
         }
 
         static void Drawer_SectionLightLoop(UIState s, SerializedHDCamera p, Editor owner)

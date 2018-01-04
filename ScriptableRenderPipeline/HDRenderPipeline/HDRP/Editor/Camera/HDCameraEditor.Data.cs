@@ -11,15 +11,16 @@ namespace UnityEditor.Experimental.Rendering
         {
             SerializedHDCamera m_SerializedHdCamera;
 
-            AnimBool[] m_AnimBools = new AnimBool[7];
+            AnimBool[] m_AnimBools = new AnimBool[8];
 
             public AnimBool isSectionExpandedOrthoOptions { get { return m_AnimBools[0]; } }
-            public AnimBool isSectionExpandedTargetEyeOptions { get { return m_AnimBools[1]; } }
-            public AnimBool isSectionExpandedShaderFeature { get { return m_AnimBools[2]; } }
-            public AnimBool isSectionExpandedLightLoop { get { return m_AnimBools[3]; } }
-            public AnimBool isSectionExpandedScreenSpace { get { return m_AnimBools[4]; } }
-            public AnimBool isSectionExpandedMiscellaneous { get { return m_AnimBools[5]; } }
-            public AnimBool isSectionExpandedRenderLoopSettings { get { return m_AnimBools[6]; } }
+            public AnimBool isSectionExpandedShaderFeature { get { return m_AnimBools[1]; } }
+            public AnimBool isSectionExpandedLightLoop { get { return m_AnimBools[2]; } }
+            public AnimBool isSectionExpandedScreenSpace { get { return m_AnimBools[3]; } }
+            public AnimBool isSectionExpandedMiscellaneous { get { return m_AnimBools[4]; } }
+            public AnimBool isSectionExpandedRenderLoopSettings { get { return m_AnimBools[5]; } }
+            public AnimBool isSectionExpandedXR { get { return m_AnimBools[6]; } }
+            public AnimBool isSectionExpandedXRSupported { get { return m_AnimBools[7]; } }
 
             public UIState()
             {
@@ -43,9 +44,7 @@ namespace UnityEditor.Experimental.Rendering
             public void Update()
             {
                 isSectionExpandedOrthoOptions.target = !m_SerializedHdCamera.orthographic.hasMultipleDifferentValues && m_SerializedHdCamera.orthographic.boolValue;
-
-                var targetEyeValue = (StereoTargetEyeMask)m_SerializedHdCamera.targetEye.intValue;
-                isSectionExpandedTargetEyeOptions.target = targetEyeValue != StereoTargetEyeMask.Both || PlayerSettings.virtualRealitySupported;
+                isSectionExpandedXRSupported.target = PlayerSettings.virtualRealitySupported;
 
                 // SRP settings are available only if the rendering path is not the Default one (configured by the SRP asset)
                 var renderingPath = (HDAdditionalCameraData.RenderingPath)m_SerializedHdCamera.renderingPath.intValue;
