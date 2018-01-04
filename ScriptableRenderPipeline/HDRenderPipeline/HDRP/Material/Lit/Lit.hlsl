@@ -688,6 +688,8 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     // 'bsdfData.perceptualRoughness' is still use where it make sense (SSAO, disney diffuse)
     // If IBL needs the roughness value for some reason, it can be computed with PerceptualRoughnessToRoughness
 
+    float3 iblV = V; // when using clear coat, we must use the original V for IblR (base layer) instead of the refractV
+
     // Clear coat need to modify roughness, V and NdotV for all the other precalculation below
     if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
@@ -774,7 +776,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     }
 
     // IBL
-    iblR = reflect(-V, iblN);
+    iblR = reflect(-iblV, iblN);
     float iblRoughness = PerceptualRoughnessToRoughness(preLightData.iblPerceptualRoughness);
     // Corretion of reflected direction for better handling of rough material
     preLightData.iblR = GetSpecularDominantDir(N, iblR, iblRoughness, NdotV);
@@ -983,9 +985,6 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     // Optimized math. Ref: PBR Diffuse Lighting for GGX + Smith Microsurfaces (slide 114).
     float NdotL = saturate(dot(N, L)); // Must have the same value without the clamp
 
-    if (NdotL <= 0.0)
-        return;
-
     float LdotV = dot(L, V);
     float invLenLV = rsqrt(max(2 * LdotV + 2, FLT_EPS));  // invLenLV = rcp(length(L + V)) - caution about the case where V and L are opposite, it can happen, use max to avoid this
     float NdotH = saturate((NdotL + NdotV) * invLenLV);
@@ -993,7 +992,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 
     float DV;
 
-    F *= F_Schlick(preLightData.baseFresnel0, LdotH);
+    F *= F_Schlick(preLightData.baseFresnel0, LdotH)
 
     // We avoid divergent evaluation of the GGX, as that nearly doubles the cost.
     // If the tile has anisotropy, all the pixels within the tile are evaluated as anisotropic.
@@ -1117,7 +1116,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     EvaluateLight_Directional(lightLoopContext, posInput, lightData, bakeLightingData, N, L, color, attenuation);
 
     // Note: We use NdotL here to early out, but in case of clear coat this is not correct. But we are ok with this
-    [branch] if (attenuation > 0.0)
+    [branch] if (attenuation * NdotL > 0.0)
     {
         BSDF(V, L, posInput.positionWS, preLightData, bsdfData, lighting.diffuse, lighting.specular);
 
@@ -1168,7 +1167,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     EvaluateLight_Punctual(lightLoopContext, posInput, lightData, bakeLightingData, N, L, dist, distSq, color, attenuation);
 
     // Note: We use NdotL here to early out, but in case of clear coat this is not correct. But we are ok with this
-    [branch] if (attenuation > 0.0)
+    [branch] if (attenuation * NdotL > 0.0)
     {
         // Simulate a sphere light with this hack
         // Note that it is not correct with our pre-computation of PartLambdaV (mean if we disable the optimization we will not have the
