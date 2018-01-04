@@ -9,7 +9,6 @@ namespace UnityEditor.Experimental.Rendering
 
     partial class HDCameraEditor
     {
-
         static readonly CED.IDrawer[] k_PrimarySection =
         {
             CED.Action(Drawer_FieldClearFlags),
@@ -40,26 +39,29 @@ namespace UnityEditor.Experimental.Rendering
                 (s, d, o, i) => s.isSectionExpandedTargetEyeOptions.faded,
                 true,
                 CED.Action(Drawer_FieldTargetEye)),
-            CED.FoldoutGroup(
-                "Shader Features",
-                (s, p, o) => s.isSectionExpandedShaderFeature,
-                true,
-                CED.Action(Drawer_SectionShaderFeature)),
-            CED.FoldoutGroup(
-                "Screen Space",
-                (s, p, o) => s.isSectionExpandedScreenSpace,
-                true,
-                CED.Action(Drawer_SectionScreenSpace)),
-            CED.FoldoutGroup(
-                "Miscellaneous",
-                (s, p, o) => s.isSectionExpandedMiscellaneous,
-                true,
-                CED.Action(Drawer_SectionMiscellaneous)),
-            CED.FoldoutGroup(
-                "Light Loop",
-                (s, p, o) => s.isSectionExpandedLightLoop,
-                true,
-                CED.Action(Drawer_SectionLightLoop)),
+            CED.FadeGroup(
+                (s, d, o, i) => s.isSectionExpandedRenderLoopSettings.faded,
+                false,
+                CED.FoldoutGroup(
+                    "Shader Features",
+                    (s, p, o) => s.isSectionExpandedShaderFeature,
+                    true,
+                    CED.Action(Drawer_SectionShaderFeature)),
+                CED.FoldoutGroup(
+                    "Screen Space",
+                    (s, p, o) => s.isSectionExpandedScreenSpace,
+                    true,
+                    CED.Action(Drawer_SectionScreenSpace)),
+                CED.FoldoutGroup(
+                    "Miscellaneous",
+                    (s, p, o) => s.isSectionExpandedMiscellaneous,
+                    true,
+                    CED.Action(Drawer_SectionMiscellaneous)),
+                CED.FoldoutGroup(
+                    "Light Loop",
+                    (s, p, o) => s.isSectionExpandedLightLoop,
+                    true,
+                    CED.Action(Drawer_SectionLightLoop)))
         };
 
         static void Drawer_FieldClearFlags(UIState s, SerializedHDCamera p, Editor owner)

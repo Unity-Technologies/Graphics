@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using UnityEditor.AnimatedValues;
+﻿using UnityEditor.AnimatedValues;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering
 {
@@ -12,7 +11,7 @@ namespace UnityEditor.Experimental.Rendering
         {
             SerializedHDCamera m_SerializedHdCamera;
 
-            AnimBool[] m_AnimBools = new AnimBool[7];
+            AnimBool[] m_AnimBools = new AnimBool[8];
 
             public AnimBool isSectionExpandedBGColorOptions { get { return m_AnimBools[0]; } }
             public AnimBool isSectionExpandedOrthoOptions { get { return m_AnimBools[1]; } }
@@ -21,6 +20,7 @@ namespace UnityEditor.Experimental.Rendering
             public AnimBool isSectionExpandedLightLoop { get { return m_AnimBools[4]; } }
             public AnimBool isSectionExpandedScreenSpace { get { return m_AnimBools[5]; } }
             public AnimBool isSectionExpandedMiscellaneous { get { return m_AnimBools[6]; } }
+            public AnimBool isSectionExpandedRenderLoopSettings { get { return m_AnimBools[7]; } }
 
             public UIState()
             {
@@ -51,6 +51,10 @@ namespace UnityEditor.Experimental.Rendering
 
                 var targetEyeValue = (StereoTargetEyeMask)m_SerializedHdCamera.targetEye.intValue;
                 isSectionExpandedTargetEyeOptions.target = targetEyeValue != StereoTargetEyeMask.Both || PlayerSettings.virtualRealitySupported;
+
+                // SRP settings are available only if the rendering path is not the Default one (configured by the SRP asset)
+                var renderingPath = (HDAdditionalCameraData.RenderingPath)m_SerializedHdCamera.renderingPath.intValue;
+                isSectionExpandedRenderLoopSettings.target = renderingPath != HDAdditionalCameraData.RenderingPath.Default;
             }
         }
     }

@@ -2,6 +2,8 @@
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.PostProcessing;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental.Rendering
@@ -161,9 +163,8 @@ namespace UnityEditor.Experimental.Rendering
                 m_PreviewCamera.targetTexture = previewTexture;
                 m_PreviewCamera.pixelRect = new Rect(0, 0, cameraRect.width, cameraRect.height);
 
-                //Handles.EmitGUIGeometryForCamera(c, m_PreviewCamera);
-
                 GL.sRGBWrite = QualitySettings.activeColorSpace == ColorSpace.Linear;
+                SynchronizePreviewCameraWithCamera(c);
                 m_PreviewCamera.Render();
                 GL.sRGBWrite = false;
                 Graphics.DrawTexture(cameraRect, previewTexture, new Rect(0, 0, 1, 1), 0, 0, 0, 0, GUI.color, GUITextureBlit2SRGBMaterial);
