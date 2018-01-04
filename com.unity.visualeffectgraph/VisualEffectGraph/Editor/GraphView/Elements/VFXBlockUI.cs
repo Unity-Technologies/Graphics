@@ -23,7 +23,7 @@ namespace UnityEditor.VFX.UI
         {
             pickingMode = PickingMode.Position;
             m_EnableToggle = new Toggle(OnToggleEnable);
-            titleContainer.shadow.Insert(0, m_EnableToggle);
+            titleContainer.shadow.Insert(1, m_EnableToggle);
 
             capabilities &= ~Capabilities.Ascendable;
             capabilities |= Capabilities.Selectable;
@@ -88,6 +88,15 @@ namespace UnityEditor.VFX.UI
         protected override void SelfChange()
         {
             base.SelfChange();
+
+            if (controller.block.enabled)
+            {
+                titleContainer.RemoveFromClassList("disabled");
+            }
+            else
+            {
+                titleContainer.AddToClassList("disabled");
+            }
 
             m_EnableToggle.on = controller.block.enabled;
             if (inputContainer != null)

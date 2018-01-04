@@ -1,5 +1,4 @@
 .VFXContextSlotContainerUI.node {
-	-background-color: #2C2C2C;
 	flex:1;
 	align-items:stretch;
 	margin-bottom:4;
@@ -12,118 +11,50 @@
 	padding-bottom:0;
 }
 
-.VFXContextSlotContainerUI.node #pane
-{
-	border-left: 2;
-	border-top: 2;
-	border-right: 2;
-	border-bottom: 2;
-	flex-direction:column;
-	flex:1;
-}
-
-VFXContextUI VFXBlockUI.VFXNodeUI.node #title
-{
-	background-color:rgba(0,0,0,0);
-}
-
-.VFXContextSlotContainerUI.VFXNodeUI.node #pane > #left
-{
-	width:-1;
-	background-color:rgba(0,0,0,0);
-}
-
 VFXBlockUI #settings .propertyrm
 {
 	margin-left:28;
 }
 
-.VFXContextSlotContainerUI.VFXNodeUI.node #pane > #right
+VFXContextUI VFXBlockUI.VFXContextSlotContainerUI.node #node-border #title
 {
-	width:0;
-	visible:false;
-}
-
-.VFXContextSlotContainerUI.node #pane > #left
-{
-	width:-1;
-	background-color: #363636;
-}
-
-.VFXContextSlotContainerUI.node #title {
 	flex-direction:row;
+	align-items:center;
+	justify-content:flex-start;
 }
-VFXBlockUI.node #title > Label {
-	margin-left:0;
+
+
+VFXContextUI VFXBlockUI.VFXContextSlotContainerUI.node #node-border #title.disabled
+{
+    opacity:0.5;
+}
+
+VFXContextUI VFXBlockUI.VFXContextSlotContainerUI.node #node-border #title #title-label
+{
+	margin-left:4;
+	flex:1;
+}
+
+VFXContextUI VFXBlockUI.VFXContextSlotContainerUI.node #node-border #title.disabled #title-label
+{
+    opacity:0.5;
 }
 
 VFXBlockUI.VFXContextSlotContainerUI.node #title Toggle
 {
-	width:16;
-	margin-top:16;
-	height:17;
+	width:14;
+	height:14;
+	margin-right:0;
 }
-
-
-VFXBlockUI.VFXContextSlotContainerUI.node.collapsed #title Toggle
+VFXBlockUI.VFXContextSlotContainerUI.node #title #collapse-button
 {
-	margin-top:6;
-	margin-left:17;
-}
-
-VFXBlockUI.VFXContextSlotContainerUI.node.collapsed .mainContainer
-{
-	max-height:0;
-}
-
-VFXBlockUI.VFXNodeUI.node.collapsed #title > Label {
-	margin-top:4;
-	margin-left:6;
-	margin-right:6;
-	font-size:14;
+	width:20;
+	padding-right:4;
 }
 
 .node.selected
 {
 	border-color:#FFFFFF;
-}
-
-.VFXContextSlotContainerUI.node #left > #title > Label {
-	text-color: #c4c4c4;
-	font-style: bold;
-	text-alignment: middle-left;
-	flex: 1;
-}
-.VFXContextSlotContainerUI.node:disabled #left > #title > Label {
-	text-color: #333;
-}
-
-.VFXContextSlotContainerUI.node:disabled {
-	background-color: #F00;
-}
-
-.VFXContextSlotContainerUI.node #left > #title > Button {
-	text-color: rgb(153, 153, 153);
-	min-width:50;
-	margin-right: 6;
-	padding-right: 0;
-	padding-left: 0;
-	flex:0;
-	text-alignment: middle-center;
-}
-
-.VFXContextSlotContainerUI #pane #left VisualContainer#input
-{
-	flex:1;
-	align-items: stretch;
-	padding-bottom:3;
-}
-
-.VFXContextSlotContainerUI #pane #left VisualContainer#output
-{
-	flex:1;
-	align-items: stretch;
-	padding-bottom:3;
 }
 
 VFXBlockUI.node 
