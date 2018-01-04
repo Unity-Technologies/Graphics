@@ -3,6 +3,7 @@ Shader "Hidden/HDRenderPipeline/CopyStencilBuffer"
     Properties
     {
         [HideInInspector] _StencilRef("_StencilRef", Int) = 1
+        [HideInInspector] _StencilMask("_StencilMask", Int) = 7
     }
 
     HLSLINCLUDE
@@ -17,6 +18,7 @@ Shader "Hidden/HDRenderPipeline/CopyStencilBuffer"
     #include "../Lighting/LightDefinition.cs.hlsl"
 
     int _StencilRef;
+    int _StencilMask;
     RW_TEXTURE2D(float, _HTile); // DXGI_FORMAT_R8_UINT is not supported by Unity
 
     struct Attributes
@@ -48,6 +50,7 @@ Shader "Hidden/HDRenderPipeline/CopyStencilBuffer"
 
             Stencil
             {
+                ReadMask [_StencilMask]
                 Ref  [_StencilRef]
                 Comp Equal
                 Pass Keep
@@ -77,6 +80,7 @@ Shader "Hidden/HDRenderPipeline/CopyStencilBuffer"
 
             Stencil
             {
+                ReadMask [_StencilMask]
                 Ref  [_StencilRef]
                 Comp NotEqual
                 Pass Keep
@@ -106,6 +110,7 @@ Shader "Hidden/HDRenderPipeline/CopyStencilBuffer"
 
             Stencil
             {
+                ReadMask [_StencilMask]
                 Ref  [_StencilRef]
                 Comp Equal
                 Pass Keep
