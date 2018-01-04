@@ -132,8 +132,6 @@ float3 TransmittanceColorAtDistanceToAbsorption(float3 transmittanceColor, float
     return -log(transmittanceColor + FLT_EPS) / max(atDistance, FLT_EPS);
 }
 
-#define VOLUMETRIC_LIGHTING_ENABLED
-
 // Interpolation in the log space is non-linear.
 // Therefore, given 'logEncodedDepth', we compute a new depth value
 // which allows us to perform HW interpolation which is linear in the view space.

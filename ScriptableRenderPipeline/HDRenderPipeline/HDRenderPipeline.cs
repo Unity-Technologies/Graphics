@@ -510,13 +510,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (m_VolumetricLightingPreset != VolumetricLightingPreset.Off)
                 {
-                    // TODO: enable keyword VOLUMETRIC_LIGHTING_ENABLED.
+                    // TODO: set SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET.
                     SetVolumetricLightingData(hdCamera, cmd);
                 }
                 else
                 {
-                    // TODO: disable keyword VOLUMETRIC_LIGHTING_ENABLED.
-                    // We should not access any volumetric lighting data in our shaders.
+                    // TODO: set SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET to 0.
                 }
             }
         }
