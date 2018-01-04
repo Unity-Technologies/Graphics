@@ -6,7 +6,7 @@ using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEditor.Experimental.Rendering
 {
-    //[CustomEditorForRenderPipeline(typeof(Camera), typeof(HDRenderPipelineAsset))]
+    [CustomEditorForRenderPipeline(typeof(Camera), typeof(HDRenderPipelineAsset))]
     [CanEditMultipleObjects]
     partial class HDCameraEditor : Editor
     {

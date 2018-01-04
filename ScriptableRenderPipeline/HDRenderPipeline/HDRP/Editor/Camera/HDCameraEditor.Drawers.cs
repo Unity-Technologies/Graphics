@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Assertions;
+using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering
 {
@@ -11,56 +15,68 @@ namespace UnityEditor.Experimental.Rendering
     {
         static readonly CED.IDrawer[] k_PrimarySection =
         {
+            // Primary settings
             CED.Action(Drawer_FieldBackgroundColor),
             CED.Action(Drawer_FieldCullingMask),
             CED.Action(Drawer_FieldVolumeLayerMask),
             CED.space,
             CED.Action(Drawer_Projection),
             CED.Action(Drawer_FieldClippingPlanes),
-            // Partial viewport not yet supported
-            //CED.Action(Drawer_FieldNormalizedViewPort), 
             CED.space,
-            CED.Action(Drawer_FieldDepth),
-            CED.Action(Drawer_FieldRenderTarget),
-            CED.Action(Drawer_FieldOcclusionCulling),
             CED.Action(Drawer_CameraWarnings),
-#if ENABLE_MULTIPLE_DISPLAYS
-            CED.Action(Drawer_SectionMultiDisplay),
-#endif
             CED.Action(Drawer_FieldRenderingPath),
-            // XR not yet supported
-            //CED.FadeGroup(
-            //    (s, d, o, i) => s.isSectionExpandedXRSupported.faded,
-            //    false,
-            //    CED.FoldoutGroup(
-            //        "XR",
-            //        (s, p, o) => s.isSectionExpandedXR,
-            //        true,
-            //        CED.Action(Drawer_FieldVR),
-            //        CED.Action(Drawer_FieldTargetEye))),
+            CED.space,
+
+            // Advanced settings
+            CED.FoldoutGroup(
+                "Capture Settings",
+                (s, p, o) => s.isSectionExpandedCaptureSettings,
+                true,
+                CED.Action(Drawer_FieldOcclusionCulling),
+                CED.Action(Drawer_FieldNormalizedViewPort)),
+            CED.FoldoutGroup(
+                "Output Settings",
+                (s, p, o) => s.isSectionExpandedOutputSettings,
+                true,
+#if ENABLE_MULTIPLE_DISPLAYS
+                CED.Action(Drawer_SectionMultiDisplay),
+#endif
+                CED.Action(Drawer_FieldDepth),
+                CED.Action(Drawer_FieldRenderTarget)),
             CED.FadeGroup(
-                (s, d, o, i) => s.isSectionExpandedRenderLoopSettings.faded,
+                (s, d, o, i) => s.isSectionExpandedXRSupported.faded,
                 false,
                 CED.FoldoutGroup(
-                    "Shader Passes",
-                    (s, p, o) => s.isSectionExpandedShaderFeature,
+                    "XR",
+                    (s, p, o) => s.isSectionExpandedXR,
                     true,
-                    CED.Action(Drawer_SectionShaderFeature)),
-                CED.FoldoutGroup(
-                    "Screen Space",
-                    (s, p, o) => s.isSectionExpandedScreenSpace,
-                    true,
-                    CED.Action(Drawer_SectionScreenSpace)),
-                CED.FoldoutGroup(
-                    "Miscellaneous",
-                    (s, p, o) => s.isSectionExpandedMiscellaneous,
-                    true,
-                    CED.Action(Drawer_SectionMiscellaneous)),
-                CED.FoldoutGroup(
-                    "Light Loop",
-                    (s, p, o) => s.isSectionExpandedLightLoop,
-                    true,
-                    CED.Action(Drawer_SectionLightLoop)))
+                    CED.Action(Drawer_FieldVR),
+                    CED.Action(Drawer_FieldTargetEye))),
+
+            // Render Loop Settings
+            CED.FadeGroup(
+            (s, d, o, i) => s.isSectionExpandedRenderLoopSettings.faded,
+            false,
+            CED.FoldoutGroup(
+                "Shader Passes",
+                (s, p, o) => s.isSectionExpandedShaderFeature,
+                true,
+                CED.Action(Drawer_SectionShaderFeature)),
+            CED.FoldoutGroup(
+                "Screen Space",
+                (s, p, o) => s.isSectionExpandedScreenSpace,
+                true,
+                CED.Action(Drawer_SectionScreenSpace)),
+            CED.FoldoutGroup(
+                "Miscellaneous",
+                (s, p, o) => s.isSectionExpandedMiscellaneous,
+                true,
+                CED.Action(Drawer_SectionMiscellaneous)),
+            CED.FoldoutGroup(
+                "Light Loop",
+                (s, p, o) => s.isSectionExpandedLightLoop,
+                true,
+                CED.Action(Drawer_SectionLightLoop))),
         };
 
         static void Drawer_FieldBackgroundColor(UIState s, SerializedHDCamera p, Editor owner)
@@ -99,8 +115,16 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Drawer_FieldClippingPlanes(UIState s, SerializedHDCamera p, Editor owner)
         {
+            GUILayout.BeginHorizontal();
+            EditorGUILayout.PrefixLabel(_.GetContent("Clipping Planes"));
+            GUILayout.BeginVertical();
+            var labelWidth = EditorGUIUtility.labelWidth;
+            EditorGUIUtility.labelWidth = 45;
             EditorGUILayout.PropertyField(p.nearClippingPlane, _.GetContent("Near|The closest point relative to the camera that drawing will occur."));
             EditorGUILayout.PropertyField(p.farClippingPlane, _.GetContent("Far|The furthest point relative to the camera that drawing will occur.\n"));
+            GUILayout.EndVertical();
+            GUILayout.EndHorizontal();
+            EditorGUIUtility.labelWidth = labelWidth;
         }
 
         static void Drawer_FieldNormalizedViewPort(UIState s, SerializedHDCamera p, Editor owner)
@@ -153,11 +177,19 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Drawer_FieldVR(UIState s, SerializedHDCamera p, Editor owner)
         {
-            if (PlayerSettings.virtualRealitySupported)
+            if (s.canOverrideRenderLoopSettings)
+                EditorGUILayout.PropertyField(p.frameSettings.enableStereo, _.GetContent("Enable Stereo"));
+            else
             {
-                EditorGUILayout.PropertyField(p.stereoSeparation, _.GetContent("Stereo Separation"));
-                EditorGUILayout.PropertyField(p.stereoConvergence, _.GetContent("Stereo Convergence"));
+                var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                Assert.IsNotNull(hdrp, "This Editor is valid only for HDRP");
+                var enableStereo = hdrp.GetFrameSettings().enableStereo;
+                GUI.enabled = false;
+                EditorGUILayout.Toggle(_.GetContent("Enable Stereo (Set by HDRP)"), enableStereo);
+                GUI.enabled = true;
             }
+            EditorGUILayout.PropertyField(p.stereoSeparation, _.GetContent("Stereo Separation"));
+            EditorGUILayout.PropertyField(p.stereoConvergence, _.GetContent("Stereo Convergence"));
         }
 
 #if ENABLE_MULTIPLE_DISPLAYS
@@ -166,7 +198,6 @@ namespace UnityEditor.Experimental.Rendering
             if (ModuleManager_ShouldShowMultiDisplayOption())
             {
                 var prevDisplay = p.targetDisplay.intValue;
-                EditorGUILayout.Space();
                 EditorGUILayout.IntPopup(p.targetDisplay, DisplayUtility_GetDisplayNames(), DisplayUtility_GetDisplayIndices(), _.GetContent("Target Display"));
                 if (prevDisplay != p.targetDisplay.intValue)
                     UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
@@ -222,7 +253,6 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUILayout.PropertyField(p.frameSettings.enableTransparentObjects, _.GetContent("Enable Transparent Objects"));
 
             EditorGUILayout.PropertyField(p.frameSettings.enableMSAA, _.GetContent("Enable MSAA"));
-            EditorGUILayout.PropertyField(p.frameSettings.enableStereo, _.GetContent("Enable Stereo"));
         }
 
         static void Drawer_SectionLightLoop(UIState s, SerializedHDCamera p, Editor owner)

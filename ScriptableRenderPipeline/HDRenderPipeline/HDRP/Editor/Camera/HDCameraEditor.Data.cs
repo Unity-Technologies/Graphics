@@ -11,7 +11,7 @@ namespace UnityEditor.Experimental.Rendering
         {
             SerializedHDCamera m_SerializedHdCamera;
 
-            AnimBool[] m_AnimBools = new AnimBool[8];
+            AnimBool[] m_AnimBools = new AnimBool[10];
 
             public AnimBool isSectionExpandedOrthoOptions { get { return m_AnimBools[0]; } }
             public AnimBool isSectionExpandedShaderFeature { get { return m_AnimBools[1]; } }
@@ -21,11 +21,17 @@ namespace UnityEditor.Experimental.Rendering
             public AnimBool isSectionExpandedRenderLoopSettings { get { return m_AnimBools[5]; } }
             public AnimBool isSectionExpandedXR { get { return m_AnimBools[6]; } }
             public AnimBool isSectionExpandedXRSupported { get { return m_AnimBools[7]; } }
+            public AnimBool isSectionExpandedCaptureSettings { get { return m_AnimBools[8]; } }
+            public AnimBool isSectionExpandedOutputSettings { get { return m_AnimBools[9]; } }
+
+            public bool canOverrideRenderLoopSettings { get; set; }
 
             public UIState()
             {
                 for (var i = 0 ; i < m_AnimBools.Length; ++i)
                     m_AnimBools[i] = new AnimBool();
+
+                canOverrideRenderLoopSettings = false;
             }
 
             public void Reset(SerializedHDCamera serializedHdCamera, UnityAction repaint)
@@ -43,12 +49,14 @@ namespace UnityEditor.Experimental.Rendering
 
             public void Update()
             {
+                var renderingPath = (HDAdditionalCameraData.RenderingPath)m_SerializedHdCamera.renderingPath.intValue;
+                canOverrideRenderLoopSettings = renderingPath == HDAdditionalCameraData.RenderingPath.Custom;
+
                 isSectionExpandedOrthoOptions.target = !m_SerializedHdCamera.orthographic.hasMultipleDifferentValues && m_SerializedHdCamera.orthographic.boolValue;
                 isSectionExpandedXRSupported.target = PlayerSettings.virtualRealitySupported;
 
                 // SRP settings are available only if the rendering path is not the Default one (configured by the SRP asset)
-                var renderingPath = (HDAdditionalCameraData.RenderingPath)m_SerializedHdCamera.renderingPath.intValue;
-                isSectionExpandedRenderLoopSettings.target = renderingPath == HDAdditionalCameraData.RenderingPath.Custom;
+                isSectionExpandedRenderLoopSettings.target = canOverrideRenderLoopSettings;
             }
         }
     }
