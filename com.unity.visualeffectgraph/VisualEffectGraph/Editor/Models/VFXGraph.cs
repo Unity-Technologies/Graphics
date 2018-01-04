@@ -212,6 +212,25 @@ namespace UnityEditor.VFX
             m_GraphSanitized = true;
         }
 
+        public  bool displaySubAssets
+        {
+            get {return hideFlags == HideFlags.None; }
+            set
+            {
+                var persistentAssets = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(this)).Where(o => o is VFXModel || o is ComputeShader || o is Shader);
+
+
+                hideFlags = value ? HideFlags.None : HideFlags.HideInHierarchy;
+                foreach (var asset in persistentAssets)
+                {
+                    asset.hideFlags = value ? HideFlags.None : HideFlags.HideInHierarchy;
+                    EditorUtility.SetDirty(asset);
+                }
+
+                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(vfxAsset));
+            }
+        }
+
         public bool UpdateSubAssets()
         {
             bool modified = false;
@@ -258,6 +277,7 @@ namespace UnityEditor.VFX
                         {
                             obj.name = obj.GetType().Name;
                             AssetDatabase.AddObjectToAsset(obj, this);
+                            obj.hideFlags = hideFlags;
                             modified = true;
                         }
 
