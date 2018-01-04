@@ -263,11 +263,9 @@ public partial class HDRenderPipeline : RenderPipeline
         int w = 0, h = 0, d = 0;
         Vector2 scale = ComputeVBufferResolutionAndScale(camera.screenSize.x, camera.screenSize.y, ref w, ref h, ref d);
 
-        Vector4 resAndScale = new Vector4(w, h, scale.x, scale.y);
-        Vector4 depthParams = ComputeLogarithmicDepthEncodingParams(m_VBufferNearPlane, m_VBufferFarPlane);
-
-        cmd.SetGlobalVector( HDShaderIDs._VBufferResolutionAndScale,  resAndScale);
-        cmd.SetGlobalVector( HDShaderIDs._VBufferDepthEncodingParams, depthParams);
+        cmd.SetGlobalVector( HDShaderIDs._VBufferResolution,          new Vector4(w, h, 1.0f / w, 1.0f / h));
+        cmd.SetGlobalVector( HDShaderIDs._VBufferScaleAndSliceCount,  new Vector4(scale.x, scale.y, d, 1.0f / d));
+        cmd.SetGlobalVector( HDShaderIDs._VBufferDepthEncodingParams, ComputeLogarithmicDepthEncodingParams(m_VBufferNearPlane, m_VBufferFarPlane));
         cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,            GetVBufferLightingIntegral());
     }
 

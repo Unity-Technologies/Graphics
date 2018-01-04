@@ -194,8 +194,9 @@ CBUFFER_START(UnityPerFrame)
     // Unfortunately, structures inside constant buffers are not supported by Unity.
     float3 _GlobalFog_Scattering;
     float  _GlobalFog_Extinction;
+    float4 _VBufferResolution;          // { w, h, 1/w, 1/h }
+    float4 _VBufferScaleAndSliceCount;  // { fracVisW, fracVisH, count, 1/count }
     float4 _VBufferDepthEncodingParams; // { n, log2(f/n), 1/n, 1/log2(f/n) }
-    float4 _VBufferResolutionAndScale;  // { w, h, fracVisW, fracVisH }
 CBUFFER_END
 
 // ----------------------------------------------------------------------------
