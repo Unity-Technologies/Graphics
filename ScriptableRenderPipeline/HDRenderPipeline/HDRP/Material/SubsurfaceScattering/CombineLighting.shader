@@ -5,13 +5,6 @@ Shader "Hidden/HDRenderPipeline/CombineLighting"
         [HideInInspector] _StencilMask("_StencilMask", Int) = 7
     }
 
-    HLSLINCLUDE
-
-    int _StencilMask;
-
-    ENDHLSL
-
-
     SubShader
     {
         Pass
