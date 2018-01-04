@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -15,7 +16,15 @@ namespace UnityEditor.VFX
 
         protected override bool CanConvertFrom(Type type)
         {
-            return type == typeof(Matrix4x4);
+            return base.CanConvertFrom(type) || type == typeof(Matrix4x4);
+        }
+
+        sealed protected override VFXExpression ConvertExpression(VFXExpression expression)
+        {
+            if (expression.valueType == VFXValueType.kTransform)
+                return expression;
+
+            throw new Exception("Unexpected type of expression " + expression);
         }
 
         protected override VFXExpression ExpressionFromChildren(VFXExpression[] expr)

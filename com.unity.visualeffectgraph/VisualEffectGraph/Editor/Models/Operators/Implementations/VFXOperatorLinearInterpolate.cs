@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.VFX
 {
     [VFXInfo(category = "Math")]
-    class VFXOperatorLinearInterpolate : VFXOperatorFloatUnified
+    class VFXOperatorLinearInterpolate : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         public class InputProperties
         {

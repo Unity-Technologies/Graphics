@@ -15,6 +15,11 @@ namespace UnityEditor.VFX
             public Vector3 b = Vector3.up;
         }
 
+        public class OutputProperties
+        {
+            public Vector3 o;
+        }
+
         override public string name { get { return "Cross Product"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

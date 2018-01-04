@@ -11,7 +11,7 @@ using UnityEditor;
 namespace  UnityEditor.VFX.UI
 {
     [Serializable]
-    class VFXViewWindow : GraphViewEditorWindow
+    class VFXViewWindow : EditorWindow
     {
         ShortcutHandler m_ShortcutHandler;
 
@@ -23,15 +23,16 @@ namespace  UnityEditor.VFX.UI
                 { Event.KeyboardEvent("a"), view.FrameAll },
                 { Event.KeyboardEvent("f"), view.FrameSelection },
                 { Event.KeyboardEvent("o"), view.FrameOrigin },
-                { Event.KeyboardEvent("delete"), view.DeleteSelection },
                 { Event.KeyboardEvent("^#>"), view.FramePrev },
                 { Event.KeyboardEvent("^>"), view.FrameNext },
                 {Event.KeyboardEvent("c"), view.CloneModels},         // TEST
-                {Event.KeyboardEvent("#r"), view.Resync},
+                {Event.KeyboardEvent("#^r"), view.Resync},
+                {Event.KeyboardEvent("F7"), view.Compile},
                 {Event.KeyboardEvent("#d"), view.OutputToDot},
                 {Event.KeyboardEvent("^#d"), view.OutputToDotReduced},
                 {Event.KeyboardEvent("#c"), view.OutputToDotConstantFolding},
-                {Event.KeyboardEvent("space"), view.ReinitComponents},
+                {Event.KeyboardEvent("#r"), view.ReinitComponents},
+                {Event.KeyboardEvent("F5"), view.ReinitComponents},
             });
         }
 
@@ -43,38 +44,28 @@ namespace  UnityEditor.VFX.UI
             GetWindow<VFXViewWindow>();
         }
 
+        public VFXView graphView
+        {
+            get; private set;
+        }
         public void LoadAsset(VFXAsset asset)
         {
-            VFXViewPresenter newPresenter = VFXViewPresenter.Manager.GetPresenter(asset, true);
-
-            if (presenter != newPresenter)
+            if (graphView.controller == null || graphView.controller.model != asset)
             {
-                if (presenter != null)
-                    GetPresenter<VFXViewPresenter>().useCount--;
-                presenter = newPresenter;
-                newPresenter.useCount++;
+                bool differentAsset = asset != m_DisplayedAsset;
 
-                graphView.presenter = newPresenter;
+                m_AssetName = asset.name;
+                m_DisplayedAsset = asset;
+                graphView.controller = VFXViewController.GetController(asset, true);
+
+                if (differentAsset)
+                {
+                    graphView.FrameNewController();
+                }
             }
         }
 
-        protected override GraphView BuildView()
-        {
-            BuildPresenters();
-
-            VFXView view = new VFXView();
-            VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
-            if (presenter != null)
-            {
-                presenter.useCount++;
-            }
-            view.presenter = presenter;
-
-            SetupFramingShortcutHandler(view);
-            return view;
-        }
-
-        protected override GraphViewPresenter BuildPresenters()
+        protected VFXAsset GetCurrentAsset()
         {
             var objs = Selection.objects;
 
@@ -83,34 +74,27 @@ namespace  UnityEditor.VFX.UI
             {
                 selectedAsset = objs[0] as VFXAsset;
             }
-            else if (!string.IsNullOrEmpty(m_DisplayedAssetPath))
+            else if (m_DisplayedAsset != null)
             {
-                VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>(m_DisplayedAssetPath);
-
-                selectedAsset = asset;
+                selectedAsset = m_DisplayedAsset;
             }
-            if (selectedAsset != null)
-            {
-                if (presenter != null)
-                {
-                    if (GetPresenter<VFXViewPresenter>().GetVFXAsset() != selectedAsset)
-                        if (GetPresenter<VFXViewPresenter>().GetVFXAsset() != selectedAsset)
-                        {
-                            GetPresenter<VFXViewPresenter>().useCount--;
-                        }
-                }
-            }
-
-            if (selectedAsset != null)
-            {
-                return VFXViewPresenter.Manager.GetPresenter(selectedAsset, true);
-            }
-            return null;
+            return selectedAsset;
         }
 
-        protected new void OnEnable()
+        protected void OnEnable()
         {
-            base.OnEnable();
+            graphView = new VFXView();
+            graphView.StretchToParentSize();
+            SetupFramingShortcutHandler(graphView);
+
+            this.GetRootVisualContainer().Add(graphView);
+
+
+            VFXAsset currentAsset = GetCurrentAsset();
+            if (currentAsset != null)
+            {
+                LoadAsset(currentAsset);
+            }
 
             autoCompile = true;
 
@@ -119,32 +103,32 @@ namespace  UnityEditor.VFX.UI
             graphView.RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
 
 
-            VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
+            VisualElement rootVisualElement = this.GetRootVisualContainer();
             if (rootVisualElement.panel != null)
             {
-                rootVisualElement.parent.AddManipulator(m_ShortcutHandler);
+                rootVisualElement.AddManipulator(m_ShortcutHandler);
                 Debug.Log("View window was already attached to a panel on OnEnable");
             }
 
             currentWindow = this;
+
+            if (m_ViewScale != Vector3.zero)
+            {
+                graphView.UpdateViewTransform(m_ViewPosition, m_ViewScale);
+            }
         }
 
-        protected new void OnDisable()
+        protected void OnDisable()
         {
             if (graphView != null)
             {
+                m_ViewScale = graphView.contentViewContainer.transform.scale;
+                m_ViewPosition = graphView.contentViewContainer.transform.position;
+
                 graphView.UnregisterCallback<AttachToPanelEvent>(OnEnterPanel);
                 graphView.UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
-
-                VFXViewPresenter presenter = graphView.GetPresenter<VFXViewPresenter>();
-                if (presenter != null)
-                {
-                    presenter.useCount--;
-                    graphView.presenter = null;
-                }
+                graphView.controller = null;
             }
-
-            base.OnDisable();
             currentWindow = null;
         }
 
@@ -153,20 +137,11 @@ namespace  UnityEditor.VFX.UI
             var objs = Selection.objects;
             if (objs != null && objs.Length == 1 && objs[0] is VFXAsset)
             {
-                m_DisplayedAssetPath = AssetDatabase.GetAssetPath(objs[0] as VFXAsset);
+                VFXViewController controller = graphView.controller;
 
-                VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
-
-                VFXViewPresenter newPresenter = VFXViewPresenter.Manager.GetPresenter(objs[0] as VFXAsset);
-
-                if (presenter != newPresenter)
+                if (controller == null || controller.model != objs[0] as VFXAsset)
                 {
-                    this.presenter = newPresenter;
-                    graphView.presenter = newPresenter;
-                    newPresenter.useCount++;
-                    newPresenter.ForceReload();
-                    if (presenter != null)
-                        presenter.useCount--;
+                    LoadAsset(objs[0] as VFXAsset);
                 }
             }
         }
@@ -174,7 +149,7 @@ namespace  UnityEditor.VFX.UI
         void OnEnterPanel(AttachToPanelEvent e)
         {
             VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
-            rootVisualElement.parent.AddManipulator(m_ShortcutHandler);
+            rootVisualElement.AddManipulator(m_ShortcutHandler);
 
             Debug.Log("VFXViewWindow.OnEnterPanel");
         }
@@ -182,7 +157,7 @@ namespace  UnityEditor.VFX.UI
         void OnLeavePanel(DetachFromPanelEvent e)
         {
             VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
-            rootVisualElement.parent.RemoveManipulator(m_ShortcutHandler);
+            rootVisualElement.RemoveManipulator(m_ShortcutHandler);
 
             Debug.Log("VFXViewWindow.OnLeavePanel");
         }
@@ -191,25 +166,30 @@ namespace  UnityEditor.VFX.UI
 
         void Update()
         {
-            VFXViewPresenter presenter = GetPresenter<VFXViewPresenter>();
-            if (presenter != null)
+            VFXViewController controller = graphView.controller;
+            if (controller != null && controller.model != null && controller.graph != null)
             {
-                var graph = presenter.GetGraph();
-                if (graph != null)
+                var graph = controller.graph;
+                var filename = m_AssetName;
+                if (!graph.saved)
                 {
-                    var filename = System.IO.Path.GetFileName(m_DisplayedAssetPath);
-                    if (!graph.saved)
-                    {
-                        filename += "*";
-                    }
-                    titleContent.text = filename;
-                    graph.RecompileIfNeeded(!autoCompile);
+                    filename += "*";
                 }
-                presenter.RecompileExpressionGraphIfNeeded();
+                titleContent.text = filename;
+                graph.RecompileIfNeeded(!autoCompile);
+                controller.RecompileExpressionGraphIfNeeded();
             }
         }
 
         [SerializeField]
-        private string m_DisplayedAssetPath;
+        private VFXAsset m_DisplayedAsset;
+
+        [SerializeField]
+        Vector3 m_ViewPosition;
+
+        [SerializeField]
+        Vector3 m_ViewScale;
+
+        private string m_AssetName;
     }
 }
