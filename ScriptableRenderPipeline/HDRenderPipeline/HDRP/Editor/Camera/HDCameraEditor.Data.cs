@@ -48,7 +48,7 @@ namespace UnityEditor.Experimental.Rendering
 
                 // SRP settings are available only if the rendering path is not the Default one (configured by the SRP asset)
                 var renderingPath = (HDAdditionalCameraData.RenderingPath)m_SerializedHdCamera.renderingPath.intValue;
-                isSectionExpandedRenderLoopSettings.target = renderingPath != HDAdditionalCameraData.RenderingPath.Default;
+                isSectionExpandedRenderLoopSettings.target = renderingPath == HDAdditionalCameraData.RenderingPath.Custom;
             }
         }
     }

@@ -2,8 +2,6 @@
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEngine.Rendering.PostProcessing;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental.Rendering
@@ -100,17 +98,6 @@ namespace UnityEditor.Experimental.Rendering
             Handles.color = orgHandlesColor;
         }
 
-        RenderTexture GetPreviewTextureWithSize(int width, int height)
-        {
-            if (m_PreviewTexture == null || m_PreviewTexture.width != width || m_PreviewTexture.height != height)
-            {
-                if (m_PreviewTexture != null)
-                    m_PreviewTexture.Release();
-                m_PreviewTexture = new RenderTexture(width, height, 24, RenderTextureFormat.Default, RenderTextureReadWrite.Linear);
-            }
-            return m_PreviewTexture;
-        }
-
         public void OnOverlayGUI(Object target, SceneView sceneView)
         {
             if (target == null) return;
@@ -159,7 +146,6 @@ namespace UnityEditor.Experimental.Rendering
                 m_PreviewCamera.CopyFrom(c);
 
                 var previewTexture = GetPreviewTextureWithSize((int)cameraRect.width, (int)cameraRect.height);
-                previewTexture.antiAliasing = QualitySettings.antiAliasing;
                 m_PreviewCamera.targetTexture = previewTexture;
                 m_PreviewCamera.pixelRect = new Rect(0, 0, cameraRect.width, cameraRect.height);
 

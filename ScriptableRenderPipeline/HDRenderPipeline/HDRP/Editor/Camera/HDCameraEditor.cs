@@ -1,11 +1,12 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEditor.Experimental.Rendering
 {
-    [CustomEditorForRenderPipeline(typeof(Camera), typeof(HDRenderPipelineAsset))]
+    //[CustomEditorForRenderPipeline(typeof(Camera), typeof(HDRenderPipelineAsset))]
     [CanEditMultipleObjects]
     partial class HDCameraEditor : Editor
     {
@@ -18,6 +19,7 @@ namespace UnityEditor.Experimental.Rendering
         Camera m_PreviewCamera;
         HDAdditionalCameraData m_PreviewAdditionalCameraData;
         PostProcessLayer m_PreviewPostProcessLayer;
+        HDCamera m_PreviewHDCamera;
 
         void OnEnable()
         {
@@ -28,6 +30,8 @@ namespace UnityEditor.Experimental.Rendering
             m_PreviewAdditionalCameraData = m_PreviewCamera.gameObject.AddComponent<HDAdditionalCameraData>();
             m_PreviewPostProcessLayer = m_PreviewCamera.gameObject.AddComponent<PostProcessLayer>();
             m_PreviewCamera.enabled = false;
+            m_PreviewHDCamera = new HDCamera(m_PreviewCamera);
+            m_PreviewHDCamera.Update(m_PreviewPostProcessLayer, m_PreviewAdditionalCameraData.GetFrameSettings());
         }
 
         void OnDisable()
@@ -56,19 +60,28 @@ namespace UnityEditor.Experimental.Rendering
 
         void SynchronizePreviewCameraWithCamera(Camera c)
         {
+            EditorUtility.CopySerialized(c, m_PreviewCamera);
             EditorUtility.CopySerialized(c.GetComponent<HDAdditionalCameraData>(), m_PreviewAdditionalCameraData);
-            var layer = c.GetComponent<PostProcessLayer>();
-            if (layer != null)
+            var layer = c.GetComponent<PostProcessLayer>() ?? Assets.ScriptableRenderLoop.PostProcessing.PostProcessing.Runtime.Utils.ComponentSingleton<PostProcessLayer>.instance;
+            EditorUtility.CopySerialized(layer, m_PreviewPostProcessLayer);
+            m_PreviewCamera.cameraType = CameraType.SceneView;
+            m_PreviewHDCamera.Update(m_PreviewPostProcessLayer, m_PreviewAdditionalCameraData.GetFrameSettings());
+        }
+
+        RenderTexture GetPreviewTextureWithSize(int width, int height)
+        {
+            if (m_PreviewTexture == null || m_PreviewTexture.width != width || m_PreviewTexture.height != height)
             {
-                if (m_PreviewPostProcessLayer == null)
-                    m_PreviewPostProcessLayer = c.gameObject.AddComponent<PostProcessLayer>();
-                EditorUtility.CopySerialized(layer, m_PreviewPostProcessLayer);
+                if (m_PreviewTexture != null)
+                    m_PreviewTexture.Release();
+
+                var baseDesc = m_PreviewHDCamera.renderTextureDesc;
+                baseDesc.width = width;
+                baseDesc.height = height;
+                CoreUtils.UpdateRenderTextureDescriptor(ref baseDesc, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear, 1, true);
+                m_PreviewTexture = new RenderTexture(baseDesc);
             }
-            else if (m_PreviewPostProcessLayer != null)
-            {
-                DestroyImmediate(m_PreviewPostProcessLayer);
-                m_PreviewPostProcessLayer = null;
-            }
+            return m_PreviewTexture;
         }
     }
 }
