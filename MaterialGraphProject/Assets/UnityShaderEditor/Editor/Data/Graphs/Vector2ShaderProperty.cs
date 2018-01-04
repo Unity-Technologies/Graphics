@@ -21,11 +21,7 @@ namespace UnityEditor.ShaderGraph
         {
             get { return new Vector4(value.x, value.y, 0, 0); }
         }
-
-        public override string GetInlinePropertyDeclarationString()
-        {
-            return "float2 " + referenceName + ";";
-        }
+       
 
         public override PreviewProperty GetPreviewMaterialProperty()
         {

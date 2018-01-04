@@ -125,12 +125,7 @@ namespace UnityEditor.ShaderGraph
         {
             get { return true; }
         }
-
-        public virtual bool allowedInRemapGraph
-        {
-            get { return true; }
-        }
-
+        
         public virtual bool allowedInMainGraph
         {
             get { return true; }

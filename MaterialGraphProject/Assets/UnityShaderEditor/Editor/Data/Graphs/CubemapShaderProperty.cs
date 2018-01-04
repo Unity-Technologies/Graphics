@@ -48,10 +48,15 @@ namespace UnityEditor.ShaderGraph
             result.Append("\", CUBE) = \"\" {}");
             return result.ToString();
         }
-
-        public override string GetPropertyDeclarationString()
+        
+        public override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            return string.Format("TEXTURECUBE({0});\nSAMPLER(sampler{0});", referenceName);
+            return string.Format("TEXTURECUBE({0}){1} SAMPLER(sampler{0}){1}", referenceName, delimiter);
+        }
+
+        public override string GetPropertyAsArgumentString()
+        {
+            return string.Format("TEXTURECUBE_ARGS({0}, sampler{0})", referenceName);
         }
 
         public override PreviewProperty GetPreviewMaterialProperty()

@@ -171,11 +171,12 @@ namespace UnityEditor.ShaderGraph
                 finalBuilder.AppendLine(@"#include ""ShaderGraphLibrary/ShaderVariables.hlsl""");
                 finalBuilder.AppendLine(@"#include ""ShaderGraphLibrary/ShaderVariablesFunctions.hlsl""");
 
+
+                finalBuilder.AppendLines(shaderProperties.GetPropertiesDeclaration(0));
+                finalBuilder.AppendLines(surfaceInputs.GetShaderString(0));
                 finalBuilder.Concat(functionBuilder);
                 finalBuilder.AppendLines(vertexInputs.GetShaderString(0));
-                finalBuilder.AppendLines(surfaceInputs.GetShaderString(0));
                 finalBuilder.AppendLines(surfaceDescriptionStruct.GetShaderString(0));
-                finalBuilder.AppendLines(shaderProperties.GetPropertiesDeclaration(0));
                 finalBuilder.AppendLines(vertexShader.GetShaderString(0));
                 finalBuilder.AppendLines(surfaceDescriptionFunction.GetShaderString(0));
                 finalBuilder.AppendLine(@"ENDHLSL");
@@ -230,29 +231,6 @@ namespace UnityEditor.ShaderGraph
             surfaceDescriptionFunction.Indent();
             surfaceDescriptionFunction.AddShaderChunk(String.Format("{0} surface = ({0})0;", surfaceDescriptionName), false);
 
-            foreach (CoordinateSpace space in Enum.GetValues(typeof(CoordinateSpace)))
-            {
-                var neededCoordinateSpace = space.ToNeededCoordinateSpace();
-                if ((requirements.requiresNormal & neededCoordinateSpace) > 0)
-                    surfaceDescriptionFunction.AddShaderChunk(String.Format("float3 {0} = IN.{0};", space.ToVariableName(InterpolatorType.Normal)), false);
-                if ((requirements.requiresTangent & neededCoordinateSpace) > 0)
-                    surfaceDescriptionFunction.AddShaderChunk(String.Format("float3 {0} = IN.{0};", space.ToVariableName(InterpolatorType.Tangent)), false);
-                if ((requirements.requiresBitangent & neededCoordinateSpace) > 0)
-                    surfaceDescriptionFunction.AddShaderChunk(String.Format("float3 {0} = IN.{0};", space.ToVariableName(InterpolatorType.BiTangent)), false);
-                if ((requirements.requiresViewDir & neededCoordinateSpace) > 0)
-                    surfaceDescriptionFunction.AddShaderChunk(String.Format("float3 {0} = IN.{0};", space.ToVariableName(InterpolatorType.ViewDirection)), false);
-                if ((requirements.requiresPosition & neededCoordinateSpace) > 0)
-                    surfaceDescriptionFunction.AddShaderChunk(String.Format("float3 {0} = IN.{0};", space.ToVariableName(InterpolatorType.Position)), false);
-            }
-
-            if (requirements.requiresScreenPosition)
-                surfaceDescriptionFunction.AddShaderChunk(String.Format("float4 {0} = IN.{0};", ShaderGeneratorNames.ScreenPosition), false);
-            if (requirements.requiresVertexColor)
-                surfaceDescriptionFunction.AddShaderChunk(String.Format("float4 {0} = IN.{0};", ShaderGeneratorNames.VertexColor), false);
-
-            foreach (var channel in requirements.requiresMeshUVs.Distinct())
-                surfaceDescriptionFunction.AddShaderChunk(String.Format("half4 {0} = IN.{0};", channel.GetUVName()), false);
-
             graph.CollectShaderProperties(shaderProperties, mode);
 
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
@@ -287,18 +265,18 @@ namespace UnityEditor.ShaderGraph
                         {
                             var outputRef = foundEdges[0].outputSlot;
                             var fromNode = graph.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
-                            surfaceDescriptionFunction.AddShaderChunk(String.Format("surface.{0} = {1};", NodeUtils.GetHLSLSafeName(input.shaderOutputName), fromNode.GetVariableNameForSlot(outputRef.slotId)), true);
+                            surfaceDescriptionFunction.AddShaderChunk(string.Format("surface.{0} = {1};", NodeUtils.GetHLSLSafeName(input.shaderOutputName), fromNode.GetVariableNameForSlot(outputRef.slotId)), true);
                         }
                         else
                         {
-                            surfaceDescriptionFunction.AddShaderChunk(String.Format("surface.{0} = {1};", NodeUtils.GetHLSLSafeName(input.shaderOutputName), input.GetDefaultValue(mode)), true);
+                            surfaceDescriptionFunction.AddShaderChunk(string.Format("surface.{0} = {1};", NodeUtils.GetHLSLSafeName(input.shaderOutputName), input.GetDefaultValue(mode)), true);
                         }
                     }
                 }
                 else if (masterNode.hasPreview)
                 {
                     foreach (var slot in masterNode.GetOutputSlots<MaterialSlot>())
-                        surfaceDescriptionFunction.AddShaderChunk(String.Format("surface.{0} = {1};", NodeUtils.GetHLSLSafeName(slot.shaderOutputName), masterNode.GetVariableNameForSlot(slot.id)), true);
+                        surfaceDescriptionFunction.AddShaderChunk(string.Format("surface.{0} = {1};", NodeUtils.GetHLSLSafeName(slot.shaderOutputName), masterNode.GetVariableNameForSlot(slot.id)), true);
                 }
             }
 

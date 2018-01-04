@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return space.ToVariableName(InterpolatorType.Position);
+            return string.Format("IN.{0}", space.ToVariableName(InterpolatorType.Position));
         }
 
         public NeededCoordinateSpace RequiresPosition()

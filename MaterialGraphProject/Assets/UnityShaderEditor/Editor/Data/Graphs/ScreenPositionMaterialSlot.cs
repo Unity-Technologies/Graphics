@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetDefaultValue(GenerationMode generationMode)
         {
-            return ShaderGeneratorNames.ScreenPosition;
+            return string.Format("IN.{0}", ShaderGeneratorNames.ScreenPosition);
         }
 
         public bool RequiresScreenPosition()
