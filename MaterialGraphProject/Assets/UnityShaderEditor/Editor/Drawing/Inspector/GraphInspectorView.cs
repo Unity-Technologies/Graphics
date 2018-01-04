@@ -71,26 +71,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             }
             Add(topContainer);
 
-            var bottomContainer = new VisualElement {name = "bottom"};
-            {
-                m_PreviewTextureView = new PreviewTextureView { name = "preview", image = Texture2D.blackTexture };
-                m_PreviewTextureView.AddManipulator(new Draggable(OnMouseDrag, true));
-                bottomContainer.Add(m_PreviewTextureView);
-
-                m_PreviewScrollPosition = new Vector2(0f, 0f);
-
-                m_PreviewMeshPicker = new ObjectField { objectType = typeof(Mesh) };
-                m_PreviewMeshPicker.OnValueChanged(OnPreviewMeshChanged);
-
-                bottomContainer.Add(m_PreviewMeshPicker);
-            }
-            Add(bottomContainer);
-
-            m_PreviewRenderHandle = previewManager.masterRenderData;
-            m_PreviewRenderHandle.onPreviewChanged += OnPreviewChanged;
-
-            m_PreviewMeshPicker.SetValueAndNotify(m_Graph.previewData.serializedMesh.mesh);
-
             foreach (var property in m_Graph.properties)
                 m_PropertyItems.Add(new ShaderPropertyView(m_Graph, property));
 

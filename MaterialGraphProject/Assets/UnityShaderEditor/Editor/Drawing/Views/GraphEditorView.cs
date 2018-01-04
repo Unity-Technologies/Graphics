@@ -15,6 +15,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         MaterialGraphView m_GraphView;
         GraphInspectorView m_GraphInspectorView;
+        MasterNodeView m_MasterNodeView;
 
         AbstractMaterialGraph m_Graph;
         PreviewManager m_PreviewManager;
@@ -77,8 +78,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphInspectorView.AddManipulator(new Draggable(OnMouseDrag, true));
                 m_GraphView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
                 m_GraphInspectorView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
-
                 m_GraphView.Add(m_GraphInspectorView);
+
+                m_MasterNodeView = new MasterNodeView(assetName, previewManager, graph) { name = "masterNodePreview" };
+                m_GraphView.Add(m_MasterNodeView);
 
                 m_GraphView.graphViewChanged = GraphViewChanged;
             }
