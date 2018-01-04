@@ -216,7 +216,6 @@ namespace UnityEditor.VFX.UI
         {
             capabilities |= Capabilities.Selectable | Capabilities.Movable | Capabilities.Deletable | Capabilities.Ascendable;
             forceNotififcationOnAdd = true;
-            pickingMode = PickingMode.Ignore;
 
             m_FlowInputConnectorContainer = new VisualElement()
             {
