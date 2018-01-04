@@ -14,16 +14,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             get { return HDEditorUtils.GetHDRenderPipelinePath() + "RenderPipelineResources/HDRenderPipelineResources.asset"; }
         }
 
-        static string s_DefaultMaterialPath
-        {
-            get { return HDEditorUtils.GetHDRenderPipelinePath() + "RenderPipelineResources/DefaultHDMaterial.mat"; }
-        }
-
-        static string s_DefaultShaderPath
-        {
-            get { return HDEditorUtils.GetHDRenderPipelinePath() + "Material/Lit/Lit.shader"; }
-        }
-
         class DoCreateNewAssetHDRenderPipeline : ProjectWindowCallback.EndNameEditAction
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
@@ -32,8 +22,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 newAsset.name = Path.GetFileName(pathName);
                 // Load default renderPipelineResources / Material / Shader
                 newAsset.renderPipelineResources = AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(s_RenderPipelineResourcesPath);
-                newAsset.defaultDiffuseMaterial = AssetDatabase.LoadAssetAtPath<Material>(s_DefaultMaterialPath);
-                newAsset.defaultShader = AssetDatabase.LoadAssetAtPath<Shader>(s_DefaultShaderPath);
                 AssetDatabase.CreateAsset(newAsset, pathName);
                 ProjectWindowUtil.ShowCreatedAsset(newAsset);
             }
@@ -63,6 +51,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 string HDRenderPipelinePath = HDEditorUtils.GetHDRenderPipelinePath();
                 string PostProcessingPath = HDEditorUtils.GetPostProcessingPath();
                 string CorePath = HDEditorUtils.GetCorePath();
+
+                newAsset.defaultDiffuseMaterial = Load<Material>(HDRenderPipelinePath + "RenderPipelineResources/DefaultHDMaterial.mat");
+                newAsset.defaultShader = Load<Shader>(HDRenderPipelinePath + "Material/Lit/Lit.shader");
 
                 newAsset.debugDisplayLatlongShader = Load<Shader>(HDRenderPipelinePath + "Debug/DebugDisplayLatlong.Shader");
                 newAsset.debugViewMaterialGBufferShader = Load<Shader>(HDRenderPipelinePath + "Debug/DebugViewMaterialGBuffer.Shader");

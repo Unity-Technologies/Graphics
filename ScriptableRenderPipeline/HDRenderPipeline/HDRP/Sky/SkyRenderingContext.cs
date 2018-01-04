@@ -5,10 +5,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     internal class SkyRenderingContext
     {
-
         IBLFilterGGX            m_IBLFilterGGX;
-        SkySettings             m_SkySettings;
-        SkyRenderer             m_Renderer;
         RenderTexture           m_SkyboxCubemapRT;
         RenderTexture           m_SkyboxGGXCubemapRT;
         RenderTexture           m_SkyboxMarginalRowCdfRT;
@@ -16,65 +13,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Vector4                 m_CubemapScreenSize;
         Matrix4x4[]             m_facePixelCoordToViewDirMatrices   = new Matrix4x4[6];
         Matrix4x4[]             m_faceCameraInvViewProjectionMatrix = new Matrix4x4[6];
-        BuiltinSkyParameters    m_BuiltinParameters = new BuiltinSkyParameters();
-        int                     m_SkyParametersHash = -1;
-        float                   m_CurrentUpdateTime = 0.0f;
-        int                     m_UpdatedFramesRequired = 1; // The first frame after the scene load is currently not rendered correctly
         bool                    m_SupportsConvolution = false;
+        bool                    m_SupportsMIS = false;
+        BuiltinSkyParameters    m_BuiltinParameters = new BuiltinSkyParameters();
+        bool                    m_NeedUpdate = true;
 
         public RenderTexture cubemapRT { get { return m_SkyboxCubemapRT; } }
         public Texture reflectionTexture { get { return m_SkyboxGGXCubemapRT; } }
 
-        public SkySettings skySettings
+
+        public SkyRenderingContext(IBLFilterGGX filterGGX, int resolution, bool supportsConvolution)
         {
-            get { return m_SkySettings; }
-            set
-            {
-                if (m_SkySettings == value)
-                    return;
-
-                if (m_Renderer != null)
-                {
-                    m_Renderer.Cleanup();
-                    m_Renderer = null;
-                }
-
-                m_SkyParametersHash = -1;
-                m_SkySettings = value;
-                m_UpdatedFramesRequired = 1;
-
-                if (value != null)
-                {
-                    m_Renderer = value.GetRenderer();
-                    m_Renderer.Build();
-                }
-            }
-        }
-
-        public SkyRenderer renderer { get { return m_Renderer; } }
-
-        public SkyRenderingContext(bool supportsConvolution, IBLFilterGGX filterGGX)
-        {
-            m_SupportsConvolution = supportsConvolution;
             m_IBLFilterGGX = filterGGX;
+            m_SupportsConvolution = supportsConvolution;
+
+            RebuildTextures(resolution);
         }
 
-        public void RebuildTextures()
+        public void RebuildTextures(int resolution)
         {
-            int resolution = 256;
-            bool useMIS = false;
-
-            // Parameters not set yet. We need them for the resolution.
-            if (skySettings != null)
-            {
-                resolution = (int)skySettings.resolution.value;
-                useMIS = skySettings.useMIS;
-            }
-
             bool updateNeeded = m_SkyboxCubemapRT == null || (m_SkyboxCubemapRT.width != resolution);
 
             // Cleanup first if needed
-            if(updateNeeded)
+            if (updateNeeded)
             {
                 CoreUtils.Destroy(m_SkyboxCubemapRT);
                 CoreUtils.Destroy(m_SkyboxGGXCubemapRT);
@@ -83,7 +44,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_SkyboxGGXCubemapRT = null;
             }
 
-            if (!useMIS && (m_SkyboxConditionalCdfRT != null))
+            if (!m_SupportsMIS && (m_SkyboxConditionalCdfRT != null))
             {
                 CoreUtils.Destroy(m_SkyboxConditionalCdfRT);
                 CoreUtils.Destroy(m_SkyboxMarginalRowCdfRT);
@@ -97,6 +58,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_SkyboxCubemapRT = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear)
                 {
+                    hideFlags = HideFlags.DontSave,
                     dimension = TextureDimension.Cube,
                     useMipMap = true,
                     autoGenerateMips = false, // We will generate regular mipmap for filtered importance sampling manually
@@ -109,6 +71,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_SkyboxGGXCubemapRT = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear)
                 {
+                    hideFlags = HideFlags.DontSave,
                     dimension = TextureDimension.Cube,
                     useMipMap = true,
                     autoGenerateMips = false,
@@ -117,7 +80,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_SkyboxGGXCubemapRT.Create();
             }
 
-            if (useMIS && (m_SkyboxConditionalCdfRT == null))
+            if (m_SupportsMIS && (m_SkyboxConditionalCdfRT == null))
             {
                 // Temporary, it should be dependent on the sky resolution
                 int width  = (int)LightSamplingParameters.TextureWidth;
@@ -126,6 +89,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // + 1 because we store the value of the integral of the cubemap at the end of the texture.
                 m_SkyboxMarginalRowCdfRT = new RenderTexture(height + 1, 1, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear)
                 {
+                    hideFlags = HideFlags.DontSave,
                     useMipMap = false,
                     autoGenerateMips = false,
                     enableRandomWrite = true,
@@ -136,6 +100,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // TODO: switch the format to R16 (once it's available) to save some bandwidth.
                 m_SkyboxConditionalCdfRT = new RenderTexture(width, height, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear)
                 {
+                    hideFlags = HideFlags.DontSave,
                     useMipMap = false,
                     autoGenerateMips = false,
                     enableRandomWrite = true,
@@ -146,12 +111,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_CubemapScreenSize = new Vector4((float)resolution, (float)resolution, 1.0f / (float)resolution, 1.0f / (float)resolution);
 
-            if(updateNeeded)
+            if (updateNeeded)
             {
-                m_UpdatedFramesRequired = 1; // Special case. Even if update mode is set to OnDemand, we need to regenerate the environment after destroying the texture.
+                m_NeedUpdate = true; // Special case. Even if update mode is set to OnDemand, we need to regenerate the environment after destroying the texture.
                 RebuildSkyMatrices(resolution);
             }
         }
+
 
         public void RebuildSkyMatrices(int resolution)
         {
@@ -166,24 +132,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_faceCameraInvViewProjectionMatrix[i] = HDUtils.GetViewProjectionMatrix(lookAt, cubeProj).inverse;
             }
         }
-
-        public bool IsValid()
-        {
-            return m_Renderer != null && m_Renderer.IsValid();
-        }
-
         public void Cleanup()
         {
             CoreUtils.Destroy(m_SkyboxCubemapRT);
             CoreUtils.Destroy(m_SkyboxGGXCubemapRT);
             CoreUtils.Destroy(m_SkyboxMarginalRowCdfRT);
             CoreUtils.Destroy(m_SkyboxConditionalCdfRT);
-
-            if (m_Renderer != null)
-                m_Renderer.Cleanup();
         }
 
-        void RenderSkyToCubemap()
+        void RenderSkyToCubemap(SkyUpdateContext skyContext)
         {
             for (int i = 0; i < 6; ++i)
             {
@@ -193,7 +150,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_BuiltinParameters.depthBuffer = BuiltinSkyParameters.nullRT;
 
                 CoreUtils.SetRenderTarget(m_BuiltinParameters.commandBuffer, m_SkyboxCubemapRT, ClearFlag.None, 0, (CubemapFace)i);
-                m_Renderer.RenderSky(m_BuiltinParameters, true);
+                skyContext.renderer.RenderSky(m_BuiltinParameters, true);
             }
 
             // Generate mipmap for our cubemap
@@ -201,23 +158,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_BuiltinParameters.commandBuffer.GenerateMips(m_SkyboxCubemapRT);
         }
 
-        void RenderCubemapGGXConvolution()
+        void RenderCubemapGGXConvolution(SkyUpdateContext skyContext)
         {
             using (new ProfilingSample(m_BuiltinParameters.commandBuffer, "Update Env: GGX Convolution"))
             {
-                if (skySettings.useMIS)
+                if (skyContext.skySettings.useMIS && m_SupportsMIS)
                     m_IBLFilterGGX.FilterCubemapMIS(m_BuiltinParameters.commandBuffer, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT, m_SkyboxConditionalCdfRT, m_SkyboxMarginalRowCdfRT);
                 else
                     m_IBLFilterGGX.FilterCubemap(m_BuiltinParameters.commandBuffer, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
             }
         }
 
-        public bool UpdateEnvironment(HDCamera camera, Light sunLight, bool updateRequired, CommandBuffer cmd)
+        public bool UpdateEnvironment(SkyUpdateContext skyContext, HDCamera camera, Light sunLight, bool updateRequired, CommandBuffer cmd)
         {
             bool result = false;
-            if (IsValid())
+            if (skyContext.IsValid())
             {
-                m_CurrentUpdateTime += Time.deltaTime;
+                skyContext.currentUpdateTime += Time.deltaTime;
 
                 m_BuiltinParameters.commandBuffer = cmd;
                 m_BuiltinParameters.sunLight = sunLight;
@@ -227,51 +184,52 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int sunHash = 0;
                 if (sunLight != null)
                     sunHash = (sunLight.GetHashCode() * 23 + sunLight.transform.position.GetHashCode()) * 23 + sunLight.transform.rotation.GetHashCode();
-                int skyHash = sunHash * 23 + m_SkySettings.GetHashCode();
+                int skyHash = sunHash * 23 + skyContext.skySettings.GetHashCode();
 
-                bool forceUpdate = (updateRequired || m_UpdatedFramesRequired > 0);
+                bool forceUpdate = (updateRequired || skyContext.updatedFramesRequired > 0 || m_NeedUpdate);
                 if (forceUpdate ||
-                    (m_SkySettings.updateMode == EnvironementUpdateMode.OnChanged && skyHash != m_SkyParametersHash) ||
-                    (m_SkySettings.updateMode == EnvironementUpdateMode.Realtime && m_CurrentUpdateTime > m_SkySettings.updatePeriod))
+                    (skyContext.skySettings.updateMode == EnvironementUpdateMode.OnChanged && skyHash != skyContext.skyParametersHash) ||
+                    (skyContext.skySettings.updateMode == EnvironementUpdateMode.Realtime && skyContext.currentUpdateTime > skyContext.skySettings.updatePeriod))
                 {
                     using (new ProfilingSample(cmd, "Sky Environment Pass"))
                     {
                         using (new ProfilingSample(cmd, "Update Env: Generate Lighting Cubemap"))
                         {
-                            RenderSkyToCubemap();
+                            RenderSkyToCubemap(skyContext);
                         }
 
-                        if(m_SupportsConvolution)
+                        if (m_SupportsConvolution)
                         {
                             using (new ProfilingSample(cmd, "Update Env: Convolve Lighting Cubemap"))
                             {
-                                RenderCubemapGGXConvolution();
+                                RenderCubemapGGXConvolution(skyContext);
                             }
                         }
 
                         result = true;
-                        m_SkyParametersHash = skyHash;
-                        m_CurrentUpdateTime = 0.0f;
-                        m_UpdatedFramesRequired--;
+                        skyContext.skyParametersHash = skyHash;
+                        skyContext.currentUpdateTime = 0.0f;
+                        skyContext.updatedFramesRequired--;
+                        m_NeedUpdate = false;
 
-                    #if UNITY_EDITOR
+#if UNITY_EDITOR
                         // In the editor when we change the sky we want to make the GI dirty so when baking again the new sky is taken into account.
                         // Changing the hash of the rendertarget allow to say that GI is dirty
-                        m_SkyboxCubemapRT.imageContentsHash = new Hash128((uint)m_SkySettings.GetHashCode(), 0, 0, 0);
-                    #endif
+                        m_SkyboxCubemapRT.imageContentsHash = new Hash128((uint)skyContext.skySettings.GetHashCode(), 0, 0, 0);
+#endif
                     }
                 }
             }
             else
             {
-                if (m_SkyParametersHash != 0)
+                if (skyContext.skyParametersHash != 0)
                 {
-                    if(m_SupportsConvolution)
+                    if (m_SupportsConvolution)
                     {
                         CoreUtils.ClearCubemap(cmd, m_SkyboxGGXCubemapRT, Color.black, true);
                     }
 
-                    m_SkyParametersHash = 0;
+                    skyContext.skyParametersHash = 0;
                     result = true;
                 }
             }
@@ -279,9 +237,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return result;
         }
 
-        public void RenderSky(HDCamera camera, Light sunLight, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, CommandBuffer cmd)
+        public void RenderSky(SkyUpdateContext skyContext, HDCamera camera, Light sunLight, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, CommandBuffer cmd)
         {
-            if (IsValid())
+            if (skyContext.IsValid())
             {
                 using (new ProfilingSample(cmd, "Sky Pass"))
                 {
@@ -294,8 +252,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_BuiltinParameters.colorBuffer = colorBuffer;
                     m_BuiltinParameters.depthBuffer = depthBuffer;
 
-                    m_Renderer.SetRenderTargets(m_BuiltinParameters);
-                    m_Renderer.RenderSky(m_BuiltinParameters, false);
+                    skyContext.renderer.SetRenderTargets(m_BuiltinParameters);
+                    skyContext.renderer.RenderSky(m_BuiltinParameters, false);
                 }
             }
         }

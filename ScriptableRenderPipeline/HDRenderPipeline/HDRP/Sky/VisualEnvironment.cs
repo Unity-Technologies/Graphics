@@ -6,11 +6,18 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+    // This enum is just here to centralize UniqueID values for skies provided with HDRP
+    public enum SkyType
+    {
+        HDRISky = 1,
+        ProceduralSky = 2
+    }
+
     // Keep this class first in the file. Otherwise it seems that the script type is not registered properly.
     [Serializable]
     public sealed class VisualEnvironment : VolumeComponent
     {
-        public SkyTypeParameter skyType = new SkyTypeParameter(SkyType.None);
+        public IntParameter skyType = new IntParameter(0);
         public FogTypeParameter fogType = new FogTypeParameter(FogType.None);
 
         public void PushFogShaderParameters(CommandBuffer cmd, FrameSettings frameSettings)
@@ -35,23 +42,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         break;
                     }
             }
-        }
-    }
-
-    // TODO instead of hardcoding this, we need to generate the information from the existing sky currently implemented.
-    public enum SkyType
-    {
-        None,
-        HDRISky,
-        ProceduralSky
-    }
-    
-    [Serializable]
-    public sealed class SkyTypeParameter : VolumeParameter<SkyType>
-    {
-        public SkyTypeParameter(SkyType value, bool overrideState = false)
-            : base(value, overrideState)
-        {
         }
     }
 }

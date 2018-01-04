@@ -70,6 +70,26 @@ float GenerateHashedRandomFloat(uint4 v)
     return ConstructFloat(JenkinsHash(v));
 }
 
+float Hash(uint s)
+{
+    s = s ^ 2747636419u;
+    s = s * 2654435769u;
+    s = s ^ (s >> 16);
+    s = s * 2654435769u;
+    s = s ^ (s >> 16);
+    s = s * 2654435769u;
+    return float(s) * rcp(4294967296.0); // 2^-32
+}
+
+float2 InitRandom(float2 input)
+{
+    float2 r;
+    r.x = Hash(uint(input.x * UINT_MAX));
+    r.y = Hash(uint(input.y * UINT_MAX));
+
+    return r;
+}
+
 #endif // SHADER_API_GLES
 
 #endif // UNITY_NOISE_INCLUDED
