@@ -31,6 +31,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_FrameSettings;
         }
 
+        public void OnEnable()
+        {
+            // At creation we need to copy serializedFrameSettings to m_FrameSettings
+            OnValidate();
+        }
+
         public void OnValidate()
         {
             // Modification of defaultFrameSettings in the inspector will call OnValidate().
