@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXBlockUI : VFXContextSlotContainerUI, IDropTarget
+    class VFXBlockUI : VFXContextSlotContainerUI
     {
         Toggle m_EnableToggle;
 
@@ -94,48 +94,6 @@ namespace UnityEditor.VFX.UI
                 inputContainer.SetEnabled(controller.block.enabled);
             if (m_SettingsContainer != null)
                 m_SettingsContainer.SetEnabled(controller.block.enabled);
-        }
-
-        bool IDropTarget.CanAcceptDrop(List<ISelectable> selection)
-        {
-            return selection.Any(t => t is VFXBlockUI);
-        }
-
-        EventPropagation IDropTarget.DragUpdated(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
-        {
-            Vector2 pos = this.WorldToLocal(evt.originalMousePosition);
-
-            context.DraggingBlocks(selection.Select(t => t as VFXBlockUI).Where(t => t != null), this, pos.y > layout.height / 2);
-
-            return EventPropagation.Stop;
-        }
-
-        EventPropagation IDropTarget.DragPerform(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
-        {
-            context.DragFinished();
-            Vector2 pos = this.WorldToLocal(evt.originalMousePosition);
-
-            IEnumerable<VFXBlockUI> draggedBlocksUI = selection.Select(t => t as VFXBlockUI).Where(t => t != null);
-
-            VFXBlockController blockController = controller;
-            VFXContextController contextController = blockController.contextController;
-
-            if (context.CanDrop(draggedBlocksUI, this))
-            {
-                context.BlocksDropped(blockController, pos.y > layout.height / 2, draggedBlocksUI, evt.imguiEvent.control);
-                DragAndDrop.AcceptDrag();
-            }
-            else
-            {
-            }
-
-            return EventPropagation.Stop;
-        }
-
-        EventPropagation IDropTarget.DragExited()
-        {
-            //context.DragFinished();
-            return EventPropagation.Stop;
         }
     }
 }
