@@ -35,6 +35,7 @@ namespace UnityEditor.Experimental.Rendering
             public void Reset(SerializedHDCamera serializedHdCamera, UnityAction repaint)
             {
                 m_SerializedHdCamera = serializedHdCamera;
+                serializedFrameSettingsUI.Reset(serializedHdCamera.frameSettings, repaint);
 
                 for (var i = 0; i < m_AnimBools.Length; ++i)
                 {
@@ -43,7 +44,6 @@ namespace UnityEditor.Experimental.Rendering
                 }
 
                 Update();
-                serializedFrameSettingsUI.Reset(repaint);
             }
 
             public void Update()
