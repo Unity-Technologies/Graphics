@@ -228,6 +228,20 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(validNames);
         }
 
+        public override void ValidateNode()
+        {
+            if (referencedGraph != null)
+            {
+                referencedGraph.OnEnable();
+                referencedGraph.ValidateGraph();
+
+                if (referencedGraph.GetNodes<INode>().Any(x => x.hasError))
+                    hasError = true;
+            }
+
+            base.ValidateNode();
+        }
+
         public override void CollectShaderProperties(PropertyCollector visitor, GenerationMode generationMode)
         {
             base.CollectShaderProperties(visitor, generationMode);
