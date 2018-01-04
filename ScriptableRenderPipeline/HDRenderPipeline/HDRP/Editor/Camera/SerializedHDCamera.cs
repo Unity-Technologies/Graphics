@@ -1,4 +1,5 @@
-﻿using UnityEngine.Experimental.Rendering.HDPipeline;
+﻿using UnityEngine;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering
 {
@@ -41,6 +42,10 @@ namespace UnityEditor.Experimental.Rendering
             this.serializedObject = serializedObject;
             var additionals = CoreEditorUtils.GetAdditionalData<HDAdditionalCameraData>(serializedObject.targetObjects);
             serializedAdditionalDataObject = new SerializedObject(additionals);
+
+            var hideFlags = serializedAdditionalDataObject.FindProperty("m_ObjectHideFlags");
+            hideFlags.intValue = (int)HideFlags.HideInInspector;
+            serializedAdditionalDataObject.ApplyModifiedProperties();
 
             clearFlags = serializedObject.FindProperty("m_ClearFlags");
             backgroundColor = serializedObject.FindProperty("m_BackGroundColor");
