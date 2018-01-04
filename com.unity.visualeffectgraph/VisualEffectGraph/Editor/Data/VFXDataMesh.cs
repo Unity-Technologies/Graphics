@@ -11,7 +11,12 @@ namespace UnityEditor.VFX
 
         public override VFXDataType type { get { return VFXDataType.kMesh; } }
 
-        public override void CopySettings<T>(T dst) {}
+        public override void CopySettings<T>(T dst)
+        {
+            VFXDataMesh other = dst as VFXDataMesh;
+            if (other != null)
+                other.shader = shader;
+        }
 
         public override VFXDeviceTarget GetCompilationTarget(VFXContext context)
         {
