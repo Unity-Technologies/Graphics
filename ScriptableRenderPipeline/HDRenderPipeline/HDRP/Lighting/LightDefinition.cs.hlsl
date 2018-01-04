@@ -94,13 +94,25 @@ struct EnvLightData
     float3 forward;
     int envIndex;
     float3 up;
-    float blendDistance;
+    float dimmer;
     float3 right;
     float minProjectionDistance;
-    float3 innerDistance;
+    float3 influenceExtents;
     float unused0;
     float3 offsetLS;
-    float dimmer;
+    float unused1;
+    float3 blendDistancePositive;
+    float unused2;
+    float3 blendDistanceNegative;
+    float unused3;
+    float3 blendNormalDistancePositive;
+    float unused4;
+    float3 blendNormalDistanceNegative;
+    float unused5;
+    float3 boxSideFadePositive;
+    float unused6;
+    float3 boxSideFadeNegative;
+    float unused7;
 };
 
 //
@@ -262,9 +274,9 @@ float3 GetUp(EnvLightData value)
 {
 	return value.up;
 }
-float GetBlendDistance(EnvLightData value)
+float GetDimmer(EnvLightData value)
 {
-	return value.blendDistance;
+	return value.dimmer;
 }
 float3 GetRight(EnvLightData value)
 {
@@ -274,9 +286,9 @@ float GetMinProjectionDistance(EnvLightData value)
 {
 	return value.minProjectionDistance;
 }
-float3 GetInnerDistance(EnvLightData value)
+float3 GetInfluenceExtents(EnvLightData value)
 {
-	return value.innerDistance;
+	return value.influenceExtents;
 }
 float GetUnused0(EnvLightData value)
 {
@@ -286,9 +298,57 @@ float3 GetOffsetLS(EnvLightData value)
 {
 	return value.offsetLS;
 }
-float GetDimmer(EnvLightData value)
+float GetUnused1(EnvLightData value)
 {
-	return value.dimmer;
+	return value.unused1;
+}
+float3 GetBlendDistancePositive(EnvLightData value)
+{
+	return value.blendDistancePositive;
+}
+float GetUnused2(EnvLightData value)
+{
+	return value.unused2;
+}
+float3 GetBlendDistanceNegative(EnvLightData value)
+{
+	return value.blendDistanceNegative;
+}
+float GetUnused3(EnvLightData value)
+{
+	return value.unused3;
+}
+float3 GetBlendNormalDistancePositive(EnvLightData value)
+{
+	return value.blendNormalDistancePositive;
+}
+float GetUnused4(EnvLightData value)
+{
+	return value.unused4;
+}
+float3 GetBlendNormalDistanceNegative(EnvLightData value)
+{
+	return value.blendNormalDistanceNegative;
+}
+float GetUnused5(EnvLightData value)
+{
+	return value.unused5;
+}
+float3 GetBoxSideFadePositive(EnvLightData value)
+{
+	return value.boxSideFadePositive;
+}
+float GetUnused6(EnvLightData value)
+{
+	return value.unused6;
+}
+float3 GetBoxSideFadeNegative(EnvLightData value)
+{
+	return value.boxSideFadeNegative;
+}
+float GetUnused7(EnvLightData value)
+{
+	return value.unused7;
 }
 
 

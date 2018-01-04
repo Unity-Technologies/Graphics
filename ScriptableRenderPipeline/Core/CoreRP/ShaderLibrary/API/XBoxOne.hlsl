@@ -95,11 +95,12 @@
 #define LOAD_TEXTURE3D(textureName, unCoord3)                       textureName.Load(int4(unCoord3, 0))
 #define LOAD_TEXTURE3D_LOD(textureName, unCoord3, lod)              textureName.Load(int4(unCoord3, lod))
 
-#define GATHER_TEXTURE2D(textureName, samplerName, coord2)                textureName.Gather(samplerName, coord2)
-#define GATHER_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index)   textureName.Gather(samplerName, float3(coord2, index))
+#define PLATFORM_SUPPORT_GATHER
+#define GATHER_TEXTURE2D(textureName, samplerName, coord2, offset)        textureName.Gather(samplerName, coord2, offset)
+#define GATHER_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index)   textureName.Gather(samplerName, float3(coord2, index), offset)
 #define GATHER_TEXTURECUBE(textureName, samplerName, coord3)              textureName.Gather(samplerName, coord3)
 #define GATHER_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index) textureName.Gather(samplerName, float4(coord3, index))
 
-#define GATHER_RED_TEXTURE2D(textureName, samplerName, coord2)              textureName.GatherRed(samplerName, coord2)
-#define GATHER_GREEN_TEXTURE2D(textureName, samplerName, coord2)            textureName.GatherGreen(samplerName, coord2)
-#define GATHER_BLUE_TEXTURE2D(textureName, samplerName, coord2)             textureName.GatherBlue(samplerName, coord2)
+#define GATHER_RED_TEXTURE2D(textureName, samplerName, coord2, offset)      textureName.GatherRed(samplerName, coord2, offset)
+#define GATHER_GREEN_TEXTURE2D(textureName, samplerName, coord2, offset)    textureName.GatherGreen(samplerName, coord2, offset)
+#define GATHER_BLUE_TEXTURE2D(textureName, samplerName, coord2, offset)     textureName.GatherBlue(samplerName, coord2, offset)

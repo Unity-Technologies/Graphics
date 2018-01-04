@@ -15,7 +15,7 @@ float ShadowMoments_ChebyshevsInequality( float2 moments, float depth, float min
 	float mD = depth - moments.x;
 	float p = variance / (variance + mD * mD);
 
-	p = saturate( (p - lightLeakBias) / (1.0f - lightLeakBias) );
+	p = saturate( (p - lightLeakBias) / (1.0 - lightLeakBias) );
 	return max( p, depth <= moments.x );
 }
 
@@ -30,7 +30,7 @@ float2 ShadowMoments_WarpDepth( float depth, float2 exponents )
 }
 
 // helpers for MSM
-// Prepare the moments so there's little quantization error when storing the moments at half
+// Prepare the moments so there's little quantization error when storing the moments at float
 // precision. This step becomes unnecessary if the moments are stored in 32bit floats.
 float4 ShadowMoments_Encode16MSM( float depth )
 {
@@ -40,7 +40,7 @@ float4 ShadowMoments_Encode16MSM( float depth )
 					  32.23703778  , -59.4683975703, -1.9077466311, -33.7652110555,
 					 -68.571074599 ,  82.0359750338,  9.3496555107,  47.9456096605,
 					  39.3703274134, -35.364903257 , -6.6543490743, -23.9728048165 };
-	
+
 	float4 optimized     = mul( moments, mat );
 		   optimized[0] += 0.035955884801;
 
@@ -101,7 +101,7 @@ float ShadowMoments_SolveDelta3MSM( float3 z, float2 b, float lightLeakBias )
 	float quotient = (switchVal[0] * z[2] - b[0] * (switchVal[0] + z[2]) + b[1]) / ((z[2] - switchVal[1]) * (z[0] - z[1]));
 	float attenuation = saturate( switchVal[2] + switchVal[3] * quotient );
 
-	return saturate( ((1.0 - attenuation) - lightLeakBias) / (1.0f - lightLeakBias) );
+	return saturate( ((1.0 - attenuation) - lightLeakBias) / (1.0 - lightLeakBias) );
 }
 
 float ShadowMoments_SolveDelta4MSM( float3 z, float4 b, float lightLeakBias)
@@ -111,5 +111,5 @@ float ShadowMoments_SolveDelta4MSM( float3 z, float4 b, float lightLeakBias)
 	float w1Factor = (z[0] > zFree) ? 1.0 : 0.0;
 	float attenuation = saturate( (b[1] - b[0] + (b[2] - b[0] - (zFree + 1.0) * (b[1] - b[0])) * (zFree - w1Factor - z[0]) / (z[0] * (z[0] - zFree))) / (zFree - w1Factor) + 1.0 - b[0] );
 
-	return saturate( ((1.0 - attenuation) - lightLeakBias) / (1.0f - lightLeakBias) );
+	return saturate( ((1.0 - attenuation) - lightLeakBias) / (1.0 - lightLeakBias) );
 }

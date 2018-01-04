@@ -3,6 +3,7 @@ Shader "Hidden/HDRenderPipeline/CopyStencilBuffer"
     Properties
     {
         [HideInInspector] _StencilRef("_StencilRef", Int) = 1
+        [HideInInspector] _StencilMask("_StencilMask", Int) = 7
     }
 
     HLSLINCLUDE
@@ -48,6 +49,7 @@ Shader "Hidden/HDRenderPipeline/CopyStencilBuffer"
 
             Stencil
             {
+                ReadMask [_StencilMask]
                 Ref  [_StencilRef]
                 Comp Equal
                 Pass Keep
@@ -77,6 +79,7 @@ Shader "Hidden/HDRenderPipeline/CopyStencilBuffer"
 
             Stencil
             {
+                ReadMask [_StencilMask]
                 Ref  [_StencilRef]
                 Comp NotEqual
                 Pass Keep
@@ -106,6 +109,7 @@ Shader "Hidden/HDRenderPipeline/CopyStencilBuffer"
 
             Stencil
             {
+                ReadMask [_StencilMask]
                 Ref  [_StencilRef]
                 Comp Equal
                 Pass Keep

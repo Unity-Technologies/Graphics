@@ -13,7 +13,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static GUIContent baseColorText = new GUIContent("Base Color + Blend", "Albedo (RGB) and Blend Factor (A)");
             public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (BC7/BC5/DXT5(nm))");
-            public static GUIContent decalBlendText = new GUIContent("Decal Blend", "Combines with Base Color (A)");
+			public static GUIContent maskMapText = new GUIContent("Mask Map - M(R), AO(G), D(B), S(A)", "Mask map");
+            public static GUIContent decalBlendText = new GUIContent("Decal Blend", "Whole decal blend");
         }
 
         protected MaterialProperty baseColorMap = new MaterialProperty();
@@ -21,6 +22,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected MaterialProperty normalMap = new MaterialProperty();
         protected const string kNormalMap = "_NormalMap";
+
+		protected MaterialProperty maskMap = new MaterialProperty();
+		protected const string kMaskMap = "_MaskMap";
 
         protected MaterialProperty decalBlend = new MaterialProperty();
         protected const string kDecalBlend = "_DecalBlend";
@@ -35,6 +39,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             baseColorMap = FindProperty(kBaseColorMap, props);
             normalMap = FindProperty(kNormalMap, props);
+			maskMap = FindProperty(kMaskMap, props);
             decalBlend = FindProperty(kDecalBlend, props);
         }
 
@@ -44,6 +49,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             CoreUtils.SetKeyword(material, "_COLORMAP", material.GetTexture(kBaseColorMap));
             CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap));
+			CoreUtils.SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
         }
 
         protected void SetupMaterialKeywordsAndPassInternal(Material material)
@@ -66,6 +72,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap);
                 m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap);
+				m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapText, maskMap);
                 m_MaterialEditor.ShaderProperty(decalBlend, Styles.decalBlendText);
 
                 EditorGUI.indentLevel--;

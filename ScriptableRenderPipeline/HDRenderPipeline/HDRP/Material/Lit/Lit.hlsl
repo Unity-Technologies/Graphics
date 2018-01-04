@@ -1,3 +1,7 @@
+﻿#define ENVMAP_FEATURE_PERFACEINFLUENCE
+#define ENVMAP_FEATURE_INFLUENCENORMAL
+#define ENVMAP_FEATURE_PERFACEFADE
+
 //-----------------------------------------------------------------------------
 // SurfaceData and BSDFData
 //-----------------------------------------------------------------------------
@@ -92,6 +96,16 @@ float3 EstimateRaycast(float3 V, PositionInputs posInputs, float3 positionWS, fl
     float hitDistanceFromPosition = depthFromPosition / dot(-V, rayWS);
 
     return positionWS + rayWS * hitDistanceFromPosition;
+}
+
+//------------------------------------------------------------------------------------
+// Little helper to share code between sphere and box.
+// These function will fade the mask of a reflection volume based on normal orientation compare to direction define by the center of the reflection volume.
+//-----------------------------------------------------------------------------
+float InfluenceFadeNormalWeight(float3 normal, float3 centerToPos)
+{
+    // Start weight from 0.6f (1 fully transparent) to 0.2f (fully opaque).
+    return saturate((-1.0f / 0.4f) * dot(normal, centerToPos) + (0.6f / 0.4f));
 }
 
 //-----------------------------------------------------------------------------
@@ -211,21 +225,18 @@ void FillMaterialIdSssData(int subsurfaceProfile, float radius, float thickness,
         bsdfData.thickness = _ThicknessRemaps[subsurfaceProfile].x + _ThicknessRemaps[subsurfaceProfile].y * thickness;
         bsdfData.useThickObjectMode = transmissionMode != SSS_TRSM_MODE_THIN;
 
-        if (_UseDisneySSS != 0)
-        {
+#if SHADEROPTIONS_USE_DISNEY_SSS
             bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParams[subsurfaceProfile].rgb,
                                                                 _TransmissionTintsAndFresnel0[subsurfaceProfile].rgb,
                                                                 bsdfData.thickness, bsdfData.subsurfaceRadius);
-        }
-        else
-        {
+#else
             bsdfData.transmittance = ComputeTransmittanceJimenez(_HalfRcpVariancesAndWeights[subsurfaceProfile][0].rgb,
                                                                  _HalfRcpVariancesAndWeights[subsurfaceProfile][0].a,
                                                                  _HalfRcpVariancesAndWeights[subsurfaceProfile][1].rgb,
                                                                  _HalfRcpVariancesAndWeights[subsurfaceProfile][1].a,
                                                                  _TransmissionTintsAndFresnel0[subsurfaceProfile].rgb,
                                                                  bsdfData.thickness, bsdfData.subsurfaceRadius);
-        }
+#endif
     }
 }
 
@@ -859,7 +870,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     RefractionModelResult refraction = REFRACTION_MODEL(V, posInput, bsdfData);
     preLightData.transmissionRefractV = refraction.rayWS;
     preLightData.transmissionPositionWS = refraction.positionWS;
-    preLightData.transmissionTransmittance = exp(-bsdfData.absorptionCoefficient * refraction.distance);
+    preLightData.transmissionTransmittance = exp(-bsdfData.absorptionCoefficient * refraction.dist);
     // Empirical remap to try to match a bit the refractio probe blurring for the fallback
     preLightData.transmissionSSMipLevel = sqrt(bsdfData.perceptualRoughness) * uint(_GaussianPyramidColorMipSize.z);
 #else
@@ -1608,33 +1619,47 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     {
         // 1. First process the projection
         float3 dirLS = mul(R, worldToLocal);
-        float sphereOuterDistance = lightData.innerDistance.x + lightData.blendDistance;
-        float dist = SphereRayIntersectSimple(positionLS, dirLS, sphereOuterDistance);
-        dist = max(dist, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
+        float sphereOuterDistance = lightData.influenceExtents.x;
+
+        float projectionDistance = SphereRayIntersectSimple(positionLS, dirLS, sphereOuterDistance);
+        projectionDistance = max(projectionDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.positionWS
-        R = (positionWS + dist * R) - lightData.positionWS;
+        R = (positionWS + projectionDistance * R) - lightData.positionWS;
 
         // Test again for clear code
         if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
         {
             dirLS = mul(coatR, worldToLocal);
-            dist = SphereRayIntersectSimple(positionLS, dirLS, sphereOuterDistance);
-            coatR = (positionWS + dist * coatR) - lightData.positionWS;
+            projectionDistance = SphereRayIntersectSimple(positionLS, dirLS, sphereOuterDistance);
+            coatR = (positionWS + projectionDistance * coatR) - lightData.positionWS;
         }
 
-        // 2. Process the influence
-        float distFade = max(length(positionLS) - lightData.innerDistance.x, 0.0);
-        weight = saturate(1.0 - distFade / max(lightData.blendDistance, 0.0001)); // avoid divide by zero
+        // 2. Process the position influence
+        float lengthPositionLS = length(positionLS);
+        float sphereInfluenceDistance = lightData.influenceExtents.x - lightData.blendDistancePositive.x;
+        float distFade = max(lengthPositionLS - sphereInfluenceDistance, 0.0);
+        float alpha = saturate(1.0 - distFade / max(lightData.blendDistancePositive.x, 0.0001)); // avoid divide by zero
+
+#if defined(ENVMAP_FEATURE_INFLUENCENORMAL)
+        // 3. Process the normal influence
+        float insideInfluenceNormalVolume = lengthPositionLS <= (lightData.influenceExtents.x - lightData.blendNormalDistancePositive.x) ? 1.0 : 0.0;
+        float insideWeight = InfluenceFadeNormalWeight(bsdfData.normalWS, normalize(positionWS - lightData.positionWS));
+        alpha *= insideInfluenceNormalVolume ? 1.0 : insideWeight;
+#endif
+
+        weight = alpha;
     }
     else if (envShapeType == ENVSHAPETYPE_BOX)
     {
+        // 1. First process the projection
         float3 dirLS = mul(R, worldToLocal);
-        float3 boxOuterDistance = lightData.innerDistance + float3(lightData.blendDistance, lightData.blendDistance, lightData.blendDistance);
-        float dist = BoxRayIntersectSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
-        dist = max(dist, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
+        float3 boxOuterDistance = lightData.influenceExtents;
+        float projectionDistance = BoxRayIntersectSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
+        projectionDistance = max(projectionDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
+
         // No need to normalize for fetching cubemap
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.positionWS
-        R = (positionWS + dist * R) - lightData.positionWS;
+        R = (positionWS + projectionDistance * R) - lightData.positionWS;
 
         // TODO: add distance based roughness
 
@@ -1642,14 +1667,58 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
         {
             dirLS = mul(coatR, worldToLocal);
-            dist = BoxRayIntersectSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
-            coatR = (positionWS + dist * coatR) - lightData.positionWS;
+            projectionDistance = BoxRayIntersectSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
+            coatR = (positionWS + projectionDistance * coatR) - lightData.positionWS;
         }
 
-        // Influence volume
+        // 2. Process the position influence
         // Calculate falloff value, so reflections on the edges of the volume would gradually blend to previous reflection.
-        float distFade = DistancePointBox(positionLS, -lightData.innerDistance, lightData.innerDistance);
-        weight = saturate(1.0 - distFade / max(lightData.blendDistance, 0.0001)); // avoid divide by zero
+
+#if defined(ENVMAP_FEATURE_PERFACEINFLUENCE) || defined(ENVMAP_FEATURE_INFLUENCENORMAL) || defined(ENVMAP_FEATURE_PERFACEFADE)
+        // Distance to each cube face
+        float3 negativeDistance = boxOuterDistance + positionLS;
+        float3 positiveDistance = boxOuterDistance - positionLS;
+#endif
+
+#if defined(ENVMAP_FEATURE_PERFACEINFLUENCE)
+        // Influence falloff for each face
+        float3 negativeFalloff = negativeDistance / max(0.0001, lightData.blendDistanceNegative);
+        float3 positiveFalloff = positiveDistance / max(0.0001, lightData.blendDistancePositive);
+
+        // Fallof is the min for all faces
+        float influenceFalloff = min(
+            min(min(negativeFalloff.x, negativeFalloff.y), negativeFalloff.z),
+            min(min(positiveFalloff.x, positiveFalloff.y), positiveFalloff.z));
+
+        float alpha = saturate(influenceFalloff);
+#else
+        float distFace = DistancePointBox(positionLS, -lightData.influenceExtents + lightData.blendDistancePositive.x, lightData.influenceExtents - lightData.blendDistancePositive.x);
+        float alpha = saturate(1.0 - distFace / max(lightData.blendDistancePositive.x, 0.0001));
+#endif
+
+#if defined(ENVMAP_FEATURE_INFLUENCENORMAL)
+        // 3. Process the normal influence
+        // Calculate a falloff value to discard normals pointing outward the center of the environment light
+        float3 belowPositiveInfluenceNormalVolume = positiveDistance / max(0.0001, lightData.blendNormalDistancePositive);
+        float3 aboveNegativeInfluenceNormalVolume = negativeDistance / max(0.0001, lightData.blendNormalDistanceNegative);
+        float insideInfluenceNormalVolume = all(belowPositiveInfluenceNormalVolume >= 1.0) && all(aboveNegativeInfluenceNormalVolume >= 1.0) ? 1.0 : 0;
+        float insideWeight = InfluenceFadeNormalWeight(bsdfData.normalWS, normalize(positionWS - lightData.positionWS));
+        alpha *= insideInfluenceNormalVolume ? 1.0 : insideWeight;
+#endif
+
+#if defined(ENVMAP_FEATURE_PERFACEFADE)
+        // 4. Fade specific cubemap faces
+        // For each axes (both positive and negative ones), we want to fade from the center of one face to another
+        // So we normalized the sample direction (R) and use its component to fade for each axis
+        // We consider R.x as cos(X) and then fade as angle from 60°(=acos(1/2)) to 75°(=acos(1/4))
+        // For positive axes: axisFade = (R - 1/4) / (1/2 - 1/4)
+        // <=> axisFace = 4 * R - 1;
+        R = normalize(R);
+        float3 faceFade = saturate((4 * R - 1) * lightData.boxSideFadePositive) + saturate((-4 * R - 1) * lightData.boxSideFadeNegative);
+        alpha *= saturate(faceFade.x + faceFade.y + faceFade.z);
+#endif
+
+        weight = alpha;
     }
 
     // Smooth weighting
