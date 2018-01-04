@@ -700,7 +700,8 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
         preLightData.coatPartLambdaV = GetSmithJointGGXPartLambdaV(NdotV, CLEAR_COAT_ROUGHNESS); // This will not take into account the modification by minRoughness but we are ok with this
 
         // Scale roughness from base layer to take into account the clear coat, use the outgoing ray
-        float coatRoughnessScale = Sq(preLightData.coatIEta) * (NdotV / dot(N, preLightData.coatRefractV));
+        float NdotRefractV = dot(N, preLightData.coatRefractV);
+        float coatRoughnessScale = Sq(preLightData.coatIEta) * (NdotV / NdotRefractV);
 
         // Modify roughness for base layer (so it is taken into account for precomputing of PartLambdaV).
         // Note that roughnessT and roughnessB are only use with punctual light (not with IBL)
@@ -715,15 +716,13 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
         float sigmaPR = roughnessToVariance(PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness));
         preLightData.iblPerceptualRoughness = RoughnessToPerceptualRoughness(varianceToRoughness(sigmaPR * coatRoughnessScale));
 
-        V = preLightData.coatRefractV;
-        NdotV = saturate(dot(N, V));
-
         // fresnel0 is deduced from interface between air and material (assume to be 1.5 in Unity, or a metal).
         // but here we go from clear coat (1.5) to material, we need to update fresnel0
         // Note: Schlick is a poor approximation of Fresnel when ieta is 1 (1.5 / 1.5), schlick target 1.4 to 2.2 IOR.
-        preLightData.baseFresnel0.x = Fresnel0ReajustFor15(bsdfData.fresnel0.x);
-        preLightData.baseFresnel0.y = Fresnel0ReajustFor15(bsdfData.fresnel0.y);
-        preLightData.baseFresnel0.z = Fresnel0ReajustFor15(bsdfData.fresnel0.z);
+        preLightData.baseFresnel0 = Fresnel0ReajustFor15(bsdfData.fresnel0);
+
+        V = preLightData.coatRefractV;
+        NdotV = NdotRefractV;
     }
     else
     {
@@ -949,6 +948,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     float3 F = 1.0;
     float3 N = bsdfData.normalWS;
     specularLighting = float3(0.0, 0.0, 0.0);
+    diffuseLighting = float3(0.0, 0.0, 0.0);
 
     float NdotV = preLightData.clampNdotV;
 
@@ -982,6 +982,10 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 
     // Optimized math. Ref: PBR Diffuse Lighting for GGX + Smith Microsurfaces (slide 114).
     float NdotL = saturate(dot(N, L)); // Must have the same value without the clamp
+
+    if (NdotL <= 0.0)
+        return;
+
     float LdotV = dot(L, V);
     float invLenLV = rsqrt(max(2 * LdotV + 2, FLT_EPS));  // invLenLV = rcp(length(L + V)) - caution about the case where V and L are opposite, it can happen, use max to avoid this
     float NdotH = saturate((NdotL + NdotV) * invLenLV);
@@ -1113,7 +1117,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     EvaluateLight_Directional(lightLoopContext, posInput, lightData, bakeLightingData, N, L, color, attenuation);
 
     // Note: We use NdotL here to early out, but in case of clear coat this is not correct. But we are ok with this
-    [branch] if (attenuation * NdotL > 0.0)
+    [branch] if (attenuation > 0.0)
     {
         BSDF(V, L, posInput.positionWS, preLightData, bsdfData, lighting.diffuse, lighting.specular);
 
@@ -1164,7 +1168,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     EvaluateLight_Punctual(lightLoopContext, posInput, lightData, bakeLightingData, N, L, dist, distSq, color, attenuation);
 
     // Note: We use NdotL here to early out, but in case of clear coat this is not correct. But we are ok with this
-    [branch] if (attenuation * NdotL > 0.0)
+    [branch] if (attenuation > 0.0)
     {
         // Simulate a sphere light with this hack
         // Note that it is not correct with our pre-computation of PartLambdaV (mean if we disable the optimization we will not have the
