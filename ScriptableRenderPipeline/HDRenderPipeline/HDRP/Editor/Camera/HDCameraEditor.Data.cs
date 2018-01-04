@@ -11,20 +11,18 @@ namespace UnityEditor.Experimental.Rendering
         {
             SerializedHDCamera m_SerializedHdCamera;
 
-            AnimBool[] m_AnimBools = new AnimBool[10];
+            AnimBool[] m_AnimBools = new AnimBool[6];
 
             public AnimBool isSectionExpandedOrthoOptions { get { return m_AnimBools[0]; } }
-            public AnimBool isSectionExpandedShaderFeature { get { return m_AnimBools[1]; } }
-            public AnimBool isSectionExpandedLightLoop { get { return m_AnimBools[2]; } }
-            public AnimBool isSectionExpandedScreenSpace { get { return m_AnimBools[3]; } }
-            public AnimBool isSectionExpandedMiscellaneous { get { return m_AnimBools[4]; } }
-            public AnimBool isSectionExpandedRenderLoopSettings { get { return m_AnimBools[5]; } }
-            public AnimBool isSectionExpandedXR { get { return m_AnimBools[6]; } }
-            public AnimBool isSectionExpandedXRSupported { get { return m_AnimBools[7]; } }
-            public AnimBool isSectionExpandedCaptureSettings { get { return m_AnimBools[8]; } }
-            public AnimBool isSectionExpandedOutputSettings { get { return m_AnimBools[9]; } }
+            public AnimBool isSectionExpandedCaptureSettings { get { return m_AnimBools[1]; } }
+            public AnimBool isSectionExpandedOutputSettings { get { return m_AnimBools[2]; } }
+            public AnimBool isSectionAvailableRenderLoopSettings { get { return m_AnimBools[3]; } }
+            public AnimBool isSectionExpandedXRSettings { get { return m_AnimBools[4]; } }
+            public AnimBool isSectionAvailableXRSettings { get { return m_AnimBools[5]; } }
 
             public bool canOverrideRenderLoopSettings { get; set; }
+
+            public SerializedFrameSettingsUI serializedFrameSettingsUI = new SerializedFrameSettingsUI();
 
             public UIState()
             {
@@ -45,6 +43,7 @@ namespace UnityEditor.Experimental.Rendering
                 }
 
                 Update();
+                serializedFrameSettingsUI.Reset(repaint);
             }
 
             public void Update()
@@ -53,10 +52,11 @@ namespace UnityEditor.Experimental.Rendering
                 canOverrideRenderLoopSettings = renderingPath == HDAdditionalCameraData.RenderingPath.Custom;
 
                 isSectionExpandedOrthoOptions.target = !m_SerializedHdCamera.orthographic.hasMultipleDifferentValues && m_SerializedHdCamera.orthographic.boolValue;
-                isSectionExpandedXRSupported.target = PlayerSettings.virtualRealitySupported;
-
+                isSectionAvailableXRSettings.target = PlayerSettings.virtualRealitySupported;
                 // SRP settings are available only if the rendering path is not the Default one (configured by the SRP asset)
-                isSectionExpandedRenderLoopSettings.target = canOverrideRenderLoopSettings;
+                isSectionAvailableRenderLoopSettings.target = canOverrideRenderLoopSettings;
+
+                serializedFrameSettingsUI.Update();
             }
         }
     }

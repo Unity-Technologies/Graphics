@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEditor.AnimatedValues;
 
 namespace UnityEditor.Experimental.Rendering
@@ -9,6 +10,9 @@ namespace UnityEditor.Experimental.Rendering
         {
             void Draw(TUIState s, TData p, Editor owner);
         }
+
+        public delegate T2UIState StateSelect<T2UIState>(TUIState s, TData d, Editor o);
+        public delegate T2Data DataSelect<T2Data>(TUIState s, TData d, Editor o);
 
         public delegate void ActionDrawer(TUIState s, TData p, Editor owner);
         public delegate float FloatGetter(TUIState s, TData p, Editor owner, int i);
@@ -30,6 +34,47 @@ namespace UnityEditor.Experimental.Rendering
         public static IDrawer FoldoutGroup(string title, AnimBoolGetter root, bool indent, params IDrawer[] bodies)
         {
             return new FoldoutDrawerInternal(title, root, indent, bodies);
+        }
+
+        public static IEnumerable<IDrawer> Select<T2UIState, T2Data>(
+            StateSelect<T2UIState> stateSelect,
+            DataSelect<T2Data> dataSelect,
+            params CoreEditorDrawer<T2UIState, T2Data>.IDrawer[] otherDrawers)
+        {
+            var result = new IDrawer[otherDrawers.Length];
+            for (var i = 0; i < result.Length; i++)
+                result[i] = new SelectDrawerInternal<T2UIState, T2Data>(stateSelect, dataSelect, otherDrawers[i]);
+            return result;
+        }
+
+        public static IDrawer SelectSingle<T2UIState, T2Data>(
+            StateSelect<T2UIState> stateSelect,
+            DataSelect<T2Data> dataSelect,
+            CoreEditorDrawer<T2UIState, T2Data>.IDrawer otherDrawers)
+        {
+            return new SelectDrawerInternal<T2UIState, T2Data>(stateSelect, dataSelect, otherDrawers);
+        }
+
+        class SelectDrawerInternal<T2UIState, T2Data> : IDrawer
+        {
+            StateSelect<T2UIState> m_StateSelect;
+            DataSelect<T2Data> m_DataSelect;
+            CoreEditorDrawer<T2UIState, T2Data>.IDrawer[] m_SourceDrawers;
+
+            public SelectDrawerInternal(StateSelect<T2UIState> stateSelect,
+                DataSelect<T2Data> dataSelect,
+                params CoreEditorDrawer<T2UIState, T2Data>.IDrawer[] otherDrawers)
+            {
+                m_SourceDrawers = otherDrawers;
+                m_StateSelect = stateSelect;
+                m_DataSelect = dataSelect;
+            }
+
+            void IDrawer.Draw(TUIState s, TData p, Editor o)
+            {
+                for (var i = 0; i < m_SourceDrawers.Length; i++)
+                    m_SourceDrawers[i].Draw(m_StateSelect(s, p, o), m_DataSelect(s, p, o), o);
+            }
         }
 
         class ActionDrawerInternal : IDrawer
