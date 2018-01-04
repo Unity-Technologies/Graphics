@@ -5193,7 +5193,7 @@ VFXAsset:
       - index: 75
         nameId: uniform_Sphere_radius_f
       params: []
-      processor: {fileID: 7200000, guid: 2806efddc0b238948ac59a8d055ceef2, type: 3}
+      processor: {fileID: 7200000, guid: 287d2cc1a0244f446becfc88059012c3, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5226,7 +5226,7 @@ VFXAsset:
       - index: 60
         nameId: uniform_Force_d
       params: []
-      processor: {fileID: 7200000, guid: c94f585a3697f844d82bf500f6ee10df, type: 3}
+      processor: {fileID: 7200000, guid: 4023dab212a6a9649ae2099507f8b762, type: 3}
     - type: 1073741824
       buffers:
       - index: 0
@@ -5239,7 +5239,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 770a7021094786d44ba163db51659f8b, type: 3}
+      processor: {fileID: 4800000, guid: 5731fc51f3c16c84584bdb15d14f461a, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -5253,3 +5253,4 @@ VFXAsset:
     receiveShadows: 0
     reflectionProbeUsage: 0
     lightProbeUsage: 0
+  m_CullingMode: 0

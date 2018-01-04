@@ -5225,7 +5225,7 @@ VFXAsset:
       - index: 82
         nameId: uniform_Sphere_arc_e
       params: []
-      processor: {fileID: 7200000, guid: c3fa31e17b7efc644aacb25695af5d2f, type: 3}
+      processor: {fileID: 7200000, guid: 4396a3a89d59a4b4e90ddca0b0209710, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5244,7 +5244,7 @@ VFXAsset:
       - index: 51
         nameId: uniform_deltaTime_f
       params: []
-      processor: {fileID: 7200000, guid: 7cd20d36a381b3941b0722795714a069, type: 3}
+      processor: {fileID: 7200000, guid: 483ca068a6d29994996578b140935380, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -5263,7 +5263,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: f7eb68a2b93620b40be17e1ac8734b27, type: 3}
+      processor: {fileID: 4800000, guid: dd865705b1edd934982a6e6e425de87a, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -5282,7 +5282,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 2e082528682f04b408edf9f17795ec84, type: 3}
+      processor: {fileID: 4800000, guid: 9c1c7d7e7e3abc64bbd4afea2d415d60, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -5301,7 +5301,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: d2a96768ce0afe94eb4761050313cf08, type: 3}
+      processor: {fileID: 4800000, guid: 41d013fe64231ee4e9f866895f010901, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -5318,7 +5318,7 @@ VFXAsset:
       params:
       - index: -1
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: a77dc126cc9a6b54d816f12075ebbea5, type: 3}
+      processor: {fileID: 4800000, guid: 046cbf127da4b6e49bcc77b8e1c41a16, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -5332,3 +5332,4 @@ VFXAsset:
     receiveShadows: 0
     reflectionProbeUsage: 0
     lightProbeUsage: 0
+  m_CullingMode: 9
