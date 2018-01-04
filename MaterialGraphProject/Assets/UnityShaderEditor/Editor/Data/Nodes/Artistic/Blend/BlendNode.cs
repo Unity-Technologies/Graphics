@@ -188,7 +188,7 @@ namespace UnityEditor.ShaderGraph
 }";
         }
 
-        /*static string Unity_Blend_LinearLightAddSub(
+        static string Unity_Blend_LinearLightAddSub(
             [Slot(0, Binding.None)] DynamicDimensionVector A,
             [Slot(1, Binding.None)] DynamicDimensionVector B,
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
@@ -198,7 +198,7 @@ namespace UnityEditor.ShaderGraph
 {
     Out = B + 2.0 * A - 1.0;
 }";
-        }*/
+        }
 
         static string Unity_Blend_Multiply(
             [Slot(0, Binding.None)] DynamicDimensionVector A,

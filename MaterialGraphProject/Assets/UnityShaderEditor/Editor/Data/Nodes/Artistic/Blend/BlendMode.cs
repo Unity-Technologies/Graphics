@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph
         LinearBurn,
         LinearDodge,
         LinearLight,
-        //LinearLightAddSub,
+        LinearLightAddSub,
         Multiply,
         Negation,
         Overlay,
