@@ -94,7 +94,9 @@ public partial class HDRenderPipeline : RenderPipeline
         Count
     };
 
-    VolumetricLightingPreset m_VolumetricLightingPreset = VolumetricLightingPreset.Normal;
+    VolumetricLightingPreset m_VolumetricLightingPreset
+    { get { return (VolumetricLightingPreset)Math.Min(ShaderConfig.s_VolumetricLightingPreset, (int)VolumetricLightingPreset.Count); } }
+
     ComputeShader            m_VolumetricLightingCS { get { return m_Asset.renderPipelineResources.volumetricLightingCS; } }
 
     float                    m_VBufferNearPlane  = 0.5f;  // Distance in meters; dynamic modifications not handled by reprojection
@@ -234,14 +236,12 @@ public partial class HDRenderPipeline : RenderPipeline
 
     RenderTargetIdentifier GetVBufferLightingHistory() // From the previous frame
     {
-        bool evenFrame = (Time.renderedFrameCount & 1) == 0; // Does not work in the Scene view
-        return m_VBufferLightingRT[evenFrame ? 0 : 1];
+        return m_VBufferLightingRT[(Time.renderedFrameCount + 0) & 1]; // Does not work in the Scene view
     }
 
     RenderTargetIdentifier GetVBufferLightingFeedback() // For the next frame
     {
-        bool evenFrame = (Time.renderedFrameCount & 1) == 0; // Does not work in the Scene view
-        return m_VBufferLightingRT[evenFrame ? 1 : 0];
+        return m_VBufferLightingRT[(Time.renderedFrameCount + 1) & 1]; // Does not work in the Scene view
     }
 
     RenderTargetIdentifier GetVBufferLightingIntegral() // Of the current frame
@@ -322,7 +322,7 @@ public partial class HDRenderPipeline : RenderPipeline
             }
 
             bool enableClustered    = m_FrameSettings.lightLoopSettings.enableTileAndCluster;
-            bool enableReprojection = Application.isPlaying;
+            bool enableReprojection = Application.isPlaying && camera.camera.cameraType == CameraType.Game;
 
             int kernel;
 
@@ -367,8 +367,9 @@ public partial class HDRenderPipeline : RenderPipeline
             // | x | x | x | x | x | x | x |
             float[] zSeq = {7.0f/14.0f, 3.0f/14.0f, 11.0f/14.0f, 5.0f/14.0f, 9.0f/14.0f, 1.0f/14.0f, 13.0f/14.0f};
 
-            uint sampleIndex = (uint)Time.renderedFrameCount % 7;
-            Vector4 offset = new Vector4(xySeq[sampleIndex].x, xySeq[sampleIndex].y, zSeq[sampleIndex]);
+            int rfc = Time.renderedFrameCount;
+            int sampleIndex = rfc % 7;
+            Vector4 offset = new Vector4(xySeq[sampleIndex].x, xySeq[sampleIndex].y, zSeq[sampleIndex], rfc);
 
             // TODO: set 'm_VolumetricLightingPreset'.
             cmd.SetComputeVectorParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferSampleOffset,     offset);

@@ -15,9 +15,6 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyHDRI"
     #include "ShaderLibrary/VolumeRendering.hlsl"
 
     TEXTURECUBE(_Cubemap);
-#ifdef VOLUMETRIC_LIGHTING_ENABLED
-    TEXTURE3D(_VBufferLighting);
-#endif
 
     float4   _SkyParam; // x exposure, y multiplier, z rotation
     float4x4 _PixelCoordToViewDirWS; // Actually just 3x3, but Unity can only set 4x4

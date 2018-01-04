@@ -166,7 +166,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 #endif
     }
 
-#ifdef VOLUMETRIC_LIGHTING_ENABLED
+#if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET != 0)
     [flatten] if (lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX)
     {
         float3 lightToSample = positionWS - lightData.positionWS;

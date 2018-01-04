@@ -7,7 +7,7 @@
 #include "../SkyVariables.hlsl"
 #include "../../ShaderVariables.hlsl"
 
-#ifdef VOLUMETRIC_LIGHTING_ENABLED
+#if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET != 0)
 TEXTURE3D(_VBufferLighting);
 #endif
 
@@ -56,7 +56,7 @@ float3 GetFogColor(PositionInputs posInput)
 // Returns fog color in rgb and fog factor in alpha.
 float4 EvaluateAtmosphericScattering(PositionInputs posInput)
 {
-#ifdef VOLUMETRIC_LIGHTING_ENABLED
+#if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET != 0)
     return SampleInScatteredRadianceAndTransmittance(TEXTURE3D_PARAM(_VBufferLighting, s_trilinear_clamp_sampler),
                                                      posInput.positionNDC, posInput.linearDepth,
                                                      _VBufferResolution, _VBufferScaleAndSliceCount,
