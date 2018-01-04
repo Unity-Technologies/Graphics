@@ -262,6 +262,10 @@ namespace UnityEditor.VFX
         {
             base.OnEnable();
 
+            // TMP auto conversion due to renaming (not to lose the value)
+            if (m_Property.name == "texture")
+                m_Property.name = "mainTexture";
+
             if (m_LinkedSlots == null)
                 m_LinkedSlots = new List<VFXSlot>();
 

@@ -102,6 +102,18 @@ namespace UnityEditor.VFX
             return null;
         }
 
+        public Type GetCurrentType()
+        {
+            switch (realSize)
+            {
+                case 1: return typeof(float);
+                case 2: return typeof(Vector2);
+                case 3: return typeof(Vector3);
+                case 4: return typeof(Vector4);
+            }
+            return typeof(FloatN);
+        }
+
         [SerializeField]
         private float[] m_Components;
     }

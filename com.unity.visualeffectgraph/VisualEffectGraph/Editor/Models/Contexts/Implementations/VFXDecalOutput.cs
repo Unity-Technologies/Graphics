@@ -16,7 +16,7 @@ namespace UnityEditor.VFX
 
         public class InputProperties
         {
-            public Texture2D texture;
+            public Texture2D mainTexture;
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
@@ -32,7 +32,7 @@ namespace UnityEditor.VFX
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
 
-            yield return slotExpressions.First(o => o.name == "texture");
+            yield return slotExpressions.First(o => o.name == "mainTexture");
         }
 
         public override IEnumerable<VFXAttributeInfo> attributes
