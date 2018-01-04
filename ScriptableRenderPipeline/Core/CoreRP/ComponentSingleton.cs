@@ -10,10 +10,14 @@
         {
             get
             {
-                return s_Instance ?? (s_Instance = new GameObject("Default " + typeof(TType))
+                if (s_Instance == null)
                 {
-                    hideFlags = HideFlags.HideAndDontSave
-                }.AddComponent<TType>());
+                    GameObject go = new GameObject("Default " + typeof(TType)) { hideFlags = HideFlags.HideAndDontSave };
+                    go.SetActive(false);
+                    s_Instance = go.AddComponent<TType>();
+                }
+
+                return s_Instance;
             }
         }
     }
