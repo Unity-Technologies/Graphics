@@ -79,7 +79,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 case ResizeHandleAnchor.TopLeft:
                 {
-                    AddToClassList("vertical");
+                    AddToClassList("diagonal");
                     AddToClassList("top-left");
                     break;
                 }
