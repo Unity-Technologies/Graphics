@@ -286,7 +286,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public List<LightData> lights;
             public List<EnvLightData> envLights;
             public List<ShadowData> shadows;
-            public Vector4[] directionalShadowSplitSphereSqr;
 
             public List<SFiniteLightBound> bounds;
             public List<LightVolumeData> lightVolumes;
@@ -308,7 +307,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lights = new List<LightData>();
                 envLights = new List<EnvLightData>();
                 shadows = new List<ShadowData>();
-                directionalShadowSplitSphereSqr = new Vector4[k_MaxCascadeCount];
 
                 bounds = new List<SFiniteLightBound>();
                 lightVolumes = new List<LightVolumeData>();
@@ -1913,7 +1911,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalBuffer(HDShaderIDs._EnvLightDatas, s_EnvLightDatas);
                 cmd.SetGlobalInt(HDShaderIDs._EnvLightCount, m_lightList.envLights.Count);
                 cmd.SetGlobalBuffer(HDShaderIDs._ShadowDatas, s_shadowDatas);
-                cmd.SetGlobalVectorArray(HDShaderIDs._DirShadowSplitSpheres, m_lightList.directionalShadowSplitSphereSqr);
 
                 cmd.SetGlobalInt(HDShaderIDs._NumTileFtplX, GetNumTileFtplX(camera));
                 cmd.SetGlobalInt(HDShaderIDs._NumTileFtplY, GetNumTileFtplY(camera));
