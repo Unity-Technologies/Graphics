@@ -172,6 +172,7 @@ namespace UnityEditor.VFX.UI
 
         void OnCatchMouse(MouseDownEvent e)
         {
+            e.StopPropagation();
         }
 
         protected float m_labelWidth = 100;
