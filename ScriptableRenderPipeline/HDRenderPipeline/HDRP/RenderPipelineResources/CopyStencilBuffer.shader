@@ -18,7 +18,6 @@ Shader "Hidden/HDRenderPipeline/CopyStencilBuffer"
     #include "../Lighting/LightDefinition.cs.hlsl"
 
     int _StencilRef;
-    int _StencilMask;
     RW_TEXTURE2D(float, _HTile); // DXGI_FORMAT_R8_UINT is not supported by Unity
 
     struct Attributes
