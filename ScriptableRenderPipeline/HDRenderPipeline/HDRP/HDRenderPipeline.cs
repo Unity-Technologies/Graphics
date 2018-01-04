@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine.Rendering;
 using System;
 using System.Diagnostics;
@@ -1082,6 +1082,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Render opaque objects into GBuffer
                 if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
                 {
+                    m_CurrentDebugDisplaySettings.UpdateMaterials();
+
                     // When doing debug display, the shader has the clip instruction regardless of the depth prepass so we can use regular depth test.
                     RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.s_GBufferDebugDisplayName, m_currentRendererConfigurationBakedLighting, RenderQueueRange.opaque, m_DepthStateOpaque);
                 }

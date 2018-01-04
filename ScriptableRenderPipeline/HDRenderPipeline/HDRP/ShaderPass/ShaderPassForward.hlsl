@@ -104,7 +104,8 @@ void Frag(PackedVaryingsToPS packedInput,
     // Same code in ShaderPassForwardUnlit.shader
     if (_DebugViewMaterial != 0)
     {
-        float3 result = float3(1.0, 0.0, 1.0);
+        float3 result = (_DebugViewMaterial >= DEBUGVIEWTEXTURE_SHOW_MIP_RATIO && _DebugViewMaterial < DEBUGVIEWTEXTURE_LAST) ? ApplyBlendMode(bsdfData.diffuseColor, builtinData.opacity).xyz : float3(1.0, 0.0, 1.0);
+
         bool needLinearToSRGB = false;
 
         GetPropertiesDataDebug(_DebugViewMaterial, result, needLinearToSRGB);
@@ -112,6 +113,11 @@ void Frag(PackedVaryingsToPS packedInput,
         GetBuiltinDataDebug(_DebugViewMaterial, builtinData, result, needLinearToSRGB);
         GetSurfaceDataDebug(_DebugViewMaterial, surfaceData, result, needLinearToSRGB);
         GetBSDFDataDebug(_DebugViewMaterial, bsdfData, result, needLinearToSRGB); // TODO: This required to initialize all field from BSDFData...
+#ifdef LAYERED_LIT_SHADER
+        GetTextureDataDebug(_DebugViewMaterial, input, _BaseColorMap0, _BaseColorMap0_TexelSize, _BaseColorMap0_MipInfo, result, needLinearToSRGB);
+#else
+        GetTextureDataDebug(_DebugViewMaterial, input, _BaseColorMap, _BaseColorMap_TexelSize, _BaseColorMap_MipInfo, result, needLinearToSRGB);
+#endif
 
         // TEMP!
         // For now, the final blit in the backbuffer performs an sRGB write
