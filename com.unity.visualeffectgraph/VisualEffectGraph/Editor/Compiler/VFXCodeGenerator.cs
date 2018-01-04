@@ -134,7 +134,7 @@ namespace UnityEditor.VFX
             var regex = new Regex(matching);
 
             var filteredNamedExpressions = namedExpressions.Where(o => regex.IsMatch(o.name) &&
-                    !(expressionToName.ContainsKey(o.exp) && expressionToName[o.exp] == o.name)); // if parameter already in the global scope, there s nothing to do
+                    !(expressionToName.ContainsKey(o.exp) && expressionToName[o.exp] == o.name)); // if parameter already in the global scope, there's nothing to do
 
             bool needScope = false;
             foreach (var namedExpression in filteredNamedExpressions)

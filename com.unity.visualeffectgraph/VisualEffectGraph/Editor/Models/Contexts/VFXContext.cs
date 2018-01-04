@@ -136,7 +136,7 @@ namespace UnityEditor.VFX
                 cause == InvalidationCause.kExpressionInvalidated ||
                 cause == InvalidationCause.kSettingChanged)
             {
-                if (CanBeCompiled() || hasBeenCompiled)
+                if (hasBeenCompiled || CanBeCompiled())
                     Invalidate(InvalidationCause.kExpressionGraphChanged);
             }
         }
@@ -159,14 +159,14 @@ namespace UnityEditor.VFX
         protected override void OnAdded()
         {
             base.OnAdded();
-            if (CanBeCompiled() || hasBeenCompiled)
+            if (hasBeenCompiled || CanBeCompiled())
                 Invalidate(InvalidationCause.kExpressionGraphChanged);
         }
 
         protected override void OnRemoved()
         {
             base.OnRemoved();
-            if (CanBeCompiled() || hasBeenCompiled)
+            if (hasBeenCompiled || CanBeCompiled())
                 Invalidate(InvalidationCause.kExpressionGraphChanged);
         }
 
