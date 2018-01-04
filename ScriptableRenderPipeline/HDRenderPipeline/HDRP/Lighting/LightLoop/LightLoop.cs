@@ -286,7 +286,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public List<LightData> lights;
             public List<EnvLightData> envLights;
             public List<ShadowData> shadows;
-            public Vector4[] directionalShadowSplitSphereSqr;
 
             public List<SFiniteLightBound> bounds;
             public List<LightVolumeData> lightVolumes;
@@ -308,7 +307,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lights = new List<LightData>();
                 envLights = new List<EnvLightData>();
                 shadows = new List<ShadowData>();
-                directionalShadowSplitSphereSqr = new Vector4[k_MaxCascadeCount];
 
                 bounds = new List<SFiniteLightBound>();
                 lightVolumes = new List<LightVolumeData>();
@@ -758,7 +756,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // TODO: Currently m_maxShadowDistance is based on shadow settings, but this value is define for a whole level. We should be able to change this value during gameplay
             float scale;
             float bias;
-            GetSCaleAndBiasForLinearDistanceFade(m_maxShadowDistance, out scale, out bias);
+            GetScaleAndBiasForLinearDistanceFade(m_maxShadowDistance, out scale, out bias);
             directionalLightData.fadeDistanceScaleAndBias = new Vector2(scale, bias);
             directionalLightData.shadowMaskSelector = Vector4.zero;
 
@@ -782,7 +780,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return true;
         }
 
-        void GetSCaleAndBiasForLinearDistanceFade(float fadeDistance, out float scale, out float bias)
+        void GetScaleAndBiasForLinearDistanceFade(float fadeDistance, out float scale, out float bias)
         {
             // Fade with distance calculation is just a linear fade from 90% of fade distance to fade distance. 90% arbitrarily chosen but should work well enough.
             float distanceFadeNear = 0.9f * fadeDistance;
@@ -794,7 +792,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             float scale;
             float bias;
-            GetSCaleAndBiasForLinearDistanceFade(fadeDistance, out scale, out bias);
+            GetScaleAndBiasForLinearDistanceFade(fadeDistance, out scale, out bias);
 
             return 1.0f - Mathf.Clamp01(distanceToCamera * scale + bias);
         }
@@ -1913,7 +1911,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalBuffer(HDShaderIDs._EnvLightDatas, s_EnvLightDatas);
                 cmd.SetGlobalInt(HDShaderIDs._EnvLightCount, m_lightList.envLights.Count);
                 cmd.SetGlobalBuffer(HDShaderIDs._ShadowDatas, s_shadowDatas);
-                cmd.SetGlobalVectorArray(HDShaderIDs._DirShadowSplitSpheres, m_lightList.directionalShadowSplitSphereSqr);
 
                 cmd.SetGlobalInt(HDShaderIDs._NumTileFtplX, GetNumTileFtplX(camera));
                 cmd.SetGlobalInt(HDShaderIDs._NumTileFtplY, GetNumTileFtplY(camera));

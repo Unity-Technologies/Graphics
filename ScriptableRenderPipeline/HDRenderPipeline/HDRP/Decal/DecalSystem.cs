@@ -16,7 +16,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return m_Instance;
             }
         }
-        
+
         private Mesh m_DecalMesh = null;
         private CullingGroup m_CullingGroup = null;
 		private const int kDecalBlockSize = 128;
@@ -25,16 +25,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 		private int[] m_ResultIndices = new int[kDecalBlockSize];
 		private int m_NumResults = 0;
 		private int m_DecalsCount = 0;
-     
+
         public DecalSystem()
         {
-            m_DecalMesh = CoreUtils.CreateDecalMesh();            
         }
 
         // update bounding sphere for a single decal
         public void UpdateBoundingSphere(DecalProjectorComponent decal)
         {
-			m_BoundingSpheres[decal.CullIndex] = CoreUtils.GetDecalMeshBoundingSphere(decal.transform.localToWorldMatrix);
+			m_BoundingSpheres[decal.CullIndex] = GetDecalProjectBoundingSphere(decal.transform.localToWorldMatrix);
         }
 
         public void AddDecal(DecalProjectorComponent decal)
@@ -59,7 +58,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 			m_Decals[m_DecalsCount] = decal;
 			m_Decals[m_DecalsCount].CullIndex = m_DecalsCount;
 			UpdateBoundingSphere(m_Decals[m_DecalsCount]);
-			m_DecalsCount++;            
+			m_DecalsCount++;
         }
 
         public void RemoveDecal(DecalProjectorComponent decal)
@@ -69,7 +68,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 			int removeAtIndex = decal.CullIndex;
 			// replace with last decal in the list and update index
-			m_Decals[removeAtIndex] = m_Decals[m_DecalsCount - 1]; // move the last decal in list 
+			m_Decals[removeAtIndex] = m_Decals[m_DecalsCount - 1]; // move the last decal in list
 			m_Decals[removeAtIndex].CullIndex = removeAtIndex;
 			m_Decals[m_DecalsCount - 1] = null;
 
@@ -83,7 +82,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (m_CullingGroup != null)
             {
-                Debug.LogError("Begin/EndCull() called out of sequence for decal projectors.");                
+                Debug.LogError("Begin/EndCull() called out of sequence for decal projectors.");
             }
 			m_NumResults = 0;
             m_CullingGroup = new CullingGroup();
@@ -101,7 +100,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void Render(ScriptableRenderContext renderContext, HDCamera camera, CommandBuffer cmd)
         {
             if (m_DecalMesh == null)
-                m_DecalMesh = CoreUtils.CreateDecalMesh();
+                m_DecalMesh = CoreUtils.CreateCubeMesh(new Vector3(-0.5f, -1.0f, -0.5f), new Vector3(0.5f, 0.0f, 0.5f));
 
             for (int resultIndex = 0; resultIndex < m_NumResults; resultIndex++)
             {
@@ -131,8 +130,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             else
             {
                 m_CullingGroup.Dispose();
-                m_CullingGroup = null;               
+                m_CullingGroup = null;
             }
+        }
+
+        // Decal are assume to use a CubeMesh with bounds min(-0.5f, -1.0f, -0.5f) max(0.5f, 0.0f, 0.5f)
+        public BoundingSphere GetDecalProjectBoundingSphere(Matrix4x4 decalToWorld)
+        {
+            Vector4 min = new Vector4(-0.5f, -1.0f, -0.5f, 1.0f);
+            Vector4 max = new Vector4(0.5f, 0.0f, 0.5f, 1.0f);
+            min = decalToWorld * min;
+            max = decalToWorld * max;
+            BoundingSphere res = new BoundingSphere();
+            res.position = (max + min) / 2;
+            res.radius = ((Vector3)(max - min)).magnitude / 2;
+            return res;
         }
     }
 }
