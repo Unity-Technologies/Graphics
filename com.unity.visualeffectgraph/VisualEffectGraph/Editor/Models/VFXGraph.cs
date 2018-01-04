@@ -74,6 +74,7 @@ namespace UnityEditor.VFX
                 g = ScriptableObject.CreateInstance<VFXGraph>();
                 g.name = "VFXGraph";
                 asset.graph = g;
+                g.hideFlags = HideFlags.HideInHierarchy;
                 ((VFXGraph)g).UpdateSubAssets();
             }
 
