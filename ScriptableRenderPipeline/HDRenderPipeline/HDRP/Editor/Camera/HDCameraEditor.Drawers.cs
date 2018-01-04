@@ -11,11 +11,7 @@ namespace UnityEditor.Experimental.Rendering
     {
         static readonly CED.IDrawer[] k_PrimarySection =
         {
-            CED.Action(Drawer_FieldClearFlags),
-            CED.FadeGroup(
-                (s, d, o, i) => s.isSectionExpandedBGColorOptions.faded,
-                true,
-                CED.Action(Drawer_FieldBackgroundColor)),
+            CED.Action(Drawer_FieldBackgroundColor),
             CED.Action(Drawer_FieldCullingMask),
             CED.Action(Drawer_FieldVolumeLayerMask),
             CED.space,
@@ -24,17 +20,15 @@ namespace UnityEditor.Experimental.Rendering
             CED.Action(Drawer_FieldNormalizedViewPort),
             CED.space,
             CED.Action(Drawer_FieldDepth),
-            CED.Action(Drawer_FieldRenderingPath),
             CED.Action(Drawer_DeferredOrthographicWarning),
             CED.Action(Drawer_FieldRenderTarget),
             CED.Action(Drawer_FieldOcclusionCulling),
-            CED.Action(Drawer_FieldAllowMSAA),
-            CED.Action(Drawer_FieldAllowDynamicResolution),
             CED.Action(Drawer_CameraWarnings),
             CED.Action(Drawer_FieldVR),
 #if ENABLE_MULTIPLE_DISPLAYS
             CED.Action(Drawer_SectionMultiDisplay),
 #endif
+            CED.Action(Drawer_FieldRenderingPath),
             CED.FadeGroup(
                 (s, d, o, i) => s.isSectionExpandedTargetEyeOptions.faded,
                 true,
@@ -64,14 +58,9 @@ namespace UnityEditor.Experimental.Rendering
                     CED.Action(Drawer_SectionLightLoop)))
         };
 
-        static void Drawer_FieldClearFlags(UIState s, SerializedHDCamera p, Editor owner)
-        {
-            EditorGUILayout.PropertyField(p.clearFlags, _.GetContent("Clear Flags|What to display in empty areas of this Camera's view.\n\nChoose Skybox to display a skybox in empty areas, defaulting to a background color if no skybox is found.\n\nChoose Solid Color to display a background color in empty areas.\n\nChoose Depth Only to display nothing in empty areas.\n\nChoose Don't Clear to display whatever was displayed in the previous frame in empty areas."));
-        }
-
         static void Drawer_FieldBackgroundColor(UIState s, SerializedHDCamera p, Editor owner)
         {
-            EditorGUILayout.PropertyField(p.backgroundColor, _.GetContent("Background|The Camera clears the screen to this color before rendering."));
+            EditorGUILayout.PropertyField(p.backgroundColor, _.GetContent("Background Color|The Camera clears the screen to this color before rendering."));
         }
 
         static void Drawer_FieldVolumeLayerMask(UIState s, SerializedHDCamera p, Editor owner)
@@ -152,16 +141,6 @@ namespace UnityEditor.Experimental.Rendering
         static void Drawer_FieldOcclusionCulling(UIState s, SerializedHDCamera p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.occlusionCulling, _.GetContent("Occlusion Culling"));
-        }
-
-        static void Drawer_FieldAllowMSAA(UIState s, SerializedHDCamera p, Editor owner)
-        {
-            EditorGUILayout.PropertyField(p.allowMSAA, _.GetContent("Allow MSAA"));
-        }
-
-        static void Drawer_FieldAllowDynamicResolution(UIState s, SerializedHDCamera p, Editor owner)
-        {
-            EditorGUILayout.PropertyField(p.allowDynamicResolution, _.GetContent("Allow Dynamic Resolution"));
         }
 
         static void Drawer_CameraWarnings(UIState s, SerializedHDCamera p, Editor owner)

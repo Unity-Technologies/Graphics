@@ -8,7 +8,6 @@ namespace UnityEditor.Experimental.Rendering
         public SerializedObject serializedObject;
         public SerializedObject serializedAdditionalDataObject;
 
-        public SerializedProperty clearFlags;
         public SerializedProperty backgroundColor;
         public SerializedProperty normalizedViewPortRect;
         public SerializedProperty fieldOfView;
@@ -16,12 +15,9 @@ namespace UnityEditor.Experimental.Rendering
         public SerializedProperty orthographicSize;
         public SerializedProperty depth;
         public SerializedProperty cullingMask;
-        public SerializedProperty _renderingPath; // Legacy rendering path
         public SerializedProperty occlusionCulling;
         public SerializedProperty targetTexture;
         public SerializedProperty HDR;
-        public SerializedProperty allowMSAA;
-        public SerializedProperty allowDynamicResolution;
         public SerializedProperty stereoConvergence;
         public SerializedProperty stereoSeparation;
         public SerializedProperty nearClippingPlane;
@@ -47,7 +43,6 @@ namespace UnityEditor.Experimental.Rendering
             hideFlags.intValue = (int)HideFlags.HideInInspector;
             serializedAdditionalDataObject.ApplyModifiedProperties();
 
-            clearFlags = serializedObject.FindProperty("m_ClearFlags");
             backgroundColor = serializedObject.FindProperty("m_BackGroundColor");
             normalizedViewPortRect = serializedObject.FindProperty("m_NormalizedViewPortRect");
             nearClippingPlane = serializedObject.FindProperty("near clip plane");
@@ -57,12 +52,9 @@ namespace UnityEditor.Experimental.Rendering
             orthographicSize = serializedObject.FindProperty("orthographic size");
             depth = serializedObject.FindProperty("m_Depth");
             cullingMask = serializedObject.FindProperty("m_CullingMask");
-            _renderingPath = serializedObject.FindProperty("m_RenderingPath");
             occlusionCulling = serializedObject.FindProperty("m_OcclusionCulling");
             targetTexture = serializedObject.FindProperty("m_TargetTexture");
             HDR = serializedObject.FindProperty("m_HDR");
-            allowMSAA = serializedObject.FindProperty("m_AllowMSAA");
-            allowDynamicResolution = serializedObject.FindProperty("m_AllowDynamicResolution");
 
             stereoConvergence = serializedObject.FindProperty("m_StereoConvergence");
             stereoSeparation = serializedObject.FindProperty("m_StereoSeparation");
