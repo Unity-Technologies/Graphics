@@ -147,11 +147,11 @@ namespace UnityEditor.ShaderGraph
                 usedSlots);
 
             var graph = new ShaderGenerator();
+            graph.AddShaderChunk(shaderProperties.GetPropertiesDeclaration(2), false);
+            graph.AddShaderChunk(surfaceInputs.GetShaderString(2), false);
             graph.AddShaderChunk(builder.ToString(), false);
             graph.AddShaderChunk(vertexInputs.GetShaderString(2), false);
-            graph.AddShaderChunk(surfaceInputs.GetShaderString(2), false);
             graph.AddShaderChunk(surfaceDescriptionStruct.GetShaderString(2), false);
-            graph.AddShaderChunk(shaderProperties.GetPropertiesDeclaration(2), false);
             graph.AddShaderChunk(surfaceVertexShader.GetShaderString(2), false);
             graph.AddShaderChunk(surfaceDescriptionFunction.GetShaderString(2), false);
 

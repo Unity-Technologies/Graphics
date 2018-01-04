@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return space.ToVariableName(InterpolatorType.Tangent);
+            return string.Format("IN.{0}", space.ToVariableName(InterpolatorType.Tangent));
         }
 
         public NeededCoordinateSpace RequiresTangent()

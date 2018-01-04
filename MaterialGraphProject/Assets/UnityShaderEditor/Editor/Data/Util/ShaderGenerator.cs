@@ -151,7 +151,7 @@ namespace UnityEditor.ShaderGraph
                     switch (convertFromType)
                     {
                         case ConcreteSlotValueType.Vector1:
-                            return string.Format("({0}{1})", rawOutput, ".xx");
+                            return string.Format("({0}.xx)", rawOutput);
                         case ConcreteSlotValueType.Vector3:
                         case ConcreteSlotValueType.Vector4:
                             return string.Format("({0}.xy)", rawOutput);
@@ -162,7 +162,9 @@ namespace UnityEditor.ShaderGraph
                     switch (convertFromType)
                     {
                         case ConcreteSlotValueType.Vector1:
-                            return string.Format("({0}{1})", rawOutput, ".xxx");
+                            return string.Format("({0}.xxx)", rawOutput);
+                        case ConcreteSlotValueType.Vector2:
+                            return string.Format("({0}3({1}.x, {1}.y, 0.0))", node.precision, rawOutput);
                         case ConcreteSlotValueType.Vector4:
                             return string.Format("({0}.xyz)", rawOutput);
                         default:
@@ -172,7 +174,11 @@ namespace UnityEditor.ShaderGraph
                     switch (convertFromType)
                     {
                         case ConcreteSlotValueType.Vector1:
-                            return string.Format("({0}{1})", rawOutput, ".xxxx");
+                            return string.Format("({0}.xxxx)", rawOutput);
+                        case ConcreteSlotValueType.Vector2:
+                            return string.Format("({0}4({1}.x, {1}.y, 0.0, 1.0))", node.precision, rawOutput);
+                        case ConcreteSlotValueType.Vector3:
+                            return string.Format("({0}4({1}.x, {1}.y, {1}.z, 1.0))", node.precision, rawOutput);
                         default:
                             return kErrorString;
                     }
@@ -196,7 +202,7 @@ namespace UnityEditor.ShaderGraph
 
             var convertFromType = slot.concreteValueType;
 
-            // preview is always dimension 4, and we always ignore alpha
+            // preview is always dimension 4
             switch (convertFromType)
             {
                 case ConcreteSlotValueType.Vector1:
@@ -539,7 +545,7 @@ namespace UnityEditor.ShaderGraph
             {
                 interpolators.AddShaderChunk(string.Format("half4 {0} : TEXCOORD{1};", channel.GetUVName(), interpolatorIndex == 0 ? "" : interpolatorIndex.ToString()), false);
                 vertexShader.AddShaderChunk(string.Format("o.{0} = v.texcoord{1};", channel.GetUVName(), (int)channel), false);
-                pixelShader.AddShaderChunk(string.Format("float4 {0}  = IN.{0};", channel.GetUVName()), false);
+                pixelShader.AddShaderChunk(string.Format("float4 {0} = IN.{0};", channel.GetUVName()), false);
                 interpolatorIndex++;
             }
 
