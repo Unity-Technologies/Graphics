@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
 
@@ -44,39 +44,29 @@ namespace UnityEditor.Experimental.Rendering
                 CED.Action(Drawer_FieldDepth),
                 CED.Action(Drawer_FieldRenderTarget)),
             CED.FadeGroup(
-                (s, d, o, i) => s.isSectionExpandedXRSupported.faded,
+                (s, d, o, i) => s.isSectionAvailableXRSettings.faded,
                 false,
                 CED.FoldoutGroup(
-                    "XR",
-                    (s, p, o) => s.isSectionExpandedXR,
+                    "XR Settings",
+                    (s, p, o) => s.isSectionExpandedXRSettings,
                     true,
                     CED.Action(Drawer_FieldVR),
                     CED.Action(Drawer_FieldTargetEye))),
 
             // Render Loop Settings
             CED.FadeGroup(
-            (s, d, o, i) => s.isSectionExpandedRenderLoopSettings.faded,
-            false,
-            CED.FoldoutGroup(
-                "Shader Passes",
-                (s, p, o) => s.isSectionExpandedShaderFeature,
-                true,
-                CED.Action(Drawer_SectionShaderFeature)),
-            CED.FoldoutGroup(
-                "Screen Space",
-                (s, p, o) => s.isSectionExpandedScreenSpace,
-                true,
-                CED.Action(Drawer_SectionScreenSpace)),
-            CED.FoldoutGroup(
-                "Miscellaneous",
-                (s, p, o) => s.isSectionExpandedMiscellaneous,
-                true,
-                CED.Action(Drawer_SectionMiscellaneous)),
-            CED.FoldoutGroup(
-                "Light Loop",
-                (s, p, o) => s.isSectionExpandedLightLoop,
-                true,
-                CED.Action(Drawer_SectionLightLoop))),
+                (s, d, o, i) => s.isSectionAvailableRenderLoopSettings.faded,
+                false,
+                CED.Select(
+                    (s, d, o) => s.serializedFrameSettingsUI,
+                    (s, d, o) => d.frameSettings,
+                    SerializedFrameSettingsUI.SectionRenderingPasses,
+                    SerializedFrameSettingsUI.SectionRenderingSettings,
+                    SerializedFrameSettingsUI.SectionLightingSettings)
+                .Concat(CED.Select(
+                    (s, d, o) => s.serializedFrameSettingsUI.serializedLightLoopSettingsUI,
+                    (s, d, o) => d.frameSettings.lightLoopSettings,
+                    SerializedLightLoopSettingsUI.SectionLightLoopSettings)).ToArray())
         };
 
         static void Drawer_FieldBackgroundColor(UIState s, SerializedHDCamera p, Editor owner)
@@ -217,57 +207,7 @@ namespace UnityEditor.Experimental.Rendering
         {
             EditorGUILayout.IntPopup(p.targetEye, k_TargetEyes, k_TargetEyeValues, _.GetContent("Target Eye"));
         }
-
-        static void Drawer_SectionShaderFeature(UIState s, SerializedHDCamera p, Editor owner)
-        {
-            EditorGUILayout.PropertyField(p.frameSettings.enableTransparentPrepass, _.GetContent("Enable Transparent Prepass"));
-            EditorGUILayout.PropertyField(p.frameSettings.enableTransparentPostpass, _.GetContent("Enable Transparent Postpass"));
-            EditorGUILayout.PropertyField(p.frameSettings.enableMotionVectors, _.GetContent("Enable Motion Vectors"));
-            EditorGUILayout.PropertyField(p.frameSettings.enableObjectMotionVectors, _.GetContent("Enable Object Motion Vectors"));
-            EditorGUILayout.PropertyField(p.frameSettings.enableDBuffer, _.GetContent("Enable DBuffer"));
-            EditorGUILayout.PropertyField(p.frameSettings.enableAtmosphericScattering, _.GetContent("Enable Atmospheric Scattering"));
-            EditorGUILayout.PropertyField(p.frameSettings.enableRoughRefraction, _.GetContent("Enable Rough Refraction"));
-            EditorGUILayout.PropertyField(p.frameSettings.enableDistortion, _.GetContent("Enable Distortion"));
-            EditorGUILayout.PropertyField(p.frameSettings.enablePostprocess, _.GetContent("Enable Postprocess"));
-        }
-
-        static void Drawer_SectionScreenSpace(UIState s, SerializedHDCamera p, Editor owner)
-        {
-            EditorGUILayout.PropertyField(p.frameSettings.enableSSR, _.GetContent("Enable SSR"));
-            EditorGUILayout.PropertyField(p.frameSettings.enableSSAO, _.GetContent("Enable SSAO"));
-            EditorGUILayout.PropertyField(p.frameSettings.enableSSSAndTransmission, _.GetContent("Enable SSS And Transmission"));
-        }
-
-        static void Drawer_SectionMiscellaneous(UIState s, SerializedHDCamera p, Editor owner)
-        {
-            EditorGUILayout.PropertyField(p.frameSettings.enableShadow, _.GetContent("Enable Shadow"));
-            EditorGUILayout.PropertyField(p.frameSettings.enableShadowMask, _.GetContent("Enable Shadow Masks"));
-
-            EditorGUILayout.PropertyField(p.frameSettings.enableForwardRenderingOnly, _.GetContent("Enable Forward Rendering Only"));
-            EditorGUILayout.PropertyField(p.frameSettings.enableDepthPrepassWithDeferredRendering, _.GetContent("Enable Depth Prepass With Deferred Rendering"));
-            EditorGUILayout.PropertyField(p.frameSettings.enableAlphaTestOnlyInDeferredPrepass, _.GetContent("Enable Alpha Test Only In Deferred Prepass"));
-
-            EditorGUILayout.PropertyField(p.frameSettings.enableAsyncCompute, _.GetContent("Enable Async Compute"));
-
-            EditorGUILayout.PropertyField(p.frameSettings.enableOpaqueObjects, _.GetContent("Enable Opaque Objects"));
-            EditorGUILayout.PropertyField(p.frameSettings.enableTransparentObjects, _.GetContent("Enable Transparent Objects"));
-
-            EditorGUILayout.PropertyField(p.frameSettings.enableMSAA, _.GetContent("Enable MSAA"));
-        }
-
-        static void Drawer_SectionLightLoop(UIState s, SerializedHDCamera p, Editor owner)
-        {
-            EditorGUILayout.PropertyField(p.frameSettings.lightLoopSettings.enableTileAndCluster, _.GetContent("Enable Tile And Cluster"));
-            EditorGUILayout.PropertyField(p.frameSettings.lightLoopSettings.enableComputeLightEvaluation, _.GetContent("Enable Compute Light Evaluation"));
-            EditorGUILayout.PropertyField(p.frameSettings.lightLoopSettings.enableComputeLightVariants, _.GetContent("Enable Compute Light Variants"));
-            EditorGUILayout.PropertyField(p.frameSettings.lightLoopSettings.enableComputeMaterialVariants, _.GetContent("Enable Compute Material Variants"));
-
-            EditorGUILayout.PropertyField(p.frameSettings.lightLoopSettings.isFptlEnabled, _.GetContent("Enable FPTL"));
-            EditorGUILayout.PropertyField(p.frameSettings.lightLoopSettings.enableFptlForForwardOpaque, _.GetContent("Enable FPTL For Forward Opaque"));
-
-            EditorGUILayout.PropertyField(p.frameSettings.lightLoopSettings.enableBigTilePrepass, _.GetContent("Enable Big Tile Prepass"));
-        }
-
+        
         static MethodInfo k_DisplayUtility_GetDisplayIndices = Type.GetType("UnityEditor.DisplayUtility,UnityEditor")
             .GetMethod("GetDisplayIndices");
         static int[] DisplayUtility_GetDisplayIndices()
