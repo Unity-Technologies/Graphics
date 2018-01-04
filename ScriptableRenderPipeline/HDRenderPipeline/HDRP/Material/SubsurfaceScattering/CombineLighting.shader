@@ -1,11 +1,17 @@
 Shader "Hidden/HDRenderPipeline/CombineLighting"
 {
+    Properties
+    {
+        [HideInInspector] _StencilMask("_StencilMask", Int) = 7
+    }
+
     SubShader
     {
         Pass
         {
             Stencil
             {
+                ReadMask [_StencilMask]
                 Ref  1 // StencilLightingUsage.SplitLighting
                 Comp Equal
                 Pass Keep

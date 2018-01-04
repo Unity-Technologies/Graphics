@@ -167,6 +167,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _ProjectionParams = Shader.PropertyToID("_ProjectionParams");
         public static readonly int _WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
 
+        public static readonly int _StencilMask = Shader.PropertyToID("_StencilMask");
         public static readonly int _StencilRef = Shader.PropertyToID("_StencilRef");
         public static readonly int _StencilCmp = Shader.PropertyToID("_StencilCmp");
 
