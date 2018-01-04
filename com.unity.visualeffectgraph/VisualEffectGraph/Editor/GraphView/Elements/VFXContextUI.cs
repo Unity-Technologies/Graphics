@@ -298,17 +298,26 @@ namespace UnityEditor.VFX.UI
             m_Footer.Add(m_FooterTitle);
             m_Footer.AddToClassList("Extremity");
 
-            Add(m_FlowOutputConnectorContainer);
 
             m_InsideContainer.Add(m_Footer);
 
             m_NodeContainer.Add(m_InsideContainer);
+
 
             ClearClassList();
             AddToClassList("VFXContext");
 
             m_DragDisplay = new VisualElement();
             m_DragDisplay.AddToClassList("dragdisplay");
+
+
+            var selectionBorder = new VisualElement() {name = "selection-border"};
+            Add(selectionBorder);
+            selectionBorder.pickingMode = PickingMode.Ignore;
+
+            Add(m_FlowInputConnectorContainer);
+
+            Add(m_FlowOutputConnectorContainer);
 
             RegisterCallback<ControllerChangedEvent>(OnChange);
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));

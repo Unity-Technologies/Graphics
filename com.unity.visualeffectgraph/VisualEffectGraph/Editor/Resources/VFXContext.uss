@@ -10,7 +10,6 @@ VFXContextUI #NodeContents
 {
 	width:368;	
 	background-color:rgba(29,29,29,0.8);
-	
 	border-radius:6;
 	border-left-width:2;
 	border-right-width:2;
@@ -18,6 +17,10 @@ VFXContextUI #NodeContents
 	border-bottom-width:2;
 	padding-top : 12;
 	padding-bottom : 12;
+	margin-top : 6;
+	margin-bottom : 6;
+	margin-left:2;
+	margin-right:2;
 }
 
 /*  init */
@@ -80,11 +83,37 @@ VFXContextUI.event VFXFlowAnchor.port.EdgeConnector
     port-color: #27FFA0;
 }
 
+VFXContextUI > #selection-border
+{
+    position-type: absolute;
+    position-left:0;
+    position-right:0;
+    position-top:0;
+    position-bottom:0;
+	border-radius:8;
+	margin-top:4;
+	margin-bottom:4;
+}
 
+VFXContextUI:hover  > #selection-border{
+    border-color: rgba(68,192,255, 0.5);
+    border-top-width:1;
+    border-left-width:1;
+    border-right-width:1;
+    border-bottom-width:1;
+    border-top: 1;
+    border-left: 1;
+    border-right: 1;
+    border-bottom: 1;
+}
 
-VFXContextUI.selected #NodeContents
+VFXContextUI.selected  > #selection-border
 {
 	border-color: #44C0FF;
+	border-left-width:2;
+	border-right-width:2;
+	border-top-width:2;
+	border-bottom-width:2;
 }
 
 

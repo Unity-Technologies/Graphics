@@ -6,13 +6,10 @@
 	position-type:Absolute;
 	position-left:0;
 	position-right:0;
-	height:12;
-}
-.FlowContainer.Input{
-	position-top:-4;
+	height:14;
 }
 .FlowContainer.Output{
-	position-bottom:-4;
+	position-bottom:0;
 }
 
 VFXFlowAnchor.EdgeConnector {
@@ -33,16 +30,25 @@ VFXFlowAnchor.port.EdgeConnector
     padding-right:0;
 	margin-left:12;
     margin-right:12;
-	width:12;
-	height:12;
+	width:14;
+	height:14;
     port-color:rgb(220, 220, 220);
 }
 
 
 VFXFlowAnchor.port.EdgeConnector #connector
 {
+	width:12;
+	height:12;
     margin-left:2;
     margin-right:2;
+}
+
+
+VFXFlowAnchor.port.EdgeConnector #connector #cap
+{
+	width:8;
+	height:8;
 }
 
 VFXFlowAnchor.connected #connector
@@ -58,4 +64,9 @@ VFXFlowEdge.edge
 VFXFlowEdge.edge.selected
 {
 	border-color : rgba(240,240,240,255);
+}
+
+VFXFlowEdge.edge:hover
+{
+	edge-width:6;
 }
