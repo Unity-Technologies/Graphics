@@ -10,7 +10,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public enum ShaderOptions
     {
         CameraRelativeRendering  = 1, // Rendering sets the origin of the world to the position of the primary (scene view) camera
-        VolumetricLightingPreset = 1  // 0 = disabled, 1 = normal, 2 = ultra
+        VolumetricLightingPreset = 0  // 0 = disabled, 1 = normal, 2 = ultra
     };
 
     // Note: #define can't be use in include file in C# so we chose this way to configure both C# and hlsl
