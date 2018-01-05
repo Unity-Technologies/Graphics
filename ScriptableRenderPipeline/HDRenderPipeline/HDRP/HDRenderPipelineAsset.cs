@@ -42,6 +42,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Modification of defaultFrameSettings in the inspector will call OnValidate().
             // We do a copy of the settings to those effectively used
             serializedFrameSettings.CopyTo(m_FrameSettings);
+
+            // All instance created in the editor have obsolete settings
+            // So we must dispose them
+            DestroyCreatedInstances();
         }
 
         // Store the various RenderPipelineSettings for each platform (for now only one)
