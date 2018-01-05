@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Reflection;
+using UnityEditor.AnimatedValues;
+using UnityEditor.IMGUI.Controls;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -8,13 +10,28 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering
 {
-    using CED = CoreEditorDrawer<HDReflectionProbeEditor.UIState, HDReflectionProbeEditor.SerializedReflectionProbe>;
+    using CED = CoreEditorDrawer<HDReflectionProbeUI, SerializedHDReflectionProbe>;
 
-    partial class HDReflectionProbeEditor
+    public partial class HDReflectionProbeUI
     {
-        #region Sections
-        static readonly CED.IDrawer[] k_PrimarySection =
+        static HDReflectionProbeUI()
         {
+            Inspector = new[]
+            {
+                SectionPrimarySettings,
+                SectionInfluenceVolumeSettings,
+                SectionSeparateProjectionVolumeSettings,
+                //SectionSeparateProjectionVolumeSettings,
+                SectionCaptureSettings,
+                SectionAdditionalSettings,
+                ButtonBake
+            };
+        }
+
+        public static readonly CED.IDrawer[] Inspector;
+
+        public static readonly CED.IDrawer SectionPrimarySettings = CED.Group(
+        
             CED.Action(Drawer_ReflectionProbeMode),
             CED.FadeGroup((s, p, o, i) => s.IsSectionExpandedMode((ReflectionProbeMode)i),
                 true,
@@ -28,9 +45,9 @@ namespace UnityEditor.Experimental.Rendering
             CED.space,
             CED.Action(Drawer_Toolbar),
             CED.space
-        };
+        );
 
-        static readonly CED.IDrawer k_InfluenceVolumeSection = CED.FoldoutGroup(
+        public static readonly CED.IDrawer SectionInfluenceVolumeSettings = CED.FoldoutGroup(
             "Influence volume settings",
             (s, p, o) => s.isSectionExpandedInfluenceVolume,
             true,
@@ -43,7 +60,7 @@ namespace UnityEditor.Experimental.Rendering
             CED.Action(Drawer_UseSeparateProjectionVolume)*/
         );
 
-        static readonly CED.IDrawer k_SeparateProjectionVolumeSection = CED.FadeGroup(
+        public static readonly CED.IDrawer SectionSeparateProjectionVolumeSettings = CED.FadeGroup(
             (s, p, o, i) => s.isSectionExpandedSeparateProjection,
             false,
             CED.FoldoutGroup(
@@ -59,24 +76,23 @@ namespace UnityEditor.Experimental.Rendering
             )
         );
 
-        static readonly CED.IDrawer k_CaptureSection = CED.FoldoutGroup(
+        public static readonly CED.IDrawer SectionCaptureSettings = CED.FoldoutGroup(
             "Capture settings",
             (s, p, o) => s.isSectionExpandedCaptureSettings,
             true,
             CED.Action(Drawer_CaptureSettings)
         );
 
-        static readonly CED.IDrawer k_AdditionalSection = CED.FoldoutGroup(
+        public static readonly CED.IDrawer SectionAdditionalSettings = CED.FoldoutGroup(
             "Additional settings",
             (s, p, o) => s.isSectionExpandedAdditional,
             true,
             CED.Action(Drawer_AdditionalSettings)
         );
 
-        static readonly CED.IDrawer k_BakingActions = CED.Action(Drawer_BakeActions);
-        #endregion
+        public static readonly CED.IDrawer ButtonBake = CED.Action(Drawer_BakeActions);
 
-        static void Drawer_CaptureSettings(UIState s, SerializedReflectionProbe p, Editor owner)
+        static void Drawer_CaptureSettings(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
             var renderPipelineAsset = (HDRenderPipelineAsset)GraphicsSettings.renderPipelineAsset;
             p.resolution.intValue = renderPipelineAsset.GetRenderPipelineSettings().lightLoopSettings.reflectionCubemapSize;
@@ -89,7 +105,7 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUILayout.PropertyField(p.farClip, CoreEditorUtils.GetContent("Far Clip"));
         }
 
-        static void Drawer_AdditionalSettings(UIState s, SerializedReflectionProbe p, Editor owner)
+        static void Drawer_AdditionalSettings(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.dimmer);
 
@@ -107,7 +123,7 @@ namespace UnityEditor.Experimental.Rendering
 
         static readonly string[] k_BakeCustomOptionText = { "Bake as new Cubemap..." };
         static readonly string[] k_BakeButtonsText = { "Bake All Reflection Probes" };
-        static void Drawer_BakeActions(UIState s, SerializedReflectionProbe p, Editor owner)
+        static void Drawer_BakeActions(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
             if (p.mode.intValue == (int)ReflectionProbeMode.Realtime)
             {
@@ -139,45 +155,45 @@ namespace UnityEditor.Experimental.Rendering
                             var probe = p.target;
                             if (mode == 0)
                             {
-                                BakeCustomReflectionProbe(probe, false, true);
-                                ResetProbeSceneTextureInMaterial(probe);
+                                HDReflectionProbeEditorUtility.BakeCustomReflectionProbe(probe, false, true);
+                                HDReflectionProbeEditorUtility.ResetProbeSceneTextureInMaterial(probe);
                             }
                         },
                         GUILayout.ExpandWidth(true)))
                     {
                         var probe = p.target;
-                        BakeCustomReflectionProbe(probe, true, true);
-                        ResetProbeSceneTextureInMaterial(probe);
+                        HDReflectionProbeEditorUtility.BakeCustomReflectionProbe(probe, true, true);
+                        HDReflectionProbeEditorUtility.ResetProbeSceneTextureInMaterial(probe);
                         GUIUtility.ExitGUI();
-                        }
+                    }
                     break;
                 }
 
                 case ReflectionProbeMode.Baked:
-                    {
-                        GUI.enabled = p.target.enabled;
+                {
+                    GUI.enabled = p.target.enabled;
 
-                        // Bake button in non-continous mode
-                        if (ButtonWithDropdownList(
-                            CoreEditorUtils.GetContent("Bake"),
-                            k_BakeButtonsText,
-                            data =>
-                            {
-                                var mode = (int)data;
-                                if (mode == 0)
-                                    BakeAllReflectionProbesSnapshots();
-                            },
-                            GUILayout.ExpandWidth(true)))
+                    // Bake button in non-continous mode
+                    if (ButtonWithDropdownList(
+                        CoreEditorUtils.GetContent("Bake"),
+                        k_BakeButtonsText,
+                        data =>
                         {
-                            var probe = p.target;
-                            BakeReflectionProbeSnapshot(probe);
-                            ResetProbeSceneTextureInMaterial(probe);
-                            GUIUtility.ExitGUI();
-                        }
-
-                        GUI.enabled = true;
-                        break;
+                            var mode = (int)data;
+                            if (mode == 0)
+                                HDReflectionProbeEditorUtility.BakeAllReflectionProbesSnapshots();
+                        },
+                        GUILayout.ExpandWidth(true)))
+                    {
+                        var probe = p.target;
+                        HDReflectionProbeEditorUtility.BakeReflectionProbeSnapshot(probe);
+                        HDReflectionProbeEditorUtility.ResetProbeSceneTextureInMaterial(probe);
+                        GUIUtility.ExitGUI();
                     }
+
+                    GUI.enabled = true;
+                    break;
+                }
 
                 case ReflectionProbeMode.Realtime:
                     // Not showing bake button in realtime
@@ -188,9 +204,9 @@ namespace UnityEditor.Experimental.Rendering
         }
 
         #region Influence Volume
-        static void Drawer_InfluenceBoxSettings(UIState s, SerializedReflectionProbe p, Editor owner)
+        static void Drawer_InfluenceBoxSettings(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
-            var maxBlendDistance = CalculateBoxMaxBlendDistance(s, p, owner);
+            var maxBlendDistance = HDReflectionProbeEditorUtility.CalculateBoxMaxBlendDistance(s, p, owner);
             CoreEditorUtils.DrawVector6Slider(
                 CoreEditorUtils.GetContent("Blend Distance|Area around the probe where it is blended with other probes. Only used in deferred probes."),
                 p.blendDistancePositive, p.blendDistanceNegative, Vector3.zero, maxBlendDistance);
@@ -214,7 +230,7 @@ namespace UnityEditor.Experimental.Rendering
             {
                 var center = p.boxOffset.vector3Value;
                 var size = p.boxSize.vector3Value;
-                if (ValidateAABB(p.target, ref center, ref size))
+                if (HDReflectionProbeEditorUtility.ValidateAABB(p.target, ref center, ref size))
                 {
                     p.boxOffset.vector3Value = center;
                     p.boxSize.vector3Value = size;
@@ -222,9 +238,9 @@ namespace UnityEditor.Experimental.Rendering
             }
         }
 
-        static void Drawer_InfluenceSphereSettings(UIState s, SerializedReflectionProbe p, Editor owner)
+        static void Drawer_InfluenceSphereSettings(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
-            var maxBlendDistance = CalculateSphereMaxBlendDistance(s, p, owner);
+            var maxBlendDistance = HDReflectionProbeEditorUtility.CalculateSphereMaxBlendDistance(s, p, owner);
 
             var blendDistance = p.blendDistancePositive.vector3Value.x;
             EditorGUI.BeginChangeCheck();
@@ -250,19 +266,19 @@ namespace UnityEditor.Experimental.Rendering
         #endregion
 
         #region Projection Volume
-        static void Drawer_UseSeparateProjectionVolume(UIState s, SerializedReflectionProbe p, Editor owner)
+        static void Drawer_UseSeparateProjectionVolume(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.useSeparateProjectionVolume);
             s.isSectionExpandedSeparateProjection.target = p.useSeparateProjectionVolume.boolValue;
         }
 
-        static void Drawer_ProjectionBoxSettings(UIState s, SerializedReflectionProbe p, Editor owner)
+        static void Drawer_ProjectionBoxSettings(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.boxReprojectionVolumeSize);
             EditorGUILayout.PropertyField(p.boxReprojectionVolumeCenter);
         }
 
-        static void Drawer_ProjectionSphereSettings(UIState s, SerializedReflectionProbe p, Editor owner)
+        static void Drawer_ProjectionSphereSettings(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.sphereReprojectionVolumeRadius);
         }
@@ -271,7 +287,7 @@ namespace UnityEditor.Experimental.Rendering
         #region Field Drawers
         static readonly GUIContent[] k_Content_ReflectionProbeMode = { new GUIContent("Baked"), new GUIContent("Custom"), new GUIContent("Realtime") };
         static readonly int[] k_Content_ReflectionProbeModeValues = { (int)ReflectionProbeMode.Baked, (int)ReflectionProbeMode.Custom, (int)ReflectionProbeMode.Realtime };
-        static void Drawer_ReflectionProbeMode(UIState s, SerializedReflectionProbe p, Editor owner)
+        static void Drawer_ReflectionProbeMode(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = p.mode.hasMultipleDifferentValues;
@@ -281,11 +297,11 @@ namespace UnityEditor.Experimental.Rendering
             {
                 s.SetModeTarget(p.mode.intValue);
                 foreach (var targetObject in p.so.targetObjects)
-                    ResetProbeSceneTextureInMaterial((ReflectionProbe)targetObject);
+                    HDReflectionProbeEditorUtility.ResetProbeSceneTextureInMaterial((ReflectionProbe)targetObject);
             }
         }
 
-        static void Drawer_InfluenceShape(UIState s, SerializedReflectionProbe p, Editor owner)
+        static void Drawer_InfluenceShape(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = p.influenceShape.hasMultipleDifferentValues;
@@ -295,7 +311,7 @@ namespace UnityEditor.Experimental.Rendering
                 s.SetShapeTarget(p.influenceShape.intValue);
         }
 
-        static void Drawer_IntensityMultiplier(UIState s, SerializedReflectionProbe p, Editor owner)
+        static void Drawer_IntensityMultiplier(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.intensityMultiplier, CoreEditorUtils.GetContent("Intensity"));
         }
@@ -314,7 +330,7 @@ namespace UnityEditor.Experimental.Rendering
         {
             get
             {
-                return s_Toolbar_Contents ?? (s_Toolbar_Contents = new []
+                return s_Toolbar_Contents ?? (s_Toolbar_Contents = new[]
                 {
                     EditorGUIUtility.IconContent("EditCollider", "|Modify the extents of the reflection probe. (SHIFT+1)"),
                     EditorGUIUtility.IconContent("PreMatCube", "|Modify the influence volume of the reflection probe. (SHIFT+2)"),
@@ -323,7 +339,7 @@ namespace UnityEditor.Experimental.Rendering
                 });
             }
         }
-        static void Drawer_Toolbar(UIState s, SerializedReflectionProbe p, Editor owner)
+        static void Drawer_Toolbar(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
             if (p.so.targetObjects.Length > 1)
                 return;
@@ -353,7 +369,7 @@ namespace UnityEditor.Experimental.Rendering
             GUILayout.EndHorizontal();
         }
 
-        static Func<Bounds> GetBoundsGetter(SerializedReflectionProbe p)
+        static Func<Bounds> GetBoundsGetter(SerializedHDReflectionProbe p)
         {
             return () =>
             {
@@ -367,34 +383,50 @@ namespace UnityEditor.Experimental.Rendering
                 return bounds;
             };
         }
+
+        static readonly KeyCode[] k_ShortCutKeys =
+        {
+            KeyCode.Alpha1,
+            KeyCode.Alpha2,
+            KeyCode.Alpha3,
+        };
+        public static void DoShortcutKey(SerializedHDReflectionProbe p, Editor o)
+        {
+            var evt = Event.current;
+            if (evt.type != EventType.KeyDown || !evt.shift)
+                return;
+
+            for (var i = 0; i < k_ShortCutKeys.Length; ++i)
+            {
+                if (evt.keyCode == k_ShortCutKeys[i])
+                {
+                    var mode = EditMode.editMode == k_Toolbar_SceneViewEditModes[i]
+                        ? EditMode.SceneViewEditMode.None
+                        : k_Toolbar_SceneViewEditModes[i];
+                    EditMode.ChangeEditMode(mode, GetBoundsGetter(p)(), o);
+                    evt.Use();
+                    break;
+                }
+            }
+        }
         #endregion
 
         #region Mode Specific Settings
-        static void Drawer_ModeSettingsCustom(UIState s, SerializedReflectionProbe p, Editor owner)
+        static void Drawer_ModeSettingsCustom(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.renderDynamicObjects, CoreEditorUtils.GetContent("Dynamic Objects|If enabled dynamic objects are also rendered into the cubemap"));
 
             p.customBakedTexture.objectReferenceValue = EditorGUILayout.ObjectField(CoreEditorUtils.GetContent("Cubemap"), p.customBakedTexture.objectReferenceValue, typeof(Cubemap), false);
         }
 
-        static void Drawer_ModeSettingsRealtime(UIState s, SerializedReflectionProbe p, Editor owner)
+        static void Drawer_ModeSettingsRealtime(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.refreshMode, CoreEditorUtils.GetContent("Refresh Mode|Controls how this probe refreshes in the Player"));
             EditorGUILayout.PropertyField(p.timeSlicingMode, CoreEditorUtils.GetContent("Time Slicing|If enabled this probe will update over several frames, to help reduce the impact on the frame rate"));
         }
         #endregion
 
-        static float CalculateSphereMaxBlendDistance(UIState s, SerializedReflectionProbe p, Editor o)
-        {
-            return p.influenceSphereRadius.floatValue;
-        }
-
-        static Vector3 CalculateBoxMaxBlendDistance(UIState s, SerializedReflectionProbe p, Editor o)
-        {
-            return p.boxSize.vector3Value * 0.5f;
-        }
-
-        static MethodInfo k_EditorGUI_ButtonWithDropdownList = typeof(EditorGUI).GetMethod("ButtonWithDropdownList", BindingFlags.Static | BindingFlags.NonPublic, null, CallingConventions.Any, new [] { typeof(GUIContent), typeof(string[]), typeof(GenericMenu.MenuFunction2), typeof(GUILayoutOption[]) }, new ParameterModifier[0]);
+        static MethodInfo k_EditorGUI_ButtonWithDropdownList = typeof(EditorGUI).GetMethod("ButtonWithDropdownList", BindingFlags.Static | BindingFlags.NonPublic, null, CallingConventions.Any, new[] { typeof(GUIContent), typeof(string[]), typeof(GenericMenu.MenuFunction2), typeof(GUILayoutOption[]) }, new ParameterModifier[0]);
         static bool ButtonWithDropdownList(GUIContent content, string[] buttonNames, GenericMenu.MenuFunction2 callback, params GUILayoutOption[] options)
         {
             return (bool)k_EditorGUI_ButtonWithDropdownList.Invoke(null, new object[] { content, buttonNames, callback, options });
