@@ -74,7 +74,7 @@ namespace UnityEditor.VFX
                 g = ScriptableObject.CreateInstance<VFXGraph>();
                 g.name = "VFXGraph";
                 asset.graph = g;
-                g.hideFlags = HideFlags.HideInHierarchy;
+                g.hideFlags |= HideFlags.HideInHierarchy;
                 ((VFXGraph)g).UpdateSubAssets();
             }
 
@@ -190,6 +190,15 @@ namespace UnityEditor.VFX
 #else
                 float stepCount = 1;
 #endif
+
+                // hide all sub assets
+                var assets = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(this)).Where(o => o is VFXModel || o is ComputeShader || o is Shader);
+                foreach (var asset in assets)
+                {
+                    asset.hideFlags |= HideFlags.HideInHierarchy;
+                }
+                hideFlags |= HideFlags.HideInHierarchy;
+
                 EditorUtility.DisplayProgressBar("Saving...", "UpdateSubAssets", (++currentStep) / stepCount);
                 m_saved = true;
             }
@@ -215,17 +224,30 @@ namespace UnityEditor.VFX
 
         public  bool displaySubAssets
         {
-            get {return hideFlags == HideFlags.None; }
+            get {return (hideFlags & HideFlags.HideInHierarchy) == 0; }
             set
             {
                 var persistentAssets = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(this)).Where(o => o is VFXModel || o is ComputeShader || o is Shader);
 
+                if (value)
+                {
+                    hideFlags &= ~HideFlags.HideInHierarchy;
+                }
+                else
+                {
+                    hideFlags |= HideFlags.HideInHierarchy;
+                }
 
-                hideFlags = value ? HideFlags.None : HideFlags.HideInHierarchy;
                 foreach (var asset in persistentAssets)
                 {
-                    asset.hideFlags = value ? HideFlags.None : HideFlags.HideInHierarchy;
-                    EditorUtility.SetDirty(asset);
+                    if (value)
+                    {
+                        asset.hideFlags &= ~HideFlags.HideInHierarchy;
+                    }
+                    else
+                    {
+                        asset.hideFlags |= HideFlags.HideInHierarchy;
+                    }
                 }
 
                 AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(vfxAsset));
@@ -284,11 +306,13 @@ namespace UnityEditor.VFX
 
                     // Remove sub assets that are not referenced anymore
                     foreach (var obj in persistentObjects)
+                    {
                         if (!currentObjects.Contains(obj))
                         {
                             AssetDatabase.RemoveObject(obj);
                             modified = true;
                         }
+                    }
                 }
                 catch (Exception e)
                 {
