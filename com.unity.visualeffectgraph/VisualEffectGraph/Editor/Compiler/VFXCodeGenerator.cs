@@ -342,7 +342,7 @@ namespace UnityEditor.VFX
 
         static private void Build(VFXContext context, string templatePath, StringBuilder stringBuilder, VFXContextCompiledData contextData)
         {
-            var dependencies = new HashSet<Object>();
+            var dependencies = new HashSet<ScriptableObject>();
             context.CollectDependencies(dependencies);
 
             var templateContent = GetFlattenedTemplateContent(templatePath, new List<string>(), context.additionalDefines);

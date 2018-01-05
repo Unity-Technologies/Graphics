@@ -198,7 +198,14 @@ namespace UnityEditor.VFX
                 Debug.Log(string.Format("Slots have been resynced in {0} of type {1}", name, GetType()));
         }
 
-        public override void CollectDependencies(HashSet<Object> objs)
+        public override void OnUnknownChange()
+        {
+            base.OnUnknownChange();
+            SyncSlots(VFXSlot.Direction.kInput, false);
+            SyncSlots(VFXSlot.Direction.kOutput, false);
+        }
+
+        public override void CollectDependencies(HashSet<ScriptableObject> objs)
         {
             base.CollectDependencies(objs);
             foreach (var slot in m_InputSlots.Concat(m_OutputSlots))
@@ -206,26 +213,6 @@ namespace UnityEditor.VFX
                 objs.Add(slot);
                 slot.CollectDependencies(objs);
             }
-        }
-
-        public override T Clone<T>()
-        {
-            var clone = base.Clone<T>() as VFXSlotContainerModel<ParentType, ChildrenType>;
-
-            var settings = GetSettings(true);
-            foreach (var setting in settings)
-            {
-                clone.SetSettingValue(setting.Name, setting.GetValue(this), false);
-            }
-
-            clone.m_InputSlots.Clear();
-            clone.m_OutputSlots.Clear();
-            foreach (var slot in inputSlots.Concat(outputSlots))
-            {
-                var cloneSlot = slot.Clone<VFXSlot>();
-                clone.InnerAddSlot(cloneSlot, false);
-            }
-            return clone as T;
         }
 
         public virtual bool ResyncSlots(bool notify)

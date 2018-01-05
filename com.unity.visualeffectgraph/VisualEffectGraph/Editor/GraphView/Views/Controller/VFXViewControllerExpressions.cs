@@ -52,7 +52,7 @@ namespace UnityEditor.VFX.UI
                 return;
 
             m_ExpressionContext = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
-            HashSet<Object> currentObjects = new HashSet<Object>();
+            var currentObjects = new HashSet<ScriptableObject>();
             graph.CollectDependencies(currentObjects);
 
             int nbExpr = 0;
