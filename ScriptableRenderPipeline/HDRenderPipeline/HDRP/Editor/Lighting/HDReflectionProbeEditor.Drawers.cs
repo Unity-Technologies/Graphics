@@ -44,7 +44,7 @@ namespace UnityEditor.Experimental.Rendering
         );
 
         static readonly CED.IDrawer k_SeparateProjectionVolumeSection = CED.FadeGroup(
-            (s, p, o, i) => s.isSectionExpandedSeparateProjection.faded,
+            (s, p, o, i) => s.isSectionExpandedSeparateProjection,
             false,
             CED.FoldoutGroup(
                 "Reprojection volume settings",

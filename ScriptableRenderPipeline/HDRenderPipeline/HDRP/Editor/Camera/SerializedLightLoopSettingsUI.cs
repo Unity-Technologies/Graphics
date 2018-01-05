@@ -1,4 +1,5 @@
 ﻿using UnityEditor.AnimatedValues;
+using UnityEngine;
 
 namespace UnityEditor.Experimental.Rendering
 {
@@ -32,6 +33,7 @@ namespace UnityEditor.Experimental.Rendering
         static void Drawer_SectionLightLoopSettings(SerializedLightLoopSettingsUI s, SerializedLightLoopSettings p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.enableTileAndCluster, _.GetContent("Enable Tile And Cluster"));
+            GUILayout.BeginVertical();
             if (EditorGUILayout.BeginFadeGroup(s.isSectionExpandedEnableTileAndCluster.faded))
             {
                 EditorGUI.indentLevel++;
@@ -40,6 +42,7 @@ namespace UnityEditor.Experimental.Rendering
                 // Deferred opaque are always tiled
                 EditorGUILayout.PropertyField(p.enableFptlForForwardOpaque, _.GetContent("Enable FPTL For Forward Opaque"));
                 EditorGUILayout.PropertyField(p.enableComputeLightEvaluation, _.GetContent("Enable Compute Light Evaluation"));
+                GUILayout.BeginVertical();
                 if (EditorGUILayout.BeginFadeGroup(s.isSectionExpandedComputeLightEvaluation.faded))
                 {
                     EditorGUI.indentLevel++;
@@ -48,9 +51,11 @@ namespace UnityEditor.Experimental.Rendering
                     EditorGUI.indentLevel--;
                 }
                 EditorGUILayout.EndFadeGroup();
+                GUILayout.EndVertical();
                 EditorGUI.indentLevel--;
             }
             EditorGUILayout.EndFadeGroup();
+            GUILayout.EndVertical();
 
             EditorGUILayout.PropertyField(p.isFptlEnabled, _.GetContent("Enable FPTL"));
             EditorGUILayout.PropertyField(p.enableFptlForForwardOpaque, _.GetContent("Enable FPTL For Forward Opaque"));

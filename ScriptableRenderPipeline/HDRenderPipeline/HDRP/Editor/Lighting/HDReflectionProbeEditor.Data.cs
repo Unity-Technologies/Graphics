@@ -182,9 +182,9 @@ namespace UnityEditor.Experimental.Rendering
                 }
             }
 
-            public float IsSectionExpandedMode(ReflectionProbeMode mode)
+            public AnimBool IsSectionExpandedMode(ReflectionProbeMode mode)
             {
-                return m_IsSectionExpandedModeSettings[(int)mode].faded;
+                return m_IsSectionExpandedModeSettings[(int)mode];
             }
 
             public void SetModeTarget(int value)
@@ -193,9 +193,9 @@ namespace UnityEditor.Experimental.Rendering
                     m_IsSectionExpandedModeSettings[i].target = i == value;
             }
 
-            public float IsSectionExpandedShape(ReflectionInfluenceShape value)
+            public AnimBool IsSectionExpandedShape(ReflectionInfluenceShape value)
             {
-                return m_IsSectionExpandedInfluenceShape[(int)value].faded;
+                return m_IsSectionExpandedInfluenceShape[(int)value];
             }
 
             public void SetShapeTarget(int value)

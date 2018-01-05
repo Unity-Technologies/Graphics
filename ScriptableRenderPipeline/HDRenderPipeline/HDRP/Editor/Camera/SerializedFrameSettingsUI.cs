@@ -20,17 +20,17 @@ namespace UnityEditor.Experimental.Rendering
             true,
             CED.Action(Drawer_FieldForwardRenderingOnly),
             CED.FadeGroup(
-                (s, d, o, i) => s.isSectionExpandedUseForwardOnly.faded,
+                (s, d, o, i) => s.isSectionExpandedUseForwardOnly,
                 false,
                 CED.Action(Drawer_FieldUseDepthPrepassWithDefferedRendering),
                 CED.FadeGroup(
-                    (s, d, o, i) => s.isSectionExpandedUseDepthPrepass.faded,
+                    (s, d, o, i) => s.isSectionExpandedUseDepthPrepass,
                     true,
                     CED.Action(Drawer_FieldRenderAlphaTestOnlyInDeferredPrepass))),
             CED.Action(Drawer_SectionOtherRenderingSettings));
 
         public static CED.IDrawer SectionXRSettings = CED.FadeGroup(
-            (s, d, o, i) => s.isSectionExpandedXRSupported.faded,
+            (s, d, o, i) => s.isSectionExpandedXRSupported,
             false,
             CED.FoldoutGroup(
                 "XR Settings",
