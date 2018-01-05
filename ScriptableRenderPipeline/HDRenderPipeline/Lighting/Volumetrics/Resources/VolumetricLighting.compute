@@ -32,15 +32,18 @@
 // Included headers
 //--------------------------------------------------------------------------------------------------
 
-#include "../../../../Core/ShaderLibrary/Common.hlsl"
-#include "../../../../Core/ShaderLibrary/SpaceFillingCurves.hlsl"
-#include "../../../../Core/ShaderLibrary/VolumeRendering.hlsl"
+#include "ShaderLibrary/Common.hlsl"
+#include "ShaderLibrary/SpaceFillingCurves.hlsl"
+#include "ShaderLibrary/VolumeRendering.hlsl"
+#include "ShaderLibrary/Filtering.hlsl"
 
 #include "../../../ShaderVariables.hlsl"
 #include "../VolumetricLighting.cs.hlsl"
+
 #define UNITY_MATERIAL_VOLUMETRIC          // Define before including Lighting.hlsl and Material.hlsl
 #include "../../../Lighting/Lighting.hlsl" // Includes Material.hlsl
 #include "../../../Lighting/LightEvaluation.hlsl"
+#include "../../../Lighting/VBuffer.hlsl"
 
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs

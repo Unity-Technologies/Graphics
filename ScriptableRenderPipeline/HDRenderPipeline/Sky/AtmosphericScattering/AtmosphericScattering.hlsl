@@ -2,10 +2,12 @@
 #define UNITY_ATMOSPHERIC_SCATTERING_INCLUDED
 
 #include "ShaderLibrary/VolumeRendering.hlsl"
+#include "ShaderLibrary/Filtering.hlsl"
 
 #include "AtmosphericScattering.cs.hlsl"
 #include "../SkyVariables.hlsl"
 #include "../../ShaderVariables.hlsl"
+#include "../../Lighting/VBuffer.hlsl"
 
 #if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET != 0)
 TEXTURE3D(_VBufferLighting);
