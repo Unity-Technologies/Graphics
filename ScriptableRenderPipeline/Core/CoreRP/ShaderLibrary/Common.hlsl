@@ -421,11 +421,10 @@ float ComputeTextureLOD(float2 uv)
     return max(0.5 * log2(d), 0.0);
 }
 
-// texelSize is Unity XXX_TexelSize feature parameters
-// x contains 1.0/width, y contains 1.0 / height, z contains width, w contains height
-float ComputeTextureLOD(float2 uv, float4 texelSize)
+// x contains width, w contains height
+float ComputeTextureLOD(float2 uv, float2 texelSize)
 {
-    uv *= texelSize.zw;
+    uv *= texelSize;
 
     return ComputeTextureLOD(uv);
 }
