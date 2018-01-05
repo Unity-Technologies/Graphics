@@ -49,8 +49,14 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBufferLighting, trilinearSampler), bool cla
 
     [branch] if (clampToEdge || isInBounds)
     {
+    #if 0
+        // We could ignore non-linearity at the cost of accuracy.
+        // TODO: visually test this option (especially in motion).
+        float w = d;
+    #else
         // Adjust the texture coordinate for HW trilinear sampling.
         float w = ComputeLerpPositionForLogEncoding(z, d, VBufferScaleAndSliceCount, VBufferDepthEncodingParams);
+    #endif
 
         return SAMPLE_TEXTURE3D_LOD(VBufferLighting, trilinearSampler, float3(uv, w), 0);
     }
