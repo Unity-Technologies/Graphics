@@ -75,20 +75,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_FrameSettingsUI.Reset(serializedFrameSettings, Repaint);
         }
 
-        static void HackSetDirty(RenderPipelineAsset asset)
-        {
-            EditorUtility.SetDirty(asset);
-            var method = typeof(RenderPipelineAsset).GetMethod("OnValidate", BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.Instance);
-            if (method != null)
-                method.Invoke(asset, new object[0]);
-        }
-
         void GlobalLightLoopSettingsUI(HDRenderPipelineAsset hdAsset)
         {
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(s_Styles.textureSettings);
             EditorGUI.indentLevel++;
-            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_SpotCookieSize, s_Styles.spotCookieSize);
             EditorGUILayout.PropertyField(m_PointCookieSize, s_Styles.pointCookieSize);
             EditorGUILayout.PropertyField(m_ReflectionCubemapSize, s_Styles.reflectionCubemapSize);
@@ -96,10 +87,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //EditorGUILayout.PropertyField(m_ReflectionCacheCompressed, s_Styles.reflectionCacheCompressed);
             EditorGUILayout.PropertyField(m_SkyReflectionSize, s_Styles.skyReflectionSize);
             EditorGUILayout.PropertyField(m_SkyLightingOverrideLayerMask, s_Styles.skyLightingOverride);
-            if (EditorGUI.EndChangeCheck())
-            {
-                HackSetDirty(hdAsset); // Repaint
-            }
             EditorGUI.indentLevel--;
         }
 
@@ -108,13 +95,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(s_Styles.renderingSettingsLabel);
             EditorGUI.indentLevel++;
-            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_supportDBuffer, s_Styles.supportDBuffer);
             EditorGUILayout.PropertyField(m_supportMSAA, s_Styles.supportMSAA);
-            if (EditorGUI.EndChangeCheck())
-            {
-                HackSetDirty(hdAsset); // Repaint
-            }
             EditorGUI.indentLevel--;
         }
 
@@ -123,13 +105,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(s_Styles.shadowSettings);
             EditorGUI.indentLevel++;
-            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_ShadowAtlasWidth, s_Styles.shadowsAtlasWidth);
             EditorGUILayout.PropertyField(m_ShadowAtlasHeight, s_Styles.shadowsAtlasHeight);
-            if (EditorGUI.EndChangeCheck())
-            {
-                HackSetDirty(hdAsset); // Repaint
-            }
             EditorGUI.indentLevel--;
         }
 

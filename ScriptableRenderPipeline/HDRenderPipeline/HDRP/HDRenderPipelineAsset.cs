@@ -1,7 +1,7 @@
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+﻿namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     // The HDRenderPipeline assumes linear lighting. Doesn't work with gamma.
-    public class HDRenderPipelineAsset : RenderPipelineAsset
+    public class HDRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         HDRenderPipelineAsset()
         {
@@ -29,19 +29,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public FrameSettings GetFrameSettings()
         {
             return m_FrameSettings;
-        }
-
-        public void OnEnable()
-        {
-            // At creation we need to copy serializedFrameSettings to m_FrameSettings
-            OnValidate();
-        }
-
-        public void OnValidate()
-        {
-            // Modification of defaultFrameSettings in the inspector will call OnValidate().
-            // We do a copy of the settings to those effectively used
-            serializedFrameSettings.CopyTo(m_FrameSettings);
         }
 
         // Store the various RenderPipelineSettings for each platform (for now only one)
@@ -99,6 +86,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override Material GetDefault2DMaterial()
         {
             return null;
+        }
+
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
+        {
+        }
+
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            // Modification of defaultFrameSettings in the inspector will call OnValidate().
+            // We do a copy of the settings to those effectively used
+            serializedFrameSettings.CopyTo(m_FrameSettings);
         }
     }
 }
