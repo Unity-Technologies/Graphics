@@ -42,7 +42,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             else if (property is ColorShaderProperty)
             {
                 var fProp = (ColorShaderProperty)property;
-                var colorField = new ColorField { name = "value", value = fProp.value };
+                ColorField colorField;
+                if(fProp.HDR)
+                    colorField = new ColorField { name = "value", value = fProp.value, hdr = true };
+                else
+                    colorField = new ColorField { name = "value", value = fProp.value };
                 colorField.OnValueChanged(OnColorChanged);
                 Add(colorField);
             }
