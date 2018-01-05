@@ -10,10 +10,8 @@ namespace UnityEditor.Experimental.Rendering
     [CanEditMultipleObjects]
     partial class HDCameraEditor : Editor
     {
-        enum ProjectionType { Perspective, Orthographic };
-
         SerializedHDCamera m_SerializedCamera;
-        UIState m_UIState = new UIState();
+        HDCameraUI m_UIState = new HDCameraUI();
 
         RenderTexture m_PreviewTexture;
         Camera m_PreviewCamera;
@@ -53,7 +51,7 @@ namespace UnityEditor.Experimental.Rendering
             d.Update();
             s.Update();
 
-            k_PrimarySection.Draw(s, d, this);
+            HDCameraUI.Inspector.Draw(s, d, this);
 
             d.Apply();
         }

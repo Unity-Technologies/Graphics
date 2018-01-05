@@ -3,12 +3,12 @@ using UnityEngine.Events;
 
 namespace UnityEditor.Experimental.Rendering
 {
-    class SerializedUIBase<TType>
+    class BaseUI<TType>
     {
         protected AnimBool[] m_AnimBools = null;
         protected TType data { get; private set; }
 
-        public SerializedUIBase(int animBoolCount)
+        public BaseUI(int animBoolCount)
         {
             m_AnimBools = new AnimBool[animBoolCount];
             for (var i = 0; i < m_AnimBools.Length; ++i)

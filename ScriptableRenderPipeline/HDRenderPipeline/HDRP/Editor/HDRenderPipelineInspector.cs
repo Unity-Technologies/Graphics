@@ -5,20 +5,20 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    using CED = CoreEditorDrawer<SerializedFrameSettingsUI, SerializedFrameSettings>;
+    using CED = CoreEditorDrawer<FrameSettingsUI, SerializedFrameSettings>;
 
     [CustomEditor(typeof(HDRenderPipelineAsset))]
     public sealed partial class HDRenderPipelineInspector : HDBaseEditor<HDRenderPipelineAsset>
     {
         static readonly CED.IDrawer[] k_FrameSettings = new[]
         {
-            SerializedFrameSettingsUI.SectionRenderingPasses,
-            SerializedFrameSettingsUI.SectionRenderingSettings,
+            FrameSettingsUI.SectionRenderingPasses,
+            FrameSettingsUI.SectionRenderingSettings,
             CED.Select(
-                (s, d, o) => s.serializedLightLoopSettingsUI,
+                (s, d, o) => s.lightLoopSettingsUI,
                 (s, d, o) => d.lightLoopSettings,
-                SerializedLightLoopSettingsUI.SectionLightLoopSettings),
-            SerializedFrameSettingsUI.SectionXRSettings
+                LightLoopSettingsUI.SectionLightLoopSettings),
+            FrameSettingsUI.SectionXRSettings
         };
 
         SerializedProperty m_RenderPipelineResources;
@@ -59,7 +59,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedProperty m_SubsurfaceScatteringSettings;
 
         SerializedFrameSettings serializedFrameSettings = null;
-        SerializedFrameSettingsUI serializedFrameSettingsUI = new SerializedFrameSettingsUI();
+        FrameSettingsUI m_FrameSettingsUI = new FrameSettingsUI();
 
         void InitializeProperties()
         {
@@ -102,7 +102,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             serializedFrameSettings = new SerializedFrameSettings(properties.Find(x => x.serializedFrameSettings));
 
-            serializedFrameSettingsUI.Reset(serializedFrameSettings, Repaint);
+            m_FrameSettingsUI.Reset(serializedFrameSettings, Repaint);
         }
 
         static void HackSetDirty(RenderPipelineAsset asset)
@@ -188,7 +188,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CheckStyles();
 
             serializedObject.Update();
-            serializedFrameSettingsUI.Update();
+            m_FrameSettingsUI.Update();
 
             EditorGUILayout.PropertyField(m_RenderPipelineResources, s_Styles.renderPipelineResources);
             EditorGUILayout.Space();
@@ -197,7 +197,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             SettingsUI(m_Target);
 
-            k_FrameSettings.Draw(serializedFrameSettingsUI, serializedFrameSettings, this);
+            k_FrameSettings.Draw(m_FrameSettingsUI, serializedFrameSettings, this);
 
             serializedObject.ApplyModifiedProperties();
         }
