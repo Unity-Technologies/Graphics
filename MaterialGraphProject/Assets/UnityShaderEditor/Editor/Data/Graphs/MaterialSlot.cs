@@ -249,8 +249,7 @@ namespace UnityEditor.ShaderGraph
                         || inputType == SlotValueType.Vector1
                         || inputType == SlotValueType.Dynamic;
                 case SlotValueType.Boolean:
-                    return inputType == SlotValueType.Vector1
-                        || inputType == SlotValueType.Boolean;
+                    return inputType == SlotValueType.Boolean;
             }
             return false;
         }
