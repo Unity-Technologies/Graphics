@@ -54,7 +54,9 @@ namespace UnityEditor.VFX
             List<VFXSystemDesc> outSystemDescs,
             VFXExpressionGraph expressionGraph,
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
-            Dictionary<VFXContext, int> contextSpawnToBufferIndex)
+            Dictionary<VFXContext, int> contextSpawnToBufferIndex,
+            Dictionary<VFXData, int> attributeBuffer,
+            Dictionary<VFXData, int> eventBuffer)
         {
             // Empty implementation by default
         }

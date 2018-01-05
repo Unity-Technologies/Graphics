@@ -140,6 +140,7 @@ namespace UnityEditor.VFX.UI
 
                 switch (contextType)
                 {
+                    case VFXContextType.kSpawnerGPU:
                     case VFXContextType.kSpawner: AddToClassList("spawner"); break;
                     case VFXContextType.kInit: AddToClassList("init"); break;
                     case VFXContextType.kUpdate: AddToClassList("update"); break;
@@ -644,58 +645,57 @@ namespace UnityEditor.VFX.UI
 
         VFXBlockProvider m_BlockProvider = null;
 
-        case VFXContextType.kSpawnerGPU:
-            internal override void DoRepaint(IStylePainter painter)
+        internal override void DoRepaint(IStylePainter painter)
+        {
+            base.DoRepaint(painter);
+        }
+
+        // TODO: Remove, unused except for debugging
+        // Declare new USS rect-color and use it
+        protected override void OnStyleResolved(ICustomStyle styles)
+        {
+            base.OnStyleResolved(styles);
+            styles.ApplyCustomProperty(RectColorProperty, ref m_RectColor);
+        }
+
+        // TODO: Remove, unused except for debugging
+        StyleValue<Color> m_RectColor;
+        Color rectColor { get { return m_RectColor.GetSpecifiedValueOrDefault(Color.magenta); } }
+
+        public IEnumerable<VFXBlockUI> GetAllBlocks()
+        {
+            foreach (VFXBlockUI block in m_BlockContainer.OfType<VFXBlockUI>())
             {
-                base.DoRepaint(painter);
+                yield return block;
             }
+        }
 
-            // TODO: Remove, unused except for debugging
-            // Declare new USS rect-color and use it
-            protected override void OnStyleResolved(ICustomStyle styles)
-            {
-                base.OnStyleResolved(styles);
-                styles.ApplyCustomProperty(RectColorProperty, ref m_RectColor);
-            }
+        public IEnumerable<Port> GetAllAnchors(bool input, bool output)
+        {
+            return (IEnumerable<Port>)GetFlowAnchors(input, output);
+        }
 
-            // TODO: Remove, unused except for debugging
-            StyleValue<Color> m_RectColor;
-            Color rectColor { get { return m_RectColor.GetSpecifiedValueOrDefault(Color.magenta); } }
-
-            public IEnumerable<VFXBlockUI> GetAllBlocks()
-            {
-                foreach (VFXBlockUI block in m_BlockContainer.OfType<VFXBlockUI>())
+        public IEnumerable<VFXFlowAnchor> GetFlowAnchors(bool input, bool output)
+        {
+            if (input)
+                foreach (VFXFlowAnchor anchor in m_FlowInputConnectorContainer)
                 {
-                    yield return block;
+                    yield return anchor;
                 }
-            }
-
-            public IEnumerable<Port> GetAllAnchors(bool input, bool output)
-            {
-                return (IEnumerable<Port>)GetFlowAnchors(input, output);
-            }
-
-            public IEnumerable<VFXFlowAnchor> GetFlowAnchors(bool input, bool output)
-            {
-                if (input)
-                    foreach (VFXFlowAnchor anchor in m_FlowInputConnectorContainer)
-                    {
-                        yield return anchor;
-                    }
-                if (output)
-                    foreach (VFXFlowAnchor anchor in m_FlowOutputConnectorContainer)
-                    {
-                        yield return anchor;
-                    }
-            }
-
-            public virtual void BuildContextualMenu(ContextualMenuPopulateEvent evt)
-            {
-                if (evt.target is VFXContextUI || evt.target is VFXBlockUI)
+            if (output)
+                foreach (VFXFlowAnchor anchor in m_FlowOutputConnectorContainer)
                 {
-                    evt.menu.AppendAction("Create Block", OnCreateBlock, e => ContextualMenu.MenuAction.StatusFlags.Normal);
-                    evt.menu.AppendSeparator();
+                    yield return anchor;
                 }
+        }
+
+        public virtual void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        {
+            if (evt.target is VFXContextUI || evt.target is VFXBlockUI)
+            {
+                evt.menu.AppendAction("Create Block", OnCreateBlock, e => ContextualMenu.MenuAction.StatusFlags.Normal);
+                evt.menu.AppendSeparator();
             }
+        }
     }
 }
