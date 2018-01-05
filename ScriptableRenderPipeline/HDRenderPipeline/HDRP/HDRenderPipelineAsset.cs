@@ -42,7 +42,6 @@
 
         [SerializeField]
         public SubsurfaceScatteringSettings sssSettings;
-        ISerializationCallbackReceiver m_SerializationCallbackReceiverImplementation;
 
         public override Shader GetDefaultShader()
         {
