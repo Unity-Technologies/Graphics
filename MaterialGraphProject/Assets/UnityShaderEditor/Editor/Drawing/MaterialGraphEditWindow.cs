@@ -277,6 +277,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     case ConcreteSlotValueType.Vector1:
                         prop = new FloatShaderProperty();
                         break;
+                    case ConcreteSlotValueType.Boolean:
+                        prop = new BooleanShaderProperty();
+                        break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }

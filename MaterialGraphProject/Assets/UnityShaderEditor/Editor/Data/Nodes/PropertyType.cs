@@ -5,6 +5,7 @@ namespace UnityEditor.ShaderGraph
         Color,
         Texture,
         Cubemap,
+        Boolean,
         Float,
         Vector2,
         Vector3,
