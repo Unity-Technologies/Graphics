@@ -3,7 +3,7 @@ using UnityEngine.Events;
 
 namespace UnityEditor.Experimental.Rendering
 {
-    class BaseUI<TType>
+    public class BaseUI<TType>
     {
         protected AnimBool[] m_AnimBools = null;
         protected TType data { get; private set; }
