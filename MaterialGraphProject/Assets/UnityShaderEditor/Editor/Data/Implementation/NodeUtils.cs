@@ -176,6 +176,8 @@ namespace UnityEditor.Graphing
         {
             switch (slotValue)
             {
+                case ConcreteSlotValueType.Boolean:
+                    return p.ToString();
                 case ConcreteSlotValueType.Vector1:
                     return p.ToString();
                 case ConcreteSlotValueType.Vector2:
