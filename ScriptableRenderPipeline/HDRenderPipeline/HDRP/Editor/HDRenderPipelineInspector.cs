@@ -1,12 +1,27 @@
+﻿using System.Linq;
 using System.Reflection;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
+    using CED = CoreEditorDrawer<FrameSettingsUI, SerializedFrameSettings>;
+    using _ = CoreEditorUtils;
+
     [CustomEditor(typeof(HDRenderPipelineAsset))]
     public sealed partial class HDRenderPipelineInspector : HDBaseEditor<HDRenderPipelineAsset>
     {
+        static readonly CED.IDrawer[] k_FrameSettings = new[]
+        {
+            FrameSettingsUI.SectionRenderingPasses,
+            FrameSettingsUI.SectionRenderingSettings,
+            CED.Select(
+                (s, d, o) => s.lightLoopSettingsUI,
+                (s, d, o) => d.lightLoopSettings,
+                LightLoopSettingsUI.SectionLightLoopSettings),
+            FrameSettingsUI.SectionXRSettings
+        };
+
         SerializedProperty m_RenderPipelineResources;
 
         // Global Frame Settings
@@ -25,24 +40,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedProperty m_SkyReflectionSize;
         SerializedProperty m_SkyLightingOverrideLayerMask;
 
-        // FrameSettings
-        // LightLoop settings
-        SerializedProperty m_enableTileAndCluster;
-        SerializedProperty m_enableSplitLightEvaluation;
-        SerializedProperty m_enableComputeLightEvaluation;
-        SerializedProperty m_enableComputeLightVariants;
-        SerializedProperty m_enableComputeMaterialVariants;
-        SerializedProperty m_enableFptlForForwardOpaque;
-        SerializedProperty m_enableBigTilePrepass;
-        // Rendering Settings
-        SerializedProperty m_RenderingUseForwardOnly;
-        SerializedProperty m_RenderingUseDepthPrepass;
-        SerializedProperty m_RenderingUseDepthPrepassAlphaTestOnly;
-        SerializedProperty m_enableAsyncCompute;
-        SerializedProperty m_enableShadowMask;
-
         // Subsurface Scattering Settings
         SerializedProperty m_SubsurfaceScatteringSettings;
+
+        SerializedFrameSettings serializedFrameSettings = null;
+        FrameSettingsUI m_FrameSettingsUI = new FrameSettingsUI();
 
         void InitializeProperties()
         {
@@ -65,31 +67,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_SkyReflectionSize = properties.Find(x => x.renderPipelineSettings.lightLoopSettings.skyReflectionSize);
             m_SkyLightingOverrideLayerMask = properties.Find(x => x.renderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask);
 
-            // FrameSettings
-            // LightLoop settings
-            m_enableTileAndCluster = properties.Find(x => x.serializedFrameSettings.lightLoopSettings.enableTileAndCluster);
-            m_enableComputeLightEvaluation = properties.Find(x => x.serializedFrameSettings.lightLoopSettings.enableComputeLightEvaluation);
-            m_enableComputeLightVariants = properties.Find(x => x.serializedFrameSettings.lightLoopSettings.enableComputeLightVariants);
-            m_enableComputeMaterialVariants = properties.Find(x => x.serializedFrameSettings.lightLoopSettings.enableComputeMaterialVariants);
-            m_enableFptlForForwardOpaque = properties.Find(x => x.serializedFrameSettings.lightLoopSettings.enableFptlForForwardOpaque);
-            m_enableBigTilePrepass = properties.Find(x => x.serializedFrameSettings.lightLoopSettings.enableBigTilePrepass);
-            // Rendering Settings
-            m_enableAsyncCompute = properties.Find(x => x.serializedFrameSettings.enableAsyncCompute);
-            m_RenderingUseForwardOnly = properties.Find(x => x.serializedFrameSettings.enableForwardRenderingOnly);
-            m_RenderingUseDepthPrepass = properties.Find(x => x.serializedFrameSettings.enableDepthPrepassWithDeferredRendering);
-            m_RenderingUseDepthPrepassAlphaTestOnly = properties.Find(x => x.serializedFrameSettings.enableAlphaTestOnlyInDeferredPrepass);
-            m_enableShadowMask = properties.Find(x => x.serializedFrameSettings.enableShadowMask);
-
             // Subsurface Scattering Settings
             m_SubsurfaceScatteringSettings = properties.Find(x => x.sssSettings);
-        }
 
-        static void HackSetDirty(RenderPipelineAsset asset)
-        {
-            EditorUtility.SetDirty(asset);
-            var method = typeof(RenderPipelineAsset).GetMethod("OnValidate", BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.Instance);
-            if (method != null)
-                method.Invoke(asset, new object[0]);
+            serializedFrameSettings = new SerializedFrameSettings(properties.Find(x => x.serializedFrameSettings));
+
+            m_FrameSettingsUI.Reset(serializedFrameSettings, Repaint);
         }
 
         void GlobalLightLoopSettingsUI(HDRenderPipelineAsset hdAsset)
@@ -97,7 +80,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(s_Styles.textureSettings);
             EditorGUI.indentLevel++;
-            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_SpotCookieSize, s_Styles.spotCookieSize);
             EditorGUILayout.PropertyField(m_PointCookieSize, s_Styles.pointCookieSize);
             EditorGUILayout.PropertyField(m_ReflectionCubemapSize, s_Styles.reflectionCubemapSize);
@@ -105,10 +87,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //EditorGUILayout.PropertyField(m_ReflectionCacheCompressed, s_Styles.reflectionCacheCompressed);
             EditorGUILayout.PropertyField(m_SkyReflectionSize, s_Styles.skyReflectionSize);
             EditorGUILayout.PropertyField(m_SkyLightingOverrideLayerMask, s_Styles.skyLightingOverride);
-            if (EditorGUI.EndChangeCheck())
-            {
-                HackSetDirty(hdAsset); // Repaint
-            }
             EditorGUI.indentLevel--;
         }
 
@@ -117,13 +95,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(s_Styles.renderingSettingsLabel);
             EditorGUI.indentLevel++;
-            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_supportDBuffer, s_Styles.supportDBuffer);
             EditorGUILayout.PropertyField(m_supportMSAA, s_Styles.supportMSAA);
-            if (EditorGUI.EndChangeCheck())
-            {
-                HackSetDirty(hdAsset); // Repaint
-            }
             EditorGUI.indentLevel--;
         }
 
@@ -132,67 +105,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(s_Styles.shadowSettings);
             EditorGUI.indentLevel++;
-            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_ShadowAtlasWidth, s_Styles.shadowsAtlasWidth);
             EditorGUILayout.PropertyField(m_ShadowAtlasHeight, s_Styles.shadowsAtlasHeight);
-            if (EditorGUI.EndChangeCheck())
-            {
-                HackSetDirty(hdAsset); // Repaint
-            }
-            EditorGUI.indentLevel--;
-        }
-
-        void LightLoopSettingsUI(HDRenderPipelineAsset hdAsset)
-        {
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(s_Styles.lightLoopSettings);
-            EditorGUI.indentLevel++;
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(m_enableTileAndCluster, s_Styles.enableTileAndCluster);
-            if (m_enableTileAndCluster.boolValue)
-            {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(m_enableBigTilePrepass, s_Styles.enableBigTilePrepass);
-                // Allow to disable cluster for forward opaque when in forward only (option have no effect when MSAA is enabled)
-                // Deferred opaque are always tiled
-                EditorGUILayout.PropertyField(m_enableFptlForForwardOpaque, s_Styles.enableFptlForForwardOpaque);
-                EditorGUILayout.PropertyField(m_enableComputeLightEvaluation, s_Styles.enableComputeLightEvaluation);
-                if (m_enableComputeLightEvaluation.boolValue)
-                {
-                    EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(m_enableComputeLightVariants, s_Styles.enableComputeLightVariants);
-                    EditorGUILayout.PropertyField(m_enableComputeMaterialVariants, s_Styles.enableComputeMaterialVariants);
-                    EditorGUI.indentLevel--;
-                }
-            }
-            if (EditorGUI.EndChangeCheck())
-            {
-                HackSetDirty(hdAsset); // Repaint
-            }
-            EditorGUI.indentLevel--;
-        }
-
-        void RendereringSettingsUI(HDRenderPipelineAsset hdAsset)
-        {
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(s_Styles.renderingSettingsLabel);
-            EditorGUI.indentLevel++;
-
-            EditorGUILayout.PropertyField(m_RenderingUseForwardOnly, s_Styles.useForwardRenderingOnly);
-            if (!m_RenderingUseForwardOnly.boolValue) // If we are deferred
-            {
-                EditorGUILayout.PropertyField(m_RenderingUseDepthPrepass, s_Styles.useDepthPrepassWithDeferredRendering);
-                if (m_RenderingUseDepthPrepass.boolValue)
-                {
-                    EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(m_RenderingUseDepthPrepassAlphaTestOnly, s_Styles.renderAlphaTestOnlyInDeferredPrepass);
-                    EditorGUI.indentLevel--;
-                }
-            }
-
-            EditorGUILayout.PropertyField(m_enableAsyncCompute, s_Styles.enableAsyncCompute);
-            EditorGUILayout.PropertyField(m_enableShadowMask, s_Styles.enableShadowMask);
-
             EditorGUI.indentLevel--;
         }
 
@@ -204,10 +118,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             GlobalLightLoopSettingsUI(hdAsset);
 
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField(s_Styles.defaultFrameSettings, EditorStyles.boldLabel);
-
-            RendereringSettingsUI(hdAsset);
-            LightLoopSettingsUI(hdAsset);
         }
 
         protected override void OnEnable()
@@ -225,6 +135,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CheckStyles();
 
             serializedObject.Update();
+            m_FrameSettingsUI.Update();
 
             EditorGUILayout.PropertyField(m_RenderPipelineResources, s_Styles.renderPipelineResources);
             EditorGUILayout.Space();
@@ -232,6 +143,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.Space();
 
             SettingsUI(m_Target);
+
+            EditorGUILayout.LabelField(s_Styles.defaultFrameSettings, EditorStyles.boldLabel);
+            k_FrameSettings.Draw(m_FrameSettingsUI, serializedFrameSettings, this);
 
             serializedObject.ApplyModifiedProperties();
         }

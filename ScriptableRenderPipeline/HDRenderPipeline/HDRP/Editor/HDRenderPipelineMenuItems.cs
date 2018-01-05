@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -39,7 +40,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     camera.gameObject.AddComponent<HDAdditionalCameraData>();
             }
         }
-        static void CheckOutFile(bool VSCEnabled, Object mat)
+        static void CheckOutFile(bool VSCEnabled, UnityObject mat)
         {
             if (VSCEnabled)
             {
@@ -123,6 +124,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                     var sceneName = Path.GetFileNameWithoutExtension(scenePath);
                     var description = string.Format("{0} {1}/{2} - ", sceneName, i + 1, scenes.Length);
+                    
                     ResetAllLoadedMaterialKeywords(description, scale, scale * i);
                 }
 
@@ -275,14 +277,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             GameObjectUtility.SetParentAndAlign(sceneSettings, menuCommand.context as GameObject);
             Undo.RegisterCreatedObjectUndo(sceneSettings, "Create " + sceneSettings.name);
             Selection.activeObject = sceneSettings;
-            var volume = sceneSettings.AddComponent<Volume>();
-            volume.isGlobal = true;
-            volume.Add<HDShadowSettings>(true);
-            var visualEnv = volume.Add<VisualEnvironment>(true);
+
+            var profile = VolumeProfileFactory.CreateVolumeProfile(sceneSettings.scene, "Scene Settings");
+            profile.Add<HDShadowSettings>(true);
+            var visualEnv = profile.Add<VisualEnvironment>(true);
             visualEnv.skyType.value = SkySettings.GetUniqueID<ProceduralSky>();
             visualEnv.fogType.value = FogType.Exponential;
-            volume.Add<ProceduralSky>(true);
-            volume.Add<ExponentialFog>(true);
+            profile.Add<ProceduralSky>(true);
+            profile.Add<ExponentialFog>(true);
+
+            var volume = sceneSettings.AddComponent<Volume>();
+            volume.isGlobal = true;
+            volume.sharedProfile = profile;
         }
 
         class DoCreateNewAsset<TAssetType> : ProjectWindowCallback.EndNameEditAction where TAssetType : ScriptableObject
@@ -322,7 +328,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     (i / (float)(length - 1)) * progressScale + progressOffset);
 
                 CheckOutFile(VSCEnabled, mat);
+                var h = Debug.unityLogger.logHandler;
+                Debug.unityLogger.logHandler = new UnityContextualLogHandler(mat);
                 HDEditorUtils.ResetMaterialKeywords(mat);
+                Debug.unityLogger.logHandler = h;
             }
         }
 
@@ -341,6 +350,29 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 CheckOutFile(VSCEnabled, materials[i]);
                 HDEditorUtils.ResetMaterialKeywords(materials[i]);
+            }
+        }
+
+        class UnityContextualLogHandler : ILogHandler
+        {
+            UnityObject m_Context;
+            static readonly ILogHandler k_DefaultLogHandler = Debug.unityLogger.logHandler;
+
+            public UnityContextualLogHandler(UnityObject context)
+            {
+                m_Context = context;
+            }
+
+            public void LogFormat(LogType logType, UnityObject context, string format, params object[] args)
+            {
+                k_DefaultLogHandler.LogFormat(LogType.Log, m_Context, "Context: {0} ({1})", m_Context, AssetDatabase.GetAssetPath(m_Context));
+                k_DefaultLogHandler.LogFormat(logType, context, format, args);
+            }
+
+            public void LogException(Exception exception, UnityObject context)
+            {
+                k_DefaultLogHandler.LogFormat(LogType.Log, m_Context, "Context: {0} ({1})", m_Context, AssetDatabase.GetAssetPath(m_Context));
+                k_DefaultLogHandler.LogException(exception, context);
             }
         }
     }

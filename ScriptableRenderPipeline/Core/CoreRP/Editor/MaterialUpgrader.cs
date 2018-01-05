@@ -212,11 +212,17 @@ namespace UnityEditor.Experimental.Rendering
         public static void UpgradeSelection(List<MaterialUpgrader> upgraders, string progressBarName, UpgradeFlags flags = UpgradeFlags.None)
         {
             var selection = Selection.objects;
+
+            if (selection == null || selection.Length == 0)
+                if (EditorUtility.DisplayDialog("Material Upgrader", "You must select at least one material.", "Ok"))
+                    return;
+
             if (!EditorUtility.DisplayDialog("Material Upgrader", string.Format("The upgrade will overwrite {0} selected material{1}. ", selection.Length, (selection.Length > 1) ? "s" : "") +
                     projectBackMessage, "Proceed", "Cancel"))
                 return;
 
             string lastMaterialName = "";
+            Debug.Log(selection.Length);
             for (int i = 0; i < selection.Length; i++)
             {
                 if (UnityEditor.EditorUtility.DisplayCancelableProgressBar(progressBarName, string.Format("({0} of {1}) {2}", i, selection.Length, lastMaterialName), (float)i / (float)selection.Length))

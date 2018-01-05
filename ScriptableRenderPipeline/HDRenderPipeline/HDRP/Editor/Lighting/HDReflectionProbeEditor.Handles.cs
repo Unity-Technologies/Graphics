@@ -29,12 +29,12 @@ namespace UnityEditor.Experimental.Rendering
         void OnSceneGUI()
         {
             var s = m_UIState;
-            var p = m_SerializedReflectionProbe;
+            var p = m_SerializedHdReflectionProbe;
             var o = this;
 
             BakeRealtimeProbeIfPositionChanged(s, p, o);
 
-            DoShortcutKey(p, o);
+            HDReflectionProbeUI.DoShortcutKey(p, o);
 
             if (!s.sceneViewEditing)
                 return;
@@ -65,7 +65,7 @@ namespace UnityEditor.Experimental.Rendering
                 Repaint();
         }
 
-        static void Handle_InfluenceFadeEditing(UIState s, SerializedReflectionProbe sp, Editor o, InfluenceType influenceType)
+        static void Handle_InfluenceFadeEditing(HDReflectionProbeUI s, SerializedHDReflectionProbe sp, Editor o, InfluenceType influenceType)
         {
             BoxBoundsHandle blendBox;
             SphereBoundsHandle sphereHandle;
@@ -97,7 +97,7 @@ namespace UnityEditor.Experimental.Rendering
 
             var mat = Handles.matrix;
             var col = Handles.color;
-            Handles.matrix = GetLocalSpace(sp.target);
+            Handles.matrix = HDReflectionProbeEditorUtility.GetLocalSpace(sp.target);
             switch ((ReflectionInfluenceShape)sp.influenceShape.enumValueIndex)
             {
                 case ReflectionInfluenceShape.Box:
@@ -186,11 +186,11 @@ namespace UnityEditor.Experimental.Rendering
             }
         }
 
-        static void Handle_InfluenceEditing(UIState s, SerializedReflectionProbe sp, Editor o)
+        static void Handle_InfluenceEditing(HDReflectionProbeUI s, SerializedHDReflectionProbe sp, Editor o)
         {
             var mat = Handles.matrix;
             var col = Handles.color;
-            Handles.matrix = GetLocalSpace(sp.target);
+            Handles.matrix = HDReflectionProbeEditorUtility.GetLocalSpace(sp.target);
             switch ((ReflectionInfluenceShape)sp.influenceShape.enumValueIndex)
             {
                 case ReflectionInfluenceShape.Box:
@@ -209,7 +209,7 @@ namespace UnityEditor.Experimental.Rendering
                         var center = s.boxInfluenceHandle.center;
                         var size = s.boxInfluenceHandle.size;
 
-                        ValidateAABB(sp.target, ref center, ref size);
+                        HDReflectionProbeEditorUtility.ValidateAABB(sp.target, ref center, ref size);
 
                         sp.target.center = center;
                         sp.target.size = size;
@@ -238,7 +238,7 @@ namespace UnityEditor.Experimental.Rendering
                         var influenceRadius = s.sphereInfluenceHandle.radius;
                         var radius = Vector3.one * influenceRadius;
 
-                        ValidateAABB(sp.target, ref center, ref radius);
+                        HDReflectionProbeEditorUtility.ValidateAABB(sp.target, ref center, ref radius);
                         influenceRadius = radius.x;
 
                         sp.targetData.influenceSphereRadius = influenceRadius;
@@ -255,18 +255,18 @@ namespace UnityEditor.Experimental.Rendering
             Handles.color = col;
         }
 
-        static void Handle_OriginEditing(UIState s, SerializedReflectionProbe sp, Editor o)
+        static void Handle_OriginEditing(HDReflectionProbeUI s, SerializedHDReflectionProbe sp, Editor o)
         {
             var p = (ReflectionProbe)sp.so.targetObject;
             var transformPosition = p.transform.position;
             var size = p.size;
 
             EditorGUI.BeginChangeCheck();
-            var newPostion = Handles.PositionHandle(transformPosition, GetLocalSpaceRotation(p));
+            var newPostion = Handles.PositionHandle(transformPosition, HDReflectionProbeEditorUtility.GetLocalSpaceRotation(p));
 
             var changed = EditorGUI.EndChangeCheck();
 
-            if (changed || s.oldLocalSpace != GetLocalSpace(p))
+            if (changed || s.oldLocalSpace != HDReflectionProbeEditorUtility.GetLocalSpace(p))
             {
                 var localNewPosition = s.oldLocalSpace.inverse.MultiplyPoint3x4(newPostion);
 
@@ -277,7 +277,7 @@ namespace UnityEditor.Experimental.Rendering
                 p.transform.position = s.oldLocalSpace.MultiplyPoint3x4(localNewPosition);
 
                 Undo.RecordObject(p, "Modified Reflection Probe Origin");
-                p.center = GetLocalSpace(p).inverse.MultiplyPoint3x4(s.oldLocalSpace.MultiplyPoint3x4(p.center));
+                p.center = HDReflectionProbeEditorUtility.GetLocalSpace(p).inverse.MultiplyPoint3x4(s.oldLocalSpace.MultiplyPoint3x4(p.center));
 
                 EditorUtility.SetDirty(p);
 
@@ -321,7 +321,7 @@ namespace UnityEditor.Experimental.Rendering
             Gizmos_InfluenceFade(reflectionProbe, reflectionData, null, InfluenceType.Normal, false);
 
             DrawVerticalRay(reflectionProbe.transform);
-            ChangeVisibility(reflectionProbe, true);
+            HDReflectionProbeEditorUtility.ChangeVisibility(reflectionProbe, true);
         }
 
         [DrawGizmo(GizmoType.NonSelected)]
@@ -329,7 +329,7 @@ namespace UnityEditor.Experimental.Rendering
         {
             var reflectionData = reflectionProbe.GetComponent<HDAdditionalReflectionData>();
             if (reflectionData != null)
-                ChangeVisibility(reflectionProbe, false);
+                HDReflectionProbeEditorUtility.ChangeVisibility(reflectionProbe, false);
         }
 
         static void Gizmos_InfluenceFade(ReflectionProbe p, HDAdditionalReflectionData a, Editor e, InfluenceType type, bool isEdit)
@@ -362,7 +362,7 @@ namespace UnityEditor.Experimental.Rendering
                 }
             }
 
-            Gizmos.matrix = GetLocalSpace(p);
+            Gizmos.matrix = HDReflectionProbeEditorUtility.GetLocalSpace(p);
             switch (a.influenceShape)
             {
                 case ReflectionInfluenceShape.Box:
@@ -394,7 +394,7 @@ namespace UnityEditor.Experimental.Rendering
             var col = Gizmos.color;
             var mat = Gizmos.matrix;
 
-            Gizmos.matrix = GetLocalSpace(p);
+            Gizmos.matrix = HDReflectionProbeEditorUtility.GetLocalSpace(p);
             switch (a.influenceShape)
             {
                 case ReflectionInfluenceShape.Box:

@@ -250,6 +250,7 @@ namespace UnityEditor.Experimental.Rendering
             }
         }
 
+        // TODO: Doesn't work correctly with indented controls, fixme
         protected void DrawOverrideCheckbox(SerializedDataParameter property)
         {
             var overrideRect = GUILayoutUtility.GetRect(17f, 17f, GUILayout.ExpandWidth(false));
