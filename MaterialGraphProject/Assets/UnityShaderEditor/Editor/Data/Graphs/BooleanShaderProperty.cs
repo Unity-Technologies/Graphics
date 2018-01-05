@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
     {
         public BooleanShaderProperty()
         {
-            displayName = "Bool";
+            displayName = "Boolean";
         }
 
         public override PropertyType propertyType
