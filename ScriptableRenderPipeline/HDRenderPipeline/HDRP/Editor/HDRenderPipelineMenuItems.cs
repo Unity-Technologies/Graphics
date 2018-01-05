@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -39,7 +40,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     camera.gameObject.AddComponent<HDAdditionalCameraData>();
             }
         }
-        static void CheckOutFile(bool VSCEnabled, Object mat)
+        static void CheckOutFile(bool VSCEnabled, UnityObject mat)
         {
             if (VSCEnabled)
             {
@@ -123,6 +124,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                     var sceneName = Path.GetFileNameWithoutExtension(scenePath);
                     var description = string.Format("{0} {1}/{2} - ", sceneName, i + 1, scenes.Length);
+                    
                     ResetAllLoadedMaterialKeywords(description, scale, scale * i);
                 }
 
@@ -322,7 +324,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     (i / (float)(length - 1)) * progressScale + progressOffset);
 
                 CheckOutFile(VSCEnabled, mat);
+                var h = Debug.unityLogger.logHandler;
+                Debug.unityLogger.logHandler = new UnityContextualLogHandler(mat);
                 HDEditorUtils.ResetMaterialKeywords(mat);
+                Debug.unityLogger.logHandler = h;
             }
         }
 
@@ -341,6 +346,29 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 CheckOutFile(VSCEnabled, materials[i]);
                 HDEditorUtils.ResetMaterialKeywords(materials[i]);
+            }
+        }
+
+        class UnityContextualLogHandler : ILogHandler
+        {
+            UnityObject m_Context;
+            static readonly ILogHandler k_DefaultLogHandler = Debug.unityLogger.logHandler;
+
+            public UnityContextualLogHandler(UnityObject context)
+            {
+                m_Context = context;
+            }
+
+            public void LogFormat(LogType logType, UnityObject context, string format, params object[] args)
+            {
+                k_DefaultLogHandler.LogFormat(LogType.Log, m_Context, "Context: {0} ({1})", m_Context, AssetDatabase.GetAssetPath(m_Context));
+                k_DefaultLogHandler.LogFormat(logType, context, format, args);
+            }
+
+            public void LogException(Exception exception, UnityObject context)
+            {
+                k_DefaultLogHandler.LogFormat(LogType.Log, m_Context, "Context: {0} ({1})", m_Context, AssetDatabase.GetAssetPath(m_Context));
+                k_DefaultLogHandler.LogException(exception, context);
             }
         }
     }

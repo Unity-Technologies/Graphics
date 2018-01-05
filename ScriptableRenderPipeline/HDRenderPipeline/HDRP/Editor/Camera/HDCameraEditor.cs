@@ -56,16 +56,6 @@ namespace UnityEditor.Experimental.Rendering
             d.Apply();
         }
 
-        void SynchronizePreviewCameraWithCamera(Camera c)
-        {
-            EditorUtility.CopySerialized(c, m_PreviewCamera);
-            EditorUtility.CopySerialized(c.GetComponent<HDAdditionalCameraData>(), m_PreviewAdditionalCameraData);
-            var layer = c.GetComponent<PostProcessLayer>() ?? Assets.ScriptableRenderLoop.PostProcessing.PostProcessing.Runtime.Utils.ComponentSingleton<PostProcessLayer>.instance;
-            EditorUtility.CopySerialized(layer, m_PreviewPostProcessLayer);
-            m_PreviewCamera.cameraType = CameraType.SceneView;
-            m_PreviewHDCamera.Update(m_PreviewPostProcessLayer, m_PreviewAdditionalCameraData.GetFrameSettings());
-        }
-
         RenderTexture GetPreviewTextureWithSize(int width, int height)
         {
             if (m_PreviewTexture == null || m_PreviewTexture.width != width || m_PreviewTexture.height != height)
