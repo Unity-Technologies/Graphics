@@ -13,6 +13,12 @@ namespace UnityEditor.VFX
             public Color color = Color.white;
         }
 
+        public class OutputProperties
+        {
+            [Tooltip("The luminance of the color.")]
+            public float luma;
+        }
+
         override public string name { get { return "Color Luma"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

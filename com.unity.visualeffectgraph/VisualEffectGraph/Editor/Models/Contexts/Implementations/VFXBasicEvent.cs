@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
     class VFXBasicEvent : VFXContext
     {
         [VFXSetting, PushButton(typeof(LaunchEventBehavior))]
-        public string eventName = "OnStart";
+        public string eventName = "OnPlay";
 
         public VFXBasicEvent() : base(VFXContextType.kEvent, VFXDataType.kNone, VFXDataType.kEvent) {}
         public override string name { get { return "Event"; } }

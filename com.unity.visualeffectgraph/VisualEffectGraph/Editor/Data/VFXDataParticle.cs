@@ -293,6 +293,11 @@ namespace UnityEditor.VFX
             return false;
         }
 
+        public override VFXDeviceTarget GetCompilationTarget(VFXContext context)
+        {
+            return VFXDeviceTarget.GPU;
+        }
+
         public override void GenerateAttributeLayout()
         {
             m_layoutAttributeCurrent.GenerateAttributeLayout(m_Capacity, m_StoredCurrentAttributes);
@@ -369,7 +374,7 @@ namespace UnityEditor.VFX
             return false;
         }
 
-        public void FillDescs(
+        public override void FillDescs(
             List<VFXGPUBufferDesc> outBufferDescs,
             List<VFXSystemDesc> outSystemDescs,
             VFXExpressionGraph expressionGraph,

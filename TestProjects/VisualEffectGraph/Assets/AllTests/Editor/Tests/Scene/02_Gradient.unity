@@ -217,7 +217,7 @@ VFXComponent:
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 5ecee8dcee8025a41a6148a0aa800d9e, type: 2}
   m_StartSeed: 0
-  m_ResetSeedOnStart: 0
+  m_ResetSeedOnPlay: 0
   m_PropertySheet:
     m_Float:
       m_Array: []
@@ -341,7 +341,7 @@ VFXComponent:
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 5ecee8dcee8025a41a6148a0aa800d9e, type: 2}
   m_StartSeed: 0
-  m_ResetSeedOnStart: 0
+  m_ResetSeedOnPlay: 0
   m_PropertySheet:
     m_Float:
       m_Array: []
@@ -465,7 +465,7 @@ VFXComponent:
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 5ecee8dcee8025a41a6148a0aa800d9e, type: 2}
   m_StartSeed: 0
-  m_ResetSeedOnStart: 0
+  m_ResetSeedOnPlay: 0
   m_PropertySheet:
     m_Float:
       m_Array: []
@@ -589,7 +589,7 @@ VFXComponent:
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 5ecee8dcee8025a41a6148a0aa800d9e, type: 2}
   m_StartSeed: 0
-  m_ResetSeedOnStart: 0
+  m_ResetSeedOnPlay: 0
   m_PropertySheet:
     m_Float:
       m_Array: []
@@ -726,7 +726,7 @@ VFXComponent:
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 5ecee8dcee8025a41a6148a0aa800d9e, type: 2}
   m_StartSeed: 0
-  m_ResetSeedOnStart: 0
+  m_ResetSeedOnPlay: 0
   m_PropertySheet:
     m_Float:
       m_Array: []
@@ -837,7 +837,7 @@ VFXComponent:
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 5ecee8dcee8025a41a6148a0aa800d9e, type: 2}
   m_StartSeed: 0
-  m_ResetSeedOnStart: 0
+  m_ResetSeedOnPlay: 0
   m_PropertySheet:
     m_Float:
       m_Array: []
@@ -961,7 +961,7 @@ VFXComponent:
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 5ecee8dcee8025a41a6148a0aa800d9e, type: 2}
   m_StartSeed: 0
-  m_ResetSeedOnStart: 0
+  m_ResetSeedOnPlay: 0
   m_PropertySheet:
     m_Float:
       m_Array: []
@@ -1085,7 +1085,7 @@ VFXComponent:
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 5ecee8dcee8025a41a6148a0aa800d9e, type: 2}
   m_StartSeed: 0
-  m_ResetSeedOnStart: 0
+  m_ResetSeedOnPlay: 0
   m_PropertySheet:
     m_Float:
       m_Array: []
@@ -1209,7 +1209,7 @@ VFXComponent:
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 5ecee8dcee8025a41a6148a0aa800d9e, type: 2}
   m_StartSeed: 0
-  m_ResetSeedOnStart: 0
+  m_ResetSeedOnPlay: 0
   m_PropertySheet:
     m_Float:
       m_Array: []
@@ -1346,7 +1346,7 @@ VFXComponent:
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 5ecee8dcee8025a41a6148a0aa800d9e, type: 2}
   m_StartSeed: 0
-  m_ResetSeedOnStart: 0
+  m_ResetSeedOnPlay: 0
   m_PropertySheet:
     m_Float:
       m_Array: []

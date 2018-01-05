@@ -186,10 +186,10 @@ namespace UnityEditor.VFX
                 return false;
 
             var other = (VFXAttributeExpression)obj;
-            return valueType == other.valueType && attributeName == other.attributeName && attributeLocation == other.attributeLocation;
+            return valueType == other.valueType && attributeLocation == other.attributeLocation && attributeName == other.attributeName;
         }
 
-        public override int GetHashCode()
+        protected override int GetInnerHashCode()
         {
             return (attributeName.GetHashCode() * 397) ^ attributeLocation.GetHashCode();
         }

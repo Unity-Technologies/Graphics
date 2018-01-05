@@ -1,7 +1,7 @@
 // Shadow pass
 Pass
 {		
-	Tags { "LightMode"="ShadowCaster" }
+	Tags { "LightMode"=${VFXPassShadow} }
 
 	ZWrite On
 	Blend Off
@@ -45,7 +45,7 @@ Pass
 	float frag(ps_input i) : SV_TARGET
 	{
 		float alpha = VFXGetFragmentColor(i).a;
-		alpha *= VFXGetTextureColor(VFX_SAMPLER(texture_texture),i).a;		
+		alpha *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i).a;		
 		VFXClipFragmentColor(alpha,i);
 		return 0;
 	}

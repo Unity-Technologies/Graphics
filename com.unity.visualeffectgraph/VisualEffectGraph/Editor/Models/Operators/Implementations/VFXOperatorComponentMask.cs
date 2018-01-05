@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace UnityEditor.VFX
 {
@@ -27,6 +28,36 @@ namespace UnityEditor.VFX
         [VFXSetting]
         public Component w = Component.W;
 
+        protected override IEnumerable<VFXPropertyWithValue> outputProperties
+        {
+            get
+            {
+                var mask = new Component[4] { x, y, z, w };
+                int componentCount = GetMaskSize(mask);
+
+                const string outputName = "o";
+                Type slotType = null;
+                switch (componentCount)
+                {
+                    case 1: slotType = typeof(float); break;
+                    case 2: slotType = typeof(Vector2); break;
+                    case 3: slotType = typeof(Vector3); break;
+                    case 4: slotType = typeof(Vector4); break;
+                    default: break;
+                }
+
+                if (slotType != null)
+                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, outputName));
+            }
+        }
+
+        private static int GetMaskSize(Component[] mask)
+        {
+            int maskSize = Math.Min(4, mask.Length);
+            while (maskSize > 1 && mask[maskSize - 1] == Component.None) --maskSize;
+            return maskSize;
+        }
+
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var mask = new Component[4] { x, y, z, w };
@@ -37,7 +68,8 @@ namespace UnityEditor.VFX
             var inputComponents = VFXOperatorUtility.ExtractComponents(inputExpression[0]).ToArray();
 
             var componentStack = new Stack<VFXExpression>();
-            for (int iComponent = 0; iComponent < maskSize; iComponent++)
+            int outputSize = GetMaskSize(mask);
+            for (int iComponent = 0; iComponent < outputSize; iComponent++)
             {
                 Component currentComponent = mask[iComponent];
                 if (currentComponent != Component.None && (int)currentComponent < inputComponents.Length)
@@ -57,7 +89,7 @@ namespace UnityEditor.VFX
             }
             else
             {
-                finalExpression = new VFXExpressionCombine(componentStack.ToArray());
+                finalExpression = new VFXExpressionCombine(componentStack.Reverse().ToArray());
             }
             return new[] { finalExpression };
         }

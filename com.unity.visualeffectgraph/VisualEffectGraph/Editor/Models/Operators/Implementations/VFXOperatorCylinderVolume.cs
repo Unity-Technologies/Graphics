@@ -13,6 +13,12 @@ namespace UnityEditor.VFX
             public Cylinder cylinder = new Cylinder();
         }
 
+        public class OutputProperties
+        {
+            [Tooltip("The volume of the cylinder.")]
+            public float volume;
+        }
+
         override public string name { get { return "Volume (Cylinder)"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

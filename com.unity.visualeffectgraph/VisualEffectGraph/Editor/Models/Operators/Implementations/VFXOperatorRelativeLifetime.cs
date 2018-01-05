@@ -8,6 +8,11 @@ namespace UnityEditor.VFX
     [VFXInfo(category = "Attribute")]
     class VFXOperatorRelativeLifetime : VFXOperator
     {
+        public class OutputProperties
+        {
+            public float t;
+        }
+
         public override string name
         {
             get

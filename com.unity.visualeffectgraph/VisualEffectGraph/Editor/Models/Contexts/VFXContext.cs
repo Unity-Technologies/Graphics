@@ -33,7 +33,8 @@ namespace UnityEditor.VFX
         kNone =         0,
         kSpawnEvent =   1 << 0,
         kParticle =     1 << 1,
-        kEvent =        1 << 2
+        kEvent =        1 << 2,
+        kMesh =         1 << 3,
     };
 
     [Serializable]
@@ -103,15 +104,18 @@ namespace UnityEditor.VFX
         public virtual VFXDataType ownedType                            { get { return contextType == VFXContextType.kOutput ? inputType : outputType; } }
         public virtual VFXTaskType taskType                             { get { return VFXTaskType.kNone; } }
         public virtual IEnumerable<VFXAttributeInfo> attributes         { get { return Enumerable.Empty<VFXAttributeInfo>(); } }
-        public virtual IEnumerable<VFXAttributeInfo> optionalAttributes { get { return Enumerable.Empty<VFXAttributeInfo>(); } }
         public virtual IEnumerable<VFXMapping> additionalMappings       { get { return Enumerable.Empty<VFXMapping>(); } }
         public virtual IEnumerable<string> additionalDefines            { get { return Enumerable.Empty<string>(); } }
-        public virtual string renderLoopCommonInclude                   { get { throw new NotImplementedException(); } }
         public virtual IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionnalReplacements { get { return Enumerable.Empty<KeyValuePair<string, VFXShaderWriter>>(); } }
 
         public virtual bool CanBeCompiled()
         {
             return m_Data != null && m_Data.CanBeCompiled();
+        }
+
+        public void MarkAsCompiled(bool compiled)
+        {
+            hasBeenCompiled = compiled;
         }
 
         public override void CollectDependencies(HashSet<Object> objs)
@@ -133,7 +137,7 @@ namespace UnityEditor.VFX
                 cause == InvalidationCause.kExpressionInvalidated ||
                 cause == InvalidationCause.kSettingChanged)
             {
-                if (CanBeCompiled())
+                if (hasBeenCompiled || CanBeCompiled())
                     Invalidate(InvalidationCause.kExpressionGraphChanged);
             }
         }
@@ -156,14 +160,14 @@ namespace UnityEditor.VFX
         protected override void OnAdded()
         {
             base.OnAdded();
-            if (CanBeCompiled())
+            if (hasBeenCompiled || CanBeCompiled())
                 Invalidate(InvalidationCause.kExpressionGraphChanged);
         }
 
         protected override void OnRemoved()
         {
             base.OnRemoved();
-            if (CanBeCompiled())
+            if (hasBeenCompiled || CanBeCompiled())
                 Invalidate(InvalidationCause.kExpressionGraphChanged);
         }
 
@@ -276,12 +280,6 @@ namespace UnityEditor.VFX
 
         private static void InnerUnlink(VFXContext from, VFXContext to, int fromIndex = 0, int toIndex = 0, bool notify = true)
         {
-            // We need to force recompilation of contexts that where compilable before unlink and might not be after
-            if (from.CanBeCompiled())
-                from.Invalidate(InvalidationCause.kExpressionGraphChanged);
-            if (to.CanBeCompiled())
-                to.Invalidate(InvalidationCause.kExpressionGraphChanged);
-
             if (from.ownedType == to.ownedType)
                 to.SetDefaultData(false);
 
@@ -312,7 +310,7 @@ namespace UnityEditor.VFX
             return null;
         }
 
-        private void SetDefaultData(bool notify)
+        public void SetDefaultData(bool notify)
         {
             InnerSetData(VFXData.CreateDataType(ownedType), notify);
         }
@@ -448,6 +446,9 @@ namespace UnityEditor.VFX
         private VFXContextType m_ContextType;
         private VFXDataType m_InputType;
         private VFXDataType m_OutputType;
+
+        [NonSerialized]
+        private bool hasBeenCompiled = false;
 
         [SerializeField]
         private VFXData m_Data;

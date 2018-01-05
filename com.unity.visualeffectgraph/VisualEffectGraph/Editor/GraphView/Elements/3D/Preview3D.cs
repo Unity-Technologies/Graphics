@@ -10,9 +10,9 @@ using UnityEditor.Experimental.UIElements.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
-    class Preview3DPresenter : SimpleElementPresenter
+    class Preview3DController : SimpleElementPresenter
     {
-        public Preview3DPresenter()
+        public Preview3DController()
         {
             title = "3D Preview";
 
@@ -56,9 +56,9 @@ namespace UnityEditor.VFX.UI
         {
             base.OnDataChanged();
 
-            Preview3DPresenter presenter = GetPresenter<Preview3DPresenter>();
+            Preview3DController controller = GetPresenter<Preview3DController>();
 
-            m_Label.text = presenter.title;
+            m_Label.text = controller.title;
         }
     }
 }
