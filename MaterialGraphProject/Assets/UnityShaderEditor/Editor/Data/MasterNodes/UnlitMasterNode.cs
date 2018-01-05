@@ -67,8 +67,10 @@ namespace UnityEditor.ShaderGraph
             var lwSub = new LightWeightUnlitSubShader();
             finalShader.AddShaderChunk(lwSub.GetSubshader(this, mode), true);
 
-            var hdSub = new HDUnlitSubShader();
-            finalShader.AddShaderChunk(hdSub.GetSubshader(this, mode), true);
+            //Disable HD for now as there is no mapping 
+            // for many inputs like worldSpaceNormal and similar
+            /*var hdSub = new HDUnlitSubShader();
+            finalShader.AddShaderChunk(hdSub.GetSubshader(this, mode), true);*/
 
             finalShader.Deindent();
             finalShader.AddShaderChunk("}", false);
