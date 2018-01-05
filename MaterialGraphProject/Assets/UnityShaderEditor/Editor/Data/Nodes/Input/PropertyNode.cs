@@ -66,7 +66,7 @@ namespace UnityEditor.ShaderGraph
             }
             else if (property is IntegerShaderProperty)
             {
-                AddSlot(new IntegerMaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, 0));
+                AddSlot(new Vector1MaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, 0));
                 RemoveSlotsNameNotMatching(new[] { OutputSlotId });
             }
             else if (property is SliderShaderProperty)
