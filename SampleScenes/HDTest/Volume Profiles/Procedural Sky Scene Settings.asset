@@ -9,11 +9,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
-  m_Name: New Volume Profile
+  m_Name: Procedural Sky Scene Settings
   m_EditorClassIdentifier: 
   components:
-  - {fileID: 114030632975742018}
---- !u!114 &114030632975742018
+  - {fileID: 114594213630903482}
+  - {fileID: 114784622952077632}
+--- !u!114 &114594213630903482
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_PrefabParentObject: {fileID: 0}
@@ -27,11 +28,11 @@ MonoBehaviour:
   active: 1
   skyType:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 2
   fogType:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0
---- !u!114 &114738636232829174
+--- !u!114 &114784622952077632
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_PrefabParentObject: {fileID: 0}
@@ -39,30 +40,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 59b6606ef2548734bb6d11b9d160bc7e, type: 3}
-  m_Name: HDRISky
+  m_Script: {fileID: 11500000, guid: 7ddcec8a8eb2d684d833ac8f5d26aebd, type: 3}
+  m_Name: HDShadowSettings
   m_EditorClassIdentifier: 
   active: 1
-  rotation:
-    m_OverrideState: 0
-    m_Value: 0
+  maxShadowDistance:
+    m_OverrideState: 1
+    m_Value: 500
     min: 0
-    max: 360
-  exposure:
-    m_OverrideState: 0
-    m_Value: 0
-  multiplier:
-    m_OverrideState: 0
-    m_Value: 1
-    min: 0
-  updateMode:
-    m_OverrideState: 0
-    m_Value: 0
-  updatePeriod:
-    m_OverrideState: 0
-    m_Value: 0
-    min: 0
-  useForBaking: 0
-  skyHDRI:
-    m_OverrideState: 0
-    m_Value: {fileID: 0}
