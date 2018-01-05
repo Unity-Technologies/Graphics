@@ -34,6 +34,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 m_ValueAction = Vector4Field;
             else if (property is IntegerShaderProperty)
                 m_ValueAction = IntegerField;
+            else if (property is SliderShaderProperty)
+                m_ValueAction = SliderField;
 
             if (m_ValueAction != null)
             {
@@ -158,6 +160,19 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         {
             var fProp = (IntegerShaderProperty)property;
             fProp.value = EditorGUILayout.IntField(fProp.value);
+        }
+
+        void SliderField()
+        {
+            var fProp = (SliderShaderProperty)property;
+            var value = fProp.value;
+            EditorGUILayout.BeginHorizontal();
+            GUILayoutOption[] options = { GUILayout.MaxWidth(48.0f) };
+            value.x = EditorGUILayout.Slider(fProp.value.x, fProp.value.y, fProp.value.z);
+            value.y = EditorGUILayout.FloatField(fProp.value.y, options);
+            value.z = EditorGUILayout.FloatField(fProp.value.z, options);
+            EditorGUILayout.EndHorizontal();
+            fProp.value = value;
         }
     }
 }
