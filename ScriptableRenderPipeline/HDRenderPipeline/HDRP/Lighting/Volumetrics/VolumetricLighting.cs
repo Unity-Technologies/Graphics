@@ -255,12 +255,6 @@ public partial class HDRenderPipeline : RenderPipeline
             m_VBufferLighting[i].Create();
 
             m_VBufferLightingRT[i] = new RenderTargetIdentifier(m_VBufferLighting[i]);
-
-            // No clean way to clear a RenderTexture without a CommandBuffer? Ridiculous.
-            RenderTexture saveRT = UnityEngine.RenderTexture.active;
-            RenderTexture.active = m_VBufferLighting[i];
-            GL.Clear(false, true, CoreUtils.clearColorAllBlack);
-            RenderTexture.active = saveRT;
         }
     }
 
@@ -429,8 +423,11 @@ public partial class HDRenderPipeline : RenderPipeline
             if (GetGlobalFogComponent() == null)
             {
                 // Clear the render target instead of running the shader.
-                CoreUtils.SetRenderTarget(cmd, GetVBufferLightingHistory(viewOffset), ClearFlag.Color, CoreUtils.clearColorAllBlack);
-                return;
+                // CoreUtils.SetRenderTarget(cmd, GetVBufferLightingIntegral(viewOffset), ClearFlag.Color, CoreUtils.clearColorAllBlack);
+                // return;
+
+                // Clearing 3D textures does not seem to work!
+                // Use the workaround by running the full shader with no volume.
             }
 
             bool enableClustered    = m_FrameSettings.lightLoopSettings.enableTileAndCluster;
