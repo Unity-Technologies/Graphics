@@ -275,14 +275,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             GameObjectUtility.SetParentAndAlign(sceneSettings, menuCommand.context as GameObject);
             Undo.RegisterCreatedObjectUndo(sceneSettings, "Create " + sceneSettings.name);
             Selection.activeObject = sceneSettings;
-            var volume = sceneSettings.AddComponent<Volume>();
-            volume.isGlobal = true;
-            volume.Add<HDShadowSettings>(true);
-            var visualEnv = volume.Add<VisualEnvironment>(true);
+
+            var profile = VolumeProfileFactory.CreateVolumeProfile(sceneSettings.scene, "Scene Settings");
+            profile.Add<HDShadowSettings>(true);
+            var visualEnv = profile.Add<VisualEnvironment>(true);
             visualEnv.skyType.value = SkySettings.GetUniqueID<ProceduralSky>();
             visualEnv.fogType.value = FogType.Exponential;
-            volume.Add<ProceduralSky>(true);
-            volume.Add<ExponentialFog>(true);
+            profile.Add<ProceduralSky>(true);
+            profile.Add<ExponentialFog>(true);
+
+            var volume = sceneSettings.AddComponent<Volume>();
+            volume.isGlobal = true;
+            volume.sharedProfile = profile;
         }
 
         class DoCreateNewAsset<TAssetType> : ProjectWindowCallback.EndNameEditAction where TAssetType : ScriptableObject

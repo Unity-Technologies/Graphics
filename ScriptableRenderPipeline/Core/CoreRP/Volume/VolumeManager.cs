@@ -138,11 +138,11 @@ namespace UnityEngine.Experimental.Rendering
 
                 foreach (var volume in kvp.Value)
                 {
-                    if (!volume.enabled)
+                    if (!volume.enabled || volume.profileRef == null)
                         continue;
 
                     T component;
-                    if (volume.TryGet(out component) && component.active)
+                    if (volume.profileRef.TryGet(out component) && component.active)
                         return true;
                 }
             }
@@ -267,13 +267,13 @@ namespace UnityEngine.Experimental.Rendering
             foreach (var volume in volumes)
             {
                 // Skip disabled volumes and volumes without any data or weight
-                if (!volume.enabled || volume.weight <= 0f)
+                if (!volume.enabled || volume.profileRef == null || volume.weight <= 0f)
                     continue;
 
                 // Global volumes always have influence
                 if (volume.isGlobal)
                 {
-                    OverrideData(stack, volume.components, Mathf.Clamp01(volume.weight));
+                    OverrideData(stack, volume.profileRef.components, Mathf.Clamp01(volume.weight));
                     continue;
                 }
 
@@ -318,7 +318,7 @@ namespace UnityEngine.Experimental.Rendering
                     interpFactor = 1f - (closestDistanceSqr / blendDistSqr);
 
                 // No need to clamp01 the interpolation factor as it'll always be in [0;1[ range
-                OverrideData(stack, volume.components, interpFactor * Mathf.Clamp01(volume.weight));
+                OverrideData(stack, volume.profileRef.components, interpFactor * Mathf.Clamp01(volume.weight));
             }
         }
 
