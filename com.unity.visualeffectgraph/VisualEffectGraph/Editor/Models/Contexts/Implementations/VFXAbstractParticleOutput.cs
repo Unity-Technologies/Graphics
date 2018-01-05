@@ -134,8 +134,6 @@ namespace UnityEditor.VFX
             {
                 if (!supportsFlipbooks)
                     yield return "flipbookMode";
-                if (flipbookMode == FlipbookMode.Off)
-                    yield return "frameInterpolationMode";
             }
         }
 
