@@ -32,6 +32,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 m_ValueAction = Vector3Field;
             else if (property is Vector4ShaderProperty)
                 m_ValueAction = Vector4Field;
+            else if (property is BooleanShaderProperty)
+                m_ValueAction = BooleanField;
 
             if (m_ValueAction != null)
             {
@@ -146,6 +148,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         {
             var fProp = (Vector4ShaderProperty)property;
             fProp.value = EditorGUILayout.Vector4Field("", fProp.value);
+        }
+
+        void BooleanField()
+        {
+            var fProp = (BooleanShaderProperty)property;
+            fProp.value = EditorGUILayout.Toggle(fProp.value);
         }
     }
 }

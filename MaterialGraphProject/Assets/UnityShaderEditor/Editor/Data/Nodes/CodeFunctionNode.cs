@@ -33,6 +33,9 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
+        protected struct Boolean
+        {}
+
         protected struct Vector1
         {}
 
