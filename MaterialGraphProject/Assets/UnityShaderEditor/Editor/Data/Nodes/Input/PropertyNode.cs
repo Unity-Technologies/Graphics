@@ -64,6 +64,11 @@ namespace UnityEditor.ShaderGraph
                 AddSlot(new CubemapMaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output));
                 RemoveSlotsNameNotMatching(new[] { OutputSlotId });
             }
+            else if (property is IntegerShaderProperty)
+            {
+                AddSlot(new IntegerMaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, 0));
+                RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+            }
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
@@ -108,6 +113,14 @@ namespace UnityEditor.ShaderGraph
             else if (property is ColorShaderProperty)
             {
                 var result = string.Format("{0}4 {1} = {2};"
+                        , precision
+                        , GetVariableNameForSlot(OutputSlotId)
+                        , property.referenceName);
+                visitor.AddShaderChunk(result, true);
+            }
+            else if (property is IntegerShaderProperty)
+            {
+                var result = string.Format("{0} {1} = {2};"
                         , precision
                         , GetVariableNameForSlot(OutputSlotId)
                         , property.referenceName);
