@@ -144,6 +144,8 @@ namespace UnityEditor.ShaderGraph
                 block.SetVector(name, m_Data.vector4Value);
             else if (propType == PropertyType.Float)
                 block.SetFloat(name, m_Data.floatValue);
+            else if (propType == PropertyType.Boolean)
+                block.SetFloat(name, m_Data.booleanValue ? 1 : 0);
         }
     }
 
