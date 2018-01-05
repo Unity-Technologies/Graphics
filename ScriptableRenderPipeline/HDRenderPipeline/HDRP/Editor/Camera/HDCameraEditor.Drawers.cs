@@ -44,7 +44,7 @@ namespace UnityEditor.Experimental.Rendering
                 CED.Action(Drawer_FieldDepth),
                 CED.Action(Drawer_FieldRenderTarget)),
             CED.FadeGroup(
-                (s, d, o, i) => s.isSectionAvailableXRSettings.faded,
+                (s, d, o, i) => s.isSectionAvailableXRSettings,
                 false,
                 CED.FoldoutGroup(
                     "XR Settings",
@@ -55,18 +55,18 @@ namespace UnityEditor.Experimental.Rendering
 
             // Render Loop Settings
             CED.FadeGroup(
-                (s, d, o, i) => s.isSectionAvailableRenderLoopSettings.faded,
+                (s, d, o, i) => s.isSectionAvailableRenderLoopSettings,
                 false,
                 CED.Select(
                     (s, d, o) => s.serializedFrameSettingsUI,
                     (s, d, o) => d.frameSettings,
                     SerializedFrameSettingsUI.SectionRenderingPasses,
                     SerializedFrameSettingsUI.SectionRenderingSettings,
-                    SerializedFrameSettingsUI.SectionLightingSettings)
-                .Concat(CED.Select(
+                    SerializedFrameSettingsUI.SectionLightingSettings),
+                CED.Select(
                     (s, d, o) => s.serializedFrameSettingsUI.serializedLightLoopSettingsUI,
                     (s, d, o) => d.frameSettings.lightLoopSettings,
-                    SerializedLightLoopSettingsUI.SectionLightLoopSettings)).ToArray())
+                    SerializedLightLoopSettingsUI.SectionLightLoopSettings))
         };
 
         static void Drawer_FieldBackgroundColor(UIState s, SerializedHDCamera p, Editor owner)
