@@ -1,5 +1,5 @@
 {
-    "version": "0.1.21",
+    "version": "0.1.23",
     "unity": "2018.1",
     "dependencies": {
         "com.unity.postprocessing": "0.1.7"

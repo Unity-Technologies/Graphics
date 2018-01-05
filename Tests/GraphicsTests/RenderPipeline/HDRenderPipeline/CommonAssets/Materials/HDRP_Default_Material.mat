@@ -8,14 +8,12 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: HDRP_Default_Material
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
-  m_ShaderKeywords: _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _ENABLE_FOG_ON_TRANSPARENT
-    _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+  m_ShaderKeywords: _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3000
-  stringTagMap:
-    RenderType: Transparent
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
   disabledShaderPasses:
   - DistortionVectors
   - TransparentDepthPrepass
@@ -108,7 +106,7 @@ Material:
     - _AlphaCutoffPostpass: 0.5
     - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
-    - _BlendMode: 0
+    - _BlendMode: 4
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
@@ -139,7 +137,7 @@ Material:
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1
     - _Drag: 1
-    - _DstBlend: 10
+    - _DstBlend: 0
     - _EmissiveColorMode: 1
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
@@ -179,7 +177,7 @@ Material:
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
-    - _SurfaceType: 1
+    - _SurfaceType: 0
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
@@ -189,7 +187,7 @@ Material:
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
-    - _ZWrite: 0
+    - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
     - _Color: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
