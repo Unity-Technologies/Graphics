@@ -4,14 +4,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [AddComponentMenu("Rendering/Homogeneous Fog", -1)]
     public class HomogeneousFog : MonoBehaviour
     {
-        public VolumeParameters volumeParameters;
+        public VolumeParameters volumeParameters = new VolumeParameters();
 
         private void Awake()
         {
-            if (volumeParameters == null)
-            {
-                volumeParameters = new VolumeParameters();
-            }
         }
 
         private void OnEnable()
