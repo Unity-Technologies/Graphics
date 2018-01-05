@@ -3,11 +3,12 @@ Shader "Hidden/HDRenderPipeline/Deferred"
     Properties
     {
         // We need to be able to control the blend mode for deferred shader in case we do multiple pass
-        _SrcBlend("", Float) = 1
-        _DstBlend("", Float) = 1
+        [HideInInspector] _SrcBlend("", Float) = 1
+        [HideInInspector] _DstBlend("", Float) = 1
 
-        _StencilRef("", Int) = 0
-        _StencilCmp("", Int) = 3
+        [HideInInspector] _StencilMask("_StencilMask", Int) = 7
+        [HideInInspector] _StencilRef("", Int) = 0
+        [HideInInspector] _StencilCmp("", Int) = 3
     }
 
     SubShader
@@ -16,6 +17,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
         {
             Stencil
             {
+                ReadMask[_StencilMask]
                 Ref  [_StencilRef]
                 Comp [_StencilCmp]
                 Pass Keep

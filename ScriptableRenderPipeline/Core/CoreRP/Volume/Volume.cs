@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering
@@ -18,25 +17,58 @@ namespace UnityEngine.Experimental.Rendering
         [Range(0f, 1f), Tooltip("Total weight of this volume in the scene. 0 means it won't do anything, 1 means full effect.")]
         public float weight = 1f;
 
-        public List<VolumeComponent> components = new List<VolumeComponent>();
+        // Modifying sharedProfile will change the behavior of all volumes using this profile, and
+        // change profile settings that are stored in the project too
+        public VolumeProfile sharedProfile;
 
-        // Editor-only
-        [NonSerialized]
-        public bool isDirty;
+        // This property automatically instantiates the profile and makes it unique to this volume
+        // so you can safely edit it via scripting at runtime without changing the original asset
+        // in the project.
+        // Note that if you pass in your own profile, it is your responsability to destroy it once
+        // it's not in use anymore.
+        public VolumeProfile profile
+        {
+            get
+            {
+                if (m_InternalProfile == null)
+                {
+                    m_InternalProfile = ScriptableObject.CreateInstance<VolumeProfile>();
+
+                    if (sharedProfile != null)
+                    {
+                        foreach (var item in sharedProfile.components)
+                        {
+                            var itemCopy = Instantiate(item);
+                            m_InternalProfile.components.Add(itemCopy);
+                        }
+                    }
+                }
+
+                return m_InternalProfile;
+            }
+            set
+            {
+                m_InternalProfile = value;
+            }
+        }
+
+        internal VolumeProfile profileRef
+        {
+            get
+            {
+                return m_InternalProfile == null
+                    ? sharedProfile
+                    : m_InternalProfile;
+            }
+        }
 
         // Needed for state tracking (see the comments in Update)
         int m_PreviousLayer;
         float m_PreviousPriority;
+        VolumeProfile m_InternalProfile;
 
         void OnEnable()
         {
-            // Make sure every setting is valid. If a profile holds a script that doesn't exist
-            // anymore, nuke it to keep the volume clean. Note that if you delete a script that is
-            // currently in use in a volume you'll still get a one-time error in the console, it's
-            // harmless and happens because Unity does a redraw of the editor (and thus the current
-            // frame) before the recompilation step.
-            components.RemoveAll(x => x == null);
-
             m_PreviousLayer = gameObject.layer;
             VolumeManager.instance.Register(this, m_PreviousLayer);
         }
@@ -44,11 +76,6 @@ namespace UnityEngine.Experimental.Rendering
         void OnDisable()
         {
             VolumeManager.instance.Unregister(this, gameObject.layer);
-        }
-
-        void Reset()
-        {
-            isDirty = true;
         }
 
         void Update()
@@ -73,85 +100,6 @@ namespace UnityEngine.Experimental.Rendering
                 VolumeManager.instance.SetLayerDirty(layer);
                 m_PreviousPriority = priority;
             }
-        }
-
-        public T Add<T>(bool overrides = false)
-            where T : VolumeComponent
-        {
-            return (T)Add(typeof(T), overrides);
-        }
-
-        public VolumeComponent Add(Type type, bool overrides = false)
-        {
-            if (Has(type))
-                throw new InvalidOperationException("Component already exists in the volume");
-
-            var component = (VolumeComponent)ScriptableObject.CreateInstance(type);
-            component.SetAllOverridesTo(overrides);
-            components.Add(component);
-            isDirty = true;
-            return component;
-        }
-
-        public void Remove<T>()
-            where T : VolumeComponent
-        {
-            Remove(typeof(T));
-        }
-
-        public void Remove(Type type)
-        {
-            int toRemove = -1;
-
-            for (int i = 0; i < components.Count; i++)
-            {
-                if (components[i].GetType() == type)
-                {
-                    toRemove = i;
-                    break;
-                }
-            }
-
-            if (toRemove >= 0)
-            {
-                components.RemoveAt(toRemove);
-                isDirty = true;
-            }
-        }
-
-        public bool Has<T>()
-            where T : VolumeComponent
-        {
-            return Has(typeof(T));
-        }
-
-        public bool Has(Type type)
-        {
-            foreach (var component in components)
-            {
-                if (component.GetType() == type)
-                    return true;
-            }
-
-            return false;
-        }
-
-        public bool TryGet<T>(out T component)
-            where T : VolumeComponent
-        {
-            var type = typeof(T);
-            component = null;
-
-            foreach (var comp in components)
-            {
-                if (comp.GetType() == type)
-                {
-                    component = (T)comp;
-                    return true;
-                }
-            }
-
-            return false;
         }
 
 #if UNITY_EDITOR

@@ -2,6 +2,17 @@
 #include "InputSurface.hlsl"
 #include "CoreRP/ShaderLibrary/Color.hlsl"
 
+TEXTURE2D(_CameraDepthTexture);
+SAMPLER(sampler_CameraDepthTexture);
+float4 _SoftParticleFadeParams;
+float4 _CameraFadeParams;
+
+#define SOFT_PARTICLE_NEAR_FADE _SoftParticleFadeParams.x
+#define SOFT_PARTICLE_INV_FADE_DISTANCE _SoftParticleFadeParams.y
+
+#define CAMERA_NEAR_FADE _CameraFadeParams.x
+#define CAMERA_INV_FADE_DISTANCE _CameraFadeParams.y
+
 #if defined (_COLORADDSUBDIFF_ON)
 half4 _ColorAddSubDiff;
 #endif
@@ -38,24 +49,26 @@ half4 _ColorAddSubDiff;
 
 // Fading vertex function
 #if defined(SOFTPARTICLES_ON) || defined(_FADING_ON)
-#define vertFading(o) \
-    o.projectedPosition = ComputeScreenPos (clipPosition); \
-    COMPUTE_EYEDEPTH(o.projectedPosition.z);
+#define vertFading(o, positionWS, positionCS) \
+    o.projectedPosition.xy = positionCS.xy * 0.5 + positionCS.w; \
+    o.projectedPosition.y *= _ProjectionParams.x; \
+    o.projectedPosition.w = positionCS.w; \
+    o.projectedPosition.z = -TransformWorldToView(positionWS.xyz).z
 #else
-#define vertFading(o)
+#define vertFading(o, positionWS, positionCS)
 #endif
 
 // Color blending fragment function
 #if defined(_COLOROVERLAY_ON)
-#define fragColorMode(albedo, color) \
+#define fragColorMode(i) \
     albedo.rgb = lerp(1 - 2 * (1 - albedo.rgb) * (1 - i.color.rgb), 2 * albedo.rgb * i.color.rgb, step(albedo.rgb, 0.5)); \
     albedo.a *= i.color.a;
 #elif defined(_COLORCOLOR_ON)
 #define fragColorMode(i) \
-    half3 aHSL = RGBtoHSV(albedo.rgb); \
-    half3 bHSL = RGBtoHSV(i.color.rgb); \
+    half3 aHSL = RgbToHsv(albedo.rgb); \
+    half3 bHSL = RgbToHsv(i.color.rgb); \
     half3 rHSL = half3(bHSL.x, bHSL.y, aHSL.z); \
-    albedo = half4(HSVtoRGB(rHSL), albedo.a * i.color.a);
+    albedo = half4(HsvToRgb(rHSL), albedo.a * i.color.a);
 #elif defined(_COLORADDSUBDIFF_ON)
 #define fragColorMode(i) \
     albedo.rgb = albedo.rgb + i.color.rgb * _ColorAddSubDiff.x; \
@@ -78,7 +91,7 @@ half4 _ColorAddSubDiff;
 #define fragSoftParticles(i) \
     if (SOFT_PARTICLE_NEAR_FADE > 0.0 || SOFT_PARTICLE_INV_FADE_DISTANCE > 0.0) \
     { \
-        float sceneZ = LinearEyeDepth (SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(i.projectedPosition))); \
+        float sceneZ = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, i.projectedPosition.xy / i.projectedPosition.w), _ZBufferParams); \
         float fade = saturate (SOFT_PARTICLE_INV_FADE_DISTANCE * ((sceneZ - SOFT_PARTICLE_NEAR_FADE) - i.projectedPosition.z)); \
         ALBEDO_MUL *= fade; \
     }

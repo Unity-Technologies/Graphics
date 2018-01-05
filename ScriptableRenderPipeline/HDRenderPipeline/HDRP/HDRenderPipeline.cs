@@ -269,7 +269,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public enum StencilBitMask
         {
             Clear    = 0,                    // 0x0
-            Lighting = 7,                    // 0x7  - 3 bit
+            LightingMask = 7,                    // 0x7  - 3 bit
             ObjectVelocity = 128,            // 1 bit
             All      = 255                   // 0xFF - 8 bit
         }
@@ -340,6 +340,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // General material
             m_CopyStencilForNoLighting = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.copyStencilBuffer);
             m_CopyStencilForNoLighting.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.NoLighting);
+            m_CopyStencilForNoLighting.SetInt(HDShaderIDs._StencilMask, (int)StencilBitMask.LightingMask);
             m_CameraMotionVectorsMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.cameraMotionVectors);
 
             InitializeDebugMaterials();
@@ -826,7 +827,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 // In the material classification shader we will simply test is we are no lighting
                                 // Use ShaderPassID 1 => "Pass 1 - Write 1 if value different from stencilRef to output"
                                 CoreUtils.DrawFullScreen(cmd, m_CopyStencilForNoLighting, m_CameraStencilBufferCopyRT, m_CameraDepthStencilBufferRT, null, 1);
-                                cmd.ClearRandomWriteTargets();
                             }
                         }
 
@@ -1054,7 +1054,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._DistortionTexture, m_DistortionBufferRT);
                 cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._GaussianPyramidColorTexture, m_GaussianPyramidColorBufferRT);
                 cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._CameraColorTexture, m_CameraColorBufferRT);
-                cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._DepthTexture, GetDepthTexture());
                 cmd.SetComputeVectorParam(m_applyDistortionCS, HDShaderIDs._Size, size);
                 cmd.SetComputeVectorParam(m_applyDistortionCS, HDShaderIDs._ZBufferParams, Shader.GetGlobalVector(HDShaderIDs._ZBufferParams));
                 cmd.SetComputeVectorParam(m_applyDistortionCS, HDShaderIDs._GaussianPyramidColorMipSize, Shader.GetGlobalVector(HDShaderIDs._GaussianPyramidColorMipSize));
