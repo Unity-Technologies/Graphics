@@ -6,6 +6,7 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     using CED = CoreEditorDrawer<FrameSettingsUI, SerializedFrameSettings>;
+    using _ = CoreEditorUtils;
 
     [CustomEditor(typeof(HDRenderPipelineAsset))]
     public sealed partial class HDRenderPipelineInspector : HDBaseEditor<HDRenderPipelineAsset>
@@ -39,22 +40,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedProperty m_SkyReflectionSize;
         SerializedProperty m_SkyLightingOverrideLayerMask;
 
-        // FrameSettings
-        // LightLoop settings
-        SerializedProperty m_enableTileAndCluster;
-        SerializedProperty m_enableSplitLightEvaluation;
-        SerializedProperty m_enableComputeLightEvaluation;
-        SerializedProperty m_enableComputeLightVariants;
-        SerializedProperty m_enableComputeMaterialVariants;
-        SerializedProperty m_enableFptlForForwardOpaque;
-        SerializedProperty m_enableBigTilePrepass;
-        // Rendering Settings
-        SerializedProperty m_RenderingUseForwardOnly;
-        SerializedProperty m_RenderingUseDepthPrepass;
-        SerializedProperty m_RenderingUseDepthPrepassAlphaTestOnly;
-        SerializedProperty m_enableAsyncCompute;
-        SerializedProperty m_enableShadowMask;
-
         // Subsurface Scattering Settings
         SerializedProperty m_SubsurfaceScatteringSettings;
 
@@ -81,21 +66,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //m_ReflectionCacheCompressed = properties.Find(x => x.globalFrameSettings.lightLoopSettings.reflectionCacheCompressed);
             m_SkyReflectionSize = properties.Find(x => x.renderPipelineSettings.lightLoopSettings.skyReflectionSize);
             m_SkyLightingOverrideLayerMask = properties.Find(x => x.renderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask);
-
-            // FrameSettings
-            // LightLoop settings
-            m_enableTileAndCluster = properties.Find(x => x.serializedFrameSettings.lightLoopSettings.enableTileAndCluster);
-            m_enableComputeLightEvaluation = properties.Find(x => x.serializedFrameSettings.lightLoopSettings.enableComputeLightEvaluation);
-            m_enableComputeLightVariants = properties.Find(x => x.serializedFrameSettings.lightLoopSettings.enableComputeLightVariants);
-            m_enableComputeMaterialVariants = properties.Find(x => x.serializedFrameSettings.lightLoopSettings.enableComputeMaterialVariants);
-            m_enableFptlForForwardOpaque = properties.Find(x => x.serializedFrameSettings.lightLoopSettings.enableFptlForForwardOpaque);
-            m_enableBigTilePrepass = properties.Find(x => x.serializedFrameSettings.lightLoopSettings.enableBigTilePrepass);
-            // Rendering Settings
-            m_enableAsyncCompute = properties.Find(x => x.serializedFrameSettings.enableAsyncCompute);
-            m_RenderingUseForwardOnly = properties.Find(x => x.serializedFrameSettings.enableForwardRenderingOnly);
-            m_RenderingUseDepthPrepass = properties.Find(x => x.serializedFrameSettings.enableDepthPrepassWithDeferredRendering);
-            m_RenderingUseDepthPrepassAlphaTestOnly = properties.Find(x => x.serializedFrameSettings.enableAlphaTestOnlyInDeferredPrepass);
-            m_enableShadowMask = properties.Find(x => x.serializedFrameSettings.enableShadowMask);
 
             // Subsurface Scattering Settings
             m_SubsurfaceScatteringSettings = properties.Find(x => x.sssSettings);
@@ -197,6 +167,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             SettingsUI(m_Target);
 
+            EditorGUILayout.LabelField(s_Styles.defaultFrameSettings, EditorStyles.boldLabel);
             k_FrameSettings.Draw(m_FrameSettingsUI, serializedFrameSettings, this);
 
             serializedObject.ApplyModifiedProperties();
