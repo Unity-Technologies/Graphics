@@ -75,8 +75,6 @@ Shader "LightweightPipeline/Particles/Standard"
             VertexOutputLit ParticlesLitVertex(appdata_particles v)
             {
                 VertexOutputLit o;
-                float4 clipPosition = TransformObjectToHClip(v.vertex.xyz);
-
 #if _NORMALMAP
                 OutputTangentToWorld(v.tangent, v.normal, o.tangent, o.binormal, o.normal);
 #else
@@ -84,11 +82,10 @@ Shader "LightweightPipeline/Particles/Standard"
 #endif
                 o.color = v.color;
                 o.posWS.xyz = TransformObjectToWorld(v.vertex.xyz).xyz;
-                o.clipPos = TransformWorldToHClip(o.posWS.xyz);
                 o.posWS.w = ComputeFogFactor(o.clipPos.z);
+                o.clipPos = TransformWorldToHClip(o.posWS.xyz);
                 vertTexcoord(v, o);
-                vertFading(o);
-                o.clipPos = clipPosition;
+                vertFading(o, o.posWS, o.clipPos);
                 return o;
             }
 

@@ -194,11 +194,6 @@ namespace UnityEditor
 
             EditorGUILayout.Space();
 
-            GUILayout.Label(Styles.advancedOptionsText, EditorStyles.boldLabel);
-            m_MaterialEditor.RenderQueueField();
-
-            EditorGUILayout.Space();
-
             GUILayout.Label(Styles.requiredVertexStreamsText, EditorStyles.boldLabel);
             DoVertexStreamsArea(material);
         }
