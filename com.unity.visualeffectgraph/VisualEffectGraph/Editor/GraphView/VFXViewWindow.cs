@@ -25,7 +25,6 @@ namespace  UnityEditor.VFX.UI
                 { Event.KeyboardEvent("o"), view.FrameOrigin },
                 { Event.KeyboardEvent("^#>"), view.FramePrev },
                 { Event.KeyboardEvent("^>"), view.FrameNext },
-                {Event.KeyboardEvent("c"), view.CloneModels},         // TEST
                 {Event.KeyboardEvent("#^r"), view.Resync},
                 {Event.KeyboardEvent("F7"), view.Compile},
                 {Event.KeyboardEvent("#d"), view.OutputToDot},

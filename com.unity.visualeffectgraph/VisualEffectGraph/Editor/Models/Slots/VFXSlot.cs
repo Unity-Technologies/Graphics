@@ -258,6 +258,14 @@ namespace UnityEditor.VFX
             throw new InvalidOperationException(string.Format("Unable to create slot for property {0} of type {1}", property.name, property.type));
         }
 
+        public override void OnUnknownChange()
+        {
+            base.OnUnknownChange();
+
+            m_ExpressionTreeUpToDate = false;
+            m_DefaultExpressionInitialized = false;
+        }
+
         public override void OnEnable()
         {
             base.OnEnable();
@@ -331,92 +339,6 @@ namespace UnityEditor.VFX
             var owner = this.owner;
             if (owner != null  && (direction == Direction.kInput || cause == InvalidationCause.kUIChanged))
                 owner.Invalidate(cause);
-        }
-
-        public override T Clone<T>()
-        {
-            var clone = CreateInstance(GetType()) as VFXSlot;
-
-            clone.m_LinkedSlots.Clear();
-            clone.m_Property = m_Property;
-            clone.m_Direction = m_Direction;
-            if (IsMasterSlot())
-            {
-                clone.m_MasterData = new MasterData();
-                clone.m_MasterData.m_Owner = null;
-                clone.m_MasterData.m_Value = new VFXSerializableObject(property.type, value);
-                clone.m_MasterSlot = clone;
-            }
-            else
-            {
-                clone.m_MasterData = null;
-            }
-            clone.m_UICollapsed = m_UICollapsed;
-            clone.m_UIPosition = m_UIPosition;
-
-            clone.m_Children.Clear();
-            foreach (var child in children)
-            {
-                var cloneChild = child.Clone<VFXSlot>();
-                clone.AddChild(cloneChild, -1, false);
-            }
-            return clone as T;
-        }
-
-        static private void RecurseIntoSlots(VFXModel[] fromArray, VFXModel[] toArray, Action<VFXSlot, VFXSlot> fnAction)
-        {
-            if (fromArray.Length != toArray.Length)
-            {
-                throw new Exception("both model aren't equivalent");
-            }
-
-            for (int i = 0; i < fromArray.Length; ++i)
-            {
-                var from = fromArray[i];
-                var to = toArray[i];
-                if (from.GetType() != to.GetType())
-                {
-                    throw new Exception("incoherent type");
-                }
-
-                if (from is VFXSlot)
-                {
-                    fnAction(from as VFXSlot, to as VFXSlot);
-                }
-
-                if (from is IVFXSlotContainer)
-                {
-                    var fromContainer = from as IVFXSlotContainer;
-                    var toContainer = to as IVFXSlotContainer;
-                    RecurseIntoSlots(fromContainer.inputSlots.Concat(fromContainer.outputSlots).ToArray(), toContainer.inputSlots.Concat(toContainer.outputSlots).ToArray(), fnAction);
-                }
-
-                RecurseIntoSlots(from.children.ToArray(), to.children.ToArray(), fnAction);
-            }
-        }
-
-        static public void ReproduceLinkedSlotFromHierachy(VFXModel[] fromArray, VFXModel[] toArray)
-        {
-            var associativeSlot = new List<KeyValuePair<VFXSlot, VFXSlot>>();
-            RecurseIntoSlots(fromArray, toArray, (from, to) =>
-                {
-                    associativeSlot.Add(new KeyValuePair<VFXSlot, VFXSlot>(from, to));
-                });
-
-            var associativeSlotDictionnary = associativeSlot.ToDictionary(p => p.Key);
-            RecurseIntoSlots(fromArray, toArray, (from, to) =>
-                {
-                    to.m_LinkedSlots = from.m_LinkedSlots.Select(f =>
-                    {
-                        KeyValuePair<VFXSlot, VFXSlot> refSlot;
-                        if (!associativeSlotDictionnary.TryGetValue(f, out refSlot))
-                        {
-                            Debug.LogError("ReproduceLinkedSlotFromHierachy : Unable to retrieve slot from " + f);
-                            return null;
-                        }
-                        return refSlot.Value;
-                    }).Where(o => o != null).ToList();
-                });
         }
 
         public void UpdateAttributes(VFXPropertyAttribute[] attributes)
