@@ -27,6 +27,8 @@ namespace UnityEditor.ShaderGraph
             public Vector4 vector4Value;
             [FieldOffset(0)]
             public float floatValue;
+            [FieldOffset(0)]
+            public bool booleanValue;
         }
 
         Data m_Data;
@@ -108,6 +110,22 @@ namespace UnityEditor.ShaderGraph
                 if (propType != PropertyType.Float)
                     throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Float, propType));
                 m_Data.floatValue = value;
+            }
+        }
+
+        public bool booleanValue
+        {
+            get
+            {
+                if (propType != PropertyType.Boolean)
+                    throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Boolean, propType));
+                return m_Data.booleanValue;
+            }
+            set
+            {
+                if (propType != PropertyType.Boolean)
+                    throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Boolean, propType));
+                m_Data.booleanValue = value;
             }
         }
 
