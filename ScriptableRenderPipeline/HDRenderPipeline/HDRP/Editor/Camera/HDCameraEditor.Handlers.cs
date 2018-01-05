@@ -34,7 +34,7 @@ namespace UnityEditor.Experimental.Rendering
             m_PreviewCamera.CopyFrom(c);
             EditorUtility.CopySerialized(c, m_PreviewCamera);
             EditorUtility.CopySerialized(c.GetComponent<HDAdditionalCameraData>(), m_PreviewAdditionalCameraData);
-            var layer = c.GetComponent<PostProcessLayer>() ?? Assets.ScriptableRenderLoop.PostProcessing.PostProcessing.Runtime.Utils.ComponentSingleton<PostProcessLayer>.instance;
+            var layer = c.GetComponent<PostProcessLayer>() ?? ComponentSingleton<PostProcessLayer>.instance;
             EditorUtility.CopySerialized(layer, m_PreviewPostProcessLayer);
             m_PreviewCamera.cameraType = CameraType.SceneView;
             m_PreviewHDCamera.Update(m_PreviewPostProcessLayer, m_PreviewAdditionalCameraData.GetFrameSettings());
