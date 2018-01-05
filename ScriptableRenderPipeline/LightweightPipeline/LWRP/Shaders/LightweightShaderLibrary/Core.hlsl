@@ -116,10 +116,16 @@ float ComputeFogFactor(float z)
 #endif
 }
 
-void ApplyFog(inout half3 color, half fogFactor)
+void ApplyFogColor(inout half3 color, half3 fogColor, half fogFactor)
 {
 #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
-    color = lerp(unity_FogColor.rgb, color, fogFactor);
+    color = lerp(fogColor, color, fogFactor);
 #endif
 }
+
+void ApplyFog(inout half3 color, half fogFactor)
+{
+    ApplyFogColor(color, unity_FogColor.rgb, fogFactor);
+}
+
 #endif
