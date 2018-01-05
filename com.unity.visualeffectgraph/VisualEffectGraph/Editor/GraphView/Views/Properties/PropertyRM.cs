@@ -172,6 +172,7 @@ namespace UnityEditor.VFX.UI
 
         void OnCatchMouse(MouseDownEvent e)
         {
+            e.StopPropagation();
         }
 
         protected float m_labelWidth = 100;
@@ -198,6 +199,7 @@ namespace UnityEditor.VFX.UI
             {typeof(Vector2), typeof(Vector2PropertyRM)},
             {typeof(Vector3), typeof(Vector3PropertyRM)},
             {typeof(Vector4), typeof(Vector4PropertyRM)},
+            {typeof(Matrix4x4), typeof(Matrix4x4PropertyRM)},
             {typeof(Color), typeof(ColorPropertyRM)},
             {typeof(Gradient), typeof(GradientPropertyRM)},
             {typeof(AnimationCurve), typeof(CurvePropertyRM)},

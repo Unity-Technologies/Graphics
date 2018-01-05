@@ -18,6 +18,7 @@
 	font-size:11;
 	padding-bottom:0;
 	min-height:17;
+	height:-1;
 	-margin-left:-17;
 	margin-bottom:0;
 	margin-right:6;

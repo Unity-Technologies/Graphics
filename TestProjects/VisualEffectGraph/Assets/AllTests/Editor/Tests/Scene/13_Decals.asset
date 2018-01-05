@@ -87,7 +87,7 @@ MonoBehaviour:
           Culture=neutral, PublicKeyToken=null
       m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"3e33dd45070966345a8e627750d2afd3","type":3}}'
   m_Property:
-    name: texture
+    name: mainTexture
     m_serializedType:
       m_SerializableType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
@@ -7911,17 +7911,17 @@ VFXAsset:
         nameId: sourceAttributeBuffer
       values:
       - index: 81
-        nameId: uniform_Velocity_b
+        nameId: Velocity_b
       - index: 80
-        nameId: uniform_Sphere_center_c
+        nameId: Sphere_center_c
       - index: 76
-        nameId: uniform_Sphere_radius_c
+        nameId: Sphere_radius_c
       - index: 72
-        nameId: uniform_Sphere_arc_c
+        nameId: Sphere_arc_c
       - index: 71
-        nameId: uniform_Min_d
+        nameId: Min_d
       - index: 73
-        nameId: uniform_Max_d
+        nameId: Max_d
       params: []
       processor: {fileID: 7200000, guid: 1016b1f26ebb06f4ca10159a9330b6b0, type: 3}
     - type: 805306368
@@ -7932,33 +7932,33 @@ VFXAsset:
         nameId: deadListOut
       values:
       - index: 74
-        nameId: uniform_InvFieldTransform_b
+        nameId: InvFieldTransform_b
       - index: 56
-        nameId: uniform_FieldTransform_b
+        nameId: FieldTransform_b
       - index: 89
-        nameId: uniform_Intensity_b
+        nameId: Intensity_b
       - index: 88
-        nameId: uniform_DragCoefficient_b
+        nameId: DragCoefficient_b
       - index: 90
-        nameId: uniform_deltaTime_b
+        nameId: deltaTime_b
       - index: 80
-        nameId: uniform_Sphere_center_c
+        nameId: Sphere_center_c
       - index: 76
-        nameId: uniform_Sphere_radius_c
+        nameId: Sphere_radius_c
       - index: 92
-        nameId: uniform_Elasticity_c
+        nameId: Elasticity_c
       - index: 91
-        nameId: uniform_Friction_c
+        nameId: Friction_c
       - index: 87
-        nameId: uniform_LifetimeLoss_c
+        nameId: LifetimeLoss_c
       - index: 83
-        nameId: uniform_Elasticity_d
+        nameId: Elasticity_d
       - index: 82
-        nameId: uniform_Friction_d
+        nameId: Friction_d
       - index: 84
-        nameId: uniform_LifetimeLoss_d
+        nameId: LifetimeLoss_d
       - index: 75
-        nameId: texture_VectorField_b
+        nameId: VectorField_b
       params: []
       processor: {fileID: 7200000, guid: a0cd8c016278f9c45b3fed2ee411019e, type: 3}
     - type: 1073741827
@@ -7967,7 +7967,7 @@ VFXAsset:
         nameId: attributeBuffer
       values:
       - index: 85
-        nameId: uniform_Alpha_b
+        nameId: Alpha_b
       - index: 20
         nameId: uniform_c
       - index: 23
@@ -7975,15 +7975,15 @@ VFXAsset:
       - index: 21
         nameId: uniform_e
       - index: 68
-        nameId: uniform_SizeZ_d
+        nameId: SizeZ_d
       - index: 69
-        nameId: uniform_Pivot_e
+        nameId: Pivot_e
       - index: 70
-        nameId: uniform_Position_position_f
+        nameId: Position_position_f
       - index: 3
         nameId: uniform_i
       - index: 67
-        nameId: texture_texture
+        nameId: mainTexture
       params:
       - index: 0
         nameId: sortPriority

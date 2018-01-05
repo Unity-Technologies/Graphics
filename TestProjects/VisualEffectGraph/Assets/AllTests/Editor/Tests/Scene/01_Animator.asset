@@ -331,7 +331,7 @@ MonoBehaviour:
           Culture=neutral, PublicKeyToken=null
       m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"c4c66e4864ec59c4f826a03689258bb6","type":3}}'
   m_Property:
-    name: texture
+    name: mainTexture
     m_serializedType:
       m_SerializableType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
@@ -1662,11 +1662,11 @@ VFXAsset:
         nameId: sourceAttributeBuffer
       values:
       - index: 20
-        nameId: uniform_Velocity_b
+        nameId: Velocity_b
       - index: 21
-        nameId: uniform_Color_c
+        nameId: Color_c
       - index: 16
-        nameId: uniform_Lifetime_d
+        nameId: Lifetime_d
       params: []
       processor: {fileID: 7200000, guid: c5570ef9c86751e43a6bd3d4df8110d6, type: 3}
     - type: 805306368
@@ -1677,7 +1677,7 @@ VFXAsset:
         nameId: deadListOut
       values:
       - index: 17
-        nameId: uniform_deltaTime_b
+        nameId: deltaTime_b
       params: []
       processor: {fileID: 7200000, guid: 56fab83164fa34d41ac5696351f02259, type: 3}
     - type: 1073741826
@@ -1686,9 +1686,9 @@ VFXAsset:
         nameId: attributeBuffer
       values:
       - index: 14
-        nameId: uniform_SizeX_b
+        nameId: SizeX_b
       - index: 15
-        nameId: texture_texture
+        nameId: mainTexture
       params:
       - index: 0
         nameId: sortPriority

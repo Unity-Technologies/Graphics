@@ -132,27 +132,35 @@ namespace UnityEditor.VFX
         {
             var r = new VFXShaderWriter();
             var regex = new Regex(matching);
-            var expressionToNameLocal = new Dictionary<VFXExpression, string>(expressionToName);
 
-            var filteredNamedExpressions = namedExpressions.Where(o => regex.IsMatch(o.name)).ToArray();
+            var filteredNamedExpressions = namedExpressions.Where(o => regex.IsMatch(o.name) &&
+                    !(expressionToName.ContainsKey(o.exp) && expressionToName[o.exp] == o.name)); // if parameter already in the global scope, there's nothing to do
+
+            bool needScope = false;
             foreach (var namedExpression in filteredNamedExpressions)
             {
                 r.WriteVariable(namedExpression.exp.valueType, namedExpression.name, "0");
                 r.WriteLine();
+                needScope = true;
             }
 
-            r.EnterScope();
-            foreach (var namedExpression in filteredNamedExpressions)
+            if (needScope)
             {
-                if (!expressionToNameLocal.ContainsKey(namedExpression.exp))
+                var expressionToNameLocal = new Dictionary<VFXExpression, string>(expressionToName);
+                r.EnterScope();
+                foreach (var namedExpression in filteredNamedExpressions)
                 {
-                    r.WriteVariable(namedExpression.exp, expressionToNameLocal);
+                    if (!expressionToNameLocal.ContainsKey(namedExpression.exp))
+                    {
+                        r.WriteVariable(namedExpression.exp, expressionToNameLocal);
+                        r.WriteLine();
+                    }
+                    r.WriteAssignement(namedExpression.exp.valueType, namedExpression.name, expressionToNameLocal[namedExpression.exp]);
                     r.WriteLine();
                 }
-                r.WriteAssignement(namedExpression.exp.valueType, namedExpression.name, expressionToNameLocal[namedExpression.exp]);
-                r.WriteLine();
+                r.ExitScope();
             }
-            r.ExitScope();
+
             return r;
         }
 

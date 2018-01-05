@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXBlockUI : VFXContextSlotContainerUI, IDropTarget
+    class VFXBlockUI : VFXContextSlotContainerUI
     {
         Toggle m_EnableToggle;
 
@@ -21,11 +21,9 @@ namespace UnityEditor.VFX.UI
 
         public VFXBlockUI()
         {
-            this.AddManipulator(new SelectionDropper(HandleDropEvent));
-
             pickingMode = PickingMode.Position;
             m_EnableToggle = new Toggle(OnToggleEnable);
-            titleContainer.shadow.Insert(0, m_EnableToggle);
+            titleContainer.shadow.Insert(1, m_EnableToggle);
 
             capabilities &= ~Capabilities.Ascendable;
             capabilities |= Capabilities.Selectable;
@@ -68,7 +66,7 @@ namespace UnityEditor.VFX.UI
                 case EventType.DragUpdated:
                 {
                     Vector2 savedPos = evt.imguiEvent.mousePosition;
-                    evt.imguiEvent.mousePosition = this.ChangeCoordinatesTo(dropTarget as VisualElement, evt.imguiEvent.mousePosition);
+                    evt.imguiEvent.mousePosition = (dropTarget as VisualElement).WorldToLocal(evt.originalMousePosition);
                     dropTarget.DragUpdated(evt, selection, dropTarget);
                     evt.imguiEvent.mousePosition = savedPos;
                 }
@@ -79,7 +77,7 @@ namespace UnityEditor.VFX.UI
                 case EventType.DragPerform:
                 {
                     Vector2 savedPos = evt.imguiEvent.mousePosition;
-                    evt.imguiEvent.mousePosition = this.ChangeCoordinatesTo(dropTarget as VisualElement, evt.imguiEvent.mousePosition);
+                    evt.imguiEvent.mousePosition = (dropTarget as VisualElement).WorldToLocal(evt.originalMousePosition);
                     dropTarget.DragPerform(evt, selection, dropTarget);
                     evt.imguiEvent.mousePosition = savedPos;
                 }
@@ -91,53 +89,20 @@ namespace UnityEditor.VFX.UI
         {
             base.SelfChange();
 
+            if (controller.block.enabled)
+            {
+                titleContainer.RemoveFromClassList("disabled");
+            }
+            else
+            {
+                titleContainer.AddToClassList("disabled");
+            }
+
             m_EnableToggle.on = controller.block.enabled;
             if (inputContainer != null)
                 inputContainer.SetEnabled(controller.block.enabled);
             if (m_SettingsContainer != null)
                 m_SettingsContainer.SetEnabled(controller.block.enabled);
-        }
-
-        bool IDropTarget.CanAcceptDrop(List<ISelectable> selection)
-        {
-            return selection.Any(t => t is VFXBlockUI);
-        }
-
-        EventPropagation IDropTarget.DragUpdated(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
-        {
-            Vector2 pos = evt.imguiEvent.mousePosition;
-
-            context.DraggingBlocks(selection.Select(t => t as VFXBlockUI).Where(t => t != null), this, pos.y > layout.height / 2);
-
-            return EventPropagation.Stop;
-        }
-
-        EventPropagation IDropTarget.DragPerform(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
-        {
-            context.DragFinished();
-            Vector2 pos = evt.imguiEvent.mousePosition;
-
-            IEnumerable<VFXBlockUI> draggedBlocksUI = selection.Select(t => t as VFXBlockUI).Where(t => t != null);
-
-            VFXBlockController blockController = controller;
-            VFXContextController contextController = blockController.contextController;
-
-            if (context.CanDrop(draggedBlocksUI, this))
-            {
-                context.BlocksDropped(blockController, pos.y > layout.height / 2, draggedBlocksUI, evt.imguiEvent.control);
-                DragAndDrop.AcceptDrag();
-            }
-            else
-            {
-            }
-
-            return EventPropagation.Stop;
-        }
-
-        EventPropagation IDropTarget.DragExited()
-        {
-            //context.DragFinished();
-            return EventPropagation.Stop;
         }
     }
 }

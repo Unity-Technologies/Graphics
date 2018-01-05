@@ -4043,11 +4043,11 @@ VFXAsset:
       - index: 11
         nameId: uniform_g
       - index: 45
-        nameId: uniform_Sphere_center_c
+        nameId: Sphere_center_c
       - index: 48
-        nameId: uniform_Sphere_radius_c
+        nameId: Sphere_radius_c
       - index: 49
-        nameId: uniform_Sphere_arc_c
+        nameId: Sphere_arc_c
       params: []
       processor: {fileID: 7200000, guid: 235bad196b00ffd4ba5e087711ada69e, type: 3}
     - type: 805306368
@@ -4063,15 +4063,15 @@ VFXAsset:
         nameId: attributeBuffer
       values:
       - index: 46
-        nameId: uniform_AngleZ_b
+        nameId: AngleZ_b
       - index: 47
-        nameId: uniform_Pivot_c
+        nameId: Pivot_c
       - index: 39
-        nameId: uniform_SizeX_d
+        nameId: SizeX_d
       - index: 40
-        nameId: uniform_Position_position_e
+        nameId: Position_position_e
       - index: 38
-        nameId: uniform_targetOffset
+        nameId: targetOffset
       params:
       - index: 0
         nameId: sortPriority

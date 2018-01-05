@@ -189,6 +189,26 @@ namespace UnityEditor.VFX.UI
         }
     }
 
+    class Matrix4x4PropertyRM : SimpleUIPropertyRM<Matrix4x4, Matrix4x4>
+    {
+        public Matrix4x4PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
+        {
+        }
+
+        public override INotifyValueChanged<Matrix4x4> CreateField()
+        {
+            var field = new LabeledField<Matrix4x4Field, Matrix4x4>(m_Label);
+            field.control.dynamicUpdate = true;
+
+            return field;
+        }
+
+        public override float GetPreferredControlWidth()
+        {
+            return 260;
+        }
+    }
+
     class Vector2PropertyRM : SimpleUIPropertyRM<Vector2, Vector2>
     {
         public Vector2PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)

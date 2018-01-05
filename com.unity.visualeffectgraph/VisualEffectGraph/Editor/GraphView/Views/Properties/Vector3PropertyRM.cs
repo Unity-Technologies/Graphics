@@ -33,7 +33,7 @@ namespace UnityEditor.VFX.UI
                 m_ColorField.showAlpha = false;
                 m_VectorField = new Vector3Field();
                 m_VectorField.RegisterCallback<ChangeEvent<Vector3>>(OnValueChanged);
-
+                m_VectorField.dynamicUpdate = true;
                 var mainContainer = new VisualElement() { name = "mainContainer" };
                 mainContainer.AddToClassList("maincontainer");
 
@@ -46,6 +46,7 @@ namespace UnityEditor.VFX.UI
             {
                 var labeledField = new LabeledField<Vector3Field, Vector3>(m_Label);
                 m_VectorField = labeledField.control;
+                m_VectorField.dynamicUpdate = true;
                 labeledField.RegisterCallback<ChangeEvent<Vector3>>(OnValueChanged);
                 Add(labeledField);
                 labeledField.AddToClassList("fieldContainer");

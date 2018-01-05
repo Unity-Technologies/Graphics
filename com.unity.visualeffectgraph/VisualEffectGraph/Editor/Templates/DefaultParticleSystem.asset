@@ -1114,7 +1114,7 @@ MonoBehaviour:
           Culture=neutral, PublicKeyToken=null
       m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"276d9e395ae18fe40a9b4988549f2349","type":3}}'
   m_Property:
-    name: texture
+    name: mainTexture
     m_serializedType:
       m_SerializableType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
@@ -1640,17 +1640,17 @@ VFXAsset:
         nameId: sourceAttributeBuffer
       values:
       - index: 31
-        nameId: uniform_Velocity_b
+        nameId: Velocity_b
       - index: 28
-        nameId: uniform_Sphere_center_c
+        nameId: Sphere_center_c
       - index: 27
-        nameId: uniform_Sphere_radius_c
+        nameId: Sphere_radius_c
       - index: 26
-        nameId: uniform_Sphere_arc_c
+        nameId: Sphere_arc_c
       - index: 29
-        nameId: uniform_Min_d
+        nameId: Min_d
       - index: 19
-        nameId: uniform_Max_d
+        nameId: Max_d
       params: []
       processor: {fileID: 7200000, guid: 2a0261cbf6e53df4bae747886013bec6, type: 3}
     - type: 805306368
@@ -1661,7 +1661,7 @@ VFXAsset:
         nameId: deadListOut
       values:
       - index: 20
-        nameId: uniform_deltaTime_b
+        nameId: deltaTime_b
       params: []
       processor: {fileID: 7200000, guid: 74ece587ef12ffe449a21649eeb6c0a1, type: 3}
     - type: 1073741826
@@ -1670,11 +1670,11 @@ VFXAsset:
         nameId: attributeBuffer
       values:
       - index: 18
-        nameId: uniform_curve_b
+        nameId: curve_b
       - index: 24
-        nameId: uniform_gradient_c
+        nameId: gradient_c
       - index: 22
-        nameId: texture_texture
+        nameId: mainTexture
       params:
       - index: 0
         nameId: sortPriority
