@@ -20,8 +20,8 @@ Shader "LightweightPipeline/Standard (Physically Based)"
         _SpecColor("Specular", Color) = (0.2, 0.2, 0.2)
         _SpecGlossMap("Specular", 2D) = "white" {}
 
-        [Toggle] _SpecularHighlights("Specular Highlights", Float) = 1.0
-        [Toggle] _GlossyReflections("Glossy Reflections", Float) = 1.0
+        [ToggleOff] _SpecularHighlights("Specular Highlights", Float) = 1.0
+        [ToggleOff] _GlossyReflections("Glossy Reflections", Float) = 1.0
 
         _BumpScale("Scale", Float) = 1.0
         _BumpMap("Normal Map", 2D) = "bump" {}
