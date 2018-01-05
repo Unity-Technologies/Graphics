@@ -91,7 +91,14 @@ namespace UnityEditor.VFX.UI
             if (VFXPropertyAttribute.IsAngle(m_Provider.attributes))
                 SetMultiplier(Mathf.PI / 180.0f);
 
-            m_Icon.style.backgroundImage = m_IconStates[m_Provider.expanded && m_Provider.expandable ? 1 : 0];
+            if (m_Provider.expandable)
+            {
+                m_Icon.style.backgroundImage = m_IconStates[m_Provider.expanded ? 1 : 0];
+            }
+            else
+            {
+                m_Icon.style.backgroundImage = null;
+            }
             SetValue(m_Provider.value);
 
             string text = ObjectNames.NicifyVariableName(m_Provider.name);
@@ -114,30 +121,14 @@ namespace UnityEditor.VFX.UI
             if (provider.expandable)
             {
                 m_IconStates = new Texture2D[] {
-                    Resources.Load<Texture2D>("VFX/" + provider.portType.Name + "_plus"),
-                    Resources.Load<Texture2D>("VFX/" + provider.portType.Name + "_minus")
+                    Resources.Load<Texture2D>("VFX/plus"),
+                    Resources.Load<Texture2D>("VFX/minus")
                 };
-
-                if (m_IconStates[0] == null)
-                {
-                    m_IconStates[0] = Resources.Load<Texture2D>("VFX/Default_plus");
-                    m_IconStates[1] = Resources.Load<Texture2D>("VFX/Default_minus");
-                }
                 m_Icon.AddManipulator(new Clickable(OnExpand));
-            }
-            else
-            {
-                m_IconStates = new Texture2D[] {
-                    Resources.Load<Texture2D>("VFX/" + provider.portType.Name)
-                };
 
-                if (m_IconStates[0] == null)
-                {
-                    m_IconStates[0] = Resources.Load<Texture2D>("VFX/Default");
-                }
+                m_Icon.style.backgroundImage = m_IconStates[0];
             }
 
-            m_Icon.style.backgroundImage = m_IconStates[0];
 
             if (VFXPropertyAttribute.IsAngle(provider.attributes))
                 SetMultiplier(Mathf.PI / 180.0f);

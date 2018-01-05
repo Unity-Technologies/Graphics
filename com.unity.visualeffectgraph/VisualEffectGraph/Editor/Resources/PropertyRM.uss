@@ -1,13 +1,14 @@
 .propertyrm
 {
     flex-direction: row;
+    align-items:center;
 }
 
 .propertyrm #icon
 {
-    margin-top:2;
-    width:16;
-    height:16;
+    margin-top:6;
+    width:6;
+    height:6;
 }
 
 .propertyrm #spacebutton
@@ -57,32 +58,6 @@
     flex:1;
 	margin-bottom:3;
 	margin-left:2;
-}
-.propertyrm .textfieldd
-{
-    text-color:#BBB;
-
-    
-	border-left-width:0;
-	border-right-width:0;
-	border-top-width:0;
-	border-bottom-width:0;
-    
-	-background-color:#414141;
-	background-image:resource("textfield");
-	slice-left:3;
-	slice-right:3;
-	slice-top:3;
-	slice-bottom:3;
-    text-alignment:middle-left;
-    
-    padding-top:0;
-    padding-bottom:0;
-    padding-left:3;
-    padding-right:3;
-    flex:1;
-	min-height:14;
-	min-width:5;
 }
 
 #line
