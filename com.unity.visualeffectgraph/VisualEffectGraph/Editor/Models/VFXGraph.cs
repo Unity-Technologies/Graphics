@@ -45,6 +45,22 @@ namespace UnityEditor.VFX
     }
 #endif
 
+
+    public class VFXAssetPostProcessor : AssetPostprocessor
+    {
+        static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
+        {
+            foreach (var path in importedAssets)
+            {
+                VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>(path);
+                if (asset != null)
+                {
+                    asset.GetOrCreateGraph();
+                }
+            }
+        }
+    }
+
     public class VFXAssetModicationProcessor : UnityEditor.AssetModificationProcessor
     {
         static string[] OnWillSaveAssets(string[] paths)
@@ -252,6 +268,15 @@ namespace UnityEditor.VFX
 
                 AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(vfxAsset));
             }
+        }
+
+
+        public void ClearCompileData()
+        {
+            m_CompiledData = null;
+
+
+            m_ExpressionValuesDirty = true;
         }
 
         public bool UpdateSubAssets()
