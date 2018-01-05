@@ -33,7 +33,7 @@ namespace UnityEditor.Experimental.Rendering
 
             m_Asset = asset;
             m_SerializedObject = serializedObject;
-            m_ComponentsProperty = new PropertyFetcher<VolumeProfile>(serializedObject).Find(x => x.components);
+            m_ComponentsProperty = serializedObject.Find((VolumeProfile x) => x.components);
             Assert.IsNotNull(m_ComponentsProperty);
 
             m_EditorTypes = new Dictionary<Type, Type>();
