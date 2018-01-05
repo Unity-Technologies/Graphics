@@ -40,14 +40,9 @@ namespace UnityEditor.ShaderGraph
             set { m_Value = value; }
         }
 
-        /*public override VisualElement InstantiateControl()
-        {
-            return new MultiFloatSlotControlView(owner, 1, () => new Vector4(value, 0f, 0f, 0f), (newValue) => value = newValue.x);
-        }*/
-
         protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
         {
-            return value.ToString();
+            return (value ? 1 : 0).ToString();
         }
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
