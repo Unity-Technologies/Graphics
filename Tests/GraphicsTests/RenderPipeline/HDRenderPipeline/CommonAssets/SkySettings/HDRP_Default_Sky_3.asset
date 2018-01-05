@@ -9,60 +9,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
-  m_Name: HDRP_Default_Sky_LinearFog
+  m_Name: HDRP_Default_Sky_3
   m_EditorClassIdentifier: 
   components:
-  - {fileID: 114595935599516216}
-  - {fileID: 114488915870882762}
-  - {fileID: 114459158127863088}
---- !u!114 &114459158127863088
-MonoBehaviour:
-  m_ObjectHideFlags: 3
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: eb673446a9a2dfa408924fe9a56322e0, type: 3}
-  m_Name: LinearFog
-  m_EditorClassIdentifier: 
-  active: 1
-  colorMode:
-    m_OverrideState: 1
-    m_Value: 1
-  color:
-    m_OverrideState: 1
-    m_Value: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-    hdr: 0
-    showAlpha: 1
-    showEyeDropper: 1
-  density:
-    m_OverrideState: 1
-    m_Value: 1
-    min: 0
-    max: 1
-  mipFogMaxMip:
-    m_OverrideState: 1
-    m_Value: 1
-    min: 0
-    max: 1
-  mipFogNear:
-    m_OverrideState: 1
-    m_Value: 0
-    min: 0
-  mipFogFar:
-    m_OverrideState: 1
-    m_Value: 1000
-    min: 0
-  fogStart:
-    m_OverrideState: 1
-    m_Value: 0
-    min: 0
-  fogEnd:
-    m_OverrideState: 1
-    m_Value: 15
-    min: 0
---- !u!114 &114488915870882762
+  - {fileID: 114827887035766406}
+  - {fileID: 114408460862325740}
+--- !u!114 &114408460862325740
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_PrefabParentObject: {fileID: 0}
@@ -84,7 +36,7 @@ MonoBehaviour:
     m_Value: 0
   multiplier:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0.1
     min: 0
   updateMode:
     m_OverrideState: 1
@@ -97,7 +49,7 @@ MonoBehaviour:
   skyHDRI:
     m_OverrideState: 1
     m_Value: {fileID: 8900000, guid: fb0bf2eac2381484187ba8a68cdca165, type: 3}
---- !u!114 &114595935599516216
+--- !u!114 &114827887035766406
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_PrefabParentObject: {fileID: 0}
@@ -114,4 +66,4 @@ MonoBehaviour:
     m_Value: 1
   fogType:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0
