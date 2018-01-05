@@ -218,7 +218,7 @@ float4 SampleInScatteredRadianceAndTransmittance(TEXTURE3D_ARGS(VBufferLighting,
     float w = ComputeLerpPositionForLogEncoding(z, d, VBufferScaleAndSliceCount, VBufferDepthEncodingParams);
 
     float2 weights[2], offsets[2];
-    BiquadraticFilter(1 - fc, weights, offsets); // Reflect the filter around 0.5
+    BiquadraticFilter(1 - fc, weights, offsets); // Inverse-translate the filter centered around 0.5
 
     float2 rcpRes = VBufferResolution.zw;
 
