@@ -4,9 +4,9 @@ using UnityEngine;
 namespace UnityEditor.Experimental.Rendering
 {
     using _ = CoreEditorUtils;
-    using CED = CoreEditorDrawer<SerializedLightLoopSettingsUI, SerializedLightLoopSettings>;
+    using CED = CoreEditorDrawer<LightLoopSettingsUI, SerializedLightLoopSettings>;
 
-    class SerializedLightLoopSettingsUI : SerializedUIBase<SerializedLightLoopSettings>
+    class LightLoopSettingsUI : BaseUI<SerializedLightLoopSettings>
     {
         public static CED.IDrawer SectionLightLoopSettings = CED.FoldoutGroup(
             "Light Loop Settings",
@@ -18,7 +18,7 @@ namespace UnityEditor.Experimental.Rendering
         public AnimBool isSectionExpandedEnableTileAndCluster { get { return m_AnimBools[1]; } }
         public AnimBool isSectionExpandedComputeLightEvaluation { get { return m_AnimBools[2]; } }
 
-        public SerializedLightLoopSettingsUI()
+        public LightLoopSettingsUI()
             : base(3)
         {
         }
@@ -30,7 +30,7 @@ namespace UnityEditor.Experimental.Rendering
             base.Update();
         }
 
-        static void Drawer_SectionLightLoopSettings(SerializedLightLoopSettingsUI s, SerializedLightLoopSettings p, Editor owner)
+        static void Drawer_SectionLightLoopSettings(LightLoopSettingsUI s, SerializedLightLoopSettings p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.enableTileAndCluster, _.GetContent("Enable Tile And Cluster"));
             GUILayout.BeginVertical();

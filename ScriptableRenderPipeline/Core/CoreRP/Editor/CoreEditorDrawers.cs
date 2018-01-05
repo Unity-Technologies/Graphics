@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Principal;
 using UnityEditor.AnimatedValues;
 using UnityEngine;
 
@@ -22,6 +23,11 @@ namespace UnityEditor.Experimental.Rendering
         public static readonly IDrawer space = Action((state, data, owner) => EditorGUILayout.Space());
         public static readonly IDrawer noop = Action((state, data, owner) => { });
 
+        public static IDrawer Group(params IDrawer[] drawers)
+        {
+            return new GroupDrawerInternal(drawers);
+        }
+
         public static IDrawer Action(params ActionDrawer[] drawers)
         {
             return new ActionDrawerInternal(drawers);
@@ -43,6 +49,21 @@ namespace UnityEditor.Experimental.Rendering
             params CoreEditorDrawer<T2UIState, T2Data>.IDrawer[] otherDrawers)
         {
             return new SelectDrawerInternal<T2UIState, T2Data>(stateSelect, dataSelect, otherDrawers);
+        }
+
+        class GroupDrawerInternal : IDrawer
+        {
+            IDrawer[] drawers { get; set; }
+            public GroupDrawerInternal(params IDrawer[] drawers)
+            {
+                this.drawers = drawers;
+            }
+
+            void IDrawer.Draw(TUIState s, TData p, Editor owner)
+            {
+                for (var i = 0; i < drawers.Length; i++)
+                    drawers[i].Draw(s, p, owner);
+            }
         }
 
         class SelectDrawerInternal<T2UIState, T2Data> : IDrawer
