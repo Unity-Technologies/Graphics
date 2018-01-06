@@ -248,7 +248,7 @@ void FillMaterialIdSssData(int subsurfaceProfile, float radius, float thickness,
 }
 
 // Note: this modify the parameter perceptualRoughness and fresnel0, so they need to be setup
-void FillMaterialIdClearCoatData(float3 coatMask, inout BSDFData bsdfData)
+void FillMaterialIdClearCoatData(float coatMask, inout BSDFData bsdfData)
 {
     bsdfData.coatMask = coatMask;
     float ieta = lerp(1.0, CLEAR_COAT_IETA, bsdfData.coatMask);
@@ -594,9 +594,8 @@ void DecodeFromGBuffer(
     }
     else if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
-        float coatMask;
         int metallic15;
-        UnpackFloatInt8bit(inGBuffer2.a, 16.0, bsdfData.coatMask, metallic15);
+        UnpackFloatInt8bit(inGBuffer2.a, 16.0, coatMask, metallic15);
         metallic = metallic15 / 15.0;
     }
 
