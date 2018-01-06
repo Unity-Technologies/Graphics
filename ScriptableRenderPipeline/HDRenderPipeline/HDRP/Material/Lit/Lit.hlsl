@@ -73,7 +73,7 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 
 // Constant value for clear coat
 #define CLEAR_COAT_IOR 1.5
-#define CLEAR_COAT_IETA (1.0 / 1.5)
+#define CLEAR_COAT_IETA (1.0 / CLEAR_COAT_IOR)
 #define CLEAR_COAT_F0 0.04 // IORToFresnel0(CLEAR_COAT_IOR)
 #define CLEAR_COAT_PERCEPTUAL_ROUGHNESS 0.01
 #define CLEAR_COAT_ROUGHNESS ClampRoughnessForAnalyticalLights(PerceptualRoughnessToRoughness(CLEAR_COAT_PERCEPTUAL_ROUGHNESS))
@@ -715,7 +715,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     {
         preLightData.coatPartLambdaV = GetSmithJointGGXPartLambdaV(NdotV, CLEAR_COAT_ROUGHNESS);
         preLightData.coatIblR = reflect(-V, N);
-        preLightData.coatIblF = F_Schlick(CLEAR_COAT_F0, preLightData.clampNdotV) * bsdfData.coatMask;
+        preLightData.coatIblF = F_Schlick(CLEAR_COAT_F0, NdotV) * bsdfData.coatMask;
     }
 
     float3 iblN, iblR;
@@ -748,6 +748,11 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     }
 
     // IBL
+
+    // Handle IBL +  multiscattering
+    float reflectivity;
+    GetPreIntegratedFGD(NdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, reflectivity);
+
     iblR = reflect(-V, iblN);
     // This is a ad-hoc tweak to better match reference of anisotropic GGX.
     // TODO: We need a better hack.
@@ -755,10 +760,6 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     float iblRoughness = PerceptualRoughnessToRoughness(preLightData.iblPerceptualRoughness);
     // Corretion of reflected direction for better handling of rough material
     preLightData.iblR = GetSpecularDominantDir(N, iblR, iblRoughness, NdotV);
-
-    // Handle IBL +  multiscattering
-    float reflectivity;
-    GetPreIntegratedFGD(NdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, reflectivity);
 
 #ifdef LIT_USE_GGX_ENERGY_COMPENSATION
     // Ref: Practical multiple scattering compensation for microfacet models.
@@ -1695,7 +1696,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
             float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, coatR, 0.0);
             envLighting += preLightData.coatIblF * preLD.rgb;
 
-            // Can't attenuate diffuse lighting here
+            // Can't attenuate diffuse lighting here, may try to apply something on bakeLighting in PostEvaluateBSDF
         }
     }
     else
