@@ -43,6 +43,16 @@ void ConvertAnisotropyToRoughness(real perceptualRoughness, real anisotropy, out
     roughnessB = roughness * (1 - anisotropy);
 }
 
+// Same as ConvertAnisotropyToRoughness but
+// roughnessT and roughnessB are clamped, and are meant to be used with punctual and directional lights.
+void ConvertAnisotropyToClampRoughness(real perceptualRoughness, real anisotropy, out real roughnessT, out real roughnessB)
+{
+    ConvertAnisotropyToRoughness(perceptualRoughness, anisotropy, roughnessT, roughnessB);
+
+    roughnessT = ClampRoughnessForAnalyticalLights(roughnessT);
+    roughnessB = ClampRoughnessForAnalyticalLights(roughnessB);
+}
+
 // Use with stack BRDF (clear coat / coat)
 real roughnessToVariance(real roughness)
 {

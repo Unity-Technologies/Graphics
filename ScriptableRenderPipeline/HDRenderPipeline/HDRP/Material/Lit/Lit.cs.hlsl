@@ -78,9 +78,10 @@
 #define DEBUGVIEW_LIT_BSDFDATA_USE_THICK_OBJECT_MODE (1045)
 #define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE (1046)
 #define DEBUGVIEW_LIT_BSDFDATA_COAT_MASK (1047)
-#define DEBUGVIEW_LIT_BSDFDATA_IOR (1048)
-#define DEBUGVIEW_LIT_BSDFDATA_ABSORPTION_COEFFICIENT (1049)
-#define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE_MASK (1050)
+#define DEBUGVIEW_LIT_BSDFDATA_COAT_ROUGHNESS (1048)
+#define DEBUGVIEW_LIT_BSDFDATA_IOR (1049)
+#define DEBUGVIEW_LIT_BSDFDATA_ABSORPTION_COEFFICIENT (1050)
+#define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE_MASK (1051)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+GBufferMaterial:  static fields
@@ -133,6 +134,7 @@ struct BSDFData
     bool useThickObjectMode;
     float3 transmittance;
     float coatMask;
+    float coatRoughness;
     float ior;
     float3 absorptionCoefficient;
     float transmittanceMask;
@@ -265,6 +267,9 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_LIT_BSDFDATA_COAT_MASK:
             result = bsdfdata.coatMask.xxx;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_COAT_ROUGHNESS:
+            result = bsdfdata.coatRoughness.xxx;
             break;
         case DEBUGVIEW_LIT_BSDFDATA_IOR:
             result = bsdfdata.ior.xxx;

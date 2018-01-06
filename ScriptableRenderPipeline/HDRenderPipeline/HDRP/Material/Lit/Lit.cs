@@ -152,6 +152,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // ClearCoat
             public float coatMask;
+            public float coatRoughness;
 
             // Only in forward
             // Transparency
