@@ -75,8 +75,8 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define CLEAR_COAT_IOR 1.5
 #define CLEAR_COAT_IETA (1.0 / CLEAR_COAT_IOR)
 #define CLEAR_COAT_F0 0.04 // IORToFresnel0(CLEAR_COAT_IOR)
-#define CLEAR_COAT_PERCEPTUAL_ROUGHNESS 0.01
-#define CLEAR_COAT_ROUGHNESS ClampRoughnessForAnalyticalLights(PerceptualRoughnessToRoughness(CLEAR_COAT_PERCEPTUAL_ROUGHNESS))
+#define CLEAR_COAT_PERCEPTUAL_ROUGHNESS 0.031622
+#define CLEAR_COAT_ROUGHNESS (CLEAR_COAT_PERCEPTUAL_ROUGHNESS * CLEAR_COAT_PERCEPTUAL_ROUGHNESS) // 0.001
 
 //-----------------------------------------------------------------------------
 // Helper for cheap screen space raycasting
@@ -688,9 +688,11 @@ struct PreLightData
     float3   ltcMagnitudeFresnel;
 
     // Clear coat
-    float coatPartLambdaV;
-    float3 coatIblR;
-    float coatIblF; // Fresnel term for view vector
+    float    coatPartLambdaV;
+    float3   coatIblR;
+    float    coatIblF;                 // Fresnel term for view vector
+    float3x3 ltcTransformCoat;  // Inverse transformation for GGX                                 (4x VGPRs)
+    float    ltcMagnitudeCoatFresnel;
 
     // Refraction
     float3 transmissionRefractV;            // refracted view vector after exiting the shape
@@ -812,6 +814,22 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     // TODO: the fit seems rather poor. The scaling factor of 0.5 allows us
     // to match the reference for rough metals, but further darkens dielectrics.
     preLightData.ltcMagnitudeFresnel = bsdfData.fresnel0 * ltcGGXFresnelMagnitudeDiff + (float3)ltcGGXFresnelMagnitude;
+
+    if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
+    {
+        float2 uv = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(CLEAR_COAT_PERCEPTUAL_ROUGHNESS, theta * INV_HALF_PI);
+
+        // Get the inverse LTC matrix for GGX
+        // Note we load the matrix transpose (avoid to have to transpose it in shader)
+        preLightData.ltcTransformCoat = 0.0;
+        preLightData.ltcTransformCoat._m22 = 1.0;
+        preLightData.ltcTransformCoat._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_GGX_MATRIX_INDEX, 0);
+
+        ltcMagnitude = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_MULTI_GGX_FRESNEL_DISNEY_DIFFUSE_INDEX, 0).rgb;
+        ltcGGXFresnelMagnitudeDiff = ltcMagnitude.r; // The difference of magnitudes of GGX and Fresnel
+        ltcGGXFresnelMagnitude = ltcMagnitude.g;
+        preLightData.ltcMagnitudeCoatFresnel = (CLEAR_COAT_F0 * ltcGGXFresnelMagnitudeDiff + (float3)ltcGGXFresnelMagnitude) * bsdfData.coatMask;
+    }
 
     // refraction (forward only)
 #ifdef REFRACTION_MODEL
@@ -1224,12 +1242,9 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     float ltcValue;
 
     // Evaluate the diffuse part
-    {
-        ltcValue  = LTCEvaluate(P1, P2, B, preLightData.ltcTransformDiffuse);
-        ltcValue *= lightData.diffuseScale;
-        // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-        lighting.diffuse = preLightData.ltcMagnitudeDiffuse * ltcValue;
-    }
+    ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformDiffuse);
+    // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
+    lighting.diffuse = preLightData.ltcMagnitudeDiffuse * ltcValue;
 
     [branch] if (bsdfData.enableTransmission)
     {
@@ -1242,32 +1257,27 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
         // The matrix multiplication should not generate any extra ALU on GCN.
         // TODO: double evaluation is very inefficient! This is a temporary solution.
         ltcValue  = LTCEvaluate(P1, P2, B, mul(flipMatrix, k_identity3x3));
-        ltcValue *= lightData.diffuseScale;
-
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
         lighting.diffuse += bsdfData.transmittance * ltcValue;
     }
 
+    // Evaluate the specular part
+    ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformSpecular);
+    lighting.specular = preLightData.ltcMagnitudeFresnel * ltcValue;
+
     // Evaluate the coat part
     if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
-        // TODO
-        // ltcValue  = LTCEvaluate(P1, P2, B, preLightData.ltcXformClearCoat);
-        // ltcValue *= lightData.specularScale;
-        // specularLighting = preLightData.ltcClearCoatFresnelTerm * (ltcValue * bsdfData.coatCoverage);
-    }
-
-    // Evaluate the specular part
-    {
-        ltcValue  = LTCEvaluate(P1, P2, B, preLightData.ltcTransformSpecular);
-        ltcValue *= lightData.specularScale;
-        lighting.specular += preLightData.ltcMagnitudeFresnel * ltcValue;
+        lighting.diffuse *= (1.0 - preLightData.ltcMagnitudeCoatFresnel);
+        lighting.specular *= (1.0 - preLightData.ltcMagnitudeCoatFresnel);
+        ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformCoat);
+        lighting.specular += preLightData.ltcMagnitudeCoatFresnel * ltcValue;
     }
 
     // Save ALU by applying 'lightData.color' only once.
-    lighting.diffuse *= lightData.color;
-    lighting.specular *= lightData.color;
+    lighting.diffuse *= lightData.color * lightData.diffuseScale;
+    lighting.specular *= lightData.color * lightData.specularScale;;
 #endif // LIT_DISPLAY_REFERENCE_AREA
 
     return lighting;
@@ -1350,13 +1360,10 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     float ltcValue;
 
     // Evaluate the diffuse part
-    {
-        // Polygon irradiance in the transformed configuration.
-        ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformDiffuse));
-        ltcValue *= lightData.diffuseScale;
-        // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-        lighting.diffuse = preLightData.ltcMagnitudeDiffuse * ltcValue;
-    }
+    // Polygon irradiance in the transformed configuration.
+    ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformDiffuse));
+    // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
+    lighting.diffuse = preLightData.ltcMagnitudeDiffuse * ltcValue;
 
     [branch] if (bsdfData.enableTransmission)
     {
@@ -1372,37 +1379,29 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
         // Polygon irradiance in the transformed configuration.
         // TODO: double evaluation is very inefficient! This is a temporary solution.
         ltcValue  = PolygonIrradiance(mul(lightVerts, ltcTransform));
-        ltcValue *= lightData.diffuseScale;
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
         lighting.diffuse += bsdfData.transmittance * ltcValue;
     }
 
+    // Evaluate the specular part
+    // Polygon irradiance in the transformed configuration.
+    ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformSpecular));
+    lighting.specular += preLightData.ltcMagnitudeFresnel * ltcValue;
+
     // Evaluate the coat part
     if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
-        // TODO
-        // ltcValue = LTCEvaluate(lightVerts, V, bsdfData.coatNormalWS, preLightData.coatNdotV, preLightData.ltcXformClearCoat);
-        // lighting.specular = preLightData.ltcClearCoatFresnelTerm  * (ltcValue * bsdfData.coatCoverage);
-
-        // modify matL value based on Fresnel transmission
-        // matL = mul(matL, preLightData.ltcCoatT);
-
-        // V = preLightData.coatRefractV;
-    }
-
-    // Evaluate the specular part
-    {
-        // Polygon irradiance in the transformed configuration.
-        ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformSpecular));
-        ltcValue *= lightData.specularScale;
-        lighting.specular += preLightData.ltcMagnitudeFresnel * ltcValue;
+        lighting.diffuse *= (1.0 - preLightData.ltcMagnitudeCoatFresnel);
+        lighting.specular *= (1.0 - preLightData.ltcMagnitudeCoatFresnel);
+        ltcValue = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformCoat));
+        lighting.specular += preLightData.ltcMagnitudeCoatFresnel * ltcValue;
     }
 
     // Save ALU by applying 'lightData.color' only once.
-    lighting.diffuse *= lightData.color;
-    lighting.specular *= lightData.color;
+    lighting.diffuse *= lightData.color * lightData.diffuseScale;
+    lighting.specular *= lightData.color * lightData.specularScale;
 #endif // LIT_DISPLAY_REFERENCE_AREA
 
     return lighting;
