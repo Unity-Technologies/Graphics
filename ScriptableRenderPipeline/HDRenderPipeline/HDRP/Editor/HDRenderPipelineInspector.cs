@@ -28,6 +28,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // Global Render settings
         SerializedProperty m_supportDBuffer;
         SerializedProperty m_supportMSAA;
+        SerializedProperty m_supportSubsurfaceScattering;
         // Global Shadow settings
         SerializedProperty m_ShadowAtlasWidth;
         SerializedProperty m_ShadowAtlasHeight;
@@ -54,6 +55,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Global Render settings
             m_supportDBuffer = properties.Find(x => x.renderPipelineSettings.supportDBuffer);
             m_supportMSAA = properties.Find(x => x.renderPipelineSettings.supportMSAA);
+            m_supportSubsurfaceScattering = properties.Find(x => x.renderPipelineSettings.supportSubsurfaceScattering);
+
             // Global Shadow settings
             m_ShadowAtlasWidth = properties.Find(x => x.renderPipelineSettings.shadowInitParams.shadowAtlasWidth);
             m_ShadowAtlasHeight = properties.Find(x => x.renderPipelineSettings.shadowInitParams.shadowAtlasHeight);
@@ -97,6 +100,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_supportDBuffer, s_Styles.supportDBuffer);
             EditorGUILayout.PropertyField(m_supportMSAA, s_Styles.supportMSAA);
+            EditorGUILayout.PropertyField(m_supportSubsurfaceScattering, s_Styles.supportSubsurfaceScattering);
+
             EditorGUI.indentLevel--;
         }
 

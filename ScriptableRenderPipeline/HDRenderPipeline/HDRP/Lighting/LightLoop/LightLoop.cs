@@ -2087,7 +2087,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         // If SSS is disable, do lighting for both split lighting and no split lighting
                         // This is for debug purpose, so fine to use immediate material mode here to modify render state
-                        if (!m_FrameSettings.enableSSSAndTransmission)
+                        if (!m_FrameSettings.enableSubsurfaceScattering)
                         {
                             currentLightingMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.NoLighting);
                             currentLightingMaterial.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.NotEqual);

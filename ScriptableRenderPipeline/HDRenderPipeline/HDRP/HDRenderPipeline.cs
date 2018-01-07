@@ -1245,7 +1245,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var options = new LightLoop.LightingPassOptions();
 
-            if (m_FrameSettings.enableSSSAndTransmission)
+            if (m_FrameSettings.enableSubsurfaceScattering)
             {
                 // Output split lighting for materials asking for it (masked in the stencil buffer)
                 options.outputSplitLighting = true;
@@ -1309,7 +1309,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (pass == ForwardPass.Opaque)
                 {
                     // In case of forward SSS we will bind all the required target. It is up to the shader to write into it or not.
-                    if (m_FrameSettings.enableSSSAndTransmission)
+                    if (m_FrameSettings.enableSubsurfaceScattering)
                     {
                         RenderTargetIdentifier[] m_MRTWithSSS = new RenderTargetIdentifier[2 + m_SSSBufferManager.sssBufferCount];
                         m_MRTWithSSS[0] = m_CameraColorBufferRT; // Store the specular color

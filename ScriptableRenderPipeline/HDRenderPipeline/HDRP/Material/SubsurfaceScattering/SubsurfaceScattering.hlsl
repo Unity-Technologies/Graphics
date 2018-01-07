@@ -9,7 +9,8 @@
 CBUFFER_START(UnitySSSAndTransmissionParameters)
 // Warning: Unity is not able to losslessly transfer integers larger than 2^24 to the shader system.
 // Therefore, we bitcast uint to float in C#, and bitcast back to uint in the shader.
-uint   _EnableSSSAndTransmission; // Globally toggles subsurface and transmission scattering on/off
+uint   _EnableSubsurfaceScattering; // Globally toggles subsurface and transmission scattering on/off
+float  _TransmittanceMultiplier;    // Allow to switch on/off the transmittance but doesn't save the cost
 float  _TexturingModeFlags;       // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
 float  _TransmissionFlags;        // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
 // Old SSS Model >>>
@@ -32,12 +33,12 @@ float3 ApplySubsurfaceScatteringTexturingMode(float3 color, int diffusionProfile
 {
 #if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_SUBSURFACE_SCATTERING)
     // If the SSS pass is executed, we know we have SSS enabled.
-    bool enableSssAndTransmission = true;
+    bool enableSss = true;
 #else
-    bool enableSssAndTransmission = _EnableSSSAndTransmission != 0;
+    bool enableSss = _EnableSubsurfaceScattering != 0;
 #endif
 
-    if (enableSssAndTransmission)
+    if (enableSss)
     {
         bool performPostScatterTexturing = IsBitSet(asuint(_TexturingModeFlags), diffusionProfile);
 
