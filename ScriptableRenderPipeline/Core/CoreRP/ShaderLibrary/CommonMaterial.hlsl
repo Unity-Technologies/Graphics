@@ -77,6 +77,7 @@ real IORToFresnel0(real baseIor, real topIor)
 }
 
 // Assume air interface for top
+// Note: Don't handle the case fresnel0 == 1
 real Fresnel0ToIor(real fresnel0)
 {
     real sqrtF0 = sqrt(fresnel0);

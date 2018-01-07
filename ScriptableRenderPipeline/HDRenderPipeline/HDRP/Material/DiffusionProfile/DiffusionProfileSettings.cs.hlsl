@@ -2,8 +2,8 @@
 // This file was automatically generated. Please don't edit by hand.
 //
 
-#ifndef SUBSURFACESCATTERINGSETTINGS_CS_HLSL
-#define SUBSURFACESCATTERINGSETTINGS_CS_HLSL
+#ifndef DIFFUSIONPROFILESETTINGS_CS_HLSL
+#define DIFFUSIONPROFILESETTINGS_CS_HLSL
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.DiffusionProfileConstants:  static fields
 //

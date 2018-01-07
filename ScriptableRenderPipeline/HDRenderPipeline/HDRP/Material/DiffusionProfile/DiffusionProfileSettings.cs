@@ -44,7 +44,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public TransmissionMode transmissionMode;
         public Vector2          thicknessRemap;             // X = min, Y = max (in millimeters)
         public float            worldScale;                 // Size of the world unit in meters
-        public float            fresnel0;                   // Fresnel0, 0.028 for skin
+        public float            ior;                        // 1.4 for skin (mean ~0.028)
 
         // Old SSS Model >>>
         [ColorUsage(false, true)]
@@ -72,7 +72,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             transmissionMode   = TransmissionMode.None;
             thicknessRemap     = new Vector2(0f, 5f);
             worldScale         = 1f;
-            fresnel0           = 0.028f; // TYpical value for skin specular reflectance
+            ior                = 1.4f; // TYpical value for skin specular reflectance
 
             // Old SSS Model >>>
             scatterDistance1   = new Color(0.3f, 0.3f, 0.3f, 0f);
@@ -86,7 +86,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             thicknessRemap.y = Mathf.Max(thicknessRemap.y, 0f);
             thicknessRemap.x = Mathf.Clamp(thicknessRemap.x, 0f, thicknessRemap.y);
             worldScale       = Mathf.Max(worldScale, 0.001f);
-            fresnel0         = Mathf.Clamp(fresnel0, 0.0f, 0.1f);
+            ior              = Mathf.Clamp(ior, 1.0f, 2.0f);
 
             // Old SSS Model >>>
             scatterDistance1 = new Color
@@ -477,7 +477,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             worldScales[i]       = new Vector4(profiles[p].worldScale, 1.0f / profiles[p].worldScale, 0f, 0f);
             shapeParams[i]       = profiles[p].shapeParam;
             shapeParams[i].w     = profiles[p].maxRadius;
-            transmissionTintsAndFresnel0[i] = new Vector4(profiles[p].transmissionTint.r * 0.25f, profiles[p].transmissionTint.g * 0.25f, profiles[p].transmissionTint.b * 0.25f, profiles[p].fresnel0); // Premultiplied
+            // Convert ior to fresnel0
+            float fresnel0 = (profiles[p].ior - 1.0f) / (profiles[p].ior + 1.0f);
+            fresnel0 *= fresnel0; // square
+            transmissionTintsAndFresnel0[i] = new Vector4(profiles[p].transmissionTint.r * 0.25f, profiles[p].transmissionTint.g * 0.25f, profiles[p].transmissionTint.b * 0.25f, fresnel0); // Premultiplied
 
             for (int j = 0, n = DiffusionProfileConstants.SSS_N_SAMPLES_NEAR_FIELD; j < n; j++)
             {
