@@ -211,28 +211,28 @@ float3 ComputeFresnel0(float3 baseColor, float metallic, float dielectricF0)
 }
 
 // Fills the data which may be accessed if MATERIALFEATUREFLAGS_LIT_SSS is set.
-void FillMaterialFeatureTransmission(int subsurfaceProfile, float radius, float thickness, uint transmissionMode, inout BSDFData bsdfData)
+void FillMaterialFeatureTransmission(int diffusionProfile, float radius, float thickness, uint transmissionMode, inout BSDFData bsdfData)
 {
-    bsdfData.subsurfaceProfile  = subsurfaceProfile;
-    bsdfData.subsurfaceRadius   = radius;
+    bsdfData.diffusionProfile  = diffusionProfile;
+    bsdfData.subsurfaceMask   = radius;
     bsdfData.enableTransmission = _EnableSSSAndTransmission != 0;
 
-    if (bsdfData.enableTransmission && transmissionMode != SSS_TRSM_MODE_NONE)
+    if (bsdfData.enableTransmission && transmissionMode != TRANSMISSION_MODE_NONE)
     {
-        bsdfData.thickness = _ThicknessRemaps[subsurfaceProfile].x + _ThicknessRemaps[subsurfaceProfile].y * thickness;
-        bsdfData.useThickObjectMode = transmissionMode != SSS_TRSM_MODE_THIN;
+        bsdfData.thickness = _ThicknessRemaps[diffusionProfile].x + _ThicknessRemaps[diffusionProfile].y * thickness;
+        bsdfData.useThickObjectMode = transmissionMode != TRANSMISSION_MODE_THIN;
 
 #if SHADEROPTIONS_USE_DISNEY_SSS
-            bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParams[subsurfaceProfile].rgb,
-                                                                _TransmissionTintsAndFresnel0[subsurfaceProfile].rgb,
-                                                                bsdfData.thickness, bsdfData.subsurfaceRadius);
+            bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParams[diffusionProfile].rgb,
+                                                                _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
+                                                                bsdfData.thickness, bsdfData.subsurfaceMask);
 #else
-            bsdfData.transmittance = ComputeTransmittanceJimenez(_HalfRcpVariancesAndWeights[subsurfaceProfile][0].rgb,
-                                                                 _HalfRcpVariancesAndWeights[subsurfaceProfile][0].a,
-                                                                 _HalfRcpVariancesAndWeights[subsurfaceProfile][1].rgb,
-                                                                 _HalfRcpVariancesAndWeights[subsurfaceProfile][1].a,
-                                                                 _TransmissionTintsAndFresnel0[subsurfaceProfile].rgb,
-                                                                 bsdfData.thickness, bsdfData.subsurfaceRadius);
+            bsdfData.transmittance = ComputeTransmittanceJimenez(_HalfRcpVariancesAndWeights[diffusionProfile][0].rgb,
+                                                                 _HalfRcpVariancesAndWeights[diffusionProfile][0].a,
+                                                                 _HalfRcpVariancesAndWeights[diffusionProfile][1].rgb,
+                                                                 _HalfRcpVariancesAndWeights[diffusionProfile][1].a,
+                                                                 _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
+                                                                 bsdfData.thickness, bsdfData.subsurfaceMask);
 #endif
     }
 }
@@ -318,8 +318,8 @@ SSSData ConvertSurfaceDataToSSSData(SurfaceData surfaceData)
     SSSData sssData;
 
     sssData.diffuseColor = surfaceData.baseColor;
-    sssData.subsurfaceRadius = surfaceData.subsurfaceRadius;
-    sssData.subsurfaceProfile = surfaceData.subsurfaceProfile;
+    sssData.subsurfaceMask = surfaceData.subsurfaceMask;
+    sssData.diffusionProfile = surfaceData.diffusionProfile;
 
     return sssData;
 }
@@ -366,11 +366,11 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     else if (bsdfData.materialId == MATERIALID_LIT_SSS)
     {
         bsdfData.diffuseColor = surfaceData.baseColor;
-        bsdfData.fresnel0     = _TransmissionTintsAndFresnel0[surfaceData.subsurfaceProfile].a;
-        uint transmissionMode = BitFieldExtract(asuint(_TransmissionFlags), 2u * surfaceData.subsurfaceProfile, 2u);
+        bsdfData.fresnel0     = _TransmissionTintsAndFresnel0[surfaceData.diffusionProfile].a;
+        uint transmissionMode = BitFieldExtract(asuint(_TransmissionFlags), 2u * surfaceData.diffusionProfile, 2u);
 
-        FillMaterialIdSssData(surfaceData.subsurfaceProfile,
-                              surfaceData.subsurfaceRadius,
+        FillMaterialIdSssData(surfaceData.diffusionProfile,
+                              surfaceData.subsurfaceMask,
                               surfaceData.thickness,
                               transmissionMode, bsdfData);
     }
@@ -550,28 +550,28 @@ void DecodeFromGBuffer(
 
     if (HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_SSS))
     {
-        int   subsurfaceProfile = SSS_NEUTRAL_PROFILE_ID;
-        uint  transmissionMode  = SSS_TRSM_MODE_NONE;
+        int   diffusionProfile = DIFFUSION_NEUTRAL_PROFILE_ID;
+        uint  transmissionMode  = TRANSMISSION_MODE_NONE;
         float radius            = 0;
         float thickness         = 0;
 
         if (bsdfData.materialId == MATERIALID_LIT_SSS)
         {
-            // Reminder: when using SSS we exchange specular occlusion and subsurfaceRadius/profileID
+            // Reminder: when using SSS we exchange specular occlusion and subsurfaceMask/profileID
             bsdfData.specularOcclusion = inGBuffer2.r;
 
             SSSData sssData;
             DecodeFromSSSBuffer(inGBuffer0, positionSS, sssData);
 
-            subsurfaceProfile = sssData.subsurfaceProfile;
-            transmissionMode  = BitFieldExtract(asuint(_TransmissionFlags), 2u * subsurfaceProfile, 2u);
-            radius            = sssData.subsurfaceRadius;
+            diffusionProfile = sssData.diffusionProfile;
+            transmissionMode  = BitFieldExtract(asuint(_TransmissionFlags), 2u * diffusionProfile, 2u);
+            radius            = sssData.subsurfaceMask;
             thickness         = inGBuffer2.g;
 
-            dielectricF0      = _TransmissionTintsAndFresnel0[subsurfaceProfile].a;
+            dielectricF0      = _TransmissionTintsAndFresnel0[diffusionProfile].a;
         }
 
-        FillMaterialIdSssData(subsurfaceProfile, radius, thickness, transmissionMode, bsdfData);
+        FillMaterialIdSssData(diffusionProfile, radius, thickness, transmissionMode, bsdfData);
     }
 
     float coatMask = 0.0;
@@ -846,7 +846,7 @@ float3 GetBakedDiffuseLigthing(SurfaceData surfaceData, BuiltinData builtinData,
 {
     if (bsdfData.materialId == MATERIALID_LIT_SSS)
     {
-        bsdfData.diffuseColor = ApplyDiffuseTexturingMode(bsdfData.diffuseColor, bsdfData.subsurfaceProfile);
+        bsdfData.diffuseColor = ApplySubsurfaceScatteringTexturingMode(bsdfData.diffuseColor, bsdfData.diffusionProfile);
     }
 
     // Premultiply bake diffuse lighting information with DisneyDiffuse pre-integration
@@ -870,6 +870,15 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
     lightTransportData.emissiveColor = builtinData.emissiveColor;
 
     return lightTransportData;
+}
+
+//-----------------------------------------------------------------------------
+// Subsurface Scattering functions
+//-----------------------------------------------------------------------------
+
+bool HaveSubsurfaceScattering(BSDFData bsdfData)
+{
+    return bsdfData.materialId == MATERIALID_LIT_SSS && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_SSS);
 }
 
 //-----------------------------------------------------------------------------
@@ -1022,7 +1031,7 @@ float3 ComputeThicknessDisplacement(BSDFData bsdfData, float3 L, float NdotL)
     {
         // Compute the thickness in world units along the normal.
         float thicknessInMeters = bsdfData.thickness * METERS_PER_MILLIMETER;
-        float thicknessInUnits  = thicknessInMeters * _WorldScales[bsdfData.subsurfaceProfile].y;
+        float thicknessInUnits  = thicknessInMeters * _WorldScales[bsdfData.diffusionProfile].y;
 
         // Compute the thickness in world units along the light vector.
         displacement = thicknessInUnits / -NdotL;
@@ -1763,7 +1772,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
     float3 modifiedDiffuseColor;
     if (bsdfData.materialId == MATERIALID_LIT_SSS)
-        modifiedDiffuseColor = ApplyDiffuseTexturingMode(bsdfData.diffuseColor, bsdfData.subsurfaceProfile);
+        modifiedDiffuseColor = ApplySubsurfaceScatteringTexturingMode(bsdfData.diffuseColor, bsdfData.diffusionProfile);
     else
         modifiedDiffuseColor = bsdfData.diffuseColor;
 

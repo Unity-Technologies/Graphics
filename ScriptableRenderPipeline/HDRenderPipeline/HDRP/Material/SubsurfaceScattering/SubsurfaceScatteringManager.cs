@@ -118,7 +118,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_HTileRT = new RenderTargetIdentifier(m_HTile);
         }
 
-        public void PushGlobalParams(CommandBuffer cmd, SubsurfaceScatteringSettings sssParameters, FrameSettings frameSettings)
+        public void PushGlobalParams(CommandBuffer cmd, DiffusionProfileSettings sssParameters, FrameSettings frameSettings)
         {
             // Broadcast SSS parameters to all shaders.
             cmd.SetGlobalInt(HDShaderIDs._EnableSSSAndTransmission, frameSettings.enableSSSAndTransmission ? 1 : 0);
@@ -150,7 +150,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Combines specular lighting and diffuse lighting with subsurface scattering.
-        public void SubsurfaceScatteringPass(HDCamera hdCamera, CommandBuffer cmd, SubsurfaceScatteringSettings sssParameters, FrameSettings frameSettings,
+        public void SubsurfaceScatteringPass(HDCamera hdCamera, CommandBuffer cmd, DiffusionProfileSettings sssParameters, FrameSettings frameSettings,
                                             RenderTargetIdentifier colorBufferRT, RenderTargetIdentifier diffuseBufferRT, RenderTargetIdentifier depthStencilBufferRT, RenderTargetIdentifier depthTextureRT)
         {
             if (sssParameters == null || !frameSettings.enableSSSAndTransmission)

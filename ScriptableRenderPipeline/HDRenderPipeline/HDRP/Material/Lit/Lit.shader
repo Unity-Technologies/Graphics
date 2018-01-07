@@ -41,9 +41,9 @@ Shader "HDRenderPipeline/Lit"
         _Anisotropy("Anisotropy", Range(-1.0, 1.0)) = 0
         _AnisotropyMap("AnisotropyMap", 2D) = "white" {}
 
-        _SubsurfaceProfile("Subsurface Profile", Int) = 0
-        _SubsurfaceRadius("Subsurface Radius", Range(0.0, 1.0)) = 1.0
-        _SubsurfaceRadiusMap("Subsurface Radius Map", 2D) = "white" {}
+        _DiffusionProfile("Diffusion Profile", Int) = 0
+        _SubsurfaceMask("Subsurface Radius", Range(0.0, 1.0)) = 1.0
+        _SubsurfaceMaskMap("Subsurface Radius Map", 2D) = "white" {}
         _Thickness("Thickness", Range(0.0, 1.0)) = 1.0
         _ThicknessMap("Thickness Map", 2D) = "white" {}
         _ThicknessRemap("Thickness Remap", Vector) = (0, 1, 0, 0)
@@ -197,7 +197,7 @@ Shader "HDRenderPipeline/Lit"
     #pragma shader_feature _TANGENTMAP
     #pragma shader_feature _ANISOTROPYMAP
     #pragma shader_feature _DETAIL_MAP
-    #pragma shader_feature _SUBSURFACE_RADIUS_MAP
+    #pragma shader_feature _SUBSURFACE_MASK_MAP
     #pragma shader_feature _THICKNESSMAP
     #pragma shader_feature _SPECULARCOLORMAP
     #pragma shader_feature _TRANSMITTANCECOLORMAP

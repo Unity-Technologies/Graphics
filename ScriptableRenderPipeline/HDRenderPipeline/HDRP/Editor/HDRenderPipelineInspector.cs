@@ -40,8 +40,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedProperty m_SkyReflectionSize;
         SerializedProperty m_SkyLightingOverrideLayerMask;
 
-        // Subsurface Scattering Settings
-        SerializedProperty m_SubsurfaceScatteringSettings;
+        // Diffusion profile Settings
+        SerializedProperty m_DiffusionProfileSettings;
 
         SerializedFrameSettings serializedFrameSettings = null;
         FrameSettingsUI m_FrameSettingsUI = new FrameSettingsUI();
@@ -67,8 +67,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_SkyReflectionSize = properties.Find(x => x.renderPipelineSettings.lightLoopSettings.skyReflectionSize);
             m_SkyLightingOverrideLayerMask = properties.Find(x => x.renderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask);
 
-            // Subsurface Scattering Settings
-            m_SubsurfaceScatteringSettings = properties.Find(x => x.sssSettings);
+            // Diffusion profile Settings
+            m_DiffusionProfileSettings = properties.Find(x => x.diffusionProfileSettings);
 
             serializedFrameSettings = new SerializedFrameSettings(properties.Find(x => x.serializedFrameSettings));
 
@@ -139,7 +139,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUILayout.PropertyField(m_RenderPipelineResources, s_Styles.renderPipelineResources);
             EditorGUILayout.Space();
-            EditorGUILayout.PropertyField(m_SubsurfaceScatteringSettings, s_Styles.sssSettings);
+            EditorGUILayout.PropertyField(m_DiffusionProfileSettings, s_Styles.diffusionProfileSettings);
             EditorGUILayout.Space();
 
             SettingsUI(m_Target);

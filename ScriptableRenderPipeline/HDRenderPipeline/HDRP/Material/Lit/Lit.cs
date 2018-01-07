@@ -69,6 +69,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public int diffusionProfile;
             [SurfaceDataAttributes("Subsurface Mask")]
             public float subsurfaceMask;
+
+            // Transmission
+            // + Diffusion Profile
             [SurfaceDataAttributes("Thickness")]
             public float thickness;
             [SurfaceDataAttributes("Specular SSS")]
@@ -89,7 +92,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Reuse thickness from SSS
 
             [SurfaceDataAttributes("Index of refraction")]
-            public float ior;            
+            public float ior;
             [SurfaceDataAttributes("Transmittance Color")]
             public Vector3 transmittanceColor;
             [SurfaceDataAttributes("Transmittance Absorption Distance")]
@@ -124,10 +127,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // SpecularColor fold into fresnel0
 
             // SSS
-            public int subsurfaceProfile;
+            public int diffusionProfile;
             public float subsurfaceMask;
-            public float thickness;
 
+            // Transmission
+            // Transmission
+            // + Diffusion Profile
+            public float thickness;
             public bool useThickObjectMode; // Read from the diffusion profile
             public Vector3 transmittance;   // Precomputation of transmittance
 
