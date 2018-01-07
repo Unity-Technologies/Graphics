@@ -725,9 +725,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Init other parameters
     surfaceData.anisotropy = 0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
-    surfaceData.coatNormalWS = float3(0.0, 0.0, 0.0);
-    surfaceData.coatCoverage = 0.0f;
-    surfaceData.coatIOR = 0.5;
+    surfaceData.coatMask = 0.0f;
 
     // Transparency parameters
     // Use thickness from SSS

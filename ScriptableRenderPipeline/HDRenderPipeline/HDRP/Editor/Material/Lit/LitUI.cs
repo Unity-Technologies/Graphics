@@ -58,8 +58,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent thicknessRemapText = new GUIContent("Thickness Remap", "Remaps values of the thickness map from [0, 1] to the specified range.");
 
             // Clear Coat
-            public static GUIContent coatCoverageText = new GUIContent("Coat Coverage", "Percentage of clear coat coverage");
-            public static GUIContent coatIORText = new GUIContent("Coat IOR", "IOR of clear coat, value is [0..1] + 1.0. i.e 0.5 is IOR 1.5");
+            public static GUIContent coatMaskText = new GUIContent("Coat Mask", "attenuate the coating effect (similar to change to IOR of 1");
 
             // Specular color
             public static GUIContent specularColorText = new GUIContent("Specular Color", "Specular color (RGB)");
@@ -217,10 +216,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty anisotropyMap = null;
         protected const string kAnisotropyMap = "_AnisotropyMap";
 
-        protected MaterialProperty coatCoverage = null;
-        protected const string kCoatCoverage = "_CoatCoverage";
-        protected MaterialProperty coatIOR = null;
-        protected const string kCoatIOR = "_CoatIOR";
+        protected MaterialProperty coatMask = null;
+        protected const string kCoatMask = "_CoatMask";
 
         protected MaterialProperty emissiveColorMode = null;
         protected const string kEmissiveColorMode = "_EmissiveColorMode";
@@ -331,8 +328,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             anisotropyMap = FindProperty(kAnisotropyMap, props);
 
             // clear coat
-            coatCoverage = FindProperty(kCoatCoverage, props);
-            coatIOR = FindProperty(kCoatIOR, props);
+            coatMask = FindProperty(kCoatMask, props);
 
             // Transparency
             refractionMode = FindProperty(kRefractionMode, props, false);
@@ -413,8 +409,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected void ShaderClearCoatInputGUI()
         {
-            m_MaterialEditor.ShaderProperty(coatCoverage, Styles.coatCoverageText);
-            m_MaterialEditor.ShaderProperty(coatIOR, Styles.coatIORText);
+            m_MaterialEditor.ShaderProperty(coatMask, Styles.coatMaskText);
         }
 
         protected void ShaderAnisoInputGUI()
