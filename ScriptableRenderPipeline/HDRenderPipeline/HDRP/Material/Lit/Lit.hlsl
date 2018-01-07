@@ -105,16 +105,6 @@ float3 EstimateRaycast(float3 V, PositionInputs posInputs, float3 positionWS, fl
     return positionWS + rayWS * hitDistanceFromPosition;
 }
 
-//------------------------------------------------------------------------------------
-// Little helper to share code between sphere and box.
-// These function will fade the mask of a reflection volume based on normal orientation compare to direction define by the center of the reflection volume.
-//-----------------------------------------------------------------------------
-float InfluenceFadeNormalWeight(float3 normal, float3 centerToPos)
-{
-    // Start weight from 0.6f (1 fully transparent) to 0.2f (fully opaque).
-    return saturate((-1.0f / 0.4f) * dot(normal, centerToPos) + (0.6f / 0.4f));
-}
-
 //-----------------------------------------------------------------------------
 // Ligth and material classification for the deferred rendering path
 // Configure what kind of combination is supported
