@@ -345,9 +345,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             var diffusionProfileSettings = hdPipeline.diffusionProfileSettings;
 
-            if (diffusionProfileSettings == null)
+            if (hdPipeline.IsInternalDiffusionProfile(diffusionProfileSettings))
             {
-                EditorGUILayout.HelpBox("No Subsurface Scattering Settings have been assigned to the render pipeline asset.", MessageType.Warning);
+                EditorGUILayout.HelpBox("No diffusion profile Settings have been assigned to the render pipeline asset.", MessageType.Warning);
                 return;
             }
 
