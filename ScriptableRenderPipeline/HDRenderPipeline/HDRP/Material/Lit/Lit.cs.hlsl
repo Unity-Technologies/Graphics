@@ -47,9 +47,9 @@
 #define DEBUGVIEW_LIT_SURFACEDATA_TANGENT_WS (1006)
 #define DEBUGVIEW_LIT_SURFACEDATA_ANISOTROPY (1007)
 #define DEBUGVIEW_LIT_SURFACEDATA_METALLIC (1008)
-#define DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACE_RADIUS (1009)
+#define DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACE_MASK (1009)
 #define DEBUGVIEW_LIT_SURFACEDATA_THICKNESS (1010)
-#define DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACE_PROFILE (1011)
+#define DEBUGVIEW_LIT_SURFACEDATA_DIFFUSION_PROFILE (1011)
 #define DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_COLOR (1012)
 #define DEBUGVIEW_LIT_SURFACEDATA_COAT_MASK (1013)
 #define DEBUGVIEW_LIT_SURFACEDATA_IOR (1014)
@@ -71,9 +71,9 @@
 #define DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS_T (1038)
 #define DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS_B (1039)
 #define DEBUGVIEW_LIT_BSDFDATA_ANISOTROPY (1040)
-#define DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_RADIUS (1041)
+#define DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_MASK (1041)
 #define DEBUGVIEW_LIT_BSDFDATA_THICKNESS (1042)
-#define DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_PROFILE (1043)
+#define DEBUGVIEW_LIT_BSDFDATA_DIFFUSION_PROFILE (1043)
 #define DEBUGVIEW_LIT_BSDFDATA_ENABLE_TRANSMISSION (1044)
 #define DEBUGVIEW_LIT_BSDFDATA_USE_THICK_OBJECT_MODE (1045)
 #define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE (1046)
@@ -101,9 +101,9 @@ struct SurfaceData
     float3 tangentWS;
     float anisotropy;
     float metallic;
-    float subsurfaceRadius;
+    float subsurfaceMask;
     float thickness;
-    int subsurfaceProfile;
+    int diffusionProfile;
     float3 specularColor;
     float coatMask;
     float ior;
@@ -127,9 +127,9 @@ struct BSDFData
     float roughnessT;
     float roughnessB;
     float anisotropy;
-    float subsurfaceRadius;
+    float subsurfaceMask;
     float thickness;
-    int subsurfaceProfile;
+    int diffusionProfile;
     bool enableTransmission;
     bool useThickObjectMode;
     float3 transmittance;
@@ -175,14 +175,14 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
         case DEBUGVIEW_LIT_SURFACEDATA_METALLIC:
             result = surfacedata.metallic.xxx;
             break;
-        case DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACE_RADIUS:
-            result = surfacedata.subsurfaceRadius.xxx;
+        case DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACE_MASK:
+            result = surfacedata.subsurfaceMask.xxx;
             break;
         case DEBUGVIEW_LIT_SURFACEDATA_THICKNESS:
             result = surfacedata.thickness.xxx;
             break;
-        case DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACE_PROFILE:
-            result = GetIndexColor(surfacedata.subsurfaceProfile);
+        case DEBUGVIEW_LIT_SURFACEDATA_DIFFUSION_PROFILE:
+            result = GetIndexColor(surfacedata.diffusionProfile);
             break;
         case DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_COLOR:
             result = surfacedata.specularColor;
@@ -247,14 +247,14 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_LIT_BSDFDATA_ANISOTROPY:
             result = bsdfdata.anisotropy.xxx;
             break;
-        case DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_RADIUS:
-            result = bsdfdata.subsurfaceRadius.xxx;
+        case DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_MASK:
+            result = bsdfdata.subsurfaceMask.xxx;
             break;
         case DEBUGVIEW_LIT_BSDFDATA_THICKNESS:
             result = bsdfdata.thickness.xxx;
             break;
-        case DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_PROFILE:
-            result = GetIndexColor(bsdfdata.subsurfaceProfile);
+        case DEBUGVIEW_LIT_BSDFDATA_DIFFUSION_PROFILE:
+            result = GetIndexColor(bsdfdata.diffusionProfile);
             break;
         case DEBUGVIEW_LIT_BSDFDATA_ENABLE_TRANSMISSION:
             result = (bsdfdata.enableTransmission) ? float3(1.0, 1.0, 1.0) : float3(0.0, 0.0, 0.0);
