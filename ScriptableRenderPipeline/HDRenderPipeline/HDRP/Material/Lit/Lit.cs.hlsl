@@ -51,13 +51,11 @@
 #define DEBUGVIEW_LIT_SURFACEDATA_THICKNESS (1010)
 #define DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACE_PROFILE (1011)
 #define DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_COLOR (1012)
-#define DEBUGVIEW_LIT_SURFACEDATA_COAT_NORMAL_WS (1013)
-#define DEBUGVIEW_LIT_SURFACEDATA_COAT_COVERAGE (1014)
-#define DEBUGVIEW_LIT_SURFACEDATA_COAT_IOR (1015)
-#define DEBUGVIEW_LIT_SURFACEDATA_IOR (1016)
-#define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_COLOR (1017)
-#define DEBUGVIEW_LIT_SURFACEDATA_AT_DISTANCE (1018)
-#define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_MASK (1019)
+#define DEBUGVIEW_LIT_SURFACEDATA_COAT_MASK (1013)
+#define DEBUGVIEW_LIT_SURFACEDATA_IOR (1014)
+#define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_COLOR (1015)
+#define DEBUGVIEW_LIT_SURFACEDATA_AT_DISTANCE (1016)
+#define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_MASK (1017)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+BSDFData:  static fields
@@ -79,12 +77,11 @@
 #define DEBUGVIEW_LIT_BSDFDATA_ENABLE_TRANSMISSION (1044)
 #define DEBUGVIEW_LIT_BSDFDATA_USE_THICK_OBJECT_MODE (1045)
 #define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE (1046)
-#define DEBUGVIEW_LIT_BSDFDATA_COAT_NORMAL_WS (1047)
-#define DEBUGVIEW_LIT_BSDFDATA_COAT_COVERAGE (1048)
-#define DEBUGVIEW_LIT_BSDFDATA_COAT_IOR (1049)
-#define DEBUGVIEW_LIT_BSDFDATA_IOR (1050)
-#define DEBUGVIEW_LIT_BSDFDATA_ABSORPTION_COEFFICIENT (1051)
-#define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE_MASK (1052)
+#define DEBUGVIEW_LIT_BSDFDATA_COAT_MASK (1047)
+#define DEBUGVIEW_LIT_BSDFDATA_COAT_ROUGHNESS (1048)
+#define DEBUGVIEW_LIT_BSDFDATA_IOR (1049)
+#define DEBUGVIEW_LIT_BSDFDATA_ABSORPTION_COEFFICIENT (1050)
+#define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE_MASK (1051)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+GBufferMaterial:  static fields
@@ -108,9 +105,7 @@ struct SurfaceData
     float thickness;
     int subsurfaceProfile;
     float3 specularColor;
-    float3 coatNormalWS;
-    float coatCoverage;
-    float coatIOR;
+    float coatMask;
     float ior;
     float3 transmittanceColor;
     float atDistance;
@@ -138,9 +133,8 @@ struct BSDFData
     bool enableTransmission;
     bool useThickObjectMode;
     float3 transmittance;
-    float3 coatNormalWS;
-    float coatCoverage;
-    float coatIOR;
+    float coatMask;
+    float coatRoughness;
     float ior;
     float3 absorptionCoefficient;
     float transmittanceMask;
@@ -194,14 +188,8 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             result = surfacedata.specularColor;
             needLinearToSRGB = true;
             break;
-        case DEBUGVIEW_LIT_SURFACEDATA_COAT_NORMAL_WS:
-            result = surfacedata.coatNormalWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_COAT_COVERAGE:
-            result = surfacedata.coatCoverage.xxx;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_COAT_IOR:
-            result = surfacedata.coatIOR.xxx;
+        case DEBUGVIEW_LIT_SURFACEDATA_COAT_MASK:
+            result = surfacedata.coatMask.xxx;
             break;
         case DEBUGVIEW_LIT_SURFACEDATA_IOR:
             result = surfacedata.ior.xxx;
@@ -277,14 +265,11 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE:
             result = bsdfdata.transmittance;
             break;
-        case DEBUGVIEW_LIT_BSDFDATA_COAT_NORMAL_WS:
-            result = bsdfdata.coatNormalWS;
+        case DEBUGVIEW_LIT_BSDFDATA_COAT_MASK:
+            result = bsdfdata.coatMask.xxx;
             break;
-        case DEBUGVIEW_LIT_BSDFDATA_COAT_COVERAGE:
-            result = bsdfdata.coatCoverage.xxx;
-            break;
-        case DEBUGVIEW_LIT_BSDFDATA_COAT_IOR:
-            result = bsdfdata.coatIOR.xxx;
+        case DEBUGVIEW_LIT_BSDFDATA_COAT_ROUGHNESS:
+            result = bsdfdata.coatRoughness.xxx;
             break;
         case DEBUGVIEW_LIT_BSDFDATA_IOR:
             result = bsdfdata.ior.xxx;

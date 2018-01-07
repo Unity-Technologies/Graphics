@@ -91,16 +91,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3 specularColor;
 
             // ClearCoat
-            [SurfaceDataAttributes("Coat Normal", true)]
-            public Vector3 coatNormalWS;
-            [SurfaceDataAttributes("Coat coverage")]
-            public float coatCoverage;
-            [SurfaceDataAttributes("Coat IOR")]
-            public float coatIOR; // Value is [0..1] for artists but the UI will display the value between [1..2]
+            [SurfaceDataAttributes("Coat mask")]
+            public float coatMask;
 
             // Only in forward
             // Transparency
-            [SurfaceDataAttributes("Indice of refraction")]
+            [SurfaceDataAttributes("Index of refraction")]
             public float ior;
             // Reuse thickness from SSS
             [SurfaceDataAttributes("Transmittance Color")]
@@ -155,9 +151,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // fold into fresnel0
 
             // ClearCoat
-            public Vector3 coatNormalWS;
-            public float coatCoverage;
-            public float coatIOR; // CoatIOR is in range[1..2] it is surfaceData + 1
+            public float coatMask;
+            public float coatRoughness;
 
             // Only in forward
             // Transparency

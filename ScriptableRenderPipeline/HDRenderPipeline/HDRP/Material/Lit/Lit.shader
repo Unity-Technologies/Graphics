@@ -48,8 +48,7 @@ Shader "HDRenderPipeline/Lit"
         _ThicknessMap("Thickness Map", 2D) = "white" {}
         _ThicknessRemap("Thickness Remap", Vector) = (0, 1, 0, 0)
 
-        _CoatCoverage("Coat Coverage", Range(0.0, 1.0)) = 1.0
-        _CoatIOR("Coat IOR", Range(0.0, 1.0)) = 0.5
+        _CoatMask("Coat Mask", Range(0.0, 1.0)) = 1.0
 
         _SpecularColor("SpecularColor", Color) = (1, 1, 1, 1)
         _SpecularColorMap("SpecularColorMap", 2D) = "white" {}

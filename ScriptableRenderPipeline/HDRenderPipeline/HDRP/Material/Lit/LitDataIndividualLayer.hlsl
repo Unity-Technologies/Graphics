@@ -325,9 +325,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.transmittanceMask = 0.0;
 #endif
 
-    surfaceData.coatNormalWS    = input.worldToTangent[2].xyz; // Assign vertex normal
-    surfaceData.coatCoverage    = _CoatCoverage;
-    surfaceData.coatIOR         = _CoatIOR;
+    surfaceData.coatMask = _CoatMask;
 
 #else // #if !defined(LAYERED_LIT_SHADER)
 
@@ -341,9 +339,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.tangentWS = float3(0.0, 0.0, 0.0);
     surfaceData.anisotropy = 0.0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
-    surfaceData.coatNormalWS = float3(0.0, 0.0, 0.0);
-    surfaceData.coatCoverage = 0.0f;
-    surfaceData.coatIOR = 0.5;
+    surfaceData.coatMask = 0.0f;
 
     // Transparency
     surfaceData.ior = 1.0;
