@@ -41,7 +41,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableShadow = true;
         public bool enableSSR = true; // Depends on DepthPyramid
         public bool enableSSAO = true;
-        public bool enableSSSAndTransmission = true;
+        public bool enableSubsurfaceScattering = true;
 
         // Setup by system
         public float diffuseGlobalDimmer = 1.0f;
@@ -79,7 +79,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frameSettings.enableShadow = this.enableShadow;
             frameSettings.enableSSR = this.enableSSR;
             frameSettings.enableSSAO = this.enableSSAO;
-            frameSettings.enableSSSAndTransmission = this.enableSSSAndTransmission;
+            frameSettings.enableSubsurfaceScattering = this.enableSubsurfaceScattering;
 
             frameSettings.diffuseGlobalDimmer = this.diffuseGlobalDimmer;
             frameSettings.specularGlobalDimmer = this.specularGlobalDimmer;
@@ -134,7 +134,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enableShadow = frameSettings.enableShadow;
             aggregate.enableSSR = camera.cameraType == CameraType.Reflection ? false : frameSettings.enableSSR && renderPipelineSettings.supportSSR;
             aggregate.enableSSAO = frameSettings.enableSSAO && renderPipelineSettings.supportSSAO;
-            aggregate.enableSSSAndTransmission = camera.cameraType == CameraType.Reflection ? false : frameSettings.enableSSSAndTransmission && renderPipelineSettings.supportSSSAndTransmission;
+            aggregate.enableSubsurfaceScattering = camera.cameraType == CameraType.Reflection ? false : frameSettings.enableSubsurfaceScattering && renderPipelineSettings.supportSSSAndTransmission;
 
             // We have to fall back to forward-only rendering when scene view is using wireframe rendering mode
             // as rendering everything in wireframe + deferred do not play well together
@@ -178,7 +178,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableShadow, () => frameSettings.enableShadow, (value) => frameSettings.enableShadow = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableSSR, () => frameSettings.enableSSR, (value) => frameSettings.enableSSR = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableSSAO, () => frameSettings.enableSSAO, (value) => frameSettings.enableSSAO = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableSSSAndTransmission, () => frameSettings.enableSSSAndTransmission, (value) => frameSettings.enableSSSAndTransmission = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableSSSAndTransmission, () => frameSettings.enableSubsurfaceScattering, (value) => frameSettings.enableSubsurfaceScattering = (bool)value);
 
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kForwardOnly, () => frameSettings.enableForwardRenderingOnly, (value) => frameSettings.enableForwardRenderingOnly = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kDeferredDepthPrepass, () => frameSettings.enableDepthPrepassWithDeferredRendering, (value) => frameSettings.enableDepthPrepassWithDeferredRendering = (bool)value);
