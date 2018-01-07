@@ -2,45 +2,19 @@
 #define ENVMAP_FEATURE_INFLUENCENORMAL
 #define ENVMAP_FEATURE_PERFACEFADE
 
-//-----------------------------------------------------------------------------
-// SurfaceData and BSDFData
-//-----------------------------------------------------------------------------
-
 // SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
 #include "Lit.cs.hlsl"
 #include "../SubsurfaceScattering/SubsurfaceScattering.hlsl"
 
-// Define refraction keyword helpers
-#define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
-#if HAS_REFRACTION
-# include "CoreRP/ShaderLibrary/Refraction.hlsl"
-
-# if defined(_REFRACTION_PLANE)
-#  define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelPlane(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
-# elif defined(_REFRACTION_SPHERE)
-#  define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelSphere(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
-# endif
-#endif
-
-#define GBufferType0 float4
-#define GBufferType1 float4
-#define GBufferType2 float4
-#define GBufferType3 float4
+//-----------------------------------------------------------------------------
+// Texture and constant buffer declaration
+//-----------------------------------------------------------------------------
 
 // GBuffer texture declaration
 TEXTURE2D(_GBufferTexture0);
 TEXTURE2D(_GBufferTexture1);
 TEXTURE2D(_GBufferTexture2);
 TEXTURE2D(_GBufferTexture3);
-
-// Reference Lambert diffuse / GGX Specular for IBL and area lights
-#ifdef HAS_LIGHTLOOP // Both reference define below need to be define only if LightLoop is present, else we get a compile error
-// #define LIT_DISPLAY_REFERENCE_AREA
-// #define LIT_DISPLAY_REFERENCE_IBL
-#endif
-// Use Lambert diffuse instead of Disney diffuse
-// #define LIT_DIFFUSE_LAMBERT_BRDF
-#define LIT_USE_GGX_ENERGY_COMPENSATION
 
 // Rough refraction texture
 // Color pyramid (width, height, lodcount, Unused)
@@ -71,7 +45,23 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define LTC_LUT_SCALE  ((LTC_LUT_SIZE - 1) * rcp(LTC_LUT_SIZE))
 #define LTC_LUT_OFFSET (0.5 * rcp(LTC_LUT_SIZE))
 
-// Constant value for clear coat
+//-----------------------------------------------------------------------------
+// Definition
+//-----------------------------------------------------------------------------
+
+#define GBufferType0 float4
+#define GBufferType1 float4
+#define GBufferType2 float4
+#define GBufferType3 float4
+
+#define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
+
+#define DEFAULT_SPECULAR_VALUE 0.04
+
+#define GBUFFER_LIT_SPECULAR_COLOR 15
+#define GBUFFER_LIT_SSS_OR_TRANSMISSION 14
+#define GBUFFER_LIT_IRIDESCENCE 13
+
 #define CLEAR_COAT_IOR 1.5
 #define CLEAR_COAT_IETA (1.0 / CLEAR_COAT_IOR)
 #define CLEAR_COAT_F0 0.04 // IORToFresnel0(CLEAR_COAT_IOR)
@@ -79,31 +69,19 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define CLEAR_COAT_ROUGHNESS (CLEAR_COAT_PERCEPTUAL_ROUGHNESS * CLEAR_COAT_PERCEPTUAL_ROUGHNESS) // 0.001
 
 //-----------------------------------------------------------------------------
-// Helper for cheap screen space raycasting
+// Configuration
 //-----------------------------------------------------------------------------
 
-float3 EstimateRaycast(float3 V, PositionInputs posInputs, float3 positionWS, float3 rayWS)
-{
-    // For all refraction approximation, to calculate the refracted point in world space,
-    //   we approximate the scene as a plane (back plane) with normal -V at the depth hit point.
-    //   (We avoid to raymarch the depth texture to get the refracted point.)
+// Choose between Lambert diffuse and Disney diffuse (enable only one of them)
+// #define LIT_DIFFUSE_LAMBERT_BRDF
+#define LIT_USE_GGX_ENERGY_COMPENSATION
 
-    uint2 depthSize = uint2(_PyramidDepthMipSize.xy);
-
-    // Get the depth of the approximated back plane
-    float pyramidDepth = LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, posInputs.positionNDC * (depthSize >> 2), 2).r;
-    float depth = LinearEyeDepth(pyramidDepth, _ZBufferParams);
-
-    // Distance from point to the back plane
-    float depthFromPositionInput = depth - posInputs.linearDepth;
-
-    float offset = dot(-V, positionWS - posInputs.positionWS);
-    float depthFromPosition = depthFromPositionInput - offset;
-
-    float hitDistanceFromPosition = depthFromPosition / dot(-V, rayWS);
-
-    return positionWS + rayWS * hitDistanceFromPosition;
-}
+// Enable reference mode for IBL and area lights
+// Both reference define below can be define only if LightLoop is present, else we get a compile error
+#ifdef HAS_LIGHTLOOP
+// #define LIT_DISPLAY_REFERENCE_AREA
+// #define LIT_DISPLAY_REFERENCE_IBL
+#endif
 
 //-----------------------------------------------------------------------------
 // Ligth and material classification for the deferred rendering path
@@ -189,6 +167,39 @@ uint TileVariantToFeatureFlags(uint variant)
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
 
+#if HAS_REFRACTION
+# include "CoreRP/ShaderLibrary/Refraction.hlsl"
+
+# if defined(_REFRACTION_PLANE)
+#  define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelPlane(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
+# elif defined(_REFRACTION_SPHERE)
+#  define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelSphere(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
+# endif
+#endif
+
+float3 EstimateRaycast(float3 V, PositionInputs posInputs, float3 positionWS, float3 rayWS)
+{
+    // For all refraction approximation, to calculate the refracted point in world space,
+    //   we approximate the scene as a plane (back plane) with normal -V at the depth hit point.
+    //   (We avoid to raymarch the depth texture to get the refracted point.)
+
+    uint2 depthSize = uint2(_PyramidDepthMipSize.xy);
+
+    // Get the depth of the approximated back plane
+    float pyramidDepth = LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, posInputs.positionNDC * (depthSize >> 2), 2).r;
+    float depth = LinearEyeDepth(pyramidDepth, _ZBufferParams);
+
+    // Distance from point to the back plane
+    float depthFromPositionInput = depth - posInputs.linearDepth;
+
+    float offset = dot(-V, positionWS - posInputs.positionWS);
+    float depthFromPosition = depthFromPositionInput - offset;
+
+    float hitDistanceFromPosition = depthFromPosition / dot(-V, rayWS);
+
+    return positionWS + rayWS * hitDistanceFromPosition;
+}
+
 float PackMaterialId(int materialId)
 {
     return float(materialId) / 3.0;
@@ -210,29 +221,28 @@ float3 ComputeFresnel0(float3 baseColor, float metallic, float dielectricF0)
 }
 
 // Fills the data which may be accessed if MATERIALFEATUREFLAGS_LIT_SSS is set.
-void FillMaterialIdSssData(int diffusionProfile, float radius, float thickness, uint transmissionMode,
-                           inout BSDFData bsdfData)
+void FillMaterialIdSssData(int diffusionProfile, float subsurfaceMask, float thickness, uint transmissionMode, inout BSDFData bsdfData)
 {
-    bsdfData.diffusionProfile  = diffusionProfile;
-    bsdfData.subsurfaceMask   = radius;
-    bsdfData.enableTransmission = _EnableSSSAndTransmission != 0;
+    bsdfData.diffusionProfile = diffusionProfile;
+    bsdfData.subsurfaceMask = subsurfaceMask;
+    bsdfData.enableTransmission = (transmissionMode != TRANSMISSION_MODE_NONE);
 
-    if (bsdfData.enableTransmission && transmissionMode != TRANSMISSION_MODE_NONE)
+    if (bsdfData.enableTransmission)
     {
         bsdfData.thickness = _ThicknessRemaps[diffusionProfile].x + _ThicknessRemaps[diffusionProfile].y * thickness;
         bsdfData.useThickObjectMode = transmissionMode != TRANSMISSION_MODE_THIN;
 
 #if SHADEROPTIONS_USE_DISNEY_SSS
-            bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParams[diffusionProfile].rgb,
-                                                                _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
-                                                                bsdfData.thickness, bsdfData.subsurfaceMask);
+        bsdfData.transmittance = _TransmittanceMultiplier * ComputeTransmittanceDisney( _ShapeParams[diffusionProfile].rgb,
+                                                                                        _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
+                                                                                        bsdfData.thickness, 1.0);
 #else
-            bsdfData.transmittance = ComputeTransmittanceJimenez(_HalfRcpVariancesAndWeights[diffusionProfile][0].rgb,
-                                                                 _HalfRcpVariancesAndWeights[diffusionProfile][0].a,
-                                                                 _HalfRcpVariancesAndWeights[diffusionProfile][1].rgb,
-                                                                 _HalfRcpVariancesAndWeights[diffusionProfile][1].a,
-                                                                 _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
-                                                                 bsdfData.thickness, bsdfData.subsurfaceMask);
+        bsdfData.transmittance = _TransmittanceMultiplier * ComputeTransmittanceJimenez( _HalfRcpVariancesAndWeights[diffusionProfile][0].rgb,
+                                                                                            _HalfRcpVariancesAndWeights[diffusionProfile][0].a,
+                                                                                            _HalfRcpVariancesAndWeights[diffusionProfile][1].rgb,
+                                                                                            _HalfRcpVariancesAndWeights[diffusionProfile][1].a,
+                                                                                            _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
+                                                                                            bsdfData.thickness, 1.0);
 #endif
     }
 }

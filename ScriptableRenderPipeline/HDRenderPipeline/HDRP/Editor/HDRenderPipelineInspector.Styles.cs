@@ -15,6 +15,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public readonly GUIContent supportDBuffer = new GUIContent("Support Decal buffer");
             public readonly GUIContent supportMSAA = new GUIContent("Support MSAA");
+            public readonly GUIContent supportSubsurfaceScattering = new GUIContent("Support SubsurfaceScattering");
+
             // Shadow Settings
             public readonly GUIContent shadowSettings = new GUIContent("Shadow Settings");
             public readonly GUIContent shadowsAtlasWidth = new GUIContent("Atlas Width");
