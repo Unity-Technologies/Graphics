@@ -21,7 +21,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             internal SerializedProperty transmissionMode;
             internal SerializedProperty thicknessRemap;
             internal SerializedProperty worldScale;
-            internal SerializedProperty fresnel0;
+            internal SerializedProperty ior;
 
             // Old SSS Model >>>
             internal SerializedProperty scatterDistance1;
@@ -82,7 +82,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     transmissionMode = rp.Find(x => x.transmissionMode),
                     thicknessRemap = rp.Find(x => x.thicknessRemap),
                     worldScale = rp.Find(x => x.worldScale),
-                    fresnel0 = rp.Find(x => x.fresnel0),
+                    ior = rp.Find(x => x.ior),
 
                     scatterDistance1 = rp.Find(x => x.scatterDistance1),
                     scatterDistance2 = rp.Find(x => x.scatterDistance2),
@@ -151,7 +151,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             EditorGUILayout.PropertyField(profile.lerpWeight, s_Styles.profileLerpWeight);
                         }
 
+                        EditorGUILayout.PropertyField(profile.worldScale, s_Styles.profileWorldScale);
+
+                        EditorGUILayout.Space();
+                        EditorGUILayout.LabelField(s_Styles.SubsurfaceScatteringLabel, EditorStyles.boldLabel);
+
                         profile.texturingMode.intValue = EditorGUILayout.Popup(s_Styles.texturingMode, profile.texturingMode.intValue, s_Styles.texturingModeOptions);
+                        EditorGUILayout.Slider(profile.ior, 1.0f, 2.0f, s_Styles.profileIor);
+
+                        EditorGUILayout.Space();
+                        EditorGUILayout.LabelField(s_Styles.TransmissionLabel, EditorStyles.boldLabel);
+
                         profile.transmissionMode.intValue = EditorGUILayout.Popup(s_Styles.profileTransmissionMode, profile.transmissionMode.intValue, s_Styles.transmissionModeOptions);
 
                         EditorGUILayout.PropertyField(profile.transmissionTint, s_Styles.profileTransmissionTint);
@@ -159,8 +169,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         var thicknessRemap = profile.thicknessRemap.vector2Value;
                         EditorGUILayout.MinMaxSlider(s_Styles.profileThicknessRemap, ref thicknessRemap.x, ref thicknessRemap.y, 0f, 50f);
                         profile.thicknessRemap.vector2Value = thicknessRemap;
-                        EditorGUILayout.PropertyField(profile.worldScale, s_Styles.profileWorldScale);
-                        EditorGUILayout.Slider(profile.fresnel0, 0.0f, 0.1f, s_Styles.profileFresnel0);
 
                         EditorGUILayout.Space();
                         EditorGUILayout.LabelField(s_Styles.profilePreview0, s_Styles.centeredMiniBoldLabel);

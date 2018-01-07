@@ -19,7 +19,7 @@ MonoBehaviour:
     transmissionMode: 2
     thicknessRemap: {x: 0, y: 8.152544}
     worldScale: 1
-    fresnel0: 0
+    ior: 1.4
     scatterDistance1: {r: 0.3019608, g: 0.20000002, b: 0.20000002, a: 0}
     scatterDistance2: {r: 0.6, g: 0.20000002, b: 0.20000002, a: 0}
     lerpWeight: 0.5
@@ -30,7 +30,7 @@ MonoBehaviour:
     transmissionMode: 1
     thicknessRemap: {x: 0, y: 0.2873168}
     worldScale: 1
-    fresnel0: 0
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 0.5
@@ -41,7 +41,7 @@ MonoBehaviour:
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 5}
     worldScale: 1
-    fresnel0: 0
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
@@ -52,7 +52,7 @@ MonoBehaviour:
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 5}
     worldScale: 1
-    fresnel0: 0
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
@@ -63,7 +63,7 @@ MonoBehaviour:
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 5}
     worldScale: 1
-    fresnel0: 0
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
@@ -74,7 +74,7 @@ MonoBehaviour:
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 5}
     worldScale: 1
-    fresnel0: 0
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
@@ -85,7 +85,7 @@ MonoBehaviour:
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 5}
     worldScale: 1
-    fresnel0: 0
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
@@ -96,7 +96,7 @@ MonoBehaviour:
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 5}
     worldScale: 1
-    fresnel0: 0
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
@@ -107,7 +107,7 @@ MonoBehaviour:
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 5}
     worldScale: 1
-    fresnel0: 0
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
@@ -118,7 +118,7 @@ MonoBehaviour:
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 5}
     worldScale: 1
-    fresnel0: 0
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
@@ -129,7 +129,7 @@ MonoBehaviour:
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 5}
     worldScale: 1
-    fresnel0: 0
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
@@ -140,7 +140,7 @@ MonoBehaviour:
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 5}
     worldScale: 1
-    fresnel0: 0
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
@@ -151,7 +151,7 @@ MonoBehaviour:
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 5}
     worldScale: 1
-    fresnel0: 0
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
@@ -162,7 +162,7 @@ MonoBehaviour:
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 5}
     worldScale: 1
-    fresnel0: 0
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
@@ -173,7 +173,7 @@ MonoBehaviour:
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 5}
     worldScale: 1
-    fresnel0: 0
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
