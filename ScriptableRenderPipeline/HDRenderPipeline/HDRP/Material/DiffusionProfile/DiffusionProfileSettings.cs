@@ -3,15 +3,15 @@ using System;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [GenerateHLSL]
-    public class SssConstants
+    public class DiffusionProfileConstants
     {
-        public const int SSS_N_PROFILES           = 16; // Max. number of profiles, including the slot taken by the neutral profile
-        public const int SSS_NEUTRAL_PROFILE_ID   = 0;  // Does not result in blurring
-        public const int SSS_N_SAMPLES_NEAR_FIELD = 55; // Used for extreme close ups; must be a Fibonacci number
-        public const int SSS_N_SAMPLES_FAR_FIELD  = 21; // Used at a regular distance; must be a Fibonacci number
-        public const int SSS_LOD_THRESHOLD        = 4;  // The LoD threshold of the near-field kernel (in pixels)
-        public const int SSS_TRSM_MODE_NONE       = 0;
-        public const int SSS_TRSM_MODE_THIN       = 1;
+        public const int DIFFUSION_N_PROFILES           = 16; // Max. number of profiles, including the slot taken by the neutral profile
+        public const int DIFFUSION_NEUTRAL_PROFILE_ID   = 0;  // Does not result in blurring
+        public const int SSS_N_SAMPLES_NEAR_FIELD       = 55; // Used for extreme close ups; must be a Fibonacci number
+        public const int SSS_N_SAMPLES_FAR_FIELD        = 21; // Used at a regular distance; must be a Fibonacci number
+        public const int SSS_LOD_THRESHOLD              = 4;  // The LoD threshold of the near-field kernel (in pixels)
+        public const int TRANSMISSION_MODE_NONE         = 0;
+        public const int TRANSMISSION_MODE_THIN         = 1;
         // Old SSS Model >>>
         public const int SSS_BASIC_N_SAMPLES      = 11; // Must be an odd number
         public const int SSS_BASIC_DISTANCE_SCALE = 3;  // SSS distance units per centimeter
@@ -19,7 +19,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     }
 
     [Serializable]
-    public sealed class SubsurfaceScatteringProfile
+    public sealed class DiffusionProfile
     {
         public enum TexturingMode : uint
         {
@@ -29,8 +29,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public enum TransmissionMode : uint
         {
-            None = SssConstants.SSS_TRSM_MODE_NONE,
-            ThinObject = SssConstants.SSS_TRSM_MODE_THIN,
+            None = DiffusionProfileConstants.TRANSMISSION_MODE_NONE,
+            ThinObject = DiffusionProfileConstants.TRANSMISSION_MODE_THIN,
             Regular
         }
 
@@ -62,7 +62,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4          halfRcpWeightedVariances { get; private set; }
         public Vector4[]        filterKernelBasic { get; private set; }
 
-        public SubsurfaceScatteringProfile(string name)
+        public DiffusionProfile(string name)
         {
             this.name          = name;
 
@@ -112,11 +112,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Ref: Approximate Reflectance Profiles for Efficient Subsurface Scattering by Pixar.
         public void UpdateKernel()
         {
-            if (filterKernelNearField == null || filterKernelNearField.Length != SssConstants.SSS_N_SAMPLES_NEAR_FIELD)
-                filterKernelNearField = new Vector2[SssConstants.SSS_N_SAMPLES_NEAR_FIELD];
+            if (filterKernelNearField == null || filterKernelNearField.Length != DiffusionProfileConstants.SSS_N_SAMPLES_NEAR_FIELD)
+                filterKernelNearField = new Vector2[DiffusionProfileConstants.SSS_N_SAMPLES_NEAR_FIELD];
 
-            if (filterKernelFarField == null || filterKernelFarField.Length != SssConstants.SSS_N_SAMPLES_FAR_FIELD)
-                filterKernelFarField = new Vector2[SssConstants.SSS_N_SAMPLES_FAR_FIELD];
+            if (filterKernelFarField == null || filterKernelFarField.Length != DiffusionProfileConstants.SSS_N_SAMPLES_FAR_FIELD)
+                filterKernelFarField = new Vector2[DiffusionProfileConstants.SSS_N_SAMPLES_FAR_FIELD];
 
             // Clamp to avoid artifacts.
             shapeParam = new Vector3(
@@ -136,7 +136,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // ------------------------------------------------------------------------------------
 
             // Importance sample the near field kernel.
-            for (int i = 0, n = SssConstants.SSS_N_SAMPLES_NEAR_FIELD; i < n; i++)
+            for (int i = 0, n = DiffusionProfileConstants.SSS_N_SAMPLES_NEAR_FIELD; i < n; i++)
             {
                 float p = (i + 0.5f) * (1f / n);
                 float r = DisneyProfileCdfInverse(p, s);
@@ -148,7 +148,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Importance sample the far field kernel.
-            for (int i = 0, n = SssConstants.SSS_N_SAMPLES_FAR_FIELD; i < n; i++)
+            for (int i = 0, n = DiffusionProfileConstants.SSS_N_SAMPLES_FAR_FIELD; i < n; i++)
             {
                 float p = (i + 0.5f) * (1f / n);
                 float r = DisneyProfileCdfInverse(p, s);
@@ -159,7 +159,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 filterKernelFarField[i].y = 1f / DisneyProfilePdf(r, s);
             }
 
-            maxRadius = filterKernelFarField[SssConstants.SSS_N_SAMPLES_FAR_FIELD - 1].x;
+            maxRadius = filterKernelFarField[DiffusionProfileConstants.SSS_N_SAMPLES_FAR_FIELD - 1].x;
 
             // Old SSS Model >>>
             UpdateKernelAndVarianceData();
@@ -169,8 +169,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Old SSS Model >>>
         public void UpdateKernelAndVarianceData()
         {
-            const int kNumSamples    = SssConstants.SSS_BASIC_N_SAMPLES;
-            const int kDistanceScale = SssConstants.SSS_BASIC_DISTANCE_SCALE;
+            const int kNumSamples    = DiffusionProfileConstants.SSS_BASIC_N_SAMPLES;
+            const int kDistanceScale = DiffusionProfileConstants.SSS_BASIC_DISTANCE_SCALE;
 
             if (filterKernelBasic == null || filterKernelBasic.Length != kNumSamples)
                 filterKernelBasic = new Vector4[kNumSamples];
@@ -357,9 +357,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // <<< Old SSS Model
     }
 
-    public sealed class SubsurfaceScatteringSettings : ScriptableObject
+    public sealed class DiffusionProfileSettings : ScriptableObject
     {
-        public SubsurfaceScatteringProfile[] profiles;
+        public DiffusionProfile[] profiles;
 
         [NonSerialized] public uint      texturingModeFlags;        // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
         [NonSerialized] public uint      transmissionFlags;         // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
@@ -375,11 +375,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [NonSerialized] public Vector4[] filterKernelsBasic;
         // <<< Old SSS Model
 
-        public SubsurfaceScatteringProfile this[int index]
+        public DiffusionProfile this[int index]
         {
             get
             {
-                if (index >= SssConstants.SSS_N_PROFILES - 1)
+                if (index >= DiffusionProfileConstants.DIFFUSION_N_PROFILES - 1)
                     throw new IndexOutOfRangeException("index");
 
                 return profiles[index];
@@ -389,34 +389,34 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void OnEnable()
         {
             // The neutral profile is not a part of the array.
-            int profileArraySize = SssConstants.SSS_N_PROFILES - 1;
+            int profileArraySize = DiffusionProfileConstants.DIFFUSION_N_PROFILES - 1;
 
             if (profiles != null && profiles.Length != profileArraySize)
                 Array.Resize(ref profiles, profileArraySize);
 
             if (profiles == null)
-                profiles = new SubsurfaceScatteringProfile[profileArraySize];
+                profiles = new DiffusionProfile[profileArraySize];
 
             for (int i = 0; i < profileArraySize; i++)
             {
                 if (profiles[i] == null)
-                    profiles[i] = new SubsurfaceScatteringProfile("Profile " + (i + 1));
+                    profiles[i] = new DiffusionProfile("Profile " + (i + 1));
 
                 profiles[i].Validate();
             }
 
-            ValidateArray(ref thicknessRemaps,   SssConstants.SSS_N_PROFILES);
-            ValidateArray(ref worldScales,       SssConstants.SSS_N_PROFILES);
-            ValidateArray(ref shapeParams,       SssConstants.SSS_N_PROFILES);
-            ValidateArray(ref transmissionTintsAndFresnel0, SssConstants.SSS_N_PROFILES);
-            ValidateArray(ref filterKernels,     SssConstants.SSS_N_PROFILES * SssConstants.SSS_N_SAMPLES_NEAR_FIELD);
+            ValidateArray(ref thicknessRemaps,   DiffusionProfileConstants.DIFFUSION_N_PROFILES);
+            ValidateArray(ref worldScales,       DiffusionProfileConstants.DIFFUSION_N_PROFILES);
+            ValidateArray(ref shapeParams,       DiffusionProfileConstants.DIFFUSION_N_PROFILES);
+            ValidateArray(ref transmissionTintsAndFresnel0, DiffusionProfileConstants.DIFFUSION_N_PROFILES);
+            ValidateArray(ref filterKernels,     DiffusionProfileConstants.DIFFUSION_N_PROFILES * DiffusionProfileConstants.SSS_N_SAMPLES_NEAR_FIELD);
 
             // Old SSS Model >>>
-            ValidateArray(ref halfRcpWeightedVariances,   SssConstants.SSS_N_PROFILES);
-            ValidateArray(ref halfRcpVariancesAndWeights, SssConstants.SSS_N_PROFILES * 2);
-            ValidateArray(ref filterKernelsBasic,         SssConstants.SSS_N_PROFILES * SssConstants.SSS_BASIC_N_SAMPLES);
+            ValidateArray(ref halfRcpWeightedVariances,   DiffusionProfileConstants.DIFFUSION_N_PROFILES);
+            ValidateArray(ref halfRcpVariancesAndWeights, DiffusionProfileConstants.DIFFUSION_N_PROFILES * 2);
+            ValidateArray(ref filterKernelsBasic,         DiffusionProfileConstants.DIFFUSION_N_PROFILES * DiffusionProfileConstants.SSS_BASIC_N_SAMPLES);
 
-            Debug.Assert(SssConstants.SSS_NEUTRAL_PROFILE_ID < 16, "Transmission flags (32-bit integer) cannot support more than 16 profiles (2 bits per profile).");
+            Debug.Assert(DiffusionProfileConstants.DIFFUSION_NEUTRAL_PROFILE_ID < 16, "Transmission flags (32-bit integer) cannot support more than 16 profiles (2 bits per profile).");
 
             UpdateCache();
         }
@@ -429,18 +429,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void UpdateCache()
         {
-            for (int i = 0; i < SssConstants.SSS_N_PROFILES - 1; i++)
+            for (int i = 0; i < DiffusionProfileConstants.DIFFUSION_N_PROFILES - 1; i++)
             {
                 UpdateCache(i);
             }
 
             // Fill the neutral profile.
-            int neutralId = SssConstants.SSS_NEUTRAL_PROFILE_ID;
+            int neutralId = DiffusionProfileConstants.DIFFUSION_NEUTRAL_PROFILE_ID;
 
             worldScales[neutralId] = Vector4.one;
             shapeParams[neutralId] = Vector4.zero;
 
-            for (int j = 0, n = SssConstants.SSS_N_SAMPLES_NEAR_FIELD; j < n; j++)
+            for (int j = 0, n = DiffusionProfileConstants.SSS_N_SAMPLES_NEAR_FIELD; j < n; j++)
             {
                 filterKernels[n * neutralId + j].x = 0f;
                 filterKernels[n * neutralId + j].y = 1f;
@@ -451,7 +451,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Old SSS Model >>>
             halfRcpWeightedVariances[neutralId] = Vector4.one;
 
-            for (int j = 0, n = SssConstants.SSS_BASIC_N_SAMPLES; j < n; j++)
+            for (int j = 0, n = DiffusionProfileConstants.SSS_BASIC_N_SAMPLES; j < n; j++)
             {
                 filterKernelsBasic[n * neutralId + j]   = Vector4.one;
                 filterKernelsBasic[n * neutralId + j].w = 0f;
@@ -479,12 +479,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             shapeParams[i].w     = profiles[p].maxRadius;
             transmissionTintsAndFresnel0[i] = new Vector4(profiles[p].transmissionTint.r * 0.25f, profiles[p].transmissionTint.g * 0.25f, profiles[p].transmissionTint.b * 0.25f, profiles[p].fresnel0); // Premultiplied
 
-            for (int j = 0, n = SssConstants.SSS_N_SAMPLES_NEAR_FIELD; j < n; j++)
+            for (int j = 0, n = DiffusionProfileConstants.SSS_N_SAMPLES_NEAR_FIELD; j < n; j++)
             {
                 filterKernels[n * i + j].x = profiles[p].filterKernelNearField[j].x;
                 filterKernels[n * i + j].y = profiles[p].filterKernelNearField[j].y;
 
-                if (j < SssConstants.SSS_N_SAMPLES_FAR_FIELD)
+                if (j < DiffusionProfileConstants.SSS_N_SAMPLES_FAR_FIELD)
                 {
                     filterKernels[n * i + j].z = profiles[p].filterKernelFarField[j].x;
                     filterKernels[n * i + j].w = profiles[p].filterKernelFarField[j].y;
@@ -494,16 +494,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Old SSS Model >>>
             halfRcpWeightedVariances[i] = profiles[p].halfRcpWeightedVariances;
 
-            var stdDev1 = ((1f / 3f) * SssConstants.SSS_BASIC_DISTANCE_SCALE) * (Vector4)profiles[p].scatterDistance1;
-            var stdDev2 = ((1f / 3f) * SssConstants.SSS_BASIC_DISTANCE_SCALE) * (Vector4)profiles[p].scatterDistance2;
+            var stdDev1 = ((1f / 3f) * DiffusionProfileConstants.SSS_BASIC_DISTANCE_SCALE) * (Vector4)profiles[p].scatterDistance1;
+            var stdDev2 = ((1f / 3f) * DiffusionProfileConstants.SSS_BASIC_DISTANCE_SCALE) * (Vector4)profiles[p].scatterDistance2;
 
             // Multiply by 0.1 to convert from millimeters to centimeters. Apply the distance scale.
             // Rescale by 4 to counter rescaling of transmission tints.
-            float a = 0.1f * SssConstants.SSS_BASIC_DISTANCE_SCALE;
+            float a = 0.1f * DiffusionProfileConstants.SSS_BASIC_DISTANCE_SCALE;
             halfRcpVariancesAndWeights[2 * i + 0] = new Vector4(a * a * 0.5f / (stdDev1.x * stdDev1.x), a * a * 0.5f / (stdDev1.y * stdDev1.y), a * a * 0.5f / (stdDev1.z * stdDev1.z), 4f * (1f - profiles[p].lerpWeight));
             halfRcpVariancesAndWeights[2 * i + 1] = new Vector4(a * a * 0.5f / (stdDev2.x * stdDev2.x), a * a * 0.5f / (stdDev2.y * stdDev2.y), a * a * 0.5f / (stdDev2.z * stdDev2.z), 4f * profiles[p].lerpWeight);
 
-            for (int j = 0, n = SssConstants.SSS_BASIC_N_SAMPLES; j < n; j++)
+            for (int j = 0, n = DiffusionProfileConstants.SSS_BASIC_N_SAMPLES; j < n; j++)
             {
                 filterKernelsBasic[n * i + j] = profiles[p].filterKernelBasic[j];
             }

@@ -343,21 +343,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected void ShaderSSSInputGUI(Material material, int layerIndex)
         {
             var hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-            var sssSettings = hdPipeline.sssSettings;
+            var diffusionProfileSettings = hdPipeline.diffusionProfileSettings;
 
-            if (sssSettings == null)
+            if (diffusionProfileSettings == null)
             {
                 EditorGUILayout.HelpBox("No Subsurface Scattering Settings have been assigned to the render pipeline asset.", MessageType.Warning);
                 return;
             }
 
             // TODO: Optimize me
-            var profiles = sssSettings.profiles;
+            var profiles = diffusionProfileSettings.profiles;
             var names = new GUIContent[profiles.Length + 1];
             names[0] = new GUIContent("None");
 
             var values = new int[names.Length];
-            values[0] = SssConstants.SSS_NEUTRAL_PROFILE_ID;
+            values[0] = DiffusionProfileConstants.DIFFUSION_NEUTRAL_PROFILE_ID;
 
             for (int i = 0; i < profiles.Length; i++)
             {
@@ -378,7 +378,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         profileID = EditorGUILayout.IntPopup(profileID, names, values);
 
                         if (GUILayout.Button("Goto", EditorStyles.miniButton, GUILayout.Width(50f)))
-                            Selection.activeObject = sssSettings;
+                            Selection.activeObject = diffusionProfileSettings;
                     }
                 }
 

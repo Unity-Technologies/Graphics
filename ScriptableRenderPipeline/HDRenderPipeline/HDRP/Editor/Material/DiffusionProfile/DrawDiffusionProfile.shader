@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/DrawSssProfile"
+Shader "Hidden/HDRenderPipeline/DrawDiffusionProfile"
 {
     SubShader
     {
@@ -24,9 +24,9 @@ Shader "Hidden/HDRenderPipeline/DrawSssProfile"
 
             #include "CoreRP/ShaderLibrary/Common.hlsl"
             #define USE_LEGACY_UNITY_MATRIX_VARIABLES
-            #include "../../ShaderVariables.hlsl"
+            #include "HDRP/ShaderVariables.hlsl"
         #ifdef SSS_MODEL_BASIC
-            #include "../../Material/SubsurfaceScattering/SubsurfaceScatteringSettings.cs.hlsl"
+            #include "HDRP/Material/DiffusionProfile/DiffusionProfileSettings.cs.hlsl"
         #endif
 
             //-------------------------------------------------------------------------------------
@@ -34,7 +34,7 @@ Shader "Hidden/HDRenderPipeline/DrawSssProfile"
             //-------------------------------------------------------------------------------------
 
         #ifdef SSS_MODEL_DISNEY
-            float4 _ShapeParam; float _MaxRadius; // See 'SubsurfaceScatteringProfile'
+            float4 _ShapeParam; float _MaxRadius; // See 'DiffusionProfile'
         #else
             float4 _StdDev1, _StdDev2;
             float _LerpWeight, _MaxRadius; // See 'SubsurfaceScatteringParameters'

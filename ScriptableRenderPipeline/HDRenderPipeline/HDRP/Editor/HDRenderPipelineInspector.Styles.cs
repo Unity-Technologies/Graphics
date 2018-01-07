@@ -33,7 +33,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Rendering Settings
             public readonly GUIContent renderingSettingsLabel = new GUIContent("Rendering Settings");
 
-            public readonly GUIContent sssSettings = new GUIContent("Subsurface Scattering Settings");
+            public readonly GUIContent diffusionProfileSettings = new GUIContent("Diffusion Profile Settings");
         }
 
         static Styles s_Styles;
