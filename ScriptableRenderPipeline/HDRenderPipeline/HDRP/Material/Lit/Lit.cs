@@ -4,38 +4,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public partial class Lit : RenderPipelineMaterial
     {
-        [GenerateHLSL(PackingRules.Exact)]
-        public enum MaterialId
-        {
-            LitSSS          = 0,
-            LitStandard     = 1,
-            LitAniso        = 2,
-            LitClearCoat    = 3,
-            // LitSpecular (DiffuseColor/SpecularColor) is an alternate parametrization for LitStandard (BaseColor/Metal/Specular), but it is the same shading model
-            // We don't want any specific materialId for it, instead we use LitStandard as materialId. However for UI purpose we still define this value here.
-            // For material classification we will use LitStandard too
-            LitSpecular     = 4,
-        };
+        // Currently we have only one materialId (Standard GGX), so it is not store in the GBuffer and we don't test for it
 
         // If change, be sure it match what is done in Lit.hlsl: MaterialFeatureFlagsFromGBuffer
-        // Material bit mask must match LightDefinitions.s_MaterialFeatureMaskFlags value
-        [GenerateHLSL]
+        // Material bit mask must match the size define LightDefinitions.s_MaterialFeatureMaskFlags value
+        [GenerateHLSL(PackingRules.Exact)]
         public enum MaterialFeatureFlags
         {
-            LitSSS          = 1 << MaterialId.LitSSS,
-            LitStandard     = 1 << MaterialId.LitStandard,
-            LitAniso        = 1 << MaterialId.LitAniso,
-            LitClearCoat    = 1 << MaterialId.LitClearCoat,
+            LitSpecularColor = 1 << 0,
+            LitSSS = 1 << 1,
+            LitTransmission = 1 << 2,
+            LitAniso = 1 << 3,
+            LitIrridescence = 1 << 4,
+            LitClearCoat = 1 << 5
         };
-
-        [GenerateHLSL]
-        public class StandardDefinitions
-        {
-            public static int s_GBufferLitStandardRegularId = 0;
-            public static int s_GBufferLitStandardSpecularColorId = 1;
-
-            public static float s_DefaultSpecularValue = 0.04f;
-        }
 
         [GenerateHLSL(PackingRules.Exact)]
         public enum RefractionMode
@@ -53,6 +35,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact, false, true, 1000)]
         public struct SurfaceData
         {
+            [SurfaceDataAttributes("Material Feature")]
+            public int materialFeature;
+
+            // Standard
             [SurfaceDataAttributes("Base Color", false, true)]
             public Vector3 baseColor;
             [SurfaceDataAttributes("Specular Occlusion")]
@@ -62,43 +48,48 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3 normalWS;
             [SurfaceDataAttributes("Smoothness")]
             public float perceptualSmoothness;
-            [SurfaceDataAttributes("Material ID")]
-            public MaterialId materialId; // matId above 3 are store in standard material gbuffer (2bit reserved)
 
             [SurfaceDataAttributes("Ambient Occlusion")]
             public float ambientOcclusion;
 
-            // MaterialId dependent attribute
+            [SurfaceDataAttributes("Metallic")]
+            public float metallic;
 
-            // standard
+            [SurfaceDataAttributes("Coat mask")]
+            public float coatMask;
+
+            // MaterialFeature dependent attribute
+
+            // Specular Color
+            [SurfaceDataAttributes("Specular Color", false, true)]
+            public Vector3 specularColor;
+
+            // SSS
+            [SurfaceDataAttributes("Diffusion Profile")]
+            public int diffusionProfile;
+            [SurfaceDataAttributes("Subsurface Mask")]
+            public float subsurfaceMask;
+            [SurfaceDataAttributes("Thickness")]
+            public float thickness;
+            [SurfaceDataAttributes("Specular SSS")]
+            public float specularSSS;
+
+            // Aniso
             [SurfaceDataAttributes("Tangent", true)]
             public Vector3 tangentWS;
             [SurfaceDataAttributes("Anisotropy")]
             public float anisotropy; // anisotropic ratio(0->no isotropic; 1->full anisotropy in tangent direction)
-            [SurfaceDataAttributes("Metallic")]
-            public float metallic;
 
-            // SSS
-            [SurfaceDataAttributes("Subsurface Radius")]
-            public float subsurfaceRadius;
-            [SurfaceDataAttributes("Thickness")]
-            public float thickness;
-            [SurfaceDataAttributes("Subsurface Profile")]
-            public int subsurfaceProfile;
+            // Iridescence
+            // Reuse Thickness of SSS
 
-            // SpecColor
-            [SurfaceDataAttributes("Specular Color", false, true)]
-            public Vector3 specularColor;
+            // Forward property only
 
-            // ClearCoat
-            [SurfaceDataAttributes("Coat mask")]
-            public float coatMask;
-
-            // Only in forward
             // Transparency
-            [SurfaceDataAttributes("Index of refraction")]
-            public float ior;
             // Reuse thickness from SSS
+
+            [SurfaceDataAttributes("Index of refraction")]
+            public float ior;            
             [SurfaceDataAttributes("Transmittance Color")]
             public Vector3 transmittanceColor;
             [SurfaceDataAttributes("Transmittance Absorption Distance")]
@@ -114,9 +105,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact, false, true, 1030)]
         public struct BSDFData
         {
+            public int materialFeature;
+
             [SurfaceDataAttributes("", false, true)]
             public Vector3 diffuseColor;
-
             public Vector3 fresnel0;
 
             public float specularOcclusion;
@@ -124,11 +116,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("", true)]
             public Vector3 normalWS;
             public float perceptualRoughness;
-            public int materialId;
 
-            // MaterialId dependent attribute
+            public float coatMask;
 
-            // standard
+            // MaterialFeature dependent attribute
+
+            // SpecularColor fold into fresnel0
+
+            // SSS
+            public int subsurfaceProfile;
+            public float subsurfaceMask;
+            public float thickness;
+
+            public bool useThickObjectMode; // Read from the diffusion profile
+            public Vector3 transmittance;   // Precomputation of transmittance
+
+            // Aniso
             [SurfaceDataAttributes("", true)]
             public Vector3 tangentWS;
             [SurfaceDataAttributes("", true)]
@@ -137,24 +140,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float roughnessB;
             public float anisotropy;
 
-            // fold into fresnel0
-
-            // SSS
-            public float   subsurfaceRadius;
-            public float   thickness;
-            public int     subsurfaceProfile;
-            public bool    enableTransmission; // Read from the SSS profile
-            public bool    useThickObjectMode; // Read from the SSS profile
-            public Vector3 transmittance;
-
-            // SpecColor
-            // fold into fresnel0
-
             // ClearCoat
-            public float coatMask;
-            public float coatRoughness;
+            public float coatRoughness; // Automatically fill
 
-            // Only in forward
+            // Forward property only
+
             // Transparency
             public float ior;
             // Reuse thickness from SSS
@@ -179,7 +169,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override int GetMaterialGBufferCount() { return (int)GBufferMaterial.Count; }
 
-        RenderTextureFormat[] m_RTFormat4 = { RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB2101010, RenderTextureFormat.ARGB32, RenderTextureFormat.RGB111110Float };
+        RenderTextureFormat[] m_RTFormat4 = { RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32, RenderTextureFormat.RGB111110Float };
         RenderTextureReadWrite[] m_RTReadWrite4 = { RenderTextureReadWrite.sRGB, RenderTextureReadWrite.Linear, RenderTextureReadWrite.Linear, RenderTextureReadWrite.Linear };
 
         public override void GetMaterialGBufferDescription(out RenderTextureFormat[] RTFormat, out RenderTextureReadWrite[] RTReadWrite)
