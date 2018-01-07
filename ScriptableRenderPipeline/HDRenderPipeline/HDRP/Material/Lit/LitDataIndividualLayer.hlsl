@@ -250,11 +250,11 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #endif
     surfaceData.metallic *= ADD_IDX(_Metallic);
 
-    surfaceData.subsurfaceProfile = ADD_IDX(_SubsurfaceProfile);
-    surfaceData.subsurfaceRadius = ADD_IDX(_SubsurfaceRadius);
+    surfaceData.diffusionProfile = ADD_IDX(_DiffusionProfile);
+    surfaceData.subsurfaceMask = ADD_IDX(_SubsurfaceMask);
 
-#ifdef _SUBSURFACE_RADIUS_MAP_IDX
-    surfaceData.subsurfaceRadius *= SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_SubsurfaceRadiusMap), SAMPLER_SUBSURFACE_RADIUSMAP_IDX, ADD_IDX(layerTexCoord.base)).r;
+#ifdef _SUBSURFACE_MASK_MAP_IDX
+    surfaceData.subsurfaceMask *= SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_SubsurfaceMaskMap), SAMPLER_SUBSURFACE_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).r;
 #endif
 
 #ifdef _THICKNESSMAP_IDX
