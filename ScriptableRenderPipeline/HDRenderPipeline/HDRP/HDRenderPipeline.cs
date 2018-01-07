@@ -169,6 +169,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        public bool IsInternalDiffusionProfile(DiffusionProfileSettings profile)
+        {
+            return m_InternalSSSAsset == profile;
+        }
+
         readonly RenderPipelineMaterial m_DeferredMaterial;
         readonly List<RenderPipelineMaterial> m_MaterialList = new List<RenderPipelineMaterial>();
 
