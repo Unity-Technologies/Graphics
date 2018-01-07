@@ -2,9 +2,8 @@ using UnityEngine;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    public sealed partial class SubsurfaceScatteringSettingsEditor
+    public sealed partial class DiffusionProfileSettingsEditor
     {
-        // TODO: missing tooltips
         sealed class Styles
         {
             public readonly GUIContent   profilePreview0           = new GUIContent("Profile Preview");

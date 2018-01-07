@@ -41,7 +41,7 @@
         }
 
         [SerializeField]
-        public SubsurfaceScatteringSettings sssSettings;
+        public DiffusionProfileSettings diffusionProfileSettings;
 
         public override Shader GetDefaultShader()
         {

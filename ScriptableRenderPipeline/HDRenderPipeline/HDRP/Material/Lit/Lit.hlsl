@@ -217,10 +217,10 @@ void FillMaterialIdSssData(int diffusionProfile, float radius, float thickness, 
     bsdfData.subsurfaceMask   = radius;
     bsdfData.enableTransmission = _EnableSSSAndTransmission != 0;
 
-    if (bsdfData.enableTransmission && transmissionMode != SSS_TRSM_MODE_NONE)
+    if (bsdfData.enableTransmission && transmissionMode != TRANSMISSION_MODE_NONE)
     {
         bsdfData.thickness = _ThicknessRemaps[diffusionProfile].x + _ThicknessRemaps[diffusionProfile].y * thickness;
-        bsdfData.useThickObjectMode = transmissionMode != SSS_TRSM_MODE_THIN;
+        bsdfData.useThickObjectMode = transmissionMode != TRANSMISSION_MODE_THIN;
 
 #if SHADEROPTIONS_USE_DISNEY_SSS
             bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParams[diffusionProfile].rgb,
@@ -550,8 +550,8 @@ void DecodeFromGBuffer(
 
     if (HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_SSS))
     {
-        int   diffusionProfile = SSS_NEUTRAL_PROFILE_ID;
-        uint  transmissionMode  = SSS_TRSM_MODE_NONE;
+        int   diffusionProfile = DIFFUSION_NEUTRAL_PROFILE_ID;
+        uint  transmissionMode  = TRANSMISSION_MODE_NONE;
         float radius            = 0;
         float thickness         = 0;
 
@@ -846,7 +846,7 @@ float3 GetBakedDiffuseLigthing(SurfaceData surfaceData, BuiltinData builtinData,
 {
     if (bsdfData.materialId == MATERIALID_LIT_SSS)
     {
-        bsdfData.diffuseColor = ApplyDiffuseTexturingMode(bsdfData.diffuseColor, bsdfData.diffusionProfile);
+        bsdfData.diffuseColor = ApplySubsurfaceScatteringTexturingMode(bsdfData.diffuseColor, bsdfData.diffusionProfile);
     }
 
     // Premultiply bake diffuse lighting information with DisneyDiffuse pre-integration
@@ -870,6 +870,15 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
     lightTransportData.emissiveColor = builtinData.emissiveColor;
 
     return lightTransportData;
+}
+
+//-----------------------------------------------------------------------------
+// Subsurface Scattering functions
+//-----------------------------------------------------------------------------
+
+bool HaveSubsurfaceScattering(BSDFData bsdfData)
+{
+    return bsdfData.materialId == MATERIALID_LIT_SSS && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_SSS);
 }
 
 //-----------------------------------------------------------------------------
@@ -1763,7 +1772,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
     float3 modifiedDiffuseColor;
     if (bsdfData.materialId == MATERIALID_LIT_SSS)
-        modifiedDiffuseColor = ApplyDiffuseTexturingMode(bsdfData.diffuseColor, bsdfData.diffusionProfile);
+        modifiedDiffuseColor = ApplySubsurfaceScatteringTexturingMode(bsdfData.diffuseColor, bsdfData.diffusionProfile);
     else
         modifiedDiffuseColor = bsdfData.diffuseColor;
 

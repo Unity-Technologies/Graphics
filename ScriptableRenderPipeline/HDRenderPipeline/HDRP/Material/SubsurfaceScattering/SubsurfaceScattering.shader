@@ -47,7 +47,7 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
             // Inputs & outputs
             //-------------------------------------------------------------------------------------
 
-            float4 _FilterKernelsBasic[SSS_N_PROFILES][SSS_BASIC_N_SAMPLES]; // RGB = weights, A = radial distance
+            float4 _FilterKernelsBasic[DIFFUSION_N_PROFILES][SSS_BASIC_N_SAMPLES]; // RGB = weights, A = radial distance
             float4 _HalfRcpWeightedVariances[SSS_BASIC_N_SAMPLES];           // RGB for chromatic, A for achromatic
 
             TEXTURE2D(_IrradianceSource);             // Includes transmitted light
@@ -123,7 +123,7 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
                 float  halfRcpVariance = _HalfRcpWeightedVariances[profileID].a;
             #endif
 
-            float3 albedo = ApplyDiffuseTexturingMode(sssData.diffuseColor, profileID);
+            float3 albedo = ApplySubsurfaceScatteringTexturingMode(sssData.diffuseColor, profileID);
 
             #ifndef SSS_FILTER_HORIZONTAL_AND_COMBINE
                 albedo = float3(1, 1, 1);
