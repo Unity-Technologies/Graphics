@@ -129,20 +129,20 @@ Shader "HDRenderPipeline/LayeredLit"
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace2("NormalMap space", Float) = 0
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace3("NormalMap space", Float) = 0
 
-        _SubsurfaceProfile0("Subsurface Profile0", Int) = 0
-        _SubsurfaceProfile1("Subsurface Profile1", Int) = 0
-        _SubsurfaceProfile2("Subsurface Profile2", Int) = 0
-        _SubsurfaceProfile3("Subsurface Profile3", Int) = 0
+        _DiffusionProfile0("Diffusion Profile0", Int) = 0
+        _DiffusionProfile1("Diffusion Profile1", Int) = 0
+        _DiffusionProfile2("Diffusion Profile2", Int) = 0
+        _DiffusionProfile3("Diffusion Profile3", Int) = 0
 
-        _SubsurfaceRadius0("Subsurface Radius0", Range(0.0, 1.0)) = 1.0
-        _SubsurfaceRadius1("Subsurface Radius1", Range(0.0, 1.0)) = 1.0
-        _SubsurfaceRadius2("Subsurface Radius2", Range(0.0, 1.0)) = 1.0
-        _SubsurfaceRadius3("Subsurface Radius3", Range(0.0, 1.0)) = 1.0
+        _SubsurfaceMask0("Subsurface Mask0", Range(0.0, 1.0)) = 1.0
+        _SubsurfaceMask1("Subsurface Mask1", Range(0.0, 1.0)) = 1.0
+        _SubsurfaceMask2("Subsurface Mask2", Range(0.0, 1.0)) = 1.0
+        _SubsurfaceMask3("Subsurface Mask3", Range(0.0, 1.0)) = 1.0
 
-        _SubsurfaceRadiusMap0("Subsurface Radius Map0", 2D) = "white" {}
-        _SubsurfaceRadiusMap1("Subsurface Radius Map1", 2D) = "white" {}
-        _SubsurfaceRadiusMap2("Subsurface Radius Map2", 2D) = "white" {}
-        _SubsurfaceRadiusMap3("Subsurface Radius Map3", 2D) = "white" {}
+        _SubsurfaceMaskMap0("Subsurface Mask Map0", 2D) = "white" {}
+        _SubsurfaceMaskMap1("Subsurface Mask Map1", 2D) = "white" {}
+        _SubsurfaceMaskMap2("Subsurface Mask Map2", 2D) = "white" {}
+        _SubsurfaceMaskMap3("Subsurface Mask Map3", 2D) = "white" {}
 
         _Thickness0("Thickness", Range(0.0, 1.0)) = 1.0
         _Thickness1("Thickness", Range(0.0, 1.0)) = 1.0
@@ -367,10 +367,10 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma shader_feature _HEIGHTMAP1
     #pragma shader_feature _HEIGHTMAP2
     #pragma shader_feature _HEIGHTMAP3
-    #pragma shader_feature _SUBSURFACE_RADIUS_MAP0
-    #pragma shader_feature _SUBSURFACE_RADIUS_MAP1
-    #pragma shader_feature _SUBSURFACE_RADIUS_MAP2
-    #pragma shader_feature _SUBSURFACE_RADIUS_MAP3
+    #pragma shader_feature _SUBSURFACE_MASK_MAP0
+    #pragma shader_feature _SUBSURFACE_MASK_MAP1
+    #pragma shader_feature _SUBSURFACE_MASK_MAP2
+    #pragma shader_feature _SUBSURFACE_MASK_MAP3
     #pragma shader_feature _THICKNESSMAP0
     #pragma shader_feature _THICKNESSMAP1
     #pragma shader_feature _THICKNESSMAP2

@@ -50,9 +50,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent linkDetailsWithBaseText = new GUIContent("Lock to Base Tiling/Offset", "Lock details Tiling/Offset to Base Tiling/Offset");
 
             // Subsurface
-            public static GUIContent subsurfaceProfileText = new GUIContent("Subsurface profile", "A profile determines the shape of the blur filter.");
-            public static GUIContent subsurfaceRadiusText = new GUIContent("Subsurface radius", "Determines the range of the blur.");
-            public static GUIContent subsurfaceRadiusMapText = new GUIContent("Subsurface radius map (R)", "Determines the range of the blur.");
+            public static GUIContent diffusionProfileText = new GUIContent("Diffusion profile", "A profile determines the shape of the blur/transmission filter.");
+            public static GUIContent subsurfaceMaskText = new GUIContent("Subsurface radius", "Determines the range of the blur.");
+            public static GUIContent subsurfaceMaskMapText = new GUIContent("Subsurface radius map (R)", "Determines the range of the blur.");
             public static GUIContent thicknessText = new GUIContent("Thickness", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
             public static GUIContent thicknessMapText = new GUIContent("Thickness map (R)", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
             public static GUIContent thicknessRemapText = new GUIContent("Thickness Remap", "Remaps values of the thickness map from [0, 1] to the specified range.");
@@ -174,12 +174,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty[] heightMax = new MaterialProperty[kMaxLayerCount];
         protected const string kHeightMax = "_HeightMax";
 
-        protected MaterialProperty[] subsurfaceProfileID = new MaterialProperty[kMaxLayerCount];
-        protected const string kSubsurfaceProfileID = "_SubsurfaceProfile";
-        protected MaterialProperty[] subsurfaceRadius = new MaterialProperty[kMaxLayerCount];
-        protected const string kSubsurfaceRadius = "_SubsurfaceRadius";
-        protected MaterialProperty[] subsurfaceRadiusMap = new MaterialProperty[kMaxLayerCount];
-        protected const string kSubsurfaceRadiusMap = "_SubsurfaceRadiusMap";
+        protected MaterialProperty[] diffusionProfileID = new MaterialProperty[kMaxLayerCount];
+        protected const string kDiffusionProfileID = "_DiffusionProfile";
+        protected MaterialProperty[] subsurfaceMask = new MaterialProperty[kMaxLayerCount];
+        protected const string kSubsurfaceMask = "_SubsurfaceMask";
+        protected MaterialProperty[] subsurfaceMaskMap = new MaterialProperty[kMaxLayerCount];
+        protected const string kSubsurfaceMaskMap = "_SubsurfaceMaskMap";
         protected MaterialProperty[] thickness = new MaterialProperty[kMaxLayerCount];
         protected const string kThickness = "_Thickness";
         protected MaterialProperty[] thicknessMap = new MaterialProperty[kMaxLayerCount];
@@ -282,9 +282,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 heightCenter[i] = FindProperty(string.Format("{0}{1}", kHeightCenter, m_PropertySuffixes[i]), props);
 
                 // Sub surface
-                subsurfaceProfileID[i] = FindProperty(string.Format("{0}{1}", kSubsurfaceProfileID, m_PropertySuffixes[i]), props);
-                subsurfaceRadius[i] = FindProperty(string.Format("{0}{1}", kSubsurfaceRadius, m_PropertySuffixes[i]), props);
-                subsurfaceRadiusMap[i] = FindProperty(string.Format("{0}{1}", kSubsurfaceRadiusMap, m_PropertySuffixes[i]), props);
+                diffusionProfileID[i] = FindProperty(string.Format("{0}{1}", kDiffusionProfileID, m_PropertySuffixes[i]), props);
+                subsurfaceMask[i] = FindProperty(string.Format("{0}{1}", kSubsurfaceMask, m_PropertySuffixes[i]), props);
+                subsurfaceMaskMap[i] = FindProperty(string.Format("{0}{1}", kSubsurfaceMaskMap, m_PropertySuffixes[i]), props);
                 thickness[i] = FindProperty(string.Format("{0}{1}", kThickness, m_PropertySuffixes[i]), props);
                 thicknessMap[i] = FindProperty(string.Format("{0}{1}", kThicknessMap, m_PropertySuffixes[i]), props);
                 thicknessRemap[i] = FindProperty(string.Format("{0}{1}", kThicknessRemap, m_PropertySuffixes[i]), props);
@@ -367,11 +367,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             using (var scope = new EditorGUI.ChangeCheckScope())
             {
-                int profileID = (int)subsurfaceProfileID[layerIndex].floatValue;
+                int profileID = (int)diffusionProfileID[layerIndex].floatValue;
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    EditorGUILayout.PrefixLabel(Styles.subsurfaceProfileText);
+                    EditorGUILayout.PrefixLabel(Styles.diffusionProfileText);
 
                     using (new EditorGUILayout.HorizontalScope())
                     {
@@ -383,11 +383,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
 
                 if (scope.changed)
-                    subsurfaceProfileID[layerIndex].floatValue = profileID;
+                    diffusionProfileID[layerIndex].floatValue = profileID;
             }
 
-            m_MaterialEditor.ShaderProperty(subsurfaceRadius[layerIndex], Styles.subsurfaceRadiusText);
-            m_MaterialEditor.TexturePropertySingleLine(Styles.subsurfaceRadiusMapText, subsurfaceRadiusMap[layerIndex]);
+            m_MaterialEditor.ShaderProperty(subsurfaceMask[layerIndex], Styles.subsurfaceMaskText);
+            m_MaterialEditor.TexturePropertySingleLine(Styles.subsurfaceMaskMapText, subsurfaceMaskMap[layerIndex]);
             m_MaterialEditor.TexturePropertySingleLine(Styles.thicknessMapText, thicknessMap[layerIndex]);
             if (thicknessMap[layerIndex].textureValue != null)
             {
@@ -721,7 +721,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap));
             CoreUtils.SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
             CoreUtils.SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
-            CoreUtils.SetKeyword(material, "_SUBSURFACE_RADIUS_MAP", material.GetTexture(kSubsurfaceRadiusMap));
+            CoreUtils.SetKeyword(material, "_SUBSURFACE_MASK_MAP", material.GetTexture(kSubsurfaceMaskMap));
             CoreUtils.SetKeyword(material, "_THICKNESSMAP", material.GetTexture(kThicknessMap));
             CoreUtils.SetKeyword(material, "_SPECULARCOLORMAP", material.GetTexture(kSpecularColorMap));
 

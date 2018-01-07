@@ -169,14 +169,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         if (fvalue == 0.0) // SSS
                         {
                             CheckOutFile(VSCEnabled, mat);
-                            int ivalue = mat.GetInt("_SubsurfaceProfile");
+                            int ivalue = mat.GetInt("_DiffusionProfile");
                             if (ivalue == 15)
                             {
-                                mat.SetInt("_SubsurfaceProfile", 0);
+                                mat.SetInt("_DiffusionProfile", 0);
                             }
                             else
                             {
-                                mat.SetInt("_SubsurfaceProfile", ivalue + 1);
+                                mat.SetInt("_DiffusionProfile", ivalue + 1);
                             }
 
                             EditorUtility.SetDirty(mat);
@@ -193,14 +193,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                             for (int x = 0; x < numLayer; ++x)
                             {
-                                int ivalue = mat.GetInt("_SubsurfaceProfile" + x);
+                                int ivalue = mat.GetInt("_DiffusionProfile" + x);
                                 if (ivalue == 15)
                                 {
-                                    mat.SetInt("_SubsurfaceProfile" + x, 0);
+                                    mat.SetInt("_DiffusionProfile" + x, 0);
                                 }
                                 else
                                 {
-                                    mat.SetInt("_SubsurfaceProfile" + x, ivalue + 1);
+                                    mat.SetInt("_DiffusionProfile" + x, ivalue + 1);
                                 }
                             }
                             EditorUtility.SetDirty(mat);

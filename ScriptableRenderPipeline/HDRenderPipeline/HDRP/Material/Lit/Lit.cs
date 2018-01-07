@@ -80,11 +80,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // SSS
             [SurfaceDataAttributes("Subsurface Radius")]
-            public float subsurfaceRadius;
+            public float subsurfaceMask;
             [SurfaceDataAttributes("Thickness")]
             public float thickness;
             [SurfaceDataAttributes("Subsurface Profile")]
-            public int subsurfaceProfile;
+            public int diffusionProfile;
 
             // SpecColor
             [SurfaceDataAttributes("Specular Color", false, true)]
@@ -140,9 +140,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // fold into fresnel0
 
             // SSS
-            public float   subsurfaceRadius;
+            public float   subsurfaceMask;
             public float   thickness;
-            public int     subsurfaceProfile;
+            public int     diffusionProfile;
             public bool    enableTransmission; // Read from the SSS profile
             public bool    useThickObjectMode; // Read from the SSS profile
             public Vector3 transmittance;

@@ -327,8 +327,8 @@ void SubsurfaceScattering(uint3 reorderedGroupId : SV_GroupID,
     SSSData sssData;
     DECODE_FROM_SSSBUFFER(posInput.positionSS, sssData);
 
-    int    profileID   = sssData.subsurfaceProfile;
-    float  distScale   = sssData.subsurfaceRadius;
+    int    profileID   = sssData.diffusionProfile;
+    float  distScale   = sssData.subsurfaceMask;
     float3 shapeParam  = _ShapeParams[profileID].rgb;
     float  maxDistance = _ShapeParams[profileID].a;
 

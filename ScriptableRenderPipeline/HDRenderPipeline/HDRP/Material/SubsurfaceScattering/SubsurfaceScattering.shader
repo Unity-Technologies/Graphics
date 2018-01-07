@@ -81,8 +81,8 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
                 SSSData sssData;
                 DECODE_FROM_SSSBUFFER(posInput.positionSS, sssData);
 
-                int    profileID   = sssData.subsurfaceProfile;
-                float  distScale   = sssData.subsurfaceRadius;
+                int    profileID   = sssData.diffusionProfile;
+                float  distScale   = sssData.subsurfaceMask;
                 float  maxDistance = _FilterKernelsBasic[profileID][SSS_BASIC_N_SAMPLES - 1].a;
 
                 // Take the first (central) sample.

@@ -28,7 +28,7 @@ CBUFFER_END
 
 // Returns the modified albedo (diffuse color) for materials with subsurface scattering.
 // Ref: Advanced Techniques for Realistic Real-Time Skin Rendering.
-float3 ApplyDiffuseTexturingMode(float3 color, int subsurfaceProfile)
+float3 ApplyDiffuseTexturingMode(float3 color, int diffusionProfile)
 {
 #if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_SUBSURFACE_SCATTERING)
     // If the SSS pass is executed, we know we have SSS enabled.
@@ -39,7 +39,7 @@ float3 ApplyDiffuseTexturingMode(float3 color, int subsurfaceProfile)
 
     if (enableSssAndTransmission)
     {
-        bool performPostScatterTexturing = IsBitSet(asuint(_TexturingModeFlags), subsurfaceProfile);
+        bool performPostScatterTexturing = IsBitSet(asuint(_TexturingModeFlags), diffusionProfile);
 
         if (performPostScatterTexturing)
         {
@@ -65,8 +65,8 @@ float3 ApplyDiffuseTexturingMode(float3 color, int subsurfaceProfile)
 struct SSSData
 {
     float3 diffuseColor;
-    float  subsurfaceRadius;
-    int    subsurfaceProfile;
+    float  subsurfaceMask;
+    int    diffusionProfile;
 };
 
 #define SSSBufferType0 float4
@@ -77,14 +77,14 @@ TEXTURE2D(_SSSBufferTexture0);
 // Note: The SSS buffer used here is sRGB
 void EncodeIntoSSSBuffer(SSSData sssData, uint2 positionSS, out SSSBufferType0 outSSSBuffer0)
 {
-    outSSSBuffer0 = float4(sssData.diffuseColor, PackFloatInt8bit(sssData.subsurfaceRadius, sssData.subsurfaceProfile, 16.0));
+    outSSSBuffer0 = float4(sssData.diffuseColor, PackFloatInt8bit(sssData.subsurfaceMask, sssData.diffusionProfile, 16.0));
 }
 
 // Note: The SSS buffer used here is sRGB
 void DecodeFromSSSBuffer(float4 sssBuffer, uint2 positionSS, out SSSData sssData)
 {
     sssData.diffuseColor = sssBuffer.rgb;
-    UnpackFloatInt8bit(sssBuffer.a, 16.0, sssData.subsurfaceRadius, sssData.subsurfaceProfile);
+    UnpackFloatInt8bit(sssBuffer.a, 16.0, sssData.subsurfaceMask, sssData.diffusionProfile);
 }
 
 void DecodeFromSSSBuffer(uint2 positionSS, out SSSData sssData)
