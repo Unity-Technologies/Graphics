@@ -149,24 +149,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         readonly HDRenderPipelineAsset m_Asset;
 
-        SubsurfaceScatteringSettings m_InternalSSSAsset;
-        public SubsurfaceScatteringSettings sssSettings
+        DiffusionProfileSettings m_InternalSSSAsset;
+        public DiffusionProfileSettings diffusionProfileSettings
         {
             get
             {
                 // If no SSS asset is set, build / reuse an internal one for simplicity
-                var asset = m_Asset.sssSettings;
+                var asset = m_Asset.diffusionProfileSettings;
 
                 if (asset == null)
                 {
                     if (m_InternalSSSAsset == null)
-                        m_InternalSSSAsset = ScriptableObject.CreateInstance<SubsurfaceScatteringSettings>();
+                        m_InternalSSSAsset = ScriptableObject.CreateInstance<DiffusionProfileSettings>();
 
                     asset = m_InternalSSSAsset;
                 }
 
                 return asset;
             }
+        }
+
+        public bool IsInternalDiffusionProfile(DiffusionProfileSettings profile)
+        {
+            return m_InternalSSSAsset == profile;
         }
 
         readonly RenderPipelineMaterial m_DeferredMaterial;
@@ -532,7 +537,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CurrentHeight = texHeight;
         }
 
-        public void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd, SubsurfaceScatteringSettings sssParameters)
+        public void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd, DiffusionProfileSettings sssParameters)
         {
             using (new ProfilingSample(cmd, "Push Global Parameters", GetSampler(CustomSamplerId.PushGlobalParameters)))
             {
@@ -717,7 +722,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     renderContext.SetupCameraProperties(camera);
 
-                    PushGlobalParams(hdCamera, cmd, sssSettings);
+                    PushGlobalParams(hdCamera, cmd, diffusionProfileSettings);
 
                     // TODO: Find a correct place to bind these material textures
                     // We have to bind the material specific global parameters in this mode
@@ -848,7 +853,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         RenderForwardError(m_CullResults, camera, renderContext, cmd, ForwardPass.Opaque);
 
                         // SSS pass here handle both SSS material from deferred and forward
-                        m_SSSBufferManager.SubsurfaceScatteringPass(hdCamera, cmd, sssSettings, m_FrameSettings,
+                        m_SSSBufferManager.SubsurfaceScatteringPass(hdCamera, cmd, diffusionProfileSettings, m_FrameSettings,
                                                                     m_CameraColorBufferRT, m_CameraSssDiffuseLightingBufferRT, m_CameraDepthStencilBufferRT, GetDepthTexture());
 
                         RenderSky(hdCamera, cmd);

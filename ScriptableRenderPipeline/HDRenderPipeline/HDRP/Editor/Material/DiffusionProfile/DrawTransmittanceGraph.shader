@@ -23,8 +23,8 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
             #include "CoreRP/ShaderLibrary/Common.hlsl"
             #include "CoreRP/ShaderLibrary/CommonMaterial.hlsl"
             #define USE_LEGACY_UNITY_MATRIX_VARIABLES
-            #include "../../ShaderVariables.hlsl"
-            #include "../../Material/SubsurfaceScattering/CommonSubsurfaceScattering.hlsl"
+            #include "HDRP/ShaderVariables.hlsl"
+            #include "HDRP/Material/DiffusionProfile/DiffusionProfile.hlsl"
 
             //-------------------------------------------------------------------------------------
             // Inputs & outputs
