@@ -134,7 +134,7 @@ namespace UnityEditor.Experimental.Rendering
         {
             EditorGUILayout.PropertyField(p.enableSSR, _.GetContent("Enable SSR"));
             EditorGUILayout.PropertyField(p.enableSSAO, _.GetContent("Enable SSAO"));
-            EditorGUILayout.PropertyField(p.enableSSSAndTransmission, _.GetContent("Enable SSS And Transmission"));
+            EditorGUILayout.PropertyField(p.enableSubsurfaceScattering, _.GetContent("Enable Subsurface Scattering"));
             EditorGUILayout.PropertyField(p.enableShadow, _.GetContent("Enable Shadow"));
             EditorGUILayout.PropertyField(p.enableShadowMask, _.GetContent("Enable Shadow Masks"));
         }

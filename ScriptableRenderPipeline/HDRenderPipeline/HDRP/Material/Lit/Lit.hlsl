@@ -210,12 +210,21 @@ float3 ComputeFresnel0(float3 baseColor, float metallic, float dielectricF0)
     return lerp(dielectricF0.xxx, baseColor, metallic);
 }
 
-// Fills the data which may be accessed if MATERIALFEATUREFLAGS_LIT_SSS is set.
-void FillMaterialFeatureTransmission(int diffusionProfile, float radius, float thickness, uint transmissionMode, inout BSDFData bsdfData)
+void FillMaterialDiffusionProfile(int diffusionProfile, inout BSDFData bsdfData)
 {
-    bsdfData.diffusionProfile  = diffusionProfile;
-    bsdfData.subsurfaceMask   = radius;
-    bsdfData.enableTransmission = _EnableSSSAndTransmission != 0;
+    bsdfData.diffusionProfile = diffusionProfile;
+}
+
+void FillMaterialSSS(float subsurfaceMask, inout BSDFData bsdfData)
+{
+    bsdfData.fresnel0 = _TransmissionTintsAndFresnel0[bsdfData.diffusionProfile].a;
+    bsdfData.subsurfaceMask = subsurfaceMask;
+    // Note: ApplySubsurfaceScatteringTexturingMode also test the diffusionProfile for updating diffuseColor based on SSS
+}
+
+void FillMaterialTransmission(int diffusionProfile, , float thickness, uint transmissionMode, inout BSDFData bsdfData)
+{
+    bsdfData.enableTransmission = _EnableTransmission != 0;
 
     if (bsdfData.enableTransmission && transmissionMode != TRANSMISSION_MODE_NONE)
     {
@@ -223,16 +232,16 @@ void FillMaterialFeatureTransmission(int diffusionProfile, float radius, float t
         bsdfData.useThickObjectMode = transmissionMode != TRANSMISSION_MODE_THIN;
 
 #if SHADEROPTIONS_USE_DISNEY_SSS
-            bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParams[diffusionProfile].rgb,
-                                                                _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
-                                                                bsdfData.thickness, bsdfData.subsurfaceMask);
+            bsdfData.transmittance = _EnableTransmission * ComputeTransmittanceDisney(  _ShapeParams[diffusionProfile].rgb,
+                                                                                        _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
+                                                                                        bsdfData.thickness, bsdfData.subsurfaceMask);
 #else
-            bsdfData.transmittance = ComputeTransmittanceJimenez(_HalfRcpVariancesAndWeights[diffusionProfile][0].rgb,
-                                                                 _HalfRcpVariancesAndWeights[diffusionProfile][0].a,
-                                                                 _HalfRcpVariancesAndWeights[diffusionProfile][1].rgb,
-                                                                 _HalfRcpVariancesAndWeights[diffusionProfile][1].a,
-                                                                 _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
-                                                                 bsdfData.thickness, bsdfData.subsurfaceMask);
+            bsdfData.transmittance = _EnableTransmission * ComputeTransmittanceJimenez( _HalfRcpVariancesAndWeights[diffusionProfile][0].rgb,
+                                                                                        _HalfRcpVariancesAndWeights[diffusionProfile][0].a,
+                                                                                        _HalfRcpVariancesAndWeights[diffusionProfile][1].rgb,
+                                                                                        _HalfRcpVariancesAndWeights[diffusionProfile][1].a,
+                                                                                        _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
+                                                                                        bsdfData.thickness, bsdfData.subsurfaceMask);
 #endif
     }
 }

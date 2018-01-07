@@ -74,10 +74,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // + Diffusion Profile
             [SurfaceDataAttributes("Thickness")]
             public float thickness;
-            [SurfaceDataAttributes("Specular SSS")]
-            public float specularSSS;
 
-            // Aniso
+            // Anisotropic
             [SurfaceDataAttributes("Tangent", true)]
             public Vector3 tangentWS;
             [SurfaceDataAttributes("Anisotropy")]
@@ -131,13 +129,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float subsurfaceMask;
 
             // Transmission
-            // Transmission
             // + Diffusion Profile
             public float thickness;
             public bool useThickObjectMode; // Read from the diffusion profile
             public Vector3 transmittance;   // Precomputation of transmittance
 
-            // Aniso
+            // Anisotropic
             [SurfaceDataAttributes("", true)]
             public Vector3 tangentWS;
             [SurfaceDataAttributes("", true)]
