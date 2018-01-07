@@ -79,11 +79,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float metallic;
 
             // SSS
-            [SurfaceDataAttributes("Subsurface Radius")]
+            [SurfaceDataAttributes("Subsurface Mask")]
             public float subsurfaceMask;
             [SurfaceDataAttributes("Thickness")]
             public float thickness;
-            [SurfaceDataAttributes("Subsurface Profile")]
+            [SurfaceDataAttributes("Diffusion Profile")]
             public int diffusionProfile;
 
             // SpecColor
