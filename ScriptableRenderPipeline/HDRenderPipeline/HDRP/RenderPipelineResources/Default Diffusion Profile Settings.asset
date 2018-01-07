@@ -9,9 +9,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b2686e09ec7aef44bad2843e4416f057, type: 3}
-  m_Name: SSS Settings
+  m_Name: Default Diffusion Profile Settings
   m_EditorClassIdentifier: 
-  useDisneySSS: 1
   profiles:
   - name: Skin
     scatteringDistance: {r: 0.7568628, g: 0.32156864, b: 0.20000002, a: 1}
@@ -20,6 +19,7 @@ MonoBehaviour:
     transmissionMode: 2
     thicknessRemap: {x: 0, y: 8.152544}
     worldScale: 1
+    ior: 1.4
     scatterDistance1: {r: 0.3019608, g: 0.20000002, b: 0.20000002, a: 0}
     scatterDistance2: {r: 0.6, g: 0.20000002, b: 0.20000002, a: 0}
     lerpWeight: 0.5
@@ -30,6 +30,7 @@ MonoBehaviour:
     transmissionMode: 1
     thicknessRemap: {x: 0, y: 0.2873168}
     worldScale: 1
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 0.5
@@ -40,6 +41,7 @@ MonoBehaviour:
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 5}
     worldScale: 1
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
@@ -50,6 +52,7 @@ MonoBehaviour:
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 5}
     worldScale: 1
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
@@ -60,6 +63,7 @@ MonoBehaviour:
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 5}
     worldScale: 1
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
@@ -70,6 +74,7 @@ MonoBehaviour:
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 5}
     worldScale: 1
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
@@ -80,6 +85,7 @@ MonoBehaviour:
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 5}
     worldScale: 1
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
@@ -90,6 +96,7 @@ MonoBehaviour:
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 5}
     worldScale: 1
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
@@ -100,6 +107,7 @@ MonoBehaviour:
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 5}
     worldScale: 1
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
@@ -110,6 +118,7 @@ MonoBehaviour:
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 5}
     worldScale: 1
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
@@ -120,6 +129,7 @@ MonoBehaviour:
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 5}
     worldScale: 1
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
@@ -130,6 +140,7 @@ MonoBehaviour:
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 5}
     worldScale: 1
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
@@ -140,6 +151,7 @@ MonoBehaviour:
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 5}
     worldScale: 1
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
@@ -150,6 +162,7 @@ MonoBehaviour:
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 5}
     worldScale: 1
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
@@ -160,6 +173,7 @@ MonoBehaviour:
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 5}
     worldScale: 1
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
