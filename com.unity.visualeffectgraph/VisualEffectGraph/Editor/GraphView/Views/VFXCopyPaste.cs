@@ -357,10 +357,18 @@ namespace UnityEditor.VFX.UI
 
             foreach (var block in copyData.blocks)
             {
-                newBlocks.Add(block);
-
                 if (targetModelContext.AcceptChild(block, targetIndex))
                 {
+                    newBlocks.Add(block);
+
+                    foreach (var slot in block.inputSlots)
+                    {
+                        slot.UnlinkAll(true, false);
+                    }
+                    foreach (var slot in block.outputSlots)
+                    {
+                        slot.UnlinkAll(true, false);
+                    }
                     targetModelContext.AddChild(block, targetIndex, false); // only notify once after all blocks have been added
                 }
             }
