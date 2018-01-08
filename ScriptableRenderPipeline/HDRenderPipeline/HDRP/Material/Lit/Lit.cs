@@ -11,12 +11,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact)]
         public enum MaterialFeatureFlags
         {
-            LitSpecularColor = 1 << 0,
-            LitSSS = 1 << 1,
-            LitTransmission = 1 << 2,
-            LitAniso = 1 << 3,
-            LitIrridescence = 1 << 4,
-            LitClearCoat = 1 << 5
+            // Note: // There is no material feature for LitSpecularColor as it is always dynamically tested
+            LitSubsurfaceScattering = 1 << 0,
+            LitTransmission = 1 << 1,
+            LitAnisotropy = 1 << 2,
+            LitIrridescence = 1 << 3,
+            LitClearCoat = 1 << 4
         };
 
         [GenerateHLSL(PackingRules.Exact)]
@@ -35,8 +35,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact, false, true, 1000)]
         public struct SurfaceData
         {
-            [SurfaceDataAttributes("Material Feature")]
-            public int materialFeature;
+            [SurfaceDataAttributes("Enable Specular Color")]
+            public bool enableSpecularColor;
+            [SurfaceDataAttributes("Enable SubsurfaceScattering")]
+            public bool enableSubsurfaceScattering;
+            [SurfaceDataAttributes("Enable Transmission")]
+            public bool enableTransmission;
+            [SurfaceDataAttributes("Enable Anisotropy")]
+            public bool enableAnisotropy;
+            [SurfaceDataAttributes("Enable Iridescence")]
+            public bool enableIridescence;
+            [SurfaceDataAttributes("Enable Clear Coat")]
+            public bool enableClearCoat;
 
             // Standard
             [SurfaceDataAttributes("Base Color", false, true)]
@@ -79,10 +89,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Tangent", true)]
             public Vector3 tangentWS;
             [SurfaceDataAttributes("Anisotropy")]
-            public float anisotropy; // anisotropic ratio(0->no isotropic; 1->full anisotropy in tangent direction)
+            public float anisotropy; // anisotropic ratio(0->no isotropic; 1->full anisotropy in tangent direction, -1->full anisotropy in bitangent direction)
 
             // Iridescence
-            // Reuse Thickness of SSS
+            public float thicknessIrid;
 
             // Forward property only
 
@@ -106,7 +116,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact, false, true, 1030)]
         public struct BSDFData
         {
-            public int materialFeature;
+            public bool enableSpecularColor;
+            public bool enableSubsurfaceScattering;
+            public bool enableTransmission;
+            public bool enableAnisotropy;
+            public bool enableIridescence;
+            public bool enableClearCoat;
 
             [SurfaceDataAttributes("", false, true)]
             public Vector3 diffuseColor;
@@ -143,6 +158,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float roughnessB;
             public float anisotropy;
 
+            // Iridescence
+            public float thicknessIrid;
+
             // ClearCoat
             public float coatRoughness; // Automatically fill
 
@@ -172,7 +190,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override int GetMaterialGBufferCount() { return (int)GBufferMaterial.Count; }
 
-        RenderTextureFormat[] m_RTFormat4 = { RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32, RenderTextureFormat.RGB111110Float };
+        RenderTextureFormat[] m_RTFormat4 = { RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB2101010, RenderTextureFormat.ARGB32, RenderTextureFormat.RGB111110Float };
         RenderTextureReadWrite[] m_RTReadWrite4 = { RenderTextureReadWrite.sRGB, RenderTextureReadWrite.Linear, RenderTextureReadWrite.Linear, RenderTextureReadWrite.Linear };
 
         public override void GetMaterialGBufferDescription(out RenderTextureFormat[] RTFormat, out RenderTextureReadWrite[] RTReadWrite)

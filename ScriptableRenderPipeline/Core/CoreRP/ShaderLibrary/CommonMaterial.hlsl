@@ -89,8 +89,7 @@ real Fresnel0ToIor(real fresnel0)
 // mean
 // real sqrtF0 = sqrt(fresnel0);
 // return Sq(1.0 - 5.0 * sqrtF0) / Sq(5.0 - sqrtF0);
-// Optimization: Fit of the function (3 mad) for range 0.04 (should return 0), 1 (should return 1)
-// return saturate(-0.0256868 + fresnel0 * (0.326846 + (0.978946 - 0.283835 * fresnel0) * fresnel0));
+// Optimization: Fit of the function (3 mad) for range [0.04 (should return 0), 1 (should return 1)]
 TEMPLATE_1_REAL(Fresnel0ReajustFor15, fresnel0, return saturate(-0.0256868 + fresnel0 * (0.326846 + (0.978946 - 0.283835 * fresnel0) * fresnel0)) )
 
 // same as regular refract except there is not the test for total internal reflection + the vector is flipped for processing
