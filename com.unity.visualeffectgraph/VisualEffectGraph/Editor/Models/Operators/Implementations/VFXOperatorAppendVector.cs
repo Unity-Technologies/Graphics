@@ -15,7 +15,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return Math.Min(4, inputSlots.Sum(s => GetFloatNbComponents(s)));
+                return Math.Min(4, inputSlots.Sum(s => VFXTypeUtility.GetComponentCount(s)));
             }
         }
 
@@ -28,7 +28,7 @@ namespace UnityEditor.VFX
                 var currentSlots = inputSlots.ToList();
                 for (int i = 0; i < currentSlots.Count; ++i)
                 {
-                    var slotComponentCount = GetFloatNbComponents(currentSlots[i]);
+                    var slotComponentCount = VFXTypeUtility.GetComponentCount(currentSlots[i]);
                     totalComponentCount += slotComponentCount;
                     if (slotComponentCount > 0 && totalComponentCount < 4)
                         ++nbNeededSlots;
