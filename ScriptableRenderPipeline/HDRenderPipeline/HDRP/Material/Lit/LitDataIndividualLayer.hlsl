@@ -341,6 +341,8 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
     surfaceData.coatMask = _CoatMask;
 
+    surfaceData.thicknessIrid = 0.0;
+
 #else // #if !defined(LAYERED_LIT_SHADER)
 
     // Mandatory to setup value to keep compiler quiet
@@ -358,7 +360,8 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.tangentWS = float3(0.0, 0.0, 0.0);
     surfaceData.anisotropy = 0.0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
-    surfaceData.coatMask = 0.0f;
+    surfaceData.thicknessIrid = 0.0;
+    surfaceData.coatMask = 0.0;
 
     // Transparency
     surfaceData.ior = 1.0;
