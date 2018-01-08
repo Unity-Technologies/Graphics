@@ -15,7 +15,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const int kInvalidIndex = -1;
         private int m_CullIndex = kInvalidIndex;
 
-        private static Matrix4x4 m_NormalToWorld = Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)) * Matrix4x4.Rotate(Quaternion.AngleAxis(-90.0f, new Vector3(1, 0, 0))); 
+        // normal space  __x  to decal space __x 
+        //              |\                  |\      
+        //              y z                 z y        
+        //                                    
+        private static Matrix4x4 m_NormalToDecal = Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)) * Matrix4x4.Rotate(Quaternion.AngleAxis(-90.0f, new Vector3(1, 0, 0))); 
 
         public int CullIndex
         {
@@ -91,7 +95,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             Matrix4x4 final = transform.localToWorldMatrix;
-            Matrix4x4 decalToWorldR = Matrix4x4.Rotate(transform.rotation) * m_NormalToWorld;
+            Matrix4x4 decalToWorldR = Matrix4x4.Rotate(transform.rotation) * m_NormalToDecal;
             Matrix4x4 worldToDecal = Matrix4x4.Translate(new Vector3(0.5f, 0.0f, 0.5f)) * Matrix4x4.Scale(new Vector3(1.0f, -1.0f, 1.0f)) * final.inverse;
             if (m_PropertyBlock == null)
             {
