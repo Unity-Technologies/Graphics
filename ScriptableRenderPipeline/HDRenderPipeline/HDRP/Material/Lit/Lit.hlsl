@@ -220,16 +220,16 @@ void FillMaterialTransmission(float thickness, inout BSDFData bsdfData)
     bsdfData.useThickObjectMode = transmissionMode != TRANSMISSION_MODE_THIN;
 
 #if SHADEROPTIONS_USE_DISNEY_SSS
-    bsdfData.transmittance = _TransmittanceMultiplier * ComputeTransmittanceDisney( _ShapeParams[diffusionProfile].rgb,
-                                                                                    _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
-                                                                                    bsdfData.thickness, 1.0);
+    bsdfData.transmittance = ComputeTransmittanceDisney(    _ShapeParams[diffusionProfile].rgb,
+                                                            _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
+                                                            bsdfData.thickness, 1.0);
 #else
-    bsdfData.transmittance = _TransmittanceMultiplier * ComputeTransmittanceJimenez( _HalfRcpVariancesAndWeights[diffusionProfile][0].rgb,
-                                                                                        _HalfRcpVariancesAndWeights[diffusionProfile][0].a,
-                                                                                        _HalfRcpVariancesAndWeights[diffusionProfile][1].rgb,
-                                                                                        _HalfRcpVariancesAndWeights[diffusionProfile][1].a,
-                                                                                        _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
-                                                                                        bsdfData.thickness, 1.0);
+    bsdfData.transmittance = ComputeTransmittanceJimenez(   _HalfRcpVariancesAndWeights[diffusionProfile][0].rgb,
+                                                            _HalfRcpVariancesAndWeights[diffusionProfile][0].a,
+                                                            _HalfRcpVariancesAndWeights[diffusionProfile][1].rgb,
+                                                            _HalfRcpVariancesAndWeights[diffusionProfile][1].a,
+                                                            _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
+                                                            bsdfData.thickness, 1.0);
 #endif
 }
 
@@ -596,7 +596,7 @@ void DecodeFromGBuffer(
         bsdfData.enableAnisotropy = true;
     }
 
-    if (bsdfData.enableAnisotropy)
+    if (bsdfData.enableIridescence)
     {
         FillMaterialIridescence(inGBuffer2.g, bsdfData);
     }
