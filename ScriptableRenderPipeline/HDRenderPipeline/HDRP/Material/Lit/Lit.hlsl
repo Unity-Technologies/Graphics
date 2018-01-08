@@ -464,7 +464,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
         if (surfaceData.enableSpecularColor)
         {
             metallic15 = GBUFFER_LIT_SPECULAR_COLOR;
-            outGBuffer2.rgb = surfaceData.specularColor;
+            outGBuffer2.rgb = LinearToGamma20(surfaceData.specularColor);
         }
         else if (surfaceData.enableAnisotropy)
         {
@@ -543,7 +543,7 @@ void DecodeFromGBuffer(
     // metallic15 is range [0..12] if mettallic data is needed
     float metallic = (metallic15 <= GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND) ? metallic15 * (1.0 / GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND) : 0.0;
     bsdfData.diffuseColor = ComputeDiffuseColor(baseColor, metallic);
-    bsdfData.fresnel0 = bsdfData.enableSpecularColor ? inGBuffer2.rgb : ComputeFresnel0(baseColor, metallic, DEFAULT_SPECULAR_VALUE);
+    bsdfData.fresnel0 = bsdfData.enableSpecularColor ? Gamma20ToLinear(inGBuffer2.rgb) : ComputeFresnel0(baseColor, metallic, DEFAULT_SPECULAR_VALUE);
 
     // Always assign even if not used, DIFFUSION_PROFILE_NEUTRAL_ID is 0
     // Note: we have ZERO_INITIALIZE the struct, so bsdfData.diffusionProfile == DIFFUSION_PROFILE_NEUTRAL_ID, bsdfData.anisotropy == 0.0, bsdfData.SubsurfaceMask == 0.0 etc...
