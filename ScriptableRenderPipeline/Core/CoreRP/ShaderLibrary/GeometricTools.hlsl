@@ -99,7 +99,7 @@ float IntersectRaySphereSimple(float3 start, float3 dir, float radius)
     return abs(sqrt(discriminant) - b) * 0.5;
 }
 
-float3 IntersectRayPlane(in float3 rayOrigin, in float3 rayDirection, in float3 planeOrigin, in float3 planeNormal)
+float3 IntersectRayPlane(float3 rayOrigin, float3 rayDirection, float3 planeOrigin, float3 planeNormal)
 {
     float dist = dot(planeNormal, planeOrigin - rayOrigin) / dot(planeNormal, rayDirection);
     return rayOrigin + rayDirection * dist;
