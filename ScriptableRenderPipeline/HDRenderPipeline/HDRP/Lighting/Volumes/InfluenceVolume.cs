@@ -10,7 +10,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Box
         [SerializeField]
-        Vector3 m_BoxBaseSize;
+        Vector3 m_BoxBaseSize = Vector3.one;
         [SerializeField]
         Vector3 m_BoxBaseOffset;
         [SerializeField]
@@ -24,13 +24,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Sphere
         [SerializeField]
-        float m_SphereBaseRadius;
+        float m_SphereBaseRadius = 1;
         [SerializeField]
         Vector3 m_SphereBaseOffset;
         [SerializeField]
-        float m_SphereInfluenceRadius;
+        float m_SphereInfluenceRadius = 1;
         [SerializeField]
-        float m_SphereInfluenceNormalRadius;
+        float m_SphereInfluenceNormalRadius = 1;
 
         public ShapeType shapeType { get { return m_ShapeType; } }
 

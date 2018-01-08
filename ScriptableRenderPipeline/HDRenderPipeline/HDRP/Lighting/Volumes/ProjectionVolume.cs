@@ -10,7 +10,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Box
         [SerializeField]
-        Vector3 m_BoxSize;
+        Vector3 m_BoxSize = Vector3.one;
         [SerializeField]
         Vector3 m_BoxOffset;
         [SerializeField]
@@ -18,7 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Sphere
         [SerializeField]
-        float m_SphereRadius;
+        float m_SphereRadius = 1;
         [SerializeField]
         Vector3 m_SphereOffset;
         [SerializeField]
