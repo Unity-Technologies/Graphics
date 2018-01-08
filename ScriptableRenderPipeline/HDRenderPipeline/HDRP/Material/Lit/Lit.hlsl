@@ -1622,7 +1622,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         float3 dirLS = mul(R, worldToLocal);
         float sphereOuterDistance = lightData.influenceExtents.x;
 
-        float projectionDistance = SphereRayIntersectSimple(positionLS, dirLS, sphereOuterDistance);
+        float projectionDistance = IntersectRaySphereSimple(positionLS, dirLS, sphereOuterDistance);
         projectionDistance = max(projectionDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.positionWS
         R = (positionWS + projectionDistance * R) - lightData.positionWS;
@@ -1631,7 +1631,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
         {
             dirLS = mul(coatR, worldToLocal);
-            projectionDistance = SphereRayIntersectSimple(positionLS, dirLS, sphereOuterDistance);
+            projectionDistance = IntersectRaySphereSimple(positionLS, dirLS, sphereOuterDistance);
             coatR = (positionWS + projectionDistance * coatR) - lightData.positionWS;
         }
 
@@ -1655,7 +1655,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         // 1. First process the projection
         float3 dirLS = mul(R, worldToLocal);
         float3 boxOuterDistance = lightData.influenceExtents;
-        float projectionDistance = BoxRayIntersectSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
+        float projectionDistance = IntersectRayAABBSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
         projectionDistance = max(projectionDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
 
         // No need to normalize for fetching cubemap
@@ -1668,7 +1668,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
         {
             dirLS = mul(coatR, worldToLocal);
-            projectionDistance = BoxRayIntersectSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
+            projectionDistance = IntersectRayAABBSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
             coatR = (positionWS + projectionDistance * coatR) - lightData.positionWS;
         }
 

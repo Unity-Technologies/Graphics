@@ -1,6 +1,19 @@
 #ifndef UNITY_GEOMETRICTOOLS_INCLUDED
 #define UNITY_GEOMETRICTOOLS_INCLUDED
 
+// Solves the quadratic equation of the form: a*t^2 + b*t + c = 0.
+// Returns 'false' if there are no real roots, 'true' otherwise.
+// Numerically stable.
+// Ref: Numerical Recipes in C++ (3rd Edition)
+bool SolveQuadraticEquation(float a, float b, float c, out float2 roots)
+{
+    float d = b * b - 4 * a * c;
+    float q = -0.5 * (b + FastMulBySignOf(b, sqrt(d)));
+    roots   = float2(q / a, c / q);
+
+    return (d >= 0);
+}
+
 //-----------------------------------------------------------------------------
 // Intersection functions
 //-----------------------------------------------------------------------------
@@ -34,7 +47,7 @@ bool IntersectRayAABB(float3 rayOrigin, float3 rayDirection,
 }
 
 // This simplified version assume that we care about the result only when we are inside the box
-float BoxRayIntersectSimple(float3 start, float3 dir, float3 boxMin, float3 boxMax)
+float IntersectRayAABBSimple(float3 start, float3 dir, float3 boxMin, float3 boxMax)
 {
     float3 invDir = 1.0 / dir;
 
@@ -48,15 +61,16 @@ float BoxRayIntersectSimple(float3 start, float3 dir, float3 boxMin, float3 boxM
 }
 
 // Assume Sphere is at the origin (i.e start = position - spherePosition)
-float2 SphereRayIntersect(float3 start, float3 dir, float radius, out bool intersect)
+bool IntersectRaySphere(float3 start, float3 dir, float radius, out float2 intersections)
 {
     float a = dot(dir, dir);
     float b = dot(dir, start) * 2.0;
     float c = dot(start, start) - radius * radius;
     float discriminant = b * b - 4.0 * a * c;
 
-    float2 intersections = float2(0.0, 0.0);
-    intersect = false;
+    float intersect = false;
+    intersections = float2(0.0, 0.0);
+
     if (discriminant < 0.0 || a == 0.0)
     {
         intersections.x = 0.0;
@@ -70,13 +84,13 @@ float2 SphereRayIntersect(float3 start, float3 dir, float radius, out bool inter
         intersect = true;
     }
 
-    return intersections;
+    return intersect;
 }
 
 // This simplified version assume that we care about the result only when we are inside the sphere
 // Assume Sphere is at the origin (i.e start = position - spherePosition) and dir is normalized
 // Ref: http://http.developer.nvidia.com/GPUGems/gpugems_ch19.html
-float SphereRayIntersectSimple(float3 start, float3 dir, float radius)
+float IntersectRaySphereSimple(float3 start, float3 dir, float radius)
 {
     float b = dot(dir, start) * 2.0;
     float c = dot(start, start) - radius * radius;
@@ -85,22 +99,10 @@ float SphereRayIntersectSimple(float3 start, float3 dir, float radius)
     return abs(sqrt(discriminant) - b) * 0.5;
 }
 
-float3 RayPlaneIntersect(in float3 rayOrigin, in float3 rayDirection, in float3 planeOrigin, in float3 planeNormal)
+float3 IntersectRayPlane(in float3 rayOrigin, in float3 rayDirection, in float3 planeOrigin, in float3 planeNormal)
 {
     float dist = dot(planeNormal, planeOrigin - rayOrigin) / dot(planeNormal, rayDirection);
     return rayOrigin + rayDirection * dist;
-}
-
-// Solves the quadratic equation of the form: a*t^2 + b*t + c = 0.
-// Returns 'false' if there are no real roots, 'true' otherwise.
-// Ref: Numerical Recipes in C++ (3rd Edition)
-bool SolveQuadraticEquation(float a, float b, float c, out float2 roots)
-{
-    float d = b * b - 4 * a * c;
-    float q = -0.5 * (b + FastSign(b) * sqrt(d));
-    roots   = float2(q / a, c / q);
-
-    return (d >= 0);
 }
 
 // Can support cones with an elliptic base: pre-scale 'coneAxisX' and 'coneAxisY' by (h/r_x) and (h/r_y).
