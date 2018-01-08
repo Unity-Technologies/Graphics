@@ -663,10 +663,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             CoreUtils.SetKeyword(material, "_DENSITY_MODE", useDensityModeEnable);
 
-            LitGUI.MaterialId materialId = (LitGUI.MaterialId)material.GetFloat(kMaterialID);
+            BaseLitGUI.MaterialId materialId = (BaseLitGUI.MaterialId)material.GetFloat(kMaterialID);
 
-            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", materialId == LitGUI.MaterialId.LitSSS);
-            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", materialId == LitGUI.MaterialId.LitSSS);
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", materialId == BaseLitGUI.MaterialId.LitSSS);
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", materialId == BaseLitGUI.MaterialId.LitSSS);
         }
         private void DoEmissiveGUI(Material material)
         {

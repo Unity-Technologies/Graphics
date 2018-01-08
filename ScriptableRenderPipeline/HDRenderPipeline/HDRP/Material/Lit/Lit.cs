@@ -15,7 +15,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             LitSubsurfaceScattering = 1 << 0,
             LitTransmission = 1 << 1,
             LitAnisotropy = 1 << 2,
-            LitIrridescence = 1 << 3,
+            LitIridescence = 1 << 3,
             LitClearCoat = 1 << 4
         };
 

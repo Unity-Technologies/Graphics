@@ -79,6 +79,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Tessellation
         }
 
+        public enum MaterialId
+        {
+            LitSSS = 0,
+            LitStandard = 1,
+            LitAniso = 2,
+            LitClearCoat = 3,
+            LitSpecular = 4,
+            LitIridescence = 5,
+        };
+
         protected MaterialProperty doubleSidedNormalMode = null;
         protected const string kDoubleSidedNormalMode = "_DoubleSidedNormalMode";
         protected MaterialProperty depthOffsetEnable = null;
@@ -322,7 +332,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Set the reference value for the stencil test.
             int stencilRef = (int)StencilLightingUsage.RegularLighting;
-            if ((int)material.GetFloat(kMaterialID) == (int)Lit.MaterialId.LitSSS)
+            if ((int)material.GetFloat(kMaterialID) == (int)BaseLitGUI.MaterialId.LitSSS)
             {
                 stencilRef = (int)StencilLightingUsage.SplitLighting;
             }
