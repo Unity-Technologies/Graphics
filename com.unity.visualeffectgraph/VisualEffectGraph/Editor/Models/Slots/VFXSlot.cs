@@ -667,7 +667,7 @@ namespace UnityEditor.VFX
         protected virtual VFXExpression[] ExpressionToChildren(VFXExpression exp)   { return null; }
         protected virtual VFXExpression ExpressionFromChildren(VFXExpression[] exp) { return null; }
 
-        protected virtual VFXValue DefaultExpression()
+        public virtual VFXValue DefaultExpression()
         {
             return null;
         }

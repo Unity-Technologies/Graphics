@@ -9,7 +9,7 @@ namespace UnityEditor.VFX
     [VFXInfo(type = typeof(Transform))]
     class VFXSlotTransform : VFXSlot
     {
-        protected override VFXValue DefaultExpression()
+        public override VFXValue DefaultExpression()
         {
             return new VFXValue<Matrix4x4>(Matrix4x4.identity, VFXValue.Mode.FoldableVariable);
         }

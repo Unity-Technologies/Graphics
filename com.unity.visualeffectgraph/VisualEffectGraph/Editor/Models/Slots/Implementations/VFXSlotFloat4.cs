@@ -39,7 +39,7 @@ namespace UnityEditor.VFX
             throw new Exception("Unexpected type of expression " + expression);
         }
 
-        sealed protected override VFXValue DefaultExpression()
+        sealed public override VFXValue DefaultExpression()
         {
             return new VFXValue<Vector4>(Vector4.zero, VFXValue.Mode.FoldableVariable);
         }

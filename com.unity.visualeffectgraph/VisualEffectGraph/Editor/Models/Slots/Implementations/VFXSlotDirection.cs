@@ -7,7 +7,7 @@ namespace UnityEditor.VFX
     [VFXInfo(type = typeof(DirectionType))]
     class VFXSlotDirection : VFXSlot
     {
-        protected override VFXValue DefaultExpression()
+        public override VFXValue DefaultExpression()
         {
             return new VFXValue<Vector3>(Vector3.forward, VFXValue.Mode.FoldableVariable);
         }

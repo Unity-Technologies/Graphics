@@ -35,7 +35,7 @@ namespace UnityEditor.VFX
             return expression;
         }
 
-        protected override VFXValue DefaultExpression()
+        public override VFXValue DefaultExpression()
         {
             if (value == null)
                 return null;

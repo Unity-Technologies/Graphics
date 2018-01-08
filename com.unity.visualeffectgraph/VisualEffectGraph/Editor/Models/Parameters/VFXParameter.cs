@@ -74,6 +74,16 @@ namespace UnityEditor.VFX
             {
                 Invalidate(InvalidationCause.kExpressionGraphChanged);
             }
+            if (cause == InvalidationCause.kParamChanged)
+            {
+                if (m_ExprSlots != null)
+                {
+                    for (int i = 0; i < m_ExprSlots.Length; ++i)
+                    {
+                        m_ValueExpr[i].SetContent(m_ExprSlots[i].value);
+                    }
+                }
+            }
         }
 
         protected override IEnumerable<VFXPropertyWithValue> outputProperties { get { return PropertiesFromSlotsOrDefaultFromClass(VFXSlot.Direction.kOutput); } }
@@ -92,6 +102,38 @@ namespace UnityEditor.VFX
             {
                 throw new InvalidOperationException("Cannot init VFXParameter");
             }
+            m_ExprSlots = outputSlots[0].GetExpressionSlots().ToArray();
+            m_ValueExpr = m_ExprSlots.Select(t => t.DefaultExpression()).ToArray();
         }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+
+            Debug.Log("VFXParameter.OnEnable");
+            if (outputSlots.Count != 0)
+            {
+                Debug.Log("VFXParameter.OnEnable with outputslot");
+                m_ExprSlots = outputSlots[0].GetExpressionSlots().ToArray();
+                m_ValueExpr = m_ExprSlots.Select(t => t.DefaultExpression()).ToArray();
+            }
+        }
+
+        public override void UpdateOutputExpressions()
+        {
+            if (m_ExprSlots != null)
+            {
+                for (int i = 0; i < m_ExprSlots.Length; ++i)
+                {
+                    m_ValueExpr[i].SetContent(m_ExprSlots[i].value);
+                    m_ExprSlots[i].SetExpression(m_ValueExpr[i]);
+                }
+            }
+        }
+
+        [NonSerialized]
+        private VFXSlot[] m_ExprSlots;
+
+        private VFXValue[] m_ValueExpr;
     }
 }
