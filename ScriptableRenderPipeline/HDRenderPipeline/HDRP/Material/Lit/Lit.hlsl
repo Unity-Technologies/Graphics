@@ -696,7 +696,7 @@ struct PreLightData
     float3 transparentRefractV;            // refracted view vector after exiting the shape
     float3 transparentPositionWS;          // start of the refracted ray after exiting the shape
     float3 transparentTransmittance;       // transmittance due to absorption
-    float transparentSMipLevel;           // mip level of the screen space gaussian pyramid for rough refraction
+    float transparentSSMipLevel;           // mip level of the screen space gaussian pyramid for rough refraction
 };
 
 PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfData)
@@ -836,7 +836,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     preLightData.transparentTransmittance = exp(-bsdfData.absorptionCoefficient * refraction.dist);
     // Empirical remap to try to match a bit the refraction probe blurring for the fallback
     // Use IblPerceptualRoughness so we can handle approx of clear coat.
-    preLightData.transparentSMipLevel = sqrt(preLightData.iblPerceptualRoughness) * uint(_GaussianPyramidColorMipSize.z);
+    preLightData.transparentSSMipLevel = sqrt(preLightData.iblPerceptualRoughness) * uint(_GaussianPyramidColorMipSize.z);
 #endif
 
     return preLightData;
@@ -1465,7 +1465,7 @@ IndirectLighting EvaluateBSDF_SSRefraction(LightLoopContext lightLoopContext,
     }
 
     // Map the roughness to the correct mip map level of the color pyramid
-    lighting.specularTransmitted = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, refractedBackPointNDC, preLightData.transparentSMipLevel).rgb;
+    lighting.specularTransmitted = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, refractedBackPointNDC, preLightData.transparentSSMipLevel).rgb;
 
     // Beer-Lamber law for absorption
     lighting.specularTransmitted *= preLightData.transparentTransmittance;
