@@ -520,10 +520,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             else
                 m_IntermediateTextureArray = false;
 
+            bool hdrEnabled = m_Asset.SupportsHDR && m_CurrCamera.allowHDR;
             bool intermediateTexture = m_CurrCamera.targetTexture != null || m_CurrCamera.cameraType == CameraType.SceneView ||
-                m_Asset.RenderScale < 1.0f || m_CurrCamera.allowHDR;
+                m_Asset.RenderScale < 1.0f || hdrEnabled;
 
-            m_ColorFormat = m_CurrCamera.allowHDR ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32;
+            m_ColorFormat = hdrEnabled ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
             m_RequiredDepth = false;
             m_CameraPostProcessLayer = m_CurrCamera.GetComponent<PostProcessLayer>();
 
@@ -920,7 +921,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 bias = light.shadowBias * proj.m22 * 0.5f * sign;
 
                 // Currently only square POT cascades resolutions are used.
-                // We scale normalBias 
+                // We scale normalBias
                 double frustumWidth = 2.0 / (double)proj.m00;
                 double frustumHeight = 2.0 / (double)proj.m11;
                 float texelSizeX = (float)(frustumWidth / (double)cascadeResolution);
@@ -1138,7 +1139,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             worldToShadow = cascadeAtlas * worldToShadow;
 
             m_ShadowSlices[cascadeIndex].atlasX = atlasX;
-            m_ShadowSlices[cascadeIndex].atlasY = atlasY; 
+            m_ShadowSlices[cascadeIndex].atlasY = atlasY;
             m_ShadowSlices[cascadeIndex].shadowResolution = shadowResolution;
             m_ShadowSlices[cascadeIndex].shadowTransform = worldToShadow;
         }
