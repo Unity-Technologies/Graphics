@@ -1231,7 +1231,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 // If PostProcessing is enabled, it is already blit to CameraTarget.
                 if (!LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.PostProcess))
-                    Blit(cmd, renderingConfig, BuiltinRenderTextureType.CurrentActive, BuiltinRenderTextureType.CameraTarget);
+                    Blit(cmd, renderingConfig, BuiltinRenderTextureType.CurrentActive, BuiltinRenderTextureType.CameraTarget, m_BlitMaterial);
             }
 
             SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget);
@@ -1305,6 +1305,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void Blit(CommandBuffer cmd, FrameRenderingConfiguration renderingConfig, RenderTargetIdentifier sourceRT, RenderTargetIdentifier destRT, Material material = null)
         {
+            cmd.SetGlobalTexture(m_BlitTexID, sourceRT);
             if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.DefaultViewport))
             {
                 cmd.Blit(sourceRT, destRT, material);
@@ -1314,10 +1315,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (m_BlitQuad == null)
                     m_BlitQuad = LightweightUtils.CreateQuadMesh(false);
 
-                cmd.SetGlobalTexture(m_BlitTexID, sourceRT);
                 SetRenderTarget(cmd, destRT);
                 cmd.SetViewport(m_CurrCamera.pixelRect);
-                cmd.DrawMesh(m_BlitQuad, Matrix4x4.identity, m_BlitMaterial);
+                cmd.DrawMesh(m_BlitQuad, Matrix4x4.identity, material);
             }
         }
 
