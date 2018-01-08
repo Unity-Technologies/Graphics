@@ -88,28 +88,7 @@ o.screenToDecal2 = screenToDecal[2];
 
 		VFXSampler2D s = VFX_SAMPLER(mainTexture);
 		float2 uv = elementPos.xy * 0.5f + 0.5f;
-		
-		#if USE_FLIPBOOK
-		float flipBookSize = i.VFX_VARYING_FLIPBOOKSIZE;
-		float invFlipBookSize = i.VFX_VARYING_INVFLIPBOOKSIZE;
-		float texIndex = i.VFX_VARYING_TEXINDEX;
-		
-		float frameBlend = frac(texIndex);
-		float frameIndex = texIndex - frameBlend;
-			
-		uv = GetSubUV(frameIndex,uv,flipBookSize,invFlipBookSize);
-				
-		#if USE_FLIPBOOK_INTERPOLATION
-		float2 uv2 = GetSubUV(frameIndex + 1,uv,flipBookSize,invFlipBookSize);	
-		float4 c0 = s.t.Sample(s.s,uv);
-		float4 c1 = s.t.Sample(s.s,uv2);
-		o.color *= lerp(c0, c1, frameBlend);
-		#else
-		o.color *= s.t.Sample(s.s,uv);
-		#endif
-		#else
-		o.color *= s.t.Sample(s.s,uv);
-		#endif
+		o.color *= VFXGetTextureColorWithProceduralUV(s,i,uv);
 		
 		VFXClipFragmentColor(o.color.a,i);
 		return o;
