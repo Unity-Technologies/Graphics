@@ -484,7 +484,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     }
 
     // Encode coatMask (4bit) / mettalic (4bit)
-    outGBuffer2.a = PackFloatInt8bit(surfaceData.coatMask, metallic15, 16.0);
+    outGBuffer2.a = PackFloatInt8bit(surfaceData.enableClearCoat ? surfaceData.coatMask : 0.0, metallic15, 16.0);
 
     // Lighting: 11:11:10f
     outGBuffer3 = float4(bakeDiffuseLighting, 0.0);
