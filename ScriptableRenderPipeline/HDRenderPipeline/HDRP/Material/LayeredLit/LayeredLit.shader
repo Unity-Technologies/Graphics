@@ -736,5 +736,5 @@ Shader "HDRenderPipeline/LayeredLit"
         }
     }
 
-    CustomEditor "Experimental.Rendering.HDPipeline.LayeredLitGUI"
+    CustomEditor "UnityEditor.Experimental.Rendering.HDPipeline.LayeredLitGUI"
 }
