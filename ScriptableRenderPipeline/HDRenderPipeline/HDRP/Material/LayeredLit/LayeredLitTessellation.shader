@@ -778,5 +778,5 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         }
     }
 
-    CustomEditor "Experimental.Rendering.HDPipeline.LayeredLitGUI"
+    CustomEditor "UnityEditor.Experimental.Rendering.HDPipeline.LayeredLitGUI"
 }
