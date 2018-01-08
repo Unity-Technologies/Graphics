@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using UnityEngine;
 
@@ -50,7 +51,12 @@ namespace UnityEditor.Experimental.Rendering
             var members = new List<string>();
             while (me != null)
             {
-                members.Add(me.Member.Name);
+                // For field, get the field name
+                // For properties, get the name of the backing field
+                var name = me.Member is FieldInfo
+                    ? me.Member.Name
+                    : "m_" + me.Member.Name.Substring(0, 1).ToUpper() + me.Member.Name.Substring(1);
+                members.Add(name);
                 me = me.Expression as MemberExpression;
             }
 
