@@ -140,19 +140,19 @@ namespace UnityEngine.Experimental.Rendering
             return false;
         }
 
-        public bool TryGetAllSubclassOf<T>(Type type, List<T> component)
+        public bool TryGetAllSubclassOf<T>(Type type, List<T> result)
             where T : VolumeComponent
         {
             Assert.IsNotNull(components);
-            int count = component.Count;
+            int count = result.Count;
 
             foreach (var comp in components)
             {
                 if (comp.GetType().IsSubclassOf(type))
-                    components.Add(comp);
+                    result.Add((T)comp);
             }
 
-            return count != component.Count;
+            return count != result.Count;
         }
     }
 }
