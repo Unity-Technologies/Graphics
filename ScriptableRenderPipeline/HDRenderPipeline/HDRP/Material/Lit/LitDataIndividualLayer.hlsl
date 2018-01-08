@@ -267,17 +267,31 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     // This part of the code is not used in case of layered shader but we keep the same macro system for simplicity
 #if !defined(LAYERED_LIT_SHADER)
 
-    // Having individual shader features for each materialID like this allow the compiler to optimize
-#ifdef _MATID_SSS
-    surfaceData.materialId = MATERIALID_LIT_SSS;
-#elif defined(_MATID_ANISO)
-    surfaceData.materialId = MATERIALID_LIT_ANISO;
-#elif defined(_MATID_SPECULAR)
-    surfaceData.materialId = MATERIALID_LIT_SPECULAR;
-#elif defined(_MATID_CLEARCOAT)
-    surfaceData.materialId = MATERIALID_LIT_CLEAR_COAT;
-#else // Default
-    surfaceData.materialId = MATERIALID_LIT_STANDARD;
+    // These static material feature allow compile time optimization
+    surfaceData.enableSubsurfaceScattering  = false;
+    surfaceData.enableTransmission          = false;
+    surfaceData.enableAnisotropy            = false;
+    surfaceData.enableClearCoat             = false;
+    surfaceData.enableIridescence           = false;
+    surfaceData.enableSpecularColor         = false;
+
+#ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+    surfaceData.enableSubsurfaceScattering  = true;
+#endif
+#ifdef _MATERIAL_FEATURE_TRANSMISSION
+    surfaceData.enableTransmission          = true;
+#endif
+#ifdef _MATERIAL_FEATURE_ANISOTROPY
+    surfaceData.enableAnisotropy            = true;
+#endif
+#ifdef _MATERIAL_FEATURE_CLEAR_COAT
+    surfaceData.enableClearCoat             = true;
+#endif
+#ifdef _MATERIAL_FEATURE_IRIDESCENCE
+    surfaceData.enableIridescence           = true;
+#endif
+#ifdef _MATERIAL_FEATURE_SPECULAR_COLOR
+    surfaceData.enableSpecularColor         = true;
 #endif
 
 #ifdef _TANGENTMAP
@@ -331,8 +345,13 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
     // Mandatory to setup value to keep compiler quiet
 
-    // Layered shader only supports the standard material
-    surfaceData.materialId = MATERIALID_LIT_STANDARD;
+    // Layered shader material feature are define outside of this call
+    surfaceData.enableSubsurfaceScattering  = false;
+    surfaceData.enableTransmission          = false;
+    surfaceData.enableAnisotropy            = false;
+    surfaceData.enableClearCoat             = false;
+    surfaceData.enableIridescence           = false;
+    surfaceData.enableSpecularColor         = false;
 
     // All these parameters are ignore as they are re-setup outside of the layers function
     // Note: any parameters set here must also be set in GetSurfaceAndBuiltinData() layer version

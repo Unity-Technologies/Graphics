@@ -124,6 +124,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UV3
         }
 
+        public enum MaterialId
+        {
+            LitSSS          = 0,
+            LitStandard     = 1,
+            LitAniso        = 2,
+            LitClearCoat    = 3,
+            LitSpecular     = 4,
+            LitIridescence  = 5,
+        };
+
         protected MaterialProperty[] UVBase = new MaterialProperty[kMaxLayerCount];
         protected const string kUVBase = "_UVBase";
         protected MaterialProperty[] TexWorldScale = new MaterialProperty[kMaxLayerCount];
@@ -434,7 +444,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap[layerIndex], baseColor[layerIndex]);
 
-            if ((Lit.MaterialId)materialID.floatValue == Lit.MaterialId.LitStandard || (Lit.MaterialId)materialID.floatValue == Lit.MaterialId.LitAniso)
+            if ((LitGUI.MaterialId)materialID.floatValue == LitGUI.MaterialId.LitStandard || (LitGUI.MaterialId)materialID.floatValue == LitGUI.MaterialId.LitAniso)
             {
                 m_MaterialEditor.ShaderProperty(metallic[layerIndex], Styles.metallicText);
             }
@@ -467,7 +477,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
-            m_MaterialEditor.TexturePropertySingleLine(((Lit.MaterialId)materialID.floatValue == Lit.MaterialId.LitSpecular) ? Styles.maskMapSpecularText : Styles.maskMapSText, maskMap[layerIndex]);
+            m_MaterialEditor.TexturePropertySingleLine(((LitGUI.MaterialId)materialID.floatValue == LitGUI.MaterialId.LitSpecular) ? Styles.maskMapSpecularText : Styles.maskMapSText, maskMap[layerIndex]);
 
             m_MaterialEditor.ShaderProperty(normalMapSpace[layerIndex], Styles.normalMapSpaceText);
 
@@ -510,24 +520,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 heightAmplitude[layerIndex].floatValue = (heightMax[layerIndex].floatValue - heightMin[layerIndex].floatValue) * 0.01f; // Conversion centimeters to meters.
             }
 
-            switch ((Lit.MaterialId)materialID.floatValue)
+            switch ((LitGUI.MaterialId)materialID.floatValue)
             {
-                case Lit.MaterialId.LitSSS:
+                case LitGUI.MaterialId.LitSSS:
                     ShaderSSSInputGUI(material, layerIndex);
                     break;
-                case Lit.MaterialId.LitStandard:
+                case LitGUI.MaterialId.LitStandard:
                     // Nothing
                     break;
 
                 // Following mode are not supported by layered lit and will not be call by it
                 // as the MaterialId enum don't define it
-                case Lit.MaterialId.LitAniso:
+                case LitGUI.MaterialId.LitAniso:
                     ShaderAnisoInputGUI();
                     break;
-                case Lit.MaterialId.LitSpecular:
+                case LitGUI.MaterialId.LitSpecular:
                     m_MaterialEditor.TexturePropertySingleLine(Styles.specularColorText, specularColorMap, specularColor);
                     break;
-                case Lit.MaterialId.LitClearCoat:
+                case LitGUI.MaterialId.LitClearCoat:
                     ShaderClearCoatInputGUI();
                     break;
                 default:
@@ -744,13 +754,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 material.DisableKeyword("_REQUIRE_UV3");
             }
 
-            Lit.MaterialId materialId = (Lit.MaterialId)material.GetFloat(kMaterialID);
+            LitGUI.MaterialId materialId = (LitGUI.MaterialId)material.GetFloat(kMaterialID);
 
-            CoreUtils.SetKeyword(material, "_MATID_SSS", materialId == Lit.MaterialId.LitSSS);
-            //CoreUtils.SetKeyword(material, "_MATID_STANDARD", materialId == Lit.MaterialId.LitStandard); // See comment in Lit.shader, it is the default, we don't define it
-            CoreUtils.SetKeyword(material, "_MATID_ANISO", materialId == Lit.MaterialId.LitAniso);
-            CoreUtils.SetKeyword(material, "_MATID_SPECULAR", materialId == Lit.MaterialId.LitSpecular);
-            CoreUtils.SetKeyword(material, "_MATID_CLEARCOAT", materialId == Lit.MaterialId.LitClearCoat);
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", materialId == LitGUI.MaterialId.LitSSS);
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", materialId == LitGUI.MaterialId.LitSSS);
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_ANISOTROPY", materialId == LitGUI.MaterialId.LitAniso);
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_CLEAR_COAT", materialId == LitGUI.MaterialId.LitClearCoat);
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_IRIDESCENCE", materialId == LitGUI.MaterialId.LitIridescence);
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SPECULAR_COLOR", materialId == LitGUI.MaterialId.LitSpecular);
 
             var refractionModeValue = (Lit.RefractionMode)material.GetFloat(kRefractionMode);
             // We can't have refraction in pre-refraction queue
