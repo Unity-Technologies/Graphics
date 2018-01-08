@@ -367,6 +367,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [NonSerialized] public Vector4[] worldScales;               // X = meters per world unit; Y = world units per meter
         [NonSerialized] public Vector4[] shapeParams;               // RGB = S = 1 / D, A = filter radius
         [NonSerialized] public Vector4[] transmissionTintsAndFresnel0; // RGB = color, A = fresnel0
+        [NonSerialized] public Vector4[] disabledTransmissionTintsAndFresnel0; // RGB = black, A = fresnel0 - For debug to remove the transmission
         [NonSerialized] public Vector4[] filterKernels;             // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
 
         // Old SSS Model >>>
@@ -409,6 +410,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ValidateArray(ref worldScales,       DiffusionProfileConstants.DIFFUSION_N_PROFILES);
             ValidateArray(ref shapeParams,       DiffusionProfileConstants.DIFFUSION_N_PROFILES);
             ValidateArray(ref transmissionTintsAndFresnel0, DiffusionProfileConstants.DIFFUSION_N_PROFILES);
+            ValidateArray(ref disabledTransmissionTintsAndFresnel0, DiffusionProfileConstants.DIFFUSION_N_PROFILES);
             ValidateArray(ref filterKernels,     DiffusionProfileConstants.DIFFUSION_N_PROFILES * DiffusionProfileConstants.SSS_N_SAMPLES_NEAR_FIELD);
 
             // Old SSS Model >>>
@@ -481,6 +483,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float fresnel0 = (profiles[p].ior - 1.0f) / (profiles[p].ior + 1.0f);
             fresnel0 *= fresnel0; // square
             transmissionTintsAndFresnel0[i] = new Vector4(profiles[p].transmissionTint.r * 0.25f, profiles[p].transmissionTint.g * 0.25f, profiles[p].transmissionTint.b * 0.25f, fresnel0); // Premultiplied
+            disabledTransmissionTintsAndFresnel0[i] = new Vector4(0.0f, 0.0f, 0.0f, fresnel0);
 
             for (int j = 0, n = DiffusionProfileConstants.SSS_N_SAMPLES_NEAR_FIELD; j < n; j++)
             {
