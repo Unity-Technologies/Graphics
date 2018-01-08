@@ -20,7 +20,7 @@ namespace UnityEditor.Experimental.Rendering
             diffusionProfileSettings = serializedObject.Find((HDRenderPipelineAsset s) => s.diffusionProfileSettings);
 
             renderPipelineSettings = new SerializedRenderPipelineSettings(serializedObject.Find((HDRenderPipelineAsset a) => a.renderPipelineSettings));
-            defaultFrameSettings = new SerializedFrameSettings(serializedObject.Find((HDRenderPipelineAsset a) => a.serializedFrameSettings));
+            defaultFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_FrameSettings"));
         }
 
         public void Update()
