@@ -179,8 +179,8 @@ namespace UnityEditor.VFX.Test
                 sceneView.Close();
             EditorApplication.ExecuteMenuItem("Window/Game");
 
-            float simulateTime = 4.0f;
-            float frequency = 1.0f / 30.0f;
+            float simulateTime = 6.0f;
+            float frequency = 1.0f / 20.0f;
             uint waitFrameCount = (uint)(simulateTime / frequency);
 
             var scenePath = sceneTest.path;
@@ -189,7 +189,7 @@ namespace UnityEditor.VFX.Test
             var refCapturePath = scenePath.Replace(".unity", ".png");
             var currentCapturePath = scenePath.Replace(".unity", "_fail.png");
 
-            VFXManager.updateMode = VFXManagerUpdateMode.ForceAt20Htz;
+            VFXManager.updateMode = VFXManagerUpdateMode.Force20Hz;
 
             var passes = new List<string>();
             if (!File.Exists(refCapturePath))

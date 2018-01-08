@@ -295,23 +295,28 @@ namespace UnityEditor.VFX.UI
 
             m_DropDownButtonCullingMode = new Button();
 
-            Func<VFXCullingMode, string> fnValueToGUI = delegate(VFXCullingMode mode)
+            var cullingOption = new[]
+            {
+                new { option = "Cull simulation and bounds", value = (uint)(VFXCullingFlags.CullSimulation | VFXCullingFlags.CullBoundsUpdate) },
+                new { option = "Cull simulation only", value = (uint)(VFXCullingFlags.CullSimulation) },
+                new { option = "Disable culling", value = 0u },
+            };
+
+            Func<uint, string> fnValueToGUI = delegate(uint flags)
                 {
-                    return "Culling Mode : " + mode.ToString();
+                    return cullingOption.First(o => o.value == flags).option;
                 };
 
-            m_DropDownButtonCullingMode.text = fnValueToGUI(cullingMode);
+            m_DropDownButtonCullingMode.text = fnValueToGUI(cullingFlags);
             m_DropDownButtonCullingMode.AddManipulator(new DownClickable(() => {
                     var menu = new GenericMenu();
-                    var enumType = typeof(VFXCullingMode);
-                    foreach (var val in Enum.GetNames(enumType))
+                    foreach (var val in cullingOption)
                     {
-                        var valueInt = (int)Enum.Parse(enumType, val);
-                        menu.AddItem(new GUIContent(val), valueInt == (int)cullingMode, (v) =>
+                        menu.AddItem(new GUIContent(val.option), val.value == cullingFlags, (v) =>
                         {
-                            cullingMode = (VFXCullingMode)v;
-                            m_DropDownButtonCullingMode.text = fnValueToGUI(cullingMode);
-                        }, valueInt);
+                            cullingFlags = (uint)v;
+                            m_DropDownButtonCullingMode.text = fnValueToGUI((uint)v);
+                        }, val.value);
                     }
                     menu.DropDown(m_DropDownButtonCullingMode.worldBound);
                 }));
@@ -621,7 +626,7 @@ namespace UnityEditor.VFX.UI
             return new VFXRendererSettings();
         }
 
-        VFXCullingMode cullingMode
+        uint cullingFlags
         {
             get
             {
@@ -629,9 +634,9 @@ namespace UnityEditor.VFX.UI
                 {
                     var asset = controller.model;
                     if (asset != null)
-                        return asset.cullingMode;
+                        return asset.cullingFlags;
                 }
-                return VFXCullingMode.CullUpdate;
+                return (uint)VFXCullingFlags.CullDefault;
             }
 
             set
@@ -640,7 +645,7 @@ namespace UnityEditor.VFX.UI
                 {
                     var asset = controller.model;
                     if (asset != null)
-                        asset.cullingMode = value;
+                        asset.cullingFlags = value;
                 }
             }
         }

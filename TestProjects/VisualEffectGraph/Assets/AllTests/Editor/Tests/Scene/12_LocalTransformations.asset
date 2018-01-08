@@ -5225,7 +5225,7 @@ VFXAsset:
       - index: 82
         nameId: Sphere_arc_e
       params: []
-      processor: {fileID: 7200000, guid: 4396a3a89d59a4b4e90ddca0b0209710, type: 3}
+      processor: {fileID: 7200000, guid: 6e7b071142ad48d4fbe16d8bb4a03d8c, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5244,7 +5244,7 @@ VFXAsset:
       - index: 51
         nameId: deltaTime_f
       params: []
-      processor: {fileID: 7200000, guid: 483ca068a6d29994996578b140935380, type: 3}
+      processor: {fileID: 7200000, guid: f3424e9937d1db74398fbba593668a80, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -5263,7 +5263,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: dd865705b1edd934982a6e6e425de87a, type: 3}
+      processor: {fileID: 4800000, guid: 54eafbf5420e2e246ac6d7bfcc83ad57, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -5282,7 +5282,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 9c1c7d7e7e3abc64bbd4afea2d415d60, type: 3}
+      processor: {fileID: 4800000, guid: 515915eaf0de3a1458baa6772a6877b6, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -5301,7 +5301,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 41d013fe64231ee4e9f866895f010901, type: 3}
+      processor: {fileID: 4800000, guid: 75751b9deeceb4240b0547f7b4335a65, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -5318,7 +5318,7 @@ VFXAsset:
       params:
       - index: -1
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 046cbf127da4b6e49bcc77b8e1c41a16, type: 3}
+      processor: {fileID: 4800000, guid: 1f6b1618a35258a4c8766f19eb6c17ef, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -5332,4 +5332,4 @@ VFXAsset:
     receiveShadows: 0
     reflectionProbeUsage: 0
     lightProbeUsage: 0
-  m_CullingMode: 9
+  m_CullingFlags: 3

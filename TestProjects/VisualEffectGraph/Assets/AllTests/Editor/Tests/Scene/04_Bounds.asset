@@ -1067,7 +1067,7 @@ VFXAsset:
       - index: 9
         nameId: Lifetime_c
       params: []
-      processor: {fileID: 7200000, guid: 1b8f1ee68e832d04983986977f9fa1a7, type: 3}
+      processor: {fileID: 7200000, guid: b675a5002a8fa0746afdf4b29a1269be, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -1078,7 +1078,7 @@ VFXAsset:
       - index: 10
         nameId: deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: b97881a8b89bac5459ce89fc435ebba8, type: 3}
+      processor: {fileID: 7200000, guid: 8248a32db3ee3c044a95a9a7414ff467, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -1089,7 +1089,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 9cfb1f426b3d58248b76c6d099ec243a, type: 3}
+      processor: {fileID: 4800000, guid: 2094b45be7ac70c459569185e9d22430, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -1103,4 +1103,4 @@ VFXAsset:
     receiveShadows: 0
     reflectionProbeUsage: 0
     lightProbeUsage: 0
-  m_CullingMode: 1711305580
+  m_CullingFlags: 3

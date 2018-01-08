@@ -5235,7 +5235,7 @@ VFXAsset:
       - index: 68
         nameId: Lifetime_c
       params: []
-      processor: {fileID: 7200000, guid: bf87f00ab07863f4aaa29e3c0a946aaa, type: 3}
+      processor: {fileID: 7200000, guid: 7e24a6df8c0b0884db0189f771499454, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5250,7 +5250,7 @@ VFXAsset:
       - index: 14
         nameId: deltaTime_c
       params: []
-      processor: {fileID: 7200000, guid: eebc46490ffc40d4d9e39f7ab61c3b93, type: 3}
+      processor: {fileID: 7200000, guid: c7a283419baf4554580192371cdd8698, type: 3}
     - type: 1073741827
       buffers:
       - index: 0
@@ -5273,7 +5273,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 15a7508a880d89d4489d07516162ff0c, type: 3}
+      processor: {fileID: 4800000, guid: 3cbc4c8fc8f99114fb9072d24eaef413, type: 3}
   - type: 2
     flags: 0
     capacity: 0
@@ -5306,3 +5306,4 @@ VFXAsset:
     receiveShadows: 0
     reflectionProbeUsage: 0
     lightProbeUsage: 0
+  m_CullingFlags: 3

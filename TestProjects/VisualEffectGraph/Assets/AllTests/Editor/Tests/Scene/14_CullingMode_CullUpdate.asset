@@ -896,7 +896,7 @@ MonoBehaviour:
           Culture=neutral, PublicKeyToken=null
       m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"276d9e395ae18fe40a9b4988549f2349","type":3}}'
   m_Property:
-    name: texture
+    name: mainTexture
     m_serializedType:
       m_SerializableType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
@@ -1946,7 +1946,7 @@ VFXAsset:
           key4: {r: 1, g: 0.5615011, b: 0, a: 0}
           key5: {r: 1, g: 0, b: 0.16327095, a: 0}
           key6: {r: 0.81960785, g: 0.2235294, b: 0.38343623, a: 0}
-          key7: {r: 0.786744, g: 0.22229022, b: 0.81970483, a: 0}
+          key7: {r: 0, g: 0, b: 0, a: 0}
           ctime0: 0
           ctime1: 8799
           ctime2: 18521
@@ -1954,7 +1954,7 @@ VFXAsset:
           ctime4: 41232
           ctime5: 53802
           ctime6: 65535
-          ctime7: 65535
+          ctime7: 0
           atime0: 0
           atime1: 65535
           atime2: 0
@@ -2090,11 +2090,11 @@ VFXAsset:
         nameId: sourceAttributeBuffer
       values:
       - index: 26
-        nameId: uniform_Lifetime_b
+        nameId: Lifetime_b
       - index: 24
-        nameId: uniform_Position_c
+        nameId: Position_c
       params: []
-      processor: {fileID: 7200000, guid: f420966798b7fb248b8a524c4bfc95f4, type: 3}
+      processor: {fileID: 7200000, guid: 231fa64821aa3fa438c6104392305ad3, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -2103,26 +2103,26 @@ VFXAsset:
         nameId: deadListOut
       values:
       - index: 25
-        nameId: uniform_deltaTime_b
+        nameId: deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: c4ab3bb92808ccf4b8c203c85e83bc56, type: 3}
+      processor: {fileID: 7200000, guid: 411f44ea4c4fded4f96d72efa18b52e6, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
         nameId: attributeBuffer
       values:
       - index: 19
-        nameId: uniform_SizeX_b
+        nameId: SizeX_b
       - index: 18
-        nameId: uniform_SizeX_c
+        nameId: SizeX_c
       - index: 21
-        nameId: uniform_gradient_d
+        nameId: gradient_d
       - index: 20
-        nameId: texture_texture
+        nameId: mainTexture
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 83c3162f33426a34985aa13e61fe652c, type: 3}
+      processor: {fileID: 4800000, guid: 07639c443c60d644f942425af9fe3057, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -2136,4 +2136,4 @@ VFXAsset:
     receiveShadows: 0
     reflectionProbeUsage: 0
     lightProbeUsage: 0
-  m_CullingMode: 0
+  m_CullingFlags: 3

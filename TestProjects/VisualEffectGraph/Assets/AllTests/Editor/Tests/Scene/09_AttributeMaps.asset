@@ -4371,7 +4371,7 @@ VFXAsset:
       - index: 61
         nameId: attributeMap_c
       params: []
-      processor: {fileID: 7200000, guid: 835031c76fdbb1f468ddfc752c75dd04, type: 3}
+      processor: {fileID: 7200000, guid: dbee307f5623ecf449003feac8f32c64, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -4394,7 +4394,7 @@ VFXAsset:
       - index: 65
         nameId: VectorField_b
       params: []
-      processor: {fileID: 7200000, guid: 156bcc5855516204786ed10a3fb099ff, type: 3}
+      processor: {fileID: 7200000, guid: a4cc56f4a2d0a4c4eb00546a2afc4631, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -4431,7 +4431,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: c404d804ff2f4a947b26913bfa631f93, type: 3}
+      processor: {fileID: 4800000, guid: ab5dc3994e0174c4fa137b9b04b7b57b, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -4445,4 +4445,4 @@ VFXAsset:
     receiveShadows: 0
     reflectionProbeUsage: 0
     lightProbeUsage: 0
-  m_CullingMode: 0
+  m_CullingFlags: 3

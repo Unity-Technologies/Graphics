@@ -8065,7 +8065,7 @@ VFXAsset:
       - index: 106
         nameId: Sphere_arc_d
       params: []
-      processor: {fileID: 7200000, guid: 94eea322f321ab042aa71b2211b69e8b, type: 3}
+      processor: {fileID: 7200000, guid: 5ad068353d8bf0d43868b5e9e37e5985, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -8122,7 +8122,7 @@ VFXAsset:
       - index: 109
         nameId: VectorField_e
       params: []
-      processor: {fileID: 7200000, guid: f11481189dcb3774da7e5f7d3f8a6fef, type: 3}
+      processor: {fileID: 7200000, guid: 0fd23e5d8b4defb47afa8b514dc30dcc, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -8161,7 +8161,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 17b9a4f204401144b9e3637a9ebe9a4d, type: 3}
+      processor: {fileID: 4800000, guid: 72c5cc3cfac720644a7637d83b5a1cd7, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -8175,4 +8175,4 @@ VFXAsset:
     receiveShadows: 0
     reflectionProbeUsage: 0
     lightProbeUsage: 0
-  m_CullingMode: 1769236851
+  m_CullingFlags: 3

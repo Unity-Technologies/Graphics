@@ -4299,7 +4299,7 @@ VFXAsset:
       - index: 56
         nameId: DirectionBlend_g
       params: []
-      processor: {fileID: 7200000, guid: 14aa680c71443fc4e939078e4343dc23, type: 3}
+      processor: {fileID: 7200000, guid: dbe207a47443a2b4dbaf466118160ebc, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -4310,7 +4310,7 @@ VFXAsset:
       - index: 54
         nameId: deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: ad623e4e0591c5c4f892be51dcb23aa2, type: 3}
+      processor: {fileID: 7200000, guid: 46236f75f5536cc49a18fb872f5abc2e, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -4325,7 +4325,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: dfedfdfa6bc253c47b1c05404e9828b1, type: 3}
+      processor: {fileID: 4800000, guid: 6a9c56ea16bc55e438c2167843b2378a, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 0000000001000000
@@ -4339,4 +4339,4 @@ VFXAsset:
     receiveShadows: 0
     reflectionProbeUsage: 0
     lightProbeUsage: 0
-  m_CullingMode: 0
+  m_CullingFlags: 3
