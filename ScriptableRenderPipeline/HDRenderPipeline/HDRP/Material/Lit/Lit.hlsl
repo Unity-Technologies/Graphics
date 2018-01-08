@@ -363,7 +363,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     bsdfData.fresnel0               = bsdfData.enableSpecularColor ? surfaceData.specularColor : ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, DEFAULT_SPECULAR_VALUE);
 
     // Always assign even if not used, DIFFUSION_NEUTRAL_PROFILE_ID is 0
-    bsdfData.diffusionProfile == surfaceData.diffusionProfile;
+    bsdfData.diffusionProfile       = surfaceData.diffusionProfile;
     // Note: we have ZERO_INITIALIZE the struct so bsdfData.anisotropy == 0.0
 
     // In forward everything is statically know and we could theorically cumulate all the material features. So the code reflect it.
@@ -541,7 +541,7 @@ void DecodeFromGBuffer(
     bsdfData.normalWS = UnpackNormalOctEncode(float2(inGBuffer1.r, inGBuffer1.g));
 
     // metallic15 is range [0..12] if mettallic data is needed
-    float metallic = (metallic15 <= GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND) ? metallic15 / GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND : 0.0;
+    float metallic = (metallic15 <= GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND) ? metallic15 * (1.0 / GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND) : 0.0;
     bsdfData.diffuseColor = ComputeDiffuseColor(baseColor, metallic);
     bsdfData.fresnel0 = bsdfData.enableSpecularColor ? inGBuffer2.rgb : ComputeFresnel0(baseColor, metallic, DEFAULT_SPECULAR_VALUE);
 
