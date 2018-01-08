@@ -23,7 +23,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool supportShadowMask = true;
         public bool supportSSR = true;
         public bool supportSSAO = true;
-        public bool supportSSSAndTransmission = true;
+        public bool supportSubsurfaceScattering = true;
 
         // Engine
         public bool supportDBuffer = false;

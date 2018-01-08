@@ -122,6 +122,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Broadcast SSS parameters to all shaders.
             cmd.SetGlobalInt(HDShaderIDs._EnableSubsurfaceScattering, frameSettings.enableSubsurfaceScattering ? 1 : 0);
+            cmd.SetGlobalFloat(HDShaderIDs._TransmittanceMultiplier, frameSettings.enableTransmission ? 1.0f : 0.0f);
             unsafe
             {
                 // Warning: Unity is not able to losslessly transfer integers larger than 2^24 to the shader system.
