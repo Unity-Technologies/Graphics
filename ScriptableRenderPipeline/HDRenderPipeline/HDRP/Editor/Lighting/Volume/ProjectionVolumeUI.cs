@@ -1,6 +1,9 @@
 ﻿using System;
 using UnityEditor.AnimatedValues;
+using UnityEditor.IMGUI.Controls;
+using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -9,6 +12,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
     class ProjectionVolumeUI : BaseUI<SerializedProjectionVolume>
     {
+        internal static Color k_GizmoThemeColorProjection = new Color(0x00 / 255f, 0xE5 / 255f, 0xFF / 255f, 0x20 / 255f);
+        internal static Color k_GizmoThemeColorProjectionFace = new Color(0x00 / 255f, 0xE5 / 255f, 0xFF / 255f, 0x20 / 255f);
+        internal static Color k_GizmoThemeColorDisabled = new Color(0x99 / 255f, 0x89 / 255f, 0x59 / 255f, 0x10 / 255f);
+        internal static Color k_GizmoThemeColorDisabledFace = new Color(0x99 / 255f, 0x89 / 255f, 0x59 / 255f, 0x10 / 255f);
+
         static readonly int k_ShapeCount = Enum.GetValues(typeof(ShapeType)).Length;
 
         public static readonly CED.IDrawer SectionShape;
@@ -29,6 +37,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             );
         }
 
+        public BoxBoundsHandle boxProjectionHandle = new BoxBoundsHandle();
+        public SphereBoundsHandle sphereProjectionHandle = new SphereBoundsHandle();
 
         public ProjectionVolumeUI()
             : base(k_ShapeCount)
@@ -70,6 +80,65 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(d.sphereRadius, _.GetContent("Sphere Radius"));
             EditorGUILayout.PropertyField(d.sphereOffset, _.GetContent("Sphere Offset"));
             EditorGUILayout.PropertyField(d.sphereInfiniteProjection, _.GetContent("Infinite Projection"));
+        }
+
+        public static void DrawHandles(Transform transform, ProjectionVolume projectionVolume, ProjectionVolumeUI ui, Object sourceAsset)
+        {
+            switch (projectionVolume.shapeType)
+            {
+                case ShapeType.Box:
+                    Handles_Box(transform, projectionVolume, ui, sourceAsset);
+                    break;
+                case ShapeType.Sphere:
+                    Handles_Sphere(transform, projectionVolume, ui, sourceAsset);
+                    break;
+            }
+        }
+
+        static void Handles_Sphere(Transform transform, ProjectionVolume projectionVolume, ProjectionVolumeUI s, Object sourceAsset)
+        {
+            s.sphereProjectionHandle.center = projectionVolume.sphereOffset;
+            s.sphereProjectionHandle.radius = projectionVolume.sphereRadius;
+
+            var mat = Handles.matrix;
+            Handles.matrix = transform.localToWorldMatrix;
+            Handles.color = k_GizmoThemeColorProjection;
+            EditorGUI.BeginChangeCheck();
+            s.sphereProjectionHandle.DrawHandle();
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(sourceAsset, "Modified Projection Volume");
+
+                projectionVolume.sphereOffset = s.sphereProjectionHandle.center;
+                projectionVolume.sphereRadius = s.sphereProjectionHandle.radius;
+
+                EditorUtility.SetDirty(sourceAsset);
+            }
+            Handles.matrix = mat;
+        }
+
+        static void Handles_Box(Transform transform, ProjectionVolume projectionVolume, ProjectionVolumeUI s, Object sourceAsset)
+        {
+            s.boxProjectionHandle.center = projectionVolume.boxOffset;
+            s.boxProjectionHandle.size = projectionVolume.boxSize;
+
+            var mat = Handles.matrix;
+            Handles.matrix = transform.localToWorldMatrix;
+
+            Handles.color = k_GizmoThemeColorProjection;
+            EditorGUI.BeginChangeCheck();
+            s.boxProjectionHandle.DrawHandle();
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(sourceAsset, "Modified Projection Volume AABB");
+
+                projectionVolume.boxOffset = s.boxProjectionHandle.center;
+                projectionVolume.boxSize = s.boxProjectionHandle.size;
+
+                EditorUtility.SetDirty(sourceAsset);
+            }
+
+            Handles.matrix = mat;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -10,6 +11,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         ProjectionVolumeComponent[] m_TypedTargets;
         SerializedProjectionVolumeComponent m_SerializedData;
         ProjectionVolumeComponentUI m_UIState = new ProjectionVolumeComponentUI();
+        ProjectionVolumeComponentUI[] m_UIHandlerState;
 
         void OnEnable()
         {
@@ -17,6 +19,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_SerializedData = new SerializedProjectionVolumeComponent(serializedObject);
 
             m_UIState.Reset(m_SerializedData, Repaint);
+
+            m_UIHandlerState = new ProjectionVolumeComponentUI[m_TypedTargets.Length];
+            for (var i = 0; i < m_UIHandlerState.Length; i++)
+                m_UIHandlerState[i] = new ProjectionVolumeComponentUI();
         }
 
         public override void OnInspectorGUI()
@@ -36,12 +42,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         void OnSceneGUI()
         {
             for (var i = 0; i < m_TypedTargets.Length; i++)
-                DoHandles(m_TypedTargets[i]);
-        }
-
-        static void DoHandles(ProjectionVolumeComponent target)
-        {
-            
+                ProjectionVolumeComponentUI.DrawHandles(m_TypedTargets[i], m_UIHandlerState[i]);
         }
     }
 }

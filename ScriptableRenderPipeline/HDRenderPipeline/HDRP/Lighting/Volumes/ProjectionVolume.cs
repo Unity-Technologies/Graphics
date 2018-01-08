@@ -27,12 +27,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public ShapeType shapeType { get { return m_ShapeType; } }
 
-        public Vector3 boxSize { get { return m_BoxSize; } }
-        public Vector3 boxOffset { get { return m_BoxOffset; } }
+        public Vector3 boxSize { get { return m_BoxSize; } set { m_BoxSize = value; } }
+        public Vector3 boxOffset { get { return m_BoxOffset; } set { m_BoxOffset = value; } }
         public bool boxInfiniteProjection { get { return m_BoxInfiniteProjection; } }
 
-        public float sphereRadius { get { return m_SphereRadius; } }
-        public Vector3 sphereOffset { get { return m_SphereOffset; } }
+        public float sphereRadius { get { return m_SphereRadius; } set { m_SphereRadius = value; } }
+        public Vector3 sphereOffset { get { return m_SphereOffset; } set { m_SphereOffset = value; } }
         public bool sphereInfiniteProjection { get { return m_SphereInfiniteProjection; } }
     }
 }

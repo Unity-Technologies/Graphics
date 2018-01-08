@@ -1,5 +1,6 @@
 ﻿using UnityEditor.Experimental.UIElements;
 using UnityEngine.Events;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -37,6 +38,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             projectionVolume.Update();
             base.Update();
+        }
+
+        public static void DrawHandles(ProjectionVolumeComponent target, ProjectionVolumeComponentUI ui)
+        {
+            ProjectionVolumeUI.DrawHandles(target.transform, target.projectionVolume, ui.projectionVolume, target);
         }
     }
 }
