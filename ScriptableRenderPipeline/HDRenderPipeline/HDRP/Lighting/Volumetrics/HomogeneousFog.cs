@@ -1,7 +1,7 @@
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [ExecuteInEditMode]
-    [AddComponentMenu("Rendering/Homogeneous Fog", -1)]
+    [AddComponentMenu("RenderPipeline/High Definition/Homogenous Fog", -1)]
     public class HomogeneousFog : MonoBehaviour
     {
         public VolumeParameters volumeParameters = new VolumeParameters();
