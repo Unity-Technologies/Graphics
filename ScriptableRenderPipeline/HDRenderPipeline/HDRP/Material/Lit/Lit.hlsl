@@ -222,26 +222,26 @@ void FillMaterialSSS(float subsurfaceMask, inout BSDFData bsdfData)
     // Note: ApplySubsurfaceScatteringTexturingMode also test the diffusionProfile for updating diffuseColor based on SSS
 }
 
-void FillMaterialTransmission(int diffusionProfile, , float thickness, uint transmissionMode, inout BSDFData bsdfData)
+void FillMaterialTransmission(int diffusionProfile, float thickness, uint transmissionMode, inout BSDFData bsdfData)
 {
-    bsdfData.enableTransmission = _EnableTransmission != 0;
+    bsdfData.enableTransmission = (transmissionMode != TRANSMISSION_MODE_NONE);
 
-    if (bsdfData.enableTransmission && transmissionMode != TRANSMISSION_MODE_NONE)
+    if (bsdfData.enableTransmission)
     {
         bsdfData.thickness = _ThicknessRemaps[diffusionProfile].x + _ThicknessRemaps[diffusionProfile].y * thickness;
         bsdfData.useThickObjectMode = transmissionMode != TRANSMISSION_MODE_THIN;
 
 #if SHADEROPTIONS_USE_DISNEY_SSS
-            bsdfData.transmittance = _EnableTransmission * ComputeTransmittanceDisney(  _ShapeParams[diffusionProfile].rgb,
+        bsdfData.transmittance = _TransmittanceMultiplier * ComputeTransmittanceDisney( _ShapeParams[diffusionProfile].rgb,
                                                                                         _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
-                                                                                        bsdfData.thickness, bsdfData.subsurfaceMask);
+                                                                                        bsdfData.thickness, 1.0);
 #else
-            bsdfData.transmittance = _EnableTransmission * ComputeTransmittanceJimenez( _HalfRcpVariancesAndWeights[diffusionProfile][0].rgb,
-                                                                                        _HalfRcpVariancesAndWeights[diffusionProfile][0].a,
-                                                                                        _HalfRcpVariancesAndWeights[diffusionProfile][1].rgb,
-                                                                                        _HalfRcpVariancesAndWeights[diffusionProfile][1].a,
-                                                                                        _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
-                                                                                        bsdfData.thickness, bsdfData.subsurfaceMask);
+        bsdfData.transmittance = _TransmittanceMultiplier * ComputeTransmittanceJimenez( _HalfRcpVariancesAndWeights[diffusionProfile][0].rgb,
+                                                                                            _HalfRcpVariancesAndWeights[diffusionProfile][0].a,
+                                                                                            _HalfRcpVariancesAndWeights[diffusionProfile][1].rgb,
+                                                                                            _HalfRcpVariancesAndWeights[diffusionProfile][1].a,
+                                                                                            _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
+                                                                                            bsdfData.thickness, 1.0);
 #endif
     }
 }

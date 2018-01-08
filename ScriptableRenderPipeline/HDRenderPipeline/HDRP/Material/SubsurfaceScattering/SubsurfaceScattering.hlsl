@@ -10,6 +10,7 @@ CBUFFER_START(UnitySSSAndTransmissionParameters)
 // Warning: Unity is not able to losslessly transfer integers larger than 2^24 to the shader system.
 // Therefore, we bitcast uint to float in C#, and bitcast back to uint in the shader.
 uint   _EnableSubsurfaceScattering; // Globally toggles subsurface and transmission scattering on/off
+float  _TransmittanceMultiplier;    // Allow to switch on/off the transmittance but doesn't save the cost
 float  _TexturingModeFlags;       // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
 float  _TransmissionFlags;        // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
 // Old SSS Model >>>

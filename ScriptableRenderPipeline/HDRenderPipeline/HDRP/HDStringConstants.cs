@@ -138,6 +138,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _SkyTextureMipCount = Shader.PropertyToID("_SkyTextureMipCount");
 
         public static readonly int _EnableSubsurfaceScattering = Shader.PropertyToID("_EnableSubsurfaceScattering");
+        public static readonly int _TransmittanceMultiplier = Shader.PropertyToID("_TransmittanceMultiplier");
         public static readonly int _TexturingModeFlags = Shader.PropertyToID("_TexturingModeFlags");
         public static readonly int _TransmissionFlags = Shader.PropertyToID("_TransmissionFlags");
         public static readonly int _ThicknessRemaps = Shader.PropertyToID("_ThicknessRemaps");
