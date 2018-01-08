@@ -731,7 +731,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 
     // Init other parameters
-    surfaceData.anisotropy = 0;
+    surfaceData.anisotropy = 0.0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
     surfaceData.coatMask = 0.0;
     surfaceData.thicknessIrid = 0.0;

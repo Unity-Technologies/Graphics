@@ -11,12 +11,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact)]
         public enum MaterialFeatureFlags
         {
+            LitStandard             = 1 << 0,   // For material classification we need to identify that we are indeed use as standard material, else we are consider as sky/background element
+            LitSubsurfaceScattering = 1 << 1,
+            LitTransmission         = 1 << 2,
+            LitAnisotropy           = 1 << 3,
+            LitIridescence          = 1 << 4,
+            LitClearCoat            = 1 << 5
             // Note: // There is no material feature for LitSpecularColor as it is always dynamically tested
-            LitSubsurfaceScattering = 1 << 0,
-            LitTransmission = 1 << 1,
-            LitAnisotropy = 1 << 2,
-            LitIridescence = 1 << 3,
-            LitClearCoat = 1 << 4
         };
 
         [GenerateHLSL(PackingRules.Exact)]
