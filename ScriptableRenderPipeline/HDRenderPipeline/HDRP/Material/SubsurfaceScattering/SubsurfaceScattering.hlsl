@@ -13,13 +13,13 @@ uint   _EnableSubsurfaceScattering; // Globally toggles subsurface and transmiss
 float  _TexturingModeFlags;       // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
 float  _TransmissionFlags;        // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
 // Old SSS Model >>>
-float4 _HalfRcpVariancesAndWeights[DIFFUSION_N_PROFILES][2]; // 2x Gaussians in RGB, A is interpolation weights
+float4 _HalfRcpVariancesAndWeights[DIFFUSION_PROFILE_COUNT][2]; // 2x Gaussians in RGB, A is interpolation weights
 // <<< Old SSS Model
 // Use float4 to avoid any packing issue between compute and pixel shaders
-float4  _ThicknessRemaps[DIFFUSION_N_PROFILES];   // R: start, G = end - start, BA unused
-float4 _ShapeParams[DIFFUSION_N_PROFILES];        // RGB = S = 1 / D, A = filter radius
-float4 _TransmissionTintsAndFresnel0[DIFFUSION_N_PROFILES];  // RGB = 1/4 * color, A = fresnel0
-float4 _WorldScales[DIFFUSION_N_PROFILES];        // X = meters per world unit; Y = world units per meter
+float4  _ThicknessRemaps[DIFFUSION_PROFILE_COUNT];   // R: start, G = end - start, BA unused
+float4 _ShapeParams[DIFFUSION_PROFILE_COUNT];        // RGB = S = 1 / D, A = filter radius
+float4 _TransmissionTintsAndFresnel0[DIFFUSION_PROFILE_COUNT];  // RGB = 1/4 * color, A = fresnel0
+float4 _WorldScales[DIFFUSION_PROFILE_COUNT];        // X = meters per world unit; Y = world units per meter
 CBUFFER_END
 
 // ----------------------------------------------------------------------------

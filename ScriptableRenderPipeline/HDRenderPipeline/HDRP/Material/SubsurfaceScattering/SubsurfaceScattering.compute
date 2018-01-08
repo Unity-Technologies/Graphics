@@ -47,7 +47,7 @@
 // Inputs & outputs
 //--------------------------------------------------------------------------------------------------
 
-float4 _FilterKernels[DIFFUSION_N_PROFILES][SSS_N_SAMPLES_NEAR_FIELD]; // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
+float4 _FilterKernels[DIFFUSION_PROFILE_COUNT][SSS_N_SAMPLES_NEAR_FIELD]; // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
 
 TEXTURE2D(_DepthTexture);                           // Z-buffer
 TEXTURE2D(_SSSHTile);                                  // DXGI_FORMAT_R8_UINT is not supported by Unity
