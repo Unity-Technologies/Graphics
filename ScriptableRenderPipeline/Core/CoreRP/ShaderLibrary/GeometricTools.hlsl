@@ -5,32 +5,35 @@
 // Intersection functions
 //-----------------------------------------------------------------------------
 
-// return furthest near intersection in x and closest far intersection in y
-// if (intersections.y > intersections.x) the ray hit the box, else it miss it
-// Assume dir is normalize
-float2 BoxRayIntersect(float3 start, float3 dir, float3 boxMin, float3 boxMax)
+// This implementation does not attempt to explicitly handle NaNs.
+// Ref: https://tavianator.com/fast-branchless-raybounding-box-intersections-part-2-nans/
+bool IntersectRayAABB(float3 rayOrigin, float3 rayDirection,
+                      float3 boxMin,    float3 boxMax,
+                      float  tMin,       float tMax,
+                  out float  tEntr,  out float tExit)
 {
-    float3 invDir = 1.0 / dir;
+    float3 rayDirInv = rcp(rayDirection); // Could be precomputed
 
-    // Find the ray intersection with box plane
-    float3 firstPlaneIntersect = (boxMin - start) * invDir;
-    float3 secondPlaneIntersect = (boxMax - start) * invDir;
+    // Perform ray-slab intersection (component-wise).
+    float3 t0 = boxMin * rayDirInv - (rayOrigin * rayDirInv);
+    float3 t1 = boxMax * rayDirInv - (rayOrigin * rayDirInv);
 
-    // Get the closest/furthest of these intersections along the ray (Ok because x/0 give +inf and -x/0 give �inf )
-    float3 closestPlane = min(firstPlaneIntersect, secondPlaneIntersect);
-    float3 furthestPlane = max(firstPlaneIntersect, secondPlaneIntersect);
+    // Find the closest/farthest distance (component-wise).
+    float3 tSlabEntr = min(t0, t1);
+    float3 tSlabExit = max(t0, t1);
 
-    float2 intersections;
-    // Find the furthest near intersection
-    intersections.x = max(closestPlane.x, max(closestPlane.y, closestPlane.z));
-    // Find the closest far intersection
-    intersections.y = min(min(furthestPlane.x, furthestPlane.y), furthestPlane.z);
+    // Find the farthest entry and the nearest exit.
+    tEntr = Max3(tSlabEntr.x, tSlabEntr.y, tSlabEntr.z);
+    tExit = Min3(tSlabExit.x, tSlabExit.y, tSlabExit.z);
 
-    return intersections;
+    // Clamp to the range.
+    tEntr = max(tEntr, tMin);
+    tExit = min(tExit, tMax);
+
+    return tEntr < tExit;
 }
 
 // This simplified version assume that we care about the result only when we are inside the box
-// Assume dir is normalize
 float BoxRayIntersectSimple(float3 start, float3 dir, float3 boxMin, float3 boxMax)
 {
     float3 invDir = 1.0 / dir;
@@ -147,30 +150,6 @@ bool IntersectRayCone(float3 rayOrigin,  float3 rayDirection,
     if (tEntr == tExit) { hit = false; }
 
     return hit;
-}
-
-// This implementation does not attempt to explicitly handle NaNs.
-// Ref: https://tavianator.com/fast-branchless-raybounding-box-intersections-part-2-nans/
-bool IntersectRayAABB(float3 rayOrigin, float3 rayDirection,
-                      float3 boxPt0, float3 boxPt1,
-                      float tMin, float tMax,
-                      out float tEntr, out float tExit)
-{
-    float3 rayDirInv = rcp(rayDirection); // Could be precomputed
-
-    tEntr = tMin;
-    tExit = tMax;
-
-    for (int i = 0; i < 3; ++i)
-    {
-        float t0 = boxPt0[i] * rayDirInv[i] - (rayOrigin[i] * rayDirInv[i]);
-        float t1 = boxPt1[i] * rayDirInv[i] - (rayOrigin[i] * rayDirInv[i]);
-
-        tEntr = max(tEntr, min(t0, t1)); // Farthest entry
-        tExit = min(tExit, max(t0, t1)); // Nearest exit
-    }
-
-    return tEntr < tExit;
 }
 
 //-----------------------------------------------------------------------------
