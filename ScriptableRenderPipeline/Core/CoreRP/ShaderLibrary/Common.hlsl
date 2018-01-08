@@ -42,7 +42,7 @@
 // The reason is that for compute shader we need to guarantee that the layout of CBs is consistent across kernels. Something that we can't control with the global namespace (uniforms get optimized out if not used, modifying the global CBuffer layout per kernel)
 
 // Structure definition that are share between C# and hlsl.
-// These structures need to be align on float4 to respect various packing rules from sahder language.
+// These structures need to be align on float4 to respect various packing rules from shader language.
 // This mean that these structure need to be padded.
 
 // Do not use "in", only "out" or "inout" as califier, not "inline" keyword either, useless.
@@ -384,6 +384,19 @@ float ComputeTextureLOD(float2 uv, float4 texelSize)
     return ComputeTextureLOD(uv);
 }
 
+uint GetMipCount(Texture2D tex)
+{
+#if defined(SHADER_API_D3D11) || defined(SHADER_API_D3D12) || defined(SHADER_API_D3D11_9X) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL)
+    uint width, height, depth, mipCount;
+    width = height = depth = mipCount = 0;
+    tex.GetDimensions(width, height, depth, mipCount);
+    return mipCount;
+#else
+    // SHADER_API_OPENGL only supports textureSize for width, height, depth
+    return 0;
+#endif
+}
+
 // ----------------------------------------------------------------------------
 // Texture format sampling
 // ----------------------------------------------------------------------------
@@ -590,11 +603,13 @@ float3 SafeNormalize(float3 inVec)
 }
 
 // Normalize that account for vectors with zero length
+/*
 half3 SafeNormalize(half3 inVec)
 {
     half dp3 = max(HALF_MIN, dot(inVec, inVec));
     return inVec * rsqrt(dp3);
 }
+*/
 
 // Generates a triangle in homogeneous clip space, s.t.
 // v0 = (-1, -1, 1), v1 = (3, -1, 1), v2 = (-1, 3, 1).

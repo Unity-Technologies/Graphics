@@ -43,14 +43,5 @@
 #define DEBUGVIEWPROPERTIES_LIGHTMAP (21)
 #define DEBUGVIEWPROPERTIES_LAST (22)
 
-//
-// UnityEngine.Experimental.Rendering.HDPipeline.Attributes.DebugViewTexture:  static fields
-//
-#define DEBUGVIEWTEXTURE_NONE (0)
-#define DEBUGVIEWTEXTURE_SHOW_MIP_RATIO (22)
-#define DEBUGVIEWTEXTURE_MAX_MIP (23)
-#define DEBUGVIEWTEXTURE_STREAMING_MIPS (24)
-#define DEBUGVIEWTEXTURE_LAST (25)
-
 
 #endif

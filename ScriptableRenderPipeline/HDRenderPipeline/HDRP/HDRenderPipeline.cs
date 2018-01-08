@@ -662,6 +662,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     Resize(camera);
 
+                    if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
+                    {
+                        m_CurrentDebugDisplaySettings.UpdateMaterials();
+                    }
+
                     renderContext.SetupCameraProperties(camera);
 
                     PushGlobalParams(hdCamera, cmd, sssSettings);
@@ -724,6 +729,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     UpdateSkyEnvironment(hdCamera, cmd);
 
                     RenderPyramidDepth(camera, cmd, renderContext, FullScreenDebugMode.DepthPyramid);
+
 
                     if (m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled())
                     {
@@ -1082,8 +1088,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Render opaque objects into GBuffer
                 if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
                 {
-                    m_CurrentDebugDisplaySettings.UpdateMaterials();
-
                     // When doing debug display, the shader has the clip instruction regardless of the depth prepass so we can use regular depth test.
                     RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.s_GBufferDebugDisplayName, m_currentRendererConfigurationBakedLighting, RenderQueueRange.opaque, m_DepthStateOpaque);
                 }
@@ -1507,6 +1511,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             cmd.SetGlobalInt(HDShaderIDs._DebugViewMaterial, (int)m_CurrentDebugDisplaySettings.GetDebugMaterialIndex());
             cmd.SetGlobalInt(HDShaderIDs._DebugLightingMode, (int)m_CurrentDebugDisplaySettings.GetDebugLightingMode());
+            cmd.SetGlobalInt(HDShaderIDs._DebugMipMapMode, (int)m_CurrentDebugDisplaySettings.GetDebugMipMapMode());
             cmd.SetGlobalVector(HDShaderIDs._DebugLightingAlbedo, debugAlbedo);
             cmd.SetGlobalVector(HDShaderIDs._DebugLightingSmoothness, debugSmoothness);
         }
