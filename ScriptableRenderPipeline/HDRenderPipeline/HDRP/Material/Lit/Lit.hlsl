@@ -1788,6 +1788,11 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
         specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
     }
     #endif
+    else if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
+    {
+        diffuseLighting = bsdfData.diffuseColor;
+        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+    }
 #endif
 }
 

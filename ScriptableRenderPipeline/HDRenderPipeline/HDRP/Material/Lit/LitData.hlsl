@@ -18,7 +18,7 @@ float GetSpecularOcclusionFromBentAO(float3 V, float3 bentNormalWS, SurfaceData 
     return SphericalCapIntersectionSolidArea(cosAv, cosAs, cosB) / (TWO_PI * (1.0 - cosAs));
 }
 
-void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, float3 bentNormalWS, float depthOffset, out BuiltinData builtinData)
+void GetBuiltinData(FragInputs input, inout SurfaceData surfaceData, float alpha, float3 bentNormalWS, float depthOffset, out BuiltinData builtinData)
 {
     // Builtin Data
     builtinData.opacity = alpha;
@@ -73,6 +73,18 @@ void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, floa
 #endif
 
     builtinData.depthOffset = depthOffset;
+
+#if defined(DEBUG_DISPLAY)
+    if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
+    {
+#ifdef LAYERED_LIT_SHADER
+        surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input, _BaseColorMap0, _BaseColorMap0_TexelSize, _BaseColorMap0_MipInfo, surfaceData.baseColor);
+#else
+        surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input, _BaseColorMap, _BaseColorMap_TexelSize, _BaseColorMap_MipInfo, surfaceData.baseColor);
+#endif
+        surfaceData.metallic = 0;
+    }
+#endif
 }
 
 // Struct that gather UVMapping info of all layers + common calculation
