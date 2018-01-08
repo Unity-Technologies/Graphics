@@ -7,8 +7,8 @@
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.DiffusionProfileConstants:  static fields
 //
-#define DIFFUSION_N_PROFILES (16)
-#define DIFFUSION_NEUTRAL_PROFILE_ID (0)
+#define DIFFUSION_PROFILE_COUNT (16)
+#define DIFFUSION_PROFILE_NEUTRAL_ID (0)
 #define SSS_N_SAMPLES_NEAR_FIELD (55)
 #define SSS_N_SAMPLES_FAR_FIELD (21)
 #define SSS_LOD_THRESHOLD (4)

@@ -222,14 +222,14 @@ void FillMaterialTransmission(float thickness, inout BSDFData bsdfData)
 #if SHADEROPTIONS_USE_DISNEY_SSS
     bsdfData.transmittance = ComputeTransmittanceDisney(    _ShapeParams[diffusionProfile].rgb,
                                                             _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
-                                                            bsdfData.thickness, 1.0);
+                                                            bsdfData.thickness);
 #else
     bsdfData.transmittance = ComputeTransmittanceJimenez(   _HalfRcpVariancesAndWeights[diffusionProfile][0].rgb,
                                                             _HalfRcpVariancesAndWeights[diffusionProfile][0].a,
                                                             _HalfRcpVariancesAndWeights[diffusionProfile][1].rgb,
                                                             _HalfRcpVariancesAndWeights[diffusionProfile][1].a,
                                                             _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
-                                                            bsdfData.thickness, 1.0);
+                                                            bsdfData.thickness);
 #endif
 }
 
@@ -362,7 +362,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     bsdfData.diffuseColor           = ComputeDiffuseColor(surfaceData.baseColor, metallic);
     bsdfData.fresnel0               = bsdfData.enableSpecularColor ? surfaceData.specularColor : ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, DEFAULT_SPECULAR_VALUE);
 
-    // Always assign even if not used, DIFFUSION_NEUTRAL_PROFILE_ID is 0
+    // Always assign even if not used, DIFFUSION_PROFILE_NEUTRAL_ID is 0
     bsdfData.diffusionProfile       = surfaceData.diffusionProfile;
     // Note: we have ZERO_INITIALIZE the struct so bsdfData.anisotropy == 0.0
 
@@ -522,7 +522,7 @@ void DecodeFromGBuffer(
                                     HasMaterialFeatureFlag(featureFlags, MATERIALFEATUREFLAGS_LIT_TRANSMISSION);
     bsdfData.enableSubsurfaceScattering =   (metallic15 == GBUFFER_LIT_SSS_OR_TRANSMISSION && inGBuffer2.b > 0.0) && // SSS Flags > 0
                                             HasMaterialFeatureFlag(featureFlags, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING);
-    bsdfData.enableAnisotropy =    (metallic15 <= GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND && inGBuffer2.g > 0.0) && // Anisotropy > 0
+    bsdfData.enableAnisotropy =     (metallic15 <= GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND && inGBuffer2.g > 0.0) && // Anisotropy > 0
                                     HasMaterialFeatureFlag(featureFlags, MATERIALFEATUREFLAGS_LIT_ANISOTROPY);
     bsdfData.enableIridescence =    (metallic15 == GBUFFER_LIT_IRIDESCENCE) &&
                                     HasMaterialFeatureFlag(featureFlags, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE);
@@ -545,8 +545,8 @@ void DecodeFromGBuffer(
     bsdfData.diffuseColor = ComputeDiffuseColor(baseColor, metallic);
     bsdfData.fresnel0 = bsdfData.enableSpecularColor ? inGBuffer2.rgb : ComputeFresnel0(baseColor, metallic, DEFAULT_SPECULAR_VALUE);
 
-    // Always assign even if not used, DIFFUSION_NEUTRAL_PROFILE_ID is 0
-    // Note: we have ZERO_INITIALIZE the struct, so bsdfData.diffusionProfile == DIFFUSION_NEUTRAL_PROFILE_ID, bsdfData.anisotropy == 0.0, bsdfData.SubsurfaceMask == 0.0 etc...
+    // Always assign even if not used, DIFFUSION_PROFILE_NEUTRAL_ID is 0
+    // Note: we have ZERO_INITIALIZE the struct, so bsdfData.diffusionProfile == DIFFUSION_PROFILE_NEUTRAL_ID, bsdfData.anisotropy == 0.0, bsdfData.SubsurfaceMask == 0.0 etc...
 
     // Process SSS and Transmission together as they encode almost the same data
     if (bsdfData.enableSubsurfaceScattering || bsdfData.enableTransmission)
@@ -887,7 +887,7 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 
 bool HaveSubsurfaceScattering(BSDFData bsdfData)
 {
-    return bsdfData.enableSubsurfaceScattering;
+    return (_EnableSubsurfaceScattering != 0) && bsdfData.enableSubsurfaceScattering;
 }
 
 //-----------------------------------------------------------------------------

@@ -50,9 +50,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent linkDetailsWithBaseText = new GUIContent("Lock to Base Tiling/Offset", "Lock details Tiling/Offset to Base Tiling/Offset");
 
             // Subsurface
-            public static GUIContent diffusionProfileText = new GUIContent("Diffusion profile", "A profile determines the shape of the blur/transmission filter.");
-            public static GUIContent subsurfaceMaskText = new GUIContent("Subsurface radius", "Determines the range of the blur.");
-            public static GUIContent subsurfaceMaskMapText = new GUIContent("Subsurface radius map (R)", "Determines the range of the blur.");
+            public static GUIContent diffusionProfileText = new GUIContent("Diffusion profile", "A profile determines the shape of the SSS/transmission filter.");
+            public static GUIContent subsurfaceMaskText = new GUIContent("Subsurface mask", "Determines the strength of the subsurface scattering effect.");
+            public static GUIContent subsurfaceMaskMapText = new GUIContent("Subsurface mask map (R)", "Determines the strength of the subsurface scattering effect.");
             public static GUIContent thicknessText = new GUIContent("Thickness", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
             public static GUIContent thicknessMapText = new GUIContent("Thickness map (R)", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
             public static GUIContent thicknessRemapText = new GUIContent("Thickness Remap", "Remaps values of the thickness map from [0, 1] to the specified range.");
@@ -357,7 +357,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             names[0] = new GUIContent("None");
 
             var values = new int[names.Length];
-            values[0] = DiffusionProfileConstants.DIFFUSION_NEUTRAL_PROFILE_ID;
+            values[0] = DiffusionProfileConstants.DIFFUSION_PROFILE_NEUTRAL_ID;
 
             for (int i = 0; i < profiles.Length; i++)
             {
