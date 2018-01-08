@@ -4210,10 +4210,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_ProjectionVolume:
     m_ShapeType: 0
-    m_BoxSize: {x: 0, y: 0, z: 0}
-    m_BoxOffset: {x: 0, y: 0, z: 0}
+    m_BoxSize: {x: 20, y: 10, z: 20}
+    m_BoxOffset: {x: 0, y: 5, z: 0}
     m_BoxInfiniteProjection: 0
-    m_SphereRadius: 0
+    m_SphereRadius: 12.3
     m_SphereOffset: {x: 0, y: 0, z: 0}
     m_SphereInfiniteProjection: 0
 --- !u!1 &1662809620
