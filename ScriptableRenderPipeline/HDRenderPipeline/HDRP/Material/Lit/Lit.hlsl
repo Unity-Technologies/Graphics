@@ -216,7 +216,7 @@ void FillMaterialTransmission(float thickness, inout BSDFData bsdfData)
     int diffusionProfile = bsdfData.diffusionProfile;
 
     bsdfData.thickness = _ThicknessRemaps[diffusionProfile].x + _ThicknessRemaps[diffusionProfile].y * thickness;
-    uint transmissionMode = BitFieldExtract(asuint(_TransmissionFlags), 2u * surfaceData.diffusionProfile, 2u);
+    uint transmissionMode = BitFieldExtract(asuint(_TransmissionFlags), 2u * diffusionProfile, 2u);
     bsdfData.useThickObjectMode = transmissionMode != TRANSMISSION_MODE_THIN;
 
 #if SHADEROPTIONS_USE_DISNEY_SSS
@@ -373,7 +373,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     if (bsdfData.enableSubsurfaceScattering)
     {
         // Modify fresnel0
-        FillMaterialSSS(surfaceData.subsurfaceMask);
+        FillMaterialSSS(surfaceData.subsurfaceMask, bsdfData);
     }
 
     if (bsdfData.enableTransmission)
@@ -450,32 +450,36 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     // The priority of feature is handled in the code here and reflect in the UI (see LitUI.cs)
 
     // Process SSS and Transmission together as they encode almost the same data, negligible cost
-    if (bsdfData.enableSubsurfaceScattering || bsdfData.enableTransmission)
+    if (surfaceData.enableSubsurfaceScattering || surfaceData.enableTransmission)
     {
         metallic15 = GBUFFER_LIT_SSS_OR_TRANSMISSION;
         // Special case: For SSS we will store the profile id and the subsurface radius at the location of the specular occlusion (in alpha channel of GBuffer0)
         // and we will move the specular occlusion in GBuffer2. This is an optimization for SSSSS and have no other side effect as specular occlusion is always used
         // during lighting pass when other buffer (Gbuffer0, 1, 2) and read anyway.
         EncodeIntoSSSBuffer(ConvertSurfaceDataToSSSData(surfaceData), positionSS, outGBuffer0);
-        outGBuffer2.rgb = float3(surfaceData.specularOcclusion, surfaceData.thickness, bsdfData.enableSubsurfaceScattering ? 1.0 : 0.0); // thickness for Transmission
+        outGBuffer2.rgb = float3(surfaceData.specularOcclusion, surfaceData.thickness, surfaceData.enableSubsurfaceScattering ? 1.0 : 0.0); // thickness for Transmission
     }
     else
     {
-        if (bsdfData.enableSpecularColor)
+        if (surfaceData.enableSpecularColor)
         {
             metallic15 = GBUFFER_LIT_SPECULAR_COLOR;
             outGBuffer2.rgb = surfaceData.specularColor;
         }
-        else if (bsdfData.enableAnisotropy)
+        else if (surfaceData.enableAnisotropy)
         {
             // Encode tangent on 16bit with oct compression
             float2 octTangentWS = PackNormalOctEncode(surfaceData.tangentWS);
             outGBuffer2.rgb = float3(octTangentWS * 0.5 + 0.5, surfaceData.anisotropy * 0.5 + 0.5);
         }
-        else if (bsdfData.enableIridescence)
+        else if (surfaceData.enableIridescence)
         {
             metallic15 = GBUFFER_LIT_IRIDESCENCE;
             outGBuffer2.rgb = float3(0.0, surfaceData.thicknessIrid, 0.0);
+        }
+        else
+        {
+            outGBuffer2.rgb = float3(0.0, 0.0, 0.0);
         }
     }
 
@@ -488,7 +492,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
 
 // This method allows us to know at compile time what material features should be removed from the code by Tile (Indepenently of the value of material feature flag per pixel).
 // This is only useful for classification during lighting, so it's not needed in EncodeIntoGBuffer and ConvertSurfaceDataToBSDFData (where we always know exactly what the material feature is)
-bool HasMaterialFeatureFlag(featureFlags, uint featureFlags, uint flag)
+bool HasMaterialFeatureFlag(uint featureFlags, uint flag)
 {
     return ((featureFlags & flag) != 0);
 }
@@ -514,11 +518,11 @@ void DecodeFromGBuffer(
     // If any of the flags of g_MaterialFeatureFlags (tested with HasMaterialFeatureFlag) is not set, it mean we know statically that
     // the material feature is not used, so the compiler can optimize related code. Else we don't know if the material feature will be use, it is a dynamic condition.
     bsdfData.enableSpecularColor =  (metallic15 == GBUFFER_LIT_SPECULAR_COLOR); // This is always a dynamic test as it is very cheap
-    bsdfData.enableTransmission =   (metallic15 == GBUFFER_LIT_SSS_OR_TRANSMISSION && outGbuffer2.g > 0.0) && // Thickness > 0
+    bsdfData.enableTransmission =   (metallic15 == GBUFFER_LIT_SSS_OR_TRANSMISSION && inGBuffer2.g > 0.0) && // Thickness > 0
                                     HasMaterialFeatureFlag(featureFlags, MATERIALFEATUREFLAGS_LIT_TRANSMISSION);
-    bsdfData.enableSubsurfaceScattering =   (metallic15 == GBUFFER_LIT_SSS_OR_TRANSMISSION && outGbuffer2.b > 0.0) && // SSS Flags > 0
+    bsdfData.enableSubsurfaceScattering =   (metallic15 == GBUFFER_LIT_SSS_OR_TRANSMISSION && inGBuffer2.b > 0.0) && // SSS Flags > 0
                                             HasMaterialFeatureFlag(featureFlags, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING);
-    bsdfData.enableAnisotropy =    (metallic15 <= GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND && outGbuffer2.g > 0.0) && // Anisotropy > 0
+    bsdfData.enableAnisotropy =    (metallic15 <= GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND && inGBuffer2.g > 0.0) && // Anisotropy > 0
                                     HasMaterialFeatureFlag(featureFlags, MATERIALFEATUREFLAGS_LIT_ANISOTROPY);
     bsdfData.enableIridescence =    (metallic15 == GBUFFER_LIT_IRIDESCENCE) &&
                                     HasMaterialFeatureFlag(featureFlags, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE);
@@ -538,8 +542,8 @@ void DecodeFromGBuffer(
 
     // metallic15 is range [0..12] if mettallic data is needed
     float metallic = (metallic15 <= GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND) ? metallic15 / GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND : 0.0;
-    bsdfData.diffuseColor = ComputeDiffuseColor(surfaceData.baseColor, metallic);
-    bsdfData.fresnel0 = bsdfData.enableSpecularColor ? outGbuffer2.rgb : ComputeFresnel0(baseColor, metallic, DEFAULT_SPECULAR_VALUE);
+    bsdfData.diffuseColor = ComputeDiffuseColor(baseColor, metallic);
+    bsdfData.fresnel0 = bsdfData.enableSpecularColor ? inGBuffer2.rgb : ComputeFresnel0(baseColor, metallic, DEFAULT_SPECULAR_VALUE);
 
     // Always assign even if not used, DIFFUSION_NEUTRAL_PROFILE_ID is 0
     // Note: we have ZERO_INITIALIZE the struct, so bsdfData.diffusionProfile == DIFFUSION_NEUTRAL_PROFILE_ID, bsdfData.anisotropy == 0.0, bsdfData.SubsurfaceMask == 0.0 etc...
@@ -560,7 +564,7 @@ void DecodeFromGBuffer(
         if (bsdfData.enableSubsurfaceScattering)
         {
             // Modify fresnel0
-            FillMaterialSSS(sssData.subsurfaceMask);
+            FillMaterialSSS(sssData.subsurfaceMask, bsdfData);
         }
 
         if (bsdfData.enableTransmission)
@@ -594,7 +598,7 @@ void DecodeFromGBuffer(
 
     if (bsdfData.enableAnisotropy)
     {
-        FillMaterialIridescence(inGbuffer2.g, bsdfData);
+        FillMaterialIridescence(inGBuffer2.g, bsdfData);
     }
 
     if (bsdfData.enableClearCoat)
@@ -621,7 +625,7 @@ uint MaterialFeatureFlagsFromGBuffer(uint2 positionSS)
     float3 unused;
 
     // Call the regular function, compiler will optimized out everything not used.
-    // Note that all material feature flag bellow are in the same GBuffer (outGbuffer2) and thus material classification only sample one Gbuffer
+    // Note that all material feature flag bellow are in the same GBuffer (inGBuffer2) and thus material classification only sample one Gbuffer
     DecodeFromGBuffer(
         positionSS,
         UINT_MAX,
@@ -630,11 +634,11 @@ uint MaterialFeatureFlagsFromGBuffer(uint2 positionSS)
     );
 
     uint materialFeatures = 0;
-    uint |= bsdfData.enableTransmission ? MATERIALFEATUREFLAGS_LIT_TRANSMISSION : 0;
-    uint |= bsdfData.enableSubsurfaceScattering ? MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING : 0;
-    uint |= bsdfData.enableAnisotropy ? MATERIALFEATUREFLAGS_LIT_ANISOTROPY : 0;
-    uint |= bsdfData.enableIridescence ? MATERIALFEATUREFLAGS_LIT_IRIDESCENCE : 0;
-    uint |= bsdfData.enableClearCoat ? MATERIALFEATUREFLAGS_LIT_CLEAR_COAT : 0;
+    materialFeatures |= bsdfData.enableTransmission ? MATERIALFEATUREFLAGS_LIT_TRANSMISSION : 0;
+    materialFeatures |= bsdfData.enableSubsurfaceScattering ? MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING : 0;
+    materialFeatures |= bsdfData.enableAnisotropy ? MATERIALFEATUREFLAGS_LIT_ANISOTROPY : 0;
+    materialFeatures |= bsdfData.enableIridescence ? MATERIALFEATUREFLAGS_LIT_IRIDESCENCE : 0;
+    materialFeatures |= bsdfData.enableClearCoat ? MATERIALFEATUREFLAGS_LIT_CLEAR_COAT : 0;
 
     return materialFeatures;
 }
