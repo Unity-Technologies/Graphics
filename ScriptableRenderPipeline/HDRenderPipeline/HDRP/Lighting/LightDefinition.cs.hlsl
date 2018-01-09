@@ -115,6 +115,22 @@ struct EnvLightData
     float unused7;
 };
 
+// Generated from UnityEngine.Experimental.Rendering.HDPipeline.EnvProjData
+// PackingRules = Exact
+struct EnvProjData
+{
+    float3 positionWS;
+    int envShapeType;
+    float3 forward;
+    float minProjectionDistance;
+    float3 up;
+    int unused00;
+    float3 right;
+    int unused01;
+    float3 extents;
+    int unused02;
+};
+
 //
 // Accessors for UnityEngine.Experimental.Rendering.HDPipeline.DirectionalLightData
 //
@@ -349,6 +365,50 @@ float3 GetBoxSideFadeNegative(EnvLightData value)
 float GetUnused7(EnvLightData value)
 {
 	return value.unused7;
+}
+
+//
+// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.EnvProjData
+//
+float3 GetPositionWS(EnvProjData value)
+{
+	return value.positionWS;
+}
+int GetEnvShapeType(EnvProjData value)
+{
+	return value.envShapeType;
+}
+float3 GetForward(EnvProjData value)
+{
+	return value.forward;
+}
+float GetMinProjectionDistance(EnvProjData value)
+{
+	return value.minProjectionDistance;
+}
+float3 GetUp(EnvProjData value)
+{
+	return value.up;
+}
+int GetUnused00(EnvProjData value)
+{
+	return value.unused00;
+}
+float3 GetRight(EnvProjData value)
+{
+	return value.right;
+}
+int GetUnused01(EnvProjData value)
+{
+	return value.unused01;
+}
+float3 GetExtents(EnvProjData value)
+{
+	return value.extents;
+}
+int GetUnused02(EnvProjData value)
+{
+	return value.unused02;
 }
 
 

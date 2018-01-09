@@ -317,6 +317,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_GPUCopy = new GPUCopy(asset.renderPipelineResources.copyChannelCS);
             EncodeBC6H.DefaultInstance = EncodeBC6H.DefaultInstance ?? new EncodeBC6H(asset.renderPipelineResources.encodeBC6HCS);
 
+            m_ReflectionProbeCullResults = new ReflectionProbeCullResults(ReflectionSystemParameters.Default);
+            ReflectionSystem.SetParameters(ReflectionSystemParameters.Default);
+
             // Scan material list and assign it
             m_MaterialList = HDUtils.GetRenderPipelineMaterialList();
             // Find first material that have non 0 Gbuffer count and assign it as deferredMaterial
@@ -603,6 +606,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         CullResults m_CullResults;
+        ReflectionProbeCullResults m_ReflectionProbeCullResults;
         public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
             base.Render(renderContext, cameras);
@@ -715,6 +719,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         DecalSystem.instance.EndCull();
                     }
 
+                    ReflectionSystem.Cull(camera, m_ReflectionProbeCullResults);
+
                     var postProcessLayer = camera.GetComponent<PostProcessLayer>();
                     var hdCamera = HDCamera.Get(camera, postProcessLayer, m_FrameSettings);
 
@@ -755,7 +761,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     bool enableBakeShadowMask;
                     using (new ProfilingSample(cmd, "TP_PrepareLightsForGPU", GetSampler(CustomSamplerId.TPPrepareLightsForGPU)))
                     {
-                        enableBakeShadowMask = m_LightLoop.PrepareLightsForGPU(cmd, m_ShadowSettings, m_CullResults, camera) && m_FrameSettings.enableShadowMask;
+                        enableBakeShadowMask = m_LightLoop.PrepareLightsForGPU(cmd, m_ShadowSettings, m_CullResults, m_ReflectionProbeCullResults, camera) && m_FrameSettings.enableShadowMask;
                     }
                     ConfigureForShadowMask(enableBakeShadowMask, cmd);
 

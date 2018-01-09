@@ -61,5 +61,37 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public float sphereInfluenceRadiusOffset { get { return -sphereInfluenceFade; } }
         public float sphereInfluenceNormalRadiusOffset { get { return -sphereInfluenceNormalFade; } }
+
+        public BoundingSphere GetBoundingSphereAt(Transform transform)
+        {
+            switch (shapeType)
+            {
+                default:
+                case ShapeType.Sphere:
+                    return new BoundingSphere(transform.position, sphereBaseRadius);
+                case ShapeType.Box:
+                {
+                    var position = transform.TransformPoint(boxBaseOffset);
+                    var radius = Mathf.Max(boxBaseSize.x, Mathf.Max(boxBaseSize.y, boxBaseSize.z));
+                    return new BoundingSphere(position, radius);
+                }
+            }
+        }
+
+        public Bounds GetBoundsAt(Transform transform)
+        {
+            switch (shapeType)
+            {
+                default:
+                case ShapeType.Sphere:
+                    return new Bounds(transform.position, Vector3.one * sphereBaseRadius);
+                case ShapeType.Box:
+                {
+                    var position = transform.TransformPoint(boxBaseOffset);
+                    // TODO: Return a proper AABB based on influence box volume
+                    return new Bounds(position, boxBaseSize);
+                }
+            }
+        }
     }
 }

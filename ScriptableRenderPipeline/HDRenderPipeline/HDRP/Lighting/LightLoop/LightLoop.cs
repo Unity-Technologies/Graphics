@@ -267,6 +267,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static ComputeBuffer s_DirectionalLightDatas = null;
         static ComputeBuffer s_LightDatas = null;
         static ComputeBuffer s_EnvLightDatas = null;
+        static ComputeBuffer s_EnvProjDatas = null;
         static ComputeBuffer s_shadowDatas = null;
 
         static Texture2DArray s_DefaultTexture2DArray;
@@ -285,6 +286,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public List<DirectionalLightData> directionalLights;
             public List<LightData> lights;
             public List<EnvLightData> envLights;
+            public List<EnvProjData> envProjs;
             public List<ShadowData> shadows;
 
             public List<SFiniteLightBound> bounds;
@@ -295,6 +297,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 directionalLights.Clear();
                 lights.Clear();
                 envLights.Clear();
+                envProjs.Clear();
                 shadows.Clear();
 
                 bounds.Clear();
@@ -306,6 +309,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 directionalLights = new List<DirectionalLightData>();
                 lights = new List<LightData>();
                 envLights = new List<EnvLightData>();
+                envProjs = new List<EnvProjData>();
                 shadows = new List<ShadowData>();
 
                 bounds = new List<SFiniteLightBound>();
@@ -451,6 +455,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_DirectionalLightDatas = new ComputeBuffer(k_MaxDirectionalLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLightData)));
             s_LightDatas = new ComputeBuffer(k_MaxPunctualLightsOnScreen + k_MaxAreaLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
             s_EnvLightDatas = new ComputeBuffer(k_MaxEnvLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
+            s_EnvProjDatas = new ComputeBuffer(k_MaxEnvLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvProjData)));
             s_shadowDatas = new ComputeBuffer(k_MaxCascadeCount + k_MaxShadowOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(ShadowData)));
 
             GlobalLightLoopSettings gLightLoopSettings = hdAsset.GetRenderPipelineSettings().lightLoopSettings;
@@ -558,6 +563,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             CoreUtils.SafeRelease(s_DirectionalLightDatas);
             CoreUtils.SafeRelease(s_LightDatas);
             CoreUtils.SafeRelease(s_EnvLightDatas);
+            CoreUtils.SafeRelease(s_EnvProjDatas);
             CoreUtils.SafeRelease(s_shadowDatas);
 
             if (m_ReflectionProbeCache != null)
@@ -1131,8 +1137,87 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_lightList.lightVolumes.Add(lightVolumeData);
         }
 
-        public bool GetEnvLightData(CommandBuffer cmd, Camera camera, VisibleReflectionProbe probe)
+        class ProbeWrapper
         {
+            public Vector3 influencePositionWS;
+            public Vector3 offsetLS;
+            public Vector3 projectionPositionWS;
+
+            public ProbeWrapper(VisibleReflectionProbe probe, PlanarReflectionProbe planarProbe)
+            {
+                
+            }
+
+            public EnvShapeType influenceShapeType { get; set; }
+            public float dimmer { get; set; }
+            public Vector3 influenceExtents { get; set; }
+            public Vector3 blendNormalDistancePositive { get; set; }
+            public Vector3 blendNormalDistanceNegative { get; set; }
+            public Vector3 blendDistancePositive { get; set; }
+            public Vector3 blendDistanceNegative { get; set; }
+            public Vector3 boxSideFadePositive { get; set; }
+            public Vector3 boxSideFadeNegative { get; set; }
+            public Vector3 influenceRight { get; set; }
+            public Vector3 influenceUp { get; set; }
+            public Vector3 influenceForward { get; set; }
+            public EnvShapeType projectionShapeType { get; set; }
+            public Vector3 projectionRight { get; set; }
+            public Vector3 projectionUp { get; set; }
+            public Vector3 projectionForward { get; set; }
+            public Vector3 projectionExtents { get; set; }
+            public float minProjectionDistance { get; set; }
+        }
+
+        public bool GetEnvLightData(CommandBuffer cmd, Camera camera, VisibleReflectionProbe probe, PlanarReflectionProbe planarProbe)
+        {
+            var p = new ProbeWrapper(probe, planarProbe);
+
+            // For now we won't display real time probe when rendering one.
+            // TODO: We may want to display last frame result but in this case we need to be careful not to update the atlas before all realtime probes are rendered (for frame coherency).
+            // Unfortunately we don't have this information at the moment.
+            if (probe.probe.mode == ReflectionProbeMode.Realtime && camera.cameraType == CameraType.Reflection)
+                return false;
+
+            int envIndex = m_ReflectionProbeCache.FetchSlice(cmd, probe.texture);
+            // -1 means that the texture is not ready yet (ie not convolved/compressed yet)
+            if (envIndex == -1)
+                return false;
+
+            var envLightData = new EnvLightData();
+
+            envLightData.envShapeType = p.influenceShapeType;
+            envLightData.dimmer = p.dimmer;
+            envLightData.positionWS = p.influencePositionWS;
+            envLightData.influenceExtents = p.influenceExtents;
+            envLightData.blendNormalDistancePositive = p.blendNormalDistancePositive;
+            envLightData.blendNormalDistanceNegative = p.blendNormalDistanceNegative;
+            envLightData.blendDistancePositive = p.blendDistancePositive;
+            envLightData.blendDistanceNegative = p.blendDistanceNegative;
+            envLightData.boxSideFadePositive = p.boxSideFadePositive;
+            envLightData.boxSideFadeNegative = p.boxSideFadeNegative;
+
+            envLightData.right = p.influenceRight;
+            envLightData.up = p.influenceUp;
+            envLightData.forward = p.influenceForward;
+
+            envLightData.envIndex = envIndex;
+            envLightData.offsetLS = p.offsetLS;
+
+            m_lightList.envLights.Add(envLightData);
+
+
+            var envProjData = new EnvProjData();
+            envProjData.envShapeType = p.projectionShapeType;
+            envProjData.right = p.projectionRight;
+            envProjData.up = p.projectionUp;
+            envProjData.forward = p.projectionForward;
+            envProjData.extents = p.projectionExtents;
+            envProjData.positionWS = p.projectionPositionWS;
+            envProjData.minProjectionDistance = p.minProjectionDistance;
+
+            m_lightList.envProjs.Add(envProjData);
+
+#if false
             var additionalData = GetHDAdditionalReflectionData(probe);
             var extents = probe.bounds.extents;
             var influenceBlendDistancePositive = Vector3.one * probe.blendDistance;
@@ -1150,9 +1235,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return false;
 
             var envLightData = new EnvLightData();
+            var envProjData = new EnvProjData();
 
             // CAUTION: localToWorld is the transform for the widget of the reflection probe. i.e the world position of the point use to do the cubemap capture (mean it include the local offset)
             envLightData.positionWS = probe.localToWorld.GetColumn(3);
+            envProjData.positionWS = envLightData.positionWS;
             envLightData.boxSideFadePositive = Vector3.one;
             envLightData.boxSideFadeNegative = Vector3.one;
 
@@ -1162,12 +1249,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case ReflectionInfluenceShape.Box:
                 {
                     envLightData.envShapeType = EnvShapeType.Box;
+                    envProjData.envShapeType = EnvShapeType.Box;
                     envLightData.boxSideFadePositive = additionalData.boxSideFadePositive;
                     envLightData.boxSideFadeNegative = additionalData.boxSideFadeNegative;
                     break;
                 }
                 case ReflectionInfluenceShape.Sphere:
                     envLightData.envShapeType = EnvShapeType.Sphere;
+                    envProjData.envShapeType = EnvShapeType.Sphere;
                     extents = Vector3.one * additionalData.influenceSphereRadius;
                     break;
             }
@@ -1182,12 +1271,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             influenceBlendDistanceNegative = additionalData.blendDistanceNegative;
 
             // remove scale from the matrix (Scale in this matrix is use to scale the widget)
-            envLightData.right = probe.localToWorld.GetColumn(0);
-            envLightData.right.Normalize();
-            envLightData.up = probe.localToWorld.GetColumn(1);
-            envLightData.up.Normalize();
-            envLightData.forward = probe.localToWorld.GetColumn(2);
-            envLightData.forward.Normalize();
+            envLightData.right = probe.localToWorld.GetColumn(0).normalized;
+            envLightData.up = probe.localToWorld.GetColumn(1).normalized;
+            envLightData.forward = probe.localToWorld.GetColumn(2).normalized;
+
+            envProjData.right = envLightData.right;
+            envProjData.up = envLightData.up;
+            envProjData.forward = envLightData.forward;
 
             // Artists prefer to have blend distance inside the volume!
             // So we let the current UI but we assume blendDistance is an inside factor instead
@@ -1196,17 +1286,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var blendDistancePositive = Vector3.Min(probe.bounds.extents, influenceBlendDistancePositive);
             var blendDistanceNegative = Vector3.Min(probe.bounds.extents, influenceBlendDistanceNegative);
             envLightData.influenceExtents = extents;
+            envProjData.extents = extents;
             envLightData.envIndex = envIndex;
             envLightData.offsetLS = probe.center; // center is misnamed, it is the offset (in local space) from center of the bounding box to the cubemap capture point
             envLightData.blendDistancePositive = blendDistancePositive;
             envLightData.blendDistanceNegative = blendDistanceNegative;
 
             m_lightList.envLights.Add(envLightData);
+            m_lightList.envProjs.Add(envProjData);
+#endif
 
             return true;
         }
 
-        public void GetEnvLightVolumeDataAndBound(VisibleReflectionProbe probe, LightVolumeType lightVolumeType, Matrix4x4 worldToView)
+        public void GetEnvLightVolumeDataAndBound(VisibleReflectionProbe probe, PlanarReflectionProbe planarProbe, LightVolumeType lightVolumeType, Matrix4x4 worldToView)
         {
             var add = GetHDAdditionalReflectionData(probe);
 
@@ -1306,7 +1399,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Return true if BakedShadowMask are enabled
-        public bool PrepareLightsForGPU(CommandBuffer cmd, ShadowSettings shadowSettings, CullResults cullResults, Camera camera)
+        public bool PrepareLightsForGPU(CommandBuffer cmd, ShadowSettings shadowSettings, CullResults cullResults, ReflectionProbeCullResults reflectionProbeCullResults, Camera camera)
         {
             using (new ProfilingSample(cmd, "Prepare Lights For GPU"))
             {
@@ -1554,40 +1647,60 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Redo everything but this time with envLights
                     int envLightCount = 0;
 
-                    int probeCount = Math.Min(cullResults.visibleReflectionProbes.Count, k_MaxEnvLightsOnScreen);
+                    var totalProbes = cullResults.visibleReflectionProbes.Count + reflectionProbeCullResults.visiblePlanarReflectionProbeCount;
+                    int probeCount = Math.Min(totalProbes, k_MaxEnvLightsOnScreen);
                     sortKeys = new uint[probeCount];
                     sortCount = 0;
 
-                    for (int probeIndex = 0, numProbes = cullResults.visibleReflectionProbes.Count; (probeIndex < numProbes) && (sortCount < probeCount); probeIndex++)
+                    for (int probeIndex = 0, numProbes = totalProbes; (probeIndex < numProbes) && (sortCount < probeCount); probeIndex++)
                     {
-                        VisibleReflectionProbe probe = cullResults.visibleReflectionProbes[probeIndex];
-                        HDAdditionalReflectionData additional = probe.probe.GetComponent<HDAdditionalReflectionData>();
-
-                        // probe.texture can be null when we are adding a reflection probe in the editor
-                        if (probe.texture == null || envLightCount >= k_MaxEnvLightsOnScreen)
-                            continue;
-
-                        // Work around the culling issues. TODO: fix culling in C++.
-                        if (probe.probe == null || !probe.probe.isActiveAndEnabled)
-                            continue;
-
-                        // Work around the data issues.
-                        if (probe.localToWorld.determinant == 0)
+                        if (probeIndex < cullResults.visibleReflectionProbes.Count)
                         {
-                            Debug.LogError("Reflection probe " + probe.probe.name + " has an invalid local frame and needs to be fixed.");
-                            continue;
+                            VisibleReflectionProbe probe = cullResults.visibleReflectionProbes[probeIndex];
+                            HDAdditionalReflectionData additional = probe.probe.GetComponent<HDAdditionalReflectionData>();
+
+                            // probe.texture can be null when we are adding a reflection probe in the editor
+                            if (probe.texture == null || envLightCount >= k_MaxEnvLightsOnScreen)
+                                continue;
+
+                            // Work around the culling issues. TODO: fix culling in C++.
+                            if (probe.probe == null || !probe.probe.isActiveAndEnabled)
+                                continue;
+
+                            // Work around the data issues.
+                            if (probe.localToWorld.determinant == 0)
+                            {
+                                Debug.LogError("Reflection probe " + probe.probe.name + " has an invalid local frame and needs to be fixed.");
+                                continue;
+                            }
+
+                            LightVolumeType lightVolumeType = LightVolumeType.Box;
+                            if (additional != null && additional.influenceShape == ReflectionInfluenceShape.Sphere)
+                                lightVolumeType = LightVolumeType.Sphere;
+                            ++envLightCount;
+
+                            var logVolume = CalculateProbeLogVolume(probe.bounds);
+
+                            sortKeys[sortCount++] = PackProbeKey(logVolume, lightVolumeType, 0u, probeIndex); // Sort by volume
                         }
+                        else
+                        {
+                            probeIndex = probeIndex - cullResults.visibleReflectionProbes.Count;
+                            var probe = reflectionProbeCullResults.visiblePlanarReflectionProbes[probeIndex];
 
-                        LightVolumeType lightVolumeType = LightVolumeType.Box;
-                        if (additional != null && additional.influenceShape == ReflectionInfluenceShape.Sphere)
-                            lightVolumeType = LightVolumeType.Sphere;
-                        ++envLightCount;
+                            // probe.texture can be null when we are adding a reflection probe in the editor
+                            if (probe.texture == null || envLightCount >= k_MaxEnvLightsOnScreen)
+                                continue;
 
-                        float boxVolume = 8 * probe.bounds.extents.x * probe.bounds.extents.y * probe.bounds.extents.z;
-                        float logVolume = Mathf.Clamp(256 + Mathf.Log(boxVolume, 1.05f), 0, 8191); // Allow for negative exponents
+                            var lightVolumeType = LightVolumeType.Box;
+                            if (probe.influenceVolume.shapeType == ShapeType.Sphere)
+                                lightVolumeType = LightVolumeType.Sphere;
+                            ++envLightCount;
 
-                        // 13 bit volume, 3 bit LightVolumeType, 16 bit index
-                        sortKeys[sortCount++] = (uint)logVolume << 19 | (uint)lightVolumeType << 16 | ((uint)probeIndex & 0xFFFF); // Sort by volume
+                            var logVolume = CalculateProbeLogVolume(probe.bounds);
+
+                            sortKeys[sortCount++] = PackProbeKey(logVolume, lightVolumeType, 1u, probeIndex); // Sort by volume
+                        }
                     }
 
                     // Not necessary yet but call it for future modification with sphere influence volume
@@ -1597,14 +1710,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         // In 1. we have already classify and sorted the light, we need to use this sorted order here
                         uint sortKey = sortKeys[sortIndex];
-                        LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> 16) & 0x3);
-                        int probeIndex = (int)(sortKey & 0xFFFF);
+                        LightVolumeType lightVolumeType;
+                        int probeIndex;
+                        int listType;
+                        UnpackProbeSortKey(sortKey, out lightVolumeType, out probeIndex, out listType);
 
-                        VisibleReflectionProbe probe = cullResults.visibleReflectionProbes[probeIndex];
+                        PlanarReflectionProbe planarProbe = null;
+                        VisibleReflectionProbe probe = default(VisibleReflectionProbe);
+                        if (listType == 0)
+                            probe = cullResults.visibleReflectionProbes[probeIndex];
+                        else
+                            planarProbe = reflectionProbeCullResults.visiblePlanarReflectionProbes[probeIndex];
 
-                        if (GetEnvLightData(cmd, camera, probe))
+                        if (GetEnvLightData(cmd, camera, probe, planarProbe))
                         {
-                            GetEnvLightVolumeDataAndBound(probe, lightVolumeType, worldToView);
+                            GetEnvLightVolumeDataAndBound(probe, planarProbe, lightVolumeType, worldToView);
 
                             // We make the light position camera-relative as late as possible in order
                             // to allow the preceding code to work with the absolute world space coordinates.
@@ -1615,6 +1735,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 EnvLightData envLightData = m_lightList.envLights[n - 1];
                                 envLightData.positionWS -= camPosWS;
                                 m_lightList.envLights[n - 1] = envLightData;
+
+                                var envProjData = m_lightList.envProjs[n - 1];
+                                envProjData.positionWS -= camPosWS;
+                                m_lightList.envProjs[n - 1] = envProjData;
                             }
                         }
                     }
@@ -1623,6 +1747,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_lightCount = m_lightList.lights.Count + m_lightList.envLights.Count;
                 Debug.Assert(m_lightList.bounds.Count == m_lightCount);
                 Debug.Assert(m_lightList.lightVolumes.Count == m_lightCount);
+                Debug.Assert(m_lightList.envProjs.Count == m_lightList.envLights.Count);
 
                 UpdateDataBuffers();
 
@@ -1630,6 +1755,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 return m_enableBakeShadowMask;
             }
+        }
+
+        static float CalculateProbeLogVolume(Bounds bounds)
+        {
+            float boxVolume = 8 * bounds.extents.x * bounds.extents.y * bounds.extents.z;
+            float logVolume = Mathf.Clamp(256 + Mathf.Log(boxVolume, 1.05f), 0, 4095); // Allow for negative exponents
+            return logVolume;
+        }
+
+        static void UnpackProbeSortKey(uint sortKey, out LightVolumeType lightVolumeType, out int probeIndex, out int listType)
+        {
+            lightVolumeType = (LightVolumeType)((sortKey >> 17) & 0x3);
+            probeIndex = (int)(sortKey & 0xFFFF);
+            listType = (int)((sortKey >> 16) & 1);
+        }
+
+        static uint PackProbeKey(float logVolume, LightVolumeType lightVolumeType, uint listType, int probeIndex)
+        {
+            // 12 bit volume, 3 bit LightVolumeType, 1 bit list type, 16 bit index
+            return (uint)logVolume << 20 | (uint)lightVolumeType << 17 | listType << 16 | ((uint)probeIndex & 0xFFFF);
         }
 
         void VoxelLightListGeneration(CommandBuffer cmd, Camera camera, Matrix4x4 projscr, Matrix4x4 invProjscr, RenderTargetIdentifier cameraDepthBufferRT)
@@ -1862,6 +2007,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_DirectionalLightDatas.SetData(m_lightList.directionalLights);
             s_LightDatas.SetData(m_lightList.lights);
             s_EnvLightDatas.SetData(m_lightList.envLights);
+            s_EnvProjDatas.SetData(m_lightList.envProjs);
             s_shadowDatas.SetData(m_lightList.shadows);
 
             // These two buffers have been set in Rebuild()
@@ -1910,7 +2056,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalInt(HDShaderIDs._PunctualLightCount, m_punctualLightCount);
                 cmd.SetGlobalInt(HDShaderIDs._AreaLightCount, m_areaLightCount);
                 cmd.SetGlobalBuffer(HDShaderIDs._EnvLightDatas, s_EnvLightDatas);
+                cmd.SetGlobalBuffer(HDShaderIDs._EnvProjDatas, s_EnvProjDatas);
                 cmd.SetGlobalInt(HDShaderIDs._EnvLightCount, m_lightList.envLights.Count);
+                cmd.SetGlobalInt(HDShaderIDs._EnvProjCount, m_lightList.envProjs.Count);
                 cmd.SetGlobalBuffer(HDShaderIDs._ShadowDatas, s_shadowDatas);
 
                 cmd.SetGlobalInt(HDShaderIDs._NumTileFtplX, GetNumTileFtplX(camera));
