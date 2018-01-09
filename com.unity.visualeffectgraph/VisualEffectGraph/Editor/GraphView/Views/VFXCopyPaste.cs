@@ -421,6 +421,7 @@ namespace UnityEditor.VFX.UI
             {
                 var newSlotContainer = slotContainer;
                 newSlotContainer.position += pasteOffset;
+                ClearLinks(newSlotContainer as IVFXSlotContainer);
             }
 
             if (copyData.dataEdges != null)
