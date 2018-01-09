@@ -564,7 +564,7 @@ void DecodeFromGBuffer(uint2 positionSS, uint featureFlags, out BSDFData bsdfDat
 
         if (HasMaterialFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
         {
-            FillMaterialTransmission(inGBuffer0.g, bsdfData);
+            FillMaterialTransmission(inGBuffer2.g, bsdfData);
         }
     }
 
