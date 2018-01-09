@@ -281,12 +281,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Selection.activeObject = sceneSettings;
 
             var profile = VolumeProfileFactory.CreateVolumeProfile(sceneSettings.scene, "Scene Settings");
-            profile.Add<HDShadowSettings>(true);
-            var visualEnv = profile.Add<VisualEnvironment>(true);
+            VolumeProfileFactory.CreateVolumeComponent<HDShadowSettings>(profile, true, false);
+            var visualEnv = VolumeProfileFactory.CreateVolumeComponent<VisualEnvironment>(profile, true, false);
             visualEnv.skyType.value = SkySettings.GetUniqueID<ProceduralSky>();
             visualEnv.fogType.value = FogType.Exponential;
-            profile.Add<ProceduralSky>(true);
-            profile.Add<ExponentialFog>(true);
+            VolumeProfileFactory.CreateVolumeComponent<ProceduralSky>(profile, true, false);
+            VolumeProfileFactory.CreateVolumeComponent<ExponentialFog>(profile, true, true);
 
             var volume = sceneSettings.AddComponent<Volume>();
             volume.isGlobal = true;
