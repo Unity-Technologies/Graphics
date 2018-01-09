@@ -391,8 +391,15 @@ uint GetMipCount(Texture2D tex)
     width = height = depth = mipCount = 0;
     tex.GetDimensions(width, height, depth, mipCount);
     return mipCount;
+#elif defined(SHADER_API_OPENGL) || defined(SHADER_API_VULKAN)
+    // OpenGL only supports textureSize for width, height, depth
+    // textureQueryLevels (GL_ARB_texture_query_levels) needs OpenGL 4.3 or above and doesn't compile in compute shaders
+    #if SHADER_STAGE_COMPUTE
+    return 0;
+    #else
+    return textureQueryLevels(tex);
+    #endif
 #else
-    // SHADER_API_OPENGL only supports textureSize for width, height, depth
     return 0;
 #endif
 }
