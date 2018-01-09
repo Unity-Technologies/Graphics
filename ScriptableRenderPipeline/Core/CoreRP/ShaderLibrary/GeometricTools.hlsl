@@ -68,7 +68,7 @@ bool IntersectRaySphere(float3 start, float3 dir, float radius, out float2 inter
     float c = dot(start, start) - radius * radius;
     float discriminant = b * b - 4.0 * a * c;
 
-    float intersect = false;
+    bool intersect = false;
     intersections = float2(0.0, 0.0);
 
     if (discriminant < 0.0 || a == 0.0)
