@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph
         Tangent = 1 << 3
     }
 
-    public enum CoordinateSpace : int
+    public enum CoordinateSpace
     {
         Object,
         View,

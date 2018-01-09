@@ -187,6 +187,20 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_DirtyPreviews.UnionWith(m_TimeDependentPreviews);
             PropagateNodeSet(m_DirtyPreviews);
 
+            m_NodesWith3DPreview.Clear();
+            foreach (var index in m_DirtyPreviews)
+            {
+                var node = (AbstractMaterialNode)m_Graph.GetNodeFromTempId(m_Identifiers[index]);
+                if (node.previewMode == PreviewMode.Preview3D)
+                    m_NodesWith3DPreview.Add(node.tempId.index);
+            }
+            PropagateNodeSet(m_NodesWith3DPreview);
+            foreach (var index in m_DirtyPreviews)
+            {
+                var renderData = m_RenderDatas[index];
+                renderData.previewMode = m_NodesWith3DPreview.Contains(renderData.shaderData.node.tempId.index) ? PreviewMode.Preview3D : PreviewMode.Preview2D;
+            }
+
             // Find nodes we need properties from
             m_PropertyNodes.Clear();
             m_PropertyNodes.UnionWith(m_DirtyPreviews);
@@ -291,19 +305,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_DirtyShaders.Any())
             {
                 PropagateNodeSet(m_DirtyShaders);
-                m_NodesWith3DPreview.Clear();
-                foreach (var index in m_DirtyShaders)
-                {
-                    var node = (AbstractMaterialNode)m_Graph.GetNodeFromTempId(m_Identifiers[index]);
-                    if (node.previewMode == PreviewMode.Preview3D)
-                        m_NodesWith3DPreview.Add(node.tempId.index);
-                }
-                PropagateNodeSet(m_NodesWith3DPreview);
-                foreach (var index in m_DirtyShaders)
-                {
-                    var renderData = m_RenderDatas[index];
-                    renderData.previewMode = m_NodesWith3DPreview.Contains(renderData.shaderData.node.tempId.index) ? PreviewMode.Preview3D : PreviewMode.Preview2D;
-                }
 
                 var masterNodes = new List<MasterNode>();
                 var uberNodes = new List<INode>();

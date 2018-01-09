@@ -236,20 +236,8 @@ namespace UnityEditor.ShaderGraph
                     return inputType == SlotValueType.Cubemap;
                 case SlotValueType.Dynamic:
                 case SlotValueType.Vector4:
-                    return inputType == SlotValueType.Vector4
-                        || inputType == SlotValueType.Vector3
-                        || inputType == SlotValueType.Vector2
-                        || inputType == SlotValueType.Vector1
-                        || inputType == SlotValueType.Dynamic;
                 case SlotValueType.Vector3:
-                    return inputType == SlotValueType.Vector3
-                        || inputType == SlotValueType.Vector2
-                        || inputType == SlotValueType.Vector1
-                        || inputType == SlotValueType.Dynamic;
                 case SlotValueType.Vector2:
-                    return inputType == SlotValueType.Vector2
-                        || inputType == SlotValueType.Vector1
-                        || inputType == SlotValueType.Dynamic;
                 case SlotValueType.Vector1:
                     return inputType == SlotValueType.Vector4
                         || inputType == SlotValueType.Vector3

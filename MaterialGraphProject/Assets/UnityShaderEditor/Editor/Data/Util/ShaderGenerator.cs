@@ -9,29 +9,6 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public static class ShaderGeneratorNames
-    {
-        private static string[] UV = {"uv0", "uv1", "uv2", "uv3"};
-        public static int UVCount = 4;
-
-        public const string ScreenPosition = "screenPosition";
-        public const string VertexColor = "vertexColor";
-
-
-        public static string GetUVName(this UVChannel channel)
-        {
-            return UV[(int)channel];
-        }
-    }
-
-    public enum UVChannel
-    {
-        uv0 = 0,
-        uv1 = 1,
-        uv2 = 2,
-        uv3 = 3,
-    }
-
     public class ShaderGenerator
     {
         private struct ShaderChunk
@@ -174,7 +151,7 @@ namespace UnityEditor.ShaderGraph
                     switch (convertFromType)
                     {
                         case ConcreteSlotValueType.Vector1:
-                            return string.Format("({0}{1})", rawOutput, ".xx");
+                            return string.Format("({0}.xx)", rawOutput);
                         case ConcreteSlotValueType.Vector3:
                         case ConcreteSlotValueType.Vector4:
                             return string.Format("({0}.xy)", rawOutput);
@@ -185,7 +162,9 @@ namespace UnityEditor.ShaderGraph
                     switch (convertFromType)
                     {
                         case ConcreteSlotValueType.Vector1:
-                            return string.Format("({0}{1})", rawOutput, ".xxx");
+                            return string.Format("({0}.xxx)", rawOutput);
+                        case ConcreteSlotValueType.Vector2:
+                            return string.Format("({0}3({1}.x, {1}.y, 0.0))", node.precision, rawOutput);
                         case ConcreteSlotValueType.Vector4:
                             return string.Format("({0}.xyz)", rawOutput);
                         default:
@@ -195,7 +174,11 @@ namespace UnityEditor.ShaderGraph
                     switch (convertFromType)
                     {
                         case ConcreteSlotValueType.Vector1:
-                            return string.Format("({0}{1})", rawOutput, ".xxxx");
+                            return string.Format("({0}.xxxx)", rawOutput);
+                        case ConcreteSlotValueType.Vector2:
+                            return string.Format("({0}4({1}.x, {1}.y, 0.0, 1.0))", node.precision, rawOutput);
+                        case ConcreteSlotValueType.Vector3:
+                            return string.Format("({0}4({1}.x, {1}.y, {1}.z, 1.0))", node.precision, rawOutput);
                         default:
                             return kErrorString;
                     }
@@ -219,7 +202,7 @@ namespace UnityEditor.ShaderGraph
 
             var convertFromType = slot.concreteValueType;
 
-            // preview is always dimension 4, and we always ignore alpha
+            // preview is always dimension 4
             switch (convertFromType)
             {
                 case ConcreteSlotValueType.Vector1:
@@ -338,13 +321,13 @@ namespace UnityEditor.ShaderGraph
                 m_transforms[(int)CoordinateSpace.World, (int)CoordinateSpace.World] = new TransformDesc[] {};
                 m_transforms[(int)CoordinateSpace.Tangent, (int)CoordinateSpace.Tangent] = new TransformDesc[] {};
                 m_transforms[(int)CoordinateSpace.Object, (int)CoordinateSpace.World]
-                    = new TransformDesc[] {new TransformDesc("unity_ObjectToWorld")};
+                    = new TransformDesc[] {new TransformDesc(MatrixNames.Model)};
                 m_transforms[(int)CoordinateSpace.View, (int)CoordinateSpace.World]
-                    = new TransformDesc[] {new TransformDesc("UNITY_MATRIX_I_V")};
+                    = new TransformDesc[] {new TransformDesc(MatrixNames.ViewInverse) };
                 m_transforms[(int)CoordinateSpace.World, (int)CoordinateSpace.Object]
-                    = new TransformDesc[] {new TransformDesc("unity_WorldToObject")};
+                    = new TransformDesc[] {new TransformDesc(MatrixNames.ModelInverse)};
                 m_transforms[(int)CoordinateSpace.World, (int)CoordinateSpace.View]
-                    = new TransformDesc[] {new TransformDesc("UNITY_MATRIX_V")};
+                    = new TransformDesc[] {new TransformDesc(MatrixNames.View)};
                 for (var from = CoordinateSpace.Object; from != CoordinateSpace.Tangent; from++)
                 {
                     for (var to = CoordinateSpace.Object; to != CoordinateSpace.Tangent; to++)
@@ -365,8 +348,11 @@ namespace UnityEditor.ShaderGraph
 
         public static string EmitTransform(TransformDesc[] matrices, TransformDesc[] invMatrices, string variable, bool isAffine, bool noMatrixCast, bool inverseTranspose)
         {
+            // Use inverse transpose for situations where
+            // scale needs to be considered (normals)
             if (inverseTranspose)
                 matrices = invMatrices;
+
             if (isAffine)
             {
                 variable = string.Format("float4({0},1.0)", variable);
@@ -378,6 +364,10 @@ namespace UnityEditor.ShaderGraph
                 {
                     matrix = "(float3x3)" + matrix;
                 }
+
+                // if the matrix is NOT a transpose type
+                // invert the order of multiplication
+                // it is implicit transpose.
                 if (m.transpose)
                     inverseTranspose = !inverseTranspose;
                 variable = inverseTranspose
@@ -502,7 +492,9 @@ namespace UnityEditor.ShaderGraph
             {
                 var name = preferedCoordinateSpace.ToVariableName(InterpolatorType.ViewDirection);
                 interpolators.AddShaderChunk(string.Format("float3 {0} : TEXCOORD{1};", name, interpolatorIndex), false);
-                vertexShader.AddShaderChunk(string.Format("o.{0} = {1};", name, ConvertBetweenSpace("ObjSpaceViewDir(v.vertex)", CoordinateSpace.Object, preferedCoordinateSpace, InputType.Vector)), false);
+
+                var worldSpaceViewDir = "SafeNormalize(_WorldSpaceCameraPos.xyz - mul(GetObjectToWorldMatrix(), float4(v.vertex.xyz, 1.0)).xyz)";
+                vertexShader.AddShaderChunk(string.Format("o.{0} = {1};", name, ConvertBetweenSpace(worldSpaceViewDir, CoordinateSpace.World, preferedCoordinateSpace, InputType.Vector)), false);
                 pixelShader.AddShaderChunk(string.Format("float3 {0} = normalize(IN.{0});", name), false);
                 interpolatorIndex++;
             }
@@ -553,7 +545,7 @@ namespace UnityEditor.ShaderGraph
             {
                 interpolators.AddShaderChunk(string.Format("half4 {0} : TEXCOORD{1};", channel.GetUVName(), interpolatorIndex == 0 ? "" : interpolatorIndex.ToString()), false);
                 vertexShader.AddShaderChunk(string.Format("o.{0} = v.texcoord{1};", channel.GetUVName(), (int)channel), false);
-                pixelShader.AddShaderChunk(string.Format("float4 {0}  = IN.{0};", channel.GetUVName()), false);
+                pixelShader.AddShaderChunk(string.Format("float4 {0} = IN.{0};", channel.GetUVName()), false);
                 interpolatorIndex++;
             }
 
@@ -685,11 +677,9 @@ SubShader
 
     Pass
     {
-        CGPROGRAM
+        HLSLPROGRAM
         #pragma vertex vert
         #pragma fragment frag
-
-        #include ""UnityCG.cginc""
 
         struct GraphVertexOutput
         {
@@ -702,12 +692,13 @@ SubShader
             v = PopulateVertexData(v);
 
             GraphVertexOutput o;
-            o.position = UnityObjectToClipPos(v.vertex);
+            float3 positionWS = TransformObjectToWorld(v.vertex);
+            o.position = TransformWorldToHClip(positionWS);
             ${VertexShader}
             return o;
         }
 
-        fixed4 frag (GraphVertexOutput IN) : SV_Target
+        float4 frag (GraphVertexOutput IN) : SV_Target
         {
             ${LocalPixelShader}
 
@@ -717,7 +708,7 @@ SubShader
             SurfaceDescription surf = PopulateSurfaceData(surfaceInput);
             ${SurfaceOutputRemap}
         }
-        ENDCG
+        ENDHLSL
     }
 }";
     }

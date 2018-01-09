@@ -1,7 +1,5 @@
 using System.Reflection;
 using UnityEngine;
-using UnityEditor.Graphing;
-
 
 namespace UnityEditor.ShaderGraph
 {
@@ -26,7 +24,7 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    Out = UnpackNormal(In);
+    Out = UnpackNormalmapRGorAG(In);
 }
 ";
         }

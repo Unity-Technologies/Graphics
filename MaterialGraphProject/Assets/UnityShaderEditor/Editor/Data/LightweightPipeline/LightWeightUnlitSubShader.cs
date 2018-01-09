@@ -5,7 +5,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public class LightWeightUnlitSubShader
+    public class LightWeightUnlitSubShader : IUnlitSubShader
     {
         Pass m_UnlitPass = new Pass()
         {
@@ -98,11 +98,12 @@ namespace UnityEditor.ShaderGraph
                 usedSlots);
 
             var graph = new ShaderGenerator();
+
+            graph.AddShaderChunk(shaderProperties.GetPropertiesDeclaration(2), false);
+            graph.AddShaderChunk(surfaceInputs.GetShaderString(2), false);
             graph.AddShaderChunk(builder.ToString(), false);
             graph.AddShaderChunk(vertexInputs.GetShaderString(2), false);
-            graph.AddShaderChunk(surfaceInputs.GetShaderString(2), false);
             graph.AddShaderChunk(surfaceDescriptionStruct.GetShaderString(2), false);
-            graph.AddShaderChunk(shaderProperties.GetPropertiesDeclaration(2), false);
             graph.AddShaderChunk(surfaceVertexShader.GetShaderString(2), false);
             graph.AddShaderChunk(surfaceDescriptionFunction.GetShaderString(2), false);
 
@@ -175,7 +176,7 @@ namespace UnityEditor.ShaderGraph
             return resultPass;
         }
 
-        public IEnumerable<string> GetSubshader(UnlitMasterNode masterNode, GenerationMode mode)
+        public string GetSubshader(UnlitMasterNode masterNode, GenerationMode mode)
         {
             var subShader = new ShaderGenerator();
             subShader.AddShaderChunk("SubShader", true);
@@ -194,7 +195,7 @@ namespace UnityEditor.ShaderGraph
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
 
-            return new[] { subShader.GetShaderString(0) };
+            return subShader.GetShaderString(0);
         }
     }
 }
