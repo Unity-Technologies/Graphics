@@ -18,6 +18,7 @@ Material:
   stringTagMap: {}
   disabledShaderPasses:
   - DistortionVectors
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -326,6 +327,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
@@ -463,6 +465,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile0: 0
     - _SubsurfaceProfile1: 0

@@ -177,7 +177,7 @@ Transform:
   - {fileID: 13552206}
   - {fileID: 759782494}
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &95545367
 GameObject:
@@ -286,7 +286,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostpass
+  - TransparentDepthPostPass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   m_SavedProperties:
@@ -372,6 +372,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
@@ -409,6 +410,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
@@ -437,6 +439,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -446,6 +451,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -768,6 +774,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
@@ -872,7 +879,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostpass
+  - TransparentDepthPostPass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   m_SavedProperties:
@@ -958,6 +965,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
@@ -995,6 +1003,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
@@ -1023,6 +1032,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -1032,6 +1044,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -1090,6 +1103,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
@@ -1270,6 +1284,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
@@ -1542,6 +1557,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
@@ -1646,7 +1662,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostpass
+  - TransparentDepthPostPass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   m_SavedProperties:
@@ -1732,6 +1748,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
@@ -1769,6 +1786,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
@@ -1797,6 +1815,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -1806,6 +1827,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -1840,7 +1862,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostpass
+  - TransparentDepthPostPass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   m_SavedProperties:
@@ -1926,6 +1948,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
@@ -1963,6 +1986,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
@@ -1991,6 +2015,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -2000,6 +2027,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -2161,7 +2189,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostpass
+  - TransparentDepthPostPass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   m_SavedProperties:
@@ -2247,6 +2275,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
@@ -2284,6 +2313,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
@@ -2312,6 +2342,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -2321,6 +2354,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -2379,6 +2413,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
@@ -2483,7 +2518,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostpass
+  - TransparentDepthPostPass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   m_SavedProperties:
@@ -2569,6 +2604,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
@@ -2606,6 +2642,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
@@ -2634,6 +2671,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -2643,6 +2683,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -2756,6 +2797,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
@@ -3293,7 +3335,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostpass
+  - TransparentDepthPostPass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   m_SavedProperties:
@@ -3379,6 +3421,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
@@ -3416,6 +3459,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
@@ -3444,6 +3488,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -3453,6 +3500,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -3800,6 +3848,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
@@ -3928,6 +3977,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
@@ -4128,6 +4178,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
@@ -4232,7 +4283,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostpass
+  - TransparentDepthPostPass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   m_SavedProperties:
@@ -4318,6 +4369,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
@@ -4355,6 +4407,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
@@ -4383,6 +4436,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -4392,6 +4448,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -4450,6 +4507,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
@@ -4568,7 +4626,7 @@ Transform:
   - {fileID: 788242261}
   - {fileID: 871199633}
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &702619537
 GameObject:
@@ -4660,7 +4718,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostpass
+  - TransparentDepthPostPass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   m_SavedProperties:
@@ -4746,6 +4804,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
@@ -4783,6 +4842,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
@@ -4811,6 +4871,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -4820,6 +4883,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -4950,6 +5014,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
@@ -5112,6 +5177,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
@@ -5240,6 +5306,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
@@ -5368,6 +5435,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
@@ -5496,6 +5564,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
@@ -5950,6 +6019,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
@@ -6177,7 +6247,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostpass
+  - TransparentDepthPostPass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   m_SavedProperties:
@@ -6263,6 +6333,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
@@ -6300,6 +6371,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
@@ -6328,6 +6400,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -6337,6 +6412,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -6371,7 +6447,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostpass
+  - TransparentDepthPostPass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   m_SavedProperties:
@@ -6457,6 +6533,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
@@ -6494,6 +6571,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
@@ -6522,6 +6600,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -6531,6 +6612,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -6581,7 +6663,7 @@ Transform:
   - {fileID: 95545368}
   - {fileID: 589538113}
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1242278682
 GameObject:
@@ -6625,6 +6707,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
@@ -6925,7 +7008,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostpass
+  - TransparentDepthPostPass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   m_SavedProperties:
@@ -7011,6 +7094,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
@@ -7048,6 +7132,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
@@ -7076,6 +7161,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -7085,6 +7173,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -7191,7 +7280,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostpass
+  - TransparentDepthPostPass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   m_SavedProperties:
@@ -7277,6 +7366,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
@@ -7314,6 +7404,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
@@ -7342,6 +7433,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -7351,6 +7445,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -7402,7 +7497,7 @@ Transform:
   - {fileID: 396282402}
   - {fileID: 244439178}
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1423161239
 GameObject:
@@ -7494,7 +7589,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostpass
+  - TransparentDepthPostPass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   m_SavedProperties:
@@ -7580,6 +7675,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
@@ -7617,6 +7713,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
@@ -7645,6 +7742,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -7654,6 +7754,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -7739,7 +7840,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostpass
+  - TransparentDepthPostPass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   m_SavedProperties:
@@ -7825,6 +7926,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
@@ -7862,6 +7964,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
@@ -7890,6 +7993,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -7899,6 +8005,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -8005,7 +8112,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostpass
+  - TransparentDepthPostPass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   m_SavedProperties:
@@ -8091,6 +8198,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
@@ -8128,6 +8236,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
@@ -8156,6 +8265,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -8165,6 +8277,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -8305,7 +8418,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostpass
+  - TransparentDepthPostPass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   m_SavedProperties:
@@ -8391,6 +8504,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
@@ -8428,6 +8542,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
@@ -8456,6 +8571,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -8465,6 +8583,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -8571,7 +8690,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostpass
+  - TransparentDepthPostPass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   m_SavedProperties:
@@ -8657,6 +8776,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
@@ -8694,6 +8814,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
@@ -8722,6 +8843,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -8731,6 +8855,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -8844,6 +8969,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
@@ -8972,6 +9098,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
@@ -9258,7 +9385,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostpass
+  - TransparentDepthPostPass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   m_SavedProperties:
@@ -9344,6 +9471,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
@@ -9381,6 +9509,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
@@ -9409,6 +9538,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -9418,6 +9550,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -9452,7 +9585,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostpass
+  - TransparentDepthPostPass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   m_SavedProperties:
@@ -9538,6 +9671,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
@@ -9575,6 +9709,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
@@ -9603,6 +9738,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -9612,6 +9750,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -9793,6 +9932,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
@@ -9993,6 +10133,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
@@ -10097,7 +10238,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostpass
+  - TransparentDepthPostPass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   m_SavedProperties:
@@ -10183,6 +10324,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
@@ -10220,6 +10362,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
@@ -10248,6 +10391,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -10257,6 +10403,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -10291,7 +10438,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostpass
+  - TransparentDepthPostPass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   m_SavedProperties:
@@ -10377,6 +10524,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
@@ -10414,6 +10562,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
@@ -10442,6 +10591,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -10451,6 +10603,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -10557,7 +10710,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostpass
+  - TransparentDepthPostPass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   m_SavedProperties:
@@ -10643,6 +10796,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
@@ -10680,6 +10834,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
@@ -10708,6 +10863,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -10717,6 +10875,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -10751,7 +10910,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostpass
+  - TransparentDepthPostPass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   m_SavedProperties:
@@ -10837,6 +10996,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
@@ -10874,6 +11034,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
@@ -10902,6 +11063,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -10911,6 +11075,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -10945,7 +11110,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
-  - TransparentDepthPostpass
+  - TransparentDepthPostPass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   m_SavedProperties:
@@ -11031,6 +11196,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
@@ -11068,6 +11234,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
@@ -11096,6 +11263,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -11105,6 +11275,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -11343,6 +11514,48 @@ MonoBehaviour:
   offset: 1.2
   rotation: {x: 0, y: 0, z: 0}
   scale: 1
+--- !u!1001 &2078064491
+Prefab:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 4990552271288012, guid: f46b6c743703b14428c531e4adcaade6, type: 2}
+      propertyPath: m_LocalPosition.x
+      value: -4.945982
+      objectReference: {fileID: 0}
+    - target: {fileID: 4990552271288012, guid: f46b6c743703b14428c531e4adcaade6, type: 2}
+      propertyPath: m_LocalPosition.y
+      value: 3.5591245
+      objectReference: {fileID: 0}
+    - target: {fileID: 4990552271288012, guid: f46b6c743703b14428c531e4adcaade6, type: 2}
+      propertyPath: m_LocalPosition.z
+      value: -6.423647
+      objectReference: {fileID: 0}
+    - target: {fileID: 4990552271288012, guid: f46b6c743703b14428c531e4adcaade6, type: 2}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4990552271288012, guid: f46b6c743703b14428c531e4adcaade6, type: 2}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4990552271288012, guid: f46b6c743703b14428c531e4adcaade6, type: 2}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4990552271288012, guid: f46b6c743703b14428c531e4adcaade6, type: 2}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4990552271288012, guid: f46b6c743703b14428c531e4adcaade6, type: 2}
+      propertyPath: m_RootOrder
+      value: 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_ParentPrefab: {fileID: 100100000, guid: f46b6c743703b14428c531e4adcaade6, type: 2}
+  m_IsPrefabParent: 0
 --- !u!1 &2097927111
 GameObject:
   m_ObjectHideFlags: 0
@@ -11385,6 +11598,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
