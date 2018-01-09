@@ -366,6 +366,8 @@ public partial class HDRenderPipeline : RenderPipeline
         int viewId     = camera.camera.GetInstanceID();
         int viewOffset = ViewOffsetFromViewId(viewId);
 
+        Debug.Assert(viewOffset >= 0 && viewOffset < 8);
+
         cmd.SetGlobalVector( HDShaderIDs._VBufferResolution,          new Vector4(w, h, 1.0f / w, 1.0f / h));
         cmd.SetGlobalVector( HDShaderIDs._VBufferScaleAndSliceCount,  new Vector4(scale.x, scale.y, d, 1.0f / d));
         cmd.SetGlobalVector( HDShaderIDs._VBufferDepthEncodingParams, ComputeLogarithmicDepthEncodingParams(m_VBufferNearPlane, m_VBufferFarPlane));
@@ -419,6 +421,8 @@ public partial class HDRenderPipeline : RenderPipeline
         {
             int viewId     = camera.camera.GetInstanceID(); // Warning: different views can use the same camera
             int viewOffset = ViewOffsetFromViewId(viewId);
+
+            Debug.Assert(viewOffset >= 0 && viewOffset < 8);
 
             if (GetGlobalFogComponent() == null)
             {
