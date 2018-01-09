@@ -75,6 +75,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 m_PropertyItems.Add(new ShaderPropertyView(m_Graph, property));
 
             Add(new ResizeBorderFrame(this) { name = "resizeBorderFrame" });
+
+            this.AddManipulator(new WindowDraggable());
         }
 
         void OnAddProperty()
