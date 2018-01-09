@@ -89,22 +89,22 @@ namespace UnityEngine.Experimental.Rendering
                 var rt = rth.rt;
                 rt.Release();
 
-                Vector2Int scale;
+                Vector2Int scaledSize;
 
                 if (rth.scaleFunc != null)
                 {
-                    scale = rth.scaleFunc(maxSize);
+                    scaledSize = rth.scaleFunc(maxSize);
                 }
                 else
                 {
-                    scale = new Vector2Int(
+                    scaledSize = new Vector2Int(
                         x: Mathf.RoundToInt(rth.scaleFactor.x * s_MaxWidth),
                         y: Mathf.RoundToInt(rth.scaleFactor.y * s_MaxHeight)
                     );
                 }
 
-                rt.width = Mathf.Max(scale.x, 1);
-                rt.height = Mathf.Max(scale.y, 1);
+                rt.width = Mathf.Max(scaledSize.x, 1);
+                rt.height = Mathf.Max(scaledSize.y, 1);
                 rt.Create();
             }
         }
