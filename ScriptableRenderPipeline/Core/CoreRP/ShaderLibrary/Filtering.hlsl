@@ -1,8 +1,6 @@
 #ifndef UNITY_FILTERING_INCLUDED
 #define UNITY_FILTERING_INCLUDED
 
-#if !defined(SHADER_API_GLES)
-
 // Cardinal (interpolating) B-Spline of the 2nd degree (3rd order). Support = 3x3.
 // The fractional coordinate of each part is assumed to be in the [0, 1] range (centered on 0.5).
 // https://www.desmos.com/calculator/47j9r9lolm
@@ -38,7 +36,5 @@ void BiquadraticFilter(real2 fracCoord, out real2 weights[2], out real2 offsets[
     offsets[0] = -0.5 + 0.5 * m * rcp(weights[0]);
     offsets[1] =  0.5 + r * rcp(weights[1]);
 }
-
-#endif // SHADER_API_GLES
 
 #endif // UNITY_FILTERING_INCLUDED
