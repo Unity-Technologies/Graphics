@@ -31,11 +31,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ComputeShader deferredDirectionalShadowComputeShader;
         public ComputeShader volumetricLightingCS;
 
-        // Subsurface scattering
-        // These shaders don't need to be reference by RenderPipelineResource as they are not use at runtime (only to draw in editor)
-        // public Shader drawSssProfile;
-        // public Shader drawTransmittanceGraphShader;
-
         public ComputeShader subsurfaceScatteringCS; // Disney SSS
         public Shader subsurfaceScattering; // Jimenez SSS
         public Shader combineLighting;

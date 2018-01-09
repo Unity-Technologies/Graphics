@@ -118,10 +118,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_HTileRT = new RenderTargetIdentifier(m_HTile);
         }
 
-        public void PushGlobalParams(CommandBuffer cmd, SubsurfaceScatteringSettings sssParameters, FrameSettings frameSettings)
+        public void PushGlobalParams(CommandBuffer cmd, DiffusionProfileSettings sssParameters, FrameSettings frameSettings)
         {
             // Broadcast SSS parameters to all shaders.
-            cmd.SetGlobalInt(HDShaderIDs._EnableSSSAndTransmission, frameSettings.enableSSSAndTransmission ? 1 : 0);
+            cmd.SetGlobalInt(HDShaderIDs._EnableSubsurfaceScattering, frameSettings.enableSubsurfaceScattering ? 1 : 0);
+            cmd.SetGlobalFloat(HDShaderIDs._TransmittanceMultiplier, frameSettings.enableTransmission ? 1.0f : 0.0f);
             unsafe
             {
                 // Warning: Unity is not able to losslessly transfer integers larger than 2^24 to the shader system.
@@ -150,10 +151,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Combines specular lighting and diffuse lighting with subsurface scattering.
-        public void SubsurfaceScatteringPass(HDCamera hdCamera, CommandBuffer cmd, SubsurfaceScatteringSettings sssParameters, FrameSettings frameSettings,
+        public void SubsurfaceScatteringPass(HDCamera hdCamera, CommandBuffer cmd, DiffusionProfileSettings sssParameters, FrameSettings frameSettings,
                                             RenderTargetIdentifier colorBufferRT, RenderTargetIdentifier diffuseBufferRT, RenderTargetIdentifier depthStencilBufferRT, RenderTargetIdentifier depthTextureRT)
         {
-            if (sssParameters == null || !frameSettings.enableSSSAndTransmission)
+            if (sssParameters == null || !frameSettings.enableSubsurfaceScattering)
                 return;
 
             using (new ProfilingSample(cmd, "Subsurface Scattering", HDRenderPipeline.GetSampler(CustomSamplerId.SubsurfaceScattering)))

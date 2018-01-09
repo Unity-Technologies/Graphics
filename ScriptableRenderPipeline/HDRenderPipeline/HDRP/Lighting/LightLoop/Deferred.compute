@@ -150,7 +150,7 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     float3 specularLighting;
     LightLoop(V, posInput, preLightData, bsdfData, bakeLightingData, featureFlags, diffuseLighting, specularLighting);
 
-    if (_EnableSSSAndTransmission != 0 && bsdfData.materialId == MATERIALID_LIT_SSS && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_SSS))
+    if (_EnableSubsurfaceScattering != 0 && HaveSubsurfaceScattering(bsdfData))
     {
         specularLightingUAV[pixelCoord] = float4(specularLighting, 1.0);
         diffuseLightingUAV[pixelCoord]  = TagLightingForSSS(diffuseLighting);
