@@ -9,10 +9,8 @@ namespace UnityEditor.ShaderGraph
 {
     static class GraphUtil
     {
-        internal static void GenerateApplicationVertexInputs(ShaderGraphRequirements graphRequiements, ShaderGenerator vertexInputs, int vertexInputStartIndex, int maxVertexInputs)
+        internal static void GenerateApplicationVertexInputs(ShaderGraphRequirements graphRequiements, ShaderGenerator vertexInputs)
         {
-            int vertexInputIndex = vertexInputStartIndex;
-
             vertexInputs.AddShaderChunk("struct GraphVertexInput", false);
             vertexInputs.AddShaderChunk("{", false);
             vertexInputs.Indent();
@@ -26,10 +24,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             foreach (var channel in graphRequiements.requiresMeshUVs.Distinct())
-            {
-                vertexInputs.AddShaderChunk(String.Format("float4 texcoord{0} : TEXCOORD{1};", ((int)channel).ToString(), vertexInputIndex.ToString()), false);
-                vertexInputIndex++;
-            }
+                vertexInputs.AddShaderChunk(string.Format("float4 texcoord{0} : TEXCOORD{0};", (int)channel), false);
 
             vertexInputs.Deindent();
             vertexInputs.AddShaderChunk("};", false);
@@ -83,7 +78,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             var requirements = ShaderGraphRequirements.FromNodes(activeNodeList);
-            GenerateApplicationVertexInputs(requirements, vertexInputs, 0, 8);
+            GenerateApplicationVertexInputs(requirements, vertexInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, surfaceInputs);
