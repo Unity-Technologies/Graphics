@@ -57,6 +57,9 @@ namespace UnityEditor.VFX
 
         public override bool Equals(object obj)
         {
+            if (ReferenceEquals(this, obj))
+                return true;
+
             if (m_Mode == Mode.Constant)
             {
                 var val = obj as VFXValue;
@@ -77,11 +80,11 @@ namespace UnityEditor.VFX
 
                 return content.Equals(otherContent);
             }
-
-            return ReferenceEquals(this, obj);
+            else
+                return false;
         }
 
-        sealed public override int GetHashCode()
+        protected override int GetInnerHashCode()
         {
             if (m_Mode == Mode.Constant)
             {

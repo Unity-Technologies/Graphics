@@ -188,6 +188,11 @@ namespace UnityEditor.VFX
             return m_Owners.Count > 1 && m_Owners[0].contextType == VFXContextType.kInit && m_Owners[0].inputContexts.Count() > 0;
         }
 
+        public override VFXDeviceTarget GetCompilationTarget(VFXContext context)
+        {
+            return VFXDeviceTarget.GPU;
+        }
+
         public override void GenerateAttributeLayout()
         {
             m_layoutAttributeCurrent.GenerateAttributeLayout(m_Capacity, m_StoredCurrentAttributes);
@@ -254,7 +259,7 @@ namespace UnityEditor.VFX
             return false;
         }
 
-        public void FillDescs(
+        public override void FillDescs(
             List<VFXGPUBufferDesc> outBufferDescs,
             List<VFXSystemDesc> outSystemDescs,
             VFXExpressionGraph expressionGraph,

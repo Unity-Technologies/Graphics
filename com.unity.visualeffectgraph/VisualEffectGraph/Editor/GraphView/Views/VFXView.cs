@@ -293,6 +293,13 @@ namespace UnityEditor.VFX.UI
             spacer.style.flex = 1;
             toolbar.Add(spacer);
 
+
+            m_ToggleDebug = new Toggle(OnToggleDebug);
+            m_ToggleDebug.text = "Debug";
+            toolbar.Add(m_ToggleDebug);
+            m_ToggleDebug.AddToClassList("toolbarItem");
+
+
             m_ToggleCastShadows = new Toggle(OnToggleCastShadows);
             m_ToggleCastShadows.text = "Cast Shadows";
             m_ToggleCastShadows.on = GetRendererSettings().shadowCastingMode != ShadowCastingMode.Off;
@@ -343,6 +350,8 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
         }
 
+        Toggle m_ToggleDebug;
+
         void Delete(string cmd, AskUser askUser)
         {
             controller.Remove(selection.OfType<IControlledElement>().Select(t => t.controller));
@@ -381,6 +390,8 @@ namespace UnityEditor.VFX.UI
                     m_ToggleMotionVectors.on = settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object;
                     m_ToggleMotionVectors.SetEnabled(true);
 
+
+                    m_ToggleDebug.on = controller.graph.displaySubAssets;
 
                     // if the asset dis destroy somehow, fox example if the user delete the asset, delete the controller and update the window.
                     VFXAsset asset = controller.model;
@@ -683,24 +694,6 @@ namespace UnityEditor.VFX.UI
         {
             if (controller == null) return null;
             return controller.AddVFXParameter(pos, desc);
-        }
-
-        public EventPropagation CloneModels() // TEST clean that
-        {
-            var contexts = selection.OfType<VFXContextUI>().Select(p => p.controller.context.Clone<VFXContext>());
-            foreach (var context in contexts)
-            {
-                context.position = context.position + new Vector2(50, 50);
-                controller.graph.AddChild(context);
-            }
-
-            var operators = selection.OfType<VFXNodeUI>().Select(p => p.controller.model.Clone<VFXSlotContainerModel<VFXModel, VFXModel>>());
-            foreach (var op in operators)
-            {
-                op.position = op.position + new Vector2(50, 50);
-                controller.graph.AddChild(op);
-            }
-            return EventPropagation.Stop;
         }
 
         public EventPropagation Resync()
@@ -1015,6 +1008,14 @@ namespace UnityEditor.VFX.UI
             foreach (var c in contexts)
             {
                 c.controller.position = c.GetPosition().min + new Vector2(0, size);
+            }
+        }
+
+        void OnToggleDebug()
+        {
+            if (controller != null)
+            {
+                controller.graph.displaySubAssets = !controller.graph.displaySubAssets;
             }
         }
 

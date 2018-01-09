@@ -47,28 +47,19 @@ namespace UnityEditor.VFX
             }
         }
 
-        public virtual void CollectDependencies(HashSet<UnityEngine.Object> objs)
+        public virtual void Sanitize() {}
+
+        public virtual void OnUnknownChange()
+        {
+        }
+
+        public virtual void CollectDependencies(HashSet<ScriptableObject> objs)
         {
             foreach (var child in children)
             {
                 objs.Add(child);
                 child.CollectDependencies(objs);
             }
-        }
-
-        public virtual T Clone<T>() where T : VFXModel
-        {
-            T clone = CreateInstance(GetType()) as T;
-
-            foreach (var child in children)
-            {
-                var cloneChild = child.Clone<VFXModel>();
-                clone.AddChild(cloneChild, -1, false);
-            }
-
-            clone.m_UICollapsed = m_UICollapsed;
-            clone.m_UIPosition = m_UIPosition;
-            return clone;
         }
 
         protected virtual void OnInvalidate(VFXModel model, InvalidationCause cause)
@@ -264,15 +255,10 @@ namespace UnityEditor.VFX
                     if (attrArray.Length == 1)
                     {
                         var attr = attrArray[0] as VFXSettingAttribute;
-                        if ((attr.visibleFlags & flags) == 0)
-                        {
-                            return false;
-                        }
-
-                        if (!filteredOutSettings.Contains(f.Name) || listHidden)
-                        {
+                        if (listHidden)
                             return true;
-                        }
+
+                        return (attr.visibleFlags & flags) != 0 && !filteredOutSettings.Contains(f.Name);
                     }
                     return false;
                 });
@@ -288,12 +274,20 @@ namespace UnityEditor.VFX
 
         public VFXAsset GetAsset()
         {
-            var graph = this as VFXGraph;
+            var graph = GetGraph();
             if (graph != null)
                 return graph.vfxAsset;
+            return null;
+        }
+
+        public VFXGraph GetGraph()
+        {
+            var graph = this as VFXGraph;
+            if (graph != null)
+                return graph;
             var parent = GetParent();
             if (parent != null)
-                return parent.GetAsset();
+                return parent.GetGraph();
             return null;
         }
 

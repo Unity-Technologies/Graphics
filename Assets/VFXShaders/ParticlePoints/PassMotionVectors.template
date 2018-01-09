@@ -2,7 +2,7 @@
 Pass
 {		
 	Name "MOTIONVECTORS"
-	Tags { "LightMode"="MotionVectors" }
+	Tags { "LightMode"=${VFXPassVelocity} }
 
 	ZWrite Off
 	Blend Off

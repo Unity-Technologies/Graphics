@@ -53,6 +53,7 @@ namespace UnityEditor.VFX.UI
         {
             AddToClassList("VFXNodeUI");
             RegisterCallback<ControllerChangedEvent>(OnChange);
+            clippingOptions = ClippingOptions.ClipContents;
         }
 
         virtual protected void OnChange(ControllerChangedEvent e)
@@ -79,11 +80,12 @@ namespace UnityEditor.VFX.UI
                 object settings = controller.settings;
 
                 m_SettingsContainer = new VisualElement { name = "settings" };
+                var divider = new VisualElement() {name = "divider"};
+                divider.AddToClassList("vertical");
 
+                mainContainer.Q("contents").Insert(0, divider);
 
-                VisualElement inputParent = new VisualElement() { name = "inputAndSettings" };
-
-                mainContainer.Q("contents").Insert(0, m_SettingsContainer);
+                mainContainer.Q("contents").Insert(1, m_SettingsContainer);
 
                 foreach (var setting in controller.settings)
                 {

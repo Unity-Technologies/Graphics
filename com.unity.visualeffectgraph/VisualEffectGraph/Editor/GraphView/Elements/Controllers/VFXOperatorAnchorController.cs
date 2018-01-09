@@ -14,17 +14,17 @@ namespace UnityEditor.VFX.UI
 
         public static System.Type GetDisplayAnchorType(VFXSlot slot)
         {
-            System.Type newAnchorType = slot.property.type;
+            System.Type newAnchorType = slot.refSlot.property.type;
 
-            if (newAnchorType != typeof(Color) && slot.GetExpression() != null)
-                newAnchorType = VFXExpression.TypeToType(slot.GetExpression().valueType);//model.property.type;
+            if (newAnchorType == typeof(FloatN))
+                newAnchorType = ((FloatN)(slot.refSlot.value)).GetCurrentType();
 
             return newAnchorType;
         }
 
         public override void UpdateInfos()
         {
-            if (model.GetExpression() != null)
+            if (model.direction == VFXSlot.Direction.kInput)
             {
                 System.Type newAnchorType = GetDisplayAnchorType(model);
 

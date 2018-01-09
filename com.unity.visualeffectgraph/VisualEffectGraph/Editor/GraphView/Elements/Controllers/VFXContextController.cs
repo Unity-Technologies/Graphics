@@ -1,6 +1,7 @@
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine;
+using UnityEngine.VFX;
 using System.Collections.Generic;
 using System.Linq;
 using System;
@@ -183,37 +184,28 @@ namespace UnityEditor.VFX.UI
             m_BlockControllers = m_NewControllers;
         }
 
-        internal void BlocksDropped(VFXBlockController blockController, bool after, IEnumerable<VFXBlockController> draggedBlocks, bool copy)
+        internal void BlocksDropped(int blockIndex, IEnumerable<VFXBlockController> draggedBlocks, bool copy)
         {
             //Sort draggedBlock in the order we want them to appear and not the selected order ( blocks in the same context should appear in the same order as they where relative to each other).
 
             draggedBlocks = draggedBlocks.OrderBy(t => t.index).GroupBy(t => t.contextController).SelectMany<IGrouping<VFXContextController, VFXBlockController>, VFXBlockController>(t => t.Select(u => u));
 
-            int insertIndex;
-
-            if (blockController != null)
-            {
-                insertIndex = blockController.index;
-                if (after) insertIndex++;
-            }
-            else if (after)
-            {
-                insertIndex = blockControllers.Count();
-            }
-            else
-            {
-                insertIndex = 0;
-            }
 
             foreach (VFXBlockController draggedBlock in draggedBlocks)
             {
                 if (copy)
                 {
-                    this.AddBlock(insertIndex++, draggedBlock.block.Clone<VFXBlock>());
+                    var dependencies = new HashSet<ScriptableObject>();
+
+                    draggedBlock.block.CollectDependencies(dependencies);
+
+                    string str = VFXMemorySerializer.StoreObjects(dependencies.Cast<ScriptableObject>().ToArray());
+
+                    this.AddBlock(blockIndex++, VFXMemorySerializer.ExtractObjects(str, true).OfType<VFXBlock>().First());
                 }
                 else
                 {
-                    this.ReorderBlock(insertIndex++, draggedBlock.block);
+                    this.ReorderBlock(blockIndex++, draggedBlock.block);
                 }
             }
         }

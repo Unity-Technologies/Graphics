@@ -307,6 +307,32 @@ namespace UnityEditor.VFX
             return Dot(position, planeNormal) - d;
         }
 
+        static public VFXExpression GammaToLinear(VFXExpression gamma)
+        {
+            var components = VFXOperatorUtility.ExtractComponents(gamma).ToArray();
+            if (components.Length != 3 && components.Length != 4)
+                throw new ArgumentException("input expression must be a 3 or 4 components vector");
+
+            VFXExpression exp = VFXValue.Constant(2.2f);
+            for (int i = 0; i < 3; ++i)
+                components[i] = new VFXExpressionPow(components[i], exp);
+
+            return new VFXExpressionCombine(components);
+        }
+
+        static public VFXExpression LinearToGamma(VFXExpression linear)
+        {
+            var components = VFXOperatorUtility.ExtractComponents(linear).ToArray();
+            if (components.Length != 3 && components.Length != 4)
+                throw new ArgumentException("input expression must be a 3 or 4 components vector");
+
+            VFXExpression exp = VFXValue.Constant(1.0f / 2.2f);
+            for (int i = 0; i < 3; ++i)
+                components[i] = new VFXExpressionPow(components[i], exp);
+
+            return new VFXExpressionCombine(components);
+        }
+
         static public IEnumerable<VFXExpression> ExtractComponents(VFXExpression expression)
         {
             if (expression.valueType == VFXValueType.kFloat)

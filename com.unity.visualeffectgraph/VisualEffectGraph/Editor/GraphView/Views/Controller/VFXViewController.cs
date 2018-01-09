@@ -59,6 +59,7 @@ namespace UnityEditor.VFX.UI
 
         void GraphLost()
         {
+            Clear();
             if (m_Graph != null)
             {
                 RemoveInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
@@ -409,11 +410,17 @@ namespace UnityEditor.VFX.UI
                 RemoveController(this);
                 return;
             }
-            if (m_Graph != model.GetOrCreateGraph())
+
+            // a standard equals will return true is the m_Graph is a destroyed object with the same instance ID ( like with a source control revert )
+            if (!object.ReferenceEquals(m_Graph, model.GetOrCreateGraph()))
             {
                 if (m_Graph != null)
                 {
                     GraphLost();
+                }
+                else
+                {
+                    Clear();
                 }
                 m_Graph =  model.GetOrCreateGraph();
 

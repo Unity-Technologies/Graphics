@@ -75,7 +75,7 @@ namespace UnityEditor.VFX
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
 
-            yield return slotExpressions.First(o => o.name == "texture");
+            yield return slotExpressions.First(o => o.name == "mainTexture");
 
             if (flipBook != FlipbookMode.Off)
             {
@@ -111,12 +111,12 @@ namespace UnityEditor.VFX
 
         public class InputProperties
         {
-            public Texture2D texture;
+            public Texture2D mainTexture;
         }
 
         public class InputPropertiesFlipbook
         {
-            public Texture2D texture;
+            public Texture2D mainTexture;
             public Vector2 flipBookSize = new Vector2(5, 5);
         }
     }

@@ -132,27 +132,35 @@ namespace UnityEditor.VFX
         {
             var r = new VFXShaderWriter();
             var regex = new Regex(matching);
-            var expressionToNameLocal = new Dictionary<VFXExpression, string>(expressionToName);
 
-            var filteredNamedExpressions = namedExpressions.Where(o => regex.IsMatch(o.name)).ToArray();
+            var filteredNamedExpressions = namedExpressions.Where(o => regex.IsMatch(o.name) &&
+                    !(expressionToName.ContainsKey(o.exp) && expressionToName[o.exp] == o.name)); // if parameter already in the global scope, there's nothing to do
+
+            bool needScope = false;
             foreach (var namedExpression in filteredNamedExpressions)
             {
                 r.WriteVariable(namedExpression.exp.valueType, namedExpression.name, "0");
                 r.WriteLine();
+                needScope = true;
             }
 
-            r.EnterScope();
-            foreach (var namedExpression in filteredNamedExpressions)
+            if (needScope)
             {
-                if (!expressionToNameLocal.ContainsKey(namedExpression.exp))
+                var expressionToNameLocal = new Dictionary<VFXExpression, string>(expressionToName);
+                r.EnterScope();
+                foreach (var namedExpression in filteredNamedExpressions)
                 {
-                    r.WriteVariable(namedExpression.exp, expressionToNameLocal);
+                    if (!expressionToNameLocal.ContainsKey(namedExpression.exp))
+                    {
+                        r.WriteVariable(namedExpression.exp, expressionToNameLocal);
+                        r.WriteLine();
+                    }
+                    r.WriteAssignement(namedExpression.exp.valueType, namedExpression.name, expressionToNameLocal[namedExpression.exp]);
                     r.WriteLine();
                 }
-                r.WriteAssignement(namedExpression.exp.valueType, namedExpression.name, expressionToNameLocal[namedExpression.exp]);
-                r.WriteLine();
+                r.ExitScope();
             }
-            r.ExitScope();
+
             return r;
         }
 
@@ -334,7 +342,7 @@ namespace UnityEditor.VFX
 
         static private void Build(VFXContext context, string templatePath, StringBuilder stringBuilder, VFXContextCompiledData contextData)
         {
-            var dependencies = new HashSet<Object>();
+            var dependencies = new HashSet<ScriptableObject>();
             context.CollectDependencies(dependencies);
 
             var templateContent = GetFlattenedTemplateContent(templatePath, new List<string>(), context.additionalDefines);
@@ -419,8 +427,20 @@ namespace UnityEditor.VFX
             foreach (var additionnalDefine in context.additionalDefines)
                 globalIncludeContent.WriteLineFormat("#define {0} 1", additionnalDefine);
 
+            var renderPipePath = VFXManager.renderPipeSettingsPath;
+
+            string renderPipeCommon = "Assets/VFXShaders/Common/VFXCommonCompute.cginc";
+            string renderPipePasses = null;
+            if (!context.codeGeneratorCompute && !string.IsNullOrEmpty(renderPipePath))
+            {
+                renderPipeCommon = "Assets/" + renderPipePath + "/VFXCommon.cginc";
+                renderPipePasses = "Assets/" + renderPipePath + "/VFXPasses.template";
+            }
+
             globalIncludeContent.WriteLine();
-            globalIncludeContent.WriteLine("#include \"Assets/" + context.renderLoopCommonInclude + "\"");
+            if (renderPipePasses != null)
+                globalIncludeContent.Write(GetFlattenedTemplateContent(renderPipePasses, new List<string>(), context.additionalDefines));
+            globalIncludeContent.WriteLine("#include \"" + renderPipeCommon + "\"");
 
             if (context.GetData() is ISpaceable)
             {

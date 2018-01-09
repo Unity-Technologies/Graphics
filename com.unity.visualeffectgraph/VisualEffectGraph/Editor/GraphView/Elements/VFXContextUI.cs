@@ -129,6 +129,7 @@ namespace UnityEditor.VFX.UI
                 RemoveFromClassList("init");
                 RemoveFromClassList("update");
                 RemoveFromClassList("output");
+                RemoveFromClassList("event");
 
 
                 foreach (int val in System.Enum.GetValues(typeof(CoordinateSpace)))
@@ -215,7 +216,6 @@ namespace UnityEditor.VFX.UI
         {
             capabilities |= Capabilities.Selectable | Capabilities.Movable | Capabilities.Deletable | Capabilities.Ascendable;
             forceNotififcationOnAdd = true;
-            pickingMode = PickingMode.Ignore;
 
             m_FlowInputConnectorContainer = new VisualElement()
             {
@@ -298,11 +298,11 @@ namespace UnityEditor.VFX.UI
             m_Footer.Add(m_FooterTitle);
             m_Footer.AddToClassList("Extremity");
 
-            Add(m_FlowOutputConnectorContainer);
 
             m_InsideContainer.Add(m_Footer);
 
             m_NodeContainer.Add(m_InsideContainer);
+
 
             ClearClassList();
             AddToClassList("VFXContext");
@@ -310,9 +310,14 @@ namespace UnityEditor.VFX.UI
             m_DragDisplay = new VisualElement();
             m_DragDisplay.AddToClassList("dragdisplay");
 
-            Add(new VisualElement() { name = "icon" });
 
-            clippingOptions = VisualElement.ClippingOptions.NoClipping;
+            var selectionBorder = new VisualElement() {name = "selection-border"};
+            Add(selectionBorder);
+            selectionBorder.pickingMode = PickingMode.Ignore;
+
+            Add(m_FlowInputConnectorContainer);
+
+            Add(m_FlowOutputConnectorContainer);
 
             RegisterCallback<ControllerChangedEvent>(OnChange);
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
@@ -328,17 +333,12 @@ namespace UnityEditor.VFX.UI
             controller.context.space = (CoordinateSpace)(((int)controller.context.space + 1) % (CoordinateSpaceInfo.SpaceCount));
         }
 
-        public bool CanDrop(IEnumerable<VFXBlockUI> blocks, VFXBlockUI target)
+        public bool CanDrop(IEnumerable<VFXBlockUI> blocks)
         {
             bool accept = true;
             if (blocks.Count() == 0) return false;
             foreach (var block in blocks)
             {
-                if (block == target)
-                {
-                    accept = false;
-                    break;
-                }
                 if (!controller.model.AcceptChild(block.controller.block))
                 {
                     accept = false;
@@ -358,36 +358,17 @@ namespace UnityEditor.VFX.UI
             return ContainsPoint(localPoint);
         }
 
-        public void DraggingBlocks(IEnumerable<VFXBlockUI> blocks, VFXBlockUI target, bool after)
+        public void DraggingBlocks(IEnumerable<VFXBlockUI> blocks, int index)
         {
             m_DragDisplay.RemoveFromHierarchy();
 
-            if (!CanDrop(blocks, target))
+            if (!CanDrop(blocks))
             {
                 return;
             }
 
-            float y = 0;
-            if (target != null)
-            {
-                y = target.layout.position.y;
-                if (after)
-                {
-                    y += target.layout.height;
-                }
-            }
-            else
-            {
-                if (after)
-                {
-                    y = m_BlockContainer.layout.height - 2;
-                }
-                else
-                {
-                    y = 0;
-                }
-            }
-            Debug.Log("m_DragDisplay.y" + y);
+            float y = GetBlockIndexY(index, false);
+
             m_DragDisplay.style.positionTop = y;
 
             m_BlockContainer.Add(m_DragDisplay);
@@ -406,18 +387,61 @@ namespace UnityEditor.VFX.UI
         {
             IEnumerable<VFXBlockUI> blocksUI = selection.Select(t => t as VFXBlockUI).Where(t => t != null);
 
-            return CanDrop(blocksUI, null);
+            return CanDrop(blocksUI);
+        }
+
+        public float GetBlockIndexY(int index, bool middle)
+        {
+            float y = 0;
+            if (m_BlockContainer.childCount == 0)
+            {
+                return 0;
+            }
+            if (index >= m_BlockContainer.childCount)
+            {
+                return m_BlockContainer.ElementAt(m_BlockContainer.childCount - 1).layout.yMax;
+            }
+            else if (middle)
+            {
+                return m_BlockContainer.ElementAt(index).layout.center.y;
+            }
+            else
+            {
+                y = m_BlockContainer.ElementAt(index).layout.yMin;
+
+                if (index > 0)
+                {
+                    y = (y + m_BlockContainer.ElementAt(index - 1).layout.yMax) * 0.5f;
+                }
+            }
+
+            return y;
+        }
+
+        public int GetDragBlockIndex(Vector2 mousePosition)
+        {
+            for (int i = 0; i < m_BlockContainer.childCount; ++i)
+            {
+                float y = GetBlockIndexY(i, true);
+
+                if (mousePosition.y < y)
+                {
+                    return i;
+                }
+            }
+
+            return m_BlockContainer.childCount;
         }
 
         EventPropagation IDropTarget.DragUpdated(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
         {
             IEnumerable<VFXBlockUI> blocksUI = selection.Select(t => t as VFXBlockUI).Where(t => t != null);
 
-            Vector2 mousePosition = evt.imguiEvent.mousePosition;
+            Vector2 mousePosition = m_BlockContainer.WorldToLocal(evt.originalMousePosition);
 
-            bool after = mousePosition.y > layout.height * 0.5f;
+            int blockIndex = GetDragBlockIndex(mousePosition);
 
-            DraggingBlocks(blocksUI, null, after);
+            DraggingBlocks(blocksUI, blockIndex);
             if (!m_DragStarted)
             {
                 // TODO: Do something on first DragUpdated event (initiate drag)
@@ -436,15 +460,15 @@ namespace UnityEditor.VFX.UI
         {
             DragFinished();
 
-            Vector2 mousePosition = evt.imguiEvent.mousePosition;
-
-            bool after = mousePosition.y > layout.height * 0.5f;
+            Vector2 mousePosition = m_BlockContainer.WorldToLocal(evt.originalMousePosition);
 
             IEnumerable<VFXBlockUI> blocksUI = selection.OfType<VFXBlockUI>();
-            if (!CanDrop(blocksUI, null))
+            if (!CanDrop(blocksUI))
                 return EventPropagation.Stop;
 
-            BlocksDropped(null, after, blocksUI, evt.imguiEvent.control);
+            int blockIndex = GetDragBlockIndex(mousePosition);
+
+            BlocksDropped(blockIndex, blocksUI, evt.imguiEvent.control);
 
             DragAndDrop.AcceptDrag();
 
@@ -454,7 +478,7 @@ namespace UnityEditor.VFX.UI
             return EventPropagation.Stop;
         }
 
-        public void BlocksDropped(VFXBlockController blockController, bool after, IEnumerable<VFXBlockUI> draggedBlocks, bool copy)
+        public void BlocksDropped(int blockIndex, IEnumerable<VFXBlockUI> draggedBlocks, bool copy)
         {
             HashSet<VFXContextController> contexts = new HashSet<VFXContextController>();
             foreach (var draggedBlock in draggedBlocks)
@@ -464,7 +488,7 @@ namespace UnityEditor.VFX.UI
 
             using (var growContext = new GrowContext(this))
             {
-                controller.BlocksDropped(blockController, after, draggedBlocks.Select(t => t.controller), copy);
+                controller.BlocksDropped(blockIndex, draggedBlocks.Select(t => t.controller), copy);
             }
         }
 

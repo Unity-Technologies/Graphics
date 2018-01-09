@@ -23,7 +23,7 @@ namespace UnityEditor.VFX.Test
             var updateContext = tests.CreateAllUpdateBlocks();
             var outputContext = tests.CreateAllOutputBlocks();
 
-            tests.CreateFlowEdges(initContext, updateContext, outputContext);
+            tests.CreateFlowEdges(new VFXContextController[] {initContext, updateContext, outputContext});
             tests.CreateAllOperators();
             List<VFXParameter> parameters = tests.CreateAllParameters();
 
@@ -40,39 +40,46 @@ namespace UnityEditor.VFX.Test
         public void CreateFlowEdgesTest()
         {
             CreateTestAsset("GUITest4");
-            var initContextDesc = VFXLibrary.GetContexts().Where(t => t.name == "Initialize").First();
+
+            var eventContextDesc = VFXLibrary.GetContexts().Where(t => t.model.contextType == VFXContextType.kEvent).First();
+            var eventContext = m_ViewController.AddVFXContext(new Vector2(300, 100), eventContextDesc);
+
+            var spawnerContextDesc = VFXLibrary.GetContexts().Where(t => t.model.contextType == VFXContextType.kSpawner).First();
+            var spawnerContext = m_ViewController.AddVFXContext(new Vector2(300, 100), spawnerContextDesc);
+
+            var initContextDesc = VFXLibrary.GetContexts().Where(t => t.model.contextType == VFXContextType.kInit).First();
             var initContext = m_ViewController.AddVFXContext(new Vector2(300, 100), initContextDesc);
 
-            m_ViewController.ApplyChanges();
-
-            var initContextControlller = m_ViewController.allChildren.OfType<VFXContextController>().First(t => t.model == initContext) as VFXContextController;
-
-            var updateContextDesc = VFXLibrary.GetContexts().Where(t => t.name == "Update").First();
+            var updateContextDesc = VFXLibrary.GetContexts().Where(t => t.model.contextType == VFXContextType.kUpdate).First();
             var updateContext = m_ViewController.AddVFXContext(new Vector2(300, 1000), updateContextDesc);
 
-            m_ViewController.ApplyChanges();
-            var updateContextControlller = m_ViewController.allChildren.OfType<VFXContextController>().First(t => t.model == updateContext) as VFXContextController;
-
-            var outputContextDesc = VFXLibrary.GetContexts().Where(t => t.name.Contains("Output")).First();
-            var outputContext = m_ViewController.AddVFXContext(new Vector2(300, 1000), outputContextDesc);
+            var outputContextDesc = VFXLibrary.GetContexts().Where(t => t.model.contextType == VFXContextType.kOutput).First();
+            var outputContext = m_ViewController.AddVFXContext(new Vector2(300, 2000), outputContextDesc);
 
             m_ViewController.ApplyChanges();
-            var outputContextControlller = m_ViewController.allChildren.OfType<VFXContextController>().First(t => t.model == outputContext) as VFXContextController;
 
-            CreateFlowEdges(initContextControlller, updateContextControlller, outputContextControlller);
+            var contextControllers = new List<VFXContextController>();
+
+            contextControllers.Add(m_ViewController.allChildren.OfType<VFXContextController>().First(t => t.model == eventContext) as VFXContextController);
+            contextControllers.Add(m_ViewController.allChildren.OfType<VFXContextController>().First(t => t.model == spawnerContext) as VFXContextController);
+            contextControllers.Add(m_ViewController.allChildren.OfType<VFXContextController>().First(t => t.model == initContext) as VFXContextController);
+            contextControllers.Add(m_ViewController.allChildren.OfType<VFXContextController>().First(t => t.model == updateContext) as VFXContextController);
+            contextControllers.Add(m_ViewController.allChildren.OfType<VFXContextController>().First(t => t.model == outputContext) as VFXContextController);
+
+            CreateFlowEdges(contextControllers);
 
             DestroyTestAsset("GUITest4");
         }
 
-        void CreateFlowEdges(VFXContextController initContext, VFXContextController updateContext, VFXContextController outputContext)
+        void CreateFlowEdges(IList<VFXContextController> contextControllers)
         {
-            VFXFlowEdgeController edgeControlller = new VFXFlowEdgeController(updateContext.flowInputAnchors.First(), initContext.flowOutputAnchors.First());
+            for (int i = 0; i < contextControllers.Count() - 1; ++i)
+            {
+                VFXFlowEdgeController edgeController = new VFXFlowEdgeController(contextControllers[i + 1].flowInputAnchors.First(), contextControllers[i].flowOutputAnchors.First());
+                m_ViewController.AddElement(edgeController);
+            }
 
-            m_ViewController.AddElement(edgeControlller);
-
-            edgeControlller = new VFXFlowEdgeController(outputContext.flowInputAnchors.First(), updateContext.flowOutputAnchors.First());
-
-            m_ViewController.AddElement(edgeControlller);
+            m_ViewController.ApplyChanges();
         }
 
         void CreateDataEdges(VFXContextController updateContext, List<VFXParameter> parameters)
@@ -80,9 +87,9 @@ namespace UnityEditor.VFX.Test
             m_ViewController.ApplyChanges();
             foreach (var param in parameters)
             {
-                VFXParameterController paramControlller = m_ViewController.allChildren.OfType<VFXParameterController>().First(t => t.model == param);
+                VFXParameterController paramController = m_ViewController.allChildren.OfType<VFXParameterController>().First(t => t.model == param);
 
-                VFXDataAnchorController outputAnchor = paramControlller.outputPorts.First() as VFXDataAnchorController;
+                VFXDataAnchorController outputAnchor = paramController.outputPorts.First() as VFXDataAnchorController;
                 System.Type type = outputAnchor.portType;
 
                 bool found = false;
@@ -124,7 +131,7 @@ namespace UnityEditor.VFX.Test
             window = EditorWindow.GetWindow<VFXViewWindow>();
             m_ViewController = VFXViewController.GetController(m_Asset, true);
             window.graphView.controller = m_ViewController;
-            //m_View = m_ViewControlller.View;
+            //m_View = m_ViewController.View;
         }
 
         void DestroyTestAsset(string name)
@@ -147,32 +154,7 @@ namespace UnityEditor.VFX.Test
 
         VFXContextController CreateAllInitializeBlocks()
         {
-            var initContextDesc = VFXLibrary.GetContexts().Where(t => t.name == "Initialize").First();
-
-            var newContext = m_ViewController.AddVFXContext(new Vector2(300, 100), initContextDesc);
-            m_ViewController.ApplyChanges();
-
-            Assert.AreEqual(m_ViewController.allChildren.Where(t => t is VFXContextController).Count(), 1);
-
-            var contextControlller = m_ViewController.allChildren.Where(t => t is VFXContextController).First() as VFXContextController;
-
-            Assert.AreEqual(contextControlller.model, newContext);
-
-            // Adding every block compatible with an init context
-            foreach (var block in VFXLibrary.GetBlocks().Where(t => t.AcceptParent(newContext)))
-            {
-                var newBlock = block.CreateInstance();
-                contextControlller.AddBlock(0, newBlock);
-                m_ViewController.ApplyChanges();
-
-                Assert.AreEqual(contextControlller.blockControllers.Where(t => t.block == newBlock).Count(), 1);
-
-                var blockControlller = contextControlller.blockControllers.Where(t => t.block == newBlock).First() as VFXBlockController;
-
-                Assert.NotNull(blockControlller);
-            }
-
-            return contextControlller;
+            return CreateAllBlocks(VFXContextType.kInit);
         }
 
         [Test]
@@ -185,31 +167,7 @@ namespace UnityEditor.VFX.Test
 
         VFXContextController CreateAllUpdateBlocks()
         {
-            var initContextDesc = VFXLibrary.GetContexts().Where(t => t.name == "Update").First();
-
-            var newContext = m_ViewController.AddVFXContext(new Vector2(300, 1000), initContextDesc);
-
-            m_ViewController.ApplyChanges();
-            var contextControlller = m_ViewController.allChildren.Where(t => t is VFXContextController && (t as VFXContextController).model == newContext).First() as VFXContextController;
-
-
-            Assert.AreEqual(contextControlller.model, newContext);
-
-            // Adding every block compatible with an init context
-            foreach (var block in VFXLibrary.GetBlocks().Where(t => t.AcceptParent(newContext)))
-            {
-                var newBlock = block.CreateInstance();
-                contextControlller.AddBlock(0, newBlock);
-
-                m_ViewController.ApplyChanges();
-
-                Assert.AreEqual(contextControlller.blockControllers.Where(t => t.block == newBlock).Count(), 1);
-
-                var blockControlller = contextControlller.blockControllers.Where(t => t.block == newBlock).First() as VFXBlockController;
-
-                Assert.NotNull(blockControlller);
-            }
-            return contextControlller;
+            return CreateAllBlocks(VFXContextType.kUpdate);
         }
 
         [Test]
@@ -220,34 +178,61 @@ namespace UnityEditor.VFX.Test
             DestroyTestAsset("TestGUI3");
         }
 
-        VFXContextController CreateAllOutputBlocks()
+        [Test]
+        public void CreateAllSpawnerBlocksTest()
         {
-            var initContextDesc = VFXLibrary.GetContexts().Where(t => t.name.Contains("Output")).First();
+            CreateTestAsset("TestGUI1");
+            CreateAllBlocks(VFXContextType.kSpawner);
+            DestroyTestAsset("TestGUI1");
+        }
+
+        [Test]
+        public void CreateAllEventBlocksTest()
+        {
+            CreateTestAsset("TestGUI1");
+            CreateAllBlocks(VFXContextType.kEvent);
+            DestroyTestAsset("TestGUI1");
+        }
+
+        VFXContextController CreateAllBlocks(VFXContextType type)
+        {
+            var initContextDesc = VFXLibrary.GetContexts().Where(t => t.model.contextType == type).First();
 
             var newContext = m_ViewController.AddVFXContext(new Vector2(300, 2000), initContextDesc);
 
             m_ViewController.ApplyChanges();
 
-            var contextControlller = m_ViewController.nodes.Where(t => t is VFXContextController && (t as VFXContextController).model == newContext).First() as VFXContextController;
+            var contextController = m_ViewController.nodes.Where(t => t is VFXContextController && (t as VFXContextController).model == newContext).First() as VFXContextController;
 
-            Assert.AreEqual(contextControlller.model, newContext);
+            Assert.AreEqual(contextController.model, newContext);
 
             // Adding every block compatible with an init context
+
+            var newBlocks  = new List<VFXBlock>();
             foreach (var block in VFXLibrary.GetBlocks().Where(t => t.AcceptParent(newContext)))
             {
                 var newBlock = block.CreateInstance();
-                contextControlller.AddBlock(0, newBlock);
-
-                m_ViewController.ApplyChanges();
-
-                Assert.AreEqual(contextControlller.blockControllers.Where(t => t.block == newBlock).Count(), 1, "Failing Block" + newBlock.name + "in context" + newContext.name);
-
-                var blockControlller = contextControlller.blockControllers.Where(t => t.block == newBlock).First() as VFXBlockController;
-
-                Assert.NotNull(blockControlller);
+                contextController.AddBlock(0, newBlock);
+                newBlocks.Add(newBlock);
             }
 
-            return contextControlller;
+            m_ViewController.ApplyChanges();
+
+            foreach (var newBlock in newBlocks)
+            {
+                Assert.AreEqual(contextController.blockControllers.Where(t => t.block == newBlock).Count(), 1, "Failing Block" + newBlock.name + "in context" + newContext.name);
+
+                var blockController = contextController.blockControllers.Where(t => t.block == newBlock).First() as VFXBlockController;
+
+                Assert.NotNull(blockController);
+            }
+
+            return contextController;
+        }
+
+        VFXContextController CreateAllOutputBlocks()
+        {
+            return CreateAllBlocks(VFXContextType.kOutput);
         }
 
         [Test]
@@ -262,63 +247,63 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(m_ViewController.allChildren.Where(t => t is VFXContextController).Count(), 1);
 
-            var contextControlller = m_ViewController.allChildren.Where(t => t is VFXContextController).First() as VFXContextController;
+            var contextController = m_ViewController.allChildren.Where(t => t is VFXContextController).First() as VFXContextController;
 
-            Assert.AreEqual(contextControlller.model, newContext);
+            Assert.AreEqual(contextController.model, newContext);
 
             // Adding every block compatible with an init context
 
             var block = VFXLibrary.GetBlocks().Where(t => t.name == "Test").First();
 
             var newBlock = block.CreateInstance();
-            contextControlller.AddBlock(0, newBlock);
+            contextController.AddBlock(0, newBlock);
 
             Assert.IsTrue(newBlock is AllType);
             m_ViewController.ApplyChanges();
 
-            Assert.AreEqual(contextControlller.blockControllers.Where(t => t.block == newBlock).Count(), 1);
+            Assert.AreEqual(contextController.blockControllers.Where(t => t.block == newBlock).Count(), 1);
 
-            var blockControlller = contextControlller.blockControllers.Where(t => t.block == newBlock).First();
+            var blockController = contextController.blockControllers.Where(t => t.block == newBlock).First();
 
-            Assert.NotNull(blockControlller);
+            Assert.NotNull(blockController);
 
-            Assert.NotZero(blockControlller.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).name == "aVector3").Count());
+            Assert.NotZero(blockController.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).name == "aVector3").Count());
 
-            VFXSlot slot = blockControlller.block.inputSlots.First(t => t.name == "aVector3");
+            VFXSlot slot = blockController.block.inputSlots.First(t => t.name == "aVector3");
 
 
-            var aVector3Controlller = blockControlller.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).name == "aVector3").First() as VFXContextDataInputAnchorController;
+            var aVector3Controller = blockController.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).name == "aVector3").First() as VFXContextDataInputAnchorController;
 
-            Assert.AreEqual(blockControlller.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.x").Count(), 1);
-            Assert.AreEqual(blockControlller.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.y").Count(), 1);
-            Assert.AreEqual(blockControlller.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.z").Count(), 1);
+            Assert.AreEqual(blockController.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.x").Count(), 1);
+            Assert.AreEqual(blockController.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.y").Count(), 1);
+            Assert.AreEqual(blockController.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.z").Count(), 1);
 
-            aVector3Controlller.ExpandPath();
+            aVector3Controller.ExpandPath();
             m_ViewController.ApplyChanges();
 
-            Assert.AreEqual(blockControlller.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.x").Count(), 1);
-            Assert.AreEqual(blockControlller.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.y").Count(), 1);
-            Assert.AreEqual(blockControlller.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.z").Count(), 1);
+            Assert.AreEqual(blockController.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.x").Count(), 1);
+            Assert.AreEqual(blockController.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.y").Count(), 1);
+            Assert.AreEqual(blockController.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.z").Count(), 1);
 
 
-            aVector3Controlller.RetractPath();
+            aVector3Controller.RetractPath();
             m_ViewController.ApplyChanges();
 
-            Assert.AreEqual(blockControlller.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.x").Count(), 1);
-            Assert.AreEqual(blockControlller.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.y").Count(), 1);
-            Assert.AreEqual(blockControlller.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.z").Count(), 1);
+            Assert.AreEqual(blockController.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.x").Count(), 1);
+            Assert.AreEqual(blockController.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.y").Count(), 1);
+            Assert.AreEqual(blockController.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.z").Count(), 1);
 
 
-            aVector3Controlller.SetPropertyValue(new Vector3(1.2f, 3.4f, 5.6f));
+            aVector3Controller.SetPropertyValue(new Vector3(1.2f, 3.4f, 5.6f));
 
             Assert.AreEqual(slot.value, new Vector3(1.2f, 3.4f, 5.6f));
 
-            aVector3Controlller.ExpandPath();
+            aVector3Controller.ExpandPath();
             m_ViewController.ApplyChanges();
 
-            var vector3yControlller = blockControlller.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.y").First() as VFXContextDataInputAnchorController;
+            var vector3yController = blockController.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.y").First() as VFXContextDataInputAnchorController;
 
-            vector3yControlller.SetPropertyValue(7.8f);
+            vector3yController.SetPropertyValue(7.8f);
 
             Assert.AreEqual(slot.value, new Vector3(1.2f, 7.8f, 5.6f));
 
