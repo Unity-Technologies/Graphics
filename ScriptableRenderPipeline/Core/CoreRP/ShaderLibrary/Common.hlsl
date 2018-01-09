@@ -298,6 +298,11 @@ real RadToDeg(real rad)
 TEMPLATE_1_REAL(Sq, x, return x * x)
 TEMPLATE_1_INT(Sq, x, return x * x)
 
+bool IsPower2(uint x)
+{
+    return (x & (x - 1)) == 0;
+}
+
 // Input [0, 1] and output [0, PI/2]
 // 9 VALU
 real FastACosPos(real inX)
@@ -461,6 +466,7 @@ float3 LatlongToDirectionCoordinate(float2 coord)
 
 // Z buffer to linear 0..1 depth (0 at near plane, 1 at far plane).
 // Does not correctly handle oblique view frustums.
+// zBufferParam = { (f-n)/n, 1, (f-n)/n*f, 1/f }
 float Linear01DepthFromNear(float depth, float4 zBufferParam)
 {
     return 1.0 / (zBufferParam.x + zBufferParam.y / depth);
@@ -468,6 +474,7 @@ float Linear01DepthFromNear(float depth, float4 zBufferParam)
 
 // Z buffer to linear 0..1 depth (0 at camera position, 1 at far plane).
 // Does not correctly handle oblique view frustums.
+// zBufferParam = { (f-n)/n, 1, (f-n)/n*f, 1/f }
 float Linear01Depth(float depth, float4 zBufferParam)
 {
     return 1.0 / (zBufferParam.x * depth + zBufferParam.y);
@@ -475,6 +482,7 @@ float Linear01Depth(float depth, float4 zBufferParam)
 
 // Z buffer to linear depth.
 // Does not correctly handle oblique view frustums.
+// zBufferParam = { (f-n)/n, 1, (f-n)/n*f, 1/f }
 float LinearEyeDepth(float depth, float4 zBufferParam)
 {
     return 1.0 / (zBufferParam.z * depth + zBufferParam.w);
@@ -497,6 +505,22 @@ float LinearEyeDepth(float2 positionNDC, float deviceDepth, float4 invProjParam)
 float LinearEyeDepth(float3 positionWS, float4x4 viewProjMatrix)
 {
     return mul(viewProjMatrix, float4(positionWS, 1.0)).w;
+}
+
+// 'z' is the view-space Z position (linear depth).
+// saturate() the output of the function to clamp them to the [0, 1] range.
+// encodingParams = { n, log2(f/n), 1/n, 1/log2(f/n) }
+float EncodeLogarithmicDepth(float z, float4 encodingParams)
+{
+    return log2(max(0, z * encodingParams.z)) * encodingParams.w;
+}
+
+// 'd' is the logarithmically encoded depth value.
+// saturate(d) to clamp the output of the function to the [n, f] range.
+// encodingParams = { n, log2(f/n), 1/n, 1/log2(f/n) }
+float DecodeLogarithmicDepth(float d, float4 encodingParams)
+{
+    return encodingParams.x * exp2(d * encodingParams.y);
 }
 
 // ----------------------------------------------------------------------------

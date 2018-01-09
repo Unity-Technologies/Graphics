@@ -273,10 +273,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Flags]
         public enum StencilBitMask
         {
-            Clear    = 0,                    // 0x0
-            LightingMask = 7,                    // 0x7  - 3 bit
-            ObjectVelocity = 128,            // 1 bit
-            All      = 255                   // 0xFF - 8 bit
+            Clear          = 0,              // 0x0
+            LightingMask   = 7,              // 0x7  - 3 bit
+            ObjectVelocity = 128,            // 0x80 - 1 bit
+            All            = 255             // 0xFF - 8 bit
         }
 
         RenderStateBlock m_DepthStateOpaque;
@@ -537,6 +537,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_LightLoop.AllocResolutionDependentBuffers(texWidth, texHeight);
             }
 
+            int viewId = hdCamera.camera.GetInstanceID(); // Warning: different views can use the same camera
+
+            // Warning: (resolutionChanged == false) if you open a new Editor tab of the same size!
+            if (m_VolumetricLightingPreset != VolumetricLightingPreset.Off)
+                ResizeVBuffer(viewId, texWidth, texHeight);
+
             // update recorded window resolution
             m_CurrentWidth = texWidth;
             m_CurrentHeight = texHeight;
@@ -551,6 +557,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_SSSBufferManager.PushGlobalParams(cmd, sssParameters, m_FrameSettings);
 
                 m_DbufferManager.PushGlobalParams(cmd);
+
+                if (m_VolumetricLightingPreset != VolumetricLightingPreset.Off)
+                {
+                    SetVolumetricLightingData(hdCamera, cmd);
+                }
             }
         }
 
@@ -843,6 +854,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 m_LightLoop.BuildGPULightLists(camera, cmd, m_CameraDepthStencilBufferRT, m_CameraStencilBufferCopyRT, m_SkyManager.IsSkyValid());
                             }
                         }
+
+                        // Render the volumetric lighting.
+                        // The pass requires the volume properties, the light list and the shadows, and can run async.
+                        VolumetricLightingPass(hdCamera, cmd);
 
                         RenderDeferredLighting(hdCamera, cmd);
 
@@ -1268,7 +1283,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             visualEnv.PushFogShaderParameters(cmd, m_FrameSettings);
 
             m_SkyManager.RenderSky(hdCamera, m_LightLoop.GetCurrentSunLight(), m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, cmd);
-            if (visualEnv.fogType != FogType.None)
+
+            if (visualEnv.fogType != FogType.None || m_VolumetricLightingPreset != VolumetricLightingPreset.Off)
                 m_SkyManager.RenderOpaqueAtmosphericScattering(cmd);
         }
 
