@@ -198,7 +198,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 Undo.RecordObject(sourceAsset, "Modified Base Volume AABB");
 
-                center = b.center;
                 radius = b.radius;
 
                 EditorUtility.SetDirty(sourceAsset);
