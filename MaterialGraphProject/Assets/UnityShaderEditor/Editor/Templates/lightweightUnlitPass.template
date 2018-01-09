@@ -7,18 +7,20 @@ Pass
 	${ZTest}
 	${ZWrite}
 	
-	CGPROGRAM
-	#pragma target 3.0
-	#pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
+	HLSLPROGRAM
+    // Required to compile gles 2.0 with standard srp library
+    #pragma prefer_hlslcc gles
+    #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ENABLE STEREO_MULTIVIEW_ENABLE
     #pragma multi_compile_fog
-	#pragma multi_compile_instancing
 
 	#pragma vertex vert
     #pragma fragment frag
-	#pragma glsl
-	#pragma debug
 
-    #include "UnityCG.cginc"
+    // Lighting include is needed because of GI
+    #include "LWRP/Shaders/LightweightShaderLibrary/Core.hlsl"
+    #include "LWRP/Shaders/LightweightShaderLibrary/Lighting.hlsl"
+    #include "CoreRP/ShaderLibrary/Color.hlsl"
+    #include "ShaderGraphLibrary/Functions.hlsl"
 
     ${Defines}
 
@@ -28,23 +30,19 @@ Pass
     {
         float4 position : POSITION;
         ${Interpolators}
-		UNITY_VERTEX_OUTPUT_STEREO
     };
 
     GraphVertexOutput vert (GraphVertexInput v)
 	{
 	    v = PopulateVertexData(v);
 		
-		UNITY_SETUP_INSTANCE_ID(v);
-
         GraphVertexOutput o;
-        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-        o.position = UnityObjectToClipPos(v.vertex);
+        o.position = TransformObjectToHClip(v.vertex.xyz);
         ${VertexShader}
         return o;
 	}
 
-    fixed4 frag (GraphVertexOutput IN) : SV_Target
+    half4 frag (GraphVertexOutput IN) : SV_Target
     {
     	${LocalPixelShader}
     	
@@ -56,7 +54,7 @@ Pass
         float Alpha = 0;
 		${SurfaceOutputRemap}
 		
-    	return fixed4(Color, Alpha);
+    	return half4(Color, Alpha);
     }
-    ENDCG
+    ENDHLSL
 }

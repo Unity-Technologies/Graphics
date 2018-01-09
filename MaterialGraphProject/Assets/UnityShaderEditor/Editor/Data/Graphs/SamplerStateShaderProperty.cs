@@ -21,12 +21,9 @@ namespace UnityEditor.ShaderGraph
             return string.Empty;
         }
 
-        public override string GetPropertyDeclarationString()
+        public override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            return string.Format(@"
-#ifdef UNITY_COMPILER_HLSL
-SamplerState {0};
-#endif", referenceName);
+            return string.Format(@"SAMPLER2D({0}){1}", referenceName, delimiter);
         }
 
         public override PreviewProperty GetPreviewMaterialProperty()

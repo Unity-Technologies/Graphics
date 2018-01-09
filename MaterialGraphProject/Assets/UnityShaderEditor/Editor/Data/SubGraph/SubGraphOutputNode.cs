@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.ShaderGraph.Drawing.Controls;
@@ -66,6 +67,20 @@ namespace UnityEditor.ShaderGraph
             RemoveSlot(index);
         }
 
-        public override bool allowedInRemapGraph { get { return false; } }
+        public void RemapOutputs(ShaderGenerator visitor, GenerationMode generationMode)
+        {
+            foreach (var slot in graphOutputs)
+                visitor.AddShaderChunk(string.Format("{0} = {1};", slot.shaderOutputName, GetSlotValue(slot.id, generationMode)), true);
+        }
+
+
+        public IEnumerable<MaterialSlot> graphOutputs
+        {
+            get
+            {
+                return NodeExtensions.GetInputSlots<MaterialSlot>(this).OrderBy(x=>x.id);
+            }
+        }
+
     }
 }

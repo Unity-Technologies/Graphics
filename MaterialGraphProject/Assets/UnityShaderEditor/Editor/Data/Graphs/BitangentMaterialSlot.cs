@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetDefaultValue(GenerationMode generationMode)
         {
-            return space.ToVariableName(InterpolatorType.BiTangent);
+            return string.Format("IN.{0}", space.ToVariableName(InterpolatorType.BiTangent));
         }
 
         public NeededCoordinateSpace RequiresBitangent()
