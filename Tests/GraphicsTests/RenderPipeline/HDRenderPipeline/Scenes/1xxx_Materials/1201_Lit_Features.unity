@@ -13,7 +13,7 @@ OcclusionCullingSettings:
 --- !u!104 &2
 RenderSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 8
+  serializedVersion: 9
   m_Fog: 0
   m_FogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   m_FogMode: 3
@@ -23,7 +23,7 @@ RenderSettings:
   m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
-  m_AmbientIntensity: 1
+  m_AmbientIntensity: 0
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
   m_SkyboxMaterial: {fileID: 0}
@@ -35,10 +35,11 @@ RenderSettings:
   m_DefaultReflectionMode: 0
   m_DefaultReflectionResolution: 128
   m_ReflectionBounces: 1
-  m_ReflectionIntensity: 1
+  m_ReflectionIntensity: 0
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.3661533, g: 0.3847445, b: 0.42534745, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 0}
+  m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -576,7 +577,7 @@ Transform:
   - {fileID: 1072629386}
   - {fileID: 1963044543}
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!21 &105231121
 Material:
@@ -712,12 +713,15 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -752,6 +756,7 @@ Material:
     - _EnableBlendModeAccurateLighting: 1
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableTransparentFog: 1
@@ -791,6 +796,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -798,6 +806,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVSec: 0
@@ -949,12 +960,15 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -989,6 +1003,7 @@ Material:
     - _EnableBlendModeAccurateLighting: 1
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableTransparentFog: 1
@@ -1028,6 +1043,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -1035,6 +1053,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVSec: 0
@@ -1286,7 +1307,7 @@ Transform:
   - {fileID: 958805218}
   - {fileID: 1205986922}
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!21 &209835074
 Material:
@@ -1386,11 +1407,14 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -1421,6 +1445,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.02
@@ -1449,6 +1474,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -1456,6 +1484,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 1
     - _ZTestMode: 8
@@ -1642,11 +1673,14 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -1677,6 +1711,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.02
@@ -1705,6 +1740,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -1712,6 +1750,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -1826,11 +1867,14 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -1861,6 +1905,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.02
@@ -1889,6 +1934,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -1896,6 +1944,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -2046,12 +2097,15 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -2086,6 +2140,7 @@ Material:
     - _EnableBlendModeAccurateLighting: 1
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableTransparentFog: 1
@@ -2125,6 +2180,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -2132,6 +2190,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVSec: 0
@@ -2235,6 +2296,48 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+--- !u!1001 &318904945
+Prefab:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 4827451743472390, guid: e0446b620fbf66540b1b93f937834a01, type: 2}
+      propertyPath: m_LocalPosition.x
+      value: -4.945982
+      objectReference: {fileID: 0}
+    - target: {fileID: 4827451743472390, guid: e0446b620fbf66540b1b93f937834a01, type: 2}
+      propertyPath: m_LocalPosition.y
+      value: 3.5591245
+      objectReference: {fileID: 0}
+    - target: {fileID: 4827451743472390, guid: e0446b620fbf66540b1b93f937834a01, type: 2}
+      propertyPath: m_LocalPosition.z
+      value: -6.423647
+      objectReference: {fileID: 0}
+    - target: {fileID: 4827451743472390, guid: e0446b620fbf66540b1b93f937834a01, type: 2}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4827451743472390, guid: e0446b620fbf66540b1b93f937834a01, type: 2}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4827451743472390, guid: e0446b620fbf66540b1b93f937834a01, type: 2}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4827451743472390, guid: e0446b620fbf66540b1b93f937834a01, type: 2}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4827451743472390, guid: e0446b620fbf66540b1b93f937834a01, type: 2}
+      propertyPath: m_RootOrder
+      value: 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_ParentPrefab: {fileID: 100100000, guid: e0446b620fbf66540b1b93f937834a01, type: 2}
+  m_IsPrefabParent: 0
 --- !u!21 &319766561
 Material:
   serializedVersion: 6
@@ -2333,11 +2436,14 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -2368,6 +2474,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.02
@@ -2396,6 +2503,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -2403,6 +2513,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -2517,11 +2630,14 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -2552,6 +2668,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.02
@@ -2580,6 +2697,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -2587,6 +2707,9 @@ Material:
     - _TexWorldScale: 2
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -2701,11 +2824,14 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -2736,6 +2862,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.02
@@ -2764,6 +2891,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -2771,6 +2901,9 @@ Material:
     - _TexWorldScale: 2
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 5
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -2973,11 +3106,14 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -3008,6 +3144,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.02
@@ -3036,6 +3173,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -3043,6 +3183,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -3509,12 +3652,15 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -3549,6 +3695,7 @@ Material:
     - _EnableBlendModeAccurateLighting: 1
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableTransparentFog: 1
@@ -3588,6 +3735,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -3595,6 +3745,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVSec: 0
@@ -3818,12 +3971,15 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -3858,6 +4014,7 @@ Material:
     - _EnableBlendModeAccurateLighting: 1
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableTransparentFog: 1
@@ -3897,6 +4054,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -3904,6 +4064,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVSec: 0
@@ -3998,7 +4161,7 @@ Transform:
   - {fileID: 1050085329}
   - {fileID: 212792451}
   m_Father: {fileID: 0}
-  m_RootOrder: 6
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &555931867
 GameObject:
@@ -4480,7 +4643,7 @@ Transform:
   - {fileID: 2023182498}
   - {fileID: 1914613425}
   m_Father: {fileID: 0}
-  m_RootOrder: 7
+  m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &618910963
 GameObject:
@@ -4688,12 +4851,15 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -4728,6 +4894,7 @@ Material:
     - _EnableBlendModeAccurateLighting: 1
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableTransparentFog: 1
@@ -4767,6 +4934,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -4774,6 +4944,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVSec: 0
@@ -4925,12 +5098,15 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -4965,6 +5141,7 @@ Material:
     - _EnableBlendModeAccurateLighting: 1
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableTransparentFog: 1
@@ -5004,6 +5181,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -5011,6 +5191,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVSec: 0
@@ -5249,12 +5432,15 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -5289,6 +5475,7 @@ Material:
     - _EnableBlendModeAccurateLighting: 1
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableTransparentFog: 1
@@ -5328,6 +5515,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -5335,6 +5525,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVSec: 0
@@ -5486,12 +5679,15 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -5526,6 +5722,7 @@ Material:
     - _EnableBlendModeAccurateLighting: 1
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableTransparentFog: 1
@@ -5565,6 +5762,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -5572,6 +5772,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVSec: 0
@@ -5760,11 +5963,14 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -5795,6 +6001,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.02
@@ -5823,6 +6030,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -5830,6 +6040,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 2
     - _ZTestMode: 8
@@ -6155,11 +6368,14 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -6190,6 +6406,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.02
@@ -6218,6 +6435,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -6225,6 +6445,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -6339,11 +6562,14 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -6374,6 +6600,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.02
@@ -6402,6 +6629,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -6409,6 +6639,9 @@ Material:
     - _TexWorldScale: 3
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -6559,12 +6792,15 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -6599,6 +6835,7 @@ Material:
     - _EnableBlendModeAccurateLighting: 1
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableTransparentFog: 1
@@ -6638,6 +6875,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -6645,6 +6885,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVSec: 0
@@ -6797,12 +7040,15 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.75
     - _AlphaCutoffEnable: 1
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -6837,6 +7083,7 @@ Material:
     - _EnableBlendModeAccurateLighting: 1
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableTransparentFog: 1
@@ -6876,6 +7123,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -6883,6 +7133,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVSec: 0
@@ -7552,12 +7805,15 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -7592,6 +7848,7 @@ Material:
     - _EnableBlendModeAccurateLighting: 1
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableTransparentFog: 1
@@ -7631,6 +7888,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -7638,6 +7898,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVSec: 0
@@ -7948,12 +8211,15 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.25
     - _AlphaCutoffEnable: 1
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -7988,6 +8254,7 @@ Material:
     - _EnableBlendModeAccurateLighting: 1
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableTransparentFog: 1
@@ -8027,6 +8294,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -8034,6 +8304,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVSec: 0
@@ -8343,12 +8616,15 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -8383,6 +8659,7 @@ Material:
     - _EnableBlendModeAccurateLighting: 1
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableTransparentFog: 1
@@ -8422,6 +8699,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -8429,6 +8709,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVSec: 0
@@ -8474,7 +8757,7 @@ Transform:
   - {fileID: 1609537065}
   - {fileID: 719197697}
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!21 &1140205704
 Material:
@@ -8574,11 +8857,14 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 0
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -8610,6 +8896,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
@@ -8638,6 +8925,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -8645,6 +8935,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -9025,12 +9318,15 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -9065,6 +9361,7 @@ Material:
     - _EnableBlendModeAccurateLighting: 1
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableTransparentFog: 1
@@ -9104,6 +9401,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -9111,6 +9411,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVSec: 0
@@ -9262,12 +9565,15 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -9302,6 +9608,7 @@ Material:
     - _EnableBlendModeAccurateLighting: 1
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableTransparentFog: 1
@@ -9341,6 +9648,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -9348,6 +9658,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVSec: 0
@@ -9521,7 +9834,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 11
+  m_RootOrder: 12
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1254103054
 GameObject:
@@ -9801,12 +10114,15 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -9841,6 +10157,7 @@ Material:
     - _EnableBlendModeAccurateLighting: 1
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableTransparentFog: 1
@@ -9880,6 +10197,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -9887,6 +10207,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVSec: 0
@@ -10124,12 +10447,15 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -10164,6 +10490,7 @@ Material:
     - _EnableBlendModeAccurateLighting: 1
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableTransparentFog: 1
@@ -10203,6 +10530,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -10210,6 +10540,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVSec: 0
@@ -10750,12 +11083,15 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 1
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -10790,6 +11126,7 @@ Material:
     - _EnableBlendModeAccurateLighting: 1
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableTransparentFog: 1
@@ -10829,6 +11166,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -10836,6 +11176,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVSec: 0
@@ -11023,11 +11366,14 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -11058,6 +11404,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.02
@@ -11086,6 +11433,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -11093,6 +11443,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 5
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -11559,12 +11912,15 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -11599,6 +11955,7 @@ Material:
     - _EnableBlendModeAccurateLighting: 1
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableTransparentFog: 1
@@ -11638,6 +11995,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -11645,6 +12005,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVSec: 0
@@ -11699,7 +12062,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 6b00bf6acfbd6e94b8c26f6e1e69a09e, type: 3}
       propertyPath: m_RootOrder
-      value: 10
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 6b00bf6acfbd6e94b8c26f6e1e69a09e, type: 3}
       propertyPath: m_LocalScale.x
@@ -12028,12 +12391,15 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -12068,6 +12434,7 @@ Material:
     - _EnableBlendModeAccurateLighting: 1
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableTransparentFog: 1
@@ -12107,6 +12474,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -12114,6 +12484,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVSec: 0
@@ -12459,11 +12832,14 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 0
@@ -12494,6 +12870,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.02
@@ -12522,6 +12899,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -12529,6 +12909,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -12728,7 +13111,7 @@ Transform:
   - {fileID: 1810908486}
   - {fileID: 1876306490}
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!21 &1647101424
 Material:
@@ -12828,11 +13211,14 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 0
@@ -12863,6 +13249,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.02
@@ -12891,6 +13278,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -12898,6 +13288,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -13378,12 +13771,15 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -13418,6 +13814,7 @@ Material:
     - _EnableBlendModeAccurateLighting: 1
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableTransparentFog: 1
@@ -13457,6 +13854,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -13464,6 +13864,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVSec: 0
@@ -13579,11 +13982,14 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -13614,6 +14020,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.02
@@ -13642,6 +14049,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -13649,6 +14059,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 5
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -14101,12 +14514,15 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -14141,6 +14557,7 @@ Material:
     - _EnableBlendModeAccurateLighting: 1
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableTransparentFog: 1
@@ -14180,6 +14597,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -14187,6 +14607,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVSec: 0
@@ -14533,11 +14956,14 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -14568,6 +14994,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.02
@@ -14596,6 +15023,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -14603,6 +15033,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 3
     - _ZTestMode: 8
@@ -14797,7 +15230,7 @@ Transform:
   - {fileID: 1410468069}
   - {fileID: 101204077}
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1876306489
 GameObject:
@@ -15077,12 +15510,15 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -15117,6 +15553,7 @@ Material:
     - _EnableBlendModeAccurateLighting: 1
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableTransparentFog: 1
@@ -15156,6 +15593,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -15163,6 +15603,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVSec: 0
@@ -15510,11 +15953,14 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -15545,6 +15991,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.02
@@ -15573,6 +16020,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -15580,6 +16030,9 @@ Material:
     - _TexWorldScale: 3
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 5
     - _UVDetail: 0
     - _ZTestMode: 8
@@ -15730,12 +16183,15 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -15770,6 +16226,7 @@ Material:
     - _EnableBlendModeAccurateLighting: 1
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableTransparentFog: 1
@@ -15809,6 +16266,9 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -15816,6 +16276,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVSec: 0
@@ -15913,7 +16376,7 @@ Transform:
   - {fileID: 1626072129}
   - {fileID: 2130829022}
   m_Father: {fileID: 0}
-  m_RootOrder: 9
+  m_RootOrder: 10
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2023182497
 GameObject:
@@ -16079,7 +16542,7 @@ Transform:
   - {fileID: 981564441}
   - {fileID: 1493549089}
   m_Father: {fileID: 0}
-  m_RootOrder: 8
+  m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2053918369
 GameObject:
@@ -16265,11 +16728,14 @@ Material:
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
+    - _AlphaCutoffPostpass: 0.5
+    - _AlphaCutoffPrepass: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
     - _CullMode: 2
+    - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
@@ -16301,6 +16767,7 @@ Material:
     - _EmissiveIntensity: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.01
@@ -16329,6 +16796,9 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefMV: 128
+    - _StencilWriteMask: 7
+    - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
@@ -16336,6 +16806,9 @@ Material:
     - _TexWorldScale: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 8

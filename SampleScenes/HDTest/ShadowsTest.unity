@@ -13,7 +13,7 @@ OcclusionCullingSettings:
 --- !u!104 &2
 RenderSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 8
+  serializedVersion: 9
   m_Fog: 0
   m_FogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   m_FogMode: 3
@@ -38,7 +38,8 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.12544414, g: 0.13212782, b: 0.11914396, a: 1}
+  m_IndirectSpecularColor: {r: 0.1404238, g: 0.1705669, b: 0.23180237, a: 1}
+  m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -182,6 +183,7 @@ GameObject:
   - component: {fileID: 8862570}
   - component: {fileID: 8862569}
   - component: {fileID: 8862571}
+  - component: {fileID: 8862572}
   m_Layer: 0
   m_Name: Scene Settings
   m_TagString: Untagged
@@ -197,11 +199,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 8862568}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0e34c98127e05d340ba44a1d4a734454, type: 3}
+  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_CommonSettings: {fileID: 11400000, guid: 075f395cb6ba2534196f2ce83c32e633, type: 2}
-  m_SkySettings: {fileID: 11400000, guid: 622aa06566c087b41ac0edc80769f45f, type: 2}
+  isGlobal: 1
+  priority: 0
+  blendDistance: 0
+  weight: 1
+  sharedProfile: {fileID: 11400000, guid: 02252f0bdbac3ec469232df7d65da1a9, type: 2}
 --- !u!4 &8862570
 Transform:
   m_ObjectHideFlags: 0
@@ -235,6 +240,19 @@ MonoBehaviour:
   GustWorldSize: 600
   GustSpeed: 50
   GustScale: 1
+--- !u!114 &8862572
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 8862568}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 441482e8936e35048a1dffac814e3ef8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Profile: {fileID: 11400000, guid: 02252f0bdbac3ec469232df7d65da1a9, type: 2}
+  m_BakingSkyUniqueID: 2
 --- !u!1001 &21160709
 Prefab:
   m_ObjectHideFlags: 0
@@ -2225,6 +2243,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 1024
   shadowDimmer: 1
   shadowFadeDistance: 10000
@@ -2274,8 +2293,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 0
   spotLightShape: 0
-  shapeLength: 0
   shapeWidth: 0
+  shapeHeight: 0.5
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
@@ -4397,6 +4416,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 1024
   shadowDimmer: 1
   shadowFadeDistance: 10000
@@ -4438,8 +4458,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 0
   spotLightShape: 0
-  shapeLength: 0
   shapeWidth: 0
+  shapeHeight: 0.5
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
@@ -6168,6 +6188,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
@@ -6209,8 +6230,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 0
   spotLightShape: 0
-  shapeLength: 0
   shapeWidth: 0
+  shapeHeight: 0.5
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
@@ -7939,6 +7960,7 @@ GameObject:
   - component: {fileID: 1769631029}
   - component: {fileID: 1769631033}
   - component: {fileID: 1769631034}
+  - component: {fileID: 1769631036}
   - component: {fileID: 1769631035}
   m_Layer: 0
   m_Name: FreeCamera
@@ -7990,7 +8012,7 @@ Camera:
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
-  m_HDR: 1
+  m_HDR: 0
   m_AllowMSAA: 1
   m_AllowDynamicResolution: 0
   m_ForceIntoRT: 0
@@ -8059,9 +8081,61 @@ MonoBehaviour:
   m_GameObject: {fileID: 1769631028}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2dfdab1050228974ba8fbbd56e87da3e, type: 3}
+  m_Script: {fileID: 11500000, guid: 06c0317e0632e6c47bb855ee99f95544, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  renderPipelineAsset: {fileID: 11400000, guid: 1fa8c4c8604deee4e99ff30888538ca5,
+    type: 2}
+--- !u!114 &1769631036
+MonoBehaviour:
+  m_ObjectHideFlags: 2
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1769631028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23c1ce4fb46143f46bc5cb5224c934f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Version: 1
+  renderingPath: 0
+  volumeLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_FrameSettings:
+    enableShadow: 1
+    enableSSR: 1
+    enableSSAO: 1
+    enableSubsurfaceScattering: 1
+    enableTransmission: 1
+    diffuseGlobalDimmer: 1
+    specularGlobalDimmer: 1
+    enableForwardRenderingOnly: 0
+    enableDepthPrepassWithDeferredRendering: 0
+    enableAlphaTestOnlyInDeferredPrepass: 0
+    enableTransparentPrepass: 1
+    enableMotionVectors: 1
+    enableObjectMotionVectors: 1
+    enableDBuffer: 1
+    enableAtmosphericScattering: 1
+    enableRoughRefraction: 1
+    enableTransparentPostpass: 1
+    enableDistortion: 1
+    enablePostprocess: 1
+    enableStereo: 1
+    enableAsyncCompute: 0
+    enableOpaqueObjects: 1
+    enableTransparentObjects: 1
+    enableMSAA: 0
+    enableShadowMask: 0
+    lightLoopSettings:
+      enableTileAndCluster: 1
+      enableComputeLightEvaluation: 1
+      enableComputeLightVariants: 1
+      enableComputeMaterialVariants: 1
+      enableFptlForForwardOpaque: 1
+      enableBigTilePrepass: 1
+      isFptlEnabled: 1
 --- !u!1001 &1773705413
 Prefab:
   m_ObjectHideFlags: 0
@@ -9432,6 +9506,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
@@ -9473,8 +9548,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 0
   spotLightShape: 0
-  shapeLength: 0
   shapeWidth: 0
+  shapeHeight: 0.5
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
