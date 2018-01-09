@@ -148,6 +148,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float unused7;
     };
 
+    [GenerateHLSL]
+    public struct EnvProjData
+    {
+        public Vector3 positionWS;
+        public EnvShapeType envShapeType;
+
+        public Vector3 forward;
+        public float minProjectionDistance;
+
+        public Vector3 up;
+        public int unused00;
+
+        public Vector3 right;
+        // User can chose if they use This is use in case we want to force infinite projection distance (i.e no projection);
+        public int unused01;
+
+        // Box: extents = box extents
+        // Sphere: extents.x = sphere radius
+        public Vector3 extents;
+        public int unused02;
+    }
+
     // Usage of StencilBits.Lighting on 2 bits.
     // We support both deferred and forward renderer.  Here is the current usage of this 2 bits:
     // 0. Everything except case below. This include any forward opaque object. No lighting in deferred lighting path.

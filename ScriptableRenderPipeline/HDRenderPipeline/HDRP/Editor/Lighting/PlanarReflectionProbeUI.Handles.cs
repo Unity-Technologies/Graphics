@@ -1,5 +1,5 @@
 ﻿using UnityEditorInternal;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -21,7 +21,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     InfluenceVolumeUI.DrawHandles_EditInfluenceNormal(s.influenceVolume, d.influenceVolume, o, mat, d);
                     break;
                 case EditCenter:
-                    InfluenceVolumeUI.DrawHandles_EditCenter(s.influenceVolume, d.influenceVolume, o, mat, d);
+                    InfluenceVolumeUI.DrawHandles_EditCenter(s.influenceVolume, d.influenceVolume, o, d.transform, d);
                     break;
             }
         }

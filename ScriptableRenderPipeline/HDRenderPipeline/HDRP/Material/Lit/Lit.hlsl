@@ -1506,7 +1506,7 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 // _preIntegratedFGD and _CubemapLD are unique for each BRDF
 IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
                                     float3 V, PositionInputs posInput,
-                                    PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData, int envShapeType, int GPUImageBasedLightingType,
+                                    PreLightData preLightData, EnvLightData lightData, EnvProjData projData, BSDFData bsdfData, int envShapeType, int GPUImageBasedLightingType,
                                     inout float hierarchyWeight)
 {
     IndirectLighting lighting;
@@ -1566,24 +1566,28 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float3 positionLS = positionWS - lightData.positionWS;
     positionLS = mul(positionLS, worldToLocal).xyz - lightData.offsetLS; // We want to calculate the intersection from the center of the bounding box.
 
+    float3x3 worldToLS = EnvLightData_GetWorldToLocal(lightData);
+    float3 positionLS = EnvLightData_WorldToLocalPosition(lightData, worldToLS, positionWS);
+
+    // Projection and influence share the shape
+    float3x3 worldToPS = worldToLS; 
+    float3 positionPS = positionLS;
+
     // Note: using envShapeType instead of lightData.envShapeType allow to make compiler optimization in case the type is know (like for sky)
     if (envShapeType == ENVSHAPETYPE_SPHERE)
     {
         // 1. First process the projection
-        float3 dirLS = mul(R, worldToLocal);
-        float sphereOuterDistance = lightData.influenceExtents.x;
+        float3 dirPS = mul(R, worldToPS);
 
-        float projectionDistance = SphereRayIntersectSimple(positionLS, dirLS, sphereOuterDistance);
-        projectionDistance = max(projectionDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
+        float projectionDistance = EnvProjData_Sphere_Project(projData, dirPS, positionPS);
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.positionWS
         R = (positionWS + projectionDistance * R) - lightData.positionWS;
 
         // Test again for clear code
         if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT && HasMaterialFeatureFlag(MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
         {
-            dirLS = mul(coatR, worldToLocal);
-            projectionDistance = SphereRayIntersectSimple(positionLS, dirLS, sphereOuterDistance);
-            projectionDistance = max(projectionDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
+            dirPS = mul(coatR, worldToPS);
+            projectionDistance = EnvProjData_Sphere_Project(projData, dirPS, positionPS);
             coatR = (positionWS + projectionDistance * coatR) - lightData.positionWS;
         }
 

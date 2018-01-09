@@ -3892,6 +3892,61 @@ Light:
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+--- !u!1 &1561776757
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 1561776758}
+  - component: {fileID: 1561776759}
+  m_Layer: 0
+  m_Name: Planar Reflection Probe
+  m_TagString: Untagged
+  m_Icon: {fileID: -5487077368411116049, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1561776758
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1561776757}
+  m_LocalRotation: {x: -0, y: -0.7071065, z: -0, w: 0.7071072}
+  m_LocalPosition: {x: -6.76, y: 2.751, z: 3.33}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1596124444}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: -90.00001, z: 0}
+--- !u!114 &1561776759
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1561776757}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4ee7c3a3b205a14a94094d01ff91d6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_ProjectionVolumeReference: {fileID: 1654939277}
+  m_InfluenceVolume:
+    m_ShapeType: 0
+    m_BoxBaseSize: {x: 1.7052255, y: 0.9908645, z: 0.95528436}
+    m_BoxBaseOffset: {x: 0.02969706, y: -0.0045677423, z: -0.022357821}
+    m_BoxInfluencePositiveFade: {x: 0, y: 0, z: 0.33511347}
+    m_BoxInfluenceNegativeFade: {x: 0, y: 0, z: 0.067846164}
+    m_BoxInfluenceNormalPositiveFade: {x: 0, y: 0.28144193, z: 0}
+    m_BoxInfluenceNormalNegativeFade: {x: 0, y: 0.07764101, z: 0}
+    m_BoxPositiveFaceFade: {x: 0, y: 0, z: 0}
+    m_BoxNegativeFaceFade: {x: 0, y: 0, z: 0}
+    m_SphereBaseRadius: 0.9066355
+    m_SphereBaseOffset: {x: 0, y: -0.09336448, z: 0}
+    m_SphereInfluenceFade: 0
+    m_SphereInfluenceNormalFade: 0
 --- !u!1 &1562837666
 GameObject:
   m_ObjectHideFlags: 0
@@ -4093,6 +4148,7 @@ Transform:
   m_Children:
   - {fileID: 547467866}
   - {fileID: 1654939276}
+  - {fileID: 1561776758}
   m_Father: {fileID: 1306845494}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

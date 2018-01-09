@@ -123,8 +123,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Handles.color = c;
         }
 
-        public static void DrawHandles_EditCenter(InfluenceVolumeUI s, InfluenceVolume d, Editor o, Matrix4x4 matrix, Object sourceAsset)
+        public static void DrawHandles_EditCenter(InfluenceVolumeUI s, InfluenceVolume d, Editor o, Transform transform, Object sourceAsset)
         {
+            
         }
 
         static void DrawBoxHandle(

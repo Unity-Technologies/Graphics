@@ -35,6 +35,7 @@ StructuredBuffer<float> g_logBaseBuffer;            // don't support Buffer yet 
 StructuredBuffer<DirectionalLightData> _DirectionalLightDatas;
 StructuredBuffer<LightData>            _LightDatas;
 StructuredBuffer<EnvLightData>         _EnvLightDatas;
+StructuredBuffer<EnvProjData>          _EnvProjDatas;
 StructuredBuffer<ShadowData>           _ShadowDatas;
 
 // Used by directional and spot lights
