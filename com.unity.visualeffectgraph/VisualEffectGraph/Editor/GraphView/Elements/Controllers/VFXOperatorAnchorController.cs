@@ -14,10 +14,16 @@ namespace UnityEditor.VFX.UI
 
         public static System.Type GetDisplayAnchorType(VFXSlot slot)
         {
-            System.Type newAnchorType = slot.refSlot.property.type;
+            System.Type newAnchorType = null;
 
-            if (newAnchorType == typeof(FloatN))
-                newAnchorType = ((FloatN)(slot.refSlot.value)).GetCurrentType();
+            if (slot.property.type == typeof(FloatN))
+            {
+                newAnchorType = VFXTypeUtility.GetFloatTypeFromComponentCount(VFXTypeUtility.GetComponentCount(slot.refSlot));
+                if (newAnchorType == null)
+                    newAnchorType = typeof(FloatN);
+            }
+            else
+                newAnchorType = slot.refSlot.property.type;
 
             return newAnchorType;
         }

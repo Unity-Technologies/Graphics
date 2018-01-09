@@ -157,16 +157,8 @@ namespace UnityEditor.VFX
             get
             {
                 const string outputName = "o";
-                Type slotType = null;
-                switch (GetFloatMaxNbComponents(inputSlots))
-                {
-                    case 1: slotType = typeof(float); break;
-                    case 2: slotType = typeof(Vector2); break;
-                    case 3: slotType = typeof(Vector3); break;
-                    case 4: slotType = typeof(Vector4); break;
-                    default: break;
-                }
 
+                Type slotType = VFXTypeUtility.GetFloatTypeFromComponentCount(VFXTypeUtility.GetMaxComponentCount(inputSlots));
                 if (slotType != null)
                     yield return new VFXPropertyWithValue(new VFXProperty(slotType, outputName));
             }

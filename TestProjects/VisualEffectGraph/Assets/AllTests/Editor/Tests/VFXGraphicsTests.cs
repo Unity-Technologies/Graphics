@@ -176,7 +176,7 @@ namespace UnityEditor.VFX.Test
             {
                 get
                 {
-                    foreach (var file in Directory.GetFiles("Assets/VFXEditor/Editor/Tests/Scene/", "*.unity"))
+                    foreach (var file in Directory.GetFiles("Assets/VFXTests/", "*.unity"))
                     {
                         yield return new SceneTest
                         {
