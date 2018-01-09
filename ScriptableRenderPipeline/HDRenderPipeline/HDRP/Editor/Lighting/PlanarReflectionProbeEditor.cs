@@ -1,14 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using UnityEditor.Experimental.Rendering.HDPipeline;
-using UnityEditorInternal;
-using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEngine.Rendering;
-using UnityEngine.SceneManagement;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -16,6 +8,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     [CanEditMultipleObjects]
     class PlanarReflectionProbeEditor : Editor
     {
+        static Dictionary<PlanarReflectionProbe, PlanarReflectionProbeUI> s_StateMap = new Dictionary<PlanarReflectionProbe, PlanarReflectionProbeUI>();
+
+        public static bool TryGetUIStateFor(PlanarReflectionProbe p, out PlanarReflectionProbeUI r)
+        {
+            return s_StateMap.TryGetValue(p, out r);
+        }
+
         SerializedPlanarReflectionProbe m_SerializedAsset;
         PlanarReflectionProbeUI m_UIState = new PlanarReflectionProbeUI();
         PlanarReflectionProbeUI[] m_UIHandleState;
@@ -33,7 +32,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_TypedTargets[i] = (PlanarReflectionProbe)targets[i];
                 m_UIHandleState[i] = new PlanarReflectionProbeUI();
                 m_UIHandleState[i].Reset(m_SerializedAsset, Repaint);
+
+                s_StateMap[m_TypedTargets[i]] = m_UIHandleState[i];
             }
+        }
+
+        void OnDisable()
+        {
+            for (var i = 0; i < m_TypedTargets.Length; i++)
+                s_StateMap.Remove(m_TypedTargets[i]);
         }
 
         public override void OnInspectorGUI()
@@ -48,6 +55,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PlanarReflectionProbeUI.Inspector.Draw(s, d, o);
 
             d.Apply();
+        }
+
+        void OnSceneGUI()
+        {
+            for (var i = 0; i < m_TypedTargets.Length; i++)
+                PlanarReflectionProbeUI.DrawHandles(m_UIHandleState[i], m_TypedTargets[i], this);
         }
     }
 }

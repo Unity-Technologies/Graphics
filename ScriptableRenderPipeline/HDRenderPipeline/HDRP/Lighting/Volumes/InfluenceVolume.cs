@@ -21,6 +21,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Vector3 m_BoxInfluenceNormalPositiveFade;
         [SerializeField]
         Vector3 m_BoxInfluenceNormalNegativeFade;
+        [SerializeField]
+        Vector3 m_BoxPositiveFaceFade;
+        [SerializeField]
+        Vector3 m_BoxNegativeFaceFade;
 
         // Sphere
         [SerializeField]
@@ -28,22 +32,34 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         Vector3 m_SphereBaseOffset;
         [SerializeField]
-        float m_SphereInfluenceRadius = 1;
+        float m_SphereInfluenceFade;
         [SerializeField]
-        float m_SphereInfluenceNormalRadius = 1;
+        float m_SphereInfluenceNormalFade;
 
         public ShapeType shapeType { get { return m_ShapeType; } }
 
-        public Vector3 boxBaseSize { get { return m_BoxBaseSize; } }
-        public Vector3 boxBaseOffset { get { return m_BoxBaseOffset; } }
-        public Vector3 boxInfluencePositiveFade { get { return m_BoxInfluencePositiveFade; } }
-        public Vector3 boxInfluenceNegativeFade { get { return m_BoxInfluenceNegativeFade; } }
-        public Vector3 boxInfluenceNormalPositiveFade { get { return m_BoxInfluenceNormalPositiveFade; } }
-        public Vector3 boxInfluenceNormalNegativeFade { get { return m_BoxInfluenceNormalNegativeFade; } }
+        public Vector3 boxBaseSize { get { return m_BoxBaseSize; } set { m_BoxBaseSize = value; } }
+        public Vector3 boxBaseOffset { get { return m_BoxBaseOffset; } set { m_BoxBaseOffset = value; } }
+        public Vector3 boxInfluencePositiveFade { get { return m_BoxInfluencePositiveFade; } set { m_BoxInfluencePositiveFade = value; } }
+        public Vector3 boxInfluenceNegativeFade { get { return m_BoxInfluenceNegativeFade; } set { m_BoxInfluenceNegativeFade = value; } }
+        public Vector3 boxInfluenceNormalPositiveFade { get { return m_BoxInfluenceNormalPositiveFade; } set { m_BoxInfluenceNormalPositiveFade = value; } }
+        public Vector3 boxInfluenceNormalNegativeFade { get { return m_BoxInfluenceNormalNegativeFade; } set { m_BoxInfluenceNormalNegativeFade = value; } }
+        public Vector3 boxPositiveFaceFade { get { return m_BoxPositiveFaceFade; } set { m_BoxPositiveFaceFade = value; } }
+        public Vector3 boxNegativeFaceFade { get { return m_BoxNegativeFaceFade; } set { m_BoxNegativeFaceFade = value; } }
 
-        public float sphereBaseRadius { get { return m_SphereBaseRadius; } }
-        public Vector3 sphereBaseOffset { get { return m_SphereBaseOffset; } }
-        public float sphereInfluenceRadius { get { return m_SphereInfluenceRadius; } }
-        public float sphereInfluenceNormalRadius { get { return m_SphereInfluenceNormalRadius; } }
+        public Vector3 boxInfluenceOffset { get { return (boxInfluenceNegativeFade - boxInfluencePositiveFade) * 0.5f; } }
+        public Vector3 boxInfluenceSizeOffset { get { return -(boxInfluencePositiveFade + boxInfluenceNegativeFade); } }
+        public Vector3 boxInfluenceNormalOffset { get { return (boxInfluenceNormalNegativeFade - boxInfluenceNormalPositiveFade) * 0.5f; } }
+        public Vector3 boxInfluenceNormalSizeOffset { get { return -(boxInfluenceNormalPositiveFade + boxInfluenceNormalNegativeFade); } }
+
+
+
+        public float sphereBaseRadius { get { return m_SphereBaseRadius; } set { m_SphereBaseRadius = value; } }
+        public Vector3 sphereBaseOffset { get { return m_SphereBaseOffset; } set { m_SphereBaseOffset = value; } }
+        public float sphereInfluenceFade { get { return m_SphereInfluenceFade; } set { m_SphereInfluenceFade = value; } }
+        public float sphereInfluenceNormalFade { get { return m_SphereInfluenceNormalFade; } set { m_SphereInfluenceNormalFade = value; } }
+
+        public float sphereInfluenceRadiusOffset { get { return -sphereInfluenceFade; } }
+        public float sphereInfluenceNormalRadiusOffset { get { return -sphereInfluenceNormalFade; } }
     }
 }
