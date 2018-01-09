@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_PreviewRenderHandle = previewManager.masterRenderData;
             m_PreviewRenderHandle.onPreviewChanged += OnPreviewChanged;
 
-            this.AddManipulator(new Draggable(OnMouseDrag, true));
+            this.AddManipulator(new WindowDraggable());
 
             var topContainer = new VisualElement() { name = "top" };
             {
