@@ -45,6 +45,8 @@ MonoBehaviour:
     type: 3}
   deferredDirectionalShadowComputeShader: {fileID: 7200000, guid: fbde6fae193b2a94e9fd97c163c204f4,
     type: 3}
+  volumetricLightingCS: {fileID: 7200000, guid: 799166e2ee6a4b041bba9e74f6942097,
+    type: 3}
   subsurfaceScatteringCS: {fileID: 7200000, guid: b06a7993621def248addd55d0fe931b1,
     type: 3}
   subsurfaceScattering: {fileID: 4800000, guid: 867b36db983aa0548889a66f8d685ff6,
