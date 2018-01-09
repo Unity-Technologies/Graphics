@@ -529,7 +529,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             int viewId = hdCamera.camera.GetInstanceID(); // Warning: different views can use the same camera
 
-            if (resolutionChanged && m_VolumetricLightingPreset != VolumetricLightingPreset.Off)
+            // Warning: (resolutionChanged == false) is you open a new Editor tab of the same size!
+            if (m_VolumetricLightingPreset != VolumetricLightingPreset.Off)
                 ResizeVBuffer(viewId, texWidth, texHeight);
 
             // update recorded window resolution

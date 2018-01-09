@@ -1936,7 +1936,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         cmd.SetGlobalBuffer(HDShaderIDs.g_logBaseBuffer, s_PerTileLogBaseTweak);
                     }
+
+                    // Set up clustered lighting for volumetrics.
+                    cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, s_PerVoxelLightLists);
                 }
+
             }
         }
 
