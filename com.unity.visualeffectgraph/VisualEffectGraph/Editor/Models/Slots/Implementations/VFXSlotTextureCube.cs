@@ -6,9 +6,9 @@ namespace UnityEditor.VFX
     [VFXInfo(type = typeof(Cubemap))]
     class VFXSlotTextureCube : VFXSlot
     {
-        public override VFXValue DefaultExpression()
+        public override VFXValue DefaultExpression(VFXValue.Mode mode)
         {
-            return new VFXValue<Cubemap>(null, VFXValue.Mode.FoldableVariable);
+            return new VFXValue<Cubemap>(null, mode);
         }
     }
 }

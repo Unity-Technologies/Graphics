@@ -39,9 +39,9 @@ namespace UnityEditor.VFX
             throw new Exception("Unexpected type of expression " + expression);
         }
 
-        sealed public override VFXValue DefaultExpression()
+        sealed public override VFXValue DefaultExpression(VFXValue.Mode mode)
         {
-            return new VFXValue<float>(0.0f, VFXValue.Mode.FoldableVariable);
+            return new VFXValue<float>(0.0f, mode);
         }
     }
 }

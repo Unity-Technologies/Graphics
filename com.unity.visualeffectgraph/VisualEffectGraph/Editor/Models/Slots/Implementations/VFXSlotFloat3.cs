@@ -17,9 +17,9 @@ namespace UnityEditor.VFX
                 ||  type == typeof(Color);
         }
 
-        sealed public override VFXValue DefaultExpression()
+        sealed public override VFXValue DefaultExpression(VFXValue.Mode mode)
         {
-            return new VFXValue<Vector3>(Vector3.zero, VFXValue.Mode.FoldableVariable);
+            return new VFXValue<Vector3>(Vector3.zero, mode);
         }
 
         sealed protected override VFXExpression ConvertExpression(VFXExpression expression)

@@ -298,7 +298,7 @@ namespace UnityEditor.VFX
         {
             if (GetNbChildren() == 0)
             {
-                m_DefaultExpression = DefaultExpression();
+                m_DefaultExpression = DefaultExpression(VFXValue.Mode.FoldableVariable);
             }
             else
             {
@@ -604,7 +604,7 @@ namespace UnityEditor.VFX
                     {
                         s.m_ExpressionTreeUpToDate = false;
                         if (s.direction == Direction.kOutput)
-                            foreach (var linkedSlot in LinkedSlots.ToArray()) // To array as this can be reentrant...
+                            foreach (var linkedSlot in s.LinkedSlots.ToArray()) // To array as this can be reentrant...
                                 linkedSlot.InvalidateExpressionTree();
                     }
                 });
@@ -667,7 +667,7 @@ namespace UnityEditor.VFX
         protected virtual VFXExpression[] ExpressionToChildren(VFXExpression exp)   { return null; }
         protected virtual VFXExpression ExpressionFromChildren(VFXExpression[] exp) { return null; }
 
-        public virtual VFXValue DefaultExpression()
+        public virtual VFXValue DefaultExpression(VFXValue.Mode mode)
         {
             return null;
         }

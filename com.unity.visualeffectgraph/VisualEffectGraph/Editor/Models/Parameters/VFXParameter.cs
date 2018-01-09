@@ -70,9 +70,13 @@ namespace UnityEditor.VFX
 
         protected sealed override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
+            base.OnInvalidate(model, cause);
+
             if (cause == InvalidationCause.kSettingChanged)
             {
-                Invalidate(InvalidationCause.kExpressionGraphChanged);
+                m_ValueExpr = m_ExprSlots.Select(t => t.DefaultExpression(valueMode)).ToArray();
+                outputSlots[0].InvalidateExpressionTree();
+                Invalidate(InvalidationCause.kExpressionGraphChanged); // As we need to update exposed list event if not connected to a compilable context
             }
             if (cause == InvalidationCause.kParamChanged)
             {
@@ -103,7 +107,7 @@ namespace UnityEditor.VFX
                 throw new InvalidOperationException("Cannot init VFXParameter");
             }
             m_ExprSlots = outputSlots[0].GetExpressionSlots().ToArray();
-            m_ValueExpr = m_ExprSlots.Select(t => t.DefaultExpression()).ToArray();
+            m_ValueExpr = m_ExprSlots.Select(t => t.DefaultExpression(valueMode)).ToArray();
         }
 
         public override void OnEnable()
@@ -115,7 +119,7 @@ namespace UnityEditor.VFX
             {
                 Debug.Log("VFXParameter.OnEnable with outputslot");
                 m_ExprSlots = outputSlots[0].GetExpressionSlots().ToArray();
-                m_ValueExpr = m_ExprSlots.Select(t => t.DefaultExpression()).ToArray();
+                m_ValueExpr = m_ExprSlots.Select(t => t.DefaultExpression(valueMode)).ToArray();
             }
         }
 
@@ -128,6 +132,14 @@ namespace UnityEditor.VFX
                     m_ValueExpr[i].SetContent(m_ExprSlots[i].value);
                     m_ExprSlots[i].SetExpression(m_ValueExpr[i]);
                 }
+            }
+        }
+
+        private VFXValue.Mode valueMode
+        {
+            get
+            {
+                return exposed ? VFXValue.Mode.Variable : VFXValue.Mode.FoldableVariable;
             }
         }
 
