@@ -66,7 +66,7 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBufferLighting, trilinearSampler), bool cla
     }
 }
 
-// Returns interpolated {volumetric radiance, opacity}. The sampler clamps to edge.
+// Returns interpolated {volumetric radiance, transmittance}. The sampler clamps to edge.
 float4 SampleInScatteredRadianceAndTransmittance(TEXTURE3D_ARGS(VBufferLighting, trilinearSampler),
                                                  float2 positionNDC, float linearDepth,
                                                  float4 VBufferResolution,
@@ -107,7 +107,7 @@ float4 SampleInScatteredRadianceAndTransmittance(TEXTURE3D_ARGS(VBufferLighting,
 #endif
 
     // TODO: add some animated noise to the reconstructed radiance.
-    return float4(L.rgb, 1 - Transmittance(L.a));
+    return float4(L.rgb, Transmittance(L.a));
 }
 
 #endif // UNITY_VBUFFER_INCLUDED
