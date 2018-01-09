@@ -89,6 +89,7 @@ namespace UnityEditor.VFX.UI
                         }
                     }
                 }
+                RefreshPorts();
             }
             if (m_Property != null)
                 m_Property.Update();
