@@ -77,23 +77,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             Add(new ResizeBorderFrame(this) { name = "resizeBorderFrame" });
         }
 
-        MasterNode masterNode
-        {
-            get { return m_PreviewRenderHandle.shaderData.node as MasterNode; }
-        }
-
-        void OnMouseDrag(Vector2 deltaMouse)
-        {
-            Vector2 previewSize = m_PreviewTextureView.contentRect.size;
-
-            m_PreviewScrollPosition -= deltaMouse * (Event.current.shift ? 3f : 1f) / Mathf.Min(previewSize.x, previewSize.y) * 140f;
-            m_PreviewScrollPosition.y = Mathf.Clamp(m_PreviewScrollPosition.y, -90f, 90f);
-            Quaternion previewRotation = Quaternion.Euler(m_PreviewScrollPosition.y, 0, 0) * Quaternion.Euler(0, m_PreviewScrollPosition.x, 0);
-            m_Graph.previewData.rotation = previewRotation;
-
-            masterNode.Dirty(ModificationScope.Node);
-        }
-
         void OnAddProperty()
         {
             var gm = new GenericMenu();
@@ -117,20 +100,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         {
             m_PreviewTextureView.image = m_PreviewRenderHandle.texture ?? Texture2D.blackTexture;
             m_PreviewTextureView.Dirty(ChangeType.Repaint);
-        }
-
-        void OnPreviewMeshChanged(ChangeEvent<Object> changeEvent)
-        {
-            Mesh changedMesh = changeEvent.newValue as Mesh;
-
-            masterNode.Dirty(ModificationScope.Node);
-
-            if (m_Graph.previewData.serializedMesh.mesh != changedMesh)
-            {
-                m_Graph.previewData.rotation = Quaternion.identity;
-            }
-
-            m_Graph.previewData.serializedMesh.mesh = changedMesh;
         }
 
         public void HandleGraphChanges()
