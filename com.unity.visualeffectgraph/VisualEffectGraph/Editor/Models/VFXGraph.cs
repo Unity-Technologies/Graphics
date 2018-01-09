@@ -45,6 +45,22 @@ namespace UnityEditor.VFX
     }
 #endif
 
+
+    public class VFXAssetPostProcessor : AssetPostprocessor
+    {
+        static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
+        {
+            foreach (var path in importedAssets)
+            {
+                VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>(path);
+                if (asset != null)
+                {
+                    asset.GetOrCreateGraph();
+                }
+            }
+        }
+    }
+
     public class VFXAssetModicationProcessor : UnityEditor.AssetModificationProcessor
     {
         static string[] OnWillSaveAssets(string[] paths)
@@ -112,34 +128,27 @@ namespace UnityEditor.VFX
             return !(model is VFXGraph); // Can hold any model except other VFXGraph
         }
 
-        public override T Clone<T>()
+        public string Backup()
         {
-            Profiler.BeginSample("VFXEditor.CloneGraph");
-            try
-            {
-                var from = children.ToArray();
-                var copy = from.Select(o => o.Clone<VFXModel>()).ToArray();
-                VFXSlot.ReproduceLinkedSlotFromHierachy(from, copy);
+            var dependencies = new HashSet<ScriptableObject>();
 
-                var associativeContext = VFXContext.BuildAssociativeContext(from, copy);
-                VFXContext.ReproduceLinkedFlowFromHiearchy(associativeContext);
-                VFXContext.ReproduceDataSettings(associativeContext);
+            dependencies.Add(this);
+            CollectDependencies(dependencies);
 
-                var clone = CreateInstance(GetType()) as VFXGraph;
-                clone.m_Children = new List<VFXModel>();
-                foreach (var model in copy)
-                {
-                    clone.AddChild(model, -1, false);
-                }
-                return clone as T;
-            }
-            finally
+            return VFXMemorySerializer.StoreObjects(dependencies.Cast<ScriptableObject>().ToArray());
+        }
+
+        public void Restore(string str)
+        {
+            var scriptableObject = VFXMemorySerializer.ExtractObjects(str, false);
+
+            foreach (var model in scriptableObject.OfType<VFXModel>())
             {
-                Profiler.EndSample();
+                model.OnUnknownChange();
             }
         }
 
-        public override void CollectDependencies(HashSet<Object> objs)
+        public override void CollectDependencies(HashSet<ScriptableObject> objs)
         {
             Profiler.BeginSample("VFXEditor.CollectDependencies");
             try
@@ -214,7 +223,7 @@ namespace UnityEditor.VFX
             if (m_GraphSanitized)
                 return;
 
-            var objs = new HashSet<Object>();
+            var objs = new HashSet<ScriptableObject>();
             CollectDependencies(objs);
             foreach (var model in objs.OfType<VFXModel>())
                 model.Sanitize(); // This can modify dependencies but newly created model are supposed safe so we dont care about retrieving new dependencies
@@ -254,6 +263,15 @@ namespace UnityEditor.VFX
             }
         }
 
+
+        public void ClearCompileData()
+        {
+            m_CompiledData = null;
+
+
+            m_ExpressionValuesDirty = true;
+        }
+
         public bool UpdateSubAssets()
         {
             bool modified = false;
@@ -273,7 +291,7 @@ namespace UnityEditor.VFX
                     var persistentObjects = new HashSet<Object>(AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(this)).Where(o => o is VFXModel || o is ComputeShader || o is Shader));
                     persistentObjects.Remove(this);
 
-                    var currentObjects = new HashSet<Object>();
+                    var currentObjects = new HashSet<ScriptableObject>();
                     CollectDependencies(currentObjects);
 
 #if USE_SHADER_AS_SUBASSET
@@ -306,13 +324,11 @@ namespace UnityEditor.VFX
 
                     // Remove sub assets that are not referenced anymore
                     foreach (var obj in persistentObjects)
-                    {
-                        if (!currentObjects.Contains(obj))
+                        if (obj is ScriptableObject && !currentObjects.Contains(obj as ScriptableObject))
                         {
                             AssetDatabase.RemoveObject(obj);
                             modified = true;
                         }
-                    }
                 }
                 catch (Exception e)
                 {

@@ -21,12 +21,15 @@ namespace UnityEditor.VFX.UI
             m_graphUndoCursor = ScriptableObject.CreateInstance<VFXGraphUndoCursor>();
 
             m_graphUndoCursor.hideFlags = HideFlags.HideAndDontSave;
-            m_undoStack = new SortedDictionary<int, VFXGraph>();
+            m_undoStack = new SortedDictionary<int, string>();
 
             m_graphUndoCursor.index = 0;
             m_lastGraphUndoCursor = 0;
-            m_undoStack.Add(0, initialState.Clone<VFXGraph>());
+            m_undoStack.Add(0, initialState.Backup());
+            m_Graph = initialState;
         }
+
+        VFXGraph m_Graph;
 
         public void IncrementGraphState()
         {
@@ -48,7 +51,7 @@ namespace UnityEditor.VFX.UI
                 m_undoStack.Remove(lastCursorInStack);
                 lastCursorInStack = m_undoStack.Last().Key;
             }
-            m_undoStack.Add(m_graphUndoCursor.index, graph.Clone<VFXGraph>());
+            m_undoStack.Add(m_graphUndoCursor.index, graph.Backup());
         }
 
         public void CleanDirtyState()
@@ -56,18 +59,18 @@ namespace UnityEditor.VFX.UI
             m_lastGraphUndoCursor = m_graphUndoCursor.index;
         }
 
-        public VFXGraph GetCopyCurrentGraphState()
+        public void RestoreCurrentGraphState()
         {
-            VFXGraph refGraph = null;
+            string refGraph = null;
             if (!m_undoStack.TryGetValue(m_graphUndoCursor.index, out refGraph))
             {
                 throw new Exception(string.Format("Unable to retrieve current state at : {0} (max {1})", m_graphUndoCursor.index, m_undoStack.Last().Key));
             }
-            return refGraph.Clone<VFXGraph>();
+            m_Graph.Restore(refGraph);
         }
 
         [NonSerialized]
-        private SortedDictionary<int, VFXGraph> m_undoStack;
+        private SortedDictionary<int, string> m_undoStack;
         [NonSerialized]
         private VFXGraphUndoCursor m_graphUndoCursor;
         [NonSerialized]
@@ -101,7 +104,10 @@ namespace UnityEditor.VFX.UI
                 return;
 
             if (m_reentrant)
+            {
+                m_reentrant = false;
                 throw new InvalidOperationException("Reentrant undo/redo, this is not supposed to happen!");
+            }
 
             if (m_graphUndoStack != null)
             {
@@ -164,11 +170,10 @@ namespace UnityEditor.VFX.UI
             {
                 try
                 {
-                    var cloneGraph = m_graphUndoStack.GetCopyCurrentGraphState();
-                    model.graph = cloneGraph;
-                    cloneGraph.UpdateSubAssets();
+                    m_graphUndoStack.RestoreCurrentGraphState();
                     m_reentrant = true;
                     ExpressionGraphDirty = true;
+                    model.GetOrCreateGraph().UpdateSubAssets();
                     ForceReload();
                     m_reentrant = false;
                     m_graphUndoStack.CleanDirtyState();
