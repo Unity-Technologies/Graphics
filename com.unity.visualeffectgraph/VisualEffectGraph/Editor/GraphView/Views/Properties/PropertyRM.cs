@@ -34,6 +34,7 @@ namespace UnityEditor.VFX.UI
         public virtual void SetMultiplier(object obj) {}
 
         public VisualElement m_Icon;
+        Clickable m_IconClickable;
 
         Texture2D[] m_IconStates;
 
@@ -91,7 +92,8 @@ namespace UnityEditor.VFX.UI
             if (VFXPropertyAttribute.IsAngle(m_Provider.attributes))
                 SetMultiplier(Mathf.PI / 180.0f);
 
-            m_Icon.style.backgroundImage = m_IconStates[m_Provider.expanded && m_Provider.expandable ? 1 : 0];
+            UpdateExpandable();
+
             SetValue(m_Provider.value);
 
             string text = ObjectNames.NicifyVariableName(m_Provider.name);
@@ -103,6 +105,34 @@ namespace UnityEditor.VFX.UI
             //m_Label.AddTooltip(tooltip);
         }
 
+        void UpdateExpandable()
+        {
+            if (m_Provider.expandable)
+            {
+                if (m_IconStates == null)
+                {
+                    m_IconStates = new Texture2D[] {
+                        Resources.Load<Texture2D>("VFX/plus"),
+                        Resources.Load<Texture2D>("VFX/minus")
+                    };
+
+                    m_Icon.AddManipulator(m_IconClickable);
+                }
+                m_Icon.style.backgroundImage = m_IconStates[m_Provider.expanded ? 1 : 0];
+            }
+            else
+            {
+                if (m_IconStates != null)
+                {
+                    m_IconStates = null;
+
+                    m_Icon.RemoveManipulator(m_IconClickable);
+
+                    m_Icon.style.backgroundImage = null;
+                }
+            }
+        }
+
         public PropertyRM(IPropertyRMProvider provider, float labelWidth)
         {
             m_Provider = provider;
@@ -111,33 +141,8 @@ namespace UnityEditor.VFX.UI
             m_Icon = new VisualElement() { name = "icon" };
             Add(m_Icon);
 
-            if (provider.expandable)
-            {
-                m_IconStates = new Texture2D[] {
-                    Resources.Load<Texture2D>("VFX/" + provider.portType.Name + "_plus"),
-                    Resources.Load<Texture2D>("VFX/" + provider.portType.Name + "_minus")
-                };
+            m_IconClickable = new Clickable(OnExpand);
 
-                if (m_IconStates[0] == null)
-                {
-                    m_IconStates[0] = Resources.Load<Texture2D>("VFX/Default_plus");
-                    m_IconStates[1] = Resources.Load<Texture2D>("VFX/Default_minus");
-                }
-                m_Icon.AddManipulator(new Clickable(OnExpand));
-            }
-            else
-            {
-                m_IconStates = new Texture2D[] {
-                    Resources.Load<Texture2D>("VFX/" + provider.portType.Name)
-                };
-
-                if (m_IconStates[0] == null)
-                {
-                    m_IconStates[0] = Resources.Load<Texture2D>("VFX/Default");
-                }
-            }
-
-            m_Icon.style.backgroundImage = m_IconStates[0];
 
             if (VFXPropertyAttribute.IsAngle(provider.attributes))
                 SetMultiplier(Mathf.PI / 180.0f);
@@ -168,6 +173,8 @@ namespace UnityEditor.VFX.UI
 
 
             RegisterCallback<MouseDownEvent>(OnCatchMouse);
+
+            UpdateExpandable();
         }
 
         void OnCatchMouse(MouseDownEvent e)
