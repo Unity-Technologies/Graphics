@@ -137,7 +137,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _SkyTexture = Shader.PropertyToID("_SkyTexture");
         public static readonly int _SkyTextureMipCount = Shader.PropertyToID("_SkyTextureMipCount");
 
-        public static readonly int _EnableSSSAndTransmission = Shader.PropertyToID("_EnableSSSAndTransmission");
+        public static readonly int _EnableSubsurfaceScattering = Shader.PropertyToID("_EnableSubsurfaceScattering");
+        public static readonly int _TransmittanceMultiplier = Shader.PropertyToID("_TransmittanceMultiplier");
         public static readonly int _TexturingModeFlags = Shader.PropertyToID("_TexturingModeFlags");
         public static readonly int _TransmissionFlags = Shader.PropertyToID("_TransmissionFlags");
         public static readonly int _ThicknessRemaps = Shader.PropertyToID("_ThicknessRemaps");
@@ -285,7 +286,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _InputCubemap = Shader.PropertyToID("_InputCubemap");
         public static readonly int _Mipmap = Shader.PropertyToID("_Mipmap");
 
-        public static readonly int _SubsurfaceProfile = Shader.PropertyToID("_SubsurfaceProfile");
+        public static readonly int _DiffusionProfile = Shader.PropertyToID("_DiffusionProfile");
         public static readonly int _MaxRadius = Shader.PropertyToID("_MaxRadius");
         public static readonly int _ShapeParam = Shader.PropertyToID("_ShapeParam");
         public static readonly int _StdDev1 = Shader.PropertyToID("_StdDev1");

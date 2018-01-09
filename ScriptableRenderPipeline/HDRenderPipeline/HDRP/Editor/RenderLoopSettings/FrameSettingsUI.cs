@@ -8,6 +8,23 @@ namespace UnityEditor.Experimental.Rendering
 
     class FrameSettingsUI : BaseUI<SerializedFrameSettings>
     {
+        static FrameSettingsUI()
+        {
+            Inspector = CED.Group(
+                SectionRenderingPasses,
+                SectionRenderingSettings,
+                SectionXRSettings,
+                SectionLightingSettings,
+                CED.Select(
+                    (s, d, o) => s.lightLoopSettings,
+                    (s, d, o) => d.lightLoopSettings,
+                    LightLoopSettingsUI.SectionLightLoopSettings
+                )
+            );
+        }
+
+        public static CED.IDrawer Inspector;
+
         public static CED.IDrawer SectionRenderingPasses = CED.FoldoutGroup(
             "Rendering Passes",
             (s, p, o) => s.isSectionExpandedRenderingPasses,
@@ -52,7 +69,7 @@ namespace UnityEditor.Experimental.Rendering
         public AnimBool isSectionExpandedUseForwardOnly { get { return m_AnimBools[5]; } }
         public AnimBool isSectionExpandedUseDepthPrepass { get { return m_AnimBools[6]; } }
 
-        public LightLoopSettingsUI lightLoopSettingsUI = new LightLoopSettingsUI();
+        public LightLoopSettingsUI lightLoopSettings = new LightLoopSettingsUI();
 
         public FrameSettingsUI()
              : base(7)
@@ -61,7 +78,7 @@ namespace UnityEditor.Experimental.Rendering
 
         public override void Reset(SerializedFrameSettings data, UnityAction repaint)
         {
-            lightLoopSettingsUI.Reset(data.lightLoopSettings, repaint);
+            lightLoopSettings.Reset(data.lightLoopSettings, repaint);
             base.Reset(data, repaint);
         }
 
@@ -70,7 +87,7 @@ namespace UnityEditor.Experimental.Rendering
             isSectionExpandedXRSupported.target = PlayerSettings.virtualRealitySupported;
             isSectionExpandedUseForwardOnly.target = !data.enableForwardRenderingOnly.boolValue;
             isSectionExpandedUseDepthPrepass.target = data.enableDepthPrepassWithDeferredRendering.boolValue;
-            lightLoopSettingsUI.Update();
+            lightLoopSettings.Update();
         }
 
         static void Drawer_SectionRenderingPasses(FrameSettingsUI s, SerializedFrameSettings p, Editor owner)
@@ -134,7 +151,8 @@ namespace UnityEditor.Experimental.Rendering
         {
             EditorGUILayout.PropertyField(p.enableSSR, _.GetContent("Enable SSR"));
             EditorGUILayout.PropertyField(p.enableSSAO, _.GetContent("Enable SSAO"));
-            EditorGUILayout.PropertyField(p.enableSSSAndTransmission, _.GetContent("Enable SSS And Transmission"));
+            EditorGUILayout.PropertyField(p.enableSubsurfaceScattering, _.GetContent("Enable Subsurface Scattering"));
+            EditorGUILayout.PropertyField(p.enableTransmission, _.GetContent("Enable Transmission"));
             EditorGUILayout.PropertyField(p.enableShadow, _.GetContent("Enable Shadow"));
             EditorGUILayout.PropertyField(p.enableShadowMask, _.GetContent("Enable Shadow Masks"));
         }

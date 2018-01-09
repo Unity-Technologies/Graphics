@@ -9,7 +9,8 @@ namespace UnityEditor.Experimental.Rendering
         public SerializedProperty enableShadow;
         public SerializedProperty enableSSR;
         public SerializedProperty enableSSAO;
-        public SerializedProperty enableSSSAndTransmission;
+        public SerializedProperty enableSubsurfaceScattering;
+        public SerializedProperty enableTransmission;
 
         public SerializedProperty diffuseGlobalDimmer;
         public SerializedProperty specularGlobalDimmer;
@@ -48,7 +49,8 @@ namespace UnityEditor.Experimental.Rendering
             enableShadow = root.Find((FrameSettings d) => d.enableShadow);
             enableSSR = root.Find((FrameSettings d) => d.enableSSR);
             enableSSAO = root.Find((FrameSettings d) => d.enableSSAO);
-            enableSSSAndTransmission = root.Find((FrameSettings d) => d.enableSSSAndTransmission);
+            enableSubsurfaceScattering = root.Find((FrameSettings d) => d.enableSubsurfaceScattering);
+            enableTransmission = root.Find((FrameSettings d) => d.enableTransmission);
             diffuseGlobalDimmer = root.Find((FrameSettings d) => d.diffuseGlobalDimmer);
             specularGlobalDimmer = root.Find((FrameSettings d) => d.specularGlobalDimmer);
             enableForwardRenderingOnly = root.Find((FrameSettings d) => d.enableForwardRenderingOnly);

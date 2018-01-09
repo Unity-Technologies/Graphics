@@ -47,7 +47,7 @@
 // Inputs & outputs
 //--------------------------------------------------------------------------------------------------
 
-float4 _FilterKernels[SSS_N_PROFILES][SSS_N_SAMPLES_NEAR_FIELD]; // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
+float4 _FilterKernels[DIFFUSION_N_PROFILES][SSS_N_SAMPLES_NEAR_FIELD]; // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
 
 TEXTURE2D(_DepthTexture);                           // Z-buffer
 TEXTURE2D(_SSSHTile);                                  // DXGI_FORMAT_R8_UINT is not supported by Unity
@@ -163,7 +163,7 @@ void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, float2 cen
     #if SSS_USE_TANGENT_PLANE
         float3 relPosVS   = vec.x * tangentX + vec.y * tangentY;
         float3 positionVS = centerPosVS + relPosVS;
-        float2 positionNDC = ComputeNormalizedDeviceCoordinates(positionCS, projMatrix);
+        float2 positionNDC = ComputeNormalizedDeviceCoordinates(positionVS, projMatrix);
 
         position = (int2)(positionNDC * _ScreenSize.xy);
         xy2      = dot(relPosVS.xy, relPosVS.xy);
@@ -327,8 +327,8 @@ void SubsurfaceScattering(uint3 reorderedGroupId : SV_GroupID,
     SSSData sssData;
     DECODE_FROM_SSSBUFFER(posInput.positionSS, sssData);
 
-    int    profileID   = sssData.subsurfaceProfile;
-    float  distScale   = sssData.subsurfaceRadius;
+    int    profileID   = sssData.diffusionProfile;
+    float  distScale   = sssData.subsurfaceMask;
     float3 shapeParam  = _ShapeParams[profileID].rgb;
     float  maxDistance = _ShapeParams[profileID].a;
 
@@ -355,7 +355,7 @@ void SubsurfaceScattering(uint3 reorderedGroupId : SV_GroupID,
     // divergence of execution across the warp.
     float maxDistInPixels = maxDistance * max(pixelsPerMm.x, pixelsPerMm.y);
 
-    float3 albedo = ApplyDiffuseTexturingMode(sssData.diffuseColor, profileID);
+    float3 albedo = ApplySubsurfaceScatteringTexturingMode(sssData.diffuseColor, profileID);
 
     [branch] if (distScale == 0 || maxDistInPixels < 1)
     {

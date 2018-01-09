@@ -89,14 +89,14 @@
 #define SAMPLER_HEIGHTMAP_IDX sampler_HeightMap3
 #endif
 
-#if defined(_SUBSURFACE_RADIUS_MAP0)
-#define _SUBSURFACE_RADIUS_MAP_IDX sampler_SubsurfaceRadiusMap0
-#elif defined(_SUBSURFACE_RADIUS_MAP1)
-#define _SUBSURFACE_RADIUS_MAP_IDX sampler_SubsurfaceRadiusMap1
-#elif defined(_SUBSURFACE_RADIUS_MAP2)
-#define _SUBSURFACE_RADIUS_MAP_IDX sampler_SubsurfaceRadiusMap2
-#elif defined(_SUBSURFACE_RADIUS_MAP3)
-#define _SUBSURFACE_RADIUS_MAP_IDX sampler_SubsurfaceRadiusMap3
+#if defined(_SUBSURFACE_MASK_MAP0)
+#define _SUBSURFACE_MASK_MAP_IDX sampler_SubsurfaceMaskMap0
+#elif defined(_SUBSURFACE_MASK_MAP1)
+#define _SUBSURFACE_MASK_MAP_IDX sampler_SubsurfaceMaskMap1
+#elif defined(_SUBSURFACE_MASK_MAP2)
+#define _SUBSURFACE_MASK_MAP_IDX sampler_SubsurfaceMaskMap2
+#elif defined(_SUBSURFACE_MASK_MAP3)
+#define _SUBSURFACE_MASK_MAP_IDX sampler_SubsurfaceMaskMap3
 #endif
 
 #if defined(_THICKNESSMAP0)
@@ -125,8 +125,8 @@
 #ifdef _DETAIL_MAP0
 #define _DETAIL_MAP_IDX
 #endif
-#ifdef _SUBSURFACE_RADIUS_MAP0
-#define _SUBSURFACE_RADIUS_MAP_IDX
+#ifdef _SUBSURFACE_MASK_MAP0
+#define _SUBSURFACE_MASK_MAP_IDX
 #endif
 #ifdef _THICKNESSMAP0
 #define _THICKNESSMAP_IDX
@@ -143,7 +143,7 @@
 #undef _NORMALMAP_IDX
 #undef _NORMALMAP_TANGENT_SPACE_IDX
 #undef _DETAIL_MAP_IDX
-#undef _SUBSURFACE_RADIUS_MAP_IDX
+#undef _SUBSURFACE_MASK_MAP_IDX
 #undef _THICKNESSMAP_IDX
 #undef _MASKMAP_IDX
 #undef _BENTNORMALMAP_IDX
@@ -159,8 +159,8 @@
 #ifdef _DETAIL_MAP1
 #define _DETAIL_MAP_IDX
 #endif
-#ifdef _SUBSURFACE_RADIUS_MAP1
-#define _SUBSURFACE_RADIUS_MAP_IDX
+#ifdef _SUBSURFACE_MASK_MAP1
+#define _SUBSURFACE_MASK_MAP_IDX
 #endif
 #ifdef _THICKNESSMAP1
 #define _THICKNESSMAP_IDX
@@ -177,7 +177,7 @@
 #undef _NORMALMAP_IDX
 #undef _NORMALMAP_TANGENT_SPACE_IDX
 #undef _DETAIL_MAP_IDX
-#undef _SUBSURFACE_RADIUS_MAP_IDX
+#undef _SUBSURFACE_MASK_MAP_IDX
 #undef _THICKNESSMAP_IDX
 #undef _MASKMAP_IDX
 #undef _BENTNORMALMAP_IDX
@@ -193,8 +193,8 @@
 #ifdef _DETAIL_MAP2
 #define _DETAIL_MAP_IDX
 #endif
-#ifdef _SUBSURFACE_RADIUS_MAP2
-#define _SUBSURFACE_RADIUS_MAP_IDX
+#ifdef _SUBSURFACE_MASK_MAP2
+#define _SUBSURFACE_MASK_MAP_IDX
 #endif
 #ifdef _THICKNESSMAP2
 #define _THICKNESSMAP_IDX
@@ -211,7 +211,7 @@
 #undef _NORMALMAP_IDX
 #undef _NORMALMAP_TANGENT_SPACE_IDX
 #undef _DETAIL_MAP_IDX
-#undef _SUBSURFACE_RADIUS_MAP_IDX
+#undef _SUBSURFACE_MASK_MAP_IDX
 #undef _THICKNESSMAP_IDX
 #undef _MASKMAP_IDX
 #undef _BENTNORMALMAP_IDX
@@ -227,8 +227,8 @@
 #ifdef _DETAIL_MAP3
 #define _DETAIL_MAP_IDX
 #endif
-#ifdef _SUBSURFACE_RADIUS_MAP3
-#define _SUBSURFACE_RADIUS_MAP_IDX
+#ifdef _SUBSURFACE_MASK_MAP3
+#define _SUBSURFACE_MASK_MAP_IDX
 #endif
 #ifdef _THICKNESSMAP3
 #define _THICKNESSMAP_IDX
@@ -245,7 +245,7 @@
 #undef _NORMALMAP_IDX
 #undef _NORMALMAP_TANGENT_SPACE_IDX
 #undef _DETAIL_MAP_IDX
-#undef _SUBSURFACE_RADIUS_MAP_IDX
+#undef _SUBSURFACE_MASK_MAP_IDX
 #undef _THICKNESSMAP_IDX
 #undef _MASKMAP_IDX
 #undef _BENTNORMALMAP_IDX
@@ -711,9 +711,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.ambientOcclusion = SURFACEDATA_BLEND_SCALAR(surfaceData, ambientOcclusion, weights);
     surfaceData.metallic = SURFACEDATA_BLEND_SCALAR(surfaceData, metallic, weights);
     surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. Tag: SURFACE_GRADIENT
-    surfaceData.subsurfaceRadius = SURFACEDATA_BLEND_SCALAR(surfaceData, subsurfaceRadius, weights);
+    surfaceData.subsurfaceMask = SURFACEDATA_BLEND_SCALAR(surfaceData, subsurfaceMask, weights);
     surfaceData.thickness = SURFACEDATA_BLEND_SCALAR(surfaceData, thickness, weights);
-    surfaceData.subsurfaceProfile = SURFACEDATA_BLEND_SSS_PROFILE(surfaceData, subsurfaceProfile, weights);
+    surfaceData.diffusionProfile = SURFACEDATA_BLEND_SSS_PROFILE(surfaceData, diffusionProfile, weights);
 
     // Layered shader support either SSS or standard (can't mix them)
 #ifdef _MATID_SSS
@@ -725,9 +725,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Init other parameters
     surfaceData.anisotropy = 0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
-    surfaceData.coatNormalWS = float3(0.0, 0.0, 0.0);
-    surfaceData.coatCoverage = 0.0f;
-    surfaceData.coatIOR = 0.5;
+    surfaceData.coatMask = 0.0f;
 
     // Transparency parameters
     // Use thickness from SSS

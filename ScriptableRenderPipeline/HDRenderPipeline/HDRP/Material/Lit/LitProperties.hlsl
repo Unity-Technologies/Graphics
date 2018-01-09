@@ -42,8 +42,8 @@ SAMPLER(sampler_TangentMapOS);
 TEXTURE2D(_AnisotropyMap);
 SAMPLER(sampler_AnisotropyMap);
 
-TEXTURE2D(_SubsurfaceRadiusMap);
-SAMPLER(sampler_SubsurfaceRadiusMap);
+TEXTURE2D(_SubsurfaceMaskMap);
+SAMPLER(sampler_SubsurfaceMaskMap);
 TEXTURE2D(_ThicknessMap);
 SAMPLER(sampler_ThicknessMap);
 
@@ -78,7 +78,7 @@ PROP_DECL_TEX2D(_NormalMapOS);
 PROP_DECL_TEX2D(_DetailMap);
 PROP_DECL_TEX2D(_HeightMap);
 
-PROP_DECL_TEX2D(_SubsurfaceRadiusMap);
+PROP_DECL_TEX2D(_SubsurfaceMaskMap);
 PROP_DECL_TEX2D(_ThicknessMap);
 
 TEXTURE2D(_LayerMaskMap);
@@ -161,13 +161,12 @@ float _HeightCenter;
 
 float _Anisotropy;
 
-int   _SubsurfaceProfile;
-float _SubsurfaceRadius;
+int   _DiffusionProfile;
+float _SubsurfaceMask;
 float _Thickness;
 float4 _ThicknessRemap;
 
-float _CoatCoverage;
-float _CoatIOR;
+float _CoatMask;
 
 float4 _SpecularColor;
 
@@ -213,8 +212,8 @@ PROP_DECL(float, _DetailSmoothnessScale);
 PROP_DECL(float, _HeightAmplitude);
 PROP_DECL(float, _HeightCenter);
 
-PROP_DECL(int, _SubsurfaceProfile);
-PROP_DECL(float, _SubsurfaceRadius);
+PROP_DECL(int, _DiffusionProfile);
+PROP_DECL(float, _SubsurfaceMask);
 PROP_DECL(float, _Thickness);
 PROP_DECL(float4, _ThicknessRemap);
 

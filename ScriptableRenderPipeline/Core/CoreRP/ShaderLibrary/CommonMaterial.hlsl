@@ -33,10 +33,6 @@ real ClampRoughnessForAnalyticalLights(real roughness)
     return max(roughness, 1.0/1024.0);
 }
 
-// 'bsdfData.roughnessT' and 'bsdfData.roughnessB' are clamped, and are meant to be used with analytical lights.
-// 'bsdfData.perceptualRoughness' is not clamped, and is meant to be used for IBL.
-// If IBL needs the linear roughness value for some reason, it can be computed as follows:
-// real roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
 void ConvertAnisotropyToRoughness(real perceptualRoughness, real anisotropy, out real roughnessT, out real roughnessB)
 {
     real roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
@@ -45,9 +41,63 @@ void ConvertAnisotropyToRoughness(real perceptualRoughness, real anisotropy, out
     // Ref: Revisiting Physically Based Shading at Imageworks, p. 15.
     roughnessT = roughness * (1 + anisotropy);
     roughnessB = roughness * (1 - anisotropy);
+}
+
+// Same as ConvertAnisotropyToRoughness but
+// roughnessT and roughnessB are clamped, and are meant to be used with punctual and directional lights.
+void ConvertAnisotropyToClampRoughness(real perceptualRoughness, real anisotropy, out real roughnessT, out real roughnessB)
+{
+    ConvertAnisotropyToRoughness(perceptualRoughness, anisotropy, roughnessT, roughnessB);
 
     roughnessT = ClampRoughnessForAnalyticalLights(roughnessT);
     roughnessB = ClampRoughnessForAnalyticalLights(roughnessB);
+}
+
+// Use with stack BRDF (clear coat / coat)
+real roughnessToVariance(real roughness)
+{
+    return 2.0 / Sq(roughness) - 2.0;
+}
+
+real varianceToRoughness(real variance)
+{
+    return sqrt(2.0 / (variance + 2.0));
+}
+
+// ior is a value between 1.0 and 2.5
+// Assume air interface for top
+real IORToFresnel0(real ior)
+{
+    return Sq((ior - 1.0) / (ior + 1.0));
+}
+
+real IORToFresnel0(real baseIor, real topIor)
+{
+    return Sq((baseIor - topIor) / (baseIor + topIor));
+}
+
+// Assume air interface for top
+// Note: Don't handle the case fresnel0 == 1
+real Fresnel0ToIor(real fresnel0)
+{
+    real sqrtF0 = sqrt(fresnel0);
+    return (1.0 + sqrtF0) / (1.0 - sqrtF0);
+}
+
+// This function is a coarse approximation of computing fresnel0 for a different top than air (here clear coat of IOR 1.5) when we only have fresnel0 with air interface
+// This function is equivalent to IORToFresnel0(Fresnel0ToIor(fresnel0), 1.5)
+// mean
+// real sqrtF0 = sqrt(fresnel0);
+// return Sq(1.0 - 5.0 * sqrtF0) / Sq(5.0 - sqrtF0);
+// Optimization: Fit of the function (3 mad) for range 0.04 (should return 0), 1 (should return 1)
+// return saturate(-0.0256868 + fresnel0 * (0.326846 + (0.978946 - 0.283835 * fresnel0) * fresnel0));
+TEMPLATE_1_REAL(Fresnel0ReajustFor15, fresnel0, return saturate(-0.0256868 + fresnel0 * (0.326846 + (0.978946 - 0.283835 * fresnel0) * fresnel0)) )
+
+// same as regular refract except there is not the test for total internal reflection + the vector is flipped for processing
+real3 CoatRefract(real3 X, real3 N, real ieta)
+{
+    real XdotN = saturate(dot(N, X));
+    return ieta * X + (sqrt(1 + ieta * ieta * (XdotN * XdotN - 1)) - ieta * XdotN) * N;
 }
 
 // ----------------------------------------------------------------------------

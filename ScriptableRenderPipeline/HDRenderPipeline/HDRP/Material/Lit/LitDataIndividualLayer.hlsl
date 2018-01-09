@@ -250,11 +250,11 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #endif
     surfaceData.metallic *= ADD_IDX(_Metallic);
 
-    surfaceData.subsurfaceProfile = ADD_IDX(_SubsurfaceProfile);
-    surfaceData.subsurfaceRadius = ADD_IDX(_SubsurfaceRadius);
+    surfaceData.diffusionProfile = ADD_IDX(_DiffusionProfile);
+    surfaceData.subsurfaceMask = ADD_IDX(_SubsurfaceMask);
 
-#ifdef _SUBSURFACE_RADIUS_MAP_IDX
-    surfaceData.subsurfaceRadius *= SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_SubsurfaceRadiusMap), SAMPLER_SUBSURFACE_RADIUSMAP_IDX, ADD_IDX(layerTexCoord.base)).r;
+#ifdef _SUBSURFACE_MASK_MAP_IDX
+    surfaceData.subsurfaceMask *= SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_SubsurfaceMaskMap), SAMPLER_SUBSURFACE_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).r;
 #endif
 
 #ifdef _THICKNESSMAP_IDX
@@ -325,9 +325,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.transmittanceMask = 0.0;
 #endif
 
-    surfaceData.coatNormalWS    = input.worldToTangent[2].xyz; // Assign vertex normal
-    surfaceData.coatCoverage    = _CoatCoverage;
-    surfaceData.coatIOR         = _CoatIOR;
+    surfaceData.coatMask = _CoatMask;
 
 #else // #if !defined(LAYERED_LIT_SHADER)
 
@@ -341,9 +339,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.tangentWS = float3(0.0, 0.0, 0.0);
     surfaceData.anisotropy = 0.0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
-    surfaceData.coatNormalWS = float3(0.0, 0.0, 0.0);
-    surfaceData.coatCoverage = 0.0f;
-    surfaceData.coatIOR = 0.5;
+    surfaceData.coatMask = 0.0f;
 
     // Transparency
     surfaceData.ior = 1.0;
