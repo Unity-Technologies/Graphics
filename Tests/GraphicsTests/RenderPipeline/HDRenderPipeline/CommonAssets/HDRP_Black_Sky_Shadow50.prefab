@@ -20,6 +20,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4295600896743834}
   - component: {fileID: 114888363301181934}
+  - component: {fileID: 114663566010530930}
   m_Layer: 0
   m_Name: HDRP_Black_Sky_Shadow50
   m_TagString: Untagged
@@ -40,6 +41,19 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &114663566010530930
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1673868521865844}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 441482e8936e35048a1dffac814e3ef8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Profile: {fileID: 11400000, guid: 0d615c3f4f4e27d44af6c4fed3bb683c, type: 2}
+  m_BakingSkyUniqueID: 1
 --- !u!114 &114888363301181934
 MonoBehaviour:
   m_ObjectHideFlags: 1
