@@ -268,30 +268,25 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #if !defined(LAYERED_LIT_SHADER)
 
     // These static material feature allow compile time optimization
-    surfaceData.enableSubsurfaceScattering  = false;
-    surfaceData.enableTransmission          = false;
-    surfaceData.enableAnisotropy            = false;
-    surfaceData.enableClearCoat             = false;
-    surfaceData.enableIridescence           = false;
-    surfaceData.enableSpecularColor         = false;
+    surfaceData.materialFeatures = 0;
 
 #ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
-    surfaceData.enableSubsurfaceScattering  = true;
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING;
 #endif
 #ifdef _MATERIAL_FEATURE_TRANSMISSION
-    surfaceData.enableTransmission          = true;
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_TRANSMISSION;
 #endif
 #ifdef _MATERIAL_FEATURE_ANISOTROPY
-    surfaceData.enableAnisotropy            = true;
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_ANISOTROPY;
 #endif
 #ifdef _MATERIAL_FEATURE_CLEAR_COAT
-    surfaceData.enableClearCoat             = true;
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_CLEAR_COAT;
 #endif
 #ifdef _MATERIAL_FEATURE_IRIDESCENCE
-    surfaceData.enableIridescence           = true;
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_IRIDESCENCE;
 #endif
 #ifdef _MATERIAL_FEATURE_SPECULAR_COLOR
-    surfaceData.enableSpecularColor         = true;
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR;
 #endif
 
 #ifdef _TANGENTMAP
@@ -348,12 +343,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     // Mandatory to setup value to keep compiler quiet
 
     // Layered shader material feature are define outside of this call
-    surfaceData.enableSubsurfaceScattering  = false;
-    surfaceData.enableTransmission          = false;
-    surfaceData.enableAnisotropy            = false;
-    surfaceData.enableClearCoat             = false;
-    surfaceData.enableIridescence           = false;
-    surfaceData.enableSpecularColor         = false;
+    surfaceData.materialFeatures = 0;
 
     // All these parameters are ignore as they are re-setup outside of the layers function
     // Note: any parameters set here must also be set in GetSurfaceAndBuiltinData() layer version
