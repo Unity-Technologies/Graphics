@@ -49,19 +49,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // In case of deferred, we must be in sync with SubsurfaceScattering.hlsl and lit.hlsl files and setup the correct buffers
         // for SSS
-        public void InitSSSBuffersFromGBuffer(int width, int height, GBufferManager gbufferManager, CommandBuffer cmd)
+        public void InitSSSBuffersFromGBuffer(GBufferManager gbufferManager)
         {
-            m_RTIDs[0] = gbufferManager.GetGBuffers()[0];
+            m_RTIDs[0] = gbufferManager.GetGBuffers()[0]; // Note: This buffer must be sRGB (which is the case with Lit.shader)
         }
 
         // In case of full forward we must allocate the render target for forward SSS (or reuse one already existing)
         // TODO: Provide a way to reuse a render target
-        public void InitSSSBuffers(int width, int height, CommandBuffer cmd)
+        public void InitSSSBuffers(RenderTextureDescriptor desc, CommandBuffer cmd)
         {
             m_RTIDs[0] = m_SSSBuffer0RT;
 
+            desc.depthBufferBits = 0;
+            desc.colorFormat = RenderTextureFormat.ARGB32;
+            desc.sRGB = true;  // Note: This buffer must be sRGB to match deferred case (which is the case with Lit.shader)
+
             cmd.ReleaseTemporaryRT(m_SSSBuffer0);
-            cmd.GetTemporaryRT(m_SSSBuffer0, width, height, 0, FilterMode.Point, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+            cmd.GetTemporaryRT(m_SSSBuffer0, desc, FilterMode.Point);
         }
 
         public RenderTargetIdentifier GetSSSBuffers(int index)
@@ -76,6 +80,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SubsurfaceScatteringCS = hdAsset.renderPipelineResources.subsurfaceScatteringCS;
             m_SubsurfaceScatteringKernel = m_SubsurfaceScatteringCS.FindKernel("SubsurfaceScattering");
             m_CombineLightingPass = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.combineLighting);
+            m_CombineLightingPass.SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.LightingMask);
 
             // Jimenez SSS Model (shader)
             m_SssVerticalFilterPass = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.subsurfaceScattering);
@@ -88,6 +93,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_CopyStencilForSplitLighting = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.copyStencilBuffer);
             m_CopyStencilForSplitLighting.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.SplitLighting);
+            m_CopyStencilForSplitLighting.SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.LightingMask);
         }
 
         public void Cleanup()
@@ -98,11 +104,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             CoreUtils.Destroy(m_CopyStencilForSplitLighting);
         }
 
-        public void Resize(Camera camera)
+        public void Resize(HDCamera hdCamera)
         {
             // We must use a RenderTexture and not GetTemporaryRT() as currently Unity only aloow to bind a RenderTexture for a UAV in a pixel shader
             // We use 8x8 tiles in order to match the native GCN HTile as closely as possible.
-            m_HTile = new RenderTexture((camera.pixelWidth + 7) / 8, (camera.pixelHeight + 7) / 8, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear); // DXGI_FORMAT_R8_UINT is not supported by Unity
+            var desc = hdCamera.renderTextureDesc;
+            desc.width = (desc.width + 7) / 8;
+            desc.height = (desc.height + 7) / 8;
+            m_HTile = CoreUtils.CreateRenderTexture(desc, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear); // DXGI_FORMAT_R8_UINT is not supported by Unity
             m_HTile.filterMode = FilterMode.Point;
             m_HTile.enableRandomWrite = true;
             m_HTile.Create();
@@ -113,7 +122,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Broadcast SSS parameters to all shaders.
             cmd.SetGlobalInt(HDShaderIDs._EnableSSSAndTransmission, frameSettings.enableSSSAndTransmission ? 1 : 0);
-            cmd.SetGlobalInt(HDShaderIDs._UseDisneySSS, sssParameters.useDisneySSS ? 1 : 0);
             unsafe
             {
                 // Warning: Unity is not able to losslessly transfer integers larger than 2^24 to the shader system.
@@ -150,24 +158,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, "Subsurface Scattering", HDRenderPipeline.GetSampler(CustomSamplerId.SubsurfaceScattering)))
             {
-                int w = hdCamera.camera.pixelWidth;
-                int h = hdCamera.camera.pixelHeight;
-
                 // For Jimenez we always need an extra buffer, for Disney it depends on platform
-                if (!sssParameters.useDisneySSS ||
-                    (sssParameters.useDisneySSS && NeedTemporarySubsurfaceBuffer()))
+                if (ShaderConfig.k_UseDisneySSS == 0 || NeedTemporarySubsurfaceBuffer())
                 {
                     // Caution: must be same format as m_CameraSssDiffuseLightingBuffer
                     cmd.ReleaseTemporaryRT(m_CameraFilteringBuffer);
-                    cmd.GetTemporaryRT(m_CameraFilteringBuffer, w, h, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
-                                                                                                                                                                        // Clear the SSS filtering target
+                    CoreUtils.CreateCmdTemporaryRT(cmd, m_CameraFilteringBuffer, hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
+
+                    // Clear the SSS filtering target
                     using (new ProfilingSample(cmd, "Clear SSS filtering target", HDRenderPipeline.GetSampler(CustomSamplerId.ClearSSSFilteringTarget)))
                     {
                         CoreUtils.SetRenderTarget(cmd, m_CameraFilteringBufferRT, ClearFlag.Color, CoreUtils.clearColorAllBlack);
                     }
                 }
 
-                if (sssParameters.useDisneySSS)
+                if (ShaderConfig.s_UseDisneySSS == 1) // use static here to quiet the compiler warning
                 {
                     using (new ProfilingSample(cmd, "HTile for SSS", HDRenderPipeline.GetSampler(CustomSamplerId.HTileForSSS)))
                     {
@@ -209,15 +214,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     if (NeedTemporarySubsurfaceBuffer())
                     {
-                        // Caution: must be same format as m_CameraSssDiffuseLightingBuffer
-                        cmd.ReleaseTemporaryRT(m_CameraFilteringBuffer);
-                        cmd.GetTemporaryRT(m_CameraFilteringBuffer, w, h, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
-                        // Clear the SSS filtering target
-                        using (new ProfilingSample(cmd, "Clear SSS filtering target", HDRenderPipeline.GetSampler(CustomSamplerId.ClearSSSFilteringTarget)))
-                        {
-                            CoreUtils.SetRenderTarget(cmd, m_CameraFilteringBufferRT, ClearFlag.Color, CoreUtils.clearColorAllBlack);
-                        }
-
                         cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, m_SubsurfaceScatteringKernel, HDShaderIDs._CameraFilteringBuffer, m_CameraFilteringBufferRT);
 
                         // Perform the SSS filtering pass which fills 'm_CameraFilteringBufferRT'.

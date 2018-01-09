@@ -331,6 +331,7 @@ namespace UnityEngine.Experimental.Rendering
                     }
                     else
                         vp = invvp = Matrix4x4.identity; // should never happen, though
+
                     if (cameraRelativeRendering)
                     {
                         Vector3 camPosWS = camera.transform.position;
@@ -344,6 +345,7 @@ namespace UnityEngine.Experimental.Rendering
                             m_TmpSplits[key.faceIdx].z -= camPosWS.z;
                         }
                     }
+
                     // write :(
                     ce.current.shadowAlgo = shadowAlgo;
                     m_EntryCache[ceIdx] = ce;

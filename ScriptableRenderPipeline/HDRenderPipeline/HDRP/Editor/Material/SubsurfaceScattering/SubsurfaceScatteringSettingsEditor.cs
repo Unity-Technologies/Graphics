@@ -46,7 +46,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        SerializedProperty m_UseDisneySSS;
         List<Profile> m_Profiles;
 
         Material m_ProfileMaterial;
@@ -63,7 +62,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             int count = SssConstants.SSS_N_PROFILES - 1;
             m_Profiles = new List<Profile>();
 
-            m_UseDisneySSS = properties.Find(x => x.useDisneySSS);
             var serializedProfiles = properties.Find(x => x.profiles);
 
             for (int i = 0; i < count; i++)
@@ -116,14 +114,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             serializedObject.Update();
 
-            EditorGUILayout.PropertyField(m_UseDisneySSS, s_Styles.useDisneySSS);
-
             EditorGUILayout.Space();
 
             if (m_Profiles == null || m_Profiles.Count == 0)
                 return;
 
-            bool useDisneySSS = m_UseDisneySSS.boolValue;
+            bool useDisneySSS = ShaderConfig.k_UseDisneySSS == 1;
 
             for (int i = 0; i < m_Profiles.Count; i++)
             {

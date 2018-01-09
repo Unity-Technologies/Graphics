@@ -24,10 +24,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         };
 
         public RenderingPath    renderingPath;
+        [Tooltip("Layer Mask used for the volume interpolation for this camera.")]
+        public LayerMask        volumeLayerMask = -1;
 
         // To be able to turn on/off FrameSettings properties at runtime for debugging purpose without affecting the original one
         // we create a runtime copy (m_ActiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
-        public FrameSettings serializedFrameSettings = new FrameSettings(); // Serialize frameSettings
+        public FrameSettings    serializedFrameSettings = new FrameSettings(); // Serialize frameSettings
 
         // Not serialized, not visible
         FrameSettings m_FrameSettings = new FrameSettings();
@@ -36,26 +38,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_FrameSettings;
         }
 
-        bool isRegisterDebug = false;
-        Camera m_camera;
-        string m_CameraRegisterName;
+        bool    m_IsDebugRegistered = false;
+        Camera  m_camera;
+        string  m_CameraRegisterName;
 
         void RegisterDebug()
         {
-            if (!isRegisterDebug)
+            if (!m_IsDebugRegistered)
             {
                 FrameSettings.RegisterDebug(m_camera.name, GetFrameSettings());
                 m_CameraRegisterName = m_camera.name;
-                isRegisterDebug = true;
+                m_IsDebugRegistered = true;
             }
         }
 
         void UnRegisterDebug()
         {
-            if (isRegisterDebug)
+            if (m_IsDebugRegistered)
             {
                 FrameSettings.UnRegisterDebug(m_CameraRegisterName);
-                isRegisterDebug = false;
+                m_IsDebugRegistered = false;
             }
         }
 

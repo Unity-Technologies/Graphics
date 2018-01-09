@@ -12,13 +12,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector4 baseColor;
             [SurfaceDataAttributes("Normal", true)]
             public Vector4 normalWS;
+            [SurfaceDataAttributes("Mask", true)]
+            public Vector4 mask; 
         };
 
         [GenerateHLSL(PackingRules.Exact)]
         public enum DBufferMaterial
         {
             // Note: This count doesn't include the velocity buffer. On shader and csharp side the velocity buffer will be added by the framework
-            Count = 2
+            Count = 3
         };
 
         //-----------------------------------------------------------------------------
@@ -28,8 +30,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 		// should this be combined into common class shared with Lit.cs???
        static public int GetMaterialDBufferCount() { return (int)DBufferMaterial.Count; }
 
-       static RenderTextureFormat[] m_RTFormat = { RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32};
-       static RenderTextureReadWrite[] m_RTReadWrite = { RenderTextureReadWrite.sRGB, RenderTextureReadWrite.Linear};
+	   static RenderTextureFormat[] m_RTFormat = { RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32 };
+	   static RenderTextureReadWrite[] m_RTReadWrite = { RenderTextureReadWrite.sRGB, RenderTextureReadWrite.Linear, RenderTextureReadWrite.Linear };
 
        static public void GetMaterialDBufferDescription(out RenderTextureFormat[] RTFormat, out RenderTextureReadWrite[] RTReadWrite)
        {

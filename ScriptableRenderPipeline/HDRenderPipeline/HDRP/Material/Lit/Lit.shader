@@ -116,7 +116,7 @@ Shader "HDRenderPipeline/Lit"
         [ToggleOff] _EnableBlendModePreserveSpecularLighting("Enable Blend Mode Preserve Specular Lighting", Float) = 1.0
 
         [ToggleOff] _DoubleSidedEnable("Double sided enable", Float) = 0.0
-        [Enum(None, 0, Mirror, 1, Flip, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
+        [Enum(Flip, 0, Mirror, 1)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
         [Enum(UV0, 0, Planar, 4, TriPlanar, 5)] _UVBase("UV Set for base", Float) = 0
@@ -257,6 +257,7 @@ Shader "HDRenderPipeline/Lit"
 
     SubShader
     {
+        // Caution: The outline selection in the editor use the vertex shader/hull/domain shader of the first pass declare. So it should not bethe  meta pass.
         Pass
         {
             Name "GBuffer"  // Name is not used
@@ -485,8 +486,6 @@ Shader "HDRenderPipeline/Lit"
             ENDHLSL
         }
 
-        // Caution: Order of pass mater. It should be:
-        // TransparentDepthPrepass, TransparentBackface, Forward/ForwardOnly, TransparentDepthPostpass
         Pass
         {
             Name "TransparentDepthPrepass"
@@ -509,6 +508,7 @@ Shader "HDRenderPipeline/Lit"
             ENDHLSL
         }
 
+        // Caution: Order is important: TransparentBackface, then Forward/ForwardOnly
         Pass
         {
             Name "TransparentBackface"
@@ -616,8 +616,8 @@ Shader "HDRenderPipeline/Lit"
 
         Pass
         {
-            Name "TransparentDepthPostPass"
-            Tags { "LightMode" = "TransparentDepthPostPass" }
+            Name "TransparentDepthPostpass"
+            Tags { "LightMode" = "TransparentDepthPostpass" }
 
             Cull[_CullMode]
             ZWrite On
