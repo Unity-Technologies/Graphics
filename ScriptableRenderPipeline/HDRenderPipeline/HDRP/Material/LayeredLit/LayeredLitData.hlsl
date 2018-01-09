@@ -716,18 +716,13 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.diffusionProfile = SURFACEDATA_BLEND_SSS_PROFILE(surfaceData, diffusionProfile, weights);
 
     // Layered shader support SSS and Transmission features
-    surfaceData.enableSubsurfaceScattering  = false;
-    surfaceData.enableTransmission          = false;
-    surfaceData.enableAnisotropy            = false;
-    surfaceData.enableClearCoat             = false;
-    surfaceData.enableIridescence           = false;
-    surfaceData.enableSpecularColor         = false;
+    surfaceData.materialFeatures            = 0;
 
 #ifdef _MATERIALFEATURE_SUBSURFACE_SCATTERING
-    surfaceData.enableSubsurfaceScattering  = true;
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING;
 #endif
 #ifdef _MATERIAL_FEATURE_TRANSMISSION
-    surfaceData.enableTransmission          = true;
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_TRANSMISSION;
 #endif
 
     // Init other parameters

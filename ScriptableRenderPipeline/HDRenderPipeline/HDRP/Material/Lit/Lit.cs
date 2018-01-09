@@ -12,12 +12,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public enum MaterialFeatureFlags
         {
             LitStandard             = 1 << 0,   // For material classification we need to identify that we are indeed use as standard material, else we are consider as sky/background element
-            LitSubsurfaceScattering = 1 << 1,
-            LitTransmission         = 1 << 2,
-            LitAnisotropy           = 1 << 3,
-            LitIridescence          = 1 << 4,
-            LitClearCoat            = 1 << 5
-            // Note: // There is no material feature for LitSpecularColor as it is always dynamically tested
+            LitSpecularColor        = 1 << 1,   // LitSpecularColor is not use statically but only dynamically
+            LitSubsurfaceScattering = 1 << 2,
+            LitTransmission         = 1 << 3,
+            LitAnisotropy           = 1 << 4,
+            LitIridescence          = 1 << 5,
+            LitClearCoat            = 1 << 6
         };
 
         [GenerateHLSL(PackingRules.Exact)]
@@ -36,18 +36,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact, false, true, 1000)]
         public struct SurfaceData
         {
-            [SurfaceDataAttributes("Enable Specular Color")]
-            public bool enableSpecularColor;
-            [SurfaceDataAttributes("Enable SubsurfaceScattering")]
-            public bool enableSubsurfaceScattering;
-            [SurfaceDataAttributes("Enable Transmission")]
-            public bool enableTransmission;
-            [SurfaceDataAttributes("Enable Anisotropy")]
-            public bool enableAnisotropy;
-            [SurfaceDataAttributes("Enable Iridescence")]
-            public bool enableIridescence;
-            [SurfaceDataAttributes("Enable Clear Coat")]
-            public bool enableClearCoat;
+            [SurfaceDataAttributes("MaterialFeatures")]
+            public uint materialFeatures;
 
             // Standard
             [SurfaceDataAttributes("Base Color", false, true)]
@@ -117,12 +107,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact, false, true, 1030)]
         public struct BSDFData
         {
-            public bool enableSpecularColor;
-            public bool enableSubsurfaceScattering;
-            public bool enableTransmission;
-            public bool enableAnisotropy;
-            public bool enableIridescence;
-            public bool enableClearCoat;
+            public uint materialFeatures;
 
             [SurfaceDataAttributes("", false, true)]
             public Vector3 diffuseColor;
