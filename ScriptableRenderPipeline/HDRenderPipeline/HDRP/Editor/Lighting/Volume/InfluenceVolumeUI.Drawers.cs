@@ -66,7 +66,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var maxFaceDistance = d.sphereBaseRadius.floatValue;
 
             EditorGUILayout.PropertyField(d.sphereBaseRadius, _.GetContent("Radius"));
-            EditorGUILayout.PropertyField(d.sphereBaseOffset, _.GetContent("Offset"));
+            //EditorGUILayout.PropertyField(d.sphereBaseOffset, _.GetContent("Offset"));
+            d.sphereBaseOffset.vector3Value = Vector3.zero;
 
             EditorGUILayout.Space();
 
