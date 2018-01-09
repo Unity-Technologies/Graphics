@@ -233,10 +233,7 @@ namespace UnityEditor.Experimental.Rendering
             using (new EditorGUILayout.HorizontalScope())
             {
                 // Override checkbox
-                var overrideRect = GUILayoutUtility.GetRect(17f, 17f, GUILayout.ExpandWidth(false));
-                overrideRect.yMin += 4f;
-                overrideRect.xMin += EditorGUI.indentLevel * 15f;
-                DrawOverrideCheckbox(overrideRect, property.overrideState);
+                DrawOverrideCheckbox(property);
 
                 // Property
                 using (new EditorGUI.DisabledScope(!property.overrideState.boolValue))
@@ -253,11 +250,15 @@ namespace UnityEditor.Experimental.Rendering
             }
         }
 
-        void DrawOverrideCheckbox(Rect rect, SerializedProperty property)
+        protected void DrawOverrideCheckbox(SerializedDataParameter property)
         {
+            var overrideRect = GUILayoutUtility.GetRect(17f, 17f, GUILayout.ExpandWidth(false));
+            overrideRect.yMin += 4f;
+            overrideRect.xMin += EditorGUI.indentLevel * 15f;
+
             var oldColor = GUI.color;
             GUI.color = new Color(0.6f, 0.6f, 0.6f, 0.75f);
-            property.boolValue = GUI.Toggle(rect, property.boolValue, CoreEditorUtils.GetContent("|Override this setting for this volume."), CoreEditorStyles.smallTickbox);
+            property.overrideState.boolValue = GUI.Toggle(overrideRect, property.overrideState.boolValue, CoreEditorUtils.GetContent("|Override this setting for this volume."), CoreEditorStyles.smallTickbox);
             GUI.color = oldColor;
         }
     }

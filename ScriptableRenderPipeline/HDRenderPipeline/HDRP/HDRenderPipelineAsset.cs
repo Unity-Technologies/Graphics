@@ -31,6 +31,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_FrameSettings;
         }
 
+        public void OnEnable()
+        {
+            // At creation we need to copy serializedFrameSettings to m_FrameSettings
+            OnValidate();
+        }
+
         public void OnValidate()
         {
             // Modification of defaultFrameSettings in the inspector will call OnValidate().
@@ -50,32 +56,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         public SubsurfaceScatteringSettings sssSettings;
 
-        // Default Material / Shader
-        [SerializeField]
-        Material m_DefaultDiffuseMaterial;
-        [SerializeField]
-        Shader m_DefaultShader;
-
-        public Material defaultDiffuseMaterial
-        {
-            get { return m_DefaultDiffuseMaterial; }
-            set { m_DefaultDiffuseMaterial = value; }
-        }
-
-        public Shader defaultShader
-        {
-            get { return m_DefaultShader; }
-            set { m_DefaultShader = value; }
-        }
-
         public override Shader GetDefaultShader()
         {
-            return m_DefaultShader;
+            return m_RenderPipelineResources.defaultShader;
         }
 
         public override Material GetDefaultMaterial()
         {
-            return m_DefaultDiffuseMaterial;
+            return m_RenderPipelineResources.defaultDiffuseMaterial;
         }
 
         public override Material GetDefaultParticleMaterial()

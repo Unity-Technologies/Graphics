@@ -85,20 +85,26 @@
 #endif
 #endif // #ifdef DBUFFERMATERIAL_COUNT
 
+CBUFFER_START(UnityDecalParameters)
+	uint _EnableDBuffer;
+CBUFFER_END
 
 // Must be in sync with RT declared in HDRenderPipeline.cs ::Rebuild
 void EncodeIntoDBuffer( DecalSurfaceData surfaceData,
                         out DBufferType0 outDBuffer0,
-                        out DBufferType1 outDBuffer1
+                        out DBufferType1 outDBuffer1,
+						out DBufferType2 outDBuffer2
                         )
 {
 	outDBuffer0 = surfaceData.baseColor;
 	outDBuffer1 = surfaceData.normalWS;	
+	outDBuffer2 = surfaceData.mask;	
 }
 
 void DecodeFromDBuffer(
     DBufferType0 inDBuffer0,
     DBufferType1 inDBuffer1,
+    DBufferType2 inDBuffer2,
     out DecalSurfaceData surfaceData
 )
 {
@@ -106,5 +112,6 @@ void DecodeFromDBuffer(
 	surfaceData.baseColor = inDBuffer0;
 	surfaceData.normalWS.xyz = inDBuffer1.xyz * 2.0f - 1.0f;
 	surfaceData.normalWS.w = inDBuffer1.w;
+	surfaceData.mask = inDBuffer2;
 }
 

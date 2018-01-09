@@ -32,9 +32,8 @@ namespace UnityEditor.Experimental.Rendering
 
         static readonly CED.IDrawer k_InfluenceVolumeSection = CED.FoldoutGroup(
             "Influence volume settings",
-            (s, p, o) => p.blendDistance,
+            (s, p, o) => p.blendDistancePositive,
             true,
-            CED.Action(Drawer_DistanceBlend),
             CED.FadeGroup(
                 (s, p, o, i) => s.GetShapeFaded((ReflectionInfluenceShape)i),
                 false,
@@ -83,11 +82,11 @@ namespace UnityEditor.Experimental.Rendering
             p.resolution.intValue = renderPipelineAsset.GetRenderPipelineSettings().lightLoopSettings.reflectionCubemapSize;
             EditorGUILayout.LabelField(CoreEditorUtils.GetContent("Resolution"), CoreEditorUtils.GetContent(p.resolution.intValue.ToString()));
 
-            EditorGUILayout.PropertyField(p.shadowDistance);
-            EditorGUILayout.PropertyField(p.cullingMask);
-            EditorGUILayout.PropertyField(p.useOcclusionCulling);
-            EditorGUILayout.PropertyField(p.nearClip);
-            EditorGUILayout.PropertyField(p.farClip);
+            EditorGUILayout.PropertyField(p.shadowDistance, CoreEditorUtils.GetContent("Shadow Distance"));
+            EditorGUILayout.PropertyField(p.cullingMask, CoreEditorUtils.GetContent("Culling Mask"));
+            EditorGUILayout.PropertyField(p.useOcclusionCulling, CoreEditorUtils.GetContent("Use Occlusion Culling"));
+            EditorGUILayout.PropertyField(p.nearClip, CoreEditorUtils.GetContent("Near Clip"));
+            EditorGUILayout.PropertyField(p.farClip, CoreEditorUtils.GetContent("Far Clip"));
         }
 
         static void Drawer_AdditionalSettings(UIState s, SerializedReflectionProbe p, Editor owner)
@@ -96,7 +95,7 @@ namespace UnityEditor.Experimental.Rendering
 
             if (p.so.targetObjects.Length == 1)
             {
-                var probe = (ReflectionProbe)p.so.targetObject;
+                var probe = p.target;
                 if (probe.mode == ReflectionProbeMode.Custom && probe.customBakedTexture != null)
                 {
                     var cubemap = probe.customBakedTexture as Cubemap;
@@ -112,7 +111,7 @@ namespace UnityEditor.Experimental.Rendering
         {
             if (p.mode.intValue == (int)ReflectionProbeMode.Realtime)
             {
-                EditorGUILayout.HelpBox("Baking of this reflection probe should be initiated from the scripting API because the type is 'Realtime'", MessageType.Info);
+                EditorGUILayout.HelpBox("Refresh of this reflection probe should be initiated from the scripting API because the type is 'Realtime'", MessageType.Info);
 
                 if (!QualitySettings.realtimeReflectionProbes)
                     EditorGUILayout.HelpBox("Realtime reflection probes are disabled in Quality Settings", MessageType.Warning);
@@ -137,7 +136,7 @@ namespace UnityEditor.Experimental.Rendering
                         {
                             var mode = (int)data;
 
-                            var probe = p.so.targetObject as ReflectionProbe;
+                            var probe = p.target;
                             if (mode == 0)
                             {
                                 BakeCustomReflectionProbe(probe, false, true);
@@ -146,7 +145,7 @@ namespace UnityEditor.Experimental.Rendering
                         },
                         GUILayout.ExpandWidth(true)))
                     {
-                        var probe = (ReflectionProbe)p.so.targetObject;
+                        var probe = p.target;
                         BakeCustomReflectionProbe(probe, true, true);
                         ResetProbeSceneTextureInMaterial(probe);
                         GUIUtility.ExitGUI();
@@ -156,7 +155,7 @@ namespace UnityEditor.Experimental.Rendering
 
                 case ReflectionProbeMode.Baked:
                     {
-                        GUI.enabled = ((ReflectionProbe)p.so.targetObject).enabled;
+                        GUI.enabled = p.target.enabled;
 
                         // Bake button in non-continous mode
                         if (ButtonWithDropdownList(
@@ -170,7 +169,7 @@ namespace UnityEditor.Experimental.Rendering
                             },
                             GUILayout.ExpandWidth(true)))
                         {
-                            var probe = (ReflectionProbe)p.so.targetObject;
+                            var probe = p.target;
                             BakeReflectionProbeSnapshot(probe);
                             ResetProbeSceneTextureInMaterial(probe);
                             GUIUtility.ExitGUI();
@@ -189,14 +188,23 @@ namespace UnityEditor.Experimental.Rendering
         }
 
         #region Influence Volume
-        static void Drawer_DistanceBlend(UIState s, SerializedReflectionProbe p, Editor owner)
-        {
-            EditorGUILayout.Slider(p.blendDistance, 0, CalculateMaxBlendDistance(s, p, owner), CoreEditorUtils.GetContent("Blend Distance|Area around the probe where it is blended with other probes. Only used in deferred probes."));
-            EditorGUI.BeginChangeCheck();
-        }
-
         static void Drawer_InfluenceBoxSettings(UIState s, SerializedReflectionProbe p, Editor owner)
         {
+            var maxBlendDistance = CalculateBoxMaxBlendDistance(s, p, owner);
+            CoreEditorUtils.DrawVector6Slider(
+                CoreEditorUtils.GetContent("Blend Distance|Area around the probe where it is blended with other probes. Only used in deferred probes."),
+                p.blendDistancePositive, p.blendDistanceNegative, Vector3.zero, maxBlendDistance);
+
+            CoreEditorUtils.DrawVector6Slider(
+                CoreEditorUtils.GetContent("Blend Normal Distance|Area around the probe where the normals influence the probe. Only used in deferred probes."),
+                p.blendNormalDistancePositive, p.blendNormalDistanceNegative, Vector3.zero, maxBlendDistance);
+
+            CoreEditorUtils.DrawVector6Slider(
+                CoreEditorUtils.GetContent("Face fade|Fade faces of the cubemap."),
+                p.boxSideFadePositive, p.boxSideFadeNegative, Vector3.zero, Vector3.one);
+
+            EditorGUILayout.Space();
+
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(p.boxSize, CoreEditorUtils.GetContent("Box Size|The size of the box in which the reflections will be applied to objects. The value is not affected by the Transform of the Game Object."));
             EditorGUILayout.PropertyField(p.boxOffset, CoreEditorUtils.GetContent("Box Offset|The center of the box in which the reflections will be applied to objects. The value is relative to the position of the Game Object."));
@@ -206,7 +214,7 @@ namespace UnityEditor.Experimental.Rendering
             {
                 var center = p.boxOffset.vector3Value;
                 var size = p.boxSize.vector3Value;
-                if (ValidateAABB((ReflectionProbe)p.so.targetObject, ref center, ref size))
+                if (ValidateAABB(p.target, ref center, ref size))
                 {
                     p.boxOffset.vector3Value = center;
                     p.boxSize.vector3Value = size;
@@ -216,6 +224,26 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Drawer_InfluenceSphereSettings(UIState s, SerializedReflectionProbe p, Editor owner)
         {
+            var maxBlendDistance = CalculateSphereMaxBlendDistance(s, p, owner);
+
+            var blendDistance = p.blendDistancePositive.vector3Value.x;
+            EditorGUI.BeginChangeCheck();
+            blendDistance = EditorGUILayout.Slider(CoreEditorUtils.GetContent("Blend Distance|Area around the probe where it is blended with other probes. Only used in deferred probes."), blendDistance, 0, maxBlendDistance);
+            if (EditorGUI.EndChangeCheck())
+            {
+                p.blendDistancePositive.vector3Value = Vector3.one * blendDistance;
+                p.blendDistanceNegative.vector3Value = Vector3.one * blendDistance;
+            }
+
+            var blendNormalDistance = p.blendNormalDistancePositive.vector3Value.x;
+            EditorGUI.BeginChangeCheck();
+            blendNormalDistance = EditorGUILayout.Slider(CoreEditorUtils.GetContent("Blend Normal Distance|Area around the probe where the normals influence the probe. Only used in deferred probes."), blendNormalDistance, 0, maxBlendDistance);
+            if (EditorGUI.EndChangeCheck())
+            {
+                p.blendNormalDistancePositive.vector3Value = Vector3.one * blendNormalDistance;
+                p.blendNormalDistanceNegative.vector3Value = Vector3.one * blendNormalDistance;
+            }
+
             EditorGUILayout.PropertyField(p.influenceSphereRadius, CoreEditorUtils.GetContent("Radius"));
             EditorGUILayout.PropertyField(p.boxProjection, CoreEditorUtils.GetContent("Sphere Projection|Sphere projection causes reflections to appear to change based on the object's position within the probe's sphere, while still using a single probe as the source of the reflection. This works well for reflections on objects that are moving through enclosed spaces such as corridors and rooms. Setting sphere projection to False and the cubemap reflection will be treated as coming from infinitely far away. Note that this feature can be globally disabled from Graphics Settings -> Tier Settings"));
         }
@@ -277,7 +305,8 @@ namespace UnityEditor.Experimental.Rendering
         static readonly EditMode.SceneViewEditMode[] k_Toolbar_SceneViewEditModes =
         {
             EditMode.SceneViewEditMode.ReflectionProbeBox,
-            //EditMode.SceneViewEditMode.GridBox,
+            EditMode.SceneViewEditMode.GridBox,
+            EditMode.SceneViewEditMode.Collider,
             EditMode.SceneViewEditMode.ReflectionProbeOrigin
         };
         static GUIContent[] s_Toolbar_Contents = null;
@@ -287,8 +316,9 @@ namespace UnityEditor.Experimental.Rendering
             {
                 return s_Toolbar_Contents ?? (s_Toolbar_Contents = new []
                 {
-                    EditorGUIUtility.IconContent("EditCollider", "|Modify the influence volume of the reflection probe."),
-                    //EditorGUIUtility.IconContent("PreMatCube", "|Modify the projection volume of the reflection probe."),
+                    EditorGUIUtility.IconContent("EditCollider", "|Modify the extents of the reflection probe. (SHIFT+1)"),
+                    EditorGUIUtility.IconContent("PreMatCube", "|Modify the influence volume of the reflection probe. (SHIFT+2)"),
+                    EditorGUIUtility.IconContent("SceneViewOrtho", "|Modify the influence normal volume of the reflection probe. (SHIFT+3)"),
                     EditorGUIUtility.IconContent("MoveTool", "|Move the selected objects.")
                 });
             }
@@ -304,7 +334,28 @@ namespace UnityEditor.Experimental.Rendering
             GUI.changed = false;
             var oldEditMode = EditMode.editMode;
 
-            Func<Bounds> getBounds = () =>
+            EditMode.DoInspectorToolbar(k_Toolbar_SceneViewEditModes, toolbar_Contents, GetBoundsGetter(p), owner);
+
+            //if (GUILayout.Button(EditorGUIUtility.IconContent("Navigation", "|Fit the reflection probe volume to the surrounding colliders.")))
+            //    s.AddOperation(Operation.FitVolumeToSurroundings);
+
+            if (oldEditMode != EditMode.editMode)
+            {
+                switch (EditMode.editMode)
+                {
+                    case EditMode.SceneViewEditMode.ReflectionProbeOrigin:
+                        s.UpdateOldLocalSpace(p.target);
+                        break;
+                }
+            }
+
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+        }
+
+        static Func<Bounds> GetBoundsGetter(SerializedReflectionProbe p)
+        {
+            return () =>
             {
                 var bounds = new Bounds();
                 foreach (var targetObject in p.so.targetObjects)
@@ -315,24 +366,6 @@ namespace UnityEditor.Experimental.Rendering
                 }
                 return bounds;
             };
-
-            EditMode.DoInspectorToolbar(k_Toolbar_SceneViewEditModes, toolbar_Contents, getBounds, owner);
-
-            //if (GUILayout.Button(EditorGUIUtility.IconContent("Navigation", "|Fit the reflection probe volume to the surrounding colliders.")))
-            //    s.AddOperation(Operation.FitVolumeToSurroundings);
-
-            if (oldEditMode != EditMode.editMode)
-            {
-                switch (EditMode.editMode)
-                {
-                    case EditMode.SceneViewEditMode.ReflectionProbeOrigin:
-                        s.UpdateOldLocalSpace((ReflectionProbe)p.so.targetObject);
-                        break;
-                }
-            }
-
-            GUILayout.FlexibleSpace();
-            GUILayout.EndHorizontal();
         }
         #endregion
 
@@ -351,21 +384,14 @@ namespace UnityEditor.Experimental.Rendering
         }
         #endregion
 
-        static float CalculateMaxBlendDistance(UIState s, SerializedReflectionProbe p, Editor o)
+        static float CalculateSphereMaxBlendDistance(UIState s, SerializedReflectionProbe p, Editor o)
         {
-            var shape = (ReflectionInfluenceShape)p.influenceShape.intValue;
-            switch (shape)
-            {
-                case ReflectionInfluenceShape.Sphere:
-                    return p.influenceSphereRadius.floatValue * 0.5f;
-                default:
-                case ReflectionInfluenceShape.Box:
-                {
-                    var size = p.boxSize.vector3Value;
-                    var v = Mathf.Min(size.x, Mathf.Min(size.y, size.z));
-                    return v * 0.5f;
-                }
-            }
+            return p.influenceSphereRadius.floatValue;
+        }
+
+        static Vector3 CalculateBoxMaxBlendDistance(UIState s, SerializedReflectionProbe p, Editor o)
+        {
+            return p.boxSize.vector3Value * 0.5f;
         }
 
         static MethodInfo k_EditorGUI_ButtonWithDropdownList = typeof(EditorGUI).GetMethod("ButtonWithDropdownList", BindingFlags.Static | BindingFlags.NonPublic, null, CallingConventions.Any, new [] { typeof(GUIContent), typeof(string[]), typeof(GenericMenu.MenuFunction2), typeof(GUILayoutOption[]) }, new ParameterModifier[0]);
