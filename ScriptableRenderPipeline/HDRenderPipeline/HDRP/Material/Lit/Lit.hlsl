@@ -352,7 +352,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     ZERO_INITIALIZE(BSDFData, bsdfData);
 
     // IMPORTANT: In case of foward or gbuffer pass all enable flags are statically know at compile time, so the compiler can do compile time optimization
-    surfaceData.materialFeatures    = surfaceData.materialFeatures | MATERIALFEATUREFLAGS_LIT_STANDARD; // Not really needed but for consistency with deferred path
+    bsdfData.materialFeatures       = surfaceData.materialFeatures | MATERIALFEATUREFLAGS_LIT_STANDARD; // Not really needed but for consistency with deferred path
 
     // Standard material
     bsdfData.specularOcclusion      = surfaceData.specularOcclusion;
@@ -484,7 +484,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
         else
         {
             // Caution: Neutral value for anisotropy is 0.5 not 0
-            outGBuffer2.rgb = float3(0.0, 0.5, 0.0);
+            outGBuffer2.rgb = float3(0.0, 0.0, 0.5);
         }
     }
 
@@ -514,15 +514,15 @@ void DecodeFromGBuffer(uint2 positionSS, uint featureFlags, out BSDFData bsdfDat
     // Else we don't know if the material feature will be use, it is a dynamic condition.
     bool enableSpecularColor =  (metallic15 == GBUFFER_LIT_SPECULAR_COLOR); // This is always a dynamic test as it is very cheap
 
-    bsdfData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD; // It is mandatory to identity ourselve as standard shader, else we are consider as sky/background element
-    bsdfData.materialFeatures |= (metallic15 == GBUFFER_LIT_SSS_OR_TRANSMISSION && inGBuffer2.g > 0.0) ? featureFlags & MATERIALFEATUREFLAGS_LIT_TRANSMISSION : 0;                  // Thickness > 0
-    bsdfData.materialFeatures |= (metallic15 == GBUFFER_LIT_SSS_OR_TRANSMISSION && inGBuffer2.b > 0.0) ? featureFlags & MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING : 0;         // TagSSS > 0
-    bsdfData.materialFeatures |= (metallic15 <= GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND && abs(inGBuffer2.g - 0.5) > 0.004) ? featureFlags & MATERIALFEATUREFLAGS_LIT_ANISOTROPY : 0;   // Anisotropy != 0
-    bsdfData.materialFeatures |= (metallic15 == GBUFFER_LIT_IRIDESCENCE) ? featureFlags & MATERIALFEATUREFLAGS_LIT_IRIDESCENCE : 0;
-    bsdfData.materialFeatures |= coatMask > 0.0 ? featureFlags & MATERIALFEATUREFLAGS_LIT_CLEAR_COAT : 0;
+    outMaterialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD; // It is mandatory to identity ourselve as standard shader, else we are consider as sky/background element
+    outMaterialFeatures |= (metallic15 == GBUFFER_LIT_SSS_OR_TRANSMISSION && inGBuffer2.g > 0.0) ? featureFlags & MATERIALFEATUREFLAGS_LIT_TRANSMISSION : 0;                  // Thickness > 0
+    outMaterialFeatures |= (metallic15 == GBUFFER_LIT_SSS_OR_TRANSMISSION && inGBuffer2.b > 0.0) ? featureFlags & MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING : 0;         // TagSSS > 0
+    outMaterialFeatures |= (metallic15 <= GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND && abs(inGBuffer2.b - 0.5) > 0.01) ? featureFlags & MATERIALFEATUREFLAGS_LIT_ANISOTROPY : 0;   // Anisotropy != 0 (small tolerrance as 0.5 can be correctly encoded)
+    outMaterialFeatures |= (metallic15 == GBUFFER_LIT_IRIDESCENCE) ? featureFlags & MATERIALFEATUREFLAGS_LIT_IRIDESCENCE : 0;
+    outMaterialFeatures |= coatMask > 0.0 ? featureFlags & MATERIALFEATUREFLAGS_LIT_CLEAR_COAT : 0;
 
     // Save for material classification
-    outMaterialFeatures = bsdfData.materialFeatures;
+    bsdfData.materialFeatures = outMaterialFeatures;
 
     // Start decompressing GBuffer
     float3 baseColor = inGBuffer0.rgb;
