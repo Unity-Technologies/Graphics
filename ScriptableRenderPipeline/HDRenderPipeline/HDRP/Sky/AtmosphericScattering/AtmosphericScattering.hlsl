@@ -82,7 +82,7 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput)
         return float4(0.0, 0.0, 0.0, 0.0);
     }
 
-    return float4(fogColor * fogFactor, fogFactor); // Premultiplied alpha
+    return float4(fogColor, fogFactor); // Premultiplied alpha
 }
 
 

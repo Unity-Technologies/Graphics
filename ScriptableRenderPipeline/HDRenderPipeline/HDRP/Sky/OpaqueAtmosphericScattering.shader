@@ -7,7 +7,7 @@ Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
             Cull   Off
             ZTest  Always
             ZWrite Off
-            Blend  One OneMinusSrcAlpha // Premultiplied Alpha
+            Blend  SrcAlpha OneMinusSrcAlpha
 
             HLSLPROGRAM
             #pragma target 4.5
