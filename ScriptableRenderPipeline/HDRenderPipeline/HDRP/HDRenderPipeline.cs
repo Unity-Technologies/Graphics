@@ -313,6 +313,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
         public HDRenderPipeline(HDRenderPipelineAsset asset)
         {
+            SetRenderingFeatures();
+
             m_Asset = asset;
             m_GPUCopy = new GPUCopy(asset.renderPipelineResources.copyChannelCS);
             EncodeBC6H.DefaultInstance = EncodeBC6H.DefaultInstance ?? new EncodeBC6H(asset.renderPipelineResources.encodeBC6HCS);
@@ -399,6 +401,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             InitializeRenderStateBlocks();
         }
 
+        void SetRenderingFeatures()
+        {
+            // HD use specific GraphicsSettings
+            GraphicsSettings.lightsUseLinearIntensity = true;
+            GraphicsSettings.lightsUseColorTemperature = true;
+
+            SupportedRenderingFeatures.active = new SupportedRenderingFeatures()
+            {
+                reflectionProbeSupportFlags = SupportedRenderingFeatures.ReflectionProbeSupportFlags.Rotation,
+                defaultMixedLightingMode = SupportedRenderingFeatures.LightmapMixedBakeMode.IndirectOnly,
+                supportedMixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeMode.IndirectOnly | SupportedRenderingFeatures.LightmapMixedBakeMode.Shadowmask,
+                supportedLightmapBakeTypes = LightmapBakeType.Baked | LightmapBakeType.Mixed | LightmapBakeType.Realtime,
+                supportedLightmapsModes = LightmapsMode.NonDirectional | LightmapsMode.CombinedDirectional,
+                rendererSupportsLightProbeProxyVolumes = true,
+                rendererSupportsMotionVectors = true,
+                rendererSupportsReceiveShadows = true,
+                rendererSupportsReflectionProbes = true
+            };
+        }
+
         void InitializeDebugMaterials()
         {
             m_DebugViewMaterialGBuffer = CoreUtils.CreateEngineMaterial(m_Asset.renderPipelineResources.debugViewMaterialGBufferShader);
@@ -452,25 +474,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SSSBufferManager.Cleanup();
             m_SkyManager.Cleanup();
 
-#if UNITY_EDITOR
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
-#endif
         }
-
-#if UNITY_EDITOR
-        static readonly SupportedRenderingFeatures s_NeededFeatures = new SupportedRenderingFeatures()
-        {
-            reflectionProbeSupportFlags = SupportedRenderingFeatures.ReflectionProbeSupportFlags.Rotation,
-            defaultMixedLightingMode = SupportedRenderingFeatures.LightmapMixedBakeMode.IndirectOnly,
-            supportedMixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeMode.IndirectOnly | SupportedRenderingFeatures.LightmapMixedBakeMode.Shadowmask,
-            supportedLightmapBakeTypes = LightmapBakeType.Baked | LightmapBakeType.Mixed | LightmapBakeType.Realtime,
-            supportedLightmapsModes = LightmapsMode.NonDirectional | LightmapsMode.CombinedDirectional,
-            rendererSupportsLightProbeProxyVolumes = true,
-            rendererSupportsMotionVectors = true,
-            rendererSupportsReceiveShadows = true,
-            rendererSupportsReflectionProbes = true
-        };
-#endif
 
         void CreateDepthStencilBuffer(HDCamera hdCamera)
         {
@@ -606,14 +611,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
             base.Render(renderContext, cameras);
-
-#if UNITY_EDITOR
-            SupportedRenderingFeatures.active = s_NeededFeatures;
-#endif
-            // HD use specific GraphicsSettings. This is init here.
-            // TODO: This should not be set at each Frame but is there another place for these config setup ?
-            GraphicsSettings.lightsUseLinearIntensity = true;
-            GraphicsSettings.lightsUseColorTemperature = true;
 
             if (m_FrameCount != Time.frameCount)
             {
