@@ -58,14 +58,18 @@ float3 GetFogColor(PositionInputs posInput)
 // Returns fog color in rgb and fog factor in alpha.
 float4 EvaluateAtmosphericScattering(PositionInputs posInput)
 {
-#if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET != 0)
-    return SampleInScatteredRadianceAndTransmittance(TEXTURE3D_PARAM(_VBufferLighting, s_trilinear_clamp_sampler),
-                                                     posInput.positionNDC, posInput.linearDepth,
-                                                     _VBufferResolution, _VBufferScaleAndSliceCount,
-                                                     _VBufferDepthEncodingParams);
-#endif
+    float3 fogColor  = 0;
+    float  fogFactor = 0;
 
-    float3 fogColor; float fogFactor;
+#if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET != 0)
+    float4 volFog = SampleInScatteredRadianceAndTransmittance(TEXTURE3D_PARAM(_VBufferLighting, s_trilinear_clamp_sampler),
+                                                              posInput.positionNDC, posInput.linearDepth,
+                                                              _VBufferResolution, _VBufferScaleAndSliceCount,
+                                                              _VBufferDepthEncodingParams);
+    fogColor  = volFog.rgb;
+    fogFactor = 1 - volFog.a;
+
+#else
 
     if (_AtmosphericScatteringType == FOGTYPE_EXPONENTIAL)
     {
@@ -79,8 +83,8 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput)
     }
     else // NONE
     {
-        return float4(0.0, 0.0, 0.0, 0.0);
     }
+#endif
 
     return float4(fogColor, fogFactor);
 }
