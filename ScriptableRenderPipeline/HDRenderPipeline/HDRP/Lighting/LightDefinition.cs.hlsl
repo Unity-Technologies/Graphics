@@ -95,8 +95,10 @@ struct LightData
 // PackingRules = Exact
 struct EnvLightData
 {
-    float3 positionWS;
+    float3 capturePositionWS;
     int envShapeType;
+    float3 positionWS;
+    int unused8;
     float3 forward;
     int envIndex;
     float3 up;
@@ -276,13 +278,21 @@ float GetMinRoughness(LightData value)
 //
 // Accessors for UnityEngine.Experimental.Rendering.HDPipeline.EnvLightData
 //
-float3 GetPositionWS(EnvLightData value)
+float3 GetCapturePositionWS(EnvLightData value)
 {
-	return value.positionWS;
+	return value.capturePositionWS;
 }
 int GetEnvShapeType(EnvLightData value)
 {
 	return value.envShapeType;
+}
+float3 GetPositionWS(EnvLightData value)
+{
+	return value.positionWS;
+}
+int GetUnused8(EnvLightData value)
+{
+	return value.unused8;
 }
 float3 GetForward(EnvLightData value)
 {

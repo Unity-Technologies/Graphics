@@ -1,8 +1,8 @@
 ﻿// SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
 #include "Lit.cs.hlsl"
-#include "../../Lighting/VolumeProjection.hlsl"
 #include "../SubsurfaceScattering/SubsurfaceScattering.hlsl"
 #include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
+#include "../../Lighting/VolumeProjection.hlsl"
 
 //-----------------------------------------------------------------------------
 // Texture and constant buffer declaration
@@ -1562,23 +1562,23 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     if (projectionShapeType == ENVSHAPETYPE_SPHERE)
     {
         float projectionDistance = IntersectSphereProxy(proxyData, dirPS, positionPS);
-        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.positionWS
-        R = (positionWS + projectionDistance * R) - lightData.positionWS;
+        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionWS
+        R = (positionWS + projectionDistance * R) - lightData.capturePositionWS;
 
         // Test again for clear coat
         if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION && HasMaterialFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
         {
             dirPS = mul(coatR, worldToPS);
             projectionDistance = IntersectSphereProxy(proxyData, dirPS, positionPS);
-            coatR = (positionWS + projectionDistance * coatR) - lightData.positionWS;
+            coatR = (positionWS + projectionDistance * coatR) - lightData.capturePositionWS;
         }
     }
     else if (projectionShapeType == ENVSHAPETYPE_BOX)
     {
         float projectionDistance = IntersectBoxProxy(proxyData, dirPS, positionPS);
         // No need to normalize for fetching cubemap
-        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.positionWS
-        R = (positionWS + projectionDistance * R) - lightData.positionWS;
+        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionWS
+        R = (positionWS + projectionDistance * R) - lightData.capturePositionWS;
 
         // TODO: add distance based roughness
 
@@ -1587,7 +1587,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         {
             dirPS = mul(coatR, worldToPS);
             projectionDistance = IntersectBoxProxy(proxyData, dirPS, positionPS);
-            coatR = (positionWS + projectionDistance * coatR) - lightData.positionWS;
+            coatR = (positionWS + projectionDistance * coatR) - lightData.capturePositionWS;
         }
     }
 

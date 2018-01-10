@@ -13,7 +13,7 @@ EnvLightData InitSkyEnvLightData(int envIndex)
     output.forward = float3(0.0, 0.0, 1.0);
     output.up = float3(0.0, 1.0, 0.0);
     output.right = float3(1.0, 0.0, 0.0);
-    output.positionWS = float3(0.0, 0.0, 0.0);
+    output.capturePositionWS = float3(0.0, 0.0, 0.0);
     output.offsetLS = float3(0.0, 0.0, 0.0);
     output.influenceExtents = float3(0.0, 0.0, 0.0);
     output.blendDistancePositive = float3(0.0, 0.0, 0.0);

@@ -10,7 +10,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         InfluenceVolume m_InfluenceVolume;
         [SerializeField]
-        Vector3 m_CaptureOffset;
+        Vector3 m_CenterOffset;
         [SerializeField]
         [Range(0, 1)]
         float m_Dimmer = 1;
@@ -22,19 +22,50 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public BoundingSphere boundingSphere { get { return m_InfluenceVolume.GetBoundingSphereAt(transform); } }
         public Texture texture { get; private set; }
         public Bounds bounds { get { return m_InfluenceVolume.GetBoundsAt(transform); } }
-        public Matrix4x4 influenceToWorld { get { return transform.localToWorldMatrix; } }
-        public Vector3 captureOffset { get { return m_CaptureOffset; } }
+        public Vector3 centerOffset { get { return m_CenterOffset; } }
         public float dimmer { get { return m_Dimmer; } }
         public ReflectionProbeMode mode { get { return m_Mode; } }
+        public Vector3 influenceRight { get { return transform.right; } }
+        public Vector3 influenceUp { get { return transform.up; } }
+        public Vector3 influenceForward { get { return transform.forward; } }
+        public Vector3 capturePosition { get { return transform.position; } }
+        public Vector3 influencePosition { get { return transform.TransformPoint(m_CenterOffset); } }
 
         #region Proxy Properties
-        public Matrix4x4 proxyToWorld
+        public Vector3 proxyRight
         {
             get
             {
-                return m_ProxyVolumeReference != null 
-                    ? m_ProxyVolumeReference.transform.localToWorldMatrix 
-                    : transform.localToWorldMatrix;
+                return m_ProxyVolumeReference != null
+                    ? m_ProxyVolumeReference.transform.right
+                    : influenceRight;
+            }
+        }
+        public Vector3 proxyUp
+        {
+            get
+            {
+                return m_ProxyVolumeReference != null
+                    ? m_ProxyVolumeReference.transform.up
+                    : influenceUp;
+            }
+        }
+        public Vector3 proxyForward
+        {
+            get
+            {
+                return m_ProxyVolumeReference != null
+                    ? m_ProxyVolumeReference.transform.forward
+                    : influenceForward;
+            }
+        }
+        public Vector3 proxyPosition
+        {
+            get
+            {
+                return m_ProxyVolumeReference != null
+                    ? m_ProxyVolumeReference.transform.position
+                    : influencePosition;
             }
         }
         public ShapeType proxyShape

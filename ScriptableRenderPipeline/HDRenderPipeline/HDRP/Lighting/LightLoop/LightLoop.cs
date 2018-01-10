@@ -467,6 +467,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             TextureFormat probeCacheFormat = gLightLoopSettings.reflectionCacheCompressed ? TextureFormat.BC6H : TextureFormat.RGBAHalf;
             m_ReflectionProbeCache = new ReflectionProbeCache(iblFilterGGX, gLightLoopSettings.reflectionProbeCacheSize, gLightLoopSettings.reflectionCubemapSize, probeCacheFormat, true);
+            m_ReflectionPlanarProbeCache = new ReflectionProbeCache(iblFilterGGX, gLightLoopSettings.reflectionProbeCacheSize, gLightLoopSettings.reflectionCubemapSize, probeCacheFormat, true);
 
             s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
 
@@ -572,6 +573,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ReflectionProbeCache.Release();
                 m_ReflectionProbeCache = null;
             }
+            if (m_ReflectionPlanarProbeCache != null)
+            {
+                m_ReflectionPlanarProbeCache.Release();
+                m_ReflectionPlanarProbeCache = null;
+            }
             if (m_CookieTexArray != null)
             {
                 m_CookieTexArray.Release();
@@ -633,6 +639,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CookieTexArray.NewFrame();
             m_CubeCookieTexArray.NewFrame();
             m_ReflectionProbeCache.NewFrame();
+            m_ReflectionPlanarProbeCache.NewFrame();
         }
 
         public bool NeedResize()
@@ -1179,14 +1186,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             envLightData.boxSideFadePositive = probe.boxSideFadePositive;
             envLightData.boxSideFadeNegative = probe.boxSideFadeNegative;
 
-            var influenceToWorld = probe.influenceToWorld;
-            envLightData.right = influenceToWorld.GetColumn(0).normalized;
-            envLightData.up = influenceToWorld.GetColumn(1).normalized;
-            envLightData.forward = influenceToWorld.GetColumn(2).normalized;
-            envLightData.positionWS = influenceToWorld.GetColumn(3);
+            envLightData.right = probe.influenceRight;
+            envLightData.up = probe.influenceUp;
+            envLightData.forward = probe.influenceForward;
+            envLightData.capturePositionWS = probe.capturePosition;
+            envLightData.offsetLS = probe.centerOffsetCaptureSpace;
+            envLightData.positionWS = probe.influencePosition;
 
             envLightData.envIndex = envIndex;
-            envLightData.offsetLS = probe.captureOffsetLS;
 
             m_lightList.envLights.Add(envLightData);
 
@@ -1196,11 +1203,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             envProxyData.extents = probe.proxyExtents;
             envProxyData.minProjectionDistance = probe.infiniteProjection ? 65504f : 0;
 
-            var proxyToWorld = probe.proxyToWorld;
-            envProxyData.right = proxyToWorld.GetColumn(0).normalized;
-            envProxyData.up = proxyToWorld.GetColumn(1).normalized;
-            envProxyData.forward = proxyToWorld.GetColumn(2).normalized;
-            envProxyData.positionWS = proxyToWorld.GetColumn(3);
+            envProxyData.right = probe.proxyRight;
+            envProxyData.up = probe.proxyUp;
+            envProxyData.forward = probe.proxyForward;
+            envProxyData.positionWS = probe.proxyPosition;
 
             m_lightList.envProxies.Add(envProxyData);
 
@@ -1212,22 +1218,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var bound = new SFiniteLightBound();
             var lightVolumeData = new LightVolumeData();
 
-            var mat = probe.influenceToWorld;
-
-            var vx = mat.GetColumn(0).normalized; // Scale shouldn't affect the probe or its bounds
-            var vy = mat.GetColumn(1).normalized;
-            var vz = mat.GetColumn(2).normalized;
-            var vw = mat.GetColumn(3);
-
             // C is reflection volume center in world space (NOT same as cube map capture point)
             var influenceExtents = probe.influenceExtents;       // 0.5f * Vector3.Max(-boxSizes[p], boxSizes[p]);
 
             // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
-            vx = worldToView.MultiplyVector(vx);
-            vy = worldToView.MultiplyVector(vy);
-            vz = worldToView.MultiplyVector(vz);
-
-            var influencePositionVS = worldToView.MultiplyPoint(vw);
+            var influenceRightVS = worldToView.MultiplyVector(probe.influenceRight);
+            var influenceUpVS = worldToView.MultiplyVector(probe.influenceUp);
+            var influenceForwardVS = worldToView.MultiplyVector(probe.influenceForward);
+            var influencePositionVS = worldToView.MultiplyPoint(probe.influencePosition);
 
             lightVolumeData.lightCategory = (uint)LightCategory.Env;
             lightVolumeData.lightVolume = (uint)lightVolumeType;
@@ -1239,14 +1237,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     lightVolumeData.lightPos = influencePositionVS;
                     lightVolumeData.radiusSq = influenceExtents.x * influenceExtents.x;
-                    lightVolumeData.lightAxisX = vx;
-                    lightVolumeData.lightAxisY = vy;
-                    lightVolumeData.lightAxisZ = vz;
+                    lightVolumeData.lightAxisX = influenceRightVS;
+                    lightVolumeData.lightAxisY = influenceUpVS;
+                    lightVolumeData.lightAxisZ = influenceForwardVS;
 
                     bound.center = influencePositionVS;
-                    bound.boxAxisX = vx * influenceExtents.x;
-                    bound.boxAxisY = vy * influenceExtents.x;
-                    bound.boxAxisZ = vz * influenceExtents.x;
+                    bound.boxAxisX = influenceRightVS * influenceExtents.x;
+                    bound.boxAxisY = influenceUpVS * influenceExtents.x;
+                    bound.boxAxisZ = influenceForwardVS * influenceExtents.x;
                     bound.scaleXY.Set(1.0f, 1.0f);
                     bound.radius = influenceExtents.x;
                     break;
@@ -1254,9 +1252,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case LightVolumeType.Box:
                 {
                     bound.center = influencePositionVS;
-                    bound.boxAxisX = influenceExtents.x * vx;
-                    bound.boxAxisY = influenceExtents.y * vy;
-                    bound.boxAxisZ = influenceExtents.z * vz;
+                    bound.boxAxisX = influenceExtents.x * influenceRightVS;
+                    bound.boxAxisY = influenceExtents.y * influenceUpVS;
+                    bound.boxAxisZ = influenceExtents.z * influenceForwardVS;
                     bound.scaleXY.Set(1.0f, 1.0f);
                     bound.radius = influenceExtents.magnitude;
 
@@ -1264,9 +1262,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     //   than a threshold to the box influence extents.
                     // So we use an arbitrary threshold here (k_BoxCullingExtentOffset)
                     lightVolumeData.lightPos = influencePositionVS;
-                    lightVolumeData.lightAxisX = vx;
-                    lightVolumeData.lightAxisY = vy;
-                    lightVolumeData.lightAxisZ = vz;
+                    lightVolumeData.lightAxisX = influenceRightVS;
+                    lightVolumeData.lightAxisY = influenceUpVS;
+                    lightVolumeData.lightAxisZ = influenceForwardVS;
                     lightVolumeData.boxInnerDist = influenceExtents - k_BoxCullingExtentThreshold;
                     lightVolumeData.boxInvRange.Set(1.0f / k_BoxCullingExtentThreshold.x, 1.0f / k_BoxCullingExtentThreshold.y, 1.0f / k_BoxCullingExtentThreshold.z);
                     break;
@@ -1636,7 +1634,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 // Caution: 'EnvLightData.positionWS' is camera-relative after this point.
                                 int n = m_lightList.envLights.Count;
                                 EnvLightData envLightData = m_lightList.envLights[n - 1];
-                                envLightData.positionWS -= camPosWS;
+                                envLightData.capturePositionWS -= camPosWS;
                                 m_lightList.envLights[n - 1] = envLightData;
 
                                 var envProjData = m_lightList.envProxies[n - 1];

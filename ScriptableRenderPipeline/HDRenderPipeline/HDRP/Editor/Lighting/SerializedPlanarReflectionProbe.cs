@@ -22,7 +22,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             proxyVolumeReference = serializedObject.Find((PlanarReflectionProbe p) => p.proxyVolumeReference);
             influenceVolume = new SerializedInfluenceVolume(serializedObject.Find((PlanarReflectionProbe p) => p.influenceVolume));
 
-            captureOffset = serializedObject.Find((PlanarReflectionProbe p) => p.captureOffset);
+            captureOffset = serializedObject.Find((PlanarReflectionProbe p) => p.centerOffset);
             dimmer = serializedObject.Find((PlanarReflectionProbe p) => p.dimmer);
             mode = serializedObject.Find((PlanarReflectionProbe p) => p.mode);
         }
