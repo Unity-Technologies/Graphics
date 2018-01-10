@@ -1,6 +1,4 @@
 using System;
-using UnityEngine;
-
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [Serializable]
@@ -39,26 +37,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // aggregateFrameSettings already contain the aggregation of RenderPipelineSettings and FrameSettings (regular and/or debug)
-        static public LightLoopSettings InitializeLightLoopSettings(Camera camera, FrameSettings aggregateFrameSettings,
-                                                                    RenderPipelineSettings renderPipelineSettings, FrameSettings frameSettings)
+        public static void InitializeLightLoopSettings(Camera camera, FrameSettings aggregateFrameSettings,
+                                                                    RenderPipelineSettings renderPipelineSettings, FrameSettings frameSettings,
+                                                                    ref LightLoopSettings dstLightLoopSettings)
         {
-            LightLoopSettings aggregate = new LightLoopSettings();
+            if (dstLightLoopSettings == null)
+                dstLightLoopSettings = new LightLoopSettings();
 
-            aggregate.enableTileAndCluster          = frameSettings.lightLoopSettings.enableTileAndCluster;
-            aggregate.enableComputeLightEvaluation  = frameSettings.lightLoopSettings.enableComputeLightEvaluation;
-            aggregate.enableComputeLightVariants    = frameSettings.lightLoopSettings.enableComputeLightVariants;
-            aggregate.enableComputeMaterialVariants = frameSettings.lightLoopSettings.enableComputeMaterialVariants;
-            aggregate.enableFptlForForwardOpaque    = frameSettings.lightLoopSettings.enableFptlForForwardOpaque;
-            aggregate.enableBigTilePrepass          = frameSettings.lightLoopSettings.enableBigTilePrepass;
+            dstLightLoopSettings.enableTileAndCluster          = frameSettings.lightLoopSettings.enableTileAndCluster;
+            dstLightLoopSettings.enableComputeLightEvaluation  = frameSettings.lightLoopSettings.enableComputeLightEvaluation;
+            dstLightLoopSettings.enableComputeLightVariants    = frameSettings.lightLoopSettings.enableComputeLightVariants;
+            dstLightLoopSettings.enableComputeMaterialVariants = frameSettings.lightLoopSettings.enableComputeMaterialVariants;
+            dstLightLoopSettings.enableFptlForForwardOpaque    = frameSettings.lightLoopSettings.enableFptlForForwardOpaque;
+            dstLightLoopSettings.enableBigTilePrepass          = frameSettings.lightLoopSettings.enableBigTilePrepass;
 
             // Deferred opaque are always using Fptl. Forward opaque can use Fptl or Cluster, transparent use cluster.
             // When MSAA is enabled we disable Fptl as it become expensive compare to cluster
             // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
-            aggregate.enableFptlForForwardOpaque = aggregate.enableFptlForForwardOpaque && aggregateFrameSettings.enableMSAA;
+            dstLightLoopSettings.enableFptlForForwardOpaque = dstLightLoopSettings.enableFptlForForwardOpaque && aggregateFrameSettings.enableMSAA;
             // If Deferred, enable Fptl. If we are forward renderer only and not using Fptl for forward opaque, disable Fptl
-            aggregate.isFptlEnabled = !aggregateFrameSettings.enableForwardRenderingOnly || aggregate.enableFptlForForwardOpaque;
-
-            return aggregate;
+            dstLightLoopSettings.isFptlEnabled = !aggregateFrameSettings.enableForwardRenderingOnly || dstLightLoopSettings.enableFptlForForwardOpaque;
         }
 
         static public void RegisterDebug(String menuName, LightLoopSettings lightLoopSettings)
