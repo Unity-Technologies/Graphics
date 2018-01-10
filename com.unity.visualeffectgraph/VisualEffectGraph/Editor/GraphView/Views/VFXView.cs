@@ -256,9 +256,6 @@ namespace UnityEditor.VFX.UI
 
             this.AddManipulator(new ParameterDropper());
 
-            var bg = new GridBackground() { name = "VFXBackgroundGrid" };
-            Insert(0, bg);
-
             m_NodeProvider = new VFXNodeProvider((d, mPos) => AddNode(d, mPos));
 
             AddStyleSheetPath("PropertyRM");
