@@ -596,7 +596,7 @@ Shader "HDRenderPipeline/LayeredLit"
 
             Cull[_CullMode]
 
-            ZWrite On // TODO: Test Z equal here.
+            ZWrite On
 
             HLSLPROGRAM
 

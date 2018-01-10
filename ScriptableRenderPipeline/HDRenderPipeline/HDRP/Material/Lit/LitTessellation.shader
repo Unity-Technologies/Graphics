@@ -485,7 +485,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
             Cull[_CullMode]
 
-            ZWrite On // TODO: Test Z equal here.
+            ZWrite On
 
             HLSLPROGRAM
 
