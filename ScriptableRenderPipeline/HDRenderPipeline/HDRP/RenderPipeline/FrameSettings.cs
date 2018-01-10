@@ -118,7 +118,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Init a FrameSettings from renderpipeline settings, frame settings and debug settings (if any)
         // This will aggregate the various option
-        public static FrameSettings InitializeFrameSettings(Camera camera, RenderPipelineSettings renderPipelineSettings, FrameSettings srcFrameSettings, ref FrameSettings dstFrameSettings)
+        public static void InitializeFrameSettings(Camera camera, RenderPipelineSettings renderPipelineSettings, FrameSettings srcFrameSettings, ref FrameSettings dstFrameSettings)
         {
             if (dstFrameSettings == null)
                 dstFrameSettings = new FrameSettings();
@@ -172,9 +172,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             dstFrameSettings.enableShadowMask = srcFrameSettings.enableShadowMask && renderPipelineSettings.supportShadowMask;
 
-            dstFrameSettings.lightLoopSettings = LightLoopSettings.InitializeLightLoopSettings(camera, dstFrameSettings, renderPipelineSettings, srcFrameSettings);
-
-            return dstFrameSettings;
+            LightLoopSettings.InitializeLightLoopSettings(camera, dstFrameSettings, renderPipelineSettings, srcFrameSettings, ref dstFrameSettings.lightLoopSettings);
         }
 
         static public void RegisterDebug(String menuName, FrameSettings frameSettings)
