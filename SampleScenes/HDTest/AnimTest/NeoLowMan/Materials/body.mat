@@ -8,11 +8,7 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: body
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
-  m_ShaderKeywords: _ALBEDOAFFECTEMISSIVE_OFF _ALPHACUTOFFENABLE_OFF _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
-    _DEPTHOFFSETENABLE_OFF _DISTORTIONENABLE_OFF _DOUBLESIDEDENABLE_OFF _EMISSION
-    _ENABLEMOTIONVECTORFORVERTEXANIMATION_OFF _ENABLESPECULAROCCLUSION_OFF _ENABLEWIND_OFF
-    _NORMALMAP_TANGENT_SPACE _PREREFRACTIONPASS_OFF _TRANSPARENTBACKFACEENABLE_OFF
-    _TRANSPARENTDEPTHPOSTPASSENABLE_OFF _TRANSPARENTDEPTHPREPASSENABLE_OFF
+  m_ShaderKeywords: _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -21,7 +17,7 @@ Material:
   disabledShaderPasses:
   - DistortionVectors
   - TransparentDepthPrepass
-  - TransparentDepthPostPass
+  - TransparentDepthPostpass
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
@@ -112,6 +108,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SubsurfaceMaskMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SubsurfaceRadiusMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -146,6 +146,7 @@ Material:
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
+    - _CoatMask: 1
     - _CullMode: 2
     - _CullModeForward: 2
     - _Cutoff: 0.5
@@ -154,6 +155,7 @@ Material:
     - _DetailNormalMapScale: 1
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
+    - _DiffusionProfile: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -220,6 +222,7 @@ Material:
     - _StencilWriteMask: 7
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
+    - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 1
     - _SubsurfaceRadius: 1
     - _SurfaceType: 0
