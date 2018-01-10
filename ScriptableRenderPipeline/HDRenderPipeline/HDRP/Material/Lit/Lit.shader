@@ -452,7 +452,7 @@ Shader "HDRenderPipeline/Lit"
 
             Cull[_CullMode]
 
-            ZWrite Off // TODO: Test Z equal here.
+            ZWrite On // TODO: Test Z equal here.
 
             HLSLPROGRAM
 
