@@ -248,3 +248,29 @@ CurvePropertyRM
 	width:40;
 	flex:0;
 }
+
+VFXEnumField Button
+{
+	height: 16;
+	slice-left: 6;
+	slice-top: 4;
+	slice-right: 14;
+	slice-bottom: 4;
+	text-color: #B4B4B4;
+	background-image: resource("Builtin Skins/DarkSkin/Images/mini popup.png");
+}
+
+VFXEnumField Button:hover
+{
+	text-color: #FFF;
+}
+
+VFXEnumField Button:hover:active
+{
+	background-image: resource("Builtin Skins/DarkSkin/Images/mini popup act.png");
+}
+
+VFXEnumField Button:focus
+{
+	background-image: resource("Builtin Skins/DarkSkin/Images/mini popup focus.png");
+}
