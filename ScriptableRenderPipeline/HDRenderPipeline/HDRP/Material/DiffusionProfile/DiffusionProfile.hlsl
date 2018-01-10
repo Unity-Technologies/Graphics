@@ -6,11 +6,11 @@
 // Evaluate Int{0, inf}{2 * Pi * r * R(sqrt(r^2 + d^2))}, where R is the diffusion profile.
 // Note: 'volumeAlbedo' should be premultiplied by 0.25.
 // Ref: Approximate Reflectance Profiles for Efficient Subsurface Scattering by Pixar (BSSRDF only).
-float3 ComputeTransmittanceDisney(float3 S, float3 volumeAlbedo, float thickness, float radiusScale)
+float3 ComputeTransmittanceDisney(float3 S, float3 volumeAlbedo, float thickness)
 {
-    // Thickness and SSS radius are decoupled for artists.
-    // In theory, we should modify the thickness by the inverse of the radius scale of the profile.
-    // thickness /= radiusScale;
+    // Thickness and SSS mask are decoupled for artists.
+    // In theory, we should modify the thickness by the inverse of the mask scale of the profile.
+    // thickness /= subsurfaceMask;
 
 #if 0
     float3 expOneThird = exp(((-1.0 / 3.0) * thickness) * S);
@@ -31,11 +31,11 @@ float3 ComputeTransmittanceDisney(float3 S, float3 volumeAlbedo, float thickness
 // and 'halfRcpVariance1' should be prescaled by (0.1 * DiffusionProfileConstants.SSS_BASIC_DISTANCE_SCALE)^2.
 float3 ComputeTransmittanceJimenez(float3 halfRcpVariance1, float lerpWeight1,
                                    float3 halfRcpVariance2, float lerpWeight2,
-                                   float3 volumeAlbedo, float thickness, float radiusScale)
+                                   float3 volumeAlbedo, float thickness)
 {
-    // Thickness and SSS radius are decoupled for artists.
-    // In theory, we should modify the thickness by the inverse of the radius scale of the profile.
-    // thickness /= radiusScale;
+    // Thickness and SSS mask are decoupled for artists.
+    // In theory, we should modify the thickness by the inverse of the mask scale of the profile.
+    // thickness /= subsurfaceMask;
 
     float t2 = thickness * thickness;
 

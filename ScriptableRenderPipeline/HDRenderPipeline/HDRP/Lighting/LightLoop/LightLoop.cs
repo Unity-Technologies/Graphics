@@ -240,7 +240,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             None,
             Tile,
             Cluster,
-            FeatureVariants
+            MaterialFeatureVariants
         };
 
         public enum TileClusterCategoryDebug : int
@@ -1988,6 +1988,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         cmd.SetGlobalBuffer(HDShaderIDs.g_logBaseBuffer, s_PerTileLogBaseTweak);
                     }
+
+                    // Set up clustered lighting for volumetrics.
+                    cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, s_PerVoxelLightLists);
                 }
             }
         }
@@ -2211,7 +2214,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
 
                     // Debug tiles
-                    if (lightingDebug.tileClusterDebug == LightLoop.TileClusterDebug.FeatureVariants)
+                    if (lightingDebug.tileClusterDebug == LightLoop.TileClusterDebug.MaterialFeatureVariants)
                     {
                         if (GetFeatureVariantsEnabled())
                         {

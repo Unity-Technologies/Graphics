@@ -168,8 +168,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         if (mat.HasProperty("_SubsurfaceProfile"))
                         {
                             CheckOutFile(VSCEnabled, mat);
-                            float value = mat.GetInt("_DiffusionProfile");
-                            mat.SetInt("_DiffusionProfile", 0);
+                            //float value = mat.GetInt("_DiffusionProfile");
+                            //mat.SetInt("_DiffusionProfile", 0);
 
                             EditorUtility.SetDirty(mat);
                         }
@@ -198,8 +198,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                 if (mat.HasProperty("_SubsurfaceProfile" + x))
                                 {
                                     CheckOutFile(VSCEnabled, mat);
-                                    float value = mat.GetInt("_DiffusionProfile" + x);
-                                    mat.SetInt("_DiffusionProfile" + x, 0);
+                                    //float value = mat.GetInt("_DiffusionProfile" + x);
+                                    //mat.SetInt("_DiffusionProfile" + x, 0);
 
                                     EditorUtility.SetDirty(mat);
                                 }
@@ -272,7 +272,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("GameObject/Render Pipeline/High Definition/Scene Settings", priority = 10)]
+        [MenuItem("GameObject/Render Pipeline/High Definition/Scene Settings", priority = CoreUtils.gameObjectMenuPriority)]
         static void CreateCustomGameObject(MenuCommand menuCommand)
         {
             var sceneSettings = new GameObject("Scene Settings");
@@ -281,12 +281,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Selection.activeObject = sceneSettings;
 
             var profile = VolumeProfileFactory.CreateVolumeProfile(sceneSettings.scene, "Scene Settings");
-            profile.Add<HDShadowSettings>(true);
-            var visualEnv = profile.Add<VisualEnvironment>(true);
+            VolumeProfileFactory.CreateVolumeComponent<HDShadowSettings>(profile, true, false);
+            var visualEnv = VolumeProfileFactory.CreateVolumeComponent<VisualEnvironment>(profile, true, false);
             visualEnv.skyType.value = SkySettings.GetUniqueID<ProceduralSky>();
             visualEnv.fogType.value = FogType.Exponential;
-            profile.Add<ProceduralSky>(true);
-            profile.Add<ExponentialFog>(true);
+            VolumeProfileFactory.CreateVolumeComponent<ProceduralSky>(profile, true, false);
+            VolumeProfileFactory.CreateVolumeComponent<ExponentialFog>(profile, true, true);
 
             var volume = sceneSettings.AddComponent<Volume>();
             volume.isGlobal = true;

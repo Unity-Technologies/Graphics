@@ -2,10 +2,16 @@
 #define UNITY_ATMOSPHERIC_SCATTERING_INCLUDED
 
 #include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
+#include "CoreRP/ShaderLibrary/Filtering.hlsl"
 
 #include "AtmosphericScattering.cs.hlsl"
 #include "../SkyVariables.hlsl"
 #include "../../ShaderVariables.hlsl"
+#include "../../Lighting/VBuffer.hlsl"
+
+#if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET != 0)
+TEXTURE3D(_VBufferLighting);
+#endif
 
 CBUFFER_START(AtmosphericScattering)
 float   _AtmosphericScatteringType;
@@ -52,23 +58,35 @@ float3 GetFogColor(PositionInputs posInput)
 // Returns fog color in rgb and fog factor in alpha.
 float4 EvaluateAtmosphericScattering(PositionInputs posInput)
 {
+    float3 fogColor  = 0;
+    float  fogFactor = 0;
+
+#if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET != 0)
+    float4 volFog = SampleInScatteredRadianceAndTransmittance(TEXTURE3D_PARAM(_VBufferLighting, s_trilinear_clamp_sampler),
+                                                              posInput.positionNDC, posInput.linearDepth,
+                                                              _VBufferResolution, _VBufferScaleAndSliceCount,
+                                                              _VBufferDepthEncodingParams);
+    fogColor  = volFog.rgb;
+    fogFactor = 1 - volFog.a;
+
+#else
+
     if (_AtmosphericScatteringType == FOGTYPE_EXPONENTIAL)
     {
-        float3 fogColor = GetFogColor(posInput);
-        float fogFactor = _FogDensity * (1.0f - Transmittance(OpticalDepthHomogeneous(1.0f / _ExpFogDistance, posInput.linearDepth)));
-        return float4(fogColor, fogFactor);
+        fogColor  = GetFogColor(posInput);
+        fogFactor = _FogDensity * (1.0f - TransmittanceHomogeneousMedium(1.0f / _ExpFogDistance, posInput.linearDepth));
     }
     else if (_AtmosphericScatteringType == FOGTYPE_LINEAR)
     {
-        float3 fogColor = GetFogColor(posInput);
-        float fogFactor = _FogDensity * saturate((posInput.linearDepth - _LinearFogStart) * _LinearFogOneOverRange);
-        return float4(fogColor, fogFactor);
+        fogColor  = GetFogColor(posInput);
+        fogFactor = _FogDensity * saturate((posInput.linearDepth - _LinearFogStart) * _LinearFogOneOverRange);
     }
     else // NONE
     {
-        return float4(0.0, 0.0, 0.0, 0.0);
     }
-}
+#endif
 
+    return float4(fogColor, fogFactor);
+}
 
 #endif

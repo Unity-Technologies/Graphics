@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine.Assertions;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -87,10 +88,27 @@ namespace UnityEngine.Experimental.Rendering
             return false;
         }
 
+        public bool HasSubclassOf(Type type)
+        {
+            foreach (var component in components)
+            {
+                if (component.GetType().IsSubclassOf(type))
+                    return true;
+            }
+
+            return false;
+        }
+
         public bool TryGet<T>(out T component)
             where T : VolumeComponent
         {
             var type = typeof(T);
+            return TryGet(type, out component);
+        }
+
+        public bool TryGet<T>(Type type, out T component)
+            where T : VolumeComponent
+        {
             component = null;
 
             foreach (var comp in components)
@@ -103,6 +121,38 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             return false;
+        }
+
+        public bool TryGetSubclassOf<T>(Type type, out T component)
+            where T : VolumeComponent
+        {
+            component = null;
+
+            foreach (var comp in components)
+            {
+                if (comp.GetType().IsSubclassOf(type))
+                {
+                    component = (T)comp;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public bool TryGetAllSubclassOf<T>(Type type, List<T> result)
+            where T : VolumeComponent
+        {
+            Assert.IsNotNull(components);
+            int count = result.Count;
+
+            foreach (var comp in components)
+            {
+                if (comp.GetType().IsSubclassOf(type))
+                    result.Add((T)comp);
+            }
+
+            return count != result.Count;
         }
     }
 }
