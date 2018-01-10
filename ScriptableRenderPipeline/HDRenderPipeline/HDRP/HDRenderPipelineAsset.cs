@@ -1,4 +1,6 @@
-﻿namespace UnityEngine.Experimental.Rendering.HDPipeline
+﻿using UnityEngine.Serialization;
+
+namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     // The HDRenderPipeline assumes linear lighting. Doesn't work with gamma.
     public class HDRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
@@ -22,13 +24,14 @@
 
         // To be able to turn on/off FrameSettings properties at runtime for debugging purpose without affecting the original one
         // we create a runtime copy (m_ActiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
-        public FrameSettings serializedFrameSettings = new FrameSettings(); // This are the defaultFrameSettings for all the camera and apply to sceneView, public to be visible in the inspector
+        [SerializeField]
+        [FormerlySerializedAs("serializedFrameSettings")]
+        FrameSettings m_FrameSettings = new FrameSettings(); // This are the defaultFrameSettings for all the camera and apply to sceneView, public to be visible in the inspector
         // Not serialized, not visible, the settings effectively used
-        FrameSettings m_FrameSettings = new FrameSettings();
-
+        FrameSettings m_FrameSettingsRuntime = new FrameSettings();
         public FrameSettings GetFrameSettings()
         {
-            return m_FrameSettings;
+            return m_FrameSettingsRuntime;
         }
 
         // Store the various RenderPipelineSettings for each platform (for now only one)
@@ -96,7 +99,7 @@
         {
             // Modification of defaultFrameSettings in the inspector will call OnValidate().
             // We do a copy of the settings to those effectively used
-            serializedFrameSettings.CopyTo(m_FrameSettings);
+            m_FrameSettings.CopyTo(m_FrameSettingsRuntime);
         }
     }
 }

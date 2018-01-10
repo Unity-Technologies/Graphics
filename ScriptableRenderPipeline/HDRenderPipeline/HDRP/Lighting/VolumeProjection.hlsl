@@ -20,7 +20,7 @@ float3 WorldToProjectionPosition(EnvProxyData proxyData, float3x3 worldToLS, flo
 float IntersectSphereProxy(EnvProxyData proxyData, float3 dirPS, float3 positionPS)
 {
     float sphereOuterDistance = proxyData.extents.x;
-    float projectionDistance = SphereRayIntersectSimple(positionPS, dirPS, sphereOuterDistance);
+    float projectionDistance = IntersectRaySphereSimple(positionPS, dirPS, sphereOuterDistance);
     projectionDistance = max(projectionDistance, proxyData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
 
     return projectionDistance;
@@ -29,7 +29,7 @@ float IntersectSphereProxy(EnvProxyData proxyData, float3 dirPS, float3 position
 float IntersectBoxProxy(EnvProxyData proxyData, float3 dirPS, float3 positionPS)
 {
     float3 boxOuterDistance = proxyData.extents;
-    float projectionDistance = BoxRayIntersectSimple(positionPS, dirPS, -boxOuterDistance, boxOuterDistance);
+    float projectionDistance = IntersectRayAABBSimple(positionPS, dirPS, -boxOuterDistance, boxOuterDistance);
     projectionDistance = max(projectionDistance, proxyData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
 
     return projectionDistance;

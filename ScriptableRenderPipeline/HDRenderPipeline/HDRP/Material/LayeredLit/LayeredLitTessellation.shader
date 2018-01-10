@@ -237,7 +237,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         [Enum(Flip, 0, Mirror, 1)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
-    	[Enum(Subsurface Scattering, 0, Standard, 1)] _MaterialID("MaterialId", Int) = 1 // MaterialId.RegularLighting
+        [Enum(Subsurface Scattering, 0, Standard, 1)] _MaterialID("MaterialId", Int) = 1
         [Enum(None, 0, Tessellation displacement, 3)] _DisplacementMode("DisplacementMode", Int) = 3
         [ToggleOff] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0
         [ToggleOff] _DisplacementLockTilingScale("displacement lock tiling scale", Float) = 1.0
@@ -399,9 +399,9 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
     #pragma shader_feature _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
     #pragma shader_feature _ENABLE_FOG_ON_TRANSPARENT
 
-    // MaterialId are used as shader feature to allow compiler to optimize properly
-    // Note _MATID_STANDARD is not define as there is always the default case "_". We assign default as _MATID_STANDARD, so we never test _MATID_STANDARD
-    #pragma shader_feature _ _MATID_SSS
+    // MaterialFeature are used as shader feature to allow compiler to optimize properly
+    #pragma shader_feature _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+    #pragma shader_feature _MATERIAL_FEATURE_TRANSMISSION
 
     // enable dithering LOD crossfade
     #pragma multi_compile _ LOD_FADE_CROSSFADE
@@ -421,7 +421,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
     #define HAVE_TESSELLATION_MODIFICATION
 
     // If we use subsurface scattering, enable output split lighting (for forward pass)
-    #if defined(_MATID_SSS) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    #if defined(_MATERIAL_FEATURE_SUBSURFACE_SCATTERING) && !defined(_SURFACE_TYPE_TRANSPARENT)
     #define OUTPUT_SPLIT_LIGHTING
     #endif
 
@@ -778,5 +778,5 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         }
     }
 
-    CustomEditor "Experimental.Rendering.HDPipeline.LayeredLitGUI"
+    CustomEditor "UnityEditor.Experimental.Rendering.HDPipeline.LayeredLitGUI"
 }

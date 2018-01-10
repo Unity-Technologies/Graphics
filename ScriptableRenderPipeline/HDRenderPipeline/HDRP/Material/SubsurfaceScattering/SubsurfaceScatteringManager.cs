@@ -122,7 +122,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Broadcast SSS parameters to all shaders.
             cmd.SetGlobalInt(HDShaderIDs._EnableSubsurfaceScattering, frameSettings.enableSubsurfaceScattering ? 1 : 0);
-            cmd.SetGlobalFloat(HDShaderIDs._TransmittanceMultiplier, frameSettings.enableTransmission ? 1.0f : 0.0f);
             unsafe
             {
                 // Warning: Unity is not able to losslessly transfer integers larger than 2^24 to the shader system.
@@ -135,7 +134,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalVectorArray(HDShaderIDs._ThicknessRemaps, sssParameters.thicknessRemaps);
             cmd.SetGlobalVectorArray(HDShaderIDs._ShapeParams, sssParameters.shapeParams);
             cmd.SetGlobalVectorArray(HDShaderIDs._HalfRcpVariancesAndWeights, sssParameters.halfRcpVariancesAndWeights);
-            cmd.SetGlobalVectorArray(HDShaderIDs._TransmissionTintsAndFresnel0, sssParameters.transmissionTintsAndFresnel0);
+            // To disable transmission, we simply nullify the transmissionTint
+            cmd.SetGlobalVectorArray(HDShaderIDs._TransmissionTintsAndFresnel0, frameSettings.enableTransmission ? sssParameters.transmissionTintsAndFresnel0 : sssParameters.disabledTransmissionTintsAndFresnel0);
             cmd.SetGlobalVectorArray(HDShaderIDs._WorldScales, sssParameters.worldScales);
         }
 

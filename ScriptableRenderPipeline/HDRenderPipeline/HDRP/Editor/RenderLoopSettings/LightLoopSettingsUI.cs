@@ -37,6 +37,8 @@ namespace UnityEditor.Experimental.Rendering
             if (EditorGUILayout.BeginFadeGroup(s.isSectionExpandedEnableTileAndCluster.faded))
             {
                 EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(p.isFptlEnabled, _.GetContent("Enable FPTL"));
+                EditorGUILayout.PropertyField(p.enableFptlForForwardOpaque, _.GetContent("Enable FPTL For Forward Opaque"));
                 EditorGUILayout.PropertyField(p.enableBigTilePrepass, _.GetContent("Enable Big Tile Prepass"));
                 EditorGUILayout.PropertyField(p.enableComputeLightEvaluation, _.GetContent("Enable Compute Light Evaluation"));
                 GUILayout.BeginVertical();
@@ -53,11 +55,6 @@ namespace UnityEditor.Experimental.Rendering
             }
             EditorGUILayout.EndFadeGroup();
             GUILayout.EndVertical();
-
-            EditorGUILayout.PropertyField(p.isFptlEnabled, _.GetContent("Enable FPTL"));
-            // Allow to disable cluster for forward opaque when in forward only (option have no effect when MSAA is enabled)
-            // Deferred opaque are always tiled
-            EditorGUILayout.PropertyField(p.enableFptlForForwardOpaque, _.GetContent("Enable FPTL For Forward Opaque"));
         }
     }
 }

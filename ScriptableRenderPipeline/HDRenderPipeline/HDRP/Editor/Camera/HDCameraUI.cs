@@ -78,7 +78,7 @@ namespace UnityEditor.Experimental.Rendering
                 FrameSettingsUI.SectionRenderingSettings,
                 FrameSettingsUI.SectionLightingSettings),
             CED.Select(
-                (s, d, o) => s.frameSettingsUI.lightLoopSettingsUI,
+                (s, d, o) => s.frameSettingsUI.lightLoopSettings,
                 (s, d, o) => d.frameSettings.lightLoopSettings,
                 LightLoopSettingsUI.SectionLightLoopSettings));
 

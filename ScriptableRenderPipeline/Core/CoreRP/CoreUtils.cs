@@ -49,6 +49,7 @@ namespace UnityEngine.Experimental.Rendering
         public const int editMenuPriority2 = 331;
         public const int assetCreateMenuPriority1 = 230;
         public const int assetCreateMenuPriority2 = 241;
+        public const int gameObjectMenuPriority = 10;
 
         static Cubemap m_BlackCubeTexture;
         public static Cubemap blackCubeTexture
