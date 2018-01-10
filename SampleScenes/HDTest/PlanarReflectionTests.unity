@@ -44,7 +44,7 @@ RenderSettings:
 LightmapSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 11
-  m_GIWorkflowMode: 0
+  m_GIWorkflowMode: 1
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -3932,7 +3932,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a4ee7c3a3b205a14a94094d01ff91d6b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_ProjectionVolumeReference: {fileID: 1654939277}
+  m_ProxyVolumeReference: {fileID: 0}
   m_InfluenceVolume:
     m_ShapeType: 0
     m_BoxBaseSize: {x: 1.7052255, y: 0.9908645, z: 0.95528436}
@@ -3943,10 +3943,13 @@ MonoBehaviour:
     m_BoxInfluenceNormalNegativeFade: {x: 0, y: 0.07764101, z: 0}
     m_BoxPositiveFaceFade: {x: 0, y: 0, z: 0}
     m_BoxNegativeFaceFade: {x: 0, y: 0, z: 0}
-    m_SphereBaseRadius: 0.9066355
-    m_SphereBaseOffset: {x: 0, y: -0.09336448, z: 0}
-    m_SphereInfluenceFade: 0
-    m_SphereInfluenceNormalFade: 0
+    m_SphereBaseRadius: 1.0270488
+    m_SphereBaseOffset: {x: 0, y: 0, z: 0}
+    m_SphereInfluenceFade: 0.14740431
+    m_SphereInfluenceNormalFade: 0.18656206
+  m_CaptureOffset: {x: 0, y: 0, z: 0}
+  m_Dimmer: 1
+  m_Mode: 0
 --- !u!1 &1562837666
 GameObject:
   m_ObjectHideFlags: 0

@@ -35,6 +35,12 @@
 #define ENVCONSTANTS_SPEC_CUBE_LOD_STEP (6)
 
 //
+// UnityEngine.Experimental.Rendering.HDPipeline.EnvCacheType:  static fields
+//
+#define ENVCACHETYPE_TEXTURE2D (0)
+#define ENVCACHETYPE_CUBEMAP (1)
+
+//
 // UnityEngine.Experimental.Rendering.HDPipeline.StencilLightingUsage:  static fields
 //
 #define STENCILLIGHTINGUSAGE_NO_LIGHTING (0)
@@ -115,9 +121,9 @@ struct EnvLightData
     float unused7;
 };
 
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.EnvProjData
+// Generated from UnityEngine.Experimental.Rendering.HDPipeline.EnvProxyData
 // PackingRules = Exact
-struct EnvProjData
+struct EnvProxyData
 {
     float3 positionWS;
     int envShapeType;
@@ -368,45 +374,45 @@ float GetUnused7(EnvLightData value)
 }
 
 //
-// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.EnvProjData
+// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.EnvProxyData
 //
-float3 GetPositionWS(EnvProjData value)
+float3 GetPositionWS(EnvProxyData value)
 {
 	return value.positionWS;
 }
-int GetEnvShapeType(EnvProjData value)
+int GetEnvShapeType(EnvProxyData value)
 {
 	return value.envShapeType;
 }
-float3 GetForward(EnvProjData value)
+float3 GetForward(EnvProxyData value)
 {
 	return value.forward;
 }
-float GetMinProjectionDistance(EnvProjData value)
+float GetMinProjectionDistance(EnvProxyData value)
 {
 	return value.minProjectionDistance;
 }
-float3 GetUp(EnvProjData value)
+float3 GetUp(EnvProxyData value)
 {
 	return value.up;
 }
-int GetUnused00(EnvProjData value)
+int GetUnused00(EnvProxyData value)
 {
 	return value.unused00;
 }
-float3 GetRight(EnvProjData value)
+float3 GetRight(EnvProxyData value)
 {
 	return value.right;
 }
-int GetUnused01(EnvProjData value)
+int GetUnused01(EnvProxyData value)
 {
 	return value.unused01;
 }
-float3 GetExtents(EnvProjData value)
+float3 GetExtents(EnvProxyData value)
 {
 	return value.extents;
 }
-int GetUnused02(EnvProjData value)
+int GetUnused02(EnvProxyData value)
 {
 	return value.unused02;
 }

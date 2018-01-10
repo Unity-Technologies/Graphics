@@ -4,6 +4,7 @@ using UnityEditor.IMGUI.Controls;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering
@@ -12,7 +13,7 @@ namespace UnityEditor.Experimental.Rendering
     {
         const int k_AnimBoolSingleFieldCount = 4;
         static readonly int k_ReflectionProbeModeCount = Enum.GetValues(typeof(ReflectionProbeMode)).Length;
-        static readonly int k_ReflectionInfluenceShapeCount = Enum.GetValues(typeof(ReflectionInfluenceShape)).Length;
+        static readonly int k_ReflectionInfluenceShapeCount = Enum.GetValues(typeof(ShapeType)).Length;
         static readonly int k_AnimBoolsCount = k_ReflectionProbeModeCount + k_ReflectionInfluenceShapeCount + k_AnimBoolSingleFieldCount;
 
         [Flags]
@@ -85,7 +86,7 @@ namespace UnityEditor.Experimental.Rendering
                 GetReflectionProbeModeBool(i).target = i == value;
         }
 
-        public AnimBool IsSectionExpandedShape(ReflectionInfluenceShape value)
+        public AnimBool IsSectionExpandedShape(ShapeType value)
         {
             return m_AnimBools[k_AnimBoolSingleFieldCount + k_ReflectionProbeModeCount + (int)value];
         }

@@ -40,7 +40,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             base.Update();
         }
 
-        public static void DrawHandles(ProjectionVolumeComponent target, ProjectionVolumeComponentUI ui)
+        public static void DrawHandles(ProxyVolumeComponent target, ProjectionVolumeComponentUI ui)
         {
             ProjectionVolumeUI.DrawHandles(target.transform, target.projectionVolume, ui.projectionVolume, target);
         }

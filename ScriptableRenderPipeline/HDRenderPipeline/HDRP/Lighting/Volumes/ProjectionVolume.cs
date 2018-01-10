@@ -34,5 +34,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float sphereRadius { get { return m_SphereRadius; } set { m_SphereRadius = value; } }
         public Vector3 sphereOffset { get { return m_SphereOffset; } set { m_SphereOffset = value; } }
         public bool sphereInfiniteProjection { get { return m_SphereInfiniteProjection; } }
+
+        public bool infiniteProjection
+        {
+            get
+            {
+                return shapeType == ShapeType.Box && boxInfiniteProjection
+                    || shapeType == ShapeType.Sphere && sphereInfiniteProjection;
+            }
+        }
     }
 }

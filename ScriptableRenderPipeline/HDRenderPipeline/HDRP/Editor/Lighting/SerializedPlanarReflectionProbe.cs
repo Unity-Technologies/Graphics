@@ -1,4 +1,6 @@
-﻿using UnityEngine.Experimental.Rendering.HDPipeline;
+﻿using UnityEngine;
+using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -6,15 +8,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         public SerializedObject serializedObject;
 
-        public SerializedProperty projectionVolumeReference;
+        public SerializedProperty proxyVolumeReference;
         public SerializedInfluenceVolume influenceVolume;
+
+        public SerializedProperty captureOffset;
+        public SerializedProperty dimmer;
+        public SerializedProperty mode;
 
         public SerializedPlanarReflectionProbe(SerializedObject serializedObject)
         {
             this.serializedObject = serializedObject;
 
-            projectionVolumeReference = serializedObject.Find((PlanarReflectionProbe p) => p.projectionVolumeReference);
+            proxyVolumeReference = serializedObject.Find((PlanarReflectionProbe p) => p.proxyVolumeReference);
             influenceVolume = new SerializedInfluenceVolume(serializedObject.Find((PlanarReflectionProbe p) => p.influenceVolume));
+
+            captureOffset = serializedObject.Find((PlanarReflectionProbe p) => p.captureOffset);
+            dimmer = serializedObject.Find((PlanarReflectionProbe p) => p.dimmer);
+            mode = serializedObject.Find((PlanarReflectionProbe p) => p.mode);
         }
 
         public void Update()

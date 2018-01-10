@@ -1,7 +1,7 @@
-﻿namespace UnityEngine.Experimental.Rendering
-{
-    public enum ReflectionInfluenceShape { Box, Sphere };
+﻿using UnityEngine.Experimental.Rendering.HDPipeline;
 
+namespace UnityEngine.Experimental.Rendering
+{
     [RequireComponent(typeof(ReflectionProbe), typeof(MeshFilter), typeof(MeshRenderer))]
     public class HDAdditionalReflectionData : MonoBehaviour
     {
@@ -11,7 +11,7 @@
         float m_Version = 1.0f;
 #pragma warning restore 414
 
-        public ReflectionInfluenceShape influenceShape;
+        public ShapeType influenceShape;
         [Range(0.0f,1.0f)]
         public float dimmer = 1.0f;
         public float influenceSphereRadius = 3.0f;

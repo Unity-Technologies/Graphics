@@ -5,32 +5,32 @@
 #define ENVMAP_FEATURE_PERFACEFADE
 #define ENVMAP_FEATURE_INFLUENCENORMAL
 
-float3x3 WorldToProjectionSpace(EnvProjData projData)
+float3x3 WorldToProxySpace(EnvProxyData proxyData)
 {
-    return transpose(float3x3(projData.right, projData.up, projData.forward)); // worldToLocal assume no scaling
+    return transpose(float3x3(proxyData.right, proxyData.up, proxyData.forward)); // worldToLocal assume no scaling
 }
 
-float3 WorldToProjectionPosition(EnvProjData projData, float3x3 worldToLS, float3 positionWS)
+float3 WorldToProjectionPosition(EnvProxyData proxyData, float3x3 worldToLS, float3 positionWS)
 {
-    float3 positionLS = positionWS - projData.positionWS;
+    float3 positionLS = positionWS - proxyData.positionWS;
     positionLS = mul(positionLS, worldToLS).xyz;
     return positionLS;
 }
 
-float IntersectSphereProxy(EnvProjData projData, float3 dirPS, float3 positionPS)
+float IntersectSphereProxy(EnvProxyData proxyData, float3 dirPS, float3 positionPS)
 {
-    float sphereOuterDistance = projData.extents.x;
+    float sphereOuterDistance = proxyData.extents.x;
     float projectionDistance = SphereRayIntersectSimple(positionPS, dirPS, sphereOuterDistance);
-    projectionDistance = max(projectionDistance, projData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
+    projectionDistance = max(projectionDistance, proxyData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
 
     return projectionDistance;
 }
 
-float IntersectBoxProxy(EnvProjData projData, float3 dirPS, float3 positionPS)
+float IntersectBoxProxy(EnvProxyData proxyData, float3 dirPS, float3 positionPS)
 {
-    float3 boxOuterDistance = projData.extents;
+    float3 boxOuterDistance = proxyData.extents;
     float projectionDistance = BoxRayIntersectSimple(positionPS, dirPS, -boxOuterDistance, boxOuterDistance);
-    projectionDistance = max(projectionDistance, projData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
+    projectionDistance = max(projectionDistance, proxyData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
 
     return projectionDistance;
 }

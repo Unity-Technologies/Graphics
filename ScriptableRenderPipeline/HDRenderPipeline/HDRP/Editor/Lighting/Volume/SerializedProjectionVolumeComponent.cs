@@ -12,7 +12,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             this.serializedObject = serializedObject;
 
-            projectionVolume = new SerializedProjectionVolume(serializedObject.Find((ProjectionVolumeComponent c) => c.projectionVolume));
+            projectionVolume = new SerializedProjectionVolume(serializedObject.Find((ProxyVolumeComponent c) => c.projectionVolume));
         }
 
         public void Update()

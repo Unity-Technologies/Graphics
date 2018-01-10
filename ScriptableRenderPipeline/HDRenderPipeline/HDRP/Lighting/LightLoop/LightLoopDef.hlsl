@@ -35,7 +35,7 @@ StructuredBuffer<float> g_logBaseBuffer;            // don't support Buffer yet 
 StructuredBuffer<DirectionalLightData> _DirectionalLightDatas;
 StructuredBuffer<LightData>            _LightDatas;
 StructuredBuffer<EnvLightData>         _EnvLightDatas;
-StructuredBuffer<EnvProjData>          _EnvProjDatas;
+StructuredBuffer<EnvProxyData>         _EnvProxyDatas;
 StructuredBuffer<ShadowData>           _ShadowDatas;
 
 // Used by directional and spot lights
@@ -45,7 +45,8 @@ TEXTURE2D_ARRAY(_CookieTextures);
 TEXTURECUBE_ARRAY_ABSTRACT(_CookieCubeTextures);
 
 // Use texture array for reflection (or LatLong 2D array for mobile)
-TEXTURECUBE_ARRAY_ABSTRACT(_EnvTextures);
+TEXTURECUBE_ARRAY_ABSTRACT(_EnvCubemapTextures);
+TEXTURE2D_ARRAY(_Env2DTextures);
 
 TEXTURE2D(_DeferredShadowTexture);
 
@@ -94,10 +95,18 @@ float3 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, int ind
 // EnvIndex can also be use to fetch in another array of struct (to  atlas information etc...).
 float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod)
 {
+    // 31 bit index, 1 bit cache type
+    uint cacheType = index & 1;
+    index = index >> 1;
+
     // This code will be inlined as lightLoopContext is hardcoded in the light loop
     if (lightLoopContext.sampleReflection == SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES)
     {
-        return SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvTextures, s_trilinear_clamp_sampler, texCoord, index, lod);
+        if (index == ENVCACHETYPE_TEXTURE2D)
+            return SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, texCoord.xy, index, lod);
+        else if (index == ENVCACHETYPE_CUBEMAP)
+            return SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, texCoord, index, lod);
+        return float4(0, 0, 0, 0);
     }
     else // SINGLE_PASS_SAMPLE_SKY
     {
