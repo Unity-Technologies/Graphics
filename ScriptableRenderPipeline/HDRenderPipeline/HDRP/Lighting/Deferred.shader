@@ -63,9 +63,9 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             // variable declaration
             //-------------------------------------------------------------------------------------
 
-            #ifdef SHADOWS_SHADOWMASK
+        #ifdef SHADOWS_SHADOWMASK
             TEXTURE2D(_ShadowMaskTexture);
-            #endif
+        #endif
 
             struct Attributes
             {
