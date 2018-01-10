@@ -75,7 +75,7 @@ namespace UnityEditor.VFX.UI
         public override INotifyValueChanged<long> CreateField()
         {
             Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
-            if (range == Vector2.zero)
+            if (range == Vector2.zero || range.y == Mathf.Infinity)
             {
                 var field = new LabeledField<IntegerField, long>(m_Label);
                 field.control.dynamicUpdate = true;
@@ -91,6 +91,29 @@ namespace UnityEditor.VFX.UI
                 return field;
             }
         }
+
+        public override object FilterValue(object value)
+        {
+            Vector2 range = VFXPropertyAttribute.FindRange(m_Provider.attributes);
+
+            if (range != Vector2.zero && (uint)range.x < (uint)range.y)
+            {
+                uint val = (uint)value;
+
+                if (range.x > val)
+                {
+                    val = (uint)range.x;
+                }
+                if (range.y < val)
+                {
+                    val = (uint)range.y;
+                }
+
+                value = val;
+            }
+
+            return value;
+        }
     }
 
     class IntPropertyRM : SimpleUIPropertyRM<int, long>
@@ -102,7 +125,7 @@ namespace UnityEditor.VFX.UI
         public override INotifyValueChanged<long> CreateField()
         {
             Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
-            if (range == Vector2.zero)
+            if (range == Vector2.zero || range.y == Mathf.Infinity)
             {
                 var field = new LabeledField<IntegerField, long>(m_Label);
                 field.control.dynamicUpdate = true;
@@ -117,6 +140,29 @@ namespace UnityEditor.VFX.UI
                 field.control.range = range;
                 return field;
             }
+        }
+
+        public override object FilterValue(object value)
+        {
+            Vector2 range = VFXPropertyAttribute.FindRange(m_Provider.attributes);
+
+            if (range != Vector2.zero && (int)range.x < (int)range.y)
+            {
+                int val = (int)value;
+
+                if (range.x > val)
+                {
+                    val = (int)range.x;
+                }
+                if (range.y < val)
+                {
+                    val = (int)range.y;
+                }
+
+                value = val;
+            }
+
+            return value;
         }
 
         public override float GetPreferredControlWidth()
@@ -149,9 +195,9 @@ namespace UnityEditor.VFX.UI
 
         public override INotifyValueChanged<float> CreateField()
         {
-            Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
+            Vector2 range = VFXPropertyAttribute.FindRange(m_Provider.attributes);
 
-            if (range == Vector2.zero)
+            if (range == Vector2.zero || range.y == Mathf.Infinity)
             {
                 var field = new LabeledField<FloatField, float>(m_Label);
                 field.control.dynamicUpdate = true;
@@ -163,6 +209,29 @@ namespace UnityEditor.VFX.UI
                 field.control.range = range;
                 return field;
             }
+        }
+
+        public override object FilterValue(object value)
+        {
+            Vector2 range = VFXPropertyAttribute.FindRange(m_Provider.attributes);
+
+            if (range != Vector2.zero && range.x < range.y)
+            {
+                float val = (float)value;
+
+                if (range.x > val)
+                {
+                    val = range.x;
+                }
+                if (range.y < val)
+                {
+                    val = range.y;
+                }
+
+                value = val;
+            }
+
+            return value;
         }
 
         public override float GetPreferredControlWidth()

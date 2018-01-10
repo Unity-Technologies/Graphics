@@ -260,9 +260,16 @@ namespace UnityEditor.VFX.UI
             return System.Activator.CreateInstance(propertyType, new object[] { controller, labelWidth }) as PropertyRM;
         }
 
+        public virtual object FilterValue(object value)
+        {
+            return value;
+        }
+
         protected void NotifyValueChanged()
         {
-            m_Provider.value = GetValue();
+            object value = GetValue();
+            value = FilterValue(value);
+            m_Provider.value = value;
         }
 
         void OnExpand()
