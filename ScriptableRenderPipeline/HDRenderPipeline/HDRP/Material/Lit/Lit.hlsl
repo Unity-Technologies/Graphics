@@ -1023,14 +1023,14 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 // we need to push the shading position back to avoid self-shadowing problems.
 float3 ComputeThicknessDisplacement(BSDFData bsdfData, float3 L, float NdotL)
 {
+    // Compute the thickness in world units along the normal.
+    float thicknessInMeters = bsdfData.thickness * METERS_PER_MILLIMETER;
+    float thicknessInUnits  = thicknessInMeters * _WorldScales[bsdfData.diffusionProfile].y;
+
     float displacement = 0;
 
-    [flatten] if (bsdfData.useThickObjectMode && NdotL < 0)
+    if (bsdfData.useThickObjectMode && NdotL < 0)
     {
-        // Compute the thickness in world units along the normal.
-        float thicknessInMeters = bsdfData.thickness * METERS_PER_MILLIMETER;
-        float thicknessInUnits  = thicknessInMeters * _WorldScales[bsdfData.diffusionProfile].y;
-
         // Compute the thickness in world units along the light vector.
         displacement = thicknessInUnits / -NdotL;
     }
