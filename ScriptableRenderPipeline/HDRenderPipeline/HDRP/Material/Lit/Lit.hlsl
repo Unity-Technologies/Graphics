@@ -248,9 +248,9 @@ void FillMaterialAnisotropy(float anisotropy, float3 tangentWS, inout BSDFData b
     bsdfData.bitangentWS    = cross(bsdfData.normalWS, bsdfData.tangentWS);
 }
 
-void FillMaterialIridescence(float thickness, inout BSDFData bsdfData)
+void FillMaterialIridescence(float thicknessIrid, inout BSDFData bsdfData)
 {
-    bsdfData.thickness = thickness;
+    bsdfData.thicknessIrid = thicknessIrid;
 }
 
 // Note: this modify the parameter perceptualRoughness and fresnel0, so they need to be setup
@@ -1568,7 +1568,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.positionWS
         R = (positionWS + projectionDistance * R) - lightData.positionWS;
 
-        // Test again for clear code
+        // Test again for clear coat
         if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION && HasMaterialFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
         {
             dirLS = mul(coatR, worldToLocal);
@@ -1606,7 +1606,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
         // TODO: add distance based roughness
 
-        // Test again for clear code
+        // Test again for clear coat
         if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION && HasMaterialFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
         {
             dirLS = mul(coatR, worldToLocal);
