@@ -3,6 +3,7 @@ using UnityEditor.IMGUI.Controls;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering
@@ -98,9 +99,9 @@ namespace UnityEditor.Experimental.Rendering
             var mat = Handles.matrix;
             var col = Handles.color;
             Handles.matrix = HDReflectionProbeEditorUtility.GetLocalSpace(sp.target);
-            switch ((ReflectionInfluenceShape)sp.influenceShape.enumValueIndex)
+            switch ((ShapeType)sp.influenceShape.enumValueIndex)
             {
-                case ReflectionInfluenceShape.Box:
+                case ShapeType.Box:
                 {
                     blendBox.center = sp.target.center - (probeBlendDistancePositive - probeBlendDistanceNegative) * 0.5f;
                     blendBox.size = sp.target.size - probeBlendDistancePositive - probeBlendDistanceNegative;
@@ -134,7 +135,7 @@ namespace UnityEditor.Experimental.Rendering
                     }
                     break;
                 }
-                case ReflectionInfluenceShape.Sphere:
+                case ShapeType.Sphere:
                 {
                     sphereHandle.center = sp.target.center;
                     sphereHandle.radius = Mathf.Clamp(sp.targetData.influenceSphereRadius - probeBlendDistancePositive.x, 0, sp.targetData.influenceSphereRadius);
@@ -191,9 +192,9 @@ namespace UnityEditor.Experimental.Rendering
             var mat = Handles.matrix;
             var col = Handles.color;
             Handles.matrix = HDReflectionProbeEditorUtility.GetLocalSpace(sp.target);
-            switch ((ReflectionInfluenceShape)sp.influenceShape.enumValueIndex)
+            switch ((ShapeType)sp.influenceShape.enumValueIndex)
             {
-                case ReflectionInfluenceShape.Box:
+                case ShapeType.Box:
                 {
                     s.boxInfluenceHandle.center = sp.target.center;
                     s.boxInfluenceHandle.size = sp.target.size;
@@ -221,7 +222,7 @@ namespace UnityEditor.Experimental.Rendering
                     }
                     break;
                 }
-                case ReflectionInfluenceShape.Sphere:
+                case ShapeType.Sphere:
                 {
                     s.sphereInfluenceHandle.center = sp.target.center;
                     s.sphereInfluenceHandle.radius = sp.targetData.influenceSphereRadius;
@@ -365,7 +366,7 @@ namespace UnityEditor.Experimental.Rendering
             Gizmos.matrix = HDReflectionProbeEditorUtility.GetLocalSpace(p);
             switch (a.influenceShape)
             {
-                case ReflectionInfluenceShape.Box:
+                case ShapeType.Box:
                 {
                     Gizmos.color = color;
                     if (isEdit)
@@ -374,7 +375,7 @@ namespace UnityEditor.Experimental.Rendering
                         Gizmos.DrawWireCube(p.center + boxCenterOffset, p.size + boxSizeOffset);
                     break;
                 }
-                case ReflectionInfluenceShape.Sphere:
+                case ShapeType.Sphere:
                 {
                     Gizmos.color = color;
                     if (isEdit)
@@ -397,7 +398,7 @@ namespace UnityEditor.Experimental.Rendering
             Gizmos.matrix = HDReflectionProbeEditorUtility.GetLocalSpace(p);
             switch (a.influenceShape)
             {
-                case ReflectionInfluenceShape.Box:
+                case ShapeType.Box:
                 {
                     Gizmos.color = isEdit ? k_GizmoThemeColorExtentFace : k_GizmoThemeColorExtent;
                     if (isEdit)
@@ -406,7 +407,7 @@ namespace UnityEditor.Experimental.Rendering
                         Gizmos.DrawWireCube(p.center, p.size);
                     break;
                 }
-                case ReflectionInfluenceShape.Sphere:
+                case ShapeType.Sphere:
                 {
                     Gizmos.color = k_GizmoThemeColorExtentFace;
                     if (isEdit)

@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Reflection;
-using UnityEditor.AnimatedValues;
-using UnityEditor.IMGUI.Controls;
 using UnityEditorInternal;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
 
@@ -52,7 +49,7 @@ namespace UnityEditor.Experimental.Rendering
             (s, p, o) => s.isSectionExpandedInfluenceVolume,
             true,
             CED.FadeGroup(
-                (s, p, o, i) => s.IsSectionExpandedShape((ReflectionInfluenceShape)i),
+                (s, p, o, i) => s.IsSectionExpandedShape((ShapeType)i),
                 false,
                 CED.Action(Drawer_InfluenceBoxSettings),      // Box
                 CED.Action(Drawer_InfluenceSphereSettings)    // Sphere
@@ -68,7 +65,7 @@ namespace UnityEditor.Experimental.Rendering
                 (s, p, o) => s.isSectionExpandedSeparateProjection,
                 true,
                 CED.FadeGroup(
-                    (s, p, o, i) => s.IsSectionExpandedShape((ReflectionInfluenceShape)i),
+                    (s, p, o, i) => s.IsSectionExpandedShape((ShapeType)i),
                     false,
                     CED.Action(Drawer_ProjectionBoxSettings), // Box
                     CED.Action(Drawer_ProjectionSphereSettings) // Sphere

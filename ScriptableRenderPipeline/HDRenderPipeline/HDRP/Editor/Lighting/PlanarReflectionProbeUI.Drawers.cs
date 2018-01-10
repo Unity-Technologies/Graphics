@@ -10,8 +10,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     partial class PlanarReflectionProbeUI
     {
         public static readonly CED.IDrawer Inspector = CED.Group(
-            CED.Action((s, d, o) => EditorGUILayout.LabelField(_.GetContent("Projection Volume"), EditorStyles.boldLabel)),
-            CED.Action(Drawer_FieldProjectionVolumeReference),
+            CED.Action(Drawer_SectionPrimarySettings),
+            CED.space,
+            CED.Action((s, d, o) => EditorGUILayout.LabelField(_.GetContent("Proxy Volume"), EditorStyles.boldLabel)),
+            CED.Action(Drawer_FieldProxyVolumeReference),
             CED.space,
             CED.Action((s, d, o) => EditorGUILayout.LabelField(_.GetContent("Influence Volume"), EditorStyles.boldLabel)),
             CED.Action(Drawer_Toolbar),
@@ -27,10 +29,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const EditMode.SceneViewEditMode EditInfluenceShape = EditMode.SceneViewEditMode.GridBox;
         const EditMode.SceneViewEditMode EditInfluenceNormalShape = EditMode.SceneViewEditMode.Collider;
         const EditMode.SceneViewEditMode EditCenter = EditMode.SceneViewEditMode.ReflectionProbeOrigin;
-
-        static void Drawer_FieldProjectionVolumeReference(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
+        
+        static void Drawer_SectionPrimarySettings(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
         {
-            EditorGUILayout.PropertyField(d.projectionVolumeReference, _.GetContent("Reference"));
+            EditorGUILayout.PropertyField(d.mode, _.GetContent("Mode"));
+            EditorGUILayout.PropertyField(d.captureOffset, _.GetContent("Capture Position"));
+            EditorGUILayout.PropertyField(d.dimmer, _.GetContent("Dimmer"));
+        }
+        static void Drawer_FieldProxyVolumeReference(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
+        {
+            EditorGUILayout.PropertyField(d.proxyVolumeReference, _.GetContent("Reference"));
         }
 
         static readonly EditMode.SceneViewEditMode[] k_Toolbar_SceneViewEditModes =

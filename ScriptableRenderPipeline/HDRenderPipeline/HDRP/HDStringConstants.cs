@@ -100,7 +100,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int _CookieTextures = Shader.PropertyToID("_CookieTextures");
         public static readonly int _CookieCubeTextures = Shader.PropertyToID("_CookieCubeTextures");
-        public static readonly int _EnvTextures = Shader.PropertyToID("_EnvTextures");
+        public static readonly int _EnvCubemapTextures = Shader.PropertyToID("_EnvCubemapTextures");
+        public static readonly int _Env2DTextures = Shader.PropertyToID("_Env2DTextures");
         public static readonly int _DirectionalLightDatas = Shader.PropertyToID("_DirectionalLightDatas");
         public static readonly int _DirectionalLightCount = Shader.PropertyToID("_DirectionalLightCount");
         public static readonly int _LightDatas = Shader.PropertyToID("_LightDatas");
@@ -108,7 +109,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _AreaLightCount = Shader.PropertyToID("_AreaLightCount");
         public static readonly int g_vLightListGlobal = Shader.PropertyToID("g_vLightListGlobal");
         public static readonly int _EnvLightDatas = Shader.PropertyToID("_EnvLightDatas");
-        public static readonly int _EnvProjDatas = Shader.PropertyToID("_EnvProjDatas");
+        public static readonly int _EnvProxyDatas = Shader.PropertyToID("_EnvProxyDatas");
         public static readonly int _EnvLightCount = Shader.PropertyToID("_EnvLightCount");
         public static readonly int _EnvProjCount = Shader.PropertyToID("_EnvProjCount");
         public static readonly int _ShadowDatas = Shader.PropertyToID("_ShadowDatas");

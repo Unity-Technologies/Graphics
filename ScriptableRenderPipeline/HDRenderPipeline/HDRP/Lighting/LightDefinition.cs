@@ -149,7 +149,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     };
 
     [GenerateHLSL]
-    public struct EnvProjData
+    public struct EnvProxyData
     {
         public Vector3 positionWS;
         public EnvShapeType envShapeType;
@@ -168,6 +168,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Sphere: extents.x = sphere radius
         public Vector3 extents;
         public int unused02;
+    }
+
+    [GenerateHLSL]
+    public enum EnvCacheType
+    {
+        Texture2D,
+        Cubemap
     }
 
     // Usage of StencilBits.Lighting on 2 bits.
