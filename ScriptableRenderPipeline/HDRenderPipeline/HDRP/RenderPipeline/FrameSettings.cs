@@ -185,7 +185,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableSubsurfaceScattering, () => frameSettings.enableSubsurfaceScattering, (value) => frameSettings.enableSubsurfaceScattering = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableTransmission, () => frameSettings.enableTransmission, (value) => frameSettings.enableTransmission = (bool)value);
 
-
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kForwardOnly, () => frameSettings.enableForwardRenderingOnly, (value) => frameSettings.enableForwardRenderingOnly = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kDeferredDepthPrepass, () => frameSettings.enableDepthPrepassWithDeferredRendering, (value) => frameSettings.enableDepthPrepassWithDeferredRendering = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kDeferredDepthPrepassATestOnly, () => frameSettings.enableAlphaTestOnlyInDeferredPrepass, (value) => frameSettings.enableAlphaTestOnlyInDeferredPrepass = (bool)value);

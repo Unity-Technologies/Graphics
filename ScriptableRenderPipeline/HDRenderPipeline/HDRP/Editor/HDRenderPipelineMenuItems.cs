@@ -168,8 +168,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         if (mat.HasProperty("_SubsurfaceProfile"))
                         {
                             CheckOutFile(VSCEnabled, mat);
-                            float value = mat.GetInt("_DiffusionProfile");
-                            mat.SetInt("_DiffusionProfile", 0);
+                            //float value = mat.GetInt("_DiffusionProfile");
+                            //mat.SetInt("_DiffusionProfile", 0);
 
                             EditorUtility.SetDirty(mat);
                         }
@@ -198,8 +198,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                 if (mat.HasProperty("_SubsurfaceProfile" + x))
                                 {
                                     CheckOutFile(VSCEnabled, mat);
-                                    float value = mat.GetInt("_DiffusionProfile" + x);
-                                    mat.SetInt("_DiffusionProfile" + x, 0);
+                                    //float value = mat.GetInt("_DiffusionProfile" + x);
+                                    //mat.SetInt("_DiffusionProfile" + x, 0);
 
                                     EditorUtility.SetDirty(mat);
                                 }

@@ -240,7 +240,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             None,
             Tile,
             Cluster,
-            FeatureVariants
+            MaterialFeatureVariants
         };
 
         public enum TileClusterCategoryDebug : int
@@ -2162,7 +2162,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
 
                     // Debug tiles
-                    if (lightingDebug.tileClusterDebug == LightLoop.TileClusterDebug.FeatureVariants)
+                    if (lightingDebug.tileClusterDebug == LightLoop.TileClusterDebug.MaterialFeatureVariants)
                     {
                         if (GetFeatureVariantsEnabled())
                         {
