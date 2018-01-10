@@ -27,48 +27,48 @@ VFXContextUI #NodeContents
 
 VFXContextUI.init #NodeContents
 {
-    border-color: #FFBC21;
+    border-color: #008580;
 }
 
 VFXContextUI.init VFXFlowAnchor.port.EdgeConnector
 {
-    port-color: #FFBC21;
+    port-color: #00fff5;
 }
 
 /*  update */
 
 VFXContextUI.update #NodeContents
 {
-    border-color: #FF42AD;
+    border-color: #008580;
 }
 
 VFXContextUI.update VFXFlowAnchor.port.EdgeConnector
 {
-    port-color: #FF42AD;
+    port-color: #00fff5;
 }
 
 /*  output */
 
 VFXContextUI.output #NodeContents
 {
-    border-color: #7E44FF;
+    border-color: #3b5e92;
 }
 
 VFXContextUI.output VFXFlowAnchor.port.EdgeConnector
 {
-    port-color: #7E44FF;
+    port-color: #0763eb;
 }
 
 /* spawner */
 
 VFXContextUI.spawner #NodeContents
 {
-    border-color: #B2FF23;
+    border-color: #13794C;
 }
 
 VFXContextUI.spawner VFXFlowAnchor.port.EdgeConnector
 {
-    port-color: #B2FF23;
+    port-color: #00ff8f;
 }
 
 /* event */
