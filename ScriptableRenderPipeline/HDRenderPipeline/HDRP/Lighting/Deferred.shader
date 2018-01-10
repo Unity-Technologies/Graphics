@@ -49,6 +49,9 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             // Include
             //-------------------------------------------------------------------------------------
 
+            #include "../ShaderPass/ShaderPass.cs.hlsl"
+            #define SHADERPASS SHADERPASS_DEFERRED_LIGHTING
+
             #include "CoreRP/ShaderLibrary/Common.hlsl"
             #include "../Debug/DebugDisplay.hlsl"
 
