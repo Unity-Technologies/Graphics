@@ -1,25 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Experimental.Rendering
 {
     [CustomEditor(typeof(Volume))]
-    public sealed class VolumeEditor : Editor
+    sealed class VolumeEditor : Editor
     {
         SerializedProperty m_IsGlobal;
         SerializedProperty m_BlendRadius;
         SerializedProperty m_Weight;
         SerializedProperty m_Priority;
-        SerializedProperty m_Components;
+        SerializedProperty m_Profile;
 
-        Dictionary<Type, Type> m_EditorTypes; // Component type => Editor type
-        List<VolumeComponentEditor> m_Editors;
-
-        static VolumeComponent s_ClipboardContent;
+        VolumeComponentListEditor m_ComponentList;
 
         Volume actualTarget
         {
@@ -33,384 +26,133 @@ namespace UnityEditor.Experimental.Rendering
             m_BlendRadius = o.Find(x => x.blendDistance);
             m_Weight = o.Find(x => x.weight);
             m_Priority = o.Find(x => x.priority);
-            m_Components = o.Find(x => x.components);
+            m_Profile = o.Find(x => x.sharedProfile);
 
-            m_EditorTypes = new Dictionary<Type, Type>();
-            m_Editors = new List<VolumeComponentEditor>();
-
-            // Gets the list of all available component editors
-            var editorTypes = CoreUtils.GetAllAssemblyTypes()
-                                .Where(
-                                    t => t.IsSubclassOf(typeof(VolumeComponentEditor))
-                                      && t.IsDefined(typeof(VolumeComponentEditorAttribute), false)
-                                      && !t.IsAbstract
-                                );
-
-            // Map them to their corresponding component type
-            foreach (var editorType in editorTypes)
-            {
-                var attribute = (VolumeComponentEditorAttribute)editorType.GetCustomAttributes(typeof(VolumeComponentEditorAttribute), false)[0];
-                m_EditorTypes.Add(attribute.componentType, editorType);
-            }
-
-            // Create editors for existing components
-            var components = actualTarget.components;
-            for (int i = 0; i < components.Count; i++)
-                CreateEditor(components[i], m_Components.GetArrayElementAtIndex(i));
-
-            // Keep track of undo/redo to redraw the inspector when that happens
-            Undo.undoRedoPerformed += OnUndoRedoPerformed;
+            m_ComponentList = new VolumeComponentListEditor(this);
+            RefreshEffectListEditor(actualTarget.sharedProfile);
         }
 
         void OnDisable()
         {
-            Undo.undoRedoPerformed -= OnUndoRedoPerformed;
+            if (m_ComponentList != null)
+                m_ComponentList.Clear();
+        }
 
-            if (m_Editors == null)
-                return; // Hasn't been inited yet
+        void RefreshEffectListEditor(VolumeProfile asset)
+        {
+            m_ComponentList.Clear();
 
-            foreach (var editor in m_Editors)
-                editor.OnDisable();
-
-            m_Editors.Clear();
-            m_EditorTypes.Clear();
+            if (asset != null)
+                m_ComponentList.Init(asset, new SerializedObject(asset));
         }
 
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
 
-            if (actualTarget.isDirty)
+            EditorGUILayout.PropertyField(m_IsGlobal);
+
+            if (!m_IsGlobal.boolValue) // Blend radius is not needed for global volumes
             {
-                RefreshEditors();
-                actualTarget.isDirty = false;
+                EditorGUILayout.PropertyField(m_BlendRadius);
+                m_BlendRadius.floatValue = Mathf.Max(m_BlendRadius.floatValue, 0f);
             }
 
-            using (var vscope = new EditorGUILayout.VerticalScope())
+            EditorGUILayout.PropertyField(m_Weight);
+            EditorGUILayout.PropertyField(m_Priority);
+
+            bool assetHasChanged = false;
+            bool showCopy = m_Profile.objectReferenceValue != null;
+            bool multiEdit = m_Profile.hasMultipleDifferentValues;
+
+            // The layout system breaks alignement when mixing inspector fields with custom layouted
+            // fields, do the layout manually instead
+            int buttonWidth = showCopy ? 45 : 60;
+            float indentOffset = EditorGUI.indentLevel * 15f;
+            var lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
+            var labelRect = new Rect(lineRect.x, lineRect.y, EditorGUIUtility.labelWidth - indentOffset, lineRect.height);
+            var fieldRect = new Rect(labelRect.xMax, lineRect.y, lineRect.width - labelRect.width - buttonWidth * (showCopy ? 2 : 1), lineRect.height);
+            var buttonNewRect = new Rect(fieldRect.xMax, lineRect.y, buttonWidth, lineRect.height);
+            var buttonCopyRect = new Rect(buttonNewRect.xMax, lineRect.y, buttonWidth, lineRect.height);
+
+            EditorGUI.PrefixLabel(labelRect, CoreEditorUtils.GetContent("Profile|A reference to a profile asset."));
+
+            using (var scope = new EditorGUI.ChangeCheckScope())
             {
-                EditorGUILayout.PropertyField(m_IsGlobal);
+                EditorGUI.BeginProperty(fieldRect, GUIContent.none, m_Profile);
 
-                if (!m_IsGlobal.boolValue) // Blend radius is not needed for global volumes
+                var profile = (VolumeProfile)EditorGUI.ObjectField(fieldRect, m_Profile.objectReferenceValue, typeof(VolumeProfile), false);
+
+                if (scope.changed)
                 {
-                    EditorGUILayout.PropertyField(m_BlendRadius);
-                    m_BlendRadius.floatValue = Mathf.Max(m_BlendRadius.floatValue, 0f);
+                    assetHasChanged = true;
+                    m_Profile.objectReferenceValue = profile;
                 }
 
-                EditorGUILayout.PropertyField(m_Weight);
-                EditorGUILayout.PropertyField(m_Priority);
+                EditorGUI.EndProperty();
+            }
 
-                EditorGUILayout.Space();
-
-                // Component list
-                for (int i = 0; i < m_Editors.Count; i++)
+            using (new EditorGUI.DisabledScope(multiEdit))
+            {
+                if (GUI.Button(buttonNewRect, CoreEditorUtils.GetContent("New|Create a new profile."), showCopy ? EditorStyles.miniButtonLeft : EditorStyles.miniButton))
                 {
-                    var editor = m_Editors[i];
-                    string title = editor.GetDisplayTitle();
-                    int id = i; // Needed for closure capture below
-
-                    CoreEditorUtils.DrawSplitter();
-                    bool displayContent = CoreEditorUtils.DrawHeaderToggle(
-                        title,
-                        editor.baseProperty,
-                        editor.activeProperty,
-                        pos => OnContextClick(pos, editor.target, id)
-                    );
-
-                    if (displayContent)
-                    {
-                        using (new EditorGUI.DisabledScope(!editor.activeProperty.boolValue))
-                            editor.OnInternalInspectorGUI();
-                    }
+                    // By default, try to put assets in a folder next to the currently active
+                    // scene file. If the user isn't a scene, put them in root instead.
+                    var targetName = actualTarget.name;
+                    var scene = actualTarget.gameObject.scene;
+                    var asset = VolumeProfileFactory.CreateVolumeProfile(scene, targetName);
+                    m_Profile.objectReferenceValue = asset;
+                    assetHasChanged = true;
                 }
 
-                if (m_Editors.Count > 0)
-                    CoreEditorUtils.DrawSplitter();
-                else
-                    EditorGUILayout.HelpBox("No override set on this volume. Drop a component here or use the Add button.", MessageType.Info);
-
-                EditorGUILayout.Space();
-
-                using (var hscope = new EditorGUILayout.HorizontalScope())
+                if (showCopy && GUI.Button(buttonCopyRect, CoreEditorUtils.GetContent("Clone|Create a new profile and copy the content of the currently assigned profile."), EditorStyles.miniButtonRight))
                 {
-                    if (GUILayout.Button(CoreEditorUtils.GetContent("Add component overrides..."), EditorStyles.miniButton))
-                    {
-                        var r = hscope.rect;
-                        var pos = new Vector2(r.x + r.width / 2f, r.yMax + 18f);
-                        FilterWindow.Show(pos, new VolumeComponentProvider(actualTarget, this));
-                    }
-                }
+                    // Duplicate the currently assigned profile and save it as a new profile
+                    var origin = (VolumeProfile)m_Profile.objectReferenceValue;
+                    var path = AssetDatabase.GetAssetPath(origin);
+                    path = AssetDatabase.GenerateUniqueAssetPath(path);
 
-                EditorGUILayout.Space();
+                    var asset = Instantiate(origin);
+                    asset.components.Clear();
+                    AssetDatabase.CreateAsset(asset, path);
 
-                // Handle components drag'n'drop
-                var e = Event.current;
-                if (e.type == EventType.DragUpdated)
-                {
-                    if (IsDragValid(vscope.rect, e.mousePosition))
+                    foreach (var item in origin.components)
                     {
-                        DragAndDrop.visualMode = DragAndDropVisualMode.Link;
-                        e.Use();
+                        var itemCopy = Instantiate(item);
+                        itemCopy.hideFlags = HideFlags.HideInInspector | HideFlags.HideInHierarchy;
+                        itemCopy.name = item.name;
+                        asset.components.Add(itemCopy);
+                        AssetDatabase.AddObjectToAsset(itemCopy, asset);
                     }
-                    else
-                    {
-                        DragAndDrop.visualMode = DragAndDropVisualMode.Rejected;
-                    }
-                }
-                else if (e.type == EventType.DragPerform)
-                {
-                    if (IsDragValid(vscope.rect, e.mousePosition))
-                    {
-                        DragAndDrop.AcceptDrag();
 
-                        var objs = DragAndDrop.objectReferences;
-                        foreach (var o in objs)
-                        {
-                            var compType = ((MonoScript)o).GetClass();
-                            AddComponent(compType);
-                        }
+                    AssetDatabase.SaveAssets();
+                    AssetDatabase.Refresh();
 
-                        e.Use();
-                    }
+                    m_Profile.objectReferenceValue = asset;
+                    assetHasChanged = true;
                 }
             }
 
-            serializedObject.ApplyModifiedProperties();
-        }
+            EditorGUILayout.Space();
 
-        bool IsDragValid(Rect rect, Vector2 mousePos)
-        {
-            if (!rect.Contains(mousePos))
-                return false;
-
-            var objs = DragAndDrop.objectReferences;
-            foreach (var o in objs)
+            if (m_Profile.objectReferenceValue == null)
             {
-                if (o.GetType() != typeof(MonoScript))
-                    return false;
+                if (assetHasChanged)
+                    m_ComponentList.Clear(); // Asset wasn't null before, do some cleanup
+            }
+            else
+            {
+                if (assetHasChanged)
+                    RefreshEffectListEditor((VolumeProfile)m_Profile.objectReferenceValue);
 
-                var script = (MonoScript)o;
-                var scriptType = script.GetClass();
-
-                if (!scriptType.IsSubclassOf(typeof(VolumeComponent)) || scriptType.IsAbstract)
-                    return false;
-
-                if (actualTarget.components.Exists(t => t.GetType() == scriptType))
-                    return false;
+                if (!multiEdit)
+                {
+                    m_ComponentList.OnGUI();
+                    EditorGUILayout.Space();
+                }
             }
 
-            return true;
-        }
-
-        void RefreshEditors()
-        {
-            // Disable all editors first
-            foreach (var editor in m_Editors)
-                editor.OnDisable();
-
-            // Remove them
-            m_Editors.Clear();
-
-            // Recreate editors for existing settings, if any
-            for (int i = 0; i < actualTarget.components.Count; i++)
-                CreateEditor(actualTarget.components[i], m_Components.GetArrayElementAtIndex(i));
-        }
-
-        // index is only used when we need to re-create a component in a specific spot (e.g. reset)
-        void CreateEditor(VolumeComponent settings, SerializedProperty property, int index = -1, bool forceOpen = false)
-        {
-            var settingsType = settings.GetType();
-            Type editorType;
-
-            if (!m_EditorTypes.TryGetValue(settingsType, out editorType))
-                editorType = typeof(VolumeComponentEditor);
-
-            var editor = (VolumeComponentEditor)Activator.CreateInstance(editorType);
-            editor.Init(settings, this);
-            editor.baseProperty = property.Copy();
-
-            if (forceOpen)
-                editor.baseProperty.isExpanded = true;
-
-            if (index < 0)
-                m_Editors.Add(editor);
-            else
-                m_Editors[index] = editor;
-        }
-
-        internal void AddComponent(Type type)
-        {
-            serializedObject.Update();
-
-            var component = (VolumeComponent)CreateInstance(type);
-            Undo.RegisterCreatedObjectUndo(component, "Add Volume Component");
-
-            // Grow the list first, then add - that's how serialized lists work in Unity
-            m_Components.arraySize++;
-            var effectProp = m_Components.GetArrayElementAtIndex(m_Components.arraySize - 1);
-            effectProp.objectReferenceValue = component;
-
-            // Create & store the internal editor object for this effect
-            CreateEditor(component, effectProp, forceOpen: true);
-
             serializedObject.ApplyModifiedProperties();
-        }
-
-        internal void RemoveComponent(int id)
-        {
-            // Huh. Hack to keep foldout state on the next element...
-            bool nextFoldoutState = false;
-            if (id < m_Editors.Count - 1)
-                nextFoldoutState = m_Editors[id + 1].baseProperty.isExpanded;
-
-            // Remove from the cached editors list
-            m_Editors[id].OnDisable();
-            m_Editors.RemoveAt(id);
-
-            serializedObject.Update();
-
-            var property = m_Components.GetArrayElementAtIndex(id);
-            var effect = property.objectReferenceValue;
-
-            // Unassign it (should be null already but serialization does funky things
-            property.objectReferenceValue = null;
-
-            // ...and remove the array index itself from the list
-            m_Components.DeleteArrayElementAtIndex(id);
-
-            // Finally refresh editor reference to the serialized settings list
-            for (int i = 0; i < m_Editors.Count; i++)
-                m_Editors[i].baseProperty = m_Components.GetArrayElementAtIndex(i).Copy();
-
-            // Set the proper foldout state if needed
-            if (id < m_Editors.Count)
-                m_Editors[id].baseProperty.isExpanded = nextFoldoutState;
-
-            serializedObject.ApplyModifiedProperties();
-
-            // Destroy the setting object after ApplyModifiedProperties(). If we do it before, redo
-            // actions will be in the wrong order and the reference to the setting object in the
-            // list will be lost.
-            Undo.DestroyObjectImmediate(effect);
-        }
-
-        // Reset is done by deleting and removing the object from the list and adding a new one in
-        // the same spot as it was before
-        internal void ResetComponent(Type type, int id)
-        {
-            // Remove from the cached editors list
-            m_Editors[id].OnDisable();
-            m_Editors[id] = null;
-
-            serializedObject.Update();
-
-            var property = m_Components.GetArrayElementAtIndex(id);
-            var prevSettings = property.objectReferenceValue;
-
-            // Unassign it but down remove it from the array to keep the index available
-            property.objectReferenceValue = null;
-
-            // Create a new object
-            var newEffect = (VolumeComponent)CreateInstance(type);
-            Undo.RegisterCreatedObjectUndo(newEffect, "Reset Volume Component");
-
-            // Put it in the reserved space
-            property.objectReferenceValue = newEffect;
-
-            // Create & store the internal editor object for this effect
-            CreateEditor(newEffect, property, id);
-
-            serializedObject.ApplyModifiedProperties();
-
-            // Same as RemoveComponent, destroy at the end so it's recreated first on Undo to make
-            // sure the GUID exists before undoing the list state
-            Undo.DestroyObjectImmediate(prevSettings);
-        }
-
-        internal void MoveComponent(int id, int offset)
-        {
-            // Move components
-            serializedObject.Update();
-            m_Components.MoveArrayElement(id, id + offset);
-            serializedObject.ApplyModifiedProperties();
-
-            // Move editors
-            var prev = m_Editors[id + offset];
-            m_Editors[id + offset] = m_Editors[id];
-            m_Editors[id] = prev;
-        }
-
-        void OnContextClick(Vector2 position, VolumeComponent targetComponent, int id)
-        {
-            var menu = new GenericMenu();
-
-            if (id == 0)
-                menu.AddDisabledItem(CoreEditorUtils.GetContent("Move Up"));
-            else
-                menu.AddItem(CoreEditorUtils.GetContent("Move Up"), false, () => MoveComponent(id, -1));
-
-            if (id == m_Editors.Count - 1)
-                menu.AddDisabledItem(CoreEditorUtils.GetContent("Move Down"));
-            else
-                menu.AddItem(CoreEditorUtils.GetContent("Move Down"), false, () => MoveComponent(id, 1));
-
-            menu.AddSeparator(string.Empty);
-            menu.AddItem(CoreEditorUtils.GetContent("Reset"), false, () => ResetComponent(targetComponent.GetType(), id));
-            menu.AddItem(CoreEditorUtils.GetContent("Remove"), false, () => RemoveComponent(id));
-            menu.AddSeparator(string.Empty);
-            menu.AddItem(CoreEditorUtils.GetContent("Copy Settings"), false, () => CopySettings(targetComponent));
-
-            if (CanPaste(targetComponent))
-                menu.AddItem(CoreEditorUtils.GetContent("Paste Settings"), false, () => PasteSettings(targetComponent));
-            else
-                menu.AddDisabledItem(CoreEditorUtils.GetContent("Paste Settings"));
-
-            menu.AddSeparator(string.Empty);
-            menu.AddItem(CoreEditorUtils.GetContent("Toggle All"), false, () => m_Editors[id].SetAllOverridesTo(true));
-            menu.AddItem(CoreEditorUtils.GetContent("Toggle None"), false, () => m_Editors[id].SetAllOverridesTo(false));
-
-            menu.DropDown(new Rect(position, Vector2.zero));
-        }
-
-        // Copy/pasting is simply done by creating an in memory copy of the selected component and
-        // copying over the serialized data to another; it doesn't use nor affect the OS clipboard
-        bool CanPaste(VolumeComponent targetComponent)
-        {
-            return s_ClipboardContent != null
-                && s_ClipboardContent.GetType() == targetComponent.GetType();
-        }
-
-        void CopySettings(VolumeComponent targetComponent)
-        {
-            if (s_ClipboardContent != null)
-            {
-                CoreUtils.Destroy(s_ClipboardContent);
-                s_ClipboardContent = null;
-            }
-
-            s_ClipboardContent = (VolumeComponent)CreateInstance(targetComponent.GetType());
-            EditorUtility.CopySerializedIfDifferent(targetComponent, s_ClipboardContent);
-        }
-
-        void PasteSettings(VolumeComponent targetComponent)
-        {
-            Assert.IsNotNull(s_ClipboardContent);
-            Assert.AreEqual(s_ClipboardContent.GetType(), targetComponent.GetType());
-
-            Undo.RecordObject(targetComponent, "Paste Settings");
-            EditorUtility.CopySerializedIfDifferent(s_ClipboardContent, targetComponent);
-        }
-
-        void OnUndoRedoPerformed()
-        {
-            actualTarget.isDirty = true;
-
-            // Dumb hack to make sure the serialized object is up to date on undo
-            serializedObject.Update();
-            serializedObject.ApplyModifiedProperties();
-
-            // Seems like there's an issue with the inspector not repainting after some undo events
-            // This will take care of that
-            Repaint();
         }
     }
 }
