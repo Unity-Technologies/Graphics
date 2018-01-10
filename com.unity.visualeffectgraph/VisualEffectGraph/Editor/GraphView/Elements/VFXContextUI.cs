@@ -117,12 +117,7 @@ namespace UnityEditor.VFX.UI
 
 
                 // Recreate label with good name // Dirty
-                if (controller.context.inputType != VFXDataType.kSpawnEvent
-                    && controller.context.inputType != VFXDataType.kEvent
-                    && controller.context.inputType != VFXDataType.kNone)
-                    m_HeaderTitle.text = string.Format("{0} {1}", controller.context.name, controller.context.inputType.ToString().Substring(1));
-                else
-                    m_HeaderTitle.text = controller.context.name;
+                m_HeaderTitle.text = controller.context.name;
                 m_HeaderIcon.style.backgroundImage = GetIconForVFXType(controller.context.inputType);
 
                 VFXContextType contextType = controller.context.contextType;
