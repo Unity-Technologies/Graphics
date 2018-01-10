@@ -81,7 +81,7 @@ half GetPixelLightCount()
 half3 SampleSH(half3 normalWS)
 {
     // LPPV is not supported in Ligthweight Pipeline
-    float4 SHCoefficients[7];
+    real4 SHCoefficients[7];
     SHCoefficients[0] = unity_SHAr;
     SHCoefficients[1] = unity_SHAg;
     SHCoefficients[2] = unity_SHAb;

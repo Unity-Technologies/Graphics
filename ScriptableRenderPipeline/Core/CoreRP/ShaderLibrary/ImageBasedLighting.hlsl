@@ -315,6 +315,7 @@ void ImportanceSampleAnisoGGX(real2   u,
 // Pre-integration
 // ----------------------------------------------------------------------------
 
+#if !defined SHADER_API_GLES
 // Ref: Listing 18 in "Moving Frostbite to PBR" + https://knarkowicz.wordpress.com/2014/12/27/analytical-dfg-term-for-ibl/
 real4 IntegrateGGXAndDisneyFGD(real3 V, real3 N, real roughness, uint sampleCount = 8192)
 {
@@ -367,6 +368,10 @@ real4 IntegrateGGXAndDisneyFGD(real3 V, real3 N, real roughness, uint sampleCoun
 
     return acc;
 }
+#else
+// Not supported due to lack of random library in GLES 2
+ERROR_ON_UNSUPPORTED_FUNCTION(IntegrateGGXAndDisneyFGD)
+#endif
 
 uint GetIBLRuntimeFilterSampleCount(uint mipLevel)
 {
