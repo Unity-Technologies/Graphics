@@ -373,6 +373,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static ComputeBuffer s_GlobalLightListAtomic = null;
         // clustered light list specific buffers and data end
 
+        static int[] s_TempIntArray = new int[2]; // Used to avoid GC stress when calling SetComputeIntParams
+
         FrameSettings m_FrameSettings = null;
         RenderPipelineResources m_Resources = null;
 
@@ -1690,6 +1692,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var w = camera.pixelWidth;
             var h = camera.pixelHeight;
+            s_TempIntArray[0] = w;
+            s_TempIntArray[1] = h;
             var numBigTilesX = (w + 63) / 64;
             var numBigTilesY = (h + 63) / 64;
 
@@ -1728,7 +1732,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_FrameSettings.lightLoopSettings.enableBigTilePrepass)
             {
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
-                cmd.SetComputeIntParams(buildPerBigTileLightListShader, HDShaderIDs.g_viDimensions, w, h);
+                cmd.SetComputeIntParams(buildPerBigTileLightListShader, HDShaderIDs.g_viDimensions, s_TempIntArray);
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
                 cmd.SetComputeMatrixParam(buildPerBigTileLightListShader, HDShaderIDs.g_mScrProjection, projscr);
@@ -1751,7 +1755,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_FrameSettings.lightLoopSettings.isFptlEnabled)
             {
                 cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
-                cmd.SetComputeIntParams(buildPerTileLightListShader, HDShaderIDs.g_viDimensions, w, h);
+                cmd.SetComputeIntParams(buildPerTileLightListShader, HDShaderIDs.g_viDimensions, s_TempIntArray);
                 cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
                 cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
 
@@ -1806,7 +1810,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     cmd.SetComputeIntParam(buildMaterialFlagsShader, HDShaderIDs.g_BaseFeatureFlags, (int)baseFeatureFlags);
-                    cmd.SetComputeIntParams(buildMaterialFlagsShader, HDShaderIDs.g_viDimensions, w, h);
+                    cmd.SetComputeIntParams(buildMaterialFlagsShader, HDShaderIDs.g_viDimensions, s_TempIntArray);
                     cmd.SetComputeBufferParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs.g_TileFeatureFlags, s_TileFeatureFlags);
 
                     cmd.SetComputeTextureParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._StencilTexture, stencilTextureRT);
