@@ -20,6 +20,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4827451743472390}
   - component: {fileID: 114542892872663716}
+  - component: {fileID: 114584058718082074}
   m_Layer: 0
   m_Name: HDRP_Default_Sky
   m_TagString: Untagged
@@ -56,3 +57,16 @@ MonoBehaviour:
   blendDistance: 0
   weight: 1
   sharedProfile: {fileID: 11400000, guid: c7a81274c3034d44c9e50cd708233345, type: 2}
+--- !u!114 &114584058718082074
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1381370728658774}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 441482e8936e35048a1dffac814e3ef8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Profile: {fileID: 11400000, guid: c7a81274c3034d44c9e50cd708233345, type: 2}
+  m_BakingSkyUniqueID: 1
