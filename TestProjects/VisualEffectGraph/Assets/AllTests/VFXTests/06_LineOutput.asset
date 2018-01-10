@@ -4049,14 +4049,14 @@ VFXAsset:
       - index: 49
         nameId: Sphere_arc_c
       params: []
-      processor: {fileID: 7200000, guid: 65fe5a3a325943b43853df14ede7edd2, type: 3}
+      processor: {fileID: 7200000, guid: 572982cc0dea2a74aaa5a4606e683194, type: 3}
     - type: 805306368
       buffers:
       - index: 0
         nameId: attributeBuffer
       values: []
       params: []
-      processor: {fileID: 7200000, guid: c89d6ba732041d74ba3a4ca042d606ed, type: 3}
+      processor: {fileID: 7200000, guid: f9f30909ecc2780408ff081fff420ced, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -4075,7 +4075,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 88e0fc9f7337398469cccaa103c50139, type: 3}
+      processor: {fileID: 4800000, guid: a63e30be448695649aaabae209583879, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

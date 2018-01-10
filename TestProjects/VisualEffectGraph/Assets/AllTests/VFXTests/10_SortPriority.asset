@@ -4101,7 +4101,7 @@ VFXAsset:
       - index: 69
         nameId: r_c
       params: []
-      processor: {fileID: 7200000, guid: 9ac4c6919337763499f7d728fa51f50b, type: 3}
+      processor: {fileID: 7200000, guid: 8639b45469f6b5e409893ca4e8dff85e, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -4112,7 +4112,7 @@ VFXAsset:
       - index: 75
         nameId: deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: 7ca510eff5921964c92bb0a162ed860f, type: 3}
+      processor: {fileID: 7200000, guid: d504b9c55388a5848948bedab28fb20e, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -4127,7 +4127,7 @@ VFXAsset:
       params:
       - index: 2
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 372b291bd4c1d7a4ba636373b3fd2a12, type: 3}
+      processor: {fileID: 4800000, guid: 67c0cbd2df2a9674195b1aab5c4ea202, type: 3}
   - type: 1
     flags: 1
     capacity: 10000
@@ -4168,7 +4168,7 @@ VFXAsset:
       - index: 64
         nameId: Sphere_arc_c
       params: []
-      processor: {fileID: 7200000, guid: d27e2e905cf07cd43b928529b819ef44, type: 3}
+      processor: {fileID: 7200000, guid: 5a88feffb9b68f544a99201c3a34e86e, type: 3}
     - type: 805306368
       buffers:
       - index: 4
@@ -4179,7 +4179,7 @@ VFXAsset:
       - index: 75
         nameId: deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: 4e30b8e9c002e7143ae9856122c39030, type: 3}
+      processor: {fileID: 7200000, guid: 6f799a41b6fdb03449679c531fd58d30, type: 3}
     - type: 1073741826
       buffers:
       - index: 4
@@ -4194,7 +4194,7 @@ VFXAsset:
       params:
       - index: 1
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 75b86d49ce49bf24f9016414e31e9225, type: 3}
+      processor: {fileID: 4800000, guid: 39ed2374c20befa4a9196754fc0f4c57, type: 3}
   - type: 1
     flags: 1
     capacity: 10000
@@ -4233,7 +4233,7 @@ VFXAsset:
       - index: 51
         nameId: Box_size_c
       params: []
-      processor: {fileID: 7200000, guid: 2ff6b27631cf257459c34c6460b80c38, type: 3}
+      processor: {fileID: 7200000, guid: b0906df2464452943ac22c6cb4476dc4, type: 3}
     - type: 805306368
       buffers:
       - index: 8
@@ -4244,7 +4244,7 @@ VFXAsset:
       - index: 75
         nameId: deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: 6f2ddcc2c4e4fec4fadd4833a941ebab, type: 3}
+      processor: {fileID: 7200000, guid: 142198204ce4b0f46a5e51ef172213cf, type: 3}
     - type: 1073741826
       buffers:
       - index: 8
@@ -4259,7 +4259,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 02acbdb10b001f74686b419e06db3a03, type: 3}
+      processor: {fileID: 4800000, guid: dde8fc9c2ca64424e98efe781efd2a61, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
