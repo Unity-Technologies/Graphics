@@ -1050,7 +1050,7 @@ float3 ComputeThicknessDisplacement(BSDFData bsdfData, float3 L, float NdotL)
 float3 EvaluateTransmission(BSDFData bsdfData, float NdotL, float NdotV, float attenuation)
 {
     float wrappedNdotL = ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
-    float negatedNdotL = saturate(-NdotL);
+    float negatedNdotL = -NdotL;
 
     // Apply wrapped lighting to better handle thin objects (cards) at grazing angles.
     float backNdotL = bsdfData.useThickObjectMode ? negatedNdotL : wrappedNdotL;
@@ -1060,10 +1060,10 @@ float3 EvaluateTransmission(BSDFData bsdfData, float NdotL, float NdotV, float a
 #ifdef LIT_DIFFUSE_LAMBERT_BRDF
     attenuation *= Lambert();
 #else
-    attenuation *= INV_PI * F_Transm_Schlick(0, 0.5, NdotV) * F_Transm_Schlick(0, 0.5, backNdotL);
+    attenuation *= INV_PI * F_Transm_Schlick(0, 0.5, NdotV) * F_Transm_Schlick(0, 0.5, abs(backNdotL));
 #endif
 
-    float intensity = attenuation * backNdotL;
+    float intensity = saturate(attenuation * backNdotL);
 
     return intensity * bsdfData.transmittance;
 }
@@ -1091,7 +1091,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     float attenuation;
     EvaluateLight_Directional(lightLoopContext, posInput, lightData, bakeLightingData, N, L, color, attenuation);
 
-    float intensity = attenuation * saturate(NdotL);
+    float intensity = saturate(attenuation * NdotL);
 
     // Note: We use NdotL here to early out, but in case of clear coat this is not correct. But we are ok with this
     [branch] if (intensity > 0.0)
@@ -1144,7 +1144,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     float attenuation;
     EvaluateLight_Punctual(lightLoopContext, posInput, lightData, bakeLightingData, N, L, dist, distSq, color, attenuation);
 
-    float intensity = attenuation * saturate(NdotL);
+    float intensity = saturate(attenuation * NdotL);
 
     // Note: We use NdotL here to early out, but in case of clear coat this is not correct. But we are ok with this
     [branch] if (intensity > 0.0)
