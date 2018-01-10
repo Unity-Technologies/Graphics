@@ -275,3 +275,12 @@ VFXEnumField Button:focus
 {
 	background-image: resource("Builtin Skins/DarkSkin/Images/mini popup focus.png");
 }
+
+StringFieldPushButton
+{
+	height:16;
+}
+StringFieldPushButton Button
+{
+	height:16;
+}
