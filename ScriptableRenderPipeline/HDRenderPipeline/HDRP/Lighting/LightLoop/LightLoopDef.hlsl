@@ -102,9 +102,9 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
     // This code will be inlined as lightLoopContext is hardcoded in the light loop
     if (lightLoopContext.sampleReflection == SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES)
     {
-        if (index == ENVCACHETYPE_TEXTURE2D)
+        if (cacheType == ENVCACHETYPE_TEXTURE2D)
             return SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, texCoord.xy, index, lod);
-        else if (index == ENVCACHETYPE_CUBEMAP)
+        else if (cacheType == ENVCACHETYPE_CUBEMAP)
             return SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, texCoord, index, lod);
         return float4(0, 0, 0, 0);
     }
