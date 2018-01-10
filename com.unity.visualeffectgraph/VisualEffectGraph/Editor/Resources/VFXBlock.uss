@@ -11,7 +11,7 @@
 	padding-bottom:0;
 }
 
-VFXBlockUI #settings .propertyrm
+.VFXContextSlotContainerUI #settings .propertyrm
 {
 	margin-left:16;
 }
