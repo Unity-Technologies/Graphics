@@ -5,6 +5,8 @@
 #define ENVMAP_FEATURE_PERFACEFADE
 #define ENVMAP_FEATURE_INFLUENCENORMAL
 
+#include "LightDefinition.cs.hlsl"
+
 float3x3 WorldToProxySpace(EnvProxyData proxyData)
 {
     return transpose(float3x3(proxyData.right, proxyData.up, proxyData.forward)); // worldToLocal assume no scaling
@@ -44,7 +46,7 @@ float InfluenceSphereWeight(EnvLightData lightData, BSDFData bsdfData, float3 po
 
 #if defined(ENVMAP_FEATURE_INFLUENCENORMAL)
     float insideInfluenceNormalVolume = lengthPositionLS <= (lightData.influenceExtents.x - lightData.blendNormalDistancePositive.x) ? 1.0 : 0.0;
-    float insideWeight = InfluenceFadeNormalWeight(bsdfData.normalWS, normalize(positionWS - lightData.positionWS));
+    float insideWeight = InfluenceFadeNormalWeight(bsdfData.normalWS, normalize(positionWS - lightData.capturePositionWS));
     alpha *= insideInfluenceNormalVolume ? 1.0 : insideWeight;
 #endif
 
@@ -84,7 +86,7 @@ float InfluenceBoxWeight(EnvLightData lightData, BSDFData bsdfData, float3 posit
     float3 belowPositiveInfluenceNormalVolume = positiveDistance / max(0.0001, lightData.blendNormalDistancePositive);
     float3 aboveNegativeInfluenceNormalVolume = negativeDistance / max(0.0001, lightData.blendNormalDistanceNegative);
     float insideInfluenceNormalVolume = all(belowPositiveInfluenceNormalVolume >= 1.0) && all(aboveNegativeInfluenceNormalVolume >= 1.0) ? 1.0 : 0;
-    float insideWeight = InfluenceFadeNormalWeight(bsdfData.normalWS, normalize(positionWS - lightData.positionWS));
+    float insideWeight = InfluenceFadeNormalWeight(bsdfData.normalWS, normalize(positionWS - lightData.capturePositionWS));
     alpha *= insideInfluenceNormalVolume ? 1.0 : insideWeight;
 #endif
 
@@ -106,19 +108,13 @@ float InfluenceBoxWeight(EnvLightData lightData, BSDFData bsdfData, float3 posit
 
 float3x3 WorldToLightSpace(EnvLightData lightData)
 {
-    // CAUTION: localToWorld is the transform use to convert the cubemap capture point to world space (mean it include the offset)
-    // the center of the bounding box is thus in locals space: positionLS - offsetLS
-    // We use this formulation as it is the one of legacy unity that was using only AABB box.
     return transpose(float3x3(lightData.right, lightData.up, lightData.forward)); // worldToLocal assume no scaling
 }
 
 float3 WorldToLightPosition(EnvLightData lightData, float3x3 worldToLS, float3 positionWS)
 {
-    // CAUTION: localToWorld is the transform use to convert the cubemap capture point to world space (mean it include the offset)
-    // the center of the bounding box is thus in locals space: positionLS - offsetLS
-    // We use this formulation as it is the one of legacy unity that was using only AABB box.
     float3 positionLS = positionWS - lightData.positionWS;
-    positionLS = mul(positionLS, worldToLS).xyz - lightData.offsetLS;
+    positionLS = mul(positionLS, worldToLS).xyz;
     return positionLS;
 }
 

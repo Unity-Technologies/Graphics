@@ -113,8 +113,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [GenerateHLSL]
     public struct EnvLightData
     {
-        public Vector3 positionWS;
+        public Vector3 capturePositionWS;
         public EnvShapeType envShapeType;
+
+        public Vector3 positionWS;
+        public int unused8;
 
         public Vector3 forward;
         public int envIndex;
