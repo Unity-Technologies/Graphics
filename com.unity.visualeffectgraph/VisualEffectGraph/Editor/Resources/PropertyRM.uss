@@ -166,7 +166,7 @@ IntPropertyRM IntField
 
 CurveField
 {
-	height:26;
+	height:16;
 	background-color:rgb(86, 86, 86);
 	border-left-width:1;
 	border-right-width:1;
