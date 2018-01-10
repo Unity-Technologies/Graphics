@@ -418,7 +418,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ValidateArray(ref halfRcpVariancesAndWeights, DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * 2);
             ValidateArray(ref filterKernelsBasic,         DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * DiffusionProfileConstants.SSS_BASIC_N_SAMPLES);
 
-            Debug.Assert(DiffusionProfileConstants.DIFFUSION_PROFILE_NEUTRAL_ID < 16, "Transmission flags (32-bit integer) cannot support more than 16 profiles (2 bits per profile).");
+            Debug.Assert(DiffusionProfileConstants.DIFFUSION_PROFILE_NEUTRAL_ID <= 16, "Transmission flags (32-bit integer) cannot support more than 16 profiles (2 bits per profile).");
 
             UpdateCache();
         }
