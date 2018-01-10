@@ -12,11 +12,11 @@ float3x3 WorldToProxySpace(EnvProxyData proxyData)
     return transpose(float3x3(proxyData.right, proxyData.up, proxyData.forward)); // worldToLocal assume no scaling
 }
 
-float3 WorldToProjectionPosition(EnvProxyData proxyData, float3x3 worldToLS, float3 positionWS)
+float3 WorldToProxyPosition(EnvProxyData proxyData, float3x3 worldToPS, float3 positionWS)
 {
-    float3 positionLS = positionWS - proxyData.positionWS;
-    positionLS = mul(positionLS, worldToLS).xyz;
-    return positionLS;
+    float3 positionPS = positionWS - proxyData.positionWS;
+    positionPS = mul(positionPS, worldToPS).xyz;
+    return positionPS;
 }
 
 float IntersectSphereProxy(EnvProxyData proxyData, float3 dirPS, float3 positionPS)

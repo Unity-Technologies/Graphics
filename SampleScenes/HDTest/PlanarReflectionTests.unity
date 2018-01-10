@@ -1108,7 +1108,7 @@ MonoBehaviour:
   m_Version: 1
   influenceShape: 0
   dimmer: 1
-  influenceSphereRadius: 3
+  influenceSphereRadius: 30
   sphereReprojectionVolumeRadius: 1
   useSeparateProjectionVolume: 0
   boxReprojectionVolumeSize: {x: 1, y: 1, z: 1}
@@ -1172,12 +1172,12 @@ ReflectionProbe:
   m_Enabled: 1
   serializedVersion: 2
   m_Type: 0
-  m_Mode: 0
-  m_RefreshMode: 0
+  m_Mode: 1
+  m_RefreshMode: 1
   m_TimeSlicingMode: 0
   m_Resolution: 128
   m_UpdateFrequency: 0
-  m_BoxSize: {x: 20, y: 10, z: 20}
+  m_BoxSize: {x: 21, y: 11, z: 21}
   m_BoxOffset: {x: 0, y: 0, z: 0}
   m_NearClip: 0.3
   m_FarClip: 1000
@@ -3927,7 +3927,7 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1561776757}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a4ee7c3a3b205a14a94094d01ff91d6b, type: 3}
   m_Name: 
@@ -3947,7 +3947,7 @@ MonoBehaviour:
     m_SphereBaseOffset: {x: 0, y: 0, z: 0}
     m_SphereInfluenceFade: 0.14740431
     m_SphereInfluenceNormalFade: 0.18656206
-  m_CaptureOffset: {x: 0, y: 0, z: 0}
+  m_CenterOffset: {x: 0, y: 0, z: 0}
   m_Dimmer: 1
   m_Mode: 0
 --- !u!1 &1562837666
@@ -4267,14 +4267,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 86d2527ad2205af4b9326464d02c7642, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_ProjectionVolume:
-    m_ShapeType: 0
-    m_BoxSize: {x: 20, y: 10, z: 20}
-    m_BoxOffset: {x: 0, y: 5, z: 0}
-    m_BoxInfiniteProjection: 0
-    m_SphereRadius: 12.3
-    m_SphereOffset: {x: 0, y: 0, z: 0}
-    m_SphereInfiniteProjection: 0
 --- !u!1 &1662809620
 GameObject:
   m_ObjectHideFlags: 0

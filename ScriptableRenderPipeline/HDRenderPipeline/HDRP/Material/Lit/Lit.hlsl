@@ -1553,9 +1553,12 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float3 dirLS = mul(R, worldToLS); // Projection and influence share the space
 
     // Projection and influence share the space
-    float3x3 worldToPS = worldToLS; 
+    /*float3x3 worldToPS = worldToLS; 
     float3 positionPS = positionLS;
-    float3 dirPS = dirLS;
+    float3 dirPS = dirLS;*/
+    float3x3 worldToPS = WorldToProxySpace(proxyData);
+    float3 positionPS = WorldToProxyPosition(proxyData, worldToPS, positionWS);
+    float3 dirPS = mul(R, worldToPS);
 
     // 1. First process the projection
     // Note: using influenceShapeType and projectionShapeType instead of (lightData|proxyData).shapeType allow to make compiler optimization in case the type is know (like for sky)
@@ -1592,10 +1595,11 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     }
 
     // 2. Process the influence
-    if (influenceShapeType == ENVSHAPETYPE_SPHERE)
+    /*if (influenceShapeType == ENVSHAPETYPE_SPHERE)
         weight = InfluenceSphereWeight(lightData, bsdfData, positionWS, positionLS, dirLS);
     else if (influenceShapeType == ENVSHAPETYPE_BOX)
-        weight = InfluenceBoxWeight(lightData, bsdfData, positionWS, positionLS, dirLS);
+        weight = InfluenceBoxWeight(lightData, bsdfData, positionWS, positionLS, dirLS);*/
+    weight = 1;
 
     // Smooth weighting
     weight = Smoothstep01(weight);
