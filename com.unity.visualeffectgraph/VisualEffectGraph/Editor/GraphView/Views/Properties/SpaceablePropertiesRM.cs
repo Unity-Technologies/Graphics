@@ -21,6 +21,11 @@ namespace UnityEditor.VFX.UI
             return 40;
         }
 
+        public override float GetPreferredLabelWidth()
+        {
+            return base.GetPreferredLabelWidth() + m_Button.layout.width;
+        }
+
         void OnButtonClick()
         {
             m_Value.space = (CoordinateSpace)((int)(m_Value.space + 1) % CoordinateSpaceInfo.SpaceCount);

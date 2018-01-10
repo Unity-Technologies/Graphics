@@ -60,7 +60,7 @@ namespace UnityEditor.VFX.UI
             return GetType() == GetPropertyType(provider);
         }
 
-        public float GetPreferredLabelWidth()
+        public virtual float GetPreferredLabelWidth()
         {
             if (m_Label.panel == null) return 40;
 

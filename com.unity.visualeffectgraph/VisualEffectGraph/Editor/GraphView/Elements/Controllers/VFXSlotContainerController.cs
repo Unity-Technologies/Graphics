@@ -65,7 +65,7 @@ namespace UnityEditor.VFX.UI
                     }
                     newAnchors.Add(propController);
 
-                    if (!typeof(ISpaceable).IsAssignableFrom(slot.property.type) || slot.children.Count() != 1)
+                    if (!VFXDataAnchorController.SlotShouldSkipFirstLevel(slot))
                     {
                         UpdateSlots(newAnchors, slot.children, expanded && !slot.collapsed, input);
                     }
