@@ -134,7 +134,7 @@ VFXContextSlotContainerUI.VFXNodeUI.selected
 
 VFXContextSlotContainerUI.VFXContextSlotContainerUI
 {
-	-background-color:rgba(57,57,57,0.8);
+	background-color:rgba(57,57,57,0.8);
 	margin-top:0;
 	margin-right:0;
 	margin-left:0;
@@ -277,13 +277,6 @@ VFXContextUI > * >#Title {
 VFXContextUI *
 {
 	font-size:11;
-}
-
-
-VFXContextUI .VFXNodeUI.VFXContextSlotContainerUI
-{
-	border-bottom-left-radius:0;
-	border-bottom-right-radius:0;
 }
 
 VFXContextUI VFXContextSlotContainerUI.VFXNodeUI #title
