@@ -32,9 +32,10 @@ void MATERIALFLAGSGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 
 	uint iWidth = g_viDimensions.x;
 	uint iHeight = g_viDimensions.y;
-	uint nrTilesX = (iWidth+15)/16;
+    uint nrTilesX = (iWidth + (TILE_SIZE_FPTL - 1)) / TILE_SIZE_FPTL;
 
-	uint2 viTilLL = 16*tileIDX;
+    // 16 * 4 = 64. We process data by group of 4 pixel
+    uint2 viTilLL = 16 * tileIDX;
 
 	float2 invScreenSize = float2(1.0f / iWidth, 1.0f / iHeight);
 
