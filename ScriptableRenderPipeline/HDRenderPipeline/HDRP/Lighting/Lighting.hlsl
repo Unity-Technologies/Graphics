@@ -1,4 +1,4 @@
-#ifndef UNITY_LIGHTING_INCLUDED
+﻿#ifndef UNITY_LIGHTING_INCLUDED
 #define UNITY_LIGHTING_INCLUDED
 
 #include "CoreRP/ShaderLibrary/CommonLighting.hlsl"
@@ -22,7 +22,6 @@
 #include "LightLoop/Shadow.hlsl"
 
 #if defined(LIGHTLOOP_SINGLE_PASS) || defined(LIGHTLOOP_TILE_PASS)
-#include "../Lighting/VolumeProjection.hlsl"
 #include "../Lighting/LightLoop/LightLoopDef.hlsl"
 #endif
 
