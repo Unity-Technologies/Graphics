@@ -118,61 +118,61 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Init a FrameSettings from renderpipeline settings, frame settings and debug settings (if any)
         // This will aggregate the various option
-        public static void InitializeFrameSettings(Camera camera, RenderPipelineSettings renderPipelineSettings, FrameSettings srcFrameSettings, ref FrameSettings dstFrameSettings)
+        public static void InitializeFrameSettings(Camera camera, RenderPipelineSettings renderPipelineSettings, FrameSettings srcFrameSettings, ref FrameSettings aggregate)
         {
-            if (dstFrameSettings == null)
-                dstFrameSettings = new FrameSettings();
+            if (aggregate == null)
+                aggregate = new FrameSettings();
 
             // When rendering reflection probe we disable specular as it is view dependent
             if (camera.cameraType == CameraType.Reflection)
             {
-                dstFrameSettings.diffuseGlobalDimmer = 1.0f;
-                dstFrameSettings.specularGlobalDimmer = 0.0f;
+                aggregate.diffuseGlobalDimmer = 1.0f;
+                aggregate.specularGlobalDimmer = 0.0f;
             }
             else
             {
-                dstFrameSettings.diffuseGlobalDimmer = 1.0f;
-                dstFrameSettings.specularGlobalDimmer = 1.0f;
+                aggregate.diffuseGlobalDimmer = 1.0f;
+                aggregate.specularGlobalDimmer = 1.0f;
             }
 
-            dstFrameSettings.enableShadow = srcFrameSettings.enableShadow;
-            dstFrameSettings.enableSSR = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableSSR && renderPipelineSettings.supportSSR;
-            dstFrameSettings.enableSSAO = srcFrameSettings.enableSSAO && renderPipelineSettings.supportSSAO;
-            dstFrameSettings.enableSubsurfaceScattering = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableSubsurfaceScattering && renderPipelineSettings.supportSubsurfaceScattering;
-            dstFrameSettings.enableTransmission = srcFrameSettings.enableTransmission;
+            aggregate.enableShadow = srcFrameSettings.enableShadow;
+            aggregate.enableSSR = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableSSR && renderPipelineSettings.supportSSR;
+            aggregate.enableSSAO = srcFrameSettings.enableSSAO && renderPipelineSettings.supportSSAO;
+            aggregate.enableSubsurfaceScattering = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableSubsurfaceScattering && renderPipelineSettings.supportSubsurfaceScattering;
+            aggregate.enableTransmission = srcFrameSettings.enableTransmission;
 
             // We have to fall back to forward-only rendering when scene view is using wireframe rendering mode
             // as rendering everything in wireframe + deferred do not play well together
-            dstFrameSettings.enableForwardRenderingOnly = srcFrameSettings.enableForwardRenderingOnly || GL.wireframe;
-            dstFrameSettings.enableDepthPrepassWithDeferredRendering = srcFrameSettings.enableDepthPrepassWithDeferredRendering;
-            dstFrameSettings.enableAlphaTestOnlyInDeferredPrepass = srcFrameSettings.enableAlphaTestOnlyInDeferredPrepass;
+            aggregate.enableForwardRenderingOnly = srcFrameSettings.enableForwardRenderingOnly || GL.wireframe;
+            aggregate.enableDepthPrepassWithDeferredRendering = srcFrameSettings.enableDepthPrepassWithDeferredRendering;
+            aggregate.enableAlphaTestOnlyInDeferredPrepass = srcFrameSettings.enableAlphaTestOnlyInDeferredPrepass;
 
-            dstFrameSettings.enableTransparentPrepass = srcFrameSettings.enableTransparentPrepass;
-            dstFrameSettings.enableMotionVectors = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableMotionVectors;
-            dstFrameSettings.enableObjectMotionVectors = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableObjectMotionVectors;
-            dstFrameSettings.enableDBuffer = srcFrameSettings.enableDBuffer && renderPipelineSettings.supportDBuffer;
-            dstFrameSettings.enableAtmosphericScattering = srcFrameSettings.enableAtmosphericScattering;
-            dstFrameSettings.enableRoughRefraction = srcFrameSettings.enableRoughRefraction;
-            dstFrameSettings.enableTransparentPostpass = srcFrameSettings.enableTransparentPostpass;
-            dstFrameSettings.enableDistortion = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableDistortion;
+            aggregate.enableTransparentPrepass = srcFrameSettings.enableTransparentPrepass;
+            aggregate.enableMotionVectors = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableMotionVectors;
+            aggregate.enableObjectMotionVectors = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableObjectMotionVectors;
+            aggregate.enableDBuffer = srcFrameSettings.enableDBuffer && renderPipelineSettings.supportDBuffer;
+            aggregate.enableAtmosphericScattering = srcFrameSettings.enableAtmosphericScattering;
+            aggregate.enableRoughRefraction = srcFrameSettings.enableRoughRefraction;
+            aggregate.enableTransparentPostpass = srcFrameSettings.enableTransparentPostpass;
+            aggregate.enableDistortion = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableDistortion;
 
             // Planar and real time cubemap doesn't need post process and render in FP16
-            dstFrameSettings.enablePostprocess = camera.cameraType != CameraType.Reflection && srcFrameSettings.enablePostprocess;
+            aggregate.enablePostprocess = camera.cameraType != CameraType.Reflection && srcFrameSettings.enablePostprocess;
 
-            dstFrameSettings.enableStereo = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableStereo && XRSettings.isDeviceActive && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
+            aggregate.enableStereo = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableStereo && XRSettings.isDeviceActive && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
             // Force forward if we request stereo. TODO: We should not enforce that, users should be able to chose deferred
-            dstFrameSettings.enableForwardRenderingOnly = dstFrameSettings.enableForwardRenderingOnly || dstFrameSettings.enableStereo;
+            aggregate.enableForwardRenderingOnly = aggregate.enableForwardRenderingOnly || aggregate.enableStereo;
 
-            dstFrameSettings.enableAsyncCompute = srcFrameSettings.enableAsyncCompute && renderPipelineSettings.supportAsyncCompute;
+            aggregate.enableAsyncCompute = srcFrameSettings.enableAsyncCompute && renderPipelineSettings.supportAsyncCompute;
 
-            dstFrameSettings.enableOpaqueObjects = srcFrameSettings.enableOpaqueObjects;
-            dstFrameSettings.enableTransparentObjects = srcFrameSettings.enableTransparentObjects;
+            aggregate.enableOpaqueObjects = srcFrameSettings.enableOpaqueObjects;
+            aggregate.enableTransparentObjects = srcFrameSettings.enableTransparentObjects;
 
-            dstFrameSettings.enableMSAA = srcFrameSettings.enableMSAA && renderPipelineSettings.supportMSAA;
+            aggregate.enableMSAA = srcFrameSettings.enableMSAA && renderPipelineSettings.supportMSAA;
 
-            dstFrameSettings.enableShadowMask = srcFrameSettings.enableShadowMask && renderPipelineSettings.supportShadowMask;
+            aggregate.enableShadowMask = srcFrameSettings.enableShadowMask && renderPipelineSettings.supportShadowMask;
 
-            LightLoopSettings.InitializeLightLoopSettings(camera, dstFrameSettings, renderPipelineSettings, srcFrameSettings, ref dstFrameSettings.lightLoopSettings);
+            LightLoopSettings.InitializeLightLoopSettings(camera, aggregate, renderPipelineSettings, srcFrameSettings, ref aggregate.lightLoopSettings);
         }
 
         static public void RegisterDebug(String menuName, FrameSettings frameSettings)
