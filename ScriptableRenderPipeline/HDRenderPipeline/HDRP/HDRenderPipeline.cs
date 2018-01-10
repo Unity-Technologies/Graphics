@@ -2,13 +2,7 @@
 using UnityEngine.Rendering;
 using System;
 using System.Diagnostics;
-using System.Linq;
 using UnityEngine.Rendering.PostProcessing;
-using UnityEngine.Profiling;
-
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -237,8 +231,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderTargetIdentifier m_CameraDepthBufferCopyRT;
         RenderTargetIdentifier m_CameraStencilBufferCopyRT;
 
-        static CustomSampler[] m_samplers = new CustomSampler[(int)CustomSamplerId.Max];
-
         // The pass "SRPDefaultUnlit" is a fall back to legacy unlit rendering and is required to support unity 2d + unity UI that render in the scene.
         ShaderPassName[] m_ForwardAndForwardOnlyPassNames = { new ShaderPassName(), new ShaderPassName(), HDShaderPassNames.s_SRPDefaultUnlitName};
         ShaderPassName[] m_ForwardOnlyPassNames = { new ShaderPassName(), HDShaderPassNames.s_SRPDefaultUnlitName};
@@ -307,10 +299,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_DebugFullScreenTempRT;
         bool m_FullScreenDebugPushed;
 
-        static public CustomSampler   GetSampler(CustomSamplerId id)
-        {
-            return m_samplers[(int)id];
-        }
         public HDRenderPipeline(HDRenderPipelineAsset asset)
         {
             SetRenderingFeatures();
@@ -390,13 +378,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DebugDisplaySettings.RegisterDebug();
             FrameSettings.RegisterDebug("Default Camera", m_Asset.GetFrameSettings());
             m_DebugFullScreenTempRT = HDShaderIDs._DebugFullScreenTexture;
-
-            // Init all samplers
-            for (int i = 0; i < (int)CustomSamplerId.Max; i++)
-            {
-                CustomSamplerId id = (CustomSamplerId)i;
-                m_samplers[i] = CustomSampler.Create("C#_" + id.ToString());
-            }
 
             InitializeRenderStateBlocks();
         }
@@ -550,7 +531,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd, DiffusionProfileSettings sssParameters)
         {
-            using (new ProfilingSample(cmd, "Push Global Parameters", GetSampler(CustomSamplerId.PushGlobalParameters)))
+            using (new ProfilingSample(cmd, "Push Global Parameters", CustomSamplerId.PushGlobalParameters.GetSampler()))
             {
                 hdCamera.SetupGlobalParams(cmd);
 
@@ -588,11 +569,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void CopyDepthBufferIfNeeded(CommandBuffer cmd)
         {
-            using (new ProfilingSample(cmd, NeedDepthBufferCopy() ? "Copy DepthBuffer" : "Set DepthBuffer", GetSampler(CustomSamplerId.CopySetDepthBuffer)))
+            using (new ProfilingSample(cmd, NeedDepthBufferCopy() ? "Copy DepthBuffer" : "Set DepthBuffer", CustomSamplerId.CopySetDepthBuffer.GetSampler()))
             {
                 if (NeedDepthBufferCopy())
                 {
-                    using (new ProfilingSample(cmd, "Copy depth-stencil buffer", GetSampler(CustomSamplerId.CopyDepthStencilbuffer)))
+                    using (new ProfilingSample(cmd, "Copy depth-stencil buffer", CustomSamplerId.CopyDepthStencilbuffer.GetSampler()))
                     {
                         cmd.CopyTexture(m_CameraDepthStencilBufferRT, m_CameraDepthBufferCopyRT);
                     }
@@ -651,7 +632,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 foreach (var material in m_MaterialList)
                     material.RenderInit(cmd);
 
-                using (new ProfilingSample(cmd, "HDRenderPipeline::Render", GetSampler(CustomSamplerId.HDRenderPipelineRender)))
+                using (new ProfilingSample(cmd, "HDRenderPipeline::Render", CustomSamplerId.HDRenderPipelineRender.GetSampler()))
                 {
                     // Do anything we need to do upon a new frame.
                     m_LightLoop.NewFrame(m_FrameSettings);
@@ -667,7 +648,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         m_CurrentDebugDisplaySettings = m_DebugDisplaySettings;
 
-                        using (new ProfilingSample(cmd, "Volume Update", GetSampler(CustomSamplerId.VolumeUpdate)))
+                        using (new ProfilingSample(cmd, "Volume Update", CustomSamplerId.VolumeUpdate.GetSampler()))
                         {
                             LayerMask layerMask = -1;
                             if(additionalCameraData != null)
@@ -711,7 +692,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 					if (m_FrameSettings.enableDBuffer)
 						DecalSystem.instance.BeginCull(camera);
 
-                    using (new ProfilingSample(cmd, "CullResults.Cull", GetSampler(CustomSamplerId.CullResultsCull)))
+                    using (new ProfilingSample(cmd, "CullResults.Cull", CustomSamplerId.CullResultsCull.GetSampler()))
                     {
                         CullResults.Cull(ref cullingParams, renderContext,ref m_CullResults);
                     }
@@ -741,7 +722,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // TODO: Add another path dedicated to planar reflection / real time cubemap that implement simpler lighting
                         // It is up to the users to only send unlit object for this camera path
 
-                        using (new ProfilingSample(cmd, "Forward", GetSampler(CustomSamplerId.Forward)))
+                        using (new ProfilingSample(cmd, "Forward", CustomSamplerId.Forward.GetSampler()))
                         {
                             CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.Color | ClearFlag.Depth);
                             RenderOpaqueRenderList(m_CullResults, camera, renderContext, cmd, HDShaderPassNames.s_ForwardName);
@@ -761,7 +742,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // It mean that when we build a standalone player, if we detect a light with bake shadow mask, we generate all shader variant (with and without shadow mask) and at runtime, when a bake shadow mask light is visible, we dynamically allocate an extra GBuffer and switch the shader.
                     // So the first thing to do is to go through all the light: PrepareLightsForGPU
                     bool enableBakeShadowMask;
-                    using (new ProfilingSample(cmd, "TP_PrepareLightsForGPU", GetSampler(CustomSamplerId.TPPrepareLightsForGPU)))
+                    using (new ProfilingSample(cmd, "TP_PrepareLightsForGPU", CustomSamplerId.TPPrepareLightsForGPU.GetSampler()))
                     {
                         enableBakeShadowMask = m_LightLoop.PrepareLightsForGPU(cmd, m_ShadowSettings, m_CullResults, camera) && m_FrameSettings.enableShadowMask;
                     }
@@ -798,7 +779,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     else
                     {
-                        using (new ProfilingSample(cmd, "Render SSAO", GetSampler(CustomSamplerId.RenderSSAO)))
+                        using (new ProfilingSample(cmd, "Render SSAO", CustomSamplerId.RenderSSAO.GetSampler()))
                         {
                             // TODO: Everything here (SSAO, Shadow, Build light list, deferred shadow, material and light classification can be parallelize with Async compute)
                             RenderSSAO(cmd, hdCamera, renderContext, postProcessLayer);
@@ -814,14 +795,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             buildGPULightListsCompleteFence = m_LightLoop.BuildGPULightListsAsyncBegin(camera, renderContext, m_CameraDepthStencilBufferRT, m_CameraStencilBufferCopyRT, startFence, m_SkyManager.IsSkyValid());
                         }
 
-                        using (new ProfilingSample(cmd, "Render shadows", GetSampler(CustomSamplerId.RenderShadows)))
+                        using (new ProfilingSample(cmd, "Render shadows", CustomSamplerId.RenderShadows.GetSampler()))
                         {
                             m_LightLoop.RenderShadows(renderContext, cmd, m_CullResults);
                             // TODO: check if statement below still apply
                             renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after RenderShadows as it modify our view/proj matrix
                         }
 
-                        using (new ProfilingSample(cmd, "Deferred directional shadows", GetSampler(CustomSamplerId.RenderDeferredDirectionalShadow)))
+                        using (new ProfilingSample(cmd, "Deferred directional shadows", CustomSamplerId.RenderDeferredDirectionalShadow.GetSampler()))
                         {
                             cmd.ReleaseTemporaryRT(m_DeferredShadowBuffer);
                             CoreUtils.CreateCmdTemporaryRT(cmd, m_DeferredShadowBuffer, hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear, 1, true);
@@ -833,7 +814,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         if (m_LightLoop.GetFeatureVariantsEnabled())
                         {
                             // For material classification we use compute shader and so can't read into the stencil, so prepare it.
-                            using (new ProfilingSample(cmd, "Clear and copy stencil texture", GetSampler(CustomSamplerId.ClearAndCopyStencilTexture)))
+                            using (new ProfilingSample(cmd, "Clear and copy stencil texture", CustomSamplerId.ClearAndCopyStencilTexture.GetSampler()))
                             {
                                 CoreUtils.SetRenderTarget(cmd, m_CameraStencilBufferCopyRT, ClearFlag.Color, CoreUtils.clearColorAllBlack);
 
@@ -849,7 +830,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                         else
                         {
-                            using (new ProfilingSample(cmd, "Build Light list", GetSampler(CustomSamplerId.BuildLightList)))
+                            using (new ProfilingSample(cmd, "Build Light list", CustomSamplerId.BuildLightList.GetSampler()))
                             {
                                 m_LightLoop.BuildGPULightLists(camera, cmd, m_CameraDepthStencilBufferRT, m_CameraStencilBufferCopyRT, m_SkyManager.IsSkyValid());
                             }
@@ -897,7 +878,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                         else
                         {
-                            using (new ProfilingSample(cmd, "Blit to final RT", GetSampler(CustomSamplerId.BlitToFinalRT)))
+                            using (new ProfilingSample(cmd, "Blit to final RT", CustomSamplerId.BlitToFinalRT.GetSampler()))
                             {
                                 // Simple blit
                                 cmd.Blit(m_CameraColorBufferRT, BuiltinRenderTextureType.CameraTarget);
@@ -1046,7 +1027,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_FrameSettings.enableDistortion)
                 return;
 
-            using (new ProfilingSample(cmd, "Distortion", GetSampler(CustomSamplerId.Distortion)))
+            using (new ProfilingSample(cmd, "Distortion", CustomSamplerId.Distortion.GetSampler()))
             {
                 cmd.ReleaseTemporaryRT(m_DistortionBuffer);
                 CoreUtils.CreateCmdTemporaryRT(cmd, m_DistortionBuffer, hdCamera.renderTextureDesc, 0, FilterMode.Point, Builtin.GetDistortionBufferFormat(), Builtin.GetDistortionBufferReadWrite());
@@ -1063,7 +1044,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_FrameSettings.enableDistortion)
                 return;
 
-            using (new ProfilingSample(cmd, "ApplyDistortion", GetSampler(CustomSamplerId.ApplyDistortion)))
+            using (new ProfilingSample(cmd, "ApplyDistortion", CustomSamplerId.ApplyDistortion.GetSampler()))
             {
                 var size = new Vector4(hdCamera.screenSize.x, hdCamera.screenSize.y, 1f / hdCamera.screenSize.x, 1f / hdCamera.screenSize.y);
                 uint x, y, z;
@@ -1098,7 +1079,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var camera = hdCamera.camera;
 
-            using (new ProfilingSample(cmd, addAlphaTestedOnly ? "Depth Prepass alpha test" : "Depth Prepass", GetSampler(CustomSamplerId.DepthPrepass)))
+            using (new ProfilingSample(cmd, addAlphaTestedOnly ? "Depth Prepass alpha test" : "Depth Prepass", CustomSamplerId.DepthPrepass.GetSampler()))
             {
                 CoreUtils.SetRenderTarget(cmd, m_CameraDepthStencilBufferRT);
 				if (forcePrepass || (addFullDepthPrepass && !addAlphaTestedOnly)) // Always true in case of forward rendering, use in case of deferred rendering if requesting a full depth prepass
@@ -1124,7 +1105,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_FrameSettings.enableTransparentPrepass)
             {
                 // Render transparent depth prepass after opaque one
-                using (new ProfilingSample(cmd, "Transparent Depth Prepass", GetSampler(CustomSamplerId.TransparentDepthPrepass)))
+                using (new ProfilingSample(cmd, "Transparent Depth Prepass", CustomSamplerId.TransparentDepthPrepass.GetSampler()))
                 {
                     RenderTransparentRenderList(cull, camera, renderContext, cmd, m_TransparentDepthPrepassNames);
                 }
@@ -1140,7 +1121,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var camera = hdCamera.camera;
 
-            using (new ProfilingSample(cmd, m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() ? "GBufferDebugDisplay" : "GBuffer", GetSampler(CustomSamplerId.GBuffer)))
+            using (new ProfilingSample(cmd, m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() ? "GBufferDebugDisplay" : "GBuffer", CustomSamplerId.GBuffer.GetSampler()))
             {
                 // setup GBuffer for rendering
                 CoreUtils.SetRenderTarget(cmd, m_GbufferManager.GetGBuffers(), m_CameraDepthStencilBufferRT);
@@ -1177,7 +1158,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_FrameSettings.enableDBuffer)
                 return;
 
-            using (new ProfilingSample(cmd, "DBuffer", GetSampler(CustomSamplerId.DBuffer)))
+            using (new ProfilingSample(cmd, "DBuffer", CustomSamplerId.DBuffer.GetSampler()))
             {
                 // We need to copy depth buffer texture if we want to bind it at this stage
                 CopyDepthBufferIfNeeded(cmd);
@@ -1192,11 +1173,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderDebugViewMaterial(CullResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            using (new ProfilingSample(cmd, "DisplayDebug ViewMaterial", GetSampler(CustomSamplerId.DisplayDebugViewMaterial)))
+            using (new ProfilingSample(cmd, "DisplayDebug ViewMaterial", CustomSamplerId.DisplayDebugViewMaterial.GetSampler()))
             {
                 if (m_CurrentDebugDisplaySettings.materialDebugSettings.IsDebugGBufferEnabled() && !m_FrameSettings.enableForwardRenderingOnly)
                 {
-                    using (new ProfilingSample(cmd, "DebugViewMaterialGBuffer", GetSampler(CustomSamplerId.DebugViewMaterialGBuffer)))
+                    using (new ProfilingSample(cmd, "DebugViewMaterialGBuffer", CustomSamplerId.DebugViewMaterialGBuffer.GetSampler()))
                     {
                         CoreUtils.DrawFullScreen(cmd, m_currentDebugViewMaterialGBuffer, m_CameraColorBufferRT);
                     }
@@ -1214,7 +1195,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Last blit
             {
-                using (new ProfilingSample(cmd, "Blit DebugView Material Debug", GetSampler(CustomSamplerId.BlitDebugViewMaterialDebug)))
+                using (new ProfilingSample(cmd, "Blit DebugView Material Debug", CustomSamplerId.BlitDebugViewMaterialDebug.GetSampler()))
                 {
                     cmd.Blit(m_CameraColorBufferRT, BuiltinRenderTextureType.CameraTarget);
                 }
@@ -1313,7 +1294,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 profileName = k_ForwardPassName[(int)pass];
             }
 
-            using (new ProfilingSample(cmd, profileName, GetSampler(CustomSamplerId.ForwardPassName)))
+            using (new ProfilingSample(cmd, profileName, CustomSamplerId.ForwardPassName.GetSampler()))
             {
                 var camera = hdCamera.camera;
 
@@ -1368,7 +1349,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         void RenderForwardError(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, ForwardPass pass)
         {
-            using (new ProfilingSample(cmd, "Render Forward Error", GetSampler(CustomSamplerId.RenderForwardError)))
+            using (new ProfilingSample(cmd, "Render Forward Error", CustomSamplerId.RenderForwardError.GetSampler()))
             {
                 CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
 
@@ -1388,7 +1369,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_FrameSettings.enableTransparentPostpass)
                 return;
 
-            using (new ProfilingSample(cmd, "Render Transparent Depth Post ", GetSampler(CustomSamplerId.TransparentDepthPostpass)))
+            using (new ProfilingSample(cmd, "Render Transparent Depth Post ", CustomSamplerId.TransparentDepthPostpass.GetSampler()))
             {
                 CoreUtils.SetRenderTarget(cmd, m_CameraDepthStencilBufferRT);
                 RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_TransparentDepthPostpassNames);
@@ -1400,7 +1381,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_FrameSettings.enableMotionVectors || !m_FrameSettings.enableObjectMotionVectors)
                 return;
 
-            using (new ProfilingSample(cmd, "Objects Velocity", GetSampler(CustomSamplerId.ObjectsVelocity)))
+            using (new ProfilingSample(cmd, "Objects Velocity", CustomSamplerId.ObjectsVelocity.GetSampler()))
             {
                 // These flags are still required in SRP or the engine won't compute previous model matrices...
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
@@ -1417,7 +1398,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_FrameSettings.enableMotionVectors)
                 return;
 
-            using (new ProfilingSample(cmd, "Camera Velocity", GetSampler(CustomSamplerId.CameraVelocity)))
+            using (new ProfilingSample(cmd, "Camera Velocity", CustomSamplerId.CameraVelocity.GetSampler()))
             {
                 // These flags are still required in SRP or the engine won't compute previous model matrices...
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
@@ -1444,7 +1425,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return;
             }
 
-            using (new ProfilingSample(cmd, "Gaussian Pyramid Color", GetSampler(CustomSamplerId.GaussianPyramidColor)))
+            using (new ProfilingSample(cmd, "Gaussian Pyramid Color", CustomSamplerId.GaussianPyramidColor.GetSampler()))
             {
                 var colorPyramidDesc = m_GaussianPyramidColorBufferDesc;
                 var pyramidSideSize = GetPyramidSize(colorPyramidDesc);
@@ -1499,7 +1480,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderPyramidDepth(Camera camera, CommandBuffer cmd, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
         {
-            using (new ProfilingSample(cmd, "Pyramid Depth", GetSampler(CustomSamplerId.PyramidDepth)))
+            using (new ProfilingSample(cmd, "Pyramid Depth", CustomSamplerId.PyramidDepth.GetSampler()))
             {
                 var depthPyramidDesc = m_DepthPyramidBufferDesc;
                 var pyramidSideSize = GetPyramidSize(depthPyramidDesc);
@@ -1555,7 +1536,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderPostProcess(HDCamera hdcamera, CommandBuffer cmd, PostProcessLayer layer)
         {
-            using (new ProfilingSample(cmd, "Post-processing", GetSampler(CustomSamplerId.PostProcessing)))
+            using (new ProfilingSample(cmd, "Post-processing", CustomSamplerId.PostProcessing.GetSampler()))
             {
                     // Note: Here we don't use GetDepthTexture() to get the depth texture but m_CameraDepthStencilBuffer as the Forward transparent pass can
                     // write extra data to deal with DOF/MB
@@ -1643,7 +1624,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (camera.camera.cameraType == CameraType.Reflection || camera.camera.cameraType == CameraType.Preview)
                 return;
 
-            using (new ProfilingSample(cmd, "Render Debug", GetSampler(CustomSamplerId.RenderDebug)))
+            using (new ProfilingSample(cmd, "Render Debug", CustomSamplerId.RenderDebug.GetSampler()))
             {
                 // We make sure the depth buffer is bound because we need it to write depth at near plane for overlays otherwise the editor grid end up visible in them.
                 CoreUtils.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget, m_CameraDepthStencilBufferRT);
@@ -1681,11 +1662,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void InitAndClearBuffer(HDCamera hdCamera, bool enableBakeShadowMask, CommandBuffer cmd)
         {
-            using (new ProfilingSample(cmd, "InitAndClearBuffer", GetSampler(CustomSamplerId.InitAndClearBuffer)))
+            using (new ProfilingSample(cmd, "InitAndClearBuffer", CustomSamplerId.InitAndClearBuffer.GetSampler()))
             {
                 // We clear only the depth buffer, no need to clear the various color buffer as we overwrite them.
                 // Clear depth/stencil and init buffers
-                using (new ProfilingSample(cmd, "InitGBuffers and clear Depth/Stencil", GetSampler(CustomSamplerId.InitGBuffersAndClearDepthStencil)))
+                using (new ProfilingSample(cmd, "InitGBuffers and clear Depth/Stencil", CustomSamplerId.InitGBuffersAndClearDepthStencil.GetSampler()))
                 {
                     // Init buffer
                     // With scriptable render loop we must allocate ourself depth and color buffer (We must be independent of backbuffer for now, hope to fix that later).
@@ -1734,7 +1715,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 // Clear the diffuse SSS lighting target
-                using (new ProfilingSample(cmd, "Clear SSS diffuse target", GetSampler(CustomSamplerId.ClearSSSDiffuseTarget)))
+                using (new ProfilingSample(cmd, "Clear SSS diffuse target", CustomSamplerId.ClearSSSDiffuseTarget.GetSampler()))
                 {
                     CoreUtils.SetRenderTarget(cmd, m_CameraSssDiffuseLightingBufferRT, ClearFlag.Color, CoreUtils.clearColorAllBlack);
                 }
@@ -1742,7 +1723,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // TODO: As we are in development and have not all the setup pass we still clear the color in emissive buffer and gbuffer, but this will be removed later.
 
                 // Clear the HDR target
-                using (new ProfilingSample(cmd, "Clear HDR target", GetSampler(CustomSamplerId.ClearHDRTarget)))
+                using (new ProfilingSample(cmd, "Clear HDR target", CustomSamplerId.ClearHDRTarget.GetSampler()))
                 {
                     Color clearColor = hdCamera.camera.backgroundColor.linear; // Need it in linear because we clear a linear fp16 texture.
                     CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.Color, clearColor);
@@ -1751,7 +1732,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Clear GBuffers
                 if (!m_FrameSettings.enableForwardRenderingOnly)
                 {
-                    using (new ProfilingSample(cmd, "Clear GBuffer", GetSampler(CustomSamplerId.ClearGBuffer)))
+                    using (new ProfilingSample(cmd, "Clear GBuffer", CustomSamplerId.ClearGBuffer.GetSampler()))
                     {
                         CoreUtils.SetRenderTarget(cmd, m_GbufferManager.GetGBuffers(), m_CameraDepthStencilBufferRT, ClearFlag.Color, CoreUtils.clearColorAllBlack);
                     }
