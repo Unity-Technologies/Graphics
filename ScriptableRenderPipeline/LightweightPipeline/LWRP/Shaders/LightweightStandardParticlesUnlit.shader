@@ -89,7 +89,7 @@ Shader "LightweightPipeline/Particles/Standard Unlit"
 
                 half4 fragParticleUnlit(VertexOutputLit IN) : SV_Target
                 {
-                    half4 albedo = readTexture(_MainTex, sampler_MainTex, IN);
+                    half4 albedo = readTexture(TEXTURE2D_PARAM(_MainTex, sampler_MainTex), IN);
                     albedo *= _Color;
 
                     fragColorMode(IN);
@@ -97,13 +97,13 @@ Shader "LightweightPipeline/Particles/Standard Unlit"
                     fragCameraFading(IN);
 
         #if defined(_NORMALMAP)
-                    float3 normal = normalize(UnpackNormalScale(readTexture(_BumpMap, sampler_BumpMap, IN), _BumpScale));
+                    float3 normal = normalize(UnpackNormalScale(readTexture(TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap), IN), _BumpScale));
         #else
                     float3 normal = float3(0,0,1);
         #endif
 
         #if defined(_EMISSION)
-                    half3 emission = readTexture(_EmissionMap, sampler_EmissionMap, IN).rgb;
+                    half3 emission = readTexture(TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap), IN).rgb;
         #else
                     half3 emission = 0;
         #endif
