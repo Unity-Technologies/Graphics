@@ -198,6 +198,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Material m_currentDebugViewMaterialGBuffer;
         Material m_DebugDisplayLatlong;
         Material m_DebugFullScreen;
+        Material m_Blit;
         Material m_ErrorMaterial;
 
         // Various buffer
@@ -409,6 +410,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DebugViewMaterialGBufferShadowMask.EnableKeyword("SHADOWS_SHADOWMASK");
             m_DebugDisplayLatlong = CoreUtils.CreateEngineMaterial(m_Asset.renderPipelineResources.debugDisplayLatlongShader);
             m_DebugFullScreen = CoreUtils.CreateEngineMaterial(m_Asset.renderPipelineResources.debugFullScreenShader);
+            m_Blit = CoreUtils.CreateEngineMaterial(m_Asset.renderPipelineResources.blit);
             m_ErrorMaterial = CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader");
         }
 
@@ -450,6 +452,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             CoreUtils.Destroy(m_DebugViewMaterialGBufferShadowMask);
             CoreUtils.Destroy(m_DebugDisplayLatlong);
             CoreUtils.Destroy(m_DebugFullScreen);
+            CoreUtils.Destroy(m_Blit);
             CoreUtils.Destroy(m_ErrorMaterial);
 
             m_SSSBufferManager.Cleanup();
@@ -1443,7 +1446,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 cmd.SetGlobalVector(HDShaderIDs._GaussianPyramidColorMipSize, new Vector4(pyramidSideSize, pyramidSideSize, lodCount, 0));
 
-                cmd.Blit(m_CameraColorBufferRT, m_GaussianPyramidColorBufferRT);
+                cmd.SetGlobalTexture(HDShaderIDs._BlitTexture, m_CameraColorBufferRT);
+                CoreUtils.DrawFullScreen(cmd, m_Blit, m_GaussianPyramidColorBufferRT, null, 1); // Bilinear filtering
 
                 var last = m_GaussianPyramidColorBuffer;
 
