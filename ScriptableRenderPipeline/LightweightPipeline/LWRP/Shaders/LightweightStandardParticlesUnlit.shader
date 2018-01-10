@@ -15,9 +15,6 @@ Shader "LightweightPipeline/Particles/Standard Unlit"
         _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
 
-        _DistortionStrength("Strength", Float) = 1.0
-        _DistortionBlend("Blend", Range(0.0, 1.0)) = 0.5
-
         _SoftParticlesNearFadeDistance("Soft Particles Near Fade", Float) = 0.0
         _SoftParticlesFarFadeDistance("Soft Particles Far Fade", Float) = 1.0
         _CameraNearFadeDistance("Camera Near Fade", Float) = 1.0
@@ -28,7 +25,6 @@ Shader "LightweightPipeline/Particles/Standard Unlit"
         [HideInInspector] _ColorMode("__colormode", Float) = 0.0
         [HideInInspector] _FlipbookMode("__flipbookmode", Float) = 0.0
         [HideInInspector] _LightingEnabled("__lightingenabled", Float) = 0.0
-        [HideInInspector] _DistortionEnabled("__distortionenabled", Float) = 0.0
         [HideInInspector] _EmissionEnabled("__emissionenabled", Float) = 0.0
         [HideInInspector] _BlendOp("__blendop", Float) = 0.0
         [HideInInspector] _SrcBlend("__src", Float) = 1.0
@@ -40,7 +36,6 @@ Shader "LightweightPipeline/Particles/Standard Unlit"
         [HideInInspector] _SoftParticleFadeParams("__softparticlefadeparams", Vector) = (0,0,0,0)
         [HideInInspector] _CameraFadeParams("__camerafadeparams", Vector) = (0,0,0,0)
         [HideInInspector] _ColorAddSubDiff("__coloraddsubdiff", Vector) = (0,0,0,0)
-        [HideInInspector] _DistortionStrengthScaled("__distortionstrengthscaled", Float) = 0.0
     }
 
     Category
@@ -57,7 +52,7 @@ Shader "LightweightPipeline/Particles/Standard Unlit"
 
             Pass
             {
-                CGPROGRAM
+                HLSLPROGRAM
                 #pragma multi_compile __ SOFTPARTICLES_ON
                 #pragma multi_compile_fog
                 #pragma target 2.5
@@ -72,8 +67,68 @@ Shader "LightweightPipeline/Particles/Standard Unlit"
                 #pragma vertex vertParticleUnlit
                 #pragma fragment fragParticleUnlit
 
-                #include "UnityStandardParticles.cginc"
-                ENDCG
+                #include "LightweightShaderLibrary/Particles.hlsl"
+                #include "LightweightShaderLibrary/Core.hlsl"
+
+                VertexOutputLit vertParticleUnlit(appdata_particles v)
+                {
+                    VertexOutputLit o = (VertexOutputLit)0;
+
+                    // position ws is used to compute eye depth in vertFading
+                    o.posWS.xyz = TransformObjectToWorld(v.vertex.xyz);
+                    o.posWS.w = ComputeFogFactor(o.clipPos.z);
+                    o.clipPos = TransformWorldToHClip(o.posWS.xyz);
+                    o.color = v.color;
+
+                    vertColor(o.color);
+                    vertTexcoord(v, o);
+                    vertFading(o, o.posWS, o.clipPos);
+
+                    return o;
+                }
+
+                half4 fragParticleUnlit(VertexOutputLit IN) : SV_Target
+                {
+                    half4 albedo = readTexture(_MainTex, sampler_MainTex, IN);
+                    albedo *= _Color;
+
+                    fragColorMode(IN);
+                    fragSoftParticles(IN);
+                    fragCameraFading(IN);
+
+        #if defined(_NORMALMAP)
+                    float3 normal = normalize(UnpackNormalScale(readTexture(_BumpMap, sampler_BumpMap, IN), _BumpScale));
+        #else
+                    float3 normal = float3(0,0,1);
+        #endif
+
+        #if defined(_EMISSION)
+                    half3 emission = readTexture(_EmissionMap, sampler_EmissionMap, IN).rgb;
+        #else
+                    half3 emission = 0;
+        #endif
+
+                    half4 result = albedo;
+
+        #if defined(_ALPHAMODULATE_ON)
+                    result.rgb = lerp(half3(1.0, 1.0, 1.0), albedo.rgb, albedo.a);
+        #endif
+
+                    result.rgb += emission * _EmissionColor.rgb;
+
+        #if !defined(_ALPHABLEND_ON) && !defined(_ALPHAPREMULTIPLY_ON) && !defined(_ALPHAOVERLAY_ON)
+                    result.a = 1;
+        #endif
+
+        #if defined(_ALPHATEST_ON)
+                    clip(albedo.a - _Cutoff + 0.0001);
+        #endif
+
+                    half fogFactor = IN.posWS.w;
+                    ApplyFogColor(result.rgb, half3(0, 0, 0), fogFactor);
+                    return result;
+                }
+                ENDHLSL
             }
         }
     }

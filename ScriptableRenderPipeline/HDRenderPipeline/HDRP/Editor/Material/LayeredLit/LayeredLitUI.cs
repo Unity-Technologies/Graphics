@@ -625,7 +625,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 CoreUtils.SetKeyword(material, "_HEIGHTMAP" + i, material.GetTexture(kHeightMap + i));
 
-                CoreUtils.SetKeyword(material, "_SUBSURFACE_RADIUS_MAP" + i, material.GetTexture(kSubsurfaceRadiusMap + i));
+                CoreUtils.SetKeyword(material, "_SUBSURFACE_MASK_MAP" + i, material.GetTexture(kSubsurfaceMaskMap + i));
                 CoreUtils.SetKeyword(material, "_THICKNESSMAP" + i, material.GetTexture(kThicknessMap + i));
             }
 
@@ -663,10 +663,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             CoreUtils.SetKeyword(material, "_DENSITY_MODE", useDensityModeEnable);
 
-            Lit.MaterialId materialId = (Lit.MaterialId)material.GetFloat(kMaterialID);
+            BaseLitGUI.MaterialId materialId = (BaseLitGUI.MaterialId)material.GetFloat(kMaterialID);
 
-            CoreUtils.SetKeyword(material, "_MATID_SSS", materialId == Lit.MaterialId.LitSSS);
-            //CoreUtils.SetKeyword(material, "_MATID_STANDARD", materialId == Lit.MaterialId.LitStandard); // See comment in Lit.shader, it is the default, we don't define it
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", materialId == BaseLitGUI.MaterialId.LitSSS);
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", materialId == BaseLitGUI.MaterialId.LitSSS);
         }
         private void DoEmissiveGUI(Material material)
         {

@@ -19,8 +19,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override void ValidateValues(Func<object> getter, Action<object> setter)
         {
             HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-            m_Max = (uint)hdPipeline.GetShadowAtlasCount() - 1;
-            setter(Math.Min(m_Max, Math.Max(m_Min, (uint)getter())));
+            if (hdPipeline != null)
+            {
+                m_Max = (uint)hdPipeline.GetShadowAtlasCount() - 1;
+                setter(Math.Min(m_Max, Math.Max(m_Min, (uint)getter())));
+            }
         }
     }
 
@@ -36,8 +39,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override void ValidateValues(Func<object> getter, Action<object> setter)
         {
             HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-            m_Max = (uint)hdPipeline.GetCurrentShadowCount() - 1;
-            setter(Math.Min(m_Max, Math.Max(m_Min, (uint)getter())));
+            if (hdPipeline != null)
+            {
+                m_Max = (uint)hdPipeline.GetCurrentShadowCount() - 1;
+                setter(Math.Min(m_Max, Math.Max(m_Min, (uint)getter())));
+            }
         }
     }
 

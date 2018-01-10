@@ -1,5 +1,5 @@
 ﻿using System;
-using UnityEngine;
+using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -11,7 +11,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static string kEnableShadow = "Enable Shadow";
         public static string kEnableSSR = "Enable SSR";
         public static string kEnableSSAO = "Enable SSAO";
-        public static string kEnableSSSAndTransmission = "Enable SSS and Transmission";
+        public static string kEnableSubsurfaceScattering = "Enable SubsurfaceScattering";
+        public static string kEnableTransmission = "Enable Transmission";
 
         public static string kForwardOnly = "Forward Only";
         public static string kDeferredDepthPrepass = "Deferred Depth Prepass";
@@ -41,7 +42,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableShadow = true;
         public bool enableSSR = true; // Depends on DepthPyramid
         public bool enableSSAO = true;
-        public bool enableSSSAndTransmission = true;
+        public bool enableSubsurfaceScattering = true;
+        public bool enableTransmission = true;  // Caution: this is only for debug, it doesn't save the cost of Transmission execution
 
         // Setup by system
         public float diffuseGlobalDimmer = 1.0f;
@@ -79,7 +81,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frameSettings.enableShadow = this.enableShadow;
             frameSettings.enableSSR = this.enableSSR;
             frameSettings.enableSSAO = this.enableSSAO;
-            frameSettings.enableSSSAndTransmission = this.enableSSSAndTransmission;
+            frameSettings.enableSubsurfaceScattering = this.enableSubsurfaceScattering;
+            frameSettings.enableTransmission = this.enableTransmission;
 
             frameSettings.diffuseGlobalDimmer = this.diffuseGlobalDimmer;
             frameSettings.specularGlobalDimmer = this.specularGlobalDimmer;
@@ -115,9 +118,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Init a FrameSettings from renderpipeline settings, frame settings and debug settings (if any)
         // This will aggregate the various option
-        static public FrameSettings InitializeFrameSettings(Camera camera, RenderPipelineSettings renderPipelineSettings, FrameSettings frameSettings)
+        public static void InitializeFrameSettings(Camera camera, RenderPipelineSettings renderPipelineSettings, FrameSettings srcFrameSettings, ref FrameSettings aggregate)
         {
-            FrameSettings aggregate = new FrameSettings();
+            if (aggregate == null)
+                aggregate = new FrameSettings();
 
             // When rendering reflection probe we disable specular as it is view dependent
             if (camera.cameraType == CameraType.Reflection)
@@ -131,45 +135,44 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 aggregate.specularGlobalDimmer = 1.0f;
             }
 
-            aggregate.enableShadow = frameSettings.enableShadow;
-            aggregate.enableSSR = camera.cameraType == CameraType.Reflection ? false : frameSettings.enableSSR && renderPipelineSettings.supportSSR;
-            aggregate.enableSSAO = frameSettings.enableSSAO && renderPipelineSettings.supportSSAO;
-            aggregate.enableSSSAndTransmission = camera.cameraType == CameraType.Reflection ? false : frameSettings.enableSSSAndTransmission && renderPipelineSettings.supportSSSAndTransmission;
+            aggregate.enableShadow = srcFrameSettings.enableShadow;
+            aggregate.enableSSR = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableSSR && renderPipelineSettings.supportSSR;
+            aggregate.enableSSAO = srcFrameSettings.enableSSAO && renderPipelineSettings.supportSSAO;
+            aggregate.enableSubsurfaceScattering = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableSubsurfaceScattering && renderPipelineSettings.supportSubsurfaceScattering;
+            aggregate.enableTransmission = srcFrameSettings.enableTransmission;
 
             // We have to fall back to forward-only rendering when scene view is using wireframe rendering mode
             // as rendering everything in wireframe + deferred do not play well together
-            aggregate.enableForwardRenderingOnly = frameSettings.enableForwardRenderingOnly || GL.wireframe;
-            aggregate.enableDepthPrepassWithDeferredRendering = frameSettings.enableDepthPrepassWithDeferredRendering;
-            aggregate.enableAlphaTestOnlyInDeferredPrepass = frameSettings.enableAlphaTestOnlyInDeferredPrepass;
+            aggregate.enableForwardRenderingOnly = srcFrameSettings.enableForwardRenderingOnly || GL.wireframe;
+            aggregate.enableDepthPrepassWithDeferredRendering = srcFrameSettings.enableDepthPrepassWithDeferredRendering;
+            aggregate.enableAlphaTestOnlyInDeferredPrepass = srcFrameSettings.enableAlphaTestOnlyInDeferredPrepass;
 
-            aggregate.enableTransparentPrepass = frameSettings.enableTransparentPrepass;
-            aggregate.enableMotionVectors = camera.cameraType == CameraType.Reflection ? false : frameSettings.enableMotionVectors;
-            aggregate.enableObjectMotionVectors = camera.cameraType == CameraType.Reflection ? false : frameSettings.enableObjectMotionVectors;
-            aggregate.enableDBuffer = frameSettings.enableDBuffer && renderPipelineSettings.supportDBuffer;
-            aggregate.enableAtmosphericScattering = frameSettings.enableAtmosphericScattering;
-            aggregate.enableRoughRefraction = frameSettings.enableRoughRefraction;
-            aggregate.enableTransparentPostpass = frameSettings.enableTransparentPostpass;
-            aggregate.enableDistortion = camera.cameraType == CameraType.Reflection ? false : frameSettings.enableDistortion;
+            aggregate.enableTransparentPrepass = srcFrameSettings.enableTransparentPrepass;
+            aggregate.enableMotionVectors = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableMotionVectors;
+            aggregate.enableObjectMotionVectors = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableObjectMotionVectors;
+            aggregate.enableDBuffer = srcFrameSettings.enableDBuffer && renderPipelineSettings.supportDBuffer;
+            aggregate.enableAtmosphericScattering = srcFrameSettings.enableAtmosphericScattering;
+            aggregate.enableRoughRefraction = srcFrameSettings.enableRoughRefraction;
+            aggregate.enableTransparentPostpass = srcFrameSettings.enableTransparentPostpass;
+            aggregate.enableDistortion = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableDistortion;
 
             // Planar and real time cubemap doesn't need post process and render in FP16
-            aggregate.enablePostprocess = camera.cameraType == CameraType.Reflection ? false : frameSettings.enablePostprocess;
+            aggregate.enablePostprocess = camera.cameraType != CameraType.Reflection && srcFrameSettings.enablePostprocess;
 
-            aggregate.enableStereo = camera.cameraType == CameraType.Reflection ? false : frameSettings.enableStereo && UnityEngine.XR.XRSettings.isDeviceActive && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
+            aggregate.enableStereo = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableStereo && XRSettings.isDeviceActive && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
             // Force forward if we request stereo. TODO: We should not enforce that, users should be able to chose deferred
             aggregate.enableForwardRenderingOnly = aggregate.enableForwardRenderingOnly || aggregate.enableStereo;
 
-            aggregate.enableAsyncCompute = frameSettings.enableAsyncCompute && renderPipelineSettings.supportAsyncCompute;
+            aggregate.enableAsyncCompute = srcFrameSettings.enableAsyncCompute && renderPipelineSettings.supportAsyncCompute;
 
-            aggregate.enableOpaqueObjects = frameSettings.enableOpaqueObjects;
-            aggregate.enableTransparentObjects = frameSettings.enableTransparentObjects;
+            aggregate.enableOpaqueObjects = srcFrameSettings.enableOpaqueObjects;
+            aggregate.enableTransparentObjects = srcFrameSettings.enableTransparentObjects;
 
-            aggregate.enableMSAA = frameSettings.enableMSAA && renderPipelineSettings.supportMSAA;
+            aggregate.enableMSAA = srcFrameSettings.enableMSAA && renderPipelineSettings.supportMSAA;
 
-            aggregate.enableShadowMask = frameSettings.enableShadowMask && renderPipelineSettings.supportShadowMask;
+            aggregate.enableShadowMask = srcFrameSettings.enableShadowMask && renderPipelineSettings.supportShadowMask;
 
-            aggregate.lightLoopSettings = LightLoopSettings.InitializeLightLoopSettings(camera, aggregate, renderPipelineSettings, frameSettings);
-
-            return aggregate;
+            LightLoopSettings.InitializeLightLoopSettings(camera, aggregate, renderPipelineSettings, srcFrameSettings, ref aggregate.lightLoopSettings);
         }
 
         static public void RegisterDebug(String menuName, FrameSettings frameSettings)
@@ -178,7 +181,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableShadow, () => frameSettings.enableShadow, (value) => frameSettings.enableShadow = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableSSR, () => frameSettings.enableSSR, (value) => frameSettings.enableSSR = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableSSAO, () => frameSettings.enableSSAO, (value) => frameSettings.enableSSAO = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableSSSAndTransmission, () => frameSettings.enableSSSAndTransmission, (value) => frameSettings.enableSSSAndTransmission = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableSubsurfaceScattering, () => frameSettings.enableSubsurfaceScattering, (value) => frameSettings.enableSubsurfaceScattering = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableTransmission, () => frameSettings.enableTransmission, (value) => frameSettings.enableTransmission = (bool)value);
 
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kForwardOnly, () => frameSettings.enableForwardRenderingOnly, (value) => frameSettings.enableForwardRenderingOnly = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kDeferredDepthPrepass, () => frameSettings.enableDepthPrepassWithDeferredRendering, (value) => frameSettings.enableDepthPrepassWithDeferredRendering = (bool)value);
@@ -212,7 +216,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableShadow);
             DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableSSR);
             DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableSSAO);
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableSSSAndTransmission);
+            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableSubsurfaceScattering);
+            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableTransmission);
 
             DebugMenuManager.instance.RemoveDebugItem(menuName, kForwardOnly);
             DebugMenuManager.instance.RemoveDebugItem(menuName, kDeferredDepthPrepassATestOnly);

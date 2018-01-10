@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Rendering;
@@ -49,6 +49,7 @@ namespace UnityEngine.Experimental.Rendering
         public const int editMenuPriority2 = 331;
         public const int assetCreateMenuPriority1 = 230;
         public const int assetCreateMenuPriority2 = 241;
+        public const int gameObjectMenuPriority = 10;
 
         static Cubemap m_BlackCubeTexture;
         public static Cubemap blackCubeTexture
@@ -163,16 +164,21 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         public static void CreateCmdTemporaryRT(CommandBuffer cmd, int nameID, RenderTextureDescriptor baseDesc,
-                                                int depthBufferBits, FilterMode filter, RenderTextureFormat format,
-                                                RenderTextureReadWrite readWrite = RenderTextureReadWrite.Default, int msaaSamples = 1, bool enableRandomWrite = false)
+            int depthBufferBits, FilterMode filter, RenderTextureFormat format,
+            RenderTextureReadWrite readWrite = RenderTextureReadWrite.Default, int msaaSamples = 1, bool enableRandomWrite = false)
+        {
+            UpdateRenderTextureDescriptor(ref baseDesc, depthBufferBits, format, readWrite, msaaSamples, enableRandomWrite);
+
+            cmd.GetTemporaryRT(nameID, baseDesc, filter);
+        }
+
+        public static void UpdateRenderTextureDescriptor(ref RenderTextureDescriptor baseDesc, int depthBufferBits, RenderTextureFormat format, RenderTextureReadWrite readWrite, int msaaSamples, bool enableRandomWrite)
         {
             baseDesc.depthBufferBits = depthBufferBits;
             baseDesc.colorFormat = format;
             baseDesc.sRGB = (readWrite != RenderTextureReadWrite.Linear);
             baseDesc.msaaSamples = msaaSamples;
             baseDesc.enableRandomWrite = enableRandomWrite;
-
-            cmd.GetTemporaryRT(nameID, baseDesc, filter);
         }
 
         public static void ClearCubemap(CommandBuffer cmd, RenderTargetIdentifier buffer, Color clearColor)

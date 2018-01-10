@@ -14,105 +14,6 @@ namespace UnityEditor.Experimental.Rendering
 {
     public class GraphicsTests
     {
-        static readonly string s_RootPath = Directory.GetParent(Directory.GetFiles(Application.dataPath, "SRPMARKER", SearchOption.AllDirectories).First()).ToString();
-
-		// path where the tests live
-        private static readonly string[] s_Path =
-        {
-            "Tests",
-            "GraphicsTests",
-            "RenderPipeline"
-        };
-
-        // info that gets generated for use
-        // in a dod way
-        public struct TestInfo
-        {
-            public string name;
-            public float threshold;
-			public string relativePath;
-            public int frameWait;
-
-            public override string ToString()
-            {
-                return name;
-            }
-
-        }
-
-        // Renderpipeline assets used for the tests
-        public static Dictionary<string, string> renderPipelineAssets = new Dictionary<string, string>()
-        {
-            { "HDRP", "HDRenderPipeline/CommonAssets/HDRP_GraphicTests_Asset.asset" },
-            { "LWRP", "LightweightPipeline/LightweightPipelineAsset.asset" }
-        };
-
-        // Renderpipeline assets used for the tests
-        public static Dictionary<string, string> renderPipelineScenesFolder = new Dictionary<string, string>()
-        {
-            { "HDRP", "HDRenderPipeline/Scenes" },
-            { "LWRP", "LightweightPipeline" }
-        };
-
-        // collect the scenes that we can use
-        public static class CollectScenes
-        {
-            public static IEnumerable HDRP
-            {
-                get
-                {
-                    return GetScenesForPipelineID("HDRP");
-                }
-            }
-
-            public static IEnumerable LWRP
-            {
-                get
-                {
-                    return GetScenesForPipelineID("LWRP");
-                }
-            }
-
-            public static  IEnumerable GetScenesForPipelineID( string _pipelineID )
-            {
-                return GetScenesForPipeline( renderPipelineScenesFolder[_pipelineID] );
-            }
-
-            public static IEnumerable GetScenesForPipeline(string _pipelinePath)
-            {
-                var absoluteScenesPath = s_Path.Aggregate(s_RootPath, Path.Combine);
-
-                var filesPath = Path.Combine(absoluteScenesPath, _pipelinePath);
-
-                // find all the scenes
-                var allPaths = Directory.GetFiles(filesPath, "*.unity", SearchOption.AllDirectories);
-
-                // Convert to List for easy sorting in alphabetical ordre
-                List<string> allPaths_List = new List<string>(allPaths);
-                allPaths_List.Sort();
-
-                // construct all the needed test infos
-                for (int i=0; i<allPaths_List.Count; ++i)
-                {
-                    var path = allPaths_List[i];
-
-                    var p = new FileInfo(path);
-                    var split = s_Path.Aggregate("", Path.Combine);
-                    split = string.Format("{0}{1}", split, Path.DirectorySeparatorChar);
-                    var splitPaths = p.FullName.Split(new[] { split }, StringSplitOptions.RemoveEmptyEntries);
-
-                    yield return new TestInfo
-                    {
-                        name = p.Name,
-                        relativePath = splitPaths.Last(),
-                        threshold = 0.02f,
-                        frameWait = 100
-                    };
-                }
-            }
-        }
-
-
         // Change the SRP before a full batch of tests
         public virtual string _SRP_ID { get { return "NONE"; } }
 
@@ -130,9 +31,9 @@ namespace UnityEditor.Experimental.Rendering
 
         public static RenderPipelineAsset GetRenderPipelineAsset(string _SRP_ID)
         {
-            string absolutePath = s_Path.Aggregate(s_RootPath, Path.Combine);
+            string absolutePath = TestFrameworkTools.s_Path.Aggregate(TestFrameworkTools.s_RootPath, Path.Combine);
 
-            string filePath = Path.Combine(absolutePath, renderPipelineAssets[_SRP_ID] );
+            string filePath = Path.Combine(absolutePath, TestFrameworkTools.renderPipelineAssets[_SRP_ID] );
 
             return (RenderPipelineAsset)AssetDatabase.LoadAssetAtPath(filePath, typeof(RenderPipelineAsset));
         }
@@ -159,9 +60,9 @@ namespace UnityEditor.Experimental.Rendering
 
 
         // the actual test
-        public static IEnumerator TestScene(TestInfo testInfo)
+        public static IEnumerator TestScene(TestFrameworkTools.TestInfo testInfo)
         {
-			var prjRelativeGraphsPath = s_Path.Aggregate(s_RootPath, Path.Combine);
+			var prjRelativeGraphsPath = TestFrameworkTools.s_Path.Aggregate(TestFrameworkTools.s_RootPath, Path.Combine);
 			var filePath = Path.Combine(prjRelativeGraphsPath, testInfo.relativePath);
 
 			// open the scene
@@ -183,49 +84,28 @@ namespace UnityEditor.Experimental.Rendering
                 yield return null;
             }
 
-            Camera testCamera = testSetup.cameraToUse;
-            var rtDesc = new RenderTextureDescriptor (
-				             testSetup.width,
-				             testSetup.height,
-				             (testSetup.hdr && testCamera.allowHDR) ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32,
-				             24);
-			rtDesc.sRGB = PlayerSettings.colorSpace == ColorSpace.Linear;
-            rtDesc.msaaSamples = testSetup.msaaSamples;
-
-			// render the scene
-			var tempTarget = RenderTexture.GetTemporary (rtDesc);
-			var oldTarget = testSetup.cameraToUse.targetTexture;
-			testSetup.cameraToUse.targetTexture = tempTarget;
-			testSetup.cameraToUse.Render ();
-			testSetup.cameraToUse.targetTexture = oldTarget;
-
-			// Readback the rendered texture
-			var oldActive = RenderTexture.active;
-			RenderTexture.active = tempTarget;
-			var captured = new Texture2D(tempTarget.width, tempTarget.height, TextureFormat.RGB24, false);
-			captured.ReadPixels(new Rect(0, 0, testSetup.width, testSetup.height), 0, 0);
-			RenderTexture.active = oldActive;
-
-            var templatePath = Path.Combine(s_RootPath, "ImageTemplates");
-
-            // find the reference image
-			var dumpFileLocation = Path.Combine(templatePath, string.Format("{0}.{1}", testInfo.relativePath, "png"));
-			if (!File.Exists(dumpFileLocation))
+            // Handle play mode and things to do before
+            if (testSetup.testInPlayMode)
             {
-				// no reference exists, create it
-				var fileInfo = new FileInfo (dumpFileLocation);
-				fileInfo.Directory.Create();
-
-				var generated = captured.EncodeToPNG();
-                File.WriteAllBytes(dumpFileLocation, generated);
-				Assert.Fail("Template file not found for {0}, creating it at {1}.", testInfo.name, dumpFileLocation);
+                //if (!testSetup.invokeAtStart) testSetup.thingToDoBeforeTest.Invoke();
+                //EditorApplication.isPlaying = true;
+            }
+            else
+            {
+                testSetup.thingToDoBeforeTest.Invoke();
             }
 
-            var template = File.ReadAllBytes(dumpFileLocation);
-            var fromDisk = new Texture2D(2, 2);
-            fromDisk.LoadImage(template, false);
+            // Render the camera
+            Texture2D captured = TestFrameworkTools.RenderSetupToTexture(testSetup);
 
-            var areEqual = CompareTextures(fromDisk, captured, testInfo.threshold);
+            // Load the template
+            Texture2D fromDisk = new Texture2D(2, 2);
+            string dumpFileLocation = "";
+            if ( !TestFrameworkTools.FindReferenceImage( testInfo, ref fromDisk, captured, ref dumpFileLocation) )
+                Assert.Fail("Template file not found for {0}, creating it at {1}.", testInfo.name, dumpFileLocation);
+
+            // Compare
+            var areEqual = TestFrameworkTools.CompareTextures(fromDisk, captured, testInfo.threshold);
 
             if (!areEqual)
             {
@@ -235,44 +115,12 @@ namespace UnityEditor.Experimental.Rendering
 				var misMatchLocationTemplate = Path.Combine(failedPath, string.Format("{0}.template.{1}", testInfo.name, "png"));
 				var generated = captured.EncodeToPNG();
                 File.WriteAllBytes(misMatchLocationResult, generated);
-                File.WriteAllBytes(misMatchLocationTemplate, template);
+                File.Copy(dumpFileLocation, misMatchLocationTemplate);
             }
 
 			Assert.IsTrue(areEqual, "Scene from {0}, did not match .template file.", testInfo.relativePath);
 
             testSetup.TearDown();
-        }
-
-		// compare textures, use RMS for this
-        private static bool CompareTextures(Texture2D fromDisk, Texture2D captured, float threshold)
-        {
-            if (fromDisk == null || captured == null)
-                return false;
-
-            if (fromDisk.width != captured.width
-                || fromDisk.height != captured.height)
-                return false;
-
-            var pixels1 = fromDisk.GetPixels();
-            var pixels2 = captured.GetPixels();
-
-			if (pixels1.Length != pixels2.Length)
-				return false;
-
-			int numberOfPixels = pixels1.Length;
-
-			float sumOfSquaredColorDistances = 0;
-			for (int i = 0; i < numberOfPixels; i++)
-			{
-				Color p1 = pixels1[i];
-				Color p2 = pixels2[i];
-
-				Color diff = p1 - p2;
-				diff = diff * diff;
-				sumOfSquaredColorDistances += (diff.r + diff.g + diff.b) / 3.0f;
-			}
-			float rmse = Mathf.Sqrt(sumOfSquaredColorDistances / numberOfPixels);
-			return rmse < threshold;
         }
 
         // Graphic Tests Subclasses that inherit the functions bot provide different SRP_ID
@@ -281,18 +129,18 @@ namespace UnityEditor.Experimental.Rendering
             public override string _SRP_ID { get { return "HDRP"; } }
 
             [UnityTest]
-            public IEnumerator HDRP_Test([ValueSource(typeof(CollectScenes), "HDRP")]TestInfo testInfo)
+            public IEnumerator HDRP_Test([ValueSource(typeof(TestFrameworkTools.CollectScenes), "HDRP")]TestFrameworkTools.TestInfo testInfo)
             {
                 return TestScene(testInfo);
             }
         }
 
-        public class LTRP : GraphicsTests
+        public class LWRP : GraphicsTests
         {
             public override string _SRP_ID { get { return "LWRP"; } }
 
             [UnityTest]
-            public IEnumerator LWRP_Test([ValueSource(typeof(CollectScenes), "LWRP")]TestInfo testInfo)
+            public IEnumerator LWRP_Test([ValueSource(typeof(TestFrameworkTools.CollectScenes), "LWRP")]TestFrameworkTools.TestInfo testInfo)
             {
                 return TestScene(testInfo);
             }
