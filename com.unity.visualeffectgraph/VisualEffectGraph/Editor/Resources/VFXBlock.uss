@@ -13,7 +13,7 @@
 
 VFXBlockUI #settings .propertyrm
 {
-	margin-left:28;
+	margin-left:16;
 }
 
 VFXContextUI VFXBlockUI.VFXContextSlotContainerUI.node #node-border #title
