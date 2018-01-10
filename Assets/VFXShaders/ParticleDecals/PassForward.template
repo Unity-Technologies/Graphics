@@ -18,9 +18,12 @@ Pass
 		#if VFX_NEEDS_COLOR_INTERPOLATOR
 		nointerpolation float4 color : COLOR0;
 		#endif
-		#if USE_ALPHA_TEST
+		#if USE_ALPHA_TEST || USE_FLIPBOOK
 		// x: alpha threshold
-		nointerpolation float builtInInterpolants : TEXCOORD0;
+		// y: flipbook size
+		// z: inverse flipbook size
+		// w: texture index
+		nointerpolation float4 builtInInterpolants : TEXCOORD0;
 		#endif
 		
 		nointerpolation float4 screenToDecal0 : TEXCOORD1;
@@ -40,6 +43,9 @@ Pass
 #define VFX_VARYING_ALPHA color.a
 #undef VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
+#define VFX_VARYING_FLIPBOOKSIZE builtInInterpolants.y
+#define VFX_VARYING_INVFLIPBOOKSIZE builtInInterpolants.z
+#define VFX_VARYING_TEXINDEX builtInInterpolants.w
 				
 	${VFXBegin:VFXVertexAdditionalProcess}
 float4x4 screenToDecal = GetVFXToElementMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);
@@ -79,9 +85,10 @@ o.screenToDecal2 = screenToDecal[2];
 		clip(1.0f - abs(elementPos) + bias);
 
 		o.color = VFXGetParticleColor(i);
-		
+
 		VFXSampler2D s = VFX_SAMPLER(mainTexture);
-		o.color *= s.t.Sample(s.s,elementPos.xy * 0.5f + 0.5f);
+		float2 uv = elementPos.xy * 0.5f + 0.5f;
+		o.color *= VFXGetTextureColorWithProceduralUV(s,i,uv);
 		
 		VFXClipFragmentColor(o.color.a,i);
 		return o;
