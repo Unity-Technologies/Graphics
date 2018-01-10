@@ -95,6 +95,7 @@
 BoolPropertyRM Toogle
 {
     margin-top:-4;
+	maring-left:2;
     width:17;
     height:17;
     border-color:#F00;
