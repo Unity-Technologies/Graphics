@@ -159,7 +159,7 @@ half4 readTexture(TEXTURE2D_ARGS(_Texture, sampler_Texture), VertexOutputLit IN)
 
 void InitializeSurfaceData(VertexOutputLit IN, out SurfaceData surfaceData)
 {
-    half4 albedo = readTexture(_MainTex, sampler_MainTex, IN) * IN.color;
+    half4 albedo = readTexture(TEXTURE2D_PARAM(_MainTex, sampler_MainTex), IN) * IN.color;
 
     // No distortion Support
     fragColorMode(IN);

@@ -53,6 +53,8 @@ Shader "LightweightPipeline/Particles/Standard Unlit"
             Pass
             {
                 HLSLPROGRAM
+                // Required to compile gles 2.0 with standard srp library
+                #pragma prefer_hlslcc gles
                 #pragma multi_compile __ SOFTPARTICLES_ON
                 #pragma multi_compile_fog
                 #pragma target 2.5
