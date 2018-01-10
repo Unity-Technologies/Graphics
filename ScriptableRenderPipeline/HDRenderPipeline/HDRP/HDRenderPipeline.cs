@@ -618,8 +618,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // First, get aggregate of frame settings base on global settings, camera frame settings and debug settings
                 var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
                 // Note: the scene view camera will never have additionalCameraData
-                m_FrameSettings = FrameSettings.InitializeFrameSettings(    camera, m_Asset.GetRenderPipelineSettings(),
-                                                                            (additionalCameraData && additionalCameraData.renderingPath != HDAdditionalCameraData.RenderingPath.Default) ? additionalCameraData.GetFrameSettings() : m_Asset.GetFrameSettings());
+                var srcFrameSettings = (additionalCameraData && additionalCameraData.renderingPath != HDAdditionalCameraData.RenderingPath.Default)
+                    ? additionalCameraData.GetFrameSettings()
+                    : m_Asset.GetFrameSettings();
+                FrameSettings.InitializeFrameSettings(camera, m_Asset.GetRenderPipelineSettings(), srcFrameSettings, ref m_FrameSettings);
 
                 // This is the main command buffer used for the frame.
                 var cmd = CommandBufferPool.Get("");

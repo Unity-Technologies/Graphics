@@ -118,62 +118,63 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Init a FrameSettings from renderpipeline settings, frame settings and debug settings (if any)
         // This will aggregate the various option
-        static public FrameSettings InitializeFrameSettings(Camera camera, RenderPipelineSettings renderPipelineSettings, FrameSettings frameSettings)
+        static public FrameSettings InitializeFrameSettings(Camera camera, RenderPipelineSettings renderPipelineSettings, FrameSettings srcFrameSettings, ref FrameSettings dstFrameSettings)
         {
-            FrameSettings aggregate = new FrameSettings();
+            if (dstFrameSettings == null)
+                dstFrameSettings = new FrameSettings();
 
             // When rendering reflection probe we disable specular as it is view dependent
             if (camera.cameraType == CameraType.Reflection)
             {
-                aggregate.diffuseGlobalDimmer = 1.0f;
-                aggregate.specularGlobalDimmer = 0.0f;
+                dstFrameSettings.diffuseGlobalDimmer = 1.0f;
+                dstFrameSettings.specularGlobalDimmer = 0.0f;
             }
             else
             {
-                aggregate.diffuseGlobalDimmer = 1.0f;
-                aggregate.specularGlobalDimmer = 1.0f;
+                dstFrameSettings.diffuseGlobalDimmer = 1.0f;
+                dstFrameSettings.specularGlobalDimmer = 1.0f;
             }
 
-            aggregate.enableShadow = frameSettings.enableShadow;
-            aggregate.enableSSR = camera.cameraType == CameraType.Reflection ? false : frameSettings.enableSSR && renderPipelineSettings.supportSSR;
-            aggregate.enableSSAO = frameSettings.enableSSAO && renderPipelineSettings.supportSSAO;
-            aggregate.enableSubsurfaceScattering = camera.cameraType == CameraType.Reflection ? false : frameSettings.enableSubsurfaceScattering && renderPipelineSettings.supportSubsurfaceScattering;
-            aggregate.enableTransmission = frameSettings.enableTransmission;
+            dstFrameSettings.enableShadow = srcFrameSettings.enableShadow;
+            dstFrameSettings.enableSSR = camera.cameraType == CameraType.Reflection ? false : srcFrameSettings.enableSSR && renderPipelineSettings.supportSSR;
+            dstFrameSettings.enableSSAO = srcFrameSettings.enableSSAO && renderPipelineSettings.supportSSAO;
+            dstFrameSettings.enableSubsurfaceScattering = camera.cameraType == CameraType.Reflection ? false : srcFrameSettings.enableSubsurfaceScattering && renderPipelineSettings.supportSubsurfaceScattering;
+            dstFrameSettings.enableTransmission = srcFrameSettings.enableTransmission;
 
             // We have to fall back to forward-only rendering when scene view is using wireframe rendering mode
             // as rendering everything in wireframe + deferred do not play well together
-            aggregate.enableForwardRenderingOnly = frameSettings.enableForwardRenderingOnly || GL.wireframe;
-            aggregate.enableDepthPrepassWithDeferredRendering = frameSettings.enableDepthPrepassWithDeferredRendering;
-            aggregate.enableAlphaTestOnlyInDeferredPrepass = frameSettings.enableAlphaTestOnlyInDeferredPrepass;
+            dstFrameSettings.enableForwardRenderingOnly = srcFrameSettings.enableForwardRenderingOnly || GL.wireframe;
+            dstFrameSettings.enableDepthPrepassWithDeferredRendering = srcFrameSettings.enableDepthPrepassWithDeferredRendering;
+            dstFrameSettings.enableAlphaTestOnlyInDeferredPrepass = srcFrameSettings.enableAlphaTestOnlyInDeferredPrepass;
 
-            aggregate.enableTransparentPrepass = frameSettings.enableTransparentPrepass;
-            aggregate.enableMotionVectors = camera.cameraType == CameraType.Reflection ? false : frameSettings.enableMotionVectors;
-            aggregate.enableObjectMotionVectors = camera.cameraType == CameraType.Reflection ? false : frameSettings.enableObjectMotionVectors;
-            aggregate.enableDBuffer = frameSettings.enableDBuffer && renderPipelineSettings.supportDBuffer;
-            aggregate.enableAtmosphericScattering = frameSettings.enableAtmosphericScattering;
-            aggregate.enableRoughRefraction = frameSettings.enableRoughRefraction;
-            aggregate.enableTransparentPostpass = frameSettings.enableTransparentPostpass;
-            aggregate.enableDistortion = camera.cameraType == CameraType.Reflection ? false : frameSettings.enableDistortion;
+            dstFrameSettings.enableTransparentPrepass = srcFrameSettings.enableTransparentPrepass;
+            dstFrameSettings.enableMotionVectors = camera.cameraType == CameraType.Reflection ? false : srcFrameSettings.enableMotionVectors;
+            dstFrameSettings.enableObjectMotionVectors = camera.cameraType == CameraType.Reflection ? false : srcFrameSettings.enableObjectMotionVectors;
+            dstFrameSettings.enableDBuffer = srcFrameSettings.enableDBuffer && renderPipelineSettings.supportDBuffer;
+            dstFrameSettings.enableAtmosphericScattering = srcFrameSettings.enableAtmosphericScattering;
+            dstFrameSettings.enableRoughRefraction = srcFrameSettings.enableRoughRefraction;
+            dstFrameSettings.enableTransparentPostpass = srcFrameSettings.enableTransparentPostpass;
+            dstFrameSettings.enableDistortion = camera.cameraType == CameraType.Reflection ? false : srcFrameSettings.enableDistortion;
 
             // Planar and real time cubemap doesn't need post process and render in FP16
-            aggregate.enablePostprocess = camera.cameraType == CameraType.Reflection ? false : frameSettings.enablePostprocess;
+            dstFrameSettings.enablePostprocess = camera.cameraType == CameraType.Reflection ? false : srcFrameSettings.enablePostprocess;
 
-            aggregate.enableStereo = camera.cameraType == CameraType.Reflection ? false : frameSettings.enableStereo && UnityEngine.XR.XRSettings.isDeviceActive && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
+            dstFrameSettings.enableStereo = camera.cameraType == CameraType.Reflection ? false : srcFrameSettings.enableStereo && UnityEngine.XR.XRSettings.isDeviceActive && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
             // Force forward if we request stereo. TODO: We should not enforce that, users should be able to chose deferred
-            aggregate.enableForwardRenderingOnly = aggregate.enableForwardRenderingOnly || aggregate.enableStereo;
+            dstFrameSettings.enableForwardRenderingOnly = dstFrameSettings.enableForwardRenderingOnly || dstFrameSettings.enableStereo;
 
-            aggregate.enableAsyncCompute = frameSettings.enableAsyncCompute && renderPipelineSettings.supportAsyncCompute;
+            dstFrameSettings.enableAsyncCompute = srcFrameSettings.enableAsyncCompute && renderPipelineSettings.supportAsyncCompute;
 
-            aggregate.enableOpaqueObjects = frameSettings.enableOpaqueObjects;
-            aggregate.enableTransparentObjects = frameSettings.enableTransparentObjects;
+            dstFrameSettings.enableOpaqueObjects = srcFrameSettings.enableOpaqueObjects;
+            dstFrameSettings.enableTransparentObjects = srcFrameSettings.enableTransparentObjects;
 
-            aggregate.enableMSAA = frameSettings.enableMSAA && renderPipelineSettings.supportMSAA;
+            dstFrameSettings.enableMSAA = srcFrameSettings.enableMSAA && renderPipelineSettings.supportMSAA;
 
-            aggregate.enableShadowMask = frameSettings.enableShadowMask && renderPipelineSettings.supportShadowMask;
+            dstFrameSettings.enableShadowMask = srcFrameSettings.enableShadowMask && renderPipelineSettings.supportShadowMask;
 
-            aggregate.lightLoopSettings = LightLoopSettings.InitializeLightLoopSettings(camera, aggregate, renderPipelineSettings, frameSettings);
+            dstFrameSettings.lightLoopSettings = LightLoopSettings.InitializeLightLoopSettings(camera, dstFrameSettings, renderPipelineSettings, srcFrameSettings);
 
-            return aggregate;
+            return dstFrameSettings;
         }
 
         static public void RegisterDebug(String menuName, FrameSettings frameSettings)
