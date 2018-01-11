@@ -269,7 +269,7 @@ namespace UnityEngine.Experimental.Rendering
 
             // find the reference image
             _dumpFileLocation = Path.Combine(templatePath, string.Format("{0}.{1}", _testInfo.templatePath, "png"));
-            Debug.Log("Template file at: " + _dumpFileLocation);
+            //Debug.Log("Template file at: " + _dumpFileLocation);
             if (!File.Exists(_dumpFileLocation))
             {
                 // no reference exists, create it
