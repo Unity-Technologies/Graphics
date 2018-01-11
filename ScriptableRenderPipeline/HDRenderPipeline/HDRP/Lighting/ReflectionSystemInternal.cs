@@ -102,11 +102,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
                 {
                     if( probe.realtimeTexture != null)
                         probe.realtimeTexture.Release();
-                    var desc = hdCamera.renderTextureDesc;
-                    desc.width = m_Parameters.planarReflectionProbeSize;
-                    desc.height = m_Parameters.planarReflectionProbeSize;
-                    desc.colorFormat = RenderTextureFormat.ARGBHalf;
-                    probe.realtimeTexture = new RenderTexture(desc);
+                    probe.realtimeTexture = NewRenderTarget(probe);
                 }
             }
 
@@ -116,6 +112,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
                 var probe = m_PlanarReflectionProbe_RealtimeUpdate_WorkArray[i];
                 Render(probe, probe.realtimeTexture);
             }
+        }
+
+        public RenderTexture NewRenderTarget(PlanarReflectionProbe probe)
+        {
+            var desc = GetRenderHDCamera(probe).renderTextureDesc;
+            desc.width = m_Parameters.planarReflectionProbeSize;
+            desc.height = m_Parameters.planarReflectionProbeSize;
+            desc.colorFormat = RenderTextureFormat.ARGBHalf;
+            var rt = new RenderTexture(desc);
+            return rt;
         }
 
         bool IsRealtimeTextureValid(RenderTexture renderTexture, HDCamera hdCamera)
@@ -133,13 +139,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
 
         public void Render(PlanarReflectionProbe probe, RenderTexture target)
         {
-            var renderCamera = GetRenderCamera(probe);
-            renderCamera.targetTexture = target;
+            var renderCamera = GetRenderHDCamera(probe);
+            renderCamera.camera.targetTexture = target;
 
-            SetupCameraForRender(renderCamera, probe);
+            SetupCameraForRender(renderCamera.camera, probe);
 
-            renderCamera.Render();
-            renderCamera.targetTexture = null;
+            renderCamera.camera.Render();
+            renderCamera.camera.targetTexture = null;
         }
 
         void SetProbeBoundsDirty(PlanarReflectionProbe planarProbe)
@@ -172,13 +178,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             throw new NotImplementedException();
         }
 
-        static Camera GetRenderCamera(PlanarReflectionProbe probe)
+        static HDCamera GetRenderHDCamera(PlanarReflectionProbe probe)
         {
             var camera = GetRenderCamera();
 
             probe.frameSettings.CopyTo(s_RenderCameraData.GetFrameSettings());
 
-            return camera;
+            return HDCamera.Get(camera, null, probe.frameSettings);
         }
 
         static Camera GetRenderCamera()

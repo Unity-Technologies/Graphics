@@ -56,12 +56,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             {
                                 if (probe != null)
                                 {
-                                    EditorReflectionSystem.BakeCustomReflectionProbe(probe, false, true);
+                                    EditorReflectionSystem.BakeCustomReflectionProbe(probe, false);
                                     EditorReflectionSystem.ResetProbeSceneTextureInMaterial(probe);
                                 }
                                 if (planarProbe != null)
                                 {
-                                    EditorReflectionSystem.BakeCustomReflectionProbe(planarProbe, false, true);
+                                    EditorReflectionSystem.BakeCustomReflectionProbe(planarProbe, false);
                                     EditorReflectionSystem.ResetProbeSceneTextureInMaterial(planarProbe);
                                 }
                             }
@@ -70,12 +70,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     {
                         if (probe != null)
                         {
-                            EditorReflectionSystem.BakeCustomReflectionProbe(probe, true, true);
+                            EditorReflectionSystem.BakeCustomReflectionProbe(probe, true);
                             EditorReflectionSystem.ResetProbeSceneTextureInMaterial(probe);
                         }
                         if (planarProbe != null)
                         {
-                            EditorReflectionSystem.BakeCustomReflectionProbe(planarProbe, true, true);
+                            EditorReflectionSystem.BakeCustomReflectionProbe(planarProbe, true);
                             EditorReflectionSystem.ResetProbeSceneTextureInMaterial(planarProbe);
                         }
                         GUIUtility.ExitGUI();

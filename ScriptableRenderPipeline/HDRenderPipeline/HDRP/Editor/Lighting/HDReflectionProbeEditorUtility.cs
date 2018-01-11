@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
@@ -56,24 +57,6 @@ namespace UnityEditor.Experimental.Rendering
             center = b.center;
             size = b.size;
             return true;
-        }
-
-        public static bool IsCollidingWithOtherProbes(string targetPath, ReflectionProbe targetProbe, out ReflectionProbe collidingProbe)
-        {
-            ReflectionProbe[] probes = Object.FindObjectsOfType<ReflectionProbe>().ToArray();
-            collidingProbe = null;
-            foreach (var probe in probes)
-            {
-                if (probe == targetProbe || probe.customBakedTexture == null)
-                    continue;
-                string path = AssetDatabase.GetAssetPath(probe.customBakedTexture);
-                if (path == targetPath)
-                {
-                    collidingProbe = probe;
-                    return true;
-                }
-            }
-            return false;
         }
 
         public static void ResetProbeSceneTextureInMaterial(ReflectionProbe p)

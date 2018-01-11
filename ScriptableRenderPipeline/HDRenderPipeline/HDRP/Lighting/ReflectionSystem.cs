@@ -36,6 +36,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_Instance.RenderAllRealtimeProbes();
         }
 
+        public static RenderTexture NewRenderTarget(PlanarReflectionProbe probe)
+        {
+            return s_Instance.NewRenderTarget(probe);
+        }
+
         public static void Render(PlanarReflectionProbe probe, RenderTexture target)
         {
             s_Instance.Render(probe, target);
