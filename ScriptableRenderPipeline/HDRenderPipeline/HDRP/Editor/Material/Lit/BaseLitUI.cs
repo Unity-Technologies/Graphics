@@ -255,8 +255,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel--;
             }
 
-            m_MaterialEditor.ShaderProperty(enableMotionVectorForVertexAnimation, StylesBaseLit.enableMotionVectorForVertexAnimationText);
-
             if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel)
             {
                 EditorGUILayout.Space();
@@ -299,6 +297,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
                 EditorGUI.indentLevel--;
             }
+
+            EditorGUI.indentLevel++;
+            m_MaterialEditor.ShaderProperty(enableMotionVectorForVertexAnimation, StylesBaseLit.enableMotionVectorForVertexAnimationText);
+            EditorGUI.indentLevel--;
         }
 
         protected override void VertexAnimationPropertiesGUI()
