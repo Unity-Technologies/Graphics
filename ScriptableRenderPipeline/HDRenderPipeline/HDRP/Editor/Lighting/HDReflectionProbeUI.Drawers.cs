@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Reflection;
+using UnityEditor.Experimental.Rendering.HDPipeline;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
@@ -118,86 +119,9 @@ namespace UnityEditor.Experimental.Rendering
             }
         }
 
-        static readonly string[] k_BakeCustomOptionText = { "Bake as new Cubemap..." };
-        static readonly string[] k_BakeButtonsText = { "Bake All Reflection Probes" };
         static void Drawer_BakeActions(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
-            if (p.mode.intValue == (int)ReflectionProbeMode.Realtime)
-            {
-                EditorGUILayout.HelpBox("Refresh of this reflection probe should be initiated from the scripting API because the type is 'Realtime'", MessageType.Info);
-
-                if (!QualitySettings.realtimeReflectionProbes)
-                    EditorGUILayout.HelpBox("Realtime reflection probes are disabled in Quality Settings", MessageType.Warning);
-                return;
-            }
-
-            if (p.mode.intValue == (int)ReflectionProbeMode.Baked && UnityEditor.Lightmapping.giWorkflowMode != UnityEditor.Lightmapping.GIWorkflowMode.OnDemand)
-            {
-                EditorGUILayout.HelpBox("Baking of this reflection probe is automatic because this probe's type is 'Baked' and the Lighting window is using 'Auto Baking'. The cubemap created is stored in the GI cache.", MessageType.Info);
-                return;
-            }
-
-            EditorGUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-            switch ((ReflectionProbeMode)p.mode.intValue)
-            {
-                case ReflectionProbeMode.Custom:
-                {
-                    if (ButtonWithDropdownList(
-                        CoreEditorUtils.GetContent("Bake|Bakes Reflection Probe's cubemap, overwriting the existing cubemap texture asset (if any)."), k_BakeCustomOptionText,
-                        data =>
-                        {
-                            var mode = (int)data;
-
-                            var probe = p.target;
-                            if (mode == 0)
-                            {
-                                HDReflectionProbeEditorUtility.BakeCustomReflectionProbe(probe, false, true);
-                                HDReflectionProbeEditorUtility.ResetProbeSceneTextureInMaterial(probe);
-                            }
-                        },
-                        GUILayout.ExpandWidth(true)))
-                    {
-                        var probe = p.target;
-                        HDReflectionProbeEditorUtility.BakeCustomReflectionProbe(probe, true, true);
-                        HDReflectionProbeEditorUtility.ResetProbeSceneTextureInMaterial(probe);
-                        GUIUtility.ExitGUI();
-                    }
-                    break;
-                }
-
-                case ReflectionProbeMode.Baked:
-                {
-                    GUI.enabled = p.target.enabled;
-
-                    // Bake button in non-continous mode
-                    if (ButtonWithDropdownList(
-                        CoreEditorUtils.GetContent("Bake"),
-                        k_BakeButtonsText,
-                        data =>
-                        {
-                            var mode = (int)data;
-                            if (mode == 0)
-                                HDReflectionProbeEditorUtility.BakeAllReflectionProbesSnapshots();
-                        },
-                        GUILayout.ExpandWidth(true)))
-                    {
-                        var probe = p.target;
-                        HDReflectionProbeEditorUtility.BakeReflectionProbeSnapshot(probe);
-                        HDReflectionProbeEditorUtility.ResetProbeSceneTextureInMaterial(probe);
-                        GUIUtility.ExitGUI();
-                    }
-
-                    GUI.enabled = true;
-                    break;
-                }
-
-                case ReflectionProbeMode.Realtime:
-                    // Not showing bake button in realtime
-                    break;
-            }
-            GUILayout.FlexibleSpace();
-            EditorGUILayout.EndHorizontal();
+            EditorReflectionSystemGUI.DrawBakeButton((ReflectionProbeMode)p.mode.intValue, p.target);
         }
 
         #region Influence Volume

@@ -1,4 +1,4 @@
-﻿using UnityEngine.Rendering;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -16,6 +16,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         float m_Dimmer = 1;
         [SerializeField]
         ReflectionProbeMode m_Mode = ReflectionProbeMode.Baked;
+        [SerializeField]
+        ReflectionProbeRefreshMode m_RefreshMode = ReflectionProbeRefreshMode.OnAwake;
+        [SerializeField]
+        Texture m_CustomTexture;
 
         public ProxyVolumeComponent proxyVolumeReference { get { return m_ProxyVolumeReference; } }
         public InfluenceVolume influenceVolume { get { return m_InfluenceVolume; } }
@@ -30,6 +34,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector3 influenceForward { get { return transform.forward; } }
         public Vector3 capturePosition { get { return transform.position; } }
         public Vector3 influencePosition { get { return transform.TransformPoint(m_CenterOffset); } }
+        public Texture customTexture { get { return m_CustomTexture; } }
+        public ReflectionProbeRefreshMode refreshMode { get { return m_RefreshMode; } }
 
         #region Proxy Properties
         public Vector3 proxyRight
