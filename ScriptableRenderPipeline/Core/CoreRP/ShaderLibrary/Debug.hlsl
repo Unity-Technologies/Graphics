@@ -128,7 +128,7 @@ float4 GetMipLevelColor(float2 uv, float4 texelSize)
     // .zw is texture width,height so *2 is down one mip, *4 is down two mips
     texelSize.zw *= 4.0;
 
-    float mipLevel = ComputeTextureLOD(uv, texelSize);
+    float mipLevel = ComputeTextureLOD(uv, texelSize.wz);
     mipLevel = clamp(mipLevel, 0.0, 5.0 - 0.0001);
 
     float4 colors[6] = {
