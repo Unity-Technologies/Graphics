@@ -159,6 +159,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         // and per-object light lists.
         private List<int> m_SortedLightIndexMap = new List<int>();
 
+        private Dictionary<VisibleLight, int> m_VisibleLightsIDMap = new Dictionary<VisibleLight, int>(new LightEqualityComparer());
+
         private Mesh m_BlitQuad;
         private Material m_BlitMaterial;
         private Material m_CopyDepthMaterial;
@@ -675,9 +677,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             int totalVisibleLights = visibleLights.Length;
 
-            Dictionary<int, int> visibleLightsIDMap = new Dictionary<int, int>();
+            m_VisibleLightsIDMap.Clear();
             for (int i = 0; i < totalVisibleLights; ++i)
-                visibleLightsIDMap.Add(visibleLights[i].GetHashCode(), i);
+                m_VisibleLightsIDMap.Add(visibleLights[i], i);
 
             // Sorts light so we have all directionals first, then local lights.
             // Directionals are sorted further by shadow, cookie and intensity
@@ -686,7 +688,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Array.Sort(visibleLights, m_LightCompararer);
 
             for (int i = 0; i < totalVisibleLights; ++i)
-                m_SortedLightIndexMap.Add(visibleLightsIDMap[visibleLights[i].GetHashCode()]);
+                m_SortedLightIndexMap.Add(m_VisibleLightsIDMap[visibleLights[i]]);
 
             return GetMainLight(visibleLights);
         }
@@ -920,7 +922,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 bias = light.shadowBias * proj.m22 * 0.5f * sign;
 
                 // Currently only square POT cascades resolutions are used.
-                // We scale normalBias 
+                // We scale normalBias
                 double frustumWidth = 2.0 / (double)proj.m00;
                 double frustumHeight = 2.0 / (double)proj.m11;
                 float texelSizeX = (float)(frustumWidth / (double)cascadeResolution);
@@ -1138,7 +1140,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             worldToShadow = cascadeAtlas * worldToShadow;
 
             m_ShadowSlices[cascadeIndex].atlasX = atlasX;
-            m_ShadowSlices[cascadeIndex].atlasY = atlasY; 
+            m_ShadowSlices[cascadeIndex].atlasY = atlasY;
             m_ShadowSlices[cascadeIndex].shadowResolution = shadowResolution;
             m_ShadowSlices[cascadeIndex].shadowTransform = worldToShadow;
         }
