@@ -1,5 +1,5 @@
-#ifndef UNITY_NOISE_INCLUDED
-#define UNITY_NOISE_INCLUDED
+#ifndef UNITY_RANDOM_INCLUDED
+#define UNITY_RANDOM_INCLUDED
 
 #if !defined(SHADER_API_GLES)
 
@@ -92,4 +92,4 @@ float2 InitRandom(float2 input)
 
 #endif // SHADER_API_GLES
 
-#endif // UNITY_NOISE_INCLUDED
+#endif // UNITY_RANDOM_INCLUDED

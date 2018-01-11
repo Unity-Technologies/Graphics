@@ -715,17 +715,21 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.thickness = SURFACEDATA_BLEND_SCALAR(surfaceData, thickness, weights);
     surfaceData.diffusionProfile = SURFACEDATA_BLEND_SSS_PROFILE(surfaceData, diffusionProfile, weights);
 
-    // Layered shader support either SSS or standard (can't mix them)
-#ifdef _MATID_SSS
-    surfaceData.materialId = MATERIALID_LIT_SSS;
-#else // Default
-    surfaceData.materialId = MATERIALID_LIT_STANDARD;
+    // Layered shader support SSS and Transmission features
+    surfaceData.materialFeatures            = 0;
+
+#ifdef _MATERIALFEATURE_SUBSURFACE_SCATTERING
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING;
+#endif
+#ifdef _MATERIAL_FEATURE_TRANSMISSION
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_TRANSMISSION;
 #endif
 
     // Init other parameters
-    surfaceData.anisotropy = 0;
+    surfaceData.anisotropy = 0.0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
-    surfaceData.coatMask = 0.0f;
+    surfaceData.coatMask = 0.0;
+    surfaceData.thicknessIrid = 0.0;
 
     // Transparency parameters
     // Use thickness from SSS

@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -16,19 +16,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
     }
 
-    [Serializable]
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class EnvUpdateParameter : VolumeParameter<EnvironementUpdateMode>
     {
-        public EnvUpdateParameter(EnvironementUpdateMode val, bool overrideState = false)
-            : base(val, overrideState)
-        {
-
-        }
+        public EnvUpdateParameter(EnvironementUpdateMode value, bool overrideState = false)
+            : base(value, overrideState) { }
     }
 
     public abstract class SkySettings : VolumeComponent
     {
-
         [Tooltip("Rotation of the sky.")]
         public ClampedFloatParameter    rotation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
         [Tooltip("Exposure of the sky in EV.")]
@@ -41,7 +37,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public MinFloatParameter        updatePeriod = new MinFloatParameter(0.0f, 0.0f);
 
         // Unused for now. In the future we might want to expose this option for very high range skies.
-        private bool    m_useMIS = false;
+        bool m_useMIS = false;
         public bool useMIS { get { return m_useMIS; } }
 
         public override int GetHashCode()
