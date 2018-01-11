@@ -29,6 +29,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ComputeShader buildMaterialFlagsShader;
         public ComputeShader deferredComputeShader;
         public ComputeShader deferredDirectionalShadowComputeShader;
+        public ComputeShader volumetricLightingCS;
 
         public ComputeShader subsurfaceScatteringCS; // Disney SSS
         public Shader subsurfaceScattering; // Jimenez SSS
@@ -37,6 +38,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // General
         public Shader cameraMotionVectors;
         public Shader copyStencilBuffer;
+        public Shader blit;
 
         // Sky
         public Shader blitCubemap;

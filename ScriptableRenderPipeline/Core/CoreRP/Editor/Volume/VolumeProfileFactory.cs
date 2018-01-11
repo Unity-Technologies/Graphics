@@ -59,6 +59,21 @@ namespace UnityEditor.Experimental.Rendering
             AssetDatabase.Refresh();
             return profile;
         }
+
+        public static T CreateVolumeComponent<T>(VolumeProfile profile, bool overrides = false, bool saveAsset = true)
+            where T : VolumeComponent
+        {
+            var comp = profile.Add<T>(overrides);
+            AssetDatabase.AddObjectToAsset(comp, profile);
+
+            if (saveAsset)
+            {
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+            }
+
+            return comp;
+        }
     }
 
     class DoCreatePostProcessProfile : EndNameEditAction
