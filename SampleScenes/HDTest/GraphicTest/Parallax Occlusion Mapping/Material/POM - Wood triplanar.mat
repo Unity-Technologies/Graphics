@@ -205,9 +205,14 @@ Material:
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _HeightAmplitude: 0.5
-    - _HeightCenter: 0.5
+    - _HeightCenter: 1
+    - _HeightMapParametrization: 0
     - _HeightMax: 50
     - _HeightMin: 0
+    - _HeightOffset: -25
+    - _HeightPoMAmplitude: 50
+    - _HeightTessAmplitude: 50
+    - _HeightTessCenter: 0
     - _HorizonFade: 1
     - _IOR: 1
     - _InitialBend: 1
