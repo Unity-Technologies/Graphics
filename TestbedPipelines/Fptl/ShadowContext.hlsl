@@ -9,7 +9,7 @@
 #include "CoreRP/ShaderLibrary/Shadow/Shadow.hlsl"
 
 TEXTURE2D_ARRAY(_ShadowmapExp_PCF);
-SAMPLER2D_SHADOW(sampler_ShadowmapExp_PCF);
+SAMPLER_CMP(sampler_ShadowmapExp_PCF);
 
 StructuredBuffer<ShadowData>	_ShadowDatasExp;
 StructuredBuffer<int4>			_ShadowPayloads;

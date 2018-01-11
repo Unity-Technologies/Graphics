@@ -24,7 +24,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyRotation = Unpack(o.Find(x => x.rotation));
             m_EnvUpdateMode = Unpack(o.Find(x => x.updateMode));
             m_EnvUpdatePeriod = Unpack(o.Find(x => x.updatePeriod));
-            m_UseForBaking = o.Find(x => x.useForBaking);
         }
 
         protected void CommonSkySettingsGUI()
@@ -39,15 +38,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel++;
                 PropertyField(m_EnvUpdatePeriod);
                 EditorGUI.indentLevel--;
-            }
-
-            using(var scope = new EditorGUI.ChangeCheckScope())
-            {
-                EditorGUILayout.PropertyField(m_UseForBaking);
-                if(scope.changed)
-                {
-                    (target as SkySettings).OnValidate();
-                }
             }
         }
     }

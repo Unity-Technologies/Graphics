@@ -43,13 +43,13 @@ namespace UnityEngine.Experimental.Rendering
         const int k_MaxLayerCount = 32;
 
         // Cached lists of all volumes (sorted by priority) by layer mask
-        readonly Dictionary<LayerMask, List<Volume>> m_SortedVolumes;
+        readonly Dictionary<int, List<Volume>> m_SortedVolumes;
 
         // Holds all the registered volumes
         readonly List<Volume> m_Volumes;
 
         // Keep track of sorting states for layer masks
-        readonly Dictionary<LayerMask, bool> m_SortNeeded;
+        readonly Dictionary<int, bool> m_SortNeeded;
 
         // Internal list of default state for each component type - this is used to reset component
         // states on update instead of having to implement a Reset method on all components (which
@@ -61,9 +61,9 @@ namespace UnityEngine.Experimental.Rendering
 
         VolumeManager()
         {
-            m_SortedVolumes = new Dictionary<LayerMask, List<Volume>>();
+            m_SortedVolumes = new Dictionary<int, List<Volume>>();
             m_Volumes = new List<Volume>();
-            m_SortNeeded = new Dictionary<LayerMask, bool>();
+            m_SortNeeded = new Dictionary<int, bool>();
             m_TempColliders = new List<Collider>(8);
             m_ComponentsDefaultState = new List<VolumeComponent>();
 
@@ -138,11 +138,11 @@ namespace UnityEngine.Experimental.Rendering
 
                 foreach (var volume in kvp.Value)
                 {
-                    if (!volume.enabled)
+                    if (!volume.enabled || volume.profileRef == null)
                         continue;
 
                     T component;
-                    if (volume.TryGet(out component) && component.active)
+                    if (volume.profileRef.TryGet(out component) && component.active)
                         return true;
                 }
             }
@@ -267,13 +267,13 @@ namespace UnityEngine.Experimental.Rendering
             foreach (var volume in volumes)
             {
                 // Skip disabled volumes and volumes without any data or weight
-                if (!volume.enabled || volume.weight <= 0f)
+                if (!volume.enabled || volume.profileRef == null || volume.weight <= 0f)
                     continue;
 
                 // Global volumes always have influence
                 if (volume.isGlobal)
                 {
-                    OverrideData(stack, volume.components, Mathf.Clamp01(volume.weight));
+                    OverrideData(stack, volume.profileRef.components, Mathf.Clamp01(volume.weight));
                     continue;
                 }
 
@@ -318,7 +318,7 @@ namespace UnityEngine.Experimental.Rendering
                     interpFactor = 1f - (closestDistanceSqr / blendDistSqr);
 
                 // No need to clamp01 the interpolation factor as it'll always be in [0;1[ range
-                OverrideData(stack, volume.components, interpFactor * Mathf.Clamp01(volume.weight));
+                OverrideData(stack, volume.profileRef.components, interpFactor * Mathf.Clamp01(volume.weight));
             }
         }
 
