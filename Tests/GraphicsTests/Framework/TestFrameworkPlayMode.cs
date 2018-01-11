@@ -15,11 +15,13 @@ public class GraphicTestsPlayMode : IPrebuildSetup, IPostBuildCleanup
 
 #if UNITY_EDITOR
     UnityEditor.EditorBuildSettingsScene[] oldScenes;
+#endif
 
     public void Setup()
     {
         Debug.Log("Setup for the test");
 
+#if UNITY_EDITOR
         oldScenes = UnityEditor.EditorBuildSettings.scenes;
 
         List<UnityEditor.EditorBuildSettingsScene> sceneSetups = new List<UnityEditor.EditorBuildSettingsScene>();
@@ -32,17 +34,19 @@ public class GraphicTestsPlayMode : IPrebuildSetup, IPostBuildCleanup
         }
 
         UnityEditor.EditorBuildSettings.scenes = sceneSetups.ToArray();
+#endif
     }
 
     public void Cleanup()
     {
+#if UNITY_EDITOR
         //UnityEditor.EditorBuildSettings.scenes = oldScenes;
-    }
 #endif
+    }
 
 
     //public IEnumerator TestScene([ValueSource(typeof(TestFrameworkTools.CollectScenesPlayMode), "HDRP")]TestFrameworkTools.TestInfo testInfo)
-    
+
     public IEnumerator TestScene(TestFrameworkTools.TestInfo testInfo)
     {
         var prjRelativeGraphsPath = TestFrameworkTools.s_Path.Aggregate(TestFrameworkTools.s_RootPath, Path.Combine);
@@ -56,14 +60,18 @@ public class GraphicTestsPlayMode : IPrebuildSetup, IPostBuildCleanup
 
         SetupSceneForRenderPipelineTest testSetup = GameObject.FindObjectOfType<SetupSceneForRenderPipelineTest>();
 
-        Assert.IsNotNull(testSetup, "No SetupSceneForRenderPipelineTest in scene " + testInfo.name);
-        Assert.IsNotNull(testSetup.cameraToUse, "No configured camera in <SetupSceneForRenderPipelineTest>");
+        //Assert.IsNotNull(testSetup, "No SetupSceneForRenderPipelineTest in scene " + testInfo.name);
+        //Assert.IsNotNull(testSetup.cameraToUse, "No configured camera in <SetupSceneForRenderPipelineTest>");
+
+        TestFrameworkTools.AssertFix.TestWithMessages(testSetup != null, "No SetupSceneForRenderPipelineTest in scene " + testInfo.name);
+        TestFrameworkTools.AssertFix.TestWithMessages(testSetup.cameraToUse != null, "No configured camera in <SetupSceneForRenderPipelineTest> ");
 
         // Initialize
         testSetup.Setup();
         yield return null; // Wait one frame in case we changed the render pipeline
+
         testSetup.thingToDoBeforeTest.Invoke();
-        
+
         // Setup Render Target
         Camera testCamera = testSetup.cameraToUse;
         var rtDesc = new RenderTextureDescriptor(
@@ -80,9 +88,9 @@ public class GraphicTestsPlayMode : IPrebuildSetup, IPostBuildCleanup
 
         while (!testSetup.IsTestFinished) yield return null;
 
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPaused = true;
-#endif
+        // Pause
+        float prevTimeScale = Time.timeScale;
+        Time.timeScale = 0f;
 
         // render the scene
 
@@ -96,9 +104,8 @@ public class GraphicTestsPlayMode : IPrebuildSetup, IPostBuildCleanup
         captured.ReadPixels(new Rect(0, 0, testSetup.width, testSetup.height), 0, 0);
         RenderTexture.active = oldActive;
 
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPaused = false;
-#endif
+        //Unpause
+        Time.timeScale = prevTimeScale;
 
         // Load the template
         Texture2D fromDisk = new Texture2D(2, 2);
@@ -113,7 +120,6 @@ public class GraphicTestsPlayMode : IPrebuildSetup, IPostBuildCleanup
 
         if (!areEqual)
         {
-            Debug.Log("Test Fail");
             var failedPath = Path.Combine(Directory.GetParent(Application.dataPath).ToString(), "SRP_Failed");
             Directory.CreateDirectory(failedPath);
             var misMatchLocationResult = Path.Combine(failedPath, string.Format("{0}.{1}", testInfo.name, "png"));
@@ -126,7 +132,6 @@ public class GraphicTestsPlayMode : IPrebuildSetup, IPostBuildCleanup
         }
         else
         {
-            Debug.Log("Test Pass");
             Assert.IsTrue(true);
         }
 
