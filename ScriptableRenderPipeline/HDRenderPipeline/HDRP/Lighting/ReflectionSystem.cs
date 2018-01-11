@@ -1,14 +1,10 @@
 using UnityEngine.Experimental.Rendering.HDPipeline.Internal;
-using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public static class ReflectionSystem
     {
         static ReflectionSystemInternal s_Instance = new ReflectionSystemInternal(ReflectionSystemParameters.Default, null);
-
-        static Camera s_RenderCamera = null;
-        static HDAdditionalCameraData s_RenderCameraData;
 
         public static void SetParameters(ReflectionSystemParameters parameters)
         {
@@ -30,29 +26,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_Instance.Cull(camera, results);
         }
 
-        public static void RequestRender(PlanarReflectionProbe probe)
+        public static void RequestRealtimeRender(PlanarReflectionProbe probe)
         {
-            s_Instance.RequestRender(probe);
+            s_Instance.RequestRealtimeRender(probe);
+        }
+
+        public static void RenderAllRealtimeProbes()
+        {
+            s_Instance.RenderAllRealtimeProbes();
         }
 
         public static void Render(PlanarReflectionProbe probe, RenderTexture target)
         {
-            var renderCamera = GetRenderCamera(probe);
-            renderCamera.targetTexture = target;
-        }
-
-        static Camera GetRenderCamera(PlanarReflectionProbe probe)
-        {
-            if (s_RenderCamera == null)
-            {
-                s_RenderCamera = new GameObject("Probe Render Camera").
-                    AddComponent<Camera>();
-                s_RenderCameraData = s_RenderCamera.gameObject.AddComponent<HDAdditionalCameraData>();
-            }
-
-            probe.frameSettings.CopyTo(s_RenderCameraData.GetFrameSettings());
-
-            return s_RenderCamera;
+            s_Instance.Render(probe, target);
         }
     }
 }

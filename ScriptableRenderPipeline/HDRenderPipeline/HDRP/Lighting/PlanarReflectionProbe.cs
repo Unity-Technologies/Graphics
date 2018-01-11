@@ -21,12 +21,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         Texture m_CustomTexture;
         [SerializeField]
+        Texture m_BakedTexture;
+        [SerializeField]
+        RenderTexture m_RealtimeTexture;
+        [SerializeField]
         FrameSettings m_FrameSettings;
 
         public ProxyVolumeComponent proxyVolumeReference { get { return m_ProxyVolumeReference; } }
         public InfluenceVolume influenceVolume { get { return m_InfluenceVolume; } }
         public BoundingSphere boundingSphere { get { return m_InfluenceVolume.GetBoundingSphereAt(transform); } }
-        public Texture texture { get; private set; }
+
+        public Texture texture
+        {
+            get
+            {
+                switch (m_Mode)
+                {
+                    default:
+                        case ReflectionProbeMode.Baked:
+                            return bakedTexture;
+                        case ReflectionProbeMode.Custom:
+                            return customTexture;
+                        case ReflectionProbeMode.Realtime:
+                            return realtimeTexture;
+                }
+            }
+        }
         public Bounds bounds { get { return m_InfluenceVolume.GetBoundsAt(transform); } }
         public Vector3 captureLocalPosition { get { return m_CaptureLocalPosition; } set { m_CaptureLocalPosition = value; } }
         public float dimmer { get { return m_Dimmer; } }
@@ -41,6 +61,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
         public Vector3 influencePosition { get { return transform.position; } }
         public Texture customTexture { get { return m_CustomTexture; } }
+        public Texture bakedTexture { get { return m_BakedTexture; } }
+        public RenderTexture realtimeTexture { get { return m_RealtimeTexture; } internal set { m_RealtimeTexture = value; } }
         public ReflectionProbeRefreshMode refreshMode { get { return m_RefreshMode; } }
         public FrameSettings frameSettings { get { return m_FrameSettings; } }
 
@@ -102,10 +124,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool infiniteProjection { get { return m_ProxyVolumeReference != null && m_ProxyVolumeReference.projectionVolume.infiniteProjection; } }
         #endregion
 
-        public void SetBakeDirty()
+        public void RequestRealtimeRender()
         {
             if (enabled)
-                ReflectionSystem.RequestRender(this);
+                ReflectionSystem.RequestRealtimeRender(this);
         }
 
         void OnEnable()
