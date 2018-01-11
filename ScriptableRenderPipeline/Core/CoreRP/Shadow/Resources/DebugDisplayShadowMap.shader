@@ -14,7 +14,7 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayShadowMap"
 
         struct Attributes
         {
-            uint vertexID : SV_VertexID;
+            uint vertexID : VERTEXID_SEMANTIC;
         };
 
         struct Varyings

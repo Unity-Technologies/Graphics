@@ -50,11 +50,6 @@
     #define UNITY_Z_0_FAR_FROM_CLIPSPACE(coord) (coord)
 #endif
 
-half Pow4(half x)
-{
-    return (x * x) * (x * x);
-}
-
 void AlphaDiscard(half alpha, half cutoff)
 {
 #ifdef _ALPHATEST_ON
