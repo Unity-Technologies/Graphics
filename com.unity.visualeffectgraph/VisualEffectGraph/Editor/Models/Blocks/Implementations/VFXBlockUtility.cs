@@ -33,9 +33,31 @@ namespace UnityEditor.VFX.Block
         Uniform,
     }
 
-
     class VFXBlockUtility
     {
+        public static string GetNameString(AttributeCompositionMode mode)
+        {
+            switch (mode)
+            {
+                case AttributeCompositionMode.Overwrite: return "Set";
+                case AttributeCompositionMode.Add: return "Add";
+                case AttributeCompositionMode.Scale: return "Scale";
+                case AttributeCompositionMode.Blend: return "Blend";
+                default: throw new ArgumentException();
+            }
+        }
+
+        public static string GetNameString(RandomMode mode)
+        {
+            switch (mode)
+            {
+                case RandomMode.Off: return "";
+                case RandomMode.PerComponent: return "Random";
+                case RandomMode.Uniform: return "Random";
+                default: throw new ArgumentException();
+            }
+        }
+
         public static string GetComposeString(AttributeCompositionMode mode, params string[] parameters)
         {
             switch (mode)

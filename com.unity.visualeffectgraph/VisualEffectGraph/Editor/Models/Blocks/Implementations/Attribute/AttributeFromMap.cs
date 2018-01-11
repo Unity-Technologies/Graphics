@@ -21,20 +21,16 @@ namespace UnityEditor.VFX.Block
             RandomUniformPerParticle,
         }
 
-        [VFXSetting]
-        [StringProvider(typeof(WritableAttributeProvider))]
-        [Tooltip("Target Attribute")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(WritableAttributeProvider)), Tooltip("Target Attribute")]
         public string attribute = VFXAttribute.AllWritable.First();
 
-        [VFXSetting]
-        [Tooltip("How to compose the attribute with its previous value")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("How to compose the attribute with its previous value")]
         public AttributeCompositionMode Composition = AttributeCompositionMode.Overwrite;
 
-        [VFXSetting]
-        [Tooltip("How to sample inside the AttributeMap")]
+        [VFXSetting, Tooltip("How to sample inside the AttributeMap")]
         public AttributeMapSampleMode SampleMode = AttributeMapSampleMode.RandomUniformPerParticle;
 
-        public override string name { get { return string.Format("Attribute {0} from Map", attribute); } }
+        public override string name { get { return string.Format("{0} {1} from Map", VFXBlockUtility.GetNameString(Composition), attribute); } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
         public override IEnumerable<VFXAttributeInfo> attributes
