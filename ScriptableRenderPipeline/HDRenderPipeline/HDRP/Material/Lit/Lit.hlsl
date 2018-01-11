@@ -4,6 +4,8 @@
 #include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
 #include "../../Lighting/VolumeProjection.hlsl"
 
+//#define ENV_PROJECTION_USE_LIGHTSPACE
+
 //-----------------------------------------------------------------------------
 // Texture and constant buffer declaration
 //-----------------------------------------------------------------------------
@@ -1550,21 +1552,25 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     float3x3 worldToLS = WorldToLightSpace(lightData);
     float3 positionLS = WorldToLightPosition(lightData, worldToLS, positionWS);
-    float3 dirLS = mul(R, worldToLS); // Projection and influence share the space
+    float3 dirLS = mul(R, worldToLS);
 
+#if defined(ENV_PROJECTION_USE_LIGHTSPACE)
     // Projection and influence share the space
-    /*float3x3 worldToPS = worldToLS; 
+    float3x3 worldToPS = worldToLS; 
     float3 positionPS = positionLS;
-    float3 dirPS = dirLS;*/
+    float3 dirPS = dirLS;
+#else
     float3x3 worldToPS = WorldToProxySpace(proxyData);
     float3 positionPS = WorldToProxyPosition(proxyData, worldToPS, positionWS);
     float3 dirPS = mul(R, worldToPS);
+#endif
 
+    float projectionDistance = 0;
     // 1. First process the projection
     // Note: using influenceShapeType and projectionShapeType instead of (lightData|proxyData).shapeType allow to make compiler optimization in case the type is know (like for sky)
     if (projectionShapeType == ENVSHAPETYPE_SPHERE)
     {
-        float projectionDistance = IntersectSphereProxy(proxyData, dirPS, positionPS);
+        projectionDistance = IntersectSphereProxy(proxyData, dirPS, positionPS);
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionWS
         R = (positionWS + projectionDistance * R) - lightData.capturePositionWS;
 
@@ -1578,7 +1584,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     }
     else if (projectionShapeType == ENVSHAPETYPE_BOX)
     {
-        float projectionDistance = IntersectBoxProxy(proxyData, dirPS, positionPS);
+        projectionDistance = IntersectBoxProxy(proxyData, dirPS, positionPS);
         // No need to normalize for fetching cubemap
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionWS
         R = (positionWS + projectionDistance * R) - lightData.capturePositionWS;
@@ -1595,11 +1601,10 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     }
 
     // 2. Process the influence
-    /*if (influenceShapeType == ENVSHAPETYPE_SPHERE)
+    if (influenceShapeType == ENVSHAPETYPE_SPHERE)
         weight = InfluenceSphereWeight(lightData, bsdfData, positionWS, positionLS, dirLS);
     else if (influenceShapeType == ENVSHAPETYPE_BOX)
-        weight = InfluenceBoxWeight(lightData, bsdfData, positionWS, positionLS, dirLS);*/
-    weight = 1;
+        weight = InfluenceBoxWeight(lightData, bsdfData, positionWS, positionLS, dirLS);
 
     // Smooth weighting
     weight = Smoothstep01(weight);

@@ -53,8 +53,9 @@ TEXTURE2D(_DeferredShadowTexture);
 CBUFFER_START(UnityPerLightLoop)
 uint _DirectionalLightCount;
 uint _PunctualLightCount;
-uint _AreaLightCount;
+uint _AreaLightCount; 
 uint _EnvLightCount;
+uint _EnvProxyCount;
 int  _EnvLightSkyEnabled;         // TODO: make it a bool
 CBUFFER_END
 

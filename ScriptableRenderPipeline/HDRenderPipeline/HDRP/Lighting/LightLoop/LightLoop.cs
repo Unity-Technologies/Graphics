@@ -1635,6 +1635,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 int n = m_lightList.envLights.Count;
                                 EnvLightData envLightData = m_lightList.envLights[n - 1];
                                 envLightData.capturePositionWS -= camPosWS;
+                                envLightData.positionWS -= camPosWS;
                                 m_lightList.envLights[n - 1] = envLightData;
 
                                 var envProjData = m_lightList.envProxies[n - 1];
@@ -1960,7 +1961,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalBuffer(HDShaderIDs._EnvLightDatas, s_EnvLightDatas);
                 cmd.SetGlobalBuffer(HDShaderIDs._EnvProxyDatas, s_EnvProxyDatas);
                 cmd.SetGlobalInt(HDShaderIDs._EnvLightCount, m_lightList.envLights.Count);
-                cmd.SetGlobalInt(HDShaderIDs._EnvProjCount, m_lightList.envProxies.Count);
+                cmd.SetGlobalInt(HDShaderIDs._EnvProxyCount, m_lightList.envProxies.Count);
                 cmd.SetGlobalBuffer(HDShaderIDs._ShadowDatas, s_shadowDatas);
 
                 cmd.SetGlobalInt(HDShaderIDs._NumTileFtplX, GetNumTileFtplX(camera));
