@@ -38,10 +38,10 @@ namespace UnityEditor.Experimental.Rendering
 
         public Vector2 position { get; set; }
 
-        Volume m_Target;
-        VolumeEditor m_TargetEditor;
+        VolumeProfile m_Target;
+        VolumeComponentListEditor m_TargetEditor;
 
-        public VolumeComponentProvider(Volume target, VolumeEditor targetEditor)
+        public VolumeComponentProvider(VolumeProfile target, VolumeComponentListEditor targetEditor)
         {
             m_Target = target;
             m_TargetEditor = targetEditor;

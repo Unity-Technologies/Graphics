@@ -617,4 +617,12 @@ real4 IntegrateLD_MIS(TEXTURECUBE_ARGS(envMap, sampler_envMap),
     return real4(lightInt / cbsdfInt, 1.0);
 }
 
+// Little helper to share code between sphere and box reflection probe.
+// This function will fade the mask of a reflection volume based on normal orientation compare to direction define by the center of the reflection volume.
+float InfluenceFadeNormalWeight(float3 normal, float3 centerToPos)
+{
+    // Start weight from 0.6f (1 fully transparent) to 0.2f (fully opaque).
+    return saturate((-1.0f / 0.4f) * dot(normal, centerToPos) + (0.6f / 0.4f));
+}
+
 #endif // UNITY_IMAGE_BASED_LIGHTING_INCLUDED

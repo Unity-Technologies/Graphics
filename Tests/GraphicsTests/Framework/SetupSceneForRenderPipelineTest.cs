@@ -1,8 +1,13 @@
 using UnityEngine.Rendering;
+using UnityEngine.Events;
+using UnityEditor;
+using UnityEngine;
+using System.Collections;
+using UnityEngine.TestTools;
 
 namespace UnityEngine.Experimental.Rendering
 {
-	public class SetupSceneForRenderPipelineTest : MonoBehaviour
+	public class SetupSceneForRenderPipelineTest : MonoBehaviour, IMonoBehaviourTest
 	{
 		private RenderPipelineAsset m_OriginalAsset;
 		public RenderPipelineAsset renderPipeline;
@@ -13,7 +18,42 @@ namespace UnityEngine.Experimental.Rendering
 		public int width = 1280;
 		public int height = 720;
 
-		public void Setup()
+        public UnityEvent thingToDoBeforeTest;
+
+        [Header("Run Play Mode for test")]
+        public bool testInPlayMode = false;
+        public bool invokeAtStart = true;
+        public int forcedFrameRate = 60;
+        public int waitForFrames = 30;
+        int waitedFrames = 0;
+        bool _readyForCapture = false;
+        public bool readyForCapture {  get { return _readyForCapture; } }
+
+        public IEnumerator Start()
+        {
+            // Wait for other things to happend, in particular allow for the render pipeline to reset
+            yield return new WaitForEndOfFrame();
+
+            if (invokeAtStart) thingToDoBeforeTest.Invoke();
+
+            if (!testInPlayMode) _readyForCapture = true;
+
+            Time.captureFramerate = forcedFrameRate;
+        }
+
+        public void Update()
+        {
+            if ( waitedFrames < waitForFrames )
+            {
+                ++waitedFrames;
+            }
+            else if (!_readyForCapture)
+            {
+                _readyForCapture = true;
+            }
+        }
+
+        public void Setup()
 		{
 			m_OriginalAsset = GraphicsSettings.renderPipelineAsset;
             if (m_OriginalAsset != renderPipeline) GraphicsSettings.renderPipelineAsset = renderPipeline;
@@ -22,6 +62,17 @@ namespace UnityEngine.Experimental.Rendering
 		public void TearDown()
 		{
 			if ( GraphicsSettings.renderPipelineAsset != m_OriginalAsset ) GraphicsSettings.renderPipelineAsset = m_OriginalAsset;
+
+            //EditorApplication.isPaused = false;
+            //EditorApplication.isPlaying = false;
 		}
+
+        public bool IsTestFinished
+        {
+            get
+            {
+                return _readyForCapture;
+            }
+        }
 	}
 }
