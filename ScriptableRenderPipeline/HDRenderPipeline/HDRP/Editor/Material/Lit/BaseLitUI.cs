@@ -240,6 +240,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             m_MaterialEditor.ShaderProperty(materialID, StylesBaseLit.materialIDText);
 
+            m_MaterialEditor.ShaderProperty(enableMotionVectorForVertexAnimation, StylesBaseLit.enableMotionVectorForVertexAnimationText);
+
             EditorGUI.BeginChangeCheck();
             m_MaterialEditor.ShaderProperty(displacementMode, StylesBaseLit.displacementModeText);
             if(EditorGUI.EndChangeCheck())
@@ -297,10 +299,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
                 EditorGUI.indentLevel--;
             }
-
-            EditorGUI.indentLevel++;
-            m_MaterialEditor.ShaderProperty(enableMotionVectorForVertexAnimation, StylesBaseLit.enableMotionVectorForVertexAnimationText);
-            EditorGUI.indentLevel--;
         }
 
         protected override void VertexAnimationPropertiesGUI()
