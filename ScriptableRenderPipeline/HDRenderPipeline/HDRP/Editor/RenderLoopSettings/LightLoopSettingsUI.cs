@@ -1,4 +1,4 @@
-﻿using UnityEditor.AnimatedValues;
+using UnityEditor.AnimatedValues;
 using UnityEngine;
 
 namespace UnityEditor.Experimental.Rendering
@@ -12,7 +12,7 @@ namespace UnityEditor.Experimental.Rendering
             "Light Loop Settings",
             (s, p, o) => s.isSectionExpandedLightLoopSettings,
             true,
-            CED.Action(Drawer_SectionLightLoopSettings));
+            CED.LabelWidth(250, CED.Action(Drawer_SectionLightLoopSettings)));
 
         public AnimBool isSectionExpandedLightLoopSettings { get { return m_AnimBools[0]; } }
         public AnimBool isSectionExpandedEnableTileAndCluster { get { return m_AnimBools[1]; } }

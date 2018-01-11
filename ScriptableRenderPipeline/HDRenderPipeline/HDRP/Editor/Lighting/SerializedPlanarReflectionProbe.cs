@@ -9,11 +9,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty proxyVolumeReference;
         public SerializedInfluenceVolume influenceVolume;
 
-        public SerializedProperty captureOffset;
+        public SerializedProperty captureLocalPosition;
         public SerializedProperty dimmer;
         public SerializedProperty mode;
         public SerializedProperty refreshMode;
         public SerializedProperty customTexture;
+
+        public SerializedFrameSettings frameSettings;
 
         public PlanarReflectionProbe target { get { return serializedObject.targetObject as PlanarReflectionProbe; } }
 
@@ -24,11 +26,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             proxyVolumeReference = serializedObject.Find((PlanarReflectionProbe p) => p.proxyVolumeReference);
             influenceVolume = new SerializedInfluenceVolume(serializedObject.Find((PlanarReflectionProbe p) => p.influenceVolume));
 
-            captureOffset = serializedObject.Find((PlanarReflectionProbe p) => p.centerOffset);
+            captureLocalPosition = serializedObject.Find((PlanarReflectionProbe p) => p.captureLocalPosition);
             dimmer = serializedObject.Find((PlanarReflectionProbe p) => p.dimmer);
             mode = serializedObject.Find((PlanarReflectionProbe p) => p.mode);
             refreshMode = serializedObject.Find((PlanarReflectionProbe p) => p.refreshMode);
             customTexture = serializedObject.Find((PlanarReflectionProbe p) => p.customTexture);
+
+            frameSettings = new SerializedFrameSettings(serializedObject.Find((PlanarReflectionProbe p) => p.frameSettings));
         }
 
         public void Update()

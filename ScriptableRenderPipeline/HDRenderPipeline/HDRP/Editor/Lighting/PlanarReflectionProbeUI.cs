@@ -12,6 +12,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly int k_AnimBoolTotal = k_AnimBoolFields + k_ReflectionProbeModeModeCount;
 
         public InfluenceVolumeUI influenceVolume = new InfluenceVolumeUI();
+        public FrameSettingsUI frameSettings = new FrameSettingsUI();
 
         public AnimBool isSectionExpandedInfluenceSettings { get { return m_AnimBools[k_ReflectionProbeModeModeCount]; } }
         public AnimBool isSectionExpandedCaptureSettings { get { return m_AnimBools[k_ReflectionProbeModeModeCount + 1]; } }
@@ -29,6 +30,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override void Reset(SerializedPlanarReflectionProbe data, UnityAction repaint)
         {
+            frameSettings.Reset(data.frameSettings, repaint);
             influenceVolume.Reset(data.influenceVolume, repaint);
             base.Reset(data, repaint);
         }
@@ -37,6 +39,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             for (var i = 0; i < k_ReflectionProbeModeModeCount; i++)
                 m_AnimBools[i].target = i == data.mode.intValue;
+
+            frameSettings.Update();
             influenceVolume.Update();
             base.Update();
         }
