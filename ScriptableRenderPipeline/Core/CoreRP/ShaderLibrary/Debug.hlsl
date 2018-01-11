@@ -122,13 +122,13 @@ float4 GetSimpleMipCountColor(uint mipCount)
     return mipCount==0 ? float4(1.0, 0.0, 1.0, 1.0) : (mipCount > 12 ? float4(1.0, 1.0, 1.0, 0.0) : color );
 }
 
-float4 GetMipLevelColor(float2 iUV, float4 texelSize)
+float4 GetMipLevelColor(float2 uv, float4 texelSize)
 {
     // Push down into colors list to "optimal level" in following table.
     // .zw is texture width,height so *2 is down one mip, *4 is down two mips
     texelSize.zw *= 4.0;
 
-    float mipLevel = ComputeTextureLOD(iUV, texelSize);
+    float mipLevel = ComputeTextureLOD(uv, texelSize);
     mipLevel = clamp(mipLevel, 0.0, 5.0 - 0.0001);
 
     float4 colors[6] = {
@@ -226,13 +226,12 @@ float3 GetDebugMipReductionColor(Texture2D tex, float4 mipInfo)
 }
 
 #ifdef DEBUG_DISPLAY
-#ifdef FRAG_INPUTS_DEFINED
-float3 GetTextureDataDebug(uint paramId, FragInputs input, Texture2D tex, float4 texelSize, float4 mipInfo, float3 originalColor)
+float3 GetTextureDataDebug(uint paramId, float2 uv, Texture2D tex, float4 texelSize, float4 mipInfo, float3 originalColor)
 {
     switch (paramId)
     {
     case DEBUGMIPMAPMODE_MIP_RATIO:
-        return GetDebugMipColorIncludingMipReduction(originalColor, tex, texelSize, input.texCoord0.xy, mipInfo);
+        return GetDebugMipColorIncludingMipReduction(originalColor, tex, texelSize, uv, mipInfo);
     case DEBUGMIPMAPMODE_MIP_COUNT:
         return GetDebugMipCountColor(originalColor, tex);
     case DEBUGMIPMAPMODE_MIP_COUNT_REDUCTION:
@@ -245,7 +244,6 @@ float3 GetTextureDataDebug(uint paramId, FragInputs input, Texture2D tex, float4
 
     return originalColor;
 }
-#endif // FRAG_INPUTS_DEFINED
 #endif // DEBUG_DISPLAY
 
 #endif // UNITY_DEBUG_INCLUDED

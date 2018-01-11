@@ -18,7 +18,7 @@ float GetSpecularOcclusionFromBentAO(float3 V, float3 bentNormalWS, SurfaceData 
     return SphericalCapIntersectionSolidArea(cosAv, cosAs, cosB) / (TWO_PI * (1.0 - cosAs));
 }
 
-void GetBuiltinData(FragInputs input, inout SurfaceData surfaceData, float alpha, float3 bentNormalWS, float depthOffset, out BuiltinData builtinData)
+void GetBuiltinData(FragInputs input, in SurfaceData surfaceData, float alpha, float3 bentNormalWS, float depthOffset, out BuiltinData builtinData)
 {
     // Builtin Data
     builtinData.opacity = alpha;
@@ -73,18 +73,6 @@ void GetBuiltinData(FragInputs input, inout SurfaceData surfaceData, float alpha
 #endif
 
     builtinData.depthOffset = depthOffset;
-
-#if defined(DEBUG_DISPLAY)
-    if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
-    {
-#ifdef LAYERED_LIT_SHADER
-        surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input, _BaseColorMap0, _BaseColorMap0_TexelSize, _BaseColorMap0_MipInfo, surfaceData.baseColor);
-#else
-        surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input, _BaseColorMap, _BaseColorMap_TexelSize, _BaseColorMap_MipInfo, surfaceData.baseColor);
-#endif
-        surfaceData.metallic = 0;
-    }
-#endif
 }
 
 // Struct that gather UVMapping info of all layers + common calculation
@@ -292,6 +280,14 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
     AddDecalContribution(posInput.positionSS, surfaceData);
+
+#if defined(DEBUG_DISPLAY)
+    if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
+    {
+        surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, layerTexCoord.base.uv, _BaseColorMap, _BaseColorMap_TexelSize, _BaseColorMap_MipInfo, surfaceData.baseColor);
+        surfaceData.metallic = 0;
+    }
+#endif
 
     // Caution: surfaceData must be fully initialize before calling GetBuiltinData
     GetBuiltinData(input, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);

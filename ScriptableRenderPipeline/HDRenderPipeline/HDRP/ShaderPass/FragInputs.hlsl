@@ -5,7 +5,6 @@
 
 #include "../Debug/MaterialDebug.cs.hlsl"
 
-#define FRAG_INPUTS_DEFINED
 struct FragInputs
 {
     // Contain value return by SV_POSITION (That is name positionCS in PackedVarying).

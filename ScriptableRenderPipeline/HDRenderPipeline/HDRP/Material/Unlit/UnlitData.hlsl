@@ -48,7 +48,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #if defined(DEBUG_DISPLAY)
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
-        surfaceData.color = GetTextureDataDebug(_DebugMipMapMode, input, _UnlitColorMap, _UnlitColorMap_TexelSize, _UnlitColorMap_MipInfo, surfaceData.color);
+        surfaceData.color = GetTextureDataDebug(_DebugMipMapMode, unlitColorMapUv, _UnlitColorMap, _UnlitColorMap_TexelSize, _UnlitColorMap_MipInfo, surfaceData.color);
     }
 #endif
 }
