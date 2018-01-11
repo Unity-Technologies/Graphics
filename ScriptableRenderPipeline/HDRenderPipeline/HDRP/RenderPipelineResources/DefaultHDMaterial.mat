@@ -116,6 +116,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SubsurfaceMaskMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SubsurfaceRadiusMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -150,6 +154,7 @@ Material:
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
+    - _CoatMask: 1
     - _CullMode: 2
     - _CullModeForward: 2
     - _Cutoff: 0.5
@@ -158,6 +163,7 @@ Material:
     - _DetailNormalMapScale: 1
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
+    - _DiffusionProfile: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -196,8 +202,13 @@ Material:
     - _GlossyReflections: 1
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
+    - _HeightMapParametrization: 0
     - _HeightMax: 1
     - _HeightMin: -1
+    - _HeightOffset: -1
+    - _HeightPoMAmplitude: 2
+    - _HeightTessAmplitude: 2
+    - _HeightTessCenter: 0
     - _HorizonFade: 1
     - _IOR: 1.097
     - _InitialBend: 1
@@ -230,6 +241,7 @@ Material:
     - _StencilWriteMask: 7
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
+    - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
     - _SurfaceType: 0
