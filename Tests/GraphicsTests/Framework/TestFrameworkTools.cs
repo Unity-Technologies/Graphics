@@ -7,7 +7,6 @@ using System.IO;
 using UnityEditor;
 using NUnit.Framework;
 using UnityEngine.TestTools;
-using UnityEditor.TestTools;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -157,6 +156,7 @@ namespace UnityEngine.Experimental.Rendering
 
             public static IEnumerable GetScenesForPipeline(string _pipelinePath, bool fixtureParam = false)
             {
+#if UNITY_EDITOR
                 var absoluteScenesPath = s_Path.Aggregate("Assets", Path.Combine);
 
                 var filesPath = Path.Combine(absoluteScenesPath, _pipelinePath);
@@ -192,6 +192,9 @@ namespace UnityEngine.Experimental.Rendering
                             yield return testInfo;
                     }
                 }
+#else
+            yield return "null";
+#endif
             }
         }
 
@@ -236,7 +239,10 @@ namespace UnityEngine.Experimental.Rendering
                              _testSetup.height,
                              (_testSetup.hdr && testCamera.allowHDR) ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32,
                              24);
+
+#if UNITY_EDITOR
             rtDesc.sRGB = PlayerSettings.colorSpace == ColorSpace.Linear;
+#endif
             rtDesc.msaaSamples = _testSetup.msaaSamples;
 
             // render the scene
@@ -285,7 +291,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public static class AssertFix
         {
-            public static void TestWithMessages( bool? _comparison, string _pass, string _fail)
+            public static void TestWithMessages( bool? _comparison, string _fail = "Test failed", string _pass = null )
             {
                 if (_comparison.HasValue)
                 {
@@ -296,11 +302,6 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 else
                     throw new System.Exception("Test comparison is null.");
-            }
-
-            public static void TestWithMessages(bool? _comparison)
-            {
-                TestWithMessages(_comparison, "Test passed.", "Test failed");
             }
         }
     }
