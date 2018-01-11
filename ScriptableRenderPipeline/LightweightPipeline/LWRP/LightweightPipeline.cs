@@ -172,7 +172,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private PostProcessLayer m_CameraPostProcessLayer;
 
         private CameraComparer m_CameraComparer = new CameraComparer();
-        private LightComparer m_LightCompararer = new LightComparer();
+        private LightComparer m_LightComparer = new LightComparer();
 
         // Maps from sorted light indices to original unsorted. We need this for shadow rendering
         // and per-object light lists.
@@ -703,8 +703,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Sorts light so we have all directionals first, then local lights.
             // Directionals are sorted further by shadow, cookie and intensity
             // Locals are sorted further by shadow, cookie and distance to camera
-            m_LightCompararer.CurrCamera = m_CurrCamera;
-            visibleLights.Sort(m_LightCompararer);
+            m_LightComparer.CurrCamera = m_CurrCamera;
+            visibleLights.Sort(m_LightComparer);
 
             for (int i = 0; i < totalVisibleLights; ++i)
                 m_SortedLightIndexMap.Add(m_VisibleLightsIDMap[visibleLights[i]]);
