@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -19,11 +19,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             DrawGizmos_Generic(s, d, matrix, 2);
             
-        }
-
-        public static void DrawGizmos_EditCenter(InfluenceVolumeUI s, InfluenceVolume d, Matrix4x4 matrix)
-        {
-
         }
 
         public static void DrawGizmos_EditNone(InfluenceVolumeUI s, InfluenceVolume d, Matrix4x4 matrix)

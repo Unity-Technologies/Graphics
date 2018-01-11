@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
@@ -121,11 +121,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             Handles.matrix = mat;
             Handles.color = c;
-        }
-
-        public static void DrawHandles_EditCenter(InfluenceVolumeUI s, InfluenceVolume d, Editor o, Transform transform, Object sourceAsset)
-        {
-            
         }
 
         static void DrawBoxHandle(

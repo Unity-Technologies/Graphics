@@ -1,8 +1,8 @@
-﻿using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering
 {
-    class SerializedLightLoopSettings
+    public class SerializedLightLoopSettings
     {
         public SerializedProperty root;
 

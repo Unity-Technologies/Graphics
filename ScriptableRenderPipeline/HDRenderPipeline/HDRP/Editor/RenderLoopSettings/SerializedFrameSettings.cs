@@ -1,8 +1,8 @@
-﻿using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering
 {
-    class SerializedFrameSettings
+    public class SerializedFrameSettings
     {
         public SerializedProperty root;
 
@@ -40,7 +40,6 @@ namespace UnityEditor.Experimental.Rendering
         public SerializedProperty enableShadowMask;
 
         public SerializedLightLoopSettings lightLoopSettings;
-
 
         public SerializedFrameSettings(SerializedProperty root)
         {

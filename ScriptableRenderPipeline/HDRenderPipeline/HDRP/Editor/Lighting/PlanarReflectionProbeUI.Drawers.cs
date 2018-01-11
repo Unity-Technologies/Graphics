@@ -60,6 +60,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 ),
                 SectionFoldoutInfluenceSettings,
                 SectionFoldoutCaptureSettings,
+                CED.Select(
+                    (s, d, o) => s.frameSettings,
+                    (s, d, o) => d.frameSettings,
+                    FrameSettingsUI.Inspector
+                ),
                 CED.space,
                 CED.Action(Drawer_SectionBakeButton)
             );
@@ -72,7 +77,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Drawer_SectionCaptureSettings(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
         {
-            EditorGUILayout.PropertyField(d.captureOffset, _.GetContent("Capture Offset"));
+            EditorGUILayout.PropertyField(d.captureLocalPosition, _.GetContent("Capture Local Position"));
         }
 
         static void Drawer_SectionProbeModeCustomSettings(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
@@ -125,7 +130,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     EditorGUIUtility.IconContent("EditCollider", "|Modify the base shape. (SHIFT+1)"),
                     EditorGUIUtility.IconContent("PreMatCube", "|Modify the influence volume. (SHIFT+2)"),
                     EditorGUIUtility.IconContent("SceneViewOrtho", "|Modify the influence normal volume. (SHIFT+3)"),
-                    EditorGUIUtility.IconContent("MoveTool", "|Move the center.")
+                    EditorGUIUtility.IconContent("MoveTool", "|Move the capture position.")
                 });
             }
         }

@@ -146,7 +146,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override Vector3 influenceForward { get { return probe.influenceForward; } }
         public override Vector3 capturePosition { get { return probe.capturePosition; } }
         public override Texture texture { get { return probe.texture; } }
-        public override Vector3 centerOffsetCaptureSpace { get { return probe.centerOffset; } }
+        public override Vector3 centerOffsetCaptureSpace { get { return probe.captureLocalPosition; } }
         public override EnvShapeType influenceShapeType { get { return ConvertShape(probe.influenceVolume.shapeType); } }
         public override float dimmer { get { return probe.dimmer; } }
         public override Vector3 influenceExtents

@@ -1,4 +1,4 @@
-﻿using UnityEditorInternal;
+using UnityEditorInternal;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -21,8 +21,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     InfluenceVolumeUI.DrawHandles_EditInfluenceNormal(s.influenceVolume, d.influenceVolume, o, mat, d);
                     break;
                 case EditCenter:
-                    InfluenceVolumeUI.DrawHandles_EditCenter(s.influenceVolume, d.influenceVolume, o, d.transform, d);
-                    break;
+                    {
+                        EditorGUI.BeginChangeCheck();
+                        var m = Handles.matrix;
+                        Handles.matrix = mat;
+                        d.captureLocalPosition = Handles.PositionHandle(d.captureLocalPosition, d.transform.rotation);
+                        if (EditorGUI.EndChangeCheck())
+                            EditorUtility.SetDirty(d);
+                        Handles.matrix = m;
+                        break;
+                    }
             }
         }
 
@@ -45,9 +53,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     break;
                 case EditInfluenceNormalShape:
                     InfluenceVolumeUI.DrawGizmos_EditInfluenceNormal(s.influenceVolume, d.influenceVolume, mat);
-                    break;
-                case EditCenter:
-                    InfluenceVolumeUI.DrawGizmos_EditCenter(s.influenceVolume, d.influenceVolume, mat);
                     break;
                 default:
                     InfluenceVolumeUI.DrawGizmos_EditNone(s.influenceVolume, d.influenceVolume, mat);
