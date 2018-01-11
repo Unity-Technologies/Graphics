@@ -164,11 +164,12 @@ namespace UnityEditor.VFX.UI
         {
             Matrix4x4 oldMatrix = Handles.matrix;
 
-            ArcCircle circle = (ArcCircle)anchor.value;
+            ArcCircle arcCircle = (ArcCircle)anchor.value;
+            Circle circle = arcCircle.circle;
 
             Vector3 center = circle.center;
             float radius = circle.radius;
-            float arc = circle.arc * Mathf.Rad2Deg;
+            float arc = arcCircle.arc * Mathf.Rad2Deg;
             if (circle.space == CoordinateSpace.Local)
             {
                 Handles.matrix = component.transform.localToWorldMatrix;
@@ -179,7 +180,8 @@ namespace UnityEditor.VFX.UI
 
             if (PositionGizmo(component, circle.space, ref circle.center))
             {
-                anchor.value = circle;
+                arcCircle.circle = circle;
+                anchor.value = arcCircle;
             }
 
             // Radius controls
@@ -198,7 +200,8 @@ namespace UnityEditor.VFX.UI
                         circle.radius = 0;
                     }
 
-                    anchor.value = circle;
+                    arcCircle.circle = circle;
+                    anchor.value = arcCircle;
                 }
                 EditorGUI.EndChangeCheck();
             }
@@ -226,9 +229,10 @@ namespace UnityEditor.VFX.UI
                     float newArc = Vector3.Angle(Vector3.forward, arcHandlePosition) * Mathf.Sign(Vector3.Dot(Vector3.right, arcHandlePosition));
                     arc += Mathf.DeltaAngle(arc, newArc);
                     arc = Mathf.Repeat(arc, 360.0f);
-                    circle.arc = arc * Mathf.Deg2Rad;
+                    arcCircle.arc = arc * Mathf.Deg2Rad;
 
-                    anchor.value = circle;
+                    arcCircle.circle = circle;
+                    anchor.value = arcCircle;
                 }
             }
 

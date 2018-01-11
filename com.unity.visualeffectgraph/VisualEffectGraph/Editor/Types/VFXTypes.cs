@@ -45,14 +45,11 @@ namespace UnityEditor.VFX
         CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
 
         public CoordinateSpace space;
-        [Tooltip("The centre of the circle.")]
-        public Vector3 center;
-        [Tooltip("The radius of the circle.")]
-        public float radius;
+        public Circle circle;
         [Angle, Range(0, Mathf.PI * 2.0f), Tooltip("Controls how much of the circle is used.")]
         public float arc;
 
-        public static ArcCircle defaultValue = new ArcCircle { radius = 1.0f, arc = 2.0f * Mathf.PI };
+        public static ArcCircle defaultValue = new ArcCircle { circle = Circle.defaultValue, arc = 2.0f * Mathf.PI };
     }
 
     [VFXType, Serializable]
@@ -78,7 +75,7 @@ namespace UnityEditor.VFX
         [Angle, Range(0, Mathf.PI * 2.0f), Tooltip("Controls how much of the sphere is used.")]
         public float arc;
 
-        public static ArcSphere defaultValue = new ArcSphere { sphere = new Sphere { radius = 1.0f }, arc = 2.0f * Mathf.PI };
+        public static ArcSphere defaultValue = new ArcSphere { sphere = Sphere.defaultValue, arc = 2.0f * Mathf.PI };
     }
 
     [VFXType, Serializable]
