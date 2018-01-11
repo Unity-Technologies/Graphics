@@ -225,7 +225,6 @@ void FillMaterialTransmission(float thickness, inout BSDFData bsdfData)
 
     bsdfData.thickness = _ThicknessRemaps[diffusionProfile].x + _ThicknessRemaps[diffusionProfile].y * thickness;
     uint transmissionMode = BitFieldExtract(asuint(_TransmissionFlags), 2u * diffusionProfile, 2u);
-    bsdfData.useThickObjectMode = transmissionMode != TRANSMISSION_MODE_THIN;
 
 #if SHADEROPTIONS_USE_DISNEY_SSS
     bsdfData.transmittance = ComputeTransmittanceDisney(    _ShapeParams[diffusionProfile].rgb,
@@ -239,6 +238,24 @@ void FillMaterialTransmission(float thickness, inout BSDFData bsdfData)
                                                             _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
                                                             bsdfData.thickness);
 #endif
+
+    // Apply the transmission mode. Only the thick object mode performs the thickness displacement.
+    bsdfData.useThickObjectMode = transmissionMode != TRANSMISSION_MODE_THIN;
+
+    if (bsdfData.useThickObjectMode)
+    {
+        // Compute the thickness in world units along the normal.
+        float thicknessInMeters = bsdfData.thickness * METERS_PER_MILLIMETER;
+        float thicknessInUnits  = thicknessInMeters * _WorldScales[bsdfData.diffusionProfile].y;
+
+        bsdfData.thickness = thicknessInUnits;
+    }
+    else
+    {
+        // Apply no displacement.
+        bsdfData.thickness = 0;
+    }
+
 }
 
 // Assume bsdfData.normalWS is init
@@ -1021,19 +1038,13 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 // Otherwise, in the "thick object" mode, we can have EITHER reflected (front) lighting
 // OR transmitted (back) lighting, never both at the same time. For transmitted lighting,
 // we need to push the shading position back to avoid self-shadowing problems.
+// Note: 'bsdfData.thickness' is in world units, and already accounts for the transmission mode.
 float3 ComputeThicknessDisplacement(BSDFData bsdfData, float3 L, float NdotL)
 {
-    // Compute the thickness in world units along the normal.
-    float thicknessInMeters = bsdfData.thickness * METERS_PER_MILLIMETER;
-    float thicknessInUnits  = thicknessInMeters * _WorldScales[bsdfData.diffusionProfile].y;
-
-    float displacement = 0;
-
-    if (bsdfData.useThickObjectMode && NdotL < 0)
-    {
-        // Compute the thickness in world units along the light vector.
-        displacement = thicknessInUnits / -NdotL;
-    }
+    // Compute the thickness in world units along the light vector.
+    // We need a max(x, 0) here, but the saturate() is free,
+    // and we don't expect the total displacement of over 1 meter.
+    float displacement = saturate(bsdfData.thickness / -NdotL);
 
     return displacement * L;
 }
@@ -1084,8 +1095,11 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     float3 L     = -lightData.forward; // Lights point backward in Unity
     float  NdotL = dot(N, L); // Note: Ideally this N here should be vertex normal - use for transmisison
 
-    // Compute displacement for fake thickObject transmission
-    posInput.positionWS += ComputeThicknessDisplacement(bsdfData, L, NdotL);
+    if (HasMaterialFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
+    {
+        // Compute displacement for fake thickObject transmission
+        posInput.positionWS += ComputeThicknessDisplacement(bsdfData, L, NdotL);
+    }
 
     float3 color;
     float attenuation;
@@ -1137,8 +1151,11 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     float3 L       = unL * distRcp;
     float  NdotL   = dot(N, L);
 
-    // Compute displacement for fake thickObject transmission
-    posInput.positionWS += ComputeThicknessDisplacement(bsdfData, L, NdotL);
+    if (HasMaterialFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
+    {
+        // Compute displacement for fake thickObject transmission
+        posInput.positionWS += ComputeThicknessDisplacement(bsdfData, L, NdotL);
+    }
 
     float3 color;
     float attenuation;
