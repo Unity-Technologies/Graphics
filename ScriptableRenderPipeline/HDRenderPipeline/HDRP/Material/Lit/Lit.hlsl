@@ -513,34 +513,63 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     outGBuffer3 = float4(bakeDiffuseLighting, 0.0);
 }
 
-void DecodeFromGBuffer(uint2 positionSS, uint featureFlags, out BSDFData bsdfData, out float3 bakeDiffuseLighting, out uint outMaterialFeatures)
+// Fills the BSDFData. Also returns the (per-pixel) material feature flags inferred
+// from the contents of the G-buffer, which can be used by the feature classification system.
+// 'tileFeatureFlags' are compile-time flags provided by the feature classification system.
+// If you're not using the feature classification system, pass 0.
+uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsdfData, out float3 bakeDiffuseLighting)
 {
+    ZERO_INITIALIZE(BSDFData, bsdfData);
+
+    // Isolate material features.
+    tileFeatureFlags &= MATERIAL_FEATURE_MASK_FLAGS;
+
+    if (tileFeatureFlags == 0)
+    {
+        // We have no feature information, so this is a feature classification pass.
+        tileFeatureFlags = MATERIAL_FEATURE_MASK_FLAGS;
+    }
+    else if (tileFeatureFlags == MATERIAL_FEATURE_MASK_FLAGS)
+    {
+    #ifdef USE_INDIRECT
+        // We don't have detailed compile-time feature information.
+        // Therefore, we load the feature classification data at runtime to avoid
+        // entering every single branch based on feature flags.
+        uint numTileX = (_ScreenSize.x + (TILE_SIZE_FPTL - 1)) / TILE_SIZE_FPTL;
+        uint index    = (positionSS.y / TILE_SIZE_FPTL) * numTileX + (positionSS.x / TILE_SIZE_FPTL);
+
+        tileFeatureFlags = g_TileFeatureFlags[index];
+    #endif
+    }
+
+    bsdfData.materialFeatures = tileFeatureFlags; // Only tile-uniform feature evaluation
+
     GBufferType0 inGBuffer0 = LOAD_TEXTURE2D(_GBufferTexture0, positionSS);
     GBufferType1 inGBuffer1 = LOAD_TEXTURE2D(_GBufferTexture1, positionSS);
     GBufferType2 inGBuffer2 = LOAD_TEXTURE2D(_GBufferTexture2, positionSS);
     GBufferType3 inGBuffer3 = LOAD_TEXTURE2D(_GBufferTexture3, positionSS);
-
-    ZERO_INITIALIZE(BSDFData, bsdfData);
 
     // Init all material flags from Gbuffer2
     float coatMask;
     int metallic15;
     UnpackFloatInt8bit(inGBuffer2.a, 16.0, coatMask, metallic15);
 
-    // If any of the flags of featureFlags is not set, it mean we know statically that
-    // the material feature is not used, so the compiler can optimize related code.
-    // Else we don't know if the material feature will be use, it is a dynamic condition.
-    bool enableSpecularColor =  (metallic15 == GBUFFER_LIT_SPECULAR_COLOR); // This is always a dynamic test as it is very cheap
+    uint pixelFeatureFlags     = MATERIALFEATUREFLAGS_LIT_STANDARD; // Only sky/background do not have the Standard material flag
+    bool pixelHasSpecularColor = (metallic15 == GBUFFER_LIT_SPECULAR_COLOR); // This is always a dynamic test as it is very cheap
+    bool pixelHasTransmission  = (metallic15 == GBUFFER_LIT_SSS_OR_TRANSMISSION && inGBuffer2.g > 0); // Thickness > 0
+    bool pixelHasSubsurface    = (metallic15 == GBUFFER_LIT_SSS_OR_TRANSMISSION && inGBuffer2.b > 0); // TagSSS > 0
+    bool pixelHasAnisotropy    = (metallic15 <= GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND && (inGBuffer2.b - 0.5) >= 1.0/255.0); // Anisotropy > 0
+    bool pixelHasIridescence   = (metallic15 == GBUFFER_LIT_IRIDESCENCE);
+    bool pixelHasClearCoat     = (coatMask > 0);
 
-    outMaterialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD; // It is mandatory to identity ourselve as standard shader, else we are consider as sky/background element
-    outMaterialFeatures |= (metallic15 == GBUFFER_LIT_SSS_OR_TRANSMISSION && inGBuffer2.g > 0.0) ? featureFlags & MATERIALFEATUREFLAGS_LIT_TRANSMISSION : 0;                  // Thickness > 0
-    outMaterialFeatures |= (metallic15 == GBUFFER_LIT_SSS_OR_TRANSMISSION && inGBuffer2.b > 0.0) ? featureFlags & MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING : 0;         // TagSSS > 0
-    outMaterialFeatures |= (metallic15 <= GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND && abs(inGBuffer2.b - 0.5) > 0.01) ? featureFlags & MATERIALFEATUREFLAGS_LIT_ANISOTROPY : 0;   // Anisotropy != 0 (small tolerrance as 0.5 can be correctly encoded)
-    outMaterialFeatures |= (metallic15 == GBUFFER_LIT_IRIDESCENCE) ? featureFlags & MATERIALFEATUREFLAGS_LIT_IRIDESCENCE : 0;
-    outMaterialFeatures |= coatMask > 0.0 ? featureFlags & MATERIALFEATUREFLAGS_LIT_CLEAR_COAT : 0;
+    pixelFeatureFlags |= (pixelHasTransmission ? MATERIALFEATUREFLAGS_LIT_TRANSMISSION          : 0);
+    pixelFeatureFlags |= (pixelHasSubsurface   ? MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING : 0);
+    pixelFeatureFlags |= (pixelHasAnisotropy   ? MATERIALFEATUREFLAGS_LIT_ANISOTROPY            : 0);
+    pixelFeatureFlags |= (pixelHasIridescence  ? MATERIALFEATUREFLAGS_LIT_IRIDESCENCE           : 0);
+    pixelFeatureFlags |= (pixelHasClearCoat    ? MATERIALFEATUREFLAGS_LIT_CLEAR_COAT            : 0);
 
-    // Save for material classification
-    bsdfData.materialFeatures = outMaterialFeatures;
+    // Disable pixel features disabled by the tile.
+    pixelFeatureFlags &= tileFeatureFlags;
 
     // Start decompressing GBuffer
     float3 baseColor = inGBuffer0.rgb;
@@ -556,13 +585,13 @@ void DecodeFromGBuffer(uint2 positionSS, uint featureFlags, out BSDFData bsdfDat
     // metallic15 is range [0..12] if mettallic data is needed
     float metallic = (metallic15 <= GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND) ? metallic15 * (1.0 / GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND) : 0.0;
     bsdfData.diffuseColor = ComputeDiffuseColor(baseColor, metallic);
-    bsdfData.fresnel0 = enableSpecularColor ? Gamma20ToLinear(inGBuffer2.rgb) : ComputeFresnel0(baseColor, metallic, DEFAULT_SPECULAR_VALUE);
+    bsdfData.fresnel0 = pixelHasSpecularColor ? Gamma20ToLinear(inGBuffer2.rgb) : ComputeFresnel0(baseColor, metallic, DEFAULT_SPECULAR_VALUE);
 
     // Always assign even if not used, DIFFUSION_PROFILE_NEUTRAL_ID is 0
-    // Note: we have ZERO_INITIALIZE the struct, so bsdfData.diffusionProfile == DIFFUSION_PROFILE_NEUTRAL_ID, bsdfData.anisotropy == 0.0, bsdfData.SubsurfaceMask == 0.0 etc...
+    // Note: we have ZERO_INITIALIZE the struct, so bsdfData.diffusionProfile == DIFFUSION_PROFILE_NEUTRAL_ID, bsdfData.anisotropy == 0, bsdfData.subsurfaceMask == 0 etc...
 
     // Process SSS and Transmission together as they encode almost the same data
-    if (HasMaterialFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
+    if (HasMaterialFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
         // First we must extract the diffusion profile
 
@@ -574,13 +603,15 @@ void DecodeFromGBuffer(uint2 positionSS, uint featureFlags, out BSDFData bsdfDat
 
         bsdfData.diffusionProfile = sssData.diffusionProfile;
 
-        if (HasMaterialFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING))
+        // The neutral value of subsurfaceMask is 0 (handled by ZERO_INITIALIZE).
+        if (HasMaterialFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING))
         {
             // Modify fresnel0
             FillMaterialSSS(sssData.subsurfaceMask, bsdfData);
         }
 
-        if (HasMaterialFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
+        // The neutral value of thickness and transmittance is 0 (handled by ZERO_INITIALIZE).
+        if (HasMaterialFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
         {
             FillMaterialTransmission(inGBuffer2.g, bsdfData);
         }
@@ -588,12 +619,12 @@ void DecodeFromGBuffer(uint2 positionSS, uint featureFlags, out BSDFData bsdfDat
 
     // Special handling for anisotropy: When anisotropy is present in a tile, the whole tile will use anisotropy to avoid divergent evaluation of GGX that increase the cost
     // Note that it mean that when we have the worse case, we always use Anisotropy and shader like deferred.shader are always the worst case (but only used for debugging)
-    if (HasMaterialFeatureFlag(featureFlags, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
+    if (HasMaterialFeatureFlag(tileFeatureFlags, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
     {
         float anisotropy;
         float3 tangentWS;
 
-        if (HasMaterialFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
+        if (HasMaterialFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
         {
             anisotropy = inGBuffer2.b * 2.0 - 1.0;
             tangentWS  = UnpackNormalOctEncode(inGBuffer2.rg * 2.0 - 1.0);
@@ -605,17 +636,15 @@ void DecodeFromGBuffer(uint2 positionSS, uint featureFlags, out BSDFData bsdfDat
         }
 
         FillMaterialAnisotropy(anisotropy, tangentWS, bsdfData);
-
-        // Force the compiler to use the anisotropy path all the time
-        bsdfData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_ANISOTROPY;
     }
 
-    if (HasMaterialFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
+    if (HasMaterialFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
     {
         FillMaterialIridescence(inGBuffer2.g, bsdfData);
     }
 
-    if (HasMaterialFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
+    // The neutral value of coatMask is 0 (handled by ZERO_INITIALIZE).
+    if (HasMaterialFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         // Modify fresnel0 and perceptualRoughness
         FillMaterialClearCoatData(coatMask, bsdfData);
@@ -630,12 +659,8 @@ void DecodeFromGBuffer(uint2 positionSS, uint featureFlags, out BSDFData bsdfDat
     ConvertAnisotropyToClampRoughness(bsdfData.perceptualRoughness, bsdfData.anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
 
     bakeDiffuseLighting = inGBuffer3.rgb;
-}
 
-void DecodeFromGBuffer(uint2 positionSS, uint featureFlags, out BSDFData bsdfData, out float3 bakeDiffuseLighting)
-{
-    uint unsused;
-    DecodeFromGBuffer(positionSS, featureFlags, bsdfData, bakeDiffuseLighting, unsused);
+    return pixelFeatureFlags;
 }
 
 // Function call from the material classification compute shader
@@ -645,12 +670,8 @@ uint MaterialFeatureFlagsFromGBuffer(uint2 positionSS)
     float3 unused;
     // Call the regular function, compiler will optimized out everything not used.
     // Note that all material feature flag bellow are in the same GBuffer (inGBuffer2) and thus material classification only sample one Gbuffer
-    uint materialFeatures;
-    DecodeFromGBuffer(positionSS, MATERIAL_FEATURE_MASK_FLAGS, bsdfData, unused, materialFeatures);
-
-    return materialFeatures;
+    return DecodeFromGBuffer(positionSS, 0, bsdfData, unused);
 }
-
 
 //-----------------------------------------------------------------------------
 // Debug method (use to display values)
@@ -893,9 +914,10 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 // Subsurface Scattering functions
 //-----------------------------------------------------------------------------
 
-bool HaveSubsurfaceScattering(BSDFData bsdfData)
+bool PixelHasSubsurfaceScattering(BSDFData bsdfData)
 {
-    return HasMaterialFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING);
+    return min(_EnableSubsurfaceScattering, bsdfData.subsurfaceMask) > 0 &&
+           HasMaterialFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING);
 }
 
 //-----------------------------------------------------------------------------
