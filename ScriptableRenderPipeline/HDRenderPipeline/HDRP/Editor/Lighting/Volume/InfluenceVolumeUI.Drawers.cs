@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -9,7 +9,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     partial class InfluenceVolumeUI
     {
         public static readonly CED.IDrawer SectionShape;
+        public static readonly CED.IDrawer SectionFoldoutShape;
 
+        public static readonly CED.IDrawer FieldShape = CED.Action(Drawer_FieldShapeType);
         public static readonly CED.IDrawer SectionShapeBox = CED.Action(Drawer_SectionShapeBox);
         public static readonly CED.IDrawer SectionShapeSphere = CED.Action(Drawer_SectionShapeSphere);
 
@@ -22,6 +24,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     true,
                     SectionShapeBox,
                     SectionShapeSphere
+                )
+            );
+
+            SectionFoldoutShape = CED.Group(
+                CED.FoldoutGroup(
+                    "Influence Volume",
+                    (s, d, o) => s.isSectionExpandedShape,
+                    true,
+                    CED.Action(Drawer_FieldShapeType),
+                    CED.FadeGroup(
+                        (s, d, o, i) => s.IsSectionExpanded_Shape((ShapeType)i),
+                        false,
+                        SectionShapeBox,
+                        SectionShapeSphere
+                    )
                 )
             );
         }

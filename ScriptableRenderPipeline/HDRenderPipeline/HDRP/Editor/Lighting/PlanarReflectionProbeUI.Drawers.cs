@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditorInternal;
 using UnityEngine;
 
@@ -9,32 +9,55 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
     partial class PlanarReflectionProbeUI
     {
-        public static readonly CED.IDrawer Inspector = CED.Group(
-            CED.Action(Drawer_SectionPrimarySettings),
-            CED.space,
-            CED.Action((s, d, o) => EditorGUILayout.LabelField(_.GetContent("Proxy Volume"), EditorStyles.boldLabel)),
-            CED.Action(Drawer_FieldProxyVolumeReference),
-            CED.space,
-            CED.Action((s, d, o) => EditorGUILayout.LabelField(_.GetContent("Influence Volume"), EditorStyles.boldLabel)),
-            CED.Action(Drawer_Toolbar),
-            CED.space,
-            CED.Select(
-                (s, d, o) => s.influenceVolume,
-                (s, d, o) => d.influenceVolume,
-                InfluenceVolumeUI.SectionShape
-            )
+        public static readonly CED.IDrawer Inspector;
+
+        public static readonly CED.IDrawer SectionCaptureSettings = CED.Group(
+            CED.Action(Drawer_SectionCaptureSettings)
         );
+
+        public static readonly CED.IDrawer SectionFoldoutAdvancedSettings = CED.FoldoutGroup(
+            "Advanced Settings",
+            (s, d, o) => s.isSectionExpandedAdvancedSettings,
+            true,
+            CED.Action(Drawer_SectionAdvancedSettings)
+        );
+
+        static PlanarReflectionProbeUI()
+        {
+            Inspector = CED.Group(
+                SectionCaptureSettings,
+                CED.space,
+                CED.Action((s, d, o) => EditorGUILayout.LabelField(_.GetContent("Proxy Volume"), EditorStyles.boldLabel)),
+                CED.Action(Drawer_FieldProxyVolumeReference),
+                CED.space,
+                CED.Action(Drawer_Toolbar),
+                CED.space,
+                CED.Select(
+                    (s, d, o) => s.influenceVolume,
+                    (s, d, o) => d.influenceVolume,
+                    InfluenceVolumeUI.SectionFoldoutShape
+                ),
+                SectionFoldoutAdvancedSettings
+            );
+        }
 
         const EditMode.SceneViewEditMode EditBaseShape = EditMode.SceneViewEditMode.ReflectionProbeBox;
         const EditMode.SceneViewEditMode EditInfluenceShape = EditMode.SceneViewEditMode.GridBox;
         const EditMode.SceneViewEditMode EditInfluenceNormalShape = EditMode.SceneViewEditMode.Collider;
         const EditMode.SceneViewEditMode EditCenter = EditMode.SceneViewEditMode.ReflectionProbeOrigin;
-        
-        static void Drawer_SectionPrimarySettings(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
+
+        static void Drawer_SectionAdvancedSettings(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
         {
-            EditorGUILayout.PropertyField(d.mode, _.GetContent("Mode"));
-            EditorGUILayout.PropertyField(d.captureOffset, _.GetContent("Capture Position"));
             EditorGUILayout.PropertyField(d.dimmer, _.GetContent("Dimmer"));
+        }
+
+        static void Drawer_SectionCaptureSettings(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
+        {
+            EditorGUILayout.LabelField(_.GetContent("Capture Settings"), EditorStyles.boldLabel);
+            ++EditorGUI.indentLevel;
+            EditorGUILayout.PropertyField(d.mode, _.GetContent("Type"));
+            EditorGUILayout.PropertyField(d.captureOffset, _.GetContent("Capture Position"));
+            --EditorGUI.indentLevel;
         }
         static void Drawer_FieldProxyVolumeReference(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
         {
