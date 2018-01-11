@@ -370,7 +370,7 @@ real4 IntegrateGGXAndDisneyFGD(real3 V, real3 N, real roughness, uint sampleCoun
 }
 #else
 // Not supported due to lack of random library in GLES 2
-ERROR_ON_UNSUPPORTED_FUNCTION(IntegrateGGXAndDisneyFGD)
+#define IntegrateGGXAndDisneyFGD ERROR_ON_UNSUPPORTED_FUNCTION(IntegrateGGXAndDisneyFGD)
 #endif
 
 uint GetIBLRuntimeFilterSampleCount(uint mipLevel)
@@ -537,6 +537,7 @@ uint BinarySearchRow(uint j, real needle, TEXTURE2D(haystack), uint n)
     return i;
 }
 
+#if !defined SHADER_API_GLES
 real4 IntegrateLD_MIS(TEXTURECUBE_ARGS(envMap, sampler_envMap),
                        TEXTURE2D(marginalRowDensities),
                        TEXTURE2D(conditionalDensities),
@@ -621,6 +622,10 @@ real4 IntegrateLD_MIS(TEXTURECUBE_ARGS(envMap, sampler_envMap),
 
     return real4(lightInt / cbsdfInt, 1.0);
 }
+#else
+// Not supported due to lack of random library in GLES 2
+#define IntegrateLD_MIS ERROR_ON_UNSUPPORTED_FUNCTION(IntegrateLD_MIS)
+#endif
 
 // Little helper to share code between sphere and box reflection probe.
 // This function will fade the mask of a reflection volume based on normal orientation compare to direction define by the center of the reflection volume.
