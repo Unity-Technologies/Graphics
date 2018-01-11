@@ -1026,6 +1026,19 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CoreUtils.SetKeyword(cmd, "_MIXED_LIGHTING_SUBTRACTIVE", m_MixedLightingSetup == MixedLightingSetup.Subtractive);
             CoreUtils.SetKeyword(cmd, "_VERTEX_LIGHTS", vertexLightsCount > 0);
             CoreUtils.SetKeyword(cmd, "SOFTPARTICLES_ON", m_Asset.RequireCameraDepthTexture);
+
+            bool linearFogModeEnabled = false;
+            bool exponentialFogModeEnabled = false;
+            if (RenderSettings.fog)
+            {
+                if (RenderSettings.fogMode == FogMode.Linear)
+                    linearFogModeEnabled = true;
+                else
+                    exponentialFogModeEnabled = true;
+            }
+
+            CoreUtils.SetKeyword(cmd, "FOG_LINEAR", linearFogModeEnabled);
+            CoreUtils.SetKeyword(cmd, "FOG_EXP2", exponentialFogModeEnabled);
         }
 
         private bool RenderShadows(ref CullResults cullResults, ref VisibleLight shadowLight, int shadowLightIndex, ref ScriptableRenderContext context)
