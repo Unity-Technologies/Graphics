@@ -112,6 +112,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private const int kMaxCascades = 4;
         private int m_ShadowCasterCascadesCount;
         private int m_ShadowMapRTID;
+        private Matrix4x4[] m_ShadowMatrices = new Matrix4x4[kMaxCascades + 1];
         private RenderTargetIdentifier m_CurrCameraColorRT;
         private RenderTargetIdentifier m_ShadowMapRT;
         private RenderTargetIdentifier m_ColorRT;
@@ -955,19 +956,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             float shadowResolution = m_ShadowSlices[0].shadowResolution;
 
             int cascadeCount = m_ShadowCasterCascadesCount;
-            Matrix4x4[] shadowMatrices = new Matrix4x4[kMaxCascades + 1];
             for (int i = 0; i < kMaxCascades; ++i)
-                shadowMatrices[i] = (cascadeCount >= i) ? m_ShadowSlices[i].shadowTransform : Matrix4x4.identity;
+                m_ShadowMatrices[i] = (cascadeCount >= i) ? m_ShadowSlices[i].shadowTransform : Matrix4x4.identity;
 
             // We setup and additional a no-op WorldToShadow matrix in the last index
             // because the ComputeCascadeIndex function in Shadows.hlsl can return an index
             // out of bounds. (position not inside any cascade) and we want to avoid branching
             Matrix4x4 noOpShadowMatrix = Matrix4x4.zero;
             noOpShadowMatrix.m33 = (SystemInfo.usesReversedZBuffer) ? 1.0f : 0.0f;
-            shadowMatrices[kMaxCascades] = noOpShadowMatrix;
+            m_ShadowMatrices[kMaxCascades] = noOpShadowMatrix;
 
             float invShadowResolution = 0.5f / shadowResolution;
-            cmd.SetGlobalMatrixArray("_WorldToShadow", shadowMatrices);
+            cmd.SetGlobalMatrixArray("_WorldToShadow", m_ShadowMatrices);
             cmd.SetGlobalVector("_ShadowData", new Vector4(light.shadowStrength, 0.0f, 0.0f, 0.0f));
             cmd.SetGlobalVectorArray("_DirShadowSplitSpheres", m_DirectionalShadowSplitDistances);
             cmd.SetGlobalVector("_DirShadowSplitSphereRadii", m_DirectionalShadowSplitRadii);
