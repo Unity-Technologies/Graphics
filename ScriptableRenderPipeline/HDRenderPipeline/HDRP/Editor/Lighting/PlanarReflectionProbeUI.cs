@@ -1,4 +1,5 @@
-﻿using UnityEngine.Events;
+using UnityEditor.AnimatedValues;
+using UnityEngine.Events;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -6,8 +7,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         public InfluenceVolumeUI influenceVolume = new InfluenceVolumeUI();
 
+        public AnimBool isSectionExpandedAdvancedSettings { get { return m_AnimBools[0]; } }
+
         public PlanarReflectionProbeUI()
-            : base(0)
+            : base(1)
         {
             
         }
