@@ -26,10 +26,22 @@ Shader "HDRenderPipeline/Lit"
 
         _HeightMap("HeightMap", 2D) = "black" {}
         // Caution: Default value of _HeightAmplitude must be (_HeightMax - _HeightMin) * 0.01
+        // Those two properties are computed from the ones exposed in the UI and depends on the displaement mode so they are separate because we don't want to lose information upon displacement mode change.
         [HideInInspector] _HeightAmplitude("Height Amplitude", Float) = 0.02 // In world units. This will be computed in the UI.
+        [HideInInspector] _HeightCenter("Height Center", Range(0.0, 1.0)) = 0.5 // In texture space
+
+		[Enum(MinMax, 0, Amplitude, 1)] _HeightMapParametrization("Heightmap Parametrization", Int) = 0
+        // These parameters are for vertex displacement/Tessellation
+		_HeightOffset("Height Offset", Float) = 0
+		// MinMax mode
         _HeightMin("Heightmap Min", Float) = -1
         _HeightMax("Heightmap Max", Float) = 1
-        _HeightCenter("Height Center", Range(0.0, 1.0)) = 0.5 // In texture space
+		// Amplitude mode
+		_HeightTessAmplitude("Amplitude", Float) = 2.0 // in Centimeters
+        _HeightTessCenter("Height Center", Range(0.0, 1.0)) = 0.5 // In texture space
+
+        // These parameters are for pixel displacement
+        _HeightPoMAmplitude("Height Amplitude", Float) = 2.0 // In centimeters
 
         _DetailMap("DetailMap", 2D) = "black" {}
         _DetailAlbedoScale("_DetailAlbedoScale", Range(0.0, 2.0)) = 1
