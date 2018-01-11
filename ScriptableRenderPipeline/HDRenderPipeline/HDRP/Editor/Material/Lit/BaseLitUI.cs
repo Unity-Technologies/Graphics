@@ -79,6 +79,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Tessellation
         }
 
+        public enum HeightmapParametrization
+        {
+            MinMax = 0,
+            Amplitude = 1
+        }
+
         protected MaterialProperty doubleSidedNormalMode = null;
         protected const string kDoubleSidedNormalMode = "_DoubleSidedNormalMode";
         protected MaterialProperty depthOffsetEnable = null;
@@ -206,6 +212,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.showMixedValue = false;
         }
 
+        protected abstract void UpdateDisplacement();
+
         protected override void BaseMaterialPropertiesGUI()
         {
             base.BaseMaterialPropertiesGUI();
@@ -222,7 +230,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             m_MaterialEditor.ShaderProperty(materialID, StylesBaseLit.materialIDText);
 
+            EditorGUI.BeginChangeCheck();
             m_MaterialEditor.ShaderProperty(displacementMode, StylesBaseLit.displacementModeText);
+            if(EditorGUI.EndChangeCheck())
+            {
+                UpdateDisplacement();
+            }
+
             if ((DisplacementMode)displacementMode.floatValue != DisplacementMode.None)
             {
                 EditorGUI.indentLevel++;
