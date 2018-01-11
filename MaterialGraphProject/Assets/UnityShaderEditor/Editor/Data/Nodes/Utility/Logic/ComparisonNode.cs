@@ -51,8 +51,8 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_Comparison_Equal(
-            [Slot(0, Binding.None)] DynamicDimensionVector A,
-            [Slot(1, Binding.None)] DynamicDimensionVector B,
+            [Slot(0, Binding.None)] Vector1 A,
+            [Slot(1, Binding.None)] Vector1 B,
             [Slot(2, Binding.None)] out Boolean Out)
         {
             return

@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    Out = Predicate == 1 ? True : False;
+    Out = (Predicate * True) + abs((Predicate - 1) * False);
 }
 ";
         }
