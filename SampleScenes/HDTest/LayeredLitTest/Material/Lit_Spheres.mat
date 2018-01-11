@@ -351,16 +351,21 @@ Material:
     - _HeightFactor2: 1
     - _HeightFactor3: 1
     - _HeightMapMode: 0
+    - _HeightMapParametrization: 0
     - _HeightMax: 1
     - _HeightMin: -1
+    - _HeightOffset: -1
     - _HeightOffset1: 0
     - _HeightOffset2: 0
     - _HeightOffset3: 0
+    - _HeightPoMAmplitude: 2
     - _HeightScale: 0.127
     - _HeightScale0: 1
     - _HeightScale1: 1
     - _HeightScale2: 1
     - _HeightScale3: 1
+    - _HeightTessAmplitude: 2
+    - _HeightTessCenter: 0
     - _IOR: 1
     - _InitialBend: 1
     - _InvTilingScale: 1
