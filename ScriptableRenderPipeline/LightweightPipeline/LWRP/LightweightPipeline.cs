@@ -305,7 +305,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 #endif
 
                 CullResults.Cull(ref cullingParameters, context, ref m_CullResults);
-                VisibleLight[] visibleLights = m_CullResults.visibleLights.ToArray();
+                List<VisibleLight> visibleLights = m_CullResults.visibleLights;
 
                 LightData lightData;
                 InitializeLightData(visibleLights, out lightData);
@@ -344,7 +344,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        private void ShadowPass(VisibleLight[] visibleLights, ref ScriptableRenderContext context, ref LightData lightData)
+        private void ShadowPass(List<VisibleLight> visibleLights, ref ScriptableRenderContext context, ref LightData lightData)
         {
             if (m_Asset.AreShadowsEnabled() && lightData.mainLightIndex != -1)
             {
@@ -395,7 +395,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             context.DrawRenderers(m_CullResults.visibleRenderers, ref opaqueDrawSettings, opaqueFilterSettings);
         }
 
-        private void ForwardPass(VisibleLight[] visibleLights, FrameRenderingConfiguration frameRenderingConfiguration, ref ScriptableRenderContext context, ref LightData lightData, bool stereoEnabled)
+        private void ForwardPass(List<VisibleLight> visibleLights, FrameRenderingConfiguration frameRenderingConfiguration, ref ScriptableRenderContext context, ref LightData lightData, bool stereoEnabled)
         {
             SetupShaderConstants(visibleLights, ref context, ref lightData);
 
@@ -659,7 +659,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.GetTemporaryRT(CameraRenderTargetID.color, rtDesc, FilterMode.Bilinear);
         }
 
-        private void SetupShaderConstants(VisibleLight[] visibleLights, ref ScriptableRenderContext context, ref LightData lightData)
+        private void SetupShaderConstants(List<VisibleLight> visibleLights, ref ScriptableRenderContext context, ref LightData lightData)
         {
             CommandBuffer cmd = CommandBufferPool.Get("SetupShaderConstants");
             SetupShaderLightConstants(cmd, visibleLights, ref lightData);
@@ -668,9 +668,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBufferPool.Release(cmd);
         }
 
-        private void InitializeLightData(VisibleLight[] visibleLights, out LightData lightData)
+        private void InitializeLightData(List<VisibleLight> visibleLights, out LightData lightData)
         {
-            int visibleLightsCount = Math.Min(visibleLights.Length, m_Asset.MaxPixelLights);
+            int visibleLightsCount = Math.Min(visibleLights.Count, m_Asset.MaxPixelLights);
             m_SortedLightIndexMap.Clear();
 
             lightData.shadowMapSampleType = LightShadows.None;
@@ -683,7 +683,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // If we have a main light we don't shade it in the per-object light loop. We also remove it from the per-object cull list
             int mainLightPresent = (lightData.mainLightIndex >= 0) ? 1 : 0;
             int additionalPixelLightsCount = visibleLightsCount - mainLightPresent;
-            int vertexLightCount = (m_Asset.SupportsVertexLight) ? Math.Min(visibleLights.Length, kMaxPerObjectLights) - additionalPixelLightsCount : 0;
+            int vertexLightCount = (m_Asset.SupportsVertexLight) ? Math.Min(visibleLights.Count, kMaxPerObjectLights) - additionalPixelLightsCount : 0;
             vertexLightCount = Math.Min(vertexLightCount, kMaxVertexLights);
 
             lightData.pixelAdditionalLightsCount = additionalPixelLightsCount;
@@ -692,9 +692,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_MixedLightingSetup = MixedLightingSetup.None;
         }
 
-        private int SortLights(VisibleLight[] visibleLights)
+        private int SortLights(List<VisibleLight> visibleLights)
         {
-            int totalVisibleLights = visibleLights.Length;
+            int totalVisibleLights = visibleLights.Count;
 
             m_VisibleLightsIDMap.Clear();
             for (int i = 0; i < totalVisibleLights; ++i)
@@ -704,7 +704,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Directionals are sorted further by shadow, cookie and intensity
             // Locals are sorted further by shadow, cookie and distance to camera
             m_LightCompararer.CurrCamera = m_CurrCamera;
-            Array.Sort(visibleLights, m_LightCompararer);
+            visibleLights.Sort(m_LightCompararer);
 
             for (int i = 0; i < totalVisibleLights; ++i)
                 m_SortedLightIndexMap.Add(m_VisibleLightsIDMap[visibleLights[i]]);
@@ -715,9 +715,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         // How main light is decided:
         // If shadows enabled, main light is always a shadow casting light. Directional has priority over local lights.
         // Otherwise directional lights have priority based on cookie support and intensity
-        private int GetMainLight(VisibleLight[] visibleLights)
+        private int GetMainLight(List<VisibleLight> visibleLights)
         {
-            int totalVisibleLights = visibleLights.Length;
+            int totalVisibleLights = visibleLights.Count;
             bool shadowsEnabled = m_Asset.AreShadowsEnabled();
 
             if (totalVisibleLights == 0 || m_Asset.MaxPixelLights == 0)
@@ -747,7 +747,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return brighestDirectionalIndex;
         }
 
-        private void InitializeLightConstants(VisibleLight[] lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightDistanceAttenuation, out Vector4 lightSpotDir,
+        private void InitializeLightConstants(List<VisibleLight> lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightDistanceAttenuation, out Vector4 lightSpotDir,
             out Vector4 lightSpotAttenuation)
         {
             float directContributionNotBaked = 1.0f;
@@ -841,19 +841,19 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Shader.SetGlobalVector(PerFrameBuffer._SubtractiveShadowColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.subtractiveShadowColor));
         }
 
-        private void SetupShaderLightConstants(CommandBuffer cmd, VisibleLight[] lights, ref LightData lightData)
+        private void SetupShaderLightConstants(CommandBuffer cmd, List<VisibleLight> lights, ref LightData lightData)
         {
             // Main light has an optimized shader path for main light. This will benefit games that only care about a single light.
             // Lightweight pipeline also supports only a single shadow light, if available it will be the main light.
             SetupMainLightConstants(cmd, lights, lightData.mainLightIndex);
             if (lightData.shadowMapSampleType != LightShadows.None)
-                SetupShadowReceiverConstants(cmd, ref lights[lightData.mainLightIndex]);
+                SetupShadowReceiverConstants(cmd, lights[lightData.mainLightIndex]);
 
             if (lightData.totalAdditionalLightsCount > 0)
                 SetupAdditionalListConstants(cmd, lights, ref lightData);
         }
 
-        private void SetupMainLightConstants(CommandBuffer cmd, VisibleLight[] lights, int lightIndex)
+        private void SetupMainLightConstants(CommandBuffer cmd, List<VisibleLight> lights, int lightIndex)
         {
             Vector4 lightPos, lightColor, lightDistanceAttenuation, lightSpotDir, lightSpotAttenuation;
             InitializeLightConstants(lights, lightIndex, out lightPos, out lightColor, out lightDistanceAttenuation, out lightSpotDir, out lightSpotAttenuation);
@@ -879,7 +879,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.SetGlobalVector(PerCameraBuffer._MainLightSpotAttenuation, lightSpotAttenuation);
         }
 
-        private void SetupAdditionalListConstants(CommandBuffer cmd, VisibleLight[] lights, ref LightData lightData)
+        private void SetupAdditionalListConstants(CommandBuffer cmd, List<VisibleLight> lights, ref LightData lightData)
         {
             int additionalLightIndex = 0;
 
@@ -887,10 +887,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // First we initialize all lights in the map to -1 to tell the system to discard main light index and
             // remaining lights in the scene that don't fit the max additional light buffer (kMaxVisibileAdditionalLights)
             int[] perObjectLightIndexMap = m_CullResults.GetLightIndexMap();
-            for (int i = 0; i < lights.Length; ++i)
+            for (int i = 0; i < lights.Count; ++i)
                 perObjectLightIndexMap[i] = -1;
 
-            for (int i = 0; i < lights.Length && additionalLightIndex < kMaxVisibleLights; ++i)
+            for (int i = 0; i < lights.Count && additionalLightIndex < kMaxVisibleLights; ++i)
             {
                 if (i != lightData.mainLightIndex)
                 {
@@ -968,7 +968,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.SetGlobalVector("_LightDirection", new Vector4(lightDirection.x, lightDirection.y, lightDirection.z, 0.0f));
         }
 
-        private void SetupShadowReceiverConstants(CommandBuffer cmd, ref VisibleLight shadowLight)
+        private void SetupShadowReceiverConstants(CommandBuffer cmd, VisibleLight shadowLight)
         {
             Light light = shadowLight.light;
             float shadowResolution = m_ShadowSlices[0].shadowResolution;
@@ -995,7 +995,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.SetGlobalVector("_ShadowOffset3", new Vector4(invShadowResolution,  invShadowResolution, 0.0f, 0.0f));
         }
 
-        private void SetShaderKeywords(CommandBuffer cmd, ref LightData lightData, VisibleLight[] visibleLights)
+        private void SetShaderKeywords(CommandBuffer cmd, ref LightData lightData, List<VisibleLight> visibleLights)
         {
             int vertexLightsCount = lightData.totalAdditionalLightsCount - lightData.pixelAdditionalLightsCount;
             int mainLightIndex = lightData.mainLightIndex;
