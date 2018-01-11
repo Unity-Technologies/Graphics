@@ -291,6 +291,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var volume = sceneSettings.AddComponent<Volume>();
             volume.isGlobal = true;
             volume.sharedProfile = profile;
+
+            var bakingSky = sceneSettings.AddComponent<BakingSky>();
+            bakingSky.profile = volume.sharedProfile;
+            bakingSky.bakingSkyUniqueID = SkySettings.GetUniqueID<ProceduralSky>();
         }
 
         class DoCreateNewAsset<TAssetType> : ProjectWindowCallback.EndNameEditAction where TAssetType : ScriptableObject
