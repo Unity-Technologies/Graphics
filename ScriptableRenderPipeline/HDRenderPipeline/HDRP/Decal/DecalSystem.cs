@@ -115,9 +115,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     !m_Decals[decalIndex].m_Material.GetTexture("_MaskMap"))
                     continue;
 
-                m_Decals[decalIndex].UpdatePropertyBlock(camera.cameraPos);
-                cmd.DrawMesh(m_DecalMesh, m_Decals[decalIndex].transform.localToWorldMatrix, m_Decals[decalIndex].m_Material, 0, 0,
-                    m_Decals[decalIndex].GetPropertyBlock());
+                cmd.DrawMesh(m_DecalMesh, m_Decals[decalIndex].transform.localToWorldMatrix, m_Decals[decalIndex].m_Material, 0, 0);
             }
         }
 
