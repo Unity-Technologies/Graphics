@@ -3129,7 +3129,11 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
-    attributes: []
+    attributes:
+    - m_Type: 3
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: The size of the box along each axis.
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114748446854562552
@@ -3886,6 +3890,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 2
+  flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
@@ -4083,7 +4088,11 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
-    attributes: []
+    attributes:
+    - m_Type: 3
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: The centre of the box.
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114948797438858254
@@ -5193,7 +5202,7 @@ VFXAsset:
       - index: 75
         nameId: Sphere_radius_f
       params: []
-      processor: {fileID: 7200000, guid: 79a31febaeded5b4c8f3675dd7932401, type: 3}
+      processor: {fileID: 7200000, guid: 01df7839111a3d141ad70e67de957292, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5226,7 +5235,7 @@ VFXAsset:
       - index: 60
         nameId: Force_d
       params: []
-      processor: {fileID: 7200000, guid: 187c2deb90b90fd40893e400fd04328c, type: 3}
+      processor: {fileID: 7200000, guid: 612f6f9d67d0a7044aa7c3a195692375, type: 3}
     - type: 1073741824
       buffers:
       - index: 0
@@ -5239,7 +5248,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 37c7615fc01079241a0a08b5cf9a8c51, type: 3}
+      processor: {fileID: 4800000, guid: 5170457310c2ab942b2084099bcec2a3, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

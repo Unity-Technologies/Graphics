@@ -298,10 +298,10 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
-  flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114125608592678332
 MonoBehaviour:
@@ -796,7 +796,11 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
-    attributes: []
+    attributes:
+    - m_Type: 3
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: The centre of the box.
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114241504228710512
@@ -2499,7 +2503,11 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
-    attributes: []
+    attributes:
+    - m_Type: 3
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: The normalized direction.
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114663518630121120
@@ -3203,7 +3211,11 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
-    attributes: []
+    attributes:
+    - m_Type: 3
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: The size of the box along each axis.
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114915283622050698
@@ -4299,7 +4311,7 @@ VFXAsset:
       - index: 56
         nameId: DirectionBlend_g
       params: []
-      processor: {fileID: 7200000, guid: 748337ed32927a142a8689d0ac0e3479, type: 3}
+      processor: {fileID: 7200000, guid: 09a91db511a946840a18296ca1faeeb3, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -4310,7 +4322,7 @@ VFXAsset:
       - index: 54
         nameId: deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: d345e461a6f717840927f7a923866c9b, type: 3}
+      processor: {fileID: 7200000, guid: 50a6994334634e3488dd42f42364ff30, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -4325,7 +4337,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 2298a87a08bfad74880f70ada38c47bb, type: 3}
+      processor: {fileID: 4800000, guid: 5ec2eb391f2405448b978d67d0e59fe3, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 0000000001000000

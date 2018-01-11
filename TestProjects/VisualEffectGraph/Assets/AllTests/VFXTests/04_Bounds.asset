@@ -499,10 +499,10 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
-  flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114697200481505942
 MonoBehaviour:
@@ -1067,7 +1067,7 @@ VFXAsset:
       - index: 9
         nameId: Lifetime_c
       params: []
-      processor: {fileID: 7200000, guid: 1a0bc18553218da428375d00533798b2, type: 3}
+      processor: {fileID: 7200000, guid: fa0569d1725cd39438ffe43d38c62fba, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -1078,7 +1078,7 @@ VFXAsset:
       - index: 10
         nameId: deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: f2047bda5348e734b8d6ce645732d0a8, type: 3}
+      processor: {fileID: 7200000, guid: e5a319a8d4c9b8a4a9482288f2cf1b4c, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -1089,7 +1089,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: f7bf971367b92c54e96e9573ab3862a0, type: 3}
+      processor: {fileID: 4800000, guid: 37f1ccc4e0fd3e040ba1460fa54d456e, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
