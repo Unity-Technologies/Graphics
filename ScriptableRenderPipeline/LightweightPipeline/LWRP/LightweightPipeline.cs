@@ -99,6 +99,24 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private static readonly int kMaxVertexLights = 4;
 
+        // We have no good approach exposed to skip shader variants, e.g, ideally we would like to skip _CASCADE for all punctual lights
+        // We combine light and shadow classification keywords to reduce the amount of shader variants.
+        // Lightweight shader library declares defines based on these keywords to avoid having to check them in the shaders
+        // Core.hlsl defines _MAIN_LIGHT_DIRECTIONAL and _MAIN_LIGHT_SPOT (point lights can't be main light)
+        // Shadow.hlsl defines _SHADOWS_ENABLED, _SHADOWS_SOFT, _SHADOWS_CASCADE, _SHADOWS_PERSPECTIVE
+        private static readonly string[] kMainLightKeywords =
+        {
+            "_MAIN_LIGHT_DIRECTIONAL_SHADOW",
+            "_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE",
+            "_MAIN_LIGHT_DIRECTIONAL_SHADOW_SOFT",
+            "_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT",
+
+            "_MAIN_LIGHT_SPOT_SHADOW",
+            "_MAIN_LIGHT_SPOT_SHADOW_SOFT"
+        };
+
+        private StringBuilder m_MainLightKeywordString = new StringBuilder(43);
+
         private bool m_IsOffscreenCamera;
 
         private Vector4[] m_LightPositions = new Vector4[kMaxVisibleLights];
@@ -982,43 +1000,28 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             int vertexLightsCount = lightData.totalAdditionalLightsCount - lightData.pixelAdditionalLightsCount;
             int mainLightIndex = lightData.mainLightIndex;
 
-            // We have no good approach exposed to skip shader variants, e.g, ideally we would like to skip _CASCADE for all punctual lights
-            // We combine light and shadow classification keywords to reduce the amount of shader variants.
-            // Lightweight shader library declares defines based on these keywords to avoid having to check them in the shaders
-            // Core.hlsl defines _MAIN_LIGHT_DIRECTIONAL and _MAIN_LIGHT_SPOT (point lights can't be main light)
-            // Shadow.hlsl defines _SHADOWS_ENABLED, _SHADOWS_SOFT, _SHADOWS_CASCADE, _SHADOWS_PERSPECTIVE
-            string[] mainLightKeywords =
-            {
-                "_MAIN_LIGHT_DIRECTIONAL_SHADOW",
-                "_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE",
-                "_MAIN_LIGHT_DIRECTIONAL_SHADOW_SOFT",
-                "_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT",
-
-                "_MAIN_LIGHT_SPOT_SHADOW",
-                "_MAIN_LIGHT_SPOT_SHADOW_SOFT"
-            };
-
-            for (int i = 0; i < mainLightKeywords.Length; ++i)
-                cmd.DisableShaderKeyword(mainLightKeywords[i]);
+            for (int i = 0; i < kMainLightKeywords.Length; ++i)
+                cmd.DisableShaderKeyword(kMainLightKeywords[i]);
 
             if (mainLightIndex != -1 && (lightData.shadowMapSampleType != LightShadows.None))
             {
-                StringBuilder keywordString = new StringBuilder("_MAIN_LIGHT");
+                m_MainLightKeywordString.Length = 0;
+                m_MainLightKeywordString.Append("_MAIN_LIGHT");
                 LightType mainLightType = visibleLights[mainLightIndex].lightType;
                 if (mainLightType == LightType.Directional)
                 {
-                    keywordString.Append("_DIRECTIONAL_SHADOW");
+                    m_MainLightKeywordString.Append("_DIRECTIONAL_SHADOW");
                     if (m_Asset.CascadeCount > 1)
-                        keywordString.Append("_CASCADE");
+                        m_MainLightKeywordString.Append("_CASCADE");
                 }
                 else
                 {
-                    keywordString.Append("_SPOT_SHADOW");
+                    m_MainLightKeywordString.Append("_SPOT_SHADOW");
                 }
 
                 if (lightData.shadowMapSampleType == LightShadows.Soft)
-                    keywordString.Append("_SOFT");
-                string keyword = keywordString.ToString();
+                    m_MainLightKeywordString.Append("_SOFT");
+                string keyword = m_MainLightKeywordString.ToString();
                 cmd.EnableShaderKeyword(keyword);
             }
 
