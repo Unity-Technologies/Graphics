@@ -14,8 +14,17 @@
 #define FRONT_FACE_TYPE float
 #define IS_FRONT_VFACE(VAL, FRONT, BACK) ((VAL > 0.0) ? (FRONT) : (BACK))
 
+#define ERROR_ON_UNSUPPORTED_FUNCTION(funcName) #error ##funcName is not supported on GLCORE
+
 #define CBUFFER_START(name)
 #define CBUFFER_END
+
+// OpenGL 4.1 SM 5.0 https://docs.unity3d.com/Manual/SL-ShaderCompileTargets.html
+#if (SHADER_TARGET >= 46)
+#define OPENGL4_1_SM5 1
+#else
+#define OPENGL4_1_SM5 0
+#endif
 
 // Initialize arbitrary structure with zero values.
 // Do not exist on some platform, in this case we need to have a standard name that call a function that will initialize all parameters to 0
@@ -42,8 +51,8 @@
 #define RW_TEXTURE2D(type, textureName)         RWTexture2D<type> textureName
 #define RW_TEXTURE3D(type, textureName)         RWTexture3D<type> textureName
 
-#define SAMPLER(samplerName) SamplerState samplerName
-#define SAMPLER_CMP(samplerName) SamplerComparisonState samplerName
+#define SAMPLER(samplerName)                    SamplerState samplerName
+#define SAMPLER_CMP(samplerName)                SamplerComparisonState samplerName
 
 #define TEXTURE2D_ARGS(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
 #define TEXTURE2D_ARRAY_ARGS(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
@@ -77,9 +86,15 @@
 #define SAMPLE_TEXTURECUBE(textureName, samplerName, coord3)                        textureName.Sample(samplerName, coord3)
 #define SAMPLE_TEXTURECUBE_LOD(textureName, samplerName, coord3, lod)               textureName.SampleLevel(samplerName, coord3, lod)
 #define SAMPLE_TEXTURECUBE_BIAS(textureName, samplerName, coord3, bias)             textureName.SampleBias(samplerName, coord3, bias)
+#if OPENGL4_1_SM5
 #define SAMPLE_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index)           textureName.Sample(samplerName, float4(coord3, index))
 #define SAMPLE_TEXTURECUBE_ARRAY_LOD(textureName, samplerName, coord3, index, lod)  textureName.SampleLevel(samplerName, float4(coord3, index), lod)
 #define SAMPLE_TEXTURECUBE_ARRAY_BIAS(textureName, samplerName, coord3, index, bias) textureName.SampleBias(samplerName, float4(coord3, index), bias)
+#else
+#define SAMPLE_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index)           ERROR_ON_UNSUPPORTED_FUNCTION(SAMPLE_TEXTURECUBE_ARRAY)
+#define SAMPLE_TEXTURECUBE_ARRAY_LOD(textureName, samplerName, coord3, index, lod)  ERROR_ON_UNSUPPORTED_FUNCTION(SAMPLE_TEXTURECUBE_ARRAY_LOD)
+#define SAMPLE_TEXTURECUBE_ARRAY_LOD(textureName, samplerName, coord3, index, bias) ERROR_ON_UNSUPPORTED_FUNCTION(SAMPLE_TEXTURECUBE_ARRAY_LOD)
+#endif
 #define SAMPLE_TEXTURE3D(textureName, samplerName, coord3)                          textureName.Sample(samplerName, coord3)
 
 #define SAMPLE_TEXTURE2D_SHADOW(textureName, samplerName, coord3)                   textureName.SampleCmpLevelZero(samplerName, (coord3).xy, (coord3).z)
@@ -96,7 +111,7 @@
 #define LOAD_TEXTURE2D_ARRAY(textureName, unCoord2, index) textureName.Load(int4(unCoord2, index, 0))
 #define LOAD_TEXTURE2D_ARRAY_LOD(textureName, unCoord2, index, lod) textureName.Load(int4(unCoord2, index, lod))
 
-#if (SHADER_TARGET >= 45)
+#if OPENGL4_1_SM5
 #define GATHER_TEXTURE2D(textureName, samplerName, coord2)                  textureName.Gather(samplerName, coord2)
 #define GATHER_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index)     textureName.Gather(samplerName, float3(coord2, index))
 #define GATHER_TEXTURECUBE(textureName, samplerName, coord3)                textureName.Gather(samplerName, coord3)

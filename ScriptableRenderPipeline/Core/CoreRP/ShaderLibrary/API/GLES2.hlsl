@@ -98,33 +98,34 @@
     #define SAMPLE_TEXTURE2D_LOD(textureName, samplerName, coord2, lod) SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, coord2, lod)
 #endif
 
-#define SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, coord2, bias) tex2Dbias(textureName, float4(coord2, 0, bias))
-#define SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, coord2, ddx, ddy) SAMPLE_TEXTURE2D(textureName, coord2)
-#define SAMPLE_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index) SAMPLE_TEXTURECUBE(textureName, samplerName, float3(coord2, index))
-#define SAMPLE_TEXTURE2D_ARRAY_LOD(textureName, samplerName, coord2, index, lod) SAMPLE_TEXTURECUBE_LOD(textureName, samplerName, float3(coord2, index), lod)
-#define SAMPLE_TEXTURE2D_ARRAY_BIAS(textureName, samplerName, coord2, index, bias) SAMPLE_TEXTURECUBE_BIAS(textureName, samplerName, float3(coord2, index), bias)
-#define SAMPLE_TEXTURECUBE(textureName, samplerName, coord3) texCUBE(textureName, coord3)
+#define SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, coord2, bias)                       tex2Dbias(textureName, float4(coord2, 0, bias))
+#define SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, coord2, ddx, ddy)                   SAMPLE_TEXTURE2D(textureName, coord2)
+#define SAMPLE_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index)                     ERROR_ON_UNSUPPORTED_FUNCTION(SAMPLE_TEXTURE2D_ARRAY)
+#define SAMPLE_TEXTURE2D_ARRAY_LOD(textureName, samplerName, coord2, index, lod)            ERROR_ON_UNSUPPORTED_FUNCTION(SAMPLE_TEXTURE2D_ARRAY_LOD)
+#define SAMPLE_TEXTURE2D_ARRAY_BIAS(textureName, samplerName, coord2, index, bias)          ERROR_ON_UNSUPPORTED_FUNCTION(SAMPLE_TEXTURE2D_ARRAY_BIAS)
+#define SAMPLE_TEXTURECUBE(textureName, samplerName, coord3)                                texCUBE(textureName, coord3)
 // No lod support. Very poor approximation with bias.
-#define SAMPLE_TEXTURECUBE_LOD(textureName, samplerName, coord3, lod) SAMPLE_TEXTURECUBE_BIAS(textureName, samplerName, coord3, lod)
-#define SAMPLE_TEXTURECUBE_BIAS(textureName, samplerName, coord3, bias) texCUBEbias(textureName, float4(coord3, bias))
-#define SAMPLE_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index) SAMPLE_TEXTURECUBE(textureName, samplerName, coord3)
-#define SAMPLE_TEXTURECUBE_ARRAY_LOD(textureName, samplerName, coord3, index, lod) SAMPLE_TEXTURECUBE_LOD(textureName, samplerName, coord3, lod)
-#define SAMPLE_TEXTURECUBE_ARRAY_BIAS(textureName, samplerName, coord3, index, bias) SAMPLE_TEXTURECUBE_BIAS(textureName, samplerName, coord3, bias)
-#define SAMPLE_TEXTURE3D(textureName, samplerName, coord3) tex3D(textureName, coord3)
+#define SAMPLE_TEXTURECUBE_LOD(textureName, samplerName, coord3, lod)                       SAMPLE_TEXTURECUBE_BIAS(textureName, samplerName, coord3, lod)
+#define SAMPLE_TEXTURECUBE_BIAS(textureName, samplerName, coord3, bias)                     texCUBEbias(textureName, float4(coord3, bias))
+#define SAMPLE_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index)                   ERROR_ON_UNSUPPORTED_FUNCTION(SAMPLE_TEXTURECUBE_ARRAY)
+#define SAMPLE_TEXTURECUBE_ARRAY_LOD(textureName, samplerName, coord3, index, lod)          ERROR_ON_UNSUPPORTED_FUNCTION(SAMPLE_TEXTURECUBE_ARRAY_LOD)
+#define SAMPLE_TEXTURECUBE_ARRAY_BIAS(textureName, samplerName, coord3, index, bias)        ERROR_ON_UNSUPPORTED_FUNCTION(SAMPLE_TEXTURECUBE_ARRAY_BIAS)
+#define SAMPLE_TEXTURE3D(textureName, samplerName, coord3)                                  tex3D(textureName, coord3)
 
-#define SAMPLE_TEXTURE2D_SHADOW(textureName, samplerName, coord3) SHADOW2D_SAMPLE(textureName, samplerName, coord3)
-#define SAMPLE_TEXTURE2D_ARRAY_SHADOW(textureName, samplerName, coord3, index) SAMPLE_TEXTURECUBE_SHADOW(textureName, samplerName, float4(coord3.xy, index, coord3.w))
-#define SAMPLE_TEXTURECUBE_SHADOW(textureName, samplerName, coord4) SHADOWCUBE_SAMPLE(textureName, samplerName, coord4)
-#define SAMPLE_TEXTURECUBE_ARRAY_SHADOW(textureName, samplerName, coord4, index) SAMPLE_TEXTURECUBE_SHADOW(textureName, samplerName, coord4)
+#define SAMPLE_TEXTURE2D_SHADOW(textureName, samplerName, coord3)                           SHADOW2D_SAMPLE(textureName, samplerName, coord3)
+#define SAMPLE_TEXTURE2D_ARRAY_SHADOW(textureName, samplerName, coord3, index)              ERROR_ON_UNSUPPORTED_FUNCTION(SAMPLE_TEXTURE2D_ARRAY_SHADOW)
+#define SAMPLE_TEXTURECUBE_SHADOW(textureName, samplerName, coord4)                         SHADOWCUBE_SAMPLE(textureName, samplerName, coord4)
+#define SAMPLE_TEXTURECUBE_ARRAY_SHADOW(textureName, samplerName, coord4, index)            ERROR_ON_UNSUPPORTED_FUNCTION(SAMPLE_TEXTURECUBE_ARRAY_SHADOW)
 
-#define SAMPLE_DEPTH_TEXTURE(textureName, samplerName, coord2) SAMPLE_TEXTURE2D(textureName, samplerName, coord2).r
-#define SAMPLE_DEPTH_TEXTURE_LOD(textureName, samplerName, coord2, lod) SAMPLE_TEXTURE2D_LOD(textureName, samplerName, coord2, lod).r
+#define SAMPLE_DEPTH_TEXTURE(textureName, samplerName, coord2)                              SAMPLE_TEXTURE2D(textureName, samplerName, coord2).r
+#define SAMPLE_DEPTH_TEXTURE_LOD(textureName, samplerName, coord2, lod)                     SAMPLE_TEXTURE2D_LOD(textureName, samplerName, coord2, lod).r
 
-#define LOAD_TEXTURE2D(textureName, unCoord2)                       half4(0, 0, 0, 0) // Not supported
-#define LOAD_TEXTURE2D_LOD(textureName, unCoord2, lod)              half4(0, 0, 0, 0) // Not supported
-#define LOAD_TEXTURE2D_MSAA(textureName, unCoord2, sampleIndex)     half4(0, 0, 0, 0) // Not supported
-#define LOAD_TEXTURE2D_ARRAY(textureName, unCoord2, index)          half4(0, 0, 0, 0) // Not supported
-#define LOAD_TEXTURE2D_ARRAY_LOD(textureName, unCoord2, index, lod) half4(0, 0, 0, 0) // Not supported
+// Not supported. Can't define as error because shader library is calling these functions.
+#define LOAD_TEXTURE2D(textureName, unCoord2)                                               half4(0, 0, 0, 0)
+#define LOAD_TEXTURE2D_LOD(textureName, unCoord2, lod)                                      half4(0, 0, 0, 0)
+#define LOAD_TEXTURE2D_MSAA(textureName, unCoord2, sampleIndex)                             half4(0, 0, 0, 0)
+#define LOAD_TEXTURE2D_ARRAY(textureName, unCoord2, index)                                  half4(0, 0, 0, 0)
+#define LOAD_TEXTURE2D_ARRAY_LOD(textureName, unCoord2, index, lod)                         half4(0, 0, 0, 0)
 
 // Gather not supported. Fallback to regular texture sampling.
 #define GATHER_TEXTURE2D(textureName, samplerName, coord2)                  ERROR_ON_UNSUPPORTED_FUNCTION(GATHER_TEXTURE2D)
