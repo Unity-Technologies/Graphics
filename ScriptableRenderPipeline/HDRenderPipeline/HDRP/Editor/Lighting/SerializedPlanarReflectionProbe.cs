@@ -1,6 +1,4 @@
-﻿using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -14,6 +12,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty captureOffset;
         public SerializedProperty dimmer;
         public SerializedProperty mode;
+        public SerializedProperty refreshMode;
+        public SerializedProperty customTexture;
+
+        public PlanarReflectionProbe target { get { return serializedObject.targetObject as PlanarReflectionProbe; } }
 
         public SerializedPlanarReflectionProbe(SerializedObject serializedObject)
         {
@@ -25,6 +27,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             captureOffset = serializedObject.Find((PlanarReflectionProbe p) => p.centerOffset);
             dimmer = serializedObject.Find((PlanarReflectionProbe p) => p.dimmer);
             mode = serializedObject.Find((PlanarReflectionProbe p) => p.mode);
+            refreshMode = serializedObject.Find((PlanarReflectionProbe p) => p.refreshMode);
+            customTexture = serializedObject.Find((PlanarReflectionProbe p) => p.customTexture);
         }
 
         public void Update()

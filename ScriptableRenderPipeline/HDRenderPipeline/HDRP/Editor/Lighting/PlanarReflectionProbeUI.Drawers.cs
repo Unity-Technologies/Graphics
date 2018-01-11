@@ -1,6 +1,7 @@
 using System;
 using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -11,21 +12,41 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         public static readonly CED.IDrawer Inspector;
 
-        public static readonly CED.IDrawer SectionCaptureSettings = CED.Group(
-            CED.Action(Drawer_SectionCaptureSettings)
+        public static readonly CED.IDrawer SectionProbeModeSettings;
+        public static readonly CED.IDrawer SectionProbeModeBakedSettings = CED.noop;
+        public static readonly CED.IDrawer SectionProbeModeCustomSettings = CED.Action(Drawer_SectionProbeModeCustomSettings);
+        public static readonly CED.IDrawer SectionProbeModeRealtimeSettings = CED.Action(Drawer_SectionProbeModeRealtimeSettings);
+        public static readonly CED.IDrawer SectionBakeButton = CED.Action(Drawer_SectionBakeButton);
+
+        public static readonly CED.IDrawer SectionFoldoutInfluenceSettings = CED.FoldoutGroup(
+            "Influence Settings",
+            (s, d, o) => s.isSectionExpandedInfluenceSettings,
+            true,
+            CED.Action(Drawer_SectionInfluenceSettings)
         );
 
-        public static readonly CED.IDrawer SectionFoldoutAdvancedSettings = CED.FoldoutGroup(
-            "Advanced Settings",
-            (s, d, o) => s.isSectionExpandedAdvancedSettings,
+        public static readonly CED.IDrawer SectionFoldoutCaptureSettings = CED.FoldoutGroup(
+            "Capture Settings",
+            (s, d, o) => s.isSectionExpandedCaptureSettings,
             true,
-            CED.Action(Drawer_SectionAdvancedSettings)
+            CED.Action(Drawer_SectionCaptureSettings)
         );
 
         static PlanarReflectionProbeUI()
         {
+            SectionProbeModeSettings = CED.Group(
+                CED.Action(Drawer_FieldCaptureType),
+                CED.FadeGroup(
+                    (s, d, o, i) => s.IsSectionExpandedReflectionProbeMode((ReflectionProbeMode)i),
+                    true,
+                    SectionProbeModeBakedSettings,
+                    SectionProbeModeRealtimeSettings,
+                    SectionProbeModeCustomSettings
+                )
+            );
+
             Inspector = CED.Group(
-                SectionCaptureSettings,
+                SectionProbeModeSettings,
                 CED.space,
                 CED.Action((s, d, o) => EditorGUILayout.LabelField(_.GetContent("Proxy Volume"), EditorStyles.boldLabel)),
                 CED.Action(Drawer_FieldProxyVolumeReference),
@@ -37,28 +58,51 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     (s, d, o) => d.influenceVolume,
                     InfluenceVolumeUI.SectionFoldoutShape
                 ),
-                SectionFoldoutAdvancedSettings
+                SectionFoldoutInfluenceSettings,
+                SectionFoldoutCaptureSettings,
+                CED.space,
+                CED.Action(Drawer_SectionBakeButton)
             );
         }
 
         const EditMode.SceneViewEditMode EditBaseShape = EditMode.SceneViewEditMode.ReflectionProbeBox;
         const EditMode.SceneViewEditMode EditInfluenceShape = EditMode.SceneViewEditMode.GridBox;
         const EditMode.SceneViewEditMode EditInfluenceNormalShape = EditMode.SceneViewEditMode.Collider;
-        const EditMode.SceneViewEditMode EditCenter = EditMode.SceneViewEditMode.ReflectionProbeOrigin;
+        const EditMode.SceneViewEditMode EditCenter = EditMode.SceneViewEditMode.ReflectionProbeOrigin; 
 
-        static void Drawer_SectionAdvancedSettings(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
+        static void Drawer_SectionCaptureSettings(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
+        {
+            EditorGUILayout.PropertyField(d.captureOffset, _.GetContent("Capture Offset"));
+        }
+
+        static void Drawer_SectionProbeModeCustomSettings(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
+        {
+            d.customTexture.objectReferenceValue = EditorGUILayout.ObjectField(_.GetContent("Capture"), d.customTexture.objectReferenceValue, typeof(Texture), false);
+            var texture = d.customTexture.objectReferenceValue as Texture;
+            if (texture != null && texture.dimension != TextureDimension.Tex2D)
+                EditorGUILayout.HelpBox("Provided Texture is not a 2D Texture, it will be ignored", MessageType.Warning);
+        }
+
+        static void Drawer_SectionBakeButton(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
+        {
+            EditorReflectionSystemGUI.DrawBakeButton((ReflectionProbeMode)d.mode.intValue, d.target);
+        }
+
+        static void Drawer_SectionProbeModeRealtimeSettings(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
+        {
+            EditorGUILayout.PropertyField(d.refreshMode, _.GetContent("Refresh Mode"));
+        }
+
+        static void Drawer_SectionInfluenceSettings(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
         {
             EditorGUILayout.PropertyField(d.dimmer, _.GetContent("Dimmer"));
         }
 
-        static void Drawer_SectionCaptureSettings(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
+        static void Drawer_FieldCaptureType(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
         {
-            EditorGUILayout.LabelField(_.GetContent("Capture Settings"), EditorStyles.boldLabel);
-            ++EditorGUI.indentLevel;
             EditorGUILayout.PropertyField(d.mode, _.GetContent("Type"));
-            EditorGUILayout.PropertyField(d.captureOffset, _.GetContent("Capture Position"));
-            --EditorGUI.indentLevel;
         }
+
         static void Drawer_FieldProxyVolumeReference(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
         {
             EditorGUILayout.PropertyField(d.proxyVolumeReference, _.GetContent("Reference"));
