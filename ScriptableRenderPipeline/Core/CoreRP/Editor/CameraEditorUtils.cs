@@ -205,6 +205,36 @@ namespace UnityEditor.Experimental.Rendering
             return true;
         }
 
+        public static Matrix4x4 GetCameraClipToWorld(
+            Vector3 position, Quaternion rotation,
+            float nearClipPlane, float farClipPlane,
+            float fov, float aspect)
+        {
+            var p = Matrix4x4.Perspective(fov, aspect, nearClipPlane, farClipPlane);
+            var v = Matrix4x4.TRS(position, rotation, new Vector3(1, 1, -1)).inverse;
+            var vp = p * v;
+            var clipToWorld = vp.inverse;
+            return clipToWorld;
+        }
+
+        public static Vector3 PerspectiveClipToWorld(Matrix4x4 clipToWorld, Vector3 viewPositionWS, Vector3 positionCS)
+        {
+            var tempCS = new Vector3(positionCS.x, positionCS.y, 0.95f);
+            var result = clipToWorld.MultiplyPoint(tempCS);
+            var r = result - viewPositionWS;
+            return r.normalized * positionCS.z + viewPositionWS;
+        }
+
+        public static void GetFrustrumPlaneAt(Matrix4x4 clipToWorld, Vector3 viewPosition, float distance, Vector3[] points)
+        {
+            points[0] = new Vector3(-1, -1, distance); // leftBottomFar
+            points[1] = new Vector3(-1, 1, distance); // leftTopFar
+            points[2] = new Vector3(1, 1, distance); // rightTopFar
+            points[3] = new Vector3(1, -1, distance); // rightBottomFar
+            for (var i = 0; i < 4; ++i)
+                points[i] = CameraEditorUtils.PerspectiveClipToWorld(clipToWorld, viewPosition, points[i]);
+        }
+
         static Vector3 MidPointPositionSlider(Vector3 position1, Vector3 position2, Vector3 direction)
         {
             Vector3 midPoint = Vector3.Lerp(position1, position2, 0.5f);
