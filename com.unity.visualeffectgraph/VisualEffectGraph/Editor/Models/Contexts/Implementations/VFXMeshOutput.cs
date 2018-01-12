@@ -1,15 +1,18 @@
 using System.Collections.Generic;
-using UnityEngine;
 using System.Linq;
+using UnityEditor.VFX.Block;
+using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    // TODO Not working at the moment
-    //[VFXInfo]
-    class VFXMeshOutput : VFXContext
+    [VFXInfo]
+    class VFXMeshOutput : VFXAbstractParticleOutput
     {
-        public VFXMeshOutput() : base(VFXContextType.kOutput, VFXDataType.kParticle, VFXDataType.kNone) {}
         public override string name { get { return "Mesh Output"; } }
+        public override string codeGeneratorTemplate { get { return "VFXShaders/VFXParticleQuad"; } }
+        public override VFXTaskType taskType { get { return VFXTaskType.kParticleMeshOutput; } }
+        public override bool supportsFlipbooks { get { return true; } }
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {
@@ -18,34 +21,63 @@ namespace UnityEditor.VFX
                 yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Alpha, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.AxisX, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.AxisY, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.AxisZ, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.AngleX, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.AngleY, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.AngleZ, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.Pivot, VFXAttributeMode.Read);
+
+                foreach (var size in VFXBlockUtility.GetReadableSizeAttributes(GetData()))
+                    yield return size;
+
+                if (flipbookMode != FlipbookMode.Off)
+                    yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Read);
             }
+        }
+
+        protected override IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
+        {
+            foreach (var exp in base.CollectGPUExpressions(slotExpressions))
+                yield return exp;
+
+            yield return slotExpressions.First(o => o.name == "mainTexture");
+            yield return slotExpressions.First(o => o.name == "mesh");
         }
 
         public class InputProperties
         {
+            public Texture2D mainTexture;
             public Mesh mesh;
+        }
+
+        public class InputPropertiesFlipbook
+        {
+            public Texture2D mainTexture;
+            public Mesh mesh;
+            public Vector2 flipBookSize = new Vector2(5, 5);
         }
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
+            var mapper = base.GetExpressionMapper(target);
+
             switch (target)
             {
-                case VFXDeviceTarget.GPU:
-                {
-                    var mapper = VFXExpressionMapper.FromBlocks(activeChildrenWithImplicit);
-                    return mapper;
-                }
-
                 case VFXDeviceTarget.CPU:
                 {
-                    var mapper = new VFXExpressionMapper();
-                    mapper.AddExpression(GetInputSlot(0).GetExpression(), "mesh", -1);
-                    return mapper;
+                    mapper.AddExpression(GetInputSlot(1).GetExpression(), "mesh", -1);
+                    break;
                 }
-
                 default:
-                    return null;
+                {
+                    break;
+                }
             }
+
+            return mapper;
         }
     }
 }

@@ -374,9 +374,12 @@ namespace UnityEditor.VFX
                 foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.textures))
                     uniformMappings.Add(new VFXMapping(expressionGraph.GetFlattenedIndex(uniform), contextData.uniformMapper.GetName(uniform)));
 
+                // Retrieve all cpu mappings at context level (-1)
+                var cpuMappings = contextData.cpuMapper.CollectExpression(-1).Select(exp => new VFXMapping(expressionGraph.GetFlattenedIndex(exp.exp), exp.name));
+
                 taskDesc.buffers = bufferMappings.ToArray();
                 taskDesc.values = uniformMappings.ToArray();
-                taskDesc.parameters = contextData.parameters;
+                taskDesc.parameters = cpuMappings.Concat(contextData.parameters).ToArray();
                 taskDesc.processor = contextToCompiledData[context].processor;
 
                 taskDescs.Add(taskDesc);
