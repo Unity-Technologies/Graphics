@@ -72,6 +72,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (!BakePlanarReflectionProbe(probe, path))
                 Debug.LogError("Failed to bake reflection probe to " + path);
             EditorUtility.ClearProgressBar();
+
+            AssetDatabase.ImportAsset(path);
+            probe.customTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+            EditorUtility.SetDirty(probe);
         }
 
         public static void BakeAllPlanarReflectionProbes()
@@ -162,7 +166,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public static void ResetProbeSceneTextureInMaterial(PlanarReflectionProbe p)
         {
-            throw new NotImplementedException();
         }
 
         static MethodInfo k_Lightmapping_BakeReflectionProbeSnapshot = typeof(UnityEditor.Lightmapping).GetMethod("BakeReflectionProbeSnapshot", BindingFlags.Static | BindingFlags.NonPublic);
@@ -175,12 +178,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             var rt = ReflectionSystem.NewRenderTarget(probe);
             var bakedTexture = probe.bakedTexture as Texture2D;
-            if (bakedTexture == null)
+            var assetPath = string.Empty;
+            if (bakedTexture != null)
+                assetPath = AssetDatabase.GetAssetPath(bakedTexture);
+            if (string.IsNullOrEmpty(assetPath))
+                assetPath = GetBakePath(probe);
+
+            var importAsset = false;
+            if (bakedTexture == null || string.IsNullOrEmpty(assetPath))
             {
                 bakedTexture = new Texture2D(rt.width, rt.height, TextureFormat.RGBAHalf, true, false);
                 probe.bakedTexture = bakedTexture;
-                var bakedAssetPath = GetBakePath(probe);
-                AssetDatabase.CreateAsset(bakedTexture, bakedAssetPath);
+                importAsset = true;
+
+                EditorUtility.SetDirty(probe);
             }
 
             ReflectionSystem.Render(probe, rt);
@@ -189,9 +200,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bakedTexture.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0, false);
             RenderTexture.active = art;
 
-            var assetPath = AssetDatabase.GetAssetPath(bakedTexture);
-            var bytes = bakedTexture.EncodeToEXR();
-            File.WriteAllBytes(assetPath, bytes);
+            if (importAsset)
+                AssetDatabase.CreateAsset(bakedTexture, assetPath);
+            else
+            {
+                var bytes = bakedTexture.EncodeToEXR();
+                File.WriteAllBytes(assetPath, bytes);
+                AssetDatabase.ImportAsset(assetPath);
+            }
 
             return true;
         }
@@ -235,11 +251,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var scene = probe.gameObject.scene;
 
             var targetPath = GetSceneBakeDirectoryPath(scene);
-            if (Directory.Exists(targetPath) == false)
+            if (!Directory.Exists(targetPath))
                 Directory.CreateDirectory(targetPath);
 
             var fileName = probe.name + "-reflectionHDR.exr";
-            return Path.GetFileNameWithoutExtension(AssetDatabase.GenerateUniqueAssetPath(Path.Combine(targetPath, fileName)));
+            return AssetDatabase.GenerateUniqueAssetPath(Path.Combine(targetPath, fileName));
         }
 
         static string GetSceneBakeDirectoryPath(Scene scene)

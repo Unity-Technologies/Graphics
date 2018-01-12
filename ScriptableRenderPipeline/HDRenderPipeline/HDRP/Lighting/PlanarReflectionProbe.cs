@@ -68,7 +68,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get { return Quaternion.LookRotation(influencePosition - capturePosition, transform.up); }
         }
         public Vector3 influencePosition { get { return transform.TransformPoint(influenceVolume.boxBaseOffset); } }
-        public Texture customTexture { get { return m_CustomTexture; } }
+        public Texture customTexture { get { return m_CustomTexture; } set { m_CustomTexture = value; } }
         public Texture bakedTexture { get { return m_BakedTexture; } set { m_BakedTexture = value; }}
         public RenderTexture realtimeTexture { get { return m_RealtimeTexture; } internal set { m_RealtimeTexture = value; } }
         public ReflectionProbeRefreshMode refreshMode { get { return m_RefreshMode; } }
