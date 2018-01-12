@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class SinMove : MonoBehaviour
 {
+    [SerializeField] bool localSpace = false;
+
     [SerializeField] Vector3 vector = Vector3.right;
     [SerializeField] float frequency = 1f;
 
@@ -18,6 +20,6 @@ public class SinMove : MonoBehaviour
 	// Update is called once per frame
 	void Update ()
     {
-        transform.position = startPosition + Mathf.Sin(Mathf.PI * Time.time * frequency) * vector;
+        transform.position = startPosition + Mathf.Sin(Mathf.PI * Time.time * frequency) * (localSpace?transform.TransformDirection(vector):vector);
 	}
 }

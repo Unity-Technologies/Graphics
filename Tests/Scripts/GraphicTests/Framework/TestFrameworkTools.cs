@@ -97,6 +97,13 @@ namespace UnityEngine.Experimental.Rendering
                 List<string> allPaths_List = new List<string>(allPaths);
                 allPaths_List.Sort();
 
+                // Get the play mode scenes
+                List<string> playModeScenes = new List<string>();
+                foreach( TestInfo ti in CollectScenesPlayMode.GetScenesForPipeline( _pipelinePath ) )
+                {
+                    playModeScenes.Add(ti.templatePath);
+                }
+
                 // construct all the needed test infos
                 for (int i = 0; i < allPaths_List.Count; ++i)
                 {
@@ -106,6 +113,10 @@ namespace UnityEngine.Experimental.Rendering
                     var split = s_Path.Aggregate("", Path.Combine);
                     split = string.Format("{0}{1}", split, Path.DirectorySeparatorChar);
                     var splitPaths = p.FullName.Split(new[] { split }, StringSplitOptions.RemoveEmptyEntries);
+
+                    // Filter out play mode tests from the list
+                    if (playModeScenes.Contains(splitPaths.Last()))
+                        continue;
 
                     TestInfo testInfo = new TestInfo()
                     {

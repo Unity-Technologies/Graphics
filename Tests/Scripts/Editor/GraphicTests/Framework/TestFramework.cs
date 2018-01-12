@@ -84,16 +84,7 @@ namespace UnityEditor.Experimental.Rendering
                 yield return null;
             }
 
-            // Handle play mode and things to do before
-            if (testSetup.testInPlayMode)
-            {
-                //if (!testSetup.invokeAtStart) testSetup.thingToDoBeforeTest.Invoke();
-                //EditorApplication.isPlaying = true;
-            }
-            else
-            {
-                testSetup.thingToDoBeforeTest.Invoke();
-            }
+            testSetup.thingToDoBeforeTest.Invoke();
 
             // Render the camera
             Texture2D captured = TestFrameworkTools.RenderSetupToTexture(testSetup);
