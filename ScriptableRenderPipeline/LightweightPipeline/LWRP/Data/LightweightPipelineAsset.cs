@@ -44,6 +44,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private int m_MaxPixelLights = 4;
         [SerializeField] private bool m_SupportsVertexLight = false;
         [SerializeField] private bool m_RequireCameraDepthTexture = false;
+        [SerializeField] private bool m_SupportsHDR = false;
         [SerializeField] private MSAAQuality m_MSAA = MSAAQuality._4x;
         [SerializeField] private float m_RenderScale = 1.0f;
         [SerializeField] private ShadowType m_ShadowType = ShadowType.HARD_SHADOWS;
@@ -130,6 +131,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public bool RequireCameraDepthTexture
         {
             get { return m_RequireCameraDepthTexture; }
+        }
+
+        public bool SupportsHDR
+        {
+            get { return m_SupportsHDR; }
         }
 
         public int MSAASampleCount
