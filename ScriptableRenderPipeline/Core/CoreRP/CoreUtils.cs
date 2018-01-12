@@ -165,9 +165,13 @@ namespace UnityEngine.Experimental.Rendering
 
         public static void CreateCmdTemporaryRT(CommandBuffer cmd, int nameID, RenderTextureDescriptor baseDesc,
             int depthBufferBits, FilterMode filter, RenderTextureFormat format,
-            RenderTextureReadWrite readWrite = RenderTextureReadWrite.Default, int msaaSamples = 1, bool enableRandomWrite = false)
+            RenderTextureReadWrite readWrite = RenderTextureReadWrite.Default, int msaaSamplesOverride = 0, bool enableRandomWrite = false)
         {
-            UpdateRenderTextureDescriptor(ref baseDesc, depthBufferBits, format, readWrite, msaaSamples, enableRandomWrite);
+            if (msaaSamplesOverride > 0)
+                UpdateRenderTextureDescriptor(ref baseDesc, depthBufferBits, format, readWrite, msaaSamplesOverride, enableRandomWrite);
+            else
+                UpdateRenderTextureDescriptor(ref baseDesc, depthBufferBits, format, readWrite, baseDesc.msaaSamples, enableRandomWrite);
+
 
             cmd.GetTemporaryRT(nameID, baseDesc, filter);
         }
