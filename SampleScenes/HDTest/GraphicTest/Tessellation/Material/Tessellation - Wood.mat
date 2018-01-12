@@ -8,8 +8,8 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: Tessellation - Wood
   m_Shader: {fileID: 4800000, guid: 756bac9090102564582875f4c7e30202, type: 3}
-  m_ShaderKeywords: _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE
-    _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
+  m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP
+    _NORMALMAP _NORMALMAP_TANGENT_SPACE _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -205,14 +205,14 @@ Material:
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _HeightAmplitude: 1
-    - _HeightCenter: 1
+    - _HeightCenter: 0.25
     - _HeightMapParametrization: 1
     - _HeightMax: 100
     - _HeightMin: 0
-    - _HeightOffset: -100
+    - _HeightOffset: 0
     - _HeightPoMAmplitude: 100
     - _HeightTessAmplitude: 100
-    - _HeightTessCenter: 0
+    - _HeightTessCenter: 0.25
     - _HorizonFade: 1
     - _IOR: 1
     - _InitialBend: 1

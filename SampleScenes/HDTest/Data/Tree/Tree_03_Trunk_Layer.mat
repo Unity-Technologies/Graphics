@@ -8,9 +8,10 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: Tree_03_Trunk_Layer
   m_Shader: {fileID: 4800000, guid: eab0538d9d5746246806a9611c04ac4d, type: 3}
-  m_ShaderKeywords: _DENSITY_MODE _DETAIL_MAP0 _HEIGHTMAP0 _LAYER_MASK_VERTEX_COLOR_ADD
-    _MASKMAP0 _NORMALMAP0 _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2
-    _NORMALMAP_TANGENT_SPACE3 _TESSELLATION_PHONG
+  m_ShaderKeywords: _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _DENSITY_MODE _DETAIL_MAP0
+    _HEIGHTMAP0 _LAYER_MASK_VERTEX_COLOR_ADD _MASKMAP0 _NORMALMAP0 _NORMALMAP_TANGENT_SPACE0
+    _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
+    _TESSELLATION_PHONG
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -357,8 +358,8 @@ Material:
     - _HeightFactor1: 1
     - _HeightFactor2: 1
     - _HeightFactor3: 1
-    - _HeightMapParametrization0: 0
-    - _HeightMapParametrization1: 0
+    - _HeightMapParametrization0: 1
+    - _HeightMapParametrization1: 1
     - _HeightMapParametrization2: 0
     - _HeightMapParametrization3: 0
     - _HeightMax0: 1
@@ -369,8 +370,8 @@ Material:
     - _HeightMin1: -1
     - _HeightMin2: -1
     - _HeightMin3: -1
-    - _HeightOffset0: -1
-    - _HeightOffset1: -1
+    - _HeightOffset0: 0
+    - _HeightOffset1: 0
     - _HeightOffset2: 0
     - _HeightOffset3: 0
     - _HeightPoMAmplitude0: 2
@@ -381,8 +382,8 @@ Material:
     - _HeightTessAmplitude1: 2
     - _HeightTessAmplitude2: 2
     - _HeightTessAmplitude3: 2
-    - _HeightTessCenter0: 0
-    - _HeightTessCenter1: 0
+    - _HeightTessCenter0: 0.5
+    - _HeightTessCenter1: 0.5
     - _HeightTessCenter2: 0.5
     - _HeightTessCenter3: 0.5
     - _HeightTransition: 0

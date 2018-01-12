@@ -8,7 +8,7 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: Green_Emissive
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
-  m_ShaderKeywords: _NORMALMAP_TANGENT_SPACE
+  m_ShaderKeywords: _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 2
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -152,13 +152,13 @@ Material:
     - _EnableWind: 0
     - _HeightAmplitude: 0.02
     - _HeightCenter: 0.5
-    - _HeightMapParametrization: 0
+    - _HeightMapParametrization: 1
     - _HeightMax: 1
     - _HeightMin: -1
-    - _HeightOffset: -1
+    - _HeightOffset: 0
     - _HeightPoMAmplitude: 2
     - _HeightTessAmplitude: 2
-    - _HeightTessCenter: 0
+    - _HeightTessCenter: 0.5
     - _IOR: 1
     - _InitialBend: 1
     - _InvTilingScale: 1
