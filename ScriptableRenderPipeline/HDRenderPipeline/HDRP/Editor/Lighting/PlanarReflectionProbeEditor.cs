@@ -101,10 +101,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     r.y + size.y * col + ((col > 0) ? (col - 1) * space.y : 0),
                     size.x,
                     size.y);
+
                 if (m_PreviewedTextures[i] != null)
-                    GUI.DrawTexture(itemRect, m_PreviewedTextures[i]);
+                    EditorGUI.DrawPreviewTexture(itemRect, m_PreviewedTextures[i], null, ScaleMode.ScaleToFit, 0, 1);
                 else
-                    GUI.Label(itemRect, _.GetContent("Not Available"));
+                    EditorGUI.LabelField(itemRect, _.GetContent("Not Available"));
             }
         }
     }

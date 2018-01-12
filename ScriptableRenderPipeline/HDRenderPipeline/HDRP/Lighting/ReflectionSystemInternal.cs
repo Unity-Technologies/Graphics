@@ -214,10 +214,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
         {
             if (s_RenderCamera == null)
             {
-                s_RenderCamera = new GameObject("Probe Render Camera").
-                    AddComponent<Camera>();
-                s_RenderCameraData = s_RenderCamera.gameObject.AddComponent<HDAdditionalCameraData>();
-                s_RenderCamera.gameObject.SetActive(false);
+                var go = GameObject.Find("__Probe Render Camera") ?? new GameObject("__Probe Render Camera");
+                go.hideFlags = HideFlags.HideAndDontSave;
+
+                s_RenderCamera = go.GetComponent<Camera>();
+                if (s_RenderCamera == null || s_RenderCamera.Equals(null))
+                    s_RenderCamera = go.AddComponent<Camera>();
+
+                s_RenderCameraData = go.GetComponent<HDAdditionalCameraData>();
+                if (s_RenderCameraData == null || s_RenderCameraData.Equals(null))
+                    s_RenderCameraData = go.AddComponent<HDAdditionalCameraData>();
+
+                go.SetActive(false);
             }
 
             return s_RenderCamera;
