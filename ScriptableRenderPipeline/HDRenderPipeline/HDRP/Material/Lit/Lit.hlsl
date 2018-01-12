@@ -969,8 +969,8 @@ void AccumulateIndirectLighting(IndirectLighting src, inout AggregateLighting ds
 // BSDF share between directional light, punctual light and area light (reference)
 //-----------------------------------------------------------------------------
 
-// This function apply BSDF
-void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
+// This function apply BSDF. Assumes that NdotL is positive.
+void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
             out float3 diffuseLighting,
             out float3 specularLighting)
 {
@@ -978,7 +978,6 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 
     float NdotV = preLightData.clampNdotV;
     // Optimized math. Ref: PBR Diffuse Lighting for GGX + Smith Microsurfaces (slide 114).
-    float NdotL = saturate(dot(N, L)); // Must have the same value without the clamp
 
     float LdotV = dot(L, V);
     float invLenLV = rsqrt(max(2.0 * LdotV + 2.0, FLT_EPS));  // invLenLV = rcp(length(L + V)) - caution about the case where V and L are opposite, it can happen, use max to avoid this
@@ -1128,7 +1127,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     // Note: We use NdotL here to early out, but in case of clear coat this is not correct. But we are ok with this
     [branch] if (intensity > 0.0)
     {
-        BSDF(V, L, posInput.positionWS, preLightData, bsdfData, lighting.diffuse, lighting.specular);
+        BSDF(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, lighting.diffuse, lighting.specular);
 
         lighting.diffuse  *= intensity * lightData.diffuseScale;
         lighting.specular *= intensity * lightData.specularScale;
@@ -1161,13 +1160,25 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     float3 lightToSample = posInput.positionWS - lightData.positionWS;
     int    lightType     = lightData.lightType;
 
-    float3 unL     = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? -lightToSample : -lightData.forward;
-    float  distSq  = dot(unL, unL);
-    float  distRcp = rsqrt(distSq);
-    float  dist    = distSq * distRcp;
-    float3 N       = bsdfData.normalWS;
-    float3 L       = unL * distRcp;
-    float  NdotL   = dot(N, L);
+    float3 L;
+    float  dist, distSq, distProj;
+
+    if (lightType == GPULIGHTTYPE_PROJECTOR_BOX)
+    {
+        dist = distSq = 1;         // No distance attenuation
+        L    = -lightData.forward; // No angle attenuation
+    }
+    else
+    {
+        float3 unL     = -lightToSample;
+               distSq  = dot(unL, unL);
+        float  distRcp = rsqrt(distSq);
+               dist    = distSq * distRcp;
+               L       = unL * distRcp;
+    }
+
+    float3 N        = bsdfData.normalWS;
+    float  NdotL    = dot(N, L);
 
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
@@ -1177,7 +1188,8 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
 
     float3 color;
     float attenuation;
-    EvaluateLight_Punctual(lightLoopContext, posInput, lightData, bakeLightingData, N, L, dist, distSq, color, attenuation);
+    EvaluateLight_Punctual(lightLoopContext, posInput, lightData, bakeLightingData, N, L,
+                           lightToSample, dist, distSq, color, attenuation);
 
     float intensity = saturate(attenuation * NdotL);
 
@@ -1191,7 +1203,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
         bsdfData.roughnessT = max(bsdfData.roughnessT, lightData.minRoughness);
         bsdfData.roughnessB = max(bsdfData.roughnessB, lightData.minRoughness);
 
-        BSDF(V, L, posInput.positionWS, preLightData, bsdfData, lighting.diffuse, lighting.specular);
+        BSDF(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, lighting.diffuse, lighting.specular);
 
         lighting.diffuse  *= intensity * lightData.diffuseScale;
         lighting.specular *= intensity * lightData.specularScale;
