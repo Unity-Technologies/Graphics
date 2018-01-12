@@ -46,6 +46,10 @@
             EditorGUILayout.PropertyField(d.reflectionCacheCompressed, _.GetContent("Compress Reflection Probe Cache"));
             EditorGUILayout.PropertyField(d.reflectionCubemapSize, _.GetContent("Reflection Cubemap Size"));
             EditorGUILayout.PropertyField(d.reflectionProbeCacheSize, _.GetContent("Probe Cache Size"));
+
+            EditorGUILayout.PropertyField(d.planarReflectionCacheCompressed, _.GetContent("Compress Planar Reflection Probe Cache"));
+            EditorGUILayout.PropertyField(d.planarReflectionCubemapSize, _.GetContent("Planar Reflection Texture Size"));
+            EditorGUILayout.PropertyField(d.planarReflectionProbeCacheSize, _.GetContent("Planar Probe Cache Size"));
             --EditorGUI.indentLevel;
         }
 

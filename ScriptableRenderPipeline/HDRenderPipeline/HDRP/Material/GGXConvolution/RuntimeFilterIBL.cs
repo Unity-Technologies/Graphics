@@ -134,6 +134,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             FilterCubemapCommon(cmd, source, target, m_faceWorldToViewMatrixMatrices);
         }
 
+        public void FilterPlanarTexture(CommandBuffer cmd, Texture source, RenderTexture target)
+        {
+            // TODO: planar convolution
+            cmd.CopyTexture(source, target);
+        }
+
         // Filters MIP map levels (other than 0) with GGX using multiple importance sampling.
         public void FilterCubemapMIS(   CommandBuffer cmd,
                                         Texture source, RenderTexture target,
