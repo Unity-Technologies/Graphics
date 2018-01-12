@@ -405,6 +405,8 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
     // enable dithering LOD crossfade
     #pragma multi_compile _ LOD_FADE_CROSSFADE
+
+    #pragma multi_compile_instancing
     // TODO: We should have this keyword only if VelocityInGBuffer is enable, how to do that ?
     //#pragma multi_compile VELOCITYOUTPUT_OFF VELOCITYOUTPUT_ON
 
