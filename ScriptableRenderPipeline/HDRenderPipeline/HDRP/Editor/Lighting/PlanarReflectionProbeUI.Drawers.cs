@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -78,6 +78,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static void Drawer_SectionCaptureSettings(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
         {
             EditorGUILayout.PropertyField(d.captureLocalPosition, _.GetContent("Capture Local Position"));
+
+            _.DrawMultipleFields(
+                "Clipping Planes",
+                new[] { d.captureNearPlane, d.captureFarPlane },
+                new[] { _.GetContent("Near|The closest point relative to the camera that drawing will occur."), _.GetContent("Far|The furthest point relative to the camera that drawing will occur.\n") });
         }
 
         static void Drawer_SectionProbeModeCustomSettings(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)

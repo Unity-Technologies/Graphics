@@ -71,6 +71,21 @@ namespace UnityEditor.Experimental.Rendering
         }
 
         // UI Helpers
+
+        public static void DrawMultipleFields(string label, SerializedProperty[] ppts, GUIContent[] lbls)
+        {
+            GUILayout.BeginHorizontal();
+            EditorGUILayout.PrefixLabel(GetContent(label));
+            GUILayout.BeginVertical();
+            var labelWidth = EditorGUIUtility.labelWidth;
+            EditorGUIUtility.labelWidth = 45;
+            for (var i = 0; i < ppts.Length; ++i)
+                EditorGUILayout.PropertyField(ppts[i], lbls[i]);
+            GUILayout.EndVertical();
+            GUILayout.EndHorizontal();
+            EditorGUIUtility.labelWidth = labelWidth;
+        }
+
         public static void DrawSplitter()
         {
             var rect = GUILayoutUtility.GetRect(1f, 1f);
