@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
@@ -124,6 +124,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             return rt;
         }
 
+        public float GetCaptureCameraFOVFor(PlanarReflectionProbe probe)
+        {
+            switch (probe.influenceVolume.shapeType)
+            {
+                case ShapeType.Box:
+                {
+                    var captureToWorld = Matrix4x4.TRS(probe.capturePosition, probe.captureRotation, Vector3.one);
+                    var influenceToWorld = Matrix4x4.TRS(probe.transform.TransformPoint(probe.influenceVolume.boxBaseOffset), probe.transform.rotation, Vector3.one);
+                    var influenceToCapture = captureToWorld.inverse * influenceToWorld;
+                    var min = influenceToCapture.MultiplyPoint(-probe.influenceVolume.boxBaseSize * 0.5f);
+                    var max = influenceToCapture.MultiplyPoint(probe.influenceVolume.boxBaseSize * 0.5f);
+                    var minAngle = Mathf.Atan2(Mathf.Sqrt(min.x * min.x + min.y * min.y), min.z) * Mathf.Rad2Deg;
+                    var maxAngle = Mathf.Atan2(Mathf.Sqrt(max.x * max.x + max.y * max.y), max.z) * Mathf.Rad2Deg;
+                    return Mathf.Max(minAngle, maxAngle) * 2;
+                }
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
         bool IsRealtimeTextureValid(RenderTexture renderTexture, HDCamera hdCamera)
         {
             return renderTexture != null
@@ -171,11 +191,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             m_PlanarReflectionProbeBounds[planarReflectionProbe] = planarReflectionProbe.boundingSphere;
         }
 
-        static void SetupCameraForRender(Camera camera, PlanarReflectionProbe probe)
+        void SetupCameraForRender(Camera camera, PlanarReflectionProbe probe)
         {
-            camera.transform.position = probe.capturePosition;
+            var ctr = camera.transform;
+            ctr.position = probe.capturePosition;
+            ctr.rotation = probe.captureRotation;
 
-            throw new NotImplementedException();
+            camera.fieldOfView = GetCaptureCameraFOVFor(probe);
+            camera.aspect = 1;
         }
 
         static HDCamera GetRenderHDCamera(PlanarReflectionProbe probe)
