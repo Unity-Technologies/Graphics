@@ -110,7 +110,9 @@ void SHADE_OPAQUE_ENTRY(uint2 groupThreadId : SV_GroupThreadID, uint groupId : S
     uint2 tileCoord = uint2(tileIndex & 0xFFFF, tileIndex >> 16);
     uint2 pixelCoord = tileCoord * GetTileSize() + groupThreadId;
 
-    uint featureFlags = TileVariantToFeatureFlags(VARIANT, tileIndex);
+    uint screenWidth  = (uint)_ScreenSize.x;
+    uint numTilesX    = (screenWidth + 15) / 16;
+    uint featureFlags = TileVariantToFeatureFlags(VARIANT, tileCoord.x + tileCoord.y * numTilesX);
 #else
 
 // Direct
