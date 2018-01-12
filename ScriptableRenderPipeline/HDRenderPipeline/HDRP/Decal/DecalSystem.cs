@@ -102,6 +102,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_DecalMesh == null)
                 m_DecalMesh = CoreUtils.CreateCubeMesh(new Vector3(-0.5f, -1.0f, -0.5f), new Vector3(0.5f, 0.0f, 0.5f));
 
+            Matrix4x4[] instanceMatrices = new Matrix4x4[256];
+            int instanceCount = 0;
             for (int resultIndex = 0; resultIndex < m_NumResults; resultIndex++)
             {
                 int decalIndex = m_ResultIndices[resultIndex];
@@ -115,7 +117,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     !m_Decals[decalIndex].m_Material.GetTexture("_MaskMap"))
                     continue;
 
-                cmd.DrawMesh(m_DecalMesh, m_Decals[decalIndex].transform.localToWorldMatrix, m_Decals[decalIndex].m_Material, 0, 0);
+                instanceMatrices[instanceCount] = m_Decals[decalIndex].transform.localToWorldMatrix;
+                instanceCount++;
+                if (instanceCount == 256)
+                {
+                    cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Decals[0].m_Material, 0, instanceMatrices, 256);
+                    instanceMatrices = new Matrix4x4[256];
+                    instanceCount = 0;
+                }
+
+//                cmd.DrawMesh(m_DecalMesh, m_Decals[decalIndex].transform.localToWorldMatrix, m_Decals[decalIndex].m_Material, 0, 0);
+            }
+            if (instanceCount > 0)
+            {
+                cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Decals[0].m_Material, 0, instanceMatrices, instanceCount);                
             }
         }
 
