@@ -14,6 +14,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedInfluenceVolume influenceVolume;
 
         public SerializedProperty captureLocalPosition;
+        public SerializedProperty captureNearPlane;
+        public SerializedProperty captureFarPlane;
         public SerializedProperty dimmer;
         public SerializedProperty mode;
         public SerializedProperty refreshMode;
@@ -31,6 +33,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             influenceVolume = new SerializedInfluenceVolume(serializedObject.Find((PlanarReflectionProbe p) => p.influenceVolume));
 
             captureLocalPosition = serializedObject.Find((PlanarReflectionProbe p) => p.captureLocalPosition);
+            captureNearPlane = serializedObject.Find((PlanarReflectionProbe p) => p.captureNearPlane);
+            captureFarPlane = serializedObject.Find((PlanarReflectionProbe p) => p.captureFarPlane);
             dimmer = serializedObject.Find((PlanarReflectionProbe p) => p.dimmer);
             mode = serializedObject.Find((PlanarReflectionProbe p) => p.mode);
             refreshMode = serializedObject.Find((PlanarReflectionProbe p) => p.refreshMode);
