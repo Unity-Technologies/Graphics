@@ -6,12 +6,32 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 public class DebugViewController : MonoBehaviour
 {
-    [SerializeField] FullScreenDebugMode fullScreenDebugMode = FullScreenDebugMode.None;
+    public enum SettingType { Material, Rendering }
+    public SettingType settingType = SettingType.Material;
+
+    MaterialDebugSettings materialDebugSettings = new MaterialDebugSettings();
+    [Header("Material")]
+    [SerializeField] int gBuffer = 0;
+
+    //DebugItemHandlerIntEnum(MaterialDebugSettings.debugViewMaterialGBufferStrings, MaterialDebugSettings.debugViewMaterialGBufferValues)
+    [Header("Rendering")]
+    [SerializeField] int fullScreenDebugMode = 0;
 
     [ContextMenu("Set Debug View")]
     public void SetDebugView()
     {
         HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-        hdPipeline.debugDisplaySettings.fullScreenDebugMode = fullScreenDebugMode;
+
+        switch ( settingType )
+        {
+            case SettingType.Material:
+                hdPipeline.debugDisplaySettings.SetDebugViewGBuffer(gBuffer);
+                hdPipeline.debugDisplaySettings.fullScreenDebugMode = FullScreenDebugMode.None;
+                break;
+            case SettingType.Rendering:
+                hdPipeline.debugDisplaySettings.SetDebugViewGBuffer(0);
+                hdPipeline.debugDisplaySettings.fullScreenDebugMode = (FullScreenDebugMode) fullScreenDebugMode;
+                break;
+        }
     }
 }
