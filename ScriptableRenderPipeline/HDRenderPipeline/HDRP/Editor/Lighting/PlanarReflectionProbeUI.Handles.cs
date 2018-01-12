@@ -74,10 +74,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void DrawGizmos_CaptureFrustrum(PlanarReflectionProbeUI s, PlanarReflectionProbe d)
         {
+            var fov = ReflectionSystem.GetCaptureCameraFOVFor(d);
             var clipToWorld = CameraEditorUtils.GetCameraClipToWorld(
                 d.capturePosition, d.captureRotation,
                 d.captureNearPlane, d.captureFarPlane,
-                90, 1);
+                fov, 1);
 
             var near = new Vector3[4];
             var far = new Vector3[4];

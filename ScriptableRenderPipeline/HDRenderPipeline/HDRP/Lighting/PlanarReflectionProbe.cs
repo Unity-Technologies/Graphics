@@ -67,7 +67,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get { return Quaternion.LookRotation(influencePosition - capturePosition, transform.up); }
         }
-        public Vector3 influencePosition { get { return transform.position; } }
+        public Vector3 influencePosition { get { return transform.TransformPoint(influenceVolume.boxBaseOffset); } }
         public Texture customTexture { get { return m_CustomTexture; } }
         public Texture bakedTexture { get { return m_BakedTexture; } set { m_BakedTexture = value; }}
         public RenderTexture realtimeTexture { get { return m_RealtimeTexture; } internal set { m_RealtimeTexture = value; } }
@@ -132,7 +132,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
         public bool infiniteProjection { get { return m_ProxyVolumeReference != null && m_ProxyVolumeReference.proxyVolume.infiniteProjection; } }
-
         #endregion
 
         public void RequestRealtimeRender()
