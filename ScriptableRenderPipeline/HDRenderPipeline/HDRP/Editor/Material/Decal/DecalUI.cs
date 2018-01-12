@@ -74,6 +74,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap);
 				m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapText, maskMap);
                 m_MaterialEditor.ShaderProperty(decalBlend, Styles.decalBlendText);
+                m_MaterialEditor.EnableInstancingField();
 
                 EditorGUI.indentLevel--;
                 
