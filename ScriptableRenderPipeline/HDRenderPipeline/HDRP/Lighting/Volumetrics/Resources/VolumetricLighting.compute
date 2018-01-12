@@ -212,7 +212,7 @@ float3 EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, Positi
                         float3 L             = -lightToSample * rsqrt(distSq);
 
                         float3 color; float attenuation;
-                        EvaluateLight_Punctual(context, posInput, light, unused, 0, L, dist, distSq,
+                        EvaluateLight_Punctual(context, posInput, light, unused, 0, L, lightToSample, dist, distSq,
                                                color, attenuation);
 
                         float intensity = attenuation * rcpPdf;
@@ -253,10 +253,11 @@ float3 EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, Positi
                         float t = tEntr + tOffset;
                         posInput.positionWS = GetPointAtDistance(ray, t);
 
-                        float3 L = -light.forward;
+                        float3 L             = -light.forward;
+                        float3 lightToSample = posInput.positionWS - light.positionWS;
 
                         float3 color; float attenuation;
-                        EvaluateLight_Punctual(context, posInput, light, unused, 0, L, 1, 1,
+                        EvaluateLight_Punctual(context, posInput, light, unused, 0, L, lightToSample, 1, 1,
                                                color, attenuation);
 
                         // Note: the 'weight' accounts for transmittance from 'tEntr' to 't'.
