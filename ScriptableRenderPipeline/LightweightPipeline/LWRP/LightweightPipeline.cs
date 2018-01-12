@@ -566,9 +566,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
 
             Rect cameraRect = m_CurrCamera.rect;
-            if (cameraRect.x > 0.0f || cameraRect.y > 0.0f || cameraRect.width < 1.0f || cameraRect.height < 1.0f)
-                intermediateTexture = true;
-            else
+            if (!(Math.Abs(cameraRect.x) > 0.0f || Math.Abs(cameraRect.y) > 0.0f || Math.Abs(cameraRect.width) < 1.0f || Math.Abs(cameraRect.height) < 1.0f))
                 configuration |= FrameRenderingConfiguration.DefaultViewport;
 
             if (intermediateTexture)
@@ -1184,7 +1182,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 context.StartMultiEye(m_CurrCamera);
 
             CommandBuffer cmd = CommandBufferPool.Get("SetCameraRenderTarget");
-            if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture))
+            bool intermeaditeTexture = LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture);
+            if (intermeaditeTexture)
             {
                 if (!m_IsOffscreenCamera)
                     colorRT = m_CurrCameraColorRT;
@@ -1210,6 +1209,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 SetRenderTarget(cmd, colorRT, depthRT, clearFlag);
             }
+
+            // If rendering to an intermediate RT we resolve viewport on blit due to offset not being supported
+            // while rendering to a RT.
+            if (!intermeaditeTexture && !LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.DefaultViewport))
+                cmd.SetViewport(m_CurrCamera.pixelRect);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -1316,6 +1320,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 cmd.SetGlobalTexture(m_BlitTexID, sourceRT);
                 SetRenderTarget(cmd, destRT);
+                cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.SetViewport(m_CurrCamera.pixelRect);
                 cmd.DrawMesh(m_BlitQuad, Matrix4x4.identity, m_BlitMaterial);
             }
