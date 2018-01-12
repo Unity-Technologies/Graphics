@@ -557,14 +557,12 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     bool pixelHasIridescence   = (metallic15 == GBUFFER_LIT_IRIDESCENCE);
     bool pixelHasClearCoat     = (coatMask > 0);
 
-    pixelFeatureFlags |= (pixelHasTransmission ? MATERIALFEATUREFLAGS_LIT_TRANSMISSION          : 0);
-    pixelFeatureFlags |= (pixelHasSubsurface   ? MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING : 0);
-    pixelFeatureFlags |= (pixelHasAnisotropy   ? MATERIALFEATUREFLAGS_LIT_ANISOTROPY            : 0);
-    pixelFeatureFlags |= (pixelHasIridescence  ? MATERIALFEATUREFLAGS_LIT_IRIDESCENCE           : 0);
-    pixelFeatureFlags |= (pixelHasClearCoat    ? MATERIALFEATUREFLAGS_LIT_CLEAR_COAT            : 0);
-
     // Disable pixel features disabled by the tile.
-    pixelFeatureFlags &= tileFeatureFlags;
+    pixelFeatureFlags |= tileFeatureFlags & (pixelHasTransmission ? MATERIALFEATUREFLAGS_LIT_TRANSMISSION          : 0);
+    pixelFeatureFlags |= tileFeatureFlags & (pixelHasSubsurface   ? MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING : 0);
+    pixelFeatureFlags |= tileFeatureFlags & (pixelHasAnisotropy   ? MATERIALFEATUREFLAGS_LIT_ANISOTROPY            : 0);
+    pixelFeatureFlags |= tileFeatureFlags & (pixelHasIridescence  ? MATERIALFEATUREFLAGS_LIT_IRIDESCENCE           : 0);
+    pixelFeatureFlags |= tileFeatureFlags & (pixelHasClearCoat    ? MATERIALFEATUREFLAGS_LIT_CLEAR_COAT            : 0);
 
     // Start decompressing GBuffer
     float3 baseColor = inGBuffer0.rgb;
@@ -1177,8 +1175,8 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
                L       = unL * distRcp;
     }
 
-    float3 N        = bsdfData.normalWS;
-    float  NdotL    = dot(N, L);
+    float3 N     = bsdfData.normalWS;
+    float  NdotL = dot(N, L);
 
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
