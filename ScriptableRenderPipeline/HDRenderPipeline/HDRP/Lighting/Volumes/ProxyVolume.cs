@@ -3,7 +3,7 @@
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [Serializable]
-    public class ProjectionVolume
+    public class ProxyVolume
     {
         [SerializeField]
         ShapeType m_ShapeType;

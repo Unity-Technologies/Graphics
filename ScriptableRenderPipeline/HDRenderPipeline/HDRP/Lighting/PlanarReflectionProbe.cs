@@ -1,4 +1,4 @@
-using UnityEngine.Rendering;
+﻿using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -61,7 +61,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
         public Vector3 influencePosition { get { return transform.position; } }
         public Texture customTexture { get { return m_CustomTexture; } }
-        public Texture bakedTexture { get { return m_BakedTexture; } }
+        public Texture bakedTexture { get { return m_BakedTexture; } set { m_BakedTexture = value; }}
         public RenderTexture realtimeTexture { get { return m_RealtimeTexture; } internal set { m_RealtimeTexture = value; } }
         public ReflectionProbeRefreshMode refreshMode { get { return m_RefreshMode; } }
         public FrameSettings frameSettings { get { return m_FrameSettings; } }
@@ -108,7 +108,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get
             {
                 return m_ProxyVolumeReference != null
-                    ? m_ProxyVolumeReference.projectionVolume.shapeType
+                    ? m_ProxyVolumeReference.proxyVolume.shapeType
                     : influenceVolume.shapeType;
             }
         }
@@ -117,11 +117,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get
             {
                 return m_ProxyVolumeReference != null
-                    ? m_ProxyVolumeReference.projectionVolume.boxSize
+                    ? m_ProxyVolumeReference.proxyVolume.boxSize
                     : influenceVolume.boxBaseSize;
             }
         }
-        public bool infiniteProjection { get { return m_ProxyVolumeReference != null && m_ProxyVolumeReference.projectionVolume.infiniteProjection; } }
+        public bool infiniteProjection { get { return m_ProxyVolumeReference != null && m_ProxyVolumeReference.proxyVolume.infiniteProjection; } }
         #endregion
 
         public void RequestRealtimeRender()

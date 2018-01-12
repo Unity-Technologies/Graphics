@@ -1,3 +1,5 @@
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -7,6 +9,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedObject serializedObject;
 
         public SerializedProperty proxyVolumeReference;
+        public SerializedProxyVolumeComponent proxyVolume;
+
         public SerializedInfluenceVolume influenceVolume;
 
         public SerializedProperty captureLocalPosition;
@@ -33,16 +37,44 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             customTexture = serializedObject.Find((PlanarReflectionProbe p) => p.customTexture);
 
             frameSettings = new SerializedFrameSettings(serializedObject.Find((PlanarReflectionProbe p) => p.frameSettings));
+
+            InstantiateProxyVolume(serializedObject);
+        }
+
+        void InstantiateProxyVolume(SerializedObject serializedObject)
+        {
+            var objs = new List<Object>();
+            for (var i = 0; i < serializedObject.targetObjects.Length; i++)
+                objs.Add(((PlanarReflectionProbe)serializedObject.targetObjects[i]).proxyVolumeReference);
+            proxyVolume = new SerializedProxyVolumeComponent(new SerializedObject(objs.ToArray()));
         }
 
         public void Update()
         {
             serializedObject.Update();
+
+            var updateProxyVolume = serializedObject.targetObjects.Length != proxyVolume.serializedObject.targetObjects.Length;
+            if (!updateProxyVolume)
+            {
+                var proxyVolumeTargets = proxyVolume.serializedObject.targetObjects;
+                for (var i = 0; i < serializedObject.targetObjects.Length; i++)
+                {
+                    if (proxyVolumeTargets[i] != ((PlanarReflectionProbe)serializedObject.targetObjects[i]).proxyVolumeReference)
+                    {
+                        updateProxyVolume = true;
+                        break;
+                    }
+                }
+            }
+
+            if (updateProxyVolume)
+                InstantiateProxyVolume(serializedObject);
         }
 
         public void Apply()
         {
             serializedObject.ApplyModifiedProperties();
+            proxyVolume.Apply();
         }
     }
 }

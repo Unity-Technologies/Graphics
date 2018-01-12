@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -12,6 +13,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     public static class EditorReflectionSystem
     {
         static int _Cubemap = Shader.PropertyToID("_Cubemap");
+        const HideFlags k_ReflectionSystemDictionaryHideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.DontSaveInBuild;
 
         public static bool IsCollidingWithOtherProbes(string targetPath, ReflectionProbe targetProbe, out ReflectionProbe collidingProbe)
         {
@@ -171,7 +173,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public static bool BakeReflectionProbeSnapshot(PlanarReflectionProbe probe)
         {
-            throw new NotImplementedException();
+            var rt = ReflectionSystem.NewRenderTarget(probe);
+            var bakedTexture = probe.bakedTexture as Texture2D;
+            if (bakedTexture == null)
+            {
+                bakedTexture = new Texture2D(rt.width, rt.height, TextureFormat.RGBAHalf, true, false);
+                probe.bakedTexture = bakedTexture;
+                var bakedAssetPath = GetBakePath(probe);
+                AssetDatabase.CreateAsset(bakedTexture, bakedAssetPath);
+            }
+
+            ReflectionSystem.Render(probe, rt);
+            var art = RenderTexture.active;
+            RenderTexture.active = rt;
+            bakedTexture.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0, false);
+            RenderTexture.active = art;
+
+            var assetPath = AssetDatabase.GetAssetPath(bakedTexture);
+            var bytes = bakedTexture.EncodeToEXR();
+            File.WriteAllBytes(assetPath, bytes);
+
+            return true;
         }
 
         static MethodInfo k_Lightmapping_BakeAllReflectionProbesSnapshots = typeof(UnityEditor.Lightmapping).GetMethod("BakeAllReflectionProbesSnapshots", BindingFlags.Static | BindingFlags.NonPublic);
@@ -190,11 +212,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (string.IsNullOrEmpty(path) || Path.GetExtension(path) != "." + targetExtension)
             {
                 // We use the path of the active scene as the target path
-                var targetPath = SceneManager.GetActiveScene().path;
-                targetPath = Path.Combine(Path.GetDirectoryName(targetPath), Path.GetFileNameWithoutExtension(targetPath));
-                if (string.IsNullOrEmpty(targetPath))
-                    targetPath = "Assets";
-                else if (Directory.Exists(targetPath) == false)
+                var targetPath = GetSceneBakeDirectoryPath(SceneManager.GetActiveScene());
+                if (Directory.Exists(targetPath) == false)
                     Directory.CreateDirectory(targetPath);
 
                 var fileName = probeName + (hdr ? "-reflectionHDR" : "-reflection") + "." + targetExtension;
@@ -205,6 +224,73 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     return false;
             }
             return true;
+        }
+
+        static string GetBakePath(PlanarReflectionProbe probe)
+        {
+            var id = GetProbePersistentID(probe);
+            if (id == -1)
+                return string.Empty;
+
+            var scene = probe.gameObject.scene;
+
+            var targetPath = GetSceneBakeDirectoryPath(scene);
+            if (Directory.Exists(targetPath) == false)
+                Directory.CreateDirectory(targetPath);
+
+            var fileName = probe.name + "-reflectionHDR.exr";
+            return Path.GetFileNameWithoutExtension(AssetDatabase.GenerateUniqueAssetPath(Path.Combine(targetPath, fileName)));
+        }
+
+        static string GetSceneBakeDirectoryPath(Scene scene)
+        {
+            var targetPath = scene.path;
+            targetPath = Path.Combine(Path.GetDirectoryName(targetPath), Path.GetFileNameWithoutExtension(targetPath));
+            if (string.IsNullOrEmpty(targetPath))
+                targetPath = "Assets";
+            else if (Directory.Exists(targetPath) == false)
+                Directory.CreateDirectory(targetPath);
+            return targetPath;
+        }
+
+        static int GetProbePersistentID(PlanarReflectionProbe probe)
+        {
+            var scene = probe.gameObject.scene;
+            if (!scene.IsValid())
+                return -1;
+
+            var reflectionDictionary = GetReflectionDictionaryFor(scene);
+            return reflectionDictionary.GetIdFor(probe);
+        }
+
+        static ReflectionSystemSceneDictionary GetReflectionDictionaryFor(Scene scene)
+        {
+            ReflectionSystemSceneDictionary result = null;
+
+            var roots = new List<GameObject>();
+            scene.GetRootGameObjects(roots);
+            for (var i = 0; i < roots.Count; i++)
+            {
+                result = roots[i].GetComponent<ReflectionSystemSceneDictionary>();
+                if (result != null)
+                    break;
+            }
+
+            if (result == null)
+            {
+                result = EditorUtility.CreateGameObjectWithHideFlags(
+                    "Reflection System Dictionary",
+                    k_ReflectionSystemDictionaryHideFlags,
+                    typeof(ReflectionSystemSceneDictionary))
+                    .GetComponent<ReflectionSystemSceneDictionary>();
+
+                SceneManager.MoveGameObjectToScene(result.gameObject, scene);
+                result.gameObject.SetActive(false);
+            }
+
+            result.gameObject.hideFlags = k_ReflectionSystemDictionaryHideFlags;
+
+            return result;
         }
     }
 }

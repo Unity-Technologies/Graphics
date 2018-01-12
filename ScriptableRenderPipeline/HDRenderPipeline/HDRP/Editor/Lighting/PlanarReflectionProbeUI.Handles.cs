@@ -1,4 +1,4 @@
-using UnityEditorInternal;
+﻿using UnityEditorInternal;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -32,6 +32,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         break;
                     }
             }
+
+            if (d.proxyVolumeReference != null)
+                ProxyVolumeComponentUI.DrawHandles_EditNone(s.proxyVolume, d.proxyVolumeReference);
         }
 
         [DrawGizmo(GizmoType.Selected)]
@@ -58,6 +61,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     InfluenceVolumeUI.DrawGizmos_EditNone(s.influenceVolume, d.influenceVolume, mat);
                     break;
             }
+
+            if (d.proxyVolumeReference != null)
+                ProxyVolumeComponentUI.DrawGizmos_EditNone(s.proxyVolume, d.proxyVolumeReference);
         }
     }
 }

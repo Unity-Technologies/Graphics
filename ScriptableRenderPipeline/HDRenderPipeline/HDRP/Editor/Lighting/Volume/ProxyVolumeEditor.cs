@@ -6,23 +6,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     [CustomEditor(typeof(ProxyVolumeComponent))]
     [CanEditMultipleObjects]
-    class ProjectionVolumeEditor : Editor
+    class ProxyVolumeEditor : Editor
     {
         ProxyVolumeComponent[] m_TypedTargets;
-        SerializedProjectionVolumeComponent m_SerializedData;
-        ProjectionVolumeComponentUI m_UIState = new ProjectionVolumeComponentUI();
-        ProjectionVolumeComponentUI[] m_UIHandlerState;
+        SerializedProxyVolumeComponent m_SerializedData;
+        ProxyVolumeComponentUI m_UIState = new ProxyVolumeComponentUI();
+        ProxyVolumeComponentUI[] m_UIHandlerState;
 
         void OnEnable()
         {
             m_TypedTargets = targets.Cast<ProxyVolumeComponent>().ToArray();
-            m_SerializedData = new SerializedProjectionVolumeComponent(serializedObject);
+            m_SerializedData = new SerializedProxyVolumeComponent(serializedObject);
 
             m_UIState.Reset(m_SerializedData, Repaint);
 
-            m_UIHandlerState = new ProjectionVolumeComponentUI[m_TypedTargets.Length];
+            m_UIHandlerState = new ProxyVolumeComponentUI[m_TypedTargets.Length];
             for (var i = 0; i < m_UIHandlerState.Length; i++)
-                m_UIHandlerState[i] = new ProjectionVolumeComponentUI();
+                m_UIHandlerState[i] = new ProxyVolumeComponentUI();
         }
 
         public override void OnInspectorGUI()
@@ -34,7 +34,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             d.Update();
             s.Update();
 
-            ProjectionVolumeComponentUI.Inspector.Draw(s, d, o);
+            ProxyVolumeComponentUI.Inspector.Draw(s, d, o);
 
             d.Apply();
         }
@@ -42,7 +42,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         void OnSceneGUI()
         {
             for (var i = 0; i < m_TypedTargets.Length; i++)
-                ProjectionVolumeComponentUI.DrawHandles(m_TypedTargets[i], m_UIHandlerState[i]);
+                ProxyVolumeComponentUI.DrawHandles_EditBase(m_UIHandlerState[i], m_TypedTargets[i]);
         }
     }
 }
