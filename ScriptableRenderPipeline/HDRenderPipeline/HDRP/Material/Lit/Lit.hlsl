@@ -149,11 +149,25 @@ uint FeatureFlagsToTileVariant(uint featureFlags)
     return NUM_FEATURE_VARIANTS - 1;
 }
 
-// This function need to return a compile time value, else there is no optimization
-uint TileVariantToFeatureFlags(uint variant)
+#ifdef USE_INDIRECT
+
+uint TileVariantToFeatureFlags(uint variant, uint tileIndex)
 {
-    return kFeatureVariantFlags[variant];
+    if (variant == NUM_FEATURE_VARIANTS - 1)
+    {
+        // We don't have any compile-time feature information.
+        // Therefore, we load the feature classification data at runtime to avoid
+        // entering every single branch based on feature flags.
+        return g_TileFeatureFlags[tileIndex];
+    }
+    else
+    {
+        // Return the compile-time feature flags.
+        return kFeatureVariantFlags[variant];
+    }
 }
+
+#endif // USE_INDIRECT
 
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
@@ -523,24 +537,6 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // Isolate material features.
     tileFeatureFlags &= MATERIAL_FEATURE_MASK_FLAGS;
 
-    if (tileFeatureFlags == 0)
-    {
-        // We have no feature information, so this is a feature classification pass.
-        tileFeatureFlags = MATERIAL_FEATURE_MASK_FLAGS;
-    }
-    else if (tileFeatureFlags == MATERIAL_FEATURE_MASK_FLAGS)
-    {
-    #ifdef USE_INDIRECT
-        // We don't have detailed compile-time feature information.
-        // Therefore, we load the feature classification data at runtime to avoid
-        // entering every single branch based on feature flags.
-        uint numTileX = (_ScreenSize.x + (TILE_SIZE_FPTL - 1)) / TILE_SIZE_FPTL;
-        uint index    = (positionSS.y / TILE_SIZE_FPTL) * numTileX + (positionSS.x / TILE_SIZE_FPTL);
-
-        tileFeatureFlags = g_TileFeatureFlags[index];
-    #endif
-    }
-
     bsdfData.materialFeatures = tileFeatureFlags; // Only tile-uniform feature evaluation
 
     GBufferType0 inGBuffer0 = LOAD_TEXTURE2D(_GBufferTexture0, positionSS);
@@ -669,7 +665,7 @@ uint MaterialFeatureFlagsFromGBuffer(uint2 positionSS)
     float3 unused;
     // Call the regular function, compiler will optimized out everything not used.
     // Note that all material feature flag bellow are in the same GBuffer (inGBuffer2) and thus material classification only sample one Gbuffer
-    return DecodeFromGBuffer(positionSS, 0, bsdfData, unused);
+    return DecodeFromGBuffer(positionSS, UINT_MAX, bsdfData, unused);
 }
 
 //-----------------------------------------------------------------------------
