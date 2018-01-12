@@ -13,10 +13,3 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   scenesPath:
   - Assets/Tests/GraphicsTests/RenderPipeline/HDRenderPipeline/Scenes/3xxx_DebugView/3002_ObjectMotionVector.unity
-  - Assets/Tests/GraphicsTests/RenderPipeline/HDRenderPipeline/Scenes/3xxx_DebugView/3003_CameraMotionVector_TranslateX.unity
-  - Assets/Tests/GraphicsTests/RenderPipeline/HDRenderPipeline/Scenes/3xxx_DebugView/3004_CameraMotionVector_TranslateY.unity
-  - Assets/Tests/GraphicsTests/RenderPipeline/HDRenderPipeline/Scenes/3xxx_DebugView/3005_CameraMotionVector_TranslateZ.unity
-  - Assets/Tests/GraphicsTests/RenderPipeline/HDRenderPipeline/Scenes/3xxx_DebugView/3006_CameraMotionVector_RotateX.unity
-  - Assets/Tests/GraphicsTests/RenderPipeline/HDRenderPipeline/Scenes/3xxx_DebugView/3007_CameraMotionVector_RotateY.unity
-  - Assets/Tests/GraphicsTests/RenderPipeline/HDRenderPipeline/Scenes/3xxx_DebugView/3008_CameraMotionVector_RotateZ.unity
-  - Assets/Tests/GraphicsTests/RenderPipeline/HDRenderPipeline/Scenes/3xxx_DebugView/3009_CameraMotionVector_FOV.unity
