@@ -392,7 +392,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
 
     // There is no mettalic with SSS and specular color mode
-    float metallic = HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE) ? 0.0 : surfaceData.metallic;
+    float metallic = HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION) ? 0.0 : surfaceData.metallic;
 
     bsdfData.diffuseColor = ComputeDiffuseColor(surfaceData.baseColor, metallic);
     bsdfData.fresnel0     = HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR) ? surfaceData.specularColor : ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, DEFAULT_SPECULAR_VALUE);
@@ -577,8 +577,9 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
 
     bsdfData.normalWS = UnpackNormalOctEncode(float2(inGBuffer1.r, inGBuffer1.g));
 
-    // metallic15 is range [0..12] if mettallic data is needed
-    float metallic = (metallic15 <= GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND) ? metallic15 * (1.0 / GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND) : 0.0;
+    // metallic15 is range [0..12] if metallic data is needed
+    bool pixelHasMetallic = HasFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION);
+    float metallic = pixelHasMetallic ? metallic15 * (1.0 / GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND) : 0.0;
     bsdfData.diffuseColor = ComputeDiffuseColor(baseColor, metallic);
     bsdfData.fresnel0 = pixelHasSpecularColor ? Gamma20ToLinear(inGBuffer2.rgb) : ComputeFresnel0(baseColor, metallic, DEFAULT_SPECULAR_VALUE);
 
@@ -1046,7 +1047,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
         // Note: The modification of the base roughness and fresnel0 by the clear coat is already handled in FillMaterialClearCoatData
 
         // Very coarse attempt at doing energy conservation for the diffuse layer based on NdotL. No science.
-        diffuseLighting *= F_Schlick(CLEAR_COAT_F0, NdotL);
+        diffuseLighting *= lerp(1, F_Schlick(CLEAR_COAT_F0, NdotL), bsdfData.coatMask);
     }
 }
 
