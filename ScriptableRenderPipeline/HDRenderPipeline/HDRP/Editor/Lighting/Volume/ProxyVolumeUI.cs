@@ -8,9 +8,9 @@ using Object = UnityEngine.Object;
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     using _ = CoreEditorUtils;
-    using CED = CoreEditorDrawer<ProjectionVolumeUI, SerializedProjectionVolume>;
+    using CED = CoreEditorDrawer<ProxyVolumeUI, SerializedProxyVolume>;
 
-    class ProjectionVolumeUI : BaseUI<SerializedProjectionVolume>
+    class ProxyVolumeUI : BaseUI<SerializedProxyVolume>
     {
         internal static Color k_GizmoThemeColorProjection = new Color(0x00 / 255f, 0xE5 / 255f, 0xFF / 255f, 0x20 / 255f);
         internal static Color k_GizmoThemeColorProjectionFace = new Color(0x00 / 255f, 0xE5 / 255f, 0xFF / 255f, 0x20 / 255f);
@@ -24,7 +24,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public static readonly CED.IDrawer SectionShapeBox = CED.Action(Drawer_SectionShapeBox);
         public static readonly CED.IDrawer SectionShapeSphere = CED.Action(Drawer_SectionShapeSphere);
 
-        static ProjectionVolumeUI()
+        static ProxyVolumeUI()
         {
             SectionShape = CED.Group(
                 CED.Action(Drawer_FieldShapeType),
@@ -40,7 +40,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public BoxBoundsHandle boxProjectionHandle = new BoxBoundsHandle();
         public SphereBoundsHandle sphereProjectionHandle = new SphereBoundsHandle();
 
-        public ProjectionVolumeUI()
+        public ProxyVolumeUI()
             : base(k_ShapeCount)
         {
             
@@ -63,42 +63,47 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return m_AnimBools[(int)shapeType];
         }
 
-        static void Drawer_FieldShapeType(ProjectionVolumeUI s, SerializedProjectionVolume d, Editor o)
+        static void Drawer_FieldShapeType(ProxyVolumeUI s, SerializedProxyVolume d, Editor o)
         {
             EditorGUILayout.PropertyField(d.shapeType, _.GetContent("Shape Type"));
         }
 
-        static void Drawer_SectionShapeBox(ProjectionVolumeUI s, SerializedProjectionVolume d, Editor o)
+        static void Drawer_SectionShapeBox(ProxyVolumeUI s, SerializedProxyVolume d, Editor o)
         {
             EditorGUILayout.PropertyField(d.boxSize, _.GetContent("Box Size"));
             EditorGUILayout.PropertyField(d.boxOffset, _.GetContent("Box Offset"));
             EditorGUILayout.PropertyField(d.boxInfiniteProjection, _.GetContent("Infinite Projection"));
         }
 
-        static void Drawer_SectionShapeSphere(ProjectionVolumeUI s, SerializedProjectionVolume d, Editor o)
+        static void Drawer_SectionShapeSphere(ProxyVolumeUI s, SerializedProxyVolume d, Editor o)
         {
             EditorGUILayout.PropertyField(d.sphereRadius, _.GetContent("Sphere Radius"));
             EditorGUILayout.PropertyField(d.sphereOffset, _.GetContent("Sphere Offset"));
             EditorGUILayout.PropertyField(d.sphereInfiniteProjection, _.GetContent("Infinite Projection"));
         }
 
-        public static void DrawHandles(Transform transform, ProjectionVolume projectionVolume, ProjectionVolumeUI ui, Object sourceAsset)
+        public static void DrawHandles_EditBase(Transform transform, ProxyVolume proxyVolume, ProxyVolumeUI ui, Object sourceAsset)
         {
-            switch (projectionVolume.shapeType)
+            switch (proxyVolume.shapeType)
             {
                 case ShapeType.Box:
-                    Handles_Box(transform, projectionVolume, ui, sourceAsset);
+                    Handles_EditBase_Box(transform, proxyVolume, ui, sourceAsset);
                     break;
                 case ShapeType.Sphere:
-                    Handles_Sphere(transform, projectionVolume, ui, sourceAsset);
+                    Handles_EditBase_Sphere(transform, proxyVolume, ui, sourceAsset);
                     break;
             }
         }
 
-        static void Handles_Sphere(Transform transform, ProjectionVolume projectionVolume, ProjectionVolumeUI s, Object sourceAsset)
+        public static void DrawHandles_EditNone(Transform transform, ProxyVolume proxyVolume, ProxyVolumeUI ui, Object sourceAsset)
         {
-            s.sphereProjectionHandle.center = projectionVolume.sphereOffset;
-            s.sphereProjectionHandle.radius = projectionVolume.sphereRadius;
+
+        }
+
+        static void Handles_EditBase_Sphere(Transform transform, ProxyVolume proxyVolume, ProxyVolumeUI s, Object sourceAsset)
+        {
+            s.sphereProjectionHandle.center = proxyVolume.sphereOffset;
+            s.sphereProjectionHandle.radius = proxyVolume.sphereRadius;
 
             var mat = Handles.matrix;
             Handles.matrix = transform.localToWorldMatrix;
@@ -109,18 +114,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 Undo.RecordObject(sourceAsset, "Modified Projection Volume");
 
-                projectionVolume.sphereOffset = s.sphereProjectionHandle.center;
-                projectionVolume.sphereRadius = s.sphereProjectionHandle.radius;
+                proxyVolume.sphereOffset = s.sphereProjectionHandle.center;
+                proxyVolume.sphereRadius = s.sphereProjectionHandle.radius;
 
                 EditorUtility.SetDirty(sourceAsset);
             }
             Handles.matrix = mat;
         }
 
-        static void Handles_Box(Transform transform, ProjectionVolume projectionVolume, ProjectionVolumeUI s, Object sourceAsset)
+        static void Handles_EditBase_Box(Transform transform, ProxyVolume proxyVolume, ProxyVolumeUI s, Object sourceAsset)
         {
-            s.boxProjectionHandle.center = projectionVolume.boxOffset;
-            s.boxProjectionHandle.size = projectionVolume.boxSize;
+            s.boxProjectionHandle.center = proxyVolume.boxOffset;
+            s.boxProjectionHandle.size = proxyVolume.boxSize;
 
             var mat = Handles.matrix;
             Handles.matrix = transform.localToWorldMatrix;
@@ -132,13 +137,48 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 Undo.RecordObject(sourceAsset, "Modified Projection Volume AABB");
 
-                projectionVolume.boxOffset = s.boxProjectionHandle.center;
-                projectionVolume.boxSize = s.boxProjectionHandle.size;
+                proxyVolume.boxOffset = s.boxProjectionHandle.center;
+                proxyVolume.boxSize = s.boxProjectionHandle.size;
 
                 EditorUtility.SetDirty(sourceAsset);
             }
 
             Handles.matrix = mat;
+        }
+
+        public static void DrawGizmos_EditNone(Transform transform, ProxyVolume proxyVolume, ProxyVolumeUI ui, Object sourceAsset)
+        {
+            switch (proxyVolume.shapeType)
+            {
+                case ShapeType.Box:
+                    Gizmos_EditNone_Box(transform, proxyVolume, ui, sourceAsset);
+                    break;
+                case ShapeType.Sphere:
+                    Gizmos_EditNone_Sphere(transform, proxyVolume, ui, sourceAsset);
+                    break;
+            }
+        }
+
+        static void Gizmos_EditNone_Sphere(Transform t, ProxyVolume d, ProxyVolumeUI s, Object o)
+        {
+            var mat = Gizmos.matrix;
+            Gizmos.matrix = t.localToWorldMatrix;
+
+            Gizmos.color = k_GizmoThemeColorProjection;
+            Gizmos.DrawWireSphere(d.sphereOffset, d.sphereRadius);
+
+            Gizmos.matrix = mat;
+        }
+
+        static void Gizmos_EditNone_Box(Transform t, ProxyVolume d, ProxyVolumeUI s, Object o)
+        {
+            var mat = Gizmos.matrix;
+            Gizmos.matrix = t.localToWorldMatrix;
+
+            Gizmos.color = k_GizmoThemeColorProjection;
+            Gizmos.DrawWireCube(d.boxOffset, d.boxSize);
+
+            Gizmos.matrix = mat;
         }
     }
 }

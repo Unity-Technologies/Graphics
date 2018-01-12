@@ -3,8 +3,8 @@
     public class ProxyVolumeComponent : MonoBehaviour
     {
         [SerializeField]
-        ProjectionVolume m_ProjectionVolume = new ProjectionVolume();
+        ProxyVolume m_ProxyVolume = new ProxyVolume();
 
-        public ProjectionVolume projectionVolume { get { return m_ProjectionVolume; } }
+        public ProxyVolume proxyVolume { get { return m_ProxyVolume; } }
     }
 }
