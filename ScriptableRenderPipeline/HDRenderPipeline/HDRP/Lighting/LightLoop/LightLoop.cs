@@ -277,7 +277,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static HDAdditionalLightData defaultHDAdditionalLightData { get { return ComponentSingleton<HDAdditionalLightData>.instance; } }
         static HDAdditionalCameraData defaultHDAdditionalCameraData { get { return ComponentSingleton<HDAdditionalCameraData>.instance; } }
 
-        ReflectionProbeCache m_ReflectionPlanarProbeCache;
+        PlanarReflectionProbeCache m_ReflectionPlanarProbeCache;
         ReflectionProbeCache m_ReflectionProbeCache;
         TextureCache2D m_CookieTexArray;
         TextureCacheCubemap m_CubeCookieTexArray;
@@ -467,7 +467,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             TextureFormat probeCacheFormat = gLightLoopSettings.reflectionCacheCompressed ? TextureFormat.BC6H : TextureFormat.RGBAHalf;
             m_ReflectionProbeCache = new ReflectionProbeCache(iblFilterGGX, gLightLoopSettings.reflectionProbeCacheSize, gLightLoopSettings.reflectionCubemapSize, probeCacheFormat, true);
-            m_ReflectionPlanarProbeCache = new ReflectionProbeCache(iblFilterGGX, gLightLoopSettings.reflectionProbeCacheSize, gLightLoopSettings.reflectionCubemapSize, probeCacheFormat, true);
+
+            TextureFormat planarProbeCacheFormat = gLightLoopSettings.planarReflectionCacheCompressed ? TextureFormat.BC6H : TextureFormat.RGBAHalf;
+            m_ReflectionPlanarProbeCache = new PlanarReflectionProbeCache(iblFilterGGX, gLightLoopSettings.planarReflectionProbeCacheSize, gLightLoopSettings.planarReflectionCubemapSize, planarProbeCacheFormat, true);
 
             s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
 
@@ -1159,9 +1161,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             switch (probe.texture.dimension)
             {
                 case TextureDimension.Tex2D:
-                    // TODO: Do Planar Reflection Cache
-                    //envIndex = m_ReflectionPlanarProbeCache.FetchSlice(cmd, probe.texture);
-                    //envIndex = envIndex << 1 | (int) ProbeCacheType.Texture2D;
+                    envIndex = m_ReflectionPlanarProbeCache.FetchSlice(cmd, probe.texture);
+                    envIndex = envIndex << 1 | (int)EnvCacheType.Texture2D;
                     break;
                 case TextureDimension.Cube:
                     envIndex = m_ReflectionProbeCache.FetchSlice(cmd, probe.texture);

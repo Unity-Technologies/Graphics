@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
@@ -17,8 +17,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int cubeCookieTexArraySize = 16;
 
         public int reflectionProbeCacheSize = 128;
+        public int planarReflectionProbeCacheSize = 128;
         public int reflectionCubemapSize = 128;
+        public int planarReflectionCubemapSize = 128;
         public bool reflectionCacheCompressed = false;
+        public bool planarReflectionCacheCompressed = false;
         public SkyResolution skyReflectionSize = SkyResolution.SkyResolution256;
         public LayerMask skyLightingOverrideLayerMask = 0;
     }
