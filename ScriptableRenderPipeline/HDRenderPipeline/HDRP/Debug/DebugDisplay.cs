@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using System;
 
@@ -43,6 +43,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static string kSkyReflectionMipmapDebug = "Sky Reflection Mipmap";
         public static string kTileClusterCategoryDebug = "Tile/Cluster Debug By Category";
         public static string kTileClusterDebug = "Tile/Cluster Debug";
+        public static string kMipMapDebugMode = "Mip Map Debug Mode";
 
 
         public float debugOverlayRatio = 0.33f;
@@ -51,6 +52,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public MaterialDebugSettings materialDebugSettings = new MaterialDebugSettings();
         public LightingDebugSettings lightingDebugSettings = new LightingDebugSettings();
+        public MipMapDebugSettings mipMapDebugSettings = new MipMapDebugSettings();
 
         public static GUIContent[] lightingFullScreenDebugStrings = null;
         public static int[] lightingFullScreenDebugValues = null;
@@ -73,56 +75,90 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return lightingDebugSettings.debugLightingMode;
         }
 
+        public DebugMipMapMode GetDebugMipMapMode()
+        {
+            return mipMapDebugSettings.debugMipMapMode;
+        }
+
         public bool IsDebugDisplayEnabled()
         {
-            return materialDebugSettings.IsDebugDisplayEnabled() || lightingDebugSettings.IsDebugDisplayEnabled();
+            return materialDebugSettings.IsDebugDisplayEnabled() || lightingDebugSettings.IsDebugDisplayEnabled() || mipMapDebugSettings.IsDebugDisplayEnabled();
         }
 
         public bool IsDebugMaterialDisplayEnabled()
         {
             return materialDebugSettings.IsDebugDisplayEnabled();
         }
+        public bool IsDebugMipMapDisplayEnabled()
+        {
+            return mipMapDebugSettings.IsDebugDisplayEnabled();
+        }
+
+        private void DisableNonMaterialDebugSettings()
+        {
+            lightingDebugSettings.debugLightingMode = DebugLightingMode.None;
+            mipMapDebugSettings.debugMipMapMode = DebugMipMapMode.None;
+        }
 
         public void SetDebugViewMaterial(int value)
         {
             if (value != 0)
-                lightingDebugSettings.debugLightingMode = DebugLightingMode.None;
+                DisableNonMaterialDebugSettings();
             materialDebugSettings.SetDebugViewMaterial(value);
         }
 
         public void SetDebugViewEngine(int value)
         {
             if (value != 0)
-                lightingDebugSettings.debugLightingMode = DebugLightingMode.None;
+                DisableNonMaterialDebugSettings();
             materialDebugSettings.SetDebugViewEngine(value);
         }
 
         public void SetDebugViewVarying(Attributes.DebugViewVarying value)
         {
             if (value != 0)
-                lightingDebugSettings.debugLightingMode = DebugLightingMode.None;
+                DisableNonMaterialDebugSettings();
             materialDebugSettings.SetDebugViewVarying(value);
         }
 
         public void SetDebugViewProperties(Attributes.DebugViewProperties value)
         {
             if (value != 0)
-                lightingDebugSettings.debugLightingMode = DebugLightingMode.None;
+                DisableNonMaterialDebugSettings();
             materialDebugSettings.SetDebugViewProperties(value);
         }
 
         public void SetDebugViewGBuffer(int value)
         {
             if (value != 0)
-                lightingDebugSettings.debugLightingMode = DebugLightingMode.None;
+                DisableNonMaterialDebugSettings();
             materialDebugSettings.SetDebugViewGBuffer(value);
         }
 
         public void SetDebugLightingMode(DebugLightingMode value)
         {
-            if(value != 0)
+            if (value != 0)
+            {
                 materialDebugSettings.DisableMaterialDebug();
+                mipMapDebugSettings.debugMipMapMode = DebugMipMapMode.None;
+            }
             lightingDebugSettings.debugLightingMode = value;
+        }
+
+        public void SetMipMapMode(DebugMipMapMode value)
+        {
+            if (value != 0)
+            {
+                materialDebugSettings.DisableMaterialDebug();
+                lightingDebugSettings.debugLightingMode = DebugLightingMode.None;
+            }
+            mipMapDebugSettings.debugMipMapMode = value;
+        }
+
+        public void UpdateMaterials()
+        {
+            //if (mipMapDebugSettings.debugMipMapMode != 0)
+            //    Texture.SetStreamingTextureMaterialDebugProperties();
         }
 
         public void RegisterDebug()
@@ -154,6 +190,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, LightLoop.TileClusterCategoryDebug>(kTileClusterCategoryDebug,() => lightingDebugSettings.tileClusterDebugByCategory, (value) => lightingDebugSettings.tileClusterDebugByCategory = (LightLoop.TileClusterCategoryDebug)value);
 
             DebugMenuManager.instance.AddDebugItem<int>("Rendering", kFullScreenDebugMode, () => (int)fullScreenDebugMode, (value) => fullScreenDebugMode = (FullScreenDebugMode)value, DebugItemFlag.None, new DebugItemHandlerIntEnum(DebugDisplaySettings.renderingFullScreenDebugStrings, DebugDisplaySettings.renderingFullScreenDebugValues));
+            DebugMenuManager.instance.AddDebugItem<DebugMipMapMode>("Rendering", "MipMaps", () => mipMapDebugSettings.debugMipMapMode, (value) => SetMipMapMode((DebugMipMapMode)value));
         }
 
         public void OnValidate()

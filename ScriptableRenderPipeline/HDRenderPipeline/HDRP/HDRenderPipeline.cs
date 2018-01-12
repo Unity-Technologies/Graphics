@@ -715,6 +715,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     Resize(hdCamera);
 
+                    if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
+                    {
+                        m_CurrentDebugDisplaySettings.UpdateMaterials();
+                    }
+
                     renderContext.SetupCameraProperties(camera);
 
                     PushGlobalParams(hdCamera, cmd, diffusionProfileSettings);
@@ -778,6 +783,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     UpdateSkyEnvironment(hdCamera, cmd);
 
                     RenderPyramidDepth(camera, cmd, renderContext, FullScreenDebugMode.DepthPyramid);
+
 
                     if (m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled())
                     {
@@ -1573,6 +1579,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             cmd.SetGlobalInt(HDShaderIDs._DebugViewMaterial, (int)m_CurrentDebugDisplaySettings.GetDebugMaterialIndex());
             cmd.SetGlobalInt(HDShaderIDs._DebugLightingMode, (int)m_CurrentDebugDisplaySettings.GetDebugLightingMode());
+            cmd.SetGlobalInt(HDShaderIDs._DebugMipMapMode, (int)m_CurrentDebugDisplaySettings.GetDebugMipMapMode());
             cmd.SetGlobalVector(HDShaderIDs._DebugLightingAlbedo, debugAlbedo);
             cmd.SetGlobalVector(HDShaderIDs._DebugLightingSmoothness, debugSmoothness);
         }
