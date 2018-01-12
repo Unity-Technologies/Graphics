@@ -152,9 +152,14 @@ Material:
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _HeightAmplitude: 0.39999998
-    - _HeightCenter: 0.3
+    - _HeightCenter: 1
+    - _HeightMapParametrization: 0
     - _HeightMax: 20
     - _HeightMin: -20
+    - _HeightOffset: -12
+    - _HeightPoMAmplitude: 40
+    - _HeightTessAmplitude: 40
+    - _HeightTessCenter: 0
     - _IOR: 1
     - _InitialBend: 1
     - _InvTilingScale: 1

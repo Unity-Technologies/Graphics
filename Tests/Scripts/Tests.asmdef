@@ -1,0 +1,16 @@
+{
+    "name": "GraphicTests",
+    "references": [
+        "com.unity.postprocessing.Runtime",
+        "com.unity.render-pipelines.core.IncludePaths",
+        "com.unity.render-pipelines.core.Runtime",
+        "com.unity.render-pipelines.high-definition.Runtime",
+        "com.unity.render-pipelines.lightweight.Runtime",
+        "com.unity.render-pipelines.testbed-pipelines"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": []
+}
