@@ -300,6 +300,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_DebugFullScreenTempRT;
         bool m_FullScreenDebugPushed;
 
+        // temp hack
+        public const int kMsaaSamplesFixed = 2;
+
         public HDRenderPipeline(HDRenderPipelineAsset asset)
         {
             SetRenderingFeatures();
@@ -810,6 +813,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         using (new ProfilingSample(cmd, "Deferred directional shadows", CustomSamplerId.RenderDeferredDirectionalShadow.GetSampler()))
                         {
                             cmd.ReleaseTemporaryRT(m_DeferredShadowBuffer);
+
+                            // TODO: I'll leave this as 1x for easy sampling, but I need to make it MSAA
                             CoreUtils.CreateCmdTemporaryRT(cmd, m_DeferredShadowBuffer, hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear, 1, true);
                             m_LightLoop.RenderDeferredDirectionalShadow(hdCamera, m_DeferredShadowBufferRT, GetDepthTexture(), cmd);
                             PushFullScreenDebugTexture(cmd, m_DeferredShadowBuffer, hdCamera, renderContext, FullScreenDebugMode.DeferredShadows);
@@ -1219,7 +1224,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (settings.IsEnabledAndSupported(null))
                 {
                     cmd.ReleaseTemporaryRT(HDShaderIDs._AmbientOcclusionTexture);
-                    CoreUtils.CreateCmdTemporaryRT(cmd, HDShaderIDs._AmbientOcclusionTexture, hdCamera.renderTextureDesc, 0, FilterMode.Bilinear, RenderTextureFormat.R8, RenderTextureReadWrite.Linear, msaaSamples: 1, enableRandomWrite: true);
+                    CoreUtils.CreateCmdTemporaryRT(cmd, HDShaderIDs._AmbientOcclusionTexture, hdCamera.renderTextureDesc, 0, FilterMode.Bilinear, RenderTextureFormat.R8, RenderTextureReadWrite.Linear, msaaSamplesOverride: 1, enableRandomWrite: true);
                     postProcessLayer.BakeMSVOMap(cmd, camera, HDShaderIDs._AmbientOcclusionTexture, GetDepthTexture(), true);
                     cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, new Vector4(settings.color.value.r, settings.color.value.g, settings.color.value.b, settings.directLightingStrength.value));
                     PushFullScreenDebugTexture(cmd, HDShaderIDs._AmbientOcclusionTexture, hdCamera, renderContext, FullScreenDebugMode.SSAO);
@@ -1486,6 +1491,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderPyramidDepth(Camera camera, CommandBuffer cmd, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
         {
+            if (!m_FrameSettings.enableRoughRefraction)
+                return;
+
             using (new ProfilingSample(cmd, "Pyramid Depth", CustomSamplerId.PyramidDepth.GetSampler()))
             {
                 var depthPyramidDesc = m_DepthPyramidBufferDesc;
@@ -1682,8 +1690,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     cmd.ReleaseTemporaryRT(m_CameraColorBuffer);
                     cmd.ReleaseTemporaryRT(m_CameraSssDiffuseLightingBuffer);
-                    CoreUtils.CreateCmdTemporaryRT(cmd, m_CameraColorBuffer,              hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf,       RenderTextureReadWrite.Linear, 1, true); // Enable UAV
-                    CoreUtils.CreateCmdTemporaryRT(cmd, m_CameraSssDiffuseLightingBuffer, hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
+                    CoreUtils.CreateCmdTemporaryRT(cmd, m_CameraColorBuffer,              hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf,       RenderTextureReadWrite.Linear, 0, true); // Enable UAV
+                    CoreUtils.CreateCmdTemporaryRT(cmd, m_CameraSssDiffuseLightingBuffer, hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 0, true); // Enable UAV
 
 
                     // Color and depth pyramids
@@ -1776,6 +1784,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             desc.depthBufferBits = 0;
             desc.useMipMap = true;
             desc.autoGenerateMips = false;
+
+            desc.msaaSamples = 1; // These are approximation textures, they don't need MSAA
 
             var pyramidSize = CalculatePyramidSize((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y);
 

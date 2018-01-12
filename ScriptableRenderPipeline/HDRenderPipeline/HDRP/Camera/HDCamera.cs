@@ -171,7 +171,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 tempDesc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
             }
 
-            tempDesc.msaaSamples = 1; // will be updated later, deferred will always set to 1
+            if (frameSettings.enableMSAA)
+                tempDesc.msaaSamples = HDRenderPipeline.kMsaaSamplesFixed;
+            else
+                tempDesc.msaaSamples = 1;
+
             tempDesc.depthBufferBits = 0;
             tempDesc.autoGenerateMips = false;
             tempDesc.useMipMap = false;
