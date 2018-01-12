@@ -26,10 +26,22 @@ Shader "HDRenderPipeline/Lit"
 
         _HeightMap("HeightMap", 2D) = "black" {}
         // Caution: Default value of _HeightAmplitude must be (_HeightMax - _HeightMin) * 0.01
+        // Those two properties are computed from the ones exposed in the UI and depends on the displaement mode so they are separate because we don't want to lose information upon displacement mode change.
         [HideInInspector] _HeightAmplitude("Height Amplitude", Float) = 0.02 // In world units. This will be computed in the UI.
+        [HideInInspector] _HeightCenter("Height Center", Range(0.0, 1.0)) = 0.5 // In texture space
+
+		[Enum(MinMax, 0, Amplitude, 1)] _HeightMapParametrization("Heightmap Parametrization", Int) = 0
+        // These parameters are for vertex displacement/Tessellation
+		_HeightOffset("Height Offset", Float) = 0
+		// MinMax mode
         _HeightMin("Heightmap Min", Float) = -1
         _HeightMax("Heightmap Max", Float) = 1
-        _HeightCenter("Height Center", Range(0.0, 1.0)) = 0.5 // In texture space
+		// Amplitude mode
+		_HeightTessAmplitude("Amplitude", Float) = 2.0 // in Centimeters
+        _HeightTessCenter("Height Center", Range(0.0, 1.0)) = 0.5 // In texture space
+
+        // These parameters are for pixel displacement
+        _HeightPoMAmplitude("Height Amplitude", Float) = 2.0 // In centimeters
 
         _DetailMap("DetailMap", 2D) = "black" {}
         _DetailAlbedoScale("_DetailAlbedoScale", Range(0.0, 2.0)) = 1
@@ -218,8 +230,6 @@ Shader "HDRenderPipeline/Lit"
 
     // enable dithering LOD crossfade
     #pragma multi_compile _ LOD_FADE_CROSSFADE
-    // TODO: We should have this keyword only if VelocityInGBuffer is enable, how to do that ?
-    //#pragma multi_compile VELOCITYOUTPUT_OFF VELOCITYOUTPUT_ON
 
     //-------------------------------------------------------------------------------------
     // Define
@@ -278,9 +288,9 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
-            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
-            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
 
             #define SHADERPASS SHADERPASS_GBUFFER
@@ -312,9 +322,9 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
-            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
-            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
 
             #define SHADERPASS SHADERPASS_GBUFFER
@@ -345,9 +355,9 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
-            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
-            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
 
             #define DEBUG_DISPLAY
@@ -523,9 +533,9 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
-            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
-            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             // #include "../../Lighting/Forward.hlsl"
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
@@ -560,9 +570,9 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
-            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
-            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             // #include "../../Lighting/Forward.hlsl"
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
@@ -597,9 +607,9 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
-            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
-            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             // #include "../../Lighting/Forward.hlsl"
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS

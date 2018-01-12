@@ -520,10 +520,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             else
                 m_IntermediateTextureArray = false;
 
+            bool hdrEnabled = m_Asset.SupportsHDR && m_CurrCamera.allowHDR;
             bool intermediateTexture = m_CurrCamera.targetTexture != null || m_CurrCamera.cameraType == CameraType.SceneView ||
-                m_Asset.RenderScale < 1.0f || m_CurrCamera.allowHDR;
+                m_Asset.RenderScale < 1.0f || hdrEnabled;
 
-            m_ColorFormat = m_CurrCamera.allowHDR ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32;
+            m_ColorFormat = hdrEnabled ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
             m_RequiredDepth = false;
             m_CameraPostProcessLayer = m_CurrCamera.GetComponent<PostProcessLayer>();
 
@@ -566,9 +567,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
 
             Rect cameraRect = m_CurrCamera.rect;
-            if (cameraRect.x > 0.0f || cameraRect.y > 0.0f || cameraRect.width < 1.0f || cameraRect.height < 1.0f)
-                intermediateTexture = true;
-            else
+            if (!(Math.Abs(cameraRect.x) > 0.0f || Math.Abs(cameraRect.y) > 0.0f || Math.Abs(cameraRect.width) < 1.0f || Math.Abs(cameraRect.height) < 1.0f))
                 configuration |= FrameRenderingConfiguration.DefaultViewport;
 
             if (intermediateTexture)
@@ -920,7 +919,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 bias = light.shadowBias * proj.m22 * 0.5f * sign;
 
                 // Currently only square POT cascades resolutions are used.
-                // We scale normalBias 
+                // We scale normalBias
                 double frustumWidth = 2.0 / (double)proj.m00;
                 double frustumHeight = 2.0 / (double)proj.m11;
                 float texelSizeX = (float)(frustumWidth / (double)cascadeResolution);
@@ -1025,6 +1024,19 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CoreUtils.SetKeyword(cmd, "_MIXED_LIGHTING_SUBTRACTIVE", m_MixedLightingSetup == MixedLightingSetup.Subtractive);
             CoreUtils.SetKeyword(cmd, "_VERTEX_LIGHTS", vertexLightsCount > 0);
             CoreUtils.SetKeyword(cmd, "SOFTPARTICLES_ON", m_Asset.RequireCameraDepthTexture);
+
+            bool linearFogModeEnabled = false;
+            bool exponentialFogModeEnabled = false;
+            if (RenderSettings.fog)
+            {
+                if (RenderSettings.fogMode == FogMode.Linear)
+                    linearFogModeEnabled = true;
+                else
+                    exponentialFogModeEnabled = true;
+            }
+
+            CoreUtils.SetKeyword(cmd, "FOG_LINEAR", linearFogModeEnabled);
+            CoreUtils.SetKeyword(cmd, "FOG_EXP2", exponentialFogModeEnabled);
         }
 
         private bool RenderShadows(ref CullResults cullResults, ref VisibleLight shadowLight, int shadowLightIndex, ref ScriptableRenderContext context)
@@ -1138,7 +1150,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             worldToShadow = cascadeAtlas * worldToShadow;
 
             m_ShadowSlices[cascadeIndex].atlasX = atlasX;
-            m_ShadowSlices[cascadeIndex].atlasY = atlasY; 
+            m_ShadowSlices[cascadeIndex].atlasY = atlasY;
             m_ShadowSlices[cascadeIndex].shadowResolution = shadowResolution;
             m_ShadowSlices[cascadeIndex].shadowTransform = worldToShadow;
         }
@@ -1184,7 +1196,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 context.StartMultiEye(m_CurrCamera);
 
             CommandBuffer cmd = CommandBufferPool.Get("SetCameraRenderTarget");
-            if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture))
+            bool intermeaditeTexture = LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture);
+            if (intermeaditeTexture)
             {
                 if (!m_IsOffscreenCamera)
                     colorRT = m_CurrCameraColorRT;
@@ -1211,6 +1224,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 SetRenderTarget(cmd, colorRT, depthRT, clearFlag);
             }
 
+            // If rendering to an intermediate RT we resolve viewport on blit due to offset not being supported
+            // while rendering to a RT.
+            if (!intermeaditeTexture && !LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.DefaultViewport))
+                cmd.SetViewport(m_CurrCamera.pixelRect);
+
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
@@ -1231,7 +1249,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 // If PostProcessing is enabled, it is already blit to CameraTarget.
                 if (!LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.PostProcess))
-                    Blit(cmd, renderingConfig, BuiltinRenderTextureType.CurrentActive, BuiltinRenderTextureType.CameraTarget);
+                    Blit(cmd, renderingConfig, BuiltinRenderTextureType.CurrentActive, BuiltinRenderTextureType.CameraTarget, m_BlitMaterial);
             }
 
             SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget);
@@ -1305,6 +1323,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void Blit(CommandBuffer cmd, FrameRenderingConfiguration renderingConfig, RenderTargetIdentifier sourceRT, RenderTargetIdentifier destRT, Material material = null)
         {
+            cmd.SetGlobalTexture(m_BlitTexID, sourceRT);
             if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.DefaultViewport))
             {
                 cmd.Blit(sourceRT, destRT, material);
@@ -1314,10 +1333,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (m_BlitQuad == null)
                     m_BlitQuad = LightweightUtils.CreateQuadMesh(false);
 
-                cmd.SetGlobalTexture(m_BlitTexID, sourceRT);
                 SetRenderTarget(cmd, destRT);
+                cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.SetViewport(m_CurrCamera.pixelRect);
-                cmd.DrawMesh(m_BlitQuad, Matrix4x4.identity, m_BlitMaterial);
+                cmd.DrawMesh(m_BlitQuad, Matrix4x4.identity, material);
             }
         }
 

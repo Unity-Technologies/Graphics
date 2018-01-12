@@ -84,25 +84,50 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         _HeightMap3("HeightMap3", 2D) = "black" {}
 
         // Caution: Default value of _HeightAmplitude must be (_HeightMax - _HeightMin) * 0.01
-        [HideInInspector] _HeightAmplitude0("Height Scale0", Float) = 0.02
+		// Those two properties are computed from the ones exposed in the UI and depends on the displaement mode so they are separate because we don't want to lose information upon displacement mode change.
+		[HideInInspector] _HeightAmplitude0("Height Scale0", Float) = 0.02
         [HideInInspector] _HeightAmplitude1("Height Scale1", Float) = 0.02
         [HideInInspector] _HeightAmplitude2("Height Scale2", Float) = 0.02
         [HideInInspector] _HeightAmplitude3("Height Scale3", Float) = 0.02
+		[HideInInspector] _HeightCenter0("Height Bias0", Range(0.0, 1.0)) = 0.5
+		[HideInInspector] _HeightCenter1("Height Bias1", Range(0.0, 1.0)) = 0.5
+		[HideInInspector] _HeightCenter2("Height Bias2", Range(0.0, 1.0)) = 0.5
+		[HideInInspector] _HeightCenter3("Height Bias3", Range(0.0, 1.0)) = 0.5
 
-        _HeightCenter0("Height Bias0", Range(0.0, 1.0)) = 0.5
-        _HeightCenter1("Height Bias1", Range(0.0, 1.0)) = 0.5
-        _HeightCenter2("Height Bias2", Range(0.0, 1.0)) = 0.5
-        _HeightCenter3("Height Bias3", Range(0.0, 1.0)) = 0.5
-
+		[Enum(MinMax, 0, Amplitude, 1)] _HeightMapParametrization0("Heightmap Parametrization0", Int) = 0
+		[Enum(MinMax, 0, Amplitude, 1)] _HeightMapParametrization1("Heightmap Parametrization1", Int) = 0
+		[Enum(MinMax, 0, Amplitude, 1)] _HeightMapParametrization2("Heightmap Parametrization2", Int) = 0
+		[Enum(MinMax, 0, Amplitude, 1)] _HeightMapParametrization3("Heightmap Parametrization3", Int) = 0
+		// These parameters are for vertex displacement/Tessellation
+		_HeightOffset0("Height Offset0", Float) = 0
+		_HeightOffset1("Height Offset1", Float) = 0
+		_HeightOffset2("Height Offset2", Float) = 0
+		_HeightOffset3("Height Offset3", Float) = 0
+		// MinMax mode
         _HeightMin0("Height Min0", Float) = -1
         _HeightMin1("Height Min1", Float) = -1
         _HeightMin2("Height Min2", Float) = -1
         _HeightMin3("Height Min3", Float) = -1
-
         _HeightMax0("Height Max0", Float) = 1
         _HeightMax1("Height Max1", Float) = 1
         _HeightMax2("Height Max2", Float) = 1
         _HeightMax3("Height Max3", Float) = 1
+
+		// Amplitude mode
+		_HeightTessAmplitude0("Amplitude0", Float) = 2.0 // in Centimeters
+		_HeightTessAmplitude1("Amplitude1", Float) = 2.0 // in Centimeters
+		_HeightTessAmplitude2("Amplitude2", Float) = 2.0 // in Centimeters
+		_HeightTessAmplitude3("Amplitude3", Float) = 2.0 // in Centimeters
+		_HeightTessCenter0("Height Bias0", Range(0.0, 1.0)) = 0.5
+		_HeightTessCenter1("Height Bias1", Range(0.0, 1.0)) = 0.5
+		_HeightTessCenter2("Height Bias2", Range(0.0, 1.0)) = 0.5
+		_HeightTessCenter3("Height Bias3", Range(0.0, 1.0)) = 0.5
+
+		// These parameters are for pixel displacement
+		_HeightPoMAmplitude0("Height Amplitude0", Float) = 2.0 // In centimeters
+		_HeightPoMAmplitude1("Height Amplitude1", Float) = 2.0 // In centimeters
+		_HeightPoMAmplitude2("Height Amplitude2", Float) = 2.0 // In centimeters
+		_HeightPoMAmplitude3("Height Amplitude3", Float) = 2.0 // In centimeters
 
         _DetailMap0("DetailMap0", 2D) = "black" {}
         _DetailMap1("DetailMap1", 2D) = "black" {}
@@ -405,8 +430,6 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
     // enable dithering LOD crossfade
     #pragma multi_compile _ LOD_FADE_CROSSFADE
-    // TODO: We should have this keyword only if VelocityInGBuffer is enable, how to do that ?
-    //#pragma multi_compile VELOCITYOUTPUT_OFF VELOCITYOUTPUT_ON
 
     //-------------------------------------------------------------------------------------
     // Define
@@ -488,9 +511,9 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             #pragma hull Hull
             #pragma domain Domain
 
-            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
-            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
 
             #define SHADERPASS SHADERPASS_GBUFFER
@@ -525,9 +548,9 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             #pragma hull Hull
             #pragma domain Domain
 
-            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
-            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
 
             #define SHADERPASS SHADERPASS_GBUFFER
@@ -561,9 +584,9 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             #pragma hull Hull
             #pragma domain Domain
 
-            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
-            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
 
             #define DEBUG_DISPLAY
@@ -717,9 +740,9 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             #pragma hull Hull
             #pragma domain Domain
 
-            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
-            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             // #include "../../Lighting/Forward.hlsl"
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
@@ -757,9 +780,9 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             #pragma hull Hull
             #pragma domain Domain
 
-            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
-            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             // #include "../../Lighting/Forward.hlsl"
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS

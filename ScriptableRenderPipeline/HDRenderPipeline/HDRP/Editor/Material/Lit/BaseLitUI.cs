@@ -89,6 +89,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             LitIridescence = 5,
         };
 
+        public enum HeightmapParametrization
+        {
+            MinMax = 0,
+            Amplitude = 1
+        }
+
         protected MaterialProperty doubleSidedNormalMode = null;
         protected const string kDoubleSidedNormalMode = "_DoubleSidedNormalMode";
         protected MaterialProperty depthOffsetEnable = null;
@@ -216,6 +222,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.showMixedValue = false;
         }
 
+        protected abstract void UpdateDisplacement();
+
         protected override void BaseMaterialPropertiesGUI()
         {
             base.BaseMaterialPropertiesGUI();
@@ -232,7 +240,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             m_MaterialEditor.ShaderProperty(materialID, StylesBaseLit.materialIDText);
 
+            m_MaterialEditor.ShaderProperty(enableMotionVectorForVertexAnimation, StylesBaseLit.enableMotionVectorForVertexAnimationText);
+
+            EditorGUI.BeginChangeCheck();
             m_MaterialEditor.ShaderProperty(displacementMode, StylesBaseLit.displacementModeText);
+            if(EditorGUI.EndChangeCheck())
+            {
+                UpdateDisplacement();
+            }
+
             if ((DisplacementMode)displacementMode.floatValue != DisplacementMode.None)
             {
                 EditorGUI.indentLevel++;
@@ -240,8 +256,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.ShaderProperty(displacementLockTilingScale, StylesBaseLit.lockWithTilingRateText);
                 EditorGUI.indentLevel--;
             }
-
-            m_MaterialEditor.ShaderProperty(enableMotionVectorForVertexAnimation, StylesBaseLit.enableMotionVectorForVertexAnimationText);
 
             if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel)
             {

@@ -9,6 +9,8 @@ Shader "Hidden/LightweightPipeline/Blit"
         {
             Tags { "LightMode" = "LightweightForward"}
 
+            ZTest Always ZWrite Off
+
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
