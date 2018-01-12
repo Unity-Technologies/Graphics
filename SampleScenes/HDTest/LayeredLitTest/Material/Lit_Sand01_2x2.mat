@@ -8,7 +8,7 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: Lit_Sand01_2x2
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
-  m_ShaderKeywords: _HEIGHTMAP _MASKMAP _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION
+  m_ShaderKeywords: _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _HEIGHTMAP _MASKMAP _MATID_SSS
     _NORMALMAP _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
@@ -129,10 +129,6 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _SubsurfaceMaskMap:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
     - _SubsurfaceRadiusMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -167,7 +163,6 @@ Material:
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
-    - _CoatMask: 1
     - _CullMode: 2
     - _CullModeForward: 2
     - _Cutoff: 0.5
@@ -179,7 +174,6 @@ Material:
     - _DetailNormalMapScale: 1
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
-    - _DiffusionProfile: 0
     - _Displacement: 0.1
     - _DisplacementCenter: 0.5
     - _DisplacementLockObjectScale: 1
@@ -222,14 +216,9 @@ Material:
     - _HeightBias: -0.05
     - _HeightCenter: 0.5
     - _HeightMapMode: 0
-    - _HeightMapParametrization: 0
     - _HeightMax: 1
     - _HeightMin: -1
-    - _HeightOffset: -1
-    - _HeightPoMAmplitude: 2
     - _HeightScale: 0.1
-    - _HeightTessAmplitude: 2
-    - _HeightTessCenter: 0
     - _HorizonFade: 1
     - _IOR: 1
     - _InitialBend: 1
@@ -267,7 +256,6 @@ Material:
     - _StencilWriteMask: 7
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
-    - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
     - _SurfaceType: 0
