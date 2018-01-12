@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
@@ -67,6 +66,19 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             Vector3 lightCameraVector = lightPos - CurrCamera.transform.position;
             return Vector3.Dot(lightCameraVector, lightCameraVector);
+        }
+    }
+
+    public class LightEqualityComparer : IEqualityComparer<VisibleLight>
+    {
+        public bool Equals(VisibleLight x, VisibleLight y)
+        {
+            return x.light.GetInstanceID() == y.light.GetInstanceID();
+        }
+
+        public int GetHashCode(VisibleLight obj)
+        {
+            return obj.light.GetInstanceID();
         }
     }
 
