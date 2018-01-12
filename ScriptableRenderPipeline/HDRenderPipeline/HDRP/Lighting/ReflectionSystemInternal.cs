@@ -199,6 +199,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
 
             camera.fieldOfView = GetCaptureCameraFOVFor(probe);
             camera.aspect = 1;
+            camera.nearClipPlane = probe.captureNearPlane;
+            camera.farClipPlane = probe.captureFarPlane;
         }
 
         static HDCamera GetRenderHDCamera(PlanarReflectionProbe probe)
