@@ -280,6 +280,7 @@ namespace UnityEditor.VFX.UI
 
         public void SetPropertyValue(object value)
         {
+            Undo.RecordObject(model, "VFXSlotValue");
             model.value = value;
         }
 

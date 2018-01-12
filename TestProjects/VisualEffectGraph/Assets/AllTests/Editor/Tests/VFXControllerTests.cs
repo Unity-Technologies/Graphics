@@ -2,10 +2,12 @@ using System;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.VFX;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.VFX.UI;
 using System.IO;
+using UnityEngine.TestTools;
 using UnityEditor.VFX.Block.Test;
 
 namespace UnityEditor.VFX.Test
@@ -251,6 +253,137 @@ namespace UnityEditor.VFX.Test
             fnTestShouldExist();
             Undo.PerformRedo();
             fnTestShouldNotExist();
+        }
+
+        [Test]
+        public void UndoRedoSetSlotValue()
+        {
+            Func<VFXSlotContainerController[]> fnAllOperatorController = delegate()
+                {
+                    m_ViewController.ApplyChanges();
+                    var allController = m_ViewController.allChildren.OfType<VFXSlotContainerController>();
+                    return allController.OfType<VFXOperatorController>().ToArray();
+                };
+
+            var absDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Absolute");
+            var abs = m_ViewController.AddVFXOperator(new Vector2(0, 0), absDesc);
+
+            var absOperator = fnAllOperatorController()[0];
+
+            Undo.IncrementCurrentGroup();
+            absOperator.inputPorts[0].value = 0;
+            Undo.IncrementCurrentGroup();
+
+            absOperator.inputPorts[0].value = 123;
+
+            Undo.PerformUndo();
+
+            Assert.AreEqual(0, absOperator.inputPorts[0].value);
+
+            Undo.PerformRedo();
+
+            Assert.AreEqual(123, absOperator.inputPorts[0].value);
+        }
+
+        [Test]
+        public void UndoRedoSetSlotValueThenGraphChange()
+        {
+            Func<VFXSlotContainerController[]> fnAllOperatorController = delegate()
+                {
+                    m_ViewController.ApplyChanges();
+                    var allController = m_ViewController.allChildren.OfType<VFXSlotContainerController>();
+                    return allController.OfType<VFXOperatorController>().ToArray();
+                };
+
+            var absDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Absolute");
+            var abs = m_ViewController.AddVFXOperator(new Vector2(0, 0), absDesc);
+
+            var absOperator = fnAllOperatorController()[0];
+
+            Undo.IncrementCurrentGroup();
+            absOperator.inputPorts[0].value = 0;
+
+            absOperator.position = new Vector2(1, 2);
+
+
+            Undo.IncrementCurrentGroup();
+
+            absOperator.inputPorts[0].value = 123;
+
+            Undo.IncrementCurrentGroup();
+
+            absOperator.position = new Vector2(123, 456);
+
+            Undo.IncrementCurrentGroup();
+
+            absOperator.inputPorts[0].value = 789;
+
+            Undo.PerformUndo(); // this should undo value change only
+
+            Assert.AreEqual(123, absOperator.inputPorts[0].value);
+            Assert.AreEqual(new Vector2(123, 456), absOperator.position);
+
+            Undo.PerformUndo(); // this should undo position change only
+
+            Assert.AreEqual(123, absOperator.inputPorts[0].value);
+            Assert.AreEqual(new Vector2(1, 2), absOperator.position);
+
+            Undo.PerformUndo(); // this should undo value change only
+
+            Assert.AreEqual(0, absOperator.inputPorts[0].value);
+            Assert.AreEqual(new Vector2(1, 2), absOperator.position);
+
+            Undo.PerformRedo(); // this should redo value change only
+
+            Assert.AreEqual(123, absOperator.inputPorts[0].value);
+            Assert.AreEqual(new Vector2(1, 2), absOperator.position);
+
+            Undo.PerformRedo(); // this should redo position change only
+
+            Assert.AreEqual(123, absOperator.inputPorts[0].value);
+            Assert.AreEqual(new Vector2(123, 456), absOperator.position);
+
+            Undo.PerformRedo(); // this should redo value change only
+
+            Assert.AreEqual(789, absOperator.inputPorts[0].value);
+            Assert.AreEqual(new Vector2(123, 456), absOperator.position);
+        }
+
+        [Test]
+        public void UndoRedoSetSlotValueAndGraphChange()
+        {
+            Func<VFXSlotContainerController[]> fnAllOperatorController = delegate()
+                {
+                    m_ViewController.ApplyChanges();
+                    var allController = m_ViewController.allChildren.OfType<VFXSlotContainerController>();
+                    return allController.OfType<VFXOperatorController>().ToArray();
+                };
+
+            var absDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Absolute");
+            var abs = m_ViewController.AddVFXOperator(new Vector2(0, 0), absDesc);
+
+            var absOperator = fnAllOperatorController()[0];
+
+            Undo.IncrementCurrentGroup();
+            absOperator.inputPorts[0].value = 0;
+
+            absOperator.position = new Vector2(1, 2);
+
+
+            Undo.IncrementCurrentGroup();
+
+            absOperator.inputPorts[0].value = 123;
+            absOperator.position = new Vector2(123, 456);
+
+            Undo.PerformUndo();
+
+            Assert.AreEqual(123, absOperator.inputPorts[0].value);
+            Assert.AreEqual(new Vector2(1, 2), absOperator.position);
+
+            Undo.PerformRedo();
+
+            Assert.AreEqual(123, absOperator.inputPorts[0].value);
+            Assert.AreEqual(new Vector2(123, 456), absOperator.position);
         }
 
         [Test]
