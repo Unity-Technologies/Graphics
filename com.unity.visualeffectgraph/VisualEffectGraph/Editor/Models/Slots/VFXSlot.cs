@@ -57,8 +57,9 @@ namespace UnityEditor.VFX
                     {
                         GetMasterData().m_Value.Set(value);
                         UpdateDefaultExpressionValue();
+
                         if (owner != null)
-                            owner.Invalidate(InvalidationCause.kParamChanged);
+                            Invalidate(InvalidationCause.kParamChanged);
                     }
                     else
                     {
@@ -338,7 +339,7 @@ namespace UnityEditor.VFX
 
             var owner = this.owner;
             if (owner != null  && (direction == Direction.kInput || cause == InvalidationCause.kUIChanged))
-                owner.Invalidate(cause);
+                owner.Invalidate(this, cause);
         }
 
         public void UpdateAttributes(VFXPropertyAttribute[] attributes)

@@ -151,14 +151,17 @@ namespace UnityEditor.VFX.UI
                 portType = controller.portType;
 
 
+                string className = VFXTypeDefinition.GetTypeCSSClass(controller.portType);
                 // update the css type of the class
                 foreach (var cls in VFXTypeDefinition.GetTypeCSSClasses())
                 {
-                    m_ConnectorBox.RemoveFromClassList(cls);
-                    RemoveFromClassList(cls);
+                    if (cls != className)
+                    {
+                        m_ConnectorBox.RemoveFromClassList(cls);
+                        RemoveFromClassList(cls);
+                    }
                 }
 
-                string className = VFXTypeDefinition.GetTypeCSSClass(controller.portType);
                 AddToClassList(className);
                 m_ConnectorBox.AddToClassList(className);
 

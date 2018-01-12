@@ -36,7 +36,8 @@ namespace UnityEditor.VFX.UI
         {
             foreach (string name in System.Enum.GetNames(typeof(CoordinateSpace)))
             {
-                m_Button.RemoveFromClassList("space" + name);
+                if (m_Value.space.ToString() != name)
+                    m_Button.RemoveFromClassList("space" + name);
             }
 
             if (m_Value != null)

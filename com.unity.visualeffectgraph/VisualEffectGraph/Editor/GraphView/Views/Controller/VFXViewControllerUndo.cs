@@ -96,6 +96,12 @@ namespace UnityEditor.VFX.UI
 
         public void IncremenentGraphUndoRedoState(VFXModel model, VFXModel.InvalidationCause cause)
         {
+            if (cause == VFXModel.InvalidationCause.kParamChanged && model is VFXSlot)
+            {
+                Undo.RecordObject(model, string.Format("VFXValue"));
+                return;
+            }
+
             if (cause != VFXModel.InvalidationCause.kStructureChanged &&
                 cause != VFXModel.InvalidationCause.kConnectionChanged &&
                 cause != VFXModel.InvalidationCause.kParamChanged &&
