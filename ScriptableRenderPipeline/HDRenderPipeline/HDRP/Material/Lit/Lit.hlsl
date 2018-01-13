@@ -910,7 +910,7 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 
 bool PixelHasSubsurfaceScattering(BSDFData bsdfData)
 {
-    return min(_EnableSubsurfaceScattering, bsdfData.subsurfaceMask) > 0 &&
+    return (_EnableSubsurfaceScattering * bsdfData.subsurfaceMask != 0) &&
            HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING);
 }
 
