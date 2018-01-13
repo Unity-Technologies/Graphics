@@ -20,8 +20,8 @@ Shader "LightweightPipeline/Standard (Physically Based)"
         _SpecColor("Specular", Color) = (0.2, 0.2, 0.2)
         _SpecGlossMap("Specular", 2D) = "white" {}
 
-        [Toggle] _SpecularHighlights("Specular Highlights", Float) = 1.0
-        [Toggle] _GlossyReflections("Glossy Reflections", Float) = 1.0
+        [ToggleOff] _SpecularHighlights("Specular Highlights", Float) = 1.0
+        [ToggleOff] _GlossyReflections("Glossy Reflections", Float) = 1.0
 
         _BumpScale("Scale", Float) = 1.0
         _BumpMap("Normal Map", 2D) = "bump" {}
@@ -94,13 +94,18 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             #pragma multi_compile _ _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _VERTEX_LIGHTS
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+            #pragma multi_compile _ FOG_LINEAR FOG_EXP2
 
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
-            #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile_fog
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED LIGHTMAP_ON
+
+            // LW doesn't support dynamic GI. So we save 30% shader variants if we assume
+            // LIGHTMAP_ON when DIRLIGHTMAP_COMBINED is set
+            #ifdef DIRLIGHTMAP_COMBINED
+            #define LIGHTMAP_ON
+            #endif
 
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment

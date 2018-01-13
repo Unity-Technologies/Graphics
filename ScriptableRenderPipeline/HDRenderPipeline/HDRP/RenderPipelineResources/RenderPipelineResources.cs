@@ -29,11 +29,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ComputeShader buildMaterialFlagsShader;
         public ComputeShader deferredComputeShader;
         public ComputeShader deferredDirectionalShadowComputeShader;
-
-        // Subsurface scattering
-        // These shaders don't need to be reference by RenderPipelineResource as they are not use at runtime (only to draw in editor)
-        // public Shader drawSssProfile;
-        // public Shader drawTransmittanceGraphShader;
+        public ComputeShader volumetricLightingCS;
 
         public ComputeShader subsurfaceScatteringCS; // Disney SSS
         public Shader subsurfaceScattering; // Jimenez SSS
@@ -42,6 +38,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // General
         public Shader cameraMotionVectors;
         public Shader copyStencilBuffer;
+        public Shader blit;
 
         // Sky
         public Shader blitCubemap;

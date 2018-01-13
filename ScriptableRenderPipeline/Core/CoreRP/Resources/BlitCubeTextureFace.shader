@@ -11,6 +11,7 @@
             Cull Off
 
             HLSLPROGRAM
+            #pragma prefer_hlslcc gles
             #include "CoreRP/ShaderLibrary/Common.hlsl"
 
             #pragma vertex vert
@@ -25,7 +26,7 @@
 
             struct Attributes
             {
-                uint vertexID : SV_VertexID;
+                uint vertexID : VERTEXID_SEMANTIC;
             };
 
             struct Varyings

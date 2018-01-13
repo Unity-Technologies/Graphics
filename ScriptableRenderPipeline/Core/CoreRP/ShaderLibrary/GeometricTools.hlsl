@@ -1,37 +1,53 @@
 #ifndef UNITY_GEOMETRICTOOLS_INCLUDED
 #define UNITY_GEOMETRICTOOLS_INCLUDED
 
+// Solves the quadratic equation of the form: a*t^2 + b*t + c = 0.
+// Returns 'false' if there are no real roots, 'true' otherwise.
+// Numerically stable.
+// Ref: Numerical Recipes in C++ (3rd Edition)
+bool SolveQuadraticEquation(float a, float b, float c, out float2 roots)
+{
+    float d = b * b - 4 * a * c;
+    float q = -0.5 * (b + FastMulBySignOf(b, sqrt(d)));
+    roots   = float2(q / a, c / q);
+
+    return (d >= 0);
+}
+
 //-----------------------------------------------------------------------------
 // Intersection functions
 //-----------------------------------------------------------------------------
 
-// return furthest near intersection in x and closest far intersection in y
-// if (intersections.y > intersections.x) the ray hit the box, else it miss it
-// Assume dir is normalize
-float2 BoxRayIntersect(float3 start, float3 dir, float3 boxMin, float3 boxMax)
+// This implementation does not attempt to explicitly handle NaNs.
+// Ref: https://tavianator.com/fast-branchless-raybounding-box-intersections-part-2-nans/
+bool IntersectRayAABB(float3 rayOrigin, float3 rayDirection,
+                      float3 boxMin,    float3 boxMax,
+                      float  tMin,       float tMax,
+                  out float  tEntr,  out float tExit)
 {
-    float3 invDir = 1.0 / dir;
+    float3 rayDirInv = rcp(rayDirection); // Could be precomputed
 
-    // Find the ray intersection with box plane
-    float3 firstPlaneIntersect = (boxMin - start) * invDir;
-    float3 secondPlaneIntersect = (boxMax - start) * invDir;
+    // Perform ray-slab intersection (component-wise).
+    float3 t0 = boxMin * rayDirInv - (rayOrigin * rayDirInv);
+    float3 t1 = boxMax * rayDirInv - (rayOrigin * rayDirInv);
 
-    // Get the closest/furthest of these intersections along the ray (Ok because x/0 give +inf and -x/0 give �inf )
-    float3 closestPlane = min(firstPlaneIntersect, secondPlaneIntersect);
-    float3 furthestPlane = max(firstPlaneIntersect, secondPlaneIntersect);
+    // Find the closest/farthest distance (component-wise).
+    float3 tSlabEntr = min(t0, t1);
+    float3 tSlabExit = max(t0, t1);
 
-    float2 intersections;
-    // Find the furthest near intersection
-    intersections.x = max(closestPlane.x, max(closestPlane.y, closestPlane.z));
-    // Find the closest far intersection
-    intersections.y = min(min(furthestPlane.x, furthestPlane.y), furthestPlane.z);
+    // Find the farthest entry and the nearest exit.
+    tEntr = Max3(tSlabEntr.x, tSlabEntr.y, tSlabEntr.z);
+    tExit = Min3(tSlabExit.x, tSlabExit.y, tSlabExit.z);
 
-    return intersections;
+    // Clamp to the range.
+    tEntr = max(tEntr, tMin);
+    tExit = min(tExit, tMax);
+
+    return tEntr < tExit;
 }
 
 // This simplified version assume that we care about the result only when we are inside the box
-// Assume dir is normalize
-float BoxRayIntersectSimple(float3 start, float3 dir, float3 boxMin, float3 boxMax)
+float IntersectRayAABBSimple(float3 start, float3 dir, float3 boxMin, float3 boxMax)
 {
     float3 invDir = 1.0 / dir;
 
@@ -45,15 +61,16 @@ float BoxRayIntersectSimple(float3 start, float3 dir, float3 boxMin, float3 boxM
 }
 
 // Assume Sphere is at the origin (i.e start = position - spherePosition)
-float2 SphereRayIntersect(float3 start, float3 dir, float radius, out bool intersect)
+bool IntersectRaySphere(float3 start, float3 dir, float radius, out float2 intersections)
 {
     float a = dot(dir, dir);
     float b = dot(dir, start) * 2.0;
     float c = dot(start, start) - radius * radius;
     float discriminant = b * b - 4.0 * a * c;
 
-    float2 intersections = float2(0.0, 0.0);
-    intersect = false;
+    bool intersect = false;
+    intersections = float2(0.0, 0.0);
+
     if (discriminant < 0.0 || a == 0.0)
     {
         intersections.x = 0.0;
@@ -67,13 +84,13 @@ float2 SphereRayIntersect(float3 start, float3 dir, float radius, out bool inter
         intersect = true;
     }
 
-    return intersections;
+    return intersect;
 }
 
 // This simplified version assume that we care about the result only when we are inside the sphere
 // Assume Sphere is at the origin (i.e start = position - spherePosition) and dir is normalized
 // Ref: http://http.developer.nvidia.com/GPUGems/gpugems_ch19.html
-float SphereRayIntersectSimple(float3 start, float3 dir, float radius)
+float IntersectRaySphereSimple(float3 start, float3 dir, float radius)
 {
     float b = dot(dir, start) * 2.0;
     float c = dot(start, start) - radius * radius;
@@ -82,10 +99,59 @@ float SphereRayIntersectSimple(float3 start, float3 dir, float radius)
     return abs(sqrt(discriminant) - b) * 0.5;
 }
 
-float3 RayPlaneIntersect(in float3 rayOrigin, in float3 rayDirection, in float3 planeOrigin, in float3 planeNormal)
+float3 IntersectRayPlane(float3 rayOrigin, float3 rayDirection, float3 planeOrigin, float3 planeNormal)
 {
     float dist = dot(planeNormal, planeOrigin - rayOrigin) / dot(planeNormal, rayDirection);
     return rayOrigin + rayDirection * dist;
+}
+
+// Can support cones with an elliptic base: pre-scale 'coneAxisX' and 'coneAxisY' by (h/r_x) and (h/r_y).
+// Returns parametric distances 'tEntr' and 'tExit' along the ray,
+// subject to constraints 'tMin' and 'tMax'.
+bool IntersectRayCone(float3 rayOrigin,  float3 rayDirection,
+                      float3 coneOrigin, float3 coneDirection,
+                      float3 coneAxisX,  float3 coneAxisY,
+                      float tMin, float tMax,
+                      out float tEntr, out float tExit)
+{
+    // Inverse transform the ray into a coordinate system with the cone at the origin facing along the Z axis.
+    float3x3 rotMat = float3x3(coneAxisX, coneAxisY, coneDirection);
+
+    float3 o = mul(rotMat, rayOrigin - coneOrigin);
+    float3 d = mul(rotMat, rayDirection);
+
+    // Cone equation (facing along Z): (h/r*x)^2 + (h/r*y)^2 - z^2 = 0.
+    // Cone axes are premultiplied with (h/r).
+    // Set up the quadratic equation: a*t^2 + b*t + c = 0.
+    float a = d.x * d.x + d.y * d.y - d.z * d.z;
+    float b = o.x * d.x + o.y * d.y - o.z * d.z;
+    float c = o.x * o.x + o.y * o.y - o.z * o.z;
+
+    float2 roots;
+
+    // Check whether we have at least 1 root.
+    bool hit = SolveQuadraticEquation(a, 2 * b, c, roots);
+
+    tEntr = min(roots.x, roots.y);
+    tExit = max(roots.x, roots.y);
+    float3 pEntr = o + tEntr * d;
+    float3 pExit = o + tExit * d;
+
+    // Clip the negative cone.
+    bool pEntrNeg = pEntr.z < 0;
+    bool pExitNeg = pExit.z < 0;
+    if (pEntrNeg && pExitNeg) { hit = false; }
+    if (pEntrNeg) { tEntr = tExit; tExit = tMax; }
+    if (pExitNeg) { tExit = tEntr; tEntr = tMin; }
+
+    // Clamp using the values passed into the function.
+    tEntr = clamp(tEntr, tMin, tMax);
+    tExit = clamp(tExit, tMin, tMax);
+
+    // Check for grazing intersections.
+    if (tEntr == tExit) { hit = false; }
+
+    return hit;
 }
 
 //-----------------------------------------------------------------------------

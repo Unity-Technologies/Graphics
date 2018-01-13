@@ -30,7 +30,7 @@ void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, floa
     // It is safe to call this function here as surfaceData have been filled
     // We want to know if we must enable transmission on GI for SSS material, if the material have no SSS, this code will be remove by the compiler.
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
-    if (bsdfData.enableTransmission)
+    if (HasMaterialFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
         // For now simply recall the function with inverted normal, the compiler should be able to optimize the lightmap case to not resample the directional lightmap
         // however it will not optimize the lightprobe case due to the proxy volume relying on dynamic if (we rely must get right of this dynamic if), not a problem for SH9, but a problem for proxy volume.
@@ -161,7 +161,7 @@ void GenerateLayerTexCoordBasisTB(FragInputs input, inout LayerTexCoord layerTex
 #define SAMPLER_MASKMAP_IDX sampler_MaskMap
 #define SAMPLER_HEIGHTMAP_IDX sampler_HeightMap
 
-#define SAMPLER_SUBSURFACE_RADIUSMAP_IDX sampler_SubsurfaceRadiusMap
+#define SAMPLER_SUBSURFACE_MASKMAP_IDX sampler_SubsurfaceMaskMap
 #define SAMPLER_THICKNESSMAP_IDX sampler_ThicknessMap
 
 // include LitDataIndividualLayer to define GetSurfaceData
@@ -177,8 +177,8 @@ void GenerateLayerTexCoordBasisTB(FragInputs input, inout LayerTexCoord layerTex
 #ifdef _DETAIL_MAP
 #define _DETAIL_MAP_IDX
 #endif
-#ifdef _SUBSURFACE_RADIUS_MAP
-#define _SUBSURFACE_RADIUS_MAP_IDX
+#ifdef _SUBSURFACE_MASK_MAP
+#define _SUBSURFACE_MASK_MAP_IDX
 #endif
 #ifdef _THICKNESSMAP
 #define _THICKNESSMAP_IDX
@@ -280,6 +280,14 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
     AddDecalContribution(posInput.positionSS, surfaceData);
+
+#if defined(DEBUG_DISPLAY)
+    if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
+    {
+        surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, layerTexCoord.base.uv, _BaseColorMap, _BaseColorMap_TexelSize, _BaseColorMap_MipInfo, surfaceData.baseColor);
+        surfaceData.metallic = 0;
+    }
+#endif
 
     // Caution: surfaceData must be fully initialize before calling GetBuiltinData
     GetBuiltinData(input, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);

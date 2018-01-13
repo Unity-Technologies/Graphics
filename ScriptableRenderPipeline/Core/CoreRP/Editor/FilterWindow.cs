@@ -270,6 +270,11 @@ namespace UnityEditor.Experimental.Rendering
 
         internal void OnGUI()
         {
+            // Avoids errors in the console if a domain reload is triggered while the filter window
+            // is opened
+            if (m_Provider == null)
+                return;
+
             if (s_Styles == null)
                 s_Styles = new Styles();
 

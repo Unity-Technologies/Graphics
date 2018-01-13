@@ -166,7 +166,7 @@ float3 IntegrateDisneyDiffuseIBLRef(LightLoopContext lightLoopContext,
                                     uint sampleCount = 4096)
 {
     float3x3 localToWorld = float3x3(bsdfData.tangentWS, bsdfData.bitangentWS, bsdfData.normalWS);
-    float    NdotV        = preLightData.NdotV;
+    float    NdotV        = preLightData.clampNdotV;
     float3   acc          = float3(0.0, 0.0, 0.0);
 
     // Add some jittering on Hammersley2d
@@ -206,7 +206,7 @@ float3 IntegrateSpecularGGXIBLRef(LightLoopContext lightLoopContext,
 {
     float3x3 localToWorld;
 
-    if (bsdfData.materialId == MATERIALID_LIT_ANISO)
+    if (HasMaterialFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
     {
         localToWorld = float3x3(bsdfData.tangentWS, bsdfData.bitangentWS, bsdfData.normalWS);
     }
@@ -216,7 +216,7 @@ float3 IntegrateSpecularGGXIBLRef(LightLoopContext lightLoopContext,
         localToWorld = GetLocalFrame(bsdfData.normalWS);
     }
 
-    float  NdotV = preLightData.NdotV;
+    float  NdotV = preLightData.clampNdotV;
     float3 acc   = float3(0.0, 0.0, 0.0);
 
     // Add some jittering on Hammersley2d
@@ -233,7 +233,7 @@ float3 IntegrateSpecularGGXIBLRef(LightLoopContext lightLoopContext,
         float weightOverPdf;
 
         // GGX BRDF
-        if (bsdfData.materialId == MATERIALID_LIT_ANISO)
+        if (HasMaterialFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
         {
             ImportanceSampleAnisoGGX(u, V, localToWorld, bsdfData.roughnessT, bsdfData.roughnessB, NdotV, L, VdotH, NdotL, weightOverPdf);
         }

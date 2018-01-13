@@ -26,10 +26,22 @@ Shader "HDRenderPipeline/LitTessellation"
 
         _HeightMap("HeightMap", 2D) = "black" {}
         // Caution: Default value of _HeightAmplitude must be (_HeightMax - _HeightMin) * 0.01
-        [HideInInspector] _HeightAmplitude("Height Amplitude", Float) = 0.02 // In world units
-        _HeightCenter("Height Center", Range(0.0, 1.0)) = 0.5 // In texture space
+        // Those two properties are computed from the ones exposed in the UI and depends on the displaement mode so they are separate because we don't want to lose information upon displacement mode change.
+        [HideInInspector] _HeightAmplitude("Height Amplitude", Float) = 0.02 // In world units. This will be computed in the UI.
+        [HideInInspector] _HeightCenter("Height Center", Range(0.0, 1.0)) = 0.5 // In texture space
+
+		[Enum(MinMax, 0, Amplitude, 1)] _HeightMapParametrization("Heightmap Parametrization", Int) = 0
+        // These parameters are for vertex displacement/Tessellation
+		_HeightOffset("Height Offset", Float) = 0
+		// MinMax mode
         _HeightMin("Heightmap Min", Float) = -1
         _HeightMax("Heightmap Max", Float) = 1
+		// Amplitude mode
+		_HeightTessAmplitude("Amplitude", Float) = 2.0 // in Centimeters
+        _HeightTessCenter("Height Center", Range(0.0, 1.0)) = 0.5 // In texture space
+
+        // These parameters are for pixel displacement
+        _HeightPoMAmplitude("Height Amplitude", Float) = 2.0 // In centimeters
 
         _DetailMap("DetailMap", 2D) = "black" {}
         _DetailAlbedoScale("_DetailAlbedoScale", Range(0.0, 2.0)) = 1
@@ -41,15 +53,14 @@ Shader "HDRenderPipeline/LitTessellation"
         _Anisotropy("Anisotropy", Range(-1.0, 1.0)) = 0
         _AnisotropyMap("AnisotropyMap", 2D) = "white" {}
 
-        _SubsurfaceProfile("Subsurface Profile", Int) = 0
-        _SubsurfaceRadius("Subsurface Radius", Range(0.0, 1.0)) = 1.0
-        _SubsurfaceRadiusMap("Subsurface Radius Map", 2D) = "white" {}
+        _DiffusionProfile("Diffusion Profile", Int) = 0
+        _SubsurfaceMask("Subsurface Radius", Range(0.0, 1.0)) = 1.0
+        _SubsurfaceMaskMap("Subsurface Radius Map", 2D) = "white" {}
         _Thickness("Thickness", Range(0.0, 1.0)) = 1.0
         _ThicknessMap("Thickness Map", 2D) = "white" {}
         _ThicknessRemap("Thickness Remap", Vector) = (0, 1, 0, 0)
 
-        _CoatCoverage("Coat Coverage", Range(0.0, 1.0)) = 1.0
-        _CoatIOR("Coat IOR", Range(0.0, 1.0)) = 0.5
+        _CoatMask("Coat Mask", Range(0.0, 1.0)) = 1.0
 
         _SpecularColor("SpecularColor", Color) = (1, 1, 1, 1)
         _SpecularColorMap("SpecularColorMap", 2D) = "white" {}
@@ -210,7 +221,7 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _TANGENTMAP
     #pragma shader_feature _ANISOTROPYMAP
     #pragma shader_feature _DETAIL_MAP
-    #pragma shader_feature _SUBSURFACE_RADIUS_MAP
+    #pragma shader_feature _SUBSURFACE_MASK_MAP
     #pragma shader_feature _THICKNESSMAP
     #pragma shader_feature _SPECULARCOLORMAP
     #pragma shader_feature _TRANSMITTANCECOLORMAP
@@ -221,18 +232,19 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
     #pragma shader_feature _ENABLE_FOG_ON_TRANSPARENT
 
-    // MaterialId are used as shader feature to allow compiler to optimize properly
-    // Note _MATID_STANDARD is not define as there is always the default case "_". We assign default as _MATID_STANDARD, so we never test _MATID_STANDARD
-    #pragma shader_feature _ _MATID_SSS _MATID_ANISO _MATID_SPECULAR _MATID_CLEARCOAT
+    // MaterialFeature are used as shader feature to allow compiler to optimize properly
+    #pragma shader_feature _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+    #pragma shader_feature _MATERIAL_FEATURE_TRANSMISSION
+    #pragma shader_feature _MATERIAL_FEATURE_ANISOTROPY
+    #pragma shader_feature _MATERIAL_FEATURE_CLEAR_COAT
+    #pragma shader_feature _MATERIAL_FEATURE_IRIDESCENCE
+    #pragma shader_feature _MATERIAL_FEATURE_SPECULAR_COLOR
 
     // enable dithering LOD crossfade
     #pragma multi_compile _ LOD_FADE_CROSSFADE
 
     //enable GPU instancing support
     #pragma multi_compile_instancing
-
-    // TODO: We should have this keyword only if VelocityInGBuffer is enable, how to do that ?
-    //#pragma multi_compile VELOCITYOUTPUT_OFF VELOCITYOUTPUT_ON
 
     //-------------------------------------------------------------------------------------
     // Define
@@ -247,7 +259,7 @@ Shader "HDRenderPipeline/LitTessellation"
     #define HAVE_TESSELLATION_MODIFICATION
 
     // If we use subsurface scattering, enable output split lighting (for forward pass)
-    #if defined(_MATID_SSS) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    #if defined(_MATERIAL_FEATURE_SUBSURFACE_SCATTERING) && !defined(_SURFACE_TYPE_TRANSPARENT)
     #define OUTPUT_SPLIT_LIGHTING
     #endif
 
@@ -297,9 +309,9 @@ Shader "HDRenderPipeline/LitTessellation"
             #pragma hull Hull
             #pragma domain Domain
 
-            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
-            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
 
             #define SHADERPASS SHADERPASS_GBUFFER
@@ -334,9 +346,9 @@ Shader "HDRenderPipeline/LitTessellation"
             #pragma hull Hull
             #pragma domain Domain
 
-            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
-            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
 
             #define SHADERPASS SHADERPASS_GBUFFER
@@ -370,9 +382,9 @@ Shader "HDRenderPipeline/LitTessellation"
             #pragma hull Hull
             #pragma domain Domain
 
-            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
-            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
 
             #define DEBUG_DISPLAY
@@ -486,7 +498,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
             Cull[_CullMode]
 
-            ZWrite Off // TODO: Test Z equal here.
+            ZWrite On
 
             HLSLPROGRAM
 
@@ -570,9 +582,9 @@ Shader "HDRenderPipeline/LitTessellation"
             #pragma hull Hull
             #pragma domain Domain
 
-            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
-            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             // #include "../../Lighting/Forward.hlsl"
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
@@ -610,9 +622,9 @@ Shader "HDRenderPipeline/LitTessellation"
             #pragma hull Hull
             #pragma domain Domain
 
-            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
-            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             // #include "../../Lighting/Forward.hlsl"
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
@@ -650,9 +662,9 @@ Shader "HDRenderPipeline/LitTessellation"
             #pragma hull Hull
             #pragma domain Domain
 
-            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
-            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             // #include "../../Lighting/Forward.hlsl"
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
