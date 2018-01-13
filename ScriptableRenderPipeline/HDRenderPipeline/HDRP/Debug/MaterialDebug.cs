@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using System;
 
@@ -48,6 +48,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             TessellationDisplacement,
             DepthOffset,
             Lightmap,
+            Last,
         }
     }
 
@@ -64,6 +65,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static int[] debugViewMaterialVaryingValues = null;
         public static GUIContent[] debugViewMaterialPropertiesStrings = null;
         public static int[] debugViewMaterialPropertiesValues = null;
+        public static GUIContent[] debugViewMaterialTextureStrings = null;
+        public static int[] debugViewMaterialTextureValues = null;
         public static GUIContent[] debugViewMaterialGBufferStrings = null;
         public static int[] debugViewMaterialGBufferValues = null;
 

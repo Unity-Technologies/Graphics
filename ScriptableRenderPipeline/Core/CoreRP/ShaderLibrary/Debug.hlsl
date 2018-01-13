@@ -62,12 +62,188 @@ bool SampleDebugFontNumber(int2 pixCoord, uint number)
     if (number <= 9)
     {
         return SampleDebugFont(pixCoord - int2(6, 0), number);
-
     }
     else
     {
         return (SampleDebugFont(pixCoord, number / 10) | SampleDebugFont(pixCoord - int2(6, 0), number % 10));
     }
 }
+
+float4 GetStreamingMipColor(uint mipCount, float4 mipInfo)
+{
+    // alpha is amount to blend with source color (0.0 = use original, 1.0 = use new color)
+
+    // mipInfo :
+    // x = quality setings minStreamingMipLevel
+    // y = original mip count for texture
+    // z = desired on screen mip level
+    // w = 0
+    uint originalTextureMipCount = uint(mipInfo.y);
+
+    // If material/shader mip info (original mip level) has not been set its not a streamed texture
+    if (originalTextureMipCount == 0)
+        return float4(1.0, 1.0, 1.0, 0.0);
+
+    uint desiredMipLevel = uint(mipInfo.z);
+    uint mipCountDesired = uint(originalTextureMipCount)-uint(desiredMipLevel);
+    if (mipCount == 0)
+    {
+        // Magenta if mip count invalid
+        return float4(1.0, 0.0, 1.0, 1.0);
+    }
+    else if (mipCount < mipCountDesired)
+    {
+        // red tones when not at the desired mip level (reduction due to budget). Brighter is further from original, alpha 0 when at desired
+        float ratioToDesired = float(mipCount) / float(mipCountDesired);
+        return float4(1.0, 0.0, 0.0, 1.0 - ratioToDesired);
+    }
+    else if (mipCount >= originalTextureMipCount)
+    {
+        // original color when at (or beyond) original mip count
+        return float4(1.0, 1.0, 1.0, 0.0);
+    }
+    else
+    {
+        // green tones when not at the original mip level. Brighter is closer to original, alpha 0 when at original
+        float ratioToOriginal = float(mipCount) / float(originalTextureMipCount);
+        return float4(0.0, 1.0, 0.0, 1.0 - ratioToOriginal);
+    }
+}
+
+float4 GetSimpleMipCountColor(uint mipCount)
+{
+    // Grey scale for mip counts where mip count of 12 = white
+    float mipCountColor = float(mipCount) / 12.0;
+    float4 color = float4(mipCountColor, mipCountColor, mipCountColor, 1.0f);
+
+    // alpha is amount to blend with source color (0.0 = use original, 1.0 = use new color)
+    // Magenta is no valid mip count
+    // Original colour if greater than 12
+    return mipCount==0 ? float4(1.0, 0.0, 1.0, 1.0) : (mipCount > 12 ? float4(1.0, 1.0, 1.0, 0.0) : color );
+}
+
+float4 GetMipLevelColor(float2 uv, float4 texelSize)
+{
+    // Push down into colors list to "optimal level" in following table.
+    // .zw is texture width,height so *2 is down one mip, *4 is down two mips
+    texelSize.zw *= 4.0;
+
+    float mipLevel = ComputeTextureLOD(uv, texelSize.wz);
+    mipLevel = clamp(mipLevel, 0.0, 5.0 - 0.0001);
+
+    float4 colors[6] = {
+        float4(0.0, 0.0, 1.0, 0.8), // 0 BLUE = too little texture detail
+        float4(0.0, 0.5, 1.0, 0.4), // 1 
+        float4(1.0, 1.0, 1.0, 0.0), // 2 = optimal level
+        float4(1.0, 0.7, 0.0, 0.2), // 3 (YELLOW tint)
+        float4(1.0, 0.3, 0.0, 0.6), // 4 (clamped mipLevel 4.9999)
+        float4(1.0, 0.0, 0.0, 0.8)  // 5 RED = too much texture detail (max blended value)
+    };
+
+    int mipLevelInt = floor(mipLevel);
+    float t = frac(mipLevel);
+    float4 a = colors[mipLevelInt];
+    float4 b = colors[mipLevelInt + 1];
+    float4 color = lerp(a, b, t);
+
+    return color;
+}
+
+float3 GetDebugMipColor(float3 originalColor, Texture2D tex, float4 texelSize, float2 uv)
+{
+    // https://aras-p.info/blog/2011/05/03/a-way-to-visualize-mip-levels/
+    float4 mipColor= GetMipLevelColor(uv, texelSize);
+    return lerp(originalColor, mipColor.rgb, mipColor.a);
+}
+
+float3 GetDebugMipCountColor(float3 originalColor, Texture2D tex)
+{
+    uint mipCount = GetMipCount(tex);
+
+    float4 mipColor = GetSimpleMipCountColor(mipCount);
+    return lerp(originalColor, mipColor.rgb, mipColor.a);
+}
+
+float3 GetDebugStreamingMipColor(Texture2D tex, float4 mipInfo)
+{
+    uint mipCount = GetMipCount(tex);
+    return GetStreamingMipColor(mipCount, mipInfo).xyz;
+}
+
+float3 GetDebugStreamingMipColorBlended(float3 originalColor, Texture2D tex, float4 mipInfo)
+{
+    uint mipCount = GetMipCount(tex);
+    float4 mipColor = GetStreamingMipColor(mipCount, mipInfo);
+    return lerp(originalColor, mipColor.rgb, mipColor.a);
+}
+
+float3 GetDebugMipColorIncludingMipReduction(float3 originalColor, Texture2D tex, float4 texelSize, float2 uv, float4 mipInfo)
+{
+    uint originalTextureMipCount = uint(mipInfo.y);
+    if (originalTextureMipCount != 0)
+    {
+        // mipInfo :
+        // x = quality setings minStreamingMipLevel
+        // y = original mip count for texture
+        // z = desired on screen mip level
+        // w = 0
+
+        // Mip count has been reduced but the texelSize was not updated to take that into account
+        uint mipCount = GetMipCount(tex);
+        uint mipReductionLevel = originalTextureMipCount - mipCount;
+        uint mipReductionFactor = 1 << mipReductionLevel;
+        if (mipReductionFactor)
+        {
+            float oneOverMipReductionFactor = 1.0 / mipReductionFactor;
+            // texelSize.xy *= mipReductionRatio;   // Unused in GetDebugMipColor so lets not re-calculate it
+            texelSize.zw *= oneOverMipReductionFactor;
+        }
+    }
+    return GetDebugMipColor(originalColor, tex, texelSize, uv);
+}
+
+float3 GetDebugMipReductionColor(Texture2D tex, float4 mipInfo)
+{
+    uint originalTextureMipCount = uint(mipInfo.y);
+    if (originalTextureMipCount != 0)
+    {
+        // mipInfo :
+        // x = quality setings minStreamingMipLevel
+        // y = original mip count for texture
+        // z = desired on screen mip level
+        // w = 0
+
+        // Mip count has been reduced but the texelSize was not updated to take that into account
+        uint mipCount = GetMipCount(tex);
+        uint mipReductionLevel = originalTextureMipCount - mipCount;
+
+        float mipCol = float(mipReductionLevel) / 12.0;
+        return float3(0, mipCol, 0);
+    }
+
+    // Can't calculate without original mip count - return magenta
+    return float3(1.0, 0.0, 1.0);
+}
+
+#ifdef DEBUG_DISPLAY
+float3 GetTextureDataDebug(uint paramId, float2 uv, Texture2D tex, float4 texelSize, float4 mipInfo, float3 originalColor)
+{
+    switch (paramId)
+    {
+    case DEBUGMIPMAPMODE_MIP_RATIO:
+        return GetDebugMipColorIncludingMipReduction(originalColor, tex, texelSize, uv, mipInfo);
+    case DEBUGMIPMAPMODE_MIP_COUNT:
+        return GetDebugMipCountColor(originalColor, tex);
+    case DEBUGMIPMAPMODE_MIP_COUNT_REDUCTION:
+        return GetDebugMipReductionColor(tex, mipInfo);
+    case DEBUGMIPMAPMODE_STREAMING_MIP_BUDGET:
+        return GetDebugStreamingMipColor(tex, mipInfo);
+    case DEBUGMIPMAPMODE_STREAMING_MIP:
+        return GetDebugStreamingMipColorBlended(originalColor, tex, mipInfo);
+    }
+
+    return originalColor;
+}
+#endif // DEBUG_DISPLAY
 
 #endif // UNITY_DEBUG_INCLUDED

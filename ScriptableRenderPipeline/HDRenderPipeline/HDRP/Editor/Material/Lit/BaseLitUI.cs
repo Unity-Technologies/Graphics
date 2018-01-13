@@ -79,6 +79,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Tessellation
         }
 
+        public enum MaterialId
+        {
+            LitSSS = 0,
+            LitStandard = 1,
+            LitAniso = 2,
+            LitClearCoat = 3,
+            LitSpecular = 4,
+            LitIridescence = 5,
+        };
+
+        public enum HeightmapParametrization
+        {
+            MinMax = 0,
+            Amplitude = 1
+        }
+
         protected MaterialProperty doubleSidedNormalMode = null;
         protected const string kDoubleSidedNormalMode = "_DoubleSidedNormalMode";
         protected MaterialProperty depthOffsetEnable = null;
@@ -206,6 +222,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.showMixedValue = false;
         }
 
+        protected abstract void UpdateDisplacement();
+
         protected override void BaseMaterialPropertiesGUI()
         {
             base.BaseMaterialPropertiesGUI();
@@ -222,7 +240,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             m_MaterialEditor.ShaderProperty(materialID, StylesBaseLit.materialIDText);
 
+            m_MaterialEditor.ShaderProperty(enableMotionVectorForVertexAnimation, StylesBaseLit.enableMotionVectorForVertexAnimationText);
+
+            EditorGUI.BeginChangeCheck();
             m_MaterialEditor.ShaderProperty(displacementMode, StylesBaseLit.displacementModeText);
+            if(EditorGUI.EndChangeCheck())
+            {
+                UpdateDisplacement();
+            }
+
             if ((DisplacementMode)displacementMode.floatValue != DisplacementMode.None)
             {
                 EditorGUI.indentLevel++;
@@ -230,8 +256,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.ShaderProperty(displacementLockTilingScale, StylesBaseLit.lockWithTilingRateText);
                 EditorGUI.indentLevel--;
             }
-
-            m_MaterialEditor.ShaderProperty(enableMotionVectorForVertexAnimation, StylesBaseLit.enableMotionVectorForVertexAnimationText);
 
             if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel)
             {
@@ -322,7 +346,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Set the reference value for the stencil test.
             int stencilRef = (int)StencilLightingUsage.RegularLighting;
-            if ((int)material.GetFloat(kMaterialID) == (int)Lit.MaterialId.LitSSS)
+            if ((int)material.GetFloat(kMaterialID) == (int)BaseLitGUI.MaterialId.LitSSS)
             {
                 stencilRef = (int)StencilLightingUsage.SplitLighting;
             }

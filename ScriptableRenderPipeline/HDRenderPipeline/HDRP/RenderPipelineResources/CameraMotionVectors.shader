@@ -43,7 +43,7 @@ Shader "Hidden/HDRenderPipeline/CameraMotionVectors"
             float2 previousPositionCS = (prevHPos + 1.0) / 2.0;
             float2 positionCS = (curHPos + 1.0) / 2.0;
 
-        #if UNITY_UV_STARTS_AT_TOP
+        #if !UNITY_UV_STARTS_AT_TOP
             previousPositionCS.y = 1.0 - previousPositionCS.y;
             positionCS.y = 1.0 - positionCS.y;
         #endif

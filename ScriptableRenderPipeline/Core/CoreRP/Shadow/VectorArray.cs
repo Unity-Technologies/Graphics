@@ -347,7 +347,7 @@ namespace UnityEngine.Experimental
         {
             for (idx = 0; idx < m_count; ++idx)
             {
-                if (m_array[m_offset + idx].Equals(designator))
+                if (System.Collections.Generic.EqualityComparer<T>.Default.Equals(m_array[m_offset + idx], designator))
                     return true;
             }
             idx = k_InvalidIdx;

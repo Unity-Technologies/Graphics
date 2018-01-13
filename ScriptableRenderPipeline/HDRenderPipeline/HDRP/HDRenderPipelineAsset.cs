@@ -1,7 +1,9 @@
+﻿using UnityEngine.Serialization;
+
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     // The HDRenderPipeline assumes linear lighting. Doesn't work with gamma.
-    public class HDRenderPipelineAsset : RenderPipelineAsset
+    public class HDRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         HDRenderPipelineAsset()
         {
@@ -22,26 +24,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // To be able to turn on/off FrameSettings properties at runtime for debugging purpose without affecting the original one
         // we create a runtime copy (m_ActiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
-        public FrameSettings serializedFrameSettings = new FrameSettings(); // This are the defaultFrameSettings for all the camera and apply to sceneView, public to be visible in the inspector
+        [SerializeField]
+        [FormerlySerializedAs("serializedFrameSettings")]
+        FrameSettings m_FrameSettings = new FrameSettings(); // This are the defaultFrameSettings for all the camera and apply to sceneView, public to be visible in the inspector
         // Not serialized, not visible, the settings effectively used
-        FrameSettings m_FrameSettings = new FrameSettings();
-
+        FrameSettings m_FrameSettingsRuntime = new FrameSettings();
         public FrameSettings GetFrameSettings()
         {
-            return m_FrameSettings;
-        }
-
-        public void OnEnable()
-        {
-            // At creation we need to copy serializedFrameSettings to m_FrameSettings
-            OnValidate();
-        }
-
-        public void OnValidate()
-        {
-            // Modification of defaultFrameSettings in the inspector will call OnValidate().
-            // We do a copy of the settings to those effectively used
-            serializedFrameSettings.CopyTo(m_FrameSettings);
+            return m_FrameSettingsRuntime;
         }
 
         // Store the various RenderPipelineSettings for each platform (for now only one)
@@ -54,7 +44,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
-        public SubsurfaceScatteringSettings sssSettings;
+        public DiffusionProfileSettings diffusionProfileSettings;
 
         public override Shader GetDefaultShader()
         {
@@ -99,6 +89,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override Material GetDefault2DMaterial()
         {
             return null;
+        }
+
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
+        {
+        }
+
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            // Modification of defaultFrameSettings in the inspector will call OnValidate().
+            // We do a copy of the settings to those effectively used
+            m_FrameSettings.CopyTo(m_FrameSettingsRuntime);
         }
     }
 }
