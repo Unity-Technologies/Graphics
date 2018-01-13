@@ -10,7 +10,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private static readonly int m_WorldToDecal = Shader.PropertyToID("_WorldToDecal");
         private static readonly int m_DecalToWorldR = Shader.PropertyToID("_DecalToWorldR");
 
-        public Material m_Material;
+        public Material m_Material = null;
+        private Material m_OldMaterial = null;
         public const int kInvalidIndex = -1;
         private int m_CullIndex = kInvalidIndex;
 
@@ -43,7 +44,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void OnValidate()
         {
-            BoundingSphere sphere = DecalSystem.instance.GetDecalProjectBoundingSphere(transform.localToWorldMatrix);
+            // handle material changes
+            if (m_OldMaterial != m_Material)
+            {
+                Material tempMaterial = m_Material;
+                m_Material = m_OldMaterial;
+                if(m_Material != null)
+                    DecalSystem.instance.RemoveDecal(this);
+                m_Material = tempMaterial;
+                DecalSystem.instance.AddDecal(this);
+                m_OldMaterial = m_Material;
+            }
+
             if (m_Material != null)
             {
                 Shader shader = m_Material.shader;
@@ -72,6 +84,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DrawGizmo(true);
             // if this object is selected there is a chance the transform was changed so update culling info
             DecalSystem.instance.UpdateBoundingSphere(this);
+        }
+
+        public bool IsValid()
+        {
+            if (m_Material == null)
+                return false;
+
+            if (!m_Material.GetTexture("_BaseColorMap") && !m_Material.GetTexture("_NormalMap") &&
+                !m_Material.GetTexture("_MaskMap"))
+                return false;
+
+            return true;
         }
     }
 }
