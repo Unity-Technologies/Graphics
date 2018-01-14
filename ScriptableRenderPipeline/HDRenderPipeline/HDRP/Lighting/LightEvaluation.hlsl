@@ -116,18 +116,11 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
     return cookie;
 }
 
-float GetPunctualShapeAttenuation(LightData lightData, float3 L, float distSq)
-{
-    // Note: lightData.invSqrAttenuationRadius is 0 when applyRangeAttenuation is false
-    float attenuation = GetDistanceAttenuation(distSq, lightData.invSqrAttenuationRadius);
-    // Reminder: lights are oriented backward (-Z)
-    return attenuation * GetAngleAttenuation(L, -lightData.forward, lightData.angleScale, lightData.angleOffset);
-}
-
 // None of the outputs are premultiplied.
+// distances = {d, d^2, 1/d, d_proj}, where d_proj = dot(lightToSample, lightData.forward).
 void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs posInput,
                             LightData lightData, BakeLightingData bakeLightingData,
-                            float3 N, float3 L, float3 lightToSample, float dist, float distSq,
+                            float3 N, float3 L, float3 lightToSample, float4 distances,
                             out float3 color, out float attenuation)
 {
     float3 positionWS = posInput.positionWS;
@@ -135,11 +128,11 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     float  shadowMask = 1.0;
 
     color       = lightData.color;
-    attenuation = GetPunctualShapeAttenuation(lightData, L, distSq);
+    attenuation = SmoothPunctualLightAttenuation(distances, lightData.invSqrAttenuationRadius,
+                                                 lightData.angleScale, lightData.angleOffset);
 
 #if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET != 0)
-    float distProj = dot(lightToSample, lightData.forward);
-    float distVol  = (lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX) ? distProj : dist;
+    float distVol = (lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX) ? distances.w : distances.x;
     attenuation *= TransmittanceHomogeneousMedium(_GlobalFog_Extinction, distVol);
 #endif
 
@@ -162,7 +155,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     {
         // TODO: make projector lights cast shadows.
         float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
-        float4 L_dist = float4(L, dist);
+        float4 L_dist = float4(L, distances.x);
         shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS + offset, N, lightData.shadowIndex, L_dist, posInput.positionSS);
 #ifdef SHADOWS_SHADOWMASK
         // Note: Legacy Unity have two shadow mask mode. ShadowMask (ShadowMask contain static objects shadow and ShadowMap contain only dynamic objects shadow, final result is the minimun of both value)
