@@ -1159,20 +1159,23 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     int    lightType     = lightData.lightType;
 
     float3 L;
-    float  dist, distSq, distProj;
+    float4 distances; // {d, d^2, 1/d, d_proj}
+    distances.w = dot(lightToSample, lightData.forward);
 
     if (lightType == GPULIGHTTYPE_PROJECTOR_BOX)
     {
-        dist = distSq = 1;         // No distance attenuation
-        L    = -lightData.forward; // No angle attenuation
+        L = -lightData.forward;
+        distances.xyz = 1; // No distance or angle attenuation
     }
     else
     {
         float3 unL     = -lightToSample;
-               distSq  = dot(unL, unL);
+        float  distSq  = dot(unL, unL);
         float  distRcp = rsqrt(distSq);
-               dist    = distSq * distRcp;
-               L       = unL * distRcp;
+        float  dist    = distSq * distRcp;
+
+        L = unL * distRcp;
+        distances.xyz = float3(dist, distSq, distRcp);
     }
 
     float3 N     = bsdfData.normalWS;
@@ -1187,7 +1190,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     float3 color;
     float attenuation;
     EvaluateLight_Punctual(lightLoopContext, posInput, lightData, bakeLightingData, N, L,
-                           lightToSample, dist, distSq, color, attenuation);
+                           lightToSample, distances, color, attenuation);
 
     float intensity = saturate(attenuation * NdotL);
 
@@ -1253,8 +1256,8 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     float invAspectRatio = radius / (radius + (0.5 * len));
 
     // Compute the light attenuation.
-    float intensity = GetEllipsoidalDistanceAttenuation(unL,  lightData.invSqrAttenuationRadius,
-                                                        axis, invAspectRatio);
+    float intensity = EllipsoidalDistanceAttenuation(unL, lightData.invSqrAttenuationRadius,
+                                                     axis, invAspectRatio);
 
     // Terminate if the shaded point is too far away.
     if (intensity == 0.0)
@@ -1371,11 +1374,11 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 #ifdef ELLIPSOIDAL_ATTENUATION
     // The attenuation volume is an axis-aligned ellipsoid s.t.
     // r1 = (r + w / 2), r2 = (r + h / 2), r3 = r.
-    float intensity = GetEllipsoidalDistanceAttenuation(unL, invHalfDim);
+    float intensity = EllipsoidalDistanceAttenuation(unL, invHalfDim);
 #else
     // The attenuation volume is an axis-aligned box s.t.
     // hX = (r + w / 2), hY = (r + h / 2), hZ = r.
-    float intensity = GetBoxDistanceAttenuation(unL, invHalfDim);
+    float intensity = BoxDistanceAttenuation(unL, invHalfDim);
 #endif
 
     // Terminate if the shaded point is too far away.
