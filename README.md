@@ -46,7 +46,7 @@ SRP depends on PostProcessing submodule. Perform the following instructions to g
 1. Download Unity version compatible with Github release (https://github.com/Unity-Technologies/ScriptableRenderPipeline/releases)
 2. Launch
 3. Create a new Unity project
-4. Set `Color Space` to `Linear` in Player settings, Set Antialiasing to disable in Quality settings for all configuration (Fantastic and High), Set Anisotropic Textures to "Per Textures"
+4. Set `Color Space` to `Linear` in Player settings, Set Antialiasing to disable in Quality settings for all configuration (Fantastic and High),
 5. Close Unity
 6. Execute the following commands (or use GitHub interface (ask us)):
 ```
