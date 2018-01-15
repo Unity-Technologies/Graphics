@@ -153,7 +153,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     size.y);
 
                 if (m_PreviewedTextures[i] != null)
-                    EditorGUI.DrawPreviewTexture(itemRect, m_PreviewedTextures[i], null, ScaleMode.ScaleToFit, 0, 1);
+                    EditorGUI.DrawPreviewTexture(itemRect, m_PreviewedTextures[i], CameraEditorUtils.GUITextureBlit2SRGBMaterial, ScaleMode.ScaleToFit, 0, 1);
                 else
                     EditorGUI.LabelField(itemRect, _.GetContent("Not Available"));
             }

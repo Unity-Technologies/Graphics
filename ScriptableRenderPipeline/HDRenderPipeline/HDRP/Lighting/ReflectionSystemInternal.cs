@@ -158,7 +158,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             desc.width = m_Parameters.planarReflectionProbeSize;
             desc.height = m_Parameters.planarReflectionProbeSize;
             desc.colorFormat = RenderTextureFormat.ARGBHalf;
+            desc.useMipMap = true;
             var rt = new RenderTexture(desc);
+            rt.name = "PlanarProbeRT " + probe.name;
             return rt;
         }
 
@@ -187,7 +189,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             return renderTexture != null
                 && renderTexture.width == m_Parameters.planarReflectionProbeSize
                 && renderTexture.height == m_Parameters.planarReflectionProbeSize
-                && renderTexture.format == RenderTextureFormat.ARGBHalf;
+                && renderTexture.format == RenderTextureFormat.ARGBHalf
+                && renderTexture.useMipMap;
         }
 
         public void RequestRealtimeRender(PlanarReflectionProbe probe)
@@ -204,6 +207,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
 
             renderCamera.camera.Render();
             renderCamera.camera.targetTexture = null;
+            target.IncrementUpdateCount();
         }
 
         void SetProbeBoundsDirty(PlanarReflectionProbe planarProbe)
@@ -238,10 +242,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             ctr.position = captureToWorld.GetColumn(3);
             ctr.rotation = captureToWorld.rotation;
 
-            camera.fieldOfView = GetCaptureCameraFOVFor(probe, viewerCamera);
-            camera.aspect = 1;
-            camera.nearClipPlane = probe.captureNearPlane;
-            camera.farClipPlane = probe.captureFarPlane;
+            if (viewerCamera == null)
+            {
+                camera.fieldOfView = GetCaptureCameraFOVFor(probe, viewerCamera);
+                camera.aspect = 1;
+                camera.nearClipPlane = probe.captureNearPlane;
+                camera.farClipPlane = probe.captureFarPlane;
+            }
+            else
+            {
+                camera.fieldOfView = GetCaptureCameraFOVFor(probe, viewerCamera);
+                camera.aspect = 1;
+                camera.nearClipPlane = probe.captureNearPlane;
+                camera.farClipPlane = probe.captureFarPlane;
+            }
         }
 
         static HDCamera GetRenderHDCamera(PlanarReflectionProbe probe)
