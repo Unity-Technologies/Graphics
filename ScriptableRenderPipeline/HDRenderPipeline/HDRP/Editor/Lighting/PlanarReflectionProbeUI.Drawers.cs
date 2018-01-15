@@ -26,15 +26,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CED.Action(Drawer_SectionInfluenceSettings)
         );
 
-        public static readonly CED.IDrawer SectionFoldoutCaptureSettings = CED.FoldoutGroup(
-            "Capture Settings",
-            (s, d, o) => s.isSectionExpandedCaptureSettings,
-            true,
-            CED.Action(Drawer_SectionCaptureSettings)
-        );
+        public static readonly CED.IDrawer SectionFoldoutCaptureSettings;
+
+        public static readonly CED.IDrawer SectionCaptureMirrorSettings = CED.Action(Drawer_SectionCaptureMirror);
 
         static PlanarReflectionProbeUI()
         {
+            SectionFoldoutCaptureSettings = CED.FoldoutGroup(
+                "Capture Settings",
+                (s, d, o) => s.isSectionExpandedCaptureSettings,
+                true,
+                CED.Action(Drawer_SectionCaptureSettings),
+                CED.FadeGroup(
+                    (s, d, o, i) => s.isSectionExpandedCaptureMirrorSettings,
+                    false,
+                    SectionCaptureMirrorSettings)
+            );
+
             SectionProbeModeSettings = CED.Group(
                 CED.Action(Drawer_FieldCaptureType),
                 CED.FadeGroup(
@@ -74,7 +82,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const EditMode.SceneViewEditMode EditBaseShape = EditMode.SceneViewEditMode.ReflectionProbeBox;
         const EditMode.SceneViewEditMode EditInfluenceShape = EditMode.SceneViewEditMode.GridBox;
         const EditMode.SceneViewEditMode EditInfluenceNormalShape = EditMode.SceneViewEditMode.Collider;
-        const EditMode.SceneViewEditMode EditCenter = EditMode.SceneViewEditMode.ReflectionProbeOrigin; 
+        const EditMode.SceneViewEditMode EditCenter = EditMode.SceneViewEditMode.ReflectionProbeOrigin;
+
+        static void Drawer_SectionCaptureMirror(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
+        {
+            EditorGUILayout.PropertyField(d.captureMirrorPlaneLocalPosition, _.GetContent("Plane Position"));
+            EditorGUILayout.PropertyField(d.captureMirrorPlaneLocalNormal, _.GetContent("Plane Normal"));
+        }
 
         static void Drawer_SectionCaptureSettings(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
         {
