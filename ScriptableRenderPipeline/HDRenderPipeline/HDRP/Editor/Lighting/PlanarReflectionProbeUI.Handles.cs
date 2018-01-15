@@ -74,16 +74,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void DrawGizmos_CaptureFrustrum(PlanarReflectionProbeUI s, PlanarReflectionProbe d)
         {
-            var fov = ReflectionSystem.GetCaptureCameraFOVFor(d);
+            var viewerCamera = Camera.current;
+
+            var captureToWorld = d.GetCaptureToWorld(viewerCamera);
+            var capturePosition = captureToWorld.GetColumn(3);
+            var captureRotation = captureToWorld.rotation;
+
+            var fov = ReflectionSystem.GetCaptureCameraFOVFor(d, viewerCamera);
             var clipToWorld = CameraEditorUtils.GetCameraClipToWorld(
-                d.capturePosition, d.captureRotation,
+                capturePosition, captureRotation,
                 d.captureNearPlane, d.captureFarPlane,
                 fov, 1);
 
             var near = new Vector3[4];
             var far = new Vector3[4];
-            CameraEditorUtils.GetFrustrumPlaneAt(clipToWorld, d.capturePosition, d.captureFarPlane, far);
-            CameraEditorUtils.GetFrustrumPlaneAt(clipToWorld, d.capturePosition, d.captureNearPlane, near);
+            CameraEditorUtils.GetFrustrumPlaneAt(clipToWorld, capturePosition, d.captureFarPlane, far);
+            CameraEditorUtils.GetFrustrumPlaneAt(clipToWorld, capturePosition, d.captureNearPlane, near);
 
             var c = Gizmos.color;
             Gizmos.color = k_GizmoCamera;
@@ -94,7 +100,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Gizmos.DrawLine(near[i], far[i]);
             }
 
-            Gizmos.DrawSphere(d.capturePosition, HandleUtility.GetHandleSize(d.capturePosition) * 0.2f);
+            Gizmos.DrawSphere(capturePosition, HandleUtility.GetHandleSize(capturePosition) * 0.2f);
             Gizmos.color = c;
         }
     }

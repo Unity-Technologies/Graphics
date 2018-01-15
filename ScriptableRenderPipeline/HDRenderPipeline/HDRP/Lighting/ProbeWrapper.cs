@@ -32,11 +32,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public abstract Texture texture { get; }
         // Position of the center of the probe in capture space
         public abstract float dimmer { get; }
-        public abstract Vector3 influenceRight { get; }
-        public abstract Vector3 influenceUp { get; }
-        public abstract Vector3 influenceForward { get; }
-        public abstract Vector3 capturePosition { get; }
-        public abstract Vector3 influencePosition { get; }
+        public abstract Matrix4x4 influenceToWorld { get; }
         public abstract EnvShapeType influenceShapeType { get; }
         public abstract Vector3 influenceExtents { get; }
         public abstract Vector3 blendNormalDistancePositive { get; }
@@ -47,13 +43,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public abstract Vector3 boxSideFadeNegative { get; }
 
         public abstract EnvShapeType proxyShapeType { get; }
+        public abstract Matrix4x4 proxyToWorld { get; }
         public abstract Vector3 proxyExtents { get; }
         public abstract bool infiniteProjection { get; }
-        public abstract Vector3 proxyRight { get; }
-        public abstract Vector3 proxyUp { get; }
-        public abstract Vector3 proxyForward { get; }
-        public abstract Vector3 proxyPosition { get; }
-        public abstract Matrix4x4 capture2DVP { get; }
+        public abstract Matrix4x4 GetCaptureToWorld(Camera viewCamera);
+        public abstract Matrix4x4 GetCaptureProjection(Camera viewCamera);
     }
 
     class VisibleReflectionProbeWrapper : ProbeWrapper
@@ -82,13 +76,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return add;
         }
 
-        public override Vector3 influenceRight { get { return probe.localToWorld.GetColumn(0).normalized; } }
-        public override Vector3 influenceUp { get { return probe.localToWorld.GetColumn(1).normalized; } }
-        public override Vector3 influenceForward { get { return probe.localToWorld.GetColumn(2).normalized; } }
-        public override Vector3 capturePosition { get { return probe.localToWorld.GetColumn(3); } }
-        public override Matrix4x4 capture2DVP { get { return Matrix4x4.identity; } }
 
-        public override Vector3 influencePosition { get { return capturePosition + probe.center; } }
+        public override Matrix4x4 influenceToWorld
+        {
+            get
+            {
+                return Matrix4x4.TRS(
+                    (Vector3)probe.localToWorld.GetColumn(3) + probe.center,
+                    probe.localToWorld.rotation,
+                    Vector3.one
+                );
+            }
+        }
         public override Texture texture { get { return probe.texture; } }
         public override ReflectionProbeMode mode { get { return probe.probe.mode; } }
         public override EnvShapeType influenceShapeType { get { return ConvertShape(additional.influenceShape); } }
@@ -117,11 +116,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override EnvShapeType proxyShapeType { get { return influenceShapeType; } }
         public override Vector3 proxyExtents { get { return influenceExtents; } }
         public override bool infiniteProjection { get { return probe.boxProjection == 0; } }
-        public override Vector3 proxyRight { get { return influenceRight; } }
-        public override Vector3 proxyUp{ get { return influenceUp; } }
-        public override Vector3 proxyForward{ get { return influenceForward; } }
-        public override Vector3 proxyPosition { get { return influencePosition; } }
-
+        public override Matrix4x4 proxyToWorld { get { return influenceToWorld; } }
+        public override Matrix4x4 GetCaptureToWorld(Camera viewCamera) { return probe.localToWorld; }
+        public override Matrix4x4 GetCaptureProjection(Camera viewCamera) { return Matrix4x4.identity; }
     }
 
     class PlanarReflectionProbeWrapper : ProbeWrapper
@@ -133,11 +130,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             this.probe = probe;
         }
 
-        public override Vector3 influenceRight { get { return probe.influenceRight; } }
-        public override Vector3 influenceUp { get { return probe.influenceUp; } }
-        public override Vector3 influenceForward { get { return probe.influenceForward; } }
-        public override Vector3 capturePosition { get { return probe.capturePosition; } }
-        public override Matrix4x4 capture2DVP { get { return probe.capture2DVP; } }
+        public override Matrix4x4 influenceToWorld { get { return probe.influenceToWorld; } }
         public override Texture texture { get { return probe.texture; } }
         public override EnvShapeType influenceShapeType { get { return ConvertShape(probe.influenceVolume.shapeType); } }
         public override float dimmer { get { return probe.dimmer; } }
@@ -156,7 +149,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public override Vector3 influencePosition { get { return probe.influencePosition; } }
         public override Vector3 blendNormalDistancePositive { get { return probe.influenceVolume.boxInfluenceNormalPositiveFade; } }
         public override Vector3 blendNormalDistanceNegative { get { return probe.influenceVolume.boxInfluenceNormalNegativeFade; } }
         public override Vector3 blendDistancePositive { get { return probe.influenceVolume.boxInfluencePositiveFade; } }
@@ -167,10 +159,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override Vector3 proxyExtents { get { return probe.proxyExtents; } }
         public override bool infiniteProjection { get { return probe.infiniteProjection; } }
         public override ReflectionProbeMode mode { get { return probe.mode; } }
-        public override Vector3 proxyRight { get { return probe.proxyRight; } }
-        public override Vector3 proxyUp { get { return probe.proxyUp; } }
-        public override Vector3 proxyForward { get { return probe.proxyForward; } }
-        public override Vector3 proxyPosition { get { return probe.proxyPosition; } }
 
+        public override Matrix4x4 proxyToWorld { get { return probe.proxyToWorld; } }
+        public override Matrix4x4 GetCaptureToWorld(Camera viewCamera) { return probe.GetCaptureToWorld(viewCamera); }
+        public override Matrix4x4 GetCaptureProjection(Camera viewCamera) {  return probe.GetCaptureProjection(viewCamera); }
     }
 }

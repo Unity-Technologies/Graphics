@@ -1,7 +1,6 @@
 ﻿using System;
 using UnityEditorInternal;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
 
@@ -114,6 +113,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static void Drawer_SectionProbeModeRealtimeSettings(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
         {
             EditorGUILayout.PropertyField(d.refreshMode, _.GetContent("Refresh Mode"));
+            EditorGUILayout.PropertyField(d.capturePositionMode, _.GetContent("Capture Position Mode"));
         }
 
         static void Drawer_SectionInfluenceSettings(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
