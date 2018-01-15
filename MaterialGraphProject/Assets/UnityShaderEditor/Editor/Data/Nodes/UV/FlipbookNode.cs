@@ -29,6 +29,7 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
+    Tile = fmod(Tile, Width*Height);
     {precision}2 tileCount = {precision}2(1.0, 1.0) / {precision}2(Width, Height);
     {precision} tileY = floor(Tile * tileCount.x);
     {precision} tileX = Tile - Width * tileY;
