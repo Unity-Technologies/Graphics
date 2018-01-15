@@ -715,10 +715,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 					if (m_FrameSettings.enableDBuffer)
 						DecalSystem.instance.BeginCull(camera);
 
+                    ReflectionSystem.PrepareCull(camera, m_ReflectionProbeCullResults);
+
                     using (new ProfilingSample(cmd, "CullResults.Cull", GetSampler(CustomSamplerId.CullResultsCull)))
                     {
                         CullResults.Cull(ref cullingParams, renderContext,ref m_CullResults);
                     }
+
+                    m_ReflectionProbeCullResults.Cull();
 
                     m_DbufferManager.vsibleDecalCount = 0;
                     if (m_FrameSettings.enableDBuffer)
@@ -726,8 +730,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_DbufferManager.vsibleDecalCount = DecalSystem.instance.QueryCullResults();
                         DecalSystem.instance.EndCull();
                     }
-
-                    ReflectionSystem.Cull(camera, m_ReflectionProbeCullResults);
 
                     var postProcessLayer = camera.GetComponent<PostProcessLayer>();
                     var hdCamera = HDCamera.Get(camera, postProcessLayer, m_FrameSettings);

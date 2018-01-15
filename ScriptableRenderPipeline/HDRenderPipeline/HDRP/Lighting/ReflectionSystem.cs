@@ -21,11 +21,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_Instance.UnregisterProbe(planarProbe);
         }
 
-        public static void Cull(Camera camera, ReflectionProbeCullResults results)
-        {
-            s_Instance.Cull(camera, results);
-        }
-
         public static void RequestRealtimeRender(PlanarReflectionProbe probe)
         {
             s_Instance.RequestRealtimeRender(probe);
@@ -49,6 +44,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static float GetCaptureCameraFOVFor(PlanarReflectionProbe probe)
         {
             return s_Instance.GetCaptureCameraFOVFor(probe);
+        }
+
+        public static void PrepareCull(Camera camera, ReflectionProbeCullResults results)
+        {
+            s_Instance.PrepareCull(camera, results);
         }
     }
 }
