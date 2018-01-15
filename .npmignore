@@ -3,6 +3,7 @@
 /SampleScenes*
 /TestbedPipelines*
 /Tests*
+/ScriptableRenderPipeline/HDRenderPipeline*
 /.collabignore
 /.gitignore
 /.gitmodules

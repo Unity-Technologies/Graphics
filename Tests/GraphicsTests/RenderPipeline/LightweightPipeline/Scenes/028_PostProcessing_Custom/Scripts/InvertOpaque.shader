@@ -10,7 +10,7 @@
         {
         	
             float4 color = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.texcoord);
-            return 1-color;
+            return float4(1-color.rgb, color.a);
         }
 
     ENDHLSL

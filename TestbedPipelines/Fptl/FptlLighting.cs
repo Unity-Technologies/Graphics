@@ -72,7 +72,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             scInit.resourceBinder                    = binder;
 
             m_ShadowMgr = new ShadowManager(shadowSettings, ref scInit, m_Shadowmaps);
-            // set global overrides - these need to match the override specified in ShadowDispatch.hlsl
+            // set global overrides - these need to match the override specified in Fptl/Shadow.hlsl
             m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Point        , ShadowAlgorithm.PCF, ShadowVariant.V1, ShadowPrecision.High, true );
             m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Spot         , ShadowAlgorithm.PCF, ShadowVariant.V1, ShadowPrecision.High, true );
             m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Directional  , ShadowAlgorithm.PCF, ShadowVariant.V1, ShadowPrecision.High, true );
@@ -124,7 +124,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
     public class FptlLighting : RenderPipelineAsset
     {
 #if UNITY_EDITOR
-        [UnityEditor.MenuItem("RenderPipeline/Create FPTLRenderPipeline")]
+        [UnityEditor.MenuItem("Assets/Create/Render Pipeline/FPTL/Render Pipeline", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateRenderLoopFPTL()
         {
             var instance = ScriptableObject.CreateInstance<FptlLighting>();
@@ -196,6 +196,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
         private static ComputeBuffer s_AABBBoundsBuffer;
         private static ComputeBuffer s_LightList;
         private static ComputeBuffer s_DirLightList;
+        private static ComputeBuffer s_LightIndices;
 
         private static ComputeBuffer s_BigTileLightList;        // used for pre-pass coarse culling on 64x64 tiles
         private static int s_GenListPerBigTileKernel;
@@ -260,6 +261,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             s_AABBBoundsBuffer.Release();
             s_ConvexBoundsBuffer.Release();
             s_LightDataBuffer.Release();
+            s_LightIndices.Release();
             ReleaseResolutionDependentBuffers();
             s_DirLightList.Release();
 
@@ -284,6 +286,9 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
             if (s_LightDataBuffer != null)
                 s_LightDataBuffer.Release();
+
+            if (s_LightIndices != null)
+                s_LightIndices.Release();
 
             ReleaseResolutionDependentBuffers();
 
@@ -318,6 +323,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             s_ConvexBoundsBuffer = new ComputeBuffer(MaxNumLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightBound)));
             s_LightDataBuffer = new ComputeBuffer(MaxNumLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightData)));
             s_DirLightList = new ComputeBuffer(MaxNumDirLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLight)));
+            s_LightIndices = null; // only used in traditional forward, will be created on demand
 
             buildScreenAABBShader.SetBuffer(s_GenAABBKernel, "g_data", s_ConvexBoundsBuffer);
             //m_BuildScreenAABBShader.SetBuffer(kGenAABBKernel, "g_vBoundsBuffer", m_aabbBoundsBuffer);
@@ -354,7 +360,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             m_CubeReflTexArray = new TextureCacheCubemap();
             m_CookieTexArray.AllocTextureArray(8, m_TextureSettings.spotCookieSize, m_TextureSettings.spotCookieSize, TextureFormat.RGBA32, true);
             m_CubeCookieTexArray.AllocTextureArray(4, m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true);
-            m_CubeReflTexArray.AllocTextureArray(64, m_TextureSettings.reflectionCubemapSize, TextureCache.GetPreferredHdrCompressedTextureFormat, true);
+            m_CubeReflTexArray.AllocTextureArray(64, m_TextureSettings.reflectionCubemapSize, TextureCache.GetPreferredHDRCompressedTextureFormat, true);
 
             //m_DeferredMaterial.SetTexture("_spotCookieTextures", m_cookieTexArray.GetTexCache());
             //m_DeferredMaterial.SetTexture("_pointCookieTextures", m_cubeCookieTexArray.GetTexCache());
@@ -416,7 +422,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             {
                 sorting = { flags = SortFlags.CommonOpaque },
                 //@TODO: need to get light probes + LPPV too?
-                rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe
+                rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe | RendererConfiguration.ProvideLightIndices | RendererConfiguration.ProvideReflectionProbeIndices
             };
             var filterSettings = new FilterRenderersSettings(true){renderQueueRange = RenderQueueRange.opaque};
             loop.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings);
@@ -430,8 +436,10 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
             bool haveTiledSolution = opaquesOnly || enableClustered;
             cmd.EnableShaderKeyword(haveTiledSolution ? "TILED_FORWARD" : "REGULAR_FORWARD");
+            cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
             cmd.SetGlobalFloat("g_isOpaquesOnlyEnabled", useFptl ? 1 : 0);      // leaving this as a dynamic toggle for now for forward opaques to keep shader variants down.
             cmd.SetGlobalBuffer("g_vLightListGlobal", useFptl ? s_LightList : s_PerVoxelLightLists);
+            cmd.SetGlobalBuffer("g_vLightListMeshInst", s_LightIndices);
 
             loop.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -440,8 +448,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             // render opaque objects using Deferred pass
             var drawSettings = new DrawRendererSettings(camera, new ShaderPassName("ForwardSinglePass"))
             {
-                sorting = { flags = SortFlags.CommonOpaque },
-                rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe
+                sorting = { flags = opaquesOnly ? SortFlags.CommonOpaque : SortFlags.CommonTransparent },
+                rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe | RendererConfiguration.ProvideLightIndices | RendererConfiguration.ProvideReflectionProbeIndices
             };
             var filterSettings = new FilterRenderersSettings(true) { renderQueueRange = opaquesOnly ? RenderQueueRange.opaque : RenderQueueRange.transparent };
 
@@ -602,7 +610,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             return dirLightCount;
         }
 
-        int GenerateSourceLightBuffers(Camera camera, CullResults inputs)
+        int GenerateSourceLightBuffers(CommandBuffer cmd, Camera camera, CullResults inputs)
         {
             // 0. deal with shadows
             {
@@ -676,7 +684,23 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             var boundData = new SFiniteLightBound[numVolumes];
             var worldToView = WorldToCamera(camera);
 
+            var lightIndexMap = inputs.GetLightIndexMap();
+            for (int i = 0; i < lightIndexMap.Length; i++)
+            {
+                lightIndexMap[i] = -1;
+            }
+
+            int lightIndexCount = inputs.GetLightIndicesCount();
+            if (s_LightIndices == null || lightIndexCount > s_LightIndices.count)
+            {
+                // The light indices buffer is too small, resize
+                if (s_LightIndices != null)
+                    s_LightIndices.Release();
+                s_LightIndices = new ComputeBuffer(lightIndexCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(int)));
+            }
+
             uint shadowLightIndex = 0;
+            uint lightIndex = 0;
             foreach (var cl in inputs.visibleLights)
             {
                 var range = cl.range;
@@ -714,7 +738,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                     var isCircularSpot = !bHasCookie;
                     if (!isCircularSpot)    // square spots always have cookie
                     {
-                        light.sliceIndex = m_CookieTexArray.FetchSlice(cl.light.cookie);
+                        light.sliceIndex = m_CookieTexArray.FetchSlice(cmd, cl.light.cookie);
                     }
 
                     Vector3 lightDir = lightToWorld.GetColumn(2);   // Z axis in world space
@@ -788,7 +812,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 {
                     if (bHasCookie)
                     {
-                        light.sliceIndex = m_CubeCookieTexArray.FetchSlice(cl.light.cookie);
+                        light.sliceIndex = m_CubeCookieTexArray.FetchSlice(cmd, cl.light.cookie);
                     }
 
                     var lightToView = worldToView * lightToWorld;
@@ -828,7 +852,10 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 {
                     boundData[idxOut] = bound;
                     lightData[idxOut] = light;
+                    lightIndexMap[lightIndex] = idxOut;
                 }
+
+                lightIndex++;
             }
             int numLightsOut = 0;
             for(int v=0; v<numVolTypes; v++) numLightsOut += numEntries[LightDefinitions.DIRECT_LIGHT, v];
@@ -893,7 +920,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 lgtData.lightIntensity = decodeVals.x;
                 lgtData.decodeExp = decodeVals.y;
 
-                lgtData.sliceIndex = m_CubeReflTexArray.FetchSlice(cubemap);
+                lgtData.sliceIndex = m_CubeReflTexArray.FetchSlice(cmd, cubemap);
 
                 var delta = combinedExtent - e;
                 lgtData.boxInnerDist = e;
@@ -915,7 +942,10 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 idxOut = numEntries2nd[i, j] + offsets[i, j]; ++numEntries2nd[i, j];
                 boundData[idxOut] = bndData;
                 lightData[idxOut] = lgtData;
+                lightIndexMap[lightIndex] = idxOut;
+                lightIndex++;
             }
+            inputs.SetLightIndexMap(lightIndexMap);
 
             int numProbesOut = 0;
             for(int v=0; v<numVolTypes; v++) numProbesOut += numEntries[LightDefinitions.REFLECTION_LIGHT, v];
@@ -929,7 +959,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             s_ConvexBoundsBuffer.SetData(boundData);
             s_LightDataBuffer.SetData(lightData);
 
-
+            inputs.FillLightIndices(s_LightIndices);
             return numLightsOut + numProbesOut;
         }
 
@@ -988,7 +1018,10 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             var invProjscr = projscr.inverse;
 
             // build per tile light lists
-            var numLights = GenerateSourceLightBuffers(camera, cullResults);
+            CommandBuffer cmdGenerateLightBuffers = CommandBufferPool.Get();
+            var numLights = GenerateSourceLightBuffers(cmdGenerateLightBuffers, camera, cullResults);
+            loop.ExecuteCommandBuffer(cmdGenerateLightBuffers);
+            CommandBufferPool.Release(cmdGenerateLightBuffers);
 
             GPUFence postLightListFence;
 
@@ -1298,7 +1331,6 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             {
                 VoxelLightListGeneration(cmd, camera, numLights, projscr, invProjscr);
             }
-
         }
 
         void PushGlobalParams(Camera camera, ScriptableRenderContext loop, Matrix4x4 viewToWorld, Matrix4x4 scrProj, Matrix4x4 incScrProj, int numDirLights)

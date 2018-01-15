@@ -25,22 +25,20 @@ UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(3);
 #define BOX_LIGHT (2)
 #define DIRECTIONAL_LIGHT (3)
 
-#define SHADOW_FPTL
-#	if defined(SHADER_API_D3D11)
-#		include "../../../ScriptableRenderPipeline/Core/ShaderLibrary/API/D3D11.hlsl"
-#	elif defined(SHADER_API_PSSL)
-#		include "../../../ScriptableRenderPipeline/Core/ShaderLibrary/API/PSSL.hlsl"
-#	elif defined(SHADER_API_XBOXONE)
-#		include "../../../ScriptableRenderPipeline/Core/ShaderLibrary/API/D3D11.hlsl"
-#		include "../../../ScriptableRenderPipeline/Core/ShaderLibrary/API/D3D11_1.hlsl"
-#	elif defined(SHADER_API_METAL)
-#		include "../../../ScriptableRenderPipeline/Core/ShaderLibrary/API/Metal.hlsl"
-#	else
-#		error unsupported shader api
-#	endif
-#	include "../../../ScriptableRenderPipeline/Core/ShaderLibrary/API/Validate.hlsl"
-#	include "../../../ScriptableRenderPipeline/Core/ShaderLibrary/Shadow/Shadow.hlsl"
-#undef SHADOW_FPTL
+#if defined(SHADER_API_D3D11)
+#	include "CoreRP/ShaderLibrary/API/D3D11.hlsl"
+#elif defined(SHADER_API_PSSL)
+#	include "CoreRP/ShaderLibrary/API/PSSL.hlsl"
+#elif defined(SHADER_API_XBOXONE)
+#	include "CoreRP/ShaderLibrary/API/D3D11.hlsl"
+#	include "CoreRP/ShaderLibrary/API/D3D11_1.hlsl"
+#elif defined(SHADER_API_METAL)
+#	include "CoreRP/ShaderLibrary/API/Metal.hlsl"
+#else
+#	error unsupported shader api
+#endif
+#include "CoreRP/ShaderLibrary/API/Validate.hlsl"
+#include "../../Fptl/Shadow.hlsl"
 
 UNITY_DECLARE_DEPTH_TEXTURE(_CameraGBufferZ);
 

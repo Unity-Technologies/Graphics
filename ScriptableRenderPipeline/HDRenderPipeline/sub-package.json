@@ -1,0 +1,7 @@
+{
+	"name": "com.unity.render-pipelines.high-definition",
+	"description": "HD Render Pipeline for Unity.",
+    "subDependencies": [
+        "com.unity.render-pipelines.core"
+    ]
+}
