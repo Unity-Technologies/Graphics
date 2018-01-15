@@ -28,6 +28,7 @@
 .propertyrm #label
 {
     text-color: rgb(153,153,153);
+	height:16;
 }
 
 .spaceablepropertyrm.propertyrm #label
