@@ -643,6 +643,7 @@ float3 ComputeMainBaseColorInfluence(float influenceMask, float3 baseColor0, flo
 }
 
 #include "LayeredLitDataDisplacement.hlsl"
+#include "../Lit/LitBuiltinData.hlsl"
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
