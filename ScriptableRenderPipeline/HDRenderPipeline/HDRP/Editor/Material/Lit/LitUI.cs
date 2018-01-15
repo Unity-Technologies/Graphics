@@ -244,6 +244,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kEmissiveIntensity = "_EmissiveIntensity";
         protected MaterialProperty albedoAffectEmissive = null;
         protected const string kAlbedoAffectEmissive = "_AlbedoAffectEmissive";
+        protected MaterialProperty UVEmissive = null;
+        protected const string kUVEmissive = "_UVEmissive";
+        protected MaterialProperty TexWorldScaleEmissive = null;
+        protected const string kTexWorldScaleEmissive = "_TexWorldScaleEmissive";
+        protected MaterialProperty UVMappingMaskEmissive = null;
+        protected const string kUVMappingMaskEmissive = "_UVMappingMaskEmissive";
+
         protected MaterialProperty enableSpecularOcclusion = null;
         protected const string kEnableSpecularOcclusion = "_EnableSpecularOcclusion";
 
@@ -329,6 +336,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             emissiveColorMap = FindProperty(kEmissiveColorMap, props);
             emissiveIntensity = FindProperty(kEmissiveIntensity, props);
             albedoAffectEmissive = FindProperty(kAlbedoAffectEmissive, props);
+
+            UVEmissive = FindProperty(kUVEmissive, props);
+            TexWorldScaleEmissive = FindProperty(kTexWorldScaleEmissive, props);
+            UVMappingMaskEmissive = FindProperty(kUVMappingMaskEmissive, props);
+
             enableSpecularOcclusion = FindProperty(kEnableSpecularOcclusion, props);
         }
 
@@ -587,7 +599,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (EditorGUI.EndChangeCheck())
                 {
                     UpdateDisplacement(layerIndex);
-                }                
+                }
             }
 
             switch ((BaseLitGUI.MaterialId)materialID.floatValue)
@@ -744,7 +756,25 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             EditorGUI.indentLevel++;
             m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
+
+            m_MaterialEditor.ShaderProperty(UVEmissive, Styles.UVBaseMappingText);
+            UVBaseMapping uvEmissiveMapping = (UVBaseMapping)UVEmissive.floatValue;
+
+            float X, Y, Z, W;
+            X = (uvEmissiveMapping == UVBaseMapping.UV0) ? 1.0f : 0.0f;
+            Y = (uvEmissiveMapping == UVBaseMapping.UV1) ? 1.0f : 0.0f;
+            Z = (uvEmissiveMapping == UVBaseMapping.UV2) ? 1.0f : 0.0f;
+            W = (uvEmissiveMapping == UVBaseMapping.UV3) ? 1.0f : 0.0f;
+
+            UVMappingMaskEmissive.colorValue = new Color(X, Y, Z, W);
+
+            if ((uvEmissiveMapping == UVBaseMapping.Planar) || (uvEmissiveMapping == UVBaseMapping.Triplanar))
+            {
+                m_MaterialEditor.ShaderProperty(TexWorldScaleEmissive, Styles.texWorldScaleText);
+            }
+
             m_MaterialEditor.TextureScaleOffsetProperty(emissiveColorMap);
+
             m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
             m_MaterialEditor.ShaderProperty(albedoAffectEmissive, Styles.albedoAffectEmissiveText);
             EditorGUI.indentLevel--;
@@ -779,6 +809,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // (MaterialProperty value might come from renderer material property block)
             CoreUtils.SetKeyword(material, "_MAPPING_PLANAR", ((UVBaseMapping)material.GetFloat(kUVBase)) == UVBaseMapping.Planar);
             CoreUtils.SetKeyword(material, "_MAPPING_TRIPLANAR", ((UVBaseMapping)material.GetFloat(kUVBase)) == UVBaseMapping.Triplanar);
+
             CoreUtils.SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", (normalMapSpace == NormalMapSpace.TangentSpace));
 
             if (normalMapSpace == NormalMapSpace.TangentSpace)
@@ -796,7 +827,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CoreUtils.SetKeyword(material, "_BENTNORMALMAP", material.GetTexture(kBentNormalMapOS));
             }
             CoreUtils.SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
+
+            CoreUtils.SetKeyword(material, "_EMISSIVE_MAPPING_PLANAR", ((UVBaseMapping)material.GetFloat(kUVEmissive)) == UVBaseMapping.Planar && material.GetTexture(kEmissiveColorMap));
+            CoreUtils.SetKeyword(material, "_EMISSIVE_MAPPING_TRIPLANAR", ((UVBaseMapping)material.GetFloat(kUVEmissive)) == UVBaseMapping.Triplanar && material.GetTexture(kEmissiveColorMap));
             CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
+
             CoreUtils.SetKeyword(material, "_ENABLESPECULAROCCLUSION", material.GetFloat(kEnableSpecularOcclusion) > 0.0f);
             CoreUtils.SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap));
             CoreUtils.SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));

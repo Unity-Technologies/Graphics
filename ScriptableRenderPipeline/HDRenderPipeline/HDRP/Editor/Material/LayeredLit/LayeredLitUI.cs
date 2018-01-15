@@ -631,6 +631,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             CoreUtils.SetKeyword(material, "_INFLUENCEMASK_MAP", material.GetTexture(kLayerInfluenceMaskMap) && material.GetFloat(kkUseMainLayerInfluence) != 0.0f);
 
+            CoreUtils.SetKeyword(material, "_EMISSIVE_MAPPING_PLANAR", ((UVBaseMapping)material.GetFloat(kUVEmissive)) == UVBaseMapping.Planar && material.GetTexture(kEmissiveColorMap));
+            CoreUtils.SetKeyword(material, "_EMISSIVE_MAPPING_TRIPLANAR", ((UVBaseMapping)material.GetFloat(kUVEmissive)) == UVBaseMapping.Triplanar && material.GetTexture(kEmissiveColorMap));
             CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
             CoreUtils.SetKeyword(material, "_ENABLESPECULAROCCLUSION", material.GetFloat(kEnableSpecularOcclusion) > 0.0f);
 
@@ -680,6 +682,25 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             EditorGUI.indentLevel++;
             m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
+
+            m_MaterialEditor.ShaderProperty(UVEmissive, Styles.UVBaseMappingText);
+            UVBaseMapping uvEmissiveMapping = (UVBaseMapping)UVEmissive.floatValue;
+
+            float X, Y, Z, W;
+            X = (uvEmissiveMapping == UVBaseMapping.UV0) ? 1.0f : 0.0f;
+            Y = (uvEmissiveMapping == UVBaseMapping.UV1) ? 1.0f : 0.0f;
+            Z = (uvEmissiveMapping == UVBaseMapping.UV2) ? 1.0f : 0.0f;
+            W = (uvEmissiveMapping == UVBaseMapping.UV3) ? 1.0f : 0.0f;
+
+            UVMappingMaskEmissive.colorValue = new Color(X, Y, Z, W);
+
+            if ((uvEmissiveMapping == UVBaseMapping.Planar) || (uvEmissiveMapping == UVBaseMapping.Triplanar))
+            {
+                m_MaterialEditor.ShaderProperty(TexWorldScaleEmissive, Styles.texWorldScaleText);
+            }
+
+            m_MaterialEditor.TextureScaleOffsetProperty(emissiveColorMap);
+
             m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
             m_MaterialEditor.ShaderProperty(albedoAffectEmissive, Styles.albedoAffectEmissiveText);
             EditorGUI.indentLevel--;
