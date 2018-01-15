@@ -1017,10 +1017,10 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 0
+  flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
-  flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114799785256960774
 MonoBehaviour:
@@ -1257,7 +1257,7 @@ MonoBehaviour:
   - {fileID: 114696786711219316}
   - {fileID: 114071411328686510}
   - {fileID: 114793310504714078}
-  m_Capacity: 65536
+  m_Capacity: 128
   m_Space: 0
 --- !u!114 &114946859040774818
 MonoBehaviour:
@@ -1534,8 +1534,8 @@ VFXAsset:
       m_Array: []
   m_Buffers:
   - type: 1
-    size: 851968
-    capacity: 65536
+    size: 1664
+    capacity: 128
     layout:
     - name: velocity
       type: 3
@@ -1552,25 +1552,25 @@ VFXAsset:
     - name: color
       type: 3
       offset:
-        bucket: 262144
+        bucket: 512
         structure: 4
         element: 0
     - name: position
       type: 3
       offset:
-        bucket: 524288
+        bucket: 1024
         structure: 4
         element: 0
     - name: alive
       type: 17
       offset:
-        bucket: 524288
+        bucket: 1024
         structure: 4
         element: 3
     - name: age
       type: 1
       offset:
-        bucket: 786432
+        bucket: 1536
         structure: 1
         element: 0
   - type: 1
@@ -1584,7 +1584,7 @@ VFXAsset:
         structure: 1
         element: 0
   - type: 2
-    size: 65536
+    size: 128
     capacity: 0
     layout: []
   - type: 1
@@ -1632,7 +1632,7 @@ VFXAsset:
       processor: {fileID: 0}
   - type: 1
     flags: 1
-    capacity: 65536
+    capacity: 128
     buffers:
     - index: 0
       nameId: attributeBuffer
@@ -1668,7 +1668,7 @@ VFXAsset:
       - index: 16
         nameId: Lifetime_d
       params: []
-      processor: {fileID: 7200000, guid: 56bacaf1fab19174f9be2b1f890d1699, type: 3}
+      processor: {fileID: 7200000, guid: 0253d127108897f499e052c6f40d37c5, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -1679,7 +1679,7 @@ VFXAsset:
       - index: 17
         nameId: deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: f25abdbac895bc24c955c52074768da9, type: 3}
+      processor: {fileID: 7200000, guid: e88d053321f132b46918eadf4930551c, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -1692,7 +1692,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 3244709779eefbf418ba3162472bafd4, type: 3}
+      processor: {fileID: 4800000, guid: 328d3468b8195e941802512aafa2c2c7, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
