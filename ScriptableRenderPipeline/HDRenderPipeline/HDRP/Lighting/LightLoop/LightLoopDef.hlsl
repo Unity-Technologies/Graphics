@@ -32,6 +32,10 @@ StructuredBuffer<uint> g_vLayeredOffsetsBuffer;     // don't support Buffer yet 
 StructuredBuffer<float> g_logBaseBuffer;            // don't support Buffer yet in unity
 //#endif
 
+#ifdef USE_INDIRECT
+    StructuredBuffer<uint> g_TileFeatureFlags;
+#endif
+
 StructuredBuffer<DirectionalLightData> _DirectionalLightDatas;
 StructuredBuffer<LightData>            _LightDatas;
 StructuredBuffer<EnvLightData>         _EnvLightDatas;
