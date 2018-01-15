@@ -137,7 +137,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void FilterPlanarTexture(CommandBuffer cmd, Texture source, RenderTexture target)
         {
             // TODO: planar convolution
-            cmd.CopyTexture(source, target);
+            cmd.CopyTexture(source, 0, 0, target, 0, 0);
         }
 
         // Filters MIP map levels (other than 0) with GGX using multiple importance sampling.
