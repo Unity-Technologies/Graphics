@@ -2048,6 +2048,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 0
+  flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
@@ -4283,7 +4284,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.AABox, Assembly-CSharp-Editor-testable,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"space":0,"center":{"x":0.0,"y":0.0,"z":0.0},"size":{"x":1.0,"y":1.0,"z":1.0}}'
+      m_SerializableObject: '{"space":0,"center":{"x":-0.0016481280326843262,"y":5.960464477539063e-8,"z":-0.0065926313400268559},"size":{"x":1.9262703657150269,"y":1.9295674562454224,"z":1.9295670986175538}}'
   m_Property:
     name: bounds
     m_serializedType:
@@ -7650,21 +7651,21 @@ VFXAsset:
       - m_ExpressionIndex: 45
         m_Value: 0
       - m_ExpressionIndex: 46
-        m_Value: 0
+        m_Value: -0.0065926313
       - m_ExpressionIndex: 47
-        m_Value: 1
+        m_Value: 1.9262704
       - m_ExpressionIndex: 48
-        m_Value: 0
+        m_Value: -0.001648128
       - m_ExpressionIndex: 49
-        m_Value: 0
+        m_Value: 0.000000059604645
       - m_ExpressionIndex: 50
         m_Value: 0
       - m_ExpressionIndex: 51
         m_Value: 0.70000005
       - m_ExpressionIndex: 52
-        m_Value: 1
+        m_Value: 1.9295675
       - m_ExpressionIndex: 53
-        m_Value: 1
+        m_Value: 1.9295671
       - m_ExpressionIndex: 54
         m_Value: 0
       - m_ExpressionIndex: 55
@@ -7923,7 +7924,7 @@ VFXAsset:
       - index: 73
         nameId: Max_d
       params: []
-      processor: {fileID: 7200000, guid: 861feaa1159091145a5ddc01f27ff38f, type: 3}
+      processor: {fileID: 7200000, guid: 61b7051ae55011d40a70a76c9233fe2e, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -7960,7 +7961,7 @@ VFXAsset:
       - index: 75
         nameId: VectorField_b
       params: []
-      processor: {fileID: 7200000, guid: 6cbb469386816e943ab6658d3e90b0c8, type: 3}
+      processor: {fileID: 7200000, guid: be7eb8d3b486e1649a14f4e798d0c7a8, type: 3}
     - type: 1073741827
       buffers:
       - index: 0
@@ -7987,7 +7988,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: caa55ddcf1a94b7488df10da271b11cf, type: 3}
+      processor: {fileID: 4800000, guid: 057d9e0095deda246be97bfee975711f, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
