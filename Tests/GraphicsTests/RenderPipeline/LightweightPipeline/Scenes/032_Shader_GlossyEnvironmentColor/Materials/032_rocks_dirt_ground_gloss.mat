@@ -8,8 +8,7 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: 032_rocks_dirt_ground_gloss
   m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
-  m_ShaderKeywords: _METALLICGLOSSMAP _METALLICSPECGLOSSMAP _METALLIC_SETUP _NORMALMAP
-    _OCCLUSIONMAP
+  m_ShaderKeywords: _METALLICGLOSSMAP _METALLICSPECGLOSSMAP _NORMALMAP _OCCLUSIONMAP
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -20,7 +19,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BumpMap:
-        m_Texture: {fileID: 341996076, guid: 1e8cfc6374cbc413d8ca5650aaef5a19, type: 3}
+        m_Texture: {fileID: 2800000, guid: 0f226ad72fbd94541b60b79c2b22acdf, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Cube:
@@ -44,11 +43,11 @@ Material:
         m_Scale: {x: 2, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: -76280961, guid: 1e8cfc6374cbc413d8ca5650aaef5a19, type: 3}
+        m_Texture: {fileID: 2800000, guid: 13ec46415f2fe41e7b686854076a3461, type: 3}
         m_Scale: {x: 2, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
-        m_Texture: {fileID: -1653515252, guid: 1e8cfc6374cbc413d8ca5650aaef5a19, type: 3}
+        m_Texture: {fileID: 2800000, guid: b96d71ee619ec4a6eb5df59447789b9b, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicSpecGlossMap:
@@ -56,7 +55,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
-        m_Texture: {fileID: -1295273429, guid: 1e8cfc6374cbc413d8ca5650aaef5a19, type: 3}
+        m_Texture: {fileID: 2800000, guid: cd3bd8395845045ab8eb2a752eea25aa, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _ParallaxMap:
