@@ -68,7 +68,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             m_PlanarReflectionProbe_RealtimeUpdate.Remove(planarProbe);
         }
 
-        public void Cull(Camera camera, ReflectionProbeCullResults results)
+        public void PrepareCull(Camera camera, ReflectionProbeCullResults results)
         {
             UpdateAllPlanarReflectionProbeBounds();
 
@@ -77,9 +77,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             cullingGroup.SetBoundingSpheres(m_PlanarReflectionProbeBoundsArray);
             cullingGroup.SetBoundingSphereCount(m_PlanarReflectionProbeBounds.Count);
 
-            results.CullPlanarReflectionProbes(cullingGroup, m_PlanarReflectionProbesArray);
-            
-            cullingGroup.Dispose();
+            results.PrepareCull(cullingGroup, m_PlanarReflectionProbesArray);
         }
 
         public void RenderAllRealtimeProbes()
