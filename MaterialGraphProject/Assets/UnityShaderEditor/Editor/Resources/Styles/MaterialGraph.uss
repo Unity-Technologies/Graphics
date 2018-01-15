@@ -281,7 +281,7 @@ ColorRGBASlotControlView {
 }
 
 ColorRGBASlotControlView > ColorField {
-    width: 30;
+    width: 41;
     margin-left: 0;
     margin-right: 0;
 }
