@@ -633,10 +633,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_FrameCount = Time.frameCount;
             }
 
+            var isReflection = cameras.Any(c => c.cameraType == CameraType.Reflection);
+            if (!isReflection)
+                ReflectionSystem.RenderAllRealtimeProbes();
+
             foreach (var camera in cameras)
             {
                 if (camera == null)
                     continue;
+
+                if (camera.cameraType != CameraType.Reflection)
+                    ReflectionSystem.RenderAllRealtimeProbesFor(camera);
 
                 // First, get aggregate of frame settings base on global settings, camera frame settings and debug settings
                 var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();

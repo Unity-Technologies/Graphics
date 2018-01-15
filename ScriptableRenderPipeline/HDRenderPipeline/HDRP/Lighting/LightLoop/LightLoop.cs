@@ -1158,6 +1158,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (probe.mode == ReflectionProbeMode.Realtime && camera.cameraType == CameraType.Reflection)
                 return false;
 
+            var captureToWorld = probe.GetCaptureToWorld(camera);
+
             // 31 bits index, 1 bit cache type
             var envIndex = -1;
             switch (probe.texture.dimension)
@@ -1165,8 +1167,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case TextureDimension.Tex2D:
                     envIndex = m_ReflectionPlanarProbeCache.FetchSlice(cmd, probe.texture);
                     envIndex = envIndex << 1 | (int)EnvCacheType.Texture2D;
-                    m_Env2DCapturePositionWS.Add(probe.capturePosition);
-                    m_Env2DCaptureVP.Add(probe.capture2DVP);
+                    m_Env2DCapturePositionWS.Add(captureToWorld.GetColumn(3));
+                    m_Env2DCaptureVP.Add(probe.GetCaptureProjection(camera) * captureToWorld);
                     break;
                 case TextureDimension.Cube:
                     envIndex = m_ReflectionProbeCache.FetchSlice(cmd, probe.texture);
@@ -1180,6 +1182,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Build light data
             var envLightData = new EnvLightData();
 
+            var influenceToWorld = probe.influenceToWorld;
 
             envLightData.envShapeType = probe.influenceShapeType;
             envLightData.dimmer = probe.dimmer;
@@ -1191,26 +1194,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             envLightData.boxSideFadePositive = probe.boxSideFadePositive;
             envLightData.boxSideFadeNegative = probe.boxSideFadeNegative;
 
-            envLightData.right = probe.influenceRight;
-            envLightData.up = probe.influenceUp;
-            envLightData.forward = probe.influenceForward;
-            envLightData.capturePositionWS = probe.capturePosition;
-            envLightData.positionWS = probe.influencePosition;
+            envLightData.right = influenceToWorld.GetColumn(0).normalized;
+            envLightData.up = influenceToWorld.GetColumn(1).normalized;
+            envLightData.forward = influenceToWorld.GetColumn(2).normalized;
+            envLightData.capturePositionWS = captureToWorld.GetColumn(3);
+            envLightData.positionWS = influenceToWorld.GetColumn(3);
 
             envLightData.envIndex = envIndex;
 
             m_lightList.envLights.Add(envLightData);
 
             // Build projection data
+            var proxyToWorld = probe.proxyToWorld;
             var envProxyData = new EnvProxyData();
             envProxyData.envShapeType = probe.proxyShapeType;
             envProxyData.extents = probe.proxyExtents;
             envProxyData.minProjectionDistance = probe.infiniteProjection ? 65504f : 0;
 
-            envProxyData.right = probe.proxyRight;
-            envProxyData.up = probe.proxyUp;
-            envProxyData.forward = probe.proxyForward;
-            envProxyData.positionWS = probe.proxyPosition;
+            envProxyData.right = proxyToWorld.GetColumn(0).normalized;
+            envProxyData.up = proxyToWorld.GetColumn(1).normalized;
+            envProxyData.forward = proxyToWorld.GetColumn(2).normalized;
+            envProxyData.positionWS = proxyToWorld.GetColumn(3);
 
             m_lightList.envProxies.Add(envProxyData);
 
@@ -1225,11 +1229,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // C is reflection volume center in world space (NOT same as cube map capture point)
             var influenceExtents = probe.influenceExtents;       // 0.5f * Vector3.Max(-boxSizes[p], boxSizes[p]);
 
+            var influenceToWorld = probe.influenceToWorld;
+
             // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
-            var influenceRightVS = worldToView.MultiplyVector(probe.influenceRight);
-            var influenceUpVS = worldToView.MultiplyVector(probe.influenceUp);
-            var influenceForwardVS = worldToView.MultiplyVector(probe.influenceForward);
-            var influencePositionVS = worldToView.MultiplyPoint(probe.influencePosition);
+            var influenceRightVS = worldToView.MultiplyVector(influenceToWorld.GetColumn(0).normalized);
+            var influenceUpVS = worldToView.MultiplyVector(influenceToWorld.GetColumn(1).normalized);
+            var influenceForwardVS = worldToView.MultiplyVector(influenceToWorld.GetColumn(2).normalized);
+            var influencePositionVS = worldToView.MultiplyPoint(influenceToWorld.GetColumn(3));
 
             lightVolumeData.lightCategory = (uint)LightCategory.Env;
             lightVolumeData.lightVolume = (uint)lightVolumeType;

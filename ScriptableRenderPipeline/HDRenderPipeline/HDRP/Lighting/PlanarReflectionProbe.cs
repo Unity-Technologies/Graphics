@@ -5,6 +5,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [ExecuteInEditMode]
     public class PlanarReflectionProbe : MonoBehaviour
     {
+        public enum CapturePositionMode
+        {
+            Static,
+            MirrorCamera
+        }
+
         [SerializeField]
         ProxyVolumeComponent m_ProxyVolumeReference;
         [SerializeField]
@@ -30,6 +36,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         float m_CaptureNearPlane = 1;
         [SerializeField]
         float m_CaptureFarPlane = 1000;
+        [SerializeField]
+        CapturePositionMode m_CapturePositionMode = CapturePositionMode.Static;
 
         public ProxyVolumeComponent proxyVolumeReference { get { return m_ProxyVolumeReference; } }
         public InfluenceVolume influenceVolume { get { return m_InfluenceVolume; } }
@@ -53,31 +61,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
         public Bounds bounds { get { return m_InfluenceVolume.GetBoundsAt(transform); } }
         public Vector3 captureLocalPosition { get { return m_CaptureLocalPosition; } set { m_CaptureLocalPosition = value; } }
-        public Matrix4x4 capture2DVP
+        public float dimmer { get { return m_Dimmer; } }
+        public ReflectionProbeMode mode { get { return m_Mode; } }
+        public Matrix4x4 influenceToWorld
         {
             get
             {
-                var fov = ReflectionSystem.GetCaptureCameraFOVFor(this);
-                var proj = Matrix4x4.Perspective(fov, 1, captureNearPlane, captureFarPlane);
-                var view = Matrix4x4.TRS(capturePosition, captureRotation, Vector3.one);
-                return proj * view;
+                var tr = transform;
+                var influencePosition = influenceVolume.GetWorldPosition(tr);
+                return Matrix4x4.TRS(
+                    influencePosition,
+                    tr.rotation,
+                    Vector3.one
+                );
             }
         }
-        public float dimmer { get { return m_Dimmer; } }
-        public ReflectionProbeMode mode { get { return m_Mode; } }
-        public Vector3 influenceRight { get { return transform.right; } }
-        public Vector3 influenceUp { get { return transform.up; } }
-        public Vector3 influenceForward { get { return transform.forward; } }
-        public Vector3 capturePosition
-        {
-            get { return transform.TransformPoint(m_CaptureLocalPosition); }
-            set { m_CaptureLocalPosition = transform.InverseTransformPoint(value); }
-        }
-        public Quaternion captureRotation
-        {
-            get { return Quaternion.LookRotation(influencePosition - capturePosition, transform.up); }
-        }
-        public Vector3 influencePosition { get { return influenceVolume.GetWorldPosition(transform); } }
         public Texture customTexture { get { return m_CustomTexture; } set { m_CustomTexture = value; } }
         public Texture bakedTexture { get { return m_BakedTexture; } set { m_BakedTexture = value; }}
         public RenderTexture realtimeTexture { get { return m_RealtimeTexture; } internal set { m_RealtimeTexture = value; } }
@@ -85,42 +83,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public FrameSettings frameSettings { get { return m_FrameSettings; } }
         public float captureNearPlane { get { return m_CaptureNearPlane; } }
         public float captureFarPlane { get { return m_CaptureFarPlane; } }
+        public CapturePositionMode capturePositionMode { get { return m_CapturePositionMode; } }
 
         #region Proxy Properties
-        public Vector3 proxyRight
+        public Matrix4x4 proxyToWorld
         {
             get
             {
                 return m_ProxyVolumeReference != null
-                    ? m_ProxyVolumeReference.transform.right
-                    : influenceRight;
-            }
-        }
-        public Vector3 proxyUp
-        {
-            get
-            {
-                return m_ProxyVolumeReference != null
-                    ? m_ProxyVolumeReference.transform.up
-                    : influenceUp;
-            }
-        }
-        public Vector3 proxyForward
-        {
-            get
-            {
-                return m_ProxyVolumeReference != null
-                    ? m_ProxyVolumeReference.transform.forward
-                    : influenceForward;
-            }
-        }
-        public Vector3 proxyPosition
-        {
-            get
-            {
-                return m_ProxyVolumeReference != null
-                    ? m_ProxyVolumeReference.transform.position
-                    : influencePosition;
+                    ? m_ProxyVolumeReference.transform.localToWorldMatrix
+                    : influenceToWorld;
             }
         }
         public ShapeType proxyShape
@@ -167,6 +139,60 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 ReflectionSystem.UnregisterProbe(this);
                 ReflectionSystem.RegisterProbe(this);
             }
+        }
+
+        public Matrix4x4 GetCaptureViewProj(Camera viewerCamera)
+        {
+            return GetCaptureProjection(viewerCamera) * GetCaptureToWorld(viewerCamera);
+        }
+        public Matrix4x4 GetCaptureProjection(Camera viewerCamera)
+        {
+            var fov = ReflectionSystem.GetCaptureCameraFOVFor(this, viewerCamera);
+            var proj = Matrix4x4.Perspective(fov, 1, captureNearPlane, captureFarPlane);
+            return proj;
+        }
+
+        public Matrix4x4 GetCaptureToWorld(Camera viewerCamera)
+        {
+            if (refreshMode == ReflectionProbeRefreshMode.EveryFrame
+                && capturePositionMode == CapturePositionMode.MirrorCamera)
+            {
+                var planeCenter = (Vector3)influenceToWorld.GetColumn(3);
+                var planeNormal = ((Vector3)influenceToWorld.GetColumn(2)).normalized;
+                var sourcePosition = viewerCamera.transform.position;
+                var r = sourcePosition - planeCenter;
+                var capturePosition = r - 2 * Vector3.Dot(planeNormal, r) * planeNormal;
+
+                var tr = transform;
+                var influencePosition = influenceVolume.GetWorldPosition(tr);
+                return Matrix4x4.TRS(
+                    capturePosition,
+                    Quaternion.LookRotation(influencePosition - capturePosition, tr.up),
+                    Vector3.one
+                );
+            }
+            else
+            {
+                var tr = transform;
+                var capturePosition = tr.TransformPoint(m_CaptureLocalPosition);
+                var influencePosition = influenceVolume.GetWorldPosition(tr);
+                return Matrix4x4.TRS(
+                    capturePosition,
+                    Quaternion.LookRotation(influencePosition - capturePosition, tr.up),
+                    Vector3.one
+                );
+            }
+        }
+
+        public Matrix4x4 GetInfluenceToWorld()
+        {
+            var tr = transform;
+            var influencePosition = influenceVolume.GetWorldPosition(tr);
+            return Matrix4x4.TRS(
+                influencePosition,
+                tr.rotation,
+                Vector3.one
+            );
         }
     }
 }
