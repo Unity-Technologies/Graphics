@@ -46,7 +46,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
     public class ToggleControlView : VisualElement, INodeModificationListener
     {
-        GUIContent m_Label;
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;
 
