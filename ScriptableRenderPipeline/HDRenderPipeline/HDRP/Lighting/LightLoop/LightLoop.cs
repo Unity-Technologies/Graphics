@@ -281,6 +281,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ReflectionProbeCache m_ReflectionProbeCache;
         TextureCache2D m_CookieTexArray;
         TextureCacheCubemap m_CubeCookieTexArray;
+        List<Vector4> m_Env2DCapturePositionWS = new List<Vector4>();
+        List<Matrix4x4> m_Env2DCaptureVP = new List<Matrix4x4>();
 
         public class LightList
         {
@@ -469,7 +471,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ReflectionProbeCache = new ReflectionProbeCache(iblFilterGGX, gLightLoopSettings.reflectionProbeCacheSize, gLightLoopSettings.reflectionCubemapSize, probeCacheFormat, true);
 
             TextureFormat planarProbeCacheFormat = gLightLoopSettings.planarReflectionCacheCompressed ? TextureFormat.BC6H : TextureFormat.RGBAHalf;
-            m_ReflectionPlanarProbeCache = new PlanarReflectionProbeCache(iblFilterGGX, gLightLoopSettings.planarReflectionProbeCacheSize, gLightLoopSettings.planarReflectionCubemapSize, planarProbeCacheFormat, true);
+            m_ReflectionPlanarProbeCache = new PlanarReflectionProbeCache(iblFilterGGX, gLightLoopSettings.planarReflectionProbeCacheSize, gLightLoopSettings.planarReflectionTextureSize, planarProbeCacheFormat, true);
 
             s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
 
@@ -1163,6 +1165,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case TextureDimension.Tex2D:
                     envIndex = m_ReflectionPlanarProbeCache.FetchSlice(cmd, probe.texture);
                     envIndex = envIndex << 1 | (int)EnvCacheType.Texture2D;
+                    m_Env2DCapturePositionWS.Add(probe.capturePosition);
+                    m_Env2DCaptureVP.Add(probe.capture2DVP);
                     break;
                 case TextureDimension.Cube:
                     envIndex = m_ReflectionProbeCache.FetchSlice(cmd, probe.texture);
@@ -1305,6 +1309,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // If any light require it, we need to enabled bake shadow mask feature
                 m_enableBakeShadowMask = false;
 
+                m_Env2DCaptureVP.Clear();
+                m_Env2DCapturePositionWS.Clear();
                 m_lightList.Clear();
 
                 Vector3 camPosWS = camera.transform.position;
@@ -1952,6 +1958,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalTexture(HDShaderIDs._CookieCubeTextures, m_CubeCookieTexArray.GetTexCache());
                 cmd.SetGlobalTexture(HDShaderIDs._EnvCubemapTextures, m_ReflectionProbeCache.GetTexCache());
                 cmd.SetGlobalTexture(HDShaderIDs._Env2DTextures, m_ReflectionPlanarProbeCache.GetTexCache());
+                if (m_Env2DCaptureVP.Count > 0)
+                {
+                    cmd.SetGlobalMatrixArray(HDShaderIDs._Env2DCaptureVP, m_Env2DCaptureVP);
+                    cmd.SetGlobalVectorArray(HDShaderIDs._Env2DCapturePositionWS, m_Env2DCapturePositionWS);
+                }
 
                 cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, s_DirectionalLightDatas);
                 cmd.SetGlobalInt(HDShaderIDs._DirectionalLightCount, m_lightList.directionalLights.Count);

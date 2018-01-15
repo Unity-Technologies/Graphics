@@ -53,6 +53,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
         public Bounds bounds { get { return m_InfluenceVolume.GetBoundsAt(transform); } }
         public Vector3 captureLocalPosition { get { return m_CaptureLocalPosition; } set { m_CaptureLocalPosition = value; } }
+        public Matrix4x4 capture2DVP
+        {
+            get
+            {
+                var fov = ReflectionSystem.GetCaptureCameraFOVFor(this);
+                var proj = Matrix4x4.Perspective(fov, 1, captureNearPlane, captureFarPlane);
+                var view = Matrix4x4.TRS(capturePosition, captureRotation, Vector3.one);
+                return proj * view;
+            }
+        }
         public float dimmer { get { return m_Dimmer; } }
         public ReflectionProbeMode mode { get { return m_Mode; } }
         public Vector3 influenceRight { get { return transform.right; } }

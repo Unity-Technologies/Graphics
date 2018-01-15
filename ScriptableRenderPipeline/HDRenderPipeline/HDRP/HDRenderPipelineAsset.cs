@@ -34,6 +34,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_FrameSettingsRuntime;
         }
 
+        public ReflectionSystemParameters reflectionSystemParameters
+        {
+            get
+            {
+                return new ReflectionSystemParameters
+                {
+                    maxPlanarReflectionProbes = 512,
+                    planarReflectionProbeSize = renderPipelineSettings.lightLoopSettings.planarReflectionTextureSize
+                };
+            } }
+
         // Store the various RenderPipelineSettings for each platform (for now only one)
         public RenderPipelineSettings renderPipelineSettings = new RenderPipelineSettings();
 

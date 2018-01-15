@@ -1606,8 +1606,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     else if (influenceShapeType == ENVSHAPETYPE_BOX)
         weight = InfluenceBoxWeight(lightData, bsdfData, positionWS, positionLS, dirLS);
 
-    // Smooth weighting
-    weight = Smoothstep01(weight);
+    
 
     // When we are rough, we tend to see outward shifting of the reflection when at the boundary of the projection volume
     // Also it appear like more sharp. To avoid these artifact and at the same time get better match to reference we lerp to original unmodified reflection.
@@ -1617,7 +1616,14 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     float3 F = preLightData.specularFGD;
     float iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
-    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel);
+
+    float sampleWeight = 1;
+    float3 texCoord = GetSampleEnvCoordinates(lightLoopContext, lightData.envIndex, R, iblMipLevel, sampleWeight);
+    weight *= sampleWeight;
+    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, texCoord, iblMipLevel);
+
+    // Smooth weighting
+    weight = Smoothstep01(weight);
 
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
     {
@@ -1631,7 +1637,8 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
             envLighting *= Sq(1.0 - preLightData.coatIblF);
 
             // Evaluate the Clear Coat color
-            float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, coatR, 0.0);
+            texCoord = GetSampleEnvCoordinates(lightLoopContext, lightData.envIndex, coatR, 0.0, sampleWeight);
+            float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, texCoord, 0.0);
             envLighting += preLightData.coatIblF * preLD.rgb;
 
             // Can't attenuate diffuse lighting here, may try to apply something on bakeLighting in PostEvaluateBSDF

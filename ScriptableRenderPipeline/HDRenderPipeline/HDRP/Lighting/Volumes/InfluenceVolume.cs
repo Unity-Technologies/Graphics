@@ -22,9 +22,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         Vector3 m_BoxInfluenceNormalNegativeFade;
         [SerializeField]
-        Vector3 m_BoxPositiveFaceFade;
+        Vector3 m_BoxPositiveFaceFade = Vector3.one;
         [SerializeField]
-        Vector3 m_BoxNegativeFaceFade;
+        Vector3 m_BoxNegativeFaceFade = Vector3.one;
 
         // Sphere
         [SerializeField]
