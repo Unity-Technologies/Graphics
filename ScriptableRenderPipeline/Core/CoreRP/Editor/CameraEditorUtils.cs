@@ -11,7 +11,7 @@ namespace UnityEditor.Experimental.Rendering
         const float k_PreviewNormalizedSize = 0.2f;
 
         internal static Material s_GUITextureBlit2SRGBMaterial;
-        internal static Material GUITextureBlit2SRGBMaterial
+        public static Material GUITextureBlit2SRGBMaterial
         {
             get
             {
