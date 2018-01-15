@@ -246,11 +246,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                             float valueMax = mat.GetFloat("_HeightMax");
                             float valueMin = mat.GetFloat("_HeightMin");
+                            float center = mat.GetFloat("_HeightCenter");
                             float amplitude = valueMax - valueMin;
+                            mat.SetInt("_HeightMapParametrization", 1);
                             mat.SetFloat("_HeightPoMAmplitude", amplitude);
                             mat.SetFloat("_HeightTessAmplitude", amplitude);
-                            mat.SetFloat("_HeightOffset", -mat.GetFloat("_HeightCenter") * amplitude);
-                            mat.SetFloat("_HeightTessCenter", 0.0f); // Reset this because instead we update the offset.
+                            mat.SetFloat("_HeightOffset", 0.0f);
+                            mat.SetFloat("_HeightTessCenter", center);
 
                             BaseLitGUI.DisplacementMode displaceMode = (BaseLitGUI.DisplacementMode)mat.GetInt("_DisplacementMode");
                             if (displaceMode == BaseLitGUI.DisplacementMode.Pixel)
@@ -274,11 +276,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             {
                                 float valueMax = mat.GetFloat("_HeightMax" + x);
                                 float valueMin = mat.GetFloat("_HeightMin" + x);
+                                float center = mat.GetFloat("_HeightCenter" + x);
                                 float amplitude = valueMax - valueMin;
+                                mat.SetInt("_HeightMapParametrization" + x, 1);
                                 mat.SetFloat("_HeightPoMAmplitude" + x, valueMax - valueMin);
                                 mat.SetFloat("_HeightTessAmplitude" + x, valueMax - valueMin);
-                                mat.SetFloat("_HeightOffset" + x, -mat.GetFloat("_HeightCenter" + x) * amplitude);
-                                mat.SetFloat("_HeightTessCenter" + x, 0.0f); // Reset this because instead we update the offset.
+                                mat.SetFloat("_HeightOffset" + x, 0.0f);
+                                mat.SetFloat("_HeightTessCenter" + x, center);
 
                                 BaseLitGUI.DisplacementMode displaceMode = (BaseLitGUI.DisplacementMode)mat.GetInt("_DisplacementMode");
                                 if (displaceMode == BaseLitGUI.DisplacementMode.Pixel)

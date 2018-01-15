@@ -205,14 +205,14 @@ Material:
     - _HeightBias: 0
     - _HeightCenter: 0.5
     - _HeightMapMode: 0
-    - _HeightMapParametrization: 0
+    - _HeightMapParametrization: 1
     - _HeightMax: 1
     - _HeightMin: -1
-    - _HeightOffset: -1
+    - _HeightOffset: 0
     - _HeightPoMAmplitude: 2
     - _HeightScale: 1
     - _HeightTessAmplitude: 2
-    - _HeightTessCenter: 0
+    - _HeightTessCenter: 0.5
     - _IOR: 1
     - _InitialBend: 1
     - _InvTilingScale: 1
