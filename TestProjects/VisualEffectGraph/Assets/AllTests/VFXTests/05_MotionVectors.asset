@@ -3470,7 +3470,7 @@ MonoBehaviour:
   - {fileID: 114280324403005594}
   - {fileID: 114967288652437010}
   - {fileID: 114886110431456336}
-  m_Capacity: 2000000
+  m_Capacity: 1000000
   m_Space: 0
 --- !u!114 &114807987250557806
 MonoBehaviour:
@@ -3886,6 +3886,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 2
+  flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
@@ -5041,8 +5042,8 @@ VFXAsset:
       m_Array: []
   m_Buffers:
   - type: 1
-    size: 34000000
-    capacity: 2000000
+    size: 17000000
+    capacity: 1000000
     layout:
     - name: position
       type: 3
@@ -5065,19 +5066,19 @@ VFXAsset:
     - name: lifetime
       type: 1
       offset:
-        bucket: 16000000
+        bucket: 8000000
         structure: 1
         element: 0
     - name: velocity
       type: 3
       offset:
-        bucket: 18000000
+        bucket: 9000000
         structure: 4
         element: 0
     - name: oldPosition
       type: 3
       offset:
-        bucket: 26000000
+        bucket: 13000000
         structure: 4
         element: 0
   - type: 1
@@ -5091,7 +5092,7 @@ VFXAsset:
         structure: 1
         element: 0
   - type: 2
-    size: 2000000
+    size: 1000000
     capacity: 0
     layout: []
   - type: 1
@@ -5139,7 +5140,7 @@ VFXAsset:
       processor: {fileID: 0}
   - type: 1
     flags: 1
-    capacity: 2000000
+    capacity: 1000000
     buffers:
     - index: 0
       nameId: attributeBuffer
@@ -5193,7 +5194,7 @@ VFXAsset:
       - index: 75
         nameId: Sphere_radius_f
       params: []
-      processor: {fileID: 7200000, guid: 79a31febaeded5b4c8f3675dd7932401, type: 3}
+      processor: {fileID: 7200000, guid: 01df7839111a3d141ad70e67de957292, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5226,7 +5227,7 @@ VFXAsset:
       - index: 60
         nameId: Force_d
       params: []
-      processor: {fileID: 7200000, guid: 187c2deb90b90fd40893e400fd04328c, type: 3}
+      processor: {fileID: 7200000, guid: 612f6f9d67d0a7044aa7c3a195692375, type: 3}
     - type: 1073741824
       buffers:
       - index: 0
@@ -5239,7 +5240,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 37c7615fc01079241a0a08b5cf9a8c51, type: 3}
+      processor: {fileID: 4800000, guid: 5170457310c2ab942b2084099bcec2a3, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
