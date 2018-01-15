@@ -2,12 +2,14 @@
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     partial class PlanarReflectionProbeUI
     {
         static readonly Color k_GizmoCamera = new Color(233f / 255f, 233f / 255f, 233f / 255f, 128f / 255f);
+        static readonly Color k_GizmoMirrorPlaneCamera = new Color(128f / 255f, 128f / 255f, 233f / 255f, 128f / 255f);
 
         public static void DrawHandles(PlanarReflectionProbeUI s, PlanarReflectionProbe d, Editor o)
         {
@@ -70,6 +72,26 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 ProxyVolumeComponentUI.DrawGizmos_EditNone(s.proxyVolume, d.proxyVolumeReference);
 
             DrawGizmos_CaptureFrustrum(s, d);
+
+            if (d.mode == ReflectionProbeMode.Realtime
+                && d.refreshMode == ReflectionProbeRefreshMode.EveryFrame)
+                DrawGizmos_CaptureMirror(s, d);
+        }
+
+        static void DrawGizmos_CaptureMirror(PlanarReflectionProbeUI s, PlanarReflectionProbe d)
+        {
+            var c = Gizmos.color;
+            var m = Gizmos.matrix;
+            Gizmos.matrix = Matrix4x4.TRS(
+                d.captureMirrorPlanePosition,
+                Quaternion.LookRotation(d.captureMirrorPlaneNormal, Vector3.up),
+                Vector3.one);
+            Gizmos.color = k_GizmoMirrorPlaneCamera;
+
+            Gizmos.DrawCube(Vector3.zero, new Vector3(1, 1, 0));
+
+            Gizmos.matrix = m;
+            Gizmos.color = c;
         }
 
         static void DrawGizmos_CaptureFrustrum(PlanarReflectionProbeUI s, PlanarReflectionProbe d)

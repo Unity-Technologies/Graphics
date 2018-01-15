@@ -17,6 +17,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty captureNearPlane;
         public SerializedProperty captureFarPlane;
         public SerializedProperty capturePositionMode;
+        public SerializedProperty captureMirrorPlaneLocalPosition;
+        public SerializedProperty captureMirrorPlaneLocalNormal;
         public SerializedProperty dimmer;
         public SerializedProperty mode;
         public SerializedProperty refreshMode;
@@ -37,6 +39,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             captureNearPlane = serializedObject.Find((PlanarReflectionProbe p) => p.captureNearPlane);
             captureFarPlane = serializedObject.Find((PlanarReflectionProbe p) => p.captureFarPlane);
             capturePositionMode = serializedObject.Find((PlanarReflectionProbe p) => p.capturePositionMode);
+            captureMirrorPlaneLocalPosition = serializedObject.Find((PlanarReflectionProbe p) => p.captureMirrorPlaneLocalPosition);
+            captureMirrorPlaneLocalNormal = serializedObject.Find((PlanarReflectionProbe p) => p.captureMirrorPlaneLocalNormal);
             dimmer = serializedObject.Find((PlanarReflectionProbe p) => p.dimmer);
             mode = serializedObject.Find((PlanarReflectionProbe p) => p.mode);
             refreshMode = serializedObject.Find((PlanarReflectionProbe p) => p.refreshMode);

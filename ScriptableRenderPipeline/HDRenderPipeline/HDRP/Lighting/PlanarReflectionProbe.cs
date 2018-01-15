@@ -38,6 +38,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         float m_CaptureFarPlane = 1000;
         [SerializeField]
         CapturePositionMode m_CapturePositionMode = CapturePositionMode.Static;
+        [SerializeField]
+        Vector3 m_CaptureMirrorPlaneLocalPosition;
+        [SerializeField]
+        Vector3 m_CaptureMirrorPlaneLocalNormal = Vector3.forward;
 
         public ProxyVolumeComponent proxyVolumeReference { get { return m_ProxyVolumeReference; } }
         public InfluenceVolume influenceVolume { get { return m_InfluenceVolume; } }
@@ -84,6 +88,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float captureNearPlane { get { return m_CaptureNearPlane; } }
         public float captureFarPlane { get { return m_CaptureFarPlane; } }
         public CapturePositionMode capturePositionMode { get { return m_CapturePositionMode; } }
+        public Vector3 captureMirrorPlaneLocalPosition
+        {
+            get { return m_CaptureMirrorPlaneLocalPosition; }
+            set { m_CaptureMirrorPlaneLocalPosition = value; }
+        }
+        public Vector3 captureMirrorPlanePosition { get { return transform.TransformPoint(m_CaptureMirrorPlaneLocalPosition); } }
+        public Vector3 captureMirrorPlaneLocalNormal
+        {
+            get { return m_CaptureMirrorPlaneLocalNormal; }
+            set { m_CaptureMirrorPlaneLocalNormal = value; }
+        }
+        public Vector3 captureMirrorPlaneNormal { get { return transform.TransformDirection(m_CaptureMirrorPlaneLocalNormal); } }
 
         #region Proxy Properties
         public Matrix4x4 proxyToWorld
@@ -157,8 +173,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (refreshMode == ReflectionProbeRefreshMode.EveryFrame
                 && capturePositionMode == CapturePositionMode.MirrorCamera)
             {
-                var planeCenter = (Vector3)influenceToWorld.GetColumn(3);
-                var planeNormal = ((Vector3)influenceToWorld.GetColumn(2)).normalized;
+                var planeCenter = influenceToWorld.MultiplyPoint(m_CaptureMirrorPlaneLocalPosition);
+                var planeNormal = influenceToWorld.MultiplyVector(m_CaptureMirrorPlaneLocalNormal).normalized;
                 var sourcePosition = viewerCamera.transform.position;
                 var r = sourcePosition - planeCenter;
                 var capturePosition = r - 2 * Vector3.Dot(planeNormal, r) * planeNormal;
