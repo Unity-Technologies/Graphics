@@ -155,8 +155,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     {
         // TODO: make projector lights cast shadows.
         float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
-        float4 L_dist = float4(L, distances.x);
-        shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS + offset, N, lightData.shadowIndex, L_dist, posInput.positionSS);
+        shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS + offset, N, lightData.shadowIndex, lightData.positionWS, L, posInput.positionSS);
 #ifdef SHADOWS_SHADOWMASK
         // Note: Legacy Unity have two shadow mask mode. ShadowMask (ShadowMask contain static objects shadow and ShadowMap contain only dynamic objects shadow, final result is the minimun of both value)
         // and ShadowMask_Distance (ShadowMask contain static objects shadow and ShadowMap contain everything and is blend with ShadowMask based on distance (Global distance setup in QualitySettigns)).
