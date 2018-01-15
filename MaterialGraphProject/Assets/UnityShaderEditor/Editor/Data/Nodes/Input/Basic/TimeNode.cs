@@ -7,10 +7,10 @@ namespace UnityEditor.ShaderGraph
     public class TimeNode : AbstractMaterialNode, IMayRequireTime
     {
         private const string kOutputSlotName = "Time";
-        private const string kOutputSlot1Name = "SinTime";
-        private const string kOutputSlot2Name = "CosTime";
-        private const string kOutputSlot3Name = "DeltaTime";
-        private const string kOutputSlot4Name = "SmoothDelta";
+        private const string kOutputSlot1Name = "Sine Time";
+        private const string kOutputSlot2Name = "Cosine Time";
+        private const string kOutputSlot3Name = "Delta Time";
+        private const string kOutputSlot4Name = "Smooth Delta";
 
         public const int OutputSlotId = 0;
         public const int OutputSlot1Id = 1;

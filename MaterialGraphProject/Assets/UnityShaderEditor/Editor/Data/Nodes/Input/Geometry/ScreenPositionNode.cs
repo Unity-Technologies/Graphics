@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private ScreenSpaceType m_ScreenSpaceType = ScreenSpaceType.Default;
 
-        [EnumControl("")]
+        [EnumControl("Mode")]
         public ScreenSpaceType screenSpaceType
         {
             get { return m_ScreenSpaceType; }
