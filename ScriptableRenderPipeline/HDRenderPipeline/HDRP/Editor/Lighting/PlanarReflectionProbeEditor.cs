@@ -1,6 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -11,6 +15,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     class PlanarReflectionProbeEditor : Editor
     {
         static Dictionary<PlanarReflectionProbe, PlanarReflectionProbeUI> s_StateMap = new Dictionary<PlanarReflectionProbe, PlanarReflectionProbeUI>();
+        const float k_PreviewHeight = 128;
 
         public static bool TryGetUIStateFor(PlanarReflectionProbe p, out PlanarReflectionProbeUI r)
         {
@@ -65,6 +70,46 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             for (var i = 0; i < m_TypedTargets.Length; i++)
                 PlanarReflectionProbeUI.DrawHandles(m_UIHandleState[i], m_TypedTargets[i], this);
+
+            SceneViewOverlay_Window(_.GetContent("Planar Probe"), OnOverlayGUI, -100, target);
+        }
+
+        void OnOverlayGUI(Object target, SceneView sceneView)
+        {
+            var previewSize = new Rect();
+            for (var i = 0; i < m_TypedTargets.Length; i++)
+            {
+                var p = m_TypedTargets[i];
+                if (p.texture == null)
+                    continue;
+
+                var factor = k_PreviewHeight / p.texture.height;
+
+                previewSize.x += p.texture.width * factor;
+                previewSize.y = k_PreviewHeight;
+            }
+
+            // Get and reserve rect
+            Rect cameraRect = GUILayoutUtility.GetRect(previewSize.x, previewSize.y);
+
+            if (Event.current.type == EventType.Repaint)
+            {
+                var c = new Rect(cameraRect);
+                for (var i = 0; i < m_TypedTargets.Length; i++)
+                {
+                    var p = m_TypedTargets[i];
+                    if (p.texture == null)
+                        continue;
+
+                    var factor = k_PreviewHeight / p.texture.height;
+
+                    c.width = p.texture.width * factor;
+                    c.height = k_PreviewHeight;
+                    Graphics.DrawTexture(c, p.texture, new Rect(0, 0, 1, 1), 0, 0, 0, 0, GUI.color, CameraEditorUtils.GUITextureBlit2SRGBMaterial);
+
+                    c.x += c.width;
+                }
+            }
         }
 
         public override bool HasPreviewGUI()
@@ -107,6 +152,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 else
                     EditorGUI.LabelField(itemRect, _.GetContent("Not Available"));
             }
+        }
+
+        static Type k_SceneViewOverlay_WindowFunction = Type.GetType("UnityEditor.SceneViewOverlay+WindowFunction,UnityEditor");
+        static Type k_SceneViewOverlay_WindowDisplayOption = Type.GetType("UnityEditor.SceneViewOverlay+WindowDisplayOption,UnityEditor");
+        static MethodInfo k_SceneViewOverlay_Window = Type.GetType("UnityEditor.SceneViewOverlay,UnityEditor")
+            .GetMethod(
+                "Window",
+                BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public,
+                null,
+                CallingConventions.Any,
+                new[] { typeof(GUIContent), k_SceneViewOverlay_WindowFunction, typeof(int), typeof(Object), k_SceneViewOverlay_WindowDisplayOption },
+                null);
+        static void SceneViewOverlay_Window(GUIContent title, Action<Object, SceneView> sceneViewFunc, int order, Object target)
+        {
+            k_SceneViewOverlay_Window.Invoke(null, new[]
+            {
+                title, DelegateUtility.Cast(sceneViewFunc, k_SceneViewOverlay_WindowFunction),
+                order,
+                target,
+                Enum.ToObject(k_SceneViewOverlay_WindowDisplayOption, 1)
+            });
         }
     }
 }
