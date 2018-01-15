@@ -82,6 +82,9 @@ Shader "HDRenderPipeline/Unlit"
     #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
     #pragma shader_feature _ENABLE_FOG_ON_TRANSPARENT
 
+    //enable GPU instancing support
+    #pragma multi_compile_instancing
+
     //-------------------------------------------------------------------------------------
     // Define
     //-------------------------------------------------------------------------------------
