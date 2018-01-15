@@ -70,8 +70,10 @@ namespace UnityEditor.VFX.UI
             }
             if (m_GraphHandle != null)
             {
+                DataWatchService.sharedInstance.RemoveWatch(m_UIHandle);
                 DataWatchService.sharedInstance.RemoveWatch(m_GraphHandle);
                 m_GraphHandle = null;
+                m_UIHandle = null;
             }
         }
 
@@ -435,6 +437,11 @@ namespace UnityEditor.VFX.UI
 
                     AddInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
                     AddInvalidateDelegate(m_Graph, IncremenentGraphUndoRedoState);
+
+
+                    VFXUI ui = m_Graph.UIInfos;
+
+                    m_UIHandle = DataWatchService.sharedInstance.AddWatch(ui, UIChanged);
                 }
             }
         }
@@ -485,6 +492,15 @@ namespace UnityEditor.VFX.UI
             if (m_Graph == null) return; // OnModelChange or OnDisable will take care of that later
 
             SyncControllerFromModel();
+
+            NotifyChange(AnyThing);
+        }
+
+        protected void UIChanged(UnityEngine.Object obj)
+        {
+            if (m_Graph == null) return; // OnModelChange or OnDisable will take care of that later
+
+            RecreateUI();
 
             NotifyChange(AnyThing);
         }
@@ -740,10 +756,16 @@ namespace UnityEditor.VFX.UI
             GraphChanged(graph);
         }
 
+        public ReadOnlyCollection<VFXGroupNodePresenter> groupNodes
+        {
+            get {return m_GroupNodePresenters.AsReadOnly(); }
+        }
+
         List<VFXGroupNodePresenter> m_GroupNodePresenters = new List<VFXGroupNodePresenter>();
 
-        public void RecreateUI()
+        public bool RecreateUI()
         {
+            bool changed = false;
             var ui = graph.UIInfos;
             if (ui != null && ui.groupInfos != null)
             {
@@ -751,13 +773,17 @@ namespace UnityEditor.VFX.UI
                 {
                     VFXGroupNodePresenter groupNodePresenter = new VFXGroupNodePresenter(this, ui, i);
                     m_GroupNodePresenters.Add(groupNodePresenter);
+                    changed = true;
                 }
 
                 while (ui.groupInfos.Length < m_GroupNodePresenters.Count)
                 {
                     m_GroupNodePresenters.RemoveAt(m_GroupNodePresenters.Count - 1);
+                    changed = true;
                 }
             }
+
+            return changed;
         }
 
         public void ForceReload()
@@ -789,6 +815,8 @@ namespace UnityEditor.VFX.UI
 
             changed |= RecreateNodeEdges();
             changed |= RecreateFlowEdges();
+
+            changed |= RecreateUI();
 
             m_Syncing = false;
             return changed;
@@ -838,6 +866,7 @@ namespace UnityEditor.VFX.UI
         private VFXGraph m_Graph;
 
         IDataWatchHandle m_GraphHandle;
+        IDataWatchHandle m_UIHandle;
 
         private VFXView m_View; // Don't call directly as it is lazy initialized
     }

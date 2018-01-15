@@ -36,6 +36,14 @@ namespace UnityEditor.VFX.UI
 
         public VFXGroupNode()
         {
+            RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
+        }
+
+        public override void UpdatePresenterPosition()
+        {
+            base.UpdatePresenterPosition();
+
+            controller.position = GetPosition();
         }
 
         public void OnControllerChanged(ControllerChangedEvent e)
@@ -47,7 +55,11 @@ namespace UnityEditor.VFX.UI
                 if (view == null) return;
 
 
+                m_ModificationFromPresenter = true;
                 title = controller.title;
+
+                SetPosition(controller.position);
+
                 var presenterContent = controller.nodes.ToArray();
                 var elementContent = containedElements.Cast<IControlledElement<VFXNodeController>>();
 
@@ -55,7 +67,6 @@ namespace UnityEditor.VFX.UI
                 {
                     elementContent = new List<IControlledElement<VFXNodeController>>();
                 }
-                m_ModificationFromPresenter = true;
 
                 var elementToDelete = elementContent.Where(t => !presenterContent.Contains(t.controller)).ToArray();
                 foreach (var element in elementToDelete)
@@ -83,7 +94,10 @@ namespace UnityEditor.VFX.UI
         {
             if (!m_ModificationFromPresenter)
             {
-                controller.AddNode((element as IControlledElement<VFXNodeController>).controller);
+                IControlledElement<VFXNodeController> node = element as IControlledElement<VFXNodeController>;
+
+                if (node != null)
+                    controller.AddNode(node.controller);
 
                 UpdatePresenterPosition();
             }
@@ -93,7 +107,9 @@ namespace UnityEditor.VFX.UI
         {
             if (!m_ModificationFromPresenter)
             {
-                controller.RemoveNode((element as IControlledElement<VFXNodeController>).controller);
+                IControlledElement<VFXNodeController> node = element as IControlledElement<VFXNodeController>;
+                if (node != null)
+                    controller.RemoveNode(node.controller);
 
                 UpdatePresenterPosition();
             }

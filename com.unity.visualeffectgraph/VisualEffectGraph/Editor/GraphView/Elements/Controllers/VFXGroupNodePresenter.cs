@@ -51,7 +51,6 @@ namespace UnityEditor.VFX.UI
                 if (title != value)
                 {
                     m_UI.groupInfos[m_Index].title = value;
-                    m_ViewPresenter.graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
                 }
             }
         }
@@ -82,7 +81,6 @@ namespace UnityEditor.VFX.UI
                 m_UI.groupInfos[m_Index].content = m_UI.groupInfos[m_Index].content.Concat(Enumerable.Repeat(presenter.model, 1)).Distinct().ToArray();
             else
                 m_UI.groupInfos[m_Index].content = new VFXModel[] { presenter.model };
-            m_ViewPresenter.graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
 
         public void RemoveNode(VFXNodeController presenter)
@@ -92,7 +90,6 @@ namespace UnityEditor.VFX.UI
 
             if (m_UI.groupInfos[m_Index].content != null)
                 m_UI.groupInfos[m_Index].content = m_UI.groupInfos[m_Index].content.Where(t => t != presenter.model).ToArray();
-            m_ViewPresenter.graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
 
         public bool ContainsNode(VFXNodeController presenter)

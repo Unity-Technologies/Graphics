@@ -399,6 +399,7 @@ namespace UnityEditor.VFX.UI
                 SyncNodes();
             }
             SyncEdges(change);
+            SyncGroupNodes();
 
             if (controller != null)
             {
@@ -489,6 +490,28 @@ namespace UnityEditor.VFX.UI
         }
 
 
+        Dictionary<VFXGroupNodePresenter, VFXGroupNode> groupNodes
+        {
+            get
+            {
+                Dictionary<VFXGroupNodePresenter, VFXGroupNode> dic = new Dictionary<VFXGroupNodePresenter, VFXGroupNode>();
+                foreach (var layer in contentViewContainer.Children())
+                {
+                    foreach (var graphElement in layer.Children())
+                    {
+                        if (graphElement is VFXGroupNode)
+                        {
+                            dic[(graphElement as VFXGroupNode).controller] = graphElement as VFXGroupNode;
+                        }
+                    }
+                }
+
+
+                return dic;
+            }
+        }
+
+
         private class SlotContainerFactory : BaseTypeFactory<VFXNodeController, GraphElement>
         {
             protected override GraphElement InternalCreate(Type valueType)
@@ -524,6 +547,35 @@ namespace UnityEditor.VFX.UI
                     var newElement = m_SlotContainerFactory.Create(newController);
                     AddElement(newElement);
                     (newElement as IControlledElement<VFXNodeController>).controller = newController;
+                }
+            }
+        }
+
+        void SyncGroupNodes()
+        {
+            var groupNodes = this.groupNodes;
+
+            if (controller == null)
+            {
+                foreach (var kv in groupNodes)
+                {
+                    RemoveElement(kv.Value);
+                }
+            }
+            else
+            {
+                var deletedControllers = groupNodes.Keys.Except(controller.groupNodes);
+
+                foreach (var deletedController in deletedControllers)
+                {
+                    RemoveElement(groupNodes[deletedController]);
+                }
+
+                foreach (var newController in controller.groupNodes.Except(groupNodes.Keys))
+                {
+                    var newElement = new VFXGroupNode();
+                    AddElement(newElement);
+                    newElement.controller = newController;
                 }
             }
         }
