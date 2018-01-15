@@ -237,6 +237,19 @@ TextureSlotControlView > ObjectField {
     width: 100;
 }
 
+CubemapSlotControlView {
+    flex-direction: row;
+    align-items: center;
+}
+
+CubemapSlotControlView > ObjectField {
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
+    width: 100;
+}
+
 MultiFloatSlotControlView {
     flex-direction: row;
     align-items: center;
