@@ -670,41 +670,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", materialId == BaseLitGUI.MaterialId.LitSSS);
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", materialId == BaseLitGUI.MaterialId.LitSSS);
         }
-        private void DoEmissiveGUI(Material material)
-        {
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(Styles.lightingText, EditorStyles.boldLabel);
-            m_MaterialEditor.ShaderProperty(enableSpecularOcclusion, Styles.enableSpecularOcclusionText);
-            // TODO: display warning if we don't have bent normal (either OS or TS) and ambient occlusion
-            //if (enableSpecularOcclusion.floatValue > 0.0f)
-            {
-                // EditorGUILayout.HelpBox(Styles.specularOcclusionWarning.text, MessageType.Error);
-            }
-            EditorGUI.indentLevel++;
-            m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
-
-            m_MaterialEditor.ShaderProperty(UVEmissive, Styles.UVBaseMappingText);
-            UVBaseMapping uvEmissiveMapping = (UVBaseMapping)UVEmissive.floatValue;
-
-            float X, Y, Z, W;
-            X = (uvEmissiveMapping == UVBaseMapping.UV0) ? 1.0f : 0.0f;
-            Y = (uvEmissiveMapping == UVBaseMapping.UV1) ? 1.0f : 0.0f;
-            Z = (uvEmissiveMapping == UVBaseMapping.UV2) ? 1.0f : 0.0f;
-            W = (uvEmissiveMapping == UVBaseMapping.UV3) ? 1.0f : 0.0f;
-
-            UVMappingMaskEmissive.colorValue = new Color(X, Y, Z, W);
-
-            if ((uvEmissiveMapping == UVBaseMapping.Planar) || (uvEmissiveMapping == UVBaseMapping.Triplanar))
-            {
-                m_MaterialEditor.ShaderProperty(TexWorldScaleEmissive, Styles.texWorldScaleText);
-            }
-
-            m_MaterialEditor.TextureScaleOffsetProperty(emissiveColorMap);
-
-            m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
-            m_MaterialEditor.ShaderProperty(albedoAffectEmissive, Styles.albedoAffectEmissiveText);
-            EditorGUI.indentLevel--;
-        }
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
@@ -775,7 +740,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
 
             bool layerChanged = DoLayersGUI(materialImporter);
-            DoEmissiveGUI(material);
+            EditorGUI.BeginChangeCheck();
+            {
+                DoEmissiveGUI(material);
+            }
+            if (EditorGUI.EndChangeCheck())
+            {
+                optionsChanged = true;
+            }
             DoEmissionArea(material);
             EditorGUI.indentLevel--;
             m_MaterialEditor.EnableInstancingField();
