@@ -9,6 +9,7 @@ public class Sin_ChangeFOV : MonoBehaviour
     [SerializeField] float max = 90f;
 
     [SerializeField] float frequency = 1f;
+    [SerializeField] float fps = 60;
 
     new Camera camera;
 
@@ -21,6 +22,6 @@ public class Sin_ChangeFOV : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        camera.fieldOfView = min + (max - min) * Mathf.Sin(Mathf.PI * Time.time * frequency);
+        camera.fieldOfView = min + (max - min) * Mathf.Sin(Mathf.PI * frequency * Time.frameCount / fps);
     }
 }

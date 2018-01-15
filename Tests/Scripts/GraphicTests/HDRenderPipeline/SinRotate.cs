@@ -8,6 +8,7 @@ public class SinRotate : MonoBehaviour
 
     [SerializeField] Vector3 angles = new Vector3(45f, 0f, 0f);
     [SerializeField] float frequency = 1f;
+    [SerializeField] float fps = 60;
 
     Vector3 startAngles = Vector3.zero;
 
@@ -23,11 +24,11 @@ public class SinRotate : MonoBehaviour
         if (localSpace)
         {
             transform.eulerAngles = startAngles;
-            transform.Rotate(angles * Mathf.Sin(Mathf.PI * Time.time * frequency), Space.Self);
+            transform.Rotate(angles * Mathf.Sin(Mathf.PI * frequency * Time.frameCount / fps), Space.Self);
         }
         else
         {
-            transform.eulerAngles = startAngles + Mathf.Sin(Mathf.PI * Time.time * frequency) * angles;
+            transform.eulerAngles = startAngles + Mathf.Sin(Mathf.PI * frequency * Time.frameCount / fps) * angles;
         }
     }
 }
