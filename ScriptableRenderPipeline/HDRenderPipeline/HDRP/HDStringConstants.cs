@@ -126,6 +126,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _DebugLightingAlbedo = Shader.PropertyToID("_DebugLightingAlbedo");
         public static readonly int _DebugLightingSmoothness = Shader.PropertyToID("_DebugLightingSmoothness");
         public static readonly int _AmbientOcclusionTexture = Shader.PropertyToID("_AmbientOcclusionTexture");
+        public static readonly int _DebugMipMapMode = Shader.PropertyToID("_DebugMipMapMode");
 
         public static readonly int _UseTileLightList = Shader.PropertyToID("_UseTileLightList");
         public static readonly int _Time = Shader.PropertyToID("_Time");
@@ -273,6 +274,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.PropertyToID("_DepthPyramidMip14"),
         };
         public static readonly int _DebugFullScreenTexture = Shader.PropertyToID("_DebugFullScreenTexture");
+        public static readonly int _BlitTexture = Shader.PropertyToID("_BlitTexture");
 
         public static readonly int _WorldScales = Shader.PropertyToID("_WorldScales");
         public static readonly int _FilterKernels = Shader.PropertyToID("_FilterKernels");

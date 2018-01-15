@@ -43,13 +43,13 @@ namespace UnityEngine.Experimental.Rendering
         const int k_MaxLayerCount = 32;
 
         // Cached lists of all volumes (sorted by priority) by layer mask
-        readonly Dictionary<LayerMask, List<Volume>> m_SortedVolumes;
+        readonly Dictionary<int, List<Volume>> m_SortedVolumes;
 
         // Holds all the registered volumes
         readonly List<Volume> m_Volumes;
 
         // Keep track of sorting states for layer masks
-        readonly Dictionary<LayerMask, bool> m_SortNeeded;
+        readonly Dictionary<int, bool> m_SortNeeded;
 
         // Internal list of default state for each component type - this is used to reset component
         // states on update instead of having to implement a Reset method on all components (which
@@ -61,9 +61,9 @@ namespace UnityEngine.Experimental.Rendering
 
         VolumeManager()
         {
-            m_SortedVolumes = new Dictionary<LayerMask, List<Volume>>();
+            m_SortedVolumes = new Dictionary<int, List<Volume>>();
             m_Volumes = new List<Volume>();
-            m_SortNeeded = new Dictionary<LayerMask, bool>();
+            m_SortNeeded = new Dictionary<int, bool>();
             m_TempColliders = new List<Collider>(8);
             m_ComponentsDefaultState = new List<VolumeComponent>();
 

@@ -50,11 +50,6 @@
     #define UNITY_Z_0_FAR_FROM_CLIPSPACE(coord) (coord)
 #endif
 
-half Pow4(half x)
-{
-    return (x * x) * (x * x);
-}
-
 void AlphaDiscard(half alpha, half cutoff)
 {
 #ifdef _ALPHATEST_ON
@@ -95,7 +90,7 @@ half3 TangentToWorldNormal(half3 normalTangent, half3 tangent, half3 binormal, h
     return normalize(mul(normalTangent, tangentToWorld));
 }
 
-float ComputeFogFactor(float z)
+half ComputeFogFactor(float z)
 {
     float clipZ_01 = UNITY_Z_0_FAR_FROM_CLIPSPACE(z);
 
@@ -103,14 +98,10 @@ float ComputeFogFactor(float z)
     // factor = (end-z)/(end-start) = z * (-1/(end-start)) + (end/(end-start))
     float fogFactor = saturate(clipZ_01 * unity_FogParams.z + unity_FogParams.w);
     return half(fogFactor);
-#elif defined(FOG_EXP)
-    // factor = exp(-density*z)
-    float unityFogFactor = unity_FogParams.y * clipZ_01;
-    return half(saturate(exp2(-unityFogFactor)));
 #elif defined(FOG_EXP2)
     // factor = exp(-(density*z)^2)
-    float unityFogFactor = unity_FogParams.x * clipZ_01;
-    return half(saturate(exp2(-unityFogFactor*unityFogFactor)));
+    // -density * z computed at vertex
+    return half(unity_FogParams.x * clipZ_01);
 #else
     return 0.0h;
 #endif
@@ -118,7 +109,12 @@ float ComputeFogFactor(float z)
 
 void ApplyFogColor(inout half3 color, half3 fogColor, half fogFactor)
 {
-#if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
+#if defined (FOG_LINEAR) || defined(FOG_EXP2)
+#if defined(FOG_EXP2)
+    // factor = exp(-(density*z)^2)
+    // fogFactor = density*z compute at vertex
+    fogFactor = saturate(exp2(-fogFactor*fogFactor));
+#endif
     color = lerp(fogColor, color, fogFactor);
 #endif
 }
