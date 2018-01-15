@@ -27,14 +27,6 @@ namespace UnityEngine.Experimental.Rendering
         bool _readyForCapture = false;
         public bool readyForCapture {  get { return _readyForCapture; } }
 
-        public IEnumerator Start()
-        {
-            // Wait for other things to happend, in particular allow for the render pipeline to reset
-            yield return new WaitForEndOfFrame();
-
-            Time.captureFramerate = forcedFrameRate;
-        }
-
         public void Update()
         {
             if ( waitedFrames < waitForFrames )

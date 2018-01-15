@@ -9,18 +9,16 @@ using UnityEngine.Events;
 using System.IO;
 using System.Linq;
 
-public class GraphicTestsPlayMode : IPrebuildSetup, IPostBuildCleanup
+public class GraphicTestsPlayMode : IPrebuildSetup
 {
     public virtual string pipelineID { get { return "NoPipeline"; } }
 
 #if UNITY_EDITOR
     UnityEditor.EditorBuildSettingsScene[] oldScenes;
 #endif
-
+    
     public void Setup()
     {
-        Debug.Log("Setup for the test");
-
 #if UNITY_EDITOR
         oldScenes = UnityEditor.EditorBuildSettings.scenes;
 
@@ -37,40 +35,33 @@ public class GraphicTestsPlayMode : IPrebuildSetup, IPostBuildCleanup
 #endif
     }
 
+    [OneTimeTearDown]
     public void Cleanup()
     {
 #if UNITY_EDITOR
-        //UnityEditor.EditorBuildSettings.scenes = oldScenes;
+        UnityEditor.EditorBuildSettings.scenes = oldScenes;
 #endif
     }
 
-
-    //public IEnumerator TestScene([ValueSource(typeof(TestFrameworkTools.CollectScenesPlayMode), "HDRP")]TestFrameworkTools.TestInfo testInfo)
+    string prjRelativeGraphsPath;
+    string filePath;
 
     public IEnumerator TestScene(TestFrameworkTools.TestInfo testInfo)
     {
-        var prjRelativeGraphsPath = TestFrameworkTools.s_Path.Aggregate(TestFrameworkTools.s_RootPath, Path.Combine);
-        var filePath = Path.Combine(prjRelativeGraphsPath, testInfo.relativePath);
-
-        for (int i = 0; i < UnityEngine.SceneManagement.SceneManager.sceneCountInBuildSettings; ++i)
-        {
-            UnityEngine.SceneManagement.Scene scene = UnityEngine.SceneManagement.SceneManager.GetSceneByBuildIndex(i);
-            Debug.Log("build index "+i+" : "+scene.name);
-        }
+        prjRelativeGraphsPath = TestFrameworkTools.s_Path.Aggregate(TestFrameworkTools.s_RootPath, Path.Combine);
+        filePath = Path.Combine(prjRelativeGraphsPath, testInfo.relativePath);
 
         // open the scene
         UnityEngine.SceneManagement.SceneManager.LoadScene( testInfo.sceneListIndex , UnityEngine.SceneManagement.LoadSceneMode.Single);
 
         yield return null; // wait one "frame" to let the scene load
 
-
         SetupSceneForRenderPipelineTest testSetup = GameObject.FindObjectOfType<SetupSceneForRenderPipelineTest>();
-
-        //Assert.IsNotNull(testSetup, "No SetupSceneForRenderPipelineTest in scene " + testInfo.name);
-        //Assert.IsNotNull(testSetup.cameraToUse, "No configured camera in <SetupSceneForRenderPipelineTest>");
 
         TestFrameworkTools.AssertFix.TestWithMessages(testSetup != null, "No SetupSceneForRenderPipelineTest in scene " + testInfo.name);
         TestFrameworkTools.AssertFix.TestWithMessages(testSetup.cameraToUse != null, "No configured camera in <SetupSceneForRenderPipelineTest> ");
+
+        Time.captureFramerate = testSetup.forcedFrameRate;
 
         // Initialize
         testSetup.Setup();
@@ -92,11 +83,7 @@ public class GraphicTestsPlayMode : IPrebuildSetup, IPostBuildCleanup
         var oldTarget = testSetup.cameraToUse.targetTexture;
         testSetup.cameraToUse.targetTexture = tempTarget;
 
-        while (!testSetup.IsTestFinished) yield return null;
-
-        // Pause
-        float prevTimeScale = Time.timeScale;
-        Time.timeScale = 0f;
+        for (int f = 0; f < testSetup.waitForFrames; ++f) yield return null;
 
         // render the scene
 
@@ -109,9 +96,6 @@ public class GraphicTestsPlayMode : IPrebuildSetup, IPostBuildCleanup
         var captured = new Texture2D(tempTarget.width, tempTarget.height, TextureFormat.RGB24, false);
         captured.ReadPixels(new Rect(0, 0, testSetup.width, testSetup.height), 0, 0);
         RenderTexture.active = oldActive;
-
-        //Unpause
-        Time.timeScale = prevTimeScale;
 
         // Load the template
         Texture2D fromDisk = new Texture2D(2, 2);
