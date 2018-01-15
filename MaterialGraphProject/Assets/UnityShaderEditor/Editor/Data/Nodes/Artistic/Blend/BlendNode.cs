@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         BlendMode m_BlendMode = BlendMode.Overlay;
 
-        [EnumControl("")]
+        [EnumControl("Mode")]
         public BlendMode blendMode
         {
             get { return m_BlendMode; }

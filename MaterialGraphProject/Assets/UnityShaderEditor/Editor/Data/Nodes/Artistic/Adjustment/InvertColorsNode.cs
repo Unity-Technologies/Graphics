@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private bool m_RedChannel;
 
-        [ToggleControl("Red")]
+        [ToggleControl("R")]
         public Toggle redChannel
         {
             get { return new Toggle(m_RedChannel, channelCount > 0); }
@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private bool m_GreenChannel;
 
-        [ToggleControl("Green")]
+        [ToggleControl("G")]
         public Toggle greenChannel
         {
             get { return new Toggle(m_GreenChannel, channelCount > 1); }
@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private bool m_BlueChannel;
 
-        [ToggleControl("Blue")]
+        [ToggleControl("B")]
         public Toggle blueChannel
         {
             get { return new Toggle(m_BlueChannel, channelCount > 2); }
@@ -89,7 +89,7 @@ namespace UnityEditor.ShaderGraph
 
         private bool m_AlphaChannel;
 
-        [ToggleControl("Alpha")]
+        [ToggleControl("A")]
         public Toggle alphaChannel
         {
             get { return new Toggle(m_AlphaChannel, channelCount > 3); }
