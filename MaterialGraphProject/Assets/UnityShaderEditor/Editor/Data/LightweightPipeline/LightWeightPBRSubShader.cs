@@ -96,7 +96,7 @@ namespace UnityEditor.ShaderGraph
             modelRequiements.requiresBitangent |= NeededCoordinateSpace.World;
             modelRequiements.requiresPosition |= NeededCoordinateSpace.World;
             modelRequiements.requiresViewDir |= NeededCoordinateSpace.World;
-            modelRequiements.requiresMeshUVs.Add(UVChannel.uv1);
+            modelRequiements.requiresMeshUVs.Add(UVChannel.UV1);
 
             GenerateApplicationVertexInputs(requirements.Union(modelRequiements), vertexInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, surfaceInputs);
@@ -193,8 +193,10 @@ namespace UnityEditor.ShaderGraph
 
             switch (masterNode.alphaMode)
             {
-                case PBRMasterNode.AlphaMode.AlphaBlend:
-                case PBRMasterNode.AlphaMode.AdditiveBlend:
+                case PBRMasterNode.AlphaMode.Transparent:
+                case PBRMasterNode.AlphaMode.Fade:
+                case PBRMasterNode.AlphaMode.Additive:
+                case PBRMasterNode.AlphaMode.Multiply:
                     defines.AddShaderChunk("#define _AlphaOut 1", true);
                     break;
             }
@@ -244,31 +246,46 @@ namespace UnityEditor.ShaderGraph
                 case PBRMasterNode.AlphaMode.Opaque:
                     materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
                     materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.Zero;
-                    materialOptions.cullMode = SurfaceMaterialOptions.CullMode.Back;
                     materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
                     materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.On;
                     materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Geometry;
                     materialOptions.renderType = SurfaceMaterialOptions.RenderType.Opaque;
                     break;
-                case PBRMasterNode.AlphaMode.AlphaBlend:
+                case PBRMasterNode.AlphaMode.Transparent:
                     materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.SrcAlpha;
                     materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
-                    materialOptions.cullMode = SurfaceMaterialOptions.CullMode.Back;
                     materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
                     materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
                     materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Transparent;
                     materialOptions.renderType = SurfaceMaterialOptions.RenderType.Transparent;
                     break;
-                case PBRMasterNode.AlphaMode.AdditiveBlend:
+                case PBRMasterNode.AlphaMode.Fade:
+                    materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
+                    materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
+                    materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
+                    materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
+                    materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Transparent;
+                    materialOptions.renderType = SurfaceMaterialOptions.RenderType.Transparent;
+                    break;
+                case PBRMasterNode.AlphaMode.Additive:
                     materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
                     materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.One;
-                    materialOptions.cullMode = SurfaceMaterialOptions.CullMode.Back;
+                    materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
+                    materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
+                    materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Transparent;
+                    materialOptions.renderType = SurfaceMaterialOptions.RenderType.Transparent;
+                    break;
+                case PBRMasterNode.AlphaMode.Multiply:
+                    materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.DstColor;
+                    materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.Zero;
                     materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
                     materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
                     materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Transparent;
                     materialOptions.renderType = SurfaceMaterialOptions.RenderType.Transparent;
                     break;
             }
+
+            materialOptions.cullMode = masterNode.cullMode;
 
             var tagsVisitor = new ShaderGenerator();
             materialOptions.GetTags(tagsVisitor);

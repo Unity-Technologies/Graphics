@@ -41,14 +41,16 @@ namespace UnityEditor.ShaderGraph
         public enum AlphaMode
         {
             Opaque,
-            AlphaBlend,
-            AdditiveBlend
+            Transparent,
+            Fade,
+            Additive,
+            Multiply
         }
 
         [SerializeField]
         private Model m_Model = Model.Metallic;
 
-        [EnumControl("")]
+        [EnumControl("Model")]
         public Model model
         {
             get { return m_Model; }
@@ -66,7 +68,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private AlphaMode m_AlphaMode;
 
-        [EnumControl("")]
+        [EnumControl("Blend")]
         public AlphaMode alphaMode
         {
             get { return m_AlphaMode; }
@@ -76,6 +78,23 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_AlphaMode = value;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
+        private SurfaceMaterialOptions.CullMode m_CullMode;
+
+        [EnumControl("Culling")]
+        public SurfaceMaterialOptions.CullMode cullMode
+        {
+            get { return m_CullMode; }
+            set
+            {
+                if (m_CullMode == value)
+                    return;
+
+                m_CullMode = value;
                 Dirty(ModificationScope.Graph);
             }
         }
@@ -104,7 +123,7 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector1MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, 0.5f, ShaderStage.Fragment));
             AddSlot(new Vector1MaterialSlot(OcclusionSlotId, OcclusionSlotName, OcclusionSlotName, SlotType.Input, 1f, ShaderStage.Fragment));
             AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1f, ShaderStage.Fragment));
-            AddSlot(new Vector1MaterialSlot(AlphaThresholdSlotId, AlphaClipThresholdSlotName, AlphaClipThresholdSlotName, SlotType.Input, 0f, ShaderStage.Fragment));
+            AddSlot(new Vector1MaterialSlot(AlphaThresholdSlotId, GraphUtil.ConvertCamelCase(AlphaClipThresholdSlotName, true), AlphaClipThresholdSlotName, SlotType.Input, 0f, ShaderStage.Fragment));
 
             // clear out slot names that do not match the slots
             // we support
