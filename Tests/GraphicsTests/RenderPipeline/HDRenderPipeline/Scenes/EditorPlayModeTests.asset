@@ -13,3 +13,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   scenesPath:
   - 3xxx_DebugView/3002_ObjectMotionVector.unity
+  - 3xxx_DebugView/3003_CameraMotionVector_TranslateX.unity
+  - 3xxx_DebugView/3004_CameraMotionVector_TranslateY.unity
+  - 3xxx_DebugView/3005_CameraMotionVector_TranslateZ.unity
+  - 3xxx_DebugView/3006_CameraMotionVector_RotateX.unity
+  - 3xxx_DebugView/3007_CameraMotionVector_RotateY.unity
+  - 3xxx_DebugView/3008_CameraMotionVector_RotateZ.unity
+  - 3xxx_DebugView/3009_CameraMotionVector_FOV.unity
