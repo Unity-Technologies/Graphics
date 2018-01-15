@@ -748,9 +748,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 optionsChanged = true;
             }
+
             DoEmissionArea(material);
-            EditorGUI.indentLevel--;
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(StylesBaseUnlit.advancedText, EditorStyles.boldLabel);
+            // NB RenderQueue editor is not shown on purpose: we want to override it based on blend mode
+            EditorGUI.indentLevel++;
             m_MaterialEditor.EnableInstancingField();
+            EditorGUI.indentLevel--;
 
             if (layerChanged || optionsChanged)
             {

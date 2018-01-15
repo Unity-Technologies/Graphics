@@ -748,13 +748,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(Styles.lightingText, EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
             m_MaterialEditor.ShaderProperty(enableSpecularOcclusion, Styles.enableSpecularOcclusionText);
             // TODO: display warning if we don't have bent normal (either OS or TS) and ambient occlusion
             //if (enableSpecularOcclusion.floatValue > 0.0f)
             {
                 //EditorGUILayout.HelpBox(Styles.specularOcclusionWarning.text, MessageType.Error);
             }
-            EditorGUI.indentLevel++;
             m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
 
             m_MaterialEditor.ShaderProperty(UVEmissive, Styles.UVBaseMappingText);
