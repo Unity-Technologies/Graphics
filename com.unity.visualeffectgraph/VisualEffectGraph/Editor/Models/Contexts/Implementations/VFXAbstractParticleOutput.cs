@@ -137,26 +137,10 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionnalReplacements
+        public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements
         {
             get
             {
-                var renderState = new VFXShaderWriter();
-
-                if (blendMode == BlendMode.Additive)
-                    renderState.WriteLine("Blend SrcAlpha One");
-                else if (blendMode == BlendMode.Alpha)
-                    renderState.WriteLine("Blend SrcAlpha OneMinusSrcAlpha");
-                else if (blendMode == BlendMode.AlphaPremultiplied)
-                    renderState.WriteLine("Blend One OneMinusSrcAlpha");
-
-                renderState.WriteLine("ZTest LEqual");
-
-                if (blendMode == BlendMode.Masked)
-                    renderState.WriteLine("ZWrite On");
-                else
-                    renderState.WriteLine("ZWrite Off");
-
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXOutputRenderState}", renderState);
 
                 var shaderTags = new VFXShaderWriter();
@@ -166,6 +150,30 @@ namespace UnityEditor.VFX
                     shaderTags.Write("Tags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\" }");
 
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXShaderTags}", shaderTags);
+            }
+        }
+
+        protected virtual VFXShaderWriter renderState
+        {
+            get
+            {
+                var rs = new VFXShaderWriter();
+
+                if (blendMode == BlendMode.Additive)
+                    rs.WriteLine("Blend SrcAlpha One");
+                else if (blendMode == BlendMode.Alpha)
+                    rs.WriteLine("Blend SrcAlpha OneMinusSrcAlpha");
+                else if (blendMode == BlendMode.AlphaPremultiplied)
+                    rs.WriteLine("Blend One OneMinusSrcAlpha");
+
+                rs.WriteLine("ZTest LEqual");
+
+                if (blendMode == BlendMode.Masked)
+                    rs.WriteLine("ZWrite On");
+                else
+                    rs.WriteLine("ZWrite Off");
+
+                return rs;
             }
         }
 

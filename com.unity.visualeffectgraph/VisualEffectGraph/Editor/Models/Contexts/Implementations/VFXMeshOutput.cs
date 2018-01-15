@@ -10,7 +10,7 @@ namespace UnityEditor.VFX
     class VFXMeshOutput : VFXAbstractParticleOutput
     {
         public override string name { get { return "Mesh Output"; } }
-        public override string codeGeneratorTemplate { get { return "VFXShaders/VFXParticleQuad"; } }
+        public override string codeGeneratorTemplate { get { return "VFXShaders/VFXParticleMeshes"; } }
         public override VFXTaskType taskType { get { return VFXTaskType.kParticleMeshOutput; } }
         public override bool supportsFlipbooks { get { return true; } }
 
@@ -38,13 +38,22 @@ namespace UnityEditor.VFX
             }
         }
 
+        protected override VFXShaderWriter renderState
+        {
+            get
+            {
+                var rs = base.renderState;
+                rs.WriteLine("Cull Back");
+                return rs;
+            }
+        }
+
         protected override IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
         {
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
 
             yield return slotExpressions.First(o => o.name == "mainTexture");
-            yield return slotExpressions.First(o => o.name == "mesh");
         }
 
         public class InputProperties
