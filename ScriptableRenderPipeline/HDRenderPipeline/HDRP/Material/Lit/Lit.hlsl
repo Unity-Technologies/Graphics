@@ -1089,7 +1089,7 @@ float3 EvaluateTransmission(BSDFData bsdfData, float NdotL, float NdotV, float a
     attenuation *= INV_PI * F_Transm_Schlick(0, 0.5, NdotV) * F_Transm_Schlick(0, 0.5, abs(backNdotL));
 #endif
 
-    float intensity = saturate(attenuation * backNdotL);
+    float intensity = max(0, attenuation * backNdotL); // Warning: attenuation can be greater than 1
 
     return intensity * bsdfData.transmittance;
 }
@@ -1120,7 +1120,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     float attenuation;
     EvaluateLight_Directional(lightLoopContext, posInput, lightData, bakeLightingData, N, L, color, attenuation);
 
-    float intensity = saturate(attenuation * NdotL);
+    float intensity = max(0, attenuation * NdotL); // Warning: attenuation can be greater than 1
 
     // Note: We use NdotL here to early out, but in case of clear coat this is not correct. But we are ok with this
     [branch] if (intensity > 0.0)
@@ -1194,7 +1194,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     EvaluateLight_Punctual(lightLoopContext, posInput, lightData, bakeLightingData, N, L,
                            lightToSample, distances, color, attenuation);
 
-    float intensity = saturate(attenuation * NdotL);
+    float intensity = max(0, attenuation * NdotL); // Warning: attenuation can be greater than 1
 
     // Note: We use NdotL here to early out, but in case of clear coat this is not correct. But we are ok with this
     [branch] if (intensity > 0.0)
