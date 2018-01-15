@@ -224,6 +224,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (skyContext.skyParametersHash != 0)
                 {
+                    CoreUtils.ClearCubemap(cmd, m_SkyboxCubemapRT, Color.black, true);
                     if (m_SupportsConvolution)
                     {
                         CoreUtils.ClearCubemap(cmd, m_SkyboxGGXCubemapRT, Color.black, true);

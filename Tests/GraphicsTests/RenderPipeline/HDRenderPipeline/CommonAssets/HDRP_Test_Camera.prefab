@@ -20,7 +20,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4209882255362944}
   - component: {fileID: 20109210616973140}
-  - component: {fileID: 114270329781043846}
+  - component: {fileID: 114733060649624252}
   - component: {fileID: 114482499083377642}
   m_Layer: 0
   m_Name: HDRP_Test_Camera
@@ -78,23 +78,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!114 &114270329781043846
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1132393308280272}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c20dfc007a9a74ad8a2bfd0d59abe398, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  renderPipeline: {fileID: 11400000, guid: d7fe5f39d2c099a4ea1f1f610af309d7, type: 2}
-  cameraToUse: {fileID: 20109210616973140}
-  hdr: 1
-  msaaSamples: 1
-  width: 1920
-  height: 1080
 --- !u!114 &114482499083377642
 MonoBehaviour:
   m_ObjectHideFlags: 2
@@ -145,3 +128,29 @@ MonoBehaviour:
       enableFptlForForwardOpaque: 1
       enableBigTilePrepass: 1
       isFptlEnabled: 1
+--- !u!114 &114733060649624252
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1132393308280272}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a05220af15327674cb776279e892d996, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  renderPipeline: {fileID: 11400000, guid: d7fe5f39d2c099a4ea1f1f610af309d7, type: 2}
+  cameraToUse: {fileID: 20109210616973140}
+  hdr: 1
+  msaaSamples: 1
+  width: 1920
+  height: 1080
+  thingToDoBeforeTest:
+    m_PersistentCalls:
+      m_Calls: []
+    m_TypeName: UnityEngine.Events.UnityEvent, UnityEngine.CoreModule, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+  testInPlayMode: 0
+  invokeAtStart: 1
+  forcedFrameRate: 60
+  waitForFrames: 30

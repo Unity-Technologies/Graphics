@@ -107,7 +107,7 @@ public partial class HDRenderPipeline : RenderPipeline
     RenderTargetIdentifier[] m_VBufferLightingRT = null;
 
     int                      m_ViewCount         = 0;
-    int[]                    m_ViewIdArray       = new int[8];
+    int[]                    m_ViewIdArray       = new int[8]; // TODO: account for the CameraType
 
     int ViewOffsetFromViewId(int viewId)
     {

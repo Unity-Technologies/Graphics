@@ -37,6 +37,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent shadowCascadeSplit = new GUIContent("Cascades Split",
                     "Percentages to split shadow volume");
 
+            public static GUIContent hdrContent = new GUIContent("HDR", "Controls the global HDR settings.");
             public static GUIContent msaaContent = new GUIContent("Anti Aliasing (MSAA)", "Controls the global anti aliasing settings.");
 
             public static string[] shadowTypeOptions = {"No Shadows", "Hard Shadows", "Hard and Soft Shadows"};
@@ -57,6 +58,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private SerializedProperty m_ShadowCascadesProp;
         private SerializedProperty m_ShadowCascade2SplitProp;
         private SerializedProperty m_ShadowCascade4SplitProp;
+        private SerializedProperty m_HDR;
         private SerializedProperty m_MSAA;
 
         void OnEnable()
@@ -72,6 +74,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_ShadowCascadesProp = serializedObject.FindProperty("m_ShadowCascades");
             m_ShadowCascade2SplitProp = serializedObject.FindProperty("m_Cascade2Split");
             m_ShadowCascade4SplitProp = serializedObject.FindProperty("m_Cascade4Split");
+            m_HDR = serializedObject.FindProperty("m_SupportsHDR");
             m_MSAA = serializedObject.FindProperty("m_MSAA");
         }
 
@@ -108,6 +111,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.PropertyField(m_SupportsVertexLightProp, Styles.enableVertexLightLabel);
             EditorGUILayout.PropertyField(m_RequireCameraDepthTextureProp, Styles.requireCameraDepthTexture);
+            EditorGUILayout.PropertyField(m_HDR, Styles.hdrContent);
             EditorGUILayout.PropertyField(m_MSAA, Styles.msaaContent);
 
             EditorGUI.indentLevel--;
