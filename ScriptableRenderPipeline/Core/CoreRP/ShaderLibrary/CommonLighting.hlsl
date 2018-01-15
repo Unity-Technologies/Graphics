@@ -51,7 +51,7 @@ real ComputeCubemapTexelSolidAngle(real3 L, real texelArea)
 //-----------------------------------------------------------------------------
 
 // Ref: Moving Frostbite to PBR.
-real QuadraticAttenuation(float attenuation)
+real QuadraticAttenuation(real attenuation)
 {
     return attenuation * attenuation;
 }
@@ -105,13 +105,13 @@ real SmoothAngleAttenuation(real3 L, real3 lightFwdDir, real lightAngleScale, re
 
 // Combines SmoothQuadraticDistanceAttenuation() and SmoothAngleAttenuation() in an efficient manner.
 // distances = {d, d^2, 1/d, d_proj}, where d_proj = dot(lightToSample, lightData.forward).
-float SmoothPunctualLightAttenuation(float4 distances, real invSqrAttenuationRadius,
+real SmoothPunctualLightAttenuation(real4 distances, real invSqrAttenuationRadius,
                                      real lightAngleScale, real lightAngleOffset)
 {
-    float distSq   = distances.y;
-    float distRcp  = distances.z;
-    float distProj = distances.w;
-    float cosFwd   = distProj * distRcp;
+    real distSq   = distances.y;
+    real distRcp  = distances.z;
+    real distProj = distances.w;
+    real cosFwd   = distProj * distRcp;
 
     real attenuation  = min(distRcp, 1.0 / PUNCTUAL_LIGHT_THRESHOLD);
          attenuation *= DistanceAttenuation(distSq, invSqrAttenuationRadius);
