@@ -47,8 +47,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         float m_Maximum;
         bool m_Initialized;
 
-        int m_UndoGroup = -1;
-
         public ChannelMixerControlView(string label, float minimum, float maximum, AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
             m_Node = node;
