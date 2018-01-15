@@ -151,24 +151,6 @@ namespace UnityEditor.VFX
             return slotList.IndexOf(slot);
         }
 
-        protected static void CopyLink(VFXSlot from, VFXSlot to)
-        {
-            var linkedSlots = from.LinkedSlots.ToArray();
-            for (int iLink = 0; iLink < linkedSlots.Length; ++iLink)
-            {
-                to.Link(linkedSlots[iLink]);
-            }
-
-            var fromChild = from.children.ToArray();
-            var toChild = to.children.ToArray();
-            fromChild = fromChild.Take(toChild.Length).ToArray();
-            toChild = toChild.Take(fromChild.Length).ToArray();
-            for (int iChild = 0; iChild < toChild.Length; ++iChild)
-            {
-                CopyLink(fromChild[iChild], toChild[iChild]);
-            }
-        }
-
         protected VFXSlotContainerModel()
         {}
 
