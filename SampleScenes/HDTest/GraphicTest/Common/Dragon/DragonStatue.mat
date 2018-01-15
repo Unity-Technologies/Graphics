@@ -220,7 +220,7 @@ Material:
     - _GlossyReflections: 1
     - _HeightAmplitude: 0
     - _HeightCenter: 0
-    - _HeightMapParametrization: 0
+    - _HeightMapParametrization: 1
     - _HeightMax: 1
     - _HeightMin: -1
     - _HeightOffset: 0

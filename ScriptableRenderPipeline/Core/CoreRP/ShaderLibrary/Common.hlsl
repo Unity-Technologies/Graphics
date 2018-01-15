@@ -439,6 +439,29 @@ float ComputeTextureLOD(float2 uv, float2 texelSize)
     return ComputeTextureLOD(uv);
 }
 
+uint GetMipCount(Texture2D tex)
+{
+#if defined(SHADER_API_D3D11) || defined(SHADER_API_D3D12) || defined(SHADER_API_D3D11_9X) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL)
+    #define MIP_COUNT_SUPPORTED 1
+#endif
+#if (defined(SHADER_API_OPENGL) || defined(SHADER_API_VULKAN)) && !defined(SHADER_STAGE_COMPUTE)
+    // OpenGL only supports textureSize for width, height, depth
+    // textureQueryLevels (GL_ARB_texture_query_levels) needs OpenGL 4.3 or above and doesn't compile in compute shaders
+    // tex.GetDimensions converted to textureQueryLevels
+    #define MIP_COUNT_SUPPORTED 1
+#endif
+    // Metal doesn't support high enough OpenGL version
+
+#if defined(MIP_COUNT_SUPPORTED)
+    uint width, height, depth, mipCount;
+    width = height = depth = mipCount = 0;
+    tex.GetDimensions(width, height, depth, mipCount);
+    return mipCount;
+#else
+    return 0;
+#endif
+}
+
 // ----------------------------------------------------------------------------
 // Texture format sampling
 // ----------------------------------------------------------------------------

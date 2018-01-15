@@ -761,6 +761,14 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     AddDecalContribution(posInput.positionSS, surfaceData);
 
+#if defined(DEBUG_DISPLAY)
+    if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
+    {
+        surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, layerTexCoord.base0.uv, _BaseColorMap0, _BaseColorMap0_TexelSize, _BaseColorMap0_MipInfo, surfaceData.baseColor);
+        surfaceData.metallic = 0;
+    }
+#endif
+
     GetBuiltinData(input, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
 }
 

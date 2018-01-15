@@ -608,7 +608,7 @@ GameObject:
   - component: {fileID: 1962206527}
   - component: {fileID: 1962206526}
   m_Layer: 0
-  m_Name: DebugSettings
+  m_Name: Settings
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
