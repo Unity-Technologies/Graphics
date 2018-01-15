@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEditor.AnimatedValues;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -30,6 +30,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SphereBoundsHandle sphereInfluenceNormalHandle = new SphereBoundsHandle();
 
         public AnimBool isSectionExpandedShape { get { return m_AnimBools[k_ShapeCount]; } }
+        public bool showInfluenceHandles { get; set; }
 
         public InfluenceVolumeUI()
             : base(k_ShapeCount + 1)

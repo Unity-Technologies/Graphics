@@ -174,10 +174,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 && capturePositionMode == CapturePositionMode.MirrorCamera)
             {
                 var planeCenter = influenceToWorld.MultiplyPoint(m_CaptureMirrorPlaneLocalPosition);
-                var planeNormal = influenceToWorld.MultiplyVector(m_CaptureMirrorPlaneLocalNormal).normalized;
+                var planeNormal = influenceToWorld.MultiplyVector(m_CaptureMirrorPlaneLocalNormal.normalized);
                 var sourcePosition = viewerCamera.transform.position;
                 var r = sourcePosition - planeCenter;
-                var capturePosition = r - 2 * Vector3.Dot(planeNormal, r) * planeNormal;
+                var capturePosition = r - 2 * Vector3.Dot(planeNormal, r) * planeNormal + planeCenter;
 
                 var tr = transform;
                 var influencePosition = influenceVolume.GetWorldPosition(tr);

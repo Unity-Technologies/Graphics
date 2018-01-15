@@ -1,3 +1,4 @@
+﻿using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
@@ -5,42 +6,37 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     partial class InfluenceVolumeUI
     {
-        public static void DrawGizmos_EditBase(InfluenceVolumeUI s, InfluenceVolume d, Matrix4x4 matrix)
+        [Flags]
+        public enum HandleType
         {
-            DrawGizmos_Generic(s, d, matrix, 0);
+            None = 0,
+            Base = 1,
+            Influence = 1 << 1,
+            InfluenceNormal = 1 << 2,
+
+            All = ~0
         }
 
-        public static void DrawGizmos_EditInfluence(InfluenceVolumeUI s, InfluenceVolume d, Matrix4x4 matrix)
+        public static void DrawGizmos(InfluenceVolumeUI s, InfluenceVolume d, Matrix4x4 matrix, HandleType editedHandle, HandleType showedHandle)
         {
-            DrawGizmos_Generic(s, d, matrix, 1);
-        }
+            if ((showedHandle & HandleType.Base) != 0)
+                DrawGizmos_BaseHandle(s, d, matrix, (editedHandle & HandleType.Base) != 0, k_GizmoThemeColorBase);
 
-        public static void DrawGizmos_EditInfluenceNormal(InfluenceVolumeUI s, InfluenceVolume d, Matrix4x4 matrix)
-        {
-            DrawGizmos_Generic(s, d, matrix, 2);
-            
-        }
+            if ((showedHandle & HandleType.Influence) != 0)
+                DrawGizmos_FadeHandle(
+                    s, d, matrix,
+                    d.boxInfluenceOffset, d.boxInfluenceSizeOffset,
+                    d.sphereInfluenceRadiusOffset,
+                    (editedHandle & HandleType.Influence) != 0,
+                    k_GizmoThemeColorInfluence);
 
-        public static void DrawGizmos_EditNone(InfluenceVolumeUI s, InfluenceVolume d, Matrix4x4 matrix)
-        {
-            DrawGizmos_Generic(s, d, matrix, -1);
-        }
-
-        static void DrawGizmos_Generic(InfluenceVolumeUI s, InfluenceVolume d, Matrix4x4 matrix, int solidIndex)
-        {
-            DrawGizmos_BaseHandle(s, d, matrix, solidIndex == 0, k_GizmoThemeColorBase);
-            DrawGizmos_FadeHandle(
-                s, d, matrix,
-                d.boxInfluenceOffset, d.boxInfluenceSizeOffset,
-                d.sphereInfluenceRadiusOffset,
-                solidIndex == 1,
-                k_GizmoThemeColorInfluence);
-            DrawGizmos_FadeHandle(
-                s, d, matrix,
-                d.boxInfluenceNormalOffset, d.boxInfluenceNormalSizeOffset,
-                d.sphereInfluenceNormalRadiusOffset,
-                solidIndex == 2,
-                k_GizmoThemeColorInfluenceNormal);
+            if ((showedHandle & HandleType.InfluenceNormal) != 0)
+                DrawGizmos_FadeHandle(
+                    s, d, matrix,
+                    d.boxInfluenceNormalOffset, d.boxInfluenceNormalSizeOffset,
+                    d.sphereInfluenceNormalRadiusOffset,
+                    (editedHandle & HandleType.InfluenceNormal) != 0,
+                    k_GizmoThemeColorInfluenceNormal);
         }
 
         static void DrawGizmos_BaseHandle(
