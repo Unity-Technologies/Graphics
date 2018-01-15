@@ -31,22 +31,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public abstract ReflectionProbeMode mode { get; }
         public abstract Texture texture { get; }
         // Position of the center of the probe in capture space
-        public abstract Vector3 centerOffsetCaptureSpace { get; }
         public abstract float dimmer { get; }
         public abstract Vector3 influenceRight { get; }
         public abstract Vector3 influenceUp { get; }
         public abstract Vector3 influenceForward { get; }
         public abstract Vector3 capturePosition { get; }
-        public Vector3 influencePosition
-        {
-            get
-            {
-                return centerOffsetCaptureSpace.x * influenceRight
-                    + centerOffsetCaptureSpace.y * influenceUp
-                    + centerOffsetCaptureSpace.z * influenceForward
-                    + capturePosition;
-            }
-        }
+        public abstract Vector3 influencePosition { get; }
         public abstract EnvShapeType influenceShapeType { get; }
         public abstract Vector3 influenceExtents { get; }
         public abstract Vector3 blendNormalDistancePositive { get; }
@@ -95,10 +85,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override Vector3 influenceUp { get { return probe.localToWorld.GetColumn(1).normalized; } }
         public override Vector3 influenceForward { get { return probe.localToWorld.GetColumn(2).normalized; } }
         public override Vector3 capturePosition { get { return probe.localToWorld.GetColumn(3); } }
-
+        public override Vector3 influencePosition { get { return capturePosition + probe.center; } }
         public override Texture texture { get { return probe.texture; } }
         public override ReflectionProbeMode mode { get { return probe.probe.mode; } }
-        public override Vector3 centerOffsetCaptureSpace { get { return probe.center; } }  // center is misnamed, it is the offset (in local space) from center of the bounding box to the cubemap capture point
         public override EnvShapeType influenceShapeType { get { return ConvertShape(additional.influenceShape); } }
         public override float dimmer { get { return additional.dimmer; } }
         public override Vector3 influenceExtents
@@ -146,7 +135,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override Vector3 influenceForward { get { return probe.influenceForward; } }
         public override Vector3 capturePosition { get { return probe.capturePosition; } }
         public override Texture texture { get { return probe.texture; } }
-        public override Vector3 centerOffsetCaptureSpace { get { return probe.captureLocalPosition; } }
         public override EnvShapeType influenceShapeType { get { return ConvertShape(probe.influenceVolume.shapeType); } }
         public override float dimmer { get { return probe.dimmer; } }
         public override Vector3 influenceExtents
@@ -157,12 +145,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     default:
                     case ShapeType.Box:
-                        return probe.influenceVolume.boxBaseSize;
+                        return probe.influenceVolume.boxBaseSize * 0.5f;
                     case ShapeType.Sphere:
                         return probe.influenceVolume.sphereBaseRadius * Vector3.one;
                 }
             }
         }
+
+        public override Vector3 influencePosition { get { return probe.influencePosition; } }
         public override Vector3 blendNormalDistancePositive { get { return probe.influenceVolume.boxInfluenceNormalPositiveFade; } }
         public override Vector3 blendNormalDistanceNegative { get { return probe.influenceVolume.boxInfluenceNormalNegativeFade; } }
         public override Vector3 blendDistancePositive { get { return probe.influenceVolume.boxInfluencePositiveFade; } }

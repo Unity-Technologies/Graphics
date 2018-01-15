@@ -132,9 +132,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector3 influenceExtents;   // extents of the env light
         public float unused0;
 
-        public Vector3 offsetLS;
-        public float unused1;
-
         public Vector3 blendDistancePositive; //+X,+Y,+Z
         public float unused2;
         public Vector3 blendDistanceNegative; //-X,-Y,-Z

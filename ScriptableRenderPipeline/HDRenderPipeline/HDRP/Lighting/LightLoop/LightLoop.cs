@@ -1191,7 +1191,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             envLightData.up = probe.influenceUp;
             envLightData.forward = probe.influenceForward;
             envLightData.capturePositionWS = probe.capturePosition;
-            envLightData.offsetLS = probe.centerOffsetCaptureSpace;
             envLightData.positionWS = probe.influencePosition;
 
             envLightData.envIndex = envIndex;
