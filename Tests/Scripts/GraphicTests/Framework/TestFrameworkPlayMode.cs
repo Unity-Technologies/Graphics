@@ -52,8 +52,14 @@ public class GraphicTestsPlayMode : IPrebuildSetup, IPostBuildCleanup
         var prjRelativeGraphsPath = TestFrameworkTools.s_Path.Aggregate(TestFrameworkTools.s_RootPath, Path.Combine);
         var filePath = Path.Combine(prjRelativeGraphsPath, testInfo.relativePath);
 
+        for (int i = 0; i < UnityEngine.SceneManagement.SceneManager.sceneCountInBuildSettings; ++i)
+        {
+            UnityEngine.SceneManagement.Scene scene = UnityEngine.SceneManagement.SceneManager.GetSceneByBuildIndex(i);
+            Debug.Log("build index "+i+" : "+scene.name);
+        }
+
         // open the scene
-        UnityEngine.SceneManagement.SceneManager.LoadScene( testInfo.relativePath , UnityEngine.SceneManagement.LoadSceneMode.Single);
+        UnityEngine.SceneManagement.SceneManager.LoadScene( testInfo.sceneListIndex , UnityEngine.SceneManagement.LoadSceneMode.Single);
 
         yield return null; // wait one "frame" to let the scene load
 

@@ -11,5 +11,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0baa057a399734241b8f30441a73b429, type: 3}
   m_Name: EditorPlayModeTests
   m_EditorClassIdentifier: 
-  scenesPath:
-  - 3xxx_DebugView/3002_ObjectMotionVector.unity
+  scenesPath: []
