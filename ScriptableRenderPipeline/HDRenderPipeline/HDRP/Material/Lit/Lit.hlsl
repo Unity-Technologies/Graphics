@@ -558,11 +558,12 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     bool pixelHasClearCoat     = (coatMask > 0);
 
     // Disable pixel features disabled by the tile.
-    pixelFeatureFlags |= tileFeatureFlags & (pixelHasTransmission ? MATERIALFEATUREFLAGS_LIT_TRANSMISSION          : 0);
-    pixelFeatureFlags |= tileFeatureFlags & (pixelHasSubsurface   ? MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING : 0);
-    pixelFeatureFlags |= tileFeatureFlags & (pixelHasAnisotropy   ? MATERIALFEATUREFLAGS_LIT_ANISOTROPY            : 0);
-    pixelFeatureFlags |= tileFeatureFlags & (pixelHasIridescence  ? MATERIALFEATUREFLAGS_LIT_IRIDESCENCE           : 0);
-    pixelFeatureFlags |= tileFeatureFlags & (pixelHasClearCoat    ? MATERIALFEATUREFLAGS_LIT_CLEAR_COAT            : 0);
+    pixelFeatureFlags |= tileFeatureFlags & (pixelHasSpecularColor ? MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR        : 0);
+    pixelFeatureFlags |= tileFeatureFlags & (pixelHasTransmission  ? MATERIALFEATUREFLAGS_LIT_TRANSMISSION          : 0);
+    pixelFeatureFlags |= tileFeatureFlags & (pixelHasSubsurface    ? MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING : 0);
+    pixelFeatureFlags |= tileFeatureFlags & (pixelHasAnisotropy    ? MATERIALFEATUREFLAGS_LIT_ANISOTROPY            : 0);
+    pixelFeatureFlags |= tileFeatureFlags & (pixelHasIridescence   ? MATERIALFEATUREFLAGS_LIT_IRIDESCENCE           : 0);
+    pixelFeatureFlags |= tileFeatureFlags & (pixelHasClearCoat     ? MATERIALFEATUREFLAGS_LIT_CLEAR_COAT            : 0);
 
     // Start decompressing GBuffer
     float3 baseColor = inGBuffer0.rgb;
@@ -579,7 +580,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     bool pixelHasNoMetallic = HasFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION);
     float metallic = pixelHasNoMetallic ? 0 : metallic15 * (1.0 / GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND);
     bsdfData.diffuseColor = ComputeDiffuseColor(baseColor, metallic);
-    bsdfData.fresnel0 = pixelHasSpecularColor ? Gamma20ToLinear(inGBuffer2.rgb) : ComputeFresnel0(baseColor, metallic, DEFAULT_SPECULAR_VALUE);
+    bsdfData.fresnel0 = HasFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR) ? Gamma20ToLinear(inGBuffer2.rgb) : ComputeFresnel0(baseColor, metallic, DEFAULT_SPECULAR_VALUE);
 
     // Always assign even if not used, DIFFUSION_PROFILE_NEUTRAL_ID is 0
     // Note: we have ZERO_INITIALIZE the struct, so bsdfData.diffusionProfile == DIFFUSION_PROFILE_NEUTRAL_ID, bsdfData.anisotropy == 0, bsdfData.subsurfaceMask == 0 etc...
