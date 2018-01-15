@@ -134,7 +134,7 @@ namespace UnityEditor.VFX.UI
 
                 AddToClassList(ContextEnumToClassName(contextType.ToString()));
 
-                var inputType = controller.context.inputType;
+                var inputType = controller.context.ownedType;
                 foreach (var value in System.Enum.GetNames(typeof(VFXDataType)))
                 {
                     RemoveFromClassList("type" + ContextEnumToClassName(value));
