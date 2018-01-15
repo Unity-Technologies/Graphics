@@ -7,7 +7,7 @@ using System;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXGroupNodePresenter : Controller<VFXUI>
+    class VFXGroupNodeController : Controller<VFXUI>
     {
         [SerializeField]
         int m_Index;
@@ -19,7 +19,7 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        VFXViewController m_ViewPresenter;
+        VFXViewController m_ViewController;
 
         public int index
         {
@@ -31,11 +31,11 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        public VFXGroupNodePresenter(VFXViewController viewPresenter, VFXUI ui, int index) : base(ui)
+        public VFXGroupNodeController(VFXViewController viewController, VFXUI ui, int index) : base(ui)
         {
             m_UI = ui;
             m_Index = index;
-            m_ViewPresenter = viewPresenter;
+            m_ViewController = viewController;
         }
 
         public Rect position
@@ -65,38 +65,38 @@ namespace UnityEditor.VFX.UI
             get
             {
                 if (m_UI.groupInfos[m_Index].content != null)
-                    return m_UI.groupInfos[m_Index].content.Select(t => m_ViewPresenter.GetControllerFromModel(t));
+                    return m_UI.groupInfos[m_Index].content.Select(t => m_ViewController.GetControllerFromModel(t));
                 return new VFXNodeController[0];
             }
             set { m_UI.groupInfos[m_Index].content = value.Select(t => t.model).ToArray(); }
         }
 
 
-        public void AddNode(VFXNodeController presenter)
+        public void AddNode(VFXNodeController controller)
         {
-            if (presenter == null)
+            if (controller == null)
                 return;
 
             if (m_UI.groupInfos[m_Index].content != null)
-                m_UI.groupInfos[m_Index].content = m_UI.groupInfos[m_Index].content.Concat(Enumerable.Repeat(presenter.model, 1)).Distinct().ToArray();
+                m_UI.groupInfos[m_Index].content = m_UI.groupInfos[m_Index].content.Concat(Enumerable.Repeat(controller.model, 1)).Distinct().ToArray();
             else
-                m_UI.groupInfos[m_Index].content = new VFXModel[] { presenter.model };
+                m_UI.groupInfos[m_Index].content = new VFXModel[] { controller.model };
         }
 
-        public void RemoveNode(VFXNodeController presenter)
+        public void RemoveNode(VFXNodeController controller)
         {
-            if (presenter == null)
+            if (controller == null)
                 return;
 
             if (m_UI.groupInfos[m_Index].content != null)
-                m_UI.groupInfos[m_Index].content = m_UI.groupInfos[m_Index].content.Where(t => t != presenter.model).ToArray();
+                m_UI.groupInfos[m_Index].content = m_UI.groupInfos[m_Index].content.Where(t => t != controller.model).ToArray();
         }
 
-        public bool ContainsNode(VFXNodeController presenter)
+        public bool ContainsNode(VFXNodeController controller)
         {
             if (m_UI.groupInfos[m_Index].content != null)
             {
-                return m_UI.groupInfos[m_Index].content.Contains(presenter.model);
+                return m_UI.groupInfos[m_Index].content.Contains(controller.model);
             }
             return false;
         }

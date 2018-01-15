@@ -490,11 +490,11 @@ namespace UnityEditor.VFX.UI
         }
 
 
-        Dictionary<VFXGroupNodePresenter, VFXGroupNode> groupNodes
+        Dictionary<VFXGroupNodeController, VFXGroupNode> groupNodes
         {
             get
             {
-                Dictionary<VFXGroupNodePresenter, VFXGroupNode> dic = new Dictionary<VFXGroupNodePresenter, VFXGroupNode>();
+                Dictionary<VFXGroupNodeController, VFXGroupNode> dic = new Dictionary<VFXGroupNodeController, VFXGroupNode>();
                 foreach (var layer in contentViewContainer.Children())
                 {
                     foreach (var graphElement in layer.Children())

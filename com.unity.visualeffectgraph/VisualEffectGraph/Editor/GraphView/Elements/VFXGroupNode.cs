@@ -9,13 +9,13 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXGroupNode : GroupNode, IControlledElement<VFXGroupNodePresenter>
+    class VFXGroupNode : GroupNode, IControlledElement<VFXGroupNodeController>
     {
         Controller IControlledElement.controller
         {
             get { return m_Controller; }
         }
-        public VFXGroupNodePresenter controller
+        public VFXGroupNodeController controller
         {
             get { return m_Controller; }
             set
@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        VFXGroupNodePresenter m_Controller;
+        VFXGroupNodeController m_Controller;
 
         public VFXGroupNode()
         {

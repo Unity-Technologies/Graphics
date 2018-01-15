@@ -393,9 +393,9 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
-            else if (element is VFXGroupNodePresenter)
+            else if (element is VFXGroupNodeController)
             {
-                RemoveGroupNode(element as VFXGroupNodePresenter);
+                RemoveGroupNode(element as VFXGroupNodeController);
             }
             else if (element is Preview3DController)
             {
@@ -460,7 +460,7 @@ namespace UnityEditor.VFX.UI
             m_Graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
 
-        void RemoveGroupNode(VFXGroupNodePresenter groupNode)
+        void RemoveGroupNode(VFXGroupNodeController groupNode)
         {
             var ui = graph.UIInfos;
 
@@ -756,12 +756,12 @@ namespace UnityEditor.VFX.UI
             GraphChanged(graph);
         }
 
-        public ReadOnlyCollection<VFXGroupNodePresenter> groupNodes
+        public ReadOnlyCollection<VFXGroupNodeController> groupNodes
         {
             get {return m_GroupNodePresenters.AsReadOnly(); }
         }
 
-        List<VFXGroupNodePresenter> m_GroupNodePresenters = new List<VFXGroupNodePresenter>();
+        List<VFXGroupNodeController> m_GroupNodePresenters = new List<VFXGroupNodeController>();
 
         public bool RecreateUI()
         {
@@ -771,7 +771,7 @@ namespace UnityEditor.VFX.UI
             {
                 for (int i = m_GroupNodePresenters.Count; i < ui.groupInfos.Length; ++i)
                 {
-                    VFXGroupNodePresenter groupNodePresenter = new VFXGroupNodePresenter(this, ui, i);
+                    VFXGroupNodeController groupNodePresenter = new VFXGroupNodeController(this, ui, i);
                     m_GroupNodePresenters.Add(groupNodePresenter);
                     changed = true;
                 }
