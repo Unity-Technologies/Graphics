@@ -1,15 +1,13 @@
 # Unity Scriptable Render Pipeline testbed
 
 **NOTE**: this is a testbed for a Unity feature that has not shipped yet! The latest commits in this project does not work
-with any public Unity version, and things in it might and will be broken.
+with any public Unity version, and things in it might and will be broken. Use tagged release to play with it.
 
 "Scriptable Render Pipelines" is a potential future Unity feature, think "Command Buffers, take two". We plan to ship the feature, and a
 new modern built-in rendering pipeline with it. For now you can look around if you're _really_ curious, but like said above, this is
 not useful for any public Unity version yet.
 
 There's a more detailed overview document here: [ScriptableRenderPipeline google doc](https://docs.google.com/document/d/1e2jkr_-v5iaZRuHdnMrSv978LuJKYZhsIYnrDkNAuvQ/edit?usp=sharing)
-
-Did we mention it's a very WIP, no promises, may or might not ship feature, anything and everything in it can change? It totally is.
 
 ## How to use the latest version
 The repository no longer consists of a complete Unity project, but rather
@@ -22,6 +20,15 @@ Perform the following instructions to get a working copy of SRP:
 > cd <Path to your Unity project>/Assets
 > git clone https://github.com/Unity-Technologies/ScriptableRenderPipeline
 > cd ScriptableRenderPipeline
+> git submodule update --init --recursive --remote
+```
+
+## For Unity above 2018.1 beta users
+SRP depends on PostProcessing submodule. Perform the following instructions to get a working copy of SRP:
+```
+> git clone https://github.com/Unity-Technologies/ScriptableRenderPipeline
+> cd ScriptableRenderPipeline
+> git checkout unity-2018.1.0b2 (or the latest tag)
 > git submodule update --init --recursive --remote
 ```
 
@@ -39,7 +46,7 @@ SRP depends on PostProcessing submodule. Perform the following instructions to g
 1. Download Unity version compatible with Github release (https://github.com/Unity-Technologies/ScriptableRenderPipeline/releases)
 2. Launch
 3. Create a new Unity project
-4. Set `Color Space` to `Linear` in Player settings, Set Antialiasing to disable in Quality settings for all configuration (Fantastic and High), Set Anisotropic Textures to "Per Textures"
+4. Set `Color Space` to `Linear` in Player settings, Set Antialiasing to disable in Quality settings for all configuration (Fantastic and High),
 5. Close Unity
 6. Execute the following commands (or use GitHub interface (ask us)):
 ```
