@@ -8,6 +8,7 @@ using UnityEngine.Experimental.UIElements;
 
 using Object = UnityEngine.Object;
 using System.Collections.ObjectModel;
+using System.Reflection;
 
 namespace UnityEditor.VFX.UI
 {
@@ -578,6 +579,21 @@ namespace UnityEditor.VFX.UI
         {
             var model = desc.CreateInstance();
             AddVFXModel(pos, model);
+
+            VFXParameter parameter = model as VFXParameter;
+
+            Type type = parameter.type;
+
+            if (!type.IsPrimitive)
+            {
+                FieldInfo defaultField = type.GetField("defaultValue", BindingFlags.Public | BindingFlags.Static);
+
+                if (defaultField != null)
+                {
+                    parameter.value = defaultField.GetValue(null);
+                }
+            }
+
             return model;
         }
 

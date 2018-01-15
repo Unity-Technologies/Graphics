@@ -36,6 +36,32 @@ float4 VFXGetTextureColor(VFXSampler2D s,VFX_VARYING_PS_INPUTS i)
     return texColor;
 }
 
+float4 VFXGetTextureColorWithProceduralUV(VFXSampler2D s,VFX_VARYING_PS_INPUTS i,float2 uv)
+{
+#if USE_FLIPBOOK
+#ifdef VFX_VARYING_FLIPBOOKSIZE
+    float flipBookSize = i.VFX_VARYING_FLIPBOOKSIZE;
+    float invFlipBookSize = i.VFX_VARYING_INVFLIPBOOKSIZE;
+    float texIndex = i.VFX_VARYING_TEXINDEX;
+#else
+    float flipBookSize = 1;
+    float invFlipBookSize = 1;
+    float texIndex = 0;
+#endif
+
+#if USE_FLIPBOOK_INTERPOLATION
+    float blend;
+    float4 uvs = float4(uv, 0, 0);
+    ProcessFlipBookUV(flipBookSize, invFlipBookSize, texIndex, uvs, blend);
+    return lerp(s.t.Sample(s.s, uvs.xy), s.t.Sample(s.s, uvs.zw), blend);
+#else
+    ProcessFlipBookUV(flipBookSize, invFlipBookSize, texIndex, uv);
+#endif
+#endif
+
+    return s.t.Sample(s.s, uv);
+}
+
 float3 VFXGetTextureNormal(VFXSampler2D s,float2 uv)
 {
     float4 packedNormal = s.t.Sample(s.s,uv);

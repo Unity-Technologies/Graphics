@@ -233,6 +233,8 @@ namespace UnityEditor.VFX.UI
         {
             foreach (var setting in m_Settings)
             {
+                if (setting.parent == null)
+                    continue;
                 float portLabelWidth = setting.GetPreferredLabelWidth() + 5;
                 float portControlWidth = setting.GetPreferredControlWidth();
 

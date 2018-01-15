@@ -846,7 +846,7 @@ MonoBehaviour:
   - {fileID: 114566370008860848}
   - {fileID: 114889596446218778}
   - {fileID: 114978069437681324}
-  m_Capacity: 65536
+  m_Capacity: 10048
   m_Space: 0
 --- !u!114 &114287871694759918
 MonoBehaviour:
@@ -2603,7 +2603,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.AABox, Assembly-CSharp-Editor-testable,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"space":0,"center":{"x":0.0,"y":0.0,"z":0.0},"size":{"x":1.0,"y":1.0,"z":1.0}}'
+      m_SerializableObject: '{"space":0,"center":{"x":-0.011615276336669922,"y":0.0030828118324279787,"z":-0.0026590824127197267},"size":{"x":2.2195816040039064,"y":2.2123823165893556,"z":2.185943126678467}}'
   m_Property:
     name: bounds
     m_serializedType:
@@ -3445,6 +3445,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
@@ -3834,17 +3835,17 @@ VFXAsset:
       - m_ExpressionIndex: 26
         m_Value: -0.2
       - m_ExpressionIndex: 27
-        m_Value: 0
+        m_Value: -0.0026590824
       - m_ExpressionIndex: 28
-        m_Value: 0
+        m_Value: 0.0030828118
       - m_ExpressionIndex: 29
-        m_Value: 1
+        m_Value: 2.2123823
       - m_ExpressionIndex: 30
-        m_Value: 1
+        m_Value: 2.1859431
       - m_ExpressionIndex: 31
-        m_Value: 1
+        m_Value: 2.2195816
       - m_ExpressionIndex: 32
-        m_Value: 0
+        m_Value: -0.011615276
       - m_ExpressionIndex: 33
         m_Value: 0
       - m_ExpressionIndex: 34
@@ -3941,8 +3942,8 @@ VFXAsset:
       m_Array: []
   m_Buffers:
   - type: 1
-    size: 524288
-    capacity: 65536
+    size: 80384
+    capacity: 10048
     layout:
     - name: color
       type: 3
@@ -4009,7 +4010,7 @@ VFXAsset:
       processor: {fileID: 0}
   - type: 1
     flags: 0
-    capacity: 65536
+    capacity: 10048
     buffers:
     - index: 0
       nameId: attributeBuffer
@@ -4049,14 +4050,14 @@ VFXAsset:
       - index: 49
         nameId: Sphere_arc_c
       params: []
-      processor: {fileID: 7200000, guid: 572982cc0dea2a74aaa5a4606e683194, type: 3}
+      processor: {fileID: 7200000, guid: 63d4c824ece3bc94887223720099602f, type: 3}
     - type: 805306368
       buffers:
       - index: 0
         nameId: attributeBuffer
       values: []
       params: []
-      processor: {fileID: 7200000, guid: f9f30909ecc2780408ff081fff420ced, type: 3}
+      processor: {fileID: 7200000, guid: a77019373557e1645b2f9a4bc3458349, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -4075,7 +4076,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: a63e30be448695649aaabae209583879, type: 3}
+      processor: {fileID: 4800000, guid: 3fa3c0bff01cd0b48b5778451bf73c9f, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

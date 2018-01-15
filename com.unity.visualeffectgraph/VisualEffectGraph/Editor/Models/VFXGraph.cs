@@ -38,6 +38,7 @@ namespace UnityEditor.VFX
             foreach (var vfxAsset in vfxAssets)
             {
                 Debug.Log(string.Format("Recompile VFX asset: {0} ({1})", vfxAsset, AssetDatabase.GetAssetPath(vfxAsset.GetInstanceID())));
+                vfxAsset.GetOrCreateGraph().SetExpressionGraphDirty();
                 vfxAsset.GetOrCreateGraph().OnSaved();
             }
             AssetDatabase.SaveAssets();

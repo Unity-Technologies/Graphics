@@ -42,7 +42,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.AABox, Assembly-CSharp-Editor-testable,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"space":0,"center":{"x":0.0,"y":3.7365875244140627,"z":0.1927032470703125},"size":{"x":4.178178787231445,"y":13.076286315917969,"z":5.102475643157959}}'
+      m_SerializableObject: '{"space":0,"center":{"x":1.178358554840088,"y":0.4952092170715332,"z":3.5682642459869386},"size":{"x":8.359450340270996,"y":14.195845603942871,"z":10.333127975463868}}'
   m_Property:
     name: bounds
     m_serializedType:
@@ -1746,7 +1746,7 @@ MonoBehaviour:
   - {fileID: 114673099322863142}
   - {fileID: 114219562863948968}
   - {fileID: 114869244314744030}
-  m_Capacity: 4000000
+  m_Capacity: 60032
   m_Space: 0
 --- !u!114 &114555154138301174
 MonoBehaviour:
@@ -3062,10 +3062,10 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 2
+  flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
-  flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114879815840584768
 MonoBehaviour:
@@ -4118,17 +4118,17 @@ VFXAsset:
       - m_ExpressionIndex: 31
         m_Value: 1
       - m_ExpressionIndex: 32
-        m_Value: 13.076286
+        m_Value: 14.195846
       - m_ExpressionIndex: 33
-        m_Value: 4.178179
+        m_Value: 8.35945
       - m_ExpressionIndex: 34
-        m_Value: 0.19270325
+        m_Value: 3.5682642
       - m_ExpressionIndex: 35
-        m_Value: 5.1024756
+        m_Value: 10.333128
       - m_ExpressionIndex: 37
-        m_Value: 0
+        m_Value: 1.1783586
       - m_ExpressionIndex: 38
-        m_Value: 3.7365875
+        m_Value: 0.49520922
       - m_ExpressionIndex: 39
         m_Value: 1
       - m_ExpressionIndex: 41
@@ -4227,8 +4227,8 @@ VFXAsset:
       m_Array: []
   m_Buffers:
   - type: 1
-    size: 68000000
-    capacity: 4000000
+    size: 1020544
+    capacity: 60032
     layout:
     - name: position
       type: 3
@@ -4251,19 +4251,19 @@ VFXAsset:
     - name: color
       type: 3
       offset:
-        bucket: 32000000
+        bucket: 480256
         structure: 4
         element: 0
     - name: lifetime
       type: 1
       offset:
-        bucket: 48000000
+        bucket: 720384
         structure: 1
         element: 0
     - name: velocity
       type: 3
       offset:
-        bucket: 52000000
+        bucket: 780416
         structure: 4
         element: 0
   - type: 1
@@ -4277,7 +4277,7 @@ VFXAsset:
         structure: 1
         element: 0
   - type: 2
-    size: 4000000
+    size: 60032
     capacity: 0
     layout: []
   - type: 1
@@ -4325,7 +4325,7 @@ VFXAsset:
       processor: {fileID: 0}
   - type: 1
     flags: 1
-    capacity: 4000000
+    capacity: 60032
     buffers:
     - index: 0
       nameId: attributeBuffer
@@ -4371,7 +4371,7 @@ VFXAsset:
       - index: 61
         nameId: attributeMap_c
       params: []
-      processor: {fileID: 7200000, guid: f9487bec4de183e49819358124ae6629, type: 3}
+      processor: {fileID: 7200000, guid: d200a701df3e6514f93a45ab5fe20ddc, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -4394,7 +4394,7 @@ VFXAsset:
       - index: 65
         nameId: VectorField_b
       params: []
-      processor: {fileID: 7200000, guid: 2d5904811b2674e4ca892d89fd38d7b8, type: 3}
+      processor: {fileID: 7200000, guid: 1eff491bd12685f4c9f51c767438afcd, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -4431,7 +4431,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 505786c3237a7ee4ea5135ac9459722e, type: 3}
+      processor: {fileID: 4800000, guid: 6e5a4ce137093474ebca5075edf01b0a, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

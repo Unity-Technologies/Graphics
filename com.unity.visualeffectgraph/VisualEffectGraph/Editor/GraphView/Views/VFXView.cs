@@ -83,14 +83,13 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public const string templatePath = "Assets/VFXEditor/Editor/Templates";
         protected override IEnumerable<Descriptor> GetDescriptors()
         {
-            var systemDesc = new Descriptor()
-            {
-                modelDescriptor = null,
-                category = "System",
-                name = "Default System"
-            };
+            var systemFiles = System.IO.Directory.GetFiles(templatePath, "*.asset").Select(t => t.Replace("\\", "/"));
+            var systemDesc = systemFiles.Select(t => new Descriptor() {modelDescriptor = t, category = "System", name = System.IO.Path.GetFileNameWithoutExtension(t)});
+
+
             var descriptorsContext = VFXLibrary.GetContexts().Select(o =>
                 {
                     return new Descriptor()
@@ -137,7 +136,7 @@ namespace UnityEditor.VFX.UI
             }
             if (m_AcceptedTypes == null)
             {
-                descs = descs.Concat(Enumerable.Repeat(systemDesc, 1));
+                descs = descs.Concat(systemDesc);
             }
 
             if (m_Filter == null)
@@ -194,9 +193,11 @@ namespace UnityEditor.VFX.UI
             {
                 return AddVFXParameter(tPos, d.modelDescriptor as VFXModelDescriptorParameters);
             }
-            else if (d.modelDescriptor == null)
+            else if (d.modelDescriptor is string)
             {
-                CreateTemplateSystem(tPos);
+                string path = d.modelDescriptor as string;
+
+                CreateTemplateSystem(path, tPos);
             }
             else
             {
@@ -255,9 +256,6 @@ namespace UnityEditor.VFX.UI
             this.AddManipulator(new FreehandSelector());
 
             this.AddManipulator(new ParameterDropper());
-
-            var bg = new GridBackground() { name = "VFXBackgroundGrid" };
-            Insert(0, bg);
 
             m_NodeProvider = new VFXNodeProvider((d, mPos) => AddNode(d, mPos));
 
@@ -607,18 +605,20 @@ namespace UnityEditor.VFX.UI
             return new VFXRendererSettings();
         }
 
-        public void CreateTemplateSystem(Vector2 tPos)
+        public void CreateTemplateSystem(string path, Vector2 tPos)
         {
-            VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>("Assets/VFXEditor/Editor/Templates/DefaultParticleSystem.asset");
+            VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>(path);
+            if (asset != null)
+            {
+                VFXViewController controller = VFXViewController.GetController(asset, true);
+                controller.useCount++;
 
-            VFXViewController controller = VFXViewController.GetController(asset, true);
-            controller.useCount++;
+                var data = VFXCopyPaste.SerializeElements(controller.allChildren);
 
-            var data = VFXCopyPaste.SerializeElements(controller.allChildren);
+                VFXCopyPaste.UnserializeAndPasteElements(this, tPos, data);
 
-            VFXCopyPaste.UnserializeAndPasteElements(this, tPos, data);
-
-            controller.useCount--;
+                controller.useCount--;
+            }
         }
 
         void SetRendererSettings(VFXRendererSettings settings)

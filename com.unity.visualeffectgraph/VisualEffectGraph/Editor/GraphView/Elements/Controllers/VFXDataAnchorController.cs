@@ -96,7 +96,15 @@ namespace UnityEditor.VFX.UI
                 m_Hidden = parentCollapsed;
 
                 var ports = (direction == Direction.Input) ? m_SourceNode.inputPorts : m_SourceNode.outputPorts;
-                foreach (var element in model.children.Select(t => ports.First(u => u.model == t)))
+
+                var children = model.children;
+
+                if (typeof(ISpaceable).IsAssignableFrom(model.property.type) && model.children.Count() == 1)
+                {
+                    children = children.First().children;
+                }
+
+                foreach (var element in children.Select(t => ports.First(u => u.model == t)))
                 {
                     element.UpdateHiddenRecursive(m_Hidden || !expandedSelf, false);
                 }
@@ -188,7 +196,18 @@ namespace UnityEditor.VFX.UI
 
         public int depth
         {
-            get { return model.depth; }
+            get
+            {
+                int depth = model.depth;
+                if (depth > 0)
+                {
+                    if (SlotShouldSkipFirstLevel(model.GetMasterSlot()))
+                    {
+                        --depth;
+                    }
+                }
+                return depth;
+            }
         }
 
         public virtual bool expandable
@@ -264,10 +283,15 @@ namespace UnityEditor.VFX.UI
             model.value = value;
         }
 
+        public static bool SlotShouldSkipFirstLevel(VFXSlot slot)
+        {
+            return typeof(ISpaceable).IsAssignableFrom(slot.property.type) && slot.children.Count() == 1;
+        }
+
         public void ExpandPath()
         {
             model.collapsed = false;
-            if (typeof(ISpaceable).IsAssignableFrom(model.property.type) && model.children.Count() == 1)
+            if (SlotShouldSkipFirstLevel(model))
             {
                 model.children.First().collapsed = model.collapsed;
             }

@@ -187,10 +187,10 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
-  flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114033604711334270
 MonoBehaviour:
@@ -267,10 +267,10 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
-  flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114069458236294264
 MonoBehaviour:
@@ -294,7 +294,7 @@ MonoBehaviour:
   - {fileID: 114051895635770072}
   - {fileID: 114802777676336084}
   - {fileID: 114033350763109576}
-  m_Capacity: 65536
+  m_Capacity: 8
   m_Space: 0
 --- !u!114 &114089173068204810
 MonoBehaviour:
@@ -684,7 +684,7 @@ MonoBehaviour:
   - {fileID: 114654946085396038}
   - {fileID: 114831130251144830}
   m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
+  m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114265085260653516}
   m_MasterData:
@@ -693,7 +693,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.AABox, Assembly-CSharp-Editor-testable,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"space":0,"center":{"x":0.0,"y":0.0,"z":0.0},"size":{"x":1.0,"y":1.0,"z":1.0}}'
+      m_SerializableObject: '{"space":0,"center":{"x":-0.00014281272888183594,"y":0.266866534948349,"z":0.0},"size":{"x":0.4611510634422302,"y":0.5761944651603699,"z":0.0}}'
   m_Property:
     name: bounds
     m_serializedType:
@@ -1482,7 +1482,7 @@ MonoBehaviour:
   - {fileID: 114900620605141148}
   - {fileID: 114089173068204810}
   m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
+  m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114265085260653516}
   m_MasterData:
@@ -1631,10 +1631,10 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
-  flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114821183999697150
 MonoBehaviour:
@@ -2403,17 +2403,17 @@ VFXAsset:
       - m_ExpressionIndex: 10
         m_Value: 1
       - m_ExpressionIndex: 11
-        m_Value: 1
+        m_Value: 0.46115106
       - m_ExpressionIndex: 12
-        m_Value: 1
+        m_Value: 0.57619447
       - m_ExpressionIndex: 13
         m_Value: 0
       - m_ExpressionIndex: 14
-        m_Value: 0
+        m_Value: 0.26686653
       - m_ExpressionIndex: 15
-        m_Value: 0
+        m_Value: -0.00014281273
       - m_ExpressionIndex: 16
-        m_Value: 1
+        m_Value: 0
       - m_ExpressionIndex: 21
         m_Value: 2
       - m_ExpressionIndex: 22
@@ -2489,8 +2489,8 @@ VFXAsset:
       m_Array: []
   m_Buffers:
   - type: 1
-    size: 655360
-    capacity: 65536
+    size: 80
+    capacity: 8
     layout:
     - name: velocity
       type: 3
@@ -2507,25 +2507,25 @@ VFXAsset:
     - name: sizeX
       type: 1
       offset:
-        bucket: 262144
+        bucket: 32
         structure: 1
         element: 0
     - name: age
       type: 1
       offset:
-        bucket: 327680
+        bucket: 40
         structure: 1
         element: 0
     - name: position
       type: 3
       offset:
-        bucket: 393216
+        bucket: 48
         structure: 4
         element: 0
     - name: alive
       type: 17
       offset:
-        bucket: 393216
+        bucket: 48
         structure: 4
         element: 3
   - type: 1
@@ -2539,7 +2539,7 @@ VFXAsset:
         structure: 1
         element: 0
   - type: 2
-    size: 65536
+    size: 8
     capacity: 0
     layout: []
   - type: 1
@@ -2587,7 +2587,7 @@ VFXAsset:
       processor: {fileID: 0}
   - type: 1
     flags: 1
-    capacity: 65536
+    capacity: 8
     buffers:
     - index: 0
       nameId: attributeBuffer
@@ -2621,7 +2621,7 @@ VFXAsset:
       - index: 23
         nameId: Velocity_c
       params: []
-      processor: {fileID: 7200000, guid: 36ea2830d73951149a9c64e4575c0540, type: 3}
+      processor: {fileID: 7200000, guid: bc909fe921841b8458f75a31ff1e96b2, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -2636,7 +2636,7 @@ VFXAsset:
       - index: 26
         nameId: deltaTime_c
       params: []
-      processor: {fileID: 7200000, guid: b54871f1355c1e8439b0f20f80b53069, type: 3}
+      processor: {fileID: 7200000, guid: bfec54f06795e5846a22b59e48b8c1af, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -2647,7 +2647,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: f5ff8f4d5393c2141bbdfb47e1fc5488, type: 3}
+      processor: {fileID: 4800000, guid: 983e460ec394c2f45a3d1af64d20a624, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -2660,7 +2660,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: ff8e8d8c67018de4a90ee87f678c3c81, type: 3}
+      processor: {fileID: 4800000, guid: ced71070159309846924418db1653978, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -2675,7 +2675,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: f282e2e81a09c374eb38b7f0d4cb98b9, type: 3}
+      processor: {fileID: 4800000, guid: 4680757e79c83b84cbbc08b16399990e, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

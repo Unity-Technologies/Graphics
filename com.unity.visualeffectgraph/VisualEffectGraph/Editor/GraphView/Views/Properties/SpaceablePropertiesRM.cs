@@ -21,6 +21,11 @@ namespace UnityEditor.VFX.UI
             return 40;
         }
 
+        public override float GetPreferredLabelWidth()
+        {
+            return base.GetPreferredLabelWidth() + m_Button.layout.width;
+        }
+
         void OnButtonClick()
         {
             m_Value.space = (CoordinateSpace)((int)(m_Value.space + 1) % CoordinateSpaceInfo.SpaceCount);
@@ -63,6 +68,7 @@ namespace UnityEditor.VFX.UI
         {
             m_VectorField = new LabeledField<Vector3Field, Vector3>(m_Label);
             m_VectorField.RegisterCallback<ChangeEvent<Vector3>>(OnValueChanged);
+            m_VectorField.control.dynamicUpdate = true;
             m_VectorField.AddToClassList("fieldContainer");
 
             Add(m_VectorField);
