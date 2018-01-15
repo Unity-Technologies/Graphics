@@ -55,27 +55,56 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             switch (EditMode.editMode)
             {
                 case EditBaseShape:
-                    InfluenceVolumeUI.DrawGizmos_EditBase(s.influenceVolume, d.influenceVolume, mat);
+                    InfluenceVolumeUI.DrawGizmos(
+                        s.influenceVolume, 
+                        d.influenceVolume, 
+                        mat, 
+                        InfluenceVolumeUI.HandleType.Base, 
+                        InfluenceVolumeUI.HandleType.All);
                     break;
                 case EditInfluenceShape:
-                    InfluenceVolumeUI.DrawGizmos_EditInfluence(s.influenceVolume, d.influenceVolume, mat);
+                    InfluenceVolumeUI.DrawGizmos(
+                        s.influenceVolume, 
+                        d.influenceVolume, 
+                        mat,
+                        InfluenceVolumeUI.HandleType.Influence, 
+                        InfluenceVolumeUI.HandleType.All);
                     break;
                 case EditInfluenceNormalShape:
-                    InfluenceVolumeUI.DrawGizmos_EditInfluenceNormal(s.influenceVolume, d.influenceVolume, mat);
+                    InfluenceVolumeUI.DrawGizmos(
+                        s.influenceVolume, 
+                        d.influenceVolume,
+                        mat,
+                        InfluenceVolumeUI.HandleType.InfluenceNormal, 
+                        InfluenceVolumeUI.HandleType.All);
                     break;
                 default:
-                    InfluenceVolumeUI.DrawGizmos_EditNone(s.influenceVolume, d.influenceVolume, mat);
-                    break;
+                    {
+                        var showedHandles = s.influenceVolume.showInfluenceHandles
+                            ? InfluenceVolumeUI.HandleType.All
+                            : InfluenceVolumeUI.HandleType.Base;
+                        InfluenceVolumeUI.DrawGizmos(
+                            s.influenceVolume,
+                            d.influenceVolume,
+                            mat,
+                            InfluenceVolumeUI.HandleType.None,
+                            showedHandles);
+                        break;
+                    }
             }
 
             if (d.proxyVolumeReference != null)
                 ProxyVolumeComponentUI.DrawGizmos_EditNone(s.proxyVolume, d.proxyVolumeReference);
 
-            DrawGizmos_CaptureFrustrum(s, d);
+            if (s.showCaptureHandles
+                || EditMode.editMode == EditCenter)
+            {
+                DrawGizmos_CaptureFrustrum(s, d);
 
-            if (d.mode == ReflectionProbeMode.Realtime
-                && d.refreshMode == ReflectionProbeRefreshMode.EveryFrame)
-                DrawGizmos_CaptureMirror(s, d);
+                if (d.mode == ReflectionProbeMode.Realtime
+                    && d.refreshMode == ReflectionProbeRefreshMode.EveryFrame)
+                    DrawGizmos_CaptureMirror(s, d);
+            }
         }
 
         static void DrawGizmos_CaptureMirror(PlanarReflectionProbeUI s, PlanarReflectionProbe d)

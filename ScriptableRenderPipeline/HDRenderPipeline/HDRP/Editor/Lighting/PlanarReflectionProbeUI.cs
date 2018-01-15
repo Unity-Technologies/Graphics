@@ -20,6 +20,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public AnimBool isSectionExpandedCaptureMirrorSettings { get { return m_AnimBools[k_ReflectionProbeModeModeCount + 2]; } }
 
+        public bool showCaptureHandles { get; set; }
+
         public PlanarReflectionProbeUI()
             : base(k_AnimBoolTotal)
         {

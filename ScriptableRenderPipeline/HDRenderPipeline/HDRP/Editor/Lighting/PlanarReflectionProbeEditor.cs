@@ -40,7 +40,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 m_TypedTargets[i] = (PlanarReflectionProbe)targets[i];
                 m_UIHandleState[i] = new PlanarReflectionProbeUI();
-                m_UIHandleState[i].Reset(m_SerializedAsset, Repaint);
+                m_UIHandleState[i].Reset(m_SerializedAsset, null);
 
                 s_StateMap[m_TypedTargets[i]] = m_UIHandleState[i];
             }
@@ -69,7 +69,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         void OnSceneGUI()
         {
             for (var i = 0; i < m_TypedTargets.Length; i++)
+            {
+                m_UIHandleState[i].Update();
+                m_UIHandleState[i].influenceVolume.showInfluenceHandles = m_UIState.influenceVolume.isSectionExpandedShape.target;
+                m_UIHandleState[i].showCaptureHandles = m_UIState.isSectionExpandedCaptureSettings.target;
                 PlanarReflectionProbeUI.DrawHandles(m_UIHandleState[i], m_TypedTargets[i], this);
+            }
 
             SceneViewOverlay_Window(_.GetContent("Planar Probe"), OnOverlayGUI, -100, target);
         }
