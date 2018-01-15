@@ -44,6 +44,11 @@ namespace UnityEditor.VFX.Test
             var vfxComponent = gameObj.AddComponent<VFXComponent>();
             vfxComponent.vfxAsset = graph.vfxAsset;
 
+            var cameraObj = new GameObject("CreateAssetAndComponentSpawner_Camera");
+            var camera = cameraObj.AddComponent<Camera>();
+            camera.transform.localPosition = Vector3.one;
+            camera.transform.LookAt(vfxComponent.transform);
+
             int maxFrame = 512;
             while (vfxComponent.culled && --maxFrame > 0)
             {
@@ -59,6 +64,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(maxFrame > 0);
 
             UnityEngine.Object.DestroyImmediate(gameObj);
+            UnityEngine.Object.DestroyImmediate(cameraObj);
         }
     }
 }

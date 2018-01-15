@@ -15,61 +15,98 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    internal class VFXDataEdge : VFXEdge
+    internal class VFXDataEdge : VFXEdge, IControlledElement<VFXDataEdgeController>
     {
+        VFXDataEdgeController m_Controller;
+        Controller IControlledElement.controller
+        {
+            get { return m_Controller; }
+        }
+        public VFXDataEdgeController controller
+        {
+            get { return m_Controller; }
+            set
+            {
+                if (m_Controller != null)
+                {
+                    m_Controller.UnregisterHandler(this);
+                }
+                m_Controller = value;
+                if (m_Controller != null)
+                {
+                    m_Controller.RegisterHandler(this);
+                }
+            }
+        }
         public VFXDataEdge()
         {
+            RegisterCallback<ControllerChangedEvent>(OnChange);
+        }
+
+        protected virtual void OnChange(ControllerChangedEvent e)
+        {
+            if (e.controller == controller)
+            {
+                SelfChange();
+            }
+        }
+
+        protected virtual void SelfChange()
+        {
+            if (controller != null)
+            {
+                VFXView view = GetFirstAncestorOfType<VFXView>();
+
+                var newInput = view.GetDataAnchorByController(controller.input);
+
+                if (base.input != newInput)
+                {
+                    if (base.input != null)
+                    {
+                        base.input.Disconnect(this);
+                    }
+                    base.input = newInput;
+                    base.input.Connect(this);
+                }
+
+                var newOutput = view.GetDataAnchorByController(controller.output);
+
+                if (base.output != newOutput)
+                {
+                    if (base.output != null)
+                    {
+                        base.output.Disconnect(this);
+                    }
+                    base.output = newOutput;
+                    base.output.Connect(this);
+                }
+
+                edgeControl.UpdateLayout();
+            }
+        }
+
+        public new VFXDataAnchor input
+        {
+            get { return base.input as VFXDataAnchor; }
+        }
+        public new VFXDataAnchor output
+        {
+            get { return base.output as VFXDataAnchor; }
         }
 
         public override void OnPortChanged(bool isInput)
         {
             base.OnPortChanged(isInput);
-
-            UpdateColor();
-        }
-
-        public virtual void UpdateColor()
-        {
-            if (selected)
-            {
-                edgeControl.inputColor = edgeControl.outputColor = selectedColor;
-            }
-            else
-            {
-                if (input != null)
-                {
-                    edgeControl.inputColor = (input as VFXDataAnchor).anchorColor;
-                }
-                else if (output != null)
-                {
-                    edgeControl.inputColor = (output as VFXDataAnchor).anchorColor;
-                }
-                if (output != null)
-                {
-                    edgeControl.outputColor = (output as VFXDataAnchor).anchorColor;
-                }
-                else if (input != null)
-                {
-                    edgeControl.outputColor = (input as VFXDataAnchor).anchorColor;
-                }
-            }
         }
 
         public override void OnSelected()
         {
             base.OnSelected();
-            UpdateColor();
         }
 
         public override void OnUnselected()
         {
             base.OnUnselected();
-            UpdateColor();
-        }
-
-        protected override void DrawEdge()
-        {
-            UpdateEdgeControl();
         }
     }
 }

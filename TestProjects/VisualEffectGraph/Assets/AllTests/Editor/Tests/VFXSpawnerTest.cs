@@ -19,6 +19,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator CreateAssetAndComponentSpawner()
         {
             EditorApplication.ExecuteMenuItem("Window/Game");
+
             var graph = ScriptableObject.CreateInstance<VFXGraph>();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
@@ -45,6 +46,11 @@ namespace UnityEditor.VFX.Test
             var vfxComponent = gameObj.AddComponent<VFXComponent>();
             vfxComponent.vfxAsset = graph.vfxAsset;
 
+            var cameraObj = new GameObject("CreateAssetAndComponentSpawner_Camera");
+            var camera = cameraObj.AddComponent<Camera>();
+            camera.transform.localPosition = Vector3.one;
+            camera.transform.LookAt(vfxComponent.transform);
+
             int maxFrame = 512;
             while (vfxComponent.culled && --maxFrame > 0)
             {
@@ -58,6 +64,7 @@ namespace UnityEditor.VFX.Test
             var spawnCountRead = spawnerState.spawnCount / spawnerState.deltaTime;
             Assert.LessOrEqual(Mathf.Abs(spawnCountRead - spawnCountValue), 0.01f);
             UnityEngine.Object.DestroyImmediate(gameObj);
+            UnityEngine.Object.DestroyImmediate(cameraObj);
         }
 
         [UnityTest]
@@ -96,9 +103,14 @@ namespace UnityEditor.VFX.Test
             graph.vfxAsset = new VFXAsset();
             graph.RecompileIfNeeded();
 
-            var gameObj = new GameObject("CreateAssetAndComponentSpawner");
+            var gameObj = new GameObject("CreateEventStartAndStop");
             var vfxComponent = gameObj.AddComponent<VFXComponent>();
             vfxComponent.vfxAsset = graph.vfxAsset;
+
+            var cameraObj = new GameObject("CreateEventStartAndStop_Camera");
+            var camera = cameraObj.AddComponent<Camera>();
+            camera.transform.localPosition = Vector3.one;
+            camera.transform.LookAt(vfxComponent.transform);
 
             int maxFrame = 512;
             while (vfxComponent.culled && --maxFrame > 0)
@@ -127,6 +139,7 @@ namespace UnityEditor.VFX.Test
             Assert.LessOrEqual(Mathf.Abs(spawnCountRead), 0.01f);
 
             UnityEngine.Object.DestroyImmediate(gameObj);
+            UnityEngine.Object.DestroyImmediate(cameraObj);
         }
 
         /*
@@ -208,9 +221,14 @@ namespace UnityEditor.VFX.Test
             graph.vfxAsset = new VFXAsset();
             graph.RecompileIfNeeded();
 
-            var gameObj = new GameObject("CreateAssetAndComponentSpawner");
+            var gameObj = new GameObject("CreateCustomSpawnerAndComponent");
             var vfxComponent = gameObj.AddComponent<VFXComponent>();
             vfxComponent.vfxAsset = graph.vfxAsset;
+
+            var cameraObj = new GameObject("CreateCustomSpawnerAndComponent_Camera");
+            var camera = cameraObj.AddComponent<Camera>();
+            camera.transform.localPosition = Vector3.one;
+            camera.transform.LookAt(vfxComponent.transform);
 
             int maxFrame = 512;
             while (vfxComponent.culled && --maxFrame > 0)
@@ -224,6 +242,9 @@ namespace UnityEditor.VFX.Test
             Assert.GreaterOrEqual(spawnerState.totalTime, valueTotalTime);
             Assert.AreEqual(VFXCustomSpawnerTest.s_LifeTime, spawnerState.vfxEventAttribute.GetFloat("lifetime"));
             Assert.AreEqual(VFXCustomSpawnerTest.s_SpawnCount, spawnerState.spawnCount);
+
+            UnityEngine.Object.DestroyImmediate(gameObj);
+            UnityEngine.Object.DestroyImmediate(cameraObj);
         }
 
         /*

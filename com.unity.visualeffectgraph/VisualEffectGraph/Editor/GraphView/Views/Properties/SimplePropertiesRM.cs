@@ -46,14 +46,16 @@ namespace UnityEditor.VFX
     [AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
     public class PushButtonAttribute : PropertyAttribute
     {
-        public PushButtonAttribute(Type pushButtonProvider)
+        public PushButtonAttribute(Type pushButtonProvider, string buttonName)
         {
             if (!typeof(IPushButtonBehavior).IsAssignableFrom(pushButtonProvider))
                 throw new InvalidCastException("PushButtonAttribute excepts a type which implements interface IPushButtonBehavior : " + pushButtonProvider);
             this.pushButtonProvider = pushButtonProvider;
+            this.buttonName = buttonName;
         }
 
         public Type pushButtonProvider { get; private set; }
+        public string buttonName { get; private set; }
     }
 }
 
@@ -61,7 +63,7 @@ namespace UnityEditor.VFX.UI
 {
     class UintPropertyRM : SimpleUIPropertyRM<uint, long>
     {
-        public UintPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public UintPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
 
@@ -73,7 +75,7 @@ namespace UnityEditor.VFX.UI
         public override INotifyValueChanged<long> CreateField()
         {
             Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
-            if (range == Vector2.zero)
+            if (range == Vector2.zero || range.y == Mathf.Infinity)
             {
                 var field = new LabeledField<IntegerField, long>(m_Label);
                 field.control.dynamicUpdate = true;
@@ -89,18 +91,41 @@ namespace UnityEditor.VFX.UI
                 return field;
             }
         }
+
+        public override object FilterValue(object value)
+        {
+            Vector2 range = VFXPropertyAttribute.FindRange(m_Provider.attributes);
+
+            if (range != Vector2.zero && (range.y == Mathf.Infinity || (uint)range.x < (uint)range.y))
+            {
+                uint val = (uint)value;
+
+                if (range.x > val)
+                {
+                    val = (uint)range.x;
+                }
+                if (range.y < val)
+                {
+                    val = (uint)range.y;
+                }
+
+                value = val;
+            }
+
+            return value;
+        }
     }
 
     class IntPropertyRM : SimpleUIPropertyRM<int, long>
     {
-        public IntPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public IntPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
 
         public override INotifyValueChanged<long> CreateField()
         {
             Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
-            if (range == Vector2.zero)
+            if (range != Vector2.zero && (range.y == Mathf.Infinity || (uint)range.x < (uint)range.y))
             {
                 var field = new LabeledField<IntegerField, long>(m_Label);
                 field.control.dynamicUpdate = true;
@@ -117,6 +142,29 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public override object FilterValue(object value)
+        {
+            Vector2 range = VFXPropertyAttribute.FindRange(m_Provider.attributes);
+
+            if (range != Vector2.zero && (int)range.x < (int)range.y)
+            {
+                int val = (int)value;
+
+                if (range.x > val)
+                {
+                    val = (int)range.x;
+                }
+                if (range.y < val)
+                {
+                    val = (int)range.y;
+                }
+
+                value = val;
+            }
+
+            return value;
+        }
+
         public override float GetPreferredControlWidth()
         {
             return 60;
@@ -124,7 +172,7 @@ namespace UnityEditor.VFX.UI
     }
     class EnumPropertyRM : SimplePropertyRM<int>
     {
-        public EnumPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public EnumPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
 
@@ -141,15 +189,15 @@ namespace UnityEditor.VFX.UI
 
     class FloatPropertyRM : SimpleUIPropertyRM<float, float>
     {
-        public FloatPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public FloatPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
 
         public override INotifyValueChanged<float> CreateField()
         {
-            Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
+            Vector2 range = VFXPropertyAttribute.FindRange(m_Provider.attributes);
 
-            if (range == Vector2.zero)
+            if (range == Vector2.zero || range.y == Mathf.Infinity)
             {
                 var field = new LabeledField<FloatField, float>(m_Label);
                 field.control.dynamicUpdate = true;
@@ -163,6 +211,29 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public override object FilterValue(object value)
+        {
+            Vector2 range = VFXPropertyAttribute.FindRange(m_Provider.attributes);
+
+            if (range != Vector2.zero && range.x < range.y)
+            {
+                float val = (float)value;
+
+                if (range.x > val)
+                {
+                    val = range.x;
+                }
+                if (range.y < val)
+                {
+                    val = range.y;
+                }
+
+                value = val;
+            }
+
+            return value;
+        }
+
         public override float GetPreferredControlWidth()
         {
             return 100;
@@ -171,7 +242,7 @@ namespace UnityEditor.VFX.UI
 
     class Vector4PropertyRM : SimpleUIPropertyRM<Vector4, Vector4>
     {
-        public Vector4PropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public Vector4PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
 
@@ -189,9 +260,29 @@ namespace UnityEditor.VFX.UI
         }
     }
 
+    class Matrix4x4PropertyRM : SimpleUIPropertyRM<Matrix4x4, Matrix4x4>
+    {
+        public Matrix4x4PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
+        {
+        }
+
+        public override INotifyValueChanged<Matrix4x4> CreateField()
+        {
+            var field = new LabeledField<Matrix4x4Field, Matrix4x4>(m_Label);
+            field.control.dynamicUpdate = true;
+
+            return field;
+        }
+
+        public override float GetPreferredControlWidth()
+        {
+            return 260;
+        }
+    }
+
     class Vector2PropertyRM : SimpleUIPropertyRM<Vector2, Vector2>
     {
-        public Vector2PropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public Vector2PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
 
@@ -212,7 +303,7 @@ namespace UnityEditor.VFX.UI
 
     class FlipBookPropertyRM : SimpleUIPropertyRM<FlipBook, FlipBook>
     {
-        public FlipBookPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public FlipBookPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
 
@@ -233,7 +324,7 @@ namespace UnityEditor.VFX.UI
 
     class StringPropertyRM : SimplePropertyRM<string>
     {
-        public StringPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public StringPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
 
@@ -259,7 +350,13 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
-        public static Action<string> FindPushButtonBehavior(object[] customAttributes)
+        public struct StringPushButtonInfo
+        {
+            public Action<string> action;
+            public string buttonName;
+        }
+
+        public static StringPushButtonInfo FindPushButtonBehavior(object[] customAttributes)
         {
             if (customAttributes != null)
             {
@@ -269,11 +366,11 @@ namespace UnityEditor.VFX.UI
                     {
                         var instance = Activator.CreateInstance((attribute as PushButtonAttribute).pushButtonProvider);
                         var pushButtonBehavior = instance as IPushButtonBehavior;
-                        return (a) => pushButtonBehavior.OnClicked(a);
+                        return new StringPushButtonInfo() {action = (a) => pushButtonBehavior.OnClicked(a), buttonName = (attribute as PushButtonAttribute).buttonName};
                     }
                 }
             }
-            return null;
+            return new StringPushButtonInfo();
         }
 
         public override ValueControl<string> CreateField()
@@ -284,14 +381,33 @@ namespace UnityEditor.VFX.UI
             {
                 return new StringFieldProvider(m_Label, stringProvider);
             }
-            else if (pushButtonProvider != null)
+            else if (pushButtonProvider.action != null)
             {
-                return new StringFieldPushButton(m_Label, pushButtonProvider);
+                return new StringFieldPushButton(m_Label, pushButtonProvider.action, pushButtonProvider.buttonName);
             }
             else
             {
                 return new StringField(m_Label);
             }
+        }
+
+        public override bool IsCompatible(IPropertyRMProvider provider)
+        {
+            if (!base.IsCompatible(provider)) return false;
+
+            var stringProvider = FindStringProvider(m_Provider.customAttributes);
+            var pushButtonInfo = FindPushButtonBehavior(m_Provider.customAttributes);
+
+            if (stringProvider != null)
+            {
+                return m_Field is StringFieldProvider && (m_Field as StringFieldProvider).stringProvider == stringProvider;
+            }
+            else if (pushButtonInfo.action != null)
+            {
+                return m_Field is StringFieldPushButton && (m_Field as StringFieldPushButton).pushButtonProvider == pushButtonInfo.action;
+            }
+
+            return !(m_Field is StringFieldProvider) && !(m_Field is StringFieldPushButton);
         }
     }
 }

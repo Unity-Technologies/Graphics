@@ -32,7 +32,9 @@ namespace UnityEditor.VFX.Block
             {
                 yield return new VFXAttributeInfo(VFXAttribute.Velocity, VFXAttributeMode.ReadWrite);
                 yield return new VFXAttributeInfo(VFXAttribute.Mass, VFXAttributeMode.Read);
-                if (UseParticleSize) yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.Read);
+                if (UseParticleSize)
+                    foreach (var size in VFXBlockUtility.GetReadableSizeAttributes(GetData(), 2))
+                        yield return size;
             }
         }
 
@@ -46,11 +48,16 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                string coefficient = "dragCoefficient";
+                string source = string.Empty;
                 if (UseParticleSize)
-                    coefficient = "(dragCoefficient * size.x * size.y)";
+                {
+                    source = string.Format(@"
+float2 size = {0};
+dragCoefficient *= size.x * size.y;
+", VFXBlockUtility.GetSizeVector(GetParent(), 2));
+                }
 
-                return string.Format("velocity *= max(0.0,(1.0 - ({0} * deltaTime) / mass));", coefficient);
+                return source + "velocity *= max(0.0,(1.0 - (dragCoefficient * deltaTime) / mass));";
             }
         }
     }

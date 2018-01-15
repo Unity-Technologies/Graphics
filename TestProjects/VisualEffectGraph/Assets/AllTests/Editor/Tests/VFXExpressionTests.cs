@@ -5,6 +5,7 @@ using NUnit.Framework;
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEditor.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Test
 {
@@ -105,6 +106,64 @@ namespace UnityEditor.VFX.Test
                     Assert.AreEqual(newInstance, null);
                 }
             }
+        }
+
+        private static void TestConditions(float f0, float f1)
+        {
+            var f0Exp = VFXValue.Constant(f0);
+            var f1Exp = VFXValue.Constant(f1);
+
+            var equalExp = new VFXExpressionCondition(VFXCondition.Equal, f0Exp, f1Exp);
+            var notEqualExp = new VFXExpressionCondition(VFXCondition.NotEqual, f0Exp, f1Exp);
+            var lessExp = new VFXExpressionCondition(VFXCondition.Less, f0Exp, f1Exp);
+            var lessOrEqualExp = new VFXExpressionCondition(VFXCondition.LessOrEqual, f0Exp, f1Exp);
+            var greater = new VFXExpressionCondition(VFXCondition.Greater, f0Exp, f1Exp);
+            var greaterOrEqual = new VFXExpressionCondition(VFXCondition.GreaterOrEqual, f0Exp, f1Exp);
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var resultA = context.Compile(equalExp);
+            var resultB = context.Compile(notEqualExp);
+            var resultC = context.Compile(lessExp);
+            var resultD = context.Compile(lessOrEqualExp);
+            var resultE = context.Compile(greater);
+            var resultF = context.Compile(greaterOrEqual);
+
+            Assert.AreEqual(f0 == f1, resultA.Get<bool>());
+            Assert.AreEqual(f0 != f1, resultB.Get<bool>());
+            Assert.AreEqual(f0 < f1, resultC.Get<bool>());
+            Assert.AreEqual(f0 <= f1, resultD.Get<bool>());
+            Assert.AreEqual(f0 > f1, resultE.Get<bool>());
+            Assert.AreEqual(f0 >= f1, resultF.Get<bool>());
+        }
+
+        [Test]
+        public void ProcessExpressionConditions()
+        {
+            TestConditions(0.0f, 0.0f);
+            TestConditions(0.0f, 1.0f);
+            TestConditions(1.0f, 0.0f);
+        }
+
+        [Test]
+        public void ProcessExpressionBranch()
+        {
+            var branch0 = VFXValue.Constant(Vector3.right);
+            var branch1 = VFXValue.Constant(Vector3.up);
+
+            var test0 = new VFXExpressionBranch(VFXValue.Constant(true), branch0, branch1);
+            var test1 = new VFXExpressionBranch(VFXValue.Constant(false), branch0, branch1);
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var resultA = context.Compile(test0);
+            var resultB = context.Compile(test1);
+
+            Assert.AreEqual(Vector3.right, resultA.Get<Vector3>());
+            Assert.AreEqual(Vector3.up, resultB.Get<Vector3>());
+
+            // Test static branching
+            context = new VFXExpression.Context(VFXExpressionContextOption.Reduction);
+            var resultC = context.Compile(test0);
+            Assert.AreEqual(branch0, resultC);
         }
     }
 }

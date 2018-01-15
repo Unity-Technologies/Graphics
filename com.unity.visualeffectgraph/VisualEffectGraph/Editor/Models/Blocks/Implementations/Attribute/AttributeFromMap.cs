@@ -21,20 +21,16 @@ namespace UnityEditor.VFX.Block
             RandomUniformPerParticle,
         }
 
-        [VFXSetting]
-        [StringProvider(typeof(WritableAttributeProvider))]
-        [Tooltip("Target Attribute")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(WritableAttributeProvider)), Tooltip("Target Attribute")]
         public string attribute = VFXAttribute.AllWritable.First();
 
-        [VFXSetting]
-        [Tooltip("How to compose the attribute with its previous value")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("How to compose the attribute with its previous value")]
         public AttributeCompositionMode Composition = AttributeCompositionMode.Overwrite;
 
-        [VFXSetting]
-        [Tooltip("How to sample inside the AttributeMap")]
+        [VFXSetting, Tooltip("How to sample inside the AttributeMap")]
         public AttributeMapSampleMode SampleMode = AttributeMapSampleMode.RandomUniformPerParticle;
 
-        public override string name { get { return string.Format("Attribute {0} from Map", attribute); } }
+        public override string name { get { return string.Format("{0} {1} from Map", VFXBlockUtility.GetNameString(Composition), attribute); } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
         public override IEnumerable<VFXAttributeInfo> attributes
@@ -141,9 +137,9 @@ uint id = clamp(uint({0}), 0, count - 1);
                 }
 
                 if (Composition != AttributeCompositionMode.Blend)
-                    return output + string.Format(VFXBlockUtility.GetComposeFormatString(Composition), attributeName, "value");
+                    return output + VFXBlockUtility.GetComposeString(Composition, attributeName, "value");
                 else
-                    return output + string.Format(VFXBlockUtility.GetComposeFormatString(Composition), attributeName, "value", "blend");
+                    return output + VFXBlockUtility.GetComposeString(Composition, attributeName, "value", "blend");
             }
         }
 

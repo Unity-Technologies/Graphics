@@ -37,12 +37,30 @@ namespace UnityEditor.VFX
 
             foreach (var vfxAsset in vfxAssets)
             {
+                Debug.Log(string.Format("Recompile VFX asset: {0} ({1})", vfxAsset, AssetDatabase.GetAssetPath(vfxAsset.GetInstanceID())));
+                vfxAsset.GetOrCreateGraph().SetExpressionGraphDirty();
                 vfxAsset.GetOrCreateGraph().OnSaved();
             }
             AssetDatabase.SaveAssets();
         }
     }
 #endif
+
+
+    public class VFXAssetPostProcessor : AssetPostprocessor
+    {
+        static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
+        {
+            foreach (var path in importedAssets)
+            {
+                VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>(path);
+                if (asset != null)
+                {
+                    asset.GetOrCreateGraph();
+                }
+            }
+        }
+    }
 
     public class VFXAssetModicationProcessor : UnityEditor.AssetModificationProcessor
     {
@@ -73,6 +91,8 @@ namespace UnityEditor.VFX
                 g = ScriptableObject.CreateInstance<VFXGraph>();
                 g.name = "VFXGraph";
                 asset.graph = g;
+                g.hideFlags |= HideFlags.HideInHierarchy;
+                ((VFXGraph)g).UpdateSubAssets();
             }
 
             VFXGraph graph = (VFXGraph)g;
@@ -96,12 +116,13 @@ namespace UnityEditor.VFX
             }
             set
             {
-                m_Owner = value;
-                m_ExpressionGraphDirty = true;
+                if (m_Owner != value)
+                {
+                    m_Owner = value;
+                    m_ExpressionGraphDirty = true;
+                }
             }
         }
-
-
         [SerializeField]
         VFXUI m_UIInfos;
 
@@ -122,39 +143,27 @@ namespace UnityEditor.VFX
             return !(model is VFXGraph); // Can hold any model except other VFXGraph
         }
 
-        public override T Clone<T>()
+        public string Backup()
         {
-            Profiler.BeginSample("VFXEditor.CloneGraph");
-            try
+            var dependencies = new HashSet<ScriptableObject>();
+
+            dependencies.Add(this);
+            CollectDependencies(dependencies);
+
+            return VFXMemorySerializer.StoreObjects(dependencies.Cast<ScriptableObject>().ToArray());
+        }
+
+        public void Restore(string str)
+        {
+            var scriptableObject = VFXMemorySerializer.ExtractObjects(str, false);
+
+            foreach (var model in scriptableObject.OfType<VFXModel>())
             {
-                Dictionary<VFXModel, VFXModel> oldNewDic = children.ToDictionary(o => o, o => o.Clone<VFXModel>());
-
-                var from = oldNewDic.Keys.ToArray();
-                var to = oldNewDic.Values.ToArray();
-
-                VFXSlot.ReproduceLinkedSlotFromHierachy(from, to);
-                VFXContext.ReproduceLinkedFlowFromHiearchy(from, to);
-
-                var clone = CreateInstance(GetType()) as VFXGraph;
-                clone.m_Children = new List<VFXModel>();
-                foreach (var model in to)
-                {
-                    clone.AddChild(model, -1, false);
-                }
-
-                if (m_UIInfos != null)
-                {
-                    clone.m_UIInfos = m_UIInfos.Clone(oldNewDic);
-                }
-                return clone as T;
-            }
-            finally
-            {
-                Profiler.EndSample();
+                model.OnUnknownChange();
             }
         }
 
-        public override void CollectDependencies(HashSet<Object> objs)
+        public override void CollectDependencies(HashSet<ScriptableObject> objs)
         {
             Profiler.BeginSample("VFXEditor.CollectDependencies");
             try
@@ -172,7 +181,6 @@ namespace UnityEditor.VFX
             try
             {
                 EditorUtility.DisplayProgressBar("Saving...", "Rebuild", 0);
-                m_ExpressionGraphDirty = true;
                 RecompileIfNeeded();
                 float currentStep = 0;
 
@@ -206,8 +214,16 @@ namespace UnityEditor.VFX
 #else
                 float stepCount = 1;
 #endif
+
+                // hide all sub assets
+                var assets = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(this)).Where(o => o is VFXModel || o is ComputeShader || o is Shader);
+                foreach (var asset in assets)
+                {
+                    asset.hideFlags |= HideFlags.HideInHierarchy;
+                }
+                hideFlags |= HideFlags.HideInHierarchy;
+
                 EditorUtility.DisplayProgressBar("Saving...", "UpdateSubAssets", (++currentStep) / stepCount);
-                UpdateSubAssets();
                 m_saved = true;
             }
             catch (Exception e)
@@ -215,6 +231,60 @@ namespace UnityEditor.VFX
                 Debug.LogErrorFormat("Save failed : {0}", e);
             }
             EditorUtility.ClearProgressBar();
+        }
+
+        public void SanitizeGraph()
+        {
+            if (m_GraphSanitized)
+                return;
+
+            var objs = new HashSet<ScriptableObject>();
+            CollectDependencies(objs);
+            foreach (var model in objs.OfType<VFXModel>())
+                model.Sanitize(); // This can modify dependencies but newly created model are supposed safe so we dont care about retrieving new dependencies
+
+            m_GraphSanitized = true;
+        }
+
+        public  bool displaySubAssets
+        {
+            get {return (hideFlags & HideFlags.HideInHierarchy) == 0; }
+            set
+            {
+                var persistentAssets = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(this)).Where(o => o is VFXModel || o is ComputeShader || o is Shader);
+
+                if (value)
+                {
+                    hideFlags &= ~HideFlags.HideInHierarchy;
+                }
+                else
+                {
+                    hideFlags |= HideFlags.HideInHierarchy;
+                }
+
+                foreach (var asset in persistentAssets)
+                {
+                    if (value)
+                    {
+                        asset.hideFlags &= ~HideFlags.HideInHierarchy;
+                    }
+                    else
+                    {
+                        asset.hideFlags |= HideFlags.HideInHierarchy;
+                    }
+                }
+
+                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(vfxAsset));
+            }
+        }
+
+
+        public void ClearCompileData()
+        {
+            m_CompiledData = null;
+
+
+            m_ExpressionValuesDirty = true;
         }
 
         public bool UpdateSubAssets()
@@ -236,7 +306,7 @@ namespace UnityEditor.VFX
                     var persistentObjects = new HashSet<Object>(AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(this)).Where(o => o is VFXModel || o is ComputeShader || o is Shader || o is VFXUI));
                     persistentObjects.Remove(this);
 
-                    var currentObjects = new HashSet<Object>();
+                    var currentObjects = new HashSet<ScriptableObject>();
                     CollectDependencies(currentObjects);
 
 #if USE_SHADER_AS_SUBASSET
@@ -259,19 +329,19 @@ namespace UnityEditor.VFX
 
                     if (m_UIInfos != null)
                         currentObjects.Add(m_UIInfos);
-
                     // Add sub assets that are not already present
                     foreach (var obj in currentObjects)
                         if (!persistentObjects.Contains(obj))
                         {
                             obj.name = obj.GetType().Name;
                             AssetDatabase.AddObjectToAsset(obj, this);
+                            obj.hideFlags = hideFlags;
                             modified = true;
                         }
 
                     // Remove sub assets that are not referenced anymore
                     foreach (var obj in persistentObjects)
-                        if (!currentObjects.Contains(obj))
+                        if (obj is ScriptableObject && !currentObjects.Contains(obj as ScriptableObject))
                         {
                             AssetDatabase.RemoveObject(obj);
                             modified = true;
@@ -338,6 +408,8 @@ namespace UnityEditor.VFX
 
         public void RecompileIfNeeded(bool preventRecompilation = false)
         {
+            SanitizeGraph();
+
             bool considerGraphDirty = m_ExpressionGraphDirty && !preventRecompilation;
             if (considerGraphDirty)
             {
@@ -374,6 +446,8 @@ namespace UnityEditor.VFX
             }
         }
 
+        [NonSerialized]
+        private bool m_GraphSanitized = false;
         [NonSerialized]
         private bool m_ExpressionGraphDirty = true;
         [NonSerialized]

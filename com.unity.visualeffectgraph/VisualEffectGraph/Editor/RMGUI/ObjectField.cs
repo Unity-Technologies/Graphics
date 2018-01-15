@@ -178,7 +178,7 @@ namespace UnityEditor.VFX.UIElements
             m_IconContainer.style.width = m_IconContainer.style.backgroundImage.value == null ? 0 : 18;
             m_NameContainer.text = value == null ? "null" : value.name;
         }
-
+/*
         private void HandleDropEvent(IMGUIEvent evt, List<ISelectable> selection, IDropTarget dropTarget)
         {
             if (dropTarget == null)
@@ -197,5 +197,6 @@ namespace UnityEditor.VFX.UIElements
                     break;
             }
         }
+        */
     }
 }

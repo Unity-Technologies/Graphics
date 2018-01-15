@@ -19,8 +19,18 @@ namespace UnityEditor.VFX
             AlphaPremultiplied,
         }
 
+        public enum FlipbookMode
+        {
+            Off,
+            Flipbook,
+            FlipbookBlend,
+        }
+
         [VFXSetting, SerializeField]
         protected BlendMode blendMode = BlendMode.Alpha;
+
+        [VFXSetting, SerializeField]
+        protected FlipbookMode flipbookMode;
 
         [VFXSetting, SerializeField]
         protected bool useSoftParticle = false;
@@ -28,10 +38,16 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected int sortPriority = 0;
 
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected bool indirectDraw = false;
+
+        public bool HasIndirectDraw() { return indirectDraw; }
+
         protected VFXAbstractParticleOutput() : base(VFXContextType.kOutput, VFXDataType.kParticle, VFXDataType.kNone) {}
 
         public override bool codeGeneratorCompute { get { return false; } }
-        public override string renderLoopCommonInclude { get { return !HDRP ? "VFXShaders/Common/VFXCommonLegacy.cginc" : "VFXShaders/Common/VFXCommonHDRP.hlsl"; } }
+
+        public virtual bool supportsFlipbooks { get { return false; } }
 
         protected virtual IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
         {
@@ -43,6 +59,13 @@ namespace UnityEditor.VFX
                 var softParticleFade = slotExpressions.First(o => o.name == "softParticlesFadeDistance");
                 var invSoftParticleFade = (VFXValue.Constant(1.0f) / softParticleFade.exp);
                 yield return new VFXNamedExpression(invSoftParticleFade, "invSoftParticlesFadeDistance");
+            }
+
+            if (flipbookMode != FlipbookMode.Off)
+            {
+                var flipBookSizeExp = slotExpressions.First(o => o.name == "flipBookSize");
+                yield return flipBookSizeExp;
+                yield return new VFXNamedExpression(VFXValue.Constant(Vector2.one) / flipBookSizeExp.exp, "invFlipBookSize");
             }
         }
 
@@ -61,6 +84,12 @@ namespace UnityEditor.VFX
         {
             get
             {
+                string inputPropertiesType = "InputProperties";
+                if (flipbookMode != FlipbookMode.Off) inputPropertiesType = "InputPropertiesFlipbook";
+
+                foreach (var property in PropertiesFromType(inputPropertiesType))
+                    yield return property;
+
                 if (blendMode == BlendMode.Masked)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "alphaThreshold"), 0.5f);
                 if (useSoftParticle)
@@ -86,6 +115,25 @@ namespace UnityEditor.VFX
                     if (settings.shadowCastingMode != ShadowCastingMode.Off)
                         yield return "USE_CAST_SHADOWS_PASS";
                 }
+
+                if (HasIndirectDraw())
+                    yield return "VFX_HAS_INDIRECT_DRAW";
+
+                if (flipbookMode != FlipbookMode.Off)
+                {
+                    yield return "USE_FLIPBOOK";
+                    if (flipbookMode == FlipbookMode.FlipbookBlend)
+                        yield return "USE_FLIPBOOK_INTERPOLATION";
+                }
+            }
+        }
+
+        protected override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                if (!supportsFlipbooks)
+                    yield return "flipbookMode";
             }
         }
 
@@ -113,7 +161,7 @@ namespace UnityEditor.VFX
 
                 var shaderTags = new VFXShaderWriter();
                 if (blendMode == BlendMode.Masked)
-                    shaderTags.Write("Tags { \"Queue\"=\"Geometry\" \"IgnoreProjector\"=\"False\" \"RenderType\"=\"Opaque\" }");
+                    shaderTags.Write("Tags { \"Queue\"=\"AlphaTest\" \"IgnoreProjector\"=\"False\" \"RenderType\"=\"Opaque\" }");
                 else
                     shaderTags.Write("Tags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\" }");
 
@@ -126,6 +174,8 @@ namespace UnityEditor.VFX
             get
             {
                 yield return new VFXMapping(sortPriority, "sortPriority");
+                if (HasIndirectDraw())
+                    yield return new VFXMapping(1, "indirectDraw");
             }
         }
     }

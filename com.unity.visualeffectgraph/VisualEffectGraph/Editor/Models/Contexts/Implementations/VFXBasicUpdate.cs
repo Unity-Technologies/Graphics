@@ -16,7 +16,7 @@ namespace UnityEditor.VFX
             None
         }
 
-        [VFXSetting]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         public VFXIntegrationMode integration = VFXIntegrationMode.Euler;
 
         public VFXBasicUpdate() : base(VFXContextType.kUpdate, VFXDataType.kParticle, VFXDataType.kParticle) {}
@@ -24,7 +24,6 @@ namespace UnityEditor.VFX
         public override string codeGeneratorTemplate { get { return "VFXShaders/VFXUpdate"; } }
         public override bool codeGeneratorCompute { get { return true; } }
         public override VFXTaskType taskType { get { return VFXTaskType.kUpdate; } }
-        public override string renderLoopCommonInclude { get { return "VFXShaders/Common/VFXCommonCompute.cginc"; } }
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {
@@ -49,6 +48,15 @@ namespace UnityEditor.VFX
 
                 if (GetData().IsCurrentAttributeWritten(VFXAttribute.Lifetime))
                     yield return CreateInstance<AgeAndDie>();
+            }
+        }
+
+        public override IEnumerable<string> additionalDefines
+        {
+            get
+            {
+                if ((GetData() as VFXDataParticle).NeedsIndirectBuffer())
+                    yield return "VFX_HAS_INDIRECT_DRAW";
             }
         }
     }

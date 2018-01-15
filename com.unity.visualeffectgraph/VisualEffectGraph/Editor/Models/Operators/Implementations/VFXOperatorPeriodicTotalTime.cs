@@ -18,6 +18,11 @@ namespace UnityEditor.VFX
             public Vector2 Range = new Vector2(0.0f, 1.0f);
         }
 
+        public class OutputProperties
+        {
+            public float t;
+        }
+
         public override string name
         {
             get
@@ -28,7 +33,7 @@ namespace UnityEditor.VFX
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             VFXExpression[] output = new VFXExpression[] {
-                VFXOperatorUtility.Lerp(inputExpression[1].x, inputExpression[1].y, VFXOperatorUtility.Fmod(VFXBuiltInExpression.TotalTime, inputExpression[0]) / inputExpression[0]),
+                VFXOperatorUtility.Lerp(inputExpression[1].x, inputExpression[1].y, VFXOperatorUtility.Frac(VFXBuiltInExpression.TotalTime / inputExpression[0])),
             };
             return output;
         }

@@ -9,47 +9,72 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    public class VFXGroupNode : GroupNode
+    class VFXGroupNode : GroupNode, IControlledElement<VFXGroupNodePresenter>
     {
+        Controller IControlledElement.controller
+        {
+            get { return m_Controller; }
+        }
+        public VFXGroupNodePresenter controller
+        {
+            get { return m_Controller; }
+            set
+            {
+                if (m_Controller != null)
+                {
+                    m_Controller.UnregisterHandler(this);
+                }
+                m_Controller = value;
+                if (m_Controller != null)
+                {
+                    m_Controller.RegisterHandler(this);
+                }
+            }
+        }
+
+        VFXGroupNodePresenter m_Controller;
+
         public VFXGroupNode()
         {
         }
 
-        public void OnViewDataChanged()
+        public void OnControllerChanged(ControllerChangedEvent e)
         {
-            // use are custom data changed from the view because we can't listen simply to the VFXUI, because the VFXUI might have been modified because we were removed and the datawatch might call us before the view
-            VFXView view = this.GetFirstAncestorOfType<VFXView>();
-            if (view == null) return;
-            VFXGroupNodePresenter presenter = GetPresenter<VFXGroupNodePresenter>();
-
-
-            title = presenter.title;
-            var presenterContent = presenter.nodes.ToArray();
-            var elementContent = containedElements;
-
-            if (elementContent == null)
+            if (e.controller == controller)
             {
-                elementContent = new GraphElement[0];
+                // use are custom data changed from the view because we can't listen simply to the VFXUI, because the VFXUI might have been modified because we were removed and the datawatch might call us before the view
+                VFXView view = this.GetFirstAncestorOfType<VFXView>();
+                if (view == null) return;
+
+
+                title = controller.title;
+                var presenterContent = controller.nodes.ToArray();
+                var elementContent = containedElements.Cast<IControlledElement<VFXNodeController>>();
+
+                if (elementContent == null)
+                {
+                    elementContent = new List<IControlledElement<VFXNodeController>>();
+                }
+                m_ModificationFromPresenter = true;
+
+                var elementToDelete = elementContent.Where(t => !presenterContent.Contains(t.controller)).ToArray();
+                foreach (var element in elementToDelete)
+                {
+                    this.RemoveElement(element as GraphElement);
+                }
+
+                var viewElements = view.Query().Children<VisualElement>().Children<GraphElement>().ToList().OfType<IControlledElement<VFXNodeController>>();
+
+                var elementToAdd = presenterContent.Where(t => elementContent.FirstOrDefault(u => u.controller == t) == null).Select(t => viewElements.FirstOrDefault(u => u.controller == t)).ToArray();
+
+                foreach (var element in elementToAdd)
+                {
+                    if (element != null)
+                        this.AddElement(element as GraphElement);
+                }
+
+                m_ModificationFromPresenter = false;
             }
-            m_ModificationFromPresenter = true;
-
-            var elementToDelete = elementContent.Where(t => !presenterContent.Contains(t.presenter as VFXNodePresenter)).ToArray();
-            foreach (var element in elementToDelete)
-            {
-                this.RemoveElement(element);
-            }
-
-            var viewElements = view.Query().Children<VisualElement>().Children<GraphElement>().ToList();
-
-            var elementToAdd = presenterContent.Where(t => elementContent.FirstOrDefault(u => u.presenter == t) == null).Select(t => viewElements.FirstOrDefault(u => u.presenter == t)).ToArray();
-
-            foreach (var element in elementToAdd)
-            {
-                if (element != null)
-                    this.AddElement(element);
-            }
-
-            m_ModificationFromPresenter = false;
         }
 
         bool m_ModificationFromPresenter;
@@ -58,9 +83,7 @@ namespace UnityEditor.VFX.UI
         {
             if (!m_ModificationFromPresenter)
             {
-                VFXGroupNodePresenter presenter = GetPresenter<VFXGroupNodePresenter>();
-
-                presenter.AddNode(element.presenter as VFXNodePresenter);
+                controller.AddNode((element as IControlledElement<VFXNodeController>).controller);
 
                 UpdatePresenterPosition();
             }
@@ -70,9 +93,7 @@ namespace UnityEditor.VFX.UI
         {
             if (!m_ModificationFromPresenter)
             {
-                VFXGroupNodePresenter presenter = GetPresenter<VFXGroupNodePresenter>();
-
-                presenter.RemoveNode(element.presenter as VFXNodePresenter);
+                controller.RemoveNode((element as IControlledElement<VFXNodeController>).controller);
 
                 UpdatePresenterPosition();
             }
@@ -82,9 +103,7 @@ namespace UnityEditor.VFX.UI
         {
             if (!m_ModificationFromPresenter)
             {
-                VFXGroupNodePresenter presenter = GetPresenter<VFXGroupNodePresenter>();
-
-                presenter.title = title;
+                controller.title = title;
             }
         }
     }

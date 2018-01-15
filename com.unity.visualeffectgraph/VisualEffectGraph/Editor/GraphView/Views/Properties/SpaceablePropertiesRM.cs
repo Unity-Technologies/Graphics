@@ -8,7 +8,7 @@ namespace UnityEditor.VFX.UI
 {
     class SpaceablePropertyRM<T> : PropertyRM<T> where T : ISpaceable
     {
-        public SpaceablePropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public SpaceablePropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
             m_Button = new VisualElement() {name = "spacebutton"};
             m_Button.AddManipulator(new Clickable(OnButtonClick));
@@ -19,6 +19,11 @@ namespace UnityEditor.VFX.UI
         public override float GetPreferredControlWidth()
         {
             return 40;
+        }
+
+        public override float GetPreferredLabelWidth()
+        {
+            return base.GetPreferredLabelWidth() + m_Button.layout.width;
         }
 
         void OnButtonClick()
@@ -59,10 +64,11 @@ namespace UnityEditor.VFX.UI
 
     abstract class Vector3SpaceablePropertyRM<T> : SpaceablePropertyRM<T> where T : ISpaceable
     {
-        public Vector3SpaceablePropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public Vector3SpaceablePropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
             m_VectorField = new LabeledField<Vector3Field, Vector3>(m_Label);
             m_VectorField.RegisterCallback<ChangeEvent<Vector3>>(OnValueChanged);
+            m_VectorField.control.dynamicUpdate = true;
             m_VectorField.AddToClassList("fieldContainer");
 
             Add(m_VectorField);
@@ -88,7 +94,7 @@ namespace UnityEditor.VFX.UI
 
     class VectorPropertyRM : Vector3SpaceablePropertyRM<Vector>
     {
-        public VectorPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public VectorPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
 
@@ -111,7 +117,7 @@ namespace UnityEditor.VFX.UI
 
     class PositionPropertyRM : Vector3SpaceablePropertyRM<Position>
     {
-        public PositionPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public PositionPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
 
@@ -134,7 +140,7 @@ namespace UnityEditor.VFX.UI
 
     class DirectionPropertyRM : Vector3SpaceablePropertyRM<DirectionType>
     {
-        public DirectionPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public DirectionPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
 

@@ -15,7 +15,7 @@ namespace UnityEditor.VFX.UI
 {
     class CurvePropertyRM : PropertyRM<AnimationCurve>
     {
-        public CurvePropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public CurvePropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
             m_CurveField = new CurveField(m_Label);
             m_CurveField.RegisterCallback<ChangeEvent<AnimationCurve>>(OnValueChanged);
@@ -29,7 +29,7 @@ namespace UnityEditor.VFX.UI
 
         public override float GetPreferredControlWidth()
         {
-            return 160;
+            return 110;
         }
 
         public void OnValueChanged(ChangeEvent<AnimationCurve> e)

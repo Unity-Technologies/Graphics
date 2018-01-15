@@ -10,16 +10,21 @@ namespace UnityEditor.VFX.UIElements
     {
         Action<string> m_fnOnClicked;
 
-        public StringFieldPushButton(string label, Action<string> fnClicked) : base(label)
+        public Action<string> pushButtonProvider
         {
-            m_fnOnClicked = fnClicked;
-            Add(new Button(() => m_fnOnClicked(m_TextField.text)));
+            get { return m_fnOnClicked; }
         }
 
-        public StringFieldPushButton(Label existingLabel, Action<string> fnClicked) : base(existingLabel)
+        public StringFieldPushButton(string label, Action<string> fnClicked, string buttonName) : base(label)
         {
             m_fnOnClicked = fnClicked;
-            Add(new Button(() => m_fnOnClicked(m_TextField.text)));
+            Add(new Button(() => m_fnOnClicked(m_TextField.text)) {text = buttonName});
+        }
+
+        public StringFieldPushButton(Label existingLabel, Action<string> fnClicked, string buttonName) : base(existingLabel)
+        {
+            m_fnOnClicked = fnClicked;
+            Add(new Button(() => m_fnOnClicked(m_TextField.text)) {text = buttonName});
         }
     }
 }

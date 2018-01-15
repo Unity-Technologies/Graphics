@@ -31,6 +31,7 @@ namespace UnityEditor.Dot
         public static readonly string SlateGray     = "lightslategray";
         public static readonly string Gray          = "gray";
         public static readonly string LightGray     = "lightgray";
+        public static readonly string SteelBlue     = "steelblue";
     }
 
     public static class DotStyle

@@ -10,9 +10,9 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-    class Collapser : Manipulator
+    class SuperCollapser : Manipulator
     {
-        public Collapser()
+        public SuperCollapser()
         {
         }
 
@@ -30,35 +30,65 @@ namespace UnityEditor.VFX.UI
         {
             if (e.clickCount == 2)
             {
-                VFXSlotContainerUI slotContainer = (VFXSlotContainerUI)target;
+                VFXStandaloneSlotContainerUI slotContainer = (VFXStandaloneSlotContainerUI)target;
 
-                slotContainer.collapse = !slotContainer.collapse;
+                slotContainer.controller.superCollapsed = !slotContainer.superCollapsed;
             }
         }
     }
-    class VFXStandaloneSlotContainerUI : VFXSlotContainerUI
+    class VFXStandaloneSlotContainerUI : VFXNodeUI
     {
         public VFXStandaloneSlotContainerUI()
         {
-            this.AddManipulator(new Collapser());
+            this.AddManipulator(new SuperCollapser());
+
+            RegisterCallback<GeometryChangedEvent>(OnPostLayout);
         }
 
-        protected override void OnStyleResolved(ICustomStyle style)
+        void OnPostLayout(GeometryChangedEvent e)
         {
-            base.OnStyleResolved(style);
+            float settingsLabelWidth = 30;
+            float settingsControlWidth = 50;
+            GetPreferedSettingsWidths(ref  settingsLabelWidth, ref settingsControlWidth);
 
             float labelWidth = 30;
-            float controlWidth = 110;
-
+            float controlWidth = 50;
             GetPreferedWidths(ref labelWidth, ref controlWidth);
 
-            ApplyWidths(labelWidth, controlWidth);
+            float newMinWidth = Mathf.Max(settingsLabelWidth + settingsControlWidth, labelWidth + controlWidth) + 20;
+
+            if (this.style.minWidth != newMinWidth)
+            {
+                this.style.minWidth = newMinWidth;
+
+                ApplySettingsWidths(settingsLabelWidth, settingsControlWidth);
+
+                ApplyWidths(labelWidth, controlWidth);
+            }
         }
 
         public override void ApplyWidths(float labelWidth, float controlWidth)
         {
             base.ApplyWidths(labelWidth, controlWidth);
-            leftContainer.style.width = labelWidth + controlWidth + 20;
+            inputContainer.style.width = labelWidth + controlWidth + 20;
+        }
+
+        public bool superCollapsed
+        {
+            get { return controller.model.superCollapsed; }
+        }
+        protected override void SelfChange()
+        {
+            base.SelfChange();
+
+            if (superCollapsed)
+            {
+                AddToClassList("superCollapsed");
+            }
+            else
+            {
+                RemoveFromClassList("superCollapsed");
+            }
         }
     }
 
@@ -69,16 +99,14 @@ namespace UnityEditor.VFX.UI
         {
             VisualElement element = new VisualElement();
             element.name = "middle";
-            leftContainer.parent.Insert(1, element);
+            inputContainer.parent.Insert(1, element);
         }
 
-        public override void OnDataChanged()
+        public new VFXOperatorController controller
         {
-            base.OnDataChanged();
-            var presenter = GetPresenter<VFXOperatorPresenter>();
-            if (presenter == null || presenter.Operator == null)
-                return;
+            get { return base.controller as VFXOperatorController; }
         }
+
 
         public override void GetPreferedWidths(ref float labelWidth, ref float controlWidth)
         {
@@ -86,7 +114,6 @@ namespace UnityEditor.VFX.UI
 
             foreach (var port in GetPorts(true, false).Cast<VFXEditableDataAnchor>())
             {
-                port.OnDataChanged();
                 float portLabelWidth = port.GetPreferredLabelWidth();
                 float portControlWidth = port.GetPreferredControlWidth();
 

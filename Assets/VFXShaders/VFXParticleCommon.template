@@ -6,18 +6,31 @@ o.VFX_VARYING_COLOR = color;
 o.VFX_VARYING_ALPHA = alpha;
 #endif
 
-#if USE_SOFT_PARTICLE	
-#ifdef VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE
+
+#if USE_SOFT_PARTICLE && defined(VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE)
 ${VFXLoadParameter:{invSoftParticlesFadeDistance}}
 o.VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE = invSoftParticlesFadeDistance;
 #endif
-#ifdef VFX_VARYING_POSSS
+
+#if (VFX_NEEDS_POSSS || USE_SOFT_PARTICLE) && defined(VFX_VARYING_POSSS)
 o.VFX_VARYING_POSSS = VFXGetPOSSS(o.pos);
 #endif
-#endif
+
 #if USE_ALPHA_TEST && defined(VFX_VARYING_ALPHATHRESHOLD)
 ${VFXLoadParameter:{alphaThreshold}}
 o.VFX_VARYING_ALPHATHRESHOLD = alphaThreshold;
+#endif
+${VFXEnd}
+
+${VFXBegin:VFXLoadSize}
+float3 size = float3(sizeX,sizeX,sizeX);
+#if VFX_USE_SIZEY_CURRENT
+size.y = sizeY;
+#endif
+#if VFX_USE_SIZEZ_CURRENT
+size.z = sizeZ;
+#else
+size.z = min(size.x,size.y);
 #endif
 ${VFXEnd}
 
