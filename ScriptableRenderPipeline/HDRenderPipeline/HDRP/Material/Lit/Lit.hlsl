@@ -1184,6 +1184,8 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
         // Compute displacement for fake thickObject transmission
+        // Warning: distances computed above are NOT modified!
+        // This is not correct, of course, but is done for performance reasons.
         posInput.positionWS += ComputeThicknessDisplacement(bsdfData, L, NdotL);
     }
 
