@@ -251,6 +251,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             base.Dispose();
             Shader.globalRenderPipeline = "";
 
+            SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
+
             CoreUtils.Destroy(m_ErrorMaterial);
             CoreUtils.Destroy(m_CopyDepthMaterial);
             CoreUtils.Destroy(m_BlitMaterial);
@@ -445,15 +447,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // state is update, causing RenderPostProcess here to not blit to FinalColorRT. Until the next frame the RT will have garbage.
             if (LightweightUtils.HasFlag(config, FrameRenderingConfiguration.BeforeTransparentPostProcess))
             {
-                RenderPostProcess(cmd, m_ColorRT, m_CopyColorRT, true);
-                m_CurrCameraColorRT = (m_IsOffscreenCamera) ? BuiltinRenderTextureType.CameraTarget : m_ColorRT;
+                RenderPostProcess(cmd, m_CurrCameraColorRT, m_CopyColorRT, true);
+                m_CurrCameraColorRT = m_CopyColorRT;
             }
 
             if (LightweightUtils.HasFlag(config, FrameRenderingConfiguration.DepthCopy))
             {
-                RenderTargetIdentifier colorRT = (m_IsOffscreenCamera) ? BuiltinRenderTextureType.CameraTarget : m_ColorRT;
                 CopyTexture(cmd, m_DepthRT, m_CopyDepth, m_CopyDepthMaterial);
-                SetRenderTarget(cmd, colorRT, m_CopyDepth);
+                SetRenderTarget(cmd, m_CurrCameraColorRT, m_CopyDepth);
             }
 
             context.ExecuteCommandBuffer(cmd);
@@ -484,7 +485,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 return;
 
             CommandBuffer cmd = CommandBufferPool.Get("After Transparent");
-            RenderPostProcess(cmd, BuiltinRenderTextureType.CurrentActive, BuiltinRenderTextureType.CameraTarget, false);
+            RenderPostProcess(cmd, m_CurrCameraColorRT, BuiltinRenderTextureType.CameraTarget, false);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
@@ -1247,14 +1248,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             var cmd = CommandBufferPool.Get("Blit");
             if (m_IntermediateTextureArray)
             {
-                SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget);
-                cmd.Blit(m_CurrCameraColorRT, BuiltinRenderTextureType.CurrentActive);
+                cmd.Blit(m_CurrCameraColorRT, BuiltinRenderTextureType.CameraTarget);
             }
             else if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture))
             {
+                Material blitMaterial = m_BlitMaterial;
+                if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Stereo))
+                    blitMaterial = null;
+
                 // If PostProcessing is enabled, it is already blit to CameraTarget.
                 if (!LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.PostProcess))
-                    Blit(cmd, renderingConfig, BuiltinRenderTextureType.CurrentActive, BuiltinRenderTextureType.CameraTarget, m_BlitMaterial);
+                    Blit(cmd, renderingConfig, m_CurrCameraColorRT, BuiltinRenderTextureType.CameraTarget, blitMaterial);
             }
 
             SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget);
@@ -1308,7 +1312,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (opaqueOnly)
             {
                 m_CameraPostProcessLayer.RenderOpaqueOnly(m_PostProcessRenderContext);
-                cmd.Blit(m_CopyColorRT, m_ColorRT);
             }
             else
                 m_CameraPostProcessLayer.Render(m_PostProcessRenderContext);
