@@ -124,6 +124,8 @@ float _ThicknessMultiplier;
 // TODO: Fix the code in legacy unity so we can customize the beahvior for GI
 float3 _EmissionColor;
 float4 _EmissiveColorMap_ST;
+float _TexWorldScaleEmissive;
+float4 _UVMappingMaskEmissive;
 
 float4 _InvPrimScale; // Only XY are used
 
