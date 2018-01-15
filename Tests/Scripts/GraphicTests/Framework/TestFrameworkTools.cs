@@ -32,7 +32,7 @@ namespace UnityEngine.Experimental.Rendering
         public static Dictionary<string, string> renderPipelineScenesFolder = new Dictionary<string, string>()
         {
             { "HDRP", "HDRenderPipeline/Scenes" },
-            { "LWRP", "LightweightPipeline" }
+            { "LWRP", "LightweightPipeline/Scenes" }
         };
         
         // info that gets generated for use
@@ -44,6 +44,7 @@ namespace UnityEngine.Experimental.Rendering
             public string relativePath;
             public string templatePath;
             public int frameWait;
+            public int sceneListIndex;
 
             public override string ToString()
             {
@@ -97,6 +98,13 @@ namespace UnityEngine.Experimental.Rendering
                 List<string> allPaths_List = new List<string>(allPaths);
                 allPaths_List.Sort();
 
+                // Get the play mode scenes
+                List<string> playModeScenes = new List<string>();
+                foreach( TestInfo ti in CollectScenesPlayMode.GetScenesForPipeline( _pipelinePath ) )
+                {
+                    playModeScenes.Add(ti.templatePath);
+                }
+
                 // construct all the needed test infos
                 for (int i = 0; i < allPaths_List.Count; ++i)
                 {
@@ -106,6 +114,10 @@ namespace UnityEngine.Experimental.Rendering
                     var split = s_Path.Aggregate("", Path.Combine);
                     split = string.Format("{0}{1}", split, Path.DirectorySeparatorChar);
                     var splitPaths = p.FullName.Split(new[] { split }, StringSplitOptions.RemoveEmptyEntries);
+
+                    // Filter out play mode tests from the list
+                    if (playModeScenes.Contains(splitPaths.Last()))
+                        continue;
 
                     TestInfo testInfo = new TestInfo()
                     {
@@ -157,22 +169,30 @@ namespace UnityEngine.Experimental.Rendering
             public static IEnumerable GetScenesForPipeline(string _pipelinePath, bool fixtureParam = false)
             {
 #if UNITY_EDITOR
-                var absoluteScenesPath = s_Path.Aggregate("Assets", Path.Combine);
+                string absoluteScenesPath = s_Path.Aggregate(s_RootPath, Path.Combine);
 
-                var filesPath = Path.Combine(absoluteScenesPath, _pipelinePath);
+                string assetScenesPath = absoluteScenesPath.Replace(Application.dataPath, "");
+                assetScenesPath = Path.Combine("Assets", assetScenesPath.Remove(0, 1));
+
+                string filesPath = Path.Combine(assetScenesPath, _pipelinePath);
 
                 string listFilePath = Path.Combine(filesPath, "EditorPlayModeTests.asset");
 
                 EditorPlayModeTests listFile = (EditorPlayModeTests) AssetDatabase.LoadMainAssetAtPath(listFilePath);
                 if ( listFile == null)
                 {
+                    AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<EditorPlayModeTests>(), listFilePath);
+                    AssetDatabase.Refresh();
+
                     yield return null;
                 }
                 else
                 {
-                    foreach (string path in listFile.scenesPath)
+                    for ( int i=0 ; i<listFile.scenesPath.Length ; ++i)
                     {
-                        var p = new FileInfo(path);
+                        string path = listFile.scenesPath[i];
+
+                        var p = new FileInfo( Path.Combine(filesPath,  path ) );
                         var split = s_Path.Aggregate("", Path.Combine);
                         split = string.Format("{0}{1}", split, Path.DirectorySeparatorChar);
                         var splitPaths = p.FullName.Split(new[] { split }, StringSplitOptions.RemoveEmptyEntries);
@@ -180,10 +200,11 @@ namespace UnityEngine.Experimental.Rendering
                         TestInfo testInfo = new TestInfo
                         {
                             name = p.Name,
-                            relativePath = path,
+                            relativePath = p.ToString(),
                             templatePath = splitPaths.Last(),
                             threshold = 0.02f,
-                            frameWait = 100
+                            frameWait = 100,
+                            sceneListIndex = i
                         };
 
                         if (fixtureParam)

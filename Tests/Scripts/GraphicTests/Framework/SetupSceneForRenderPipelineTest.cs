@@ -21,25 +21,11 @@ namespace UnityEngine.Experimental.Rendering
         public UnityEvent thingToDoBeforeTest;
 
         [Header("Run Play Mode for test")]
-        public bool testInPlayMode = false;
-        public bool invokeAtStart = true;
         public int forcedFrameRate = 60;
         public int waitForFrames = 30;
         int waitedFrames = 0;
         bool _readyForCapture = false;
         public bool readyForCapture {  get { return _readyForCapture; } }
-
-        public IEnumerator Start()
-        {
-            // Wait for other things to happend, in particular allow for the render pipeline to reset
-            yield return new WaitForEndOfFrame();
-
-            if (invokeAtStart) thingToDoBeforeTest.Invoke();
-
-            if (!testInPlayMode) _readyForCapture = true;
-
-            Time.captureFramerate = forcedFrameRate;
-        }
 
         public void Update()
         {
