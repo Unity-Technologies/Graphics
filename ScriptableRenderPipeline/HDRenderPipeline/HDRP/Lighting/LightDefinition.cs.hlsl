@@ -107,8 +107,6 @@ struct EnvLightData
     float minProjectionDistance;
     float3 influenceExtents;
     float unused0;
-    float3 offsetLS;
-    float unused1;
     float3 blendDistancePositive;
     float unused2;
     float3 blendDistanceNegative;
@@ -325,14 +323,6 @@ float3 GetInfluenceExtents(EnvLightData value)
 float GetUnused0(EnvLightData value)
 {
 	return value.unused0;
-}
-float3 GetOffsetLS(EnvLightData value)
-{
-	return value.offsetLS;
-}
-float GetUnused1(EnvLightData value)
-{
-	return value.unused1;
 }
 float3 GetBlendDistancePositive(EnvLightData value)
 {

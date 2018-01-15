@@ -68,7 +68,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 default:
                 case ShapeType.Sphere:
-                    return new BoundingSphere(transform.position, sphereBaseRadius);
+                    return new BoundingSphere(transform.TransformPoint(sphereBaseOffset), sphereBaseRadius);
                 case ShapeType.Box:
                 {
                     var position = transform.TransformPoint(boxBaseOffset);
@@ -91,6 +91,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // TODO: Return a proper AABB based on influence box volume
                     return new Bounds(position, boxBaseSize);
                 }
+            }
+        }
+
+        public Vector3 GetWorldPosition(Transform transform)
+        {
+            switch (shapeType)
+            {
+                default:
+                case ShapeType.Sphere:
+                    return transform.TransformPoint(sphereBaseOffset);
+                case ShapeType.Box:
+                    return transform.TransformPoint(boxBaseOffset);
             }
         }
     }
