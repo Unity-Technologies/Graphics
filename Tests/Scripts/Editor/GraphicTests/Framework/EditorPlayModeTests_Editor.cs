@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using System;
+using System.IO;
 using Object = UnityEngine.Object;
 
+[DisallowMultipleComponent]
 [CustomEditor(typeof(EditorPlayModeTests))]
 class EditorPlayModeTests_Editor : Editor
 {
@@ -23,7 +25,17 @@ class EditorPlayModeTests_Editor : Editor
         if (newScene != null)
         {
             string newPath = AssetDatabase.GetAssetPath(newScene);
-            Debug.Log("New Path : " + newPath);
+
+            string listPath = AssetDatabase.GetAssetPath(target);
+            listPath = listPath.Remove(listPath.Length - 25, 25);
+
+            //Debug.Log("List path: " + listPath);
+
+            // Get scene path relative to the list file
+            newPath = newPath.Replace(listPath, "");
+
+            //Debug.Log("New Path : " + newPath);
+
             if (newPath.EndsWith("unity"))
             {
                 Debug.Log("Add the scene to the list");
