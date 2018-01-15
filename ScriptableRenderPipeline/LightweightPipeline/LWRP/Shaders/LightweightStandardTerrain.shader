@@ -196,7 +196,7 @@ Shader "LightweightPipeline/Standard Terrain"
 #endif
 
                 half3 indirectDiffuse = half3(0, 0, 0);
-#if LIGHTMAP_ON
+#ifdef LIGHTMAP_ON
                 indirectDiffuse = SampleLightmap(IN.uvControlAndLM.zw, normalWS);
 #endif
 
