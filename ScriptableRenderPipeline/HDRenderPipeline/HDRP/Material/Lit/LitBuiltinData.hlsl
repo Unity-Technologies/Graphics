@@ -67,7 +67,7 @@ void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, floa
     UVMapping emissiveMapMapping = layerTexCoord.base0;
     #endif
 
-    builtinData.emissiveColor *= SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_EmissiveColorMap), ADD_ZERO_IDX(sampler_EmissiveColorMap), emissiveMapMapping).rgb;
+    builtinData.emissiveColor *= SAMPLE_UVMAPPING_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, emissiveMapMapping).rgb;
 #endif // _EMISSIVE_COLOR_MAP
 
     builtinData.velocity = float2(0.0, 0.0);

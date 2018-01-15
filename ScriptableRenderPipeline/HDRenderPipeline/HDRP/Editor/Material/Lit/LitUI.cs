@@ -744,7 +744,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        private void DoEmissiveGUI(Material material)
+        protected void DoEmissiveGUI(Material material)
         {
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(Styles.lightingText, EditorStyles.boldLabel);
