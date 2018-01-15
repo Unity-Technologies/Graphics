@@ -281,7 +281,9 @@ ColorRGBASlotControlView {
 }
 
 ColorRGBASlotControlView > ColorField {
-    width: 50;
+    width: 30;
+    margin-left: 0;
+    margin-right: 0;
 }
 
 ColorRGBSlotControlView {
@@ -290,7 +292,9 @@ ColorRGBSlotControlView {
 }
 
 ColorRGBSlotControlView > ColorField {
-    width: 50;
+    width: 41;
+    margin-left: 0;
+    margin-right: 0;
 }
 
 .edge.fromMatrix4, .edge.fromMatrix3, .edge.fromMatrix2 {
