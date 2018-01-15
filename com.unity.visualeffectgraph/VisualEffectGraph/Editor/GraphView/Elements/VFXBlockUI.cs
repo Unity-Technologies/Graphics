@@ -60,7 +60,7 @@ namespace UnityEditor.VFX.UI
         {
             controller.block.enabled = !controller.block.enabled;
         }
-
+/*
         // This function is a placeholder for common stuff to do before we delegate the action to the drop target
         private void HandleDropEvent(IMGUIEvent evt, List<ISelectable> selection, IDropTarget dropTarget)
         {
@@ -89,7 +89,7 @@ namespace UnityEditor.VFX.UI
                 }
                 break;
             }
-        }
+        }*/
 
         protected override void SelfChange()
         {

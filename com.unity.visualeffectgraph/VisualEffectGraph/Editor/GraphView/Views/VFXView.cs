@@ -431,18 +431,18 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void OnFrameAfterRefresh(PostLayoutEvent e)
+        void OnFrameAfterRefresh(GeometryChangedEvent e)
         {
             if (e.target == this)
             {
-                UnregisterCallback<PostLayoutEvent>(OnFrameAfterRefresh);
+                UnregisterCallback<GeometryChangedEvent>(OnFrameAfterRefresh);
                 FrameAll();
             }
         }
 
         public void FrameNewController()
         {
-            RegisterCallback<PostLayoutEvent>(OnFrameAfterRefresh);
+            RegisterCallback<GeometryChangedEvent>(OnFrameAfterRefresh);
         }
 
         Dictionary<VFXNodeController, GraphElement> rootSlotContainers

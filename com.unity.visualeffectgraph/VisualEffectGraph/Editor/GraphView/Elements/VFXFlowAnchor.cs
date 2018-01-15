@@ -41,7 +41,7 @@ namespace UnityEditor.VFX.UI
             return anchor;
         }
 
-        protected VFXFlowAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type) : base(anchorOrientation, anchorDirection, type)
+        protected VFXFlowAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type) : base(anchorOrientation, anchorDirection,Capacity.Multi, type)
         {
             AddToClassList("EdgeConnector");
 

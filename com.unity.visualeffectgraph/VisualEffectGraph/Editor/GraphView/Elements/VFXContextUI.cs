@@ -433,7 +433,7 @@ namespace UnityEditor.VFX.UI
             return m_BlockContainer.childCount;
         }
 
-        EventPropagation IDropTarget.DragUpdated(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
+        bool IDropTarget.DragUpdated(DragUpdatedEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
         {
             IEnumerable<VFXBlockUI> blocksUI = selection.Select(t => t as VFXBlockUI).Where(t => t != null);
 
@@ -453,10 +453,10 @@ namespace UnityEditor.VFX.UI
                 // TODO: Do something on subsequent DragUpdated events
             }
 
-            return EventPropagation.Stop;
+            return true;
         }
 
-        EventPropagation IDropTarget.DragPerform(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
+        bool IDropTarget.DragPerform(DragPerformEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
         {
             DragFinished();
 
@@ -464,7 +464,7 @@ namespace UnityEditor.VFX.UI
 
             IEnumerable<VFXBlockUI> blocksUI = selection.OfType<VFXBlockUI>();
             if (!CanDrop(blocksUI))
-                return EventPropagation.Stop;
+                return true;
 
             int blockIndex = GetDragBlockIndex(mousePosition);
 
@@ -475,7 +475,7 @@ namespace UnityEditor.VFX.UI
             m_DragStarted = false;
             RemoveFromClassList("dropping");
 
-            return EventPropagation.Stop;
+            return true;
         }
 
         public void BlocksDropped(int blockIndex, IEnumerable<VFXBlockUI> draggedBlocks, bool copy)
@@ -492,13 +492,13 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        EventPropagation IDropTarget.DragExited()
+        bool IDropTarget.DragExited()
         {
             // TODO: Do something when current drag is canceled
             DragFinished();
             m_DragStarted = false;
 
-            return EventPropagation.Stop;
+            return true;
         }
 
         public EventPropagation DeleteSelection()

@@ -42,7 +42,7 @@ namespace UnityEditor.VFX.UI
             get {return m_Node; }
         }
 
-        protected VFXDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type, VFXNodeUI node) : base(anchorOrientation, anchorDirection, type)
+        protected VFXDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type, VFXNodeUI node) : base(anchorOrientation, anchorDirection, Capacity.Multi, type)
         {
             AddToClassList("VFXDataAnchor");
 

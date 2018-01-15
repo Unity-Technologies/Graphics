@@ -42,10 +42,10 @@ namespace UnityEditor.VFX.UI
         {
             this.AddManipulator(new SuperCollapser());
 
-            RegisterCallback<PostLayoutEvent>(OnPostLayout);
+            RegisterCallback<GeometryChangedEvent>(OnPostLayout);
         }
 
-        void OnPostLayout(PostLayoutEvent e)
+        void OnPostLayout(GeometryChangedEvent e)
         {
             float settingsLabelWidth = 30;
             float settingsControlWidth = 50;
