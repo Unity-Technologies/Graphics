@@ -7,12 +7,11 @@
 //-----------------------------------------------------------------------------
 
 float3 EvaluateCookie_Directional(LightLoopContext lightLoopContext, DirectionalLightData lightData,
-                                  float3 positionWS)
+                                  float3 lightToSample)
 {
 
     // Translate and rotate 'positionWS' into the light space.
     // 'lightData.right' and 'lightData.up' are pre-scaled on CPU.
-    float3   lightToSample = positionWS - lightData.positionWS;
     float3x3 lightToWorld  = float3x3(lightData.right, lightData.up, lightData.forward);
     float3   positionLS    = mul(lightToSample, transpose(lightToWorld));
 
@@ -40,7 +39,15 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
     float  shadowMask = 1.0;
 
     color       = lightData.color;
-    attenuation = 1.0;
+    attenuation = 1.0; // Note: no volumetric attenuation along shadow rays for directional lights
+
+    [branch] if (lightData.cookieIndex >= 0)
+    {
+        float3 lightToSample = positionWS - lightData.positionWS;
+        float3 cookie = EvaluateCookie_Directional(lightLoopContext, lightData, lightToSample);
+
+        color *= cookie;
+    }
 
 #ifdef SHADOWS_SHADOWMASK
     // shadowMaskSelector.x is -1 if there is no shadow mask
@@ -67,15 +74,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 #endif
     }
 
-    // Note: no volumetric attenuation along shadow rays for directional lights.
     attenuation *= shadow;
-
-    [branch] if (lightData.cookieIndex >= 0)
-    {
-        float3 cookie = EvaluateCookie_Directional(lightLoopContext, lightData, positionWS);
-
-        color *= cookie;
-    }
 }
 
 //-----------------------------------------------------------------------------
@@ -83,15 +82,14 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 //-----------------------------------------------------------------------------
 
 float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData lightData,
-                               float3 positionWS)
+                               float3 lightToSample)
 {
     int lightType = lightData.lightType;
 
     // Translate and rotate 'positionWS' into the light space.
     // 'lightData.right' and 'lightData.up' are pre-scaled on CPU.
-    float3   lightToSample = positionWS - lightData.positionWS;
-    float3x3 lightToWorld  = float3x3(lightData.right, lightData.up, lightData.forward);
-    float3   positionLS    = mul(lightToSample, transpose(lightToWorld));
+    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
+    float3   positionLS   = mul(lightToSample, transpose(lightToWorld));
 
     float4 cookie;
 
@@ -118,18 +116,11 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
     return cookie;
 }
 
-float GetPunctualShapeAttenuation(LightData lightData, float3 L, float distSq)
-{
-    // Note: lightData.invSqrAttenuationRadius is 0 when applyRangeAttenuation is false
-    float attenuation = GetDistanceAttenuation(distSq, lightData.invSqrAttenuationRadius);
-    // Reminder: lights are oriented backward (-Z)
-    return attenuation * GetAngleAttenuation(L, -lightData.forward, lightData.angleScale, lightData.angleOffset);
-}
-
 // None of the outputs are premultiplied.
+// distances = {d, d^2, 1/d, d_proj}, where d_proj = dot(lightToSample, lightData.forward).
 void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs posInput,
                             LightData lightData, BakeLightingData bakeLightingData,
-                            float3 N, float3 L, float dist, float distSq,
+                            float3 N, float3 L, float3 lightToSample, float4 distances,
                             out float3 color, out float attenuation)
 {
     float3 positionWS = posInput.positionWS;
@@ -137,7 +128,22 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     float  shadowMask = 1.0;
 
     color       = lightData.color;
-    attenuation = GetPunctualShapeAttenuation(lightData, L, distSq);
+    attenuation = SmoothPunctualLightAttenuation(distances, lightData.invSqrAttenuationRadius,
+                                                 lightData.angleScale, lightData.angleOffset);
+
+#if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET != 0)
+    float distVol = (lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX) ? distances.w : distances.x;
+    attenuation *= TransmittanceHomogeneousMedium(_GlobalFog_Extinction, distVol);
+#endif
+
+    // Projector lights always have cookies, so we can perform clipping inside the if().
+    [branch] if (lightData.cookieIndex >= 0)
+    {
+        float4 cookie = EvaluateCookie_Punctual(lightLoopContext, lightData, lightToSample);
+
+        color       *= cookie.rgb;
+        attenuation *= cookie.a;
+    }
 
 #ifdef SHADOWS_SHADOWMASK
     // shadowMaskSelector.x is -1 if there is no shadow mask
@@ -149,8 +155,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     {
         // TODO: make projector lights cast shadows.
         float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
-        float4 L_dist = float4(L, dist);
-        shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS + offset, N, lightData.shadowIndex, L_dist, posInput.positionSS);
+        shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS + offset, N, lightData.shadowIndex, lightData.positionWS, L, posInput.positionSS);
 #ifdef SHADOWS_SHADOWMASK
         // Note: Legacy Unity have two shadow mask mode. ShadowMask (ShadowMask contain static objects shadow and ShadowMap contain only dynamic objects shadow, final result is the minimun of both value)
         // and ShadowMask_Distance (ShadowMask contain static objects shadow and ShadowMap contain everything and is blend with ShadowMask based on distance (Global distance setup in QualitySettigns)).
@@ -166,23 +171,6 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 #endif
     }
 
-#if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET != 0)
-    [flatten] if (lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX)
-    {
-        float3 lightToSample = positionWS - lightData.positionWS;
-        dist = dot(-lightToSample, L);
-    }
-    shadow *= TransmittanceHomogeneousMedium(_GlobalFog_Extinction, dist);
-#endif
-
     attenuation *= shadow;
 
-    // Projector lights always have cookies, so we can perform clipping inside the if().
-    [branch] if (lightData.cookieIndex >= 0)
-    {
-        float4 cookie = EvaluateCookie_Punctual(lightLoopContext, lightData, positionWS);
-
-        color       *= cookie.rgb;
-        attenuation *= cookie.a;
-    }
 }

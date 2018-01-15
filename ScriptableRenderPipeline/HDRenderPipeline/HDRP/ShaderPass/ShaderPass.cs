@@ -12,6 +12,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         GBuffer,
         Forward,
         ForwardUnlit,
+        DeferredLighting,
         DepthOnly,
         Velocity,
         Distortion,
