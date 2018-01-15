@@ -53,6 +53,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public abstract Vector3 proxyUp { get; }
         public abstract Vector3 proxyForward { get; }
         public abstract Vector3 proxyPosition { get; }
+        public abstract Matrix4x4 capture2DVP { get; }
     }
 
     class VisibleReflectionProbeWrapper : ProbeWrapper
@@ -85,6 +86,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override Vector3 influenceUp { get { return probe.localToWorld.GetColumn(1).normalized; } }
         public override Vector3 influenceForward { get { return probe.localToWorld.GetColumn(2).normalized; } }
         public override Vector3 capturePosition { get { return probe.localToWorld.GetColumn(3); } }
+        public override Matrix4x4 capture2DVP { get { return Matrix4x4.identity; } }
+
         public override Vector3 influencePosition { get { return capturePosition + probe.center; } }
         public override Texture texture { get { return probe.texture; } }
         public override ReflectionProbeMode mode { get { return probe.probe.mode; } }
@@ -134,6 +137,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override Vector3 influenceUp { get { return probe.influenceUp; } }
         public override Vector3 influenceForward { get { return probe.influenceForward; } }
         public override Vector3 capturePosition { get { return probe.capturePosition; } }
+        public override Matrix4x4 capture2DVP { get { return probe.capture2DVP; } }
         public override Texture texture { get { return probe.texture; } }
         public override EnvShapeType influenceShapeType { get { return ConvertShape(probe.influenceVolume.shapeType); } }
         public override float dimmer { get { return probe.dimmer; } }

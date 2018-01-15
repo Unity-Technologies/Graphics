@@ -1,4 +1,4 @@
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+﻿namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public static class HDShaderPassNames
     {
@@ -102,6 +102,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _CookieCubeTextures = Shader.PropertyToID("_CookieCubeTextures");
         public static readonly int _EnvCubemapTextures = Shader.PropertyToID("_EnvCubemapTextures");
         public static readonly int _Env2DTextures = Shader.PropertyToID("_Env2DTextures");
+        public static readonly int _Env2DCapturePositionWS = Shader.PropertyToID("_Env2DCapturePositionWS");
+        public static readonly int _Env2DCaptureVP = Shader.PropertyToID("_Env2DCaptureVP");
         public static readonly int _DirectionalLightDatas = Shader.PropertyToID("_DirectionalLightDatas");
         public static readonly int _DirectionalLightCount = Shader.PropertyToID("_DirectionalLightCount");
         public static readonly int _LightDatas = Shader.PropertyToID("_LightDatas");

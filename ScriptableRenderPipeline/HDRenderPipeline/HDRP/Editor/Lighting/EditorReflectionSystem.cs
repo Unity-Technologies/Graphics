@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
@@ -117,20 +118,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             RenderTexture.active = a;
             rt.Release();
 
-            var bytes = target.EncodeToEXR();
-
-            try
-            {
-                var targetFile = new FileInfo(path);
-                if (!targetFile.Directory.Exists)
-                    targetFile.Directory.Create();
-                File.WriteAllBytes(path, bytes);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
+            if (!WriteAndImportTexture(path, target))
                 return false;
-            }
 
             return true;
         }
@@ -184,30 +173,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (string.IsNullOrEmpty(assetPath))
                 assetPath = GetBakePath(probe);
 
-            var importAsset = false;
             if (bakedTexture == null || string.IsNullOrEmpty(assetPath))
             {
                 bakedTexture = new Texture2D(rt.width, rt.height, TextureFormat.RGBAHalf, true, false);
                 probe.bakedTexture = bakedTexture;
-                importAsset = true;
 
                 EditorUtility.SetDirty(probe);
             }
 
             ReflectionSystem.Render(probe, rt);
+
             var art = RenderTexture.active;
             RenderTexture.active = rt;
             bakedTexture.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0, false);
             RenderTexture.active = art;
 
-            if (importAsset)
-                AssetDatabase.CreateAsset(bakedTexture, assetPath);
-            else
-            {
-                var bytes = bakedTexture.EncodeToEXR();
-                File.WriteAllBytes(assetPath, bytes);
-                AssetDatabase.ImportAsset(assetPath);
-            }
+            WriteAndImportTexture(assetPath, bakedTexture);
 
             return true;
         }
@@ -307,6 +288,43 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             result.gameObject.hideFlags = k_ReflectionSystemDictionaryHideFlags;
 
             return result;
+        }
+
+        static bool WriteAndImportTexture(string path, Texture2D target)
+        {
+            var bytes = target.EncodeToEXR();
+            try
+            {
+                var targetFile = new FileInfo(path);
+                if (!targetFile.Directory.Exists)
+                    targetFile.Directory.Create();
+                File.WriteAllBytes(path, bytes);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return false;
+            }
+
+            AssetDatabase.ImportAsset(path);
+            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+            if (importer != null)
+            {
+                importer.alphaSource = TextureImporterAlphaSource.None;
+                importer.sRGBTexture = false;
+                importer.mipmapEnabled = false;
+
+                var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                if (hdrp != null)
+                {
+                    importer.textureCompression = hdrp.renderPipelineSettings.lightLoopSettings.planarReflectionCacheCompressed
+                        ? TextureImporterCompression.Compressed
+                        : TextureImporterCompression.Uncompressed;
+                }
+
+                importer.SaveAndReimport();
+            }
+            return true;
         }
     }
 }

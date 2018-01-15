@@ -1,9 +1,10 @@
-#include "LightLoop.cs.hlsl"
+﻿#include "LightLoop.cs.hlsl"
 #include "../../Sky/SkyVariables.hlsl"
 
 StructuredBuffer<uint> g_vLightListGlobal;      // don't support Buffer yet in unity
 
 #define DWORD_PER_TILE 16 // See dwordsPerTile in LightLoop.cs, we have roomm for 31 lights and a number of light value all store on 16 bit (ushort)
+#define MAX_ENV2D_LIGHT 32
 
 CBUFFER_START(UnityTilePass)
 uint _NumTileFtplX;
@@ -47,6 +48,8 @@ TEXTURECUBE_ARRAY_ABSTRACT(_CookieCubeTextures);
 // Use texture array for reflection (or LatLong 2D array for mobile)
 TEXTURECUBE_ARRAY_ABSTRACT(_EnvCubemapTextures);
 TEXTURE2D_ARRAY(_Env2DTextures);
+float3 _Env2DCapturePositionWS[MAX_ENV2D_LIGHT];
+float4x4 _Env2DCaptureVP[MAX_ENV2D_LIGHT];
 
 TEXTURE2D(_DeferredShadowTexture);
 
@@ -104,7 +107,7 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
     if (lightLoopContext.sampleReflection == SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES)
     {
         if (cacheType == ENVCACHETYPE_TEXTURE2D)
-            return SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, texCoord.xy, index, lod);
+            return SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, texCoord.xy, index, 0);
         else if (cacheType == ENVCACHETYPE_CUBEMAP)
             return SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, texCoord, index, lod);
         return float4(0, 0, 0, 0);
@@ -112,6 +115,36 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
     else // SINGLE_PASS_SAMPLE_SKY
     {
         return SampleSkyTexture(texCoord, lod);
+    }
+}
+
+float3 GetSampleEnvCoordinates(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod, out float outWeight)
+{
+    // 31 bit index, 1 bit cache type
+    uint cacheType = index & 1;
+    index = index >> 1;
+
+    // This code will be inlined as lightLoopContext is hardcoded in the light loop
+    if (lightLoopContext.sampleReflection == SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES)
+    {
+        if (cacheType == ENVCACHETYPE_TEXTURE2D)
+        {
+            float2 positionNCD = ComputeNormalizedDeviceCoordinates(_Env2DCapturePositionWS[index] + texCoord, _Env2DCaptureVP[index]);
+            outWeight = any(positionNCD > 1) || any(positionNCD < 0) ? 0 : 1;
+            return float3(positionNCD, 1);
+        }
+        else if (cacheType == ENVCACHETYPE_CUBEMAP)
+        {
+            outWeight = 1;
+            return texCoord;
+        }
+        outWeight = 0;
+        return float4(0, 0, 0, 0);
+    }
+    else // SINGLE_PASS_SAMPLE_SKY
+    {
+        outWeight = 1;
+        return texCoord;
     }
 }
 

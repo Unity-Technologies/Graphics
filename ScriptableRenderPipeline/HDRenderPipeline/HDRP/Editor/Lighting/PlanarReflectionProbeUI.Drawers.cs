@@ -1,6 +1,8 @@
 ﻿using System;
 using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -77,6 +79,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Drawer_SectionCaptureSettings(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
         {
+            var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            GUI.enabled = false;
+            EditorGUILayout.LabelField(
+                _.GetContent("Probe Texture Size (Set By HDRP)"),
+                _.GetContent(hdrp.renderPipelineSettings.lightLoopSettings.planarReflectionTextureSize.ToString()),
+                EditorStyles.label);
+            EditorGUILayout.Toggle(
+                _.GetContent("Probe Compression (Set By HDRP)"),
+                hdrp.renderPipelineSettings.lightLoopSettings.planarReflectionCacheCompressed);
+            GUI.enabled = true;
+
             EditorGUILayout.PropertyField(d.captureLocalPosition, _.GetContent("Capture Local Position"));
 
             _.DrawMultipleFields(

@@ -319,8 +319,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_GPUCopy = new GPUCopy(asset.renderPipelineResources.copyChannelCS);
             EncodeBC6H.DefaultInstance = EncodeBC6H.DefaultInstance ?? new EncodeBC6H(asset.renderPipelineResources.encodeBC6HCS);
 
-            m_ReflectionProbeCullResults = new ReflectionProbeCullResults(ReflectionSystemParameters.Default);
-            ReflectionSystem.SetParameters(ReflectionSystemParameters.Default);
+            m_ReflectionProbeCullResults = new ReflectionProbeCullResults(asset.reflectionSystemParameters);
+            ReflectionSystem.SetParameters(asset.reflectionSystemParameters);
 
             // Scan material list and assign it
             m_MaterialList = HDUtils.GetRenderPipelineMaterialList();
