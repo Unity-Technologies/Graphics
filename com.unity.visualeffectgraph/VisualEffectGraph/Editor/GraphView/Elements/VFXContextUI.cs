@@ -207,7 +207,6 @@ namespace UnityEditor.VFX.UI
                     m_FlowOutputConnectorContainer.Remove(nonLongerExistingAnchor);
                 }
 
-
                 RefreshContext();
             }
         }
@@ -274,7 +273,7 @@ namespace UnityEditor.VFX.UI
             m_InsideContainer.Add(m_Header);
 
 
-            m_OwnData = new VFXContextSlotContainerUI();
+            m_OwnData = new VFXOwnContextSlotContainerUI();
             m_OwnData.RemoveFromClassList("node");
             m_Header.Add(m_HeaderContainer);
             m_Header.Add(m_OwnData);

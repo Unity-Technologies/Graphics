@@ -122,12 +122,12 @@ VFXContextUI.selected:hover  > #selection-border
 
 
 
-VFXContextSlotContainerUI.VFXNodeUI.selected
+VFXOwnContextSlotContainerUI.VFXNodeUI.selected
 {
 	border-color: rgba(0,0,0,0);
 }
 
-VFXContextSlotContainerUI.VFXContextSlotContainerUI
+VFXOwnContextSlotContainerUI.VFXContextSlotContainerUI
 {
 	background-color:rgba(57,57,57,0.8);
 	margin-top:4;
@@ -142,12 +142,12 @@ VFXContextSlotContainerUI.VFXContextSlotContainerUI
 	border-bottom-width:1;
 }
 
-VFXContextSlotContainerUI.VFXContextSlotContainerUI #settings
+VFXOwnContextSlotContainerUI.VFXContextSlotContainerUI #settings
 {
 	background-color:rgba(0,0,0,0);
 }
 
-VFXContextSlotContainerUI.VFXNodeUI #pane
+VFXOwnContextSlotContainerUI.VFXNodeUI #pane
 {
 	border-left-width:0;
 	border-right-width:0;
@@ -275,7 +275,7 @@ VFXContextUI *
 	font-size:11;
 }
 
-VFXContextUI VFXContextSlotContainerUI.VFXNodeUI #title
+VFXContextUI VFXOwnContextSlotContainerUI.VFXNodeUI #title
 {
 	max-height:0;
 }
