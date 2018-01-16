@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 using System;
 using System.Diagnostics;
 using UnityEngine.Rendering.PostProcessing;
@@ -381,6 +382,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             FrameSettings.RegisterDebug("Default Camera", m_Asset.GetFrameSettings());
             m_DebugFullScreenTempRT = HDShaderIDs._DebugFullScreenTexture;
 
+            // For debugging
+            MousePositionDebug.instance.Build();
+
             InitializeRenderStateBlocks();
         }
 
@@ -443,6 +447,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             base.Dispose();
 
             m_LightLoop.Cleanup();
+
+            // For debugging
+            MousePositionDebug.instance.Cleanup();
 
             m_MaterialList.ForEach(material => material.Cleanup());
 
@@ -674,7 +681,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                     }
 
-                    ApplyDebugDisplaySettings(cmd);
+                    var postProcessLayer = camera.GetComponent<PostProcessLayer>();
+                    var hdCamera = HDCamera.Get(camera, postProcessLayer, m_FrameSettings);
+
+                    Resize(hdCamera);
+
+                    if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() || m_CurrentDebugDisplaySettings.fullScreenDebugMode != FullScreenDebugMode.None)
+                    {
+                        ApplyDebugDisplaySettings(hdCamera, cmd);
+                    }
                     UpdateShadowSettings();
 
                     // TODO: Float HDCamera setup higher in order to pass stereo into GetCullingParameters
@@ -709,11 +724,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_DbufferManager.vsibleDecalCount = DecalSystem.instance.QueryCullResults();
                         DecalSystem.instance.EndCull();
                     }
-
-                    var postProcessLayer = camera.GetComponent<PostProcessLayer>();
-                    var hdCamera = HDCamera.Get(camera, postProcessLayer, m_FrameSettings);
-
-                    Resize(hdCamera);
 
                     if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
                     {
@@ -1569,7 +1579,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-        public void ApplyDebugDisplaySettings(CommandBuffer cmd)
+        public void ApplyDebugDisplaySettings(HDCamera hdCamera, CommandBuffer cmd)
         {
             m_ShadowSettings.enabled = m_FrameSettings.enableShadow;
 
@@ -1584,6 +1594,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalVector(HDShaderIDs._DebugLightingAlbedo, debugAlbedo);
             cmd.SetGlobalVector(HDShaderIDs._DebugLuxMeterParam, luxMeterParam);
             cmd.SetGlobalVector(HDShaderIDs._DebugLightingSmoothness, debugSmoothness);
+
+            Vector2 mousePixelCoord = MousePositionDebug.instance.GetMousePosition(hdCamera.screenSize.y);
+            var mouseParam = new Vector4(mousePixelCoord.x, mousePixelCoord.y, mousePixelCoord.x / hdCamera.screenSize.x, mousePixelCoord.y / hdCamera.screenSize.y);
+            cmd.SetGlobalVector(HDShaderIDs._MousePixelCoord, mouseParam);
+
+            cmd.SetGlobalTexture(HDShaderIDs._DebugFont, m_Asset.renderPipelineResources.debugFontTexture);
         }
 
         public void PushFullScreenDebugTexture(CommandBuffer cb, RenderTargetIdentifier textureID, HDCamera hdCamera, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)

@@ -14,6 +14,9 @@ int _DebugMipMapMode; // Match enum DebugMipMapMode
 float4 _DebugLightingAlbedo; // xyz = albedo for diffuse, w unused
 float4 _DebugLuxMeterParam; // 4 increasing threshold
 float4 _DebugLightingSmoothness; // x == bool override, y == override value
+float4 _MousePixelCoord;  // xy unorm, zw norm
+
+TEXTURE2D(_DebugFont); // Debug font to write string in shader
 
 void GetPropertiesDataDebug(uint paramId, inout float3 result, inout bool needLinearToSRGB)
 {
@@ -87,6 +90,74 @@ float3 GetTextureDataDebug(uint paramId, float2 uv, Texture2D tex, float4 texelS
     }
 
     return originalColor;
+}
+
+// font texture is 256x128
+#define DEBUG_FONT_TEXT_WIDTH	16
+#define DEBUG_FONT_TEXT_HEIGHT	16
+#define DEBUG_FONT_TEXT_SIZE	1.0f
+#define DEBUG_FONT_TEXT_COUNT_X	16
+#define DEBUG_FONT_TEXT_COUNT_Y	8
+#define DEBUG_FONT_TEXT_SCALE	0.7f
+
+float3 DrawCharacter(uint asciiValue, float2 currentAbsCoords, inout float2 referenceAbsCoord, float fontSize, float incrementSign)
+{
+    uint2 asciiCoord = uint2(asciiValue % DEBUG_FONT_TEXT_COUNT_X, asciiValue / DEBUG_FONT_TEXT_COUNT_Y);
+    const float charWidth = DEBUG_FONT_TEXT_WIDTH * fontSize;
+    const float charHeight = DEBUG_FONT_TEXT_HEIGHT * fontSize;
+    const float2 localCoords = currentAbsCoords - referenceAbsCoord;
+
+    float3 output = float3(0, 0, 0);
+    if (localCoords.x >= 0 && localCoords.x < charWidth && localCoords.y >= 0 && localCoords.y < charHeight)
+    {
+        float2 texOffset = float2(asciiCoord) / float2(DEBUG_FONT_TEXT_COUNT_X, DEBUG_FONT_TEXT_COUNT_Y);
+        float2 texCoord = localCoords / float2(charWidth * DEBUG_FONT_TEXT_COUNT_X, charHeight * DEBUG_FONT_TEXT_COUNT_Y);
+        output = SAMPLE_TEXTURE2D_LOD(_DebugFont, s_linear_clamp_sampler, texCoord + texOffset, 0).xyz;
+    }
+
+    referenceAbsCoord.x += charWidth * incrementSign * DEBUG_FONT_TEXT_SCALE;
+
+    return output;
+}
+
+float3 DrawCharacter(uint asciiValue, float2 currentAbsCoords, inout float2 referenceAbsCoord, float fontSize)
+{
+    return DrawCharacter(asciiValue, currentAbsCoords, referenceAbsCoord, fontSize, 1.0f);
+}
+
+float GetTextSize(uint intValue, float fontSize)
+{
+    const uint charWidth = DEBUG_FONT_TEXT_WIDTH * fontSize * DEBUG_FONT_TEXT_SCALE;
+    const uint maxCharCount = 16;
+    uint charCount = 0;
+
+    for (uint charIt = 0; charIt < maxCharCount; ++charIt)
+    {
+        ++charCount;
+        if (intValue  < 10)
+            break;
+        intValue /= 10;
+    }
+    return charCount * charWidth;
+}
+
+float3 DrawInteger(in uint intValue, in float2 coords, inout float2 referenceCoord, in float fontSize)
+{
+    const uint charWidth = DEBUG_FONT_TEXT_WIDTH * fontSize * DEBUG_FONT_TEXT_SCALE;
+    const uint maxCharCount = 16;
+    float2 localRefCoord = referenceCoord + float2(GetTextSize(intValue, fontSize), 0);
+    referenceCoord = localRefCoord + float2(charWidth, 0);
+
+    float3 output = float3(0, 0, 0);
+    for (uint charIt = 0; charIt < maxCharCount; ++charIt)
+    {
+        output += DrawCharacter((intValue % 10) + 48, coords, localRefCoord, fontSize, -1.0f).xyz;
+        if (intValue  < 10)
+            break;
+        intValue /= 10;
+    }
+
+    return output;
 }
 
 #endif

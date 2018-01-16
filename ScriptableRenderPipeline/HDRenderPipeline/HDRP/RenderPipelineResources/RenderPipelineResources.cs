@@ -7,6 +7,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Shader defaultShader;
 
         // Debug
+        public Texture2D debugFontTexture;
         public Shader debugDisplayLatlongShader;
         public Shader debugViewMaterialGBufferShader;
         public Shader debugViewTilesShader;
