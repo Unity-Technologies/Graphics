@@ -412,9 +412,18 @@ namespace UnityEditor.VFX.UI
         }
 
         INotifyValueChanged<U> m_Field;
+
+
+        protected INotifyValueChanged<U> field
+        {
+            get {return m_Field; }
+        }
+
+        protected virtual bool HasFocus() {return false; }
         public override void UpdateGUI()
         {
-            m_Field.value = (U)System.Convert.ChangeType(m_Value, typeof(U));
+            if (!HasFocus())
+                m_Field.value = (U)System.Convert.ChangeType(m_Value, typeof(U));
         }
 
         public override bool showsEverything { get { return true; } }

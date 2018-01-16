@@ -91,6 +91,13 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        protected override bool HasFocus()
+        {
+            if (field is LabeledField<IntegerField, long>)
+                return (field as LabeledField<IntegerField, long>).control.hasFocus;
+            return (field as LabeledField<IntSliderField, long>).control.hasFocus;
+        }
+
         public override object FilterValue(object value)
         {
             Vector2 range = VFXPropertyAttribute.FindRange(m_Provider.attributes);
@@ -138,6 +145,13 @@ namespace UnityEditor.VFX.UI
                 field.control.range = range;
                 return field;
             }
+        }
+
+        protected override bool HasFocus()
+        {
+            if (field is LabeledField<IntegerField, long>)
+                return (field as LabeledField<IntegerField, long>).control.hasFocus;
+            return (field as LabeledField<IntSliderField, long>).control.hasFocus;
         }
 
         public override object FilterValue(object value)
@@ -206,6 +220,13 @@ namespace UnityEditor.VFX.UI
                 field.control.range = range;
                 return field;
             }
+        }
+
+        protected override bool HasFocus()
+        {
+            if (field is LabeledField<FloatField, float>)
+                return (field as LabeledField<FloatField, float>).control.hasFocus;
+            return (field as LabeledField<DoubleSliderField, float>).control.hasFocus;
         }
 
         public override object FilterValue(object value)

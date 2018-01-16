@@ -53,6 +53,8 @@ namespace UnityEditor.VFX.UIElements
                 m_Slider.pageSize = (m_Slider.highValue - m_Slider.lowValue) * 0.1f;
             }
         }
+
+        public abstract bool hasFocus {get; }
         public void OnValueChanged(EventCallback<ChangeEvent<T>> callback)
         {
             RegisterCallback(callback);
@@ -94,6 +96,14 @@ namespace UnityEditor.VFX.UIElements
             Add(doubleField);
         }
 
+        public override bool hasFocus
+        {
+            get
+            {
+                return (m_Field as UnityEditor.Experimental.UIElements.FloatField).hasFocus;
+            }
+        }
+
         protected override float ValueToFloat(float value)
         {
             return value;
@@ -119,6 +129,14 @@ namespace UnityEditor.VFX.UIElements
 
             Add(m_Slider);
             Add(integerField);
+        }
+
+        public override bool hasFocus
+        {
+            get
+            {
+                return (m_Field as IntegerField).hasFocus;
+            }
         }
 
         protected override float ValueToFloat(long value)
