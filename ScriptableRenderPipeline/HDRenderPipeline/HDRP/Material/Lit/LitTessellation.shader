@@ -178,7 +178,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
         // Tessellation specific
         [Enum(None, 0, Phong, 1)] _TessellationMode("Tessellation mode", Float) = 0
-        _TessellationFactor("Tessellation Factor", Range(0.0, 15.0)) = 4.0
+        _TessellationFactor("Tessellation Factor", Range(0.0, 64.0)) = 4.0
         _TessellationFactorMinDistance("Tessellation start fading distance", Float) = 20.0
         _TessellationFactorMaxDistance("Tessellation end fading distance", Float) = 50.0
         _TessellationFactorTriangleSize("Tessellation triangle size", Float) = 100.0
