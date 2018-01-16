@@ -1,11 +1,6 @@
 #ifndef UNITY_INSTANCING_INCLUDED
 #define UNITY_INSTANCING_INCLUDED
 
-#ifndef UNITY_SHADER_VARIABLES_INCLUDED
-    // We will redefine some built-in shader params e.g. unity_ObjectToWorld and unity_WorldToObject.
-    #error "Please include ShaderVariables.hlsl first."
-#endif
-
 #if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))
     #define UNITY_SUPPORT_INSTANCING
 #endif
@@ -283,15 +278,17 @@
         #endif
     UNITY_INSTANCING_BUFFER_END(unity_Builtins2)
 
-    #define unity_ObjectToWorld     UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_ObjectToWorldArray)
+    #undef UNITY_MATRIX_M
+    #define UNITY_MATRIX_M     UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_ObjectToWorldArray)
 
     #define MERGE_UNITY_BUILTINS_INDEX(X) unity_Builtins##X
 
-    #define unity_WorldToObject     UNITY_ACCESS_INSTANCED_PROP(MERGE_UNITY_BUILTINS_INDEX(UNITY_WORLDTOOBJECTARRAY_CB), unity_WorldToObjectArray)
+    #undef UNITY_MATRIX_I_M
+    #define UNITY_MATRIX_I_M     UNITY_ACCESS_INSTANCED_PROP(MERGE_UNITY_BUILTINS_INDEX(UNITY_WORLDTOOBJECTARRAY_CB), unity_WorldToObjectArray)
 
     inline float4 UnityObjectToClipPosInstanced(in float3 pos)
     {
-        return mul(UNITY_MATRIX_VP, mul(unity_ObjectToWorld, float4(pos, 1.0)));
+        return mul(UNITY_MATRIX_VP, mul(UNITY_MATRIX_M, float4(pos, 1.0)));
     }
     inline float4 UnityObjectToClipPosInstanced(float4 pos)
     {
@@ -324,10 +321,10 @@
     static float4x4 unity_MatrixITMV_Instanced;
     void UnitySetupCompoundMatrices()
     {
-        unity_MatrixMVP_Instanced = mul(UNITY_MATRIX_VP, unity_ObjectToWorld);
-        unity_MatrixMV_Instanced = mul(UNITY_MATRIX_V, unity_ObjectToWorld);
+        unity_MatrixMVP_Instanced = mul(UNITY_MATRIX_VP, UNITY_MATRIX_M);
+        unity_MatrixMV_Instanced = mul(UNITY_MATRIX_V, UNITY_MATRIX_M);
         unity_MatrixTMV_Instanced = transpose(unity_MatrixMV_Instanced);
-        unity_MatrixITMV_Instanced = transpose(mul(unity_WorldToObject, unity_MatrixInvV));
+        unity_MatrixITMV_Instanced = transpose(mul(UNITY_MATRIX_I_M, unity_MatrixInvV));
     }
     #undef UNITY_MATRIX_MVP
     #undef UNITY_MATRIX_MV
