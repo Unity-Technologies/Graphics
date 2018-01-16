@@ -169,6 +169,8 @@ namespace UnityEditor.VFX.UI
         {
             get { return m_Controller; }
         }
+
+
         public VFXViewController controller
         {
             get { return m_Controller; }
@@ -180,12 +182,30 @@ namespace UnityEditor.VFX.UI
                     {
                         m_Controller.UnregisterHandler(this);
                         m_Controller.useCount--;
+
+                        serializeGraphElements = null;
+                        unserializeAndPaste = null;
+                        deleteSelection = null;
+                        nodeCreationRequest = null;
+
+                        elementAddedToGroupNode = null;
+                        elementRemovedFromGroupNode = null;
+                        groupNodeTitleChanged = null;
                     }
                     m_Controller = value;
                     if (m_Controller != null)
                     {
                         m_Controller.RegisterHandler(this);
                         m_Controller.useCount++;
+
+                        serializeGraphElements = SerializeElements;
+                        unserializeAndPaste = UnserializeAndPasteElements;
+                        deleteSelection = Delete;
+                        nodeCreationRequest = OnCreateNode;
+
+                        elementAddedToGroupNode = ElementAddedToGroupNode;
+                        elementRemovedFromGroupNode = ElementRemovedFromGroupNode;
+                        groupNodeTitleChanged = GroupNodeTitleChanged;
                     }
                     NewControllerSet();
                 }
@@ -356,15 +376,6 @@ namespace UnityEditor.VFX.UI
             m_NoAssetLabel.style.textColor = Color.white * 0.75f;
 
             Add(m_NoAssetLabel);
-
-            this.serializeGraphElements = SerializeElements;
-            this.unserializeAndPaste = UnserializeAndPasteElements;
-            this.deleteSelection = Delete;
-            this.nodeCreationRequest = OnCreateNode;
-
-            elementAddedToGroupNode = ElementAddedToGroupNode;
-            elementRemovedFromGroupNode = ElementRemovedFromGroupNode;
-            groupNodeTitleChanged = GroupNodeTitleChanged;
 
             vfxGroupNodes = this.Query<VisualElement>().Children<VFXGroupNode>().Build();
             RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
