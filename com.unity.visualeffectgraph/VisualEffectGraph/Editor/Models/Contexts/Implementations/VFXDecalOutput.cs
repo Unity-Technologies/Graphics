@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.VFX.Block;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -13,18 +13,17 @@ namespace UnityEditor.VFX
         public override string name { get { return "Decal Output"; } }
         public override string codeGeneratorTemplate { get { return "VFXShaders/VFXParticleDecal"; } }
         public override VFXTaskType taskType { get { return VFXTaskType.kParticleHexahedronOutput; } }
+        public override bool supportsFlipbooks { get { return true; } }
 
         public class InputProperties
         {
             public Texture2D mainTexture;
         }
 
-        protected override IEnumerable<VFXPropertyWithValue> inputProperties
+        public class InputPropertiesFlipbook
         {
-            get
-            {
-                return base.inputProperties.Concat(PropertiesFromType(GetInputPropertiesTypeName()));
-            }
+            public Texture2D mainTexture;
+            public Vector2 flipBookSize = new Vector2(5, 5);
         }
 
         protected override IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
@@ -50,8 +49,12 @@ namespace UnityEditor.VFX
                 yield return new VFXAttributeInfo(VFXAttribute.AngleY, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.AngleZ, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Pivot, VFXAttributeMode.Read);
+
                 foreach (var size in VFXBlockUtility.GetReadableSizeAttributes(GetData()))
                     yield return size;
+
+                if (flipbookMode != FlipbookMode.Off)
+                    yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Read);
             }
         }
     }

@@ -1,6 +1,7 @@
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine;
+using UnityEditor.Experimental.VFX;
 using System.Collections.Generic;
 using System.Linq;
 using System;
@@ -183,6 +184,28 @@ namespace UnityEditor.VFX.UI
             m_BlockControllers = m_NewControllers;
         }
 
+        static VFXBlock DuplicateBlock(VFXBlock block)
+        {
+            var dependencies = new HashSet<ScriptableObject>();
+            dependencies.Add(block);
+            block.CollectDependencies(dependencies);
+
+            var duplicated = VFXMemorySerializer.DuplicateObjects(dependencies.ToArray());
+
+            VFXBlock result = duplicated.OfType<VFXBlock>().First();
+
+            foreach (var slot in result.inputSlots)
+            {
+                slot.UnlinkAll(true, false);
+            }
+            foreach (var slot in result.outputSlots)
+            {
+                slot.UnlinkAll(true, false);
+            }
+
+            return result;
+        }
+
         internal void BlocksDropped(int blockIndex, IEnumerable<VFXBlockController> draggedBlocks, bool copy)
         {
             //Sort draggedBlock in the order we want them to appear and not the selected order ( blocks in the same context should appear in the same order as they where relative to each other).
@@ -194,7 +217,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (copy)
                 {
-                    this.AddBlock(blockIndex++, draggedBlock.block.Clone<VFXBlock>());
+                    this.AddBlock(blockIndex++, DuplicateBlock(draggedBlock.block));
                 }
                 else
                 {

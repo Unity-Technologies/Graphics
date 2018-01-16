@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 using UnityEngine.Experimental.UIElements;
 
 using Object = UnityEngine.Object;
 using System.Collections.ObjectModel;
+using System.Reflection;
 
 namespace UnityEditor.VFX.UI
 {
@@ -59,6 +60,7 @@ namespace UnityEditor.VFX.UI
 
         void GraphLost()
         {
+            Clear();
             if (m_Graph != null)
             {
                 RemoveInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
@@ -409,13 +411,20 @@ namespace UnityEditor.VFX.UI
                 RemoveController(this);
                 return;
             }
-            if (m_Graph != model.GetOrCreateGraph())
+
+            // a standard equals will return true is the m_Graph is a destroyed object with the same instance ID ( like with a source control revert )
+            if (!object.ReferenceEquals(m_Graph, model.GetOrCreateGraph()))
             {
                 if (m_Graph != null)
                 {
                     GraphLost();
                 }
+                else
+                {
+                    Clear();
+                }
                 m_Graph =  model.GetOrCreateGraph();
+                m_Graph.SanitizeGraph();
 
                 if (m_Graph != null)
                 {
@@ -571,6 +580,21 @@ namespace UnityEditor.VFX.UI
         {
             var model = desc.CreateInstance();
             AddVFXModel(pos, model);
+
+            VFXParameter parameter = model as VFXParameter;
+
+            Type type = parameter.type;
+
+            if (!type.IsPrimitive)
+            {
+                FieldInfo defaultField = type.GetField("defaultValue", BindingFlags.Public | BindingFlags.Static);
+
+                if (defaultField != null)
+                {
+                    parameter.value = defaultField.GetValue(null);
+                }
+            }
+
             return model;
         }
 
@@ -648,7 +672,7 @@ namespace UnityEditor.VFX.UI
 
 
             // First trigger
-            RecompileExpressionGraphIfNeeded();
+            //RecompileExpressionGraphIfNeeded();
 
 
             // Doesn't work for some reason

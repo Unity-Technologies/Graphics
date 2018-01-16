@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -19,7 +20,7 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXBasicEvent : VFXContext
     {
-        [VFXSetting, PushButton(typeof(LaunchEventBehavior))]
+        [VFXSetting, PushButton(typeof(LaunchEventBehavior), "Send")]
         public string eventName = "OnPlay";
 
         public VFXBasicEvent() : base(VFXContextType.kEvent, VFXDataType.kNone, VFXDataType.kEvent) {}

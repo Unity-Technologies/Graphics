@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 
 using Type = System.Type;
 using Object = UnityEngine.Object;
@@ -88,14 +88,6 @@ namespace UnityEditor.VFX
             m_UICollapsed = false;
         }
 
-        public override T Clone<T>()
-        {
-            var clone = base.Clone<T>() as VFXContext;
-            clone.m_InputFlowSlot = Enumerable.Range(0, m_InputFlowSlot.Count()).Select(_ => new VFXContextSlot()).ToArray();
-            clone.m_OutputFlowSlot = Enumerable.Range(0, m_OutputFlowSlot.Count()).Select(_ => new VFXContextSlot()).ToArray();
-            return clone as T;
-        }
-
         public virtual string codeGeneratorTemplate                     { get { return null; } }
         public virtual bool codeGeneratorCompute                        { get { return true; } }
         public virtual VFXContextType contextType                       { get { return m_ContextType; } }
@@ -118,7 +110,7 @@ namespace UnityEditor.VFX
             hasBeenCompiled = compiled;
         }
 
-        public override void CollectDependencies(HashSet<Object> objs)
+        public override void CollectDependencies(HashSet<ScriptableObject> objs)
         {
             base.CollectDependencies(objs);
             if (m_Data != null)
@@ -389,56 +381,6 @@ namespace UnityEditor.VFX
             get
             {
                 return allSlotContainer.SelectMany(o => o.inputSlots.SelectMany(s => s.LinkedSlots));
-            }
-        }
-
-        public static List<KeyValuePair<VFXContext, VFXContext>> BuildAssociativeContext(VFXModel[] fromArray, VFXModel[] toArray)
-        {
-            var associativeContext = new List<KeyValuePair<VFXContext, VFXContext>>();
-            for (int i = 0; i < fromArray.Length; ++i)
-            {
-                var from = fromArray[i] as VFXContext;
-                var to = toArray[i] as VFXContext;
-                if (from != null)
-                {
-                    if (to == null)
-                        throw new NullReferenceException("BuildAssociativeContext : Inconsistent hierarchy");
-                    associativeContext.Add(new KeyValuePair<VFXContext, VFXContext>(from, to));
-                }
-            }
-            return associativeContext;
-        }
-
-        public static IEnumerable<VFXData> ReproduceDataSettings(List<KeyValuePair<VFXContext, VFXContext>> associativeContext)
-        {
-            var allDstData = associativeContext.Select(o => o.Value.GetData()).Where(o => o != null).Distinct();
-
-            foreach (var data in allDstData)
-            {
-                var srcData = associativeContext.First(c => c.Value == data.owners.First()).Key.GetData();
-                srcData.CopySettings(data);
-            }
-
-            return allDstData;
-        }
-
-        public static void ReproduceLinkedFlowFromHiearchy(List<KeyValuePair<VFXContext, VFXContext>> associativeContext)
-        {
-            for (int i = 0; i < associativeContext.Count(); ++i)
-            {
-                var from = associativeContext[i].Key;
-                var to = associativeContext[i].Value;
-                for (int slotIndex = 0; slotIndex < from.m_InputFlowSlot.Length; ++slotIndex)
-                {
-                    var slotInputFrom = from.m_InputFlowSlot[slotIndex];
-                    foreach (var link in slotInputFrom.link)
-                    {
-                        var refContext = associativeContext.FirstOrDefault(o => o.Key == link.context);
-                        if (refContext.Value == null)
-                            throw new NullReferenceException("ReproduceLinkedFlowFromHiearchy : Unable to retrieve reference for " + link);
-                        InnerLink(refContext.Value, to, link.slotIndex, slotIndex, false);
-                    }
-                }
             }
         }
 

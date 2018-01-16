@@ -104,6 +104,10 @@ namespace UnityEditor.VFX
                 VFXPropertyAttribute attribute = attributes.FirstOrDefault(o => o.m_Type == Type.kRange);
                 if (attribute != null)
                     return new Vector2(attribute.m_Min, attribute.m_Max);
+
+                attribute = attributes.FirstOrDefault(o => o.m_Type == Type.kMin);
+                if (attribute != null)
+                    return new Vector2(attribute.m_Min, Mathf.Infinity);
             }
 
             return Vector2.zero;

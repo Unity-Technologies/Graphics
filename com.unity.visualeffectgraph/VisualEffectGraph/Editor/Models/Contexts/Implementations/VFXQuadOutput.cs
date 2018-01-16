@@ -3,29 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.VFX.Block;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
     [VFXInfo]
     class VFXQuadOutput : VFXAbstractParticleOutput
     {
-        [VFXSetting, SerializeField]
-        protected FlipbookMode flipBook;
-
         //[VFXSetting] // tmp dont expose as settings atm
         public bool useGeometryShader = false;
-
-        public enum FlipbookMode
-        {
-            Off,
-            Flipbook,
-            FlipbookBlend,
-        }
 
         public override string name { get { return "Quad Output"; } }
         public override string codeGeneratorTemplate { get { return "VFXShaders/VFXParticleQuad"; } }
         public override VFXTaskType taskType { get { return useGeometryShader ? VFXTaskType.kParticlePointOutput : VFXTaskType.kParticleQuadOutput; } }
+        public override bool supportsFlipbooks { get { return true; } }
 
         public override IEnumerable<string> additionalDefines
         {
@@ -33,13 +24,6 @@ namespace UnityEditor.VFX
             {
                 foreach (var def in base.additionalDefines)
                     yield return def;
-
-                if (flipBook != FlipbookMode.Off)
-                {
-                    yield return "USE_FLIPBOOK";
-                    if (flipBook == FlipbookMode.FlipbookBlend)
-                        yield return "USE_FLIPBOOK_INTERPOLATION";
-                }
 
                 if (useGeometryShader)
                     yield return "USE_GEOMETRY_SHADER";
@@ -65,7 +49,7 @@ namespace UnityEditor.VFX
                 foreach (var size in VFXBlockUtility.GetReadableSizeAttributes(GetData()))
                     yield return size;
 
-                if (flipBook != FlipbookMode.Off)
+                if (flipbookMode != FlipbookMode.Off)
                     yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Read);
             }
         }
@@ -76,37 +60,6 @@ namespace UnityEditor.VFX
                 yield return exp;
 
             yield return slotExpressions.First(o => o.name == "mainTexture");
-
-            if (flipBook != FlipbookMode.Off)
-            {
-                var flipBookSizeExp = slotExpressions.First(o => o.name == "flipBookSize");
-                yield return flipBookSizeExp;
-                yield return new VFXNamedExpression(VFXValue.Constant(Vector2.one) / flipBookSizeExp.exp, "invFlipBookSize");
-            }
-        }
-
-        protected override IEnumerable<VFXPropertyWithValue> inputProperties
-        {
-            get
-            {
-                string inputPropertiesType = "InputProperties";
-                if (flipBook != FlipbookMode.Off) inputPropertiesType = "InputPropertiesFlipbook";
-
-                foreach (var property in PropertiesFromType(inputPropertiesType))
-                    yield return property;
-
-                foreach (var property in base.inputProperties)
-                    yield return property;
-            }
-        }
-
-        protected override IEnumerable<string> filteredOutSettings
-        {
-            get
-            {
-                if (flipBook == FlipbookMode.Off)
-                    yield return "frameInterpolationMode";
-            }
         }
 
         public class InputProperties

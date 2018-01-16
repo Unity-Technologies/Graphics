@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 
 using Object = UnityEngine.Object;
 using System.Text.RegularExpressions;
@@ -372,7 +372,7 @@ namespace UnityEditor.VFX
 
         static private void Build(VFXContext context, string templatePath, StringBuilder stringBuilder, VFXContextCompiledData contextData)
         {
-            var dependencies = new HashSet<Object>();
+            var dependencies = new HashSet<ScriptableObject>();
             context.CollectDependencies(dependencies);
 
             var templateContent = GetFlattenedTemplateContent(templatePath, new List<string>(), context.additionalDefines);

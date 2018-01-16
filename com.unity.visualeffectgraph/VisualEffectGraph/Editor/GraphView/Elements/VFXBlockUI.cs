@@ -37,16 +37,22 @@ namespace UnityEditor.VFX.UI
 
             if (view != null)
             {
-                if (!e.shiftKey && !e.ctrlKey)
+                bool combine = e.shiftKey || e.ctrlKey;
+                if (view.selection.Contains(this))
                 {
-                    view.ClearSelection();
-                }
-                if (IsSelected(view))
-                {
-                    view.RemoveFromSelection(this);
+                    if (combine)
+                    {
+                        view.RemoveFromSelection(this);
+                    }
                 }
                 else
+                {
+                    if (!combine)
+                    {
+                        view.ClearSelection();
+                    }
                     view.AddToSelection(this);
+                }
             }
         }
 
@@ -101,8 +107,8 @@ namespace UnityEditor.VFX.UI
             m_EnableToggle.on = controller.block.enabled;
             if (inputContainer != null)
                 inputContainer.SetEnabled(controller.block.enabled);
-            if (m_SettingsContainer != null)
-                m_SettingsContainer.SetEnabled(controller.block.enabled);
+            if (settingsContainer != null)
+                settingsContainer.SetEnabled(controller.block.enabled);
         }
     }
 }

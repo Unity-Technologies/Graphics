@@ -1,9 +1,14 @@
 using System;
-using UnityEditor.Experimental.UIElements.GraphView;
-using UnityEngine.Experimental.UIElements;
-using UnityEngine;
-using System.Reflection;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+
+using UnityEditor.Experimental.UIElements.GraphView;
+
+using UnityEngine;
+using UnityEngine.Experimental.VFX;
+using UnityEngine.Experimental.UIElements;
+
 
 namespace UnityEditor.VFX.UI
 {
@@ -32,17 +37,42 @@ namespace UnityEditor.VFX.UI
     {
         VFXParameterController m_Parameter;
         //int m_Field;
-        FieldInfo m_FieldInfo;
+        int[] m_FieldPath;
+        FieldInfo[] m_FieldInfos;
+
+        VFXSubParameterController[] m_Children;
 
 
-        public  VFXSubParameterController(VFXParameterController parameter, int field)
+        public VFXSubParameterController(VFXParameterController parameter, IEnumerable<int> fieldPath)
         {
             m_Parameter = parameter;
             //m_Field = field;
 
             System.Type type = m_Parameter.portType;
-            m_FieldInfo = type.GetFields()[field];
+            m_FieldPath = fieldPath.ToArray();
+
+            m_FieldInfos = new FieldInfo[m_FieldPath.Length];
+
+            for (int i = 0; i < m_FieldPath.Length; ++i)
+            {
+                FieldInfo info = type.GetFields(BindingFlags.Public | BindingFlags.Instance)[m_FieldPath[i]];
+                m_FieldInfos[i] = info;
+                type = info.FieldType;
+            }
         }
+
+        public VFXSubParameterController[] children
+        {
+            get
+            {
+                if (m_Children == null)
+                {
+                    m_Children = m_Parameter.ComputeSubControllers(portType, m_FieldPath);
+                }
+                return m_Children;
+            }
+        }
+
 
         bool IPropertyRMProvider.expanded
         {
@@ -60,14 +90,14 @@ namespace UnityEditor.VFX.UI
 
         string IPropertyRMProvider.name
         {
-            get { return m_FieldInfo.Name; }
+            get { return m_FieldInfos[m_FieldInfos.Length - 1].Name; }
         }
 
         object[] IPropertyRMProvider.customAttributes { get { return new object[] {}; } }
 
         VFXPropertyAttribute[] IPropertyRMProvider.attributes { get { return new VFXPropertyAttribute[] {}; } }
 
-        int IPropertyRMProvider.depth { get { return 1; } }
+        int IPropertyRMProvider.depth { get { return m_FieldPath.Length; } }
 
         void IPropertyRMProvider.ExpandPath()
         {
@@ -83,7 +113,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return m_FieldInfo.FieldType;
+                return m_FieldInfos[m_FieldInfos.Length - 1].FieldType;
             }
         }
 
@@ -91,12 +121,34 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return m_FieldInfo.GetValue(m_Parameter.value);
+                object value = m_Parameter.value;
+
+                foreach (var fieldInfo in m_FieldInfos)
+                {
+                    value = fieldInfo.GetValue(value);
+                }
+
+                return value;
             }
             set
             {
                 object val = m_Parameter.value;
-                m_FieldInfo.SetValue(val, value);
+
+                List<object> objectStack = new List<object>();
+                foreach (var fieldInfo in m_FieldInfos.Take(m_FieldInfos.Length - 1))
+                {
+                    objectStack.Add(fieldInfo.GetValue(val));
+                }
+
+
+                object targetValue = value;
+                for (int i = objectStack.Count - 1; i >= 0; --i)
+                {
+                    m_FieldInfos[i + 1].SetValue(objectStack[i], targetValue);
+                    targetValue = objectStack[i];
+                }
+
+                m_FieldInfos[0].SetValue(val, targetValue);
 
                 m_Parameter.value = val;
             }
@@ -133,33 +185,46 @@ namespace UnityEditor.VFX.UI
             get { return parameter.outputSlots[0].property.type.UserFriendlyName(); }
         }
 
-        public int CreateSubControllers()
+        public VFXSubParameterController[] ComputeSubControllers(Type type, IEnumerable<int> fieldPath)
+        {
+            FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
+
+            int count = fields.Length;
+
+            bool spaceable = typeof(ISpaceable).IsAssignableFrom(type) && fields[0].FieldType == typeof(CoordinateSpace);
+            if (spaceable)
+            {
+                --count;
+            }
+
+            var subControllers = new VFXSubParameterController[count];
+
+            int startIndex = spaceable ? 1 : 0;
+
+            for (int i = startIndex; i < count + startIndex; ++i)
+            {
+                subControllers[i - startIndex] = new VFXSubParameterController(this, fieldPath.Concat(Enumerable.Repeat(i, 1)));
+            }
+
+            return subControllers;
+        }
+
+        VFXSubParameterController[] m_SubController;
+
+        public VFXSubParameterController[] GetSubControllers(List<int> fieldPath)
         {
             if (m_SubControllers == null)
             {
-                System.Type type = portType;
+                m_SubControllers = ComputeSubControllers(portType, fieldPath);
+            }
+            VFXSubParameterController[] currentArray = m_SubControllers;
 
-                FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
-
-                int count = fields.Length;
-
-                bool spaceable = typeof(ISpaceable).IsAssignableFrom(type);
-                if (spaceable)
-                {
-                    --count;
-                }
-
-                m_SubControllers = new VFXSubParameterController[count];
-
-                int startIndex = spaceable ? 1 : 0;
-
-                for (int i = startIndex; i < count + startIndex; ++i)
-                {
-                    m_SubControllers[i - startIndex] = new VFXSubParameterController(this, i);
-                }
+            foreach (int value in fieldPath)
+            {
+                currentArray = currentArray[value].children;
             }
 
-            return m_SubControllers.Length;
+            return currentArray;
         }
 
         public VFXSubParameterController GetSubController(int i)

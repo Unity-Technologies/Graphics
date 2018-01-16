@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.VFX.Block;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -102,6 +102,9 @@ namespace UnityEditor.VFX
         {
             get
             {
+                foreach (var setting in base.filteredOutSettings)
+                    yield return setting;
+
                 if (!useRimLight)
                     yield return "useNormalMap";
             }

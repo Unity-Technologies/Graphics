@@ -1,7 +1,7 @@
 using System;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.VFX.UI;
@@ -330,7 +330,7 @@ namespace UnityEditor.VFX.Test
             VFXView view = window.graphView;
             view.controller = m_ViewController;
 
-            view.CreateTemplateSystem(Vector2.zero);
+            view.CreateTemplateSystem("Assets/VFXEditor/Editor/Templates/DefaultParticleSystem.asset", Vector2.zero);
         }
     }
 }

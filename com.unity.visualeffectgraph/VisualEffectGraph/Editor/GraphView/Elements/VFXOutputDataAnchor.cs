@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.UI
             };
 
             Add(new VisualElement() { name = "lineSpacer" });
-            Add(m_Icon); //insert between text and connector
+            Insert(0, m_Icon); //insert at first ( right since reversed)
         }
 
         void OnToggleExpanded()
@@ -74,10 +74,10 @@ namespace UnityEditor.VFX.UI
             if (controller.expandable)
             {
                 if (m_Icons == null)
-                    m_Icons = new Texture2D[2];
-
-                m_Icons[0] = GetTypeIcon(controller.portType, IconType.plus);
-                m_Icons[1] = GetTypeIcon(controller.portType, IconType.minus);
+                    m_Icons = new Texture2D[] {
+                        Resources.Load<Texture2D>("VFX/plus"),
+                        Resources.Load<Texture2D>("VFX/minus")
+                    };
 
                 m_Icon.style.backgroundImage = controller.expandedSelf ? m_Icons[1] : m_Icons[0];
 
@@ -85,11 +85,8 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                m_Icon.style.backgroundImage = GetTypeIcon(controller.portType, IconType.simple);
+                m_Icon.style.backgroundImage = null;
             }
-
-            if (controller.expandable)
-                m_Icon.style.backgroundImage = controller.expandedSelf ? m_Icons[1] : m_Icons[0];
 
 
             string text = "";

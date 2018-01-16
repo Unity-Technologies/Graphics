@@ -4,7 +4,8 @@ using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.VFX;
+using UnityEditor.Experimental.VFX;
+using UnityEngine.Experimental.VFX;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 
@@ -72,7 +73,7 @@ namespace UnityEditor.VFX.UI
             public FlowEdge[] flowEdges;
 
 
-            public void CollectDependencies(HashSet<UnityEngine.Object> objects)
+            public void CollectDependencies(HashSet<ScriptableObject> objects)
             {
                 if (contexts != null)
                 {
@@ -103,7 +104,7 @@ namespace UnityEditor.VFX.UI
 
         static ScriptableObject[] PrepareSerializedObjects(Data copyData)
         {
-            HashSet<UnityEngine.Object> objects = new HashSet<UnityEngine.Object>();
+            var objects = new HashSet<ScriptableObject>();
             copyData.CollectDependencies(objects);
 
             ScriptableObject[] allSerializedObjects = objects.OfType<ScriptableObject>().ToArray();
@@ -357,10 +358,18 @@ namespace UnityEditor.VFX.UI
 
             foreach (var block in copyData.blocks)
             {
-                newBlocks.Add(block);
-
                 if (targetModelContext.AcceptChild(block, targetIndex))
                 {
+                    newBlocks.Add(block);
+
+                    foreach (var slot in block.inputSlots)
+                    {
+                        slot.UnlinkAll(true, false);
+                    }
+                    foreach (var slot in block.outputSlots)
+                    {
+                        slot.UnlinkAll(true, false);
+                    }
                     targetModelContext.AddChild(block, targetIndex, false); // only notify once after all blocks have been added
                 }
             }
@@ -413,6 +422,7 @@ namespace UnityEditor.VFX.UI
             {
                 var newSlotContainer = slotContainer;
                 newSlotContainer.position += pasteOffset;
+                ClearLinks(newSlotContainer as IVFXSlotContainer);
             }
 
             if (copyData.dataEdges != null)

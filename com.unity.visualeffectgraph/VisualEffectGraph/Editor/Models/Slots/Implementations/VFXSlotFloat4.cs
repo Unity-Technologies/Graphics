@@ -1,6 +1,6 @@
 using System;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -39,9 +39,9 @@ namespace UnityEditor.VFX
             throw new Exception("Unexpected type of expression " + expression);
         }
 
-        sealed protected override VFXValue DefaultExpression()
+        sealed public override VFXValue DefaultExpression(VFXValue.Mode mode)
         {
-            return new VFXValue<Vector4>(Vector4.zero, VFXValue.Mode.FoldableVariable);
+            return new VFXValue<Vector4>(Vector4.zero, mode);
         }
 
         sealed protected override VFXExpression ExpressionFromChildren(VFXExpression[] expr)

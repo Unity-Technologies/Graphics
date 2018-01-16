@@ -2,6 +2,7 @@ using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using System.Linq;
 using Type = System.Type;
 
@@ -43,31 +44,50 @@ namespace UnityEditor.VFX.UI
         protected VFXFlowAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type) : base(anchorOrientation, anchorDirection, type)
         {
             AddToClassList("EdgeConnector");
+
+            RegisterCallback<ControllerChangedEvent>(OnChange);
         }
 
         void OnChange(ControllerChangedEvent e)
         {
             if (e.controller == controller)
             {
-                m_ConnectorText.text = "";
-
-                if (controller.connected)
-                    AddToClassList("connected");
-                else
-                    RemoveFromClassList("connected");
-
-                switch (controller.direction)
-                {
-                    case Direction.Input:
-                        RemoveFromClassList("Output");
-                        AddToClassList("Input");
-                        break;
-                    case Direction.Output:
-                        RemoveFromClassList("Input");
-                        AddToClassList("Output");
-                        break;
-                }
+                SelfChange();
             }
+        }
+
+        void SelfChange()
+        {
+            m_ConnectorText.text = "";
+
+            if (controller.connected)
+                AddToClassList("connected");
+            else
+                RemoveFromClassList("connected");
+
+
+            var type = controller.direction == Direction.Input ? controller.context.context.inputType : controller.context.context.outputType;
+
+            switch (controller.direction)
+            {
+                case Direction.Input:
+                {
+                    RemoveFromClassList("Output");
+                    AddToClassList("Input");
+                }
+                break;
+                case Direction.Output:
+                    RemoveFromClassList("Input");
+                    AddToClassList("Output");
+                    break;
+            }
+
+
+            foreach (var value in System.Enum.GetNames(typeof(VFXDataType)))
+            {
+                RemoveFromClassList("type" + VFXContextUI.ContextEnumToClassName(value));
+            }
+            AddToClassList("type" + VFXContextUI.ContextEnumToClassName(type.ToString()));
         }
 
         void IEdgeConnectorListener.OnDrop(GraphView graphView, Edge edge)

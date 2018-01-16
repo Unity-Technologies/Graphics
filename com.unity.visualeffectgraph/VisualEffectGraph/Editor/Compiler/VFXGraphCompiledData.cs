@@ -3,7 +3,7 @@ using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 using UnityEngine.Profiling;
 
 using Object = UnityEngine.Object;
@@ -136,7 +136,7 @@ namespace UnityEditor.VFX
 
         private static void CollectExposedDesc(List<VFXExposedDesc> outExposedParameters, string name, VFXSlot slot, VFXExpressionGraph graph)
         {
-            var expression = slot.GetInExpression();
+            var expression = VFXExpression.GetVFXValueTypeFromType(slot.property.type) != VFXValueType.kNone ? slot.GetInExpression() : null;
             if (expression != null)
             {
                 outExposedParameters.Add(new VFXExposedDesc()
@@ -541,7 +541,7 @@ namespace UnityEditor.VFX
                 string progressBarTitle = "Compiling VFX...";
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Collect dependencies", 0 / nbSteps);
-                var models = new HashSet<Object>();
+                var models = new HashSet<ScriptableObject>();
                 m_Graph.CollectDependencies(models);
 
                 foreach (var c in models.OfType<VFXContext>()) // Unflag all contexts

@@ -2,7 +2,7 @@ using System;
 using UnityEditor.Experimental.UIElements;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.VFX;
 using System.Collections.Generic;
@@ -25,7 +25,6 @@ namespace  UnityEditor.VFX.UI
                 { Event.KeyboardEvent("o"), view.FrameOrigin },
                 { Event.KeyboardEvent("^#>"), view.FramePrev },
                 { Event.KeyboardEvent("^>"), view.FrameNext },
-                {Event.KeyboardEvent("c"), view.CloneModels},         // TEST
                 {Event.KeyboardEvent("#^r"), view.Resync},
                 {Event.KeyboardEvent("F7"), view.Compile},
                 {Event.KeyboardEvent("#d"), view.OutputToDot},
@@ -150,16 +149,12 @@ namespace  UnityEditor.VFX.UI
         {
             VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
             rootVisualElement.AddManipulator(m_ShortcutHandler);
-
-            Debug.Log("VFXViewWindow.OnEnterPanel");
         }
 
         void OnLeavePanel(DetachFromPanelEvent e)
         {
             VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
             rootVisualElement.RemoveManipulator(m_ShortcutHandler);
-
-            Debug.Log("VFXViewWindow.OnLeavePanel");
         }
 
         public bool autoCompile {get; set; }
