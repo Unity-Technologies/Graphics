@@ -40,7 +40,7 @@ UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(3);
 #	error unsupported shader api
 #endif
 #include "CoreRP/ShaderLibrary/API/Validate.hlsl"
-#include "../../Fptl/Shadow.hlsl"
+#include "Shadow.hlsl"
 
 UNITY_DECLARE_DEPTH_TEXTURE(_CameraGBufferZ);
 
