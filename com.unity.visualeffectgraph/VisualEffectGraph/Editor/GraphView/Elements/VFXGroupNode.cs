@@ -61,7 +61,7 @@ namespace UnityEditor.VFX.UI
                 SetPosition(controller.position);
 
                 var presenterContent = controller.nodes.ToArray();
-                var elementContent = containedElements.Cast<IControlledElement<VFXNodeController>>();
+                var elementContent = containedElements.OfType<IControlledElement<VFXNodeController>>();
 
                 if (elementContent == null)
                 {
