@@ -882,6 +882,14 @@ float3 GetBakedDiffuseLigthing(SurfaceData surfaceData, BuiltinData builtinData,
         bsdfData.diffuseColor = ApplySubsurfaceScatteringTexturingMode(bsdfData.diffuseColor, bsdfData.diffusionProfile);
     }
 
+#ifdef DEBUG_DISPLAY
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+    {
+        // The lighting in SH or lightmap is assume to contain bounced light only (i.e no direct lighting), and is divide by PI (i.e Lambert is apply), so multiply by PI here to get back the illuminance
+        return builtinData.bakeDiffuseLighting * PI;
+    }
+#endif
+
     // Premultiply bake diffuse lighting information with DisneyDiffuse pre-integration
     return builtinData.bakeDiffuseLighting * preLightData.diffuseFGD * surfaceData.ambientOcclusion * bsdfData.diffuseColor + builtinData.emissiveColor;
 }
@@ -1089,7 +1097,7 @@ float3 EvaluateTransmission(BSDFData bsdfData, float NdotL, float NdotV, float a
     attenuation *= INV_PI * F_Transm_Schlick(0, 0.5, NdotV) * F_Transm_Schlick(0, 0.5, abs(backNdotL));
 #endif
 
-    float intensity = max(0, attenuation * backNdotL); // Warning: attenuation can be greater than 1
+    float intensity = max(0, attenuation * backNdotL); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
 
     return intensity * bsdfData.transmittance;
 }
@@ -1120,7 +1128,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     float attenuation;
     EvaluateLight_Directional(lightLoopContext, posInput, lightData, bakeLightingData, N, L, color, attenuation);
 
-    float intensity = max(0, attenuation * NdotL); // Warning: attenuation can be greater than 1
+    float intensity = max(0, attenuation * NdotL); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
 
     // Note: We use NdotL here to early out, but in case of clear coat this is not correct. But we are ok with this
     [branch] if (intensity > 0.0)
@@ -1140,6 +1148,14 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     // Save ALU by applying light and cookie colors only once.
     lighting.diffuse  *= color;
     lighting.specular *= color;
+
+#ifdef DEBUG_DISPLAY
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+    {
+        // Only lighting, not BSDF
+        lighting.diffuse = color * intensity * lightData.diffuseScale;;
+    }
+#endif
 
     return lighting;
 }
@@ -1194,7 +1210,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     EvaluateLight_Punctual(lightLoopContext, posInput, lightData, bakeLightingData, N, L,
                            lightToSample, distances, color, attenuation);
 
-    float intensity = max(0, attenuation * NdotL); // Warning: attenuation can be greater than 1
+    float intensity = max(0, attenuation * NdotL); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
 
     // Note: We use NdotL here to early out, but in case of clear coat this is not correct. But we are ok with this
     [branch] if (intensity > 0.0)
@@ -1221,6 +1237,14 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     // Save ALU by applying light and cookie colors only once.
     lighting.diffuse  *= color;
     lighting.specular *= color;
+
+#ifdef DEBUG_DISPLAY
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+    {
+        // Only lighting, not BSDF
+        lighting.diffuse = color * intensity * lightData.diffuseScale;;
+    }
+#endif
 
     return lighting;
 }
@@ -1326,6 +1350,16 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     lighting.diffuse *= lightData.color;
     lighting.specular *= lightData.color;
 #endif // LIT_DISPLAY_REFERENCE_AREA
+
+#ifdef DEBUG_DISPLAY
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+    {
+        // Only lighting, not BSDF
+        // Apply area light on lambert then multiply by PI to cancel Lambert
+        lighting.diffuse = LTCEvaluate(P1, P2, B, k_identity3x3);
+        lighting.diffuse *= PI * lightData.diffuseScale;
+    }
+#endif
 
     return lighting;
 }
@@ -1453,6 +1487,16 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     lighting.diffuse *= lightData.color;
     lighting.specular *= lightData.color;
 #endif // LIT_DISPLAY_REFERENCE_AREA
+
+#ifdef DEBUG_DISPLAY
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+    {
+        // Only lighting, not BSDF
+        // Apply area light on lambert then multiply by PI to cancel Lambert
+        lighting.diffuse = PolygonIrradiance(mul(lightVerts, k_identity3x3));
+        lighting.diffuse *= PI * lightData.diffuseScale;
+    }
+#endif
 
     return lighting;
 }
@@ -1842,7 +1886,12 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     specularLighting *= 1.0 + bsdfData.fresnel0 * preLightData.energyCompensation;
 
 #ifdef DEBUG_DISPLAY
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_OCCLUSION_FROM_SSAO)
+
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+    {
+        diffuseLighting = lighting.direct.diffuse + bakeLightingData.bakeDiffuseLighting;
+    }
+    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_OCCLUSION_FROM_SSAO)
     {
         diffuseLighting = indirectAmbientOcclusion;
         specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting

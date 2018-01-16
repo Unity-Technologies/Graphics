@@ -37,6 +37,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static string kOverrideSmoothnessDebug = "Override Smoothness";
         public static string kOverrideSmoothnessValueDebug = "Override Smoothness Value";
         public static string kDebugLightingAlbedo = "Debug Lighting Albedo";
+        public static string kLuxMeterThreshold0Debug = "Lux Range Threshold 0";
+        public static string kLuxMeterThreshold1Debug = "Lux Range Threshold 1";
+        public static string kLuxMeterThreshold2Debug = "Lux Range Threshold 2";
+        public static string kLuxMeterThreshold3Debug = "Lux Range Threshold 3";
         public static string kFullScreenDebugMode = "Fullscreen Debug Mode";
         public static string kFullScreenDebugMip = "Fullscreen Debug Mip";
         public static string kDisplaySkyReflectionDebug = "Display Sky Reflection";
@@ -184,6 +188,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, bool>(kOverrideSmoothnessDebug, () => lightingDebugSettings.overrideSmoothness, (value) => lightingDebugSettings.overrideSmoothness = (bool)value);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kOverrideSmoothnessValueDebug, () => lightingDebugSettings.overrideSmoothnessValue, (value) => lightingDebugSettings.overrideSmoothnessValue = (float)value, DebugItemFlag.None, new DebugItemHandlerFloatMinMax(0.0f, 1.0f));
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, Color>(kDebugLightingAlbedo, () => lightingDebugSettings.debugLightingAlbedo, (value) => lightingDebugSettings.debugLightingAlbedo = (Color)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kLuxMeterThreshold0Debug, () => lightingDebugSettings.kLuxMeterThreshold0Debug, (value) => lightingDebugSettings.kLuxMeterThreshold0Debug = (float)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kLuxMeterThreshold1Debug, () => lightingDebugSettings.kLuxMeterThreshold1Debug, (value) => lightingDebugSettings.kLuxMeterThreshold1Debug = (float)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kLuxMeterThreshold2Debug, () => lightingDebugSettings.kLuxMeterThreshold2Debug, (value) => lightingDebugSettings.kLuxMeterThreshold2Debug = (float)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kLuxMeterThreshold3Debug, () => lightingDebugSettings.kLuxMeterThreshold3Debug, (value) => lightingDebugSettings.kLuxMeterThreshold3Debug = (float)value);
             DebugMenuManager.instance.AddDebugItem<bool>("Lighting", kDisplaySkyReflectionDebug, () => lightingDebugSettings.displaySkyReflection, (value) => lightingDebugSettings.displaySkyReflection = (bool)value);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kSkyReflectionMipmapDebug, () => lightingDebugSettings.skyReflectionMipmap, (value) => lightingDebugSettings.skyReflectionMipmap = (float)value, DebugItemFlag.None, new DebugItemHandlerFloatMinMax(0.0f, 1.0f));
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, LightLoop.TileClusterDebug>(kTileClusterDebug,() => lightingDebugSettings.tileClusterDebug, (value) => lightingDebugSettings.tileClusterDebug = (LightLoop.TileClusterDebug)value);
