@@ -10,20 +10,6 @@ namespace UnityEditor.VFX.UIElements
         LabeledField<FloatField, float> m_X;
         LabeledField<FloatField, float> m_Y;
         LabeledField<FloatField, float> m_Z;
-
-        public bool dynamicUpdate
-        {
-            get
-            {
-                return m_X.control.dynamicUpdate;
-            }
-            set
-            {
-                m_X.control.dynamicUpdate = value;
-                m_Y.control.dynamicUpdate = value;
-                m_Z.control.dynamicUpdate = value;
-            }
-        }
         void CreateTextField()
         {
             m_X = new LabeledField<FloatField, float>("X");

@@ -68,7 +68,6 @@ namespace UnityEditor.VFX.UI
         {
             m_VectorField = new LabeledField<Vector3Field, Vector3>(m_Label);
             m_VectorField.RegisterCallback<ChangeEvent<Vector3>>(OnValueChanged);
-            m_VectorField.control.dynamicUpdate = true;
             m_VectorField.AddToClassList("fieldContainer");
 
             Add(m_VectorField);

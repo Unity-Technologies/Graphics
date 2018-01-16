@@ -78,7 +78,6 @@ namespace UnityEditor.VFX.UI
             if (range == Vector2.zero || range.y == Mathf.Infinity)
             {
                 var field = new LabeledField<IntegerField, long>(m_Label);
-                field.control.dynamicUpdate = true;
                 return field;
             }
             else
@@ -128,7 +127,6 @@ namespace UnityEditor.VFX.UI
             if (range != Vector2.zero && (range.y == Mathf.Infinity || (uint)range.x < (uint)range.y))
             {
                 var field = new LabeledField<IntegerField, long>(m_Label);
-                field.control.dynamicUpdate = true;
                 return field;
             }
             else
@@ -200,7 +198,6 @@ namespace UnityEditor.VFX.UI
             if (range == Vector2.zero || range.y == Mathf.Infinity)
             {
                 var field = new LabeledField<FloatField, float>(m_Label);
-                field.control.dynamicUpdate = true;
                 return field;
             }
             else
@@ -249,7 +246,6 @@ namespace UnityEditor.VFX.UI
         public override INotifyValueChanged<Vector4> CreateField()
         {
             var field = new LabeledField<Vector4Field, Vector4>(m_Label);
-            field.control.dynamicUpdate = true;
 
             return field;
         }
@@ -269,7 +265,6 @@ namespace UnityEditor.VFX.UI
         public override INotifyValueChanged<Matrix4x4> CreateField()
         {
             var field = new LabeledField<Matrix4x4Field, Matrix4x4>(m_Label);
-            field.control.dynamicUpdate = true;
 
             return field;
         }
@@ -290,8 +285,6 @@ namespace UnityEditor.VFX.UI
         {
             var field = new LabeledField<Vector2Field, Vector2>(m_Label);
 
-            field.control.dynamicUpdate = true;
-
             return field;
         }
 
@@ -310,8 +303,6 @@ namespace UnityEditor.VFX.UI
         public override INotifyValueChanged<FlipBook> CreateField()
         {
             var field = new LabeledField<FlipBookField, FlipBook>(m_Label);
-
-            field.control.dynamicUpdate = true;
 
             return field;
         }

@@ -8,23 +8,6 @@ namespace UnityEditor.VFX.UIElements
     class Matrix4x4Field : VFXControl<Matrix4x4>
     {
         LabeledField<FloatField, float>[,] m_FloatFields;
-        public bool dynamicUpdate
-        {
-            get
-            {
-                return m_FloatFields[0, 0].control.dynamicUpdate;
-            }
-            set
-            {
-                for (int i = 0; i < m_FloatFields.GetLength(0); ++i)
-                {
-                    for (int j = 0; j < m_FloatFields.GetLength(1); ++j)
-                    {
-                        m_FloatFields[i, j].control.dynamicUpdate = value;
-                    }
-                }
-            }
-        }
         void CreateTextField()
         {
             m_FloatFields = new LabeledField<FloatField, float>[4, 4];

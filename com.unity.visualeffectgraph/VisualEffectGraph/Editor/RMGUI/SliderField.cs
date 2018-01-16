@@ -87,7 +87,6 @@ namespace UnityEditor.VFX.UIElements
 
             var doubleField = new UnityEditor.Experimental.UIElements.FloatField();
             doubleField.RegisterCallback<ChangeEvent<float>>(ValueChanged);
-            doubleField.dynamicUpdate = true;
             doubleField.name = "Field";
             m_Field = doubleField;
 
@@ -115,7 +114,6 @@ namespace UnityEditor.VFX.UIElements
 
             var integerField = new IntegerField();
             integerField.RegisterCallback<ChangeEvent<long>>(ValueChanged);
-            integerField.dynamicUpdate = true;
             integerField.name = "Field";
             m_Field = integerField;
 
