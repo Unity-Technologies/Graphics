@@ -8,10 +8,9 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: Tree_03_Trunk_Layer
   m_Shader: {fileID: 4800000, guid: eab0538d9d5746246806a9611c04ac4d, type: 3}
-  m_ShaderKeywords: _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _DENSITY_MODE _DETAIL_MAP0
-    _HEIGHTMAP0 _LAYER_MASK_VERTEX_COLOR_ADD _MASKMAP0 _NORMALMAP0 _NORMALMAP_TANGENT_SPACE0
-    _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
-    _TESSELLATION_PHONG
+  m_ShaderKeywords: _DENSITY_MODE _DETAIL_MAP0 _HEIGHTMAP0 _LAYER_MASK_VERTEX_COLOR_ADD
+    _MASKMAP0 _NORMALMAP0 _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2
+    _NORMALMAP_TANGENT_SPACE3 _TESSELLATION_PHONG
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -235,6 +234,22 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SubsurfaceMaskMap0:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SubsurfaceMaskMap1:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SubsurfaceMaskMap2:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SubsurfaceMaskMap3:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SubsurfaceRadiusMap0:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -300,6 +315,10 @@ Material:
     - _DetailSmoothnessScale1: 1
     - _DetailSmoothnessScale2: 1
     - _DetailSmoothnessScale3: 1
+    - _DiffusionProfile0: 0
+    - _DiffusionProfile1: 0
+    - _DiffusionProfile2: 0
+    - _DiffusionProfile3: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -338,6 +357,10 @@ Material:
     - _HeightFactor1: 1
     - _HeightFactor2: 1
     - _HeightFactor3: 1
+    - _HeightMapParametrization0: 1
+    - _HeightMapParametrization1: 1
+    - _HeightMapParametrization2: 0
+    - _HeightMapParametrization3: 0
     - _HeightMax0: 1
     - _HeightMax1: 1
     - _HeightMax2: 1
@@ -350,6 +373,18 @@ Material:
     - _HeightOffset1: 0
     - _HeightOffset2: 0
     - _HeightOffset3: 0
+    - _HeightPoMAmplitude0: 2
+    - _HeightPoMAmplitude1: 2
+    - _HeightPoMAmplitude2: 2
+    - _HeightPoMAmplitude3: 2
+    - _HeightTessAmplitude0: 2
+    - _HeightTessAmplitude1: 2
+    - _HeightTessAmplitude2: 2
+    - _HeightTessAmplitude3: 2
+    - _HeightTessCenter0: 0.5
+    - _HeightTessCenter1: 0.5
+    - _HeightTessCenter2: 0.5
+    - _HeightTessCenter3: 0.5
     - _HeightTransition: 0
     - _HorizonFade: 1
     - _InheritBaseColor1: 0
@@ -446,6 +481,10 @@ Material:
     - _StencilWriteMask: 7
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
+    - _SubsurfaceMask0: 1
+    - _SubsurfaceMask1: 1
+    - _SubsurfaceMask2: 1
+    - _SubsurfaceMask3: 1
     - _SubsurfaceProfile0: 0
     - _SubsurfaceProfile1: 0
     - _SubsurfaceProfile2: 0

@@ -8,7 +8,8 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: GroundLeaf_DoubleSidedFlipSSS
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
-  m_ShaderKeywords: _ALPHATEST_ON _DOUBLESIDED_ON _MASKMAP _MATID_SSS _NORMALMAP _NORMALMAP_TANGENT_SPACE
+  m_ShaderKeywords: _ALPHATEST_ON _DOUBLESIDED_ON _MASKMAP _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+    _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 1
@@ -211,9 +212,14 @@ Material:
     - _HeightBias: 0
     - _HeightCenter: 0.68
     - _HeightMapMode: 0
+    - _HeightMapParametrization: 1
     - _HeightMax: 1
     - _HeightMin: -1
+    - _HeightOffset: 0
+    - _HeightPoMAmplitude: 2
     - _HeightScale: 1
+    - _HeightTessAmplitude: 2
+    - _HeightTessCenter: 0.68
     - _HorizonFade: 1
     - _IOR: 1
     - _InitialBend: 1

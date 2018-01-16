@@ -26,10 +26,22 @@ Shader "HDRenderPipeline/Lit"
 
         _HeightMap("HeightMap", 2D) = "black" {}
         // Caution: Default value of _HeightAmplitude must be (_HeightMax - _HeightMin) * 0.01
+        // Those two properties are computed from the ones exposed in the UI and depends on the displaement mode so they are separate because we don't want to lose information upon displacement mode change.
         [HideInInspector] _HeightAmplitude("Height Amplitude", Float) = 0.02 // In world units. This will be computed in the UI.
+        [HideInInspector] _HeightCenter("Height Center", Range(0.0, 1.0)) = 0.5 // In texture space
+
+		[Enum(MinMax, 0, Amplitude, 1)] _HeightMapParametrization("Heightmap Parametrization", Int) = 0
+        // These parameters are for vertex displacement/Tessellation
+		_HeightOffset("Height Offset", Float) = 0
+		// MinMax mode
         _HeightMin("Heightmap Min", Float) = -1
         _HeightMax("Heightmap Max", Float) = 1
-        _HeightCenter("Height Center", Range(0.0, 1.0)) = 0.5 // In texture space
+		// Amplitude mode
+		_HeightTessAmplitude("Amplitude", Float) = 2.0 // in Centimeters
+        _HeightTessCenter("Height Center", Range(0.0, 1.0)) = 0.5 // In texture space
+
+        // These parameters are for pixel displacement
+        _HeightPoMAmplitude("Height Amplitude", Float) = 2.0 // In centimeters
 
         _DetailMap("DetailMap", 2D) = "black" {}
         _DetailAlbedoScale("_DetailAlbedoScale", Range(0.0, 2.0)) = 1
@@ -143,7 +155,11 @@ Shader "HDRenderPipeline/Lit"
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail("UV Set for detail", Float) = 0
         [HideInInspector] _UVDetailsMappingMask("_UVDetailsMappingMask", Color) = (1, 0, 0, 0)
         [ToggleOff] _LinkDetailsWithBase("LinkDetailsWithBase", Float) = 1.0
+
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
+        [Enum(UV0, 0, Planar, 4, TriPlanar, 5)] _UVEmissive("UV Set for emissive", Float) = 0
+        _TexWorldScaleEmissive("Scale to apply on world coordinate", Float) = 1.0
+        [HideInInspector] _UVMappingMaskEmissive("_UVMappingMaskEmissive", Color) = (1, 0, 0, 0)
 
         // Wind
         [ToggleOff]  _EnableWind("Enable Wind", Float) = 0.0
@@ -184,6 +200,7 @@ Shader "HDRenderPipeline/Lit"
     #pragma shader_feature _VERTEX_WIND
     #pragma shader_feature _ _REFRACTION_PLANE _REFRACTION_SPHERE
 
+    #pragma shader_feature _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR
     #pragma shader_feature _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE
     #pragma shader_feature _ _REQUIRE_UV2 _REQUIRE_UV3
@@ -208,14 +225,19 @@ Shader "HDRenderPipeline/Lit"
     #pragma shader_feature _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
     #pragma shader_feature _ENABLE_FOG_ON_TRANSPARENT
 
-    // MaterialId are used as shader feature to allow compiler to optimize properly
-    // Note _MATID_STANDARD is not define as there is always the default case "_". We assign default as _MATID_STANDARD, so we never test _MATID_STANDARD
-    #pragma shader_feature _ _MATID_SSS _MATID_ANISO _MATID_SPECULAR _MATID_CLEARCOAT
+    // MaterialFeature are used as shader feature to allow compiler to optimize properly
+    #pragma shader_feature _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+    #pragma shader_feature _MATERIAL_FEATURE_TRANSMISSION
+    #pragma shader_feature _MATERIAL_FEATURE_ANISOTROPY
+    #pragma shader_feature _MATERIAL_FEATURE_CLEAR_COAT
+    #pragma shader_feature _MATERIAL_FEATURE_IRIDESCENCE
+    #pragma shader_feature _MATERIAL_FEATURE_SPECULAR_COLOR
 
     // enable dithering LOD crossfade
     #pragma multi_compile _ LOD_FADE_CROSSFADE
-    // TODO: We should have this keyword only if VelocityInGBuffer is enable, how to do that ?
-    //#pragma multi_compile VELOCITYOUTPUT_OFF VELOCITYOUTPUT_ON
+
+    //enable GPU instancing support
+    #pragma multi_compile_instancing
 
     //-------------------------------------------------------------------------------------
     // Define
@@ -228,7 +250,7 @@ Shader "HDRenderPipeline/Lit"
     #define HAVE_VERTEX_MODIFICATION
 
     // If we use subsurface scattering, enable output split lighting (for forward pass)
-    #if defined(_MATID_SSS) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    #if defined(_MATERIAL_FEATURE_SUBSURFACE_SCATTERING) && !defined(_SURFACE_TYPE_TRANSPARENT)
     #define OUTPUT_SPLIT_LIGHTING
     #endif
 
@@ -274,9 +296,9 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
-            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
-            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
 
             #define SHADERPASS SHADERPASS_GBUFFER
@@ -308,9 +330,9 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
-            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
-            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
 
             #define SHADERPASS SHADERPASS_GBUFFER
@@ -341,9 +363,9 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
-            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
-            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
 
             #define DEBUG_DISPLAY
@@ -448,7 +470,7 @@ Shader "HDRenderPipeline/Lit"
 
             Cull[_CullMode]
 
-            ZWrite Off // TODO: Test Z equal here.
+            ZWrite On
 
             HLSLPROGRAM
 
@@ -519,9 +541,9 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
-            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
-            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             // #include "../../Lighting/Forward.hlsl"
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
@@ -556,9 +578,9 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
-            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
-            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             // #include "../../Lighting/Forward.hlsl"
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
@@ -593,9 +615,9 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
-            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
-            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             // #include "../../Lighting/Forward.hlsl"
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS

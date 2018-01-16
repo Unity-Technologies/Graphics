@@ -631,6 +631,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             CoreUtils.SetKeyword(material, "_INFLUENCEMASK_MAP", material.GetTexture(kLayerInfluenceMaskMap) && material.GetFloat(kkUseMainLayerInfluence) != 0.0f);
 
+            CoreUtils.SetKeyword(material, "_EMISSIVE_MAPPING_PLANAR", ((UVBaseMapping)material.GetFloat(kUVEmissive)) == UVBaseMapping.Planar && material.GetTexture(kEmissiveColorMap));
+            CoreUtils.SetKeyword(material, "_EMISSIVE_MAPPING_TRIPLANAR", ((UVBaseMapping)material.GetFloat(kUVEmissive)) == UVBaseMapping.Triplanar && material.GetTexture(kEmissiveColorMap));
             CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
             CoreUtils.SetKeyword(material, "_ENABLESPECULAROCCLUSION", material.GetFloat(kEnableSpecularOcclusion) > 0.0f);
 
@@ -663,26 +665,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             CoreUtils.SetKeyword(material, "_DENSITY_MODE", useDensityModeEnable);
 
-            Lit.MaterialId materialId = (Lit.MaterialId)material.GetFloat(kMaterialID);
+            BaseLitGUI.MaterialId materialId = (BaseLitGUI.MaterialId)material.GetFloat(kMaterialID);
 
-            CoreUtils.SetKeyword(material, "_MATID_SSS", materialId == Lit.MaterialId.LitSSS);
-            //CoreUtils.SetKeyword(material, "_MATID_STANDARD", materialId == Lit.MaterialId.LitStandard); // See comment in Lit.shader, it is the default, we don't define it
-        }
-        private void DoEmissiveGUI(Material material)
-        {
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(Styles.lightingText, EditorStyles.boldLabel);
-            m_MaterialEditor.ShaderProperty(enableSpecularOcclusion, Styles.enableSpecularOcclusionText);
-            // TODO: display warning if we don't have bent normal (either OS or TS) and ambient occlusion
-            //if (enableSpecularOcclusion.floatValue > 0.0f)
-            {
-                // EditorGUILayout.HelpBox(Styles.specularOcclusionWarning.text, MessageType.Error);
-            }
-            EditorGUI.indentLevel++;
-            m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
-            m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
-            m_MaterialEditor.ShaderProperty(albedoAffectEmissive, Styles.albedoAffectEmissiveText);
-            EditorGUI.indentLevel--;
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", materialId == BaseLitGUI.MaterialId.LitSSS);
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", materialId == BaseLitGUI.MaterialId.LitSSS);
         }
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
@@ -754,10 +740,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
 
             bool layerChanged = DoLayersGUI(materialImporter);
-            DoEmissiveGUI(material);
+            EditorGUI.BeginChangeCheck();
+            {
+                DoEmissiveGUI(material);
+            }
+            if (EditorGUI.EndChangeCheck())
+            {
+                optionsChanged = true;
+            }
+
             DoEmissionArea(material);
-            EditorGUI.indentLevel--;
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(StylesBaseUnlit.advancedText, EditorStyles.boldLabel);
+            // NB RenderQueue editor is not shown on purpose: we want to override it based on blend mode
+            EditorGUI.indentLevel++;
             m_MaterialEditor.EnableInstancingField();
+            EditorGUI.indentLevel--;
 
             if (layerChanged || optionsChanged)
             {

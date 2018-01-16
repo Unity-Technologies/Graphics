@@ -34,7 +34,7 @@ void IntegrateBSDF_LineRef(float3 V, float3 positionWS,
         {
             float3 lightDiff, lightSpec;
 
-            BSDF(V, L, positionWS, preLightData, bsdfData, lightDiff, lightSpec);
+            BSDF(V, L, NdotL, positionWS, preLightData, bsdfData, lightDiff, lightSpec);
 
             diffuseLighting  += lightDiff * (sinLT / dist2 * NdotL);
             specularLighting += lightSpec * (sinLT / dist2 * NdotL);
@@ -104,14 +104,15 @@ void IntegrateBSDF_AreaRef(float3 V, float3 positionWS,
         float cosLNs = saturate(dot(-L, Ns));
 
         // We calculate area reference light with the area integral rather than the solid angle one.
-        float illuminance = cosLNs * saturate(dot(bsdfData.normalWS, L)) / (sqrDist * lightPdf);
+        float NdotL = saturate(dot(bsdfData.normalWS, L));
+        float illuminance = cosLNs * NdotL / (sqrDist * lightPdf);
 
         float3 localDiffuseLighting = float3(0.0, 0.0, 0.0);
         float3 localSpecularLighting = float3(0.0, 0.0, 0.0);
 
         if (illuminance > 0.0)
         {
-            BSDF(V, L, positionWS, preLightData, bsdfData, localDiffuseLighting, localSpecularLighting);
+            BSDF(V, L, NdotL, positionWS, preLightData, bsdfData, localDiffuseLighting, localSpecularLighting);
             localDiffuseLighting *= lightData.color * illuminance * lightData.diffuseScale;
             localSpecularLighting *= lightData.color * illuminance * lightData.specularScale;
         }
@@ -206,7 +207,7 @@ float3 IntegrateSpecularGGXIBLRef(LightLoopContext lightLoopContext,
 {
     float3x3 localToWorld;
 
-    if (bsdfData.materialId == MATERIALID_LIT_ANISO)
+    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
     {
         localToWorld = float3x3(bsdfData.tangentWS, bsdfData.bitangentWS, bsdfData.normalWS);
     }
@@ -233,7 +234,7 @@ float3 IntegrateSpecularGGXIBLRef(LightLoopContext lightLoopContext,
         float weightOverPdf;
 
         // GGX BRDF
-        if (bsdfData.materialId == MATERIALID_LIT_ANISO)
+        if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
         {
             ImportanceSampleAnisoGGX(u, V, localToWorld, bsdfData.roughnessT, bsdfData.roughnessB, NdotV, L, VdotH, NdotL, weightOverPdf);
         }
