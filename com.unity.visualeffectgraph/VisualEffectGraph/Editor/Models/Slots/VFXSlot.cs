@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.VFX;
 using UnityEngine.Graphing;
 using System.Reflection;
 
@@ -152,6 +153,20 @@ namespace UnityEditor.VFX
             else
                 foreach (var child in children)
                     child.GetExpressions(expressions);
+        }
+
+        // Get relevant slot for UI & exposed expressions
+        public IEnumerable<VFXSlot> GetVFXValueTypeSlots()
+        {
+            if (VFXExpression.GetVFXValueTypeFromType(property.type) != VFXValueType.kNone)
+                yield return this;
+            else
+                foreach (var child in children)
+                {
+                    var slots = child.GetVFXValueTypeSlots();
+                    foreach (var slot in slots)
+                        yield return slot;
+                }
         }
 
         // Get relevant slots

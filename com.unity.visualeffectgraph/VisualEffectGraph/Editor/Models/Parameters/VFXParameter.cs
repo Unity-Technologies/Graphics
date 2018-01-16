@@ -80,12 +80,9 @@ namespace UnityEditor.VFX
             }
             if (cause == InvalidationCause.kParamChanged)
             {
-                if (m_ExprSlots != null)
+                for (int i = 0; i < m_ExprSlots.Length; ++i)
                 {
-                    for (int i = 0; i < m_ExprSlots.Length; ++i)
-                    {
-                        m_ValueExpr[i].SetContent(m_ExprSlots[i].value);
-                    }
+                    m_ValueExpr[i].SetContent(m_ExprSlots[i].value);
                 }
             }
         }
@@ -106,32 +103,31 @@ namespace UnityEditor.VFX
             {
                 throw new InvalidOperationException("Cannot init VFXParameter");
             }
-            m_ExprSlots = outputSlots[0].GetExpressionSlots().ToArray();
+            m_ExprSlots = outputSlots[0].GetVFXValueTypeSlots().ToArray();
             m_ValueExpr = m_ExprSlots.Select(t => t.DefaultExpression(valueMode)).ToArray();
         }
 
         public override void OnEnable()
         {
             base.OnEnable();
-
-            Debug.Log("VFXParameter.OnEnable");
             if (outputSlots.Count != 0)
             {
-                Debug.Log("VFXParameter.OnEnable with outputslot");
-                m_ExprSlots = outputSlots[0].GetExpressionSlots().ToArray();
+                m_ExprSlots = outputSlots[0].GetVFXValueTypeSlots().ToArray();
                 m_ValueExpr = m_ExprSlots.Select(t => t.DefaultExpression(valueMode)).ToArray();
+            }
+            else
+            {
+                m_ExprSlots = new VFXSlot[0];
+                m_ValueExpr = new VFXValue[0];
             }
         }
 
         public override void UpdateOutputExpressions()
         {
-            if (m_ExprSlots != null)
+            for (int i = 0; i < m_ExprSlots.Length; ++i)
             {
-                for (int i = 0; i < m_ExprSlots.Length; ++i)
-                {
-                    m_ValueExpr[i].SetContent(m_ExprSlots[i].value);
-                    m_ExprSlots[i].SetExpression(m_ValueExpr[i]);
-                }
+                m_ValueExpr[i].SetContent(m_ExprSlots[i].value);
+                m_ExprSlots[i].SetExpression(m_ValueExpr[i]);
             }
         }
 
@@ -146,6 +142,7 @@ namespace UnityEditor.VFX
         [NonSerialized]
         private VFXSlot[] m_ExprSlots;
 
+        [NonSerialized]
         private VFXValue[] m_ValueExpr;
     }
 }
