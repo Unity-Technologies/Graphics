@@ -168,6 +168,8 @@ namespace UnityEditor.VFX
             Profiler.BeginSample("VFXEditor.CollectDependencies");
             try
             {
+                if (m_UIInfos != null)
+                    objs.Add(m_UIInfos);
                 base.CollectDependencies(objs);
             }
             finally

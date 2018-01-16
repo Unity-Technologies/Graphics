@@ -29,6 +29,7 @@ namespace UnityEditor.VFX.UI
 
         protected override void ModelChanged(UnityEngine.Object obj)
         {
+            NotifyChange(AnyThing);
         }
 
         public VFXGroupNodeController(VFXViewController viewController, VFXUI ui, int index) : base(ui)
