@@ -70,8 +70,10 @@ namespace UnityEditor.VFX.UI
             }
             if (m_GraphHandle != null)
             {
+                DataWatchService.sharedInstance.RemoveWatch(m_UIHandle);
                 DataWatchService.sharedInstance.RemoveWatch(m_GraphHandle);
                 m_GraphHandle = null;
+                m_UIHandle = null;
             }
         }
 
@@ -391,6 +393,10 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
+            else if (element is VFXGroupNodeController)
+            {
+                RemoveGroupNode(element as VFXGroupNodeController);
+            }
             else if (element is Preview3DController)
             {
                 //TODO
@@ -432,6 +438,52 @@ namespace UnityEditor.VFX.UI
 
                     AddInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
                     AddInvalidateDelegate(m_Graph, IncremenentGraphUndoRedoState);
+
+
+                    VFXUI ui = m_Graph.UIInfos;
+
+                    m_UIHandle = DataWatchService.sharedInstance.AddWatch(ui, UIChanged);
+                }
+            }
+        }
+
+        public void AddGroupNode(Vector2 pos)
+        {
+            var ui = graph.UIInfos;
+
+            var newGroupInfo = new VFXUI.GroupInfo { title = "New Group Node", position = new Rect(pos, Vector2.one * 100) };
+
+            if (ui.groupInfos != null)
+                ui.groupInfos = ui.groupInfos.Concat(Enumerable.Repeat(newGroupInfo, 1)).ToArray();
+            else
+                ui.groupInfos = new VFXUI.GroupInfo[] { newGroupInfo };
+
+            m_Graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+        }
+
+        void RemoveGroupNode(VFXGroupNodeController groupNode)
+        {
+            var ui = graph.UIInfos;
+
+            int index = groupNode.index;
+
+            ui.groupInfos = ui.groupInfos.Where((t, i) => i != index).ToArray();
+
+            m_GroupNodePresenters.RemoveAt(index);
+
+            for (int i = index; i < m_GroupNodePresenters.Count; ++i)
+            {
+                m_GroupNodePresenters[i].index = index;
+            }
+        }
+
+        void RemoveFromGroupNodes(VFXNodeController presenter)
+        {
+            foreach (var groupNode in m_GroupNodePresenters)
+            {
+                if (groupNode.ContainsNode(presenter))
+                {
+                    groupNode.nodes = groupNode.nodes.Where(t => t != presenter).ToArray();
                 }
             }
         }
@@ -441,6 +493,15 @@ namespace UnityEditor.VFX.UI
             if (m_Graph == null) return; // OnModelChange or OnDisable will take care of that later
 
             SyncControllerFromModel();
+
+            NotifyChange(AnyThing);
+        }
+
+        protected void UIChanged(UnityEngine.Object obj)
+        {
+            if (m_Graph == null) return; // OnModelChange or OnDisable will take care of that later
+
+            RecreateUI();
 
             NotifyChange(AnyThing);
         }
@@ -696,6 +757,36 @@ namespace UnityEditor.VFX.UI
             GraphChanged(graph);
         }
 
+        public ReadOnlyCollection<VFXGroupNodeController> groupNodes
+        {
+            get {return m_GroupNodePresenters.AsReadOnly(); }
+        }
+
+        List<VFXGroupNodeController> m_GroupNodePresenters = new List<VFXGroupNodeController>();
+
+        public bool RecreateUI()
+        {
+            bool changed = false;
+            var ui = graph.UIInfos;
+            if (ui != null && ui.groupInfos != null)
+            {
+                for (int i = m_GroupNodePresenters.Count; i < ui.groupInfos.Length; ++i)
+                {
+                    VFXGroupNodeController groupNodePresenter = new VFXGroupNodeController(this, ui, i);
+                    m_GroupNodePresenters.Add(groupNodePresenter);
+                    changed = true;
+                }
+
+                while (ui.groupInfos.Length < m_GroupNodePresenters.Count)
+                {
+                    m_GroupNodePresenters.RemoveAt(m_GroupNodePresenters.Count - 1);
+                    changed = true;
+                }
+            }
+
+            return changed;
+        }
+
         public void ForceReload()
         {
             Clear();
@@ -725,6 +816,8 @@ namespace UnityEditor.VFX.UI
 
             changed |= RecreateNodeEdges();
             changed |= RecreateFlowEdges();
+
+            changed |= RecreateUI();
 
             m_Syncing = false;
             return changed;
@@ -763,9 +856,18 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public VFXNodeController GetControllerFromModel(VFXModel model)
+        {
+            VFXNodeController controller = null;
+            m_SyncedModels.TryGetValue(model, out controller);
+
+            return controller;
+        }
+
         private VFXGraph m_Graph;
 
         IDataWatchHandle m_GraphHandle;
+        IDataWatchHandle m_UIHandle;
 
         private VFXView m_View; // Don't call directly as it is lazy initialized
     }

@@ -36,6 +36,11 @@ namespace UnityEditor.VFX.UI
         }
     }
 
+
+    class GroupNodeAdder
+    {
+    }
+
     class VFXNodeProvider : VFXAbstractProvider<VFXNodeProvider.Descriptor>
     {
         public class Descriptor
@@ -138,6 +143,14 @@ namespace UnityEditor.VFX.UI
             {
                 descs = descs.Concat(systemDesc);
             }
+            var groupNodeDesc = new Descriptor()
+            {
+                modelDescriptor = new GroupNodeAdder(),
+                category = "Misc",
+                name = "Group Node"
+            };
+
+            descs = descs.Concat(Enumerable.Repeat(groupNodeDesc, 1));
 
             if (m_Filter == null)
                 return descs;
@@ -156,6 +169,8 @@ namespace UnityEditor.VFX.UI
         {
             get { return m_Controller; }
         }
+
+
         public VFXViewController controller
         {
             get { return m_Controller; }
@@ -167,12 +182,30 @@ namespace UnityEditor.VFX.UI
                     {
                         m_Controller.UnregisterHandler(this);
                         m_Controller.useCount--;
+
+                        serializeGraphElements = null;
+                        unserializeAndPaste = null;
+                        deleteSelection = null;
+                        nodeCreationRequest = null;
+
+                        elementAddedToGroupNode = null;
+                        elementRemovedFromGroupNode = null;
+                        groupNodeTitleChanged = null;
                     }
                     m_Controller = value;
                     if (m_Controller != null)
                     {
                         m_Controller.RegisterHandler(this);
                         m_Controller.useCount++;
+
+                        serializeGraphElements = SerializeElements;
+                        unserializeAndPaste = UnserializeAndPasteElements;
+                        deleteSelection = Delete;
+                        nodeCreationRequest = OnCreateNode;
+
+                        elementAddedToGroupNode = ElementAddedToGroupNode;
+                        elementRemovedFromGroupNode = ElementRemovedFromGroupNode;
+                        groupNodeTitleChanged = GroupNodeTitleChanged;
                     }
                     NewControllerSet();
                 }
@@ -198,6 +231,10 @@ namespace UnityEditor.VFX.UI
                 string path = d.modelDescriptor as string;
 
                 CreateTemplateSystem(path, tPos);
+            }
+            else if (d.modelDescriptor is GroupNodeAdder)
+            {
+                controller.AddGroupNode(tPos);
             }
             else
             {
@@ -340,13 +377,11 @@ namespace UnityEditor.VFX.UI
 
             Add(m_NoAssetLabel);
 
-            this.serializeGraphElements = SerializeElements;
-            this.unserializeAndPaste = UnserializeAndPasteElements;
-            this.deleteSelection = Delete;
-            this.nodeCreationRequest = OnCreateNode;
-
+            vfxGroupNodes = this.Query<VisualElement>().Children<VFXGroupNode>().Build();
             RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
         }
+
+        public UQuery.QueryState<VFXGroupNode> vfxGroupNodes { get; private set; }
 
         Toggle m_ToggleDebug;
 
@@ -375,6 +410,7 @@ namespace UnityEditor.VFX.UI
                 SyncNodes();
             }
             SyncEdges(change);
+            SyncGroupNodes();
 
             if (controller != null)
             {
@@ -406,6 +442,11 @@ namespace UnityEditor.VFX.UI
                 m_ToggleMotionVectors.SetEnabled(false);
             }
 
+            //Update groupnode content after all the view has been updated.
+            /*foreach (VFXGroupNode node in this.Query().Children<VisualElement>().Children<VFXGroupNode>().ToList())
+            {
+                node.OnViewDataChanged();
+            }*/
             // needed if some or all the selection has been deleted, so we no longer show the deleted object in the inspector.
             SelectionUpdated();
         }
@@ -481,6 +522,28 @@ namespace UnityEditor.VFX.UI
         }
 
 
+        Dictionary<VFXGroupNodeController, VFXGroupNode> groupNodes
+        {
+            get
+            {
+                Dictionary<VFXGroupNodeController, VFXGroupNode> dic = new Dictionary<VFXGroupNodeController, VFXGroupNode>();
+                foreach (var layer in contentViewContainer.Children())
+                {
+                    foreach (var graphElement in layer.Children())
+                    {
+                        if (graphElement is VFXGroupNode)
+                        {
+                            dic[(graphElement as VFXGroupNode).controller] = graphElement as VFXGroupNode;
+                        }
+                    }
+                }
+
+
+                return dic;
+            }
+        }
+
+
         private class SlotContainerFactory : BaseTypeFactory<VFXNodeController, GraphElement>
         {
             protected override GraphElement InternalCreate(Type valueType)
@@ -516,6 +579,35 @@ namespace UnityEditor.VFX.UI
                     var newElement = m_SlotContainerFactory.Create(newController);
                     AddElement(newElement);
                     (newElement as IControlledElement<VFXNodeController>).controller = newController;
+                }
+            }
+        }
+
+        void SyncGroupNodes()
+        {
+            var groupNodes = this.groupNodes;
+
+            if (controller == null)
+            {
+                foreach (var kv in groupNodes)
+                {
+                    RemoveElement(kv.Value);
+                }
+            }
+            else
+            {
+                var deletedControllers = groupNodes.Keys.Except(controller.groupNodes);
+
+                foreach (var deletedController in deletedControllers)
+                {
+                    RemoveElement(groupNodes[deletedController]);
+                }
+
+                foreach (var newController in controller.groupNodes.Except(groupNodes.Keys))
+                {
+                    var newElement = new VFXGroupNode();
+                    AddElement(newElement);
+                    newElement.controller = newController;
                 }
             }
         }
@@ -786,6 +878,36 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        GraphViewChange VFXGraphViewChanged(GraphViewChange change)
+        {
+            if (change.movedElements.Count > 0)
+            {
+                foreach (var groupNode in vfxGroupNodes.ToList())
+                {
+                    var containedElements = groupNode.containedElements;
+
+                    if (containedElements != null && containedElements.Intersect(change.movedElements).Count() > 0)
+                    {
+                        groupNode.UpdateGeometryFromContent();
+                        groupNode.UpdatePresenterPosition();
+                    }
+                }
+
+                foreach (var groupNode in change.movedElements.OfType<VFXGroupNode>())
+                {
+                    var containedElements = groupNode.containedElements;
+                    if (containedElements != null)
+                    {
+                        foreach (var node in containedElements)
+                        {
+                            node.UpdatePresenterPosition();
+                        }
+                    }
+                }
+            }
+            return change;
+        }
+
         public VFXDataAnchor GetDataAnchorByController(VFXDataAnchorController controller)
         {
             if (controller == null)
@@ -926,6 +1048,21 @@ namespace UnityEditor.VFX.UI
                     Selection.activeObject = controller.model;
                 }
             }
+        }
+
+        void ElementAddedToGroupNode(GroupNode groupNode, GraphElement element)
+        {
+            (groupNode as VFXGroupNode).ElementAddedToGroupNode(element);
+        }
+
+        void ElementRemovedFromGroupNode(GroupNode groupNode, GraphElement element)
+        {
+            (groupNode as VFXGroupNode).ElementRemovedFromGroupNode(element);
+        }
+
+        void GroupNodeTitleChanged(GroupNode groupNode, string title)
+        {
+            (groupNode as VFXGroupNode).GroupNodeTitleChanged(title);
         }
 
         public override void AddToSelection(ISelectable selectable)
