@@ -100,6 +100,9 @@ namespace UnityEditor.VFX.UI
         public VFXFlowEdge()
         {
             RegisterCallback<ControllerChangedEvent>(OnChange);
+
+
+            edgeControl.orientation = Orientation.Vertical;
         }
 
         protected virtual void OnChange(ControllerChangedEvent e)
@@ -164,7 +167,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
-
+/*
         protected override EdgeControl CreateEdgeControl()
         {
             return new VFXFlowEdgeControl
@@ -173,7 +176,7 @@ namespace UnityEditor.VFX.UI
                 interceptWidth = 3
             };
         }
-
+*/
         public new VFXFlowAnchor input
         {
             get { return base.input as VFXFlowAnchor; }

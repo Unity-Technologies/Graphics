@@ -41,25 +41,30 @@ namespace UnityEditor.VFX.UI
         public VFXStandaloneSlotContainerUI()
         {
             this.AddManipulator(new SuperCollapser());
+
+            RegisterCallback<PostLayoutEvent>(OnPostLayout);
         }
 
-        protected override void OnStyleResolved(ICustomStyle style)
+        void OnPostLayout(PostLayoutEvent e)
         {
             float settingsLabelWidth = 30;
-            float settingsControlWidth = 110;
+            float settingsControlWidth = 50;
             GetPreferedSettingsWidths(ref  settingsLabelWidth, ref settingsControlWidth);
 
-            ApplySettingsWidths(settingsLabelWidth, settingsControlWidth);
-            this.style.minWidth = settingsLabelWidth + settingsControlWidth + 20;
-
-            base.OnStyleResolved(style);
-
             float labelWidth = 30;
-            float controlWidth = 110;
-
+            float controlWidth = 50;
             GetPreferedWidths(ref labelWidth, ref controlWidth);
 
-            ApplyWidths(labelWidth, controlWidth);
+            float newMinWidth = Mathf.Max(settingsLabelWidth + settingsControlWidth, labelWidth + controlWidth) + 20;
+
+            if (this.style.minWidth != newMinWidth)
+            {
+                this.style.minWidth = newMinWidth;
+
+                ApplySettingsWidths(settingsLabelWidth, settingsControlWidth);
+
+                ApplyWidths(labelWidth, controlWidth);
+            }
         }
 
         public override void ApplyWidths(float labelWidth, float controlWidth)

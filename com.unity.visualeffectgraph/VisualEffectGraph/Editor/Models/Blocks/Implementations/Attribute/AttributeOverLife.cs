@@ -44,13 +44,13 @@ namespace UnityEditor.VFX.Block
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(OverLifeAttributeProvider))]
         public string attribute = VFXAttribute.All.First();
 
-        [VFXSetting]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         public AttributeCompositionMode Composition = AttributeCompositionMode.Overwrite;
 
-        [VFXSetting]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         public ComputeMode Mode = ComputeMode.Uniform;
 
-        public override string name { get { return ObjectNames.NicifyVariableName(attribute) + " over Life"; } }
+        public override string name { get { return VFXBlockUtility.GetNameString(Composition) + " " + ObjectNames.NicifyVariableName(attribute) + " over Life"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdateAndOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
         public override IEnumerable<VFXAttributeInfo> attributes

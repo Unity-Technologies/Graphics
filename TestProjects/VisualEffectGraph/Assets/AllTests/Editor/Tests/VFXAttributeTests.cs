@@ -51,7 +51,7 @@ namespace UnityEditor.VFX.Test
             if (init != null)
                 init(graph);
 
-            var models = new HashSet<Object>();
+            var models = new HashSet<ScriptableObject>();
             graph.CollectDependencies(models);
 
             var data = models.OfType<VFXData>().First();

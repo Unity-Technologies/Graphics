@@ -326,3 +326,21 @@ float2 GetSubUV(int flipBookIndex,float2 uv,float2 dim,float2 invDim)
     float2 tile = float2(fmod(flipBookIndex,dim.x),dim.y - 1.0 - floor(flipBookIndex * invDim.x));
     return (tile + uv) * invDim;
 }
+
+#if USE_FLIPBOOK
+#if USE_FLIPBOOK_INTERPOLATION
+void ProcessFlipBookUV(float flipBookSize, float invFlipBookSize, float texIndex, inout float4 uv, out float blend)
+#else
+void ProcessFlipBookUV(float flipBookSize, float invFlipBookSize, float texIndex, inout float2 uv)
+#endif
+{
+    float frameBlend = frac(texIndex);
+    float frameIndex = texIndex - frameBlend;
+
+#if USE_FLIPBOOK_INTERPOLATION
+    blend = frameBlend;
+    uv.zw = GetSubUV(frameIndex + 1, uv.xy, flipBookSize, invFlipBookSize);
+#endif
+    uv.xy = GetSubUV(frameIndex, uv.xy, flipBookSize, invFlipBookSize);
+}
+#endif

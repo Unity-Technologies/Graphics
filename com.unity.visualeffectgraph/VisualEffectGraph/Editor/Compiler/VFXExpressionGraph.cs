@@ -82,7 +82,7 @@ namespace UnityEditor.VFX
                 m_FlattenedExpressions.Clear();
                 m_ExpressionsData.Clear();
 
-                var models = new HashSet<Object>();
+                var models = new HashSet<ScriptableObject>();
                 graph.CollectDependencies(models);
                 var contexts = models.OfType<VFXContext>();
                 if (filterOutInvalidContexts)

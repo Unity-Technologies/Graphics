@@ -157,7 +157,7 @@ namespace UnityEditor.VFX.Test
             {
                 get
                 {
-                    foreach (var file in Directory.GetFiles("Assets/VFXEditor/Editor/Tests/Scene/", "*.unity"))
+                    foreach (var file in Directory.GetFiles("Assets/VFXTests/", "*.unity"))
                     {
                         yield return new SceneTest
                         {
@@ -184,7 +184,7 @@ namespace UnityEditor.VFX.Test
             uint waitFrameCount = (uint)(simulateTime / frequency);
 
             var scenePath = sceneTest.path;
-            var treshold = 0.051f;
+            var threshold = 0.051f;
 
             var refCapturePath = scenePath.Replace(".unity", ".png");
             var currentCapturePath = scenePath.Replace(".unity", "_fail.png");
@@ -229,9 +229,9 @@ namespace UnityEditor.VFX.Test
             refTexture.LoadImage(File.ReadAllBytes(refCapturePath));
 
             var rmse = CompareTextures(currentTexture, refTexture);
-            if (rmse > treshold)
+            if (rmse > threshold)
             {
-                Assert.Fail(string.Format("Unexpected capture for {0} (treshold : {1}, rmse : {2})", currentCapturePath, treshold, rmse));
+                Assert.Fail(string.Format("Unexpected capture for {0} (threshold : {1}, rmse : {2})", currentCapturePath, threshold, rmse));
             }
             else
             {

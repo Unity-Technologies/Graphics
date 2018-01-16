@@ -11,6 +11,7 @@ namespace UnityEditor.VFX
         public override VFXTaskType spawnerType { get { return VFXTaskType.kSpawnerConstantRate; } }
         public class InputProperties
         {
+            [Min(0)]
             public float Rate = 10;
         }
     }

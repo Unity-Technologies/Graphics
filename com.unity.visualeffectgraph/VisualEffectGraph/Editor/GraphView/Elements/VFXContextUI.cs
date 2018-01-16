@@ -99,6 +99,12 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+
+        public static string ContextEnumToClassName(string name)
+        {
+            return name.Substring(1).ToLower();
+        }
+
         void OnChange(ControllerChangedEvent e)
         {
             if (e.controller == controller)
@@ -117,19 +123,23 @@ namespace UnityEditor.VFX.UI
 
 
                 // Recreate label with good name // Dirty
-                if (controller.context.inputType != VFXDataType.kNone)
-                    m_HeaderTitle.text = string.Format("{0} {1}", controller.context.name, controller.context.inputType.ToString().Substring(1));
-                else
-                    m_HeaderTitle.text = controller.context.name;
+                m_HeaderTitle.text = controller.context.name;
                 m_HeaderIcon.style.backgroundImage = GetIconForVFXType(controller.context.inputType);
 
                 VFXContextType contextType = controller.context.contextType;
+                foreach (var value in System.Enum.GetNames(typeof(VFXContextType)))
+                {
+                    RemoveFromClassList(ContextEnumToClassName(value));
+                }
 
-                RemoveFromClassList("spawner");
-                RemoveFromClassList("init");
-                RemoveFromClassList("update");
-                RemoveFromClassList("output");
-                RemoveFromClassList("event");
+                AddToClassList(ContextEnumToClassName(contextType.ToString()));
+
+                var inputType = controller.context.ownedType;
+                foreach (var value in System.Enum.GetNames(typeof(VFXDataType)))
+                {
+                    RemoveFromClassList("type" + ContextEnumToClassName(value));
+                }
+                AddToClassList("type" + ContextEnumToClassName(inputType.ToString()));
 
 
                 foreach (int val in System.Enum.GetValues(typeof(CoordinateSpace)))
@@ -137,16 +147,6 @@ namespace UnityEditor.VFX.UI
                     m_HeaderSpace.RemoveFromClassList("space" + ((CoordinateSpace)val).ToString());
                 }
                 m_HeaderSpace.AddToClassList("space" + (controller.context.space).ToString());
-
-                switch (contextType)
-                {
-                    case VFXContextType.kSpawner: AddToClassList("spawner"); break;
-                    case VFXContextType.kInit: AddToClassList("init"); break;
-                    case VFXContextType.kUpdate: AddToClassList("update"); break;
-                    case VFXContextType.kOutput: AddToClassList("output"); break;
-                    case VFXContextType.kEvent: AddToClassList("event"); break;
-                    default: throw new Exception();
-                }
 
 
                 if (controller.context.outputType == VFXDataType.kNone)
@@ -206,7 +206,6 @@ namespace UnityEditor.VFX.UI
                 {
                     m_FlowOutputConnectorContainer.Remove(nonLongerExistingAnchor);
                 }
-
 
                 RefreshContext();
             }
@@ -274,7 +273,7 @@ namespace UnityEditor.VFX.UI
             m_InsideContainer.Add(m_Header);
 
 
-            m_OwnData = new VFXContextSlotContainerUI();
+            m_OwnData = new VFXOwnContextSlotContainerUI();
             m_OwnData.RemoveFromClassList("node");
             m_Header.Add(m_HeaderContainer);
             m_Header.Add(m_OwnData);

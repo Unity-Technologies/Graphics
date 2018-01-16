@@ -83,14 +83,13 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public const string templatePath = "Assets/VFXEditor/Editor/Templates";
         protected override IEnumerable<Descriptor> GetDescriptors()
         {
-            var systemDesc = new Descriptor()
-            {
-                modelDescriptor = null,
-                category = "System",
-                name = "Default System"
-            };
+            var systemFiles = System.IO.Directory.GetFiles(templatePath, "*.asset").Select(t => t.Replace("\\", "/"));
+            var systemDesc = systemFiles.Select(t => new Descriptor() {modelDescriptor = t, category = "System", name = System.IO.Path.GetFileNameWithoutExtension(t)});
+
+
             var descriptorsContext = VFXLibrary.GetContexts().Select(o =>
                 {
                     return new Descriptor()
@@ -137,7 +136,7 @@ namespace UnityEditor.VFX.UI
             }
             if (m_AcceptedTypes == null)
             {
-                descs = descs.Concat(Enumerable.Repeat(systemDesc, 1));
+                descs = descs.Concat(systemDesc);
             }
 
             if (m_Filter == null)
@@ -194,9 +193,11 @@ namespace UnityEditor.VFX.UI
             {
                 return AddVFXParameter(tPos, d.modelDescriptor as VFXModelDescriptorParameters);
             }
-            else if (d.modelDescriptor == null)
+            else if (d.modelDescriptor is string)
             {
-                CreateTemplateSystem(tPos);
+                string path = d.modelDescriptor as string;
+
+                CreateTemplateSystem(path, tPos);
             }
             else
             {
@@ -256,9 +257,6 @@ namespace UnityEditor.VFX.UI
 
             this.AddManipulator(new ParameterDropper());
 
-            var bg = new GridBackground() { name = "VFXBackgroundGrid" };
-            Insert(0, bg);
-
             m_NodeProvider = new VFXNodeProvider((d, mPos) => AddNode(d, mPos));
 
             AddStyleSheetPath("PropertyRM");
@@ -292,14 +290,17 @@ namespace UnityEditor.VFX.UI
             VisualElement spacer = new VisualElement();
             spacer.style.flex = 1;
             toolbar.Add(spacer);
+            m_ToggleDebug = new Toggle(OnToggleDebug);
+            m_ToggleDebug.text = "Debug";
+            toolbar.Add(m_ToggleDebug);
+            m_ToggleDebug.AddToClassList("toolbarItem");
 
             m_DropDownButtonCullingMode = new Button();
 
             var cullingOption = new[]
             {
                 new { option = "Cull simulation and bounds", value = (uint)(VFXCullingFlags.CullSimulation | VFXCullingFlags.CullBoundsUpdate) },
-                new { option = "Cull simulation only", value = (uint)(VFXCullingFlags.CullSimulation) },
-                new { option = "Disable culling", value = 0u },
+                new { option = "Cull simulation only", value = (uint)(VFXCullingFlags.CullSimulation) },                new { option = "Disable culling", value = 0u },
             };
 
             Func<uint, string> fnValueToGUI = delegate(uint flags)
@@ -373,6 +374,8 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
         }
 
+        Toggle m_ToggleDebug;
+
         void Delete(string cmd, AskUser askUser)
         {
             controller.Remove(selection.OfType<IControlledElement>().Select(t => t.controller));
@@ -411,6 +414,8 @@ namespace UnityEditor.VFX.UI
                     m_ToggleMotionVectors.on = settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object;
                     m_ToggleMotionVectors.SetEnabled(true);
 
+
+                    m_ToggleDebug.on = controller.graph.displaySubAssets;
 
                     // if the asset dis destroy somehow, fox example if the user delete the asset, delete the controller and update the window.
                     VFXAsset asset = controller.model;
@@ -650,18 +655,20 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void CreateTemplateSystem(Vector2 tPos)
+        public void CreateTemplateSystem(string path, Vector2 tPos)
         {
-            VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>("Assets/VFXEditor/Editor/Templates/DefaultParticleSystem.asset");
+            VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>(path);
+            if (asset != null)
+            {
+                VFXViewController controller = VFXViewController.GetController(asset, true);
+                controller.useCount++;
 
-            VFXViewController controller = VFXViewController.GetController(asset, true);
-            controller.useCount++;
+                var data = VFXCopyPaste.SerializeElements(controller.allChildren);
 
-            var data = VFXCopyPaste.SerializeElements(controller.allChildren);
+                VFXCopyPaste.UnserializeAndPasteElements(this, tPos, data);
 
-            VFXCopyPaste.UnserializeAndPasteElements(this, tPos, data);
-
-            controller.useCount--;
+                controller.useCount--;
+            }
         }
 
         void SetRendererSettings(VFXRendererSettings settings)
@@ -737,24 +744,6 @@ namespace UnityEditor.VFX.UI
         {
             if (controller == null) return null;
             return controller.AddVFXParameter(pos, desc);
-        }
-
-        public EventPropagation CloneModels() // TEST clean that
-        {
-            var contexts = selection.OfType<VFXContextUI>().Select(p => p.controller.context.Clone<VFXContext>());
-            foreach (var context in contexts)
-            {
-                context.position = context.position + new Vector2(50, 50);
-                controller.graph.AddChild(context);
-            }
-
-            var operators = selection.OfType<VFXNodeUI>().Select(p => p.controller.model.Clone<VFXSlotContainerModel<VFXModel, VFXModel>>());
-            foreach (var op in operators)
-            {
-                op.position = op.position + new Vector2(50, 50);
-                controller.graph.AddChild(op);
-            }
-            return EventPropagation.Stop;
         }
 
         public EventPropagation Resync()
@@ -1070,6 +1059,14 @@ namespace UnityEditor.VFX.UI
             foreach (var c in contexts)
             {
                 c.controller.position = c.GetPosition().min + new Vector2(0, size);
+            }
+        }
+
+        void OnToggleDebug()
+        {
+            if (controller != null)
+            {
+                controller.graph.displaySubAssets = !controller.graph.displaySubAssets;
             }
         }
 

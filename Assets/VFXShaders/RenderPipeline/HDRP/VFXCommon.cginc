@@ -1,6 +1,6 @@
-#include "Assets/ScriptableRenderPipeline/ScriptableRenderPipeline/Core/ShaderLibrary/common.hlsl"
-#include "Assets/ScriptableRenderPipeline/ScriptableRenderPipeline/HDRenderPipeline/ShaderVariables.hlsl"
-#include "Assets/ScriptableRenderPipeline/ScriptableRenderPipeline/HDRenderPipeline/Sky/AtmosphericScattering/AtmosphericScattering.hlsl"
+#include "CoreRP/ShaderLibrary/common.hlsl"
+#include "HDRP/ShaderVariables.hlsl"
+#include "HDRP/Sky/AtmosphericScattering/AtmosphericScattering.hlsl"
 
 #define VFX_DEPTH_TEXTURE _MainDepthTexture
 
