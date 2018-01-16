@@ -181,10 +181,10 @@ namespace UnityEditor.ShaderGraph
                 finalBuilder.AppendLine(@"#include ""CoreRP/ShaderLibrary/Common.hlsl""");
                 finalBuilder.AppendLine(@"#include ""CoreRP/ShaderLibrary/Packing.hlsl""");
                 finalBuilder.AppendLine(@"#include ""CoreRP/ShaderLibrary/Color.hlsl""");
-                finalBuilder.AppendLine(@"#include ""ShaderGraphLibrary/Functions.hlsl""");
+                finalBuilder.AppendLine(@"#include ""CoreRP/ShaderLibrary/EntityLighting.hlsl""");
                 finalBuilder.AppendLine(@"#include ""ShaderGraphLibrary/ShaderVariables.hlsl""");
                 finalBuilder.AppendLine(@"#include ""ShaderGraphLibrary/ShaderVariablesFunctions.hlsl""");
-
+                finalBuilder.AppendLine(@"#include ""ShaderGraphLibrary/Functions.hlsl""");
 
                 finalBuilder.AppendLines(shaderProperties.GetPropertiesDeclaration(0));
                 finalBuilder.AppendLines(surfaceInputs.GetShaderString(0));
