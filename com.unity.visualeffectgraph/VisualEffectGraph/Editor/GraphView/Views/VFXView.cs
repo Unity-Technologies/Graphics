@@ -171,6 +171,43 @@ namespace UnityEditor.VFX.UI
         }
 
 
+        void DisconnectController()
+        {
+            m_Controller.UnregisterHandler(this);
+            m_Controller.useCount--;
+
+            serializeGraphElements = null;
+            unserializeAndPaste = null;
+            deleteSelection = null;
+            nodeCreationRequest = null;
+
+            elementAddedToGroupNode = null;
+            elementRemovedFromGroupNode = null;
+            groupNodeTitleChanged = null;
+
+            // Remove all in view now that the controller has been disconnected.
+            var graphElements = this.graphElements.ToList();
+            foreach (var element in graphElements)
+            {
+                RemoveElement(element);
+            }
+        }
+
+        void ConnectController()
+        {
+            m_Controller.RegisterHandler(this);
+            m_Controller.useCount++;
+
+            serializeGraphElements = SerializeElements;
+            unserializeAndPaste = UnserializeAndPasteElements;
+            deleteSelection = Delete;
+            nodeCreationRequest = OnCreateNode;
+
+            elementAddedToGroupNode = ElementAddedToGroupNode;
+            elementRemovedFromGroupNode = ElementRemovedFromGroupNode;
+            groupNodeTitleChanged = GroupNodeTitleChanged;
+        }
+
         public VFXViewController controller
         {
             get { return m_Controller; }
@@ -180,32 +217,12 @@ namespace UnityEditor.VFX.UI
                 {
                     if (m_Controller != null)
                     {
-                        m_Controller.UnregisterHandler(this);
-                        m_Controller.useCount--;
-
-                        serializeGraphElements = null;
-                        unserializeAndPaste = null;
-                        deleteSelection = null;
-                        nodeCreationRequest = null;
-
-                        elementAddedToGroupNode = null;
-                        elementRemovedFromGroupNode = null;
-                        groupNodeTitleChanged = null;
+                        DisconnectController();
                     }
                     m_Controller = value;
                     if (m_Controller != null)
                     {
-                        m_Controller.RegisterHandler(this);
-                        m_Controller.useCount++;
-
-                        serializeGraphElements = SerializeElements;
-                        unserializeAndPaste = UnserializeAndPasteElements;
-                        deleteSelection = Delete;
-                        nodeCreationRequest = OnCreateNode;
-
-                        elementAddedToGroupNode = ElementAddedToGroupNode;
-                        elementRemovedFromGroupNode = ElementRemovedFromGroupNode;
-                        groupNodeTitleChanged = GroupNodeTitleChanged;
+                        ConnectController();
                     }
                     NewControllerSet();
                 }
