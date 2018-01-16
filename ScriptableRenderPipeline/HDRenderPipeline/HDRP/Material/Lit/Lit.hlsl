@@ -473,8 +473,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     float2 octNormalWS = PackNormalOctEncode(surfaceData.normalWS);
     // To have more precision encode the sign of xy in a separate uint
     uint octNormalSign = (octNormalWS.x < 0.0 ? 1 : 0) | (octNormalWS.y < 0.0 ? 2 : 0);
-    // Store octNormalSign on two bits with perceptualRoughness
-    outGBuffer1 = float4(abs(octNormalWS), PackFloatInt10bit(PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness), octNormalSign, 4.0), 0.0);
+    outGBuffer1 = float4(PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness), abs(octNormalWS), PackInt(octNormalSign, 2));
 
     // RT2 - 8:8:8:8
     // mettalic will be store on 4 bit and store special value when not used
@@ -567,14 +566,16 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
 
     // Start decompressing GBuffer
     float3 baseColor = inGBuffer0.rgb;
-    bsdfData.specularOcclusion = inGBuffer0.a;
+    bsdfData.specularOcclusion   = inGBuffer0.a;
+    bsdfData.perceptualRoughness = inGBuffer1.r;
 
-    int octNormalSign;
-    UnpackFloatInt10bit(inGBuffer1.b, 4.0, bsdfData.perceptualRoughness, octNormalSign);
-    inGBuffer1.r = (octNormalSign & 1) ? -inGBuffer1.r : inGBuffer1.r;
-    inGBuffer1.g = (octNormalSign & 2) ? -inGBuffer1.g : inGBuffer1.g;
+    float2 octNormalWS = inGBuffer1.gb;
+    uint octNormalSign = UnpackInt(inGBuffer1.a, 2);
 
-    bsdfData.normalWS = UnpackNormalOctEncode(float2(inGBuffer1.r, inGBuffer1.g));
+    octNormalWS.x = (octNormalSign & 1) ? -octNormalWS.x : octNormalWS.x;
+    octNormalWS.y = (octNormalSign & 2) ? -octNormalWS.y : octNormalWS.y;
+
+    bsdfData.normalWS = UnpackNormalOctEncode(octNormalWS);
 
     // metallic15 is range [0..12] if metallic data is needed
     bool pixelHasNoMetallic = HasFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION);
