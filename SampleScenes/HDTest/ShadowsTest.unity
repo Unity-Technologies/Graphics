@@ -2234,7 +2234,7 @@ GameObject:
   m_IsActive: 1
 --- !u!114 &367594606
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 367594605}
@@ -2247,6 +2247,10 @@ MonoBehaviour:
   shadowResolution: 1024
   shadowDimmer: 1
   shadowFadeDistance: 10000
+  contactShadowLength: 0.2
+  contactShadowDistanceScaleFactor: 0.5
+  contactShadowMaxDistance: 25
+  contactShadowFadeDistance: 5
   shadowCascadeCount: 4
   shadowCascadeRatios:
   - 0.007
@@ -2258,11 +2262,11 @@ MonoBehaviour:
   - 0.272
   - 0.356
   shadowAlgorithm: 0
-  shadowVariant: 4
+  shadowVariant: 3
   shadowPrecision: 0
   shadowData:
-    format: 4
-    data: d044583b0000803f
+    format: 3
+    data: 0bd7a33b0000803f
   shadowDatas:
   - format: 4
     data: d044583b0000803f
@@ -2274,9 +2278,11 @@ MonoBehaviour:
     data: 000000006f12833a0000803f0000803f02000000
   - format: 25
     data: ec51383da48cb83652499d3903000000
+  - format: 3
+    data: 0bd7a33b0000803f
 --- !u!114 &367594607
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 367594605}
@@ -2317,7 +2323,7 @@ Light:
   m_SpotAngle: 30
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 2
+    m_Type: 1
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -4420,6 +4426,10 @@ MonoBehaviour:
   shadowResolution: 1024
   shadowDimmer: 1
   shadowFadeDistance: 10000
+  contactShadowLength: 0
+  contactShadowDistanceScaleFactor: 0.5
+  contactShadowMaxDistance: 50
+  contactShadowFadeDistance: 5
   shadowCascadeCount: 4
   shadowCascadeRatios:
   - 0.05
@@ -6192,6 +6202,10 @@ MonoBehaviour:
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
+  contactShadowLength: 0
+  contactShadowDistanceScaleFactor: 0.5
+  contactShadowMaxDistance: 50
+  contactShadowFadeDistance: 5
   shadowCascadeCount: 4
   shadowCascadeRatios:
   - 0.05
@@ -9510,6 +9524,10 @@ MonoBehaviour:
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
+  contactShadowLength: 0
+  contactShadowDistanceScaleFactor: 0.5
+  contactShadowMaxDistance: 50
+  contactShadowFadeDistance: 5
   shadowCascadeCount: 4
   shadowCascadeRatios:
   - 0.05

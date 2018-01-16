@@ -39,6 +39,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty cascadeRatios;
             public SerializedProperty cascadeBorders;
             public SerializedProperty resolution;
+
+            public SerializedProperty contactShadowLength;
+            public SerializedProperty contactShadowDistanceScaleFactor;
+            public SerializedProperty contactShadowMaxDistance;
+            public SerializedProperty contactShadowFadeDistance;
         }
 
         SerializedObject m_SerializedAdditionalLightData;
@@ -105,7 +110,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 cascadeCount = o.Find("shadowCascadeCount"),
                 cascadeRatios = o.Find("shadowCascadeRatios"),
                 cascadeBorders = o.Find("shadowCascadeBorders"),
-                resolution = o.Find(x => x.shadowResolution)
+                resolution = o.Find(x => x.shadowResolution),
+                contactShadowLength = o.Find(x => x.contactShadowLength),
+                contactShadowDistanceScaleFactor = o.Find(x => x.contactShadowDistanceScaleFactor),
+                contactShadowMaxDistance = o.Find(x => x.contactShadowMaxDistance),
+                contactShadowFadeDistance = o.Find(x => x.contactShadowFadeDistance),
             };
         }
 
@@ -350,6 +359,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 for (int i = 0; i < arraySize; i++)
                     EditorGUILayout.Slider(m_AdditionalShadowData.cascadeRatios.GetArrayElementAtIndex(i), 0f, 1f, s_Styles.shadowCascadeRatios[i]);
                 EditorGUI.indentLevel--;
+
+                EditorGUILayout.LabelField(s_Styles.contactShadow, EditorStyles.boldLabel);
+                EditorGUILayout.PropertyField(m_AdditionalShadowData.contactShadowLength, s_Styles.contactShadowLength);
+                bool disableContactShadowScope = m_AdditionalShadowData.contactShadowLength.hasMultipleDifferentValues || m_AdditionalShadowData.contactShadowLength.floatValue == 0.0f;
+                using (new EditorGUI.DisabledScope(disableContactShadowScope))
+                {
+                    EditorGUILayout.PropertyField(m_AdditionalShadowData.contactShadowDistanceScaleFactor, s_Styles.contactShadowDistanceScaleFactor);
+                    EditorGUILayout.PropertyField(m_AdditionalShadowData.contactShadowMaxDistance, s_Styles.contactShadowMaxDistance);
+                    EditorGUILayout.PropertyField(m_AdditionalShadowData.contactShadowFadeDistance, s_Styles.contactShadowFadeDistance);
+                }
             }
 
             if (settings.isBakedOrMixed)
