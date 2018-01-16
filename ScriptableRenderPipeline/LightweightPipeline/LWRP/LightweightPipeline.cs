@@ -140,7 +140,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private RenderTargetIdentifier m_Color;
 
         private bool m_IntermediateTextureArray;
-        private bool m_RequiredDepth;
+        private bool m_RequireDepth;
+        private bool m_RequireCopyColor;
         private MixedLightingSetup m_MixedLightingSetup;
 
         private const int kDepthStencilBufferBits = 32;
@@ -434,21 +435,31 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void AfterOpaque(ref ScriptableRenderContext context, FrameRenderingConfiguration config)
         {
-            if (!m_RequiredDepth)
+            if (!m_RequireDepth)
                 return;
 
             CommandBuffer cmd = CommandBufferPool.Get("After Opaque");
             cmd.SetGlobalTexture(CameraRenderTargetID.depth, m_DepthRT);
 
-            // When only one opaque effect is active we need to blit to a work RT. We blit to copy color.
-            // TODO: We can check if there are more than one opaque postfx and avoid an extra blit.
             // TODO: There's currently an issue in the PostFX stack that has a one frame delay when an effect is enabled/disabled
             // when an effect is disabled, HasOpaqueOnlyEffects returns true in the first frame, however inside render the effect
             // state is update, causing RenderPostProcess here to not blit to FinalColorRT. Until the next frame the RT will have garbage.
             if (LightweightUtils.HasFlag(config, FrameRenderingConfiguration.BeforeTransparentPostProcess))
             {
-                RenderPostProcess(cmd, m_CurrCameraColorRT, m_CopyColorRT, true);
-                m_CurrCameraColorRT = m_CopyColorRT;
+                // When only have one effect in the stack. We blit to a work RT then blit it back to active color RT.
+                // This seems like an extra blit but it saves us a depth copy/blit which has some corner cases like msaa depth resolve.
+                if (m_RequireCopyColor)
+                {
+                    RenderPostProcess(cmd, m_CurrCameraColorRT, m_CopyColorRT, true);
+                    cmd.Blit(m_CopyColorRT, m_CurrCameraColorRT);
+                }
+                else
+                    RenderPostProcess(cmd, m_CurrCameraColorRT, m_CurrCameraColorRT, true);
+
+                if (LightweightUtils.HasFlag(config, FrameRenderingConfiguration.DepthPass))
+                    cmd.SetRenderTarget(m_CurrCameraColorRT);
+                else
+                    cmd.SetRenderTarget(m_CurrCameraColorRT, m_DepthRT);
             }
 
             if (LightweightUtils.HasFlag(config, FrameRenderingConfiguration.DepthCopy))
@@ -547,7 +558,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_Asset.RenderScale < 1.0f || hdrEnabled;
 
             m_ColorFormat = hdrEnabled ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
-            m_RequiredDepth = false;
+            m_RequireDepth = false;
+            m_RequireCopyColor = false;
             m_CameraPostProcessLayer = m_CurrCamera.GetComponent<PostProcessLayer>();
 
             bool msaaEnabled = m_CurrCamera.allowMSAA && m_Asset.MSAASampleCount > 1 && (m_CurrCamera.targetTexture == null || m_CurrCamera.targetTexture.antiAliasing > 1);
@@ -557,13 +569,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             bool softParticlesEnabled = m_Asset.RequireCameraDepthTexture && !stereoEnabled;
             if (postProcessEnabled)
             {
-                m_RequiredDepth = true;
+                m_RequireDepth = true;
                 intermediateTexture = true;
 
                 configuration |= FrameRenderingConfiguration.PostProcess;
-
                 if (m_CameraPostProcessLayer.HasOpaqueOnlyEffects(m_PostProcessRenderContext))
+                {
                     configuration |= FrameRenderingConfiguration.BeforeTransparentPostProcess;
+                    if (m_CameraPostProcessLayer.sortedBundles[PostProcessEvent.BeforeTransparent].Count == 1)
+                        m_RequireCopyColor = true;
+                }
 
                 // Resolving depth msaa requires texture2DMS. Currently if msaa is enabled we do a depth pre-pass.
                 if (msaaEnabled)
@@ -573,7 +588,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // In case of soft particles we need depth copy. If depth copy not supported fallback to depth prepass
             if (softParticlesEnabled)
             {
-                m_RequiredDepth = true;
+                m_RequireDepth = true;
                 intermediateTexture = true;
 
                 bool supportsDepthCopy = m_CopyTextureSupport != CopyTextureSupport.None && m_Asset.CopyDepthShader.isSupported;
@@ -622,7 +637,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             int rtWidth = (int)((float)m_CurrCamera.pixelWidth * renderScale);
             int rtHeight = (int)((float)m_CurrCamera.pixelHeight * renderScale);
 
-            if (m_RequiredDepth)
+            if (m_RequireDepth)
             {
                 RenderTextureDescriptor depthRTDesc = new RenderTextureDescriptor(rtWidth, rtHeight, RenderTextureFormat.Depth, kDepthStencilBufferBits);
                 cmd.GetTemporaryRT(CameraRenderTargetID.depth, depthRTDesc, FilterMode.Bilinear);
@@ -642,10 +657,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_CurrCameraColorRT = m_ColorRT;
             }
 
-            // When postprocessing is enabled we might have a before transparent effect. In that case we need to
-            // use the camera render target as input. We blit to an opaque RT and then after before postprocessing is done
-            // we blit to the final camera RT. If no postprocessing we blit to final camera RT from beginning.
-            if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.BeforeTransparentPostProcess))
+            // When BeforeTransparent PostFX is enabled and only one effect is in the stack we need to create a temp
+            // color RT to blit the effect.
+            if (m_RequireCopyColor)
                 cmd.GetTemporaryRT(CameraRenderTargetID.copyColor, colorRTDesc, FilterMode.Point);
         }
 
@@ -1208,7 +1222,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (!m_IsOffscreenCamera)
                     colorRT = m_CurrCameraColorRT;
 
-                if (m_RequiredDepth && !LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.DepthPass))
+                if (m_RequireDepth && !LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.DepthPass))
                     depthRT = m_DepthRT;
             }
 
