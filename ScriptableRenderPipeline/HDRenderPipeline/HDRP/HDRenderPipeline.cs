@@ -1576,11 +1576,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var lightingDebugSettings = m_CurrentDebugDisplaySettings.lightingDebugSettings;
             var debugAlbedo = new Vector4(lightingDebugSettings.debugLightingAlbedo.r, lightingDebugSettings.debugLightingAlbedo.g, lightingDebugSettings.debugLightingAlbedo.b, 0.0f);
             var debugSmoothness = new Vector4(lightingDebugSettings.overrideSmoothness ? 1.0f : 0.0f, lightingDebugSettings.overrideSmoothnessValue, 0.0f, 0.0f);
+            var luxMeterParam = new Vector4(lightingDebugSettings.kLuxMeterThreshold0Debug, lightingDebugSettings.kLuxMeterThreshold1Debug, lightingDebugSettings.kLuxMeterThreshold2Debug, lightingDebugSettings.kLuxMeterThreshold3Debug);
 
             cmd.SetGlobalInt(HDShaderIDs._DebugViewMaterial, (int)m_CurrentDebugDisplaySettings.GetDebugMaterialIndex());
             cmd.SetGlobalInt(HDShaderIDs._DebugLightingMode, (int)m_CurrentDebugDisplaySettings.GetDebugLightingMode());
             cmd.SetGlobalInt(HDShaderIDs._DebugMipMapMode, (int)m_CurrentDebugDisplaySettings.GetDebugMipMapMode());
             cmd.SetGlobalVector(HDShaderIDs._DebugLightingAlbedo, debugAlbedo);
+            cmd.SetGlobalVector(HDShaderIDs._DebugLuxMeterParam, luxMeterParam);
             cmd.SetGlobalVector(HDShaderIDs._DebugLightingSmoothness, debugSmoothness);
         }
 

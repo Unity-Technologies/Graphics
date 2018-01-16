@@ -96,6 +96,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_DebugPanel.GetDebugItem(DebugDisplaySettings.kDebugLightingAlbedo).handler.OnEditorGUI();
                     EditorGUI.indentLevel--;
                 }
+                else if ((DebugLightingMode)lightingDebugModeItem.GetValue() == DebugLightingMode.LuxMeter)
+                {
+                    EditorGUI.indentLevel++;
+                    m_DebugPanel.GetDebugItem(DebugDisplaySettings.kLuxMeterThreshold0Debug).handler.OnEditorGUI();
+                    m_DebugPanel.GetDebugItem(DebugDisplaySettings.kLuxMeterThreshold1Debug).handler.OnEditorGUI();
+                    m_DebugPanel.GetDebugItem(DebugDisplaySettings.kLuxMeterThreshold2Debug).handler.OnEditorGUI();
+                    m_DebugPanel.GetDebugItem(DebugDisplaySettings.kLuxMeterThreshold3Debug).handler.OnEditorGUI();
+                    EditorGUI.indentLevel--;
+                }
 
                 var fullScreenDebugModeHandler = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kFullScreenDebugMode);
                 fullScreenDebugModeHandler.handler.OnEditorGUI();
