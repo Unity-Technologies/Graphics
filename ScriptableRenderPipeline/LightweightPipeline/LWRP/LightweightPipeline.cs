@@ -142,6 +142,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private bool m_IntermediateTextureArray;
         private bool m_RequireDepth;
         private bool m_RequireCopyColor;
+        private bool m_DepthRenderBuffer;
         private MixedLightingSetup m_MixedLightingSetup;
 
         private const int kDepthStencilBufferBits = 32;
@@ -316,7 +317,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 ShadowPass(visibleLights, ref context, ref lightData);
 
                 FrameRenderingConfiguration frameRenderingConfiguration;
-                SetupFrameRendering(out frameRenderingConfiguration, stereoEnabled);
+                SetupFrameRenderingConfiguration(out frameRenderingConfiguration, stereoEnabled);
                 SetupIntermediateResources(frameRenderingConfiguration, ref context);
 
                 // SetupCameraProperties does the following:
@@ -329,7 +330,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 // Setup global time properties (_Time, _SinTime, _CosTime)
                 context.SetupCameraProperties(m_CurrCamera, stereoEnabled);
 
-                if (LightweightUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.DepthPass))
+                if (LightweightUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.DepthPrePass))
                     DepthPass(ref context);
                 ForwardPass(visibleLights, frameRenderingConfiguration, ref context, ref lightData, stereoEnabled);
 
@@ -441,12 +442,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBuffer cmd = CommandBufferPool.Get("After Opaque");
             cmd.SetGlobalTexture(CameraRenderTargetID.depth, m_DepthRT);
 
+            bool setRenderTarget = false;
+            RenderTargetIdentifier depthRT = m_DepthRT;
+
             // TODO: There's currently an issue in the PostFX stack that has a one frame delay when an effect is enabled/disabled
             // when an effect is disabled, HasOpaqueOnlyEffects returns true in the first frame, however inside render the effect
             // state is update, causing RenderPostProcess here to not blit to FinalColorRT. Until the next frame the RT will have garbage.
             if (LightweightUtils.HasFlag(config, FrameRenderingConfiguration.BeforeTransparentPostProcess))
             {
-                // When only have one effect in the stack. We blit to a work RT then blit it back to active color RT.
+                // When only have one effect in the stack we blit to a work RT then blit it back to active color RT.
                 // This seems like an extra blit but it saves us a depth copy/blit which has some corner cases like msaa depth resolve.
                 if (m_RequireCopyColor)
                 {
@@ -456,18 +460,19 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 else
                     RenderPostProcess(cmd, m_CurrCameraColorRT, m_CurrCameraColorRT, true);
 
-                if (LightweightUtils.HasFlag(config, FrameRenderingConfiguration.DepthPass))
-                    cmd.SetRenderTarget(m_CurrCameraColorRT);
-                else
-                    cmd.SetRenderTarget(m_CurrCameraColorRT, m_DepthRT);
+                setRenderTarget = true;
+                SetRenderTarget(cmd, m_CurrCameraColorRT, m_DepthRT);
             }
 
             if (LightweightUtils.HasFlag(config, FrameRenderingConfiguration.DepthCopy))
             {
                 CopyTexture(cmd, m_DepthRT, m_CopyDepth, m_CopyDepthMaterial);
-                SetRenderTarget(cmd, m_CurrCameraColorRT, m_CopyDepth);
+                depthRT = m_CopyDepth;
+                setRenderTarget = true;
             }
 
+            if (setRenderTarget)
+                SetRenderTarget(cmd, m_CurrCameraColorRT, depthRT);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
@@ -545,7 +550,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        private void SetupFrameRendering(out FrameRenderingConfiguration configuration, bool stereoEnabled)
+        private void SetupFrameRenderingConfiguration(out FrameRenderingConfiguration configuration, bool stereoEnabled)
         {
             configuration = (stereoEnabled) ? FrameRenderingConfiguration.Stereo : FrameRenderingConfiguration.None;
             if (stereoEnabled && XRSettings.eyeTextureDesc.dimension == TextureDimension.Tex2DArray)
@@ -560,6 +565,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_ColorFormat = hdrEnabled ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
             m_RequireDepth = false;
             m_RequireCopyColor = false;
+            m_DepthRenderBuffer = false;
             m_CameraPostProcessLayer = m_CurrCamera.GetComponent<PostProcessLayer>();
 
             bool msaaEnabled = m_CurrCamera.allowMSAA && m_Asset.MSAASampleCount > 1 && (m_CurrCamera.targetTexture == null || m_CurrCamera.targetTexture.antiAliasing > 1);
@@ -579,10 +585,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     if (m_CameraPostProcessLayer.sortedBundles[PostProcessEvent.BeforeTransparent].Count == 1)
                         m_RequireCopyColor = true;
                 }
-
-                // Resolving depth msaa requires texture2DMS. Currently if msaa is enabled we do a depth pre-pass.
-                if (msaaEnabled)
-                    configuration |= FrameRenderingConfiguration.DepthPass;
             }
 
             // In case of soft particles we need depth copy. If depth copy not supported fallback to depth prepass
@@ -590,17 +592,31 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 m_RequireDepth = true;
                 intermediateTexture = true;
-
-                bool supportsDepthCopy = m_CopyTextureSupport != CopyTextureSupport.None && m_Asset.CopyDepthShader.isSupported;
-
-                // currently fallback to depth prepass if msaa is enabled since. We need texture2DMS to support depth resolve.
-                configuration |= (msaaEnabled || !supportsDepthCopy) ? FrameRenderingConfiguration.DepthPass : FrameRenderingConfiguration.DepthCopy;
             }
 
             if (msaaEnabled)
             {
                 configuration |= FrameRenderingConfiguration.Msaa;
                 intermediateTexture = intermediateTexture || !LightweightUtils.PlatformSupportsMSAABackBuffer();
+            }
+
+            if (m_RequireDepth)
+            {
+                // If msaa is enabled we don't use a depth renderbuffer as we might not have support to Texture2DMS to resolve depth.
+                // Instead we use a depth prepass and whenever depth is needed we use the 1 sample depth from prepass.
+                if (!msaaEnabled)
+                {
+                    bool supportsDepthCopy = m_CopyTextureSupport != CopyTextureSupport.None && m_Asset.CopyDepthShader.isSupported;
+                    m_DepthRenderBuffer = true;
+
+                    // Soft particles need separate depth as it reads/write to depth at same time
+                    if (softParticlesEnabled)
+                        configuration |= (supportsDepthCopy) ? FrameRenderingConfiguration.DepthCopy : FrameRenderingConfiguration.DepthPrePass;
+                }
+                else
+                {
+                    configuration |= FrameRenderingConfiguration.DepthPrePass;
+                }
             }
 
             Rect cameraRect = m_CurrCamera.rect;
@@ -1222,7 +1238,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (!m_IsOffscreenCamera)
                     colorRT = m_CurrCameraColorRT;
 
-                if (m_RequireDepth && !LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.DepthPass))
+                if (m_RequireDepth)
                     depthRT = m_DepthRT;
             }
 
@@ -1303,7 +1319,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorRT, RenderTargetIdentifier depthRT, ClearFlag clearFlag = ClearFlag.None)
         {
-            if (depthRT == BuiltinRenderTextureType.None)
+            if (depthRT == BuiltinRenderTextureType.None || !m_DepthRenderBuffer)
             {
                 SetRenderTarget(cmd, colorRT, clearFlag);
                 return;
