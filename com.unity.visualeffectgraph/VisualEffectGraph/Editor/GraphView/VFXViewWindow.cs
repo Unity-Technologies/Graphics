@@ -2,7 +2,7 @@ using System;
 using UnityEditor.Experimental.UIElements;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.VFX;
 using System.Collections.Generic;

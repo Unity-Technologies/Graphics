@@ -6,8 +6,8 @@ using System.Reflection;
 using UnityEditor.Experimental.UIElements.GraphView;
 
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using UnityEngine.Experimental.UIElements;
-using UnityEngine.VFX;
 
 
 namespace UnityEditor.VFX.UI

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -214,7 +214,7 @@ namespace UnityEditor.VFX
             m_ReadSourceAttributes.Clear();
             if (type == VFXDataType.kParticle)
             {
-                m_ReadSourceAttributes.Add(new VFXAttribute("spawnCount", UnityEngine.VFX.VFXValueType.kFloat));
+                m_ReadSourceAttributes.Add(new VFXAttribute("spawnCount", VFXValueType.kFloat));
             }
 
             int nbOwners = m_Owners.Count;
