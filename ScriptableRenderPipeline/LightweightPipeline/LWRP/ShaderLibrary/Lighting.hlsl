@@ -113,7 +113,7 @@ half4 GetLightDirectionAndRealtimeAttenuation(LightInput lightInput, float3 posi
 {
     half4 directionAndAttenuation;
     float3 posToLightVec = lightInput.position.xyz - positionWS * lightInput.position.w;
-    float distanceSqr = max(dot(posToLightVec, posToLightVec), 0.001);
+    float distanceSqr = max(dot(posToLightVec, posToLightVec), FLT_MIN);
 
     directionAndAttenuation.xyz = half3(posToLightVec * rsqrt(distanceSqr));
     directionAndAttenuation.w = DistanceAttenuation(distanceSqr, lightInput.distanceAttenuation.xyz);
@@ -138,7 +138,11 @@ half4 GetMainLightDirectionAndRealtimeAttenuation(LightInput lightInput, float3 
     return directionAndAttenuation;
 }
 
-Light GetMainLight(half3 positionWS)
+///////////////////////////////////////////////////////////////////////////////
+//                      Light Abstraction                                    //
+///////////////////////////////////////////////////////////////////////////////
+
+Light GetMainLight(float3 positionWS)
 {
     LightInput lightInput;
     lightInput.position = _MainLightPosition;
@@ -158,7 +162,7 @@ Light GetMainLight(half3 positionWS)
     return light;
 }
 
-Light GetLight(int i, half3 positionWS)
+Light GetLight(int i, float3 positionWS)
 {
     LightInput lightInput;
     half4 indices = (i < 4) ? unity_4LightIndices0 : unity_4LightIndices1;
@@ -184,6 +188,116 @@ Light GetLight(int i, half3 positionWS)
 half GetPixelLightCount()
 {
     return min(_AdditionalLightCount.x, unity_LightIndicesOffsetAndCount.y);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//                         BRDF Functions                                    //
+///////////////////////////////////////////////////////////////////////////////
+
+#define kDieletricSpec half4(0.04, 0.04, 0.04, 1.0 - 0.04) // standard dielectric reflectivity coef at incident angle (= 4%)
+
+struct BRDFData
+{
+    half3 diffuse;
+    half3 specular;
+    half perceptualRoughness;
+    half roughness;
+    half roughness2;
+    half grazingTerm;
+};
+
+half ReflectivitySpecular(half3 specular)
+{
+#if (SHADER_TARGET < 30)
+    // SM2.0: instruction count limitation
+    return specular.r; // Red channel - because most metals are either monocrhome or with redish/yellowish tint
+#else
+    return max(max(specular.r, specular.g), specular.b);
+#endif
+}
+
+half OneMinusReflectivityMetallic(half metallic)
+{
+    // We'll need oneMinusReflectivity, so
+    //   1-reflectivity = 1-lerp(dielectricSpec, 1, metallic) = lerp(1-dielectricSpec, 0, metallic)
+    // store (1-dielectricSpec) in kDieletricSpec.a, then
+    //   1-reflectivity = lerp(alpha, 0, metallic) = alpha + metallic*(0 - alpha) =
+    //                  = alpha - metallic * alpha
+    half oneMinusDielectricSpec = kDieletricSpec.a;
+    return oneMinusDielectricSpec - metallic * oneMinusDielectricSpec;
+}
+
+inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half smoothness, half alpha, out BRDFData outBRDFData)
+{
+#ifdef _SPECULAR_SETUP
+    half reflectivity = ReflectivitySpecular(specular);
+    half oneMinusReflectivity = 1.0 - reflectivity;
+
+    outBRDFData.diffuse = albedo * (half3(1.0h, 1.0h, 1.0h) - specular);
+    outBRDFData.specular = specular;
+#else
+
+    half oneMinusReflectivity = OneMinusReflectivityMetallic(metallic);
+    half reflectivity = 1.0 - oneMinusReflectivity;
+
+    outBRDFData.diffuse = albedo * oneMinusReflectivity;
+    outBRDFData.specular = lerp(kDieletricSpec.rgb, albedo, metallic);
+#endif
+
+    outBRDFData.grazingTerm = saturate(smoothness + reflectivity);
+    outBRDFData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(smoothness);
+    outBRDFData.roughness = PerceptualRoughnessToRoughness(outBRDFData.perceptualRoughness);
+    outBRDFData.roughness2 = outBRDFData.roughness * outBRDFData.roughness;
+
+#ifdef _ALPHAPREMULTIPLY_ON
+    outBRDFData.diffuse *= alpha;
+    alpha = alpha * oneMinusReflectivity + reflectivity;
+#endif
+}
+
+half3 EnvironmentBRDF(BRDFData brdfData, half3 indirectDiffuse, half3 indirectSpecular, half fresnelTerm)
+{
+    half3 c = indirectDiffuse * brdfData.diffuse;
+    float surfaceReduction = 1.0 / (brdfData.roughness2 + 1.0);
+    c += surfaceReduction * indirectSpecular * lerp(brdfData.specular, brdfData.grazingTerm, fresnelTerm);
+    return c;
+}
+
+// Based on Minimalist CookTorrance BRDF
+// Implementation is slightly different from original derivation: http://www.thetenthplanet.de/archives/255
+//
+// * NDF [Modified] GGX
+// * Modified Kelemen and Szirmay-​Kalos for Visibility term
+// * Fresnel approximated with 1/LdotH
+half3 DirectBDRF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half3 viewDirectionWS)
+{
+#ifndef _SPECULARHIGHLIGHTS_OFF
+    half3 halfDir = SafeNormalize(lightDirectionWS + viewDirectionWS);
+
+    half NoH = saturate(dot(normalWS, halfDir));
+    half LoH = saturate(dot(lightDirectionWS, halfDir));
+
+    // GGX Distribution multiplied by combined approximation of Visibility and Fresnel
+    // See "Optimizing PBR for Mobile" from Siggraph 2015 moving mobile graphics course
+    // https://community.arm.com/events/1155
+    half d = NoH * NoH * (brdfData.roughness2 - 1.h) + 1.00001h;
+
+    half LoH2 = LoH * LoH;
+    half specularTerm = brdfData.roughness2 / ((d * d) * max(0.1h, LoH2) * (brdfData.roughness + 0.5h) * 4);
+
+    // on mobiles (where half actually means something) denominator have risk of overflow
+    // clamp below was added specifically to "fix" that, but dx compiler (we convert bytecode to metal/gles)
+    // sees that specularTerm have only non-negative terms, so it skips max(0,..) in clamp (leaving only min(100,...))
+#if defined (SHADER_API_MOBILE)
+    specularTerm = specularTerm - HALF_MIN;
+    specularTerm = clamp(specularTerm, 0.0, 100.0); // Prevent FP16 overflow on mobiles
+#endif
+
+    half3 color = specularTerm * brdfData.specular + brdfData.diffuse;
+    return color;
+#else
+    return brdfData.diffuse;
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -323,117 +437,15 @@ half3 SubtractDirectMainLightFromLightmap(Light mainLight, half3 normalWS, half3
     return bakedGI;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-//                         BRDF Functions                                    //
-///////////////////////////////////////////////////////////////////////////////
-
-#define kDieletricSpec half4(0.04, 0.04, 0.04, 1.0 - 0.04) // standard dielectric reflectivity coef at incident angle (= 4%)
-
-struct BRDFData
+half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3 normalWS, half3 viewDirectionWS)
 {
-    half3 diffuse;
-    half3 specular;
-    half perceptualRoughness;
-    half roughness;
-    half roughness2;
-    half grazingTerm;
-};
+    half3 reflectVector = reflect(-viewDirectionWS, normalWS);
+    half fresnelTerm = Pow4(1.0 - saturate(dot(normalWS, viewDirectionWS)));
 
-half ReflectivitySpecular(half3 specular)
-{
-#if (SHADER_TARGET < 30)
-    // SM2.0: instruction count limitation
-    return specular.r; // Red channel - because most metals are either monocrhome or with redish/yellowish tint
-#else
-    return max(max(specular.r, specular.g), specular.b);
-#endif
-}
+    half3 indirectDiffuse = bakedGI * occlusion;
+    half3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfData.perceptualRoughness, occlusion);
 
-half OneMinusReflectivityMetallic(half metallic)
-{
-    // We'll need oneMinusReflectivity, so
-    //   1-reflectivity = 1-lerp(dielectricSpec, 1, metallic) = lerp(1-dielectricSpec, 0, metallic)
-    // store (1-dielectricSpec) in kDieletricSpec.a, then
-    //   1-reflectivity = lerp(alpha, 0, metallic) = alpha + metallic*(0 - alpha) =
-    //                  = alpha - metallic * alpha
-    half oneMinusDielectricSpec = kDieletricSpec.a;
-    return oneMinusDielectricSpec - metallic * oneMinusDielectricSpec;
-}
-
-inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half smoothness, half alpha, out BRDFData outBRDFData)
-{
-#ifdef _SPECULAR_SETUP
-    half reflectivity = ReflectivitySpecular(specular);
-    half oneMinusReflectivity = 1.0 - reflectivity;
-
-    outBRDFData.diffuse = albedo * (half3(1.0h, 1.0h, 1.0h) - specular);
-    outBRDFData.specular = specular;
-#else
-
-    half oneMinusReflectivity = OneMinusReflectivityMetallic(metallic);
-    half reflectivity = 1.0 - oneMinusReflectivity;
-
-    outBRDFData.diffuse = albedo * oneMinusReflectivity;
-    outBRDFData.specular = lerp(kDieletricSpec.rgb, albedo, metallic);
-#endif
-
-    outBRDFData.grazingTerm = saturate(smoothness + reflectivity);
-    outBRDFData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(smoothness);
-    outBRDFData.roughness = PerceptualRoughnessToRoughness(outBRDFData.perceptualRoughness);
-    outBRDFData.roughness2 = outBRDFData.roughness * outBRDFData.roughness;
-
-#ifdef _ALPHAPREMULTIPLY_ON
-    outBRDFData.diffuse *= alpha;
-    alpha = alpha * oneMinusReflectivity + reflectivity;
-#endif
-}
-
-half3 EnvironmentBRDF(BRDFData brdfData, half3 indirectDiffuse, half3 indirectSpecular, half fresnelTerm)
-{
-    half3 c = indirectDiffuse * brdfData.diffuse;
-    float surfaceReduction = 1.0 / (brdfData.roughness2 + 1.0);
-    c += surfaceReduction * indirectSpecular * lerp(brdfData.specular, brdfData.grazingTerm, fresnelTerm);
-    return c;
-}
-
-// Based on Minimalist CookTorrance BRDF
-// Implementation is slightly different from original derivation: http://www.thetenthplanet.de/archives/255
-//
-// * NDF [Modified] GGX
-// * Modified Kelemen and Szirmay-​Kalos for Visibility term
-// * Fresnel approximated with 1/LdotH
-half3 DirectBDRF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half3 viewDirectionWS)
-{
-#ifndef _SPECULARHIGHLIGHTS_OFF
-    half3 halfDir = SafeNormalize(lightDirectionWS + viewDirectionWS);
-
-    half NoH = saturate(dot(normalWS, halfDir));
-    half LoH = saturate(dot(lightDirectionWS, halfDir));
-
-    // GGX Distribution multiplied by combined approximation of Visibility and Fresnel
-    // See "Optimizing PBR for Mobile" from Siggraph 2015 moving mobile graphics course
-    // https://community.arm.com/events/1155
-    half d = NoH * NoH * (brdfData.roughness2 - 1.h) + 1.00001h;
-
-    half LoH2 = LoH * LoH;
-    half specularTerm = brdfData.roughness2 / ((d * d) * max(0.1h, LoH2) * (brdfData.roughness + 0.5h) * 4);
-
-    // on mobiles (where half actually means something) denominator have risk of overflow
-    // clamp below was added specifically to "fix" that, but dx compiler (we convert bytecode to metal/gles)
-    // sees that specularTerm have only non-negative terms, so it skips max(0,..) in clamp (leaving only min(100,...))
-#if defined (SHADER_API_MOBILE)
-    specularTerm = specularTerm - 1e-4h;
-#endif
-
-#if defined (SHADER_API_MOBILE)
-    specularTerm = clamp(specularTerm, 0.0, 100.0); // Prevent FP16 overflow on mobiles
-#endif
-
-    half3 color = specularTerm * brdfData.specular + brdfData.diffuse;
-    return color;
-#else
-    return brdfData.diffuse;
-#endif
+    return EnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, fresnelTerm);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -453,27 +465,16 @@ half3 LightingSpecular(half3 lightColor, half3 lightDir, half3 normal, half3 vie
     return lightColor * specularReflection;
 }
 
-half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3 normalWS, half3 viewDirectionWS)
-{
-    half3 reflectVector = reflect(-viewDirectionWS, normalWS);
-    half fresnelTerm = Pow4(1.0 - saturate(dot(normalWS, viewDirectionWS)));
-
-    half3 indirectDiffuse = bakedGI * occlusion;
-    half3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfData.perceptualRoughness, occlusion);
-
-    return EnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, fresnelTerm);
-}
-
-half3 ShadeLight(BRDFData brdfData, half3 lightColor, half3 lightDirectionWS, half lightAttenuation, half3 normalWS, half3 viewDirectionWS)
+half3 LightingPhysicallyBased(BRDFData brdfData, half3 lightColor, half3 lightDirectionWS, half lightAttenuation, half3 normalWS, half3 viewDirectionWS)
 {
     half NdotL = saturate(dot(normalWS, lightDirectionWS));
     half3 radiance = lightColor * (lightAttenuation * NdotL);
     return DirectBDRF(brdfData, normalWS, lightDirectionWS, viewDirectionWS) * radiance;
 }
 
-half3 ShadeLight(BRDFData brdfData, Light light, half3 normalWS, half3 viewDirectionWS)
+half3 LightingPhysicallyBased(BRDFData brdfData, Light light, half3 normalWS, half3 viewDirectionWS)
 {
-    return ShadeLight(brdfData, light.color, light.direction, light.attenuation, normalWS, viewDirectionWS);
+    return LightingPhysicallyBased(brdfData, light.color, light.direction, light.attenuation, normalWS, viewDirectionWS);
 }
 
 half3 VertexLighting(float3 positionWS, half3 normalWS)
@@ -509,14 +510,14 @@ half4 LightweightFragmentPBR(float3 positionWS, half3 normalWS, half3 viewDirect
     Light mainLight = GetMainLight(positionWS);
     bakedGI = SubtractDirectMainLightFromLightmap(mainLight, normalWS, bakedGI);
     half3 color = GlobalIllumination(brdfData, bakedGI, occlusion, normalWS, viewDirectionWS);
-    color += ShadeLight(brdfData, mainLight, normalWS, viewDirectionWS);
+    color += LightingPhysicallyBased(brdfData, mainLight, normalWS, viewDirectionWS);
 
 #ifdef _ADDITIONAL_LIGHTS
     int pixelLightCount = GetPixelLightCount();
     for (int i = 0; i < pixelLightCount; ++i)
     {
         Light light = GetLight(i, positionWS);
-        color += ShadeLight(brdfData, light, normalWS, viewDirectionWS);
+        color += LightingPhysicallyBased(brdfData, light, normalWS, viewDirectionWS);
     }
 #endif
 
@@ -531,10 +532,8 @@ half4 LightweightFragmentLambert(float3 positionWS, half3 normalWS, half3 viewDi
     half3 lightDirection;
 
     Light mainLight = GetMainLight(positionWS);
-    half3 NdotL = saturate(dot(normalWS, mainLight.direction));
-    half3 lambert = mainLight.color * NdotL;
-
     half3 indirectDiffuse = SubtractDirectMainLightFromLightmap(mainLight, normalWS, bakedGI);
+    half3 lambert = LightingLambert(mainLight.color, mainLight.direction, normalWS);
     half3 diffuseColor = lambert * mainLight.attenuation + indirectDiffuse;
 
 #ifdef _ADDITIONAL_LIGHTS
@@ -549,7 +548,6 @@ half4 LightweightFragmentLambert(float3 positionWS, half3 normalWS, half3 viewDi
 
     half3 finalColor = diffuseColor * diffuse + emission;
 
-    // Computes Fog Factor per vextex
     ApplyFog(finalColor, fogFactor);
     return half4(finalColor, alpha);
 }
@@ -560,12 +558,11 @@ half4 LightweightFragmentBlinnPhong(float3 positionWS, half3 normalWS, half3 vie
     half3 lightDirection;
 
     Light mainLight = GetMainLight(positionWS);
-    half3 NdotL = saturate(dot(normalWS, mainLight.direction));
-    half3 lambert = mainLight.color * NdotL;
-
     half3 indirectDiffuse = SubtractDirectMainLightFromLightmap(mainLight, normalWS, bakedGI);
-    half3 diffuseColor = lambert * mainLight.attenuation + indirectDiffuse;
-    half3 specularColor = LightingSpecular(mainLight.color * mainLight.attenuation, mainLight.direction, normalWS, viewDirectionWS, specularGloss, shininess);
+
+    half3 attenuatedLightColor = mainLight.color * mainLight.attenuation;
+    half3 diffuseColor = indirectDiffuse + LightingLambert(attenuatedLightColor, mainLight.direction, normalWS);
+    half3 specularColor = LightingSpecular(attenuatedLightColor, mainLight.direction, normalWS, viewDirectionWS, specularGloss, shininess);
 
 #ifdef _ADDITIONAL_LIGHTS
     int pixelLightCount = GetPixelLightCount();
@@ -581,7 +578,6 @@ half4 LightweightFragmentBlinnPhong(float3 positionWS, half3 normalWS, half3 vie
     half3 finalColor = diffuseColor * diffuse + emission;
     finalColor += specularColor;
 
-    // Computes Fog Factor per vextex
     ApplyFog(finalColor, fogFactor);
     return half4(finalColor, alpha);
 }
