@@ -299,11 +299,12 @@ namespace UnityEditor.VFX.UI
 
             var cullingOption = new[]
             {
-                new { option = "Cull simulation and bounds", value = (uint)(VFXCullingFlags.CullSimulation | VFXCullingFlags.CullBoundsUpdate) },
-                new { option = "Cull simulation only", value = (uint)(VFXCullingFlags.CullSimulation) },                new { option = "Disable culling", value = 0u },
+                new { option = "Cull simulation and bounds", value = (VFXCullingFlags.CullSimulation | VFXCullingFlags.CullBoundsUpdate) },
+                new { option = "Cull simulation only", value = (VFXCullingFlags.CullSimulation) },
+                new { option = "Disable culling", value = VFXCullingFlags.CullNone },
             };
 
-            Func<uint, string> fnValueToGUI = delegate(uint flags)
+            Func<VFXCullingFlags, string> fnValueToGUI = delegate(VFXCullingFlags flags)
                 {
                     return cullingOption.First(o => o.value == flags).option;
                 };
@@ -315,8 +316,8 @@ namespace UnityEditor.VFX.UI
                     {
                         menu.AddItem(new GUIContent(val.option), val.value == cullingFlags, (v) =>
                         {
-                            cullingFlags = (uint)v;
-                            m_DropDownButtonCullingMode.text = fnValueToGUI((uint)v);
+                            cullingFlags = (VFXCullingFlags)v;
+                            m_DropDownButtonCullingMode.text = fnValueToGUI((VFXCullingFlags)v);
                         }, val.value);
                     }
                     menu.DropDown(m_DropDownButtonCullingMode.worldBound);
@@ -631,7 +632,7 @@ namespace UnityEditor.VFX.UI
             return new VFXRendererSettings();
         }
 
-        uint cullingFlags
+        VFXCullingFlags cullingFlags
         {
             get
             {
@@ -641,7 +642,7 @@ namespace UnityEditor.VFX.UI
                     if (asset != null)
                         return asset.cullingFlags;
                 }
-                return (uint)VFXCullingFlags.CullDefault;
+                return VFXCullingFlags.CullDefault;
             }
 
             set

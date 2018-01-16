@@ -5270,7 +5270,7 @@ VFXAsset:
       - index: 90
         nameId: ArcSphere_arc_e
       params: []
-      processor: {fileID: 7200000, guid: 596cd97a3dcbfe34fb96a5a022c3ba4e, type: 3}
+      processor: {fileID: 7200000, guid: 787b36aab47a06240aff5c9fa0a9fa28, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5289,7 +5289,7 @@ VFXAsset:
       - index: 55
         nameId: deltaTime_f
       params: []
-      processor: {fileID: 7200000, guid: 8028977ad8c9c454399b37d71716f344, type: 3}
+      processor: {fileID: 7200000, guid: c5d2c8171c2f11840989fdd8d5a8144a, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -5308,7 +5308,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 804c714b81712f44abcdc2bd876647db, type: 3}
+      processor: {fileID: 4800000, guid: c9fc8c8a2aeb77f41a8ffdbcb8314d89, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -5327,7 +5327,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: f8719e6360c1f7445a34fcd8eee3e575, type: 3}
+      processor: {fileID: 4800000, guid: 218408ee33156744f9cd1a65306181b5, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -5346,7 +5346,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 7ed21ea72e9a6ea45ad33f4a95d023d0, type: 3}
+      processor: {fileID: 4800000, guid: 919e1b82c1fdab14a9fcf6290f4b8daa, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -5363,7 +5363,7 @@ VFXAsset:
       params:
       - index: -1
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 112930e8f761ada4987a49b224805ff5, type: 3}
+      processor: {fileID: 4800000, guid: e39248dad97f901499726703d8a11d88, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -5377,3 +5377,4 @@ VFXAsset:
     receiveShadows: 0
     reflectionProbeUsage: 0
     lightProbeUsage: 0
+  m_CullingFlags: 3

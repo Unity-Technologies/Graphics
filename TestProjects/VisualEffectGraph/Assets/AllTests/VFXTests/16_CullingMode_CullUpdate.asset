@@ -2,7 +2,7 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &114011674199994030
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -34,7 +34,7 @@ MonoBehaviour:
   m_LinkedSlots: []
 --- !u!114 &114024329143904430
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -66,7 +66,7 @@ MonoBehaviour:
   m_LinkedSlots: []
 --- !u!114 &114063346275715502
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -86,7 +86,7 @@ MonoBehaviour:
   - {fileID: 114846533399427686}
 --- !u!114 &114080382819234454
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -118,7 +118,7 @@ MonoBehaviour:
   m_LinkedSlots: []
 --- !u!114 &114089541377191232
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -154,7 +154,7 @@ MonoBehaviour:
   - {fileID: 114700477181914002}
 --- !u!114 &114099567611028338
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -185,7 +185,7 @@ MonoBehaviour:
   m_LinkedSlots: []
 --- !u!114 &114101901453820152
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -218,7 +218,7 @@ MonoBehaviour:
   - {fileID: 114887442911679238}
 --- !u!114 &114111810604227346
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -249,7 +249,7 @@ MonoBehaviour:
   m_LinkedSlots: []
 --- !u!114 &114190878345431950
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -276,7 +276,7 @@ MonoBehaviour:
   m_saved: 1
 --- !u!114 &114220971160679732
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -306,7 +306,7 @@ MonoBehaviour:
     m_SerializableObject: 
 --- !u!114 &114247875503762258
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -337,7 +337,7 @@ MonoBehaviour:
   m_LinkedSlots: []
 --- !u!114 &114250998323455600
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -368,7 +368,7 @@ MonoBehaviour:
   m_LinkedSlots: []
 --- !u!114 &114258099101111446
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -399,7 +399,7 @@ MonoBehaviour:
   m_LinkedSlots: []
 --- !u!114 &114271927118743992
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -421,7 +421,7 @@ MonoBehaviour:
   - {fileID: 114427896611424840}
 --- !u!114 &114283661946716680
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -452,7 +452,7 @@ MonoBehaviour:
   m_LinkedSlots: []
 --- !u!114 &114298821888794522
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -483,7 +483,7 @@ MonoBehaviour:
   m_LinkedSlots: []
 --- !u!114 &114299495085207236
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -515,7 +515,7 @@ MonoBehaviour:
   m_LinkedSlots: []
 --- !u!114 &114299854872376946
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -548,7 +548,7 @@ MonoBehaviour:
   - {fileID: 114675632975273184}
 --- !u!114 &114328751368778282
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -579,7 +579,7 @@ MonoBehaviour:
   m_LinkedSlots: []
 --- !u!114 &114332507836999528
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -617,7 +617,7 @@ MonoBehaviour:
   m_LinkedSlots: []
 --- !u!114 &114342804572643104
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -650,7 +650,7 @@ MonoBehaviour:
   - {fileID: 114846533399427686}
 --- !u!114 &114391987638817538
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -681,7 +681,7 @@ MonoBehaviour:
   m_LinkedSlots: []
 --- !u!114 &114399292369159298
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -703,7 +703,7 @@ MonoBehaviour:
   - {fileID: 114587010093769532}
 --- !u!114 &114427896611424840
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -736,7 +736,7 @@ MonoBehaviour:
   - {fileID: 114770062067690566}
 --- !u!114 &114469642889356662
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -767,7 +767,7 @@ MonoBehaviour:
   m_LinkedSlots: []
 --- !u!114 &114479405765983972
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -790,7 +790,7 @@ MonoBehaviour:
   AlphaComposition: 2
 --- !u!114 &114491403854480532
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -821,7 +821,7 @@ MonoBehaviour:
   m_LinkedSlots: []
 --- !u!114 &114498181595756444
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -853,7 +853,7 @@ MonoBehaviour:
   m_LinkedSlots: []
 --- !u!114 &114498596232787114
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -873,7 +873,7 @@ MonoBehaviour:
   mode: 0
 --- !u!114 &114507805763603914
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -905,7 +905,7 @@ MonoBehaviour:
   m_LinkedSlots: []
 --- !u!114 &114525182557404160
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -936,7 +936,7 @@ MonoBehaviour:
   m_LinkedSlots: []
 --- !u!114 &114546344818435080
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -956,7 +956,7 @@ MonoBehaviour:
   m_Disabled: 0
 --- !u!114 &114571766123771504
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -987,7 +987,7 @@ MonoBehaviour:
   m_LinkedSlots: []
 --- !u!114 &114571923405776042
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -1017,7 +1017,7 @@ MonoBehaviour:
       slotIndex: 0
 --- !u!114 &114586708889774204
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -1048,7 +1048,7 @@ MonoBehaviour:
   m_LinkedSlots: []
 --- !u!114 &114587010093769532
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -1085,7 +1085,7 @@ MonoBehaviour:
   - {fileID: 114613810723286314}
 --- !u!114 &114591868403027336
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -1107,7 +1107,7 @@ MonoBehaviour:
   m_Space: 0
 --- !u!114 &114613810723286314
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -1146,7 +1146,7 @@ MonoBehaviour:
   - {fileID: 114587010093769532}
 --- !u!114 &114658178759232994
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -1174,7 +1174,7 @@ MonoBehaviour:
   integration: 0
 --- !u!114 &114663270059283082
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -1197,7 +1197,7 @@ MonoBehaviour:
   Random: 0
 --- !u!114 &114675632975273184
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -1230,7 +1230,7 @@ MonoBehaviour:
   - {fileID: 114299854872376946}
 --- !u!114 &114700477181914002
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -1263,7 +1263,7 @@ MonoBehaviour:
   - {fileID: 114089541377191232}
 --- !u!114 &114770062067690566
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -1300,7 +1300,7 @@ MonoBehaviour:
   - {fileID: 114427896611424840}
 --- !u!114 &114772686465911632
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -1327,7 +1327,7 @@ MonoBehaviour:
       slotIndex: 0
 --- !u!114 &114823831646293064
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -1356,14 +1356,14 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
-  flipBook: 0
   useGeometryShader: 0
 --- !u!114 &114846533399427686
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -1396,7 +1396,7 @@ MonoBehaviour:
   - {fileID: 114342804572643104}
 --- !u!114 &114853957764547520
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -1427,7 +1427,7 @@ MonoBehaviour:
   m_LinkedSlots: []
 --- !u!114 &114880071494137674
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -1457,7 +1457,7 @@ MonoBehaviour:
     m_SerializableObject: 
 --- !u!114 &114886259534172262
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -1493,7 +1493,7 @@ MonoBehaviour:
   - {fileID: 114587010093769532}
 --- !u!114 &114887442911679238
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -1526,7 +1526,7 @@ MonoBehaviour:
   - {fileID: 114101901453820152}
 --- !u!114 &114891364551733592
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -1553,12 +1553,16 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
-    attributes: []
+    attributes:
+    - m_Type: 1
+      m_Min: 0
+      m_Max: Infinity
+      m_Tooltip: 
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114898416894772490
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -1592,7 +1596,7 @@ MonoBehaviour:
   m_LinkedSlots: []
 --- !u!114 &114923016951914188
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -1615,7 +1619,7 @@ MonoBehaviour:
   Random: 0
 --- !u!114 &114942904734927564
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -1638,7 +1642,7 @@ MonoBehaviour:
   Random: 0
 --- !u!114 &114945241805470308
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -1658,7 +1662,7 @@ MonoBehaviour:
   m_expressionOp: 14
 --- !u!114 &114962349886332802
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -1681,7 +1685,7 @@ MonoBehaviour:
   Random: 0
 --- !u!114 &114978308560370868
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -1720,7 +1724,7 @@ VFXAsset:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: 14_CullingMode_CullUpdate
+  m_Name: 16_CullingMode_CullUpdate
   m_Graph: {fileID: 114190878345431950}
   m_Expressions:
     m_Expressions:
@@ -1786,8 +1790,8 @@ VFXAsset:
       data[3]: 1
     - op: 2
       valueIndex: 10
-      data[0]: 7
-      data[1]: 6
+      data[0]: 6
+      data[1]: 7
       data[2]: 5
       data[3]: -1
     - op: 2
@@ -1796,48 +1800,48 @@ VFXAsset:
       data[1]: 8
       data[2]: 8
       data[3]: -1
-    - op: 0
+    - op: 2
       valueIndex: 16
-      data[0]: -1
-      data[1]: -1
-      data[2]: -1
-      data[3]: 1
-    - op: 0
-      valueIndex: 17
-      data[0]: -1
-      data[1]: -1
-      data[2]: -1
-      data[3]: 1
-    - op: 0
-      valueIndex: 18
-      data[0]: -1
-      data[1]: -1
-      data[2]: -1
-      data[3]: 14
+      data[0]: 9
+      data[1]: 9
+      data[2]: 9
+      data[3]: -1
     - op: 0
       valueIndex: 19
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 27
+    - op: 0
       valueIndex: 20
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
+    - op: 0
+      valueIndex: 21
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
+    - op: 0
+      valueIndex: 22
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
+    - op: 27
+      valueIndex: 23
       data[0]: 11
       data[1]: 10
       data[2]: -1
       data[3]: 3
-    - op: 2
-      valueIndex: 23
-      data[0]: 9
-      data[1]: 9
-      data[2]: 9
-      data[3]: -1
     - op: 0
       valueIndex: 26
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 1
+      data[3]: 14
     - op: 0
       valueIndex: 27
       data[0]: -1
@@ -1849,10 +1853,16 @@ VFXAsset:
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 7
+      data[3]: 1
+    - op: 0
+      valueIndex: 29
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
     - op: 39
       valueIndex: 30
-      data[0]: 14
+      data[0]: 18
       data[1]: -1
       data[2]: -1
       data[3]: 0
@@ -1861,27 +1871,33 @@ VFXAsset:
       data[0]: -1
       data[1]: -1
       data[2]: -1
+      data[3]: 7
+    - op: 32
+      valueIndex: 33
+      data[0]: 19
+      data[1]: 16
+      data[2]: -1
       data[3]: 1
-    - op: 2
-      valueIndex: 32
-      data[0]: 12
-      data[1]: 13
-      data[2]: 15
-      data[3]: -1
     - op: 27
-      valueIndex: 35
-      data[0]: 16
-      data[1]: 17
+      valueIndex: 34
+      data[0]: 17
+      data[1]: 12
       data[2]: -1
       data[3]: 3
+    - op: 2
+      valueIndex: 37
+      data[0]: 13
+      data[1]: 15
+      data[2]: 14
+      data[3]: -1
     - op: 13
-      valueIndex: 38
+      valueIndex: 40
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: -1
     - op: 0
-      valueIndex: 39
+      valueIndex: 41
       data[0]: -1
       data[1]: -1
       data[2]: -1
@@ -1901,24 +1917,26 @@ VFXAsset:
       - m_ExpressionIndex: 5
         m_Value: 0
       - m_ExpressionIndex: 6
-        m_Value: 0
-      - m_ExpressionIndex: 7
         m_Value: 5
+      - m_ExpressionIndex: 7
+        m_Value: 0
       - m_ExpressionIndex: 9
         m_Value: 1
-      - m_ExpressionIndex: 12
-        m_Value: 0.4
       - m_ExpressionIndex: 13
+        m_Value: 0.4
+      - m_ExpressionIndex: 14
         m_Value: 0.1
       - m_ExpressionIndex: 15
         m_Value: 0.1
-      - m_ExpressionIndex: 18
-        m_Value: 0.2
+      - m_ExpressionIndex: 16
+        m_Value: 0
       - m_ExpressionIndex: 19
-        m_Value: 0.2
-      - m_ExpressionIndex: 22
         m_Value: 128
-      - m_ExpressionIndex: 26
+      - m_ExpressionIndex: 20
+        m_Value: 0.2
+      - m_ExpressionIndex: 21
+        m_Value: 0.2
+      - m_ExpressionIndex: 28
         m_Value: 0.1
     m_Vector2f:
       m_Array: []
@@ -1936,7 +1954,7 @@ VFXAsset:
       m_Array: []
     m_Gradient:
       m_Array:
-      - m_ExpressionIndex: 14
+      - m_ExpressionIndex: 18
         m_Value:
           serializedVersion: 2
           key0: {r: 1, g: 0.06861055, b: 0, a: 1}
@@ -1968,7 +1986,7 @@ VFXAsset:
           m_NumAlphaKeys: 2
     m_NamedObject:
       m_Array:
-      - m_ExpressionIndex: 20
+      - m_ExpressionIndex: 23
         m_Value: {fileID: 2800000, guid: 276d9e395ae18fe40a9b4988549f2349, type: 3}
     m_Bool:
       m_Array: []
@@ -2054,7 +2072,7 @@ VFXAsset:
     - type: 268435456
       buffers: []
       values:
-      - index: 22
+      - index: 24
         nameId: Rate
       params: []
       processor: {fileID: 0}
@@ -2073,9 +2091,9 @@ VFXAsset:
     - index: 1
       nameId: spawner_input
     values:
-    - index: 24
+    - index: 25
       nameId: bounds_center
-    - index: 23
+    - index: 26
       nameId: bounds_size
     tasks:
     - type: 536870912
@@ -2089,12 +2107,12 @@ VFXAsset:
       - index: 1
         nameId: sourceAttributeBuffer
       values:
-      - index: 26
+      - index: 28
         nameId: Lifetime_b
-      - index: 24
+      - index: 25
         nameId: Position_c
       params: []
-      processor: {fileID: 7200000, guid: 231fa64821aa3fa438c6104392305ad3, type: 3}
+      processor: {fileID: 7200000, guid: 06e73e080df2b8b49a0aaf630204476e, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -2102,27 +2120,27 @@ VFXAsset:
       - index: 2
         nameId: deadListOut
       values:
-      - index: 25
+      - index: 27
         nameId: deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: 411f44ea4c4fded4f96d72efa18b52e6, type: 3}
+      processor: {fileID: 7200000, guid: 1c2b1c71a99f098469028e4602bbe6d3, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
         nameId: attributeBuffer
       values:
-      - index: 19
-        nameId: SizeX_b
-      - index: 18
-        nameId: SizeX_c
-      - index: 21
-        nameId: gradient_d
       - index: 20
+        nameId: SizeX_b
+      - index: 21
+        nameId: SizeX_c
+      - index: 22
+        nameId: gradient_d
+      - index: 23
         nameId: mainTexture
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 07639c443c60d644f942425af9fe3057, type: 3}
+      processor: {fileID: 4800000, guid: 18a6be02031d0904ea1af8cb53029865, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
