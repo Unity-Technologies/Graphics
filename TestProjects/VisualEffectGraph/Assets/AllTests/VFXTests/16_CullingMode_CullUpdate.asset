@@ -1758,9 +1758,9 @@ VFXAsset:
       data[1]: 3
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 18
       valueIndex: 5
-      data[0]: -1
+      data[0]: 4
       data[1]: -1
       data[2]: -1
       data[3]: 1
@@ -1769,19 +1769,7 @@ VFXAsset:
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 1
-    - op: 0
-      valueIndex: 7
-      data[0]: -1
-      data[1]: -1
-      data[2]: -1
-      data[3]: 1
-    - op: 18
-      valueIndex: 8
-      data[0]: 4
-      data[1]: -1
-      data[2]: -1
-      data[3]: 1
+      data[3]: 3
     - op: 0
       valueIndex: 9
       data[0]: -1
@@ -1790,28 +1778,40 @@ VFXAsset:
       data[3]: 1
     - op: 2
       valueIndex: 10
-      data[0]: 6
-      data[1]: 7
+      data[0]: 5
+      data[1]: 5
       data[2]: 5
       data[3]: -1
-    - op: 2
-      valueIndex: 13
-      data[0]: 8
-      data[1]: 8
-      data[2]: 8
-      data[3]: -1
-    - op: 2
-      valueIndex: 16
-      data[0]: 9
-      data[1]: 9
-      data[2]: 9
-      data[3]: -1
     - op: 0
-      valueIndex: 19
+      valueIndex: 13
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
+    - op: 0
+      valueIndex: 14
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
+    - op: 0
+      valueIndex: 15
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 14
+    - op: 0
+      valueIndex: 16
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
+    - op: 2
+      valueIndex: 17
+      data[0]: 7
+      data[1]: 7
+      data[2]: 7
+      data[3]: -1
     - op: 0
       valueIndex: 20
       data[0]: -1
@@ -1824,80 +1824,62 @@ VFXAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 27
       valueIndex: 22
+      data[0]: 8
+      data[1]: 6
+      data[2]: -1
+      data[3]: 3
+    - op: 0
+      valueIndex: 25
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 27
-      valueIndex: 23
-      data[0]: 11
-      data[1]: 10
-      data[2]: -1
-      data[3]: 3
     - op: 0
       valueIndex: 26
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 14
+      data[3]: 1
     - op: 0
       valueIndex: 27
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 1
-    - op: 0
-      valueIndex: 28
-      data[0]: -1
-      data[1]: -1
-      data[2]: -1
-      data[3]: 1
-    - op: 0
-      valueIndex: 29
-      data[0]: -1
-      data[1]: -1
-      data[2]: -1
-      data[3]: 1
+      data[3]: 7
     - op: 39
-      valueIndex: 30
-      data[0]: 18
+      valueIndex: 29
+      data[0]: 11
       data[1]: -1
       data[2]: -1
       data[3]: 0
-    - op: 0
-      valueIndex: 31
-      data[0]: -1
-      data[1]: -1
-      data[2]: -1
-      data[3]: 7
+    - op: 2
+      valueIndex: 30
+      data[0]: 10
+      data[1]: 9
+      data[2]: 12
+      data[3]: -1
     - op: 32
       valueIndex: 33
-      data[0]: 19
-      data[1]: 16
+      data[0]: 14
+      data[1]: 15
       data[2]: -1
       data[3]: 1
     - op: 27
       valueIndex: 34
-      data[0]: 17
-      data[1]: 12
+      data[0]: 16
+      data[1]: 13
       data[2]: -1
       data[3]: 3
-    - op: 2
-      valueIndex: 37
-      data[0]: 13
-      data[1]: 15
-      data[2]: 14
-      data[3]: -1
     - op: 13
-      valueIndex: 40
+      valueIndex: 37
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: -1
     - op: 0
-      valueIndex: 41
+      valueIndex: 38
       data[0]: -1
       data[1]: -1
       data[2]: -1
@@ -1914,34 +1896,30 @@ VFXAsset:
         m_Value: 0
       - m_ExpressionIndex: 3
         m_Value: 0
-      - m_ExpressionIndex: 5
-        m_Value: 0
-      - m_ExpressionIndex: 6
-        m_Value: 5
       - m_ExpressionIndex: 7
-        m_Value: 0
-      - m_ExpressionIndex: 9
         m_Value: 1
-      - m_ExpressionIndex: 13
+      - m_ExpressionIndex: 9
+        m_Value: 0.1
+      - m_ExpressionIndex: 10
         m_Value: 0.4
+      - m_ExpressionIndex: 12
+        m_Value: 0.1
       - m_ExpressionIndex: 14
-        m_Value: 0.1
-      - m_ExpressionIndex: 15
-        m_Value: 0.1
-      - m_ExpressionIndex: 16
-        m_Value: 0
-      - m_ExpressionIndex: 19
         m_Value: 128
-      - m_ExpressionIndex: 20
+      - m_ExpressionIndex: 15
+        m_Value: 0
+      - m_ExpressionIndex: 17
         m_Value: 0.2
-      - m_ExpressionIndex: 21
+      - m_ExpressionIndex: 18
         m_Value: 0.2
-      - m_ExpressionIndex: 28
+      - m_ExpressionIndex: 25
         m_Value: 0.1
     m_Vector2f:
       m_Array: []
     m_Vector3f:
-      m_Array: []
+      m_Array:
+      - m_ExpressionIndex: 6
+        m_Value: {x: 5, y: 0, z: 0}
     m_Vector4f:
       m_Array: []
     m_Uint:
@@ -1954,7 +1932,7 @@ VFXAsset:
       m_Array: []
     m_Gradient:
       m_Array:
-      - m_ExpressionIndex: 18
+      - m_ExpressionIndex: 11
         m_Value:
           serializedVersion: 2
           key0: {r: 1, g: 0.06861055, b: 0, a: 1}
@@ -1986,7 +1964,7 @@ VFXAsset:
           m_NumAlphaKeys: 2
     m_NamedObject:
       m_Array:
-      - m_ExpressionIndex: 23
+      - m_ExpressionIndex: 19
         m_Value: {fileID: 2800000, guid: 276d9e395ae18fe40a9b4988549f2349, type: 3}
     m_Bool:
       m_Array: []
@@ -2072,7 +2050,7 @@ VFXAsset:
     - type: 268435456
       buffers: []
       values:
-      - index: 24
+      - index: 22
         nameId: Rate
       params: []
       processor: {fileID: 0}
@@ -2091,9 +2069,9 @@ VFXAsset:
     - index: 1
       nameId: spawner_input
     values:
-    - index: 25
+    - index: 23
       nameId: bounds_center
-    - index: 26
+    - index: 21
       nameId: bounds_size
     tasks:
     - type: 536870912
@@ -2107,12 +2085,12 @@ VFXAsset:
       - index: 1
         nameId: sourceAttributeBuffer
       values:
-      - index: 28
-        nameId: Lifetime_b
       - index: 25
+        nameId: Lifetime_b
+      - index: 23
         nameId: Position_c
       params: []
-      processor: {fileID: 7200000, guid: 06e73e080df2b8b49a0aaf630204476e, type: 3}
+      processor: {fileID: 7200000, guid: bb7108be97eb5bd4796da5980cfe5b5b, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -2120,27 +2098,27 @@ VFXAsset:
       - index: 2
         nameId: deadListOut
       values:
-      - index: 27
+      - index: 24
         nameId: deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: 1c2b1c71a99f098469028e4602bbe6d3, type: 3}
+      processor: {fileID: 7200000, guid: bc0b08fb2a74d2c43b61e6a7310cba35, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
         nameId: attributeBuffer
       values:
-      - index: 20
+      - index: 18
         nameId: SizeX_b
-      - index: 21
+      - index: 17
         nameId: SizeX_c
-      - index: 22
+      - index: 20
         nameId: gradient_d
-      - index: 23
+      - index: 19
         nameId: mainTexture
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 18a6be02031d0904ea1af8cb53029865, type: 3}
+      processor: {fileID: 4800000, guid: 100383ed38519594e9e8c9d9521961f6, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
