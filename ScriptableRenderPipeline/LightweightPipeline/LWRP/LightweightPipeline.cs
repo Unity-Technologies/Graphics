@@ -844,9 +844,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
 
             Light light = lightData.light;
+
+            // TODO: Add support to shadow mask
             if (light != null && light.bakingOutput.mixedLightingMode == MixedLightingMode.Subtractive && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
             {
-                // TODO: Add support to shadow mask
                 if (m_MixedLightingSetup == MixedLightingSetup.None && lightData.light.shadows != LightShadows.None)
                 {
                     m_MixedLightingSetup = MixedLightingSetup.Subtractive;
