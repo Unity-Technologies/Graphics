@@ -5,9 +5,9 @@ namespace UnityEditor.VFX
     [VFXInfo(type = typeof(bool))]
     class VFXSlotBool : VFXSlot
     {
-        protected override VFXValue DefaultExpression()
+        public override VFXValue DefaultExpression(VFXValue.Mode mode)
         {
-            return new VFXValue<bool>(false, VFXValue.Mode.FoldableVariable);
+            return new VFXValue<bool>(false, mode);
         }
     }
 }

@@ -47,7 +47,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        protected VisualElement m_SettingsContainer;
+        public VisualElement settingsContainer {get; private set; }
         private List<PropertyRM> m_Settings = new List<PropertyRM>();
         public VFXNodeUI()
         {
@@ -75,24 +75,24 @@ namespace UnityEditor.VFX.UI
 
         protected void SyncSettings()
         {
-            if (m_SettingsContainer == null && controller.settings != null)
+            if (settingsContainer == null && controller.settings != null)
             {
                 object settings = controller.settings;
 
-                m_SettingsContainer = new VisualElement { name = "settings" };
+                settingsContainer = new VisualElement { name = "settings" };
                 var divider = new VisualElement() {name = "divider"};
                 divider.AddToClassList("vertical");
 
                 mainContainer.Q("contents").Insert(0, divider);
 
-                mainContainer.Q("contents").Insert(1, m_SettingsContainer);
+                mainContainer.Q("contents").Insert(1, settingsContainer);
 
                 foreach (var setting in controller.settings)
                 {
                     AddSetting(setting);
                 }
             }
-            if (m_SettingsContainer != null)
+            if (settingsContainer != null)
             {
                 var activeSettings = controller.model.GetSettings(false, VFXSettingAttribute.VisibleFlags.InGraph);
                 for (int i = 0; i < m_Settings.Count; ++i)
@@ -103,7 +103,7 @@ namespace UnityEditor.VFX.UI
                     PropertyRM prop = m_Settings[i];
                     if (prop != null && activeSettings.Any(s => s.Name == controller.settings[i].name))
                     {
-                        m_SettingsContainer.Add(prop);
+                        settingsContainer.Add(prop);
                         prop.Update();
                     }
                 }
@@ -233,6 +233,8 @@ namespace UnityEditor.VFX.UI
         {
             foreach (var setting in m_Settings)
             {
+                if (setting.parent == null)
+                    continue;
                 float portLabelWidth = setting.GetPreferredLabelWidth() + 5;
                 float portControlWidth = setting.GetPreferredControlWidth();
 

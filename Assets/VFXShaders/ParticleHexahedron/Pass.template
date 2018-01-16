@@ -51,7 +51,18 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 #endif
 			o.VFX_VARYING_POSCS = VFXTransformPositionWorldToClip(vPosWS);
 
-			${VFXVertexCommonProcess}			
+			${VFXVertexCommonProcess}
+			
+			#if USE_FLIPBOOK
+			${VFXLoadParameter:{flipBookSize}}
+			${VFXLoadParameter:{invFlipBookSize}}
+			${VFXLoadParameter:{texIndex}}
+			
+			o.VFX_VARYING_FLIPBOOKSIZE = flipBookSize;
+			o.VFX_VARYING_INVFLIPBOOKSIZE = invFlipBookSize;
+			o.VFX_VARYING_TEXINDEX = texIndex;
+			#endif
+		
 			${VFXVertexAdditionalProcess}
 		}
 	}

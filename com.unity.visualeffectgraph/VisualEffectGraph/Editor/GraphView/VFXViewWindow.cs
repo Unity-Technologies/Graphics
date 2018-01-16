@@ -149,16 +149,12 @@ namespace  UnityEditor.VFX.UI
         {
             VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
             rootVisualElement.AddManipulator(m_ShortcutHandler);
-
-            Debug.Log("VFXViewWindow.OnEnterPanel");
         }
 
         void OnLeavePanel(DetachFromPanelEvent e)
         {
             VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
             rootVisualElement.RemoveManipulator(m_ShortcutHandler);
-
-            Debug.Log("VFXViewWindow.OnLeavePanel");
         }
 
         public bool autoCompile {get; set; }

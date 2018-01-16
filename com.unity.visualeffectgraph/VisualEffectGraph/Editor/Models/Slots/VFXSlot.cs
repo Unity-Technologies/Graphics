@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.VFX;
 using UnityEngine.Graphing;
 using System.Reflection;
 
@@ -46,6 +47,7 @@ namespace UnityEditor.VFX
                 catch (Exception e)
                 {
                     Debug.LogError(string.Format("Exception while getting value for slot {0} of type {1}: {2}\n{3}", name, GetType(), e, e.StackTrace));
+                    // TODO Initialize to default value (try to call static default static method defaultValue from type)
                 }
                 return null;
             }
@@ -153,6 +155,20 @@ namespace UnityEditor.VFX
                     child.GetExpressions(expressions);
         }
 
+        // Get relevant slot for UI & exposed expressions
+        public IEnumerable<VFXSlot> GetVFXValueTypeSlots()
+        {
+            if (VFXExpression.GetVFXValueTypeFromType(property.type) != VFXValueType.kNone)
+                yield return this;
+            else
+                foreach (var child in children)
+                {
+                    var slots = child.GetVFXValueTypeSlots();
+                    foreach (var slot in slots)
+                        yield return slot;
+                }
+        }
+
         // Get relevant slots
         public IEnumerable<VFXSlot> GetExpressionSlots()
         {
@@ -258,6 +274,29 @@ namespace UnityEditor.VFX
             throw new InvalidOperationException(string.Format("Unable to create slot for property {0} of type {1}", property.name, property.type));
         }
 
+        public static void TransferLinks(VFXSlot dst, VFXSlot src, bool notify)
+        {
+            var links = src.LinkedSlots.ToArray();
+            int index = 0;
+            while (index < links.Count())
+            {
+                var link = links[index];
+                if (dst.CanLink(link))
+                {
+                    dst.Link(link, notify);
+                    src.Unlink(link, notify);
+                }
+                ++index;
+            }
+
+            if (src.property.type == dst.property.type && src.GetNbChildren() == dst.GetNbChildren())
+            {
+                int nbSubSlots = src.GetNbChildren();
+                for (int i = 0; i < nbSubSlots; ++i)
+                    TransferLinks(dst[i], src[i], notify);
+            }
+        }
+
         public override void OnUnknownChange()
         {
             base.OnUnknownChange();
@@ -287,6 +326,64 @@ namespace UnityEditor.VFX
                 m_MasterData = null; // Non master slot will always have a null master data
         }
 
+        public override void Sanitize()
+        {
+            // Here we check if hierarchy of type match with slot hierarchy
+            var subProperties = property.SubProperties().ToList();
+            bool hierarchySane = subProperties.Count == GetNbChildren();
+            if (hierarchySane)
+                for (int i = 0; i < GetNbChildren(); ++i)
+                    if (subProperties[i].type != this[i].property.type)
+                    {
+                        hierarchySane = false;
+                        break;
+                    }
+                    else
+                    {
+                        // Just ensure potential renaming of property is taken into account
+                        this[i].m_Property = subProperties[i];
+                    }
+
+            if (!hierarchySane)
+            {
+                Debug.LogWarning(string.Format("Slot {0} holding {1} didnt match the type layout. It is recreated and all links are lost.", property.name, property.type));
+
+                // Try to retrieve the value
+                object previousValue = null;
+                try
+                {
+                    previousValue = this.value;
+                }
+                catch (Exception e)
+                {
+                    Debug.LogWarning(string.Format("Exception while trying to retrieve value: {0}: {1}", e, e.StackTrace));
+                }
+
+                // Recreate the slot
+                var newSlot = Create(property, direction, previousValue);
+                if (IsMasterSlot())
+                {
+                    var owner = this.owner;
+                    if (owner != null)
+                    {
+                        int index = owner.GetSlotIndex(this);
+                        owner.RemoveSlot(this);
+                        owner.AddSlot(newSlot, index);
+                    }
+                }
+                else
+                {
+                    var parent = GetParent();
+                    var index = parent.GetIndex(this);
+                    parent.RemoveChild(this, false);
+                    parent.AddChild(newSlot, index);
+                }
+
+                TransferLinks(newSlot, this, true);
+                UnlinkAll(true);
+            }
+        }
+
         private void SetDefaultExpressionValue()
         {
             var val = value;
@@ -298,7 +395,7 @@ namespace UnityEditor.VFX
         {
             if (GetNbChildren() == 0)
             {
-                m_DefaultExpression = DefaultExpression();
+                m_DefaultExpression = DefaultExpression(VFXValue.Mode.FoldableVariable);
             }
             else
             {
@@ -604,7 +701,7 @@ namespace UnityEditor.VFX
                     {
                         s.m_ExpressionTreeUpToDate = false;
                         if (s.direction == Direction.kOutput)
-                            foreach (var linkedSlot in LinkedSlots.ToArray()) // To array as this can be reentrant...
+                            foreach (var linkedSlot in s.LinkedSlots.ToArray()) // To array as this can be reentrant...
                                 linkedSlot.InvalidateExpressionTree();
                     }
                 });
@@ -667,7 +764,7 @@ namespace UnityEditor.VFX
         protected virtual VFXExpression[] ExpressionToChildren(VFXExpression exp)   { return null; }
         protected virtual VFXExpression ExpressionFromChildren(VFXExpression[] exp) { return null; }
 
-        protected virtual VFXValue DefaultExpression()
+        public virtual VFXValue DefaultExpression(VFXValue.Mode mode)
         {
             return null;
         }

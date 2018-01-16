@@ -16,7 +16,7 @@ namespace UnityEditor.VFX
             None
         }
 
-        [VFXSetting]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         public VFXIntegrationMode integration = VFXIntegrationMode.Euler;
 
         public VFXBasicUpdate() : base(VFXContextType.kUpdate, VFXDataType.kParticle, VFXDataType.kParticle) {}

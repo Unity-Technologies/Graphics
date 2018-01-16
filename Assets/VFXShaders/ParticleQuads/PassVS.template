@@ -32,17 +32,13 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 			#if USE_FLIPBOOK
 			${VFXLoadParameter:{flipBookSize}}
 			${VFXLoadParameter:{invFlipBookSize}}
-			
-			float frameBlend = frac(texIndex);
-			float frameIndex = texIndex - frameBlend;
-							
-			#if USE_FLIPBOOK_INTERPOLATION && defined(VFX_VARYING_FRAMEBLEND)
-			o.VFX_VARYING_FRAMEBLEND = frameBlend;
-			o.VFX_VARYING_UV.zw = GetSubUV(frameIndex + 1,o.VFX_VARYING_UV.xy,flipBookSize,invFlipBookSize);					
+			#if USE_FLIPBOOK_INTERPOLATION
+			ProcessFlipBookUV(flipBookSize, invFlipBookSize, texIndex, o.VFX_VARYING_UV, o.VFX_VARYING_FRAMEBLEND);
+			#else
+			ProcessFlipBookUV(flipBookSize, invFlipBookSize, texIndex, o.VFX_VARYING_UV);
 			#endif
-			o.VFX_VARYING_UV.xy = GetSubUV(frameIndex,o.VFX_VARYING_UV.xy,flipBookSize,invFlipBookSize);
 			#endif
-			
+
 			${VFXVertexAdditionalProcess}
 		}
 	}

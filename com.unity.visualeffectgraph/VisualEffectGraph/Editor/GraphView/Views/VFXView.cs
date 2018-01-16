@@ -83,14 +83,13 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public const string templatePath = "Assets/VFXEditor/Editor/Templates";
         protected override IEnumerable<Descriptor> GetDescriptors()
         {
-            var systemDesc = new Descriptor()
-            {
-                modelDescriptor = null,
-                category = "System",
-                name = "Default System"
-            };
+            var systemFiles = System.IO.Directory.GetFiles(templatePath, "*.asset").Select(t => t.Replace("\\", "/"));
+            var systemDesc = systemFiles.Select(t => new Descriptor() {modelDescriptor = t, category = "System", name = System.IO.Path.GetFileNameWithoutExtension(t)});
+
+
             var descriptorsContext = VFXLibrary.GetContexts().Select(o =>
                 {
                     return new Descriptor()
@@ -137,7 +136,7 @@ namespace UnityEditor.VFX.UI
             }
             if (m_AcceptedTypes == null)
             {
-                descs = descs.Concat(Enumerable.Repeat(systemDesc, 1));
+                descs = descs.Concat(systemDesc);
             }
 
             if (m_Filter == null)
@@ -194,9 +193,11 @@ namespace UnityEditor.VFX.UI
             {
                 return AddVFXParameter(tPos, d.modelDescriptor as VFXModelDescriptorParameters);
             }
-            else if (d.modelDescriptor == null)
+            else if (d.modelDescriptor is string)
             {
-                CreateTemplateSystem(tPos);
+                string path = d.modelDescriptor as string;
+
+                CreateTemplateSystem(path, tPos);
             }
             else
             {
@@ -256,9 +257,6 @@ namespace UnityEditor.VFX.UI
 
             this.AddManipulator(new ParameterDropper());
 
-            var bg = new GridBackground() { name = "VFXBackgroundGrid" };
-            Insert(0, bg);
-
             m_NodeProvider = new VFXNodeProvider((d, mPos) => AddNode(d, mPos));
 
             AddStyleSheetPath("PropertyRM");
@@ -292,13 +290,40 @@ namespace UnityEditor.VFX.UI
             VisualElement spacer = new VisualElement();
             spacer.style.flex = 1;
             toolbar.Add(spacer);
-
-
             m_ToggleDebug = new Toggle(OnToggleDebug);
             m_ToggleDebug.text = "Debug";
             toolbar.Add(m_ToggleDebug);
             m_ToggleDebug.AddToClassList("toolbarItem");
 
+            m_DropDownButtonCullingMode = new Button();
+
+            var cullingOption = new[]
+            {
+                new { option = "Cull simulation and bounds", value = (VFXCullingFlags.CullSimulation | VFXCullingFlags.CullBoundsUpdate) },
+                new { option = "Cull simulation only", value = (VFXCullingFlags.CullSimulation) },
+                new { option = "Disable culling", value = VFXCullingFlags.CullNone },
+            };
+
+            Func<VFXCullingFlags, string> fnValueToGUI = delegate(VFXCullingFlags flags)
+                {
+                    return cullingOption.First(o => o.value == flags).option;
+                };
+
+            m_DropDownButtonCullingMode.text = fnValueToGUI(cullingFlags);
+            m_DropDownButtonCullingMode.AddManipulator(new DownClickable(() => {
+                    var menu = new GenericMenu();
+                    foreach (var val in cullingOption)
+                    {
+                        menu.AddItem(new GUIContent(val.option), val.value == cullingFlags, (v) =>
+                        {
+                            cullingFlags = (VFXCullingFlags)v;
+                            m_DropDownButtonCullingMode.text = fnValueToGUI((VFXCullingFlags)v);
+                        }, val.value);
+                    }
+                    menu.DropDown(m_DropDownButtonCullingMode.worldBound);
+                }));
+            toolbar.Add(m_DropDownButtonCullingMode);
+            m_DropDownButtonCullingMode.AddToClassList("toolbarItem");
 
             m_ToggleCastShadows = new Toggle(OnToggleCastShadows);
             m_ToggleCastShadows.text = "Cast Shadows";
@@ -607,18 +632,44 @@ namespace UnityEditor.VFX.UI
             return new VFXRendererSettings();
         }
 
-        public void CreateTemplateSystem(Vector2 tPos)
+        VFXCullingFlags cullingFlags
         {
-            VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>("Assets/VFXEditor/Editor/Templates/DefaultParticleSystem.asset");
+            get
+            {
+                if (controller != null)
+                {
+                    var asset = controller.model;
+                    if (asset != null)
+                        return asset.cullingFlags;
+                }
+                return VFXCullingFlags.CullDefault;
+            }
 
-            VFXViewController controller = VFXViewController.GetController(asset, true);
-            controller.useCount++;
+            set
+            {
+                if (controller != null)
+                {
+                    var asset = controller.model;
+                    if (asset != null)
+                        asset.cullingFlags = value;
+                }
+            }
+        }
 
-            var data = VFXCopyPaste.SerializeElements(controller.allChildren);
+        public void CreateTemplateSystem(string path, Vector2 tPos)
+        {
+            VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>(path);
+            if (asset != null)
+            {
+                VFXViewController controller = VFXViewController.GetController(asset, true);
+                controller.useCount++;
 
-            VFXCopyPaste.UnserializeAndPasteElements(this, tPos, data);
+                var data = VFXCopyPaste.SerializeElements(controller.allChildren);
 
-            controller.useCount--;
+                VFXCopyPaste.UnserializeAndPasteElements(this, tPos, data);
+
+                controller.useCount--;
+            }
         }
 
         void SetRendererSettings(VFXRendererSettings settings)
@@ -935,6 +986,7 @@ namespace UnityEditor.VFX.UI
                 SelectionUpdated();
         }
 
+        private Button m_DropDownButtonCullingMode;
         private Toggle m_ToggleCastShadows;
         private Toggle m_ToggleMotionVectors;
 

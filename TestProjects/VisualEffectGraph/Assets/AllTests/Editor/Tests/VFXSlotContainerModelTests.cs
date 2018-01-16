@@ -208,9 +208,9 @@ namespace UnityEditor.VFX.Test
             var inputSlot = VFXSlot.Create(new VFXProperty(typeof(ArcSphere), "i"), VFXSlot.Direction.kInput);
 
             var radius = 123.0f;
-            outputSlot.children.FirstOrDefault(o => o.name == "radius").value = radius;
+            outputSlot.children.FirstOrDefault(o => o.name == "sphere").children.FirstOrDefault(o => o.name == "radius").value = radius;
             inputSlot.Link(outputSlot);
-            Assert.AreEqual(radius, inputSlot.children.FirstOrDefault(o => o.name == "radius").GetExpression().Get<float>());
+            Assert.AreEqual(radius, inputSlot.children.FirstOrDefault(o => o.name == "sphere").children.FirstOrDefault(o => o.name == "radius").GetExpression().Get<float>());
         }
     }
 }

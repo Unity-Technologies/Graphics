@@ -15,72 +15,55 @@ VFXContextUI #NodeContents
 	border-right-width:2;
 	border-top-width:2;
 	border-bottom-width:2;
-	padding-top : 12;
-	padding-bottom : 12;
+	padding-top : 6;
+	padding-bottom : 6;
 	margin-top : 6;
 	margin-bottom : 6;
 	margin-left:2;
 	margin-right:2;
 }
 
-/*  init */
-
-VFXContextUI.init #NodeContents
-{
-    border-color: #FFBC21;
-}
-
-VFXContextUI.init VFXFlowAnchor.port.EdgeConnector
-{
-    port-color: #FFBC21;
-}
-
 /*  update */
 
-VFXContextUI.update #NodeContents
+VFXContextUI.typeparticle #NodeContents
 {
-    border-color: #FF42AD;
+    border-color: #008580;
 }
 
-VFXContextUI.update VFXFlowAnchor.port.EdgeConnector
+VFXFlowAnchor.port.EdgeConnector.typeparticle
 {
-    port-color: #FF42AD;
+    port-color: #00fff5;
 }
 
 /*  output */
 
-VFXContextUI.output #NodeContents
+VFXContextUI.typemesh #NodeContents
 {
-    border-color: #7E44FF;
+    border-color: #3b5e92;
 }
 
-VFXContextUI.output VFXFlowAnchor.port.EdgeConnector
+VFXFlowAnchor.port.EdgeConnector.typemesh
 {
-    port-color: #7E44FF;
+    port-color: #0763eb;
 }
 
 /* spawner */
 
-VFXContextUI.spawner #NodeContents
+VFXContextUI.typeevent #NodeContents,VFXContextUI.typespawnevent #NodeContents
 {
-    border-color: #B2FF23;
+    border-color: #13794C;
 }
 
-VFXContextUI.spawner VFXFlowAnchor.port.EdgeConnector
+VFXFlowAnchor.port.EdgeConnector.typeevent, VFXFlowAnchor.port.EdgeConnector.typespawnevent
 {
-    port-color: #B2FF23;
+    port-color: #00ff8f;
 }
 
 /* event */
 
-VFXContextUI.event #NodeContents
+VFXContextUI.typenone #NodeContents
 {
     border-color: #27FFA0;
-}
-
-VFXContextUI.event VFXFlowAnchor.port.EdgeConnector
-{
-    port-color: #27FFA0;
 }
 
 VFXContextUI > #selection-border
@@ -127,15 +110,15 @@ VFXContextUI.selected:hover  > #selection-border
 
 
 
-VFXContextSlotContainerUI.VFXNodeUI.selected
+VFXOwnContextSlotContainerUI.VFXNodeUI.selected
 {
 	border-color: rgba(0,0,0,0);
 }
 
-VFXContextSlotContainerUI.VFXContextSlotContainerUI
+VFXOwnContextSlotContainerUI.VFXContextSlotContainerUI
 {
-	-background-color:rgba(57,57,57,0.8);
-	margin-top:0;
+	background-color:rgba(57,57,57,0.8);
+	margin-top:4;
 	margin-right:0;
 	margin-left:0;
 	margin-bottom:0;
@@ -147,12 +130,12 @@ VFXContextSlotContainerUI.VFXContextSlotContainerUI
 	border-bottom-width:1;
 }
 
-VFXContextSlotContainerUI.VFXContextSlotContainerUI #settings
+VFXOwnContextSlotContainerUI.VFXContextSlotContainerUI #settings
 {
 	background-color:rgba(0,0,0,0);
 }
 
-VFXContextSlotContainerUI.VFXNodeUI #pane
+VFXOwnContextSlotContainerUI.VFXNodeUI #pane
 {
 	border-left-width:0;
 	border-right-width:0;
@@ -209,14 +192,15 @@ VFXContextUI	.title
 
 	text-color:#c4c4c4;
 	font-size:18;
-	height:36;
-	font-style: bold;
+	height:24;
+	-font-style: bold;
 }
 VFXContextUI	#FooterTitle
 {
 	text-color:#959595;
 	font-size:11;
 	font-style: normal;
+	height:18;
 }
 
 VFXContextUI #HeaderIcon
@@ -231,7 +215,7 @@ VFXContextUI #HeaderSpace
 	height:16;
 	position-type:absolute;
 	position-right:5;
-	position-top:10;
+	position-top:8;
 }
 
 
@@ -279,14 +263,7 @@ VFXContextUI *
 	font-size:11;
 }
 
-
-VFXContextUI .VFXNodeUI.VFXContextSlotContainerUI
-{
-	border-bottom-left-radius:0;
-	border-bottom-right-radius:0;
-}
-
-VFXContextUI VFXContextSlotContainerUI.VFXNodeUI #title
+VFXContextUI VFXOwnContextSlotContainerUI.VFXNodeUI #title
 {
 	max-height:0;
 }

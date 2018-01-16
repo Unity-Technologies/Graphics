@@ -35,13 +35,13 @@ namespace UnityEditor.VFX
             return expression;
         }
 
-        protected override VFXValue DefaultExpression()
+        public override VFXValue DefaultExpression(VFXValue.Mode mode)
         {
             if (value == null)
                 return null;
 
             var floatN = (FloatN)value;
-            return floatN.ToVFXValue(VFXValue.Mode.FoldableVariable);
+            return floatN.ToVFXValue(mode);
         }
     }
 }

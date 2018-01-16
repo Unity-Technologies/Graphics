@@ -12,7 +12,7 @@ namespace UnityEditor.VFX.UI
     class VFXParameterUI : VFXStandaloneSlotContainerUI
     {
         PropertyRM m_Property;
-        PropertyRM[] m_SubProperties;
+        List<PropertyRM> m_SubProperties;
 
         public VFXParameterUI()
         {
@@ -64,6 +64,31 @@ namespace UnityEditor.VFX.UI
             get { return false; }
         }
 
+        void CreateSubProperties(List<int> fieldPath)
+        {
+            var subControllers = controller.GetSubControllers(fieldPath);
+
+            var subFieldPath = new List<int>();
+            int cpt = 0;
+            foreach (var subController in subControllers)
+            {
+                PropertyRM prop = PropertyRM.Create(subController, 55);
+                if (prop != null)
+                {
+                    m_SubProperties.Add(prop);
+                    inputContainer.Add(prop);
+                }
+                if (prop == null || !prop.showsEverything)
+                {
+                    subFieldPath.Clear();
+                    subFieldPath.AddRange(fieldPath);
+                    subFieldPath.Add(cpt);
+                    CreateSubProperties(subFieldPath);
+                }
+                ++cpt;
+            }
+        }
+
         protected override void SelfChange()
         {
             base.SelfChange();
@@ -76,19 +101,14 @@ namespace UnityEditor.VFX.UI
                 if (m_Property != null)
                 {
                     inputContainer.Add(m_Property);
-
+                    m_SubProperties = new List<PropertyRM>();
+                    List<int> fieldpath = new List<int>();
                     if (!m_Property.showsEverything)
                     {
-                        int count = controller.CreateSubControllers();
-                        m_SubProperties = new PropertyRM[count];
-
-                        for (int i = 0; i < count; ++i)
-                        {
-                            m_SubProperties[i] = PropertyRM.Create(controller.GetSubController(i), 55);
-                            inputContainer.Add(m_SubProperties[i]);
-                        }
+                        CreateSubProperties(fieldpath);
                     }
                 }
+                RefreshPorts();
             }
             if (m_Property != null)
                 m_Property.Update();
