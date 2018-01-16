@@ -25,6 +25,8 @@ UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(3);
 #define BOX_LIGHT (2)
 #define DIRECTIONAL_LIGHT (3)
 
+#include "OnTileCommon.hlsl"
+
 #if defined(SHADER_API_D3D11)
 #	include "CoreRP/ShaderLibrary/API/D3D11.hlsl"
 #elif defined(SHADER_API_PSSL)
