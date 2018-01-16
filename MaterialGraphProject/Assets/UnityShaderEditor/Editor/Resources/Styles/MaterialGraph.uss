@@ -280,6 +280,15 @@ ColorRGBSlotControlView > ColorField {
     width: 50;
 }
 
+BooleanSlotControlView {
+    flex-direction: row;
+    align-items: center;
+}
+
+BooleanSlotControlView > Toggle {
+    width: 20;
+}
+
 .edge.fromMatrix4, .edge.fromMatrix3, .edge.fromMatrix2 {
     edge-output-color: #8FC1DF;
 }
