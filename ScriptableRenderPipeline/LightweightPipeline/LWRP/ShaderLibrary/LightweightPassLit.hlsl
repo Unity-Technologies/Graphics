@@ -1,8 +1,8 @@
 #ifndef LIGHTWEIGHT_PASS_LIT_INCLUDED
 #define LIGHTWEIGHT_PASS_LIT_INCLUDED
 
-#include "LightweightShaderLibrary/InputSurface.hlsl"
-#include "LightweightShaderLibrary/Lighting.hlsl"
+#include "LWRP/ShaderLibrary/InputSurface.hlsl"
+#include "LWRP/ShaderLibrary/Lighting.hlsl"
 
 struct LightweightVertexInput
 {

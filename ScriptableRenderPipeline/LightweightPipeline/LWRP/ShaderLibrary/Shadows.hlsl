@@ -106,7 +106,7 @@ inline half RealtimeShadowAttenuation(float3 positionWS)
     return SampleShadowmap(shadowCoord);
 }
 
-half MixRealtimeAndBakedOcclusion(half realtimeAttenuation, half4 bakedOcclusion, half4 distanceAttenuation)
+half MixRealtimeAndBakedOcclusion(half realtimeAttenuation, half subtractiveModeBakedOcclusion, half4 shadowMaskModeBakedOcclusion = half4(0, 0, 0, 0))
 {
 #if defined(LIGHTMAP_ON)
 #if defined(_MIXED_LIGHTING_SHADOWMASK)
@@ -114,8 +114,8 @@ half MixRealtimeAndBakedOcclusion(half realtimeAttenuation, half4 bakedOcclusion
 #elif defined(_MIXED_LIGHTING_SUBTRACTIVE)
     // Subtractive Light mode has direct light contribution baked into lightmap for mixed lights.
     // We need to remove direct realtime contribution from mixed lights
-    // distanceAttenuation.w is set 0.0 if this light is mixed, 1.0 otherwise.
-    return realtimeAttenuation * distanceAttenuation.w;
+    // subtractiveModeBakedOcclusion is set 0.0 if this light occlusion was baked in the lightmap, 1.0 otherwise.
+    return realtimeAttenuation * subtractiveModeBakedOcclusion;
 #endif
 #endif
 
