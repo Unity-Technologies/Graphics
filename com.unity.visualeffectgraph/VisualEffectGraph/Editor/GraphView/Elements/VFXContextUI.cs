@@ -148,67 +148,65 @@ namespace UnityEditor.VFX.UI
                 }
                 m_HeaderSpace.AddToClassList("space" + (controller.context.space).ToString());
 
-                case VFXContextType.kSpawnerGPU:
+                if (controller.context.outputType == VFXDataType.kNone)
+                {
+                    if (m_Footer.parent != null)
+                        m_InsideContainer.Remove(m_Footer);
+                }
+                else
+                {
+                    if (m_Footer.parent == null)
+                        m_InsideContainer.Add(m_Footer);
+                    m_FooterTitle.text = controller.context.outputType.ToString().Substring(1);
+                    m_FooterIcon.style.backgroundImage = GetIconForVFXType(controller.context.outputType);
+                }
 
-                    if (controller.context.outputType == VFXDataType.kNone)
+                HashSet<VisualElement> newInAnchors = new HashSet<VisualElement>();
+
+                foreach (var inanchorcontroller in controller.flowInputAnchors)
+                {
+                    var existing = m_FlowInputConnectorContainer.Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.controller == inanchorcontroller);
+                    if (existing == null)
                     {
-                        if (m_Footer.parent != null)
-                            m_InsideContainer.Remove(m_Footer);
+                        var anchor = VFXFlowAnchor.Create(inanchorcontroller);
+                        m_FlowInputConnectorContainer.Add(anchor);
+                        newInAnchors.Add(anchor);
                     }
                     else
                     {
-                        if (m_Footer.parent == null)
-                            m_InsideContainer.Add(m_Footer);
-                        m_FooterTitle.text = controller.context.outputType.ToString().Substring(1);
-                        m_FooterIcon.style.backgroundImage = GetIconForVFXType(controller.context.outputType);
+                        newInAnchors.Add(existing);
                     }
+                }
 
-                    HashSet<VisualElement> newInAnchors = new HashSet<VisualElement>();
+                foreach (var nonLongerExistingAnchor in m_FlowInputConnectorContainer.Where(t => !newInAnchors.Contains(t)).ToList())     // ToList to make a copy because the enumerable will change when we delete
+                {
+                    m_FlowInputConnectorContainer.Remove(nonLongerExistingAnchor);
+                }
 
-                    foreach (var inanchorcontroller in controller.flowInputAnchors)
+
+                HashSet<VisualElement> newOutAnchors = new HashSet<VisualElement>();
+
+                foreach (var outanchorcontroller in controller.flowOutputAnchors)
+                {
+                    var existing = m_FlowOutputConnectorContainer.Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.controller == outanchorcontroller);
+                    if (existing == null)
                     {
-                        var existing = m_FlowInputConnectorContainer.Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.controller == inanchorcontroller);
-                        if (existing == null)
-                        {
-                            var anchor = VFXFlowAnchor.Create(inanchorcontroller);
-                            m_FlowInputConnectorContainer.Add(anchor);
-                            newInAnchors.Add(anchor);
-                        }
-                        else
-                        {
-                            newInAnchors.Add(existing);
-                        }
+                        var anchor = VFXFlowAnchor.Create(outanchorcontroller);
+                        m_FlowOutputConnectorContainer.Add(anchor);
+                        newOutAnchors.Add(anchor);
                     }
-
-                    foreach (var nonLongerExistingAnchor in m_FlowInputConnectorContainer.Where(t => !newInAnchors.Contains(t)).ToList()) // ToList to make a copy because the enumerable will change when we delete
+                    else
                     {
-                        m_FlowInputConnectorContainer.Remove(nonLongerExistingAnchor);
+                        newOutAnchors.Add(existing);
                     }
+                }
 
+                foreach (var nonLongerExistingAnchor in m_FlowOutputConnectorContainer.Where(t => !newOutAnchors.Contains(t)).ToList())     // ToList to make a copy because the enumerable will change when we delete
+                {
+                    m_FlowOutputConnectorContainer.Remove(nonLongerExistingAnchor);
+                }
 
-                    HashSet<VisualElement> newOutAnchors = new HashSet<VisualElement>();
-
-                    foreach (var outanchorcontroller in controller.flowOutputAnchors)
-                    {
-                        var existing = m_FlowOutputConnectorContainer.Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.controller == outanchorcontroller);
-                        if (existing == null)
-                        {
-                            var anchor = VFXFlowAnchor.Create(outanchorcontroller);
-                            m_FlowOutputConnectorContainer.Add(anchor);
-                            newOutAnchors.Add(anchor);
-                        }
-                        else
-                        {
-                            newOutAnchors.Add(existing);
-                        }
-                    }
-
-                    foreach (var nonLongerExistingAnchor in m_FlowOutputConnectorContainer.Where(t => !newOutAnchors.Contains(t)).ToList()) // ToList to make a copy because the enumerable will change when we delete
-                    {
-                        m_FlowOutputConnectorContainer.Remove(nonLongerExistingAnchor);
-                    }
-
-                    RefreshContext();
+                RefreshContext();
             }
         }
 

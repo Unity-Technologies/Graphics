@@ -62,4 +62,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/VFXTests/16_CullingMode.unity
     guid: ea8e42e55d3d6af4aa67616140b7d0db
+  - enabled: 1
+    path: Assets/VFXTests/17_GPUEvent.unity
+    guid: 44e0626701a714446a970f07b5c5a8cf
   m_configObjects: {}
