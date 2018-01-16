@@ -270,6 +270,18 @@ namespace UnityEditor.VFX
             int nbSlots = isInput ? GetNbInputSlots() : GetNbOutputSlots();
             var currentSlots = isInput ? inputSlots : outputSlots;
 
+            // check all slots owner
+            for (int i = 0; i < nbSlots; ++i)
+            {
+                VFXSlot slot = currentSlots[i];
+                var slotOwner = slot.owner as VFXSlotContainerModel<ParentType, ChildrenType>;
+                if (slotOwner != this)
+                {
+                    Debug.LogError("Slot :" + slot.name + " of Container" + name + "Has a wrong owner.");
+                    slot.SetOwner(this); // make sure everythiing work even if the owner was lost for some reason.
+                }
+            }
+
             bool recreate = false;
             if (nbSlots != expectedProperties.Length)
                 recreate = true;
@@ -290,8 +302,9 @@ namespace UnityEditor.VFX
                 // First remove and register all existing slots
                 for (int i = nbSlots - 1; i >= 0; --i)
                 {
-                    existingSlots.Add(currentSlots[i]);
-                    InnerRemoveSlot(currentSlots[i], false);
+                    VFXSlot slot = currentSlots[i];
+                    existingSlots.Add(slot);
+                    InnerRemoveSlot(slot, false);
                 }
                 existingSlots.Reverse();
 
@@ -304,6 +317,13 @@ namespace UnityEditor.VFX
                     else
                         slot = VFXSlot.Create(p, direction);
                     InnerAddSlot(slot, -1, false);
+                }
+
+                nbSlots = isInput ? GetNbInputSlots() : GetNbOutputSlots();
+
+                if (nbSlots != expectedProperties.Length)
+                {
+                    Debug.LogError("Something wrong");
                 }
 
                 var currentSlot = isInput ? inputSlots : outputSlots;
@@ -339,13 +359,20 @@ namespace UnityEditor.VFX
             }
 
             currentSlots = isInput ? inputSlots : outputSlots;
+
+            var currentSlotsCpy = currentSlots.ToArray();
             nbSlots = isInput ? GetNbInputSlots() : GetNbOutputSlots();
+
 
             for (int i = 0; i < nbSlots; ++i)
             {
-                VFXProperty prop = currentSlots[i].property;
+                if (currentSlots.Count != nbSlots)
+                {
+                    Debug.Log("Collection changed while iterating");
+                }
+                VFXProperty prop = currentSlotsCpy[i].property;
 
-                currentSlots[i].UpdateAttributes(expectedProperties[i].property.attributes);
+                currentSlotsCpy[i].UpdateAttributes(expectedProperties[i].property.attributes);
             }
 
 
