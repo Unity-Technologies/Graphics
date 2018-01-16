@@ -41,9 +41,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static readonly string[] m_SearchPaths = {"Assets", "Packages/com.unity.render-pipelines.lightweight"};
 
         // Default values set when a new LightweightPipeline asset is created
+        [SerializeField] private float kAssetVersion = 1.0f;
         [SerializeField] private int m_MaxPixelLights = 4;
         [SerializeField] private bool m_SupportsVertexLight = false;
-        [SerializeField] private bool m_RequireCameraDepthTexture = false;
+        [SerializeField] private bool m_RequireDepthTexture = false;
+        [SerializeField] private bool m_RequireSoftParticles = false;
         [SerializeField] private bool m_SupportsHDR = false;
         [SerializeField] private MSAAQuality m_MSAA = MSAAQuality._4x;
         [SerializeField] private float m_RenderScale = 1.0f;
@@ -118,6 +120,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return ShadowSetting != ShadowType.NO_SHADOW;
         }
 
+        public float GetAssetVersion()
+        {
+            return kAssetVersion;
+        }
+
         public int MaxPixelLights
         {
             get { return m_MaxPixelLights; }
@@ -128,9 +135,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             get { return m_SupportsVertexLight; }
         }
 
-        public bool RequireCameraDepthTexture
+        public bool RequireDepthTexture
         {
-            get { return m_RequireCameraDepthTexture; }
+            get { return m_RequireDepthTexture; }
+        }
+
+        public bool RequireSoftParticles
+        {
+            get { return m_RequireSoftParticles; }
         }
 
         public bool SupportsHDR
