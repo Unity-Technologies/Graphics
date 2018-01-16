@@ -90,7 +90,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         Msaa = (1 << 1),
         BeforeTransparentPostProcess = (1 << 2),
         PostProcess = (1 << 3),
-        DepthPass = (1 << 4),
+        DepthPrePass = (1 << 4),
         DepthCopy = (1 << 5),
         DefaultViewport = (1 << 6),
         IntermediateTexture = (1 << 7),
