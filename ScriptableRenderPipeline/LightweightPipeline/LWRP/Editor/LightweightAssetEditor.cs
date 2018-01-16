@@ -1,4 +1,5 @@
 using UnityEditor;
+using UnityEditor.AnimatedValues;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
@@ -18,7 +19,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent enableVertexLightLabel = new GUIContent("Vertex Lighting",
                     "If enabled shades additional lights exceeding the maximum number of pixel lights per-vertex up to the maximum of 8 lights.");
 
-            public static GUIContent requireCameraDepthTexture = new GUIContent("Camera Depth Texture", "If enabled the pipeline will generate camera's depth that can be bound in shaders as _CameraDepthTexture. This is necessary for some effect like Soft Particles.");
+            public static GUIContent requireDepthTexture = new GUIContent("Depth Texture", "If enabled the pipeline will generate camera's depth that can be bound in shaders as _CameraDepthTexture.");
+
+            public static GUIContent requireSoftParticles = new GUIContent("Soft Particles", "If enabled the pipeline will enable SOFT_PARTICLES keyword.");
 
             public static GUIContent shadowType = new GUIContent("Type",
                     "Global shadow settings. Options are NO_SHADOW, HARD_SHADOWS and SOFT_SHADOWS.");
@@ -44,13 +47,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static string[] shadowCascadeOptions = {"No Cascades", "Two Cascades", "Four Cascades"};
         }
 
+        AnimBool m_ShowSoftParticles = new AnimBool();
+
         private int kMaxSupportedPixelLights = 8;
         private float kMinRenderScale = 0.1f;
         private float kMaxRenderScale = 4.0f;
         private SerializedProperty m_RenderScale;
         private SerializedProperty m_MaxPixelLights;
         private SerializedProperty m_SupportsVertexLightProp;
-        private SerializedProperty m_RequireCameraDepthTextureProp;
+        private SerializedProperty m_RequireDepthTextureProp;
+        private SerializedProperty m_RequireSoftParticlesProp;
         private SerializedProperty m_ShadowTypeProp;
         private SerializedProperty m_ShadowNearPlaneOffsetProp;
         private SerializedProperty m_ShadowDistanceProp;
@@ -66,7 +72,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_RenderScale = serializedObject.FindProperty("m_RenderScale");
             m_MaxPixelLights = serializedObject.FindProperty("m_MaxPixelLights");
             m_SupportsVertexLightProp = serializedObject.FindProperty("m_SupportsVertexLight");
-            m_RequireCameraDepthTextureProp = serializedObject.FindProperty("m_RequireCameraDepthTexture");
+            m_RequireDepthTextureProp = serializedObject.FindProperty("m_RequireDepthTexture");
+            m_RequireSoftParticlesProp = serializedObject.FindProperty("m_RequireSoftParticles");
             m_ShadowTypeProp = serializedObject.FindProperty("m_ShadowType");
             m_ShadowNearPlaneOffsetProp = serializedObject.FindProperty("m_ShadowNearPlaneOffset");
             m_ShadowDistanceProp = serializedObject.FindProperty("m_ShadowDistance");
@@ -76,6 +83,26 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_ShadowCascade4SplitProp = serializedObject.FindProperty("m_Cascade4Split");
             m_HDR = serializedObject.FindProperty("m_SupportsHDR");
             m_MSAA = serializedObject.FindProperty("m_MSAA");
+
+            m_ShowSoftParticles.valueChanged.AddListener(Repaint);
+            m_ShowSoftParticles.value = m_RequireSoftParticlesProp.boolValue;
+        }
+
+        void OnDisable()
+        {
+            m_ShowSoftParticles.valueChanged.RemoveListener(Repaint);
+        }
+
+        void UpdateAnimationValues()
+        {
+            m_ShowSoftParticles.target = m_RequireDepthTextureProp.boolValue;
+        }
+
+        void DrawAnimatedProperty(SerializedProperty prop, GUIContent content, AnimBool animation)
+        {
+            using (var group = new EditorGUILayout.FadeGroupScope(animation.faded))
+                if (group.visible)
+                    EditorGUILayout.PropertyField(prop, content);
         }
 
         protected void DoPopup(GUIContent label, SerializedProperty property, string[] options)
@@ -98,6 +125,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             serializedObject.Update();
 
+            UpdateAnimationValues();
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(Styles.renderingLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
@@ -110,7 +138,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_MaxPixelLights.intValue = EditorGUILayout.IntSlider(m_MaxPixelLights.intValue, 0, kMaxSupportedPixelLights);
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.PropertyField(m_SupportsVertexLightProp, Styles.enableVertexLightLabel);
-            EditorGUILayout.PropertyField(m_RequireCameraDepthTextureProp, Styles.requireCameraDepthTexture);
+            EditorGUILayout.PropertyField(m_RequireDepthTextureProp, Styles.requireDepthTexture);
+            DrawAnimatedProperty(m_RequireSoftParticlesProp, Styles.requireSoftParticles, m_ShowSoftParticles);
             EditorGUILayout.PropertyField(m_HDR, Styles.hdrContent);
             EditorGUILayout.PropertyField(m_MSAA, Styles.msaaContent);
 
