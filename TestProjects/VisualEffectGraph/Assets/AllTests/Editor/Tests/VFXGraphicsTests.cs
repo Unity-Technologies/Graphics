@@ -24,57 +24,8 @@ namespace UnityEditor.VFX.Test
             public Camera camera;
             public Scene scene;
             public RenderTexture texture;
-        }
-
-        static void StandardWarmingLoop(IEnumerable<VFXComponent> vfxComponent)
-        {
-            foreach (var vfx in vfxComponent)
-            {
-                var vfxAsset = vfx.vfxAsset;
-                if (vfxAsset)
-                {
-                    vfx.Reinit();
-                    vfx.DebugSimulate(10);
-                    vfx.pause = true;
-                }
-            }
-        }
-
-        static void WarmingLoopWithAnimator(IEnumerable<VFXComponent> vfxComponent, IEnumerable<Animator> vfxAnimator)
-        {
-            int loopCount = 10;
-            foreach (var vfx in vfxComponent)
-            {
-                vfx.Reinit();
-            }
-
-            AnimationMode.StartAnimationMode();
-            for (int loop = 0; loop < loopCount; loop++)
-            {
-                int sliceCount = 16;
-                float simulateTime = 1.0f / (float)sliceCount;
-                for (int slice = 0; slice < sliceCount; slice++)
-                {
-                    float t = (float)slice / (float)sliceCount;
-                    foreach (var animator in vfxAnimator)
-                    {
-                        foreach (var clip in animator.GetCurrentAnimatorClipInfo(0))
-                        {
-                            AnimationMode.BeginSampling();
-                            AnimationMode.SampleAnimationClip(animator.gameObject, clip.clip, t);
-                            AnimationMode.EndSampling();
-                        }
-                    }
-
-                    foreach (var vfx in vfxComponent)
-                    {
-                        vfx.pause = false;
-                        vfx.DebugSimulate(simulateTime);
-                        vfx.pause = true;
-                    }
-                }
-            }
-            AnimationMode.StopAnimationMode();
+            public VFXComponent[] vfxComponents;
+            public Animator[] animators;
         }
 
         static SceneCaptureInstance InitScene(string scenePath)
@@ -84,7 +35,7 @@ namespace UnityEditor.VFX.Test
             instance.camera = instance.scene.GetRootGameObjects().SelectMany(o => o.GetComponents<Camera>()).First();
 
             var vfxComponent = instance.scene.GetRootGameObjects().SelectMany(o => o.GetComponents<VFXComponent>());
-            var vfxAnimator = instance.scene.GetRootGameObjects().SelectMany(o => o.GetComponents<Animator>());
+            var animator = instance.scene.GetRootGameObjects().SelectMany(o => o.GetComponents<Animator>());
             var vfxAsset = vfxComponent.Select(o => o.vfxAsset).Where(o => o != null).Distinct();
 
             foreach (var vfx in vfxAsset)
@@ -93,20 +44,10 @@ namespace UnityEditor.VFX.Test
                 graph.RecompileIfNeeded();
             }
 
-            if (vfxAnimator.Any())
-            {
-                WarmingLoopWithAnimator(vfxComponent, vfxAnimator);
-            }
-            else
-            {
-                StandardWarmingLoop(vfxComponent);
-            }
-
             instance.camera.cameraType = CameraType.Preview;
             instance.camera.enabled = false;
 
             instance.camera.renderingPath = RenderingPath.Forward;
-            instance.camera.useOcclusionCulling = false;
             instance.camera.scene = instance.scene;
 
             const int res = 256;
@@ -118,7 +59,47 @@ namespace UnityEditor.VFX.Test
             RenderTexture.active = renderTexture;
             instance.texture = renderTexture;
 
+            foreach (var component in vfxComponent)
+            {
+                component.pause = true;
+            }
+            instance.vfxComponents = vfxComponent.ToArray();
+            instance.animators = animator.ToArray();
+
             return instance;
+        }
+
+        static void StartScene(SceneCaptureInstance instance)
+        {
+            var vfxComponent = instance.scene.GetRootGameObjects().SelectMany(o => o.GetComponents<VFXComponent>());
+            foreach (var component in vfxComponent)
+            {
+                component.pause = false;
+                component.Reinit();
+            }
+        }
+
+        static void UpdateScene(SceneCaptureInstance instance, float virtualTotalTime)
+        {
+            if (instance.animators.Length == 0)
+                return;
+
+            foreach (var animator in instance.animators)
+            {
+                foreach (var clip in animator.GetCurrentAnimatorClipInfo(0))
+                {
+                    AnimationMode.BeginSampling();
+
+                    var range = clip.clip.stopTime - clip.clip.startTime;
+
+                    var normalizedTime = virtualTotalTime / range;
+                    var relativeTimeNormalized = normalizedTime - Mathf.Floor(normalizedTime);
+                    var relativeTime = clip.clip.startTime + relativeTimeNormalized * range;
+
+                    AnimationMode.SampleAnimationClip(animator.gameObject, clip.clip, relativeTime);
+                    AnimationMode.EndSampling();
+                }
+            }
         }
 
         static void CaptureFrameAndClear(SceneCaptureInstance scene, string capturePath)
@@ -193,7 +174,14 @@ namespace UnityEditor.VFX.Test
         [Timeout(1000 * 10)]
         public IEnumerator RenderSceneAndCompareExpectedCapture([ValueSource("scenes")] SceneTest sceneTest)
         {
-            uint waitFrameCount = 16;
+            var sceneView = EditorWindow.GetWindow(typeof(SceneView));
+            if (sceneView != null)
+                sceneView.Close();
+            EditorApplication.ExecuteMenuItem("Window/Game");
+
+            float simulateTime = 6.0f;
+            float frequency = 1.0f / 20.0f;
+            uint waitFrameCount = (uint)(simulateTime / frequency);
 
             var scenePath = sceneTest.path;
             var threshold = 0.051f;
@@ -201,32 +189,37 @@ namespace UnityEditor.VFX.Test
             var refCapturePath = scenePath.Replace(".unity", ".png");
             var currentCapturePath = scenePath.Replace(".unity", "_fail.png");
 
+            VFXManager.updateMode = VFXManagerUpdateMode.Force20Hz;
+
+            var passes = new List<string>();
             if (!File.Exists(refCapturePath))
             {
-                var scene = InitScene(scenePath);
-                while (!scene.scene.isLoaded)
-                    yield return null;
-
-                for (int i = 0; i < waitFrameCount; ++i)
-                {
-                    scene.camera.Render();
-                    yield return null;
-                }
-                CaptureFrameAndClear(scene, refCapturePath);
+                passes.Add(refCapturePath);
             }
+            passes.Add(currentCapturePath);
 
-            //Actual capture test
+            foreach (var pass in passes)
             {
                 var scene = InitScene(scenePath);
                 while (!scene.scene.isLoaded)
                     yield return null;
 
-                for (int i = 0; i < waitFrameCount; ++i)
+                StartScene(scene);
+
+                AnimationMode.StartAnimationMode();
+
+                uint startFrameIndex = VFXManager.frameIndex;
+                uint expectedFrameIndex = startFrameIndex + waitFrameCount;
+                while (VFXManager.frameIndex != expectedFrameIndex)
                 {
+                    EditorWindow.GetWindow(typeof(GameView)).Focus();
+                    UpdateScene(scene, (VFXManager.frameIndex - startFrameIndex) * frequency);
                     scene.camera.Render();
                     yield return null;
                 }
-                CaptureFrameAndClear(scene, currentCapturePath);
+
+                AnimationMode.StopAnimationMode();
+                CaptureFrameAndClear(scene, pass);
             }
 
             var currentTexture = new Texture2D(2, 2);
@@ -244,6 +237,12 @@ namespace UnityEditor.VFX.Test
             {
                 File.Delete(currentCapturePath);
             }
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            VFXManager.updateMode = VFXManagerUpdateMode.Default;
         }
     }
 }
