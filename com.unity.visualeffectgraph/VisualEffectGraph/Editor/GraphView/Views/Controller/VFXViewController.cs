@@ -424,6 +424,7 @@ namespace UnityEditor.VFX.UI
                     Clear();
                 }
                 m_Graph =  model.GetOrCreateGraph();
+                m_Graph.SanitizeGraph();
 
                 if (m_Graph != null)
                 {
@@ -671,7 +672,7 @@ namespace UnityEditor.VFX.UI
 
 
             // First trigger
-            RecompileExpressionGraphIfNeeded();
+            //RecompileExpressionGraphIfNeeded();
 
 
             // Doesn't work for some reason

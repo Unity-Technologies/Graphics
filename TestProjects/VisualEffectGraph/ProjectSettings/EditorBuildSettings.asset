@@ -8,12 +8,6 @@ EditorBuildSettings:
   - enabled: 0
     path: 
     guid: 00000000000000000000000000000000
-  - enabled: 0
-    path: 
-    guid: 00000000000000000000000000000000
-  - enabled: 0
-    path: 
-    guid: 00000000000000000000000000000000
   - enabled: 1
     path: Assets/VFXSamples/Test_Explorer.unity
     guid: 323fd1b1a191dc0428ef1a3444d091f1
@@ -65,4 +59,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/VFXTests/15_CubeAndMesh.unity
     guid: 2123961e2be41644dae0d405fae040af
+  - enabled: 1
+    path: Assets/VFXTests/16_CullingMode.unity
+    guid: ea8e42e55d3d6af4aa67616140b7d0db
   m_configObjects: {}
