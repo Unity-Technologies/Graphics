@@ -23,6 +23,9 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
 {
     VaryingsToPS output;
 
+    UNITY_SETUP_INSTANCE_ID(inputMesh);
+    UNITY_TRANSFER_INSTANCE_ID(inputMesh, output);
+
     // Output UV coordinate in vertex shader
     float2 uv;
 
