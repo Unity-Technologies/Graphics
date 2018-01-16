@@ -29,6 +29,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         float m_Version = 1.0f;
  #pragma warning restore 414
 
+        // To be able to have correct default values for our lights and to also control the conversion of intensity from the light editor (so it is compatible with GI)
+        // we add intensity (for each type of light we want to manage).
+        public float directionalIntensity   = 10000.0f; // Sun Light default to 10000 lux
+        public float punctualIntensity      = 600.0f;   // Light default to 600 lumens, i.e ~48 candela
+        public float areaIntensity          = 600.0f;   // Light default to 600 lumens
+        public float displayBounceIntensity = 1.0f;   // override bound intensity of built-in unity to take into account the PI shift observe in GI (as GI don't divide by PI)
+
         [Range(0.0f, 100.0f)]
         public float m_InnerSpotPercent = 0.0f; // To display this field in the UI this need to be public
 
