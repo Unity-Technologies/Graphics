@@ -55,6 +55,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 newAsset.defaultDiffuseMaterial = Load<Material>(HDRenderPipelinePath + "RenderPipelineResources/DefaultHDMaterial.mat");
                 newAsset.defaultShader = Load<Shader>(HDRenderPipelinePath + "Material/Lit/Lit.shader");
 
+                newAsset.debugFontTexture = Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/DebugFont.tga");
                 newAsset.debugDisplayLatlongShader = Load<Shader>(HDRenderPipelinePath + "Debug/DebugDisplayLatlong.Shader");
                 newAsset.debugViewMaterialGBufferShader = Load<Shader>(HDRenderPipelinePath + "Debug/DebugViewMaterialGBuffer.Shader");
                 newAsset.debugViewTilesShader = Load<Shader>(HDRenderPipelinePath + "Debug/DebugViewTiles.Shader");

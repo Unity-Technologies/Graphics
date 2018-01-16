@@ -1,7 +1,8 @@
-﻿using UnityEngine.Rendering;
+﻿using System;
 using System.Collections.Generic;
-using System;
 using UnityEngine.Assertions;
+using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -541,21 +542,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_DefaultTextureCube = new Cubemap(16, TextureFormat.ARGB32, false);
             s_DefaultTextureCube.Apply();
 
-#if UNITY_EDITOR
-            UnityEditor.SceneView.onSceneGUIDelegate -= OnSceneGUI;
-            UnityEditor.SceneView.onSceneGUIDelegate += OnSceneGUI;
-#endif
-
             InitShadowSystem(hdAsset.GetRenderPipelineSettings().shadowInitParams, shadowSettings);
         }
 
         public void Cleanup()
         {
             DeinitShadowSystem();
-
-#if UNITY_EDITOR
-            UnityEditor.SceneView.onSceneGUIDelegate -= OnSceneGUI;
-#endif
 
             CoreUtils.SafeRelease(s_DirectionalLightDatas);
             CoreUtils.SafeRelease(s_LightDatas);
@@ -1948,16 +1940,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-#if UNITY_EDITOR
-        private Vector2 m_mousePosition = Vector2.zero;
-
-        private void OnSceneGUI(UnityEditor.SceneView sceneview)
-        {
-            m_mousePosition = Event.current.mousePosition;
-        }
-
-#endif
-
         public void RenderShadows(ScriptableRenderContext renderContext, CommandBuffer cmd, CullResults cullResults)
         {
             // kick off the shadow jobs here
@@ -2158,14 +2140,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int numTilesY = (h + 15) / 16;
                     int numTiles = numTilesX * numTilesY;
 
-                    Vector2 mousePixelCoord = Input.mousePosition;
-#if UNITY_EDITOR
-                    if (!UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
-                    {
-                        mousePixelCoord = m_mousePosition;
-                        mousePixelCoord.y = (hdCamera.screenSize.y - 1.0f) - mousePixelCoord.y;
-                    }
-#endif
+                    Vector2 mousePixelCoord = MousePositionDebug.instance.GetMousePosition(hdCamera.screenSize.y);
 
                     // Debug tiles
                     if (lightingDebug.tileClusterDebug == LightLoop.TileClusterDebug.MaterialFeatureVariants)

@@ -120,6 +120,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int _ViewTilesFlags = Shader.PropertyToID("_ViewTilesFlags");
         public static readonly int _MousePixelCoord = Shader.PropertyToID("_MousePixelCoord");
+        public static readonly int _DebugFont = Shader.PropertyToID("_DebugMipMapMode");
 
         public static readonly int _DebugViewMaterial = Shader.PropertyToID("_DebugViewMaterial");
         public static readonly int _DebugLightingMode = Shader.PropertyToID("_DebugLightingMode");
@@ -128,6 +129,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _DebugLightingSmoothness = Shader.PropertyToID("_DebugLightingSmoothness");
         public static readonly int _AmbientOcclusionTexture = Shader.PropertyToID("_AmbientOcclusionTexture");
         public static readonly int _DebugMipMapMode = Shader.PropertyToID("_DebugMipMapMode");
+
+
 
         public static readonly int _UseTileLightList = Shader.PropertyToID("_UseTileLightList");
         public static readonly int _Time = Shader.PropertyToID("_Time");
