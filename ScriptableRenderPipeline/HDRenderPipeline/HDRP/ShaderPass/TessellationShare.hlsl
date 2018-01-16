@@ -1,5 +1,9 @@
+#if defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL)
 // AMD recommand this value for GCN http://amd-dev.wpengine.netdna-cdn.com/wordpress/media/2013/05/GCNPerformanceTweets.pdf
 #define MAX_TESSELLATION_FACTORS 15.0
+#else
+#define MAX_TESSELLATION_FACTORS 64.0
+#endif
 
 struct TessellationFactors
 {

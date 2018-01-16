@@ -40,7 +40,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static readonly string[] tessellationModeNames = Enum.GetNames(typeof(TessellationMode));
 
             public static GUIContent tessellationText = new GUIContent("Tessellation options", "Tessellation options");
-            public static GUIContent tessellationFactorText = new GUIContent("Tessellation factor", "This value is the tessellation factor use for tessellation, higher mean more tessellated");
+            public static GUIContent tessellationFactorText = new GUIContent("Tessellation factor", "This value is the tessellation factor use for tessellation, higher mean more tessellated. Above 15 is costly. Maximum tessellation factor is 15 on XBone / PS4");
             public static GUIContent tessellationFactorMinDistanceText = new GUIContent("Start fade distance", "Distance (in unity unit) at which the tessellation start to fade out. Must be inferior at Max distance");
             public static GUIContent tessellationFactorMaxDistanceText = new GUIContent("End fade distance", "Maximum distance (in unity unit) to the camera where triangle are tessellated");
             public static GUIContent tessellationFactorTriangleSizeText = new GUIContent("Triangle size", "Desired screen space sized of triangle (in pixel). Smaller value mean smaller triangle.");
