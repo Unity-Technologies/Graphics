@@ -46,11 +46,6 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        protected override void SelfChange()
-        {
-            base.SelfChange();
-        }
-
         protected override bool HasPosition()
         {
             return false;
@@ -59,6 +54,17 @@ namespace UnityEditor.VFX.UI
         public VFXContextUI context
         {
             get {return this.GetFirstAncestorOfType<VFXContextUI>(); }
+        }
+    }
+
+
+    class VFXOwnContextSlotContainerUI : VFXContextSlotContainerUI
+    {
+        protected override void SelfChange()
+        {
+            base.SelfChange();
+
+            visible = inputContainer.childCount > 0 || (settingsContainer != null && settingsContainer.childCount > 0);
         }
     }
 }

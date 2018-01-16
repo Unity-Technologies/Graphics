@@ -464,8 +464,29 @@ namespace UnityEditor.VFX.UI
 
         public void FrameNewController()
         {
-            (panel as BaseVisualElementPanel).ValidateLayout();
-            FrameAll();
+            if (panel != null)
+            {
+                (panel as BaseVisualElementPanel).ValidateLayout();
+                FrameAll();
+            }
+            else
+            {
+                RegisterCallback<AttachToPanelEvent>(OnFrameNewControllerWithPanel);
+            }
+        }
+
+        void OnFrameNewControllerWithPanel(AttachToPanelEvent e)
+        {
+            (panel as BaseVisualElementPanel).scheduler.ScheduleOnce(
+                t => {
+                    (panel as BaseVisualElementPanel).ValidateLayout();
+                    FrameAll();
+                }
+                ,
+                10
+                );
+
+            UnregisterCallback<AttachToPanelEvent>(OnFrameNewControllerWithPanel);
         }
 
         Dictionary<VFXNodeController, GraphElement> rootSlotContainers

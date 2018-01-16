@@ -12,7 +12,7 @@ namespace UnityEditor.VFX.Block
         public class InputProperties
         {
             [Tooltip("The sphere used for positioning particles.")]
-            public ArcSphere Sphere = new ArcSphere() { radius = 1.0f, arc = Mathf.PI * 2.0f };
+            public ArcSphere ArcSphere = ArcSphere.defaultValue;
         }
 
         public class CustomProperties
@@ -27,9 +27,9 @@ namespace UnityEditor.VFX.Block
             {
                 string outSource = @"float cosPhi = 2.0f * RAND - 1.0f;";
                 if (spawnMode == SpawnMode.Randomized)
-                    outSource += @"float theta = Sphere_arc * RAND;";
+                    outSource += @"float theta = ArcSphere_arc * RAND;";
                 else
-                    outSource += @"float theta = Sphere_arc * ArcSequencer;";
+                    outSource += @"float theta = ArcSphere_arc * ArcSequencer;";
 
                 outSource += @"
 float rNorm = pow(volumeFactor + (1 - volumeFactor) * RAND, 1.0f / 3.0f);
@@ -39,7 +39,7 @@ sincos(theta, sincosTheta.x, sincosTheta.y);
 sincosTheta *= sqrt(1.0f - cosPhi * cosPhi);
 
 direction = float3(sincosTheta, cosPhi);
-position += direction * (rNorm * Sphere_radius) + Sphere_center;
+position += direction * (rNorm * ArcSphere_sphere_radius) + ArcSphere_sphere_center;
 ";
 
                 return outSource;

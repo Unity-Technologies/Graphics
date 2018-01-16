@@ -60,6 +60,7 @@ namespace UnityEditor.VFX.UI
         {
             controller.block.enabled = !controller.block.enabled;
         }
+
 /*
         // This function is a placeholder for common stuff to do before we delegate the action to the drop target
         private void HandleDropEvent(IMGUIEvent evt, List<ISelectable> selection, IDropTarget dropTarget)
@@ -107,8 +108,8 @@ namespace UnityEditor.VFX.UI
             m_EnableToggle.on = controller.block.enabled;
             if (inputContainer != null)
                 inputContainer.SetEnabled(controller.block.enabled);
-            if (m_SettingsContainer != null)
-                m_SettingsContainer.SetEnabled(controller.block.enabled);
+            if (settingsContainer != null)
+                settingsContainer.SetEnabled(controller.block.enabled);
         }
     }
 }
