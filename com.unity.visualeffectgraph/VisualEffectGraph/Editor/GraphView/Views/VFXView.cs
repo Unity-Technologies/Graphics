@@ -69,6 +69,11 @@ namespace UnityEditor.VFX.UI
             return desc.name;
         }
 
+        protected override string title
+        {
+            get {return "Node"; }
+        }
+
         string ComputeCategory<T>(string type, VFXModelDescriptor<T> model) where T : VFXModel
         {
             if (model.info != null && model.info.category != null)

@@ -37,9 +37,14 @@ namespace UnityEditor.VFX.UI
         protected abstract string GetName(T desc);
         protected abstract string GetCategory(T desc);
 
+        protected abstract string title
+        {
+            get;
+        }
+
         public void CreateComponentTree(List<VFXFilterWindow.Element> tree)
         {
-            tree.Add(new VFXFilterWindow.GroupElement(0, "Node"));
+            tree.Add(new VFXFilterWindow.GroupElement(0, title));
             var descriptors = GetDescriptors();
 
             string prevCategory = "";
@@ -108,6 +113,11 @@ namespace UnityEditor.VFX.UI
         protected override string GetName(VFXModelDescriptor<VFXBlock> desc)
         {
             return desc.name;
+        }
+
+        protected override string title
+        {
+            get {return "Block"; }
         }
 
         protected override IEnumerable<VFXModelDescriptor<VFXBlock>> GetDescriptors()
