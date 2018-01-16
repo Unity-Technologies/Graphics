@@ -110,7 +110,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
 
-            #include "LightweightPassLit.hlsl"
+            #include "LWRP/ShaderLibrary/LightweightPassLit.hlsl"
             ENDHLSL
         }
 
@@ -127,7 +127,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
 
-            #include "LightweightPassShadow.hlsl"
+            #include "LWRP/ShaderLibrary/LightweightPassShadow.hlsl"
             ENDHLSL
         }
 
@@ -145,7 +145,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "LightweightShaderLibrary/Core.hlsl"
+            #include "LWRP/ShaderLibrary/Core.hlsl"
 
             float4 vert(float4 pos : POSITION) : SV_POSITION
             {
@@ -180,7 +180,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
 
             #pragma shader_feature _SPECGLOSSMAP
 
-            #include "LightweightPassMeta.hlsl"
+            #include "LWRP/ShaderLibrary/LightweightPassMeta.hlsl"
             ENDHLSL
         }
 
