@@ -616,6 +616,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Rect cameraRect = m_CurrCamera.rect;
             if (!(Math.Abs(cameraRect.x) > 0.0f || Math.Abs(cameraRect.y) > 0.0f || Math.Abs(cameraRect.width) < 1.0f || Math.Abs(cameraRect.height) < 1.0f))
                 configuration |= FrameRenderingConfiguration.DefaultViewport;
+            else
+                intermediateTexture = true;
 
             if (intermediateTexture)
                 configuration |= FrameRenderingConfiguration.IntermediateTexture;
