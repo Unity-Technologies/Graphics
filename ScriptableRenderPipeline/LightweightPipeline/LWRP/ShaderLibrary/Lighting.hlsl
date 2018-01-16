@@ -317,7 +317,7 @@ half3 SampleSH(half3 normalWS)
     SHCoefficients[5] = unity_SHBb;
     SHCoefficients[6] = unity_SHC;
 
-    return SampleSH9(SHCoefficients, normalWS);
+    return max(half3(0, 0, 0), SampleSH9(SHCoefficients, normalWS));
 }
 
 // SH Vertex Evaluation. Depending on target SH sampling might be
@@ -346,7 +346,7 @@ half3 SampleSHPixel(half3 L2Term, half3 normalWS)
 #endif
 
     // Default: Evaluate SH fully per-pixel
-    return max(half3(0, 0, 0), SampleSH(normalWS));
+    return SampleSH(normalWS);
 }
 
 // Sample baked lightmap. Non-Direction and Directional if available.
