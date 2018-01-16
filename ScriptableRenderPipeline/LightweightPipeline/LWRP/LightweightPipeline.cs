@@ -140,7 +140,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private RenderTargetIdentifier m_Color;
 
         private bool m_IntermediateTextureArray;
-        private bool m_RequireDepth;
+        private bool m_RequireDepthTexture;
         private bool m_RequireCopyColor;
         private bool m_DepthRenderBuffer;
         private MixedLightingSetup m_MixedLightingSetup;
@@ -436,7 +436,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void AfterOpaque(ref ScriptableRenderContext context, FrameRenderingConfiguration config)
         {
-            if (!m_RequireDepth)
+            if (!m_RequireDepthTexture)
                 return;
 
             CommandBuffer cmd = CommandBufferPool.Get("After Opaque");
@@ -563,7 +563,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_Asset.RenderScale < 1.0f || hdrEnabled;
 
             m_ColorFormat = hdrEnabled ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
-            m_RequireDepth = false;
             m_RequireCopyColor = false;
             m_DepthRenderBuffer = false;
             m_CameraPostProcessLayer = m_CurrCamera.GetComponent<PostProcessLayer>();
@@ -572,10 +571,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             // TODO: PostProcessing and SoftParticles are currently not support for VR
             bool postProcessEnabled = m_CameraPostProcessLayer != null && m_CameraPostProcessLayer.enabled && !stereoEnabled;
-            bool softParticlesEnabled = m_Asset.RequireCameraDepthTexture && !stereoEnabled;
+            m_RequireDepthTexture = m_Asset.RequireDepthTexture && !stereoEnabled;
             if (postProcessEnabled)
             {
-                m_RequireDepth = true;
+                m_RequireDepthTexture = true;
                 intermediateTexture = true;
 
                 configuration |= FrameRenderingConfiguration.PostProcess;
@@ -587,20 +586,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 }
             }
 
-            // In case of soft particles we need depth copy. If depth copy not supported fallback to depth prepass
-            if (softParticlesEnabled)
-            {
-                m_RequireDepth = true;
-                intermediateTexture = true;
-            }
-
             if (msaaEnabled)
             {
                 configuration |= FrameRenderingConfiguration.Msaa;
                 intermediateTexture = intermediateTexture || !LightweightUtils.PlatformSupportsMSAABackBuffer();
             }
 
-            if (m_RequireDepth)
+            if (m_RequireDepthTexture)
             {
                 // If msaa is enabled we don't use a depth renderbuffer as we might not have support to Texture2DMS to resolve depth.
                 // Instead we use a depth prepass and whenever depth is needed we use the 1 sample depth from prepass.
@@ -608,9 +600,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 {
                     bool supportsDepthCopy = m_CopyTextureSupport != CopyTextureSupport.None && m_Asset.CopyDepthShader.isSupported;
                     m_DepthRenderBuffer = true;
+                    intermediateTexture = true;
 
-                    // Soft particles need separate depth as it reads/write to depth at same time
-                    if (softParticlesEnabled)
+                    // If requiring a camera depth texture we need separate depth as it reads/write to depth at same time
+                    // Post process doesn't need the copy
+                    if (!m_Asset.RequireDepthTexture && postProcessEnabled)
                         configuration |= (supportsDepthCopy) ? FrameRenderingConfiguration.DepthCopy : FrameRenderingConfiguration.DepthPrePass;
                 }
                 else
@@ -653,7 +647,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             int rtWidth = (int)((float)m_CurrCamera.pixelWidth * renderScale);
             int rtHeight = (int)((float)m_CurrCamera.pixelHeight * renderScale);
 
-            if (m_RequireDepth)
+            if (m_RequireDepthTexture)
             {
                 RenderTextureDescriptor depthRTDesc = new RenderTextureDescriptor(rtWidth, rtHeight, RenderTextureFormat.Depth, kDepthStencilBufferBits);
                 cmd.GetTemporaryRT(CameraRenderTargetID.depth, depthRTDesc, FilterMode.Bilinear);
@@ -1059,7 +1053,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CoreUtils.SetKeyword(cmd, "_ADDITIONAL_LIGHTS", lightData.totalAdditionalLightsCount > 0);
             CoreUtils.SetKeyword(cmd, "_MIXED_LIGHTING_SUBTRACTIVE", m_MixedLightingSetup == MixedLightingSetup.Subtractive);
             CoreUtils.SetKeyword(cmd, "_VERTEX_LIGHTS", vertexLightsCount > 0);
-            CoreUtils.SetKeyword(cmd, "SOFTPARTICLES_ON", m_Asset.RequireCameraDepthTexture);
+            CoreUtils.SetKeyword(cmd, "SOFTPARTICLES_ON", m_RequireDepthTexture && m_Asset.RequireSoftParticles);
 
             bool linearFogModeEnabled = false;
             bool exponentialFogModeEnabled = false;
@@ -1238,7 +1232,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (!m_IsOffscreenCamera)
                     colorRT = m_CurrCameraColorRT;
 
-                if (m_RequireDepth)
+                if (m_RequireDepthTexture)
                     depthRT = m_DepthRT;
             }
 
