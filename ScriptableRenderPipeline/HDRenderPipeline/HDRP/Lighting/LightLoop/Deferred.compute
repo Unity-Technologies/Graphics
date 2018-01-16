@@ -71,6 +71,9 @@
 // Include
 //-------------------------------------------------------------------------------------
 
+#include "../../ShaderPass/ShaderPass.cs.hlsl"
+#define SHADERPASS SHADERPASS_DEFERRED_LIGHTING
+
 #include "CoreRP/ShaderLibrary/Common.hlsl"
 #include "../../Debug/DebugDisplay.hlsl"
 
@@ -100,23 +103,25 @@ CBUFFER_END
 
 StructuredBuffer<uint> g_TileList;
 // Indirect
-[numthreads(16, 16, 1)]
+[numthreads(TILE_SIZE_FPTL, TILE_SIZE_FPTL, 1)]
 void SHADE_OPAQUE_ENTRY(uint2 groupThreadId : SV_GroupThreadID, uint groupId : SV_GroupID)
 {
-    uint tileIndex = g_TileList[g_TileListOffset + groupId];
-    uint2 tileCoord = uint2(tileIndex & 0xFFFF, tileIndex >> 16);
-    uint2 pixelCoord = tileCoord * GetTileSize() + groupThreadId;
+    uint  tileIndex   = g_TileList[g_TileListOffset + groupId];
+    uint2 tileCoord   = uint2(tileIndex & ((1 << TILE_SIZE_FPTL) - 1), tileIndex >> TILE_SIZE_FPTL);
+    uint2 pixelCoord  = tileCoord * GetTileSize() + groupThreadId;
 
-    uint featureFlags = TileVariantToFeatureFlags(VARIANT);
+    uint screenWidth  = (uint)_ScreenSize.x;
+    uint numTilesX    = (screenWidth + (TILE_SIZE_FPTL) - 1) / TILE_SIZE_FPTL;
+    uint featureFlags = TileVariantToFeatureFlags(VARIANT, tileCoord.x + tileCoord.y * numTilesX);
 #else
 
 // Direct
-[numthreads(16, 16, 1)]
+[numthreads(TILE_SIZE_FPTL, TILE_SIZE_FPTL, 1)]
 void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 groupId : SV_GroupID)
 {
-    uint2 tileCoord = (16 * groupId) / GetTileSize();
-    uint2 pixelCoord = dispatchThreadId;
-	uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIAL_FEATURE_MASK_FLAGS;
+    uint2 tileCoord    = (TILE_SIZE_FPTL * groupId) / GetTileSize();
+    uint2 pixelCoord   = dispatchThreadId;
+	uint  featureFlags = UINT_MAX;
 
 #endif
 
@@ -150,7 +155,7 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     float3 specularLighting;
     LightLoop(V, posInput, preLightData, bsdfData, bakeLightingData, featureFlags, diffuseLighting, specularLighting);
 
-    if (_EnableSubsurfaceScattering != 0 && HaveSubsurfaceScattering(bsdfData))
+    if (_EnableSubsurfaceScattering != 0 && PixelHasSubsurfaceScattering(bsdfData))
     {
         specularLightingUAV[pixelCoord] = float4(specularLighting, 1.0);
         diffuseLightingUAV[pixelCoord]  = TagLightingForSSS(diffuseLighting);

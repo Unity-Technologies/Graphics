@@ -7171,7 +7171,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 885480687}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -0.31, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 874252442}
@@ -15820,11 +15820,12 @@ MonoBehaviour:
   volumeLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  serializedFrameSettings:
+  m_FrameSettings:
     enableShadow: 1
     enableSSR: 1
     enableSSAO: 1
-    enableSSSAndTransmission: 1
+    enableSubsurfaceScattering: 1
+    enableTransmission: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
     enableForwardRenderingOnly: 0

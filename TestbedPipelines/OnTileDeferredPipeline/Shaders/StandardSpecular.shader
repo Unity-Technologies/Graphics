@@ -6,7 +6,7 @@ Shader "Standard-SRP (Specular setup)"
 	{
 		_Color("Color", Color) = (1,1,1,1)
 		_MainTex("Albedo", 2D) = "white" {}
-		
+
 		_Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
 		_Glossiness("Smoothness", Range(0.0, 1.0)) = 0.5
@@ -29,7 +29,7 @@ Shader "Standard-SRP (Specular setup)"
 
 		_EmissionColor("Color", Color) = (0,0,0)
 		_EmissionMap("Emission", 2D) = "white" {}
-		
+
 		_DetailMask("Detail Mask", 2D) = "white" {}
 
 		_DetailAlbedoMap("Detail Albedo x2", 2D) = "grey" {}
@@ -47,6 +47,7 @@ Shader "Standard-SRP (Specular setup)"
 	}
 
 	CGINCLUDE
+        #include "OnTileCommon.hlsl"
 		#define UNITY_SETUP_BRDF_INPUT SpecularSetup
 	ENDCG
 
@@ -54,7 +55,7 @@ Shader "Standard-SRP (Specular setup)"
 	{
 		Tags { "RenderType"="Opaque" "PerformanceChecks"="False" }
 		LOD 300
-	
+
 		Pass
         {
             Name "FORWARD"
@@ -78,9 +79,9 @@ Shader "Standard-SRP (Specular setup)"
             #pragma shader_feature _ _GLOSSYREFLECTIONS_OFF
             #pragma shader_feature _PARALLAXMAP
 
-            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED DIRLIGHTMAP_SEPARATE
-            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED DIRLIGHTMAP_SEPARATE
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fog
 
             #pragma vertex vertForward
@@ -100,7 +101,7 @@ Shader "Standard-SRP (Specular setup)"
 		//  Base forward pass (directional light, emission, lightmaps, ...)
 		Pass
 		{
-			Name "FORWARD" 
+			Name "FORWARD"
 			Tags { "LightMode" = "ForwardBase" }
 
 			Blend [_SrcBlend] [_DstBlend]
@@ -231,7 +232,7 @@ Shader "Standard-SRP (Specular setup)"
 		// This pass it not used during regular rendering.
 		Pass
 		{
-			Name "META" 
+			Name "META"
 			Tags { "LightMode"="Meta" }
 
 			Cull Off
@@ -260,7 +261,7 @@ Shader "Standard-SRP (Specular setup)"
 		//  Base forward pass (directional light, emission, lightmaps, ...)
 		Pass
 		{
-			Name "FORWARD" 
+			Name "FORWARD"
 			Tags { "LightMode" = "ForwardBase" }
 
 			Blend [_SrcBlend] [_DstBlend]
@@ -268,10 +269,10 @@ Shader "Standard-SRP (Specular setup)"
 
 			CGPROGRAM
 			#pragma target 2.0
-			
+
 			#pragma shader_feature _NORMALMAP
 			#pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON
-			#pragma shader_feature _EMISSION 
+			#pragma shader_feature _EMISSION
 			#pragma shader_feature _SPECGLOSSMAP
 			#pragma shader_feature _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 			#pragma shader_feature _ _SPECULARHIGHLIGHTS_OFF
@@ -280,7 +281,7 @@ Shader "Standard-SRP (Specular setup)"
 			// SM2.0: NOT SUPPORTED shader_feature _PARALLAXMAP
 
 			#pragma skip_variants SHADOWS_SOFT DYNAMICLIGHTMAP_ON DIRLIGHTMAP_COMBINED
-			
+
 			#pragma multi_compile_fwdbase
 			#pragma multi_compile_fog
 
@@ -300,7 +301,7 @@ Shader "Standard-SRP (Specular setup)"
 			Fog { Color (0,0,0,0) } // in additive pass fog should be black
 			ZWrite Off
 			ZTest LEqual
-			
+
 			CGPROGRAM
 			#pragma target 2.0
 
@@ -312,10 +313,10 @@ Shader "Standard-SRP (Specular setup)"
 			#pragma shader_feature ___ _DETAIL_MULX2
 			// SM2.0: NOT SUPPORTED shader_feature _PARALLAXMAP
 			#pragma skip_variants SHADOWS_SOFT
-			
+
 			#pragma multi_compile_fwdadd_fullshadows
 			#pragma multi_compile_fog
-			
+
 			#pragma vertex vertAdd
 			#pragma fragment fragAdd
 			#include "UnityStandardCoreForward.cginc"
@@ -327,7 +328,7 @@ Shader "Standard-SRP (Specular setup)"
 		Pass {
 			Name "ShadowCaster"
 			Tags { "LightMode" = "ShadowCaster" }
-			
+
 			ZWrite On ZTest LEqual
 
 			CGPROGRAM
@@ -350,7 +351,7 @@ Shader "Standard-SRP (Specular setup)"
 		// This pass it not used during regular rendering.
 		Pass
 		{
-			Name "META" 
+			Name "META"
 			Tags { "LightMode"="Meta" }
 
 			Cull Off

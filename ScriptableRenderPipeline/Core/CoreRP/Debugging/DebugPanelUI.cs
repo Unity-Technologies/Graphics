@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using UnityEngine;
 using System;
 
 namespace UnityEngine.Experimental.Rendering
@@ -98,14 +97,21 @@ namespace UnityEngine.Experimental.Rendering
 #if UNITY_EDITOR
         // Default implementation for editor UI of a debug panel. Users may override this behavior.
         // This will just display all items via their specific handlers in a vertical layout.
+        Vector2 m_ScrollViewPos;
+
         public virtual void OnEditorGUI()
         {
-            using (new UnityEditor.EditorGUILayout.VerticalScope())
+            using (var scope = new UnityEditor.EditorGUILayout.ScrollViewScope(m_ScrollViewPos))
             {
-                for (int i = 0; i < m_DebugPanel.itemCount; ++i)
+                using (new UnityEditor.EditorGUILayout.VerticalScope())
                 {
-                    m_DebugPanel.GetDebugItem(i).handler.OnEditorGUI();
+                    for (int i = 0; i < m_DebugPanel.itemCount; ++i)
+                    {
+                        m_DebugPanel.GetDebugItem(i).handler.OnEditorGUI();
+                    }
                 }
+
+                m_ScrollViewPos = scope.scrollPosition;
             }
         }
 #endif

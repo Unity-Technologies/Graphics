@@ -41,17 +41,31 @@ Shader "LightweightPipeline/Standard Terrain"
             #pragma vertex SplatmapVert
             #pragma fragment SpatmapFragment
 
+            // -------------------------------------
+            // Lightweight Pipeline keywords
+            // We have no good approach exposed to skip shader variants, e.g, ideally we would like to skip _CASCADE for all puctual lights
+            // Lightweight combines light classification and shadows keywords to reduce shader variants.
+            // Lightweight shader library declares defines based on these keywords to avoid having to check them in the shaders
+            // Core.hlsl defines _MAIN_LIGHT_DIRECTIONAL and _MAIN_LIGHT_SPOT (point lights can't be main light)
+            // Shadow.hlsl defines _SHADOWS_ENABLED, _SHADOWS_SOFT, _SHADOWS_CASCADE, _SHADOWS_PERSPECTIVE
             #pragma multi_compile _ _MAIN_LIGHT_DIRECTIONAL_SHADOW _MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE _MAIN_LIGHT_DIRECTIONAL_SHADOW_SOFT _MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT _MAIN_LIGHT_SPOT_SHADOW _MAIN_LIGHT_SPOT_SHADOW_SOFT
             #pragma multi_compile _ _MAIN_LIGHT_COOKIE
             #pragma multi_compile _ _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _VERTEX_LIGHTS
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
-            #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
-            #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile_fog
+            #pragma multi_compile _ FOG_LINEAR FOG_EXP2
 
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED LIGHTMAP_ON
             #pragma multi_compile __ _TERRAIN_NORMAL_MAP
+
+            // LW doesn't support dynamic GI. So we save 30% shader variants if we assume
+            // LIGHTMAP_ON when DIRLIGHTMAP_COMBINED is set
+            #ifdef DIRLIGHTMAP_COMBINED
+            #define LIGHTMAP_ON
+            #endif
 
             #include "LightweightShaderLibrary/Lighting.hlsl"
 
@@ -182,7 +196,7 @@ Shader "LightweightPipeline/Standard Terrain"
 #endif
 
                 half3 indirectDiffuse = half3(0, 0, 0);
-#if LIGHTMAP_ON
+#ifdef LIGHTMAP_ON
                 indirectDiffuse = SampleLightmap(IN.uvControlAndLM.zw, normalWS);
 #endif
 
