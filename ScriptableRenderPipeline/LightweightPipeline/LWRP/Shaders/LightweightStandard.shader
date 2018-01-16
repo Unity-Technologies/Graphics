@@ -52,20 +52,26 @@ Shader "LightweightPipeline/Standard (Physically Based)"
 
     SubShader
     {
+        // Lightweight Pipeline tag is required. If Lightweight pipeline is not set in the graphics settings
+        // this Subshader will fail. One can add a subshader below or fallback to Standard built-in to make this
+        // material work with both Lightweight Pipeline and Builtin Unity Pipeline
         Tags{"RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline"}
         LOD 300
 
         // ------------------------------------------------------------------
-        //  Base forward pass (directional light, emission, lightmaps, ...)
+        //  Forward pass. Shades all light in a single pass. GI + emission + Fog
         Pass
         {
+            // Lightmode matches the ShaderPassName set in LightweightPipeline.cs. SRPDefaultUnlit and passes with
+            // no LightMode tag are also rendered by Lightweight Pipeline
             Tags{"LightMode" = "LightweightForward"}
 
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
+            // Required to compile gles 2.0 with standard SRP library
+            // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
             #pragma prefer_hlslcc gles
             #pragma target 3.0
 
