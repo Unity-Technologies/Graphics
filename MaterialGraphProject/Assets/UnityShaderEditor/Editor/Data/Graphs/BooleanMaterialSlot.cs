@@ -32,6 +32,11 @@ namespace UnityEditor.ShaderGraph
             m_Value = value;
         }
 
+        public override VisualElement InstantiateControl()
+        {
+            return new BooleanSlotControlView(this);
+        }
+
         public bool defaultValue { get { return m_DefaultValue; } }
 
         public bool value
