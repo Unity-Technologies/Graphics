@@ -122,35 +122,4 @@ half MixRealtimeAndBakedOcclusion(half realtimeAttenuation, half subtractiveMode
     return realtimeAttenuation;
 }
 
-inline half3 SubtractDirectMainLightFromLightmap(half3 bakedGI, half attenuation, half3 lambert)
-{
-#if defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_ON) && defined(_SHADOWS_ENABLED)
-    // Let's try to make realtime shadows work on a surface, which already contains
-    // baked lighting and shadowing from the main sun light.
-    // Summary:
-    // 1) Calculate possible value in the shadow by subtracting estimated light contribution from the places occluded by realtime shadow:
-    //      a) preserves other baked lights and light bounces
-    //      b) eliminates shadows on the geometry facing away from the light
-    // 2) Clamp against user defined ShadowColor.
-    // 3) Pick original lightmap value, if it is the darkest one.
-
-
-    // 1) Gives good estimate of illumination as if light would've been shadowed during the bake.
-    //    Preserves bounce and other baked lights
-    //    No shadows on the geometry facing away from the light
-    half shadowStrength = _ShadowData.x;
-    half3 estimatedLightContributionMaskedByInverseOfShadow = lambert * (1.0 - attenuation);
-    half3 subtractedLightmap = bakedGI - estimatedLightContributionMaskedByInverseOfShadow;
-
-    // 2) Allows user to define overall ambient of the scene and control situation when realtime shadow becomes too dark.
-    half3 realtimeShadow = max(subtractedLightmap, _SubtractiveShadowColor.xyz);
-    realtimeShadow = lerp(bakedGI, realtimeShadow, shadowStrength);
-
-    // 3) Pick darkest color
-    return min(bakedGI, realtimeShadow);
-#endif
-
-    return bakedGI;
-}
-
 #endif
