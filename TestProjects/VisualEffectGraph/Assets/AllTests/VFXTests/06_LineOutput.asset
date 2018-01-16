@@ -4082,14 +4082,14 @@ VFXAsset:
       - index: 49
         nameId: ArcSphere_arc_c
       params: []
-      processor: {fileID: 7200000, guid: 9d4775dc3f21e234e8c824e56bafd4c1, type: 3}
+      processor: {fileID: 7200000, guid: 306cacea27329734696082207e8cd2bb, type: 3}
     - type: 805306368
       buffers:
       - index: 0
         nameId: attributeBuffer
       values: []
       params: []
-      processor: {fileID: 7200000, guid: f6469c4683acac4438e440beb5748055, type: 3}
+      processor: {fileID: 7200000, guid: 17387005917c8804a87e4f1197d1a6f0, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -4108,7 +4108,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 6812f11e0de60d5438e5f0d114d04b74, type: 3}
+      processor: {fileID: 4800000, guid: 9b90828b003f3a34e943364b2419d439, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

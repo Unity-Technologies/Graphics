@@ -6,9 +6,9 @@ namespace UnityEditor.VFX
     [VFXInfo(type = typeof(Mesh))]
     class VFXSlotMesh : VFXSlot
     {
-        protected override VFXValue DefaultExpression()
+        public override VFXValue DefaultExpression(VFXValue.Mode mode)
         {
-            return new VFXValue<Mesh>(null, VFXValue.Mode.FoldableVariable);
+            return new VFXValue<Mesh>(null, mode);
         }
     }
 }
