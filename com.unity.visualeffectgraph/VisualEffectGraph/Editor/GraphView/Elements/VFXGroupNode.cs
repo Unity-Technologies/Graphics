@@ -43,7 +43,15 @@ namespace UnityEditor.VFX.UI
         {
             base.UpdatePresenterPosition();
 
-            controller.position = GetPosition();
+            if (containedElements.Count == 0)
+            {
+                controller.position = GetPosition();
+            }
+
+            foreach (var node in containedElements)
+            {
+                node.UpdatePresenterPosition();
+            }
         }
 
         public void OnControllerChanged(ControllerChangedEvent e)
@@ -58,7 +66,6 @@ namespace UnityEditor.VFX.UI
                 m_ModificationFromPresenter = true;
                 title = controller.title;
 
-                SetPosition(controller.position);
 
                 var presenterContent = controller.nodes.ToArray();
                 var elementContent = containedElements.OfType<IControlledElement<VFXNodeController>>();
@@ -68,10 +75,12 @@ namespace UnityEditor.VFX.UI
                     elementContent = new List<IControlledElement<VFXNodeController>>();
                 }
 
+                bool elementsChanged = false;
                 var elementToDelete = elementContent.Where(t => !presenterContent.Contains(t.controller)).ToArray();
                 foreach (var element in elementToDelete)
                 {
                     this.RemoveElement(element as GraphElement);
+                    elementsChanged = true;
                 }
 
                 var viewElements = view.Query().Children<VisualElement>().Children<GraphElement>().ToList().OfType<IControlledElement<VFXNodeController>>();
@@ -81,7 +90,20 @@ namespace UnityEditor.VFX.UI
                 foreach (var element in elementToAdd)
                 {
                     if (element != null)
+                    {
                         this.AddElement(element as GraphElement);
+                        elementsChanged = true;
+                    }
+                }
+
+                // only update position if the groupnode is empty otherwise the size should be computed from the content.
+                if (presenterContent.Length == 0)
+                {
+                    SetPosition(controller.position);
+                }
+                else
+                {
+                    UpdateGeometryFromContent();
                 }
 
                 m_ModificationFromPresenter = false;
@@ -97,9 +119,11 @@ namespace UnityEditor.VFX.UI
                 IControlledElement<VFXNodeController> node = element as IControlledElement<VFXNodeController>;
 
                 if (node != null)
+                {
                     controller.AddNode(node.controller);
 
-                UpdatePresenterPosition();
+                    UpdatePresenterPosition();
+                }
             }
         }
 
@@ -109,9 +133,11 @@ namespace UnityEditor.VFX.UI
             {
                 IControlledElement<VFXNodeController> node = element as IControlledElement<VFXNodeController>;
                 if (node != null)
+                {
                     controller.RemoveNode(node.controller);
 
-                UpdatePresenterPosition();
+                    UpdatePresenterPosition();
+                }
             }
         }
 

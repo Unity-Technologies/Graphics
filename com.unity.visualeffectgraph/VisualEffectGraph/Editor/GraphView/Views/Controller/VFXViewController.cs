@@ -469,17 +469,18 @@ namespace UnityEditor.VFX.UI
 
             ui.groupInfos = ui.groupInfos.Where((t, i) => i != index).ToArray();
 
-            m_GroupNodePresenters.RemoveAt(index);
+            groupNode.Remove();
+            m_GroupNodeControllers.RemoveAt(index);
 
-            for (int i = index; i < m_GroupNodePresenters.Count; ++i)
+            for (int i = index; i < m_GroupNodeControllers.Count; ++i)
             {
-                m_GroupNodePresenters[i].index = index;
+                m_GroupNodeControllers[i].index = index;
             }
         }
 
         void RemoveFromGroupNodes(VFXNodeController presenter)
         {
-            foreach (var groupNode in m_GroupNodePresenters)
+            foreach (var groupNode in m_GroupNodeControllers)
             {
                 if (groupNode.ContainsNode(presenter))
                 {
@@ -670,6 +671,7 @@ namespace UnityEditor.VFX.UI
             m_SyncedModels.Clear();
             m_DataEdges.Clear();
             m_FlowEdges.Clear();
+            m_GroupNodeControllers.Clear();
         }
 
         private Dictionary<VFXModel, List<VFXModel.InvalidateEvent>> m_registeredEvent = new Dictionary<VFXModel, List<VFXModel.InvalidateEvent>>();
@@ -759,10 +761,10 @@ namespace UnityEditor.VFX.UI
 
         public ReadOnlyCollection<VFXGroupNodeController> groupNodes
         {
-            get {return m_GroupNodePresenters.AsReadOnly(); }
+            get {return m_GroupNodeControllers.AsReadOnly(); }
         }
 
-        List<VFXGroupNodeController> m_GroupNodePresenters = new List<VFXGroupNodeController>();
+        List<VFXGroupNodeController> m_GroupNodeControllers = new List<VFXGroupNodeController>();
 
         public bool RecreateUI()
         {
@@ -770,16 +772,16 @@ namespace UnityEditor.VFX.UI
             var ui = graph.UIInfos;
             if (ui != null && ui.groupInfos != null)
             {
-                for (int i = m_GroupNodePresenters.Count; i < ui.groupInfos.Length; ++i)
+                for (int i = m_GroupNodeControllers.Count; i < ui.groupInfos.Length; ++i)
                 {
                     VFXGroupNodeController groupNodePresenter = new VFXGroupNodeController(this, ui, i);
-                    m_GroupNodePresenters.Add(groupNodePresenter);
+                    m_GroupNodeControllers.Add(groupNodePresenter);
                     changed = true;
                 }
 
-                while (ui.groupInfos.Length < m_GroupNodePresenters.Count)
+                while (ui.groupInfos.Length < m_GroupNodeControllers.Count)
                 {
-                    m_GroupNodePresenters.RemoveAt(m_GroupNodePresenters.Count - 1);
+                    m_GroupNodeControllers.RemoveAt(m_GroupNodeControllers.Count - 1);
                     changed = true;
                 }
             }

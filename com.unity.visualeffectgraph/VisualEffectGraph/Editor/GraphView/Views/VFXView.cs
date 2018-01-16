@@ -616,6 +616,9 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
+                elementAddedToGroupNode = null;
+                elementRemovedFromGroupNode = null;
+
                 var deletedControllers = controlledElements.Keys.Except(controller.nodes);
 
                 foreach (var deletedController in deletedControllers)
@@ -629,6 +632,10 @@ namespace UnityEditor.VFX.UI
                     AddElement(newElement);
                     (newElement as IControlledElement<VFXNodeController>).controller = newController;
                 }
+
+
+                elementAddedToGroupNode = ElementAddedToGroupNode;
+                elementRemovedFromGroupNode = ElementRemovedFromGroupNode;
             }
         }
 

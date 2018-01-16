@@ -101,10 +101,15 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static ScriptableObject[] PrepareSerializedObjects(Data copyData)
+        static ScriptableObject[] PrepareSerializedObjects(Data copyData, VFXUI optionalUI)
         {
             var objects = new HashSet<ScriptableObject>();
             copyData.CollectDependencies(objects);
+
+            if (optionalUI != null)
+            {
+                objects.Add(optionalUI);
+            }
 
             ScriptableObject[] allSerializedObjects = objects.OfType<ScriptableObject>().ToArray();
 
@@ -134,8 +139,28 @@ namespace UnityEditor.VFX.UI
 
             VFXData[] datas = copiedContexts.Select(t => t.GetData()).Where(t => t != null).ToArray();
 
+            VFXGroupNodeController[] groupNodes = elements.OfType<VFXGroupNodeController>().ToArray();
 
-            ScriptableObject[] allSerializedObjects = PrepareSerializedObjects(copyData);
+            VFXUI copiedGroupUI = null;
+            if (groupNodes.Length > 0)
+            {
+                copiedGroupUI = ScriptableObject.CreateInstance<VFXUI>();
+                copiedGroupUI.groupInfos = new VFXUI.GroupInfo[groupNodes.Length];
+
+                for (int i = 0; i < groupNodes.Length; ++i)
+                {
+                    VFXGroupNodeController groupNode = groupNodes[i];
+                    VFXUI.GroupInfo info = groupNode.model.groupInfos[groupNode.index];
+                    copiedGroupUI.groupInfos[i] = new VFXUI.GroupInfo() {title = info.title, position = info.position};
+
+                    // only keep nodes that are copied because a node can not be in two groups at the same time.
+                    if (info.content != null)
+                        copiedGroupUI.groupInfos[i].content =  info.content.Where(t => copiedContexts.Contains(t) || copiedSlotContainers.Contains(t)).ToArray();
+                }
+            }
+
+
+            ScriptableObject[] allSerializedObjects = PrepareSerializedObjects(copyData, copiedGroupUI);
 
 
             copyData.dataAndContexts = new DataAndContexts[datas.Length];
@@ -217,7 +242,7 @@ namespace UnityEditor.VFX.UI
             {
                 VFXBlock[] copiedBlocks = blocks.Select(t => t.block).ToArray();
                 copyData.blocks = copiedBlocks;
-                PrepareSerializedObjects(copyData);
+                PrepareSerializedObjects(copyData, null);
                 copyData.blocksOnly = true;
             }
             else
@@ -410,18 +435,40 @@ namespace UnityEditor.VFX.UI
         {
             var graph = view.controller.graph;
 
-            foreach (var slotContainer in copyData.contexts)
+            if (copyData.contexts != null)
             {
-                var newContext = slotContainer;
-                newContext.position += pasteOffset;
-                ClearLinks(newContext);
+                foreach (var slotContainer in copyData.contexts)
+                {
+                    var newContext = slotContainer;
+                    newContext.position += pasteOffset;
+                    ClearLinks(newContext);
+                }
             }
 
-            foreach (var slotContainer in copyData.slotContainers)
+            if (copyData.slotContainers != null)
             {
-                var newSlotContainer = slotContainer;
-                newSlotContainer.position += pasteOffset;
-                ClearLinks(newSlotContainer as IVFXSlotContainer);
+                foreach (var slotContainer in copyData.slotContainers)
+                {
+                    var newSlotContainer = slotContainer;
+                    newSlotContainer.position += pasteOffset;
+                    ClearLinks(newSlotContainer as IVFXSlotContainer);
+                }
+            }
+
+
+            VFXUI copiedUI = allSerializedObjects.OfType<VFXUI>().FirstOrDefault();
+            int firstCopiedGroup = -1;
+            if (copiedUI != null)
+            {
+                VFXUI ui = view.controller.graph.UIInfos;
+
+                if (ui.groupInfos == null)
+                {
+                    ui.groupInfos = new VFXUI.GroupInfo[0];
+                }
+                firstCopiedGroup = ui.groupInfos.Length;
+
+                ui.groupInfos = ui.groupInfos.Concat(copiedUI.groupInfos.Select(t => new VFXUI.GroupInfo() {title = t.title, position = new Rect(t.position.position + pasteOffset, t.position.size), content = t.content})).ToArray();
             }
 
             if (copyData.dataEdges != null)
@@ -538,6 +585,18 @@ namespace UnityEditor.VFX.UI
                 if (newContainerUIs.Contains(flowEdge.input.GetFirstAncestorOfType<VFXContextUI>()))
                 {
                     view.AddToSelection(flowEdge);
+                }
+            }
+
+            //Select all groups that are new
+            if (firstCopiedGroup >= 0)
+            {
+                foreach (var groupNode in elements.OfType<VFXGroupNode>())
+                {
+                    if (groupNode.controller.index >= firstCopiedGroup)
+                    {
+                        view.AddToSelection(groupNode);
+                    }
                 }
             }
         }

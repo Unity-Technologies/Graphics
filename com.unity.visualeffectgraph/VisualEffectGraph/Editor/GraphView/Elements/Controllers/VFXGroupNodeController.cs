@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEngine.VFX;
 using System;
 
 namespace UnityEditor.VFX.UI
@@ -19,6 +20,11 @@ namespace UnityEditor.VFX.UI
         {
         }
 
+        public void Remove()
+        {
+            m_Index = -1;
+        }
+
         VFXViewController m_ViewController;
 
         public int index
@@ -29,6 +35,8 @@ namespace UnityEditor.VFX.UI
 
         protected override void ModelChanged(UnityEngine.Object obj)
         {
+            if (m_Index == -1) return;
+
             NotifyChange(AnyThing);
         }
 
@@ -41,23 +49,45 @@ namespace UnityEditor.VFX.UI
 
         public Rect position
         {
-            get { return m_UI.groupInfos[m_Index].position; }
-            set { m_UI.groupInfos[m_Index].position = value; }
+            get
+            {
+                if (m_Index < 0)
+                {
+                    return Rect.zero;
+                }
+                return m_UI.groupInfos[m_Index].position;
+            }
+            set
+            {
+                if (m_Index < 0) return;
+                m_UI.groupInfos[m_Index].position = value;
+                m_ViewController.IncremenentGraphUndoRedoState(null, VFXModel.InvalidationCause.kUIChanged);
+            }
         }
         public string title
         {
-            get { return m_UI.groupInfos[m_Index].title; }
+            get
+            {
+                if (m_Index < 0)
+                {
+                    return "";
+                }
+                return m_UI.groupInfos[m_Index].title;
+            }
             set
             {
-                if (title != value)
+                if (title != value && m_Index >= 0)
                 {
                     m_UI.groupInfos[m_Index].title = value;
+                    m_ViewController.IncremenentGraphUndoRedoState(null, VFXModel.InvalidationCause.kUIChanged);
                 }
             }
         }
 
         public override void ApplyChanges()
         {
+            if (m_Index == -1) return;
+
             ModelChanged(model);
         }
 
@@ -65,8 +95,10 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
+                if (m_Index == -1) return Enumerable.Empty<VFXNodeController>();
+
                 if (m_UI.groupInfos[m_Index].content != null)
-                    return m_UI.groupInfos[m_Index].content.Select(t => m_ViewController.GetControllerFromModel(t));
+                    return m_UI.groupInfos[m_Index].content.Where(t => t != null).Select(t => m_ViewController.GetControllerFromModel(t)).Where(t => t != null);
                 return new VFXNodeController[0];
             }
             set { m_UI.groupInfos[m_Index].content = value.Select(t => t.model).ToArray(); }
@@ -75,26 +107,38 @@ namespace UnityEditor.VFX.UI
 
         public void AddNode(VFXNodeController controller)
         {
-            if (controller == null)
+            if (controller == null || m_Index < 0)
                 return;
 
             if (m_UI.groupInfos[m_Index].content != null)
                 m_UI.groupInfos[m_Index].content = m_UI.groupInfos[m_Index].content.Concat(Enumerable.Repeat(controller.model, 1)).Distinct().ToArray();
             else
                 m_UI.groupInfos[m_Index].content = new VFXModel[] { controller.model };
+            m_ViewController.IncremenentGraphUndoRedoState(null, VFXModel.InvalidationCause.kUIChanged);
+
+
+            VFXUI ui = VFXMemorySerializer.DuplicateObjects(new ScriptableObject[] {model})[0] as VFXUI;
+
+
+            if (ui.groupInfos.Length > 0)
+            {
+                Debug.Log("toto");
+            }
         }
 
         public void RemoveNode(VFXNodeController controller)
         {
-            if (controller == null)
+            if (controller == null || m_Index < 0)
                 return;
 
             if (m_UI.groupInfos[m_Index].content != null)
                 m_UI.groupInfos[m_Index].content = m_UI.groupInfos[m_Index].content.Where(t => t != controller.model).ToArray();
+            m_ViewController.IncremenentGraphUndoRedoState(null, VFXModel.InvalidationCause.kUIChanged);
         }
 
         public bool ContainsNode(VFXNodeController controller)
         {
+            if (m_Index == -1) return false;
             if (m_UI.groupInfos[m_Index].content != null)
             {
                 return m_UI.groupInfos[m_Index].content.Contains(controller.model);
