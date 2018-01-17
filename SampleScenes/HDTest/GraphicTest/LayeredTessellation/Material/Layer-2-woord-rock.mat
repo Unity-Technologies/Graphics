@@ -8,10 +8,9 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: Layer-2-woord-rock
   m_Shader: {fileID: 4800000, guid: eab0538d9d5746246806a9611c04ac4d, type: 3}
-  m_ShaderKeywords: _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _DISPLACEMENT_LOCK_TILING_SCALE
-    _HEIGHTMAP0 _HEIGHTMAP1 _NORMALMAP0 _NORMALMAP1 _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1
-    _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3 _TESSELLATION_DISPLACEMENT
-    _TESSELLATION_PHONG _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
+  m_ShaderKeywords: _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP0 _HEIGHTMAP1 _NORMALMAP0
+    _NORMALMAP1 _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2
+    _NORMALMAP_TANGENT_SPACE3 _TESSELLATION_DISPLACEMENT _TESSELLATION_PHONG _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -29,7 +28,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _BaseColorMap1:
         m_Texture: {fileID: 2800000, guid: 927434958f610214aa6a4179f134f5fd, type: 3}
-        m_Scale: {x: 2, y: 2}
+        m_Scale: {x: 3, y: 2}
         m_Offset: {x: 0, y: 0}
     - _BaseColorMap2:
         m_Texture: {fileID: 0}
@@ -235,6 +234,22 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SubsurfaceMaskMap0:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SubsurfaceMaskMap1:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SubsurfaceMaskMap2:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SubsurfaceMaskMap3:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SubsurfaceRadiusMap0:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -312,6 +327,10 @@ Material:
     - _DetailSmoothnessScale1: 1
     - _DetailSmoothnessScale2: 1
     - _DetailSmoothnessScale3: 1
+    - _DiffusionProfile0: 0
+    - _DiffusionProfile1: 0
+    - _DiffusionProfile2: 0
+    - _DiffusionProfile3: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 3
@@ -335,12 +354,12 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _HeightAmplitude0: 0.8
-    - _HeightAmplitude1: 1.27
+    - _HeightAmplitude0: 1
+    - _HeightAmplitude1: 1
     - _HeightAmplitude2: 1
     - _HeightAmplitude3: 1
-    - _HeightCenter0: 0.5
-    - _HeightCenter1: 0.5
+    - _HeightCenter0: 0.75
+    - _HeightCenter1: 0.25
     - _HeightCenter2: 0
     - _HeightCenter3: 0
     - _HeightCenterOffset0: 0
@@ -351,18 +370,34 @@ Material:
     - _HeightFactor1: 1
     - _HeightFactor2: 1
     - _HeightFactor3: 1
-    - _HeightMax0: 1
-    - _HeightMax1: 1
+    - _HeightMapParametrization0: 1
+    - _HeightMapParametrization1: 1
+    - _HeightMapParametrization2: 0
+    - _HeightMapParametrization3: 0
+    - _HeightMax0: 100
+    - _HeightMax1: 100
     - _HeightMax2: 1
     - _HeightMax3: 1
-    - _HeightMin0: -1
-    - _HeightMin1: -1
+    - _HeightMin0: 0
+    - _HeightMin1: 0
     - _HeightMin2: -1
     - _HeightMin3: -1
     - _HeightOffset0: 0
     - _HeightOffset1: 0
     - _HeightOffset2: 0
     - _HeightOffset3: 0
+    - _HeightPoMAmplitude0: 100
+    - _HeightPoMAmplitude1: 100
+    - _HeightPoMAmplitude2: 2
+    - _HeightPoMAmplitude3: 2
+    - _HeightTessAmplitude0: 100
+    - _HeightTessAmplitude1: 100
+    - _HeightTessAmplitude2: 2
+    - _HeightTessAmplitude3: 2
+    - _HeightTessCenter0: 0.75
+    - _HeightTessCenter1: 0.25
+    - _HeightTessCenter2: 0.5
+    - _HeightTessCenter3: 0.5
     - _HeightTransition: 0
     - _HorizonFade: 1
     - _InheritBaseColor1: 0
@@ -382,7 +417,7 @@ Material:
     - _InheritBaseNormal3: 0
     - _InitialBend: 1
     - _InvTilingScale0: 1
-    - _InvTilingScale1: 1
+    - _InvTilingScale1: 0.4
     - _InvTilingScale2: 1
     - _InvTilingScale3: 1
     - _LayerCenterOffset0: 0.5
@@ -440,10 +475,10 @@ Material:
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
     - _ShowLayer0: 1
-    - _ShowLayer1: 0
+    - _ShowLayer1: 1
     - _ShowLayer2: 0
     - _ShowLayer3: 0
-    - _ShowMaterialReferences: 0
+    - _ShowMaterialReferences: 1
     - _Smoothness0: 0.5
     - _Smoothness1: 0.5
     - _Smoothness2: 0.5
@@ -464,6 +499,10 @@ Material:
     - _StencilWriteMask: 7
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
+    - _SubsurfaceMask0: 1
+    - _SubsurfaceMask1: 1
+    - _SubsurfaceMask2: 1
+    - _SubsurfaceMask3: 1
     - _SubsurfaceProfile0: 0
     - _SubsurfaceProfile1: 0
     - _SubsurfaceProfile2: 0
@@ -483,11 +522,11 @@ Material:
     - _TessellationShapeFactor: 0.75
     - _TessellationTilingScale: 1
     - _TexWorldScale0: 1
-    - _TexWorldScale1: 1
+    - _TexWorldScale1: 0.2
     - _TexWorldScale2: 1
     - _TexWorldScale3: 1
     - _TexWorldScaleBlendMask: 1
-    - _Thickness0: 1
+    - _Thickness0: 0.5
     - _Thickness1: 1
     - _Thickness2: 1
     - _Thickness3: 1

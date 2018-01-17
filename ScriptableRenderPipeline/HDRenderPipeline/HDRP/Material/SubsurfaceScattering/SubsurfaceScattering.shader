@@ -47,7 +47,7 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
             // Inputs & outputs
             //-------------------------------------------------------------------------------------
 
-            float4 _FilterKernelsBasic[DIFFUSION_N_PROFILES][SSS_BASIC_N_SAMPLES]; // RGB = weights, A = radial distance
+            float4 _FilterKernelsBasic[DIFFUSION_PROFILE_COUNT][SSS_BASIC_N_SAMPLES]; // RGB = weights, A = radial distance
             float4 _HalfRcpWeightedVariances[SSS_BASIC_N_SAMPLES];           // RGB for chromatic, A for achromatic
 
             TEXTURE2D(_IrradianceSource);             // Includes transmitted light

@@ -59,7 +59,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_ProfileMaterial       = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/DrawDiffusionProfile");
             m_TransmittanceMaterial = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/DrawTransmittanceGraph");
 
-            int count = DiffusionProfileConstants.DIFFUSION_N_PROFILES - 1;
+            int count = DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT - 1;
             m_Profiles = new List<Profile>();
 
             var serializedProfiles = properties.Find(x => x.profiles);

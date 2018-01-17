@@ -49,6 +49,9 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             // Include
             //-------------------------------------------------------------------------------------
 
+            #include "../ShaderPass/ShaderPass.cs.hlsl"
+            #define SHADERPASS SHADERPASS_DEFERRED_LIGHTING
+
             #include "CoreRP/ShaderLibrary/Common.hlsl"
             #include "../Debug/DebugDisplay.hlsl"
 
@@ -106,7 +109,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
                 BSDFData bsdfData;
                 BakeLightingData bakeLightingData;
-                DECODE_FROM_GBUFFER(posInput.positionSS, MATERIAL_FEATURE_MASK_FLAGS, bsdfData, bakeLightingData.bakeDiffuseLighting);
+                DECODE_FROM_GBUFFER(posInput.positionSS, UINT_MAX, bsdfData, bakeLightingData.bakeDiffuseLighting);
                 #ifdef SHADOWS_SHADOWMASK
                 DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.positionSS), bakeLightingData.bakeShadowMask);
                 #endif
@@ -120,7 +123,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                 Outputs outputs;
 
             #ifdef OUTPUT_SPLIT_LIGHTING
-                if (_EnableSubsurfaceScattering != 0 && HaveSubsurfaceScattering(bsdfData))
+                if (_EnableSubsurfaceScattering != 0 && PixelHasSubsurfaceScattering(bsdfData))
                 {
                     outputs.specularLighting = float4(specularLighting, 1.0);
                     outputs.diffuseLighting  = TagLightingForSSS(diffuseLighting);

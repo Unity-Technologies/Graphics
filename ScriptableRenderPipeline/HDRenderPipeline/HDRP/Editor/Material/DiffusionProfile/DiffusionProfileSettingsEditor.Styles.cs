@@ -32,7 +32,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent   profileMinMaxThickness = new GUIContent("Min-Max Thickness (mm)", "Shows the values of the thickness remap below (in millimeters).");
             public readonly GUIContent   profileThicknessRemap  = new GUIContent("Thickness Remap (mm)", "Remaps the thickness parameter from [0, 1] to the desired range (in millimeters).");
             public readonly GUIContent   profileWorldScale      = new GUIContent("World Scale", "Size of the world unit in meters.");
-            public readonly GUIContent   profileIor             = new GUIContent("Index of Refraction", "Index of refraction. 1.4 for skin. 1.5 for most other material.");
+            public readonly GUIContent   profileIor             = new GUIContent("Index of Refraction", "Index of refraction. 1.4 for skin. Between 1.3-1.5 for most other material.");
             // Jimenez SSS Model
             public readonly GUIContent   profileScatterDistance1 = new GUIContent("Scattering Distance #1", "The radius (in centimeters) of the 1st Gaussian filter, one per color channel. Alpha is ignored. The blur is energy-preserving, so a wide filter results in a large area with small contributions of individual samples. Smaller values increase the sharpness.");
             public readonly GUIContent   profileScatterDistance2 = new GUIContent("Scattering Distance #2", "The radius (in centimeters) of the 2nd Gaussian filter, one per color channel. Alpha is ignored. The blur is energy-preserving, so a wide filter results in a large area with small contributions of individual samples. Smaller values increase the sharpness.");

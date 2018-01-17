@@ -168,8 +168,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         if (mat.HasProperty("_SubsurfaceProfile"))
                         {
                             CheckOutFile(VSCEnabled, mat);
-                            float value = mat.GetInt("_DiffusionProfile");
-                            mat.SetInt("_DiffusionProfile", 0);
+                            //float value = mat.GetInt("_DiffusionProfile");
+                            //mat.SetInt("_DiffusionProfile", 0);
 
                             EditorUtility.SetDirty(mat);
                         }
@@ -198,10 +198,96 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                 if (mat.HasProperty("_SubsurfaceProfile" + x))
                                 {
                                     CheckOutFile(VSCEnabled, mat);
-                                    float value = mat.GetInt("_DiffusionProfile" + x);
-                                    mat.SetInt("_DiffusionProfile" + x, 0);
+                                    //float value = mat.GetInt("_DiffusionProfile" + x);
+                                    //mat.SetInt("_DiffusionProfile" + x, 0);
 
                                     EditorUtility.SetDirty(mat);
+                                }
+                            }
+
+                            EditorUtility.SetDirty(mat);
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
+            }
+        }
+
+        //
+        [MenuItem("Internal/HDRenderPipeline/Update/Update Height Maps parametrization")]
+        static void UpdateHeightMapParametrization()
+        {
+            try
+            {
+                var matIds = AssetDatabase.FindAssets("t:Material");
+
+                for (int i = 0, length = matIds.Length; i < length; i++)
+                {
+                    var path = AssetDatabase.GUIDToAssetPath(matIds[i]);
+                    var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+
+                    EditorUtility.DisplayProgressBar(
+                        "Updating Materials...",
+                        string.Format("{0} / {1} materials updated.", i, length),
+                        i / (float)(length - 1));
+
+                    bool VSCEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
+
+                    if (mat.shader.name == "HDRenderPipeline/LitTessellation" ||
+                        mat.shader.name == "HDRenderPipeline/Lit")
+                    {
+                        // Need only test one of the new properties
+                        if (mat.HasProperty("_HeightPoMAmplitude"))
+                        {
+                            CheckOutFile(VSCEnabled, mat);
+
+                            float valueMax = mat.GetFloat("_HeightMax");
+                            float valueMin = mat.GetFloat("_HeightMin");
+                            float center = mat.GetFloat("_HeightCenter");
+                            float amplitude = valueMax - valueMin;
+                            mat.SetInt("_HeightMapParametrization", 1);
+                            mat.SetFloat("_HeightPoMAmplitude", amplitude);
+                            mat.SetFloat("_HeightTessAmplitude", amplitude);
+                            mat.SetFloat("_HeightOffset", 0.0f);
+                            mat.SetFloat("_HeightTessCenter", center);
+
+                            BaseLitGUI.DisplacementMode displaceMode = (BaseLitGUI.DisplacementMode)mat.GetInt("_DisplacementMode");
+                            if (displaceMode == BaseLitGUI.DisplacementMode.Pixel)
+                            {
+                                mat.SetFloat("_HeightCenter", 1.0f); // With PoM this is always 1.0f. We set it here to avoid having to open the UI to update it.
+                            }
+
+                            EditorUtility.SetDirty(mat);
+                        }
+                    }
+                    else if (mat.shader.name == "HDRenderPipeline/LayeredLit" ||
+                                mat.shader.name == "HDRenderPipeline/LayeredLitTessellation")
+                    {
+                        int numLayer = (int)mat.GetFloat("_LayerCount");
+
+                        if (mat.HasProperty("_HeightPoMAmplitude0"))
+                        {
+                            CheckOutFile(VSCEnabled, mat);
+
+                            for (int x = 0; x < numLayer; ++x)
+                            {
+                                float valueMax = mat.GetFloat("_HeightMax" + x);
+                                float valueMin = mat.GetFloat("_HeightMin" + x);
+                                float center = mat.GetFloat("_HeightCenter" + x);
+                                float amplitude = valueMax - valueMin;
+                                mat.SetInt("_HeightMapParametrization" + x, 1);
+                                mat.SetFloat("_HeightPoMAmplitude" + x, valueMax - valueMin);
+                                mat.SetFloat("_HeightTessAmplitude" + x, valueMax - valueMin);
+                                mat.SetFloat("_HeightOffset" + x, 0.0f);
+                                mat.SetFloat("_HeightTessCenter" + x, center);
+
+                                BaseLitGUI.DisplacementMode displaceMode = (BaseLitGUI.DisplacementMode)mat.GetInt("_DisplacementMode");
+                                if (displaceMode == BaseLitGUI.DisplacementMode.Pixel)
+                                {
+                                    mat.SetFloat("_HeightCenter" + x, 1.0f); // With PoM this is always 1.0f. We set it here to avoid having to open the UI to update it.
                                 }
                             }
 
@@ -291,6 +377,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var volume = sceneSettings.AddComponent<Volume>();
             volume.isGlobal = true;
             volume.sharedProfile = profile;
+
+            var bakingSky = sceneSettings.AddComponent<BakingSky>();
+            bakingSky.profile = volume.sharedProfile;
+            bakingSky.bakingSkyUniqueID = SkySettings.GetUniqueID<ProceduralSky>();
         }
 
         class DoCreateNewAsset<TAssetType> : ProjectWindowCallback.EndNameEditAction where TAssetType : ScriptableObject

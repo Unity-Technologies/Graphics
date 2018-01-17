@@ -63,13 +63,13 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
                 float3 T;
 
 #if SHADEROPTIONS_USE_DISNEY_SSS
-                    T = ComputeTransmittanceDisney(_ShapeParam.rgb, float3(0.25, 0.25, 0.25), d, 1);
+                    T = ComputeTransmittanceDisney(_ShapeParam.rgb, float3(0.25, 0.25, 0.25), d);
 #else
                     T = ComputeTransmittanceJimenez(_HalfRcpVarianceAndWeight1.rgb,
                                                     _HalfRcpVarianceAndWeight1.a,
                                                     _HalfRcpVarianceAndWeight2.rgb,
                                                     _HalfRcpVarianceAndWeight2.a,
-                                                    float3(0.25, 0.25, 0.25), d, 1);
+                                                    float3(0.25, 0.25, 0.25), d);
 #endif
 
                 // Apply gamma for visualization only. Do not apply gamma to the color.
