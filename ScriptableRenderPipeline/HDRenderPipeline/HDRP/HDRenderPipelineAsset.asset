@@ -61,7 +61,7 @@ MonoBehaviour:
       pointCookieSize: 512
       cubeCookieTexArraySize: 16
       reflectionProbeCacheSize: 128
-      planarReflectionProbeCacheSize: 128
+      planarReflectionProbeCacheSize: 16
       reflectionCubemapSize: 128
       planarReflectionTextureSize: 512
       reflectionCacheCompressed: 0

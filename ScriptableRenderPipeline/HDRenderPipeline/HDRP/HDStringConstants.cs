@@ -131,6 +131,7 @@
         public static readonly int _DebugLightingAlbedo = Shader.PropertyToID("_DebugLightingAlbedo");
         public static readonly int _DebugLightingSmoothness = Shader.PropertyToID("_DebugLightingSmoothness");
         public static readonly int _AmbientOcclusionTexture = Shader.PropertyToID("_AmbientOcclusionTexture");
+        public static readonly int _DebugMipMapMode = Shader.PropertyToID("_DebugMipMapMode");
 
         public static readonly int _UseTileLightList = Shader.PropertyToID("_UseTileLightList");
         public static readonly int _Time = Shader.PropertyToID("_Time");
@@ -196,7 +197,8 @@
         public static readonly int _ScreenSize = Shader.PropertyToID("_ScreenSize");
         public static readonly int _PrevViewProjMatrix = Shader.PropertyToID("_PrevViewProjMatrix");
         public static readonly int _FrustumPlanes = Shader.PropertyToID("_FrustumPlanes");
-        public static readonly int _TaaFrameIndex = Shader.PropertyToID("_TaaFrameIndex");
+        public static readonly int _TaaFrameIndex    = Shader.PropertyToID("_TaaFrameIndex");
+        public static readonly int _TaaFrameRotation = Shader.PropertyToID("_TaaFrameRotation");
 
         public static readonly int _DepthTexture                   = Shader.PropertyToID("_DepthTexture");
         public static readonly int _CameraColorTexture             = Shader.PropertyToID("_CameraColorTexture");
@@ -278,6 +280,7 @@
             Shader.PropertyToID("_DepthPyramidMip14"),
         };
         public static readonly int _DebugFullScreenTexture = Shader.PropertyToID("_DebugFullScreenTexture");
+        public static readonly int _BlitTexture = Shader.PropertyToID("_BlitTexture");
 
         public static readonly int _WorldScales = Shader.PropertyToID("_WorldScales");
         public static readonly int _FilterKernels = Shader.PropertyToID("_FilterKernels");

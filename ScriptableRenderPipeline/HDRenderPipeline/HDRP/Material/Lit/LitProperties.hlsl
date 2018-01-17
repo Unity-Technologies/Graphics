@@ -124,6 +124,8 @@ float _ThicknessMultiplier;
 // TODO: Fix the code in legacy unity so we can customize the beahvior for GI
 float3 _EmissionColor;
 float4 _EmissiveColorMap_ST;
+float _TexWorldScaleEmissive;
+float4 _UVMappingMaskEmissive;
 
 float4 _InvPrimScale; // Only XY are used
 
@@ -139,6 +141,8 @@ float _ShiverDirectionality;
 // Set of users variables
 float4 _BaseColor;
 float4 _BaseColorMap_ST;
+float4 _BaseColorMap_TexelSize;
+float4 _BaseColorMap_MipInfo;
 
 float _Metallic;
 float _Smoothness;
@@ -184,6 +188,9 @@ float4 _BaseColorMap0_ST;
 float4 _BaseColorMap1_ST;
 float4 _BaseColorMap2_ST;
 float4 _BaseColorMap3_ST;
+
+float4 _BaseColorMap0_TexelSize;
+float4 _BaseColorMap0_MipInfo;
 
 PROP_DECL(float, _Metallic);
 PROP_DECL(float, _Smoothness);

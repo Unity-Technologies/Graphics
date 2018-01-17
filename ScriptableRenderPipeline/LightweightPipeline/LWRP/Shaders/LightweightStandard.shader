@@ -52,20 +52,26 @@ Shader "LightweightPipeline/Standard (Physically Based)"
 
     SubShader
     {
+        // Lightweight Pipeline tag is required. If Lightweight pipeline is not set in the graphics settings
+        // this Subshader will fail. One can add a subshader below or fallback to Standard built-in to make this
+        // material work with both Lightweight Pipeline and Builtin Unity Pipeline
         Tags{"RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline"}
         LOD 300
 
         // ------------------------------------------------------------------
-        //  Base forward pass (directional light, emission, lightmaps, ...)
+        //  Forward pass. Shades all light in a single pass. GI + emission + Fog
         Pass
         {
+            // Lightmode matches the ShaderPassName set in LightweightPipeline.cs. SRPDefaultUnlit and passes with
+            // no LightMode tag are also rendered by Lightweight Pipeline
             Tags{"LightMode" = "LightweightForward"}
 
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
+            // Required to compile gles 2.0 with standard SRP library
+            // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
             #pragma prefer_hlslcc gles
             #pragma target 3.0
 
@@ -94,18 +100,23 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             #pragma multi_compile _ _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _VERTEX_LIGHTS
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+            #pragma multi_compile _ FOG_LINEAR FOG_EXP2
 
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
-            #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile_fog
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED LIGHTMAP_ON
+
+            // LW doesn't support dynamic GI. So we save 30% shader variants if we assume
+            // LIGHTMAP_ON when DIRLIGHTMAP_COMBINED is set
+            #ifdef DIRLIGHTMAP_COMBINED
+            #define LIGHTMAP_ON
+            #endif
 
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
 
-            #include "LightweightPassLit.hlsl"
+            #include "LWRP/ShaderLibrary/LightweightPassLit.hlsl"
             ENDHLSL
         }
 
@@ -122,7 +133,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
 
-            #include "LightweightPassShadow.hlsl"
+            #include "LWRP/ShaderLibrary/LightweightPassShadow.hlsl"
             ENDHLSL
         }
 
@@ -140,7 +151,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "LightweightShaderLibrary/Core.hlsl"
+            #include "LWRP/ShaderLibrary/Core.hlsl"
 
             float4 vert(float4 pos : POSITION) : SV_POSITION
             {
@@ -175,7 +186,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
 
             #pragma shader_feature _SPECGLOSSMAP
 
-            #include "LightweightPassMeta.hlsl"
+            #include "LWRP/ShaderLibrary/LightweightPassMeta.hlsl"
             ENDHLSL
         }
 

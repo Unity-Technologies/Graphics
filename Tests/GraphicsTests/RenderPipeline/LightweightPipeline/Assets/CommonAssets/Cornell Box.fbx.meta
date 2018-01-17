@@ -1,7 +1,5 @@
 fileFormatVersion: 2
 guid: b56f0b54c8a1042f3ae9a8904a576f5d
-timeCreated: 1493308431
-licenseType: Pro
 ModelImporter:
   serializedVersion: 22
   fileIDToRecycleName:
@@ -15,6 +13,9 @@ ModelImporter:
     4300000: Cornell Box
     7400000: Take 001
     9500000: //RootNode
+    2186277476908879412: ImportLogs
+    2186277476908879414: ImportLogs
+    2186277476908879416: ImportLogs
   externalObjects:
   - first:
       type: UnityEngine:Material
@@ -49,6 +50,7 @@ ModelImporter:
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
     importAnimatedCustomProperties: 0
+    importConstraints: 0
     animationCompression: 1
     animationRotationError: 0.5
     animationPositionError: 0.5

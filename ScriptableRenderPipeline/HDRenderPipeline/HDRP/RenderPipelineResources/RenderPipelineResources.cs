@@ -38,6 +38,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // General
         public Shader cameraMotionVectors;
         public Shader copyStencilBuffer;
+        public Shader blit;
 
         // Sky
         public Shader blitCubemap;
