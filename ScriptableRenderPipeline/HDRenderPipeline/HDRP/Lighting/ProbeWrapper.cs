@@ -27,7 +27,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-    
+        public ReflectionProbe reflectionProbe { get; protected set; }
+        public PlanarReflectionProbe planarReflectionProbe { get; protected set; }
+
         public abstract ReflectionProbeMode mode { get; }
         public abstract Texture texture { get; }
         // Position of the center of the probe in capture space
@@ -59,6 +61,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             this.probe = probe;
             additional = GetHDAdditionalReflectionData(probe);
+            reflectionProbe = probe.probe;
         }
 
         static HDAdditionalReflectionData GetHDAdditionalReflectionData(VisibleReflectionProbe probe)
@@ -119,43 +122,41 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     class PlanarReflectionProbeWrapper : ProbeWrapper
     {
-        PlanarReflectionProbe probe;
-
         public PlanarReflectionProbeWrapper(PlanarReflectionProbe probe)
         {
-            this.probe = probe;
+            planarReflectionProbe = probe;
         }
 
-        public override Matrix4x4 influenceToWorld { get { return probe.influenceToWorld; } }
-        public override Texture texture { get { return probe.texture; } }
-        public override EnvShapeType influenceShapeType { get { return ConvertShape(probe.influenceVolume.shapeType); } }
-        public override float dimmer { get { return probe.dimmer; } }
+        public override Matrix4x4 influenceToWorld { get { return planarReflectionProbe.influenceToWorld; } }
+        public override Texture texture { get { return planarReflectionProbe.texture; } }
+        public override EnvShapeType influenceShapeType { get { return ConvertShape(planarReflectionProbe.influenceVolume.shapeType); } }
+        public override float dimmer { get { return planarReflectionProbe.dimmer; } }
         public override Vector3 influenceExtents
         {
             get
             {
-                switch (probe.influenceVolume.shapeType)
+                switch (planarReflectionProbe.influenceVolume.shapeType)
                 {
                     default:
                     case ShapeType.Box:
-                        return probe.influenceVolume.boxBaseSize * 0.5f;
+                        return planarReflectionProbe.influenceVolume.boxBaseSize * 0.5f;
                     case ShapeType.Sphere:
-                        return probe.influenceVolume.sphereBaseRadius * Vector3.one;
+                        return planarReflectionProbe.influenceVolume.sphereBaseRadius * Vector3.one;
                 }
             }
         }
 
-        public override Vector3 blendNormalDistancePositive { get { return probe.influenceVolume.boxInfluenceNormalPositiveFade; } }
-        public override Vector3 blendNormalDistanceNegative { get { return probe.influenceVolume.boxInfluenceNormalNegativeFade; } }
-        public override Vector3 blendDistancePositive { get { return probe.influenceVolume.boxInfluencePositiveFade; } }
-        public override Vector3 blendDistanceNegative { get { return probe.influenceVolume.boxInfluenceNegativeFade; } }
-        public override Vector3 boxSideFadePositive { get { return probe.influenceVolume.boxPositiveFaceFade; } }
-        public override Vector3 boxSideFadeNegative { get { return probe.influenceVolume.boxNegativeFaceFade; } }
-        public override EnvShapeType proxyShapeType { get { return ConvertShape(probe.proxyShape); } }
-        public override Vector3 proxyExtents { get { return probe.proxyExtents; } }
-        public override bool infiniteProjection { get { return probe.infiniteProjection; } }
-        public override ReflectionProbeMode mode { get { return probe.mode; } }
+        public override Vector3 blendNormalDistancePositive { get { return planarReflectionProbe.influenceVolume.boxInfluenceNormalPositiveFade; } }
+        public override Vector3 blendNormalDistanceNegative { get { return planarReflectionProbe.influenceVolume.boxInfluenceNormalNegativeFade; } }
+        public override Vector3 blendDistancePositive { get { return planarReflectionProbe.influenceVolume.boxInfluencePositiveFade; } }
+        public override Vector3 blendDistanceNegative { get { return planarReflectionProbe.influenceVolume.boxInfluenceNegativeFade; } }
+        public override Vector3 boxSideFadePositive { get { return planarReflectionProbe.influenceVolume.boxPositiveFaceFade; } }
+        public override Vector3 boxSideFadeNegative { get { return planarReflectionProbe.influenceVolume.boxNegativeFaceFade; } }
+        public override EnvShapeType proxyShapeType { get { return ConvertShape(planarReflectionProbe.proxyShape); } }
+        public override Vector3 proxyExtents { get { return planarReflectionProbe.proxyExtents; } }
+        public override bool infiniteProjection { get { return planarReflectionProbe.infiniteProjection; } }
+        public override ReflectionProbeMode mode { get { return planarReflectionProbe.mode; } }
 
-        public override Matrix4x4 proxyToWorld { get { return probe.proxyToWorld; } }
+        public override Matrix4x4 proxyToWorld { get { return planarReflectionProbe.proxyToWorld; } }
     }
 }

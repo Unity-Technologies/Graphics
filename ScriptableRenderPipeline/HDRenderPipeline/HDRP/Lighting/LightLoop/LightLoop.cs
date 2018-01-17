@@ -1166,11 +1166,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             switch (probe.texture.dimension)
             {
                 case TextureDimension.Tex2D:
+                {
                     envIndex = m_ReflectionPlanarProbeCache.FetchSlice(cmd, probe.texture);
                     envIndex = envIndex << 1 | (int)EnvCacheType.Texture2D;
-                    m_Env2DCapturePositionWS.Add(Vector3.zero);
-                    m_Env2DCaptureVP.Add(Matrix4x4.identity);
+
+                    Matrix4x4 worldToCamera, projection;
+                    Vector3 capturePosition;
+                    Quaternion captureRotation;
+                    ReflectionSystem.CalculateCaptureCameraViewProj(
+                        probe.planarReflectionProbe, 
+                        out worldToCamera, out projection, 
+                        out capturePosition, out captureRotation,
+                        camera);
+
+                    var vp = projection * worldToCamera;
+                    m_Env2DCapturePositionWS.Add(capturePosition);
+                    m_Env2DCaptureVP.Add(Matrix4x4.Scale(new Vector3(1, -1, 1)) * vp);
                     break;
+                }
                 case TextureDimension.Cube:
                     envIndex = m_ReflectionProbeCache.FetchSlice(cmd, probe.texture);
                     envIndex = envIndex << 1 | (int)EnvCacheType.Cubemap;

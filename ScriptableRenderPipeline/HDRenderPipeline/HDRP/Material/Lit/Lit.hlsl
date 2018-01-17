@@ -1669,8 +1669,10 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     float sampleWeight = 1;
     float3 texCoord = GetSampleEnvCoordinates(lightLoopContext, lightData.envIndex, R, iblMipLevel, sampleWeight);
-    weight *= sampleWeight;
-    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, texCoord, iblMipLevel);
+    //weight *= sampleWeight;
+    float2 ndc = ComputeNormalizedDeviceCoordinates(positionWS, UNITY_MATRIX_VP);
+    //float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, texCoord, iblMipLevel);
+    float4 preLD = SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, ndc.xy, lightData.envIndex >> 1, 0);
 
     // Smooth weighting
     weight = Smoothstep01(weight);

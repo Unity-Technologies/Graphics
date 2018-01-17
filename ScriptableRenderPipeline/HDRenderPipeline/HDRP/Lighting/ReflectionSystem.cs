@@ -50,5 +50,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             s_Instance.RenderAllRealtimeProbesFor(camera);
         }
+
+        public static void CalculateCaptureCameraProperties(PlanarReflectionProbe probe, out float nearClipPlane, out float farClipPlane, out float aspect, out float fov, out CameraClearFlags clearFlags, out Color backgroundColor, out Matrix4x4 worldToCamera, out Matrix4x4 projection, out Vector3 capturePosition, out Quaternion captureRotation, Camera viewerCamera = null)
+        {
+            ReflectionSystemInternal.CalculateCaptureCameraProperties(
+                probe,
+                out nearClipPlane, out farClipPlane,
+                out aspect, out fov, out clearFlags, out backgroundColor,
+                out worldToCamera, out projection, out capturePosition, out captureRotation,
+                viewerCamera);
+        }
+
+        public static void CalculateCaptureCameraViewProj(PlanarReflectionProbe probe, out Matrix4x4 worldToCamera, out Matrix4x4 projection, out Vector3 capturePosition, out Quaternion captureRotation, Camera viewerCamera = null)
+        {
+            ReflectionSystemInternal.CalculateCaptureCameraViewProj(
+                probe,
+                out worldToCamera, out projection, out capturePosition, out captureRotation,
+                viewerCamera);
+        }
     }
 }
