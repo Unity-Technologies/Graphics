@@ -1,7 +1,7 @@
-﻿using UnityEngine.Rendering;
+﻿using System;
 using System.Collections.Generic;
-using System;
-using UnityEngine.Assertions;
+using UnityEngine.Experimental.Rendering.HDPipeline.Internal;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -1170,18 +1170,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     envIndex = m_ReflectionPlanarProbeCache.FetchSlice(cmd, probe.texture);
                     envIndex = envIndex << 1 | (int)EnvCacheType.Texture2D;
 
-                    Matrix4x4 worldToCamera, projection;
+                    float nearClipPlane, farClipPlane, aspect, fov;
+                    Color backgroundColor;
+                    CameraClearFlags clearFlags;
                     Vector3 capturePosition;
                     Quaternion captureRotation;
-                    ReflectionSystem.CalculateCaptureCameraViewProj(
-                        probe.planarReflectionProbe, 
-                        out worldToCamera, out projection, 
-                        out capturePosition, out captureRotation,
+                    Matrix4x4 worldToCamera, projection;
+
+                    ReflectionSystem.CalculateCaptureCameraProperties(
+                        probe.planarReflectionProbe,
+                        out nearClipPlane, out farClipPlane,
+                        out aspect, out fov, out clearFlags, out backgroundColor,
+                        out worldToCamera, out projection, out capturePosition, out captureRotation,
                         camera);
 
-                    var vp = projection * worldToCamera;
+                    var gpuProj = GL.GetGPUProjectionMatrix(projection, true); // Had to change this from 'false'
+                    var gpuView = worldToCamera;
+                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                    {
+                        // Zero out the translation component.
+                        gpuView *= Matrix4x4.Translate(camera.transform.position);
+                    }
+
+                    var vp = gpuProj * gpuView;
                     m_Env2DCapturePositionWS.Add(capturePosition);
-                    m_Env2DCaptureVP.Add(Matrix4x4.Scale(new Vector3(1, -1, 1)) * vp);
+                    m_Env2DCaptureVP.Add(vp);
                     break;
                 }
                 case TextureDimension.Cube:
