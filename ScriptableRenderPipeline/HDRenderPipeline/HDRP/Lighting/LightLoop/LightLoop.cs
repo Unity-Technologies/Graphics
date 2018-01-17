@@ -1190,6 +1190,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         // Zero out the translation component.
                         gpuView *= Matrix4x4.Translate(camera.transform.position);
+                        capturePosition -= camera.transform.position;
                     }
 
                     var vp = gpuProj * gpuView;

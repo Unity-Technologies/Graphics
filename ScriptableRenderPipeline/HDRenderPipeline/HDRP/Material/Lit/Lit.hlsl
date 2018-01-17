@@ -1672,8 +1672,9 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     //weight *= sampleWeight;
 
     uint index = lightData.envIndex >> 1;
-
+    
     float2 positionNCD = ComputeNormalizedDeviceCoordinates(positionWS, _Env2DCaptureVP[index]);
+    //float2 positionNCD = ComputeNormalizedDeviceCoordinates(_Env2DCapturePositionWS[index] + R, _Env2DCaptureVP[index]);
     texCoord = positionNCD.xyy;
 
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, texCoord, iblMipLevel);
