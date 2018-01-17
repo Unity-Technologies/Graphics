@@ -160,6 +160,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
+            public int Count
+            {
+                get
+                {
+                    return this.m_DecalsCount;
+                }
+            }
+
             private CullingGroup m_CullingGroup = null;
             private BoundingSphere[] m_BoundingSpheres = new BoundingSphere[kDecalBlockSize];
             private DecalProjectorComponent[] m_Decals = new DecalProjectorComponent[kDecalBlockSize];
@@ -199,6 +207,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_DecalSets.TryGetValue(key, out decalSet))
             {
                 decalSet.RemoveDecal(decal);
+                if (decalSet.Count == 0)
+                {
+                    m_DecalSets.Remove(key);
+                }
             }
         }
 
