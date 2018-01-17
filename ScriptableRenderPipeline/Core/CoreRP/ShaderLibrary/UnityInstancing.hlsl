@@ -1,11 +1,6 @@
 #ifndef UNITY_INSTANCING_INCLUDED
 #define UNITY_INSTANCING_INCLUDED
 
-#ifndef UNITY_SHADER_VARIABLES_INCLUDED
-    // We will redefine some built-in shader params e.g. unity_ObjectToWorld and unity_WorldToObject.
-    #error "Please include ShaderVariables.hlsl first."
-#endif
-
 #if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))
     #define UNITY_SUPPORT_INSTANCING
 #endif
@@ -149,16 +144,16 @@
             unity_InstanceID = inputInstanceID + unity_BaseInstanceID;
         #endif
     }
-    void UnitySetupCompoundMatrices();
+
     #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
         #ifndef UNITY_INSTANCING_PROCEDURAL_FUNC
             #error "UNITY_INSTANCING_PROCEDURAL_FUNC must be defined."
         #else
             void UNITY_INSTANCING_PROCEDURAL_FUNC(); // forward declaration of the procedural function
-            #define DEFAULT_UNITY_SETUP_INSTANCE_ID(input)      { UnitySetupInstanceID(UNITY_GET_INSTANCE_ID(input)); UNITY_INSTANCING_PROCEDURAL_FUNC(); UnitySetupCompoundMatrices(); }
+            #define DEFAULT_UNITY_SETUP_INSTANCE_ID(input)      { UnitySetupInstanceID(UNITY_GET_INSTANCE_ID(input)); UNITY_INSTANCING_PROCEDURAL_FUNC();}
         #endif
     #else
-        #define DEFAULT_UNITY_SETUP_INSTANCE_ID(input)          { UnitySetupInstanceID(UNITY_GET_INSTANCE_ID(input)); UnitySetupCompoundMatrices(); }
+        #define DEFAULT_UNITY_SETUP_INSTANCE_ID(input)          { UnitySetupInstanceID(UNITY_GET_INSTANCE_ID(input));}
     #endif
     #define UNITY_TRANSFER_INSTANCE_ID(input, output)   output.instanceID = UNITY_GET_INSTANCE_ID(input)
 #else
@@ -221,10 +216,11 @@
     #endif
 
     #if defined(UNITY_INSTANCED_SH) && !defined(LIGHTMAP_ON)
-        #if UNITY_SHOULD_SAMPLE_SH
+        //In HDRenderpipe we only decide to look at probe data based on Lightmap flags.
+        #if !defined(DYNAMICLIGHTMAP_ON) 
             #define UNITY_USE_SHCOEFFS_ARRAYS
         #endif
-        #if defined(UNITY_PASS_DEFERRED) && defined(SHADOWS_SHADOWMASK) && (UNITY_ALLOWED_MRT_COUNT > 4)
+        #if defined(SHADOWS_SHADOWMASK)
             #define UNITY_USE_PROBESOCCLUSION_ARRAY
         #endif
     #endif
@@ -283,15 +279,17 @@
         #endif
     UNITY_INSTANCING_BUFFER_END(unity_Builtins2)
 
-    #define unity_ObjectToWorld     UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_ObjectToWorldArray)
+    #undef UNITY_MATRIX_M
+    #define UNITY_MATRIX_M     UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_ObjectToWorldArray)
 
     #define MERGE_UNITY_BUILTINS_INDEX(X) unity_Builtins##X
 
-    #define unity_WorldToObject     UNITY_ACCESS_INSTANCED_PROP(MERGE_UNITY_BUILTINS_INDEX(UNITY_WORLDTOOBJECTARRAY_CB), unity_WorldToObjectArray)
+    #undef UNITY_MATRIX_I_M
+    #define UNITY_MATRIX_I_M     UNITY_ACCESS_INSTANCED_PROP(MERGE_UNITY_BUILTINS_INDEX(UNITY_WORLDTOOBJECTARRAY_CB), unity_WorldToObjectArray)
 
     inline float4 UnityObjectToClipPosInstanced(in float3 pos)
     {
-        return mul(UNITY_MATRIX_VP, mul(unity_ObjectToWorld, float4(pos, 1.0)));
+        return mul(UNITY_MATRIX_VP, mul(UNITY_MATRIX_M, float4(pos, 1.0)));
     }
     inline float4 UnityObjectToClipPosInstanced(float4 pos)
     {
@@ -315,28 +313,5 @@
     #define UNITY_ACCESS_INSTANCED_PROP(arr, var)           var
 
 #endif // UNITY_INSTANCING_ENABLED
-
-#if defined(UNITY_INSTANCING_ENABLED) || defined(UNITY_PROCEDURAL_INSTANCING_ENABLED) || defined(UNITY_STEREO_INSTANCING_ENABLED)
-    // The following matrix evaluations depend on the static var unity_InstanceID & unity_StereoEyeIndex. They need to be initialized after UnitySetupInstanceID.
-    static float4x4 unity_MatrixMVP_Instanced;
-    static float4x4 unity_MatrixMV_Instanced;
-    static float4x4 unity_MatrixTMV_Instanced;
-    static float4x4 unity_MatrixITMV_Instanced;
-    void UnitySetupCompoundMatrices()
-    {
-        unity_MatrixMVP_Instanced = mul(UNITY_MATRIX_VP, unity_ObjectToWorld);
-        unity_MatrixMV_Instanced = mul(UNITY_MATRIX_V, unity_ObjectToWorld);
-        unity_MatrixTMV_Instanced = transpose(unity_MatrixMV_Instanced);
-        unity_MatrixITMV_Instanced = transpose(mul(unity_WorldToObject, unity_MatrixInvV));
-    }
-    #undef UNITY_MATRIX_MVP
-    #undef UNITY_MATRIX_MV
-    #undef UNITY_MATRIX_T_MV
-    #undef UNITY_MATRIX_IT_MV
-    #define UNITY_MATRIX_MVP    unity_MatrixMVP_Instanced
-    #define UNITY_MATRIX_MV     unity_MatrixMV_Instanced
-    #define UNITY_MATRIX_T_MV   unity_MatrixTMV_Instanced
-    #define UNITY_MATRIX_IT_MV  unity_MatrixITMV_Instanced
-#endif
 
 #endif // UNITY_INSTANCING_INCLUDED
