@@ -100,7 +100,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             set { m_CaptureMirrorPlaneLocalNormal = value; }
         }
         public Vector3 captureMirrorPlaneNormal { get { return transform.TransformDirection(m_CaptureMirrorPlaneLocalNormal); } }
-        public Vector4 captureMirrorPlane { get { return CameraUtils.Plane(captureMirrorPlanePosition, captureMirrorPlaneNormal); } }
 
         #region Proxy Properties
         public Matrix4x4 proxyToWorld
