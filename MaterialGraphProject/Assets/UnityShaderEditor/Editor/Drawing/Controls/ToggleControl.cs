@@ -67,6 +67,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             Action changedToggle = () => { OnChangeToggle(); };
             m_Toggle = new UnityEngine.Experimental.UIElements.Toggle(changedToggle);
             m_Toggle.SetEnabled(value.isEnabled);
+            m_Toggle.on = value.isOn;
             panel.Add(m_Toggle);
             Add(panel);
         }
