@@ -1161,8 +1161,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (probe.mode == ReflectionProbeMode.Realtime && camera.cameraType == CameraType.Reflection)
                 return false;
 
-            var captureToWorld = probe.GetCaptureToWorld(camera);
-
             // 31 bits index, 1 bit cache type
             var envIndex = -1;
             switch (probe.texture.dimension)
@@ -1170,8 +1168,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case TextureDimension.Tex2D:
                     envIndex = m_ReflectionPlanarProbeCache.FetchSlice(cmd, probe.texture);
                     envIndex = envIndex << 1 | (int)EnvCacheType.Texture2D;
-                    m_Env2DCapturePositionWS.Add(captureToWorld.GetColumn(3));
-                    m_Env2DCaptureVP.Add(probe.GetCaptureProjection(camera) * captureToWorld);
+                    m_Env2DCapturePositionWS.Add(Vector3.zero);
+                    m_Env2DCaptureVP.Add(Matrix4x4.identity);
                     break;
                 case TextureDimension.Cube:
                     envIndex = m_ReflectionProbeCache.FetchSlice(cmd, probe.texture);
@@ -1200,7 +1198,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             envLightData.right = influenceToWorld.GetColumn(0).normalized;
             envLightData.up = influenceToWorld.GetColumn(1).normalized;
             envLightData.forward = influenceToWorld.GetColumn(2).normalized;
-            envLightData.capturePositionWS = captureToWorld.GetColumn(3);
+            envLightData.capturePositionWS = Vector3.zero; //captureToWorld.GetColumn(3);
             envLightData.positionWS = influenceToWorld.GetColumn(3);
 
             envLightData.envIndex = envIndex;

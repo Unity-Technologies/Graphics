@@ -130,26 +130,26 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var captureToWorld = d.GetCaptureToWorld(viewerCamera);
             var capturePosition = captureToWorld.GetColumn(3);
             var captureRotation = captureToWorld.rotation;
-
-            var fov = ReflectionSystem.GetCaptureCameraFOVFor(d, viewerCamera);
-            var clipToWorld = CameraEditorUtils.GetCameraClipToWorld(
-                capturePosition, captureRotation,
-                d.captureNearPlane, d.captureFarPlane,
-                fov, 1);
-
-            var near = new Vector3[4];
-            var far = new Vector3[4];
-            CameraEditorUtils.GetFrustrumPlaneAt(clipToWorld, capturePosition, d.captureFarPlane, far);
-            CameraEditorUtils.GetFrustrumPlaneAt(clipToWorld, capturePosition, d.captureNearPlane, near);
-
             var c = Gizmos.color;
-            Gizmos.color = k_GizmoCamera;
-            for (var i = 0; i < 4; ++i)
-            {
-                Gizmos.DrawLine(near[i], near[(i + 1) % 4]);
-                Gizmos.DrawLine(far[i], far[(i + 1) % 4]);
-                Gizmos.DrawLine(near[i], far[i]);
-            }
+
+            //var fov = ReflectionSystem.GetCaptureCameraFOVFor(d, viewerCamera);
+            //var clipToWorld = CameraEditorUtils.GetCameraClipToWorld(
+            //    capturePosition, captureRotation,
+            //    d.captureNearPlane, d.captureFarPlane,
+            //    fov, 1);
+
+            //var near = new Vector3[4];
+            //var far = new Vector3[4];
+            //CameraEditorUtils.GetFrustrumPlaneAt(clipToWorld, capturePosition, d.captureFarPlane, far);
+            //CameraEditorUtils.GetFrustrumPlaneAt(clipToWorld, capturePosition, d.captureNearPlane, near);
+
+            //Gizmos.color = k_GizmoCamera;
+            //for (var i = 0; i < 4; ++i)
+            //{
+            //    Gizmos.DrawLine(near[i], near[(i + 1) % 4]);
+            //    Gizmos.DrawLine(far[i], far[(i + 1) % 4]);
+            //    Gizmos.DrawLine(near[i], far[i]);
+            //}
 
             Gizmos.DrawSphere(capturePosition, HandleUtility.GetHandleSize(capturePosition) * 0.2f);
             Gizmos.color = c;
