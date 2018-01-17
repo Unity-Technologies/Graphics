@@ -11,10 +11,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         sealed class SerializedLightData
         {
-            public SerializedProperty directionalIntensity;
-            public SerializedProperty punctualIntensity;
-            public SerializedProperty areaIntensity;
-            public SerializedProperty displayBounceIntensity;
             public SerializedProperty spotInnerPercent;
             public SerializedProperty lightDimmer;
             public SerializedProperty fadeDistance;
@@ -64,8 +60,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //Disc,
         }
 
-        const float k_LineWidth = 0.01f; // Provide a small size of 1cm for line light
-
         // Used for UI only; the processing code must use LightTypeExtent and LightType
         LightShape m_LightShape;
 
@@ -82,10 +76,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             using (var o = new PropertyFetcher<HDAdditionalLightData>(m_SerializedAdditionalLightData))
             m_AdditionalLightData = new SerializedLightData
             {
-                directionalIntensity = o.Find(x => x.directionalIntensity),
-                punctualIntensity = o.Find(x => x.punctualIntensity),
-                areaIntensity = o.Find(x => x.areaIntensity),
-                displayBounceIntensity = o.Find(x => x.displayBounceIntensity),
                 lightDimmer = o.Find(x => x.lightDimmer),
                 fadeDistance = o.Find(x => x.fadeDistance),
                 affectDiffuse = o.Find(x => x.affectDiffuse),
@@ -263,7 +253,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     EditorGUILayout.PropertyField(m_AdditionalLightData.shapeWidth, s_Styles.shapeWidthLine);
                     // Fake line with a small rectangle in vanilla unity for GI
                     settings.areaSizeX.floatValue = m_AdditionalLightData.shapeWidth.floatValue;
-                    settings.areaSizeY.floatValue = k_LineWidth;
+                    settings.areaSizeY.floatValue = 0.01f;
                     settings.shadowsType.enumValueIndex = (int)LightShadows.None;
                     break;
 
@@ -280,73 +270,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         void DrawLightSettings()
         {
             settings.DrawColor();
-
-            EditorGUI.BeginChangeCheck();
-
-            switch (m_LightShape)
-            {
-                case LightShape.Directional:
-                    EditorGUILayout.PropertyField(m_AdditionalLightData.directionalIntensity, s_Styles.directionalIntensity);
-                    break;
-
-                case LightShape.Point:
-                case LightShape.Spot:
-                    EditorGUILayout.PropertyField(m_AdditionalLightData.punctualIntensity, s_Styles.punctualIntensity);
-                    break;
-
-                case LightShape.Rectangle:
-                case LightShape.Line:
-                    EditorGUILayout.PropertyField(m_AdditionalLightData.areaIntensity, s_Styles.areaIntensity);
-                    break;
-            }
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                switch (m_LightShape)
-                {
-                    case LightShape.Directional:
-                        settings.intensity.floatValue = m_AdditionalLightData.directionalIntensity.floatValue;
-                        break;
-
-                    case LightShape.Point:
-                        settings.intensity.floatValue = LightUtils.ConvertPointLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue);
-                        break;
-
-                    case LightShape.Spot:
-                        settings.intensity.floatValue = LightUtils.ConvertSpotLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue, settings.spotAngle.floatValue, false);
-                        break;
-
-                    case LightShape.Rectangle:
-                        settings.intensity.floatValue = LightUtils.ConvertRectLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue, m_AdditionalLightData.shapeWidth.floatValue, m_AdditionalLightData.shapeHeight.floatValue);
-                        break;
-
-                    case LightShape.Line:
-                        settings.intensity.floatValue = LightUtils.calculateLineLightArea(m_AdditionalLightData.punctualIntensity.floatValue, k_LineWidth, m_AdditionalLightData.shapeWidth.floatValue);
-                        break;
-                }
-            }
-
-            EditorGUI.BeginChangeCheck();
-            {
-                EditorGUILayout.PropertyField(m_AdditionalLightData.displayBounceIntensity, s_Styles.lightBounceIntensity);
-
-                // No indirect shadow support for anything but directional
-                if (m_LightShape != LightShape.Directional &&
-                    settings.shadowsType.enumValueIndex != (int)LightShadows.None &&
-                    settings.isRealtime && m_AdditionalLightData.displayBounceIntensity.floatValue > 0.0f &&
-                    !settings.lightType.hasMultipleDifferentValues)
-                {
-                    EditorGUILayout.HelpBox(s_Styles.indirectBounceShadowWarning.text, MessageType.Info);
-                }
-            }
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                // Lightmapper don't divide correctly by PI when calculating bounce of analytic light (Lambert is rho / PI but lightmapper only do rho),
-                // so we need to handle the divide ourselves through this workaround (only for analytical light)
-                settings.bounceIntensity.floatValue = m_AdditionalLightData.displayBounceIntensity.floatValue / Mathf.PI;
-            }
-
+            settings.DrawIntensity();
+            settings.DrawBounceIntensity();
             settings.DrawLightmapping();
 
             // No cookie with area light (maybe in future textured area light ?)
