@@ -99,6 +99,8 @@ float3 GetTextureDataDebug(uint paramId, float2 uv, Texture2D tex, float4 texelS
 #define DEBUG_FONT_TEXT_COUNT_Y	8
 #define DEBUG_FONT_TEXT_ASCII_START 32
 
+#define DEBUG_FONT_TEXT_SCALE_WIDTH	10 // This control the spacing between characters (if a character fill the text block it will overlap).
+
 // Only support ASCII symbol from DEBUG_FONT_TEXT_ASCII_START to 126
 // return black or white depends if we hit font character or not
 // currentUnormCoord is current unormalized screen position
@@ -131,7 +133,7 @@ void DrawCharacter(uint asciiValue, float3 fontColor, uint2 currentUnormCoord, i
         color = color * (1.0 - charColor) + charColor * fontColor;
     }
 
-    fixedUnormCoord.x += DEBUG_FONT_TEXT_WIDTH * direction;
+    fixedUnormCoord.x += DEBUG_FONT_TEXT_SCALE_WIDTH * direction;
 }
 
 // Shortcut to not have to file direction
@@ -152,7 +154,7 @@ void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout 
     int numEntries = min((intValue == 0 ? 0 : log10(absIntValue)) + (intValue < 0 ? 1 : 0), maxStringSize);
 
     // 2. Shift curseur to last location as we will go reverse
-    fixedUnormCoord.x += numEntries * DEBUG_FONT_TEXT_WIDTH;
+    fixedUnormCoord.x += numEntries * DEBUG_FONT_TEXT_SCALE_WIDTH;
 
     // 3. Display the number
     for (uint i = 0; i < maxStringSize; ++i)
@@ -171,7 +173,7 @@ void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout 
     }
 
     // 5. Reset cursor at end location
-    fixedUnormCoord.x += (numEntries + 2) * DEBUG_FONT_TEXT_WIDTH;
+    fixedUnormCoord.x += (numEntries + 2) * DEBUG_FONT_TEXT_SCALE_WIDTH;
 }
 
 void DrawFloat(float floatValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color)
