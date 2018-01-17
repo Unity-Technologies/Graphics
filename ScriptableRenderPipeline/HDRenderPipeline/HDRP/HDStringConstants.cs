@@ -163,6 +163,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _DeferredShadowTextureUAV = Shader.PropertyToID("_DeferredShadowTextureUAV");
         public static readonly int _DirectionalShadowIndex = Shader.PropertyToID("_DirectionalShadowIndex");
         public static readonly int _DirectionalContactShadowParams = Shader.PropertyToID("_ScreenSpaceShadowsParameters");
+        public static readonly int _DirectionalContactShadowSampleCount = Shader.PropertyToID("_SampleCount");
         public static readonly int _DirectionalLightDirection = Shader.PropertyToID("_LightDirection");
 
         public static readonly int unity_OrthoParams = Shader.PropertyToID("unity_OrthoParams");

@@ -7,6 +7,7 @@ namespace UnityEditor.Experimental.Rendering
         public SerializedProperty root;
 
         public SerializedProperty enableShadow;
+        public SerializedProperty enableContactShadow;
         public SerializedProperty enableSSR;
         public SerializedProperty enableSSAO;
         public SerializedProperty enableSubsurfaceScattering;
@@ -47,6 +48,7 @@ namespace UnityEditor.Experimental.Rendering
             this.root = root;
 
             enableShadow = root.Find((FrameSettings d) => d.enableShadow);
+            enableContactShadow = root.Find((FrameSettings d) => d.enableContactShadows);
             enableSSR = root.Find((FrameSettings d) => d.enableSSR);
             enableSSAO = root.Find((FrameSettings d) => d.enableSSAO);
             enableSubsurfaceScattering = root.Find((FrameSettings d) => d.enableSubsurfaceScattering);
