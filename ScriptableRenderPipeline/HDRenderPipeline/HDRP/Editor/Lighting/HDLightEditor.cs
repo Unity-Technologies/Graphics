@@ -195,7 +195,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 bool shadowsEnabled = EditorGUILayout.Toggle(CoreEditorUtils.GetContent("Enable Shadows"), settings.shadowsType.enumValueIndex != 0);
                 settings.shadowsType.enumValueIndex = shadowsEnabled ? (int)LightShadows.Hard : (int)LightShadows.None;
-                EditorGUILayout.PropertyField(m_AdditionalShadowData.enableContactShadows, CoreEditorUtils.GetContent("Enable Contact Shadows"));
+                if (settings.lightType.enumValueIndex == (int)LightType.Directional)
+                {
+                    EditorGUILayout.PropertyField(m_AdditionalShadowData.enableContactShadows, CoreEditorUtils.GetContent("Enable Contact Shadows"));
+                }
             }
 
             EditorGUILayout.PropertyField(m_AdditionalLightData.showAdditionalSettings);
