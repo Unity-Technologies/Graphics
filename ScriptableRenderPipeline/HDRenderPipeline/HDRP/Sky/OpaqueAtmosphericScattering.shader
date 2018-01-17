@@ -16,7 +16,7 @@ Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #pragma enable_d3d11_debug_symbols
+            // #pragma enable_d3d11_debug_symbols
 
             #include "CoreRP/ShaderLibrary/Common.hlsl"
             #include "../ShaderVariables.hlsl"

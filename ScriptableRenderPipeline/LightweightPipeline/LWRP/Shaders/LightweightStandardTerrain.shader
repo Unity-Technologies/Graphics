@@ -67,7 +67,7 @@ Shader "LightweightPipeline/Standard Terrain"
             #define LIGHTMAP_ON
             #endif
 
-            #include "LightweightShaderLibrary/Lighting.hlsl"
+            #include "LWRP/ShaderLibrary/Lighting.hlsl"
 
             CBUFFER_START(_Terrain)
             half _Metallic0;
@@ -200,7 +200,7 @@ Shader "LightweightPipeline/Standard Terrain"
                 indirectDiffuse = SampleLightmap(IN.uvControlAndLM.zw, normalWS);
 #endif
 
-                half3 viewDirectionWS = SafeNormalize(_WorldSpaceCameraPos - IN.positionWS);
+                half3 viewDirectionWS = SafeNormalize(GetCameraPositionWS() - IN.positionWS);
                 half fogFactor = IN.fogFactorAndVertexLight.x;
                 half4 color = LightweightFragmentPBR(IN.positionWS, normalWS, viewDirectionWS, indirectDiffuse,
                     IN.fogFactorAndVertexLight.yzw, albedo, metallic, specular, smoothness, /* occlusion */ 1.0, /* emission */ half3(0, 0, 0), alpha);
@@ -225,7 +225,7 @@ Shader "LightweightPipeline/Standard Terrain"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "LightweightShaderLibrary/Core.hlsl"
+            #include "LWRP/ShaderLibrary/Core.hlsl"
 
             float4 vert(float4 pos : POSITION) : SV_POSITION
             {

@@ -44,9 +44,4 @@ CBUFFER_END
 #include "InputBuiltin.hlsl"
 #include "CoreFunctions.hlsl"
 
-float3 GetCameraPosition()
-{
-    return _WorldSpaceCameraPos;
-}
-
 #endif

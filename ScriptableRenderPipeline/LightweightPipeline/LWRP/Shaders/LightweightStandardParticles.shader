@@ -69,8 +69,8 @@ Shader "LightweightPipeline/Particles/Standard"
             #pragma shader_feature _FADING_ON
             #pragma shader_feature _REQUIRE_UV2
 
-            #include "LightweightShaderLibrary/Particles.hlsl"
-            #include "LightweightShaderLibrary/Lighting.hlsl"
+            #include "LWRP/ShaderLibrary/Particles.hlsl"
+            #include "LWRP/ShaderLibrary/Lighting.hlsl"
 
             VertexOutputLit ParticlesLitVertex(appdata_particles v)
             {
@@ -95,7 +95,7 @@ Shader "LightweightPipeline/Particles/Standard"
                 InitializeSurfaceData(IN, surfaceData);
 
                 float3 positionWS = IN.posWS.xyz;
-                half3 viewDirWS = SafeNormalize(_WorldSpaceCameraPos - positionWS);
+                half3 viewDirWS = SafeNormalize(GetCameraPositionWS() - positionWS);
                 half fogFactor = IN.posWS.w;
 
 #if _NORMALMAP
