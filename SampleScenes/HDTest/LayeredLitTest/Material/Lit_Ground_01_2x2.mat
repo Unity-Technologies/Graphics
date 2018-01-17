@@ -291,6 +291,7 @@ Material:
     - _TessFar: 2
     - _TessNear: 1
     - _TexWorldScale: 0.2
+    - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
     - _Tiling: 1
@@ -301,6 +302,7 @@ Material:
     - _TransparentDepthPrepassEnable: 0
     - _UVBase: 1
     - _UVDetail: 0
+    - _UVEmissive: 0
     - _UVMappingPlanar: 1
     - _UVSec: 0
     - _UseDisplacementfalloff: 0
@@ -319,3 +321,4 @@ Material:
     - _TransmittanceColor: {r: 1, g: 1, b: 1, a: 1}
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask: {r: 0, g: 0, b: 0, a: 0}
+    - _UVMappingMaskEmissive: {r: 1, g: 0, b: 0, a: 0}

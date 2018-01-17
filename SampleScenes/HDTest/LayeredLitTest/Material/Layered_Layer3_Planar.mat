@@ -524,6 +524,7 @@ Material:
     - _TexWorldScale2: 1
     - _TexWorldScale3: 0.2
     - _TexWorldScaleBlendMask: 1
+    - _TexWorldScaleEmissive: 1
     - _Thickness0: 1
     - _Thickness1: 1
     - _Thickness2: 1
@@ -543,6 +544,7 @@ Material:
     - _UVDetailsMappingMask1: 0
     - _UVDetailsMappingMask2: 0
     - _UVDetailsMappingMask3: 0
+    - _UVEmissive: 0
     - _UVMappingPlanar0: 0
     - _UVMappingPlanar1: 0
     - _UVMappingPlanar2: 0
@@ -583,3 +585,4 @@ Material:
     - _UVMappingMask2: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask3: {r: 0, g: 0, b: 0, a: 0}
     - _UVMappingMaskBlendMask: {r: 1, g: 0, b: 0, a: 0}
+    - _UVMappingMaskEmissive: {r: 1, g: 0, b: 0, a: 0}
