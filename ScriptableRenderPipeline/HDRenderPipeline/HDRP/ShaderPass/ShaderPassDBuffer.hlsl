@@ -52,6 +52,7 @@ void Frag(  PackedVaryingsToPS packedInput,
 	float d = LOAD_TEXTURE2D(_MainDepthTexture, posInput.positionSS).x;
 	UpdatePositionInput(d, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, posInput);
 
+	// calling absolute position only to go in decal space, so there is no loss of precision here
 	float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
 	float3 positionDS = mul(UNITY_MATRIX_I_M, float4(positionWS, 1.0f)).xyz;
 	positionDS = positionDS * float3(1.0f, -1.0f, 1.0f) + float3(0.5f, 0.0f, 0.5f);
