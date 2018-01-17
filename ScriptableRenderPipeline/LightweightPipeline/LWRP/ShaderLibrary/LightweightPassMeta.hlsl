@@ -1,8 +1,8 @@
 #ifndef LIGHTWEIGHT_PASS_META_INCLUDED
 #define LIGHTWEIGHT_PASS_META_INCLUDED
 
-#include "LightweightShaderLibrary/InputSurface.hlsl"
-#include "LightweightShaderLibrary/Lighting.hlsl"
+#include "LWRP/ShaderLibrary/InputSurface.hlsl"
+#include "LWRP/ShaderLibrary/Lighting.hlsl"
 
 CBUFFER_START(UnityMetaPass)
 // x = use uv1 as raster position
