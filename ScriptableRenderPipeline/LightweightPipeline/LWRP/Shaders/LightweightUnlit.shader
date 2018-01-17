@@ -35,8 +35,8 @@ Shader "LightweightPipeline/Standard Unlit"
             #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON
 
             // Lighting include is needed because of GI
-            #include "LightweightShaderLibrary/Lighting.hlsl"
-            #include "LightweightShaderLibrary/InputSurface.hlsl"
+            #include "LWRP/ShaderLibrary/Lighting.hlsl"
+            #include "LWRP/ShaderLibrary/InputSurface.hlsl"
 
             struct VertexInput
             {
