@@ -44,7 +44,7 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
 
     o.posWS = TransformObjectToWorld(v.vertex.xyz);
     o.clipPos = TransformWorldToHClip(o.posWS);
-    o.viewDir = SafeNormalize(_WorldSpaceCameraPos - o.posWS);
+    o.viewDir = SafeNormalize(GetCameraPositionWS() - o.posWS);
 
     // initializes o.normal and if _NORMALMAP also o.tangent and o.binormal
     OUTPUT_NORMAL(v, o);
@@ -77,6 +77,7 @@ half4 LitPassFragment(LightweightVertexOutput IN) : SV_Target
     half3 indirectDiffuse = SampleGI(IN.lightmapUVOrVertexSH, normalWS);
     float fogFactor = IN.fogFactorAndVertexLight.x;
 
+    // viewDirection should be normalized here, but we avoid doing it as it's close enough and we save some ALU.
     half4 color = LightweightFragmentPBR(IN.posWS.xyz, normalWS, IN.viewDir, indirectDiffuse, IN.fogFactorAndVertexLight.yzw, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
     ApplyFog(color.rgb, fogFactor);
     return color;
