@@ -54,6 +54,7 @@ public class LightweightStandardSimpleLightingGUI : LightweightShaderGUI
         public static string shininessLabel = "Shininess";
         public static string normalMapLabel = "Normal map";
         public static string emissionColorLabel = "Emission Color";
+        public static string advancedText = "Advanced Options";
     }
 
     public override void FindProperties(MaterialProperty[] properties)
@@ -92,6 +93,11 @@ public class LightweightStandardSimpleLightingGUI : LightweightShaderGUI
             m_MaterialEditor.TextureScaleOffsetProperty(albedoMapProp);
             if (EditorGUI.EndChangeCheck())
                 emissionMapProp.textureScaleAndOffset = albedoMapProp.textureScaleAndOffset; // Apply the main texture scale and offset to the emission texture as well, for Enlighten's sake
+
+            GUILayout.Label(Styles.advancedText, EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
+            m_MaterialEditor.EnableInstancingField();
+            EditorGUI.indentLevel--;
         }
         if (EditorGUI.EndChangeCheck())
         {

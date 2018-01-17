@@ -11,10 +11,14 @@ struct VertexInput
 {
     float4 position : POSITION;
     float3 normal   : NORMAL;
+
+    UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 float4 ShadowPassVertex(VertexInput v) : SV_POSITION
 {
+    UNITY_SETUP_INSTANCE_ID(v);
+
     float3 positionWS = TransformObjectToWorld(v.position.xyz);
     float3 normalWS = TransformObjectToWorldDir(v.normal);
 
