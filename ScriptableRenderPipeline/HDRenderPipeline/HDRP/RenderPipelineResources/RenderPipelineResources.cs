@@ -12,6 +12,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Shader debugViewMaterialGBufferShader;
         public Shader debugViewTilesShader;
         public Shader debugFullScreenShader;
+        public Shader debugColorPickerShader;
 
         // Lighting resources
         public Shader deferredShader;

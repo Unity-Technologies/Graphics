@@ -44,10 +44,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool                 overrideSmoothness = false;
         public float                overrideSmoothnessValue = 0.5f;
         public Color                debugLightingAlbedo = new Color(0.5f, 0.5f, 0.5f);
-        public float                kLuxMeterThreshold0Debug = 0.0f;
-        public float                kLuxMeterThreshold1Debug = 200.0f;
-        public float                kLuxMeterThreshold2Debug = 9000.0f;
-        public float                kLuxMeterThreshold3Debug = 10000.0f;
 
         public bool                 displaySkyReflection = false;
         public float                skyReflectionMipmap = 0.0f;

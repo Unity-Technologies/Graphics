@@ -11,7 +11,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Lighting
         MinLightingFullScreenDebug,
-        LuxMeterBuffer,
         SSAO,
         DeferredShadows,
         PreRefractionColorPyramid,
@@ -21,7 +20,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Rendering
         MinRenderingFullScreenDebug,
-        HDRBuffer,
         MotionVectors,
         NanTracker,
         MaxRenderingFullScreenDebug
@@ -40,10 +38,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static string kOverrideSmoothnessDebug = "Override Smoothness";
         public static string kOverrideSmoothnessValueDebug = "Override Smoothness Value";
         public static string kDebugLightingAlbedo = "Debug Lighting Albedo";
-        public static string kLuxMeterThreshold0Debug = "Lux Range Threshold 0";
-        public static string kLuxMeterThreshold1Debug = "Lux Range Threshold 1";
-        public static string kLuxMeterThreshold2Debug = "Lux Range Threshold 2";
-        public static string kLuxMeterThreshold3Debug = "Lux Range Threshold 3";
         public static string kFullScreenDebugMode = "Fullscreen Debug Mode";
         public static string kFullScreenDebugMip = "Fullscreen Debug Mip";
         public static string kDisplaySkyReflectionDebug = "Display Sky Reflection";
@@ -60,6 +54,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public MaterialDebugSettings materialDebugSettings = new MaterialDebugSettings();
         public LightingDebugSettings lightingDebugSettings = new LightingDebugSettings();
         public MipMapDebugSettings mipMapDebugSettings = new MipMapDebugSettings();
+        public ColorPickerDebugSettings colorPickerDebugSettings = new ColorPickerDebugSettings();
 
         public static GUIContent[] lightingFullScreenDebugStrings = null;
         public static int[] lightingFullScreenDebugValues = null;
@@ -191,10 +186,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, bool>(kOverrideSmoothnessDebug, () => lightingDebugSettings.overrideSmoothness, (value) => lightingDebugSettings.overrideSmoothness = (bool)value);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kOverrideSmoothnessValueDebug, () => lightingDebugSettings.overrideSmoothnessValue, (value) => lightingDebugSettings.overrideSmoothnessValue = (float)value, DebugItemFlag.None, new DebugItemHandlerFloatMinMax(0.0f, 1.0f));
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, Color>(kDebugLightingAlbedo, () => lightingDebugSettings.debugLightingAlbedo, (value) => lightingDebugSettings.debugLightingAlbedo = (Color)value);
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kLuxMeterThreshold0Debug, () => lightingDebugSettings.kLuxMeterThreshold0Debug, (value) => lightingDebugSettings.kLuxMeterThreshold0Debug = (float)value);
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kLuxMeterThreshold1Debug, () => lightingDebugSettings.kLuxMeterThreshold1Debug, (value) => lightingDebugSettings.kLuxMeterThreshold1Debug = (float)value);
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kLuxMeterThreshold2Debug, () => lightingDebugSettings.kLuxMeterThreshold2Debug, (value) => lightingDebugSettings.kLuxMeterThreshold2Debug = (float)value);
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kLuxMeterThreshold3Debug, () => lightingDebugSettings.kLuxMeterThreshold3Debug, (value) => lightingDebugSettings.kLuxMeterThreshold3Debug = (float)value);
             DebugMenuManager.instance.AddDebugItem<bool>("Lighting", kDisplaySkyReflectionDebug, () => lightingDebugSettings.displaySkyReflection, (value) => lightingDebugSettings.displaySkyReflection = (bool)value);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kSkyReflectionMipmapDebug, () => lightingDebugSettings.skyReflectionMipmap, (value) => lightingDebugSettings.skyReflectionMipmap = (float)value, DebugItemFlag.None, new DebugItemHandlerFloatMinMax(0.0f, 1.0f));
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, LightLoop.TileClusterDebug>(kTileClusterDebug,() => lightingDebugSettings.tileClusterDebug, (value) => lightingDebugSettings.tileClusterDebug = (LightLoop.TileClusterDebug)value);
@@ -202,6 +193,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             DebugMenuManager.instance.AddDebugItem<int>("Rendering", kFullScreenDebugMode, () => (int)fullScreenDebugMode, (value) => fullScreenDebugMode = (FullScreenDebugMode)value, DebugItemFlag.None, new DebugItemHandlerIntEnum(DebugDisplaySettings.renderingFullScreenDebugStrings, DebugDisplaySettings.renderingFullScreenDebugValues));
             DebugMenuManager.instance.AddDebugItem<DebugMipMapMode>("Rendering", "MipMaps", () => mipMapDebugSettings.debugMipMapMode, (value) => SetMipMapMode((DebugMipMapMode)value));
+
+            DebugMenuManager.instance.AddDebugItem<ColorPickerDebugMode>("Rendering", ColorPickerDebugSettings.kColorPickerDebugMode, () => (int)colorPickerDebugSettings.colorPickerMode, (value) => colorPickerDebugSettings.colorPickerMode = (ColorPickerDebugMode)value);
+            DebugMenuManager.instance.AddDebugItem<float>("Rendering", ColorPickerDebugSettings.kColorPickerThreshold0Debug, () => colorPickerDebugSettings.colorThreshold0, (value) => colorPickerDebugSettings.colorThreshold0 = (float)value);
+            DebugMenuManager.instance.AddDebugItem<float>("Rendering", ColorPickerDebugSettings.kColorPickerThreshold1Debug, () => colorPickerDebugSettings.colorThreshold1, (value) => colorPickerDebugSettings.colorThreshold1 = (float)value);
+            DebugMenuManager.instance.AddDebugItem<float>("Rendering", ColorPickerDebugSettings.kColorPickerThreshold2Debug, () => colorPickerDebugSettings.colorThreshold2, (value) => colorPickerDebugSettings.colorThreshold2 = (float)value);
+            DebugMenuManager.instance.AddDebugItem<float>("Rendering", ColorPickerDebugSettings.kColorPickerThreshold3Debug, () => colorPickerDebugSettings.colorThreshold3, (value) => colorPickerDebugSettings.colorThreshold3 = (float)value);
+            DebugMenuManager.instance.AddDebugItem<Color>("Rendering", ColorPickerDebugSettings.kColorPickerFontColor, () => colorPickerDebugSettings.fontColor, (value) => colorPickerDebugSettings.fontColor = (Color)value);
+
         }
 
         public void OnValidate()
