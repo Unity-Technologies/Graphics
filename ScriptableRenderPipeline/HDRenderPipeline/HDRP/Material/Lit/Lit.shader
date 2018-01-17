@@ -155,7 +155,11 @@ Shader "HDRenderPipeline/Lit"
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail("UV Set for detail", Float) = 0
         [HideInInspector] _UVDetailsMappingMask("_UVDetailsMappingMask", Color) = (1, 0, 0, 0)
         [ToggleOff] _LinkDetailsWithBase("LinkDetailsWithBase", Float) = 1.0
+
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
+        [Enum(UV0, 0, Planar, 4, TriPlanar, 5)] _UVEmissive("UV Set for emissive", Float) = 0
+        _TexWorldScaleEmissive("Scale to apply on world coordinate", Float) = 1.0
+        [HideInInspector] _UVMappingMaskEmissive("_UVMappingMaskEmissive", Color) = (1, 0, 0, 0)
 
         // Wind
         [ToggleOff]  _EnableWind("Enable Wind", Float) = 0.0
@@ -196,6 +200,7 @@ Shader "HDRenderPipeline/Lit"
     #pragma shader_feature _VERTEX_WIND
     #pragma shader_feature _ _REFRACTION_PLANE _REFRACTION_SPHERE
 
+    #pragma shader_feature _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR
     #pragma shader_feature _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE
     #pragma shader_feature _ _REQUIRE_UV2 _REQUIRE_UV3
@@ -230,6 +235,9 @@ Shader "HDRenderPipeline/Lit"
 
     // enable dithering LOD crossfade
     #pragma multi_compile _ LOD_FADE_CROSSFADE
+
+    //enable GPU instancing support
+    #pragma multi_compile_instancing
 
     //-------------------------------------------------------------------------------------
     // Define

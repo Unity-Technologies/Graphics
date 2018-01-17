@@ -20,6 +20,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4[] frustumPlaneEquations;
         public Camera camera;
         public uint taaFrameIndex;
+        public Vector2 taaFrameRotation;
         public Vector4 viewParam;
         public PostProcessRenderContext postprocessRenderContext;
 
@@ -129,6 +130,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             const uint taaFrameCount = 8;
             taaFrameIndex = taaEnabled ? (uint)Time.renderedFrameCount % taaFrameCount : 0;
+            taaFrameRotation = new Vector2(Mathf.Sin(taaFrameIndex * (0.5f * Mathf.PI)),
+                                           Mathf.Cos(taaFrameIndex * (0.5f * Mathf.PI)));
 
             viewMatrix = gpuView;
             projMatrix = gpuProj;
@@ -234,6 +237,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalMatrix(HDShaderIDs._PrevViewProjMatrix, prevViewProjMatrix);
             cmd.SetGlobalVectorArray(HDShaderIDs._FrustumPlanes, frustumPlaneEquations);
             cmd.SetGlobalInt(HDShaderIDs._TaaFrameIndex, (int)taaFrameIndex);
+            cmd.SetGlobalVector(HDShaderIDs._TaaFrameRotation, taaFrameRotation);
         }
 
         // TODO: We should set all the value below globally and not let it under the control of Unity,

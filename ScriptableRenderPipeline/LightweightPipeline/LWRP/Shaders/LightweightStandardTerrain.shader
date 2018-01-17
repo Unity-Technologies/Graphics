@@ -67,7 +67,7 @@ Shader "LightweightPipeline/Standard Terrain"
             #define LIGHTMAP_ON
             #endif
 
-            #include "LightweightShaderLibrary/Lighting.hlsl"
+            #include "LWRP/ShaderLibrary/Lighting.hlsl"
 
             CBUFFER_START(_Terrain)
             half _Metallic0;
@@ -196,7 +196,7 @@ Shader "LightweightPipeline/Standard Terrain"
 #endif
 
                 half3 indirectDiffuse = half3(0, 0, 0);
-#if LIGHTMAP_ON
+#ifdef LIGHTMAP_ON
                 indirectDiffuse = SampleLightmap(IN.uvControlAndLM.zw, normalWS);
 #endif
 
@@ -225,7 +225,7 @@ Shader "LightweightPipeline/Standard Terrain"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "LightweightShaderLibrary/Core.hlsl"
+            #include "LWRP/ShaderLibrary/Core.hlsl"
 
             float4 vert(float4 pos : POSITION) : SV_POSITION
             {
