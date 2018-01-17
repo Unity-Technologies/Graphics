@@ -300,7 +300,7 @@ real3 GetViewReflectedNormal(real3 N, real3 V, out real NdotV)
     return N;
 }
 
-// Generates an orthonormal (column-major) basis from a unit vector.
+// Generates an orthonormal (row-major) basis from a unit vector. TODO: make it column-major.
 // The resulting rotation matrix has the determinant of +1.
 // Ref: 'ortho_basis_pixar_r2' from http://marc-b-reynolds.github.io/quaternions/2016/07/06/Orthonormal.html
 real3x3 GetLocalFrame(real3 localZ)
@@ -322,6 +322,8 @@ real3x3 GetLocalFrame(real3 localZ)
     return real3x3(localX, localY, localZ);
 }
 
+// Generates an orthonormal (row-major) basis from a unit vector. TODO: make it column-major.
+// The resulting rotation matrix has the determinant of +1.
 real3x3 GetLocalFrame(real3 localZ, real3 localX)
 {
     real3 localY = cross(localZ, localX);
