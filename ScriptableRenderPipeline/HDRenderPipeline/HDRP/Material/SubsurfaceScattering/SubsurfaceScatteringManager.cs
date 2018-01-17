@@ -157,7 +157,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (sssParameters == null || !frameSettings.enableSubsurfaceScattering)
                 return;
 
-            using (new ProfilingSample(cmd, "Subsurface Scattering", HDRenderPipeline.GetSampler(CustomSamplerId.SubsurfaceScattering)))
+            using (new ProfilingSample(cmd, "Subsurface Scattering", CustomSamplerId.SubsurfaceScattering.GetSampler()))
             {
                 // For Jimenez we always need an extra buffer, for Disney it depends on platform
                 if (ShaderConfig.k_UseDisneySSS == 0 || NeedTemporarySubsurfaceBuffer())
@@ -167,7 +167,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     CoreUtils.CreateCmdTemporaryRT(cmd, m_CameraFilteringBuffer, hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
 
                     // Clear the SSS filtering target
-                    using (new ProfilingSample(cmd, "Clear SSS filtering target", HDRenderPipeline.GetSampler(CustomSamplerId.ClearSSSFilteringTarget)))
+                    using (new ProfilingSample(cmd, "Clear SSS filtering target", CustomSamplerId.ClearSSSFilteringTarget.GetSampler()))
                     {
                         CoreUtils.SetRenderTarget(cmd, m_CameraFilteringBufferRT, ClearFlag.Color, CoreUtils.clearColorAllBlack);
                     }
@@ -175,7 +175,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (ShaderConfig.s_UseDisneySSS == 1) // use static here to quiet the compiler warning
                 {
-                    using (new ProfilingSample(cmd, "HTile for SSS", HDRenderPipeline.GetSampler(CustomSamplerId.HTileForSSS)))
+                    using (new ProfilingSample(cmd, "HTile for SSS", CustomSamplerId.HTileForSSS.GetSampler()))
                     {
                         // Currently, Unity does not offer a way to access the GCN HTile even on PS4 and Xbox One.
                         // Therefore, it's computed in a pixel shader, and optimized to only contain the SSS bit.

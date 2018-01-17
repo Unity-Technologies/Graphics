@@ -153,8 +153,13 @@ Material:
     - _EnableWind: 0
     - _HeightAmplitude: 0.06
     - _HeightCenter: 0.3
+    - _HeightMapParametrization: 1
     - _HeightMax: 3
     - _HeightMin: -3
+    - _HeightOffset: 0
+    - _HeightPoMAmplitude: 6
+    - _HeightTessAmplitude: 6
+    - _HeightTessCenter: 0.3
     - _IOR: 1
     - _InitialBend: 1
     - _InvTilingScale: 1

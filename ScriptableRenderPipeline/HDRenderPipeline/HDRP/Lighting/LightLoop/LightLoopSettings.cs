@@ -1,6 +1,4 @@
 using System;
-using UnityEngine;
-
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [Serializable]
@@ -39,10 +37,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // aggregateFrameSettings already contain the aggregation of RenderPipelineSettings and FrameSettings (regular and/or debug)
-        static public LightLoopSettings InitializeLightLoopSettings(Camera camera, FrameSettings aggregateFrameSettings,
-                                                                    RenderPipelineSettings renderPipelineSettings, FrameSettings frameSettings)
+        public static void InitializeLightLoopSettings(Camera camera, FrameSettings aggregateFrameSettings,
+                                                                    RenderPipelineSettings renderPipelineSettings, FrameSettings frameSettings,
+                                                                    ref LightLoopSettings aggregate)
         {
-            LightLoopSettings aggregate = new LightLoopSettings();
+            if (aggregate == null)
+                aggregate = new LightLoopSettings();
 
             aggregate.enableTileAndCluster          = frameSettings.lightLoopSettings.enableTileAndCluster;
             aggregate.enableComputeLightEvaluation  = frameSettings.lightLoopSettings.enableComputeLightEvaluation;
@@ -57,8 +57,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enableFptlForForwardOpaque = aggregate.enableFptlForForwardOpaque && aggregateFrameSettings.enableMSAA;
             // If Deferred, enable Fptl. If we are forward renderer only and not using Fptl for forward opaque, disable Fptl
             aggregate.isFptlEnabled = !aggregateFrameSettings.enableForwardRenderingOnly || aggregate.enableFptlForForwardOpaque;
-
-            return aggregate;
         }
 
         static public void RegisterDebug(String menuName, LightLoopSettings lightLoopSettings)

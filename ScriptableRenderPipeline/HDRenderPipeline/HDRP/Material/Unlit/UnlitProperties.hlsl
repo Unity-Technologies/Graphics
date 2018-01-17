@@ -11,6 +11,8 @@ CBUFFER_START(UnityPerMaterial)
 
 float4  _UnlitColor;
 float4 _UnlitColorMap_ST;
+float4 _UnlitColorMap_TexelSize;
+float4 _UnlitColorMap_MipInfo;
 
 float3 _EmissiveColor;
 float4 _EmissiveColorMap_ST;

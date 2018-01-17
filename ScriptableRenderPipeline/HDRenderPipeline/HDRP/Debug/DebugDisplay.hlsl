@@ -4,10 +4,12 @@
 #include "DebugDisplay.cs.hlsl"
 #include "MaterialDebug.cs.hlsl"
 #include "LightingDebug.cs.hlsl"
+#include "MipMapDebug.cs.hlsl"
 
 // Set of parameters available when switching to debug shader mode
 int _DebugLightingMode; // Match enum DebugLightingMode
 int _DebugViewMaterial; // Contain the id (define in various materialXXX.cs.hlsl) of the property to display
+int _DebugMipMapMode; // Match enum DebugMipMapMode
 float4 _DebugLightingAlbedo; // xyz = albedo for diffuse, w unused
 float4 _DebugLightingSmoothness; // x == bool override, y == override value
 

@@ -380,6 +380,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static ComputeBuffer s_GlobalLightListAtomic = null;
         // clustered light list specific buffers and data end
 
+        static int[] s_TempIntArray = new int[2]; // Used to avoid GC stress when calling SetComputeIntParams
+
         FrameSettings m_FrameSettings = null;
         RenderPipelineResources m_Resources = null;
 
@@ -826,7 +828,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             lightData.positionWS = light.light.transform.position;
             // Setting 0 for invSqrAttenuationRadius mean we have no range attenuation, but still have inverse square attenuation.
-            lightData.invSqrAttenuationRadius = additionalLightData.applyRangeAttenuation ? 1.0f / (light.range * light.range) : 0.0f;
+            bool applyRangeAttenuation = additionalLightData.applyRangeAttenuation && (gpuLightType != GPULightType.ProjectorBox);
+            lightData.invSqrAttenuationRadius = applyRangeAttenuation ? 1.0f / (light.range * light.range) : 0.0f;
             lightData.color = GetLightColor(light);
 
             lightData.forward = light.light.transform.forward; // Note: Light direction is oriented backward (-Z)
@@ -1749,6 +1752,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var w = camera.pixelWidth;
             var h = camera.pixelHeight;
+            s_TempIntArray[0] = w;
+            s_TempIntArray[1] = h;
             var numBigTilesX = (w + 63) / 64;
             var numBigTilesY = (h + 63) / 64;
 
@@ -1787,7 +1792,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_FrameSettings.lightLoopSettings.enableBigTilePrepass)
             {
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
-                cmd.SetComputeIntParams(buildPerBigTileLightListShader, HDShaderIDs.g_viDimensions, w, h);
+                cmd.SetComputeIntParams(buildPerBigTileLightListShader, HDShaderIDs.g_viDimensions, s_TempIntArray);
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
                 cmd.SetComputeMatrixParam(buildPerBigTileLightListShader, HDShaderIDs.g_mScrProjection, projscr);
@@ -1810,7 +1815,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_FrameSettings.lightLoopSettings.isFptlEnabled)
             {
                 cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
-                cmd.SetComputeIntParams(buildPerTileLightListShader, HDShaderIDs.g_viDimensions, w, h);
+                cmd.SetComputeIntParams(buildPerTileLightListShader, HDShaderIDs.g_viDimensions, s_TempIntArray);
                 cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
                 cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
 
@@ -1865,7 +1870,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     cmd.SetComputeIntParam(buildMaterialFlagsShader, HDShaderIDs.g_BaseFeatureFlags, (int)baseFeatureFlags);
-                    cmd.SetComputeIntParams(buildMaterialFlagsShader, HDShaderIDs.g_viDimensions, w, h);
+                    cmd.SetComputeIntParams(buildMaterialFlagsShader, HDShaderIDs.g_viDimensions, s_TempIntArray);
                     cmd.SetComputeBufferParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs.g_TileFeatureFlags, s_TileFeatureFlags);
 
                     cmd.SetComputeTextureParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._StencilTexture, stencilTextureRT);
@@ -1954,7 +1959,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void PushGlobalParams(Camera camera, CommandBuffer cmd)
         {
-            using (new ProfilingSample(cmd, "Push Global Parameters", HDRenderPipeline.GetSampler(CustomSamplerId.TPPushGlobalParameters)))
+            using (new ProfilingSample(cmd, "Push Global Parameters", CustomSamplerId.TPPushGlobalParameters.GetSampler()))
             {
                 // Shadows
                 m_ShadowMgr.SyncData();
@@ -2037,7 +2042,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_CurrentSunLight == null)
                 return;
 
-            using (new ProfilingSample(cmd, "Deferred Directional Shadow", HDRenderPipeline.GetSampler(CustomSamplerId.TPDeferredDirectionalShadow)))
+            using (new ProfilingSample(cmd, "Deferred Directional Shadow", CustomSamplerId.TPDeferredDirectionalShadow.GetSampler()))
             {
                 m_ShadowMgr.BindResources(cmd, deferredDirectionalShadowComputeShader, s_deferredDirectionalShadowKernel);
 
@@ -2076,7 +2081,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 (options.outputSplitLighting ? tilePassMRTName : tilePassName) :
                 (options.outputSplitLighting ? SinglePassMRTName : singlePassName);
 
-            using (new ProfilingSample(cmd, sLabel, HDRenderPipeline.GetSampler(CustomSamplerId.TPRenderDeferredLighting)))
+            using (new ProfilingSample(cmd, sLabel, CustomSamplerId.TPRenderDeferredLighting.GetSampler()))
             {
                 var camera = hdCamera.camera;
 
@@ -2131,6 +2136,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         if (enableFeatureVariants)
                         {
+                            cmd.SetComputeBufferParam(deferredComputeShader, kernel, HDShaderIDs.g_TileFeatureFlags, s_TileFeatureFlags);
                             cmd.SetComputeIntParam(deferredComputeShader, HDShaderIDs.g_TileListOffset, variant * numTiles);
                             cmd.SetComputeBufferParam(deferredComputeShader, kernel, HDShaderIDs.g_TileList, s_TileList);
                             cmd.DispatchCompute(deferredComputeShader, kernel, s_DispatchIndirectBuffer, (uint)variant * 3 * sizeof(uint));
@@ -2182,7 +2188,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Note: if we use render opaque with deferred tiling we need to render a opaque depth pass for these opaque objects
             if (!m_FrameSettings.lightLoopSettings.enableTileAndCluster)
             {
-                using (new ProfilingSample(cmd, "Forward pass", HDRenderPipeline.GetSampler(CustomSamplerId.TPForwardPass)))
+                using (new ProfilingSample(cmd, "Forward pass", CustomSamplerId.TPForwardPass.GetSampler()))
                 {
                     cmd.EnableShaderKeyword("LIGHTLOOP_SINGLE_PASS");
                     cmd.DisableShaderKeyword("LIGHTLOOP_TILE_PASS");
@@ -2193,7 +2199,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Only opaques can use FPTL, transparent must use clustered!
                 bool useFptl = renderOpaque && m_FrameSettings.lightLoopSettings.enableFptlForForwardOpaque;
 
-                using (new ProfilingSample(cmd, useFptl ? "Forward Tiled pass" : "Forward Clustered pass", HDRenderPipeline.GetSampler(CustomSamplerId.TPForwardTiledClusterpass)))
+                using (new ProfilingSample(cmd, useFptl ? "Forward Tiled pass" : "Forward Clustered pass", CustomSamplerId.TPForwardTiledClusterpass.GetSampler()))
                 {
                     // say that we want to use tile of single loop
                     cmd.EnableShaderKeyword("LIGHTLOOP_TILE_PASS");
@@ -2209,7 +2215,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             LightingDebugSettings lightingDebug = debugDisplaySettings.lightingDebugSettings;
 
-            using (new ProfilingSample(cmd, "Tiled/cluster Lighting Debug", HDRenderPipeline.GetSampler(CustomSamplerId.TPTiledLightingDebug)))
+            using (new ProfilingSample(cmd, "Tiled/cluster Lighting Debug", CustomSamplerId.TPTiledLightingDebug.GetSampler()))
             {
                 if (lightingDebug.tileClusterDebug != LightLoop.TileClusterDebug.None)
                 {
@@ -2265,7 +2271,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            using (new ProfilingSample(cmd, "Display Shadows", HDRenderPipeline.GetSampler(CustomSamplerId.TPDisplayShadows)))
+            using (new ProfilingSample(cmd, "Display Shadows", CustomSamplerId.TPDisplayShadows.GetSampler()))
             {
                 if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeShadowMap)
                 {

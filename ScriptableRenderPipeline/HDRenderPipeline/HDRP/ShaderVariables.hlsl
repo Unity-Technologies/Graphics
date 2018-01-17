@@ -187,8 +187,10 @@ CBUFFER_START(UnityPerFrame)
     int unity_StereoEyeIndex;
 #endif
 
-    float3 unity_ShadowColor;
-    uint _TaaFrameIndex;      // [0, 7]
+    float4 unity_ShadowColor;
+    float2 _TaaFrameRotation; // {x = sin(_TaaFrameIndex * PI/2), y = cos(_TaaFrameIndex * PI/2), z = unused}
+    uint   _TaaFrameIndex;    // [0, 7]
+    uint   _Align128;         // Pad for 128-bit alignment
     // Volumetric lighting. Should be a struct in 'UnityPerFrame'.
     // Unfortunately, structures inside constant buffers are not supported by Unity.
     float3 _GlobalFog_Scattering;
@@ -269,6 +271,8 @@ float4x4 OptimizeProjectionMatrix(float4x4 M)
 #else
     #include "ShaderVariablesMatrixDefsHDCamera.hlsl"
 #endif
+
+#include "CoreRP/ShaderLibrary/UnityInstancing.hlsl"
 
 #include "ShaderVariablesFunctions.hlsl"
 

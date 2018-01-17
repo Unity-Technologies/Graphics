@@ -643,6 +643,7 @@ float3 ComputeMainBaseColorInfluence(float influenceMask, float3 baseColor0, flo
 }
 
 #include "LayeredLitDataDisplacement.hlsl"
+#include "../Lit/LitBuiltinData.hlsl"
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
@@ -760,6 +761,14 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 
     AddDecalContribution(posInput.positionSS, surfaceData);
+
+#if defined(DEBUG_DISPLAY)
+    if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
+    {
+        surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, layerTexCoord.base0.uv, _BaseColorMap0, _BaseColorMap0_TexelSize, _BaseColorMap0_MipInfo, surfaceData.baseColor);
+        surfaceData.metallic = 0;
+    }
+#endif
 
     GetBuiltinData(input, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
 }

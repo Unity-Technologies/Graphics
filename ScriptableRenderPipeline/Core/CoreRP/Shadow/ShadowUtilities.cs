@@ -172,7 +172,8 @@ namespace UnityEngine.Experimental.Rendering
 
         public static Matrix4x4 ExtractPointLightMatrix( VisibleLight vl, uint faceIdx, float fovBias, out Matrix4x4 view, out Matrix4x4 proj, out Matrix4x4 vpinverse, out Vector4 lightDir, out ShadowSplitData splitData )
         {
-            Debug.Assert( faceIdx <= (uint) CubemapFace.NegativeZ, "Tried to extract cubemap face " + faceIdx + "." );
+            if( faceIdx > (uint) CubemapFace.NegativeZ )
+                Debug.LogError( "Tried to extract cubemap face " + faceIdx + "." );
 
             splitData = new ShadowSplitData();
             splitData.cullingSphere.Set( 0.0f, 0.0f, 0.0f, float.NegativeInfinity );
@@ -245,9 +246,10 @@ namespace UnityEngine.Experimental.Rendering
             var vari = ExtractVariant( gpuAlgo );
             return Pack( algo, vari, ShadowPrecision.Low );
         }
-        public static float Asfloat( uint val ) { return System.BitConverter.ToSingle( System.BitConverter.GetBytes( val ), 0 ); }
-        public static float Asfloat( int val )  { return System.BitConverter.ToSingle( System.BitConverter.GetBytes( val ), 0 ); }
-        public static int Asint( float val )    { return System.BitConverter.ToInt32( System.BitConverter.GetBytes( val ), 0 ); }
-        public static uint Asuint( float val )  { return System.BitConverter.ToUInt32( System.BitConverter.GetBytes( val ), 0 ); }
+
+        public static float Asfloat( uint val ) { unsafe { return *((float*)&val); } }
+        public static float Asfloat( int val )  { unsafe { return *((float*)&val); } }
+        public static int Asint( float val )    { unsafe { return *((int*)&val); } }
+        public static uint Asuint( float val )  { unsafe { return *((uint*)&val); } }
     }
 } // end of namespace UnityEngine.Experimental.ScriptableRenderLoop

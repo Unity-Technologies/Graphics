@@ -360,6 +360,10 @@ Material:
     - _HeightCenter1: 0.5
     - _HeightCenter2: 0.5
     - _HeightCenter3: 0.5
+    - _HeightMapParametrization0: 1
+    - _HeightMapParametrization1: 1
+    - _HeightMapParametrization2: 1
+    - _HeightMapParametrization3: 1
     - _HeightMax: 1
     - _HeightMax0: 1
     - _HeightMax1: 1
@@ -374,6 +378,18 @@ Material:
     - _HeightOffset1: 0
     - _HeightOffset2: 0
     - _HeightOffset3: 0
+    - _HeightPoMAmplitude0: 2
+    - _HeightPoMAmplitude1: 2
+    - _HeightPoMAmplitude2: 2
+    - _HeightPoMAmplitude3: 2
+    - _HeightTessAmplitude0: 2
+    - _HeightTessAmplitude1: 2
+    - _HeightTessAmplitude2: 2
+    - _HeightTessAmplitude3: 2
+    - _HeightTessCenter0: 0.5
+    - _HeightTessCenter1: 0.5
+    - _HeightTessCenter2: 0.5
+    - _HeightTessCenter3: 0.5
     - _HeightTransition: 0
     - _IOR: 1
     - _InheritBaseColor1: 0
