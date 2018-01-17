@@ -13,11 +13,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
     type: 2}
-  serializedFrameSettings:
+  m_FrameSettings:
     enableShadow: 1
+    enableContactShadows: 1
     enableSSR: 1
     enableSSAO: 1
-    enableSSSAndTransmission: 1
+    enableSubsurfaceScattering: 1
+    enableTransmission: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
     enableForwardRenderingOnly: 0
@@ -50,7 +52,7 @@ MonoBehaviour:
     supportShadowMask: 1
     supportSSR: 1
     supportSSAO: 1
-    supportSSSAndTransmission: 1
+    supportSubsurfaceScattering: 1
     supportDBuffer: 1
     supportMSAA: 0
     supportAsyncCompute: 0
