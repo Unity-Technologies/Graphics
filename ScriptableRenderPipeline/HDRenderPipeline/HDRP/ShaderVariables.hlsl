@@ -274,7 +274,6 @@ float4x4 OptimizeProjectionMatrix(float4x4 M)
 #endif
 
 #include "CoreRP/ShaderLibrary/UnityInstancing.hlsl"
-
 #include "ShaderVariablesFunctions.hlsl"
 
 #endif // UNITY_SHADER_VARIABLES_INCLUDED
