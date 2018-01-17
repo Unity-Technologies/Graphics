@@ -553,7 +553,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     bool pixelHasSpecularColor = (metallic15 == GBUFFER_LIT_SPECULAR_COLOR); // This is always a dynamic test as it is very cheap
     bool pixelHasTransmission  = (metallic15 == GBUFFER_LIT_SSS_OR_TRANSMISSION && inGBuffer2.g > 0); // Thickness > 0
     bool pixelHasSubsurface    = (metallic15 == GBUFFER_LIT_SSS_OR_TRANSMISSION && inGBuffer2.b > 0); // TagSSS > 0
-    bool pixelHasAnisotropy    = (metallic15 <= GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND && (inGBuffer2.b - 0.5) >= 1.0/255.0); // Anisotropy > 0
+    bool pixelHasAnisotropy    = (metallic15 <= GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND && abs(inGBuffer2.b - 0.5) >= 1.0/255.0); // Anisotropy > 0
     bool pixelHasIridescence   = (metallic15 == GBUFFER_LIT_IRIDESCENCE);
     bool pixelHasClearCoat     = (coatMask > 0);
 
