@@ -76,6 +76,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             using (var o = new PropertyFetcher<HDAdditionalLightData>(m_SerializedAdditionalLightData))
             m_AdditionalLightData = new SerializedLightData
             {
+                spotInnerPercent = o.Find(x => x.m_InnerSpotPercent),
                 lightDimmer = o.Find(x => x.lightDimmer),
                 fadeDistance = o.Find(x => x.fadeDistance),
                 affectDiffuse = o.Find(x => x.affectDiffuse),
