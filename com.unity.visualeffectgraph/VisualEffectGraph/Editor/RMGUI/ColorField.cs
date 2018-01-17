@@ -101,7 +101,7 @@ namespace UnityEditor.VFX.UIElements
         void OnColorClick()
         {
             if (enabledInHierarchy)
-                ColorPicker.Show(OnColorChanged, m_Value.gamma, m_ShowAlpha, true);
+                ColorPicker.Show(OnColorChanged, m_Value, m_ShowAlpha, true);
         }
 
         VisualElement CreateEyeDropper()
@@ -121,7 +121,7 @@ namespace UnityEditor.VFX.UIElements
         IScheduledItem m_EyeDroppperScheduler;
         void OnEyeDropperStart(MouseDownEvent e)
         {
-            EyeDropper.Start(OnColorChanged);
+            EyeDropper.Start(OnGammaColorChanged);
             m_EyeDroppperScheduler = (panel as BaseVisualElementPanel).scheduler.ScheduleUntil(OnEyeDropperMove, 10, 10, () => false);
             m_EyeDropper.UnregisterCallback<MouseDownEvent>(OnEyeDropperStart);
         }
@@ -155,9 +155,14 @@ namespace UnityEditor.VFX.UIElements
             Add(m_EyeDropper);
         }
 
+        void OnGammaColorChanged(Color color)
+        {
+            OnColorChanged(color.linear);
+        }
+
         void OnColorChanged(Color color)
         {
-            SetValue(color.linear);
+            SetValue(color);
 
             if (m_EyeDroppperScheduler != null)
             {

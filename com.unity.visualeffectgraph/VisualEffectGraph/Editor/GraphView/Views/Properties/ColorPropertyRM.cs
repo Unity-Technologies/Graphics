@@ -28,8 +28,6 @@ namespace UnityEditor.VFX.UI
 #else
             m_ColorField = new LabeledField<UnityEditor.Experimental.UIElements.ColorField, Color>(m_Label);
             m_ColorField.RegisterCallback<ChangeEvent<Color>>(OnValueChanged);
-            // todo : get it from a slot attribute
-            //m_ColorField.control.hdrConfig = new ColorPickerHDRConfig(-1, 5, 0, 3);
 #endif
 
 
