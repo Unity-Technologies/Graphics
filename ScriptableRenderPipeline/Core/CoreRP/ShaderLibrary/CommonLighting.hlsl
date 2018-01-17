@@ -317,6 +317,8 @@ real3x3 GetLocalFrame(real3 localZ)
     real3 localX = real3(c * x * a - 1, sz * b, c);
     real3 localY = real3(b, y * ya - sz, y);
 
+    // Note: due to the quaternion formulation, the generated frame is rotated by 180 degrees,
+    // s.t. if localZ = {0, 0, 1}, then localX = {-1, 0, 0} and localY = {0, -1, 0}.
     return real3x3(localX, localY, localZ);
 }
 
