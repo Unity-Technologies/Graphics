@@ -18,7 +18,6 @@ void GetSurfaceData(float2 texCoordDS, float3x3 decalToWorld, out DecalSurfaceDa
 	ZERO_INITIALIZE(UVMapping, texCoord);
 	texCoord.uv = texCoordDS.xy;
 #if _NORMALMAP
-//	surfaceData.normalWS.xyz = mul((float3x3)_DecalToWorldR, SAMPLE_UVMAPPING_NORMALMAP(_NormalMap, sampler_NormalMap, texCoord, 1)) * 0.5f + 0.5f;
 	surfaceData.normalWS.xyz = mul(decalToWorld, SAMPLE_UVMAPPING_NORMALMAP(_NormalMap, sampler_NormalMap, texCoord, 1)) * 0.5f + 0.5f;
 	surfaceData.normalWS.w = totalBlend;
 #endif

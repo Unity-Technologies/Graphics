@@ -18,7 +18,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         private const int kDecalBlockSize = 128;
-        private const int kDrawIndexedBatchSize = 256; // needs to match instance count in the shader
+
+        // to work on Vulkan Mobile?
+        // Core\CoreRP\ShaderLibrary\UnityInstancing.hlsl
+        // #if defined(SHADER_API_VULKAN) && defined(SHADER_API_MOBILE)
+        //      #define UNITY_INSTANCED_ARRAY_SIZE  250
+        private const int kDrawIndexedBatchSize = 250; 
 
         // cube mesh bounds for decal
         static Vector4 kMin = new Vector4(-0.5f, -1.0f, -0.5f, 1.0f);
@@ -130,9 +135,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     m_InstanceMatrices[instanceCount] = m_CachedTransforms[decalIndex];
                     instanceCount++;
-                    if (instanceCount == 256)
+                    if (instanceCount == kDrawIndexedBatchSize)
                     {
-                        cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Decals[0].m_Material, 0, m_InstanceMatrices, 256);
+                        cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Decals[0].m_Material, 0, m_InstanceMatrices, kDrawIndexedBatchSize);
                         instanceCount = 0;
                     }
                 }

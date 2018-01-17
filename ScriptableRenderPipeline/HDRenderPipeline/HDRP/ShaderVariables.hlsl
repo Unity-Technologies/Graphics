@@ -272,11 +272,7 @@ float4x4 OptimizeProjectionMatrix(float4x4 M)
     #include "ShaderVariablesMatrixDefsHDCamera.hlsl"
 #endif
 
-#ifdef UNITY_MATERIAL_DECAL
-#include "UnityInstancing.hlsl"
-#else
 #include "CoreRP/ShaderLibrary/UnityInstancing.hlsl"
-#endif
 #include "ShaderVariablesFunctions.hlsl"
 
 #endif // UNITY_SHADER_VARIABLES_INCLUDED
