@@ -887,6 +887,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         RenderTransparentDepthPostpass(m_CullResults, camera, renderContext, cmd, ForwardPass.Transparent);
 
                         PushFullScreenDebugTexture(cmd, m_CameraColorBuffer, hdCamera, renderContext, FullScreenDebugMode.NanTracker);
+                        PushFullScreenDebugTexture(cmd, m_CameraColorBuffer, hdCamera, renderContext, FullScreenDebugMode.HDRBuffer);
+                        PushFullScreenDebugTexture(cmd, m_CameraColorBuffer, hdCamera, renderContext, FullScreenDebugMode.LuxMeterBuffer);
 
                         RenderGaussianPyramidColor(camera, cmd, renderContext, FullScreenDebugMode.FinalColorPyramid);
 

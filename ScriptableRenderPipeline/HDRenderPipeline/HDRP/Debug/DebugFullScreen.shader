@@ -40,7 +40,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             {
                 Varyings output;
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
-                output.texcoord   = GetFullScreenTriangleTexCoord(input.vertexID);
+                output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
 
                 return output;
             }
@@ -100,6 +100,37 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                 return mv;
             }
             // <<<
+
+            float4 DisplayPixelInformationAtMousePosition(Varyings input, float4 result, float4 mouseResult)
+            {
+                if (_MousePixelCoord.z >= 0.0 && _MousePixelCoord.z <= 1.0 && _MousePixelCoord.w >= 0 && _MousePixelCoord.w <= 1.0)
+                {
+                    // Display message offset:
+                    int displayTextOffsetX = 1.5 * DEBUG_FONT_TEXT_WIDTH;
+                    #if UNITY_UV_STARTS_AT_TOP
+                    int displayTextOffsetY = -DEBUG_FONT_TEXT_HEIGHT;
+                    #else
+                    int displayTextOffsetY = DEBUG_FONT_TEXT_HEIGHT;
+                    #endif
+
+                    uint2 displayUnormCoord = uint2(_MousePixelCoord.x + displayTextOffsetX, _MousePixelCoord.y + displayTextOffsetY);
+                    uint2 unormCoord = input.positionCS.xy;
+
+                    float3 fontColor = float3(1.0, 0.0, 0.0);
+                    DrawFloat(mouseResult.x, fontColor, unormCoord, displayUnormCoord, result.rgb);
+                    displayUnormCoord.x = _MousePixelCoord.x + displayTextOffsetX;
+                    displayUnormCoord.y += displayTextOffsetY;
+                    DrawFloat(mouseResult.y, fontColor, unormCoord, displayUnormCoord, result.rgb);
+                    displayUnormCoord.x = _MousePixelCoord.x + displayTextOffsetX;
+                    displayUnormCoord.y += displayTextOffsetY;
+                    DrawFloat(mouseResult.z, fontColor, unormCoord, displayUnormCoord, result.rgb);
+                    displayUnormCoord.x = _MousePixelCoord.x + displayTextOffsetX;
+                    displayUnormCoord.y += displayTextOffsetY;
+                    DrawFloat(mouseResult.w, fontColor, unormCoord, displayUnormCoord, result.rgb);
+                }
+
+                return result;
+            }
 
             float4 GetResult(Varyings input, float2 coord)
             {
@@ -191,6 +222,19 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                     float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, coord);
                     return float4(color.rrr / (color.rrr + 1), 1.0);
                 }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_HDRBUFFER)
+                {
+                    float4 result       = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, coord);
+                    float4 mouseResult  = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, _MousePixelCoord.zw);
+                    return DisplayPixelInformationAtMousePosition(input, result, mouseResult);
+                }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_LUX_METER_BUFFER)
+                {
+                    float4 result       = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, coord);
+                    result.rgb = GetColorCodeFunction(result.x, _DebugLuxMeterParam);
+                    float4 mouseResult  = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, _MousePixelCoord.zw);
+                    return DisplayPixelInformationAtMousePosition(input, result, mouseResult);
+                }
 
                 return float4(0.0, 0.0, 0.0, 0.0);
             }
@@ -198,31 +242,6 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             float4 Frag(Varyings input) : SV_Target
             {
                 float4 result = GetResult(input, input.texcoord);
-
-                if (_MousePixelCoord.z >= 0.0 && _MousePixelCoord.z <= 1.0 && _MousePixelCoord.w >= 0 && _MousePixelCoord.w <= 1.0)
-                {
-                    // Display message offset:
-                    int displayTextOffsetX = 1.5 * DEBUG_FONT_TEXT_WIDTH;
-                    #if UNITY_UV_STARTS_AT_TOP
-                    int displayTextOffsetY = -DEBUG_FONT_TEXT_HEIGHT;
-                    #else
-                    int displayTextOffsetY = DEBUG_FONT_TEXT_HEIGHT;
-                    #endif
-
-                    uint2 displayUnormCoord = uint2(_MousePixelCoord.x + displayTextOffsetX, _MousePixelCoord.y + displayTextOffsetY);
-                    uint2 unormCoord = input.positionCS.xy;
-
-                    float4 mouseResult = GetResult(input, _MousePixelCoord.zw);
-
-                    float3 fontColor = float3(1.0, 0.0, 0.0);
-                    DrawFloat(mouseResult.x, fontColor, unormCoord, displayUnormCoord, result.rgb);
-                    displayUnormCoord.x = _MousePixelCoord.x + displayTextOffsetX;
-                    displayUnormCoord.y += displayTextOffsetY;
-                    DrawFloat(mouseResult.y, fontColor, unormCoord, displayUnormCoord, result.rgb);
-                    displayUnormCoord.x = _MousePixelCoord.x + displayTextOffsetX;
-                    displayUnormCoord.y += displayTextOffsetY;
-                    DrawFloat(mouseResult.z, fontColor, unormCoord, displayUnormCoord, result.rgb);
-                }
 
                 return result;
             }

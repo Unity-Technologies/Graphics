@@ -8,8 +8,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public enum FullScreenDebugMode
     {
         None,
+
         // Lighting
         MinLightingFullScreenDebug,
+        LuxMeterBuffer,
         SSAO,
         DeferredShadows,
         PreRefractionColorPyramid,
@@ -19,6 +21,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Rendering
         MinRenderingFullScreenDebug,
+        HDRBuffer,
         MotionVectors,
         NanTracker,
         MaxRenderingFullScreenDebug
