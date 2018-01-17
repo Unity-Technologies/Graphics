@@ -300,7 +300,8 @@ real3 GetViewReflectedNormal(real3 N, real3 V, out real NdotV)
     return N;
 }
 
-// Generates an orthonormal right-handed basis from a unit vector.
+// Generates an orthonormal basis from a unit vector.
+// The resulting rotation matrix has the determinant of +1.
 // Ref: http://marc-b-reynolds.github.io/quaternions/2016/07/06/Orthonormal.html
 real3x3 GetLocalFrame(real3 localZ)
 {
