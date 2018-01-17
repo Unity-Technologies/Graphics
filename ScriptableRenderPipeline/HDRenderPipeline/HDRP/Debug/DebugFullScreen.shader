@@ -19,7 +19,6 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             #include "CoreRP/ShaderLibrary/Common.hlsl"
             #include "../ShaderVariables.hlsl"
             #include "../Debug/DebugDisplay.cs.hlsl"
-            #include "../Debug/DebugDisplay.hlsl"
 
             TEXTURE2D(_DebugFullScreenTexture);
             SAMPLER(sampler_DebugFullScreenTexture);
@@ -101,51 +100,20 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             }
             // <<<
 
-            float4 DisplayPixelInformationAtMousePosition(Varyings input, float4 result, float4 mouseResult)
-            {
-                if (_MousePixelCoord.z >= 0.0 && _MousePixelCoord.z <= 1.0 && _MousePixelCoord.w >= 0 && _MousePixelCoord.w <= 1.0)
-                {
-                    // Display message offset:
-                    int displayTextOffsetX = 1.5 * DEBUG_FONT_TEXT_WIDTH;
-                    #if UNITY_UV_STARTS_AT_TOP
-                    int displayTextOffsetY = -DEBUG_FONT_TEXT_HEIGHT;
-                    #else
-                    int displayTextOffsetY = DEBUG_FONT_TEXT_HEIGHT;
-                    #endif
-
-                    uint2 displayUnormCoord = uint2(_MousePixelCoord.x + displayTextOffsetX, _MousePixelCoord.y + displayTextOffsetY);
-                    uint2 unormCoord = input.positionCS.xy;
-
-                    float3 fontColor = float3(1.0, 0.0, 0.0);
-                    DrawFloat(mouseResult.x, fontColor, unormCoord, displayUnormCoord, result.rgb);
-                    displayUnormCoord.x = _MousePixelCoord.x + displayTextOffsetX;
-                    displayUnormCoord.y += displayTextOffsetY;
-                    DrawFloat(mouseResult.y, fontColor, unormCoord, displayUnormCoord, result.rgb);
-                    displayUnormCoord.x = _MousePixelCoord.x + displayTextOffsetX;
-                    displayUnormCoord.y += displayTextOffsetY;
-                    DrawFloat(mouseResult.z, fontColor, unormCoord, displayUnormCoord, result.rgb);
-                    displayUnormCoord.x = _MousePixelCoord.x + displayTextOffsetX;
-                    displayUnormCoord.y += displayTextOffsetY;
-                    DrawFloat(mouseResult.w, fontColor, unormCoord, displayUnormCoord, result.rgb);
-                }
-
-                return result;
-            }
-
-            float4 GetResult(Varyings input, float2 coord)
+            float4 Frag(Varyings input) : SV_Target
             {
                 // SSAO
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_SSAO)
                 {
-                    return 1.0f - SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, coord).xxxx;
+                    return 1.0f - SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, input.texcoord).xxxx;
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_NAN_TRACKER)
                 {
-#if UNITY_UV_STARTS_AT_TOP
+                    #if UNITY_UV_STARTS_AT_TOP
                     input.texcoord.y = 1.0 - input.texcoord.y;
-#endif
+                    #endif
 
-                    float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, coord);
+                    float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, input.texcoord);
 
                     if (any(isnan(color)) || any(isinf(color)))
                     {
@@ -161,7 +129,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_MOTION_VECTORS)
                 {
-                    float2 mv = SampleMotionVectors(coord);
+                    float2 mv = SampleMotionVectors(input.texcoord);
 
                     // Background color intensity - keep this low unless you want to make your eyes bleed
                     const float kIntensity = 0.15;
@@ -208,42 +176,22 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_DEFERRED_SHADOWS)
                 {
-                    float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, coord);
+                    float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, input.texcoord);
                     return float4(color.rgb, 0.0);
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_PRE_REFRACTION_COLOR_PYRAMID
                     || _FullScreenDebugMode == FULLSCREENDEBUGMODE_FINAL_COLOR_PYRAMID)
                 {
-                    float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, coord);
+                    float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, input.texcoord);
                     return float4(color.rgb, 1.0);
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_DEPTH_PYRAMID)
                 {
-                    float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, coord);
+                    float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, input.texcoord);
                     return float4(color.rrr / (color.rrr + 1), 1.0);
-                }
-                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_HDRBUFFER)
-                {
-                    float4 result       = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, coord);
-                    float4 mouseResult  = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, _MousePixelCoord.zw);
-                    return DisplayPixelInformationAtMousePosition(input, result, mouseResult);
-                }
-                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_LUX_METER_BUFFER)
-                {
-                    float4 result       = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, coord);
-                    result.rgb = GetColorCodeFunction(result.x, _DebugLuxMeterParam);
-                    float4 mouseResult  = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, _MousePixelCoord.zw);
-                    return DisplayPixelInformationAtMousePosition(input, result, mouseResult);
                 }
 
                 return float4(0.0, 0.0, 0.0, 0.0);
-            }
-
-            float4 Frag(Varyings input) : SV_Target
-            {
-                float4 result = GetResult(input, input.texcoord);
-
-                return result;
             }
 
             ENDHLSL
