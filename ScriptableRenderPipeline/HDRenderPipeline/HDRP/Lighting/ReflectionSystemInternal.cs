@@ -26,20 +26,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
         {
             m_Parameters = parameters;
 
-            m_PlanarReflectionProbes = new HashSet<PlanarReflectionProbe>();
-            m_PlanarReflectionProbe_DirtyBounds = new HashSet<PlanarReflectionProbe>();
+            // Runtime collections
             m_PlanarReflectionProbeBounds = new Dictionary<PlanarReflectionProbe, BoundingSphere>(parameters.maxPlanarReflectionProbes);
             m_PlanarReflectionProbesArray = new PlanarReflectionProbe[parameters.maxPlanarReflectionProbes];
             m_PlanarReflectionProbeBoundsArray = new BoundingSphere[parameters.maxPlanarReflectionProbes];
+            m_PlanarReflectionProbe_RealtimeUpdate_WorkArray = new PlanarReflectionProbe[parameters.maxPlanarReflectionProbes];
+
+            // Persistent collections
+            m_PlanarReflectionProbes = new HashSet<PlanarReflectionProbe>();
+            m_PlanarReflectionProbe_DirtyBounds = new HashSet<PlanarReflectionProbe>();
             m_PlanarReflectionProbe_RequestRealtimeRender = new HashSet<PlanarReflectionProbe>();
             m_PlanarReflectionProbe_RealtimeUpdate = new HashSet<PlanarReflectionProbe>();
             m_PlanarReflectionProbe_PerCamera_RealtimeUpdate = new HashSet<PlanarReflectionProbe>();
-            m_PlanarReflectionProbe_RealtimeUpdate_WorkArray = new PlanarReflectionProbe[parameters.maxPlanarReflectionProbes];
 
             if (previous != null)
             {
                 m_PlanarReflectionProbes.UnionWith(previous.m_PlanarReflectionProbes);
                 m_PlanarReflectionProbe_DirtyBounds.UnionWith(m_PlanarReflectionProbes);
+                m_PlanarReflectionProbe_RequestRealtimeRender.UnionWith(previous.m_PlanarReflectionProbe_RequestRealtimeRender);
+                m_PlanarReflectionProbe_RealtimeUpdate.UnionWith(previous.m_PlanarReflectionProbe_RealtimeUpdate);
+                m_PlanarReflectionProbe_PerCamera_RealtimeUpdate.UnionWith(previous.m_PlanarReflectionProbe_PerCamera_RealtimeUpdate);
             }
         }
 
