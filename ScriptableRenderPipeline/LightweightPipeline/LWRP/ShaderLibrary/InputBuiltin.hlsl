@@ -87,12 +87,7 @@ CBUFFER_END
 
 // ----------------------------------------------------------------------------
 
-CBUFFER_START(UnityPerDraw : register(b0))
-#ifdef UNITY_USE_PREMULTIPLIED_MATRICES
-float4x4 glstate_matrix_mvp;
-float4x4 glstate_matrix_modelview0;
-float4x4 glstate_matrix_invtrans_modelview0;
-#endif
+CBUFFER_START(UnityPerDraw)
 
 float4x4 unity_ObjectToWorld;
 float4x4 unity_WorldToObject;
@@ -124,6 +119,12 @@ float4 unity_ProbesOcclusion;
 
 // HDR environment map decode instructions
 half4 unity_SpecCube0_HDR;
+
+// These are set internally by the engine upon request by RendererConfiguration.
+// Check GetRendererSettings in LightweightPipeline.cs
+half4 unity_LightIndicesOffsetAndCount;
+half4 unity_4LightIndices0;
+half4 unity_4LightIndices1;
 
 CBUFFER_END
 
