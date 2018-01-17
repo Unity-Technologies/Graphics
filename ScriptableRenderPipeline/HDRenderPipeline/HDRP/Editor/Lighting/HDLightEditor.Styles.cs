@@ -49,6 +49,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent contactShadowDistanceScaleFactor = new GUIContent("Distance Scale Factor", "Contact Shadows are scaled up with distance. Use this parameter to dampen this effect.");
             public readonly GUIContent contactShadowMaxDistance = new GUIContent("Max Distance", "Distance from the camera in world units at which contact shadows are faded out to zero.");
             public readonly GUIContent contactShadowFadeDistance = new GUIContent("Fade Distance", "Distance in world units over which the contact shadows are faded out (see Max Distance).");
+            public readonly GUIContent contactShadowSampleCount = new GUIContent("Sample Count", "Number of samples when ray casting.");
 
             public Styles()
             {

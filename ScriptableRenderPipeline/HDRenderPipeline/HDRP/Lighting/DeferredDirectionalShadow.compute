@@ -1,5 +1,6 @@
 ﻿// Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel DeferredDirectionalShadow
+#pragma kernel DeferredDirectionalShadow				DEFERRED_DIRECTIONAL=DeferredDirectionalShadow
+#pragma kernel DeferredDirectionalShadow_Contact		DEFERRED_DIRECTIONAL=DeferredDirectionalShadow_Contact	ENABLE_CONTACT_SHADOWS
 
 #include "CoreRP/ShaderLibrary/Common.hlsl"
 #include "../ShaderVariables.hlsl"
@@ -13,6 +14,7 @@ CBUFFER_START(DeferredShadowParameters)
 float   _DirectionalShadowIndex;
 float3  _LightDirection;
 float4  _ScreenSpaceShadowsParameters;
+uint	_SampleCount;
 CBUFFER_END
 
 #define _ContactShadowLength                _ScreenSpaceShadowsParameters.x
@@ -25,8 +27,6 @@ CBUFFER_END
 // Return 1.0 if occluded 0.0 if not
 float4 ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirection, float rayLength)
 {
-	int stepCount = 8;
-
 	uint3 hashInput = uint3(abs(GetAbsolutePositionWS(positionWS)) * 1000);
 	// Dither pattern is shifted by 0.5 because we want to jitter the ray starting position backward and forward (so we need values between -0.5 and 0.5)
 	float ditherBias = 0.5;
@@ -62,13 +62,12 @@ float4 ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirection, float ra
 	float2 rayUV = rayCS.xy * 0.5f;
 	rayUV.y = -rayUV.y;
 
-	float step = 1.0 / stepCount;
+	float step = 1.0 / _SampleCount;
 	float compareThreshold = abs(rayOrthoViewSpace.z - rayStartCS.z) * step;
 
 	float occluded = 0.0f;
 
-	[unroll]
-	for (int i = 0; i < stepCount; i++)
+	for (int i = 0; i < _SampleCount; i++)
 	{
 		// Step for this sample
 		float sampleStep = ((i + 1) * step + step * dither);
@@ -98,7 +97,7 @@ float4 ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirection, float ra
 }
 
 [numthreads(DEFERRED_SHADOW_TILE_SIZE, DEFERRED_SHADOW_TILE_SIZE, 1)]
-void DeferredDirectionalShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void DEFERRED_DIRECTIONAL(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
 	uint2 pixelCoord = groupId * DEFERRED_SHADOW_TILE_SIZE + groupThreadId;
 	uint2 tileCoord = groupId;
@@ -106,11 +105,16 @@ void DeferredDirectionalShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 gro
 	PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, tileCoord);
 
 	float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.positionSS).x;
+
+	if (depth == UNITY_RAW_FAR_CLIP_VALUE)
+		return;
+
 	UpdatePositionInput(depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, posInput);
 
 	ShadowContext shadowContext = InitShadowContext();
 	float shadow = GetDirectionalShadowAttenuation(shadowContext, posInput.positionWS, float3(0.0, 0.0, 0.0), (uint)_DirectionalShadowIndex, float3(0.0, 0.0, 0.0));
 
+#if ENABLE_CONTACT_SHADOWS
 	float contactShadow = 1.0f;
 	if (_ContactShadowLength > 0.0f)
 	{
@@ -118,6 +122,7 @@ void DeferredDirectionalShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 gro
 		contactShadow = 1.0 - result.x * saturate((_ContactShadowFadeEnd - posInput.linearDepth) * _ContactShadowFadeOneOverRange);
 		shadow *= contactShadow;
 	}
+#endif
 
 	_DeferredShadowTextureUAV[pixelCoord] = float4(shadow, 0.0, 0.0, 0.0);
 }

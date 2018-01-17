@@ -15,6 +15,7 @@ MonoBehaviour:
     type: 2}
   m_FrameSettings:
     enableShadow: 1
+    enableContactShadows: 1
     enableSSR: 1
     enableSSAO: 1
     enableSubsurfaceScattering: 1
