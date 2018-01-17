@@ -201,20 +201,27 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
 
                 if (_MousePixelCoord.z >= 0.0 && _MousePixelCoord.z <= 1.0 && _MousePixelCoord.w >= 0 && _MousePixelCoord.w <= 1.0)
                 {
-                    float2 unormTextCoord2d = float2(_MousePixelCoord.x - DEBUG_FONT_TEXT_WIDTH, _MousePixelCoord.y - DEBUG_FONT_TEXT_WIDTH * DEBUG_FONT_TEXT_SIZE);
-                    float2 unormCoord2d = input.positionCS.xy;
+                    // Display message offset:
+                    int displayTextOffsetX = 1.5 * DEBUG_FONT_TEXT_WIDTH;
+                    #if UNITY_UV_STARTS_AT_TOP
+                    int displayTextOffsetY = -DEBUG_FONT_TEXT_HEIGHT;
+                    #else
+                    int displayTextOffsetY = DEBUG_FONT_TEXT_HEIGHT;
+                    #endif
 
-                    float4 mouseResult = GetResult(input, _MousePixelCoord);
+                    uint2 displayUnormCoord = uint2(_MousePixelCoord.x + displayTextOffsetX, _MousePixelCoord.y + displayTextOffsetY);
+                    uint2 unormCoord = input.positionCS.xy;
 
-                    float2 textCoord = unormTextCoord2d;
-                    textCoord.x -= GetTextSize(mouseResult.x, DEBUG_FONT_TEXT_SIZE);
+                    float4 mouseResult = GetResult(input, _MousePixelCoord.zw);
 
-                    result.rgb += DrawInteger(mouseResult.x, unormCoord2d, textCoord, DEBUG_FONT_TEXT_SIZE);
-                    result.rgb += DrawCharacter(' ', unormCoord2d, textCoord, 1.0f);
-                    result.rgb += DrawCharacter('t', unormCoord2d, textCoord, 1.0f);
-                    result.rgb += DrawCharacter('e', unormCoord2d, textCoord, 1.0f);
-                    result.rgb += DrawCharacter('s', unormCoord2d, textCoord, 1.0f);
-                    result.rgb += DrawCharacter('t', unormCoord2d, textCoord, 1.0f);
+                    float3 fontColor = float3(1.0, 0.0, 0.0);
+                    DrawFloat(mouseResult.x, fontColor, unormCoord, displayUnormCoord, result.rgb);
+                    displayUnormCoord.x = _MousePixelCoord.x + displayTextOffsetX;
+                    displayUnormCoord.y += displayTextOffsetY;
+                    DrawFloat(mouseResult.y, fontColor, unormCoord, displayUnormCoord, result.rgb);
+                    displayUnormCoord.x = _MousePixelCoord.x + displayTextOffsetX;
+                    displayUnormCoord.y += displayTextOffsetY;
+                    DrawFloat(mouseResult.z, fontColor, unormCoord, displayUnormCoord, result.rgb);
                 }
 
                 return result;
