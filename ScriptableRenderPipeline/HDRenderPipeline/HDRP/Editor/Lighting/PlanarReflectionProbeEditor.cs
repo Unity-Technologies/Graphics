@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEditor.Callbacks;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
@@ -20,6 +21,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public static bool TryGetUIStateFor(PlanarReflectionProbe p, out PlanarReflectionProbeUI r)
         {
             return s_StateMap.TryGetValue(p, out r);
+        }
+
+        [DidReloadScripts]
+        static void DidReloadScripts()
+        {
+            foreach (var probe in FindObjectsOfType<PlanarReflectionProbe>())
+            {
+                if (probe.enabled)
+                    ReflectionSystem.RegisterProbe(probe);
+            }
         }
 
         SerializedPlanarReflectionProbe m_SerializedAsset;

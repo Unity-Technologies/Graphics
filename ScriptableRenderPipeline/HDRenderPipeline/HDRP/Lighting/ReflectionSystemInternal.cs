@@ -321,7 +321,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
         {
             nearClipPlane = viewerCamera.nearClipPlane;
             farClipPlane = viewerCamera.farClipPlane;
-            aspect = viewerCamera.aspect;
+            aspect = 1;
             fov = viewerCamera.fieldOfView;
             clearFlags = viewerCamera.clearFlags;
             backgroundColor = viewerCamera.backgroundColor;
@@ -341,7 +341,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             captureRotation = Quaternion.LookRotation(forward, up);
         }
 
-        static HDCamera GetRenderHDCamera(PlanarReflectionProbe probe)
+        public static HDCamera GetRenderHDCamera(PlanarReflectionProbe probe)
         {
             var camera = GetRenderCamera();
 
