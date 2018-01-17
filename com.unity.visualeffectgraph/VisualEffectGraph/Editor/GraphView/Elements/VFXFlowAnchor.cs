@@ -2,7 +2,7 @@ using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 using System.Linq;
 using Type = System.Type;
 
@@ -41,7 +41,7 @@ namespace UnityEditor.VFX.UI
             return anchor;
         }
 
-        protected VFXFlowAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type) : base(anchorOrientation, anchorDirection,Capacity.Multi, type)
+        protected VFXFlowAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type) : base(anchorOrientation, anchorDirection, Capacity.Multi, type)
         {
             AddToClassList("EdgeConnector");
 
