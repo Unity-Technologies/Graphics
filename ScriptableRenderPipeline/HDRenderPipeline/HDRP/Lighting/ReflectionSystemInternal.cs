@@ -263,12 +263,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
                 camera.clearFlags = viewerCamera.clearFlags;
                 camera.backgroundColor = viewerCamera.backgroundColor;
 
-                var plane = probe.captureMirrorPlane;
-                var reflectionMatrix = CalculateReflectionMatrix(plane);
-                camera.worldToCameraMatrix = (viewerCamera.worldToCameraMatrix * reflectionMatrix) * Matrix4x4.Scale(new Vector3(-1, 1, 1));
-                var clipPlane = CameraSpacePlane(camera, probe.captureMirrorPlanePosition, probe.captureMirrorPlaneNormal, 1.0f, 0);
-                var proj = camera.CalculateObliqueMatrix(clipPlane);
-                camera.projectionMatrix = proj;
+                var planeNormal = probe.captureMirrorPlaneNormal;
+                var planePosition = probe.captureMirrorPlanePosition;
+                var sourceProj = viewerCamera.projectionMatrix;
+
+                var planeWS = CameraUtils.Plane(planePosition, planeNormal);
+                var reflectionMatrix = CameraUtils.CalculateReflectionMatrix(planeWS);
+                var worldToCameraMatrix = (viewerCamera.worldToCameraMatrix * reflectionMatrix) * Matrix4x4.Scale(new Vector3(-1, 1, 1));
+                var clipPlane = CameraUtils.CameraSpacePlane(camera.worldToCameraMatrix, planePosition, planeNormal);
+                var proj = CameraUtils.CalculateObliqueMatrix(sourceProj, clipPlane);
 
                 var newPos = reflectionMatrix.MultiplyPoint(viewerCamera.transform.position);
                 camera.transform.position = newPos;
@@ -276,6 +279,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
                 var forward = reflectionMatrix.MultiplyVector(viewerCamera.transform.forward);
                 var up = reflectionMatrix.MultiplyVector(viewerCamera.transform.up);
                 camera.transform.rotation = Quaternion.LookRotation(forward, up);
+
+                camera.projectionMatrix = proj;
+                camera.worldToCameraMatrix = worldToCameraMatrix;
 
                 //camera.fieldOfView = GetCaptureCameraFOVFor(probe, viewerCamera);
                 //camera.aspect = 1;

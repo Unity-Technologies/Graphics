@@ -10,11 +10,11 @@
             return plane;
         }
 
-        public static Vector4 Plane(Matrix4x4 basis, Vector3 pos, Vector3 normal, float sideSign = 1, float clipPlaneOffset = 0)
+        public static Vector4 CameraSpacePlane(Matrix4x4 worldToCamera, Vector3 pos, Vector3 normal, float sideSign = 1, float clipPlaneOffset = 0)
         {
             var offsetPos = pos + normal * clipPlaneOffset;
-            var cpos = basis.MultiplyPoint(offsetPos);
-            var cnormal = basis.MultiplyVector(normal).normalized * sideSign;
+            var cpos = worldToCamera.MultiplyPoint(offsetPos);
+            var cnormal = worldToCamera.MultiplyVector(normal).normalized * sideSign;
             return new Vector4(cnormal.x, cnormal.y, cnormal.z, -Vector3.Dot(cpos, cnormal));
         }
 
