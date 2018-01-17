@@ -242,6 +242,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             ctr.position = captureToWorld.GetColumn(3);
             ctr.rotation = captureToWorld.rotation;
 
+            camera.ResetProjectionMatrix();
+            camera.ResetWorldToCameraMatrix();
+
             if (viewerCamera == null)
             {
                 camera.fieldOfView = GetCaptureCameraFOVFor(probe, viewerCamera);
@@ -251,11 +254,73 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             }
             else
             {
-                camera.fieldOfView = GetCaptureCameraFOVFor(probe, viewerCamera);
-                camera.aspect = 1;
-                camera.nearClipPlane = probe.captureNearPlane;
-                camera.farClipPlane = probe.captureFarPlane;
+                camera.farClipPlane = viewerCamera.farClipPlane;
+                camera.nearClipPlane = viewerCamera.nearClipPlane;
+                camera.orthographic = viewerCamera.orthographic;
+                camera.fieldOfView = viewerCamera.fieldOfView;
+                camera.aspect = viewerCamera.aspect;
+                camera.orthographicSize = viewerCamera.orthographicSize;
+                camera.clearFlags = viewerCamera.clearFlags;
+                camera.backgroundColor = viewerCamera.backgroundColor;
+
+                var plane = probe.captureMirrorPlane;
+                var reflectionMatrix = CalculateReflectionMatrix(plane);
+                camera.worldToCameraMatrix = (viewerCamera.worldToCameraMatrix * reflectionMatrix) * Matrix4x4.Scale(new Vector3(-1, 1, 1));
+                var clipPlane = CameraSpacePlane(camera, probe.captureMirrorPlanePosition, probe.captureMirrorPlaneNormal, 1.0f, 0);
+                var proj = camera.CalculateObliqueMatrix(clipPlane);
+                camera.projectionMatrix = proj;
+
+                var newPos = reflectionMatrix.MultiplyPoint(viewerCamera.transform.position);
+                camera.transform.position = newPos;
+
+                var forward = reflectionMatrix.MultiplyVector(viewerCamera.transform.forward);
+                var up = reflectionMatrix.MultiplyVector(viewerCamera.transform.up);
+                camera.transform.rotation = Quaternion.LookRotation(forward, up);
+
+                //camera.fieldOfView = GetCaptureCameraFOVFor(probe, viewerCamera);
+                //camera.aspect = 1;
+                //camera.nearClipPlane = probe.captureNearPlane;
+                //camera.farClipPlane = probe.captureFarPlane;
+
+
             }
+        }
+
+        // Given position/normal of the plane, calculates plane in camera space.
+        static Vector4 CameraSpacePlane(Camera cam, Vector3 pos, Vector3 normal, float sideSign, float clipPlaneOffset)
+        {
+            Vector3 offsetPos = pos + normal * clipPlaneOffset;
+            Matrix4x4 m = cam.worldToCameraMatrix;
+            Vector3 cpos = m.MultiplyPoint(offsetPos);
+            Vector3 cnormal = m.MultiplyVector(normal).normalized * sideSign;
+            return new Vector4(cnormal.x, cnormal.y, cnormal.z, -Vector3.Dot(cpos, cnormal));
+        }
+
+        static Matrix4x4 CalculateReflectionMatrix(Vector4 plane)
+        {
+            var reflectionMat = new Matrix4x4();
+
+            reflectionMat.m00 = (1F - 2F * plane[0] * plane[0]);
+            reflectionMat.m01 = (-2F * plane[0] * plane[1]);
+            reflectionMat.m02 = (-2F * plane[0] * plane[2]);
+            reflectionMat.m03 = (-2F * plane[3] * plane[0]);
+
+            reflectionMat.m10 = (-2F * plane[1] * plane[0]);
+            reflectionMat.m11 = (1F - 2F * plane[1] * plane[1]);
+            reflectionMat.m12 = (-2F * plane[1] * plane[2]);
+            reflectionMat.m13 = (-2F * plane[3] * plane[1]);
+
+            reflectionMat.m20 = (-2F * plane[2] * plane[0]);
+            reflectionMat.m21 = (-2F * plane[2] * plane[1]);
+            reflectionMat.m22 = (1F - 2F * plane[2] * plane[2]);
+            reflectionMat.m23 = (-2F * plane[3] * plane[2]);
+
+            reflectionMat.m30 = 0F;
+            reflectionMat.m31 = 0F;
+            reflectionMat.m32 = 0F;
+            reflectionMat.m33 = 1F;
+
+            return reflectionMat;
         }
 
         static HDCamera GetRenderHDCamera(PlanarReflectionProbe probe)
