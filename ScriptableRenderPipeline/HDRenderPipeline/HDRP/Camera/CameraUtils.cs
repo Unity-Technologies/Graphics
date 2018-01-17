@@ -18,6 +18,16 @@
             return new Vector4(cnormal.x, cnormal.y, cnormal.z, -Vector3.Dot(cpos, cnormal));
         }
 
+        public static Matrix4x4 CalculateWorldToCameraMatrix(Vector3 position, Quaternion rotation)
+        {
+            return Matrix4x4.Scale(new Vector3(1, 1, -1)) * Matrix4x4.TRS(position, rotation, Vector3.one).inverse;
+        }
+
+        public static Matrix4x4 CalculateWorldToCameraMatrix(Transform transform)
+        {
+            return Matrix4x4.Scale(new Vector3(1, 1, -1)) * transform.localToWorldMatrix.inverse;
+        }
+
         public static Matrix4x4 CalculateObliqueMatrix(Matrix4x4 sourceProjection, Vector4 clipPlane)
         {
             var projection = sourceProjection;
@@ -37,6 +47,16 @@
             projection[14] = c.w - projection[15];
 
             return projection;
+        }
+
+        public static Matrix4x4 CalculateReflectionMatrix(Vector3 position, Vector3 normal)
+        {
+            return CalculateReflectionMatrix(Plane(position, normal));
+        }
+
+        public static Matrix4x4 CalculateWorldToCameraMatrixMirror(Matrix4x4 worldToCamera, Matrix4x4 reflection)
+        {
+            return worldToCamera * reflection * Matrix4x4.Scale(new Vector3(-1, 1, 1));
         }
 
         public static Matrix4x4 CalculateReflectionMatrix(Vector4 plane)

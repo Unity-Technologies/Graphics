@@ -157,17 +157,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public Matrix4x4 GetCaptureViewProj(Camera viewerCamera)
-        {
-            return GetCaptureProjection(viewerCamera) * GetCaptureToWorld(viewerCamera);
-        }
-        public Matrix4x4 GetCaptureProjection(Camera viewerCamera)
-        {
-            var fov = ReflectionSystem.GetCaptureCameraFOVFor(this, viewerCamera);
-            var proj = Matrix4x4.Perspective(fov, 1, captureNearPlane, captureFarPlane);
-            return proj;
-        }
-
         public Matrix4x4 GetCaptureToWorld(Camera viewerCamera)
         {
             if (refreshMode == ReflectionProbeRefreshMode.EveryFrame
