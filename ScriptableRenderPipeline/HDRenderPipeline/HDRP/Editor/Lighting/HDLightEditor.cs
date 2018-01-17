@@ -331,15 +331,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         break;
 
                     case LightShape.Spot:
-                        settings.intensity.floatValue = LightUtils.ConvertSpotLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue, settings.spotAngle.floatValue, false);
+                        // Spot should used conversion which take into account the angle, and thus the intensity vary with angle.
+                        // This is not easy to manipulate for lighter, so we simply consider any spot light as just occluded point light. So reuse the same code.
+                        settings.intensity.floatValue = LightUtils.ConvertPointLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue);
+                        // TODO: What to do with box shape ?
+                        // var spotLightShape = (SpotLightShape)m_AdditionalLightData.spotLightShape.enumValueIndex;
                         break;
 
                     case LightShape.Rectangle:
-                        settings.intensity.floatValue = LightUtils.ConvertRectLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue, m_AdditionalLightData.shapeWidth.floatValue, m_AdditionalLightData.shapeHeight.floatValue);
+                        settings.intensity.floatValue = LightUtils.ConvertRectLightIntensity(m_AdditionalLightData.areaIntensity.floatValue, m_AdditionalLightData.shapeWidth.floatValue, m_AdditionalLightData.shapeHeight.floatValue);
                         break;
 
                     case LightShape.Line:
-                        settings.intensity.floatValue = LightUtils.calculateLineLightArea(m_AdditionalLightData.punctualIntensity.floatValue, k_LineWidth, m_AdditionalLightData.shapeWidth.floatValue);
+                        settings.intensity.floatValue = LightUtils.calculateLineLightArea(m_AdditionalLightData.areaIntensity.floatValue, k_LineWidth, m_AdditionalLightData.shapeWidth.floatValue);
                         break;
                 }
             }
